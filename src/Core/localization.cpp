@@ -81,43 +81,34 @@ namespace Engine
 
 	static void load_localization(Map<uint64_t, String>& out, const Path& path)
 	{
-		trinex_try
+		std::stringstream stream;
+
+		for (auto& entry : VFS::RecursiveDirectoryIterator(path))
 		{
+			if (entry.extension() != Constants::translation_config_extension)
+				continue;
+			info_log("Localization", "Loading localization file '%s'", entry.c_str());
+
+			FileReader reader(entry);
+			if (!reader.is_open())
+				continue;
+
 			std::stringstream stream;
+			stream << reader.read_string();
 
-			for (auto& entry : VFS::RecursiveDirectoryIterator(path))
+			String line;
+			while (std::getline(stream, line))
 			{
-				if (entry.extension() != Constants::translation_config_extension)
-					continue;
-				info_log("Localization", "Loading localization file '%s'", entry.c_str());
-
-				FileReader reader(entry);
-				if (!reader.is_open())
-					continue;
-
-				std::stringstream stream;
-				stream << reader.read_string();
-
-				String line;
-				while (std::getline(stream, line))
+				String key, value;
+				if (parse_string(line, key, value))
 				{
-					String key, value;
-					if (parse_string(line, key, value))
-					{
-						String p      = entry.relative(path);
-						key           = p.substr(0, p.length() - Constants::translation_config_extension.length()) + "/" + key;
-						uint64_t hash = memory_hash(key.c_str(), key.length());
-						out[hash]     = value;
-					}
+					String p      = entry.relative(path);
+					key           = p.substr(0, p.length() - Constants::translation_config_extension.length()) + "/" + key;
+					uint64_t hash = memory_hash(key.c_str(), key.length());
+					out[hash]     = value;
 				}
 			}
 		}
-#if TRINEX_WITH_EXCEPTIONS
-		trinex_catch(const std::exception& e)
-		{
-			error_log("Localization", "%s", e.what());
-		}
-#endif
 	}
 
 	Localization& Localization::reload(bool clear, bool with_default)

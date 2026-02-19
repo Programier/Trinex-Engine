@@ -466,17 +466,7 @@ namespace Engine
 		static void at(asIScriptGeneric* g)
 		{
 			ScriptVector::TypeInitializer initializer(g);
-
-			trinex_try
-			{
-				g->SetReturnAddress(&(m_self->at(g->GetArgQWord(0) * m_type_size)));
-			}
-#if TRINEX_WITH_EXCEPTIONS
-			trinex_catch(const std::exception& e)
-			{
-				asGetActiveContext()->SetException(e.what());
-			}
-#endif
+			g->SetReturnAddress(&(m_self->at(g->GetArgQWord(0) * m_type_size)));
 		}
 
 		static byte* front(Instance* self)
@@ -540,29 +530,20 @@ namespace Engine
 			if (m_self->capacity() >= result_cap)
 				return;
 
-			trinex_try
+			if (m_type)
 			{
-				if (m_type)
-				{
-					Instance new_buffer;
-					new_buffer.reserve(result_cap);
+				Instance new_buffer;
+				new_buffer.reserve(result_cap);
 
-					if (!m_self->empty())
-					{
-						new_buffer.m_finish = new_buffer.m_start + m_self->size();
-						call_copy_constructor_list(new_buffer.data(), new_buffer.data() + m_self->size(), m_self->data());
-					}
-					m_self->swap(new_buffer);
+				if (!m_self->empty())
+				{
+					new_buffer.m_finish = new_buffer.m_start + m_self->size();
+					call_copy_constructor_list(new_buffer.data(), new_buffer.data() + m_self->size(), m_self->data());
 				}
-				else
-					m_self->reserve(result_cap);
+				m_self->swap(new_buffer);
 			}
-#if TRINEX_WITH_EXCEPTIONS
-			trinex_catch(const std::exception& e)
-			{
-				asGetActiveContext()->SetException(e.what());
-			}
-#endif
+			else
+				m_self->reserve(result_cap);
 		}
 
 		static void reserve(asIScriptGeneric* g)

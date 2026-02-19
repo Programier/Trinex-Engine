@@ -51,7 +51,7 @@ namespace Engine
 			}
 
 			vk::DescriptorSetLayoutCreateInfo info({}, count, bindings);
-			m_set_layout = API->m_device.createDescriptorSetLayout(info);
+			m_set_layout = vk::check_result(API->m_device.createDescriptorSetLayout(info));
 
 			auto layouts = StackAllocator<vk::DescriptorSetLayout>::allocate(2);
 			layouts[0]   = m_set_layout;
@@ -59,7 +59,7 @@ namespace Engine
 			pipeline_info.setPSetLayouts(layouts).setSetLayoutCount(2);
 		}
 
-		m_layout = API->m_device.createPipelineLayout(pipeline_info);
+		m_layout = vk::check_result(API->m_device.createPipelineLayout(pipeline_info));
 	}
 
 	VulkanPipelineLayout::~VulkanPipelineLayout()
@@ -214,7 +214,7 @@ namespace Engine
 			size_t count = API->is_raytracing_supported() ? 9 : 8;
 
 			vk::DescriptorPoolCreateInfo info({}, s_descriptor_sets_per_pool, count, sizes);
-			m_pool = API->m_device.createDescriptorPool(info);
+			m_pool = vk::check_result(API->m_device.createDescriptorPool(info));
 		}
 
 		~VulkanDescriptorPool() { API->m_device.destroyDescriptorPool(m_pool); }
@@ -223,7 +223,7 @@ namespace Engine
 		{
 			reset_counters();
 			trinex_profile_cpu_n("VulkanDescriptorPool reset");
-			API->m_device.resetDescriptorPool(m_pool);
+			check_result(API->m_device.resetDescriptorPool(m_pool));
 			return *this;
 		}
 

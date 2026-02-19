@@ -37,7 +37,7 @@ namespace Engine
 
 	VulkanSwapchain::Semaphore::Semaphore()
 	{
-		m_semaphore = API->m_device.createSemaphore(vk::SemaphoreCreateInfo());
+		m_semaphore = vk::check_result(API->m_device.createSemaphore(vk::SemaphoreCreateInfo()));
 	}
 
 	VulkanSwapchain::Semaphore::Semaphore(Semaphore&& semaphore)
@@ -73,7 +73,7 @@ namespace Engine
 		                              API->m_graphics_queue->index());
 
 		builder.set_desired_present_mode(static_cast<VkPresentModeKHR>(m_present_mode));
-		auto capabilities = API->m_physical_device.getSurfaceCapabilitiesKHR(m_surface);
+		auto capabilities = vk::check_result(API->m_physical_device.getSurfaceCapabilitiesKHR(m_surface));
 
 		builder.add_image_usage_flags(
 		        static_cast<VkImageUsageFlags>(vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst));
@@ -168,23 +168,8 @@ namespace Engine
 		const auto prev_sync_index = m_sync_index;
 		m_sync_index               = (m_sync_index + 1) % m_image_present_semaphores.size();
 
-		vk::ResultValue<uint32_t> result = vk::ResultValue<uint32_t>(vk::Result::eSuccess, 0);
-
-		try
-		{
-			result = API->m_device.acquireNextImageKHR(m_swapchain, UINT64_MAX,
-			                                           m_image_present_semaphores[m_sync_index].semaphore());
-		}
-		catch (const vk::OutOfDateKHRError& e)
-		{
-			m_sync_index = prev_sync_index;
-			return OutOfDate;
-		}
-		catch (const vk::SurfaceLostKHRError& e)
-		{
-			m_sync_index = prev_sync_index;
-			return SurfaceLost;
-		}
+		vk::ResultValue<uint32_t> result =
+		        API->m_device.acquireNextImageKHR(m_swapchain, UINT64_MAX, m_image_present_semaphores[m_sync_index].semaphore());
 
 		if (result.result == vk::Result::eErrorOutOfDateKHR)
 		{
@@ -218,33 +203,23 @@ namespace Engine
 		auto image_index             = static_cast<uint32_t>(m_image_index);
 		vk::Semaphore wait_semaphore = render_finished_semaphore();
 		vk::PresentInfoKHR present_info(wait_semaphore, m_swapchain, image_index);
-		vk::Result result;
-		m_image_index = -1;
 
-		try
 		{
 			trinex_profile_cpu_n("VulkanSwapchain::Present KHR");
-			result = API->m_graphics_queue->present(present_info);
-		}
-		catch (const vk::OutOfDateKHRError& e)
-		{
-			return OutOfDate;
-		}
-		catch (const vk::SurfaceLostKHRError& e)
-		{
-			return SurfaceLost;
-		}
+			vk::Result result = API->m_graphics_queue->present(present_info);
+			m_image_index     = -1;
 
-		if (result == vk::Result::eErrorOutOfDateKHR)
-		{
-			return OutOfDate;
-		}
-		if (result == vk::Result::eErrorSurfaceLostKHR)
-		{
-			return SurfaceLost;
-		}
+			if (result == vk::Result::eErrorOutOfDateKHR)
+			{
+				return OutOfDate;
+			}
+			if (result == vk::Result::eErrorSurfaceLostKHR)
+			{
+				return SurfaceLost;
+			}
 
-		return Status::Success;
+			return Status::Success;
+		}
 	}
 
 	int_t VulkanSwapchain::try_present(int_t (VulkanSwapchain::*callback)(), bool skip_on_out_of_date)

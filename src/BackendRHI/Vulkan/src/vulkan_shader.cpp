@@ -11,7 +11,7 @@ namespace Engine
 	VulkanShader::VulkanShader(const byte* shader, size_t size)
 	{
 		vk::ShaderModuleCreateInfo info(vk::ShaderModuleCreateFlags(), size, reinterpret_cast<const uint32_t*>(shader));
-		m_shader = API->m_device.createShaderModule(info);
+		m_shader = vk::check_result(API->m_device.createShaderModule(info));
 	}
 
 	VulkanShader::~VulkanShader(){DESTROY_CALL(destroyShaderModule, m_shader)}

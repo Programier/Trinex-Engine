@@ -2,6 +2,7 @@
 #include <Core/etl/templates.hpp>
 #include <Core/logger.hpp>
 #include <Core/math/vector.hpp>
+#include <Core/memory.hpp>
 #include <Core/profiler.hpp>
 #include <ScriptEngine/script.hpp>
 #include <ScriptEngine/script_context.hpp>

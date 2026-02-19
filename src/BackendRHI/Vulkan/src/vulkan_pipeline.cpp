@@ -528,7 +528,7 @@ namespace Engine
 
 		auto find_shader_index = [&](const RHIShader* handle, vk::ShaderStageFlagBits stage) -> uint32_t {
 			if (handle == nullptr)
-				return vk::ShaderUnusedKhr;
+				return vk::ShaderUnusedKHR;
 
 			const VulkanShader* shader = static_cast<const VulkanShader*>(handle);
 			auto module                = shader->module();
@@ -551,8 +551,8 @@ namespace Engine
 			auto& src = pipeline->groups[i];
 			auto& dst = state.groups_info[i];
 
-			new (&dst) vk::RayTracingShaderGroupCreateInfoKHR(vk::RayTracingShaderGroupTypeKHR::eGeneral, vk::ShaderUnusedKhr,
-			                                                  vk::ShaderUnusedKhr, vk::ShaderUnusedKhr, vk::ShaderUnusedKhr);
+			new (&dst) vk::RayTracingShaderGroupCreateInfoKHR(vk::RayTracingShaderGroupTypeKHR::eGeneral, vk::ShaderUnusedKHR,
+			                                                  vk::ShaderUnusedKHR, vk::ShaderUnusedKHR, vk::ShaderUnusedKHR);
 
 			if (src.type == RHIRayTracingShaderGroupType::TrianglesHit)
 			{
@@ -578,7 +578,7 @@ namespace Engine
 		create_layout(pipeline->parameters, pipeline->parameters_count, state.stages);
 		state.pipeline_info.layout = layout()->layout();
 
-		m_pipeline = API->m_device.createRayTracingPipelineKHR({}, {}, state.pipeline_info, nullptr, API->pfn).value;
+		m_pipeline = API->m_device.createRayTracingPipelineKHR({}, {}, state.pipeline_info, nullptr).value;
 
 		mark.reset();
 
@@ -592,7 +592,7 @@ namespace Engine
 			byte* storage             = StackByteAllocator::allocate(pipeline->groups_count * handle_size);
 
 			auto result = API->m_device.getRayTracingShaderGroupHandlesKHR(m_pipeline, 0, pipeline->groups_count, storage_size,
-			                                                               storage, API->pfn);
+			                                                               storage);
 			trinex_assert_msg(result == vk::Result::eSuccess, "Failed to create shader binding table!");
 
 			align_shader_binding_table(storage, pipeline->groups_count, handle_size, handle_size_aligned);

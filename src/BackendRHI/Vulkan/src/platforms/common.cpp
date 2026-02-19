@@ -2,11 +2,10 @@
 #include <SDL_vulkan.h>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
-#include <vulkan_headers.hpp>
 
 namespace Engine
 {
-	vk::SurfaceKHR create_vulkan_surface(void* native_window, vk::Instance instance)
+	VkSurfaceKHR create_vulkan_surface(void* native_window, VkInstance instance)
 	{
 		SDL_Window* window   = reinterpret_cast<SDL_Window*>(native_window);
 		VkSurfaceKHR surface = {};

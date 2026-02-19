@@ -9,12 +9,12 @@ namespace Engine
 	{
 		if (is_signaled)
 		{
-			m_fence  = API->m_device.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
+			m_fence  = vk::check_result(API->m_device.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled)));
 			m_status = Status::Signaled;
 		}
 		else
 		{
-			m_fence  = API->m_device.createFence({});
+			m_fence  = vk::check_result(API->m_device.createFence({}));
 			m_status = Status::Unsignaled;
 		}
 	}
@@ -41,7 +41,7 @@ namespace Engine
 
 	void VulkanFence::reset()
 	{
-		API->m_device.resetFences(m_fence);
+		vk::check_result(API->m_device.resetFences(m_fence));
 		m_status = Status::Unsignaled;
 	}
 

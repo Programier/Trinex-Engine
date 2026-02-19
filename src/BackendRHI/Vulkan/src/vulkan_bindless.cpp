@@ -63,7 +63,7 @@ namespace Engine
 
 			vk::DescriptorSetLayoutBindingFlagsCreateInfoEXT binding_info(HeapsCount, binding_flags_array);
 			vk::DescriptorSetLayoutCreateInfo layout_info(layout_flags, HeapsCount, m_bindings, &binding_info);
-			m_descriptor_set_layout = API->m_device.createDescriptorSetLayout(layout_info);
+			m_descriptor_set_layout = vk::check_result(API->m_device.createDescriptorSetLayout(layout_info));
 		}
 
 		// Create descriptor pool
@@ -82,13 +82,13 @@ namespace Engine
 			}
 
 			vk::DescriptorPoolCreateInfo info(flags, 1, HeapsCount, pool_size);
-			m_descriptor_pool = API->m_device.createDescriptorPool(info);
+			m_descriptor_pool = vk::check_result(API->m_device.createDescriptorPool(info));
 		}
 
 		// Create descriptor set
 		{
 			vk::DescriptorSetAllocateInfo info(m_descriptor_pool, 1, &m_descriptor_set_layout);
-			m_descriptor_set = API->m_device.allocateDescriptorSets(info)[0];
+			m_descriptor_set = vk::check_result(API->m_device.allocateDescriptorSets(info))[0];
 		}
 		return *this;
 	}

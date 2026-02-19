@@ -63,7 +63,7 @@ namespace Engine
 		vk::CommandPool pool = manager->command_pool();
 		vk::CommandBufferAllocateInfo alloc_info(pool, level, 1);
 
-		static_cast<vk::CommandBuffer&>(*this) = API->m_device.allocateCommandBuffers(alloc_info).front();
+		static_cast<vk::CommandBuffer&>(*this) = vk::check_result(API->m_device.allocateCommandBuffers(alloc_info)).front();
 	}
 
 	VulkanCommandHandle& VulkanCommandHandle::refresh_fence_status()
@@ -73,7 +73,7 @@ namespace Engine
 			if (m_fence->is_signaled())
 			{
 				m_state = State::Unused;
-				reset();
+				vk::check_result(reset());
 				m_fence->reset();
 
 				for (auto& page : m_uniform_buffers)
@@ -90,7 +90,7 @@ namespace Engine
 	{
 		trinex_assert_msg(is_unused(), "Command Buffer must be unused");
 
-		vk::CommandBuffer::begin(info);
+		vk::check_result(vk::CommandBuffer::begin(info));
 		m_state = State::Active;
 		return *this;
 	}
@@ -98,7 +98,7 @@ namespace Engine
 	VulkanCommandHandle& VulkanCommandHandle::end()
 	{
 		trinex_assert_msg(is_active(), "Command Buffer must be active!");
-		vk::CommandBuffer::end();
+		vk::check_result(vk::CommandBuffer::end());
 		m_state = State::Pending;
 		return *this;
 	}
@@ -167,8 +167,8 @@ namespace Engine
 
 	VulkanCommandBufferManager::VulkanCommandBufferManager()
 	{
-		m_pool = API->m_device.createCommandPool(
-		        vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, API->m_graphics_queue->index()));
+		m_pool = vk::check_result(API->m_device.createCommandPool(
+		        vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, API->m_graphics_queue->index())));
 	}
 
 	VulkanCommandBufferManager::~VulkanCommandBufferManager()
@@ -290,7 +290,7 @@ namespace Engine
 
 		auto push_extent = [&fb](const vk::Extent3D& extent) {
 			Vector2u16 current = {extent.width, extent.height};
-			fb.size            = (fb.size.x & fb.size.y) ? Math::min(fb.size, current) : current;
+			fb.size            = (fb.size.x || fb.size.y) ? Math::min(fb.size, current) : current;
 		};
 
 		vk::RenderingAttachmentInfo attachments[6];
@@ -316,6 +316,13 @@ namespace Engine
 			dst.setImageView(rtv->view());
 			dst.setStoreOp(VulkanEnums::store_of(src.store));
 			dst.setLoadOp(VulkanEnums::load_of(src.load));
+
+			if (src.resolve_view)
+			{
+				dst.setResolveImageView(static_cast<VulkanTextureRTV*>(src.resolve_view)->view());
+				dst.setResolveImageLayout(vk::ImageLayout::eColorAttachmentOptimal);
+				dst.setResolveMode(VulkanEnums::resolve_mode_of(src.resolve));
+			}
 		}
 
 		if (info.depth_stencil.view)
@@ -337,6 +344,13 @@ namespace Engine
 				depth->setImageView(dsv->view());
 				depth->setStoreOp(VulkanEnums::store_of(src.depth_store));
 				depth->setLoadOp(VulkanEnums::load_of(src.depth_load));
+
+				if (src.resolve_view)
+				{
+					depth->setResolveImageView(static_cast<VulkanTextureDSV*>(src.resolve_view)->view());
+					depth->setResolveImageLayout(vk::ImageLayout::eDepthAttachmentOptimal);
+					depth->setResolveMode(VulkanEnums::resolve_mode_of(src.depth_resolve));
+				}
 			}
 
 			if (VulkanEnums::is_stencil_format(format))
@@ -349,25 +363,43 @@ namespace Engine
 				stencil->setImageView(dsv->view());
 				stencil->setStoreOp(VulkanEnums::store_of(src.stencil_store));
 				stencil->setLoadOp(VulkanEnums::load_of(src.stencil_load));
+
+				if (src.resolve_view)
+				{
+					depth->setResolveImageView(static_cast<VulkanTextureDSV*>(src.resolve_view)->view());
+					depth->setResolveImageLayout(vk::ImageLayout::eDepthAttachmentOptimal);
+					depth->setResolveMode(VulkanEnums::resolve_mode_of(src.stencil_resolve));
+				}
 			}
 		}
 
 		vk::RenderingInfo rendering;
 		rendering.setLayerCount(1);
-		rendering.setRenderArea(vk::Rect2D({0, 0}, {fb.size.x, fb.size.y}));
+
+		if (info.rect.size.x && info.rect.size.y)
+		{
+			vk::Rect2D rect = {vk::Offset2D(info.rect.pos.x, info.rect.pos.y), vk::Extent2D(info.rect.size.x, info.rect.size.y)};
+			rendering.setRenderArea(rect);
+		}
+		else
+		{
+			rendering.setRenderArea(vk::Rect2D({0, 0}, {fb.size.x, fb.size.y}));
+		}
+		
 		rendering.setColorAttachmentCount(4);
 		rendering.setPColorAttachments(attachments);
 		rendering.setPDepthAttachment(depth);
 		rendering.setPStencilAttachment(stencil);
+		rendering.setFlags(VulkanEnums::rendering_flags_of(info.flags));
 
-		m_cmd->beginRenderingKHR(rendering, API->pfn);
+		m_cmd->beginRenderingKHR(rendering);
 		m_state_manager->bind(fb);
 		return *this;
 	}
 
 	VulkanContext& VulkanContext::end_rendering()
 	{
-		m_cmd->endRenderingKHR(API->pfn);
+		m_cmd->endRenderingKHR();
 		return *this;
 	}
 
@@ -412,7 +444,7 @@ namespace Engine
 	VulkanContext& VulkanContext::draw_mesh(uint32_t x, uint32_t y, uint32_t z)
 	{
 		trinex_profile_cpu_n("VulkanContext::draw_mesh");
-		m_state_manager->flush_graphics(this)->drawMeshTasksEXT(x, y, z, API->pfn);
+		m_state_manager->flush_graphics(this)->drawMeshTasksEXT(x, y, z);
 		return *this;
 	}
 
@@ -425,27 +457,20 @@ namespace Engine
 
 	VulkanContext& VulkanContext::push_debug_stage(const char* stage)
 	{
-		if (API->pfn.vkCmdBeginDebugUtilsLabelEXT)
-		{
-			VkDebugUtilsLabelEXT label_info = {};
-			label_info.sType                = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
-			label_info.pLabelName           = stage;
-			label_info.color[0]             = 1.f;
-			label_info.color[1]             = 1.f;
-			label_info.color[2]             = 1.f;
-			label_info.color[3]             = 1.f;
+		vk::DebugUtilsLabelEXT label_info = {};
+		label_info.pLabelName             = stage;
+		label_info.color[0]               = 1.f;
+		label_info.color[1]               = 1.f;
+		label_info.color[2]               = 1.f;
+		label_info.color[3]               = 1.f;
 
-			API->pfn.vkCmdBeginDebugUtilsLabelEXT(*m_cmd, &label_info);
-		}
+		m_cmd->beginDebugUtilsLabelEXT(&label_info);
 		return *this;
 	}
 
 	VulkanContext& VulkanContext::pop_debug_stage()
 	{
-		if (API->pfn.vkCmdEndDebugUtilsLabelEXT)
-		{
-			API->pfn.vkCmdEndDebugUtilsLabelEXT(*m_cmd);
-		}
+		m_cmd->endDebugUtilsLabelEXT();
 		return *this;
 	}
 
@@ -467,7 +492,7 @@ namespace Engine
 		        VulkanEnums::shading_rate_combiner_of(combiners[1]),
 		};
 
-		m_cmd->setFragmentShadingRateKHR(extent, ops, API->pfn);
+		m_cmd->setFragmentShadingRateKHR(extent, ops);
 		return *this;
 	}
 

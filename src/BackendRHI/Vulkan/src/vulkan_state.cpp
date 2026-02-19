@@ -102,7 +102,7 @@ namespace Engine
 				        vk::FragmentShadingRateCombinerOpKHR::eKeep,
 				};
 
-				cmd->setFragmentShadingRateKHR(extent, ops, API->pfn);
+				cmd->setFragmentShadingRateKHR(extent, ops);
 			}
 		}
 

@@ -8,6 +8,7 @@ namespace Engine
 	class StaticMeshActor;
 	class World;
 	class MaterialInterface;
+	class RenderSurface;
 
 	class ImGuiStaticMeshPreview : public ImGuiWidget
 	{

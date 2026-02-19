@@ -564,7 +564,7 @@ namespace Engine::VulkanEnums
 		}
 	}
 
-	static inline vk::AttachmentLoadOp load_of(RHILoadFunc func)
+	static constexpr inline vk::AttachmentLoadOp load_of(RHILoadFunc func)
 	{
 		switch (func)
 		{
@@ -574,12 +574,54 @@ namespace Engine::VulkanEnums
 		}
 	}
 
-	static inline vk::AttachmentStoreOp store_of(RHIStoreFunc func)
+	static constexpr inline vk::AttachmentStoreOp store_of(RHIStoreFunc func)
 	{
 		switch (func)
 		{
 			case RHIStoreFunc::DontCare: return vk::AttachmentStoreOp::eDontCare;
 			default: return vk::AttachmentStoreOp::eStore;
 		}
+	}
+
+	static constexpr inline vk::ResolveModeFlagBits resolve_mode_of(RHIResolveFunc func)
+	{
+		switch (func)
+		{
+			case RHIResolveFunc::Sample0: return vk::ResolveModeFlagBits::eSampleZero;
+			case RHIResolveFunc::Average: return vk::ResolveModeFlagBits::eAverage;
+			case RHIResolveFunc::Min: return vk::ResolveModeFlagBits::eMin;
+			case RHIResolveFunc::Max: return vk::ResolveModeFlagBits::eMax;
+			default: return vk::ResolveModeFlagBits::eNone;
+		}
+	}
+
+	static constexpr inline vk::RenderingFlags rendering_flags_of(RHIRenderingFlags flags)
+	{
+		vk::RenderingFlags result = {};
+
+		if (flags & RHIRenderingFlags::Suspending)
+			result |= vk::RenderingFlagBits::eSuspending;
+
+		if (flags & RHIRenderingFlags::Resuming)
+			result |= vk::RenderingFlagBits::eResuming;
+
+		if (flags & RHIRenderingFlags::SecondaryBuffersOnly)
+			result |= vk::RenderingFlagBits::eContentsSecondaryCommandBuffers;
+
+		return result;
+	}
+
+	static constexpr inline vk::SampleCountFlagBits sample_count_of(RHITextureCreateFlags flags)
+	{
+		if (flags & RHITextureCreateFlags::Samples8)
+			return vk::SampleCountFlagBits::e8;
+
+		if (flags & RHITextureCreateFlags::Samples4)
+			return vk::SampleCountFlagBits::e4;
+
+		if (flags & RHITextureCreateFlags::Samples2)
+			return vk::SampleCountFlagBits::e2;
+
+		return vk::SampleCountFlagBits::e1;
 	}
 }// namespace Engine::VulkanEnums

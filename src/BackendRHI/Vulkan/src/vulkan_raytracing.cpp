@@ -223,7 +223,7 @@ namespace Engine
 			result |= vk::GeometryInstanceFlagBitsKHR::eTriangleFlipFacing;
 
 		if (flags & RHIRayTracingGeometryInstanceFlags::TriangleFrontCCW)
-			result |= vk::GeometryInstanceFlagBitsKHR::eTriangleFrontCounterclockwiseKHR;
+			result |= vk::GeometryInstanceFlagBitsKHR::eTriangleFrontCounterclockwise;
 
 		if (flags & RHIRayTracingGeometryInstanceFlags::ForceNoOpaque)
 			result |= vk::GeometryInstanceFlagBitsKHR::eForceNoOpaque;
@@ -244,7 +244,7 @@ namespace Engine
 		const uint32_t primitives = primitives_count(inputs, build_ranges);
 
 		constexpr auto build_type = vk::AccelerationStructureBuildTypeKHR::eDevice;
-		auto sizes = API->m_device.getAccelerationStructureBuildSizesKHR(build_type, build_info, primitives, API->pfn);
+		auto sizes                = API->m_device.getAccelerationStructureBuildSizesKHR(build_type, build_info, primitives);
 
 		constexpr auto flags = RHIBufferCreateFlags::AccelerationStorage | RHIBufferCreateFlags::ByteAddressBuffer |
 		                       RHIBufferCreateFlags::ShaderResource | RHIBufferCreateFlags::UnorderedAccess |
@@ -259,7 +259,7 @@ namespace Engine
 		info.type   = build_info.type;
 		info.offset = 0;
 
-		m_acceleration = API->m_device.createAccelerationStructureKHR(info, nullptr, API->pfn);
+		m_acceleration = vk::check_result(API->m_device.createAccelerationStructureKHR(info, nullptr));
 
 		RHIBuffer* scratch = RHIBufferPool::global_instance()->request_buffer(sizes.buildScratchSize, flags);
 
@@ -270,7 +270,7 @@ namespace Engine
 		build_info.scratchData              = scratch->address();
 
 		VulkanCommandHandle* cmd = ctx->handle();
-		cmd->buildAccelerationStructuresKHR(build_info, build_ranges, API->pfn);
+		cmd->buildAccelerationStructuresKHR(build_info, build_ranges);
 
 		cmd = ctx->end();
 		API->submit(cmd);
@@ -282,7 +282,7 @@ namespace Engine
 
 	VulkanAccelerationStructure::~VulkanAccelerationStructure()
 	{
-		API->m_device.destroyAccelerationStructureKHR(m_acceleration, nullptr, API->pfn);
+		API->m_device.destroyAccelerationStructureKHR(m_acceleration, nullptr);
 		trx_delete m_acceleration_buffer;
 	}
 
@@ -355,7 +355,7 @@ namespace Engine
 		}
 
 		VulkanCommandHandle* cmd = m_state_manager->flush_raytrace(this);
-		cmd->traceRaysKHR(raygen_region, miss_region, hit_region, callable_region, width, height, depth, API->pfn);
+		cmd->traceRaysKHR(raygen_region, miss_region, hit_region, callable_region, width, height, depth);
 		return *this;
 	}
 }// namespace Engine

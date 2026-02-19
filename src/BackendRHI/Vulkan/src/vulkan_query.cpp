@@ -8,7 +8,7 @@ namespace Engine
 {
 	VulkanQueryPool::VulkanQueryPool(const vk::QueryPoolCreateInfo& info)
 	{
-		m_pool = API->m_device.createQueryPool(info);
+		m_pool = vk::check_result(API->m_device.createQueryPool(info));
 		m_free.resize(info.queryCount / 64, ~static_cast<uint64_t>(0));
 	}
 

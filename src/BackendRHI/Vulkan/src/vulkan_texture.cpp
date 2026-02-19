@@ -36,7 +36,7 @@ namespace Engine
 		vk::ImageSubresourceRange range(aspect, desc.first_mip, desc.mip_levels, desc.first_array_slice, desc.array_size);
 		vk::ImageViewCreateInfo view_info({}, texture->image(), VulkanEnums::image_view_type_of(desc.view_type),
 		                                  texture->format(), {}, range);
-		vk::ImageView view = API->m_device.createImageView(view_info);
+		vk::ImageView view = vk::check_result(API->m_device.createImageView(view_info));
 
 		auto& node = views.emplace_back();
 		node.desc  = desc;

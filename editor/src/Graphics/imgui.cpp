@@ -272,7 +272,11 @@ namespace Engine
 						if (pcmd->UserCallback != nullptr)
 						{
 							if (pcmd->UserCallback == ImDrawCallback_ResetRenderState)
+							{
+								ctx->end_rendering();
 								imgui_trinex_setup_render_state(draw_data);
+								ctx->begin_rendering(bd->window->rhi_rtv());
+							}
 							else
 								pcmd->UserCallback(cmd_list, pcmd);
 						}

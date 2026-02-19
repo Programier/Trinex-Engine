@@ -86,7 +86,7 @@ namespace Engine
 
 		if (flags & RHIBufferCreateFlags::DeviceAddress)
 		{
-			m_address = API->m_device.getBufferAddressKHR(vk::BufferDeviceAddressInfo(m_buffer), API->pfn);
+			m_address = API->m_device.getBufferAddressKHR(vk::BufferDeviceAddressInfo(m_buffer));
 		}
 
 		if (flags & RHIBufferCreateFlags::ShaderResource)

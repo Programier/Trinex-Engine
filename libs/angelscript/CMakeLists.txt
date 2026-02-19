@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
 
-option(AS_NO_EXCEPTIONS "Disable exception handling in script context" OFF)
-
 set(ARCHFLAGS "${CMAKE_SYSTEM_PROCESSOR}")
 
 if (APPLE AND NOT IOS)
@@ -90,10 +88,8 @@ endif()
 
 target_sources(TrinexEngine PRIVATE ${ANGELSCRIPT_SOURCE})
 target_compile_definitions(TrinexEngine PRIVATE -DANGELSCRIPT_EXPORT -D_LIB)
+target_compile_definitions(TrinexEngine PUBLIC -DAS_NO_EXCEPTIONS=1)
 
-if(AS_NO_EXCEPTIONS)
-        target_compile_definitions(TrinexEngine PUBLIC -DAS_NO_EXCEPTIONS)
-endif()
 
 target_include_directories(TrinexEngine PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/source)
 target_include_directories(TrinexEngine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

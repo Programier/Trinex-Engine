@@ -3,7 +3,7 @@
 #include <Core/etl/deque.hpp>
 #include <Core/etl/vector.hpp>
 #include <RHI/context.hpp>
-#include <vulkan/vulkan.hpp>
+#include <vulkan_headers.hpp>
 #include <vulkan_thread_local.hpp>
 
 namespace Engine

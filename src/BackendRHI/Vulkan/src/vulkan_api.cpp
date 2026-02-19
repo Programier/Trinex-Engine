@@ -28,6 +28,8 @@
 #include <vulkan_thread_local.hpp>
 #include <vulkan_viewport.hpp>
 
+VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
+
 namespace Engine
 {
 	VulkanAPI* VulkanAPI::m_vulkan = nullptr;
@@ -81,12 +83,7 @@ namespace Engine
 		phys_device_selector.prefer_gpu_device_type(VulkanConfig::device_type);
 
 		auto selected_device = phys_device_selector.select();
-		if (!selected_device.has_value())
-		{
-			auto msg = selected_device.error().message();
-			error_log("Vulkan", "%s", msg.c_str());
-			throw std::runtime_error(msg);
-		}
+		trinex_verify_msg(selected_device.has_value(), selected_device.error().message().c_str());
 
 		auto device = selected_device.value();
 
@@ -170,11 +167,7 @@ namespace Engine
 			builder.add_pNext(&shading_rate);
 
 		auto device_ret = builder.build();
-
-		if (!device_ret)
-		{
-			throw std::runtime_error(device_ret.error().message());
-		}
+		trinex_verify_msg(device_ret.has_value(), device_ret.error().message().c_str());
 
 		return device_ret.value();
 	}
@@ -231,6 +224,8 @@ namespace Engine
 		auto array = make_extensions_array();
 		m_device_extensions.assign(array.begin(), array.end());
 
+		VULKAN_HPP_DEFAULT_DISPATCHER.init();
+
 		vkb::InstanceBuilder instance_builder;
 		instance_builder.require_api_version(VK_API_VERSION_1_1);
 
@@ -251,6 +246,7 @@ namespace Engine
 		trinex_verify_msg(instance_ret.has_value(), instance_ret.error().message().c_str());
 
 		m_instance = instance_ret.value();
+		VULKAN_HPP_DEFAULT_DISPATCHER.init(vk::Instance(m_instance.instance));
 
 		// Initialize physical device
 		auto selected_device = initialize_physical_device();
@@ -272,6 +268,7 @@ namespace Engine
 		// Initialize device
 		auto bootstrap_device = build_device(selected_device);
 		m_device              = vk::Device(bootstrap_device.device);
+		VULKAN_HPP_DEFAULT_DISPATCHER.init(m_device);
 
 		auto graphics_queue_index = bootstrap_device.get_queue_index(vkb::QueueType::graphics);
 		auto graphics_queue       = bootstrap_device.get_queue(vkb::QueueType::graphics);
@@ -281,10 +278,7 @@ namespace Engine
 			trinex_unreachable_msg("Failed to create graphics queue");
 		}
 
-		m_graphics_queue = trx_new VulkanQueue(graphics_queue.value(), graphics_queue_index.value());
-
-		initialize_pfn();
-
+		m_graphics_queue          = trx_new VulkanQueue(graphics_queue.value(), graphics_queue_index.value());
 		m_stagging_manager        = trx_new VulkanStaggingBufferManager();
 		m_pipeline_layout_manager = trx_new VulkanPipelineLayoutManager();
 		m_query_pool_manager      = trx_new VulkanQueryPoolManager();
@@ -312,7 +306,7 @@ namespace Engine
 		{
 			vk::SemaphoreTypeCreateInfo type_info(vk::SemaphoreType::eTimeline, 0);
 			vk::SemaphoreCreateInfo create_info({}, &type_info);
-			m_timeline = m_device.createSemaphore(create_info);
+			m_timeline = vk::check_result(m_device.createSemaphore(create_info));
 		}
 	}
 
@@ -346,7 +340,7 @@ namespace Engine
 	VulkanAPI& VulkanAPI::update(float dt)
 	{
 		const uint64_t current_frame = ++m_frame;
-		const uint64_t gpu_frame     = m_device.getSemaphoreCounterValueKHR(m_timeline, pfn);
+		const uint64_t gpu_frame     = vk::check_result(m_device.getSemaphoreCounterValueKHR(m_timeline));
 
 		while (!m_garbage.empty() && m_garbage.front().frame <= gpu_frame)
 		{
@@ -391,7 +385,7 @@ namespace Engine
 
 	vk::PresentModeKHR VulkanAPI::present_mode_of(bool vsync, vk::SurfaceKHR surface)
 	{
-		auto present_modes = m_physical_device.getSurfacePresentModesKHR(surface);
+		auto present_modes = vk::check_result(m_physical_device.getSurfacePresentModesKHR(surface));
 
 		trinex_verify_msg(!present_modes.empty(), "Failed to find present mode!");
 
@@ -405,39 +399,15 @@ namespace Engine
 		}
 	}
 
-	void VulkanAPI::initialize_pfn()
-	{
-		auto load = [this]<typename T>(T& func, const char* name) {
-			func = reinterpret_cast<T>(vkGetDeviceProcAddr(m_device, name));
-		};
-
-		load(pfn.vkCmdBeginDebugUtilsLabelEXT, "vkCmdBeginDebugUtilsLabelEXT");
-		load(pfn.vkCmdEndDebugUtilsLabelEXT, "vkCmdEndDebugUtilsLabelEXT");
-		load(pfn.vkGetBufferMemoryRequirements2KHR, "vkGetBufferMemoryRequirements2KHR");
-		load(pfn.vkCmdDrawMeshTasksEXT, "vkCmdDrawMeshTasksEXT");
-		load(pfn.vkGetSemaphoreCounterValueKHR, "vkGetSemaphoreCounterValueKHR");
-		load(pfn.vkGetBufferDeviceAddressKHR, "vkGetBufferDeviceAddressKHR");
-		load(pfn.vkGetAccelerationStructureBuildSizesKHR, "vkGetAccelerationStructureBuildSizesKHR");
-		load(pfn.vkCreateAccelerationStructureKHR, "vkCreateAccelerationStructureKHR");
-		load(pfn.vkDestroyAccelerationStructureKHR, "vkDestroyAccelerationStructureKHR");
-		load(pfn.vkCmdBuildAccelerationStructuresKHR, "vkCmdBuildAccelerationStructuresKHR");
-		load(pfn.vkCreateRayTracingPipelinesKHR, "vkCreateRayTracingPipelinesKHR");
-		load(pfn.vkGetRayTracingShaderGroupHandlesKHR, "vkGetRayTracingShaderGroupHandlesKHR");
-		load(pfn.vkCmdTraceRaysKHR, "vkCmdTraceRaysKHR");
-		load(pfn.vkCmdSetFragmentShadingRateKHR, "vkCmdSetFragmentShadingRateKHR");
-		load(pfn.vkCmdBeginRenderingKHR, "vkCmdBeginRenderingKHR");
-		load(pfn.vkCmdEndRenderingKHR, "vkCmdEndRenderingKHR");
-	}
-
 	vk::SurfaceKHR VulkanAPI::create_surface(Window* window)
 	{
-		extern vk::SurfaceKHR create_vulkan_surface(void* native_window, vk::Instance instance);
+		extern VkSurfaceKHR create_vulkan_surface(void* native_window, VkInstance instance);
 		return create_vulkan_surface(window->native_window(), m_instance.instance);
 	}
 
 	vk::Extent2D VulkanAPI::surface_size(const vk::SurfaceKHR& surface) const
 	{
-		return m_physical_device.getSurfaceCapabilitiesKHR(surface).currentExtent;
+		return vk::check_result(m_physical_device.getSurfaceCapabilitiesKHR(surface)).currentExtent;
 	}
 
 	bool VulkanAPI::has_stencil_component(vk::Format format)

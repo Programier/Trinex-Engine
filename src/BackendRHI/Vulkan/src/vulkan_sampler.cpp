@@ -77,7 +77,7 @@ namespace Engine
 			sampler_info.borderColor = parse_border_color(initializer->border_color);
 		}
 
-		m_sampler    = API->m_device.createSampler(sampler_info);
+		m_sampler    = vk::check_result(API->m_device.createSampler(sampler_info));
 		m_descriptor = API->descriptor_heap()->allocate(m_sampler);
 		return *this;
 	}

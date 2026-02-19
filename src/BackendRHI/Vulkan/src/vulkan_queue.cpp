@@ -11,7 +11,7 @@ namespace Engine
 	VulkanQueue& VulkanQueue::submit(const vk::SubmitInfo& info, vk::Fence fence)
 	{
 		ScopeLock lock(m_critical);
-		m_queue.submit(info, fence);
+		vk::check_result(m_queue.submit(info, fence));
 		return *this;
 	}
 
@@ -25,7 +25,7 @@ namespace Engine
 	VulkanQueue& VulkanQueue::idle()
 	{
 		ScopeLock lock(m_critical);
-		m_queue.waitIdle();
+		vk::check_result(m_queue.waitIdle());
 		return *this;
 	}
 }// namespace Engine

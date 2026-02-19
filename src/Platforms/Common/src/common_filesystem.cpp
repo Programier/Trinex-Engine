@@ -65,41 +65,34 @@ namespace Engine::VFS
 
 	DirectoryIteratorInterface* CommonFileSystem::create_directory_iterator(const Path& path)
 	{
-		try
-		{
-			Path dir      = m_directory / path;
-			auto iterator = fs::directory_iterator(dir.str());
+		Path dir = m_directory / path;
 
-			CommonIterator<fs::directory_iterator>* it = trx_new CommonIterator<fs::directory_iterator>();
-			it->m_base                                 = this;
-			it->m_it                                   = iterator;
-			it->update_path();
-			return it;
-		}
-		catch (const std::exception& e)
-		{
-			error_log("CommonFileSystem", "%s", e.what());
+		if (!fs::is_directory(dir.str()))
 			return nullptr;
-		}
+
+		auto iterator = fs::directory_iterator(dir.str());
+
+		CommonIterator<fs::directory_iterator>* it = trx_new CommonIterator<fs::directory_iterator>();
+		it->m_base                                 = this;
+		it->m_it                                   = iterator;
+		it->update_path();
+		return it;
 	}
 
 	DirectoryIteratorInterface* CommonFileSystem::create_recursive_directory_iterator(const Path& path)
 	{
-		try
-		{
-			Path dir      = m_directory / path;
-			auto iterator = fs::recursive_directory_iterator(dir.str());
+		Path dir = m_directory / path;
 
-			CommonIterator<fs::recursive_directory_iterator>* it = trx_new CommonIterator<fs::recursive_directory_iterator>();
-			it->m_base                                           = this;
-			it->m_it                                             = iterator;
-			it->update_path();
-			return it;
-		}
-		catch (...)
-		{
+		if (!fs::is_directory(dir.str()))
 			return nullptr;
-		}
+
+		auto iterator = fs::recursive_directory_iterator(dir.str());
+
+		CommonIterator<fs::recursive_directory_iterator>* it = trx_new CommonIterator<fs::recursive_directory_iterator>();
+		it->m_base                                           = this;
+		it->m_it                                             = iterator;
+		it->update_path();
+		return it;
 	}
 
 	CommonFileSystem::CommonFileSystem(const Path& mount, const Path& directory) : FileSystem(mount), m_directory(directory) {}

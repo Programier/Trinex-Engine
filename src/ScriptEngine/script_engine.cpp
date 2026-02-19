@@ -67,7 +67,7 @@ namespace Engine
 
 	static void angel_script_translate_exception(asIScriptContext* ctx, void*)
 	{
-		trinex_throw_exception_again;
+		trinex_unreachable_msg(ctx->GetExceptionString());
 	}
 
 	static void* angel_script_allocate(size_t size)

@@ -34,11 +34,7 @@ namespace Engine
 		uint32_t value = 0;
 		for (auto ell : attrib)
 		{
-			trinex_try
-			{
-				value |= window_attributes.at(ell);
-			}
-			trinex_catch(...) {}
+			value |= window_attributes.at(ell);
 		}
 		return value;
 	}
@@ -57,12 +53,6 @@ namespace Engine
 
 		return {};
 	}
-
-	static void window_initialize_error(const String& msg)
-	{
-		throw std::runtime_error("Failed to create Window: " + msg);
-	}
-
 
 	static int validate_pos(int pos)
 	{
@@ -97,36 +87,7 @@ namespace Engine
 
 		m_id = static_cast<Identifier>(SDL_GetWindowID(m_window));
 
-		if (m_window == nullptr)
-			window_initialize_error(SDL_GetError());
-		else
-		{
-			if (m_api == SDL_WINDOW_OPENGL)
-			{
-
-#if !PLATFORM_ANDROID
-				if (rhi->info.name != "OpenGL ES")
-				{
-					SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-					SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
-					SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-				}
-				else
-#endif
-				{
-					SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-					SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-					SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-				}
-#if TRINEX_DEBUG_BUILD
-				SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
-#endif
-			}
-			else if (m_api == SDL_WINDOW_VULKAN)
-			{
-			}
-		}
-
+		trinex_verify_fmt(m_window, "Failed to initialize window: %s", SDL_GetError());
 		return this;
 	}
 
@@ -351,78 +312,74 @@ namespace Engine
 
 	WindowSDL& WindowSDL::attribute(const WindowAttribute& attrib, bool value)
 	{
-		trinex_try
+
+		static struct {
+			bool m_fullscreen = false;
+			Uint32 m_flag     = 0;
+		} fullscreen_mode;
+
+		fullscreen_mode.m_fullscreen = false;
+		fullscreen_mode.m_flag       = 0;
+
+		switch (attrib)
 		{
+			case WindowAttribute::Resizable: SDL_SetWindowResizable(m_window, static_cast<SDL_bool>(value)); break;
 
-			static struct {
-				bool m_fullscreen = false;
-				Uint32 m_flag     = 0;
-			} fullscreen_mode;
+			case WindowAttribute::FullScreen:
+				fullscreen_mode.m_flag       = value ? SDL_WINDOW_FULLSCREEN : 0;
+				fullscreen_mode.m_fullscreen = true;
+				break;
 
-			fullscreen_mode.m_fullscreen = false;
-			fullscreen_mode.m_flag       = 0;
-
-			switch (attrib)
+			case WindowAttribute::Shown:
 			{
-				case WindowAttribute::Resizable: SDL_SetWindowResizable(m_window, static_cast<SDL_bool>(value)); break;
+				value ? show() : hide();
+				break;
+			}
+			case WindowAttribute::Hidden:
+			{
+				value ? hide() : show();
+				break;
+			}
+			case WindowAttribute::BorderLess: SDL_SetWindowBordered(m_window, static_cast<SDL_bool>(value)); break;
 
-				case WindowAttribute::FullScreen:
-					fullscreen_mode.m_flag       = value ? SDL_WINDOW_FULLSCREEN : 0;
-					fullscreen_mode.m_fullscreen = true;
-					break;
-
-				case WindowAttribute::Shown:
-				{
-					value ? show() : hide();
-					break;
-				}
-				case WindowAttribute::Hidden:
-				{
-					value ? hide() : show();
-					break;
-				}
-				case WindowAttribute::BorderLess: SDL_SetWindowBordered(m_window, static_cast<SDL_bool>(value)); break;
-
-				case WindowAttribute::InputFocus:
-				{
-					if (value)
-						SDL_SetWindowInputFocus(m_window);
-					break;
-				}
-
-				case WindowAttribute::Minimized:
-				{
-					if (value)
-						SDL_MinimizeWindow(m_window);
-					break;
-				}
-
-				case WindowAttribute::Maximized:
-				{
-					if (value)
-						SDL_MaximizeWindow(m_window);
-					break;
-				}
-				case WindowAttribute::MouseGrabbed:
-				{
-					SDL_SetWindowMouseGrab(m_window, static_cast<SDL_bool>(value));
-					break;
-				}
-
-				case WindowAttribute::KeyboardGrabbed:
-				{
-					SDL_SetWindowKeyboardGrab(m_window, static_cast<SDL_bool>(value));
-					break;
-				}
-
-				default: break;
+			case WindowAttribute::InputFocus:
+			{
+				if (value)
+					SDL_SetWindowInputFocus(m_window);
+				break;
 			}
 
+			case WindowAttribute::Minimized:
+			{
+				if (value)
+					SDL_MinimizeWindow(m_window);
+				break;
+			}
 
-			if (fullscreen_mode.m_fullscreen)
-				SDL_SetWindowFullscreen(m_window, fullscreen_mode.m_flag);
+			case WindowAttribute::Maximized:
+			{
+				if (value)
+					SDL_MaximizeWindow(m_window);
+				break;
+			}
+			case WindowAttribute::MouseGrabbed:
+			{
+				SDL_SetWindowMouseGrab(m_window, static_cast<SDL_bool>(value));
+				break;
+			}
+
+			case WindowAttribute::KeyboardGrabbed:
+			{
+				SDL_SetWindowKeyboardGrab(m_window, static_cast<SDL_bool>(value));
+				break;
+			}
+
+			default: break;
 		}
-		trinex_catch(...) {}
+
+
+		if (fullscreen_mode.m_fullscreen)
+			SDL_SetWindowFullscreen(m_window, fullscreen_mode.m_flag);
 
 		return *this;
 	}
@@ -476,17 +433,8 @@ namespace Engine
 	template<typename MapType, typename KeyType, bool& result>
 	static decltype(auto) value_at(MapType&& map, KeyType&& key)
 	{
-		trinex_try
-		{
-			result = true;
-			return map.at(std::forward<KeyType>(key));
-		}
-		trinex_catch(...)
-		{
-			error_log("SDL Window System", "Cannot get value '%d' from map", int(key));
-			result = false;
-			return decltype(map.at(key))();
-		}
+		result = true;
+		return map.at(std::forward<KeyType>(key));
 	}
 
 	Identifier WindowSDL::id()

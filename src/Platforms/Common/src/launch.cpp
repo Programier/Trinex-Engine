@@ -5,7 +5,6 @@
 #include <Platform/platform.hpp>
 
 FORCE_ENGINE_EXPORT int main(int argc, const char** argv)
-try
 {
 	Engine::EngineLoop loop;
 
@@ -18,11 +17,5 @@ try
 	}
 
 	loop.terminate();
-
 	return 0;
-}
-catch (std::exception& e)
-{
-	error_log("EXCEPTION", "%s", e.what());
-	return 1;
 }

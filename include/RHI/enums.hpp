@@ -173,7 +173,10 @@ namespace Engine
 			ShaderResource     = BIT(0),
 			UnorderedAccess    = BIT(1),
 			RenderTarget       = BIT(2),
-			DepthStencilTarget = BIT(3)
+			DepthStencilTarget = BIT(3),
+			Samples2           = BIT(4),
+			Samples4           = BIT(5),
+			Samples8           = BIT(6),
 		};
 
 		trinex_bitfield_enum_struct(RHITextureCreateFlags, byte);
@@ -819,6 +822,19 @@ namespace Engine
 		};
 
 		trinex_enum_struct(RHIStoreFunc);
+	};
+
+	struct RHIResolveFunc {
+		enum Enum : byte
+		{
+			Undefined = 0,
+			Sample0   = 1,
+			Average   = 2,
+			Min       = 3,
+			Max       = 4,
+		};
+
+		trinex_enum_struct(RHIResolveFunc);
 	};
 
 	struct RHIRenderingFlags {

@@ -46,28 +46,6 @@ namespace Engine
 
 		static VulkanAPI* m_vulkan;
 
-		struct {
-			PFN_vkCmdBeginDebugUtilsLabelEXT vkCmdBeginDebugUtilsLabelEXT                       = nullptr;
-			PFN_vkCmdEndDebugUtilsLabelEXT vkCmdEndDebugUtilsLabelEXT                           = nullptr;
-			PFN_vkGetBufferMemoryRequirements2KHR vkGetBufferMemoryRequirements2KHR             = nullptr;
-			PFN_vkGetImageMemoryRequirements2KHR vkGetImageMemoryRequirements2KHR               = nullptr;
-			PFN_vkCmdDrawMeshTasksEXT vkCmdDrawMeshTasksEXT                                     = nullptr;
-			PFN_vkGetSemaphoreCounterValueKHR vkGetSemaphoreCounterValueKHR                     = nullptr;
-			PFN_vkGetBufferDeviceAddressKHR vkGetBufferDeviceAddressKHR                         = nullptr;
-			PFN_vkGetAccelerationStructureBuildSizesKHR vkGetAccelerationStructureBuildSizesKHR = nullptr;
-			PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructureKHR               = nullptr;
-			PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructureKHR             = nullptr;
-			PFN_vkCmdBuildAccelerationStructuresKHR vkCmdBuildAccelerationStructuresKHR         = nullptr;
-			PFN_vkCreateRayTracingPipelinesKHR vkCreateRayTracingPipelinesKHR                   = nullptr;
-			PFN_vkGetRayTracingShaderGroupHandlesKHR vkGetRayTracingShaderGroupHandlesKHR       = nullptr;
-			PFN_vkCmdTraceRaysKHR vkCmdTraceRaysKHR                                             = nullptr;
-			PFN_vkCmdSetFragmentShadingRateKHR vkCmdSetFragmentShadingRateKHR                   = nullptr;
-			PFN_vkCmdBeginRenderingKHR vkCmdBeginRenderingKHR                                   = nullptr;
-			PFN_vkCmdEndRenderingKHR vkCmdEndRenderingKHR                                       = nullptr;
-
-			inline uint32_t getVkHeaderVersion() const { return VK_HEADER_VERSION; }
-		} pfn;
-
 		// API DATA
 		vkb::Instance m_instance;
 		vk::PhysicalDevice m_physical_device;
@@ -180,8 +158,6 @@ namespace Engine
 		// API METHODS
 
 		vk::SurfaceKHR create_surface(Window* interface);
-		void initialize_pfn();
-
 		vk::Extent2D surface_size(const vk::SurfaceKHR& surface) const;
 		bool has_stencil_component(vk::Format format);
 

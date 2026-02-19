@@ -281,7 +281,8 @@ namespace Engine
 	};
 
 	struct RHIColorAttachmentInfo {
-		RHIRenderTargetView* view = nullptr;
+		RHIRenderTargetView* view         = nullptr;
+		RHIRenderTargetView* resolve_view = nullptr;
 
 		union
 		{
@@ -290,19 +291,23 @@ namespace Engine
 			Vector4f color;
 		};
 
-		RHILoadFunc load   = RHILoadFunc::Load;
-		RHIStoreFunc store = RHIStoreFunc::Store;
+		RHILoadFunc load       = RHILoadFunc::Load;
+		RHIStoreFunc store     = RHIStoreFunc::Store;
+		RHIResolveFunc resolve = RHIResolveFunc::Undefined;
 	};
 
 	struct RHIDepthStencilAttachmentInfo {
-		RHIDepthStencilView* view = nullptr;
+		RHIDepthStencilView* view         = nullptr;
+		RHIDepthStencilView* resolve_view = nullptr;
 
-		float depth                = 0.f;
-		byte stencil               = 0;
-		RHILoadFunc depth_load     = RHILoadFunc::Load;
-		RHILoadFunc stencil_load   = RHILoadFunc::Load;
-		RHIStoreFunc depth_store   = RHIStoreFunc::Store;
-		RHIStoreFunc stencil_store = RHIStoreFunc::Store;
+		float depth                    = 0.f;
+		byte stencil                   = 0;
+		RHILoadFunc depth_load         = RHILoadFunc::Load;
+		RHILoadFunc stencil_load       = RHILoadFunc::Load;
+		RHIStoreFunc depth_store       = RHIStoreFunc::Store;
+		RHIStoreFunc stencil_store     = RHIStoreFunc::Store;
+		RHIResolveFunc depth_resolve   = RHIResolveFunc::Undefined;
+		RHIResolveFunc stencil_resolve = RHIResolveFunc::Undefined;
 	};
 
 	struct RHIRenderingInfo {
