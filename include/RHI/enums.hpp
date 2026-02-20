@@ -644,8 +644,7 @@ namespace Engine
 		inline bool is_depth_stencil() const { return as_color_format().is_depth_stencil(); }
 		inline bool is_depth() const { return as_color_format().is_depth(); }
 		inline bool has_depth() const { return as_color_format().has_depth(); }
-
-		operator RHIColorFormat() const { return as_color_format(); }
+		inline operator RHIColorFormat() const { return as_color_format(); }
 	};
 
 	struct RHIVertexFormat {
@@ -803,6 +802,18 @@ namespace Engine
 		inline uint_t height() const { return 1u << ((value >> 2) & 0b11); }
 	};
 
+	struct RHISampleCount {
+		enum Enum : byte
+		{
+			x1 = 0,
+			x2 = 1,
+			x4 = 2,
+			x8 = 3,
+		};
+
+		trinex_enum_struct(RHISampleCount);
+	};
+
 	struct RHILoadFunc {
 		enum Enum : byte
 		{
@@ -847,6 +858,16 @@ namespace Engine
 		};
 
 		trinex_bitfield_enum_struct(RHIRenderingFlags, byte);
+	};
+
+	struct RHIContextInheritanceFlags {
+		enum Enum : byte
+		{
+			Undefined          = 0,
+			RenderPassContinue = 1 << 0,
+		};
+
+		trinex_bitfield_enum_struct(RHIContextInheritanceFlags, byte);
 	};
 
 	struct RHIContextFlags {

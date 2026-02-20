@@ -1,5 +1,6 @@
 #include <Core/etl/templates.hpp>
 #include <Core/profiler.hpp>
+#include <Core/threading.hpp>
 #include <Engine/ActorComponents/directional_light_component.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/post_process_component.hpp>
@@ -65,7 +66,7 @@ namespace Engine
 	      m_visible_lights(scene->collect_visible_lights(view.camera_view().projview)),
 	      m_visible_post_processes(scene->collect_post_processes(view.camera_view().location()))
 	{
-		static_sort_lights(m_visible_lights);
+		sort_lights(m_visible_lights);
 		m_light_ranges = FrameAllocator<LightRenderRanges>::allocate(1);
 
 		find_light_range(m_visible_lights, LightComponent::Point, m_light_ranges->point);
@@ -414,10 +415,22 @@ namespace Engine
 		RHIPolygonMode mode = view_mode() == ViewMode::Wireframe ? RHIPolygonMode::Line : RHIPolygonMode::Fill;
 		ctx->polygon_mode(mode);
 
-		ctx->begin_rendering({base_color_target()->as_rtv(), normal_target()->as_rtv(), scene_color_hdr_target()->as_rtv(),
-		                      msra_target()->as_rtv(), scene_depth_target()->as_dsv()});
+		RHIRenderingInfo info = {base_color_target()->as_rtv(), normal_target()->as_rtv(), scene_color_hdr_target()->as_rtv(),
+		                         msra_target()->as_rtv(), scene_depth_target()->as_dsv()};
+		info.flags            = RHIRenderingFlags::SecondaryBuffersOnly;
+
+		ctx->begin_rendering(info);
 		{
-			render_visible_primitives(ctx, RenderPasses::Geometry::static_instance());
+			RHIContextInheritanceInfo inherit;
+			inherit.primary   = ctx;
+			inherit.colors[0] = base_color_format();
+			inherit.colors[1] = normal_format();
+			inherit.colors[2] = scene_color_hdr_format();
+			inherit.colors[3] = msra_format();
+			inherit.depth     = scene_depth_format();
+			inherit.flags     = RHIContextInheritanceFlags::RenderPassContinue;
+
+			render_visible_primitives(ctx, RenderPasses::Geometry::static_instance(), &inherit);
 			ctx->polygon_mode(RHIPolygonMode::Fill);
 		}
 		ctx->end_rendering();
@@ -458,9 +471,18 @@ namespace Engine
 		ctx->polygon_mode(mode);
 		ctx->cull_mode(RHICullMode::Front);
 
-		ctx->begin_rendering({scene_color_hdr_target()->as_rtv(), scene_depth_target()->as_dsv()});
+		RHIRenderingInfo info = {scene_color_hdr_target()->as_rtv(), scene_depth_target()->as_dsv()};
+		info.flags            = RHIRenderingFlags::SecondaryBuffersOnly;
+
+		ctx->begin_rendering(info);
 		{
-			render_visible_primitives(ctx, RenderPasses::Translucent::static_instance(), &s_bindings);
+			RHIContextInheritanceInfo inherit;
+			inherit.primary   = ctx;
+			inherit.colors[0] = scene_color_hdr_format();
+			inherit.depth     = scene_depth_format();
+			inherit.flags     = RHIContextInheritanceFlags::RenderPassContinue;
+
+			render_visible_primitives(ctx, RenderPasses::Translucent::static_instance(), &inherit, &s_bindings);
 		}
 		ctx->end_rendering();
 
@@ -492,7 +514,7 @@ namespace Engine
 			ctx->pop_debug_stage();
 		}
 		ctx->end_rendering();
-		
+
 		ctx->push_debug_stage("Blur and Apply");
 
 		// Blur vertical
@@ -785,18 +807,27 @@ namespace Engine
 		return *this;
 	}
 
-	DeferredRenderer& DeferredRenderer::render_visible_primitives(RHIContext* ctx, RenderPass* pass, MaterialBindings* bindings)
+	DeferredRenderer& DeferredRenderer::render_visible_primitives(RHIContext* ctx, RenderPass* pass,
+	                                                              RHIContextInheritanceInfo* inherit, MaterialBindings* bindings)
 	{
 		trinex_profile_cpu_n("DeferredRenderer::render_visible_primitives");
 
-		const FrameVector<PrimitiveComponent*>& primitives = visible_primitives();
+		RHIContext* secondary = RHIContextPool::global_instance()->request_context(RHIContextFlags::Secondary);
 
-		for (PrimitiveComponent* primitive : primitives)
+		secondary->begin(inherit);
+
+		for (PrimitiveComponent* primitive : m_visible_primitives)
 		{
 			Matrix4f matrix = primitive->world_transform().matrix();
-			PrimitiveRenderingContext context(this, ctx, pass, &matrix, bindings);
+			PrimitiveRenderingContext context(this, secondary, pass, &matrix, bindings);
 			primitive->render(&context);
 		}
+
+		RHICommandHandle* handle = secondary->end();
+		ctx->execute(handle);
+		handle->release();
+
+		RHIContextPool::global_instance()->return_context(secondary);
 
 		return *this;
 	}

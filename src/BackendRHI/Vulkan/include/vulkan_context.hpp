@@ -131,7 +131,7 @@ namespace Engine
 		VulkanContext(RHIContextFlags flags);
 		~VulkanContext();
 
-		VulkanContext& begin(RHIContext* primary = nullptr) override;
+		VulkanContext& begin(const RHIContextInheritanceInfo* inheritance = nullptr) override;
 		VulkanCommandHandle* end() override;
 
 		VulkanContext& begin_rendering(const RHIRenderingInfo& info) override;

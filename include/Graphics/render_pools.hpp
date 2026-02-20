@@ -179,8 +179,12 @@ namespace Engine
 			RHIContext* context = nullptr;
 		};
 
-		Vector<ContextEntry> m_pool;
+		Map<Identifier, Vector<ContextEntry>> m_pools;
+		Map<RHIContext*, Identifier> m_context_id;
 		Vector<RHIContext*> m_transient;
+
+	private:
+		RHIContextPool& flush_transient();
 
 	public:
 		static RHIContextPool* global_instance();
@@ -190,7 +194,7 @@ namespace Engine
 		RHIContextPool& release_all();
 		RHIContextPool& return_context(RHIContext* context);
 
-		RHIContext* begin_context();
+		RHIContext* begin_context(RHIContextFlags flags = RHIContextFlags::Undefined);
 		RHIContextPool& end_context(RHIContext* context);
 
 		template<typename Func>

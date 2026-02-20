@@ -48,8 +48,8 @@ namespace Engine
 		RHIContext& reset_state();
 
 	public:
-		virtual RHIContext& begin(RHIContext* primary = nullptr) = 0;
-		virtual RHICommandHandle* end()                          = 0;
+		virtual RHIContext& begin(const RHIContextInheritanceInfo* inheritance = nullptr) = 0;
+		virtual RHICommandHandle* end()                                                   = 0;
 
 		virtual RHIContext& begin_rendering(const RHIRenderingInfo& info) = 0;
 		virtual RHIContext& end_rendering()                               = 0;

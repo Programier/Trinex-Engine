@@ -237,29 +237,54 @@ namespace Engine
 		trx_delete m_state_manager;
 	}
 
-	VulkanContext& VulkanContext::begin(RHIContext* primary)
+	VulkanContext& VulkanContext::begin(const RHIContextInheritanceInfo* inheritance)
 	{
 		if (m_cmd == nullptr)
 		{
-			m_cmd                = VulkanCommandBufferManager::instance()->request_handle(m_flags);
-			VulkanContext* owner = static_cast<VulkanContext*>(primary);
+			m_cmd = VulkanCommandBufferManager::instance()->request_handle(m_flags);
 
 			if (is_secondary())
 			{
-				// if (owner->handle()->is_outside_render_pass())
-				// 	owner->begin_render_pass();
+				trinex_assert(inheritance);
 
-				// vk::CommandBufferBeginInfo begin_info;
-				// vk::CommandBufferInheritanceInfo inherit;
+				VulkanContext* primary = static_cast<VulkanContext*>(inheritance->primary);
 
-				// inherit.setFramebuffer(owner->state()->render_target()->framebuffer());
-				// inherit.setRenderPass(owner->state()->render_target()->render_pass()->render_pass());
+				vk::CommandBufferBeginInfo begin_info;
+				vk::CommandBufferInheritanceInfo inherit;
+				vk::CommandBufferInheritanceRenderingInfoKHR inherit_rendering;
+				vk::Format formats[4] = {vk::Format::eUndefined};
 
-				// begin_info.setPInheritanceInfo(&inherit);
-				// begin_info.setFlags(vk::CommandBufferUsageFlagBits::eRenderPassContinue);
+				begin_info.setPInheritanceInfo(&inherit);
 
-				// m_cmd->begin(begin_info);
-				m_state_manager->copy(owner->m_state_manager);
+				if (inheritance->flags & RHIContextInheritanceFlags::RenderPassContinue)
+				{
+					inherit.pNext = &inherit_rendering;
+					inherit_rendering.setColorAttachmentCount(4);
+					inherit_rendering.setPColorAttachmentFormats(formats);
+					inherit_rendering.setRasterizationSamples(VulkanEnums::sample_count_of(inheritance->samples));
+
+					for (uint_t i = 0; i < 4; ++i)
+					{
+						formats[i] = VulkanEnums::format_of(inheritance->colors[i].as_color_format());
+					}
+
+					vk::Format depth = VulkanEnums::format_of(inheritance->depth.as_color_format());
+
+					if (VulkanEnums::is_depth_format(depth))
+					{
+						inherit_rendering.setDepthAttachmentFormat(depth);
+					}
+
+					if (VulkanEnums::is_stencil_format(depth))
+					{
+						inherit_rendering.setStencilAttachmentFormat(depth);
+					}
+
+					begin_info.setFlags(vk::CommandBufferUsageFlagBits::eRenderPassContinue);
+				}
+
+				m_cmd->begin(begin_info);
+				m_state_manager->copy(primary->m_state_manager);
 				copy_state(primary);
 			}
 			else
@@ -385,7 +410,7 @@ namespace Engine
 		{
 			rendering.setRenderArea(vk::Rect2D({0, 0}, {fb.size.x, fb.size.y}));
 		}
-		
+
 		rendering.setColorAttachmentCount(4);
 		rendering.setPColorAttachments(attachments);
 		rendering.setPDepthAttachment(depth);

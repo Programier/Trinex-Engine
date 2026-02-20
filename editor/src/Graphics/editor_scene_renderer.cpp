@@ -156,7 +156,7 @@ namespace Engine
 			auto view_size = scene_view().view_size();
 			auto pool      = RHITexturePool::global_instance();
 			auto depth     = pool->request_surface(RHISurfaceFormat::D32F, view_size);
-			auto color     = pool->request_surface(static_surface_format_of(BaseColor), view_size);
+			auto color     = pool->request_surface(surface_format_of(BaseColor), view_size);
 
 			auto dsv = depth->as_dsv();
 

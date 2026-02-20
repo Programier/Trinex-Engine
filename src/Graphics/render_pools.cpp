@@ -605,27 +605,25 @@ namespace Engine
 
 	RHIContextPool& RHIContextPool::update()
 	{
-		for (RHIContext* ctx : m_transient)
+		flush_transient();
+
+		for (auto& [id, pool] : m_pools)
 		{
-			return_context(ctx);
-		}
+			size_t erase_count = 0;
 
-		m_transient.clear();
-
-		size_t erase_count = 0;
-
-		for (auto& entry : m_pool)
-		{
-			if (--entry.frame == 0)
+			for (auto& entry : pool)
 			{
-				++erase_count;
-				entry.context->release();
+				if (--entry.frame == 0)
+				{
+					++erase_count;
+					entry.context->release();
+				}
 			}
-		}
 
-		if (erase_count > 0)
-		{
-			m_pool.erase(m_pool.begin(), m_pool.begin() + erase_count);
+			if (erase_count > 0)
+			{
+				pool.erase(pool.begin(), pool.begin() + erase_count);
+			}
 		}
 
 		return *this;
@@ -633,38 +631,67 @@ namespace Engine
 
 	RHIContext* RHIContextPool::request_context(RHIContextFlags flags)
 	{
-		if (!m_pool.empty())
+		auto& pool = m_pools[flags.value];
+
+		if (!pool.empty())
 		{
-			RHIContext* ctx = m_pool.back().context;
-			m_pool.pop_back();
+			RHIContext* ctx = pool.back().context;
+			pool.pop_back();
 			return ctx;
 		}
 
-		return rhi->create_context(flags);
+		RHIContext* ctx   = rhi->create_context(flags);
+		m_context_id[ctx] = flags;
+		return ctx;
+	}
+
+	RHIContextPool& RHIContextPool::flush_transient()
+	{
+		for (RHIContext* ctx : m_transient)
+		{
+			return_context(ctx);
+		}
+
+		m_transient.clear();
+		return *this;
 	}
 
 	RHIContextPool& RHIContextPool::release_all()
 	{
-		for (auto& entry : m_pool)
+		flush_transient();
+
+		m_context_id.clear();
+
+		for (auto& [id, pool] : m_pools)
 		{
-			entry.context->release();
+			for (auto& entry : pool)
+			{
+				entry.context->release();
+			}
 		}
 
-		m_pool.clear();
+		m_pools.clear();
+
 		return *this;
 	}
 
 	RHIContextPool& RHIContextPool::return_context(RHIContext* ctx)
 	{
-		auto& entry   = m_pool.emplace_back();
+		auto it = m_context_id.find(ctx);
+
+		if (it == m_context_id.end())
+			return *this;
+
+		auto& pool    = m_pools[it->second];
+		auto& entry   = pool.emplace_back();
 		entry.context = ctx;
 		entry.frame   = s_resource_live_threshold;
 		return *this;
 	}
 
-	RHIContext* RHIContextPool::begin_context()
+	RHIContext* RHIContextPool::begin_context(RHIContextFlags flags)
 	{
-		return &request_context()->begin();
+		return &request_context(flags)->begin();
 	}
 
 	RHIContextPool& RHIContextPool::end_context(RHIContext* context)

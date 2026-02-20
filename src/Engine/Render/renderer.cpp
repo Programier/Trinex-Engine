@@ -22,13 +22,13 @@ namespace Engine
 		m_graph = new (FrameAllocator<RenderGraph::Graph>::allocate(1)) RenderGraph::Graph();
 	}
 
-	RHISurfaceFormat Renderer::static_surface_format_of(SurfaceType type)
+	RHISurfaceFormat Renderer::surface_format_of(SurfaceType type)
 	{
 		switch (type)
 		{
 			case SurfaceType::SceneColorHDR: return RHISurfaceFormat::RGBA16F;
 			case SurfaceType::SceneColorLDR: return RHISurfaceFormat::RGBA8;
-			case SurfaceType::SceneDepth: return RHISurfaceFormat::D32F;
+			case SurfaceType::SceneDepth: return RHISurfaceFormat::D24S8;
 			case SurfaceType::BaseColor: return RHISurfaceFormat::RGBA8;
 			case SurfaceType::Normal: return RHISurfaceFormat::RGB10A2;
 			case SurfaceType::MSRA: return RHISurfaceFormat::RGBA8;
@@ -37,7 +37,7 @@ namespace Engine
 		}
 	}
 
-	const char* Renderer::static_surface_name_of(SurfaceType type)
+	const char* Renderer::surface_name_of(SurfaceType type)
 	{
 		switch (type)
 		{
@@ -52,7 +52,7 @@ namespace Engine
 		}
 	}
 
-	void Renderer::static_sort_lights(FrameVector<LightComponent*>& visible_lights)
+	void Renderer::sort_lights(FrameVector<LightComponent*>& visible_lights)
 	{
 		std::sort(visible_lights.begin(), visible_lights.end(), [](LightComponent* a, LightComponent* b) -> bool {
 			auto a_type = a->light_type();
@@ -130,7 +130,7 @@ namespace Engine
 			};
 
 			auto pool          = RHITexturePool::global_instance();
-			RHITexture* target = pool->request_transient_surface(static_surface_format_of(type), m_view.view_size());
+			RHITexture* target = pool->request_transient_surface(surface_format_of(type), m_view.view_size());
 
 			RenderGraph::Pass* pass = &m_graph->add_pass(clear_pass_names[type]).add_resource(target, RHIAccess::TransferDst);
 			m_surface_clears[type]  = pass;

@@ -52,9 +52,9 @@ namespace Engine
 		RenderGraph::Pass* m_surface_clears[LastSurface] = {};
 
 	public:
-		static RHISurfaceFormat static_surface_format_of(SurfaceType type);
-		static const char* static_surface_name_of(SurfaceType type);
-		static void static_sort_lights(FrameVector<LightComponent*>& visible_lights);
+		static RHISurfaceFormat surface_format_of(SurfaceType type);
+		static const char* surface_name_of(SurfaceType type);
+		static void sort_lights(FrameVector<LightComponent*>& visible_lights);
 
 	public:
 		BatchedLines lines;
@@ -82,6 +82,14 @@ namespace Engine
 		inline RHITexture* normal_target() { return surface(Normal); }
 		inline RHITexture* msra_target() { return surface(MSRA); }
 		inline RHITexture* velocity_target() { return surface(Velocity); }
+
+		static inline RHISurfaceFormat scene_color_hdr_format() { return surface_format_of(SceneColorHDR); }
+		static inline RHISurfaceFormat scene_color_ldr_format() { return surface_format_of(SceneColorLDR); }
+		static inline RHISurfaceFormat scene_depth_format() { return surface_format_of(SceneDepth); }
+		static inline RHISurfaceFormat base_color_format() { return surface_format_of(BaseColor); }
+		static inline RHISurfaceFormat normal_format() { return surface_format_of(Normal); }
+		static inline RHISurfaceFormat msra_format() { return surface_format_of(MSRA); }
+		static inline RHISurfaceFormat velocity_format() { return surface_format_of(Velocity); }
 
 		inline RenderGraph::Pass* scene_color_hdr_clear_pass() { return surface_clear_pass(SceneColorHDR); }
 		inline RenderGraph::Pass* scene_color_ldr_clear_pass() { return surface_clear_pass(SceneColorLDR); }

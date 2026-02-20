@@ -7,6 +7,7 @@
 
 namespace Engine
 {
+	class RHIContext;
 	class RHIBuffer;
 	class RHIRenderTargetView;
 	class RHIDepthStencilView;
@@ -351,5 +352,13 @@ namespace Engine
 			colors[3].view     = rtv3;
 			depth_stencil.view = dsv;
 		}
+	};
+
+	struct RHIContextInheritanceInfo {
+		RHIContext* primary              = nullptr;
+		RHISurfaceFormat colors[4]       = {RHISurfaceFormat::Undefined};
+		RHISurfaceFormat depth           = RHISurfaceFormat::Undefined;
+		RHISampleCount samples           = RHISampleCount::x1;
+		RHIContextInheritanceFlags flags = RHIContextInheritanceFlags::Undefined;
 	};
 }// namespace Engine

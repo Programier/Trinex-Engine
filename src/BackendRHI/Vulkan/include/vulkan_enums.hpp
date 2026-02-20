@@ -624,4 +624,15 @@ namespace Engine::VulkanEnums
 
 		return vk::SampleCountFlagBits::e1;
 	}
+
+	static constexpr inline vk::SampleCountFlagBits sample_count_of(RHISampleCount count)
+	{
+		switch (count)
+		{
+			case RHISampleCount::x2: return vk::SampleCountFlagBits::e2;
+			case RHISampleCount::x4: return vk::SampleCountFlagBits::e4;
+			case RHISampleCount::x8: return vk::SampleCountFlagBits::e8;
+			default: return vk::SampleCountFlagBits::e1;
+		}
+	}
 }// namespace Engine::VulkanEnums

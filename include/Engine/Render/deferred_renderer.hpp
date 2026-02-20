@@ -56,7 +56,8 @@ namespace Engine
 		DeferredRenderer& copy_ambient_to_scene_color(RHIContext* ctx);
 		DeferredRenderer& copy_velocity_to_scene_color(RHIContext* ctx);
 		DeferredRenderer& copy_world_to_scene_color(RHIContext* ctx);
-		DeferredRenderer& render_visible_primitives(RHIContext* ctx, RenderPass* pass, MaterialBindings* bindings = nullptr);
+		DeferredRenderer& render_visible_primitives(RHIContext* ctx, RenderPass* pass, RHIContextInheritanceInfo* inherit,
+		                                            MaterialBindings* bindings = nullptr);
 		DeferredRenderer& cull_lights(RHIContext* ctx);
 
 	public:
