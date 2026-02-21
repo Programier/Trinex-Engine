@@ -6,6 +6,9 @@ namespace Engine
 	template<typename Type>
 	using Atomic = std::atomic<Type>;
 
+	template<typename Type>
+	using AtomicRef = std::atomic_ref<Type>;
+
 	using AtomicFlag = std::atomic_flag;
 
 	namespace etl

@@ -89,8 +89,8 @@ namespace Engine
 		Task& operator=(Task&& task);
 		~Task();
 
-		bool is_multi_threaded() const;
-		Task& is_multi_threaded(bool flag);
+		static byte worker_index();
+		Task& max_threads(byte count);
 		Task& add_dependent(const Task& dependent);
 		Task& add_dependent(Task&& dependent);
 		Priority priority() const;
@@ -130,7 +130,8 @@ namespace Engine
 		Thread(NoThread);
 		Thread(void (*function)(void* data), void* data = nullptr);
 
-		Thread& execute();
+		size_t execute();
+		bool execute_once();
 		Thread& add_task(const Task& task);
 		Thread& add_task(Task&& task);
 
@@ -152,12 +153,13 @@ namespace Engine
 	public:
 		static TaskGraph* instance();
 
+		byte workers() const;
 		TaskGraph& add_task(const Task& task);
 		TaskGraph& wait_for(const Task& task);
 
 
 		template<typename Callable>
-		inline TaskGraph& for_each(size_t count, Callable&& func, size_t block = 64)
+		inline TaskGraph& for_each(size_t count, Callable&& func, size_t block = 64, byte max_threads = 255)
 		{
 			if (count < block)
 			{
@@ -187,7 +189,7 @@ namespace Engine
 				}
 			});
 
-			//task.is_multi_threaded(true);
+			task.max_threads(max_threads);
 			return wait_for(task);
 		}
 	};
