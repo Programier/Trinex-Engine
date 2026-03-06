@@ -812,9 +812,9 @@ namespace Engine::UI
 			flags |= ImGuiColorEditFlags_NoInputs;
 
 		ImGui::SetNextItemWidth(ctx->cell_width());
-		if (ImGui::ColorEdit4("###value", &linear.x, flags))
+		if (ImGui::ColorEdit4("###value", &linear.r, flags))
 		{
-			(*color) = linear;
+			(*color) = Color(linear);
 			renderer->propagate_property_event();
 			return true;
 		}
@@ -837,7 +837,7 @@ namespace Engine::UI
 			flags |= ImGuiColorEditFlags_NoInputs;
 
 		ImGui::SetNextItemWidth(ctx->cell_width());
-		if (ImGui::ColorEdit4("###value", &color->x, flags))
+		if (ImGui::ColorEdit4("###value", &color->r, flags))
 		{
 			renderer->propagate_property_event();
 			return true;

@@ -4,10 +4,10 @@
 namespace ImViewGuizmo
 {
 	static const vec3_t origin                 = vec3_t(0.f, 0.f, 0.f);
-	static constexpr vec3_t worldRight         = vec3_t(1.f, 0.f, 0.f);// +X
-	static constexpr vec3_t worldUp            = vec3_t(0.f, 1.f, 0.f);// +Y
-	static constexpr vec3_t worldForward       = vec3_t(0.f, 0.f, 1.f);// +Z
-	static constexpr vec3_t axisVectors[3]     = {vec3_t(1, 0, 0), vec3_t(0, 1, 0), vec3_t(0, 0, 1)};
+	static const vec3_t worldRight             = vec3_t(1.f, 0.f, 0.f);// +X
+	static const vec3_t worldUp                = vec3_t(0.f, 1.f, 0.f);// +Y
+	static const vec3_t worldForward           = vec3_t(0.f, 0.f, 1.f);// +Z
+	static const vec3_t axisVectors[3]         = {vec3_t(1, 0, 0), vec3_t(0, 1, 0), vec3_t(0, 0, 1)};
 	static const mat4_t guizmoProjectionMatrix = glm::orthoRH(-1.f, 1.f, 1.f, -1.f, -1.f, 1.f);
 
 	static Context* g_context = nullptr;

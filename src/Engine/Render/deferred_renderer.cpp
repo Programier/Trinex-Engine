@@ -812,22 +812,58 @@ namespace Engine
 	{
 		trinex_profile_cpu_n("DeferredRenderer::render_visible_primitives");
 
-		RHIContext* secondary = RHIContextPool::global_instance()->request_context(RHIContextFlags::Secondary);
+		static constexpr uint_t chunk = 64;
 
-		secondary->begin(inherit);
+		struct Worker {
+			RHIContext* context = nullptr;
+			size_t objects;
+		};
 
-		for (PrimitiveComponent* primitive : m_visible_primitives)
+		TaskGraph* graph             = TaskGraph::instance();
+		RHIContextPool* context_pool = RHIContextPool::global_instance();
+
+		const uint32_t primitives_count = m_visible_primitives.size();
+		//const uint32_t worker_count     = Math::min<uint32_t>(graph->workers() + 1, (primitives_count + chunk - 1) / chunk);
+		const uint32_t worker_count = 1;
+
+		StackByteAllocator::Mark mark;
+		Worker* workers = StackAllocator<Worker>::allocate(worker_count);
+
+		for (uint32_t i = 0; i < worker_count; ++i)
 		{
-			Matrix4f matrix = primitive->world_transform().matrix();
-			PrimitiveRenderingContext context(this, secondary, pass, &matrix, bindings);
-			primitive->render(&context);
+			RHIContext* secondary = context_pool->request_context(RHIContextFlags::Secondary);
+			workers[i]            = {secondary, 0};
 		}
 
-		RHICommandHandle* handle = secondary->end();
-		ctx->execute(handle);
-		handle->release();
+		auto callback = [this, pass, workers, bindings, inherit](uint32_t idx) {
+			Worker& worker = workers[Task::worker_index()];
 
-		RHIContextPool::global_instance()->return_context(secondary);
+			if (++worker.objects == 1)
+			{
+				worker.context->begin(inherit);
+			}
+
+			PrimitiveComponent* primitive = m_visible_primitives[idx];
+			Matrix4f matrix               = primitive->world_transform().matrix();
+			PrimitiveRenderingContext context(this, worker.context, pass, &matrix, bindings);
+			primitive->render(&context);
+		};
+
+		graph->for_each(primitives_count, callback, chunk, worker_count);
+
+		for (uint32_t i = 0; i < worker_count; ++i)
+		{
+			Worker& worker = workers[i];
+
+			if (worker.objects)
+			{
+				RHICommandHandle* handle = worker.context->end();
+				ctx->execute(handle);
+				handle->release();
+			}
+
+			context_pool->return_context(worker.context);
+		}
 
 		return *this;
 	}

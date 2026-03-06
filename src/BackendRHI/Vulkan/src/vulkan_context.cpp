@@ -482,20 +482,26 @@ namespace Engine
 
 	VulkanContext& VulkanContext::push_debug_stage(const char* stage)
 	{
-		vk::DebugUtilsLabelEXT label_info = {};
-		label_info.pLabelName             = stage;
-		label_info.color[0]               = 1.f;
-		label_info.color[1]               = 1.f;
-		label_info.color[2]               = 1.f;
-		label_info.color[3]               = 1.f;
+		if (VULKAN_HPP_DEFAULT_DISPATCHER.vkCmdBeginDebugUtilsLabelEXT)
+		{
+			vk::DebugUtilsLabelEXT label_info = {};
+			label_info.pLabelName             = stage;
+			label_info.color[0]               = 1.f;
+			label_info.color[1]               = 1.f;
+			label_info.color[2]               = 1.f;
+			label_info.color[3]               = 1.f;
 
-		m_cmd->beginDebugUtilsLabelEXT(&label_info);
+			m_cmd->beginDebugUtilsLabelEXT(&label_info);
+		}
 		return *this;
 	}
 
 	VulkanContext& VulkanContext::pop_debug_stage()
 	{
-		m_cmd->endDebugUtilsLabelEXT();
+		if (VULKAN_HPP_DEFAULT_DISPATCHER.vkCmdEndDebugUtilsLabelEXT)
+		{
+			m_cmd->endDebugUtilsLabelEXT();
+		}
 		return *this;
 	}
 

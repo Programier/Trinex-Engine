@@ -1,5 +1,6 @@
 #include <Core/etl/templates.hpp>
 #include <Core/math/math.hpp>
+#include <Core/profiler.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
@@ -203,6 +204,7 @@ namespace Engine
 
 	SceneComponent& SceneComponent::local_transform(const Transform& transform)
 	{
+		trinex_profile_cpu_n("SceneComponent::local_transform");
 		m_local = transform;
 		on_transform_changed();
 		return *this;
@@ -210,6 +212,7 @@ namespace Engine
 
 	SceneComponent& SceneComponent::local_transform(const Vector3f& location, const Quaternion& rotation, const Vector3f& scale)
 	{
+		trinex_profile_cpu_n("SceneComponent::local_transform");
 		m_local.location = location;
 		m_local.rotation = rotation;
 		m_local.scale    = scale;
@@ -219,6 +222,7 @@ namespace Engine
 
 	SceneComponent& SceneComponent::add_local_transform(const Transform& transform)
 	{
+		trinex_profile_cpu_n("SceneComponent::add_local_transform");
 		m_local += transform;
 		on_transform_changed();
 
@@ -227,6 +231,7 @@ namespace Engine
 
 	SceneComponent& SceneComponent::remove_local_transform(const Transform& transform)
 	{
+		trinex_profile_cpu_n("SceneComponent::location");
 		m_local -= transform;
 		on_transform_changed();
 
@@ -235,6 +240,7 @@ namespace Engine
 
 	SceneComponent& SceneComponent::location(const Vector3f& new_location)
 	{
+		trinex_profile_cpu_n("SceneComponent::location");
 		m_local.location = new_location;
 		on_transform_changed();
 		return *this;
@@ -242,6 +248,7 @@ namespace Engine
 
 	SceneComponent& SceneComponent::rotation(const Quaternion& new_rotation)
 	{
+		trinex_profile_cpu_n("SceneComponent::rotation");
 		m_local.rotation = new_rotation;
 		on_transform_changed();
 		return *this;
@@ -249,6 +256,7 @@ namespace Engine
 
 	SceneComponent& SceneComponent::scale(const Vector3f& new_scale)
 	{
+		trinex_profile_cpu_n("SceneComponent::scale");
 		m_local.scale = new_scale;
 		on_transform_changed();
 		return *this;
@@ -256,6 +264,8 @@ namespace Engine
 
 	SceneComponent& SceneComponent::add_location(const Vector3f& delta)
 	{
+		trinex_profile_cpu_n("SceneComponent::add_location");
+
 		m_local.location += delta;
 		on_transform_changed();
 		return *this;
@@ -263,6 +273,7 @@ namespace Engine
 
 	SceneComponent& SceneComponent::add_rotation(const Quaternion& delta)
 	{
+		trinex_profile_cpu_n("SceneComponent::add_rotation");
 		m_local.rotation *= delta;
 		on_transform_changed();
 		return *this;
@@ -270,6 +281,7 @@ namespace Engine
 
 	SceneComponent& SceneComponent::add_scale(const Vector3f& delta)
 	{
+		trinex_profile_cpu_n("SceneComponent::add_scale");
 		m_local.scale *= delta;
 		on_transform_changed();
 		return *this;
@@ -277,6 +289,7 @@ namespace Engine
 
 	SceneComponent& SceneComponent::look_at(const Vector3f& location, const Vector3f& up)
 	{
+		trinex_profile_cpu_n("SceneComponent::look_at");
 		m_local.rotation = Math::quat_look_at(Math::normalize(location - local_transform().location), up);
 		on_transform_changed();
 		return *this;

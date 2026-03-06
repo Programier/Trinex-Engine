@@ -87,6 +87,7 @@ namespace Engine
 	{
 		if (mesh())
 		{
+			trinex_profile_cpu_n("Bounds transform");
 			m_bounding_box = mesh()->bounds.transform(world_transform().matrix());
 		}
 		else

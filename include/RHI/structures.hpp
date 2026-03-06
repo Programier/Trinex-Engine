@@ -17,8 +17,8 @@ namespace Engine
 		Vector2i pos;
 
 		FORCE_INLINE RHIRect(Vector2i size = {0, 0}, Vector2i pos = {0, 0}) : size(size), pos(pos) {}
-		FORCE_INLINE bool operator==(const RHIRect& v) const { return pos == v.pos && size == v.size; }
-		FORCE_INLINE bool operator!=(const RHIRect& v) const { return !((*this) == v); }
+		FORCE_INLINE bool_t operator==(const RHIRect& v) const { return pos == v.pos && size == v.size; }
+		FORCE_INLINE bool_t operator!=(const RHIRect& v) const { return !((*this) == v); }
 	};
 
 	struct RHIScissor {
@@ -26,8 +26,8 @@ namespace Engine
 		Vector2f pos;
 
 		FORCE_INLINE RHIScissor(Vector2f size = {1.f, 1.f}, Vector2f pos = {0.f, 0.f}) : size(size), pos(pos) {}
-		FORCE_INLINE bool operator==(const RHIScissor& v) const { return pos == v.pos && size == v.size; }
-		FORCE_INLINE bool operator!=(const RHIScissor& v) const { return !((*this) == v); }
+		FORCE_INLINE bool_t operator==(const RHIScissor& v) const { return pos == v.pos && size == v.size; }
+		FORCE_INLINE bool_t operator!=(const RHIScissor& v) const { return !((*this) == v); }
 	};
 
 	struct RHIViewport {
@@ -41,12 +41,12 @@ namespace Engine
 		    : size(size), pos(pos), min_depth(min_depth), max_depth(max_depth)
 		{}
 
-		FORCE_INLINE bool operator==(const RHIViewport& v) const
+		FORCE_INLINE bool_t operator==(const RHIViewport& v) const
 		{
 			return pos == v.pos && size == v.size && min_depth == v.min_depth && max_depth == v.max_depth;
 		}
 
-		FORCE_INLINE bool operator!=(const RHIViewport& v) const { return !((*this) == v); }
+		FORCE_INLINE bool_t operator!=(const RHIViewport& v) const { return !((*this) == v); }
 	};
 
 	struct ENGINE_EXPORT RHIRange {
@@ -61,7 +61,7 @@ namespace Engine
 		size_t offset = 0;
 		byte binding  = 255;
 
-		bool serialize(Archive& ar);
+		bool_t serialize(Archive& ar);
 	};
 
 	struct RHIVertexAttribute {
@@ -72,7 +72,7 @@ namespace Engine
 		    : semantic(semantic), binding(binding)
 		{}
 
-		bool serialize(Archive& ar);
+		bool_t serialize(Archive& ar);
 	};
 
 	struct RHITextureRegion {
@@ -175,14 +175,14 @@ namespace Engine
 		trinex_default_comparable(RHIDepthState);
 
 		RHICompareFunc func = RHICompareFunc::Less;
-		bool enable         = true;
-		bool write_enable   = true;
+		bool_t enable       = true;
+		bool_t write_enable = true;
 
-		RHIDepthState(bool enable = true, RHICompareFunc func = RHICompareFunc::Less, bool write_enable = true)
+		RHIDepthState(bool_t enable = true, RHICompareFunc func = RHICompareFunc::Less, bool_t write_enable = true)
 		    : func(func), enable(enable), write_enable(write_enable)
 		{}
 
-		bool serialize(Archive& ar);
+		bool_t serialize(Archive& ar);
 	};
 
 	struct RHIStencilState final {
@@ -196,9 +196,9 @@ namespace Engine
 		byte compare_mask;
 		byte write_mask;
 		byte reference;
-		bool enable;
+		bool_t enable;
 
-		inline RHIStencilState(bool enable = false, RHICompareFunc compare = RHICompareFunc::Always,
+		inline RHIStencilState(bool_t enable = false, RHICompareFunc compare = RHICompareFunc::Always,
 		                       RHIStencilOp fail = RHIStencilOp::Keep, RHIStencilOp depth_fail = RHIStencilOp::Keep,
 		                       RHIStencilOp depth_pass = RHIStencilOp::Keep, byte reference = 0, byte compare_mask = 0xFF,
 		                       byte write_mask = 0xFF)
@@ -206,7 +206,7 @@ namespace Engine
 		      write_mask(write_mask), reference(reference), enable(enable)
 		{}
 
-		bool serialize(Archive& ar);
+		bool_t serialize(Archive& ar);
 	};
 
 	struct ENGINE_EXPORT RHIBlendingState final {
@@ -225,9 +225,9 @@ namespace Engine
 		RHIBlendFunc src_alpha_func;
 		RHIBlendFunc dst_alpha_func;
 		RHIBlendOp alpha_op;
-		bool enable;
+		bool_t enable;
 
-		inline RHIBlendingState(bool enable = false, RHIBlendFunc src_color_func = RHIBlendFunc::SrcAlpha,
+		inline RHIBlendingState(bool_t enable = false, RHIBlendFunc src_color_func = RHIBlendFunc::SrcAlpha,
 		                        RHIBlendFunc dst_color_func = RHIBlendFunc::OneMinusSrcAlpha,
 		                        RHIBlendOp color_op = RHIBlendOp::Add, RHIBlendFunc src_alpha_func = RHIBlendFunc::One,
 		                        RHIBlendFunc dst_alpha_func = RHIBlendFunc::OneMinusSrcAlpha,
@@ -236,49 +236,75 @@ namespace Engine
 		      dst_alpha_func(dst_alpha_func), alpha_op(alpha_op), enable(enable)
 		{}
 
-		bool serialize(Archive& ar);
+		bool_t serialize(Archive& ar);
 
-		inline bool is_opaque() const
+		inline bool_t is_opaque() const
 		{
 			return !enable ||
 			       (src_color_func == RHIBlendFunc::One && dst_color_func == RHIBlendFunc::Zero && color_op == RHIBlendOp::Add);
 		}
 
-		inline bool is_translucent() const { return !is_opaque(); }
+		inline bool_t is_translucent() const { return !is_opaque(); }
 
-		inline bool is_alpha_blend() const
+		inline bool_t is_alpha_blend() const
 		{
 			return enable && src_color_func == RHIBlendFunc::SrcAlpha && dst_color_func == RHIBlendFunc::OneMinusSrcAlpha &&
 			       color_op == RHIBlendOp::Add;
 		}
 
-		inline bool is_additive() const
+		inline bool_t is_additive() const
 		{
 			return enable && src_color_func == RHIBlendFunc::One && dst_color_func == RHIBlendFunc::One &&
 			       color_op == RHIBlendOp::Add;
 		}
 
-		inline bool is_multiplicative() const
+		inline bool_t is_multiplicative() const
 		{
 			return enable && src_color_func == RHIBlendFunc::DstColor && dst_color_func == RHIBlendFunc::Zero &&
 			       color_op == RHIBlendOp::Add;
 		}
 
-		inline bool is_alpha_replace() const
+		inline bool_t is_alpha_replace() const
 		{
 			return enable && src_alpha_func == RHIBlendFunc::One && dst_alpha_func == RHIBlendFunc::Zero &&
 			       alpha_op == RHIBlendOp::Add;
 		}
 
-		inline bool is_symmetric() const
+		inline bool_t is_symmetric() const
 		{
 			return src_color_func == src_alpha_func && dst_color_func == dst_alpha_func && color_op == alpha_op;
 		}
 
-		inline bool affects_color() const
+		inline bool_t affects_color() const
 		{
 			return enable && !(src_color_func == RHIBlendFunc::One && dst_color_func == RHIBlendFunc::Zero);
 		}
+	};
+
+	struct RHIRasterizerState {
+		RHIPrimitiveTopology topology     = RHIPrimitiveTopology::TriangleList;
+		RHIPolygonMode polygon_mode       = RHIPolygonMode::Fill;
+		RHICullMode cull_mode             = RHICullMode::None;
+		RHIFrontFace front_face           = RHIFrontFace::CounterClockWise;
+		RHIColorComponent write_mask      = RHIColorComponent::RGBA;
+		bool_t depth_clamp_enable         = false;
+		bool_t rasterizer_discard         = false;
+		bool_t conservative_raster_enable = false;
+
+		struct DepthBias {
+			float constant = 0.0f;
+			float clamp    = 0.0f;
+			float slope    = 0.0f;
+
+			inline bool_t is_enabled() const { return constant != 0.0f || clamp != 0.0f || slope != 0.0f; }
+		} depth_bias;
+	};
+
+	struct RHIMultiSampleState {
+		uint32_t sample_mask            = 0xFFFFFFFF;
+		RHISampleCount samples          = RHISampleCount::x1;
+		bool_t alpha_to_coverage_enable = false;
+		bool_t alpha_to_one_enable      = false;
 	};
 
 	struct RHIColorAttachmentInfo {

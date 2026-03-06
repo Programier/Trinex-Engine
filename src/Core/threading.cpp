@@ -4,6 +4,7 @@
 #include <Core/etl/deque.hpp>
 #include <Core/etl/scope_variable.hpp>
 #include <Core/etl/vector.hpp>
+#include <Core/math/math.hpp>
 #include <Core/memory.hpp>
 #include <Core/threading.hpp>
 #include <condition_variable>
@@ -14,7 +15,7 @@ namespace Engine
 {
 	///////////////// GLOBAL VARIABLES /////////////////
 
-	static thread_local byte s_worker_idx = 0;
+	static thread_local uint16_t s_worker_idx = 0;
 
 	///////////////// TASK QUEUE IMPLEMENTATION /////////////////
 
@@ -51,9 +52,9 @@ namespace Engine
 		Atomic<uint32_t> m_refs         = 1;
 		Atomic<Status> m_status         = Undefined;
 
-		Priority m_priority = Middle;
-		byte m_workers      = 0;
-		byte m_max_threads  = 1;
+		Priority m_priority    = Middle;
+		uint16_t m_workers     = 0;
+		uint16_t m_max_threads = 1;
 
 	public:
 		static TaskImpl* allocate()
@@ -81,6 +82,7 @@ namespace Engine
 			m_refs.store(1, etl::memory_order_relaxed);
 			m_status      = Undefined;
 			m_priority    = Middle;
+			m_workers     = 0;
 			m_max_threads = 1;
 
 			m_function->~Function();
@@ -118,7 +120,7 @@ namespace Engine
 			}
 		}
 
-		inline bool execute(byte worker = 0)
+		inline bool execute(uint16_t worker = 0)
 		{
 			{
 				ScopeVariable scope(s_worker_idx, worker);
@@ -129,7 +131,7 @@ namespace Engine
 			{
 				ScopeLock lock(m_cs);
 
-				if (m_workers-- == 1)
+				if (--m_workers == 0)
 				{
 					m_status.store(Status::Executed, etl::memory_order_release);
 
@@ -148,7 +150,7 @@ namespace Engine
 			}
 			else
 			{
-				trinex_assert(m_workers-- == 0);
+				trinex_assert(--m_workers == 0);
 				m_status.store(Status::Executed, etl::memory_order_release);
 
 				for (Task& dependent : m_dependents)
@@ -230,9 +232,9 @@ namespace Engine
 		return s_worker_idx;
 	}
 
-	Task& Task::max_threads(byte count)
+	Task& Task::max_threads(uint_t count)
 	{
-		m_impl->m_max_threads = count ? count : 1;
+		m_impl->m_max_threads = Math::clamp<uint_t>(count, 1U, 0xFFFFU);
 		return *this;
 	}
 
@@ -385,6 +387,8 @@ namespace Engine
 			if (!queue.empty())
 			{
 				Task::TaskImpl* t = etl::move(queue.front());
+				t->m_status       = Task::Executing;
+				t->m_workers      = 1;
 				queue.pop_front();
 				return t;
 			}
@@ -406,10 +410,8 @@ namespace Engine
 					task = fetch_task_locked();
 				}
 
-				if (task)
+				if (task && task->execute())
 				{
-					task->m_status = Task::Executing;
-					task->execute();
 					task->release();
 					++count;
 				}
@@ -434,16 +436,14 @@ namespace Engine
 				task = fetch_task_locked();
 			}
 
-			if (task)
+			if (task && task->execute())
 			{
-				task->m_status = Task::Executing;
-				task->execute();
 				task->release();
 				return true;
 			}
 			else
 			{
-				return false;
+				return task != nullptr;
 			}
 		}
 
@@ -529,7 +529,7 @@ namespace Engine
 			return true;
 		}
 
-		Task::TaskImpl* acquire_task_locked(Deque<Task::TaskImpl*>& queue, byte& worker)
+		Task::TaskImpl* acquire_task_locked(Deque<Task::TaskImpl*>& queue, uint16_t& worker)
 		{
 			while (!queue.empty())
 			{
@@ -581,7 +581,7 @@ namespace Engine
 			return nullptr;
 		}
 
-		Task::TaskImpl* acquire_task_locked(byte& worker)
+		Task::TaskImpl* acquire_task_locked(uint16_t& worker)
 		{
 			for (uint32_t i = Task::High; i <= Task::Low; ++i)
 			{
@@ -592,7 +592,7 @@ namespace Engine
 			return nullptr;
 		}
 
-		inline Task::TaskImpl* acquire_task(byte& worker)
+		inline Task::TaskImpl* acquire_task(uint16_t& worker)
 		{
 			if (m_mutex.try_lock())
 			{
@@ -610,7 +610,7 @@ namespace Engine
 		{
 			while (true)
 			{
-				byte worker;
+				uint16_t worker;
 				Task::TaskImpl* task = nullptr;
 				{
 					std::unique_lock<std::mutex> lock(m_mutex);
@@ -633,7 +633,7 @@ namespace Engine
 		}
 
 	public:
-		explicit TaskGraphImpl(size_t thread_count = 10)
+		explicit TaskGraphImpl(size_t thread_count = std::thread::hardware_concurrency())
 		{
 			if (thread_count == 0)
 				thread_count = 1;
@@ -692,7 +692,7 @@ namespace Engine
 
 		void wait_for(Task::TaskImpl* task)
 		{
-			byte worker;
+			uint16_t worker;
 			Task::TaskImpl* current = nullptr;
 			{
 				std::unique_lock lock(m_mutex);
@@ -732,7 +732,7 @@ namespace Engine
 			}
 		}
 
-		byte workers() const { return m_workers.size(); }
+		uint_t workers() const { return m_workers.size(); }
 	};
 
 	TaskGraph::TaskGraph() : m_impl(trx_new TaskGraphImpl()) {}
@@ -757,7 +757,7 @@ namespace Engine
 		return &tg;
 	}
 
-	byte TaskGraph::workers() const
+	uint_t TaskGraph::workers() const
 	{
 		return m_impl->workers();
 	}

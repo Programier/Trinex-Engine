@@ -1,4 +1,5 @@
 #include <Core/math/box.hpp>
+#include <Core/profiler.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
@@ -10,18 +11,21 @@ namespace Engine
 {
 	Scene& Scene::add_primitive(PrimitiveComponent* primitive)
 	{
+		trinex_profile_cpu_n("Scene::add_primitive");
 		m_primitive_octree.push(primitive->bounding_box(), primitive);
 		return *this;
 	}
 
 	Scene& Scene::remove_primitive(PrimitiveComponent* primitive)
 	{
+		trinex_profile_cpu_n("Scene::remove_primitive");
 		m_primitive_octree.remove(primitive->bounding_box(), primitive);
 		return *this;
 	}
 
 	Scene& Scene::update_primitive_transform(PrimitiveComponent* primitive)
 	{
+		trinex_profile_cpu_n("Scene::update_primitive_transform");
 		remove_primitive(primitive);
 		primitive->update_bounding_box();
 		add_primitive(primitive);

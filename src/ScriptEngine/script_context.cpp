@@ -168,6 +168,7 @@ namespace Engine
 
 	bool ScriptContext::execute()
 	{
+		trinex_profile_cpu_n("ScriptContext::execute");
 		return m_context->Execute() >= 0;
 	}
 

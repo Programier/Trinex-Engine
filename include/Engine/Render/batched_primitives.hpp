@@ -19,13 +19,12 @@ namespace Engine
 			ALIGNED(4) float m_thickness;
 
 		public:
-			FORCE_INLINE constexpr Vertex(const Vector3f& position = {0, 0, 0}, const Color& color = {255, 255, 255, 255},
-			                              float thickness = 1.f)
+			FORCE_INLINE Vertex(const Vector3f& position = {0, 0, 0}, const Color& color = {255, 255, 255, 255},
+			                    float thickness = 1.f)
 			    : m_position(position), m_color(color), m_thickness(thickness)
 			{}
 
-			FORCE_INLINE constexpr Vertex(const Vector2f& position, const Color& color = {255, 255, 255, 255},
-			                              float thickness = 1.f)
+			FORCE_INLINE Vertex(const Vector2f& position, const Color& color = {255, 255, 255, 255}, float thickness = 1.f)
 			    : m_position(position, 0.f), m_color(color), m_thickness(thickness)
 			{}
 

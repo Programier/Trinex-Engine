@@ -145,7 +145,7 @@ namespace Engine
 			float azimuth   = glm::atan(m_target_location.z, m_target_location.x) + mouse_move.x;
 			float elevation = glm::acos(m_target_location.y) - mouse_move.y;
 
-			static constexpr float clamp_angle = glm::radians(1.f);
+			static constexpr float clamp_angle = 0.017453f;
 
 			if (elevation < clamp_angle && elevation > -clamp_angle)
 				elevation = elevation < 0.f ? -clamp_angle : clamp_angle;

@@ -90,7 +90,7 @@ namespace Engine
 		~Task();
 
 		static byte worker_index();
-		Task& max_threads(byte count);
+		Task& max_threads(uint_t count);
 		Task& add_dependent(const Task& dependent);
 		Task& add_dependent(Task&& dependent);
 		Priority priority() const;
@@ -153,15 +153,15 @@ namespace Engine
 	public:
 		static TaskGraph* instance();
 
-		byte workers() const;
+		uint_t workers() const;
 		TaskGraph& add_task(const Task& task);
 		TaskGraph& wait_for(const Task& task);
 
 
 		template<typename Callable>
-		inline TaskGraph& for_each(size_t count, Callable&& func, size_t block = 64, byte max_threads = 255)
+		inline TaskGraph& for_each(size_t count, Callable&& func, size_t block = 64, uint_t max_threads = 0xFFFFU)
 		{
-			if (count < block)
+			if (count < block || max_threads <= 1)
 			{
 				for (size_t i = 0; i < count; ++i)
 				{

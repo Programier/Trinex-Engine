@@ -39,7 +39,7 @@ namespace Engine
 	{
 		auto& transform = world_transform();
 
-		out.color = m_light_color;
+		out.color = LinearColor(m_light_color);
 		out.color *= calculate_light_intensity();
 		out.location = transform.location;
 		return *this;
@@ -156,9 +156,9 @@ namespace Engine
 
 	LightComponent& LightComponent::update_bounding_box()
 	{
-		static constexpr Vector3f extents = {1.f, 1.f, 1.f};
-		const Vector3f& location          = world_transform().location;
-		m_bounding_box                    = Box3f(location - extents, location + extents);
+		static const Vector3f extents = {1.f, 1.f, 1.f};
+		const Vector3f& location      = world_transform().location;
+		m_bounding_box                = Box3f(location - extents, location + extents);
 		return *this;
 	}
 

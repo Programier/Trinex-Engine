@@ -129,10 +129,10 @@ namespace Engine
 				{
 					uint32_t offset = x + size.x * (y + size.y * z);
 
-					texture[offset].x = uint8_t(float(x) / float(size.x - 1) * 255.f);
-					texture[offset].y = uint8_t(float(y) / float(size.y - 1) * 255.f);
-					texture[offset].z = uint8_t(float(z) / float(size.z - 1) * 255.f);
-					texture[offset].w = 255;
+					texture[offset].r = uint8_t(float(x) / float(size.x - 1) * 255.f);
+					texture[offset].g = uint8_t(float(y) / float(size.y - 1) * 255.f);
+					texture[offset].b = uint8_t(float(z) / float(size.z - 1) * 255.f);
+					texture[offset].a = 255;
 				}
 			}
 		}

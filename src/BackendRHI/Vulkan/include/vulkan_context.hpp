@@ -182,6 +182,7 @@ namespace Engine
 		VulkanContext& depth_state(const RHIDepthState& state) override;
 		VulkanContext& stencil_state(const RHIStencilState& state) override;
 		VulkanContext& blending_state(const RHIBlendingState& state) override;
+		VulkanContext& rasterizer_state(const RHIRasterizerState& state) override;
 		VulkanContext& primitive_topology(RHIPrimitiveTopology topology) override;
 		VulkanContext& polygon_mode(RHIPolygonMode mode) override;
 		VulkanContext& cull_mode(RHICullMode mode) override;

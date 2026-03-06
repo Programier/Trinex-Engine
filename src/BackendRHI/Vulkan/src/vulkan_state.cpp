@@ -329,6 +329,11 @@ namespace Engine
 		return *this;
 	}
 
+	VulkanContext& VulkanContext::rasterizer_state(const RHIRasterizerState& state)
+	{
+		return *this;
+	}
+
 	VulkanContext& VulkanContext::primitive_topology(RHIPrimitiveTopology topology)
 	{
 		m_state_manager->bind(topology);

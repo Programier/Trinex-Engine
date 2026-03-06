@@ -103,6 +103,7 @@ namespace Engine
 		virtual RHIContext& depth_state(const RHIDepthState& state)                             = 0;
 		virtual RHIContext& stencil_state(const RHIStencilState& state)                         = 0;
 		virtual RHIContext& blending_state(const RHIBlendingState& state)                       = 0;
+		virtual RHIContext& rasterizer_state(const RHIRasterizerState& state)                   = 0;
 		virtual RHIContext& primitive_topology(RHIPrimitiveTopology topology)                   = 0;
 		virtual RHIContext& polygon_mode(RHIPolygonMode mode)                                   = 0;
 		virtual RHIContext& cull_mode(RHICullMode mode)                                         = 0;
