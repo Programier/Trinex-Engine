@@ -53,7 +53,7 @@ namespace Engine::VFS
 
 		Identifier id() const override
 		{
-			static const byte value = 0;
+			static const u8 value = 0;
 			return reinterpret_cast<Identifier>(&value);
 		}
 

@@ -29,9 +29,9 @@ namespace Engine
 
 
 #define has_flag(flag) static_cast<bool>(SDL_GetWindowFlags(m_window) & flag)
-	static uint32_t to_sdl_attrib(const Set<WindowAttribute::Enum>& attrib)
+	static u32 to_sdl_attrib(const Set<WindowAttribute::Enum>& attrib)
 	{
-		uint32_t value = 0;
+		u32 value = 0;
 		for (auto ell : attrib)
 		{
 			value |= window_attributes.at(ell);
@@ -62,7 +62,7 @@ namespace Engine
 	WindowSDL* WindowSDL::sdl_initialize(const WindowConfig* info)
 	{
 		//m_vsync_status = info->vsync;
-		uint32_t attrib = to_sdl_attrib(info->attributes);
+		u32 attrib = to_sdl_attrib(info->attributes);
 
 		if ((attrib & SDL_WINDOW_SHOWN) != SDL_WINDOW_SHOWN && (attrib & SDL_WINDOW_HIDDEN) != SDL_WINDOW_HIDDEN)
 		{
@@ -80,7 +80,7 @@ namespace Engine
 		                            m_api | SDL_WINDOW_ALLOW_HIGHDPI | attrib);
 
 		{
-			int_t x, y;
+			i32 x, y;
 			SDL_GetWindowSize(m_window, &x, &y);
 			m_size = {static_cast<float>(x), static_cast<float>(y)};
 		}
@@ -91,13 +91,13 @@ namespace Engine
 		return this;
 	}
 
-	WindowSDL& WindowSDL::width(float_t w)
+	WindowSDL& WindowSDL::width(f32 w)
 	{
 		size({w, height()});
 		return *this;
 	}
 
-	WindowSDL& WindowSDL::height(float_t h)
+	WindowSDL& WindowSDL::height(f32 h)
 	{
 		size({width(), h});
 		return *this;
@@ -124,16 +124,16 @@ namespace Engine
 	{
 		int x, y;
 		SDL_GetWindowPosition(m_window, &x, &y);
-		size_t index = monitor_index();
-		auto info    = Platform::monitor_info(index);
+		usize index = monitor_index();
+		auto info   = Platform::monitor_info(index);
 		return {x, info.size.y - (y + size().y)};
 	}
 
 	WindowSDL& WindowSDL::position(const Vector2u& position)
 	{
-		size_t index = monitor_index();
-		auto info    = Platform::monitor_info(index);
-		float new_y  = -position.y + info.size.y - size().y;
+		usize index = monitor_index();
+		auto info   = Platform::monitor_info(index);
+		float new_y = -position.y + info.size.y - size().y;
 		SDL_SetWindowPosition(m_window, position.x, new_y);
 		return *this;
 	}
@@ -237,7 +237,7 @@ namespace Engine
 		}
 	}
 
-	SDL_Surface* WindowSDL::create_surface(const Buffer& buffer, int_t width, int_t height, int_t channels)
+	SDL_Surface* WindowSDL::create_surface(const Buffer& buffer, i32 width, i32 height, i32 channels)
 	{
 
 		if (buffer.empty())
@@ -245,10 +245,10 @@ namespace Engine
 		void* data = (void*) buffer.data();
 
 #if SDL_BYTEORDER == SDL_LIL_ENDIAN
-		int_t r_mask = 0x000000FF;
-		int_t g_mask = 0x0000FF00;
-		int_t b_mask = 0x00FF0000;
-		int_t a_mask = (channels == 4) ? 0xFF000000 : 0;
+		i32 r_mask = 0x000000FF;
+		i32 g_mask = 0x0000FF00;
+		i32 b_mask = 0x00FF0000;
+		i32 a_mask = (channels == 4) ? 0xFF000000 : 0;
 #else
 		int_t s      = (channels == 4) ? 0 : 8;
 		int_t r_mask = 0xFF000000 >> s;
@@ -267,7 +267,7 @@ namespace Engine
 
 	WindowSDL& WindowSDL::icon(const Image& image)
 	{
-		int_t channels = image.channels();
+		i32 channels = image.channels();
 		if (channels == 3 || channels == 4)
 		{
 			destroy_icon();
@@ -287,7 +287,7 @@ namespace Engine
 
 	WindowSDL& WindowSDL::cursor(const Image& image, Vector2i hotspot)
 	{
-		int_t channels = image.channels();
+		i32 channels = image.channels();
 		if (channels == 3 || channels == 4)
 		{
 			destroy_cursor();
@@ -447,9 +447,9 @@ namespace Engine
 		return m_window;
 	}
 
-	size_t WindowSDL::monitor_index()
+	usize WindowSDL::monitor_index()
 	{
-		return static_cast<size_t>(SDL_GetWindowDisplayIndex(m_window));
+		return static_cast<usize>(SDL_GetWindowDisplayIndex(m_window));
 	}
 
 	WindowSDL::~WindowSDL()

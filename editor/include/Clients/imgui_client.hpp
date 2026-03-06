@@ -17,7 +17,7 @@ namespace Engine
 		trinex_class(ImGuiViewportClient, ViewportClient);
 
 	public:
-		static constexpr uint32_t s_dock_id = 0x524F4F54;// 'ROOT'
+		static constexpr u32 s_dock_id = 0x524F4F54;// 'ROOT'
 
 	private:
 		ImGuiContext* m_context = nullptr;
@@ -65,6 +65,6 @@ namespace Engine
 
 		virtual ImGuiViewportClient& update(float dt);
 		virtual ImGuiViewportClient& select(Object* object);
-		virtual uint32_t build_dock(uint32_t dock);
+		virtual u32 build_dock(u32 dock);
 	};
 }// namespace Engine

@@ -14,7 +14,7 @@ namespace Engine
 	class Object;
 	class Path;
 
-	ENGINE_EXPORT const char* operator""_localized(const char* line, size_t len);
+	ENGINE_EXPORT const char* operator""_localized(const char* line, usize len);
 
 	// Head of all classes in the Engine
 	class ENGINE_EXPORT Object : private asIScriptObject
@@ -38,7 +38,7 @@ namespace Engine
 
 		using ObjectClass = Object;
 
-		enum Flag : uint32_t
+		enum Flag : u32
 		{
 			None = 0,
 
@@ -60,15 +60,15 @@ namespace Engine
 		Object* m_owner;
 		Name m_name;
 
-		mutable Atomic<uint32_t> m_references;
-		mutable uint32_t m_child_index;
-		mutable uint32_t m_global_index;
+		mutable Atomic<u32> m_references;
+		mutable u32 m_child_index;
+		mutable u32 m_global_index;
 
 	protected:
 		static class Refl::Class* m_static_class;
 
 	public:
-		mutable Flags<Object::Flag, uint32_t> flags;
+		mutable Flags<Object::Flag, u32> flags;
 
 	private:
 		// Setup object info
@@ -85,13 +85,13 @@ namespace Engine
 			return object;
 		}
 
-		template<uint32_t Object::* prop = &Object::m_child_index, typename ContainerType>
-		bool remove_from(ContainerType& container, uint32_t idx)
+		template<u32 Object::* prop = &Object::m_child_index, typename ContainerType>
+		bool remove_from(ContainerType& container, u32 idx)
 		{
 			if (container.empty())
 				return false;
 
-			const uint32_t last = container.size() - 1;
+			const u32 last = container.size() - 1;
 
 			if (idx >= container.size() || container[idx] != this)
 				return false;
@@ -112,9 +112,9 @@ namespace Engine
 
 	protected:
 		bool private_check_instance(const class Refl::Class* const check_class) const;
-		
+
 		virtual Object& on_owner_update(Object* new_owner);
-		virtual bool register_child(Object* child, uint32_t& index);
+		virtual bool register_child(Object* child, u32& index);
 		virtual bool unregister_child(Object* child);
 		virtual Object& post_rename(Object* old_owner, Name old_name);
 
@@ -168,12 +168,12 @@ namespace Engine
 		const String& string_name() const;
 		Package* package(bool recursive = false) const;
 		String full_name() const;
-		uint32_t references() const;
-		uint32_t add_reference() const;
-		uint32_t remove_reference() const;
+		u32 references() const;
+		u32 add_reference() const;
+		u32 remove_reference() const;
 		bool is_noname() const;
-		uint32_t child_index() const;
-		uint32_t global_index() const;
+		u32 child_index() const;
+		u32 global_index() const;
 		virtual bool serialize(Archive& archive);
 		Path filepath() const;
 		bool is_editable() const;
@@ -400,7 +400,7 @@ private:
 		}                                                                                                                        \
 		return m_static_class;                                                                                                   \
 	}                                                                                                                            \
-	static Engine::byte TRINEX_CONCAT(trinex_engine_refl_class_, __LINE__) = static_cast<Engine::byte>(                          \
+	static Engine::u8 TRINEX_CONCAT(trinex_engine_refl_class_, __LINE__) = static_cast<Engine::u8>(                              \
 	        Engine::Refl::Object::static_register_initializer([]() { decl::static_reflection(); }, #decl));                      \
 	void decl::static_initialize_class()
 

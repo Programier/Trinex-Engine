@@ -11,14 +11,14 @@ namespace Engine
 	class ENGINE_EXPORT Task final
 	{
 	public:
-		enum Priority : uint8_t
+		enum Priority : u8
 		{
 			High   = 0,
 			Middle = 1,
 			Low    = 2,
 		};
 
-		enum Status : uint8_t
+		enum Status : u8
 		{
 			Undefined,
 			Pending,
@@ -44,7 +44,7 @@ namespace Engine
 			Callable m_callable;
 			Tuple<Args...> m_args;
 
-			template<size_t... I>
+			template<usize... I>
 			void call_impl(etl::index_sequence<I...>)
 			{
 				m_callable(etl::get<I>(m_args)...);
@@ -64,7 +64,7 @@ namespace Engine
 	private:
 		Task(Priority priority);
 
-		void* data(size_t size);
+		void* data(usize size);
 
 	public:
 		Task();
@@ -89,8 +89,8 @@ namespace Engine
 		Task& operator=(Task&& task);
 		~Task();
 
-		static byte worker_index();
-		Task& max_threads(uint_t count);
+		static u8 worker_index();
+		Task& max_threads(u32 count);
 		Task& add_dependent(const Task& dependent);
 		Task& add_dependent(Task&& dependent);
 		Priority priority() const;
@@ -130,7 +130,7 @@ namespace Engine
 		Thread(NoThread);
 		Thread(void (*function)(void* data), void* data = nullptr);
 
-		size_t execute();
+		usize execute();
 		bool execute_once();
 		Thread& add_task(const Task& task);
 		Thread& add_task(Task&& task);
@@ -153,36 +153,36 @@ namespace Engine
 	public:
 		static TaskGraph* instance();
 
-		uint_t workers() const;
+		u32 workers() const;
 		TaskGraph& add_task(const Task& task);
 		TaskGraph& wait_for(const Task& task);
 
 
 		template<typename Callable>
-		inline TaskGraph& for_each(size_t count, Callable&& func, size_t block = 64, uint_t max_threads = 0xFFFFU)
+		inline TaskGraph& for_each(usize count, Callable&& func, usize block = 64, u32 max_threads = 0xFFFFU)
 		{
 			if (count < block || max_threads <= 1)
 			{
-				for (size_t i = 0; i < count; ++i)
+				for (usize i = 0; i < count; ++i)
 				{
 					func(i);
 				}
 				return *this;
 			}
 
-			Atomic<size_t> counter = 0;
+			Atomic<usize> counter = 0;
 
 			Task task = Task(Task::High, [&]() {
-				size_t start;
+				usize start;
 
 				while ((start = counter.fetch_add(block)) < count)
 				{
-					size_t end = start + block;
+					usize end = start + block;
 
 					if (end > count)
 						end = count;
 
-					for (size_t i = start; i < end; ++i)
+					for (usize i = start; i < end; ++i)
 					{
 						func(i);
 					}

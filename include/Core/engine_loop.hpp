@@ -4,12 +4,12 @@ namespace Engine
 {
 	class ENGINE_EXPORT EngineLoop
 	{
-		int_t preinit(int_t argc, const char** argv);
+		i32 preinit(i32 argc, const char** argv);
 
 	public:
 		EngineLoop();
 		virtual ~EngineLoop();
-		void init(int_t argc, const char** argv);
+		void init(i32 argc, const char** argv);
 		void update();
 		void terminate();
 	};

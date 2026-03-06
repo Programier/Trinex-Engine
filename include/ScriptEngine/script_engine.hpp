@@ -32,7 +32,7 @@ namespace Engine
 	class ENGINE_EXPORT ScriptEngine
 	{
 	public:
-		using VariableToStringFunction = String (*)(const byte* object, int_t type_id, bool repr);
+		using VariableToStringFunction = String (*)(const u8* object, i32 type_id, bool repr);
 
 	private:
 		static void terminate();
@@ -59,14 +59,14 @@ namespace Engine
 		static ScriptEngine& default_namespace(const String& name);
 		static ScriptEngine& default_namespace(const char* ns);
 		static StringView default_namespace();
-		static int_t register_property(const char* declaration, void* data);
-		static int_t register_property(const String& declaration, void* data);
+		static i32 register_property(const char* declaration, void* data);
+		static i32 register_property(const String& declaration, void* data);
 		static class ScriptFolder* scripts_folder();
 		static ScriptEngine& load_scripts();
 
-		static ScriptEngine& register_class(int_t type_id, Refl::Class* self);
-		static Refl::Class* find_class(int_t type_id);
-		static ScriptEngine& unregister_class(int_t type_id);
+		static ScriptEngine& register_class(i32 type_id, Refl::Class* self);
+		static Refl::Class* find_class(i32 type_id);
+		static ScriptEngine& unregister_class(i32 type_id);
 
 		static ScriptEngine& bind_imports();
 		static ScriptEngine& register_funcdef(const char* declaration);
@@ -74,19 +74,19 @@ namespace Engine
 		static ScriptEngine& register_typedef(const char* new_type_name, const char* type);
 		static ScriptEngine& register_typedef(const String& new_type_name, const String& type);
 
-		static uint_t global_function_count();
-		static ScriptFunction global_function_by_index(uint_t index);
+		static u32 global_function_count();
+		static ScriptFunction global_function_by_index(u32 index);
 		static ScriptFunction global_function_by_decl(const char* declaration);
 		static ScriptFunction global_function_by_decl(const String& declaration);
 
-		static uint_t global_property_count();
-		static int_t global_property_index_by_name(const char* name);
-		static int_t global_property_index_by_name(const String& name);
-		static int_t global_property_index_by_decl(const char* declaration);
-		static int_t global_property_index_by_decl(const String& declaration);
-		static bool global_property(uint_t index, StringView* name = nullptr, StringView* name_space = nullptr,
-		                            StringView* config_group = nullptr, int_t* type_id = nullptr, bool* is_const = nullptr,
-		                            byte** pointer = nullptr);
+		static u32 global_property_count();
+		static i32 global_property_index_by_name(const char* name);
+		static i32 global_property_index_by_name(const String& name);
+		static i32 global_property_index_by_decl(const char* declaration);
+		static i32 global_property_index_by_decl(const String& declaration);
+		static bool global_property(u32 index, StringView* name = nullptr, StringView* name_space = nullptr,
+		                            StringView* config_group = nullptr, i32* type_id = nullptr, bool* is_const = nullptr,
+		                            u8** pointer = nullptr);
 
 		static bool begin_config_group(const char* group);
 		static bool begin_config_group(const String& group);
@@ -94,58 +94,58 @@ namespace Engine
 		static bool remove_config_group(const char* group);
 		static bool remove_config_group(const String& group);
 
-		static ScriptEngine& garbage_collect(BitMask flags = GarbageCollectFlags::FullCycle, size_t iterations = 1);
+		static ScriptEngine& garbage_collect(BitMask flags = GarbageCollectFlags::FullCycle, usize iterations = 1);
 
-		static uint_t object_type_count();
-		static ScriptTypeInfo object_type_by_index(uint_t index);
+		static u32 object_type_count();
+		static ScriptTypeInfo object_type_by_index(u32 index);
 
 		static bool exec_string(const String& line);
 		static bool exec_string(const char* line);
 
 		// Enums
-		static uint_t enum_count();
-		static ScriptTypeInfo enum_by_index(uint_t index);
+		static u32 enum_count();
+		static ScriptTypeInfo enum_by_index(u32 index);
 
 		// Funcdefs
-		static uint_t funcdef_count();
-		static ScriptTypeInfo funcdef_by_index(uint_t index);
+		static u32 funcdef_count();
+		static ScriptTypeInfo funcdef_by_index(u32 index);
 
 		// Typedefs
-		static uint_t typedef_count();
-		static ScriptTypeInfo typedef_by_index(uint_t index);
+		static u32 typedef_count();
+		static ScriptTypeInfo typedef_by_index(u32 index);
 
 		// Script modules
 		static ScriptEngine& discard_module(const char* module);
 		static ScriptEngine& discard_module(const String& module);
-		static uint_t module_count();
-		static ScriptModule module_by_index(uint_t index);
+		static u32 module_count();
+		static ScriptModule module_by_index(u32 index);
 		static ScriptModule module_by_name(const char* name, ScriptModuleLookup lookup = ScriptModuleLookup::OnlyIfExists);
 
 		// Script functions
-		static int_t last_function_id();
-		static ScriptFunction function_by_id(int_t func_id);
+		static i32 last_function_id();
+		static ScriptFunction function_by_id(i32 func_id);
 
 		// Type identification
-		static bool is_primitive_type(int_t type_id);
-		static bool is_bool(int_t type_id);
-		static bool is_int8(int_t type_id);
-		static bool is_int16(int_t type_id);
-		static bool is_int32(int_t type_id);
-		static bool is_int64(int_t type_id);
-		static bool is_uint8(int_t type_id);
-		static bool is_uint16(int_t type_id);
-		static bool is_uint32(int_t type_id);
-		static bool is_uint64(int_t type_id);
-		static bool is_float(int_t type_id);
-		static bool is_double(int_t type_id);
-		static bool is_object_type(int_t type_id, bool handle_is_object = false);
-		static bool is_handle_type(int_t type_id);
+		static bool is_primitive_type(i32 type_id);
+		static bool is_bool(i32 type_id);
+		static bool is_int8(i32 type_id);
+		static bool is_int16(i32 type_id);
+		static bool is_int32(i32 type_id);
+		static bool is_int64(i32 type_id);
+		static bool is_uint8(i32 type_id);
+		static bool is_uint16(i32 type_id);
+		static bool is_uint32(i32 type_id);
+		static bool is_uint64(i32 type_id);
+		static bool is_float(i32 type_id);
+		static bool is_double(i32 type_id);
+		static bool is_object_type(i32 type_id, bool handle_is_object = false);
+		static bool is_handle_type(i32 type_id);
 
-		static int_t type_id_by_decl(const char* decl);
-		static int_t type_id_by_decl(const String& decl);
-		static String type_declaration(int_t type_id, bool include_namespace = false);
-		static int_t sizeof_primitive_type(int_t type_id);
-		static ScriptTypeInfo type_info_by_id(int_t type_id);
+		static i32 type_id_by_decl(const char* decl);
+		static i32 type_id_by_decl(const String& decl);
+		static String type_declaration(i32 type_id, bool include_namespace = false);
+		static i32 sizeof_primitive_type(i32 type_id);
+		static ScriptTypeInfo type_info_by_id(i32 type_id);
 		static ScriptTypeInfo type_info_by_name(const char* name);
 		static ScriptTypeInfo type_info_by_decl(const char* decl);
 		static ScriptTypeInfo type_info_by_name(const String& name);
@@ -162,10 +162,10 @@ namespace Engine
 		                                        ScriptCallConv conv = ScriptCallConv::CDecl, void* auxiliary = nullptr);
 
 		// Variable to string
-		static ScriptEngine& register_custom_variable_parser(int_t type_id, VariableToStringFunction function);
-		static ScriptEngine& unregister_custom_variable(int_t type_id);
-		static VariableToStringFunction custom_variable_parser(int_t type_id);
-		static String to_string(const byte* object, int_t type_id, bool repr = false);
+		static ScriptEngine& register_custom_variable_parser(i32 type_id, VariableToStringFunction function);
+		static ScriptEngine& unregister_custom_variable(i32 type_id);
+		static VariableToStringFunction custom_variable_parser(i32 type_id);
+		static String to_string(const u8* object, i32 type_id, bool repr = false);
 
 		// Assign
 		static bool assign_script_object(void* dst, void* src, const ScriptTypeInfo& info);

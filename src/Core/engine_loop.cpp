@@ -54,28 +54,28 @@ namespace Engine
 		auto exec_dir = Platform::find_exec_directory();
 
 		vfs->mount("[exec]:", exec_dir, VFS::FileSystem::Native);
-		
+
 		// Engine resources
 		vfs->mount("[assets]:/TrinexEngine", "[exec]:/resources/TrinexEngine/assets");
 		vfs->mount("[shaders]:/TrinexEngine", "[exec]:/resources/TrinexEngine/shaders");
 	}
 
-	static int_t execute_entry(const StringView& entry_name)
+	static i32 execute_entry(const StringView& entry_name)
 	{
 		initialize_graphics_api(true);
 
-		int_t result = 0;
+		i32 result        = 0;
 		EntryPoint* entry = Object::instance_cast<EntryPoint>(Refl::Class::static_require(entry_name)->create_object());
 		trinex_verify_msg(entry, "Failed to create entry point!");
-		
+
 		Settings::Rendering::force_keep_cpu_resources = true;
-		result = entry->execute();
-		
+		result                                        = entry->execute();
+
 		engine_instance->request_exit();
 		return result;
 	}
 
-	int_t EngineLoop::preinit(int_t argc, const char** argv)
+	i32 EngineLoop::preinit(i32 argc, const char** argv)
 	{
 		info_log("TrinexEngine", "Start engine!");
 
@@ -128,7 +128,7 @@ namespace Engine
 		return 0;
 	}
 
-	void EngineLoop::init(int_t argc, const char** argv)
+	void EngineLoop::init(i32 argc, const char** argv)
 	{
 		create_threads();
 

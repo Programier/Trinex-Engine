@@ -59,7 +59,7 @@ namespace Engine::VisualMaterialGraph
 		new_output("Tex", RHIShaderParameterType::Texture2D);
 	}
 
-	Texture2D* Texture2D::static_find_node(Engine::Texture2D* texture, Compiler& compiler, uint16_t id)
+	Texture2D* Texture2D::static_find_node(Engine::Texture2D* texture, Compiler& compiler, u16 id)
 	{
 		Node* redirected_node = compiler.find_redirection(static_reflection(), reinterpret_cast<Identifier>(texture));
 
@@ -107,8 +107,7 @@ namespace Engine::VisualMaterialGraph
 		return *this;
 	}
 
-	void Texture2D::static_post_compile(VisualMaterial* material, Engine::Texture2D* texture, uint16_t id,
-	                                    StringView name_override)
+	void Texture2D::static_post_compile(VisualMaterial* material, Engine::Texture2D* texture, u16 id, StringView name_override)
 	{
 		MaterialParameters::Parameter* parameter = nullptr;
 
@@ -134,7 +133,7 @@ namespace Engine::VisualMaterialGraph
 			new_output("Out", RHIShaderParameterType::Sampler);
 	}
 
-	Sampler* Sampler::static_find_node(const Engine::Sampler& sampler, Compiler& compiler, uint16_t id)
+	Sampler* Sampler::static_find_node(const Engine::Sampler& sampler, Compiler& compiler, u16 id)
 	{
 		Node* redirected_node = compiler.find_redirection(static_reflection(), sampler.initializer().hash());
 
@@ -172,8 +171,7 @@ namespace Engine::VisualMaterialGraph
 		return *this;
 	}
 
-	void Sampler::static_post_compile(VisualMaterial* material, const Engine::Sampler& sampler, uint16_t id,
-	                                  StringView name_override)
+	void Sampler::static_post_compile(VisualMaterial* material, const Engine::Sampler& sampler, u16 id, StringView name_override)
 	{
 		MaterialParameters::Parameter* parameter = nullptr;
 
@@ -276,7 +274,7 @@ namespace Engine::VisualMaterialGraph
 
 	Expression SampleTexture::compile(OutputPin* pin, Compiler& compiler)
 	{
-		const size_t pin_index = pin->index();
+		const usize pin_index = pin->index();
 
 		if (pin_index != 0)
 		{

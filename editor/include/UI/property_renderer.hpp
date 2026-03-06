@@ -48,8 +48,8 @@ namespace Engine
 				virtual bool on_begin_group(PropertyRenderer* renderer, const String& group);
 				virtual Context& on_end_group(PropertyRenderer* renderer, const String& group, bool open);
 
-				virtual uint_t columns() const;
-				virtual Context& column(uint_t index);
+				virtual u32 columns() const;
+				virtual Context& column(u32 index);
 				virtual Context& next_row(ImGuiTableRowFlags row_flags = 0, float row_min_height = 0.f);
 				virtual float cell_width() const;
 

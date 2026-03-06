@@ -298,7 +298,7 @@ namespace Engine
 		return *this;
 	}
 
-	bool Object::register_child(Object* child, uint32_t& index)
+	bool Object::register_child(Object* child, u32& index)
 	{
 		return true;
 	}
@@ -352,18 +352,18 @@ namespace Engine
 		return result;
 	}
 
-	uint32_t Object::references() const
+	u32 Object::references() const
 	{
 		return m_references;
 	}
 
-	uint32_t Object::add_reference() const
+	u32 Object::add_reference() const
 	{
 		++m_references;
 		return references();
 	}
 
-	uint32_t Object::remove_reference() const
+	u32 Object::remove_reference() const
 	{
 		--m_references;
 		return references();
@@ -450,7 +450,7 @@ namespace Engine
 		if (new_owner)
 		{
 			m_owner       = new_owner;
-			uint32_t idx  = m_child_index;
+			u32 idx       = m_child_index;
 			m_child_index = 0xFFFFFFFF;
 
 			if (new_owner->register_child(this, m_child_index))
@@ -491,9 +491,9 @@ namespace Engine
 		Package* package = const_cast<Package*>(root_package());
 
 		const String& separator_text = Constants::name_separator;
-		const size_t separator_len   = separator_text.length();
+		const usize separator_len    = separator_text.length();
 
-		size_t separator = name.find(separator_text);
+		usize separator = name.find(separator_text);
 
 		while (separator != StringView::npos && package)
 		{
@@ -505,12 +505,12 @@ namespace Engine
 		return package ? find_next_package(package, name, create) : nullptr;
 	}
 
-	uint32_t Object::child_index() const
+	u32 Object::child_index() const
 	{
 		return m_child_index;
 	}
 
-	uint32_t Object::global_index() const
+	u32 Object::global_index() const
 	{
 		return m_global_index;
 	}
@@ -602,7 +602,7 @@ namespace Engine
 		}
 
 		bool status;
-		Vector<byte> raw_buffer;
+		Vector<u8> raw_buffer;
 		VectorWriter raw_writer = &raw_buffer;
 		Archive raw_ar          = &raw_writer;
 		raw_ar.flags            = serialization_flags;
@@ -617,7 +617,7 @@ namespace Engine
 			return false;
 		}
 
-		Vector<byte> compressed_buffer;
+		Vector<u8> compressed_buffer;
 		Compressor::compress(raw_buffer, compressed_buffer);
 
 		bool need_destroy_writer = (writer == nullptr);
@@ -684,14 +684,14 @@ namespace Engine
 			return nullptr;
 		}
 
-		Vector<byte> compressed_buffer;
+		Vector<u8> compressed_buffer;
 		if (!(ar.serialize(compressed_buffer)))
 		{
 			error_log("Object", "Failed to read compressed buffer!");
 			return nullptr;
 		}
 
-		Vector<byte> raw_data;
+		Vector<u8> raw_data;
 		Compressor::decompress(compressed_buffer, raw_data);
 		VectorReader raw_reader = &raw_data;
 		Archive raw_ar          = &raw_reader;

@@ -24,7 +24,7 @@ namespace Engine
 		void scriptable_stop_play();
 
 	protected:
-		bool register_child(Object* child, uint32_t& index) override;
+		bool register_child(Object* child, u32& index) override;
 		bool unregister_child(Object* child) override;
 
 	public:

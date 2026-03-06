@@ -21,9 +21,9 @@ namespace Engine
 	}
 #endif
 
-	static constexpr uint64_t s_resource_live_threshold = 60 * 3;
+	static constexpr u64 s_resource_live_threshold = 60 * 3;
 
-	static inline uint32_t next_power_of_two(uint32_t x)
+	static inline u32 next_power_of_two(u32 x)
 	{
 		if (x <= 16)
 			return 16;
@@ -44,8 +44,8 @@ namespace Engine
 			Identifier id = 0;
 
 			struct Value {
-				uint16_t x;
-				uint16_t y;
+				u16 x;
+				u16 y;
 				RHITextureCreateFlags flags;
 				RHISurfaceFormat format;
 			} value;
@@ -61,7 +61,7 @@ namespace Engine
 		return id.id;
 	}
 
-	static inline Identifier static_calculate_buffer_id(uint32_t size, RHIBufferCreateFlags flags)
+	static inline Identifier static_calculate_buffer_id(u32 size, RHIBufferCreateFlags flags)
 	{
 		return (static_cast<Identifier>(size) << 32) | flags.bitfield;
 	}
@@ -86,7 +86,7 @@ namespace Engine
 	{
 		flush_transient();
 
-		size_t erase_count = 0;
+		usize erase_count = 0;
 
 		for (auto& entry : m_pool)
 		{
@@ -170,7 +170,7 @@ namespace Engine
 
 		for (auto& [id, pool] : m_pools)
 		{
-			size_t erase_count = 0;
+			usize erase_count = 0;
 
 			for (auto& entry : pool)
 			{
@@ -190,7 +190,7 @@ namespace Engine
 		return *this;
 	}
 
-	RHIBuffer* RHIBufferPool::request_buffer(uint32_t size, RHIBufferCreateFlags flags)
+	RHIBuffer* RHIBufferPool::request_buffer(u32 size, RHIBufferCreateFlags flags)
 	{
 		size = next_power_of_two(size);
 
@@ -210,7 +210,7 @@ namespace Engine
 		return buffer;
 	}
 
-	RHIBuffer* RHIBufferPool::request_transient_buffer(uint32_t size, RHIBufferCreateFlags flags)
+	RHIBuffer* RHIBufferPool::request_transient_buffer(u32 size, RHIBufferCreateFlags flags)
 	{
 		if (auto buffer = request_buffer(size, flags))
 		{
@@ -250,7 +250,7 @@ namespace Engine
 		return *this;
 	}
 
-	uint64_t RHITexturePool::Hasher::operator()(const Key& key) const
+	u64 RHITexturePool::Hasher::operator()(const Key& key) const
 	{
 		return memory_hash(&key, sizeof(key));
 	}
@@ -277,7 +277,7 @@ namespace Engine
 
 		for (auto& [id, pool] : m_pools)
 		{
-			size_t erase_count = 0;
+			usize erase_count = 0;
 
 			for (auto& entry : pool)
 			{
@@ -416,7 +416,7 @@ namespace Engine
 
 		for (auto& [id, pool] : m_pools)
 		{
-			size_t erase_count = 0;
+			usize erase_count = 0;
 
 			for (auto& entry : pool)
 			{
@@ -493,7 +493,7 @@ namespace Engine
 
 	RHITimestampPool& RHITimestampPool::update()
 	{
-		size_t erase_count = 0;
+		usize erase_count = 0;
 
 		for (auto& entry : m_pool)
 		{
@@ -549,7 +549,7 @@ namespace Engine
 
 	RHIPipelineStatisticsPool& RHIPipelineStatisticsPool::update()
 	{
-		size_t erase_count = 0;
+		usize erase_count = 0;
 
 		for (auto& entry : m_pool)
 		{
@@ -609,7 +609,7 @@ namespace Engine
 
 		for (auto& [id, pool] : m_pools)
 		{
-			size_t erase_count = 0;
+			usize erase_count = 0;
 
 			for (auto& entry : pool)
 			{

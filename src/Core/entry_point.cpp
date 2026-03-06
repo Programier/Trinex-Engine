@@ -6,7 +6,7 @@
 
 namespace Engine
 {
-	int_t EntryPoint::execute()
+	i32 EntryPoint::execute()
 	{
 		return 0;
 	}

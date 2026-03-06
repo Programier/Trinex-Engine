@@ -31,7 +31,7 @@ namespace Engine
 		API->m_device.destroyImageView(m_view);
 	}
 
-	VulkanSRV& VulkanTextureSRV::bind(VulkanStateManager* manager, byte index)
+	VulkanSRV& VulkanTextureSRV::bind(VulkanStateManager* manager, u8 index)
 	{
 		manager->srv_images.bind(this, index);
 		return *this;
@@ -47,7 +47,7 @@ namespace Engine
 		API->m_device.destroyImageView(m_view);
 	}
 
-	VulkanUAV& VulkanTextureUAV::bind(VulkanStateManager* manager, byte index)
+	VulkanUAV& VulkanTextureUAV::bind(VulkanStateManager* manager, u8 index)
 	{
 		manager->uav_images.bind(this, index);
 		return *this;
@@ -73,7 +73,7 @@ namespace Engine
 		API->descriptor_heap()->release(m_descriptor, VulkanDescriptorHeap::StorageBuffer);
 	}
 
-	VulkanSRV& VulkanStorageBufferSRV::bind(VulkanStateManager* manager, byte index)
+	VulkanSRV& VulkanStorageBufferSRV::bind(VulkanStateManager* manager, u8 index)
 	{
 		manager->storage_buffers.bind(buffer()->buffer(), index);
 		return *this;
@@ -89,7 +89,7 @@ namespace Engine
 		API->descriptor_heap()->release(m_descriptor, VulkanDescriptorHeap::UniformTexelBuffer);
 	}
 
-	VulkanSRV& VulkanUniformTexelBufferSRV::bind(VulkanStateManager* manager, byte index)
+	VulkanSRV& VulkanUniformTexelBufferSRV::bind(VulkanStateManager* manager, u8 index)
 	{
 		manager->uniform_texel_buffers.bind(buffer()->buffer(), index);
 		return *this;
@@ -105,19 +105,19 @@ namespace Engine
 		API->descriptor_heap()->release(m_descriptor, VulkanDescriptorHeap::StorageBuffer);
 	}
 
-	VulkanUAV& VulkanBufferUAV::bind(VulkanStateManager* manager, byte index)
+	VulkanUAV& VulkanBufferUAV::bind(VulkanStateManager* manager, u8 index)
 	{
 		manager->storage_buffers.bind(buffer()->buffer(), index);
 		return *this;
 	}
 
-	VulkanContext& VulkanContext::bind_srv(RHIShaderResourceView* view, byte slot)
+	VulkanContext& VulkanContext::bind_srv(RHIShaderResourceView* view, u8 slot)
 	{
 		static_cast<VulkanSRV*>(view)->bind(m_state_manager, slot);
 		return *this;
 	}
 
-	VulkanContext& VulkanContext::bind_uav(RHIUnorderedAccessView* view, byte slot)
+	VulkanContext& VulkanContext::bind_uav(RHIUnorderedAccessView* view, u8 slot)
 	{
 		static_cast<VulkanUAV*>(view)->bind(m_state_manager, slot);
 		return *this;
@@ -138,22 +138,22 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanContext& VulkanContext::clear_rtv(RHIRenderTargetView* rtv, float_t r, float_t g, float_t b, float_t a)
+	VulkanContext& VulkanContext::clear_rtv(RHIRenderTargetView* rtv, f32 r, f32 g, f32 b, f32 a)
 	{
 		return clear_rtv(rtv, std::array<float, 4>({r, g, b, a}));
 	}
 
-	VulkanContext& VulkanContext::clear_urtv(RHIRenderTargetView* rtv, uint_t r, uint_t g, uint_t b, uint_t a)
+	VulkanContext& VulkanContext::clear_urtv(RHIRenderTargetView* rtv, u32 r, u32 g, u32 b, u32 a)
 	{
-		return clear_rtv(rtv, std::array<uint32_t, 4>({r, g, b, a}));
+		return clear_rtv(rtv, std::array<u32, 4>({r, g, b, a}));
 	}
 
-	VulkanContext& VulkanContext::clear_irtv(RHIRenderTargetView* rtv, int_t r, int_t g, int_t b, int_t a)
+	VulkanContext& VulkanContext::clear_irtv(RHIRenderTargetView* rtv, i32 r, i32 g, i32 b, i32 a)
 	{
-		return clear_rtv(rtv, std::array<int32_t, 4>({r, g, b, a}));
+		return clear_rtv(rtv, std::array<i32, 4>({r, g, b, a}));
 	}
 
-	VulkanContext& VulkanContext::clear_dsv(RHIDepthStencilView* dsv, float_t depth, byte stencil)
+	VulkanContext& VulkanContext::clear_dsv(RHIDepthStencilView* dsv, f32 depth, u8 stencil)
 	{
 		VulkanTextureDSV* view = static_cast<VulkanTextureDSV*>(dsv);
 		VulkanTexture* texture = view->texture();

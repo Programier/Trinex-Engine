@@ -6,10 +6,10 @@ namespace Engine
 	struct ENGINE_EXPORT SplashConfig {
 		Path image_path;
 		Path font_path;
-		int_t startup_text_size;
-		int_t version_text_size;
-		int_t copyright_text_size;
-		int_t game_name_text_size;
+		i32 startup_text_size;
+		i32 version_text_size;
+		i32 copyright_text_size;
+		i32 game_name_text_size;
 
 
 		SplashConfig();

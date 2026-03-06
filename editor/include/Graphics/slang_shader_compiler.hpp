@@ -20,7 +20,7 @@ namespace Engine
 			Buffer* source;
 			const char* entry_name    = nullptr;
 			slang::IEntryPoint* entry = nullptr;
-			int32_t index             = -1;
+			i32 index                 = -1;
 		};
 
 		class Context
@@ -33,7 +33,7 @@ namespace Engine
 			SLANG_ShaderCompiler* const compiler;
 			Context* const prev_ctx;
 
-			bool compile(ShaderInfo* infos, size_t len);
+			bool compile(ShaderInfo* infos, usize len);
 		};
 
 		struct SessionInitializer {
@@ -52,12 +52,12 @@ namespace Engine
 				add_option(name, v1 ? 1 : 0, v2 ? 1 : 0);
 			}
 
-			FORCE_INLINE void add_option(slang::CompilerOptionName name, uint32_t v1, uint32_t v2 = 0)
+			FORCE_INLINE void add_option(slang::CompilerOptionName name, u32 v1, u32 v2 = 0)
 			{
-				add_option(name, static_cast<int32_t>(v1), static_cast<int32_t>(v2));
+				add_option(name, static_cast<i32>(v1), static_cast<i32>(v2));
 			}
 
-			FORCE_INLINE void add_option(slang::CompilerOptionName name, int32_t v1, int32_t v2 = 0)
+			FORCE_INLINE void add_option(slang::CompilerOptionName name, i32 v1, i32 v2 = 0)
 			{
 				slang::CompilerOptionEntry entry;
 				entry.name            = name;
@@ -82,12 +82,12 @@ namespace Engine
 				add_target_option(name, v1 ? 1 : 0, v2 ? 1 : 0);
 			}
 
-			FORCE_INLINE void add_target_option(slang::CompilerOptionName name, uint32_t v1, uint32_t v2 = 0)
+			FORCE_INLINE void add_target_option(slang::CompilerOptionName name, u32 v1, u32 v2 = 0)
 			{
-				add_target_option(name, static_cast<int32_t>(v1), static_cast<int32_t>(v2));
+				add_target_option(name, static_cast<i32>(v1), static_cast<i32>(v2));
 			}
 
-			FORCE_INLINE void add_target_option(slang::CompilerOptionName name, int32_t v1, int32_t v2 = 0)
+			FORCE_INLINE void add_target_option(slang::CompilerOptionName name, i32 v1, i32 v2 = 0)
 			{
 				slang::CompilerOptionEntry entry;
 				entry.name            = name;
@@ -148,14 +148,14 @@ namespace Engine
 				OpVariable = 59,
 			};
 
-			static constexpr uint32_t Decoration_Location = 30;
-			static constexpr uint32_t StorageClass_Input  = 1;
+			static constexpr u32 Decoration_Location = 30;
+			static constexpr u32 StorageClass_Input  = 1;
 
-			static inline uint16_t wordcount(uint32_t w) { return static_cast<uint16_t>(w >> 16); }
-			static inline uint16_t opcode(uint32_t w) { return static_cast<uint16_t>(w & 0xFFFF); }
+			static inline u16 wordcount(u32 w) { return static_cast<u16>(w >> 16); }
+			static inline u16 opcode(u32 w) { return static_cast<u16>(w & 0xFFFF); }
 		};
 
-		static bool strip_vertex_inputs(const uint32_t* spirv, const uint32_t words, Vector<RHIVertexAttribute>& attributes);
+		static bool strip_vertex_inputs(const u32* spirv, const u32 words, Vector<RHIVertexAttribute>& attributes);
 
 	public:
 		void initialize_context(SessionInitializer* session) override;

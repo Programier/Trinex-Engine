@@ -202,7 +202,7 @@ namespace Engine
 
 		static Any& opAssign(Any* self, const Any& any) { return (*self) = any; }
 
-		static void opAssignValue(Any& any, void* value, int_t type_id)
+		static void opAssignValue(Any& any, void* value, i32 type_id)
 		{
 			if (ScriptEngine::is_primitive_type(type_id))
 			{
@@ -238,7 +238,7 @@ namespace Engine
 			}
 		}
 
-		static bool get(Any& any, void* result, int_t type_id)
+		static bool get(Any& any, void* result, i32 type_id)
 		{
 			if (!any.has_value())
 				return false;
@@ -248,14 +248,14 @@ namespace Engine
 				switch (type_id)
 				{
 					case asTYPEID_BOOL: *reinterpret_cast<bool*>(result) = any.cast<bool>(); break;
-					case asTYPEID_INT8: *reinterpret_cast<int8_t*>(result) = any.cast<int8_t>(); break;
-					case asTYPEID_INT16: *reinterpret_cast<int16_t*>(result) = any.cast<int16_t>(); break;
-					case asTYPEID_INT32: *reinterpret_cast<int32_t*>(result) = any.cast<int32_t>(); break;
-					case asTYPEID_INT64: *reinterpret_cast<int64_t*>(result) = any.cast<int64_t>(); break;
-					case asTYPEID_UINT8: *reinterpret_cast<uint8_t*>(result) = any.cast<uint8_t>(); break;
-					case asTYPEID_UINT16: *reinterpret_cast<uint16_t*>(result) = any.cast<uint16_t>(); break;
-					case asTYPEID_UINT32: *reinterpret_cast<uint32_t*>(result) = any.cast<uint32_t>(); break;
-					case asTYPEID_UINT64: *reinterpret_cast<uint64_t*>(result) = any.cast<uint64_t>(); break;
+					case asTYPEID_INT8: *reinterpret_cast<i8*>(result) = any.cast<i8>(); break;
+					case asTYPEID_INT16: *reinterpret_cast<i16*>(result) = any.cast<i16>(); break;
+					case asTYPEID_INT32: *reinterpret_cast<i32*>(result) = any.cast<i32>(); break;
+					case asTYPEID_INT64: *reinterpret_cast<i64*>(result) = any.cast<i64>(); break;
+					case asTYPEID_UINT8: *reinterpret_cast<u8*>(result) = any.cast<u8>(); break;
+					case asTYPEID_UINT16: *reinterpret_cast<u16*>(result) = any.cast<u16>(); break;
+					case asTYPEID_UINT32: *reinterpret_cast<u32*>(result) = any.cast<u32>(); break;
+					case asTYPEID_UINT64: *reinterpret_cast<u64*>(result) = any.cast<u64>(); break;
 					case asTYPEID_FLOAT: *reinterpret_cast<float*>(result) = any.cast<float>(); break;
 					case asTYPEID_DOUBLE: *reinterpret_cast<double*>(result) = any.cast<double>(); break;
 					default: break;
@@ -281,7 +281,7 @@ namespace Engine
 			return false;
 		}
 
-		static void opCast(Any& any, void* result, int_t type_id)
+		static void opCast(Any& any, void* result, i32 type_id)
 		{
 			if (!get(any, result, type_id))
 			{
@@ -289,7 +289,7 @@ namespace Engine
 			}
 		}
 
-		static void constructor(void* self, void* value, int_t type_id) { opAssignValue(*new (self) Any(), value, type_id); }
+		static void constructor(void* self, void* value, i32 type_id) { opAssignValue(*new (self) Any(), value, type_id); }
 	};
 
 	static void initialize()

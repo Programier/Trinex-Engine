@@ -334,7 +334,7 @@ namespace Engine::Pipelines
 		});
 	}
 
-	SSAO& SSAO::create_samples_buffer(size_t count)
+	SSAO& SSAO::create_samples_buffer(usize count)
 	{
 		if (m_samples_count >= count)
 			return *this;
@@ -347,7 +347,7 @@ namespace Engine::Pipelines
 		StackByteAllocator::Mark mark;
 		Vector3f* kernel = StackAllocator<Vector3f>::allocate(count);
 
-		for (size_t i = 0; i < count; ++i)
+		for (usize i = 0; i < count; ++i)
 		{
 			Vector3f& sample = kernel[i];
 
@@ -367,7 +367,7 @@ namespace Engine::Pipelines
 		RHIContext* ctx = RHIContextPool::global_instance()->begin_context();
 		{
 			ctx->barrier(m_samples_buffer, RHIAccess::TransferDst);
-			ctx->update_buffer(m_samples_buffer, 0, count * sizeof(Vector3f), reinterpret_cast<const byte*>(kernel));
+			ctx->update_buffer(m_samples_buffer, 0, count * sizeof(Vector3f), reinterpret_cast<const u8*>(kernel));
 		}
 		RHIContextPool::global_instance()->end_context(ctx);
 		return *this;
@@ -381,11 +381,11 @@ namespace Engine::Pipelines
 		float radius;
 		float fade_out_distance;
 		float fade_out_radius;
-		uint32_t samples;
+		u32 samples;
 	};
 
 	SSAO& SSAO::render(RHIContext* ctx, Renderer* renderer, float intensity, float bias, float power, float radius,
-	                   float fade_out_distance, float fade_out_radius, uint_t samples)
+	                   float fade_out_distance, float fade_out_radius, u32 samples)
 	{
 		create_samples_buffer(samples);
 
@@ -421,12 +421,12 @@ namespace Engine::Pipelines
 
 	RHIBuffer* ClusterInitialize::create_clusters_buffer()
 	{
-		static constexpr size_t cluster_size        = 576;
+		static constexpr usize cluster_size         = 576;
 		static constexpr RHIBufferCreateFlags flags = RHIBufferCreateFlags::UnorderedAccess |
 		                                              RHIBufferCreateFlags::ShaderResource |
 		                                              RHIBufferCreateFlags::StructuredBuffer;
 
-		size_t buffer_size = 16 * 9 * 24 * cluster_size;
+		usize buffer_size = 16 * 9 * 24 * cluster_size;
 		return RHIBufferPool::global_instance()->request_transient_buffer(buffer_size, flags);
 	}
 

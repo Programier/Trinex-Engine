@@ -146,7 +146,7 @@ namespace Engine
 	    : m_class_name(name), m_class_base_name(Strings::class_name_sv_of(name)), m_namespace_name(Strings::namespace_sv_of(name))
 	{}
 
-	ScriptClassRegistrar::ScriptClassRegistrar(const StringView& name, size_t size, BitMask flags) : ScriptClassRegistrar(name)
+	ScriptClassRegistrar::ScriptClassRegistrar(const StringView& name, usize size, BitMask flags) : ScriptClassRegistrar(name)
 	{
 		ScriptNamespaceScopedChanger changer(m_namespace_name);
 		script_engine()->RegisterObjectType(m_class_base_name.c_str(), size, flags);
@@ -164,12 +164,12 @@ namespace Engine
 		return *this;
 	}
 
-	ScriptClassRegistrar ScriptClassRegistrar::value_class(const StringView& name, size_t size, const ValueInfo& info)
+	ScriptClassRegistrar ScriptClassRegistrar::value_class(const StringView& name, usize size, const ValueInfo& info)
 	{
 		return ScriptClassRegistrar(name, size, create_flags(info)).modify_name_if_template(info);
 	}
 
-	ScriptClassRegistrar ScriptClassRegistrar::reference_class(const StringView& name, const RefInfo& info, size_t size)
+	ScriptClassRegistrar ScriptClassRegistrar::reference_class(const StringView& name, const RefInfo& info, usize size)
 	{
 		return ScriptClassRegistrar(name, size, create_flags(info)).modify_name_if_template(info);
 	}
@@ -220,7 +220,7 @@ namespace Engine
 		return ScriptEngine::type_info_by_name(m_class_base_name);
 	}
 
-	int_t ScriptClassRegistrar::type_id() const
+	i32 ScriptClassRegistrar::type_id() const
 	{
 		return type_info().type_id();
 	}
@@ -253,7 +253,7 @@ namespace Engine
 		return ScriptEngine::register_function(declaration, function, conv, auxiliary);
 	}
 
-	ScriptClassRegistrar& ScriptClassRegistrar::property(const char* declaration, size_t offset)
+	ScriptClassRegistrar& ScriptClassRegistrar::property(const char* declaration, usize offset)
 	{
 		ScriptNamespaceScopedChanger ns(m_namespace_name);
 		trinex_verify(script_engine()->RegisterObjectProperty(m_class_base_name.c_str(), declaration, offset) >= 0);
@@ -322,7 +322,7 @@ namespace Engine
 		return *this;
 	}
 
-	ScriptEnumRegistrar& ScriptEnumRegistrar::set(const char* name, int_t value)
+	ScriptEnumRegistrar& ScriptEnumRegistrar::set(const char* name, i32 value)
 	{
 		prepare_namespace();
 		trinex_verify(script_engine()->RegisterEnumValue(m_enum_base_name.c_str(), name, value) >= 0);
@@ -330,7 +330,7 @@ namespace Engine
 		return *this;
 	}
 
-	int_t ScriptEnumRegistrar::type_id()
+	i32 ScriptEnumRegistrar::type_id()
 	{
 		prepare_namespace();
 		auto id = script_engine()->GetTypeIdByDecl(m_enum_base_name.c_str());

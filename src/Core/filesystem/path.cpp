@@ -10,7 +10,7 @@ namespace Engine
 	const StringView Path::sv_separator   = "/";
 	static constexpr const char* prev_dir = "../";
 
-	size_t Path::Hash::operator()(const Path& p) const noexcept
+	usize Path::Hash::operator()(const Path& p) const noexcept
 	{
 		static Engine::Hash<String> hasher;
 		return hasher(p.m_path);
@@ -43,7 +43,7 @@ namespace Engine
 
 		StringView view = m_path;
 
-		Index position;
+		usize position;
 
 		{
 			position = view.rfind(separator);
@@ -150,8 +150,8 @@ namespace Engine
 
 	Vector<StringView> Path::split_sv() const
 	{
-		Index index   = 0;
-		Index current = 0;
+		usize index   = 0;
+		usize current = 0;
 
 		StringView view = m_path;
 		Vector<StringView> result;
@@ -170,8 +170,8 @@ namespace Engine
 
 	Vector<String> Path::split() const
 	{
-		Index index   = 0;
-		Index current = 0;
+		usize index   = 0;
+		usize current = 0;
 
 		Vector<String> result;
 
@@ -195,19 +195,19 @@ namespace Engine
 		Vector<StringView> base_sv = base.split_sv();
 		Vector<StringView> self_sv = split_sv();
 
-		size_t min_len = Math::min(base_sv.size(), self_sv.size());
-		Index index    = 0;
+		usize min_len = Math::min(base_sv.size(), self_sv.size());
+		usize index   = 0;
 
 		while (index < min_len && base_sv[index] == self_sv[index]) ++index;
 
 		String result;
 
-		for (Index i = index, count = base_sv.size(); i < count; ++i)
+		for (usize i = index, count = base_sv.size(); i < count; ++i)
 		{
 			result += prev_dir;
 		}
 
-		for (Index i = index, count = self_sv.size(); i < count; ++i)
+		for (usize i = index, count = self_sv.size(); i < count; ++i)
 		{
 			result += self_sv[i];
 			result.push_back(separator);

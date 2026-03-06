@@ -50,7 +50,7 @@ namespace Engine
 	}
 
 	RHIShader* D3D12::create_vertex_shader(const byte* shader, size_t size, const VertexAttribute* attributes,
-	                                        size_t attributes_count)
+	                                       size_t attributes_count)
 	{
 		return allocate<D3D12_VertexShader>(shader, size, attributes, attributes_count);
 	}

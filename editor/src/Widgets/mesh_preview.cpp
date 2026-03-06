@@ -21,10 +21,10 @@ namespace Engine
 	                                            1.740506, 2.025316, 2.310126, 2.594936, 3.164556, 3.734177,
 	                                            4.303797, 5.443037, 6.582278, 7.721518, 8.860759, 10.0};
 
-	static uint_t find_nearest_size(uint_t size)
+	static u32 find_nearest_size(u32 size)
 	{
-		static constexpr uint_t s_sizes[] = {2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 1536, 2048, 2560, 3072, 3584, 4096};
-		static constexpr size_t s_count   = sizeof(s_sizes) / sizeof(s_sizes[0]);
+		static constexpr u32 s_sizes[] = {2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 1536, 2048, 2560, 3072, 3584, 4096};
+		static constexpr usize s_count = sizeof(s_sizes) / sizeof(s_sizes[0]);
 
 		auto it = std::lower_bound(s_sizes, s_sizes + s_count, size);
 		if (it == std::end(s_sizes))
@@ -37,7 +37,7 @@ namespace Engine
 		m_camera = Object::new_instance<CameraComponent>();
 	}
 
-	int_t ImGuiStaticMeshPreview::match_zoom_index(int direction)
+	i32 ImGuiStaticMeshPreview::match_zoom_index(int direction)
 	{
 		int bestIndex      = -1;
 		float bestDistance = 0.0f;

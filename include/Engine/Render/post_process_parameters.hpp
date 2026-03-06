@@ -17,7 +17,7 @@ namespace Engine
 
 			float fade_out_distance = 80.f;
 			float fade_out_radius   = 50.f;
-			uint_t samples          = 32;
+			u32 samples             = 32;
 		};
 
 		struct Bloom {

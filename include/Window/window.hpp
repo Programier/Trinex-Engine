@@ -29,12 +29,12 @@ namespace Engine
 
 	public:
 		virtual void initialize(const WindowConfig&);
-		float_t width();
-		float_t height();
+		f32 width();
+		f32 height();
 		Vector2u size();
 
-		virtual Window& width(float_t width);
-		virtual Window& height(float_t height);
+		virtual Window& width(f32 width);
+		virtual Window& height(f32 height);
 		virtual Window& size(const Vector2u& size);
 		virtual String title();
 		virtual Window& title(const String& title);
@@ -63,7 +63,7 @@ namespace Engine
 		virtual Orientation orientation();
 		virtual Identifier id();
 		virtual void* native_window();
-		virtual size_t monitor_index();
+		virtual usize monitor_index();
 
 		WindowRenderViewport* render_viewport() const;
 		Window* parent_window() const;

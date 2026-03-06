@@ -3,11 +3,11 @@
 
 namespace Engine
 {
-	template<size_t size, size_t align = size>
+	template<usize size, usize align = size>
 	struct Storage {
-		alignas(align) byte data[size];
+		alignas(align) u8 data[size];
 
-		template<typename T, size_t offset>
+		template<typename T, usize offset>
 		T& as()
 		{
 			static_assert(offset + sizeof(T) <= size, "Offset out of bounds");
@@ -16,7 +16,7 @@ namespace Engine
 			return *reinterpret_cast<T*>(data + offset);
 		}
 
-		template<typename T, size_t offset>
+		template<typename T, usize offset>
 		const T& as() const
 		{
 			static_assert(offset + sizeof(T) <= size, "Offset out of bounds");

@@ -40,32 +40,32 @@ namespace Engine::Importer
 		struct BufferInfo {
 			union
 			{
-				byte* data = nullptr;
-				uint64_t address;
+				u8* data = nullptr;
+				u64 address;
 			};
 
-			size_t stride = 0;
+			usize stride = 0;
 
-			inline void zeroes(size_t count) { memset(data, 0, stride * count); }
+			inline void zeroes(usize count) { memset(data, 0, stride * count); }
 
-			inline byte* element(size_t index) { return data + index * stride; }
+			inline u8* element(usize index) { return data + index * stride; }
 
 			template<typename T>
-			inline T* as(size_t index)
+			inline T* as(usize index)
 			{
 				reinterpret_cast<T*>(element(index));
 			}
 		};
 
 		struct Accessors {
-			static constexpr uint64_t s_position_flag  = 1 << 0;
-			static constexpr uint64_t s_texcoord0_flag = 1 << 1;
-			static constexpr uint64_t s_normals_flag   = 1 << 2;
-			static constexpr uint64_t s_tangents_flag  = 1 << 3;
-			static constexpr uint64_t s_colors_flag    = 1 << 4;
-			static constexpr uint64_t s_indices_flag   = 1 << 5;
+			static constexpr u64 s_position_flag  = 1 << 0;
+			static constexpr u64 s_texcoord0_flag = 1 << 1;
+			static constexpr u64 s_normals_flag   = 1 << 2;
+			static constexpr u64 s_tangents_flag  = 1 << 3;
+			static constexpr u64 s_colors_flag    = 1 << 4;
+			static constexpr u64 s_indices_flag   = 1 << 5;
 
-			static constexpr uint64_t s_texcoord0_normal_tangent_mask = s_texcoord0_flag | s_normals_flag | s_tangents_flag;
+			static constexpr u64 s_texcoord0_normal_tangent_mask = s_texcoord0_flag | s_normals_flag | s_tangents_flag;
 
 			const tinygltf::Accessor* positions  = nullptr;
 			const tinygltf::Accessor* texcoords0 = nullptr;
@@ -75,15 +75,15 @@ namespace Engine::Importer
 			const tinygltf::Accessor* indices    = nullptr;
 
 			template<typename... T>
-			static inline uint64_t static_mask(const T*... accessors)
+			static inline u64 static_mask(const T*... accessors)
 			{
-				uint64_t result = 0;
-				size_t index    = 0;
+				u64 result  = 0;
+				usize index = 0;
 				result |= ((result |= (accessors ? (1ull << index) : 0ull), ++index), ...);
 				return result;
 			}
 
-			inline uint64_t mask() const { return static_mask(positions, texcoords0, normals, tangents, colors, indices); }
+			inline u64 mask() const { return static_mask(positions, texcoords0, normals, tangents, colors, indices); }
 		};
 
 	private:
@@ -138,12 +138,12 @@ namespace Engine::Importer
 		}
 
 		template<typename... Accessors>
-		static inline size_t elements_count(const Accessors*... accessors)
+		static inline usize elements_count(const Accessors*... accessors)
 		{
 			return ((accessors ? accessors->count : 0) + ...);
 		}
 
-		static inline RHIPrimitiveTopology topology_of(uint8_t mode)
+		static inline RHIPrimitiveTopology topology_of(u8 mode)
 		{
 			switch (mode)
 			{
@@ -155,7 +155,7 @@ namespace Engine::Importer
 			}
 		}
 
-		static inline const byte* buffer_address(const tinygltf::Model& model, const tinygltf::Accessor* accessor, size_t& stride)
+		static inline const u8* buffer_address(const tinygltf::Model& model, const tinygltf::Accessor* accessor, usize& stride)
 		{
 			if (accessor->bufferView == -1)
 			{
@@ -166,15 +166,15 @@ namespace Engine::Importer
 			const tinygltf::BufferView& view = model.bufferViews[accessor->bufferView];
 			const tinygltf::Buffer& buffer   = model.buffers[view.buffer];
 
-			const byte* data = buffer.data.data();
-			stride           = view.byteStride;
+			const u8* data = buffer.data.data();
+			stride         = view.byteStride;
 			return data + view.byteOffset + accessor->byteOffset;
 		}
 
 		static void byte2_to_float2(void* dst, const void* src)
 		{
 			float* destination = reinterpret_cast<float*>(dst);
-			const byte* source = static_cast<const byte*>(src);
+			const u8* source   = static_cast<const u8*>(src);
 
 			destination[0] = static_cast<float>(source[0]) / 255.f;
 			destination[1] = static_cast<float>(source[1]) / 255.f;
@@ -182,8 +182,8 @@ namespace Engine::Importer
 
 		static void ushort2_to_float2(void* dst, const void* src)
 		{
-			float* destination     = reinterpret_cast<float*>(dst);
-			const ushort_t* source = static_cast<const ushort_t*>(src);
+			float* destination = reinterpret_cast<float*>(dst);
+			const u16* source  = static_cast<const u16*>(src);
 
 			destination[0] = static_cast<float>(source[0]) / 65535.f;
 			destination[1] = static_cast<float>(source[1]) / 65535.f;
@@ -191,33 +191,33 @@ namespace Engine::Importer
 
 		static void float3_to_short3(void* dst, const void* src)
 		{
-			short_t* destination = reinterpret_cast<short_t*>(dst);
-			const float* source  = static_cast<const float*>(src);
+			i16* destination    = reinterpret_cast<i16*>(dst);
+			const float* source = static_cast<const float*>(src);
 
 			for (int i = 0; i < 3; ++i)
 			{
 				float clamped  = Math::clamp(-1.0f, 1.0f, source[i]);
-				destination[i] = static_cast<short_t>(Math::round(clamped * 32767.0f));
+				destination[i] = static_cast<i16>(Math::round(clamped * 32767.0f));
 			}
 		}
 
 		static void float4_to_short4(void* dst, const void* src)
 		{
-			short_t* destination = reinterpret_cast<short_t*>(dst);
-			const float* source  = static_cast<const float*>(src);
+			i16* destination    = reinterpret_cast<i16*>(dst);
+			const float* source = static_cast<const float*>(src);
 
 			for (int i = 0; i < 4; ++i)
 			{
 				float clamped  = Math::clamp(-1.f, 1.f, source[i]);
-				destination[i] = static_cast<short_t>(Math::round(clamped * 32767.0f));
+				destination[i] = static_cast<i16>(Math::round(clamped * 32767.0f));
 			}
 		}
 
-		static uint16_t find_material_index(Vector<MaterialInterface*>& materials, Material* material)
+		static u16 find_material_index(Vector<MaterialInterface*>& materials, Material* material)
 		{
-			uint16_t index = 0;
+			u16 index = 0;
 
-			for (uint16_t count = materials.size(); index < count; ++index)
+			for (u16 count = materials.size(); index < count; ++index)
 			{
 				MaterialInterface* current = materials[index];
 
@@ -281,13 +281,13 @@ namespace Engine::Importer
 		    : m_world(world), m_package(package), m_transform(transform.matrix())
 		{}
 
-		static inline uint32_t calculate_mip_count(uint32_t width, uint32_t height)
+		static inline u32 calculate_mip_count(u32 width, u32 height)
 		{
-			uint32_t dimension = Math::max(width, height);
+			u32 dimension = Math::max(width, height);
 			return Math::log2<float>(dimension) + 1;
 		}
 
-		Texture2D* import_texture(const tinygltf::Model& model, int_t index)
+		Texture2D* import_texture(const tinygltf::Model& model, i32 index)
 		{
 			Pointer<Texture2D>& texture = m_textures[index];
 
@@ -326,8 +326,8 @@ namespace Engine::Importer
 			return texture;
 		}
 
-		VisualMaterialGraph::SampleTexture* import_sampler(VisualMaterial* material, const tinygltf::Model& model, int_t index,
-		                                                   int_t uv = 0)
+		VisualMaterialGraph::SampleTexture* import_sampler(VisualMaterial* material, const tinygltf::Model& model, i32 index,
+		                                                   i32 uv = 0)
 		{
 			auto sample = material->create_node<VisualMaterialGraph::SampleTexture>();
 
@@ -337,7 +337,7 @@ namespace Engine::Importer
 			return sample;
 		}
 
-		Material* import_material(const tinygltf::Model& model, int_t index)
+		Material* import_material(const tinygltf::Model& model, i32 index)
 		{
 			Pointer<VisualMaterial>& material = m_materials[index];
 
@@ -395,7 +395,7 @@ namespace Engine::Importer
 			return material;
 		}
 
-		StaticMesh* import_static_mesh(const tinygltf::Model& model, int_t index)
+		StaticMesh* import_static_mesh(const tinygltf::Model& model, i32 index)
 		{
 			if (m_meshes[index].has_value())
 				return etl::get<Pointer<StaticMesh>>(m_meshes[index].value());
@@ -408,7 +408,7 @@ namespace Engine::Importer
 			StackByteAllocator::Mark mark;
 
 			const tinygltf::Mesh& gltf_mesh = model.meshes[index];
-			const size_t primitives         = gltf_mesh.primitives.size();
+			const usize primitives          = gltf_mesh.primitives.size();
 
 			StaticMesh* mesh = Object::new_instance<StaticMesh>(gltf_mesh.name, m_package.meshes);
 			mesh->bounds     = {{-1, -1, -1}, {1, 1, 1}};
@@ -419,11 +419,11 @@ namespace Engine::Importer
 
 			StackVector<Accessors> accessors(primitives);
 
-			uint64_t accessor_mask = 0;
-			size_t vertex_count    = 0;
-			size_t index_count     = 0;
+			u64 accessor_mask  = 0;
+			usize vertex_count = 0;
+			usize index_count  = 0;
 
-			for (size_t i = 0; i < primitives; ++i)
+			for (usize i = 0; i < primitives; ++i)
 			{
 				const tinygltf::Primitive& primitive = gltf_mesh.primitives[i];
 				Accessors& accessor                  = accessors[i];
@@ -441,9 +441,9 @@ namespace Engine::Importer
 
 				accessor_mask |= accessor.mask();
 
-				size_t vertices = elements_count(accessor.positions, accessor.texcoords0, accessor.normals, accessor.tangents,
-				                                 accessor.colors);
-				size_t indices  = elements_count(accessor.indices);
+				usize vertices = elements_count(accessor.positions, accessor.texcoords0, accessor.normals, accessor.tangents,
+				                                accessor.colors);
+				usize indices  = elements_count(accessor.indices);
 
 
 				MeshSurface* surface  = &lod.surfaces[i];
@@ -526,7 +526,7 @@ namespace Engine::Importer
 				}
 
 				auto& buffer = lod.buffers.emplace_back();
-				byte* data   = buffer.allocate_data(RHIBufferCreateFlags::VertexBuffer, attribute.offset, vertex_count);
+				u8* data     = buffer.allocate_data(RHIBufferCreateFlags::VertexBuffer, attribute.offset, vertex_count);
 				memset(data, 0, vertex_count * attribute.offset);
 
 				uv0.data     = data + uv0.address;
@@ -550,25 +550,25 @@ namespace Engine::Importer
 			vertex_count = 0;
 			index_count  = 0;
 
-			for (size_t i = 0; i < primitives; ++i)
+			for (usize i = 0; i < primitives; ++i)
 			{
 				Accessors& accessor = accessors[i];
 
 				if (accessor.positions)
 				{
-					size_t stride;
+					usize stride;
 
-					byte* dst       = position.element(vertex_count);
-					const byte* src = buffer_address(model, accessor.positions, stride);
+					u8* dst       = position.element(vertex_count);
+					const u8* src = buffer_address(model, accessor.positions, stride);
 					memcpy_elements(dst, src, 12, accessor.positions->count, position.stride, stride);
 				}
 
 				if (accessor.texcoords0)
 				{
-					size_t stride;
+					usize stride;
 
-					byte* dst       = uv0.element(vertex_count);
-					const byte* src = buffer_address(model, accessor.texcoords0, stride);
+					u8* dst       = uv0.element(vertex_count);
+					const u8* src = buffer_address(model, accessor.texcoords0, stride);
 
 					switch (accessor.texcoords0->componentType)
 					{
@@ -600,34 +600,34 @@ namespace Engine::Importer
 
 				if (accessor.normals)
 				{
-					size_t stride;
+					usize stride;
 
-					byte* dst       = normal.element(vertex_count);
-					const byte* src = buffer_address(model, accessor.normals, stride);
+					u8* dst       = normal.element(vertex_count);
+					const u8* src = buffer_address(model, accessor.normals, stride);
 					memcpy_elements(dst, src, 12, accessor.normals->count, normal.stride, stride);
 				}
 
 				if (accessor.tangents)
 				{
-					size_t stride;
+					usize stride;
 
-					byte* dst       = tangent.element(vertex_count);
-					const byte* src = buffer_address(model, accessor.tangents, stride);
+					u8* dst       = tangent.element(vertex_count);
+					const u8* src = buffer_address(model, accessor.tangents, stride);
 					memcpy_elements(dst, src, 16, accessor.tangents->count, tangent.stride, stride);
 				}
 
 				if (accessor.indices)
 				{
-					size_t stride;
+					usize stride;
 
-					byte* dst       = indices.element(index_count);
-					const byte* src = buffer_address(model, accessor.indices, stride);
+					u8* dst       = indices.element(index_count);
+					const u8* src = buffer_address(model, accessor.indices, stride);
 					memcpy_elements(dst, src, indices.stride, accessor.indices->count, indices.stride, stride);
 				}
 
-				size_t vertices = elements_count(accessor.positions, accessor.texcoords0, accessor.normals, accessor.tangents,
-				                                 accessor.colors);
-				size_t indices  = elements_count(accessor.indices);
+				usize vertices = elements_count(accessor.positions, accessor.texcoords0, accessor.normals, accessor.tangents,
+				                                accessor.colors);
+				usize indices  = elements_count(accessor.indices);
 
 				vertex_count += vertices;
 				index_count += indices;
@@ -646,7 +646,7 @@ namespace Engine::Importer
 			return actor;
 		}
 
-		SkeletalMesh* import_skeletal_mesh(const tinygltf::Model& model, int_t index, int_t skin)
+		SkeletalMesh* import_skeletal_mesh(const tinygltf::Model& model, i32 index, i32 skin)
 		{
 			Optional<Mesh>& mesh = m_meshes[index];
 
@@ -666,7 +666,7 @@ namespace Engine::Importer
 			actor->owner(m_world);
 		}
 
-		void spawn_light(const String& name, const tinygltf::Model& model, int_t index, const Matrix4f& transform)
+		void spawn_light(const String& name, const tinygltf::Model& model, i32 index, const Matrix4f& transform)
 		{
 			if (m_world == nullptr)
 				return;

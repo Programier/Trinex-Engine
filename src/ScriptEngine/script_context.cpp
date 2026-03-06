@@ -30,8 +30,8 @@ namespace Engine
 	{
 		ScriptFunction function      = ctx->GetExceptionFunction();
 		const char* exception_string = ctx->GetExceptionString();
-		int_t column                 = 0;
-		const int_t line             = ctx->GetExceptionLineNumber(&column);
+		i32 column                   = 0;
+		const i32 line               = ctx->GetExceptionLineNumber(&column);
 
 		Script* script = function.module().script();
 
@@ -210,12 +210,12 @@ namespace Engine
 		return m_context->PopState() >= 0;
 	}
 
-	uint_t ScriptContext::nest_count()
+	u32 ScriptContext::nest_count()
 	{
 		asUINT count = 0;
 		if (m_context->IsNested(&count))
 		{
-			return static_cast<uint_t>(count);
+			return static_cast<u32>(count);
 		}
 		return 0;
 	}
@@ -232,52 +232,52 @@ namespace Engine
 		return m_context->SetObject(const_cast<void*>(address)) >= 0;
 	}
 
-	bool ScriptContext::arg_bool(uint_t arg, bool value)
+	bool ScriptContext::arg_bool(u32 arg, bool value)
 	{
 		return m_context->SetArgByte(arg, value) >= 0;
 	}
 
-	bool ScriptContext::arg_byte(uint_t arg, byte value)
+	bool ScriptContext::arg_byte(u32 arg, u8 value)
 	{
 		return m_context->SetArgByte(arg, value) >= 0;
 	}
 
-	bool ScriptContext::arg_word(uint_t arg, word value)
+	bool ScriptContext::arg_word(u32 arg, u16 value)
 	{
 		return m_context->SetArgWord(arg, value) >= 0;
 	}
 
-	bool ScriptContext::arg_dword(uint_t arg, dword value)
+	bool ScriptContext::arg_dword(u32 arg, u32 value)
 	{
 		return m_context->SetArgDWord(arg, value) >= 0;
 	}
 
-	bool ScriptContext::arg_qword(uint_t arg, qword value)
+	bool ScriptContext::arg_qword(u32 arg, u64 value)
 	{
 		return m_context->SetArgQWord(arg, value) >= 0;
 	}
 
-	bool ScriptContext::arg_float(uint_t arg, float value)
+	bool ScriptContext::arg_float(u32 arg, float value)
 	{
 		return m_context->SetArgFloat(arg, value) >= 0;
 	}
 
-	bool ScriptContext::arg_double(uint_t arg, double value)
+	bool ScriptContext::arg_double(u32 arg, double value)
 	{
 		return m_context->SetArgDouble(arg, value) >= 0;
 	}
 
-	bool ScriptContext::arg_script_obj(uint_t arg, const ScriptObject& obj)
+	bool ScriptContext::arg_script_obj(u32 arg, const ScriptObject& obj)
 	{
 		return m_context->SetArgObject(arg, obj.address()) >= 0;
 	}
 
-	bool ScriptContext::arg_var_type(uint_t arg, void* ptr, int_t type_id)
+	bool ScriptContext::arg_var_type(u32 arg, void* ptr, i32 type_id)
 	{
 		return m_context->SetArgVarType(arg, ptr, type_id);
 	}
 
-	bool ScriptContext::arg_address(uint_t arg, void* addr, bool is_object)
+	bool ScriptContext::arg_address(u32 arg, void* addr, bool is_object)
 	{
 		if (is_object)
 			return m_context->SetArgObject(arg, addr) >= 0;
@@ -285,29 +285,29 @@ namespace Engine
 		return m_context->SetArgAddress(arg, addr) >= 0;
 	}
 
-	void* ScriptContext::address_of_arg(uint_t arg)
+	void* ScriptContext::address_of_arg(u32 arg)
 	{
 		return m_context->GetAddressOfArg(arg);
 	}
 
-	uint8_t ScriptContext::return_byte()
+	u8 ScriptContext::return_byte()
 	{
-		return static_cast<uint8_t>(m_context->GetReturnByte());
+		return static_cast<u8>(m_context->GetReturnByte());
 	}
 
-	uint16_t ScriptContext::return_word()
+	u16 ScriptContext::return_word()
 	{
-		return static_cast<uint16_t>(m_context->GetReturnWord());
+		return static_cast<u16>(m_context->GetReturnWord());
 	}
 
-	uint32_t ScriptContext::return_dword()
+	u32 ScriptContext::return_dword()
 	{
-		return static_cast<uint32_t>(m_context->GetReturnDWord());
+		return static_cast<u32>(m_context->GetReturnDWord());
 	}
 
-	uint64_t ScriptContext::return_qword()
+	u64 ScriptContext::return_qword()
 	{
-		return static_cast<uint64_t>(m_context->GetReturnQWord());
+		return static_cast<u64>(m_context->GetReturnQWord());
 	}
 
 	float ScriptContext::return_float()
@@ -327,7 +327,7 @@ namespace Engine
 
 	void* ScriptContext::return_object_ptr()
 	{
-		int_t return_typeid = function(0).return_type_id();
+		i32 return_typeid = function(0).return_type_id();
 		if (return_typeid & asTYPEID_MASK_OBJECT)
 		{
 			return m_context->GetReturnObject();
@@ -337,7 +337,7 @@ namespace Engine
 
 	ScriptObject ScriptContext::return_object()
 	{
-		int_t return_typeid = function(0).return_type_id();
+		i32 return_typeid = function(0).return_type_id();
 		if (return_typeid & asTYPEID_MASK_OBJECT)
 		{
 			return ScriptObject(m_context->GetReturnObject(), return_typeid);
@@ -420,12 +420,12 @@ namespace Engine
 		return instance();
 	}
 
-	uint_t ScriptContext::callstack_size()
+	u32 ScriptContext::callstack_size()
 	{
 		return m_context->GetCallstackSize();
 	}
 
-	ScriptFunction ScriptContext::function(uint_t stack_level)
+	ScriptFunction ScriptContext::function(u32 stack_level)
 	{
 		return ScriptFunction(m_context->GetFunction(stack_level));
 	}
@@ -435,7 +435,7 @@ namespace Engine
 		return ScriptFunction(m_context->GetSystemFunction());
 	}
 
-	Vector2i ScriptContext::line_position(uint_t stack_level, StringView* section_name)
+	Vector2i ScriptContext::line_position(u32 stack_level, StringView* section_name)
 	{
 		Vector2i result     = {-1, -1};
 		const char* section = nullptr;
@@ -449,14 +449,14 @@ namespace Engine
 		return result;
 	}
 
-	uint_t ScriptContext::var_count(uint_t stack_level)
+	u32 ScriptContext::var_count(u32 stack_level)
 	{
 		const int count = m_context->GetVarCount(stack_level);
-		return count > 0 ? static_cast<uint_t>(count) : 0;
+		return count > 0 ? static_cast<u32>(count) : 0;
 	}
 
-	bool ScriptContext::var(uint_t var_index, uint_t stack_level, StringView* name, int_t* type_id,
-	                        ScriptTypeModifiers* modifiers, bool* is_var_on_heap, int_t* stack_offset)
+	bool ScriptContext::var(u32 var_index, u32 stack_level, StringView* name, i32* type_id, ScriptTypeModifiers* modifiers,
+	                        bool* is_var_on_heap, i32* stack_offset)
 	{
 		asETypeModifiers script_modifiers;
 		const char* script_name;
@@ -475,32 +475,32 @@ namespace Engine
 		return result;
 	}
 
-	String ScriptContext::var_declaration(uint_t var_index, uint_t stack_level, bool include_namespace)
+	String ScriptContext::var_declaration(u32 var_index, u32 stack_level, bool include_namespace)
 	{
 		if (auto decl = m_context->GetVarDeclaration(var_index, stack_level, include_namespace))
 			return decl;
 		return "";
 	}
 
-	byte* ScriptContext::address_of_var(uint_t var_index, uint_t stack_level, bool dont_dereference,
-	                                    bool return_address_of_unitialized_objects)
+	u8* ScriptContext::address_of_var(u32 var_index, u32 stack_level, bool dont_dereference,
+	                                  bool return_address_of_unitialized_objects)
 	{
-		return reinterpret_cast<byte*>(
+		return reinterpret_cast<u8*>(
 		        m_context->GetAddressOfVar(var_index, stack_level, dont_dereference, return_address_of_unitialized_objects));
 	}
 
-	bool ScriptContext::is_var_in_scope(uint_t var_index, uint_t stack_level)
+	bool ScriptContext::is_var_in_scope(u32 var_index, u32 stack_level)
 	{
 		return m_context->IsVarInScope(var_index, stack_level);
 	}
 
-	int_t ScriptContext::this_type_id(uint_t stack_level)
+	i32 ScriptContext::this_type_id(u32 stack_level)
 	{
 		return m_context->GetThisTypeId(stack_level);
 	}
 
-	byte* ScriptContext::this_pointer(uint_t stack_level)
+	u8* ScriptContext::this_pointer(u32 stack_level)
 	{
-		return reinterpret_cast<byte*>(m_context->GetThisPointer(stack_level));
+		return reinterpret_cast<u8*>(m_context->GetThisPointer(stack_level));
 	}
 }// namespace Engine

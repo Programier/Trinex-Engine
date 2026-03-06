@@ -58,15 +58,15 @@ namespace Engine
 	private:
 		static void push_argument(const char* name);
 		static void push_array_argument(const String& name, const String& argument);
-		static String parse_string_argument(const char* argument, size_t* out_pos = nullptr);
+		static String parse_string_argument(const char* argument, usize* out_pos = nullptr);
 
 		static Map<String, Argument> m_arguments;
-		static int_t m_argc;
+		static i32 m_argc;
 		static const char** m_argv;
 
 	public:
 		static void init(int argc, const char** argv);
-		static int_t argc();
+		static i32 argc();
 		static const char** argv();
 		static void clear();
 		static const Map<String, Argument>& args();

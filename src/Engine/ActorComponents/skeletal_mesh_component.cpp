@@ -33,7 +33,7 @@ namespace Engine
 		return *this;
 	}
 
-	size_t SkeletalMeshComponent::materials_count() const
+	usize SkeletalMeshComponent::materials_count() const
 	{
 		if (m_mesh)
 			return m_mesh->materials.size();
@@ -41,7 +41,7 @@ namespace Engine
 		return 0;
 	}
 
-	MaterialInterface* SkeletalMeshComponent::material(size_t index) const
+	MaterialInterface* SkeletalMeshComponent::material(usize index) const
 	{
 		if (MaterialInterface* material = Super::material(index))
 			return material;
@@ -52,32 +52,32 @@ namespace Engine
 		return nullptr;
 	}
 
-	size_t SkeletalMeshComponent::lods_count() const
+	usize SkeletalMeshComponent::lods_count() const
 	{
 		return m_mesh->lods.size();
 	}
 
-	size_t SkeletalMeshComponent::surfaces_count(size_t lod) const
+	usize SkeletalMeshComponent::surfaces_count(usize lod) const
 	{
 		return m_mesh->lods[lod].surfaces.size();
 	}
 
-	const MeshSurface* SkeletalMeshComponent::surface(size_t index, size_t lod) const
+	const MeshSurface* SkeletalMeshComponent::surface(usize index, usize lod) const
 	{
 		return &m_mesh->lods[lod].surfaces[index];
 	}
 
-	const MeshVertexAttribute* SkeletalMeshComponent::vertex_attribute(RHIVertexSemantic semantic, size_t lod)
+	const MeshVertexAttribute* SkeletalMeshComponent::vertex_attribute(RHIVertexSemantic semantic, usize lod)
 	{
 		return nullptr;
 	}
 
-	VertexBufferBase* SkeletalMeshComponent::vertex_buffer(byte stream, size_t lod)
+	VertexBufferBase* SkeletalMeshComponent::vertex_buffer(u8 stream, usize lod)
 	{
 		return nullptr;
 	}
 
-	IndexBuffer* SkeletalMeshComponent::index_buffer(size_t lod)
+	IndexBuffer* SkeletalMeshComponent::index_buffer(usize lod)
 	{
 		auto& buffer = m_mesh->lods[lod].indices;
 		return buffer.size() == 0 ? nullptr : &buffer;

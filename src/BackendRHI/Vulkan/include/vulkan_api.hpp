@@ -62,10 +62,10 @@ namespace Engine
 
 		struct Garbage {
 			RHIObject* object;
-			uint64_t frame;
+			u64 frame;
 		};
 
-		Atomic<uint64_t> m_frame;
+		Atomic<u64> m_frame;
 
 		Deque<Garbage> m_garbage;
 		Vector<VulkanExtention> m_device_extensions;
@@ -111,11 +111,11 @@ namespace Engine
 		VulkanAPI& destroy_garbage();
 
 	public:
-		static consteval size_t find_extension_index(const char* str)
+		static consteval usize find_extension_index(const char* str)
 		{
 			auto extensions = make_extensions_array();
 
-			for (size_t i = 1, count = extensions.size(); i < count; ++i)
+			for (usize i = 1, count = extensions.size(); i < count; ++i)
 			{
 				if (extensions[i].name == str)
 					return i;
@@ -128,7 +128,7 @@ namespace Engine
 
 	public:
 		inline const Vector<VulkanExtention>& extensions() const { return m_device_extensions; }
-		inline bool is_extension_enabled(size_t index) const { return m_device_extensions[index].enabled; }
+		inline bool is_extension_enabled(usize index) const { return m_device_extensions[index].enabled; }
 		inline VulkanDescriptorHeap* descriptor_heap() const { return m_descriptor_heap; }
 		inline VulkanQueryPoolManager* query_pool_manager() const { return m_query_pool_manager; }
 		inline VulkanStaggingBufferManager* stagging_manager() const { return m_stagging_manager; };
@@ -177,19 +177,19 @@ namespace Engine
 		RHIPipelineStatistics* create_pipeline_statistics() override;
 		RHIFence* create_fence() override;
 		RHISampler* create_sampler(const RHISamplerInitializer*) override;
-		RHITexture* create_texture(RHITextureType type, RHIColorFormat format, Vector3u size, uint32_t mips,
+		RHITexture* create_texture(RHITextureType type, RHIColorFormat format, Vector3u size, u32 mips,
 		                           RHITextureCreateFlags flags) override;
-		RHIShader* create_shader(const byte* shader, size_t size) override;
+		RHIShader* create_shader(const u8* shader, usize size) override;
 		RHIPipeline* create_graphics_pipeline(const RHIGraphicsPipelineInitializer* pipeline) override;
 		RHIPipeline* create_mesh_pipeline(const RHIMeshPipelineInitializer* pipeline) override;
 		RHIPipeline* create_compute_pipeline(const RHIComputePipelineInitializer* pipeline) override;
 		RHIPipeline* create_ray_tracing_pipeline(const RHIRayTracingPipelineInitializer* pipeline) override;
-		RHIBuffer* create_buffer(size_t size, RHIBufferCreateFlags flags) override;
+		RHIBuffer* create_buffer(usize size, RHIBufferCreateFlags flags) override;
 		RHISwapchain* create_swapchain(Window* window, bool vsync) override;
 		RHIContext* create_context(RHIContextFlags flags) override;
 
 		RHIAccelerationStructure* create_acceleration_structure(const RHIRayTracingAccelerationInputs* inputs) override;
-		const byte* translate_ray_tracing_instances(const RHIRayTracingGeometryInstance* instances, size_t& size) override;
+		const u8* translate_ray_tracing_instances(const RHIRayTracingGeometryInstance* instances, usize& size) override;
 
 		VulkanAPI& present(RHISwapchain* swapchain) override;
 

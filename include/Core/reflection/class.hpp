@@ -141,7 +141,7 @@ namespace Engine
 				return *this;
 			}
 
-			size_t size() const override { return sizeof(T); }
+			usize size() const override { return sizeof(T); }
 		};
 	}// namespace Refl
 }// namespace Engine

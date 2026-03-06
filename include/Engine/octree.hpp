@@ -15,16 +15,16 @@ namespace Engine
 			union
 			{
 				struct {
-					byte x : 1;
-					byte y : 1;
-					byte z : 1;
+					u8 x : 1;
+					u8 y : 1;
+					u8 z : 1;
 				};
 
-				byte index : 3 = 0;
+				u8 index : 3 = 0;
 			};
 
 			Index(bool x, bool y, bool z) : x(x), y(y), z(z) {}
-			Index(byte index = 0) : index(index) {}
+			Index(u8 index = 0) : index(index) {}
 
 			Index(const Index&)            = default;
 			Index& operator=(const Index&) = default;
@@ -66,7 +66,7 @@ namespace Engine
 			Node* m_childs[8];
 			Node* m_owner;
 			Box3f m_box;
-			size_t m_size;
+			usize m_size;
 
 			Node(Node* owner, const Box3f& box) : m_values(), m_childs{nullptr}, m_owner(owner), m_box(box), m_size(0) {}
 
@@ -75,7 +75,7 @@ namespace Engine
 
 			~Node()
 			{
-				for (byte i = 0; i < 8; i++)
+				for (u8 i = 0; i < 8; i++)
 				{
 					if (m_childs[i] != nullptr)
 					{
@@ -138,7 +138,7 @@ namespace Engine
 			FORCE_INLINE Node* child_at(Octree::Index index) { return m_childs[index.index]; }
 			FORCE_INLINE const Node* child_at(Octree::Index index) const { return m_childs[index.index]; }
 			FORCE_INLINE const Box3f& box() const { return m_box; }
-			FORCE_INLINE size_t size() const { return m_size; }
+			FORCE_INLINE usize size() const { return m_size; }
 			FORCE_INLINE bool empty() const { return m_size == 0; }
 
 			FORCE_INLINE Node* find(const Box3f& box) { return const_cast<Node*>(const_cast<const Node*>(this)->find(box)); }
@@ -211,7 +211,7 @@ namespace Engine
 			return node;
 		}
 
-		FORCE_INLINE size_t size() const { return m_root_node->size(); }
+		FORCE_INLINE usize size() const { return m_root_node->size(); }
 		FORCE_INLINE bool empty() const { return m_root_node->empty(); }
 
 		~Octree() { trx_delete_inline(m_root_node); }

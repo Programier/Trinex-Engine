@@ -19,7 +19,7 @@ namespace Engine
 		trinex_class(ScriptExec, EntryPoint);
 
 	public:
-		int_t execute() override
+		i32 execute() override
 		{
 			auto module_argument   = Arguments::find("module");
 			auto function_argument = Arguments::find("function");
@@ -59,7 +59,7 @@ namespace Engine
 				return -1;
 			}
 
-			int_t result = 0;
+			i32 result = 0;
 			ScriptContext::execute(function, &result);
 			return result;
 		}
@@ -70,7 +70,7 @@ namespace Engine
 		trinex_class(ScriptConfigDump, EntryPoint);
 
 	public:
-		int_t execute() override
+		i32 execute() override
 		{
 			std::ofstream out_file("script_config.txt");
 			if (out_file.is_open())

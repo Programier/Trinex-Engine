@@ -54,9 +54,9 @@ namespace Engine
 		return *this;
 	}
 
-	ENGINE_EXPORT RHIShaderParameterType RHIShaderParameterType::make_vector(byte len)
+	ENGINE_EXPORT RHIShaderParameterType RHIShaderParameterType::make_vector(u8 len)
 	{
-		len = Math::clamp<byte>(len, 1, 4);
+		len = Math::clamp<u8>(len, 1, 4);
 
 		if (is_scalar())
 		{
@@ -72,7 +72,7 @@ namespace Engine
 		else if (is_vector())
 		{
 			RHIShaderParameterType result = *this;
-			byte current_len              = columns();
+			u8 current_len                = columns();
 
 			if (current_len > len)
 			{

@@ -26,8 +26,8 @@ namespace Engine
 		using Window::width;
 
 		WindowSDL* sdl_initialize(const WindowConfig* config);
-		WindowSDL& width(float_t width) override;
-		WindowSDL& height(float_t height) override;
+		WindowSDL& width(f32 width) override;
+		WindowSDL& height(f32 height) override;
 		WindowSDL& size(const Vector2u& size) override;
 		String title() override;
 		WindowSDL& title(const String& title) override;
@@ -55,9 +55,9 @@ namespace Engine
 		bool support_orientation(Orientation orientation) override;
 		Identifier id() override;
 		void* native_window() override;
-		size_t monitor_index() override;
+		usize monitor_index() override;
 
-		SDL_Surface* create_surface(const Buffer& buffer, int_t width, int_t height, int_t channels);
+		SDL_Surface* create_surface(const Buffer& buffer, i32 width, i32 height, i32 channels);
 		void destroy_icon();
 		void destroy_cursor();
 		~WindowSDL();

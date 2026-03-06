@@ -10,8 +10,8 @@ namespace Engine
 	{
 	private:
 		static Localization* s_instance;
-		Map<uint64_t, String> m_translation_map;
-		mutable Map<uint64_t, String> m_default_translation_map;
+		Map<u64, String> m_translation_map;
+		mutable Map<u64, String> m_default_translation_map;
 
 	public:
 		CallBacks<void()> on_language_changed;

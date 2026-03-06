@@ -20,7 +20,7 @@ namespace Engine
 		float max_lod;
 
 		RHISamplerInitializer();
-		uint64_t hash() const;
+		u64 hash() const;
 
 		bool operator==(const RHISamplerInitializer& initializer) const;
 		inline bool operator!=(const RHISamplerInitializer& initializer) const { return !(*this == initializer); }
@@ -42,8 +42,8 @@ namespace Engine
 
 		const struct RHIShaderParameterInfo* parameters    = nullptr;
 		const struct RHIVertexAttribute* vertex_attributes = nullptr;
-		size_t parameters_count                            = 0;
-		size_t vertex_attributes_count                     = 0;
+		usize parameters_count                             = 0;
+		usize vertex_attributes_count                      = 0;
 
 		inline RHIGraphicsPipelineInitializer()
 		    : shaders{nullptr}, parameters(nullptr), vertex_attributes(nullptr), parameters_count(0), vertex_attributes_count(0)
@@ -63,13 +63,13 @@ namespace Engine
 		};
 
 		const struct RHIShaderParameterInfo* parameters = nullptr;
-		size_t parameters_count                         = 0;
+		usize parameters_count                          = 0;
 	};
 
 	struct ENGINE_EXPORT RHIComputePipelineInitializer {
 		RHIShader* compute_shader                       = nullptr;
 		const struct RHIShaderParameterInfo* parameters = nullptr;
-		size_t parameters_count                         = 0;
+		usize parameters_count                          = 0;
 	};
 
 	struct ENGINE_EXPORT RHIRayTracingShaderGroup {
@@ -90,11 +90,11 @@ namespace Engine
 
 	struct ENGINE_EXPORT RHIRayTracingPipelineInitializer {
 		RHIRayTracingShaderGroup* groups = nullptr;
-		uint64_t groups_count            = 0;
+		u64 groups_count                 = 0;
 
 		const struct RHIShaderParameterInfo* parameters = nullptr;
-		size_t parameters_count                         = 0;
+		usize parameters_count                          = 0;
 
-		byte max_recursion = 2;
+		u8 max_recursion = 2;
 	};
 }// namespace Engine

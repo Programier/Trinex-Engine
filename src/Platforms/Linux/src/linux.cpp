@@ -17,7 +17,7 @@ namespace Engine::Platform
 
 	ENGINE_EXPORT Path find_exec_directory()
 	{
-		int_t argc        = Arguments::argc();
+		i32 argc          = Arguments::argc();
 		const char** argv = Arguments::argv();
 
 		if (argc == 0)// Usually it's impossible, but just in case, let it be

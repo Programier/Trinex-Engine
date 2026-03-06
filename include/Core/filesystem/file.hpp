@@ -10,8 +10,8 @@ namespace Engine::VFS
 	class ENGINE_EXPORT File
 	{
 	public:
-		using FileOffset   = int64_t;
-		using FilePosition = uint64_t;
+		using FileOffset   = i64;
+		using FilePosition = u64;
 
 		virtual ~File() = default;
 
@@ -20,20 +20,20 @@ namespace Engine::VFS
 		virtual FilePosition rpos()                                    = 0;
 		virtual FilePosition wseek(FileOffset offset, FileSeekDir dir) = 0;
 		virtual FilePosition wpos()                                    = 0;
-		virtual size_t read(byte* buffer, size_t size)                 = 0;
-		virtual size_t write(const byte* buffer, size_t size)          = 0;
+		virtual usize read(u8* buffer, usize size)                     = 0;
+		virtual usize write(const u8* buffer, usize size)              = 0;
 
 		template<typename T>
 		bool read(T& value)
 		{
-			byte* data = reinterpret_cast<byte*>(&value);
+			u8* data = reinterpret_cast<u8*>(&value);
 			return read(data, sizeof(data)) == sizeof(data);
 		}
 
 		template<typename T>
-		uint64_t write(const T& value)
+		u64 write(const T& value)
 		{
-			const byte* data = reinterpret_cast<const byte*>(&value);
+			const u8* data = reinterpret_cast<const u8*>(&value);
 			return write(data, sizeof(data)) == sizeof(data);
 		}
 	};

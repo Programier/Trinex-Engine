@@ -57,7 +57,7 @@ namespace Engine
 			void bind(RHIContext* ctx, const Matrix4f& projection)
 			{
 				ctx->barrier(m_projection.get(), RHIAccess::TransferDst);
-				ctx->update_buffer(m_projection.get(), 0, sizeof(projection), reinterpret_cast<const byte*>(&projection));
+				ctx->update_buffer(m_projection.get(), 0, sizeof(projection), reinterpret_cast<const u8*>(&projection));
 				ctx->barrier(m_projection.get(), RHIAccess::UniformBuffer);
 				ctx->bind_uniform_buffer(m_projection.get(), m_projection_parameter->binding);
 			}
@@ -120,8 +120,8 @@ namespace Engine
 		struct ImGuiTrinexViewportData {
 			RHIResourcePtr<RHIBuffer> vertex_buffer;
 			RHIResourcePtr<RHIBuffer> index_buffer;
-			uint64_t vertex_count = 0;
-			uint64_t index_count  = 0;
+			u64 vertex_count = 0;
+			u64 index_count  = 0;
 		};
 
 		static ImGuiTrinexData* imgui_trinex_backend_data()
@@ -192,16 +192,16 @@ namespace Engine
 
 			// Upload vertex/index data into a single contiguous GPU buffer
 
-			size_t vtx_offset = 0;
-			size_t idx_offset = 0;
+			usize vtx_offset = 0;
+			usize idx_offset = 0;
 
 			{
 				trinex_profile_cpu_n("Update Buffers");
 				for (int n = 0; n < draw_data->CmdListsCount; n++)
 				{
 					const ImDrawList* cmd_list = draw_data->CmdLists[n];
-					size_t vtx_size            = cmd_list->VtxBuffer.Size * sizeof(ImDrawVert);
-					size_t idx_size            = cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx);
+					usize vtx_size             = cmd_list->VtxBuffer.Size * sizeof(ImDrawVert);
+					usize idx_size             = cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx);
 
 					ctx->barrier(vd->vertex_buffer, RHIAccess::TransferDst);
 					ctx->barrier(vd->index_buffer, RHIAccess::TransferDst);
@@ -209,14 +209,14 @@ namespace Engine
 					if (vtx_size > 0)
 					{
 						ctx->update_buffer(vd->vertex_buffer, vtx_offset, vtx_size,
-						                   reinterpret_cast<const byte*>(cmd_list->VtxBuffer.Data));
+						                   reinterpret_cast<const u8*>(cmd_list->VtxBuffer.Data));
 						vtx_offset += vtx_size;
 					}
 
 					if (idx_size > 0)
 					{
 						ctx->update_buffer(vd->index_buffer, idx_offset, idx_size,
-						                   reinterpret_cast<const byte*>(cmd_list->IdxBuffer.Data));
+						                   reinterpret_cast<const u8*>(cmd_list->IdxBuffer.Data));
 						idx_offset += idx_size;
 					}
 				}
@@ -331,7 +331,7 @@ namespace Engine
 			io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
 			bd->font_texture = Object::new_instance<EngineResource<Texture2D>>(
-			        Strings::format("FontsTexture {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
+			        Strings::format("FontsTexture {}", reinterpret_cast<usize>(ImGui::GetCurrentContext())));
 			bd->font_texture->format = RHIColorFormat::R8G8B8A8;
 			bd->font_texture->mips.emplace_back();
 			auto& mip = bd->font_texture->mips[0];
@@ -1103,8 +1103,8 @@ namespace Engine
 			platform_io.Monitors.resize(0);
 			bd->update_monitors = false;
 
-			size_t display_count = Platform::monitors_count();
-			for (size_t n = 0; n < display_count; n++)
+			usize display_count = Platform::monitors_count();
+			for (usize n = 0; n < display_count; n++)
 			{
 				ImGuiPlatformMonitor monitor;
 				auto info       = Platform::monitor_info(n);
@@ -1373,7 +1373,7 @@ namespace Engine
 		return m_window;
 	}
 
-	size_t ImGuiWindow::frame_index() const
+	usize ImGuiWindow::frame_index() const
 	{
 		return m_frame;
 	}

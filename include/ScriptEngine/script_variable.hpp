@@ -15,20 +15,20 @@ namespace Engine
 		{
 			mutable void* m_address;
 			bool m_bool_value;
-			int8_t m_int8_value;
-			int16_t m_int16_value;
-			int32_t m_int32_value;
-			int64_t m_int64_value;
-			uint8_t m_uint8_value;
-			uint16_t m_uint16_value;
-			uint32_t m_uint32_value;
-			uint64_t m_uint64_value;
+			i8 m_int8_value;
+			i16 m_int16_value;
+			i32 m_int32_value;
+			i64 m_int64_value;
+			u8 m_uint8_value;
+			u16 m_uint16_value;
+			u32 m_uint32_value;
+			u64 m_uint64_value;
 			float m_float_value;
 			double m_double_value;
 		};
-		mutable int_t m_type_id;
+		mutable i32 m_type_id;
 
-		bool check_type(int_t mask) const;
+		bool check_type(i32 mask) const;
 		virtual const ScriptVariableBase& add_ref() const;
 
 	public:
@@ -60,7 +60,7 @@ namespace Engine
 		bool is_out_ref() const;
 		bool is_inout_ref() const;
 		void* address() const;
-		int_t type_id() const;
+		i32 type_id() const;
 		virtual ScriptTypeInfo type_info() const;
 
 		template<typename T>
@@ -77,10 +77,10 @@ namespace Engine
 	public:
 		using ScriptVariableBase::ScriptVariableBase;
 
-		ScriptVariable(int_t type_id);
+		ScriptVariable(i32 type_id);
 		ScriptVariable(const char* declaration);
 		ScriptVariable(const char* declaration, const char* module);
-		ScriptVariable(void* address, int_t type_id, bool handle_is_object = false, const ScriptTypeModifiers& modifiers = {});
+		ScriptVariable(void* address, i32 type_id, bool handle_is_object = false, const ScriptTypeModifiers& modifiers = {});
 		ScriptVariable(void* address, const char* declaration, bool handle_is_object = false,
 		               const ScriptTypeModifiers& modifiers = {});
 		ScriptVariable(void* address, const char* declaration, const char* module, bool handle_is_object = false,
@@ -93,10 +93,10 @@ namespace Engine
 
 		using ScriptVariableBase::create;
 		bool create(const ScriptVariableBase& other);
-		bool create(int_t type_id, bool is_uninitialized = false);
+		bool create(i32 type_id, bool is_uninitialized = false);
 		bool create(const char* type_declaration, bool is_uninitialized = false);
 		bool create(const char* type_declaration, const char* module, bool is_uninitialized = false);
-		bool create(void* src_address, int_t type_id, bool handle_is_object = false, const ScriptTypeModifiers& modifiers = {});
+		bool create(void* src_address, i32 type_id, bool handle_is_object = false, const ScriptTypeModifiers& modifiers = {});
 		bool create(void* src_address, const char* type_declaration, bool handle_is_object = false,
 		            const ScriptTypeModifiers& modifiers = {});
 		bool create(void* src_address, const char* type_declaration, const char* module, bool handle_is_object = false,
@@ -115,14 +115,14 @@ namespace Engine
 		bool is_double() const;
 
 		bool bool_value() const;
-		int8_t int8_value() const;
-		int16_t int16_value() const;
-		int32_t int32_value() const;
-		int64_t int64_value() const;
-		uint8_t uint8_value() const;
-		uint16_t uint16_value() const;
-		uint32_t uint32_value() const;
-		uint64_t uint64_value() const;
+		i8 int8_value() const;
+		i16 int16_value() const;
+		i32 int32_value() const;
+		i64 int64_value() const;
+		u8 uint8_value() const;
+		u16 uint16_value() const;
+		u32 uint32_value() const;
+		u64 uint64_value() const;
 		float float_value() const;
 		double double_value() const;
 	};

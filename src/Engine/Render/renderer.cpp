@@ -87,7 +87,7 @@ namespace Engine
 		GlobalShaderParameters params;
 		params.update(&m_view, m_view.view_size());
 		ctx->barrier(view, RHIAccess::TransferDst);
-		ctx->update_buffer(view, 0, sizeof(GlobalShaderParameters), reinterpret_cast<const byte*>(&params));
+		ctx->update_buffer(view, 0, sizeof(GlobalShaderParameters), reinterpret_cast<const u8*>(&params));
 		ctx->barrier(view, RHIAccess::UniformBuffer);
 
 		m_graph->execute(ctx);

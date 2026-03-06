@@ -59,14 +59,14 @@ namespace Engine
 		struct ENGINE_EXPORT ClassMetadata {
 			ScriptTypeInfo type_info;
 			TreeSet<String> class_metadata;
-			TreeMap<int_t, TreeSet<String>> func_metadata_map;
+			TreeMap<i32, TreeSet<String>> func_metadata_map;
 			TreeMap<String, TreeSet<String>> prop_metadata_map;
 
 			const TreeSet<String>& metadata_for_func(const ScriptFunction& func) const;
 			const TreeSet<String>& metadata_for_func(const char* decl, bool get_virtual = true) const;
-			const TreeSet<String>& metadata_for_func(int_t func_id) const;
+			const TreeSet<String>& metadata_for_func(i32 func_id) const;
 
-			const TreeSet<String>& metadata_for_property(uint_t prop_index) const;
+			const TreeSet<String>& metadata_for_property(u32 prop_index) const;
 			const TreeSet<String>& metadata_for_property(const String& name) const;
 		};
 
@@ -81,7 +81,7 @@ namespace Engine
 		Set<Refl::Object*> m_refl_objects;
 
 		// Metadata info
-		TreeMap<int_t, TreeSet<String>> m_func_metadata_map;
+		TreeMap<i32, TreeSet<String>> m_func_metadata_map;
 		TreeMap<String, TreeSet<String>> m_var_metadata_map;
 		TreeMap<String, ClassMetadata> m_class_metadata_map;
 
@@ -95,7 +95,7 @@ namespace Engine
 		Script& delete_reflection();
 
 	public:
-		using PropertyReflectionParser = Refl::Property* (*) (Script*, Refl::Struct*, ScriptTypeInfo, uint_t);
+		using PropertyReflectionParser = Refl::Property* (*) (Script*, Refl::Struct*, ScriptTypeInfo, u32);
 		CallBacks<void(Script*)> on_build;
 		CallBacks<void(Script*)> on_discard;
 		CallBacks<void(Script*)> on_exception;
@@ -116,57 +116,57 @@ namespace Engine
 		static void register_custom_reflection_parser(StringView datatype, PropertyReflectionParser parser);
 
 		// Metadata
-		const TreeMap<int_t, TreeSet<String>>& func_metadata_map() const;
+		const TreeMap<i32, TreeSet<String>>& func_metadata_map() const;
 		const TreeMap<String, TreeSet<String>>& var_metadata_map() const;
 		const TreeMap<String, ClassMetadata>& class_metadata_map() const;
 
 		const TreeSet<String>& metadata_for_func(const ScriptFunction& func) const;
 		const TreeSet<String>& metadata_for_func(const char* decl) const;
-		const TreeSet<String>& metadata_for_func(int_t func_id) const;
+		const TreeSet<String>& metadata_for_func(i32 func_id) const;
 
-		const TreeSet<String>& metadata_for_var(uint_t var_index) const;
+		const TreeSet<String>& metadata_for_var(u32 var_index) const;
 		const TreeSet<String>& metadata_for_var(const String& name) const;
 
 		const ClassMetadata& metadata_for_class(const ScriptTypeInfo& info) const;
 		const ClassMetadata& metadata_for_class(const String& name) const;
-		const ClassMetadata& metadata_for_class(int_t type_id) const;
+		const ClassMetadata& metadata_for_class(i32 type_id) const;
 
 		// Functions
-		uint_t functions_count() const;
-		ScriptFunction function_by_index(uint_t index) const;
+		u32 functions_count() const;
+		ScriptFunction function_by_index(u32 index) const;
 		ScriptFunction function_by_decl(const char* decl) const;
 		ScriptFunction function_by_name(const char* name) const;
 		ScriptFunction function_by_decl(const String& decl) const;
 		ScriptFunction function_by_name(const String& name) const;
 
 		// Global variables
-		uint_t global_var_count() const;
-		int_t global_var_index_by_name(const char* name) const;
-		int_t global_var_index_by_decl(const char* decl) const;
-		int_t global_var_index_by_name(const String& name) const;
-		int_t global_var_index_by_decl(const String& decl) const;
-		bool global_var(uint_t index, StringView* name = nullptr, StringView* name_space = nullptr, int_t* type_id = nullptr,
+		u32 global_var_count() const;
+		i32 global_var_index_by_name(const char* name) const;
+		i32 global_var_index_by_decl(const char* decl) const;
+		i32 global_var_index_by_name(const String& name) const;
+		i32 global_var_index_by_decl(const String& decl) const;
+		bool global_var(u32 index, StringView* name = nullptr, StringView* name_space = nullptr, i32* type_id = nullptr,
 		                bool* is_const = nullptr) const;
-		String global_var_declaration(uint_t index, bool include_namespace = false) const;
-		void* address_of_global_var(uint_t index);
+		String global_var_declaration(u32 index, bool include_namespace = false) const;
+		void* address_of_global_var(u32 index);
 
 		// Type identification
-		uint_t object_type_count() const;
-		ScriptTypeInfo object_type_by_index(uint_t index) const;
-		int_t type_id_by_decl(const char* decl) const;
-		int_t type_id_by_decl(const String& decl) const;
+		u32 object_type_count() const;
+		ScriptTypeInfo object_type_by_index(u32 index) const;
+		i32 type_id_by_decl(const char* decl) const;
+		i32 type_id_by_decl(const String& decl) const;
 		ScriptTypeInfo type_info_by_name(const char* name) const;
 		ScriptTypeInfo type_info_by_decl(const char* decl) const;
 		ScriptTypeInfo type_info_by_name(const String& name) const;
 		ScriptTypeInfo type_info_by_decl(const String& decl) const;
 
 		// Enums
-		uint_t enum_count() const;
-		ScriptTypeInfo enum_by_index(uint_t index) const;
+		u32 enum_count() const;
+		ScriptTypeInfo enum_by_index(u32 index) const;
 
 		// Typedefs
-		uint_t typedef_count() const;
-		ScriptTypeInfo typedef_by_index(uint_t index) const;
+		u32 typedef_count() const;
+		ScriptTypeInfo typedef_by_index(u32 index) const;
 
 		~Script();
 		friend class ScriptFolder;

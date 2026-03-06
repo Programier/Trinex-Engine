@@ -88,12 +88,12 @@ namespace Engine::Refl
 
 		virtual void* create_struct();
 		virtual Struct& destroy_struct(void* obj);
-		virtual size_t size() const;
+		virtual usize size() const;
 		virtual bool serialize(void* object, Archive& ar);
 
 		Struct* parent() const;
-		size_t abstraction_level() const;
-		Vector<Name> hierarchy(size_t offset = 0) const;
+		usize abstraction_level() const;
+		Vector<Name> hierarchy(usize offset = 0) const;
 		const Set<Struct*>& derived_structs() const;
 		bool is_asset() const;
 		bool is_native() const;
@@ -107,7 +107,7 @@ namespace Engine::Refl
 		Property* find_property(StringView name);
 		bool serialize_properties(void* object, Archive& ar);
 		bool has_properties(bool recursive = true) const;
-		size_t properties_count(bool recursive = true) const;
+		usize properties_count(bool recursive = true) const;
 
 		Struct& group(class Group*);
 		class Group* group() const;
@@ -190,7 +190,7 @@ namespace Engine::Refl
 			return *this;
 		}
 
-		size_t size() const override { return sizeof(T); }
+		usize size() const override { return sizeof(T); }
 
 		bool serialize(void* object, Archive& ar) override
 		{
@@ -217,7 +217,7 @@ namespace Engine::Refl
 		return m_static_struct;                                                                                                  \
 	}                                                                                                                            \
                                                                                                                                  \
-	static Engine::byte TRINEX_CONCAT(trinex_engine_refl_struct_, __LINE__) = static_cast<Engine::byte>(                         \
+	static Engine::u8 TRINEX_CONCAT(trinex_engine_refl_struct_, __LINE__) = static_cast<Engine::u8>(                             \
 	        Engine::Refl::Object::static_register_initializer([]() { decl::static_reflection(); }, #decl));                      \
                                                                                                                                  \
 	void decl::static_initialize_struct()

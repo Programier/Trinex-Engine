@@ -78,7 +78,7 @@ namespace Engine::Strings
 		return capitalize_words(temp);
 	}
 
-	ENGINE_EXPORT uint64_t hash_of(const StringView& str)
+	ENGINE_EXPORT u64 hash_of(const StringView& str)
 	{
 		return memory_hash(str.data(), str.length(), 0);
 	}
@@ -86,8 +86,8 @@ namespace Engine::Strings
 	String replace_all(StringView line, StringView old, StringView new_line)
 	{
 		String result;
-		size_t pos     = 0;
-		size_t old_len = old.length();
+		usize pos     = 0;
+		usize old_len = old.length();
 
 		while ((pos = line.find(old)) != StringView::npos)
 		{
@@ -100,9 +100,9 @@ namespace Engine::Strings
 		return result;
 	}
 
-	ENGINE_EXPORT uint_t replace_symbol(String& str, char old_symbol, char new_symbol)
+	ENGINE_EXPORT u32 replace_symbol(String& str, char old_symbol, char new_symbol)
 	{
-		uint_t count = 0;
+		u32 count = 0;
 
 		for (char& ch : str)
 		{
@@ -116,9 +116,9 @@ namespace Engine::Strings
 		return count;
 	}
 
-	ENGINE_EXPORT uint_t replace_symbol(char* str, char old_symbol, char new_symbol)
+	ENGINE_EXPORT u32 replace_symbol(char* str, char old_symbol, char new_symbol)
 	{
-		uint_t count = 0;
+		u32 count = 0;
 
 		while (*str != '\0')
 		{
@@ -134,9 +134,9 @@ namespace Engine::Strings
 		return count;
 	}
 
-	ENGINE_EXPORT uint_t replace_symbol(char* str, char old_symbol, char new_symbol, uint_t len)
+	ENGINE_EXPORT u32 replace_symbol(char* str, char old_symbol, char new_symbol, u32 len)
 	{
-		uint_t count = 0;
+		u32 count = 0;
 
 		while (len > 0)
 		{
@@ -169,10 +169,10 @@ namespace Engine::Strings
 		return result;
 	}
 
-	ENGINE_EXPORT const char* strnstr(const char* haystack, size_t haystack_len, const char* needle, size_t needle_len)
+	ENGINE_EXPORT const char* strnstr(const char* haystack, usize haystack_len, const char* needle, usize needle_len)
 	{
-		return reinterpret_cast<const char*>(memory_search(reinterpret_cast<const byte*>(haystack), haystack_len,
-		                                                   reinterpret_cast<const byte*>(needle), needle_len));
+		return reinterpret_cast<const char*>(memory_search(reinterpret_cast<const u8*>(haystack), haystack_len,
+		                                                   reinterpret_cast<const u8*>(needle), needle_len));
 	}
 
 
@@ -182,8 +182,8 @@ namespace Engine::Strings
 		Vector<String> tokens;
 		String token;
 
-		size_t start = 0;
-		size_t end   = 0;
+		usize start = 0;
+		usize end   = 0;
 
 		while ((end = line.find(delimiter, start)) != String::npos)
 		{
@@ -273,7 +273,7 @@ namespace Engine::Strings
 		return name;
 	}
 
-	ENGINE_EXPORT bool boolean_of(const char* line, size_t len)
+	ENGINE_EXPORT bool boolean_of(const char* line, usize len)
 	{
 		if (len == 0)
 		{
@@ -287,7 +287,7 @@ namespace Engine::Strings
 		{
 			bool is_true = true;
 
-			for (size_t i = 0; is_true && i < 4; i++)
+			for (usize i = 0; is_true && i < 4; i++)
 			{
 				is_true = std::tolower(line[i]) == "true"[i];
 			}
@@ -302,14 +302,14 @@ namespace Engine::Strings
 		return Math::abs(float_value) >= 0.5f;
 	}
 
-	ENGINE_EXPORT int_t integer_of(const char* text)
+	ENGINE_EXPORT i32 integer_of(const char* text)
 	{
-		return static_cast<int_t>(::strtol(text, nullptr, 10));
+		return static_cast<i32>(::strtol(text, nullptr, 10));
 	}
 
 	ENGINE_EXPORT float float_of(const char* text)
 	{
-		return static_cast<int_t>(::strtof(text, nullptr));
+		return static_cast<i32>(::strtof(text, nullptr));
 	}
 
 	ENGINE_EXPORT void* pointer_of(const char* text)
@@ -332,7 +332,7 @@ namespace Engine::Strings
 
 	ENGINE_EXPORT bool read_line(StringView& stream, StringView& out, char separator)
 	{
-		size_t pos = stream.find(separator);
+		usize pos = stream.find(separator);
 
 		if (pos == StringView::npos)
 		{

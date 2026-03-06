@@ -55,7 +55,7 @@ namespace Engine::VFS
 		return m_stream.tellg();
 	}
 
-	size_t CommonFile::read(byte* buffer, size_t size)
+	usize CommonFile::read(u8* buffer, usize size)
 	{
 		m_stream.read(reinterpret_cast<char*>(buffer), static_cast<std::streamsize>(size));
 
@@ -64,10 +64,10 @@ namespace Engine::VFS
 			return size;
 		}
 
-		return static_cast<size_t>(m_stream.gcount());
+		return static_cast<usize>(m_stream.gcount());
 	}
 
-	size_t CommonFile::write(const byte* buffer, size_t size)
+	usize CommonFile::write(const u8* buffer, usize size)
 	{
 		m_stream.write(reinterpret_cast<const char*>(buffer), static_cast<std::streamsize>(size));
 		if (m_stream)
@@ -75,7 +75,7 @@ namespace Engine::VFS
 			return size;
 		}
 
-		return static_cast<size_t>(m_stream.gcount());
+		return static_cast<usize>(m_stream.gcount());
 	}
 
 	ReadOnlyCommonFile::ReadOnlyCommonFile(CommonFileSystem* fs, const Path& path, std::fstream&& stream)
@@ -92,7 +92,7 @@ namespace Engine::VFS
 		return 0;
 	}
 
-	size_t ReadOnlyCommonFile::write(const byte* buffer, size_t size)
+	usize ReadOnlyCommonFile::write(const u8* buffer, usize size)
 	{
 		return 0;
 	}
@@ -111,7 +111,7 @@ namespace Engine::VFS
 		return 0;
 	}
 
-	size_t WriteOnlyCommonFile::read(byte* buffer, size_t size)
+	usize WriteOnlyCommonFile::read(u8* buffer, usize size)
 	{
 		return 0;
 	}

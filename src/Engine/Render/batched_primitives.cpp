@@ -11,7 +11,7 @@
 
 namespace Engine
 {
-	static constexpr size_t s_line_vtx_per_node = 1024;
+	static constexpr usize s_line_vtx_per_node = 1024;
 	static constexpr auto s_vtx_buffer_flags =
 	        RHIBufferCreateFlags::VertexBuffer | RHIBufferCreateFlags::TransferDst | RHIBufferCreateFlags::Dynamic;
 
@@ -46,7 +46,7 @@ namespace Engine
 	}
 
 	BatchedLines& BatchedLines::add_circle(const Vector3f& position, const Vector3f& normal, float radius, const Color& color,
-	                                       uint_t segments, float thickness)
+	                                       u32 segments, float thickness)
 	{
 		if (segments == 0)
 			segments = 72;
@@ -60,7 +60,7 @@ namespace Engine
 		tangent             = glm::normalize(glm::cross(bitangent, n));
 		Vector3f prev_point = position + radius * tangent;
 
-		for (uint_t i = 1; i <= segments; ++i)
+		for (u32 i = 1; i <= segments; ++i)
 		{
 			float angle         = step * i;
 			Vector3f next_point = position + radius * (glm::cos(angle) * tangent + glm::sin(angle) * bitangent);
@@ -70,7 +70,7 @@ namespace Engine
 		return *this;
 	}
 
-	BatchedLines& BatchedLines::add_sphere(const Vector3f& position, float radius, const Color& color, uint_t segments,
+	BatchedLines& BatchedLines::add_sphere(const Vector3f& position, float radius, const Color& color, u32 segments,
 	                                       float thickness)
 	{
 		add_circle(position, {1.f, 0.f, 0.f}, radius, color, segments, thickness);
@@ -112,7 +112,7 @@ namespace Engine
 	}
 
 	BatchedLines& BatchedLines::add_cone(const Vector3f& position, const Vector3f& direction, float radius, const Color& color,
-	                                     uint_t segments, float thickness)
+	                                     u32 segments, float thickness)
 	{
 		Vector3f dir = glm::normalize(direction);
 		Vector3f tip = position + direction;
@@ -179,7 +179,7 @@ namespace Engine
 		while (m_first)
 		{
 			ctx->barrier(vtx_buffer, RHIAccess::TransferDst);
-			ctx->update_buffer(vtx_buffer, 0, m_first->vtx_count * sizeof(Vertex), reinterpret_cast<byte*>(m_first->vertices));
+			ctx->update_buffer(vtx_buffer, 0, m_first->vtx_count * sizeof(Vertex), reinterpret_cast<u8*>(m_first->vertices));
 			ctx->barrier(vtx_buffer, RHIAccess::VertexBuffer);
 
 			ctx->draw(m_first->vtx_count, 0);

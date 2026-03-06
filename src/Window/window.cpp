@@ -11,22 +11,22 @@
 namespace Engine
 {
 
-	float_t Window::width()
+	f32 Window::width()
 	{
 		return m_size.load().x;
 	}
 
-	Window& Window::width(float_t width)
+	Window& Window::width(f32 width)
 	{
 		return *this;
 	}
 
-	float_t Window::height()
+	f32 Window::height()
 	{
 		return m_size.load().y;
 	}
 
-	Window& Window::height(float_t height)
+	Window& Window::height(f32 height)
 	{
 		return *this;
 	}
@@ -176,7 +176,7 @@ namespace Engine
 		return nullptr;
 	}
 
-	size_t Window::monitor_index()
+	usize Window::monitor_index()
 	{
 		return 0;
 	}

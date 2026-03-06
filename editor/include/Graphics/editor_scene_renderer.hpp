@@ -16,7 +16,7 @@ namespace Engine
 		EditorRenderer(Scene* scene, const SceneView& view, ViewMode mode = ViewMode::Lit);
 
 		EditorRenderer& render_grid();
-		EditorRenderer& render_outlines(Actor* const* actors = nullptr, size_t count = 0);
-		EditorRenderer& render_primitives(Actor* const* actors = nullptr, size_t count = 0);
+		EditorRenderer& render_outlines(Actor* const* actors = nullptr, usize count = 0);
+		EditorRenderer& render_primitives(Actor* const* actors = nullptr, usize count = 0);
 	};
 }// namespace Engine

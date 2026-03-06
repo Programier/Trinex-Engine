@@ -4,7 +4,7 @@
 namespace Engine
 {
 	struct ScriptModuleLookup {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			OnlyIfExists      = 0,
 			CreateIfNotExists = 1,
@@ -15,7 +15,7 @@ namespace Engine
 	};
 
 	struct ScriptTypeModifiers {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			None     = 0,
 			InRef    = 1,
@@ -24,7 +24,7 @@ namespace Engine
 			Const    = 4,
 		};
 
-		trinex_bitfield_enum_struct(ScriptTypeModifiers, byte);
+		trinex_bitfield_enum_struct(ScriptTypeModifiers, u8);
 	};
 
 	struct ScriptCallConv {

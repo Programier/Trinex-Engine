@@ -9,14 +9,14 @@ namespace Engine
 		static void static_release_internal(RHIObject* object);
 
 	protected:
-		size_t m_references;
+		usize m_references;
 
 	public:
-		RHIObject(size_t init_ref_count = 1);
+		RHIObject(usize init_ref_count = 1);
 		virtual void add_reference();
 		virtual void release();
 		virtual void destroy() = 0;
-		size_t references() const;
+		usize references() const;
 		virtual ~RHIObject();
 
 		template<typename T>

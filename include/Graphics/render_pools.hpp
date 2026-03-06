@@ -20,7 +20,7 @@ namespace Engine
 	{
 	private:
 		struct FenceEntry {
-			uint64_t frame  = 0;
+			u64 frame       = 0;
 			RHIFence* fence = nullptr;
 		};
 
@@ -44,7 +44,7 @@ namespace Engine
 	{
 	private:
 		struct BufferEntry {
-			uint64_t frame    = 0;
+			u64 frame         = 0;
 			RHIBuffer* buffer = nullptr;
 		};
 
@@ -59,8 +59,8 @@ namespace Engine
 		static RHIBufferPool* global_instance();
 
 		RHIBufferPool& update();
-		RHIBuffer* request_buffer(uint32_t size, RHIBufferCreateFlags flags);
-		RHIBuffer* request_transient_buffer(uint32_t size, RHIBufferCreateFlags flags);
+		RHIBuffer* request_buffer(u32 size, RHIBufferCreateFlags flags);
+		RHIBuffer* request_transient_buffer(u32 size, RHIBufferCreateFlags flags);
 		RHIBufferPool& release_all();
 		RHIBufferPool& return_buffer(RHIBuffer* buffer);
 	};
@@ -73,19 +73,19 @@ namespace Engine
 			RHITextureType type;
 			RHITextureCreateFlags flags;
 
-			uint16_t width;
-			uint16_t height;
-			uint16_t depth;
+			u16 width;
+			u16 height;
+			u16 depth;
 
 			inline bool operator==(const Key& key) const = default;
 		};
 
 		struct ENGINE_EXPORT Hasher {
-			uint64_t operator()(const Key& key) const;
+			u64 operator()(const Key& key) const;
 		};
 
 		struct SurfaceEntry {
-			uint64_t frame      = 0;
+			u64 frame           = 0;
 			RHITexture* surface = nullptr;
 		};
 
@@ -114,7 +114,7 @@ namespace Engine
 	{
 	private:
 		struct SurfaceEntry {
-			uint64_t frame = 0;
+			u64 frame = 0;
 			Pointer<RenderSurface> surface;
 		};
 
@@ -137,7 +137,7 @@ namespace Engine
 	{
 	private:
 		struct TimestampEntry {
-			uint64_t frame          = 0;
+			u64 frame               = 0;
 			RHITimestamp* timestamp = nullptr;
 		};
 
@@ -156,7 +156,7 @@ namespace Engine
 	{
 	private:
 		struct StatsEntry {
-			uint64_t frame               = 0;
+			u64 frame                    = 0;
 			RHIPipelineStatistics* stats = nullptr;
 		};
 
@@ -175,7 +175,7 @@ namespace Engine
 	{
 	private:
 		struct ContextEntry {
-			uint64_t frame      = 0;
+			u64 frame           = 0;
 			RHIContext* context = nullptr;
 		};
 

@@ -2,26 +2,26 @@
 
 namespace Engine
 {
-	static FORCE_INLINE uint64_t rotl64(uint64_t x, int8_t r)
+	static FORCE_INLINE u64 rotl64(u64 x, i8 r)
 	{
 		return (x << r) | (x >> (64 - r));
 	}
 
-	static FORCE_INLINE uint64_t getblock64(const byte* p)
+	static FORCE_INLINE u64 getblock64(const u8* p)
 	{
-		uint64_t result = 0;
-		result |= static_cast<uint64_t>(p[0]) << 0;
-		result |= static_cast<uint64_t>(p[1]) << 8;
-		result |= static_cast<uint64_t>(p[2]) << 16;
-		result |= static_cast<uint64_t>(p[3]) << 24;
-		result |= static_cast<uint64_t>(p[4]) << 32;
-		result |= static_cast<uint64_t>(p[5]) << 40;
-		result |= static_cast<uint64_t>(p[6]) << 48;
-		result |= static_cast<uint64_t>(p[7]) << 56;
+		u64 result = 0;
+		result |= static_cast<u64>(p[0]) << 0;
+		result |= static_cast<u64>(p[1]) << 8;
+		result |= static_cast<u64>(p[2]) << 16;
+		result |= static_cast<u64>(p[3]) << 24;
+		result |= static_cast<u64>(p[4]) << 32;
+		result |= static_cast<u64>(p[5]) << 40;
+		result |= static_cast<u64>(p[6]) << 48;
+		result |= static_cast<u64>(p[7]) << 56;
 		return result;
 	}
 
-	static FORCE_INLINE uint64_t fmix64(uint64_t k)
+	static FORCE_INLINE u64 fmix64(u64 k)
 	{
 		k ^= k >> 33;
 		k *= 0xff51afd7ed558ccdLLU;
@@ -32,22 +32,22 @@ namespace Engine
 		return k;
 	}
 
-	static FORCE_INLINE uint128_t murmur_hash(const byte* data, const size_t size, uint128_t seed)
+	static FORCE_INLINE u128 murmur_hash(const u8* data, const usize size, u128 seed)
 	{
-		const size_t nblocks = size / 16;
+		const usize nblocks = size / 16;
 
-		uint64_t h1 = seed >> 64;
-		uint64_t h2 = seed;
+		u64 h1 = seed >> 64;
+		u64 h2 = seed;
 
-		const uint64_t c1 = 0x87c37b91114253d5LLU;
-		const uint64_t c2 = 0x4cf5ad432745937fLLU;
+		const u64 c1 = 0x87c37b91114253d5LLU;
+		const u64 c2 = 0x4cf5ad432745937fLLU;
 
-		for (size_t i = 0; i < nblocks; i++)
+		for (usize i = 0; i < nblocks; i++)
 		{
-			uint64_t k1 = getblock64(data);
-			data += sizeof(uint64_t);
-			uint64_t k2 = getblock64(data);
-			data += sizeof(uint64_t);
+			u64 k1 = getblock64(data);
+			data += sizeof(u64);
+			u64 k2 = getblock64(data);
+			data += sizeof(u64);
 
 			k1 *= c1;
 			k1 = rotl64(k1, 31);
@@ -68,33 +68,33 @@ namespace Engine
 			h2 = h2 * 5 + 0x38495ab5;
 		}
 
-		uint64_t k1 = 0;
-		uint64_t k2 = 0;
+		u64 k1 = 0;
+		u64 k2 = 0;
 
 		switch (size & 15)
 		{
-			case 15: k2 ^= ((uint64_t) data[14]) << 48;
-			case 14: k2 ^= ((uint64_t) data[13]) << 40;
-			case 13: k2 ^= ((uint64_t) data[12]) << 32;
-			case 12: k2 ^= ((uint64_t) data[11]) << 24;
-			case 11: k2 ^= ((uint64_t) data[10]) << 16;
-			case 10: k2 ^= ((uint64_t) data[9]) << 8;
+			case 15: k2 ^= ((u64) data[14]) << 48;
+			case 14: k2 ^= ((u64) data[13]) << 40;
+			case 13: k2 ^= ((u64) data[12]) << 32;
+			case 12: k2 ^= ((u64) data[11]) << 24;
+			case 11: k2 ^= ((u64) data[10]) << 16;
+			case 10: k2 ^= ((u64) data[9]) << 8;
 			case 9:
-				k2 ^= ((uint64_t) data[8]) << 0;
+				k2 ^= ((u64) data[8]) << 0;
 				k2 *= c2;
 				k2 = rotl64(k2, 33);
 				k2 *= c1;
 				h2 ^= k2;
 
-			case 8: k1 ^= ((uint64_t) data[7]) << 56;
-			case 7: k1 ^= ((uint64_t) data[6]) << 48;
-			case 6: k1 ^= ((uint64_t) data[5]) << 40;
-			case 5: k1 ^= ((uint64_t) data[4]) << 32;
-			case 4: k1 ^= ((uint64_t) data[3]) << 24;
-			case 3: k1 ^= ((uint64_t) data[2]) << 16;
-			case 2: k1 ^= ((uint64_t) data[1]) << 8;
+			case 8: k1 ^= ((u64) data[7]) << 56;
+			case 7: k1 ^= ((u64) data[6]) << 48;
+			case 6: k1 ^= ((u64) data[5]) << 40;
+			case 5: k1 ^= ((u64) data[4]) << 32;
+			case 4: k1 ^= ((u64) data[3]) << 24;
+			case 3: k1 ^= ((u64) data[2]) << 16;
+			case 2: k1 ^= ((u64) data[1]) << 8;
 			case 1:
-				k1 ^= ((uint64_t) data[0]) << 0;
+				k1 ^= ((u64) data[0]) << 0;
 				k1 *= c1;
 				k1 = rotl64(k1, 31);
 				k1 *= c2;
@@ -113,11 +113,11 @@ namespace Engine
 		h1 += h2;
 		h2 += h1;
 
-		return (uint128_t(h1) << 64) | h2;
+		return (u128(h1) << 64) | h2;
 	}
 
-	ENGINE_EXPORT uint128_t memory_hash(const void* memory, const size_t size, uint128_t seed)
+	ENGINE_EXPORT u128 memory_hash(const void* memory, const usize size, u128 seed)
 	{
-		return murmur_hash(static_cast<const byte*>(memory), size, seed);
+		return murmur_hash(static_cast<const u8*>(memory), size, seed);
 	}
 }// namespace Engine

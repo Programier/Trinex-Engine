@@ -56,7 +56,7 @@ namespace Engine
 
 	Vector3f SceneView::screen_to_ray_direction(const Vector2f& screen_point) const
 	{
-		int32_t x = Math::trunc(screen_point.x), y = Math::trunc(screen_point.y);
+		i32 x = Math::trunc(screen_point.x), y = Math::trunc(screen_point.y);
 		Vector2f m_size = view_size();
 
 		float u = (x - m_size.x / 2.f) / (m_size.x / 2.f);

@@ -18,8 +18,8 @@ namespace Engine
 	         RHISamplerAddressMode address_u = RHISamplerAddressMode::ClampToEdge,//
 	         RHISamplerAddressMode address_v = RHISamplerAddressMode::ClampToEdge,//
 	         RHISamplerAddressMode address_w = RHISamplerAddressMode::ClampToEdge,//
-	         uint_t mip_bias                 = 0,                                 //
-	         uint_t max_anisotropy           = 1,                                 //
+	         u32 mip_bias                    = 0,                                 //
+	         u32 max_anisotropy              = 1,                                 //
 	         Color border_color              = Color(0, 0, 0, 0),                 //
 	         RHICompareFunc compare_func     = RHICompareFunc::Never>
 	class RHIStaticSampler final : public RHIStaticSamplerBase

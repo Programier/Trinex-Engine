@@ -10,8 +10,8 @@ namespace Engine
 	class Renderer;
 	struct LightRenderRanges;
 
-	struct Swizzle : VectorNT<4, byte> {
-		enum Enum : byte
+	struct Swizzle : VectorNT<4, u8> {
+		enum Enum : u8
 		{
 			R    = 0,
 			G    = 1,
@@ -21,8 +21,8 @@ namespace Engine
 			One  = 5,
 		};
 
-		inline Swizzle() : VectorNT<4, byte>(R, G, B, A) {}
-		using VectorNT<4, byte>::VectorNT;
+		inline Swizzle() : VectorNT<4, u8>(R, G, B, A) {}
+		using VectorNT<4, u8>::VectorNT;
 	};
 
 	namespace Pipelines
@@ -200,13 +200,13 @@ namespace Engine
 			const RHIShaderParameterInfo* m_samples      = nullptr;
 
 			RHIBuffer* m_samples_buffer = nullptr;
-			size_t m_samples_count      = 0;
+			usize m_samples_count       = 0;
 
-			SSAO& create_samples_buffer(size_t count);
+			SSAO& create_samples_buffer(usize count);
 
 		public:
 			SSAO& render(RHIContext* ctx, Renderer* renderer, float intensity, float bias, float power, float radius,
-			             float fade_out_distance, float fade_out_radius, uint_t samples);
+			             float fade_out_distance, float fade_out_radius, u32 samples);
 		};
 
 		class ClusterInitialize : public GlobalComputePipeline

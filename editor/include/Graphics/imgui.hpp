@@ -41,8 +41,8 @@ namespace Engine
 	class ImGuiWidget
 	{
 	public:
-		size_t frame_number = 0;
-		bool closable       = true;
+		usize frame_number = 0;
+		bool closable      = true;
 		CallBacks<void()> on_close;
 
 		ImGuiWidget();
@@ -117,7 +117,7 @@ namespace Engine
 		trinex_class(ImGuiWindow, Object);
 
 	private:
-		size_t m_frame;
+		usize m_frame;
 
 		ImGuiContext* m_context = nullptr;
 		Window* m_window        = nullptr;
@@ -135,7 +135,7 @@ namespace Engine
 		ImGuiWindow& new_frame();
 		ImGuiWindow& end_frame();
 		Window* window() const;
-		size_t frame_index() const;
+		usize frame_index() const;
 		static ImGuiWindow* current();
 		static void make_current(ImGuiWindow*);
 

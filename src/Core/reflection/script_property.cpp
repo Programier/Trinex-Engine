@@ -4,26 +4,26 @@
 
 namespace Engine::Refl
 {
-	size_t ScriptEnumProperty::size() const
+	usize ScriptEnumProperty::size() const
 	{
 		return sizeof(int);
 	}
 
-	ScriptObjectProperty::ScriptObjectProperty(uint_t offset, Class* instance) : ScriptProperty(offset), m_instance(instance) {}
+	ScriptObjectProperty::ScriptObjectProperty(u32 offset, Class* instance) : ScriptProperty(offset), m_instance(instance) {}
 
 	Class* ScriptObjectProperty::class_instance() const
 	{
 		return m_instance;
 	}
 
-	ScriptStructProperty::ScriptStructProperty(uint_t offset, Struct* instance) : ScriptProperty(offset), m_instance(instance) {}
+	ScriptStructProperty::ScriptStructProperty(u32 offset, Struct* instance) : ScriptProperty(offset), m_instance(instance) {}
 
 	Struct* ScriptStructProperty::struct_instance() const
 	{
 		return m_instance;
 	}
 
-	size_t ScriptStructProperty::size() const
+	usize ScriptStructProperty::size() const
 	{
 		return m_instance->size();
 	}

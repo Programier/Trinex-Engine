@@ -102,12 +102,12 @@ namespace Engine
 		CallBacks<void(const Path&)> on_select;
 
 		ImGuiOpenFile(Flags<Flag> flags = 0);
-		ImGuiOpenFile& window_pos(int_t posx, int_t posy) noexcept;
-		ImGuiOpenFile& window_size(int_t width, int_t height) noexcept;
+		ImGuiOpenFile& window_pos(i32 posx, i32 posy) noexcept;
+		ImGuiOpenFile& window_size(i32 width, i32 height) noexcept;
 		ImGuiOpenFile& title(StringView title);
 		bool has_selected() const noexcept;
 		ImGuiOpenFile& clear_selected();
-		ImGuiOpenFile& current_type_filter_index(int_t index);
+		ImGuiOpenFile& current_type_filter_index(i32 index);
 		ImGuiOpenFile& input_name(StringView input);
 		ImGuiOpenFile& type_filters(const Vector<String>& type_filters);
 		ImGuiOpenFile& pwd(const Path& path);

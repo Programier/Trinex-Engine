@@ -58,12 +58,12 @@ export Material main<Material : IMaterial>(in IMaterialInput input)
 
 	VisualMaterialGraph::Node* VisualMaterial::create_node(Refl::Class* node_class, const Vector2f& position)
 	{
-		if (m_nodes.size() == std::numeric_limits<uint16_t>::max())
+		if (m_nodes.size() == std::numeric_limits<u16>::max())
 		{
 			error_log("VisualMaterialGraph",
 			          "The limit of %d nodes has been reached. Take a look at the material — you're "
 			          "clearly doing something wrong...",
-			          std::numeric_limits<uint16_t>::max());
+			          std::numeric_limits<u16>::max());
 
 			return nullptr;
 		}
@@ -78,7 +78,7 @@ export Material main<Material : IMaterial>(in IMaterialInput input)
 			node->position = position;
 			m_nodes.push_back(node);
 
-			if (m_next_node_id == std::numeric_limits<uint16_t>::max())
+			if (m_next_node_id == std::numeric_limits<u16>::max())
 			{
 				recalculate_nodes_ids();
 			}
@@ -112,8 +112,8 @@ export Material main<Material : IMaterial>(in IMaterialInput input)
 	{
 		if (node != m_nodes[0].ptr())
 		{
-			size_t index = 0;
-			for (size_t count = m_nodes.size(); index < count; ++index)
+			usize index = 0;
+			for (usize count = m_nodes.size(); index < count; ++index)
 			{
 				if (m_nodes[index].ptr() == node)
 					break;

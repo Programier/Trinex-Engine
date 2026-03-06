@@ -136,7 +136,7 @@ namespace Engine::Math
 	FORCE_INLINE constexpr T max(const VectorNT<N, T>& values)
 	{
 		T m = values[0];
-		for (size_t i = 1; i < N; ++i)
+		for (usize i = 1; i < N; ++i)
 			if (values[i] > m)
 				m = values[i];
 		return m;
@@ -154,21 +154,21 @@ namespace Engine::Math
 	FORCE_INLINE constexpr T min(const VectorNT<N, T>& values)
 	{
 		T m = values[0];
-		for (size_t i = 1; i < N; ++i)
+		for (usize i = 1; i < N; ++i)
 			if (values[i] < m)
 				m = values[i];
 		return m;
 	}
 
-	FORCE_INLINE constexpr float cascade_split(uint_t index, uint_t count, float distribution_exponent = 1.2f)
+	FORCE_INLINE constexpr float cascade_split(u32 index, u32 count, float distribution_exponent = 1.2f)
 	{
 		float si = static_cast<float>(index) / static_cast<float>(count);
 		return pow(si, distribution_exponent);
 	}
 
-	FORCE_INLINE constexpr uint_t cascade_index(float split, uint_t count, float distribution_exponent = 1.2f)
+	FORCE_INLINE constexpr u32 cascade_index(float split, u32 count, float distribution_exponent = 1.2f)
 	{
-		return static_cast<uint_t>(pow(split, 1.0f / distribution_exponent) * static_cast<float>(count));
+		return static_cast<u32>(pow(split, 1.0f / distribution_exponent) * static_cast<float>(count));
 	}
 
 	FORCE_INLINE constexpr float ev100_to_luminance(float ev100)

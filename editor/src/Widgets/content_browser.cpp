@@ -189,9 +189,9 @@ namespace Engine
 		if (!in_filter)
 			return false;
 
-		ImTextureID imgui_texture     = Icons::find_icon(object);
-		imgui_texture.sampler         = RHIPointWrapSampler::static_sampler();
-		
+		ImTextureID imgui_texture = Icons::find_icon(object);
+		imgui_texture.sampler     = RHIPointWrapSampler::static_sampler();
+
 		const float image_side_length = item_size.x * 0.93f;
 		const ImVec2 image_size       = ImVec2(image_side_length, image_side_length);
 
@@ -363,13 +363,13 @@ namespace Engine
 
 		auto& objects = package->objects();
 
-		const ImVec2 region     = ImGui::GetContentRegionAvail();
-		const float font_size   = ImGui::GetFontSize();
-		const ImVec2 item_size  = ImVec2(6.8, 6.8) * font_size + ImVec2(0.f, ImGui::GetTextLineHeightWithSpacing() * 3);
-		const ImVec2 spacing    = ImGui::GetStyle().ItemSpacing;
-		const int_t columns     = glm::max(static_cast<int_t>(region.x / (item_size.x + spacing.x)), 1);
-		const int_t items_count = static_cast<int_t>(objects.size());
-		const int_t rows        = (items_count + columns - 1) / columns;
+		const ImVec2 region    = ImGui::GetContentRegionAvail();
+		const float font_size  = ImGui::GetFontSize();
+		const ImVec2 item_size = ImVec2(6.8, 6.8) * font_size + ImVec2(0.f, ImGui::GetTextLineHeightWithSpacing() * 3);
+		const ImVec2 spacing   = ImGui::GetStyle().ItemSpacing;
+		const i32 columns      = glm::max(static_cast<i32>(region.x / (item_size.x + spacing.x)), 1);
+		const i32 items_count  = static_cast<i32>(objects.size());
+		const i32 rows         = (items_count + columns - 1) / columns;
 
 		ImGuiListClipper clipper;
 		clipper.Begin(rows, item_size.y + spacing.y + font_size);
@@ -379,8 +379,8 @@ namespace Engine
 			for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row)
 			{
 				ImGui::BeginHorizontal(row, ImVec2(region.x, item_size.y));
-				int_t idx     = row * columns;
-				int_t end_idx = glm::min(idx + columns, items_count);
+				i32 idx     = row * columns;
+				i32 end_idx = glm::min(idx + columns, items_count);
 
 				for (; idx < end_idx; ++idx)
 				{

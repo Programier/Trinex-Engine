@@ -25,7 +25,7 @@ namespace Engine
 	public:
 		bool load(const Path& path);
 		bool load(const Buffer& buffer);
-		bool load(const byte* buffer, size_t size);
+		bool load(const u8* buffer, usize size);
 		Font& close();
 		Vector2u calc_text_size(const StringView& text, Vector2u font_size) const;
 		Image render(const StringView& text, const FontConfig* config = nullptr) const;

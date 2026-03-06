@@ -27,7 +27,7 @@ namespace Engine::Refl
 		auto factories = info.factory_count();
 
 
-		for (uint_t i = 0; i < factories; ++i)
+		for (u32 i = 0; i < factories; ++i)
 		{
 			m_factory = info.factory_by_index(i);
 
@@ -73,7 +73,7 @@ namespace Engine::Refl
 		return m_script;
 	}
 
-	size_t ScriptClass::size() const
+	usize ScriptClass::size() const
 	{
 		return script_type_info.size();
 	}

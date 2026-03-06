@@ -52,7 +52,7 @@ namespace Engine
 
 		constexpr bool inside(const BoxNT& other) const
 		{
-			constexpr uint_t len = VectorType::length();
+			constexpr u32 len = VectorType::length();
 
 			const T* min_ptr1 = &min.x;
 			const T* max_ptr1 = &max.x;
@@ -60,7 +60,7 @@ namespace Engine
 			const T* min_ptr2 = &other.min.x;
 			const T* max_ptr2 = &other.max.x;
 
-			for (uint_t i = 0; i < len; ++i)
+			for (u32 i = 0; i < len; ++i)
 			{
 				float min1 = min_ptr1[i];
 				float min2 = min_ptr2[i];
@@ -77,7 +77,7 @@ namespace Engine
 
 		constexpr bool intersect(const BoxNT& other) const
 		{
-			constexpr uint_t len = VectorType::length();
+			constexpr u32 len = VectorType::length();
 
 			const T* min_ptr1 = &min.x;
 			const T* max_ptr1 = &max.x;
@@ -85,7 +85,7 @@ namespace Engine
 			const T* min_ptr2 = &other.min.x;
 			const T* max_ptr2 = &other.max.x;
 
-			for (uint_t i = 0; i < len; ++i)
+			for (u32 i = 0; i < len; ++i)
 			{
 				float min1 = min_ptr1[i];
 				float min2 = min_ptr2[i];
@@ -103,7 +103,7 @@ namespace Engine
 		constexpr bool outside(const BoxNT& other) const { return !intersect(other); }
 		constexpr bool contains(const VectorType& point) const
 		{
-			constexpr uint_t len = VectorType::length();
+			constexpr u32 len = VectorType::length();
 
 			const T* min_ptr   = &min.x;
 			const T* max_ptr   = &max.x;

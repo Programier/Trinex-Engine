@@ -66,7 +66,7 @@ namespace Engine
 		return m_function != func.m_function;
 	}
 
-	int_t ScriptFunction::id() const
+	i32 ScriptFunction::id() const
 	{
 		check_function(0);
 		return m_function->GetId();
@@ -192,13 +192,13 @@ namespace Engine
 		return m_function->IsVariadic();
 	}
 
-	uint_t ScriptFunction::param_count() const
+	u32 ScriptFunction::param_count() const
 	{
 		check_function(0);
 		return m_function->GetParamCount();
 	}
 
-	bool ScriptFunction::param(uint_t index, int_t* type_id, Flags<ScriptTypeModifiers>* flags_ptr, StringView* name,
+	bool ScriptFunction::param(u32 index, i32* type_id, Flags<ScriptTypeModifiers>* flags_ptr, StringView* name,
 	                           StringView* default_arg) const
 	{
 		check_function(false);
@@ -227,11 +227,11 @@ namespace Engine
 		return status;
 	}
 
-	int_t ScriptFunction::return_type_id(ScriptTypeModifiers* flags) const
+	i32 ScriptFunction::return_type_id(ScriptTypeModifiers* flags) const
 	{
 		check_function(0);
 		asDWORD script_flags = 0;
-		const int_t result   = m_function->GetReturnTypeId(flags ? &script_flags : nullptr);
+		const i32 result     = m_function->GetReturnTypeId(flags ? &script_flags : nullptr);
 
 		if (flags)
 		{
@@ -241,12 +241,12 @@ namespace Engine
 		return result;
 	}
 
-	int_t ScriptFunction::type_id() const
+	i32 ScriptFunction::type_id() const
 	{
 		return m_function->GetTypeId();
 	}
 
-	bool ScriptFunction::is_compatible_with_type_id(int_t type_id) const
+	bool ScriptFunction::is_compatible_with_type_id(i32 type_id) const
 	{
 		check_function(false);
 		return m_function->IsCompatibleWithTypeId(type_id);

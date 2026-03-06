@@ -60,9 +60,9 @@ namespace Engine
 			if (m_script == nullptr)
 				return;
 
-			uint_t count = m_script->functions_count();
+			u32 count = m_script->functions_count();
 
-			for (uint_t i = 0; i < count; ++i)
+			for (u32 i = 0; i < count; ++i)
 			{
 				ScriptFunction func = m_script->function_by_index(i);
 
@@ -155,7 +155,7 @@ namespace Engine
 	{
 		auto count = module.object_type_count();
 
-		for (uint_t i = 0; i < count; i++)
+		for (u32 i = 0; i < count; i++)
 		{
 			auto type = module.object_type_by_index(i);
 
@@ -166,7 +166,7 @@ namespace Engine
 
 		count = module.functions_count();
 
-		for (uint_t i = 0; i < count; i++)
+		for (u32 i = 0; i < count; i++)
 		{
 			auto func = module.function_by_index(i);
 
@@ -180,7 +180,7 @@ namespace Engine
 	{
 		m_lang = ImGui::TextEditor::LanguageDefinition::AngelScript();
 
-		for (uint_t module_index = 0, module_count = ScriptEngine::module_count(); module_index < module_count; ++module_index)
+		for (u32 module_index = 0, module_count = ScriptEngine::module_count(); module_index < module_count; ++module_index)
 		{
 			auto module = ScriptEngine::module_by_index(module_index);
 			register_module(m_lang, module);
@@ -221,8 +221,7 @@ namespace Engine
 		if (window()->frame_index() == 1)
 		{
 			ImGui::DockBuilderRemoveNode(dock_id);
-			ImGui::DockBuilderAddNode(dock_id,
-			                          int_t(ImGuiDockNodeFlags_PassthruCentralNode) | int_t(ImGuiDockNodeFlags_DockSpace));
+			ImGui::DockBuilderAddNode(dock_id, i32(ImGuiDockNodeFlags_PassthruCentralNode) | i32(ImGuiDockNodeFlags_DockSpace));
 			ImGui::DockBuilderSetNodeSize(dock_id, ImGui::GetMainViewport()->WorkSize);
 
 			auto dock_id_left                  = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Left, 0.25f, nullptr, &dock_id);
@@ -411,7 +410,7 @@ namespace Engine
 		return *this;
 	}
 
-	static void draw_variable(StringView ns, StringView name, int_t type_id, byte* address)
+	static void draw_variable(StringView ns, StringView name, i32 type_id, u8* address)
 	{
 		String type = ScriptEngine::type_declaration(type_id, true);
 		ScriptTypeInfo info;
@@ -427,7 +426,7 @@ namespace Engine
 			expand        = false;
 			bool do_check = true;
 
-			if (ScriptEngine::is_handle_type(type_id) && *reinterpret_cast<byte**>(address) == nullptr)
+			if (ScriptEngine::is_handle_type(type_id) && *reinterpret_cast<u8**>(address) == nullptr)
 			{
 				do_check = false;
 			}
@@ -464,16 +463,15 @@ namespace Engine
 			auto prop_count = info.property_count();
 
 			StringView prop_name;
-			int_t prop_type_id = 0;
-			int_t offset       = 0;
-			byte* object_address =
-			        ScriptEngine::is_handle_type(type_id) && address ? *reinterpret_cast<byte**>(address) : address;
+			i32 prop_type_id   = 0;
+			i32 offset         = 0;
+			u8* object_address = ScriptEngine::is_handle_type(type_id) && address ? *reinterpret_cast<u8**>(address) : address;
 
 			ImGui::Indent(25);
 
 			if (object_address)
 			{
-				for (uint_t i = 0; i < prop_count; ++i)
+				for (u32 i = 0; i < prop_count; ++i)
 				{
 					if (info.property(i, &prop_name, &prop_type_id, nullptr, nullptr, &offset))
 					{
@@ -505,7 +503,7 @@ namespace Engine
 
 		if (render)
 		{
-			uint_t variables = ScriptContext::var_count(m_current_stack_level);
+			u32 variables = ScriptContext::var_count(m_current_stack_level);
 
 			ImGui::BeginTable("###Variables", 3, ImGuiTableFlags_Resizable);
 
@@ -516,8 +514,8 @@ namespace Engine
 			ImGui::TableHeadersRow();
 
 			{
-				byte* self    = ScriptContext::this_pointer(m_current_stack_level);
-				int_t type_id = ScriptContext::this_type_id(m_current_stack_level);
+				u8* self    = ScriptContext::this_pointer(m_current_stack_level);
+				i32 type_id = ScriptContext::this_type_id(m_current_stack_level);
 
 				if (self && type_id > 0)
 				{
@@ -525,15 +523,15 @@ namespace Engine
 				}
 			}
 
-			for (uint_t i = 0; i < variables; ++i)
+			for (u32 i = 0; i < variables; ++i)
 			{
 				StringView name;
-				int_t type_id;
+				i32 type_id;
 
 				if (!ScriptContext::var(i, m_current_stack_level, &name, &type_id) || name.empty())
 					continue;
 
-				byte* address = ScriptContext::address_of_var(i, m_current_stack_level);
+				u8* address = ScriptContext::address_of_var(i, m_current_stack_level);
 				draw_variable("", name, type_id, address);
 			}
 
@@ -565,14 +563,14 @@ namespace Engine
 			ImGui::TableHeadersRow();
 
 			// Render engine global variables
-			uint_t count = ScriptEngine::global_property_count();
+			u32 count = ScriptEngine::global_property_count();
 
-			for (uint_t i = 0; i < count; ++i)
+			for (u32 i = 0; i < count; ++i)
 			{
 				StringView name;
 				StringView ns;
-				int_t type_id = 0;
-				byte* address = nullptr;
+				i32 type_id = 0;
+				u8* address = nullptr;
 
 				if (ScriptEngine::global_property(i, &name, &ns, nullptr, &type_id, nullptr, &address))
 				{
@@ -582,23 +580,23 @@ namespace Engine
 
 			count = ScriptEngine::module_count();
 
-			for (uint_t i = 0; i < count; ++i)
+			for (u32 i = 0; i < count; ++i)
 			{
 				auto module = ScriptEngine::module_by_index(i);
 
-				uint_t count = module.global_var_count();
+				u32 count = module.global_var_count();
 
-				for (uint_t i = 0; i < count; ++i)
+				for (u32 i = 0; i < count; ++i)
 				{
 					StringView name;
 					StringView ns;
-					int_t type_id = 0;
+					i32 type_id = 0;
 
 					if (module.global_var(i, &name, &ns, &type_id))
 					{
 						if (void* address = module.address_of_global_var(i))
 						{
-							draw_variable(ns, name, type_id, reinterpret_cast<byte*>(address));
+							draw_variable(ns, name, type_id, reinterpret_cast<u8*>(address));
 						}
 					}
 				}
@@ -628,7 +626,7 @@ namespace Engine
 			ImGui::TableSetupColumn("Address###Address", ImGuiTableColumnFlags_WidthStretch, 0.26f);
 			ImGui::TableHeadersRow();
 
-			for (uint_t i = 0, func_index = 0; i < callstack_size; ++i)
+			for (u32 i = 0, func_index = 0; i < callstack_size; ++i)
 			{
 				auto func = ScriptContext::function(i);
 				auto line = ScriptContext::line_position(i).y;
@@ -687,7 +685,7 @@ namespace Engine
 		return *this;
 	}
 
-	void ScriptDebuggerClient::on_debugger_jump(ImGui::TextEditor* editor, int_t line) {}
+	void ScriptDebuggerClient::on_debugger_jump(ImGui::TextEditor* editor, i32 line) {}
 
 	void ScriptDebuggerClient::on_debugger_action(ImGui::TextEditor* editor, ImGui::TextEditor::DebugAction action)
 	{
@@ -722,9 +720,9 @@ namespace Engine
 		return false;
 	}
 
-	void ScriptDebuggerClient::on_breakpoint_remove(ImGui::TextEditor* editor, int_t line) {}
+	void ScriptDebuggerClient::on_breakpoint_remove(ImGui::TextEditor* editor, i32 line) {}
 
-	void ScriptDebuggerClient::on_breakpoint_update(ImGui::TextEditor* editor, int_t line) {}
+	void ScriptDebuggerClient::on_breakpoint_update(ImGui::TextEditor* editor, i32 line) {}
 
 	void ScriptDebuggerClient::on_ctrl_alt_click(ImGui::TextEditor* editor, const String&, ImGui::TextEditor::Coordinates coords)
 	{}
@@ -735,7 +733,7 @@ namespace Engine
 
 	ScriptDebuggerClient& ScriptDebuggerClient::on_line_callback()
 	{
-		int_t line = ScriptContext::line_position().y;
+		i32 line = ScriptContext::line_position().y;
 
 		if (line <= 0)
 			return *this;

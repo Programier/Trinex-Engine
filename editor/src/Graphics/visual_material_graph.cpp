@@ -47,7 +47,7 @@ namespace Engine::VisualMaterialGraph
 
 	template<typename T>
 	struct DataTypeFormatter {
-		static String format(const T& value, RHIShaderParameterType type, uint_t depth = 0)
+		static String format(const T& value, RHIShaderParameterType type, u32 depth = 0)
 		{
 			if (depth == 0)
 				return Strings::format("{}({})", Expression::static_typename_of(type), value);
@@ -57,7 +57,7 @@ namespace Engine::VisualMaterialGraph
 
 	template<glm::length_t L, typename T, glm::qualifier Q>
 	struct DataTypeFormatter<glm::vec<L, T, Q>> {
-		static String format(const glm::vec<L, T, Q>& value, RHIShaderParameterType type, uint_t depth = 0)
+		static String format(const glm::vec<L, T, Q>& value, RHIShaderParameterType type, u32 depth = 0)
 		{
 			String result = Expression::static_typename_of(type);
 			result.push_back('(');
@@ -66,7 +66,7 @@ namespace Engine::VisualMaterialGraph
 			result += DataTypeFormatter<T>::format(value.x, type, depth + 1);
 
 
-			for (size_t i = 1; i < L; ++i)
+			for (usize i = 1; i < L; ++i)
 			{
 				result += ", ";
 				result += DataTypeFormatter<T>::format(value[i], type, depth + 1);
@@ -79,19 +79,19 @@ namespace Engine::VisualMaterialGraph
 
 	template<>
 	struct DataTypeFormatter<Matrix3f> {
-		static String format(const Matrix3f& value, RHIShaderParameterType type, uint_t depth = 0) { return {}; }
+		static String format(const Matrix3f& value, RHIShaderParameterType type, u32 depth = 0) { return {}; }
 	};
 
 	template<>
 	struct DataTypeFormatter<Matrix4f> {
-		static String format(const Matrix4f& value, RHIShaderParameterType type, uint_t depth = 0) { return {}; }
+		static String format(const Matrix4f& value, RHIShaderParameterType type, u32 depth = 0) { return {}; }
 	};
 
 	template<typename T, RHIShaderParameterType type_value>
 	struct DefaultValueHolder : public Pin::DefaultValue {
 		T value = T();
 
-		byte* address() override { return reinterpret_cast<byte*>(&value); }
+		u8* address() override { return reinterpret_cast<u8*>(&value); }
 		RHIShaderParameterType type() const override { return type_value; };
 		Expression compile() const override { return Expression(type_value, DataTypeFormatter<T>::format(value, type_value)); }
 	};
@@ -249,7 +249,7 @@ namespace Engine::VisualMaterialGraph
 		{
 			auto type_component1 = static_component_type_of(type1);
 			auto type_component2 = static_component_type_of(type2);
-			byte result_len      = glm::max(type1.columns(), type2.columns());
+			u8 result_len        = glm::max(type1.columns(), type2.columns());
 
 			if (type_component1 == RHIShaderParameterType::Float || type_component2 == RHIShaderParameterType::Float)
 				return RHIShaderParameterType(RHIShaderParameterType::Float).make_vector(result_len);
@@ -331,7 +331,7 @@ namespace Engine::VisualMaterialGraph
 	{
 		if (self.is_numeric())
 		{
-			byte len = self.columns();
+			u8 len = self.columns();
 			return RHIShaderParameterType(RHIShaderParameterType::Float).make_vector(len);
 		}
 
@@ -341,12 +341,12 @@ namespace Engine::VisualMaterialGraph
 		return RHIShaderParameterType::Undefined;
 	}
 
-	RHIShaderParameterType Expression::static_vector_clamp(RHIShaderParameterType self, byte min, byte max)
+	RHIShaderParameterType Expression::static_vector_clamp(RHIShaderParameterType self, u8 min, u8 max)
 	{
 		if (self.is_numeric())
 		{
-			byte len        = self.columns();
-			byte normalized = glm::clamp<byte>(glm::clamp(len, min, max), 1, 4);
+			u8 len        = self.columns();
+			u8 normalized = glm::clamp<u8>(glm::clamp(len, min, max), 1, 4);
 
 			if (normalized != len)
 				return self.make_vector(normalized);
@@ -411,8 +411,8 @@ namespace Engine::VisualMaterialGraph
 
 		if ((dst.is_vector() || dst.is_scalar()) && (type.is_vector() || type.is_scalar()))
 		{
-			size_t src_components = type.columns();
-			size_t dst_components = dst.columns();
+			usize src_components = type.columns();
+			usize dst_components = dst.columns();
 
 			const auto src_component_type = static_component_type_of(type);
 			const auto dst_component_type = static_component_type_of(dst);
@@ -438,8 +438,8 @@ namespace Engine::VisualMaterialGraph
 
 				if (dst_components > src_components)
 				{
-					size_t push_count = dst_components - src_components;
-					Expression zero   = static_zero(dst_component_type);
+					usize push_count = dst_components - src_components;
+					Expression zero  = static_zero(dst_component_type);
 
 					while (push_count > 0)
 					{
@@ -485,7 +485,7 @@ namespace Engine::VisualMaterialGraph
 		}
 	}
 
-	Node* Compiler::create_temp_node(Refl::Class* node_class, uint16_t id)
+	Node* Compiler::create_temp_node(Refl::Class* node_class, u16 id)
 	{
 		if (!node_class->is_a<Node>())
 			return nullptr;
@@ -513,7 +513,7 @@ namespace Engine::VisualMaterialGraph
 		return static_uniform_parameter_name(node->class_instance(), node->id());
 	}
 
-	String Compiler::static_uniform_parameter_name(Refl::Class* node_class, uint16_t id)
+	String Compiler::static_uniform_parameter_name(Refl::Class* node_class, u16 id)
 	{
 		String node_name = Strings::to_lower(node_class->name());
 		return Strings::format("trx_var_{}_{}", node_name, id);
@@ -643,12 +643,12 @@ namespace Engine::VisualMaterialGraph
 	}
 
 	template<typename T>
-	static String compile_expressions(const T& expression, size_t tabs, StringView ending = ";\n")
+	static String compile_expressions(const T& expression, usize tabs, StringView ending = ";\n")
 	{
 		const String spacing(tabs, '\t');
 
 		String source;
-		size_t required_size = 0;
+		usize required_size = 0;
 
 		for (const String& expression : expression) required_size += spacing.size() + expression.size() + 1;
 		source.reserve(required_size);
@@ -663,17 +663,17 @@ namespace Engine::VisualMaterialGraph
 		return source;
 	}
 
-	String Compiler::compile_includes(size_t tabs) const
+	String Compiler::compile_includes(usize tabs) const
 	{
 		return compile_expressions(m_includes, tabs, "\n");
 	}
 
-	String Compiler::compile_global_expressions(size_t tabs) const
+	String Compiler::compile_global_expressions(usize tabs) const
 	{
 		return compile_expressions(m_globals, tabs);
 	}
 
-	String Compiler::compile_local_expressions(size_t tabs) const
+	String Compiler::compile_local_expressions(usize tabs) const
 	{
 		return compile_expressions(m_locals, tabs);
 	}
@@ -735,7 +735,7 @@ namespace Engine::VisualMaterialGraph
 		InputPin* pin = trx_new InputPin();
 		pin->m_name   = name;
 		pin->m_node   = this;
-		pin->m_index  = static_cast<uint16_t>(m_inputs.size());
+		pin->m_index  = static_cast<u16>(m_inputs.size());
 		pin->m_type   = type;
 		m_inputs.push_back(pin);
 		return pin;
@@ -746,7 +746,7 @@ namespace Engine::VisualMaterialGraph
 		OutputPin* pin = trx_new OutputPin();
 		pin->m_name    = name;
 		pin->m_node    = this;
-		pin->m_index   = static_cast<uint16_t>(m_outputs.size());
+		pin->m_index   = static_cast<u16>(m_outputs.size());
 		pin->m_type    = type;
 		m_outputs.push_back(pin);
 		return pin;
@@ -800,7 +800,7 @@ namespace Engine::VisualMaterialGraph
 		return *this;
 	}
 
-	Node& Node::change_id(uint16_t id)
+	Node& Node::change_id(u16 id)
 	{
 		m_id = id;
 		return *this;

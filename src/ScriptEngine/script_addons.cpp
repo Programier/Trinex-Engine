@@ -15,7 +15,7 @@
 
 namespace Engine
 {
-	static String parse_string_value(const byte* address, int_t type_id, bool repr)
+	static String parse_string_value(const u8* address, i32 type_id, bool repr)
 	{
 		if (repr)
 			return Strings::format("\"{}\"", *reinterpret_cast<const String*>(address));
@@ -33,7 +33,7 @@ namespace Engine
 		RegisterScriptDictionary(engine);
 		RegisterStdStringUtils(engine);
 
-		int_t type_id = ScriptEngine::type_id_by_decl("string");
+		i32 type_id = ScriptEngine::type_id_by_decl("string");
 		ScriptEngine::register_custom_variable_parser(type_id, parse_string_value);
 	}
 

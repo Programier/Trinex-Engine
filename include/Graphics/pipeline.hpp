@@ -147,8 +147,8 @@ public:                                                                         
 private:
 
 #define trinex_implement_pipeline(class_name, path)                                                                              \
-	static Engine::byte TRINEX_CONCAT(trinex_global_pipeline_, __LINE__) =                                                       \
-	        static_cast<Engine::byte>(Engine::InitializeController([]() { class_name::create(); }, #class_name).id());           \
+	static Engine::u8 TRINEX_CONCAT(trinex_global_pipeline_, __LINE__) =                                                         \
+	        static_cast<Engine::u8>(Engine::InitializeController([]() { class_name::create(); }, #class_name).id());             \
                                                                                                                                  \
 	class_name* class_name::s_instance = nullptr;                                                                                \
 	class_name::class_name() : Super(#class_name)                                                                                \

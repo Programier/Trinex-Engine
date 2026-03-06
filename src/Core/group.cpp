@@ -35,7 +35,7 @@ namespace Engine
 		return find(name, std::strlen(name), create);
 	}
 
-	Group* Group::find_subgroup(const char* name, size_t len, bool create)
+	Group* Group::find_subgroup(const char* name, usize len, bool create)
 	{
 		for (Group* child : m_childs)
 		{
@@ -50,10 +50,10 @@ namespace Engine
 			new_group->m_parent = this;
 
 			// Find index for insert
-			Index index = 0;
+			usize index = 0;
 			auto& name  = new_group->name().to_string();
 
-			for (Index size = m_childs.size(); index < size && name > m_childs[index]->name().to_string(); index++)
+			for (usize size = m_childs.size(); index < size && name > m_childs[index]->name().to_string(); index++)
 			{
 			}
 
@@ -64,7 +64,7 @@ namespace Engine
 		return nullptr;
 	}
 
-	Group* Group::find(const char* name, size_t len, bool create)
+	Group* Group::find(const char* name, usize len, bool create)
 	{
 		const char* name_end      = name + len;
 		const String& separator   = Constants::name_separator;
@@ -112,10 +112,10 @@ namespace Engine
 		}
 
 		// Find index for insert
-		Index index = 0;
+		usize index = 0;
 		auto& name  = instance->name().to_string();
 
-		for (Index size = m_structs.size(); index < size && name > m_structs[index]->full_name(); index++)
+		for (usize size = m_structs.size(); index < size && name > m_structs[index]->full_name(); index++)
 		{
 		}
 
@@ -143,7 +143,7 @@ namespace Engine
 
 		if (m_parent)
 		{
-			for (Index i = 0, count = m_parent->m_childs.size(); i < count; i++)
+			for (usize i = 0, count = m_parent->m_childs.size(); i < count; i++)
 			{
 				if (m_parent->m_childs[i] == this)
 				{

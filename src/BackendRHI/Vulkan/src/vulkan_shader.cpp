@@ -8,15 +8,15 @@
 
 namespace Engine
 {
-	VulkanShader::VulkanShader(const byte* shader, size_t size)
+	VulkanShader::VulkanShader(const u8* shader, usize size)
 	{
-		vk::ShaderModuleCreateInfo info(vk::ShaderModuleCreateFlags(), size, reinterpret_cast<const uint32_t*>(shader));
+		vk::ShaderModuleCreateInfo info(vk::ShaderModuleCreateFlags(), size, reinterpret_cast<const u32*>(shader));
 		m_shader = vk::check_result(API->m_device.createShaderModule(info));
 	}
 
 	VulkanShader::~VulkanShader(){DESTROY_CALL(destroyShaderModule, m_shader)}
 
-	RHIShader* VulkanAPI::create_shader(const byte* shader, size_t size)
+	RHIShader* VulkanAPI::create_shader(const u8* shader, usize size)
 	{
 		return trx_new VulkanShader(shader, size);
 	}

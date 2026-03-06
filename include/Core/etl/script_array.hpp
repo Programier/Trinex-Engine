@@ -22,8 +22,8 @@ namespace Engine
 	class ENGINE_EXPORT ScriptArrayBase
 	{
 	public:
-		using size_type       = size_t;
-		using difference_type = ptrdiff_t;
+		using size_type       = usize;
+		using difference_type = isize;
 
 	protected:
 		mutable CScriptArray* m_as_array;
@@ -51,9 +51,9 @@ namespace Engine
 		ScriptArrayBase& resize(size_type n);
 		bool empty() const;
 		ScriptArrayBase& reserve(size_type n);
-		size_t add_reference() const;
-		size_t remove_reference() const;
-		size_t references() const;
+		usize add_reference() const;
+		usize remove_reference() const;
+		usize references() const;
 		virtual const String& full_declaration() const = 0;
 
 

@@ -28,11 +28,11 @@ namespace Engine
 	public:
 		struct Entry {
 			String name;
-			uint64_t hash;
+			u64 hash;
 		};
 
 		struct HashFunction {
-			FORCE_INLINE uint64_t operator()(const Name& name) const { return name.m_index; }
+			FORCE_INLINE u64 operator()(const Name& name) const { return name.m_index; }
 		};
 
 		struct Less {
@@ -45,7 +45,7 @@ namespace Engine
 		static ENGINE_EXPORT Name none;
 
 	private:
-		uint32_t m_index;
+		u32 m_index;
 		Name& init(const StringView& view);
 
 	public:
@@ -56,7 +56,7 @@ namespace Engine
 		Name& operator=(Name&&);
 
 		Name(const char* name);
-		Name(const char* name, size_t len);
+		Name(const char* name, usize len);
 		Name(const String& name);
 		Name(const StringView& name);
 
@@ -65,9 +65,9 @@ namespace Engine
 		Name& operator=(const StringView& name);
 
 		static Name find_name(const StringView& name);
-		static size_t static_count();
+		static usize static_count();
 
-		uint64_t hash() const;
+		u64 hash() const;
 		bool operator==(const StringView& name) const;
 		bool operator!=(const StringView& name) const;
 		bool operator==(const char* name) const;
@@ -77,7 +77,7 @@ namespace Engine
 
 		bool equals(const String& name) const;
 		bool equals(const char* name) const;
-		bool equals(const char* name, size_t len) const;
+		bool equals(const char* name, usize len) const;
 		bool equals(const StringView& name) const;
 		bool equals(const Name& name) const;
 
@@ -88,8 +88,8 @@ namespace Engine
 		operator StringView() const;
 
 		inline bool is_valid() const { return m_index != 0xFFFFFFFF; }
-		inline uint32_t index() const { return m_index; }
-		inline size_t length() const { return to_string().length(); }
+		inline u32 index() const { return m_index; }
+		inline usize length() const { return to_string().length(); }
 
 		inline bool operator==(const Name& name) const { return name.m_index == m_index; }
 		inline bool operator!=(const Name& name) const { return name.m_index != m_index; }

@@ -109,7 +109,7 @@ namespace Engine
 	};
 
 	struct FileOpenMode {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			In        = BIT(0),
 			Out       = BIT(1),
@@ -117,7 +117,7 @@ namespace Engine
 			Append    = BIT(2) | Out,
 		};
 
-		trinex_bitfield_enum_struct(FileOpenMode, byte);
+		trinex_bitfield_enum_struct(FileOpenMode, u8);
 	};
 
 	using FileSeekDir = BufferSeekDir;

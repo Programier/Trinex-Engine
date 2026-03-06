@@ -28,7 +28,7 @@ namespace Engine
 		template<typename ReturnType = void, typename... Args>
 		auto get(const String& function_name)
 		{
-			return (ReturnType(*)(Args...))(load_function(m_handle, function_name));
+			return (ReturnType (*)(Args...))(load_function(m_handle, function_name));
 		}
 
 		void* resolve(const String& name);

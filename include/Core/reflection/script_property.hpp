@@ -7,29 +7,29 @@ namespace Engine::Refl
 	class ScriptProperty : public Super
 	{
 	private:
-		uint_t m_offset;
+		u32 m_offset;
 
 	public:
 		using Super::m_flags;
 
 		template<typename... Args>
-		ScriptProperty(uint_t offset, Args... args) : Super(args...), m_offset(offset)
+		ScriptProperty(u32 offset, Args... args) : Super(args...), m_offset(offset)
 		{}
 
 		void* address(void* context) override
 		{
 			if constexpr (dereference)
-				return *reinterpret_cast<byte**>(reinterpret_cast<byte*>(context) + m_offset);
+				return *reinterpret_cast<u8**>(reinterpret_cast<u8*>(context) + m_offset);
 			else
-				return reinterpret_cast<byte*>(context) + m_offset;
+				return reinterpret_cast<u8*>(context) + m_offset;
 		}
 
 		const void* address(const void* context) const override
 		{
 			if constexpr (dereference)
-				return *reinterpret_cast<const byte* const*>(reinterpret_cast<const byte*>(context) + m_offset);
+				return *reinterpret_cast<const u8* const*>(reinterpret_cast<const u8*>(context) + m_offset);
 			else
-				return reinterpret_cast<const byte*>(context) + m_offset;
+				return reinterpret_cast<const u8*>(context) + m_offset;
 		}
 	};
 
@@ -41,7 +41,7 @@ namespace Engine::Refl
 	public:
 		using ScriptProperty::ScriptProperty;
 
-		size_t size() const override { return sizeof(T); }
+		usize size() const override { return sizeof(T); }
 
 		bool is_signed() const override { return std::is_signed_v<T>; }
 	};
@@ -52,7 +52,7 @@ namespace Engine::Refl
 	public:
 		using ScriptProperty::ScriptProperty;
 
-		size_t size() const override { return sizeof(T); }
+		usize size() const override { return sizeof(T); }
 	};
 
 	class ScriptEnumProperty : public ScriptProperty<EnumProperty>
@@ -60,12 +60,12 @@ namespace Engine::Refl
 		Enum* m_enum_instance;
 
 	public:
-		inline ScriptEnumProperty(size_t offset, Enum* enum_instance, BitMask flags = 0)
+		inline ScriptEnumProperty(usize offset, Enum* enum_instance, BitMask flags = 0)
 		    : ScriptProperty<EnumProperty>(offset, flags), m_enum_instance(enum_instance)
 		{}
 
 		inline Enum* enum_instance() const override { return m_enum_instance; }
-		size_t size() const override;
+		usize size() const override;
 	};
 
 	class ScriptObjectProperty : public ScriptProperty<ObjectProperty, false>
@@ -73,7 +73,7 @@ namespace Engine::Refl
 		Class* m_instance;
 
 	public:
-		ScriptObjectProperty(uint_t offset, Class* instance);
+		ScriptObjectProperty(u32 offset, Class* instance);
 		Class* class_instance() const override;
 	};
 
@@ -82,10 +82,10 @@ namespace Engine::Refl
 		Struct* m_instance;
 
 	public:
-		ScriptStructProperty(uint_t offset, Struct* instance);
+		ScriptStructProperty(u32 offset, Struct* instance);
 
 		Struct* struct_instance() const override;
-		size_t size() const override;
+		usize size() const override;
 	};
 
 	using ScriptStringProperty = ScriptProperty<StringProperty, true>;

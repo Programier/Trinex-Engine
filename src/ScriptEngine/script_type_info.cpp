@@ -130,44 +130,44 @@ namespace Engine
 		return m_info->DerivesFrom(info.m_info);
 	}
 
-	int_t ScriptTypeInfo::type_id() const
+	i32 ScriptTypeInfo::type_id() const
 	{
 		check_info(0);
 		return m_info->GetTypeId();
 	}
 
-	int_t ScriptTypeInfo::sub_type_id(uint_t index) const
+	i32 ScriptTypeInfo::sub_type_id(u32 index) const
 	{
 		check_info(0);
 		return m_info->GetSubTypeId(index);
 	}
 
-	uint_t ScriptTypeInfo::size() const
+	u32 ScriptTypeInfo::size() const
 	{
 		check_info(0);
 		return m_info->GetSize();
 	}
 
-	ScriptTypeInfo ScriptTypeInfo::sub_type(uint_t index) const
+	ScriptTypeInfo ScriptTypeInfo::sub_type(u32 index) const
 	{
 		check_info({});
 		return ScriptTypeInfo(m_info->GetSubType(index));
 	}
 
-	uint_t ScriptTypeInfo::sub_type_count() const
+	u32 ScriptTypeInfo::sub_type_count() const
 	{
 		check_info(0);
 		return m_info->GetSubTypeCount();
 	}
 
 	// Interfaces
-	uint_t ScriptTypeInfo::interface_count() const
+	u32 ScriptTypeInfo::interface_count() const
 	{
 		check_info(0);
 		return m_info->GetInterfaceCount();
 	}
 
-	ScriptTypeInfo ScriptTypeInfo::interface(uint_t index)
+	ScriptTypeInfo ScriptTypeInfo::interface(u32 index)
 	{
 		check_info({});
 		return ScriptTypeInfo(m_info->GetInterface(index));
@@ -180,13 +180,13 @@ namespace Engine
 	}
 
 	// Factories
-	uint_t ScriptTypeInfo::factory_count() const
+	u32 ScriptTypeInfo::factory_count() const
 	{
 		check_info(0);
 		return m_info->GetFactoryCount();
 	}
 
-	ScriptFunction ScriptTypeInfo::factory_by_index(uint_t index) const
+	ScriptFunction ScriptTypeInfo::factory_by_index(u32 index) const
 	{
 		check_info({});
 		return ScriptFunction(m_info->GetFactoryByIndex(index));
@@ -205,13 +205,13 @@ namespace Engine
 	}
 
 	// Methods
-	uint_t ScriptTypeInfo::method_count() const
+	u32 ScriptTypeInfo::method_count() const
 	{
 		check_info({});
 		return m_info->GetMethodCount();
 	}
 
-	ScriptFunction ScriptTypeInfo::method_by_index(uint_t index, bool get) const
+	ScriptFunction ScriptTypeInfo::method_by_index(u32 index, bool get) const
 	{
 		check_info({});
 		return ScriptFunction(m_info->GetMethodByIndex(index, get));
@@ -243,19 +243,19 @@ namespace Engine
 
 
 	// Properties
-	uint_t ScriptTypeInfo::property_count() const
+	u32 ScriptTypeInfo::property_count() const
 	{
 		check_info(0);
 		return m_info->GetPropertyCount();
 	}
 
-	bool ScriptTypeInfo::property(uint_t index, StringView* name, int_t* type_id, bool* is_private, bool* is_protected,
-	                              int_t* offset, bool* is_reference, bool* is_const) const
+	bool ScriptTypeInfo::property(u32 index, StringView* name, i32* type_id, bool* is_private, bool* is_protected, i32* offset,
+	                              bool* is_reference, bool* is_const) const
 	{
 		check_info(false);
 		const char* c_name = nullptr;
-		int_t res = m_info->GetProperty(index, name ? &c_name : nullptr, type_id, is_private, is_protected, offset, is_reference,
-		                                0, 0, 0, is_const);
+		i32 res = m_info->GetProperty(index, name ? &c_name : nullptr, type_id, is_private, is_protected, offset, is_reference, 0,
+		                              0, 0, is_const);
 
 		if (name)
 		{
@@ -265,49 +265,49 @@ namespace Engine
 		return res >= 0;
 	}
 
-	String ScriptTypeInfo::property_declaration(uint_t index, bool include_bamespace) const
+	String ScriptTypeInfo::property_declaration(u32 index, bool include_bamespace) const
 	{
 		check_info("");
 		return Strings::make_string(m_info->GetPropertyDeclaration(index, include_bamespace));
 	}
 
-	StringView ScriptTypeInfo::property_name(uint_t index) const
+	StringView ScriptTypeInfo::property_name(u32 index) const
 	{
 		check_info("");
 		return Strings::make_string_view(m_info->GetPropertyName(index));
 	}
 
-	int_t ScriptTypeInfo::property_type_id(uint_t index) const
+	i32 ScriptTypeInfo::property_type_id(u32 index) const
 	{
 		check_info(0);
 		return m_info->GetPropertyTypeId(index);
 	}
 
-	int_t ScriptTypeInfo::property_offset(uint_t index) const
+	i32 ScriptTypeInfo::property_offset(u32 index) const
 	{
 		check_info(0);
 		return m_info->GetPropertyOffset(index);
 	}
 
-	bool ScriptTypeInfo::is_property_private(uint_t index) const
+	bool ScriptTypeInfo::is_property_private(u32 index) const
 	{
 		check_info(false);
 		return m_info->IsPropertyPrivate(index);
 	}
 
-	bool ScriptTypeInfo::is_property_protected(uint_t index) const
+	bool ScriptTypeInfo::is_property_protected(u32 index) const
 	{
 		check_info(false);
 		return m_info->IsPropertyProtected(index);
 	}
 
-	bool ScriptTypeInfo::is_property_native(uint_t index) const
+	bool ScriptTypeInfo::is_property_native(u32 index) const
 	{
 		check_info(false);
 		return m_info->IsPropertyNative(index);
 	}
 
-	bool ScriptTypeInfo::is_property_reference(uint_t index) const
+	bool ScriptTypeInfo::is_property_reference(u32 index) const
 	{
 		check_info(false);
 		return m_info->IsPropertyReference(index);
@@ -315,7 +315,7 @@ namespace Engine
 
 
 	// Behaviours
-	uint_t ScriptTypeInfo::behaviour_count() const
+	u32 ScriptTypeInfo::behaviour_count() const
 	{
 		check_info(0);
 		return m_info->GetBehaviourCount();
@@ -345,7 +345,7 @@ namespace Engine
 		return {};
 	}
 
-	ScriptFunction ScriptTypeInfo::behaviour_by_index(uint_t index, ScriptClassBehave* behaviour) const
+	ScriptFunction ScriptTypeInfo::behaviour_by_index(u32 index, ScriptClassBehave* behaviour) const
 	{
 		check_info({});
 		asEBehaviours behaviours;
@@ -359,13 +359,13 @@ namespace Engine
 	}
 
 	// Child types
-	uint_t ScriptTypeInfo::child_funcdef_count()
+	u32 ScriptTypeInfo::child_funcdef_count()
 	{
 		check_info(0);
 		return m_info->GetChildFuncdefCount();
 	}
 
-	ScriptTypeInfo ScriptTypeInfo::child_funcdef(uint_t index) const
+	ScriptTypeInfo ScriptTypeInfo::child_funcdef(u32 index) const
 	{
 		check_info({});
 		return ScriptTypeInfo(m_info->GetChildFuncdef(index));
@@ -378,13 +378,13 @@ namespace Engine
 	}
 
 	// Enums
-	uint_t ScriptTypeInfo::enum_value_count() const
+	u32 ScriptTypeInfo::enum_value_count() const
 	{
 		check_info(0);
 		return m_info->GetEnumValueCount();
 	}
 
-	StringView ScriptTypeInfo::enum_value_by_index(uint_t index, int64_t* out_value) const
+	StringView ScriptTypeInfo::enum_value_by_index(u32 index, i64* out_value) const
 	{
 		check_info("");
 		return Strings::make_string_view(m_info->GetEnumValueByIndex(index, out_value));

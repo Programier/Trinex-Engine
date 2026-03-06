@@ -42,7 +42,7 @@ namespace Engine
 		API->m_device.destroyDescriptorSetLayout(m_descriptor_set_layout);
 	}
 
-	VulkanDescriptorHeap& VulkanDescriptorHeap::initialize(HeapType heap, vk::DescriptorType type, size_t count)
+	VulkanDescriptorHeap& VulkanDescriptorHeap::initialize(HeapType heap, vk::DescriptorType type, usize count)
 	{
 		new (&m_bindings[heap]) vk::DescriptorSetLayoutBinding(heap, type, count, vk::ShaderStageFlagBits::eAll);
 		return *this;
@@ -59,7 +59,7 @@ namespace Engine
 			                                                    vk::DescriptorBindingFlagBits::ePartiallyBound;
 
 			vk::DescriptorBindingFlagsEXT binding_flags_array[HeapsCount];
-			for (uint_t i = 0; i < HeapsCount; ++i) binding_flags_array[i] = binding_flags;
+			for (u32 i = 0; i < HeapsCount; ++i) binding_flags_array[i] = binding_flags;
 
 			vk::DescriptorSetLayoutBindingFlagsCreateInfoEXT binding_info(HeapsCount, binding_flags_array);
 			vk::DescriptorSetLayoutCreateInfo layout_info(layout_flags, HeapsCount, m_bindings, &binding_info);
@@ -71,7 +71,7 @@ namespace Engine
 			vk::DescriptorPoolCreateFlags flags = vk::DescriptorPoolCreateFlagBits::eUpdateAfterBind;
 			vk::DescriptorPoolSize pool_size[HeapsCount];
 
-			for (uint_t i = 0; i < HeapsCount; ++i)
+			for (u32 i = 0; i < HeapsCount; ++i)
 			{
 				HeapType type = static_cast<HeapType>(i);
 				pool_size[type].setType(m_bindings[type].descriptorType);

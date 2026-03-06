@@ -59,7 +59,7 @@ namespace Engine
 		return actor;
 	}
 
-	bool Actor::register_child(Object* child, uint32_t& index)
+	bool Actor::register_child(Object* child, u32& index)
 	{
 		ActorComponent* component = instance_cast<ActorComponent>(child);
 
@@ -124,7 +124,7 @@ namespace Engine
 
 	Actor& Actor::spawned()
 	{
-		for (Index index = 0, count = m_components.size(); index < count; ++index)
+		for (usize index = 0, count = m_components.size(); index < count; ++index)
 		{
 			auto component = m_components[index];
 			component->spawned();
@@ -179,7 +179,7 @@ namespace Engine
 		}
 
 		// Call destroy for each component
-		for (size_t index = 0, count = m_components.size(); index < count; ++index)
+		for (usize index = 0, count = m_components.size(); index < count; ++index)
 		{
 			ActorComponent* component = m_components[index];
 
@@ -232,7 +232,7 @@ namespace Engine
 	public:
 		using T::T;
 
-		const String& index_name(const void* context, size_t index) const override
+		const String& index_name(const void* context, usize index) const override
 		{
 			const Refl::ArrayProperty* prop = this;
 			const ActorComponent* component = *prop->at_as<const ActorComponent*>(context, index);

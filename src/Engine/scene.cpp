@@ -98,7 +98,7 @@ namespace Engine
 				result.emplace_back(component);
 		}
 
-		for (byte i = 0; i < 8; i++)
+		for (u8 i = 0; i < 8; i++)
 		{
 			auto child = node->child_at(i);
 
@@ -131,7 +131,7 @@ namespace Engine
 			}
 		}
 
-		for (byte i = 0; i < 8; i++)
+		for (u8 i = 0; i < 8; i++)
 		{
 			auto child = node->child_at(i);
 
@@ -145,7 +145,7 @@ namespace Engine
 	FrameVector<PrimitiveComponent*> Scene::collect_visible_primitives(const Frustum& frustum)
 	{
 		FrameVector<PrimitiveComponent*> objects;
-		objects.reserve(glm::max<size_t>(64, m_primitive_octree.size() / 10));
+		objects.reserve(glm::max<usize>(64, m_primitive_octree.size() / 10));
 		collect_elements_internal(m_primitive_octree.root_node(), frustum, objects);
 		return objects;
 	}
@@ -153,7 +153,7 @@ namespace Engine
 	FrameVector<LightComponent*> Scene::collect_visible_lights(const Frustum& frustum)
 	{
 		FrameVector<LightComponent*> objects;
-		objects.reserve(glm::max<size_t>(64, m_light_octree.size() / 10 + m_directional_lights.size()));
+		objects.reserve(glm::max<usize>(64, m_light_octree.size() / 10 + m_directional_lights.size()));
 		collect_elements_internal(m_light_octree.root_node(), frustum, objects);
 		for (LightComponent* light : m_directional_lights) objects.emplace_back(light);
 		return objects;

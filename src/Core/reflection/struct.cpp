@@ -93,7 +93,7 @@ namespace Engine::Refl
 		return *this;
 	}
 
-	size_t Struct::size() const
+	usize Struct::size() const
 	{
 		trinex_unreachable();
 		return 0;
@@ -104,9 +104,9 @@ namespace Engine::Refl
 		return m_parent;
 	}
 
-	size_t Struct::abstraction_level() const
+	usize Struct::abstraction_level() const
 	{
-		size_t level = 1;
+		usize level = 1;
 
 		Struct* next = parent();
 
@@ -119,9 +119,9 @@ namespace Engine::Refl
 		return level;
 	}
 
-	Vector<Name> Struct::hierarchy(size_t offset) const
+	Vector<Name> Struct::hierarchy(usize offset) const
 	{
-		size_t level = abstraction_level();
+		usize level = abstraction_level();
 		if (offset >= level)
 			return {};
 
@@ -214,12 +214,12 @@ namespace Engine::Refl
 		{
 			auto properties = collect_serializable_properties(this);
 
-			size_t count = properties.size();
+			usize count = properties.size();
 			ar.serialize(count);
 
-			Vector<size_t> offsets(count + 1, 0);
+			Vector<usize> offsets(count + 1, 0);
 			auto start_pos = ar.position();
-			ar.write_data(reinterpret_cast<const byte*>(offsets.data()), offsets.size() * sizeof(size_t));
+			ar.write_data(reinterpret_cast<const u8*>(offsets.data()), offsets.size() * sizeof(usize));
 
 			count = 0;
 			for (auto& prop : properties)
@@ -235,21 +235,21 @@ namespace Engine::Refl
 			offsets[count] = end_pos - start_pos;
 
 			ar.position(start_pos);
-			ar.write_data(reinterpret_cast<const byte*>(offsets.data()), offsets.size() * sizeof(size_t));
+			ar.write_data(reinterpret_cast<const u8*>(offsets.data()), offsets.size() * sizeof(usize));
 			ar.position(end_pos);
 		}
 		else if (ar.is_reading())
 		{
-			size_t count = 0;
+			usize count = 0;
 			ar.serialize(count);
 
-			Vector<size_t> offsets(count + 1, 0);
+			Vector<usize> offsets(count + 1, 0);
 			auto start_pos = ar.position();
-			ar.read_data(reinterpret_cast<byte*>(offsets.data()), offsets.size() * sizeof(size_t));
+			ar.read_data(reinterpret_cast<u8*>(offsets.data()), offsets.size() * sizeof(usize));
 
 			Name name;
 
-			for (size_t i = 0; i < count; ++i)
+			for (usize i = 0; i < count; ++i)
 			{
 				ar.position(start_pos + offsets[i]);
 
@@ -296,9 +296,9 @@ namespace Engine::Refl
 		return false;
 	}
 
-	size_t Struct::properties_count(bool recursive) const
+	usize Struct::properties_count(bool recursive) const
 	{
-		size_t count = m_properties.size();
+		usize count = m_properties.size();
 
 		if (recursive)
 		{

@@ -28,9 +28,9 @@ namespace Engine
 		PrimitiveComponent& stop_play() override;
 		PrimitiveComponent& on_transform_changed() override;
 
-		virtual size_t materials_count() const                                 = 0;
-		virtual MaterialInterface* material(size_t index) const                = 0;
-		virtual PrimitiveComponent& material(MaterialInterface*, size_t index) = 0;
+		virtual usize materials_count() const                                 = 0;
+		virtual MaterialInterface* material(usize index) const                = 0;
+		virtual PrimitiveComponent& material(MaterialInterface*, usize index) = 0;
 		virtual PrimitiveComponent& render(PrimitiveRenderingContext* context);
 
 		virtual PrimitiveComponent& update_bounding_box();

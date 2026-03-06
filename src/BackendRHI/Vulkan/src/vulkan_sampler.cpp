@@ -14,8 +14,8 @@ namespace Engine
 {
 	static vk::BorderColor parse_border_color(Color color)
 	{
-		const byte color_intensity = (color.r + color.g + color.b) / 3;
-		const byte alpha_intensity = color.a;
+		const u8 color_intensity = (color.r + color.g + color.b) / 3;
+		const u8 alpha_intensity = color.a;
 
 		if (alpha_intensity <= 127)
 			return vk::BorderColor::eFloatTransparentBlack;
@@ -93,7 +93,7 @@ namespace Engine
 		DESTROY_CALL(destroySampler, m_sampler);
 	}
 
-	VulkanContext& VulkanContext::bind_sampler(RHISampler* sampler, byte slot)
+	VulkanContext& VulkanContext::bind_sampler(RHISampler* sampler, u8 slot)
 	{
 		m_state_manager->samplers.bind(static_cast<VulkanSampler*>(sampler)->sampler(), slot);
 		return *this;

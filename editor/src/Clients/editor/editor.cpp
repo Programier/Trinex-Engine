@@ -767,7 +767,7 @@ namespace Engine
 		return *this;
 	}
 
-	uint32_t EditorClient::build_dock(uint32_t dock_id)
+	u32 EditorClient::build_dock(u32 dock_id)
 	{
 		auto dock_id_right      = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Right, 0.25f, nullptr, &dock_id);
 		auto dock_id_right_up   = ImGui::DockBuilderSplitNode(dock_id_right, ImGuiDir_Up, 0.5f, nullptr, &dock_id_right);

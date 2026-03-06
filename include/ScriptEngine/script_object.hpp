@@ -21,7 +21,7 @@ namespace Engine
 	public:
 		using ScriptVariableBase::ScriptVariableBase;
 
-		ScriptObject(void* address, int_t type_id, bool consider_handle_as_object = false);
+		ScriptObject(void* address, i32 type_id, bool consider_handle_as_object = false);
 		ScriptObject(void* address, const char* declaration, bool consider_handle_as_object = false);
 		ScriptObject(void* address, const char* declaration, const char* module, bool consider_handle_as_object = false);
 		ScriptObject(Object* self);
@@ -36,24 +36,24 @@ namespace Engine
 		ScriptObject& operator=(ScriptVariableBase&& variable);
 
 		using ScriptVariableBase::create;
-		bool create(int_t type_id, bool is_uninitialized = false);
+		bool create(i32 type_id, bool is_uninitialized = false);
 		bool create(const char* type_declaration, bool is_uninitialized = false);
 		bool create(const char* type_declaration, const char* module, bool is_uninitialized = false);
-		bool create(void* src_address, int_t type_id, bool consider_handle_as_object = false);
+		bool create(void* src_address, i32 type_id, bool consider_handle_as_object = false);
 		bool create(void* src_address, const char* type_declaration, bool consider_handle_as_object = false);
 		bool create(void* src_address, const char* type_declaration, const char* module, bool consider_handle_as_object = false);
 		bool create(Object* src);
 		bool create(const Object* src);
 
 		// Factories
-		uint_t factory_count() const;
-		ScriptFunction factory_by_index(uint_t index) const;
+		u32 factory_count() const;
+		ScriptFunction factory_by_index(u32 index) const;
 		ScriptFunction factory_by_decl(const char* decl) const;
 		ScriptFunction factory_by_decl(const String& decl) const;
 
 		// Methods
-		uint_t method_count() const;
-		ScriptFunction method_by_index(uint_t index, bool get_virtual = true) const;
+		u32 method_count() const;
+		ScriptFunction method_by_index(u32 index, bool get_virtual = true) const;
 		ScriptFunction method_by_name(const char* name, bool get_virtual = true) const;
 		ScriptFunction method_by_decl(const char* decl, bool get_virtual = true) const;
 		ScriptFunction method_by_name(const String& name, bool get_virtual = true) const;
@@ -74,14 +74,14 @@ namespace Engine
 		}
 
 		// Properties
-		uint_t property_count() const;
-		bool property(uint_t index, StringView* name = nullptr, int_t* type_id = nullptr, bool* is_private = nullptr,
-		              bool* is_protected = nullptr, int_t* offset = nullptr, bool* is_reference = nullptr) const;
-		String property_declaration(uint_t index, bool include_bamespace = false) const;
+		u32 property_count() const;
+		bool property(u32 index, StringView* name = nullptr, i32* type_id = nullptr, bool* is_private = nullptr,
+		              bool* is_protected = nullptr, i32* offset = nullptr, bool* is_reference = nullptr) const;
+		String property_declaration(u32 index, bool include_bamespace = false) const;
 
 		// Behaviours
-		uint_t behaviour_count() const;
-		ScriptFunction behaviour_by_index(uint_t index, ScriptClassBehave* behaviour = nullptr) const;
+		u32 behaviour_count() const;
+		ScriptFunction behaviour_by_index(u32 index, ScriptClassBehave* behaviour = nullptr) const;
 
 		ScriptTypeInfo type_info() const override;
 	};

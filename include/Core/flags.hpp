@@ -32,15 +32,9 @@ namespace Engine
 		{
 			switch (op)
 			{
-				case FlagsOperator::And:
-					(((*this) &= args), ...);
-					break;
-				case FlagsOperator::Or:
-					(((*this) |= args), ...);
-					break;
-				case FlagsOperator::Xor:
-					(((*this) ^= args), ...);
-					break;
+				case FlagsOperator::And: (((*this) &= args), ...); break;
+				case FlagsOperator::Or: (((*this) |= args), ...); break;
+				case FlagsOperator::Xor: (((*this) ^= args), ...); break;
 			}
 		}
 
@@ -87,9 +81,9 @@ namespace Engine
 			return *this;
 		}
 
-		FORCE_INLINE size_t count_set_bits() const
+		FORCE_INLINE usize count_set_bits() const
 		{
-			size_t count = 0;
+			usize count  = 0;
 			BitMask mask = 1;
 			while (mask)
 			{

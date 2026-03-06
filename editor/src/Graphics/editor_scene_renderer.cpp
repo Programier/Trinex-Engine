@@ -68,8 +68,8 @@ namespace Engine
 						uintptr_t addr = reinterpret_cast<uintptr_t>(actor);
 
 						Vector2u id;
-						id.x        = static_cast<uint32_t>(addr & 0xFFFFFFFFu);
-						id.y        = static_cast<uint32_t>((addr >> 32) & 0xFFFFFFFFu);
+						id.x        = static_cast<u32>(addr & 0xFFFFFFFFu);
+						id.y        = static_cast<u32>((addr >> 32) & 0xFFFFFFFFu);
 						(*proxy_id) = id;
 
 						Matrix4f matrix  = primitive->world_transform().matrix();
@@ -106,7 +106,7 @@ namespace Engine
 		RHITexture* hitproxy = renderer.render_hitproxies(ctx);
 
 		Vector2f size = view.view_size();
-		Vector3u offset(static_cast<uint32_t>((size.x * uv.x) + 0.5f), static_cast<uint32_t>((size.y * uv.y) + 0.5f), 0);
+		Vector3u offset(static_cast<u32>((size.x * uv.x) + 0.5f), static_cast<u32>((size.y * uv.y) + 0.5f), 0);
 
 		ctx->barrier(hitproxy, RHIAccess::TransferSrc);
 		ctx->barrier(buffer, RHIAccess::TransferDst);
@@ -117,7 +117,7 @@ namespace Engine
 
 		while (!fence->is_signaled()) Thread::static_yield();
 
-		byte* data   = buffer->map(RHIMappingAccess::Read);
+		u8* data     = buffer->map(RHIMappingAccess::Read);
 		Actor* actor = *reinterpret_cast<Actor**>(data);
 		buffer->unmap();
 
@@ -149,7 +149,7 @@ namespace Engine
 		return *this;
 	}
 
-	EditorRenderer& EditorRenderer::render_outlines(Actor* const* actors, size_t count)
+	EditorRenderer& EditorRenderer::render_outlines(Actor* const* actors, usize count)
 	{
 		if (actors && count)
 		{
@@ -213,7 +213,7 @@ namespace Engine
 		return *this;
 	}
 
-	EditorRenderer& EditorRenderer::render_primitives(Actor* const* actors, size_t count)
+	EditorRenderer& EditorRenderer::render_primitives(Actor* const* actors, usize count)
 	{
 		FrameVector<LightComponent*> lights = visible_lights();
 

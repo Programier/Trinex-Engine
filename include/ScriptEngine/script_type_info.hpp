@@ -36,57 +36,57 @@ namespace Engine
 		ScriptTypeInfo base_type() const;
 		ScriptTypeInfo native_base_type() const;
 		bool derives_from(const ScriptTypeInfo& info) const;
-		int_t type_id() const;
-		int_t sub_type_id(uint_t index) const;
-		uint_t size() const;
-		ScriptTypeInfo sub_type(uint_t index) const;
-		uint_t sub_type_count() const;
+		i32 type_id() const;
+		i32 sub_type_id(u32 index) const;
+		u32 size() const;
+		ScriptTypeInfo sub_type(u32 index) const;
+		u32 sub_type_count() const;
 
 		// Interfaces
-		uint_t interface_count() const;
-		ScriptTypeInfo interface(uint_t index);
+		u32 interface_count() const;
+		ScriptTypeInfo interface(u32 index);
 		bool implements(const ScriptTypeInfo& obj_type) const;
 
 		// Factories
-		uint_t factory_count() const;
-		ScriptFunction factory_by_index(uint_t index) const;
+		u32 factory_count() const;
+		ScriptFunction factory_by_index(u32 index) const;
 		ScriptFunction factory_by_decl(const char* decl) const;
 		ScriptFunction factory_by_decl(const String& decl) const;
 
 		// Methods
-		uint_t method_count() const;
-		ScriptFunction method_by_index(uint_t index, bool get_virtual = true) const;
+		u32 method_count() const;
+		ScriptFunction method_by_index(u32 index, bool get_virtual = true) const;
 		ScriptFunction method_by_name(const char* name, bool get_virtual = true) const;
 		ScriptFunction method_by_decl(const char* decl, bool get_virtual = true) const;
 		ScriptFunction method_by_name(const String& name, bool get_virtual = true) const;
 		ScriptFunction method_by_decl(const String& decl, bool get_virtual = true) const;
 
 		// Properties
-		uint_t property_count() const;
-		bool property(uint_t index, StringView* name = nullptr, int_t* type_id = nullptr, bool* is_private = nullptr,
-		              bool* is_protected = nullptr, int_t* offset = nullptr, bool* is_reference = nullptr,
+		u32 property_count() const;
+		bool property(u32 index, StringView* name = nullptr, i32* type_id = nullptr, bool* is_private = nullptr,
+		              bool* is_protected = nullptr, i32* offset = nullptr, bool* is_reference = nullptr,
 		              bool* is_const = nullptr) const;
-		String property_declaration(uint_t index, bool include_bamespace = false) const;
-		StringView property_name(uint_t index) const;
-		int_t property_type_id(uint_t index) const;
-		int_t property_offset(uint_t index) const;
-		bool is_property_private(uint_t index) const;
-		bool is_property_protected(uint_t index) const;
-		bool is_property_native(uint_t index) const;
-		bool is_property_reference(uint_t index) const;
+		String property_declaration(u32 index, bool include_bamespace = false) const;
+		StringView property_name(u32 index) const;
+		i32 property_type_id(u32 index) const;
+		i32 property_offset(u32 index) const;
+		bool is_property_private(u32 index) const;
+		bool is_property_protected(u32 index) const;
+		bool is_property_native(u32 index) const;
+		bool is_property_reference(u32 index) const;
 
 		// Behaviours
-		uint_t behaviour_count() const;
-		ScriptFunction behaviour_by_index(uint_t index, ScriptClassBehave* behaviour = nullptr) const;
+		u32 behaviour_count() const;
+		ScriptFunction behaviour_by_index(u32 index, ScriptClassBehave* behaviour = nullptr) const;
 
 		// Child types
-		uint_t child_funcdef_count();
-		ScriptTypeInfo child_funcdef(uint_t index) const;
+		u32 child_funcdef_count();
+		ScriptTypeInfo child_funcdef(u32 index) const;
 		ScriptTypeInfo parent_type() const;
 
 		// Enums
-		uint_t enum_value_count() const;
-		StringView enum_value_by_index(uint_t index, int64_t* out_value = nullptr) const;
+		u32 enum_value_count() const;
+		StringView enum_value_by_index(u32 index, i64* out_value = nullptr) const;
 
 		// Funcdef
 		ScriptFunction funcdef_signature() const;

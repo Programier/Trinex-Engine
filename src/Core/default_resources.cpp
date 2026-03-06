@@ -49,11 +49,11 @@ namespace Engine
 
 	}// namespace DefaultResources
 
-	ENGINE_EXPORT Object* load_object_from_memory(const byte* data, size_t size, const StringView& name)
+	ENGINE_EXPORT Object* load_object_from_memory(const u8* data, usize size, const StringView& name)
 	{
 		if (size > 0)
 		{
-			Vector<byte> tmp(data, data + size);
+			Vector<u8> tmp(data, data + size);
 			VectorReader reader = &tmp;
 			return Object::load_object(name, &reader);
 		}
@@ -87,9 +87,9 @@ namespace Engine
 
 		std::random_device rd;
 		std::mt19937 gen(rd());
-		std::uniform_int_distribution<uint8_t> dist(0, 255);
+		std::uniform_int_distribution<u8> dist(0, 255);
 
-		for (byte& value : mip.data)
+		for (u8& value : mip.data)
 		{
 			value = dist(gen);
 		}
@@ -105,15 +105,15 @@ namespace Engine
 		generate_noise_texture(package, DefaultResources::Textures::noise128x128, "Noise128x128", {128, 128});
 	}
 
-	static void generate_checker_texture(Vector2u size, uint_t cell, Color* texture)
+	static void generate_checker_texture(Vector2u size, u32 cell, Color* texture)
 	{
 		const Color colors[2] = {{200, 200, 200, 255}, {100, 100, 100, 255}};
 
-		for (uint32_t y = 0; y < size.y; ++y)
+		for (u32 y = 0; y < size.y; ++y)
 		{
-			for (uint32_t x = 0; x < size.x; ++x)
+			for (u32 x = 0; x < size.x; ++x)
 			{
-				uint_t index            = ((x / cell) + (y / cell)) % 2;
+				u32 index               = ((x / cell) + (y / cell)) % 2;
 				texture[y * size.x + x] = colors[index];
 			}
 		}
@@ -121,17 +121,17 @@ namespace Engine
 
 	static void generate_lut_texture(Vector3u size, Color* texture)
 	{
-		for (uint32_t z = 0; z < size.z; ++z)
+		for (u32 z = 0; z < size.z; ++z)
 		{
-			for (uint32_t y = 0; y < size.y; ++y)
+			for (u32 y = 0; y < size.y; ++y)
 			{
-				for (uint32_t x = 0; x < size.x; ++x)
+				for (u32 x = 0; x < size.x; ++x)
 				{
-					uint32_t offset = x + size.x * (y + size.y * z);
+					u32 offset = x + size.x * (y + size.y * z);
 
-					texture[offset].r = uint8_t(float(x) / float(size.x - 1) * 255.f);
-					texture[offset].g = uint8_t(float(y) / float(size.y - 1) * 255.f);
-					texture[offset].b = uint8_t(float(z) / float(size.z - 1) * 255.f);
+					texture[offset].r = u8(float(x) / float(size.x - 1) * 255.f);
+					texture[offset].g = u8(float(y) / float(size.y - 1) * 255.f);
+					texture[offset].b = u8(float(z) / float(size.z - 1) * 255.f);
 					texture[offset].a = 255;
 				}
 			}
@@ -183,7 +183,7 @@ namespace Engine
 
 			Color* pixels = reinterpret_cast<Color*>(mip.data.data());
 
-			for (uint_t i = 0; i < 6; ++i)
+			for (u32 i = 0; i < 6; ++i)
 			{
 				generate_checker_texture({128, 128}, 8, pixels);
 				pixels += mip.size.x * mip.size.y;
@@ -244,5 +244,5 @@ namespace Engine
 			trx_delete DefaultResources::Buffers::screen_quad;
 	}
 
-	static byte destroy_id = DestroyController(on_destroy).id();
+	static u8 destroy_id = DestroyController(on_destroy).id();
 }// namespace Engine

@@ -5,47 +5,26 @@
 
 namespace Engine
 {
-	using byte  = std::uint8_t;
-	using word  = std::uint16_t;
-	using dword = std::uint32_t;
-	using qword = std::uint64_t;
+	using u8   = std::uint8_t;
+	using u16  = std::uint16_t;
+	using u32  = std::uint32_t;
+	using u64  = std::uint64_t;
+	using u128 = unsigned __int128;
 
-	using bool_t    = bool;
-	using short_t   = std::int16_t;
-	using ushort_t  = std::uint16_t;
-	using int_t     = std::int32_t;
-	using uint_t    = std::uint32_t;
-	using int8_t    = std::int8_t;
-	using uint8_t   = std::uint8_t;
-	using int16_t   = std::int16_t;
-	using uint16_t  = std::uint16_t;
-	using int32_t   = std::int32_t;
-	using uint32_t  = std::uint32_t;
-	using int64_t   = std::int64_t;
-	using uint64_t  = std::uint64_t;
-	using int128_t  = signed __int128;
-	using uint128_t = unsigned __int128;
-	using float_t   = float;
-	using double_t  = double;
+	using i8   = std::int8_t;
+	using i16  = std::int16_t;
+	using i32  = std::int32_t;
+	using i64  = std::int64_t;
+	using i128 = __int128;
 
-	using float16_t = _Float16;
-	using float32_t = float;
-	using float64_t = double;
+	using f16 = _Float16;
+	using f32 = float;
+	using f64 = double;
 
-	using signed_byte = std::int8_t;
-	using size_t      = std::uint64_t;
-	using ptrdiff_t   = std::int64_t;
+	using usize = u64;
+	using isize = i64;
 
-	using ArrayIndex          = size_t;
-	using ArrayOffset         = size_t;
-	using PriorityIndex       = size_t;
-	using Counter             = size_t;
-	using Index               = size_t;
-	using MaterialLayoutIndex = size_t;
-
-	using BindingIndex = byte;
-
-	using BitMask       = size_t;
+	using BitMask       = usize;
 	using Identifier    = std::uint64_t;
 	using EnumerateType = std::uint32_t;
 

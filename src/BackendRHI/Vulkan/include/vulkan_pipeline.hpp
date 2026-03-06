@@ -17,7 +17,7 @@ namespace Engine
 
 	struct VulkanVertexAttribute {
 		RHIVertexSemantic semantic;
-		byte binding;
+		u8 binding;
 	};
 
 	class VulkanPipeline : public VulkanDeferredDestroy<RHIPipeline>
@@ -28,7 +28,7 @@ namespace Engine
 		bool is_dirty_state(VulkanStateManager* manager) const;
 
 	protected:
-		VulkanPipelineLayout* create_layout(const RHIShaderParameterInfo* parameter, size_t count, vk::ShaderStageFlags stages);
+		VulkanPipelineLayout* create_layout(const RHIShaderParameterInfo* parameter, usize count, vk::ShaderStageFlags stages);
 
 	public:
 		VulkanPipeline& flush_descriptors(VulkanContext* manager, vk::PipelineBindPoint);
@@ -42,13 +42,13 @@ namespace Engine
 	{
 	private:
 		VulkanVertexAttribute* m_vertex_attributes = nullptr;
-		uint16_t m_vertex_attributes_count         = 0;
+		u16 m_vertex_attributes_count              = 0;
 
 		vk::PipelineInputAssemblyStateCreateInfo m_input_assembly;
 		vk::PipelineRasterizationStateCreateInfo m_rasterizer;
 		Vector<vk::PipelineShaderStageCreateInfo> m_stages;
 
-		FlatMap<uint128_t, vk::Pipeline> m_pipelines;
+		FlatMap<u128, vk::Pipeline> m_pipelines;
 
 		vk::Pipeline find_or_create_pipeline(VulkanStateManager* manager);
 		bool is_dirty_vertex_input(VulkanStateManager* manager);
@@ -77,13 +77,13 @@ namespace Engine
 		};
 
 		struct KeyHasher {
-			uint64_t operator()(const Key& key) const;
+			u64 operator()(const Key& key) const;
 		};
 
 		vk::PipelineRasterizationStateCreateInfo m_rasterizer;
 		Vector<vk::PipelineShaderStageCreateInfo> m_stages;
 
-		FlatMap<uint128_t, vk::Pipeline> m_pipelines;
+		FlatMap<u128, vk::Pipeline> m_pipelines;
 
 	private:
 		vk::Pipeline find_or_create_pipeline(VulkanStateManager* manager);
@@ -109,7 +109,7 @@ namespace Engine
 	{
 	private:
 		VulkanBuffer* m_sbt;
-		size_t m_groups;
+		usize m_groups;
 		vk::Pipeline m_pipeline;
 
 	public:
@@ -117,7 +117,7 @@ namespace Engine
 		VulkanRayTracingPipeline& flush(VulkanContext* ctx) override;
 		~VulkanRayTracingPipeline();
 
-		inline size_t groups() const { return m_groups; }
+		inline usize groups() const { return m_groups; }
 		inline VulkanBuffer* shader_binding_table() const { return m_sbt; }
 	};
 }// namespace Engine

@@ -77,7 +77,7 @@ namespace Engine
 		const RHIShaderParameterInfo* m_mip = nullptr;
 
 	public:
-		TextureView2D& update_mip(uint_t mip)
+		TextureView2D& update_mip(u32 mip)
 		{
 			float scalar = static_cast<float>(mip);
 			ImGui::GetCurrentRHI()->update_scalar(&scalar, m_mip);
@@ -107,10 +107,10 @@ namespace Engine
 		const RHIShaderParameterInfo* m_mip   = nullptr;
 
 	public:
-		static inline uint_t static_grid_size(uint_t depth) { return Math::ceil(Math::sqrt(static_cast<float>(depth))); }
+		static inline u32 static_grid_size(u32 depth) { return Math::ceil(Math::sqrt(static_cast<float>(depth))); }
 
 	public:
-		TextureView3D& update_mip(uint_t mip)
+		TextureView3D& update_mip(u32 mip)
 		{
 			float scalar = static_cast<float>(mip);
 			ImGui::GetCurrentRHI()->update_scalar(&scalar, m_mip);
@@ -147,14 +147,14 @@ namespace Engine
 		const RHIShaderParameterInfo* m_face = nullptr;
 
 	public:
-		TextureViewCube& update_mip(uint_t mip)
+		TextureViewCube& update_mip(u32 mip)
 		{
 			float scalar = static_cast<float>(mip);
 			ImGui::GetCurrentRHI()->update_scalar(&scalar, m_mip);
 			return *this;
 		}
 
-		TextureViewCube& update_face(uint_t face)
+		TextureViewCube& update_face(u32 face)
 		{
 			ImGui::GetCurrentRHI()->update_scalar(&face, m_face);
 			return *this;
@@ -175,7 +175,7 @@ namespace Engine
 		m_face = find_parameter("face");
 	}
 
-	static inline void render_texture_2d(RHITexture* src, const Matrix4f& transform, Vector2f range, uint_t level,
+	static inline void render_texture_2d(RHITexture* src, const Matrix4f& transform, Vector2f range, u32 level,
 	                                     const Vector4f& mask)
 	{
 		auto pipeline = TextureView2D::instance();
@@ -187,8 +187,8 @@ namespace Engine
 		ctx->draw(6, 0);
 	}
 
-	static inline void render_texture_3d(RHITexture* src, uint_t grid, uint_t z, const Matrix4f& transform, Vector2f range,
-	                                     uint_t level, const Vector4f& mask)
+	static inline void render_texture_3d(RHITexture* src, u32 grid, u32 z, const Matrix4f& transform, Vector2f range, u32 level,
+	                                     const Vector4f& mask)
 	{
 		auto pipeline = TextureView3D::instance();
 
@@ -201,7 +201,7 @@ namespace Engine
 		const float step  = 2.f / grid;
 		const float start = -1.f + (0.5f * step);
 
-		for (uint_t i = 0; i < z; ++i)
+		for (u32 i = 0; i < z; ++i)
 		{
 			float depth = static_cast<float>(i) / Math::max(static_cast<float>(z - 1), 1.f);
 
@@ -222,7 +222,7 @@ namespace Engine
 		}
 	}
 
-	static inline void render_texture_cube(RHITexture* src, const Matrix4f& transform, Vector2f range, uint_t level,
+	static inline void render_texture_cube(RHITexture* src, const Matrix4f& transform, Vector2f range, u32 level,
 	                                       const Vector4f& mask)
 	{
 		auto pipeline = TextureViewCube::instance();
@@ -241,7 +241,7 @@ namespace Engine
 
 		auto ctx = ImGui::GetCurrentRHI();
 
-		for (uint_t face = 0; face < 6; ++face)
+		for (u32 face = 0; face < 6; ++face)
 		{
 			ctx->bind_pipeline(pipeline->rhi_pipeline());
 			const Matrix4f face_translate = Math::translate(Matrix4f(1.f), Vector3f(face_offsets[face], 0.f));
@@ -416,7 +416,7 @@ namespace Engine
 		return *this;
 	}
 
-	uint32_t TextureEditorClient::build_dock(uint32_t dock_id)
+	u32 TextureEditorClient::build_dock(u32 dock_id)
 	{
 		auto dock_id_right = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Right, 0.25f, nullptr, &dock_id);
 		ImGui::DockBuilderDockWindow("Texture View###texture", dock_id);
@@ -461,8 +461,8 @@ namespace Engine
 		if (texture == nullptr)
 			return *this;
 
-		const uint_t z            = texture->size(mip()).z;
-		const uint_t grid         = TextureView3D::static_grid_size(z);
+		const u32 z               = texture->size(mip()).z;
+		const u32 grid            = TextureView3D::static_grid_size(z);
 		const Matrix4f projection = build_projection(texture->size(0), size);
 
 		render_texture_3d(texture->rhi_texture(), grid, z, projection, range(), mip(), mask());

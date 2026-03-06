@@ -11,7 +11,7 @@
 
 namespace Engine::RenderGraph
 {
-	static constexpr size_t s_default_reserve_size = 64;
+	static constexpr usize s_default_reserve_size = 64;
 
 	class Resource
 	{
@@ -24,8 +24,8 @@ namespace Engine::RenderGraph
 		};
 
 	private:
-		static constexpr uint64_t s_resource_type_mask    = 0x7ull;
-		static constexpr uint64_t s_resource_address_mask = ~s_resource_type_mask;
+		static constexpr u64 s_resource_type_mask    = 0x7ull;
+		static constexpr u64 s_resource_address_mask = ~s_resource_type_mask;
 
 
 		Resource* m_next;
@@ -37,7 +37,7 @@ namespace Engine::RenderGraph
 		union
 		{
 			void* m_resource;
-			uint64_t m_resource_address;
+			u64 m_resource_address;
 		};
 
 	public:

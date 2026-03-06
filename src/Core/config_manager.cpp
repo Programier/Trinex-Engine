@@ -117,7 +117,7 @@ namespace Engine::ConfigManager
 
 		Set<StringView> pending;
 
-		for (uint_t i = 0; i < var_count; ++i)
+		for (u32 i = 0; i < var_count; ++i)
 		{
 			StringView group;
 			e.global_property(i, nullptr, nullptr, &group);

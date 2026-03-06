@@ -23,16 +23,16 @@ namespace Engine
 	};
 
 	static struct GCState {
-		Index object_index = 0;
+		usize object_index = 0;
 		GCStage stage      = GCStage::MarkUnreachable;
 	} gc_state;
 
 	CallBacks<void(Object*)> GarbageCollector::on_unreachable_check;
 	CallBacks<void(Object*)> GarbageCollector::on_destroy;
 
-	static FORCE_INLINE uint32_t get_max_objects_per_tick()
+	static FORCE_INLINE u32 get_max_objects_per_tick()
 	{
-		return Math::max<uint32_t>(1, Settings::gc_max_object_per_tick);
+		return Math::max<u32>(1, Settings::gc_max_object_per_tick);
 	}
 
 	ENGINE_EXPORT void GarbageCollector::destroy_internal(Object* object)
@@ -96,9 +96,9 @@ namespace Engine
 
 	bool GarbageCollector::process_objects(void (*callback)(Object* object))
 	{
-		const auto& objects     = Object::static_objects();
-		uint_t objects_per_tick = get_max_objects_per_tick();
-		auto objects_count      = objects.size();
+		const auto& objects  = Object::static_objects();
+		u32 objects_per_tick = get_max_objects_per_tick();
+		auto objects_count   = objects.size();
 
 		while (objects_per_tick > 0 && gc_state.object_index < objects_count)
 		{
@@ -210,7 +210,7 @@ namespace Engine
 	{
 		auto& objects = const_cast<Vector<Object*>&>(Object::static_objects());
 
-		size_t index = 0;
+		usize index = 0;
 
 		while (index < objects.size())
 		{

@@ -62,12 +62,12 @@ namespace Engine::Refl
 
 	bool PrimitiveProperty::serialize(void* object, Archive& ar)
 	{
-		byte* prop = reinterpret_cast<byte*>(address(object));
+		u8* prop = reinterpret_cast<u8*>(address(object));
 		ar.serialize_memory(prop, size());
 		return ar;
 	}
 
-	size_t BooleanProperty::size() const
+	usize BooleanProperty::size() const
 	{
 		return sizeof(bool);
 	}
@@ -96,7 +96,7 @@ namespace Engine::Refl
 		return ar.serialize(value);
 	}
 
-	size_t StringProperty::size() const
+	usize StringProperty::size() const
 	{
 		return sizeof(String);
 	}
@@ -113,7 +113,7 @@ namespace Engine::Refl
 		return ar.serialize(value);
 	}
 
-	size_t ObjectProperty::size() const
+	usize ObjectProperty::size() const
 	{
 		return sizeof(Engine::Object*);
 	}
@@ -170,7 +170,7 @@ namespace Engine::Refl
 
 	bool ArrayProperty::serialize(void* object, Archive& ar)
 	{
-		size_t elements = length(object);
+		usize elements = length(object);
 		ar.serialize(elements);
 
 		if (ar.is_reading())
@@ -180,7 +180,7 @@ namespace Engine::Refl
 
 		auto element_prop = element_property();
 
-		for (size_t i = 0; i < elements; ++i)
+		for (usize i = 0; i < elements; ++i)
 		{
 			void* element = at(object, i);
 			element_prop->serialize(element, ar);
@@ -189,7 +189,7 @@ namespace Engine::Refl
 		return ar;
 	}
 
-	const String& ArrayProperty::index_name(const void* object, size_t index) const
+	const String& ArrayProperty::index_name(const void* object, usize index) const
 	{
 		static Vector<String> index_names;
 
@@ -201,7 +201,7 @@ namespace Engine::Refl
 		return index_names[index];
 	}
 
-	size_t ReflObjectProperty::size() const
+	usize ReflObjectProperty::size() const
 	{
 		return sizeof(Refl::Object*);
 	}
@@ -285,7 +285,7 @@ namespace Engine::Refl
 
 	bool FlagsProperty::serialize(void* object, Archive& ar)
 	{
-		byte* flags = address_as<byte>(object);
+		u8* flags = address_as<u8>(object);
 		return ar.serialize_memory(flags, size());
 	}
 

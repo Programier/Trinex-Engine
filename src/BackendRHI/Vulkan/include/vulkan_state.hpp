@@ -27,11 +27,11 @@ namespace Engine
 	{
 	private:
 		Vector<T> m_resources;
-		Vector<uint8_t> m_dirty_flags;
+		Vector<u8> m_dirty_flags;
 
-		void resize(size_t index)
+		void resize(usize index)
 		{
-			size_t size = index + 1;
+			usize size = index + 1;
 			if (size > m_resources.size())
 			{
 				m_resources.resize(size);
@@ -40,12 +40,12 @@ namespace Engine
 		}
 
 	public:
-		T resource(size_t index) const { return m_resources[index]; }
-		bool is_dirty(size_t index) const { return m_dirty_flags[index >> 3] & (1 << (index % 8)); }
-		size_t size() const { return m_resources.size(); }
+		T resource(usize index) const { return m_resources[index]; }
+		bool is_dirty(usize index) const { return m_dirty_flags[index >> 3] & (1 << (index % 8)); }
+		usize size() const { return m_resources.size(); }
 
 		template<typename Resource>
-		void bind(Resource&& resource, size_t index)
+		void bind(Resource&& resource, usize index)
 		{
 			resize(index);
 			if (m_resources[index] != resource)
@@ -57,13 +57,13 @@ namespace Engine
 
 		void flush() { std::memset(m_dirty_flags.data(), 0, m_dirty_flags.size()); }
 		void make_dirty() { std::memset(m_dirty_flags.data(), 255, m_dirty_flags.size()); }
-		void make_dirty(size_t index) { m_dirty_flags[index >> 3] |= (1 << (index % 8)); }
+		void make_dirty(usize index) { m_dirty_flags[index >> 3] |= (1 << (index % 8)); }
 	};
 
 	class VulkanStateManager
 	{
 	public:
-		enum DirtyFlags : uint32_t
+		enum DirtyFlags : u32
 		{
 			RenderTarget      = 1 << 0,
 			Pipeline          = 1 << 1,
@@ -92,12 +92,10 @@ namespace Engine
 
 		struct UniformBuffer {
 			vk::Buffer buffer;
-			uint32_t size;
-			uint32_t offset;
+			u32 size;
+			u32 offset;
 
-			UniformBuffer(vk::Buffer buffer = {}, uint32_t size = 0, uint32_t offset = 0)
-			    : buffer(buffer), size(size), offset(offset)
-			{}
+			UniformBuffer(vk::Buffer buffer = {}, u32 size = 0, u32 offset = 0) : buffer(buffer), size(size), offset(offset) {}
 
 			inline bool operator==(const UniformBuffer& other) const
 			{
@@ -115,8 +113,8 @@ namespace Engine
 		};
 
 		struct VertexAttribute {
-			uint16_t stream;
-			uint16_t offset;
+			u16 stream;
+			u16 offset;
 			RHIVertexFormat format;
 
 			inline bool operator==(const VertexAttribute& other) const
@@ -129,7 +127,7 @@ namespace Engine
 
 		struct VertexStream {
 			vk::VertexInputRate rate;
-			uint16_t stride;
+			u16 stride;
 
 			inline bool operator==(const VertexStream& other) const { return stride == other.stride && rate == other.rate; }
 			inline bool operator!=(const VertexStream& other) const { return !((*this) == other); }
@@ -137,7 +135,7 @@ namespace Engine
 
 	private:
 		RHIContextFlags m_flags;
-		uint32_t m_dirty_flags;
+		u32 m_dirty_flags;
 
 		Framebuffer m_framebuffer;
 		VulkanPipeline* m_pipeline = nullptr;
@@ -161,7 +159,7 @@ namespace Engine
 
 
 	private:
-		VulkanStateManager& flush_state(VulkanCommandHandle* handle, uint32_t mask);
+		VulkanStateManager& flush_state(VulkanCommandHandle* handle, u32 mask);
 		VulkanStateManager& on_framebuffer_update();
 
 	public:
@@ -179,7 +177,7 @@ namespace Engine
 		VulkanStateManager();
 		~VulkanStateManager();
 
-		VulkanStateManager& update_scalar(VulkanContext* ctx, const void* data, size_t size, size_t offset, byte buffer_index);
+		VulkanStateManager& update_scalar(VulkanContext* ctx, const void* data, usize size, usize offset, u8 buffer_index);
 
 		VulkanStateManager& bind(const Framebuffer& framebuffer)
 		{
@@ -193,7 +191,7 @@ namespace Engine
 				return *this;
 			}
 
-			for (uint16_t i = 0; i < 6; ++i)
+			for (u16 i = 0; i < 6; ++i)
 			{
 				if (m_framebuffer.formats[i] != framebuffer.formats[i])
 				{
@@ -335,16 +333,16 @@ namespace Engine
 		VulkanCommandHandle* flush_compute(VulkanContext* ctx);
 		VulkanCommandHandle* flush_raytrace(VulkanContext* ctx);
 		VulkanStateManager& reset();
-		VulkanStateManager& copy(VulkanStateManager* src, size_t dirty_mask = ~0ULL);
+		VulkanStateManager& copy(VulkanStateManager* src, usize dirty_mask = ~0ULL);
 
-		vk::PipelineVertexInputStateCreateInfo create_vertex_input(VulkanVertexAttribute* attributes, size_t count);
-		uint128_t graphics_pipeline_id(VulkanVertexAttribute* attributes, size_t count) const;
-		uint128_t mesh_pipeline_id() const;
+		vk::PipelineVertexInputStateCreateInfo create_vertex_input(VulkanVertexAttribute* attributes, usize count);
+		u128 graphics_pipeline_id(VulkanVertexAttribute* attributes, usize count) const;
+		u128 mesh_pipeline_id() const;
 
-		inline uint32_t dirty_flags() const { return m_dirty_flags; }
-		inline bool is_dirty(uint32_t flags) const { return (m_dirty_flags & flags); }
-		inline uint32_t add_dirty(uint32_t flags) { return (m_dirty_flags |= flags); }
-		inline uint32_t remove_dirty(uint32_t flags) { return (m_dirty_flags &= ~flags); }
+		inline u32 dirty_flags() const { return m_dirty_flags; }
+		inline bool is_dirty(u32 flags) const { return (m_dirty_flags & flags); }
+		inline u32 add_dirty(u32 flags) { return (m_dirty_flags |= flags); }
+		inline u32 remove_dirty(u32 flags) { return (m_dirty_flags &= ~flags); }
 		inline VulkanPipeline* pipeline() const { return m_pipeline; }
 		inline const Framebuffer& framebuffer() const { return m_framebuffer; }
 		inline const RHIDepthState& depth_state() const { return m_graphics_state.depth; }

@@ -289,13 +289,13 @@ namespace Engine
 		m_browser->Open();
 	}
 
-	ImGuiOpenFile& ImGuiOpenFile::window_pos(int_t posx, int_t posy) noexcept
+	ImGuiOpenFile& ImGuiOpenFile::window_pos(i32 posx, i32 posy) noexcept
 	{
 		m_browser->SetWindowPos(posx, posy);
 		return *this;
 	}
 
-	ImGuiOpenFile& ImGuiOpenFile::window_size(int_t width, int_t height) noexcept
+	ImGuiOpenFile& ImGuiOpenFile::window_size(i32 width, i32 height) noexcept
 	{
 		m_browser->SetWindowSize(width, height);
 		return *this;
@@ -318,7 +318,7 @@ namespace Engine
 		return *this;
 	}
 
-	ImGuiOpenFile& ImGuiOpenFile::current_type_filter_index(int_t index)
+	ImGuiOpenFile& ImGuiOpenFile::current_type_filter_index(i32 index)
 	{
 		m_browser->SetCurrentTypeFilterIndex(index);
 		return *this;
@@ -537,15 +537,15 @@ namespace Engine
 
 			if (m_world)
 			{
-				Level* level       = m_world;
-				size_t level_index = 0;
+				Level* level      = m_world;
+				usize level_index = 0;
 
 				do
 				{
 					auto& actors = level->actors();
 					auto editor  = EditorEngine::instance();
 
-					for (size_t i = 0, count = actors.size(); i < count; ++i)
+					for (usize i = 0, count = actors.size(); i < count; ++i)
 					{
 						if (Actor* actor = actors[i])
 						{

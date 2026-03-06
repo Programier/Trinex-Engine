@@ -33,7 +33,7 @@ namespace Engine
 		using Type = InstanceClass;
 
 		struct HashStruct : public Hash<InstanceClass*> {
-			size_t operator()(const Pointer<InstanceClass>& instance) const
+			usize operator()(const Pointer<InstanceClass>& instance) const
 			{
 				return static_cast<Hash<InstanceClass*>>(*this)(instance.m_instance);
 			}

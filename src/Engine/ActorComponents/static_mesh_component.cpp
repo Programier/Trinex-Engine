@@ -19,7 +19,7 @@ namespace Engine
 		r.method("StaticMeshComponent@ mesh(StaticMesh@ mesh) final", overload_of<StaticMeshComponent&()>(&This::mesh));
 	}
 
-	size_t StaticMeshComponent::materials_count() const
+	usize StaticMeshComponent::materials_count() const
 	{
 		if (m_mesh)
 			return m_mesh->materials.size();
@@ -27,7 +27,7 @@ namespace Engine
 		return 0;
 	}
 
-	MaterialInterface* StaticMeshComponent::material(size_t index) const
+	MaterialInterface* StaticMeshComponent::material(usize index) const
 	{
 		if (MaterialInterface* material = Super::material(index))
 			return material;
@@ -38,32 +38,32 @@ namespace Engine
 		return nullptr;
 	}
 
-	size_t StaticMeshComponent::lods_count() const
+	usize StaticMeshComponent::lods_count() const
 	{
 		return m_mesh->lods.size();
 	}
 
-	size_t StaticMeshComponent::surfaces_count(size_t lod) const
+	usize StaticMeshComponent::surfaces_count(usize lod) const
 	{
 		return m_mesh->lods[lod].surfaces.size();
 	}
 
-	const MeshSurface* StaticMeshComponent::surface(size_t index, size_t lod) const
+	const MeshSurface* StaticMeshComponent::surface(usize index, usize lod) const
 	{
 		return &m_mesh->lods[lod].surfaces[index];
 	}
 
-	const MeshVertexAttribute* StaticMeshComponent::vertex_attribute(RHIVertexSemantic semantic, size_t lod)
+	const MeshVertexAttribute* StaticMeshComponent::vertex_attribute(RHIVertexSemantic semantic, usize lod)
 	{
 		return m_mesh->lods[lod].find_attribute(semantic);
 	}
 
-	VertexBufferBase* StaticMeshComponent::vertex_buffer(byte stream, size_t lod)
+	VertexBufferBase* StaticMeshComponent::vertex_buffer(u8 stream, usize lod)
 	{
 		return &m_mesh->lods[lod].buffers[stream];
 	}
 
-	IndexBuffer* StaticMeshComponent::index_buffer(size_t lod)
+	IndexBuffer* StaticMeshComponent::index_buffer(usize lod)
 	{
 		auto& buffer = m_mesh->lods[lod].indices;
 		return buffer.size() == 0 ? nullptr : &buffer;
@@ -72,7 +72,7 @@ namespace Engine
 	StaticMeshComponent& StaticMeshComponent::render(PrimitiveRenderingContext* ctx)
 	{
 		trinex_profile_cpu_n("StaticMeshComponent::render");
-		
+
 		static Name permutation = "StaticMesh";
 
 		if ((ctx->pass = ctx->pass->find_permutation(permutation)))

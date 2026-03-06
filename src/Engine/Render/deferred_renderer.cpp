@@ -28,10 +28,10 @@
 
 namespace Engine
 {
-	static constexpr uint_t s_cascades_per_directional_light = 4;
+	static constexpr u32 s_cascades_per_directional_light = 4;
 
-	static void find_light_range(FrameVector<LightComponent*>& lights, uint_t light_type, LightRenderRanges::LightRange& range,
-	                             uint32_t search_offset = 0)
+	static void find_light_range(FrameVector<LightComponent*>& lights, u32 light_type, LightRenderRanges::LightRange& range,
+	                             u32 search_offset = 0)
 	{
 		if (lights.size() <= search_offset)
 		{
@@ -41,8 +41,8 @@ namespace Engine
 		}
 
 		struct CompareType {
-			bool operator()(const LightComponent* light, uint_t type) const { return light->light_type() < type; }
-			bool operator()(uint_t type, const LightComponent* light) const { return light->light_type() > type; }
+			bool operator()(const LightComponent* light, u32 type) const { return light->light_type() < type; }
+			bool operator()(u32 type, const LightComponent* light) const { return light->light_type() > type; }
 		};
 
 		struct CompareShadows {
@@ -200,7 +200,7 @@ namespace Engine
 
 		lines.add_box(box.min, box.max, {255, 0, 255, 255}, 3.f);
 
-		for (byte i = 0; i < 8; i++)
+		for (u8 i = 0; i < 8; i++)
 		{
 			auto child = node->child_at(i);
 
@@ -247,9 +247,9 @@ namespace Engine
 		return *this;
 	}
 
-	DeferredRenderer& DeferredRenderer::register_shadow_light(PointLightComponent* light, byte* shadow_data)
+	DeferredRenderer& DeferredRenderer::register_shadow_light(PointLightComponent* light, u8* shadow_data)
 	{
-		static const uint_t shadow_map_size = 1024;
+		static const u32 shadow_map_size = 1024;
 
 		auto& transform = light->world_transform();
 
@@ -267,9 +267,9 @@ namespace Engine
 		return *this;
 	}
 
-	DeferredRenderer& DeferredRenderer::register_shadow_light(SpotLightComponent* light, byte* shadow_data)
+	DeferredRenderer& DeferredRenderer::register_shadow_light(SpotLightComponent* light, u8* shadow_data)
 	{
-		static const uint_t shadow_map_size = 1024;
+		static const u32 shadow_map_size = 1024;
 
 		auto& transform = light->world_transform();
 
@@ -288,10 +288,10 @@ namespace Engine
 		return *this;
 	}
 
-	DeferredRenderer& DeferredRenderer::register_shadow_light(DirectionalLightComponent* light, byte* shadow_data)
+	DeferredRenderer& DeferredRenderer::register_shadow_light(DirectionalLightComponent* light, u8* shadow_data)
 	{
-		static const uint_t shadow_map_size = 1024;
-		const SceneView& view               = scene_view();
+		static const u32 shadow_map_size = 1024;
+		const SceneView& view            = scene_view();
 
 		DirectionalLightShadowParameters* data  = reinterpret_cast<DirectionalLightShadowParameters*>(shadow_data);
 		DirectionalLightShadowCascade* cascades = reinterpret_cast<DirectionalLightShadowCascade*>(data + 1);
@@ -305,7 +305,7 @@ namespace Engine
 
 		const float shadow_distance = light->shadows_distance();
 
-		for (uint_t cascade = 0; cascade < s_cascades_per_directional_light; ++cascade)
+		for (u32 cascade = 0; cascade < s_cascades_per_directional_light; ++cascade)
 		{
 			Vector3f cascade_center;
 			float cascade_radius;
@@ -328,7 +328,7 @@ namespace Engine
 
 				Box3f box = Box3f(corner, corner);
 
-				for (uint_t i = 1; i < 8; i++)
+				for (u32 i = 1; i < 8; i++)
 				{
 					corner  = view.screen_to_world(screen_corners[i]);
 					box.min = Math::min(box.min, corner);
@@ -812,30 +812,30 @@ namespace Engine
 	{
 		trinex_profile_cpu_n("DeferredRenderer::render_visible_primitives");
 
-		static constexpr uint_t chunk = 64;
+		static constexpr u32 chunk = 64;
 
 		struct Worker {
 			RHIContext* context = nullptr;
-			size_t objects;
+			usize objects;
 		};
 
 		TaskGraph* graph             = TaskGraph::instance();
 		RHIContextPool* context_pool = RHIContextPool::global_instance();
 
-		const uint32_t primitives_count = m_visible_primitives.size();
-		//const uint32_t worker_count     = Math::min<uint32_t>(graph->workers() + 1, (primitives_count + chunk - 1) / chunk);
-		const uint32_t worker_count = 1;
+		const u32 primitives_count = m_visible_primitives.size();
+		//const u32 worker_count     = Math::min<u32>(graph->workers() + 1, (primitives_count + chunk - 1) / chunk);
+		const u32 worker_count = 1;
 
 		StackByteAllocator::Mark mark;
 		Worker* workers = StackAllocator<Worker>::allocate(worker_count);
 
-		for (uint32_t i = 0; i < worker_count; ++i)
+		for (u32 i = 0; i < worker_count; ++i)
 		{
 			RHIContext* secondary = context_pool->request_context(RHIContextFlags::Secondary);
 			workers[i]            = {secondary, 0};
 		}
 
-		auto callback = [this, pass, workers, bindings, inherit](uint32_t idx) {
+		auto callback = [this, pass, workers, bindings, inherit](u32 idx) {
 			Worker& worker = workers[Task::worker_index()];
 
 			if (++worker.objects == 1)
@@ -851,7 +851,7 @@ namespace Engine
 
 		graph->for_each(primitives_count, callback, chunk, worker_count);
 
-		for (uint32_t i = 0; i < worker_count; ++i)
+		for (u32 i = 0; i < worker_count; ++i)
 		{
 			Worker& worker = workers[i];
 
@@ -899,13 +899,13 @@ namespace Engine
 			                                              RHIBufferCreateFlags::ShaderResource |
 			                                              RHIBufferCreateFlags::TransferDst;
 
-			size_t size     = sizeof(LightRenderParameters) * m_visible_lights.size();
+			usize size      = sizeof(LightRenderParameters) * m_visible_lights.size();
 			m_lights_buffer = RHIBufferPool::global_instance()->request_transient_buffer(size, flags);
 
 			if (!m_visible_lights.empty())
 			{
 				auto pass = [this](RHIContext* ctx) {
-					size_t size = sizeof(LightRenderParameters) * m_visible_lights.size();
+					usize size = sizeof(LightRenderParameters) * m_visible_lights.size();
 
 					LightRenderParameters* parameters = StackAllocator<LightRenderParameters>::allocate(m_visible_lights.size());
 					{
@@ -919,9 +919,9 @@ namespace Engine
 
 					// Update shadow buffer address for each light
 					{
-						uint_t current = m_light_ranges->point.shadowed.start;
-						uint_t end     = m_light_ranges->point.shadowed.end;
-						uint_t address = 0;
+						u32 current = m_light_ranges->point.shadowed.start;
+						u32 end     = m_light_ranges->point.shadowed.end;
+						u32 address = 0;
 
 						for (; current < end; ++current)
 						{
@@ -950,7 +950,7 @@ namespace Engine
 					}
 
 					ctx->barrier(m_lights_buffer, RHIAccess::TransferDst);
-					ctx->update_buffer(m_lights_buffer, 0, size, reinterpret_cast<byte*>(parameters));
+					ctx->update_buffer(m_lights_buffer, 0, size, reinterpret_cast<u8*>(parameters));
 				};
 
 				render_graph()
@@ -968,15 +968,14 @@ namespace Engine
 		{
 			StackByteAllocator::Mark mark;
 
-			uint32_t point_lights       = m_light_ranges->point.shadowed.end - m_light_ranges->point.shadowed.start;
-			uint32_t spot_lights        = m_light_ranges->spot.shadowed.end - m_light_ranges->spot.shadowed.start;
-			uint32_t directional_lights = m_light_ranges->directional.shadowed.end - m_light_ranges->directional.shadowed.start;
+			u32 point_lights       = m_light_ranges->point.shadowed.end - m_light_ranges->point.shadowed.start;
+			u32 spot_lights        = m_light_ranges->spot.shadowed.end - m_light_ranges->spot.shadowed.start;
+			u32 directional_lights = m_light_ranges->directional.shadowed.end - m_light_ranges->directional.shadowed.start;
 
-			size_t buffer_size =
-			        point_lights * sizeof(PointLightShadowParameters) +//
-			        spot_lights * sizeof(SpotLightShadowParameters) +  //
-			        directional_lights * (sizeof(DirectionalLightShadowParameters) +
-			                              s_cascades_per_directional_light * sizeof(DirectionalLightShadowCascade));//
+			usize buffer_size = point_lights * sizeof(PointLightShadowParameters) +//
+			                    spot_lights * sizeof(SpotLightShadowParameters) +  //
+			                    directional_lights * (sizeof(DirectionalLightShadowParameters) +
+			                                          s_cascades_per_directional_light * sizeof(DirectionalLightShadowCascade));//
 
 			auto pool       = RHIBufferPool::global_instance();
 			m_shadow_buffer = pool->request_transient_buffer(buffer_size, RHIBufferCreateFlags::ByteAddressBuffer |
@@ -987,11 +986,11 @@ namespace Engine
 				return m_shadow_buffer;
 
 			auto pass = [this, buffer_size](RHIContext* ctx) {
-				byte* buffer       = StackByteAllocator::allocate(buffer_size);
-				byte* current_data = buffer;
+				u8* buffer       = StackByteAllocator::allocate(buffer_size);
+				u8* current_data = buffer;
 
-				uint_t current = m_light_ranges->point.shadowed.start;
-				uint_t end     = m_light_ranges->point.shadowed.end;
+				u32 current = m_light_ranges->point.shadowed.start;
+				u32 end     = m_light_ranges->point.shadowed.end;
 
 				for (; current < end; ++current)
 				{

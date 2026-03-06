@@ -36,11 +36,11 @@ namespace Engine::VisualMaterialGraph
 
 		Texture2D();
 
-		static Texture2D* static_find_node(Engine::Texture2D* texture, Compiler& compiler, uint16_t id);
+		static Texture2D* static_find_node(Engine::Texture2D* texture, Compiler& compiler, u16 id);
 		Expression compile(OutputPin* pin, Compiler& compiler) override;
 		Texture2D& render() override;
 		Texture2D& post_compile(VisualMaterial* material) override;
-		static void static_post_compile(VisualMaterial* material, Engine::Texture2D* texture, uint16_t id,
+		static void static_post_compile(VisualMaterial* material, Engine::Texture2D* texture, u16 id,
 		                                StringView name_override = "");
 
 		inline OutputPin* texture_pin() const { return outputs()[0]; }
@@ -55,11 +55,11 @@ namespace Engine::VisualMaterialGraph
 		Engine::Sampler sampler;
 
 		Sampler();
-		static Sampler* static_find_node(const Engine::Sampler& sampler, Compiler& compiler, uint16_t id);
+		static Sampler* static_find_node(const Engine::Sampler& sampler, Compiler& compiler, u16 id);
 		Expression compile(OutputPin* pin, Compiler& compiler) override;
 		Sampler& post_compile(VisualMaterial* material) override;
 
-		static void static_post_compile(VisualMaterial* material, const Engine::Sampler& sampler, uint16_t id,
+		static void static_post_compile(VisualMaterial* material, const Engine::Sampler& sampler, u16 id,
 		                                StringView name_override = "");
 
 		inline OutputPin* sampler_pin() const { return outputs()[0]; }

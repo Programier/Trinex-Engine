@@ -19,7 +19,7 @@ namespace Engine
 
 		vk::Buffer m_buffer        = VK_NULL_HANDLE;
 		VmaAllocation m_allocation = VK_NULL_HANDLE;
-		size_t m_size              = 0;
+		usize m_size              = 0;
 		RHIDeviceAddress m_address = 0;
 
 		RHIAccess m_access           = RHIAccess::Undefined;
@@ -29,13 +29,13 @@ namespace Engine
 		VulkanBuffer& create(vk::DeviceSize size, RHIBufferCreateFlags flags,
 		                     VmaMemoryUsage memory_usage = VMA_MEMORY_USAGE_AUTO);
 
-		VulkanBuffer& copy(VulkanContext* ctx, vk::DeviceSize offset, const byte* data, vk::DeviceSize size);
+		VulkanBuffer& copy(VulkanContext* ctx, vk::DeviceSize offset, const u8* data, vk::DeviceSize size);
 
 		RHIDeviceAddress address() override;
-		byte* map(RHIMappingAccess access = RHIMappingAccess::Undefined) override;
+		u8* map(RHIMappingAccess access = RHIMappingAccess::Undefined) override;
 		void unmap() override;
-		size_t size() const override;
-		VulkanBuffer& update(VulkanContext* ctx, size_t offset, size_t size, const byte* data);
+		usize size() const override;
+		VulkanBuffer& update(VulkanContext* ctx, usize offset, usize size, const u8* data);
 		VulkanBuffer& barrier(VulkanContext* ctx, RHIAccess access);
 
 		RHIShaderResourceView* as_srv() override;
@@ -47,17 +47,17 @@ namespace Engine
 
 	class VulkanUniformBuffer : public VulkanBuffer
 	{
-		byte* m_memory;
-		byte* m_block_start;
-		byte* m_block_end;
+		u8* m_memory;
+		u8* m_block_start;
+		u8* m_block_end;
 
 	public:
 		VulkanUniformBuffer* next = nullptr;
 
-		VulkanUniformBuffer(size_t min_size = 0);
+		VulkanUniformBuffer(usize min_size = 0);
 		~VulkanUniformBuffer();
 		VulkanUniformBuffer& flush();
-		VulkanUniformBuffer& update(const void* data, size_t size, size_t offset);
+		VulkanUniformBuffer& update(const void* data, usize size, usize offset);
 
 
 		inline VulkanUniformBuffer& reset()
@@ -66,10 +66,10 @@ namespace Engine
 			return *this;
 		}
 
-		inline bool contains(size_t size) const { return m_block_start + size <= m_memory + VulkanBuffer::size(); }
-		inline size_t block_size() const { return m_block_end - m_block_start; }
-		inline size_t block_offset() const { return m_block_start - m_memory; }
-		inline byte* mapped_memory() const { return m_memory; }
+		inline bool contains(usize size) const { return m_block_start + size <= m_memory + VulkanBuffer::size(); }
+		inline usize block_size() const { return m_block_end - m_block_start; }
+		inline usize block_offset() const { return m_block_start - m_memory; }
+		inline u8* mapped_memory() const { return m_memory; }
 	};
 
 	class VulkanStaggingBuffer : public VulkanBuffer
@@ -88,9 +88,9 @@ namespace Engine
 	private:
 		struct FreeEntry {
 			VulkanStaggingBuffer* m_buffer = nullptr;
-			size_t m_frame_number          = 0;
+			usize m_frame_number          = 0;
 
-			FreeEntry(VulkanStaggingBuffer* buffer, size_t frames) : m_buffer(buffer), m_frame_number(frames) {}
+			FreeEntry(VulkanStaggingBuffer* buffer, usize frames) : m_buffer(buffer), m_frame_number(frames) {}
 		};
 
 		Set<VulkanStaggingBuffer*> m_buffers;

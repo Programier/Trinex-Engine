@@ -6,7 +6,7 @@
 
 namespace Engine
 {
-	enum class EventType : byte
+	enum class EventType : u8
 	{
 		Undefined,
 
@@ -134,13 +134,13 @@ namespace Engine
 		union TouchScreen
 		{
 			struct FingerEvent {
-				Index index;
+				usize index;
 				float x;
 				float y;
 			} finger;
 
 			struct FingerMotionEvent {
-				Index index;
+				usize index;
 				float x;
 				float y;
 				float xrel;
@@ -149,7 +149,7 @@ namespace Engine
 		};
 
 		struct TextInput {
-			static constexpr uint32_t max_tex_len = 31;
+			static constexpr u32 max_tex_len = 31;
 			char text[max_tex_len + 1];
 		};
 

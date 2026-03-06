@@ -140,7 +140,7 @@ namespace Engine
 		trinex_bitfield_enum_struct(RHIShaderParameterType, EnumerateType);
 		trinex_enum(RHIShaderParameterType);
 
-		ENGINE_EXPORT RHIShaderParameterType make_vector(byte len);
+		ENGINE_EXPORT RHIShaderParameterType make_vector(u8 len);
 		ENGINE_EXPORT RHIShaderParameterType make_scalar();
 
 		inline constexpr bool is_scalar() const { return (value & META_Scalar) == META_Scalar; }
@@ -151,14 +151,14 @@ namespace Engine
 		inline constexpr bool is_color() const { return value & META_Color; }
 		inline constexpr RHIShaderParameterType type() const { return value & (META_Boolean | META_Integer | META_Floating); }
 
-		inline constexpr byte rows() const
+		inline constexpr u8 rows() const
 		{
 			constexpr EnumerateType mask = META_1R | META_2R | META_3R | META_4R;
 			EnumerateType value          = bitfield & mask;
 			return value >> 18;
 		}
 
-		inline constexpr byte columns() const
+		inline constexpr u8 columns() const
 		{
 			constexpr EnumerateType mask = META_1C | META_2C | META_3C | META_4C;
 			EnumerateType value          = bitfield & mask;
@@ -167,7 +167,7 @@ namespace Engine
 	};
 
 	struct RHITextureCreateFlags {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			Undefined          = 0,
 			ShaderResource     = BIT(0),
@@ -179,11 +179,11 @@ namespace Engine
 			Samples8           = BIT(6),
 		};
 
-		trinex_bitfield_enum_struct(RHITextureCreateFlags, byte);
+		trinex_bitfield_enum_struct(RHITextureCreateFlags, u8);
 	};
 
 	struct RHIBufferCreateFlags {
-		enum Enum : uint16_t
+		enum Enum : u16
 		{
 			Undefined = 0,
 			Static    = BIT(0),
@@ -206,11 +206,11 @@ namespace Engine
 			ShaderBindingTable  = BIT(14),
 		};
 
-		trinex_bitfield_enum_struct(RHIBufferCreateFlags, uint16_t);
+		trinex_bitfield_enum_struct(RHIBufferCreateFlags, u16);
 	};
 
 	struct RHICompareFunc {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			Always   = 0,
 			Lequal   = 1,
@@ -269,7 +269,7 @@ namespace Engine
 	};
 
 	struct RHIVertexSemantic {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			Position     = 0,
 			TexCoord0    = 1,
@@ -289,7 +289,7 @@ namespace Engine
 	};
 
 	struct RHISamplerFilter {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			Point     = 0,
 			Bilinear  = 1,
@@ -301,7 +301,7 @@ namespace Engine
 	};
 
 	struct RHISamplerAddressMode {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			Repeat            = 0,
 			ClampToEdge       = 1,
@@ -315,7 +315,7 @@ namespace Engine
 	};
 
 	struct RHIStencilOp {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			Keep     = 0,
 			Zero     = 1,
@@ -332,7 +332,7 @@ namespace Engine
 	};
 
 	struct RHIBlendFunc {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			Zero                = 0,
 			One                 = 1,
@@ -353,7 +353,7 @@ namespace Engine
 	};
 
 	struct RHIBlendOp {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			Add             = 0,
 			Subtract        = 1,
@@ -367,7 +367,7 @@ namespace Engine
 	};
 
 	struct RHIPrimitiveTopology {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			TriangleList  = 0,
 			TriangleStrip = 1,
@@ -381,7 +381,7 @@ namespace Engine
 	};
 
 	struct RHIPolygonMode {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			Fill  = 0,
 			Line  = 1,
@@ -393,7 +393,7 @@ namespace Engine
 	};
 
 	struct RHICullMode {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			None  = 0,
 			Front = 1,
@@ -405,7 +405,7 @@ namespace Engine
 	};
 
 	struct RHIFrontFace {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			ClockWise        = 0,
 			CounterClockWise = 1,
@@ -416,7 +416,7 @@ namespace Engine
 	};
 
 	struct RHIVertexInputRate {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			Vertex   = 0,
 			Instance = 1,
@@ -426,7 +426,7 @@ namespace Engine
 	};
 
 	struct RHIIndexFormat {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			Undefined = 0,
 			UInt16    = 1,
@@ -435,7 +435,7 @@ namespace Engine
 
 		trinex_enum_struct(RHIIndexFormat);
 
-		inline size_t stride() const { return value << 1; }
+		inline usize stride() const { return value << 1; }
 	};
 
 	struct ENGINE_EXPORT RHIColorFormat {
@@ -464,7 +464,7 @@ namespace Engine
 			trinex_bitfield_enum_struct(Capabilities, EnumerateType);
 		};
 
-		enum Enum : byte
+		enum Enum : u8
 		{
 			Undefined = 0,
 
@@ -553,7 +553,7 @@ namespace Engine
 		RHIColorFormat add_capabilities(Capabilities capabilities) const;
 		RHIColorFormat remove_capabilities(Capabilities capabilities) const;
 
-		constexpr static inline uint32_t static_count() { return 68; }
+		constexpr static inline u32 static_count() { return 68; }
 		constexpr inline bool is_color() const { return value >= R8 && value <= P010; }
 		constexpr inline bool is_depth_stencil() const { return value == D24S8; }
 		constexpr inline bool is_depth() const { return value == D32F || value == D16_UNORM; }
@@ -570,7 +570,7 @@ namespace Engine
 	};
 
 	struct RHISurfaceFormat {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			Undefined = RHIColorFormat::Undefined,
 			D32F      = RHIColorFormat::D32F,
@@ -648,7 +648,7 @@ namespace Engine
 	};
 
 	struct RHIVertexFormat {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			Undefined = 0,
 
@@ -739,7 +739,7 @@ namespace Engine
 	}
 
 	struct RHIColorComponent {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			R = 1,
 			G = 2,
@@ -751,12 +751,12 @@ namespace Engine
 			RGBA = R | G | B | A,
 		};
 
-		trinex_bitfield_enum_struct(RHIColorComponent, byte);
+		trinex_bitfield_enum_struct(RHIColorComponent, u8);
 		trinex_enum(RHIColorComponent);
 	};
 
 	struct RHITextureType {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			Undefined        = 0,
 			Texture1D        = 1,
@@ -772,7 +772,7 @@ namespace Engine
 	};
 
 	struct RHICubeFace {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			Right  = 0,
 			Left   = 1,
@@ -785,7 +785,7 @@ namespace Engine
 	};
 
 	struct RHIShadingRate {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			e1x1 = (0 << 0) | (0 << 2),
 			e1x2 = (0 << 0) | (1 << 2),
@@ -798,12 +798,12 @@ namespace Engine
 
 		trinex_enum_struct(RHIShadingRate);
 
-		inline uint_t width() const { return 1u << (value & 0b11); }
-		inline uint_t height() const { return 1u << ((value >> 2) & 0b11); }
+		inline u32 width() const { return 1u << (value & 0b11); }
+		inline u32 height() const { return 1u << ((value >> 2) & 0b11); }
 	};
 
 	struct RHISampleCount {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			x1 = 0,
 			x2 = 1,
@@ -815,7 +815,7 @@ namespace Engine
 	};
 
 	struct RHILoadFunc {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			Load     = 0,
 			Clear    = 1,
@@ -826,7 +826,7 @@ namespace Engine
 	};
 
 	struct RHIStoreFunc {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			Store    = 0,
 			DontCare = 1,
@@ -836,7 +836,7 @@ namespace Engine
 	};
 
 	struct RHIResolveFunc {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			Undefined = 0,
 			Sample0   = 1,
@@ -849,7 +849,7 @@ namespace Engine
 	};
 
 	struct RHIRenderingFlags {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			Undefined            = 0,
 			SecondaryBuffersOnly = 1 << 0,
@@ -857,21 +857,21 @@ namespace Engine
 			Resuming             = 1 << 2,
 		};
 
-		trinex_bitfield_enum_struct(RHIRenderingFlags, byte);
+		trinex_bitfield_enum_struct(RHIRenderingFlags, u8);
 	};
 
 	struct RHIContextInheritanceFlags {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			Undefined          = 0,
 			RenderPassContinue = 1 << 0,
 		};
 
-		trinex_bitfield_enum_struct(RHIContextInheritanceFlags, byte);
+		trinex_bitfield_enum_struct(RHIContextInheritanceFlags, u8);
 	};
 
 	struct RHIContextFlags {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			Undefined = 0,
 			Secondary = 1 << 0,
@@ -880,11 +880,11 @@ namespace Engine
 			Transfer  = 1 << 4,
 		};
 
-		trinex_bitfield_enum_struct(RHIContextFlags, byte);
+		trinex_bitfield_enum_struct(RHIContextFlags, u8);
 	};
 
 	struct RHIShadingRateCombiner {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			Keep    = 0,
 			Replace = 1,
@@ -897,7 +897,7 @@ namespace Engine
 	};
 
 	struct RHIMappingAccess {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			Undefined = 0,
 			Read      = 1 << 0,
@@ -908,7 +908,7 @@ namespace Engine
 	};
 
 	struct RHIRayTracingGeometryType {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			Triangles = 0,
 			AABBs     = 1,
@@ -918,7 +918,7 @@ namespace Engine
 	};
 
 	struct RHIRayTracingAccelerationLevel {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			Top    = 0,
 			Bottom = 1,
@@ -928,18 +928,18 @@ namespace Engine
 	};
 
 	struct RHIRayTracingGeometryFlags {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			Undefined         = 0,
 			Opaque            = BIT(0),
 			NoDuplicateAnyHit = BIT(1),
 		};
 
-		trinex_bitfield_enum_struct(RHIRayTracingGeometryFlags, byte);
+		trinex_bitfield_enum_struct(RHIRayTracingGeometryFlags, u8);
 	};
 
 	struct RHIRayTracingAccelerationFlags {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			Undefined       = 0,
 			AllowUpdate     = BIT(0),
@@ -950,11 +950,11 @@ namespace Engine
 			PerformUpdate   = BIT(5),
 		};
 
-		trinex_bitfield_enum_struct(RHIRayTracingAccelerationFlags, byte);
+		trinex_bitfield_enum_struct(RHIRayTracingAccelerationFlags, u8);
 	};
 
 	struct RHIRayTracingShaderGroupType {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			GeneralRayGen   = 0,
 			GeneralMiss     = 1,
@@ -967,7 +967,7 @@ namespace Engine
 	};
 
 	struct RHIRayTracingGeometryInstanceFlags {
-		enum Enum : byte
+		enum Enum : u8
 		{
 			Undefined                 = 0,
 			TriangleFacingCullDisable = BIT(0),
@@ -977,6 +977,6 @@ namespace Engine
 			ForceNoOpaque             = BIT(4),
 		};
 
-		trinex_bitfield_enum_struct(RHIRayTracingGeometryInstanceFlags, byte);
+		trinex_bitfield_enum_struct(RHIRayTracingGeometryInstanceFlags, u8);
 	};
 }// namespace Engine

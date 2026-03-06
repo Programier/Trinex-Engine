@@ -44,7 +44,7 @@ namespace Engine::Refl
 	{
 		if (!Engine::Object::static_setup_next_object_info())
 		{
-			int_t type_id = ScriptContext::this_type_id();
+			i32 type_id = ScriptContext::this_type_id();
 
 			if (Class* script_class = ScriptEngine::find_class(type_id))
 				Engine::Object::static_setup_next_object_info(script_class);

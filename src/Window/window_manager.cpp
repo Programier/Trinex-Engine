@@ -117,7 +117,7 @@ namespace Engine
 			if (window->m_parent_window)
 			{
 				auto& childs = window->m_parent_window->m_childs;
-				for (size_t i = 0, count = childs.size(); i < count; i++)
+				for (usize i = 0, count = childs.size(); i < count; i++)
 				{
 					if (childs[i] == window)
 					{

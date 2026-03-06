@@ -17,7 +17,7 @@ namespace Engine::Strings
 	ENGINE_EXPORT StringView rstrip(const StringView& line, bool (*callback)(char ch));
 	ENGINE_EXPORT String capitalize_words(const StringView& sentence);
 	ENGINE_EXPORT String make_sentence(String line);
-	ENGINE_EXPORT uint64_t hash_of(const StringView& str);
+	ENGINE_EXPORT u64 hash_of(const StringView& str);
 
 	FORCE_INLINE StringView strip(const StringView& line, const StringView& chars = " \t\n\r")
 	{
@@ -30,13 +30,13 @@ namespace Engine::Strings
 	}
 
 	ENGINE_EXPORT String replace_all(StringView line, StringView old, StringView new_line);
-	ENGINE_EXPORT uint_t replace_symbol(String& str, char old_symbol, char new_symbol);
-	ENGINE_EXPORT uint_t replace_symbol(char* str, char old_symbol, char new_symbol);
-	ENGINE_EXPORT uint_t replace_symbol(char* str, char old_symbol, char new_symbol, uint_t len);
+	ENGINE_EXPORT u32 replace_symbol(String& str, char old_symbol, char new_symbol);
+	ENGINE_EXPORT u32 replace_symbol(char* str, char old_symbol, char new_symbol);
+	ENGINE_EXPORT u32 replace_symbol(char* str, char old_symbol, char new_symbol, u32 len);
 	ENGINE_EXPORT String to_lower(StringView line);
 	ENGINE_EXPORT String to_upper(StringView line);
 
-	ENGINE_EXPORT const char* strnstr(const char* haystack, size_t haystack_len, const char* needle, size_t needle_len);
+	ENGINE_EXPORT const char* strnstr(const char* haystack, usize haystack_len, const char* needle, usize needle_len);
 	ENGINE_EXPORT Vector<String> split(const StringView& line, char delimiter = ' ');
 	ENGINE_EXPORT Vector<String> split(const StringView& line, const StringView& delimiter);
 
@@ -80,8 +80,8 @@ namespace Engine::Strings
 		return join(elements, delimiter, callback);
 	}
 
-	ENGINE_EXPORT bool boolean_of(const char* text, size_t len = 0);
-	ENGINE_EXPORT int_t integer_of(const char* text);
+	ENGINE_EXPORT bool boolean_of(const char* text, usize len = 0);
+	ENGINE_EXPORT i32 integer_of(const char* text);
 	ENGINE_EXPORT float float_of(const char* text);
 	ENGINE_EXPORT void* pointer_of(const char* text);
 	ENGINE_EXPORT bool read_line(StringView& stream, StringView& out);

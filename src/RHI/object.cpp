@@ -3,7 +3,7 @@
 
 namespace Engine
 {
-	RHIObject::RHIObject(size_t init_ref_count) : m_references(init_ref_count) {}
+	RHIObject::RHIObject(usize init_ref_count) : m_references(init_ref_count) {}
 
 	void RHIObject::static_release_internal(RHIObject* object)
 	{
@@ -26,7 +26,7 @@ namespace Engine
 		}
 	}
 
-	size_t RHIObject::references() const
+	usize RHIObject::references() const
 	{
 		return m_references;
 	}

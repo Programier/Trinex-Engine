@@ -13,12 +13,12 @@ namespace Engine::Platform
 {
 	static Map<SDL_JoystickID, SDL_GameController*> m_game_controllers;
 
-	ENGINE_EXPORT size_t monitors_count()
+	ENGINE_EXPORT usize monitors_count()
 	{
-		return static_cast<size_t>(SDL_GetNumVideoDisplays());
+		return static_cast<usize>(SDL_GetNumVideoDisplays());
 	}
 
-	ENGINE_EXPORT MonitorInfo monitor_info(Index monitor_index)
+	ENGINE_EXPORT MonitorInfo monitor_info(usize monitor_index)
 	{
 		MonitorInfo info;
 		SDL_Rect r;
@@ -224,8 +224,8 @@ namespace Engine::Platform
 
 		static void process_window_event(void (*callback)(const Event& event, void* userdata), void* userdata)
 		{
-			int_t x = m_event.window.data1;
-			int_t y = m_event.window.data2;
+			i32 x = m_event.window.data1;
+			i32 y = m_event.window.data2;
 
 			switch (m_event.window.event)
 			{
@@ -240,7 +240,7 @@ namespace Engine::Platform
 					Window* window          = Engine::WindowManager::instance()->find(m_event.window.windowID);
 					if (window)
 					{
-						size_t index            = window->monitor_index();
+						usize index             = window->monitor_index();
 						auto info               = Platform::monitor_info(index);
 						m_engine_event.window.y = info.size.y - (y + window->size().y);
 						new_event(WindowMoved);
@@ -442,7 +442,7 @@ namespace Engine::Platform
 						}
 
 						gamepad.axis_motion.value =
-						        static_cast<float>(m_event.caxis.value) / static_cast<float>(std::numeric_limits<short_t>::max());
+						        static_cast<float>(m_event.caxis.value) / static_cast<float>(std::numeric_limits<i16>::max());
 						new_event(ControllerAxisMotion);
 					}
 					break;

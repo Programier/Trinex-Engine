@@ -6,7 +6,7 @@
 
 namespace Engine
 {
-	VulkanQueue::VulkanQueue(vk::Queue queue, uint32_t index) : m_queue(queue), m_index(index) {}
+	VulkanQueue::VulkanQueue(vk::Queue queue, u32 index) : m_queue(queue), m_index(index) {}
 
 	VulkanQueue& VulkanQueue::submit(const vk::SubmitInfo& info, vk::Fence fence)
 	{

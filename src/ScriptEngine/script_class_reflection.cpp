@@ -77,7 +77,7 @@ namespace Engine
 
 		for (asUINT i = 0; i < count; i++)
 		{
-			int64_t value = 0;
+			i64 value = 0;
 
 			if (meta == enum_type->GetEnumValueByIndex(i, &value))
 			{
@@ -154,7 +154,7 @@ namespace Engine
 	}
 
 	static Refl::Property* register_enum_property(Script* script, Refl::Struct* self, const String& prop_name,
-	                                              ScriptTypeInfo info, size_t offset)
+	                                              ScriptTypeInfo info, usize offset)
 	{
 		auto fullname             = Strings::concat_scoped_name(info.namespace_name(), info.name());
 		Refl::Enum* enum_instance = Refl::Enum::static_find(fullname);
@@ -165,9 +165,9 @@ namespace Engine
 		return self->new_child<Refl::ScriptEnumProperty>(prop_name, offset, enum_instance);
 	}
 
-	static Refl::Property* register_primitive_property(Script* script, Refl::Struct* self, int_t type_id, uint_t prop_idx)
+	static Refl::Property* register_primitive_property(Script* script, Refl::Struct* self, i32 type_id, u32 prop_idx)
 	{
-		uint_t offset = self->script_type_info.property_offset(prop_idx);
+		u32 offset = self->script_type_info.property_offset(prop_idx);
 
 		String name          = String(self->script_type_info.property_name(prop_idx));
 		Refl::Property* prop = nullptr;
@@ -178,35 +178,35 @@ namespace Engine
 		}
 		else if (ScriptEngine::is_int8(type_id))
 		{
-			prop = self->new_child<Refl::ScriptIntegerProperty<int8_t>>(name, offset);
+			prop = self->new_child<Refl::ScriptIntegerProperty<i8>>(name, offset);
 		}
 		else if (ScriptEngine::is_int16(type_id))
 		{
-			prop = self->new_child<Refl::ScriptIntegerProperty<int16_t>>(name, offset);
+			prop = self->new_child<Refl::ScriptIntegerProperty<i16>>(name, offset);
 		}
 		else if (ScriptEngine::is_int32(type_id))
 		{
-			prop = self->new_child<Refl::ScriptIntegerProperty<int32_t>>(name, offset);
+			prop = self->new_child<Refl::ScriptIntegerProperty<i32>>(name, offset);
 		}
 		else if (ScriptEngine::is_int64(type_id))
 		{
-			prop = self->new_child<Refl::ScriptIntegerProperty<int64_t>>(name, offset);
+			prop = self->new_child<Refl::ScriptIntegerProperty<i64>>(name, offset);
 		}
 		else if (ScriptEngine::is_uint8(type_id))
 		{
-			prop = self->new_child<Refl::ScriptIntegerProperty<uint8_t>>(name, offset);
+			prop = self->new_child<Refl::ScriptIntegerProperty<u8>>(name, offset);
 		}
 		else if (ScriptEngine::is_uint16(type_id))
 		{
-			prop = self->new_child<Refl::ScriptIntegerProperty<uint16_t>>(name, offset);
+			prop = self->new_child<Refl::ScriptIntegerProperty<u16>>(name, offset);
 		}
 		else if (ScriptEngine::is_uint32(type_id))
 		{
-			prop = self->new_child<Refl::ScriptIntegerProperty<uint32_t>>(name, offset);
+			prop = self->new_child<Refl::ScriptIntegerProperty<u32>>(name, offset);
 		}
 		else if (ScriptEngine::is_uint64(type_id))
 		{
-			prop = self->new_child<Refl::ScriptIntegerProperty<uint64_t>>(name, offset);
+			prop = self->new_child<Refl::ScriptIntegerProperty<u64>>(name, offset);
 		}
 		else if (ScriptEngine::is_float(type_id))
 		{
@@ -229,7 +229,7 @@ namespace Engine
 		return prop;
 	}
 
-	static Refl::Property* register_class_property(Script* script, Refl::Struct* self, ScriptTypeInfo info, uint_t prop_idx,
+	static Refl::Property* register_class_property(Script* script, Refl::Struct* self, ScriptTypeInfo info, u32 prop_idx,
 	                                               bool has_property_meta)
 	{
 		auto decl = Strings::concat_scoped_name(info.namespace_name(), info.name());
@@ -247,7 +247,7 @@ namespace Engine
 		if (!prop_struct)
 			return nullptr;
 
-		uint_t offset = self->script_type_info.property_offset(prop_idx);
+		u32 offset = self->script_type_info.property_offset(prop_idx);
 
 		String name          = String(self->script_type_info.property_name(prop_idx));
 		Refl::Property* prop = nullptr;
@@ -280,7 +280,7 @@ namespace Engine
 
 		register_metadata(script, self, class_metadata.class_metadata);
 
-		for (uint_t i = 0; i < prop_count; ++i)
+		for (u32 i = 0; i < prop_count; ++i)
 		{
 			if (!type.is_property_native(i))
 			{
@@ -358,13 +358,13 @@ namespace Engine
 	}
 
 
-	static Refl::Property* string_property(Script* script, Refl::Struct* self, ScriptTypeInfo info, uint_t idx)
+	static Refl::Property* string_property(Script* script, Refl::Struct* self, ScriptTypeInfo info, u32 idx)
 	{
 		bool is_handle = ScriptEngine::is_handle_type(self->script_type_info.property_type_id(idx));
 		trinex_verify_msg(!is_handle, "Cannot register handle as string property!");
 
-		uint_t offset = self->script_type_info.property_offset(idx);
-		String name   = String(self->script_type_info.property_name(idx));
+		u32 offset  = self->script_type_info.property_offset(idx);
+		String name = String(self->script_type_info.property_name(idx));
 		return self->new_child<Refl::ScriptStringProperty>(name, offset);
 	}
 

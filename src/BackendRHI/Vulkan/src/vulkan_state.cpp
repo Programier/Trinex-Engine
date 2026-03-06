@@ -48,7 +48,7 @@ namespace Engine
 		scissor      = RHIScissor();
 	}
 
-	VulkanStateManager& VulkanStateManager::flush_state(VulkanCommandHandle* handle, uint32_t mask)
+	VulkanStateManager& VulkanStateManager::flush_state(VulkanCommandHandle* handle, u32 mask)
 	{
 		remove_dirty(mask);
 
@@ -71,8 +71,8 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanStateManager& VulkanStateManager::update_scalar(VulkanContext* ctx, const void* data, size_t size, size_t offset,
-	                                                      byte buffer_index)
+	VulkanStateManager& VulkanStateManager::update_scalar(VulkanContext* ctx, const void* data, usize size, usize offset,
+	                                                      u8 buffer_index)
 	{
 		VulkanUniformBuffer* buffer = ctx->handle()->request_uniform_page(size + offset, buffer_index);
 		buffer->update(data, size, offset);
@@ -173,7 +173,7 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanStateManager& VulkanStateManager::copy(VulkanStateManager* src, size_t dirty_mask)
+	VulkanStateManager& VulkanStateManager::copy(VulkanStateManager* src, usize dirty_mask)
 	{
 		m_dirty_flags    = src->m_dirty_flags & dirty_mask;
 		m_framebuffer    = src->m_framebuffer;
@@ -193,8 +193,7 @@ namespace Engine
 		return *this;
 	}
 
-	vk::PipelineVertexInputStateCreateInfo VulkanStateManager::create_vertex_input(VulkanVertexAttribute* attributes,
-	                                                                               size_t count)
+	vk::PipelineVertexInputStateCreateInfo VulkanStateManager::create_vertex_input(VulkanVertexAttribute* attributes, usize count)
 	{
 		using VADesc = vk::VertexInputAttributeDescription;
 		using VBDesc = vk::VertexInputBindingDescription;
@@ -213,7 +212,7 @@ namespace Engine
 		{
 			info.pVertexAttributeDescriptions = va_desc;
 
-			for (size_t i = 0; i < count; ++i)
+			for (usize i = 0; i < count; ++i)
 			{
 				auto& src = attributes[i];
 
@@ -229,7 +228,7 @@ namespace Engine
 
 			info.vertexBindingDescriptionCount = 1;
 
-			for (size_t i = 1; i < count; ++i)
+			for (usize i = 1; i < count; ++i)
 			{
 				if (va_desc[i].binding != va_desc[i - 1].binding)
 					++info.vertexBindingDescriptionCount;
@@ -241,12 +240,12 @@ namespace Engine
 			auto vb_desc                    = StackAllocator<VBDesc>::allocate(info.vertexBindingDescriptionCount);
 			info.pVertexBindingDescriptions = vb_desc;
 
-			size_t va_index = 0;
+			usize va_index = 0;
 
 			while (va_index < count)
 			{
-				uint32_t stream = va_desc[va_index++].binding;
-				auto vs_state   = vertex_streams.resource(stream);
+				u32 stream    = va_desc[va_index++].binding;
+				auto vs_state = vertex_streams.resource(stream);
 
 				vb_desc->binding   = stream;
 				vb_desc->stride    = vs_state.stride;
@@ -260,19 +259,19 @@ namespace Engine
 		return info;
 	}
 
-	uint128_t VulkanStateManager::graphics_pipeline_id(VulkanVertexAttribute* attributes, size_t count) const
+	u128 VulkanStateManager::graphics_pipeline_id(VulkanVertexAttribute* attributes, usize count) const
 	{
 		struct VACache {
-			uint16_t offset;
-			uint16_t stride;
-			uint16_t binding;
-			byte format;
-			byte stream;
-			byte rate;
-			byte padding = 0;
+			u16 offset;
+			u16 stride;
+			u16 binding;
+			u8 format;
+			u8 stream;
+			u8 rate;
+			u8 padding = 0;
 		};
 
-		uint128_t hash = 0;
+		u128 hash = 0;
 
 		// Hash render target formats
 		{
@@ -285,7 +284,7 @@ namespace Engine
 		{
 			VACache va;
 
-			for (size_t i = 0; i < count; ++i)
+			for (usize i = 0; i < count; ++i)
 			{
 				auto& src = attributes[i];
 
@@ -297,7 +296,7 @@ namespace Engine
 				va.stride  = vs_state.stride;
 				va.binding = src.binding;
 				va.stream  = va_state.stream;
-				va.rate    = static_cast<byte>(vs_state.rate);
+				va.rate    = static_cast<u8>(vs_state.rate);
 
 				hash = memory_hash(&va, sizeof(va), hash);
 			}
@@ -306,7 +305,7 @@ namespace Engine
 		return hash;
 	}
 
-	uint128_t VulkanStateManager::mesh_pipeline_id() const
+	u128 VulkanStateManager::mesh_pipeline_id() const
 	{
 		return memory_hash(&m_graphics_state, sizeof(m_graphics_state));
 	}
@@ -364,14 +363,13 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanContext& VulkanContext::update_scalar(const void* data, size_t size, size_t offset, BindingIndex buffer_index)
+	VulkanContext& VulkanContext::update_scalar(const void* data, usize size, usize offset, u8 buffer_index)
 	{
 		m_state_manager->update_scalar(this, data, size, offset, buffer_index);
 		return *this;
 	}
 
-	VulkanContext& VulkanContext::bind_vertex_attribute(RHIVertexSemantic semantic, RHIVertexFormat format, byte stream,
-	                                                    uint16_t offset)
+	VulkanContext& VulkanContext::bind_vertex_attribute(RHIVertexSemantic semantic, RHIVertexFormat format, u8 stream, u16 offset)
 	{
 		VulkanStateManager::VertexAttribute va;
 		va.stream = stream;

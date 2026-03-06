@@ -44,7 +44,7 @@ namespace Engine
 		bool is_valid() const;
 		const ScriptFunction& release() const;
 
-		int_t id() const;
+		i32 id() const;
 		Type type() const;
 		StringView module_name() const;
 		ScriptModule module() const;
@@ -67,14 +67,14 @@ namespace Engine
 		bool is_property() const;
 		bool is_variadic() const;
 
-		uint_t param_count() const;
-		bool param(uint_t index, int_t* type_id, Flags<ScriptTypeModifiers>* flags = nullptr, StringView* name = nullptr,
+		u32 param_count() const;
+		bool param(u32 index, i32* type_id, Flags<ScriptTypeModifiers>* flags = nullptr, StringView* name = nullptr,
 		           StringView* default_arg = nullptr) const;
-		int_t return_type_id(ScriptTypeModifiers* flags = nullptr) const;
+		i32 return_type_id(ScriptTypeModifiers* flags = nullptr) const;
 
 		// Type id for function pointers
-		int_t type_id() const;
-		bool is_compatible_with_type_id(int_t type_id) const;
+		i32 type_id() const;
+		bool is_compatible_with_type_id(i32 type_id) const;
 
 		// Delegates
 		void* delegate_object() const;

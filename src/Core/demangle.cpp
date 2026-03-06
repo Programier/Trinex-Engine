@@ -7,7 +7,7 @@ namespace Engine::Demangle
 	ENGINE_EXPORT String decode_name(const String& name)
 	{
 		std::size_t len;
-		int_t s;
+		i32 s;
 		char* ptr = abi::__cxa_demangle(name.c_str(), 0, &len, &s);
 		if (ptr == nullptr)
 		{

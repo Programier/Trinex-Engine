@@ -50,7 +50,7 @@ namespace Engine
 	protected:
 		virtual Refl::Class* object_tree_child_class() const = 0;
 
-		bool register_child(Object* child, uint32_t& index) override
+		bool register_child(Object* child, u32& index) override
 		{
 			Object** begin = reinterpret_cast<Object**>(Holder::m_child_objects.begin());
 			Object** end   = reinterpret_cast<Object**>(Holder::m_child_objects.end());

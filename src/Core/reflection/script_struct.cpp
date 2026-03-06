@@ -31,7 +31,7 @@ namespace Engine::Refl
 		return m_script;
 	}
 
-	size_t ScriptStruct::size() const
+	usize ScriptStruct::size() const
 	{
 		return script_type_info.size();
 	}

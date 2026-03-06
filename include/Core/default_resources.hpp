@@ -51,5 +51,5 @@ namespace Engine
 
 	}// namespace DefaultResources
 
-	ENGINE_EXPORT class Object* load_object_from_memory(const byte* data, size_t size, const StringView& fullname);
+	ENGINE_EXPORT class Object* load_object_from_memory(const u8* data, usize size, const StringView& fullname);
 }// namespace Engine

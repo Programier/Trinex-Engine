@@ -24,7 +24,7 @@ namespace Engine
 		float m_lerp_speed        = 7.f;
 		float m_mouse_sensitivity = 1.f;
 
-		int_t match_zoom_index(int direction);
+		i32 match_zoom_index(int direction);
 		float match_zoom(int steps, float fallback);
 
 	public:

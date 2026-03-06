@@ -34,8 +34,8 @@ namespace Engine
 		asIJITCompiler* jit_compiler = nullptr;
 		ScriptFolder* script_folder  = nullptr;
 
-		Map<int_t, ScriptEngine::VariableToStringFunction> parsers_map;
-		Map<int_t, Refl::Class*> classes_map;
+		Map<i32, ScriptEngine::VariableToStringFunction> parsers_map;
+		Map<i32, Refl::Class*> classes_map;
 
 		static ScriptEngineData* instance()
 		{
@@ -70,7 +70,7 @@ namespace Engine
 		trinex_unreachable_msg(ctx->GetExceptionString());
 	}
 
-	static void* angel_script_allocate(size_t size)
+	static void* angel_script_allocate(usize size)
 	{
 		return ByteAllocator::allocate(size);
 	}
@@ -213,8 +213,8 @@ namespace Engine
 	ScriptFunction ScriptEngine::register_function(const char* declaration, ScriptFuncPtr* func, ScriptCallConv conv,
 	                                               void* auxiliary)
 	{
-		int_t id = ScriptEngineData::instance()->engine->RegisterGlobalFunction(declaration, *reinterpret_cast<asSFuncPtr*>(func),
-		                                                                        create_call_conv(conv), auxiliary);
+		i32 id = ScriptEngineData::instance()->engine->RegisterGlobalFunction(declaration, *reinterpret_cast<asSFuncPtr*>(func),
+		                                                                      create_call_conv(conv), auxiliary);
 		if (id < 0)
 			return {};
 		return function_by_id(id);
@@ -248,12 +248,12 @@ namespace Engine
 		return ScriptEngineData::instance()->engine->GetDefaultNamespace();
 	}
 
-	int_t ScriptEngine::register_property(const char* declaration, void* data)
+	i32 ScriptEngine::register_property(const char* declaration, void* data)
 	{
 		return ScriptEngineData::instance()->engine->RegisterGlobalProperty(declaration, data);
 	}
 
-	int_t ScriptEngine::register_property(const String& declaration, void* data)
+	i32 ScriptEngine::register_property(const String& declaration, void* data)
 	{
 		return register_property(declaration.c_str(), data);
 	}
@@ -263,7 +263,7 @@ namespace Engine
 		return ScriptEngineData::instance()->script_folder;
 	}
 
-	ScriptEngine& ScriptEngine::register_class(int_t type_id, Refl::Class* self)
+	ScriptEngine& ScriptEngine::register_class(i32 type_id, Refl::Class* self)
 	{
 		if (self)
 		{
@@ -273,7 +273,7 @@ namespace Engine
 		return instance();
 	}
 
-	Refl::Class* ScriptEngine::find_class(int_t type_id)
+	Refl::Class* ScriptEngine::find_class(i32 type_id)
 	{
 		auto& map = ScriptEngineData::instance()->classes_map;
 		auto it   = map.find(type_id);
@@ -284,7 +284,7 @@ namespace Engine
 		return it->second;
 	}
 
-	ScriptEngine& ScriptEngine::unregister_class(int_t type_id)
+	ScriptEngine& ScriptEngine::unregister_class(i32 type_id)
 	{
 		ScriptEngineData::instance()->classes_map.erase(type_id);
 		return instance();
@@ -294,7 +294,7 @@ namespace Engine
 	{
 		ScriptEngineData* data = ScriptEngineData::instance();
 
-		for (uint32_t i = 0, j = data->engine->GetModuleCount(); i < j; i++)
+		for (u32 i = 0, j = data->engine->GetModuleCount(); i < j; i++)
 		{
 			data->engine->GetModuleByIndex(i)->BindAllImportedFunctions();
 		}
@@ -330,12 +330,12 @@ namespace Engine
 		return instance();
 	}
 
-	uint_t ScriptEngine::global_function_count()
+	u32 ScriptEngine::global_function_count()
 	{
 		return ScriptEngineData::instance()->engine->GetGlobalFunctionCount();
 	}
 
-	ScriptFunction ScriptEngine::global_function_by_index(uint_t index)
+	ScriptFunction ScriptEngine::global_function_by_index(u32 index)
 	{
 		return ScriptFunction(ScriptEngineData::instance()->engine->GetGlobalFunctionByIndex(index));
 	}
@@ -350,33 +350,33 @@ namespace Engine
 		return global_function_by_decl(declaration.c_str());
 	}
 
-	uint_t ScriptEngine::global_property_count()
+	u32 ScriptEngine::global_property_count()
 	{
 		return ScriptEngineData::instance()->engine->GetGlobalPropertyCount();
 	}
 
-	int_t ScriptEngine::global_property_index_by_name(const char* name)
+	i32 ScriptEngine::global_property_index_by_name(const char* name)
 	{
 		return ScriptEngineData::instance()->engine->GetGlobalPropertyIndexByName(name);
 	}
 
-	int_t ScriptEngine::global_property_index_by_name(const String& name)
+	i32 ScriptEngine::global_property_index_by_name(const String& name)
 	{
 		return global_property_index_by_name(name.c_str());
 	}
 
-	int_t ScriptEngine::global_property_index_by_decl(const char* declaration)
+	i32 ScriptEngine::global_property_index_by_decl(const char* declaration)
 	{
 		return ScriptEngineData::instance()->engine->GetGlobalPropertyIndexByDecl(declaration);
 	}
 
-	int_t ScriptEngine::global_property_index_by_decl(const String& declaration)
+	i32 ScriptEngine::global_property_index_by_decl(const String& declaration)
 	{
 		return global_property_index_by_decl(declaration.c_str());
 	}
 
-	bool ScriptEngine::global_property(uint_t index, StringView* name, StringView* name_space, StringView* config_group,
-	                                   int_t* type_id, bool* is_const, byte** pointer)
+	bool ScriptEngine::global_property(u32 index, StringView* name, StringView* name_space, StringView* config_group,
+	                                   i32* type_id, bool* is_const, u8** pointer)
 	{
 		const char* c_name       = nullptr;
 		const char* c_name_space = nullptr;
@@ -432,18 +432,18 @@ namespace Engine
 		return remove_config_group(group.c_str());
 	}
 
-	ScriptEngine& ScriptEngine::garbage_collect(BitMask flags, size_t iterations)
+	ScriptEngine& ScriptEngine::garbage_collect(BitMask flags, usize iterations)
 	{
 		ScriptEngineData::instance()->engine->GarbageCollect(flags, iterations);
 		return instance();
 	}
 
-	uint_t ScriptEngine::object_type_count()
+	u32 ScriptEngine::object_type_count()
 	{
 		return ScriptEngineData::instance()->engine->GetObjectTypeCount();
 	}
 
-	ScriptTypeInfo ScriptEngine::object_type_by_index(uint_t index)
+	ScriptTypeInfo ScriptEngine::object_type_by_index(u32 index)
 	{
 		return ScriptTypeInfo(ScriptEngineData::instance()->engine->GetObjectTypeByIndex(index));
 	}
@@ -459,34 +459,34 @@ namespace Engine
 	}
 
 	// Enums
-	uint_t ScriptEngine::enum_count()
+	u32 ScriptEngine::enum_count()
 	{
 		return ScriptEngineData::instance()->engine->GetEnumCount();
 	}
 
-	ScriptTypeInfo ScriptEngine::enum_by_index(uint_t index)
+	ScriptTypeInfo ScriptEngine::enum_by_index(u32 index)
 	{
 		return ScriptTypeInfo(ScriptEngineData::instance()->engine->GetEnumByIndex(index));
 	}
 
 	// Funcdefs
-	uint_t ScriptEngine::funcdef_count()
+	u32 ScriptEngine::funcdef_count()
 	{
 		return ScriptEngineData::instance()->engine->GetFuncdefCount();
 	}
 
-	ScriptTypeInfo ScriptEngine::funcdef_by_index(uint_t index)
+	ScriptTypeInfo ScriptEngine::funcdef_by_index(u32 index)
 	{
 		return ScriptTypeInfo(ScriptEngineData::instance()->engine->GetFuncdefByIndex(index));
 	}
 
 	// Typedefs
-	uint_t ScriptEngine::typedef_count()
+	u32 ScriptEngine::typedef_count()
 	{
 		return ScriptEngineData::instance()->engine->GetTypedefCount();
 	}
 
-	ScriptTypeInfo ScriptEngine::typedef_by_index(uint_t index)
+	ScriptTypeInfo ScriptEngine::typedef_by_index(u32 index)
 	{
 		return ScriptTypeInfo(ScriptEngineData::instance()->engine->GetTypedefByIndex(index));
 	}
@@ -503,12 +503,12 @@ namespace Engine
 		return discard_module(module_name.c_str());
 	}
 
-	uint_t ScriptEngine::module_count()
+	u32 ScriptEngine::module_count()
 	{
 		return ScriptEngineData::instance()->engine->GetModuleCount();
 	}
 
-	ScriptModule ScriptEngine::module_by_index(uint_t index)
+	ScriptModule ScriptEngine::module_by_index(u32 index)
 	{
 		return ScriptModule(ScriptEngineData::instance()->engine->GetModuleByIndex(index));
 	}
@@ -528,95 +528,95 @@ namespace Engine
 	}
 
 	// Script functions
-	int_t ScriptEngine::last_function_id()
+	i32 ScriptEngine::last_function_id()
 	{
 		return ScriptEngineData::instance()->engine->GetLastFunctionId();
 	}
 
-	ScriptFunction ScriptEngine::function_by_id(int_t func_id)
+	ScriptFunction ScriptEngine::function_by_id(i32 func_id)
 	{
 		return ScriptFunction(ScriptEngineData::instance()->engine->GetFunctionById(func_id));
 	}
 
 	// Type identification
 
-	bool ScriptEngine::is_primitive_type(int_t type_id)
+	bool ScriptEngine::is_primitive_type(i32 type_id)
 	{
 		return sizeof_primitive_type(type_id) != 0;
 	}
 
-	bool ScriptEngine::is_bool(int_t type_id)
+	bool ScriptEngine::is_bool(i32 type_id)
 	{
 		return type_id == asTYPEID_BOOL;
 	}
 
-	bool ScriptEngine::is_int8(int_t type_id)
+	bool ScriptEngine::is_int8(i32 type_id)
 	{
 		return type_id == asTYPEID_INT8;
 	}
 
-	bool ScriptEngine::is_int16(int_t type_id)
+	bool ScriptEngine::is_int16(i32 type_id)
 	{
 		return type_id == asTYPEID_INT16;
 	}
 
-	bool ScriptEngine::is_int32(int_t type_id)
+	bool ScriptEngine::is_int32(i32 type_id)
 	{
 		return type_id == asTYPEID_INT32;
 	}
 
-	bool ScriptEngine::is_int64(int_t type_id)
+	bool ScriptEngine::is_int64(i32 type_id)
 	{
 		return type_id == asTYPEID_INT64;
 	}
 
-	bool ScriptEngine::is_uint8(int_t type_id)
+	bool ScriptEngine::is_uint8(i32 type_id)
 	{
 		return type_id == asTYPEID_UINT8;
 	}
 
-	bool ScriptEngine::is_uint16(int_t type_id)
+	bool ScriptEngine::is_uint16(i32 type_id)
 	{
 		return type_id == asTYPEID_UINT16;
 	}
 
-	bool ScriptEngine::is_uint32(int_t type_id)
+	bool ScriptEngine::is_uint32(i32 type_id)
 	{
 		return type_id == asTYPEID_UINT32;
 	}
 
-	bool ScriptEngine::is_uint64(int_t type_id)
+	bool ScriptEngine::is_uint64(i32 type_id)
 	{
 		return type_id == asTYPEID_UINT64;
 	}
 
-	bool ScriptEngine::is_float(int_t type_id)
+	bool ScriptEngine::is_float(i32 type_id)
 	{
 		return type_id == asTYPEID_FLOAT;
 	}
 
-	bool ScriptEngine::is_double(int_t type_id)
+	bool ScriptEngine::is_double(i32 type_id)
 	{
 		return type_id == asTYPEID_DOUBLE;
 	}
 
 
-	bool ScriptEngine::is_object_type(int_t type_id, bool handle_is_object)
+	bool ScriptEngine::is_object_type(i32 type_id, bool handle_is_object)
 	{
 		return (type_id & asTYPEID_MASK_OBJECT) && (handle_is_object ? true : !is_handle_type(type_id));
 	}
 
-	bool ScriptEngine::is_handle_type(int_t type_id)
+	bool ScriptEngine::is_handle_type(i32 type_id)
 	{
 		return (type_id & asTYPEID_MASK_OBJECT) && (type_id & asTYPEID_OBJHANDLE);
 	}
 
-	int_t ScriptEngine::type_id_by_decl(const char* decl)
+	i32 ScriptEngine::type_id_by_decl(const char* decl)
 	{
 		return ScriptEngineData::instance()->engine->GetTypeIdByDecl(decl);
 	}
 
-	int_t ScriptEngine::type_id_by_decl(const String& decl)
+	i32 ScriptEngine::type_id_by_decl(const String& decl)
 	{
 		return type_id_by_decl(decl.c_str());
 	}
@@ -626,7 +626,7 @@ namespace Engine
 		return Strings::make_string(ScriptEngineData::instance()->engine->GetTypeDeclaration(type_id, include_namespace));
 	}
 
-	int_t ScriptEngine::sizeof_primitive_type(int type_id)
+	i32 ScriptEngine::sizeof_primitive_type(int type_id)
 	{
 		return ScriptEngineData::instance()->engine->GetSizeOfPrimitiveType(type_id);
 	}
@@ -727,7 +727,7 @@ namespace Engine
 		return "Undefined";
 	}
 
-	ScriptEngine& ScriptEngine::register_custom_variable_parser(int_t type_id, VariableToStringFunction function)
+	ScriptEngine& ScriptEngine::register_custom_variable_parser(i32 type_id, VariableToStringFunction function)
 	{
 		if (function == nullptr)
 			return unregister_custom_variable(type_id);
@@ -736,13 +736,13 @@ namespace Engine
 		return instance();
 	}
 
-	ScriptEngine& ScriptEngine::unregister_custom_variable(int_t type_id)
+	ScriptEngine& ScriptEngine::unregister_custom_variable(i32 type_id)
 	{
 		ScriptEngineData::instance()->parsers_map.erase(type_id);
 		return instance();
 	}
 
-	ScriptEngine::VariableToStringFunction ScriptEngine::custom_variable_parser(int_t type_id)
+	ScriptEngine::VariableToStringFunction ScriptEngine::custom_variable_parser(i32 type_id)
 	{
 		ScriptEngineData* data = ScriptEngineData::instance();
 
@@ -753,14 +753,14 @@ namespace Engine
 		return nullptr;
 	}
 
-	static String script_object_to_string_ref(const byte* object, asIScriptFunction* func)
+	static String script_object_to_string_ref(const u8* object, asIScriptFunction* func)
 	{
 		String* result = nullptr;
 		ScriptContext::execute(object, ScriptFunction(func), &result);
 		return *result;
 	}
 
-	static String script_object_to_string_value(const byte* object, asIScriptFunction* func)
+	static String script_object_to_string_value(const u8* object, asIScriptFunction* func)
 	{
 		String result;
 		ScriptContext::execute(object, ScriptFunction(func), &result);
@@ -781,10 +781,10 @@ namespace Engine
 	}
 
 	template<bool repr>
-	static const Pair<String (*)(const byte*, asIScriptFunction*), asIScriptFunction*>
+	static const Pair<String (*)(const u8*, asIScriptFunction*), asIScriptFunction*>
 	static_find_string_op(const ScriptTypeInfo& info)
 	{
-		static Map<int_t, Pair<String (*)(const byte*, asIScriptFunction*), asIScriptFunction*>> func_map;
+		static Map<i32, Pair<String (*)(const u8*, asIScriptFunction*), asIScriptFunction*>> func_map;
 		auto it = func_map.find(info.type_id());
 
 		if (it != func_map.end())
@@ -829,7 +829,7 @@ namespace Engine
 		return {nullptr, nullptr};
 	}
 
-	String ScriptEngine::to_string(const byte* address, int_t type_id, bool repr)
+	String ScriptEngine::to_string(const u8* address, i32 type_id, bool repr)
 	{
 		if (address == nullptr)
 			return "null";
@@ -839,7 +839,7 @@ namespace Engine
 
 		if (ScriptEngine::is_primitive_type(type_id))
 		{
-			ScriptVariable var(const_cast<byte*>(address), type_id);
+			ScriptVariable var(const_cast<u8*>(address), type_id);
 
 			if (var.is_bool())
 				return var.bool_value() ? "true" : "false";
@@ -881,11 +881,11 @@ namespace Engine
 
 		if (enum_value_count > 0)
 		{
-			int_t value = *(int_t const*) address;
+			i32 value = *(i32 const*) address;
 
-			for (uint_t i = 0; i < enum_value_count; ++i)
+			for (u32 i = 0; i < enum_value_count; ++i)
 			{
-				int64_t val;
+				i64 val;
 				StringView text = info.enum_value_by_index(i, &val);
 
 				if (val == value)
@@ -900,7 +900,7 @@ namespace Engine
 
 		if (ScriptEngine::is_handle_type(type_id))
 		{
-			address = *reinterpret_cast<const byte* const*>(address);
+			address = *reinterpret_cast<const u8* const*>(address);
 		}
 
 		if (address)

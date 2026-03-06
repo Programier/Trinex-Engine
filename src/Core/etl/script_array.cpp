@@ -151,21 +151,21 @@ namespace Engine
 		return *this;
 	}
 
-	size_t ScriptArrayBase::add_reference() const
+	usize ScriptArrayBase::add_reference() const
 	{
 		script_array_init_check(0);
 		m_as_array->AddRef();
 		return references();
 	}
 
-	size_t ScriptArrayBase::remove_reference() const
+	usize ScriptArrayBase::remove_reference() const
 	{
 		script_array_init_check(0);
 		m_as_array->Release();
 		return references();
 	}
 
-	size_t ScriptArrayBase::references() const
+	usize ScriptArrayBase::references() const
 	{
 		script_array_init_check(0);
 		return m_as_array->GetRefCount();

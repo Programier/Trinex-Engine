@@ -114,7 +114,7 @@ namespace Engine::EditorTheme
 		style.AntiAliasedFill  = true;
 	}
 
-	static inline ImFont* font_by_index(int_t index)
+	static inline ImFont* font_by_index(i32 index)
 	{
 		auto& io = ImGui::GetIO();
 		return io.Fonts->Fonts[index];

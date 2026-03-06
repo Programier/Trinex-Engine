@@ -16,7 +16,7 @@
 
 namespace Engine::Bindings::GLM
 {
-	using glm_element_types = TypesList<bool, int32_t, uint32_t, float>;
+	using glm_element_types = TypesList<bool, i32, u32, float>;
 
 	template<typename T>
 	constexpr const char* type_names = nullptr;
@@ -30,7 +30,7 @@ namespace Engine::Bindings::GLM
 	constexpr const char* type_names<type> = "Engine::" #type
 
 	trinex_bindings_typename(void, void);
-	trinex_bindings_typename(bool_t, bool);
+	trinex_bindings_typename(bool, bool);
 	trinex_bindings_typename(int32_t, int32);
 	trinex_bindings_typename(uint32_t, uint32);
 	trinex_bindings_typename(float_t, float);
@@ -108,7 +108,7 @@ namespace Engine::Bindings::GLM
 	template<typename T>
 	constexpr inline bool is_quaternion_v = is_quaternion<T>::value;
 
-	template<typename T, size_t x = 1, size_t y = 1>
+	template<typename T, usize x = 1, usize y = 1>
 	struct up_cast {
 	};
 
@@ -271,9 +271,9 @@ namespace Engine::Bindings::GLM
 	}
 
 	template<typename T>
-	static int32_t length_of()
+	static i32 length_of()
 	{
-		return static_cast<int32_t>(T::length());
+		return static_cast<i32>(T::length());
 	}
 
 	// OPERATOR BINDINGS
@@ -286,13 +286,13 @@ namespace Engine::Bindings::GLM
 		}
 
 		template<typename T>
-		static decltype(auto) opIndex(T& self, uint32_t index)
+		static decltype(auto) opIndex(T& self, u32 index)
 		{
 			return self[index];
 		}
 
 		template<typename T>
-		static decltype(auto) opIndexConst(const T& self, uint32_t index)
+		static decltype(auto) opIndexConst(const T& self, u32 index)
 		{
 			return self[index];
 		}
@@ -759,8 +759,8 @@ namespace Engine::Bindings::GLM
 			static_assert(Vector::length() == 3);
 
 			bind_with_redirection<Vector, bool>(reg);
-			bind_with_redirection<Vector, int32_t>(reg);
-			bind_with_redirection<Vector, uint32_t>(reg);
+			bind_with_redirection<Vector, i32>(reg);
+			bind_with_redirection<Vector, u32>(reg);
 			bind_with_redirection<Vector, float>(reg);
 		}
 	};
@@ -807,8 +807,8 @@ namespace Engine::Bindings::GLM
 		{
 			static_assert(Vector::length() == 4);
 			bind_with_redirection<Vector, bool>(reg);
-			bind_with_redirection<Vector, int32_t>(reg);
-			bind_with_redirection<Vector, uint32_t>(reg);
+			bind_with_redirection<Vector, i32>(reg);
+			bind_with_redirection<Vector, u32>(reg);
 			bind_with_redirection<Vector, float>(reg);
 		}
 	};

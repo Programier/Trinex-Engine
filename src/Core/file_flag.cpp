@@ -4,15 +4,15 @@
 
 namespace Engine
 {
-	static constexpr size_t make_flag_from_string(const char* string)
+	static constexpr usize make_flag_from_string(const char* string)
 	{
 		union
 		{
-			size_t result = 0;
+			usize result = 0;
 			char data[8];
 		};
 
-		size_t count = 0;
+		usize count = 0;
 
 		while (count < 8 && *string)
 		{
@@ -25,7 +25,7 @@ namespace Engine
 	}
 
 
-	FileFlag::FileFlag(size_t first, size_t second)
+	FileFlag::FileFlag(usize first, usize second)
 	{
 		data[0] = first;
 		data[1] = second;

@@ -25,7 +25,7 @@ namespace Engine::Refl
 			{}
 		};
 
-		enum Flags : byte
+		enum Flags : u8
 		{
 			Undefined    = 0,
 			IsScriptable = BIT(0),
@@ -33,21 +33,21 @@ namespace Engine::Refl
 		};
 
 	protected:
-		TreeMap<Name, Index> m_entries_by_name;
-		TreeMap<EnumerateType, Index> m_entries_by_value;
+		TreeMap<Name, usize> m_entries_by_name;
+		TreeMap<EnumerateType, usize> m_entries_by_value;
 		Vector<Entry> m_entries;
 		ScriptTypeInfo m_info;
-		byte m_flags;
+		u8 m_flags;
 
 		const Entry* create_entry(void* registrar, const Name& name, EnumerateType value);
 		Enum& register_enum_with_entries(const Vector<Enum::Entry>& entries);
 		static StringView extract_enum_value_name(StringView full_name);
 
 	public:
-		Enum(byte flags = 0);
+		Enum(u8 flags = 0);
 
 		template<typename EnumType, auto... enum_values>
-		static Enum* create(const StringView& name, byte flags)
+		static Enum* create(const StringView& name, u8 flags)
 		    requires(std::is_enum_v<EnumType> && sizeof(EnumType) <= sizeof(EnumerateType))
 		{
 			auto name_of = extract_enum_value_name;
@@ -55,8 +55,8 @@ namespace Engine::Refl
 			return &Object::new_instance<Enum>(name, flags)->register_enum_with_entries(entries);
 		}
 
-		Index index_of(const Name& name) const;
-		Index index_of(EnumerateType value) const;
+		usize index_of(const Name& name) const;
+		usize index_of(EnumerateType value) const;
 		const Entry* entry(EnumerateType value) const;
 		const Entry* entry(const Name& name) const;
 		const Entry* create_entry(const Name& name, EnumerateType value);
@@ -72,7 +72,7 @@ namespace Engine::Refl
 	{                                                                                                                            \
 		s_enum = Engine::Refl::Enum::create<enum_name::Enum, __VA_ARGS__>(#enum_name, flags);                                    \
 	}                                                                                                                            \
-	static Engine::byte TRINEX_CONCAT(trinex_engine_refl_enum_, __LINE__) = static_cast<Engine::byte>(                           \
+	static Engine::u8 TRINEX_CONCAT(trinex_engine_refl_enum_, __LINE__) = static_cast<Engine::u8>(                               \
 	        Engine::ReflectionInitializeController([]() { enum_name::static_initialize_enum(); }, #enum_name).id())
 
 #define trinex_implement_engine_enum(enum_name, flags, ...) trinex_implement_enum(Engine::enum_name, flags, __VA_ARGS__)

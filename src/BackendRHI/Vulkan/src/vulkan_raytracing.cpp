@@ -136,8 +136,8 @@ namespace Engine
 		return result;
 	}
 
-	static inline uint32_t primitives_count(const RHIRayTracingGeometryTriangles* triangles,
-	                                        vk::AccelerationStructureBuildRangeInfoKHR* ranges)
+	static inline u32 primitives_count(const RHIRayTracingGeometryTriangles* triangles,
+	                                   vk::AccelerationStructureBuildRangeInfoKHR* ranges)
 	{
 		const bool has_indices        = triangles->index_count && triangles->index_buffer;
 		ranges->firstVertex           = 0;
@@ -146,8 +146,8 @@ namespace Engine
 		return ranges->primitiveCount = (has_indices ? triangles->index_count : triangles->vertex_count) / 3;
 	}
 
-	static inline uint32_t primitives_count(const RHIRayTracingGeometryAABBs* aabbs,
-	                                        vk::AccelerationStructureBuildRangeInfoKHR* ranges)
+	static inline u32 primitives_count(const RHIRayTracingGeometryAABBs* aabbs,
+	                                   vk::AccelerationStructureBuildRangeInfoKHR* ranges)
 	{
 		ranges->firstVertex           = 0;
 		ranges->primitiveOffset       = 0;
@@ -155,8 +155,8 @@ namespace Engine
 		return ranges->primitiveCount = aabbs->count;
 	}
 
-	static inline uint32_t primitives_count(const RHIRayTracingAccelerationInputs* inputs,
-	                                        vk::AccelerationStructureBuildRangeInfoKHR* ranges)
+	static inline u32 primitives_count(const RHIRayTracingAccelerationInputs* inputs,
+	                                   vk::AccelerationStructureBuildRangeInfoKHR* ranges)
 	{
 		if (inputs->level == RHIRayTracingAccelerationLevel::Top)
 		{
@@ -167,9 +167,9 @@ namespace Engine
 		}
 		else
 		{
-			uint32_t primitives = 0;
+			u32 primitives = 0;
 
-			for (uint64_t i = 0; i < inputs->count; ++i, ++ranges)
+			for (u64 i = 0; i < inputs->count; ++i, ++ranges)
 			{
 				if (inputs->geometries[i].type == RHIRayTracingGeometryType::Triangles)
 					primitives += primitives_count(inputs->geometries[i].triangles, ranges);
@@ -200,7 +200,7 @@ namespace Engine
 		{
 			auto* geometries = StackAllocator<vk::AccelerationStructureGeometryKHR>::allocate(inputs->count);
 
-			for (uint64_t i = 0; i < inputs->count; ++i)
+			for (u64 i = 0; i < inputs->count; ++i)
 			{
 				geometries[i] = geometry_of(inputs->geometries + i);
 			}
@@ -240,8 +240,8 @@ namespace Engine
 
 		auto build_info = geometry_info_of(inputs);
 
-		auto* build_ranges = StackAllocator<vk::AccelerationStructureBuildRangeInfoKHR>::allocate(build_info.geometryCount);
-		const uint32_t primitives = primitives_count(inputs, build_ranges);
+		auto* build_ranges   = StackAllocator<vk::AccelerationStructureBuildRangeInfoKHR>::allocate(build_info.geometryCount);
+		const u32 primitives = primitives_count(inputs, build_ranges);
 
 		constexpr auto build_type = vk::AccelerationStructureBuildTypeKHR::eDevice;
 		auto sizes                = API->m_device.getAccelerationStructureBuildSizesKHR(build_type, build_info, primitives);
@@ -296,11 +296,11 @@ namespace Engine
 		return trx_new VulkanAccelerationStructure(inputs);
 	}
 
-	const byte* VulkanAPI::translate_ray_tracing_instances(const RHIRayTracingGeometryInstance* instances, size_t& size)
+	const u8* VulkanAPI::translate_ray_tracing_instances(const RHIRayTracingGeometryInstance* instances, usize& size)
 	{
 		auto result = StackAllocator<vk::AccelerationStructureInstanceKHR>::allocate(size);
 
-		for (size_t i = 0; i < size; ++i)
+		for (usize i = 0; i < size; ++i)
 		{
 			auto& src = instances[i];
 			auto& dst = result[i];
@@ -317,26 +317,26 @@ namespace Engine
 		}
 
 		size *= sizeof(vk::AccelerationStructureInstanceKHR);
-		return reinterpret_cast<byte*>(result);
+		return reinterpret_cast<u8*>(result);
 	}
 
-	VulkanContext& VulkanContext::bind_acceleration(RHIAccelerationStructure* acceleration, byte slot)
+	VulkanContext& VulkanContext::bind_acceleration(RHIAccelerationStructure* acceleration, u8 slot)
 	{
 		auto tlas = static_cast<VulkanAccelerationStructure*>(acceleration);
 		m_state_manager->acceleration_structures.bind(tlas->handle(), slot);
 		return *this;
 	}
 
-	VulkanContext& VulkanContext::trace_rays(uint32_t width, uint32_t height, uint32_t depth, uint64_t raygen,
-	                                         const RHIRange& miss, const RHIRange& hit, const RHIRange& callable)
+	VulkanContext& VulkanContext::trace_rays(u32 width, u32 height, u32 depth, u64 raygen, const RHIRange& miss,
+	                                         const RHIRange& hit, const RHIRange& callable)
 	{
-		auto& properties      = API->ray_trace_properties();
-		const uint64_t handle = align_up(properties.shaderGroupHandleSize, properties.shaderGroupBaseAlignment);
+		auto& properties = API->ray_trace_properties();
+		const u64 handle = align_up(properties.shaderGroupHandleSize, properties.shaderGroupBaseAlignment);
 
 		auto pipeline = static_cast<VulkanRayTracingPipeline*>(m_state_manager->pipeline());
 
 		const vk::DeviceAddress sbt = pipeline->shader_binding_table()->address();
-		const size_t groups         = pipeline->groups();
+		const usize groups          = pipeline->groups();
 
 
 		using Region = vk::StridedDeviceAddressRegionKHR;

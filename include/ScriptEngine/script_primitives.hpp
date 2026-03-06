@@ -19,14 +19,14 @@
 namespace Engine
 {
 	declare_primitive(Boolean, bool);
-	declare_primitive(Integer8, int8_t);
-	declare_primitive(Integer16, int16_t);
-	declare_primitive(Integer32, int32_t);
-	declare_primitive(Integer64, int64_t);
-	declare_primitive(UnsignedInteger8, uint8_t);
-	declare_primitive(UnsignedInteger16, uint16_t);
-	declare_primitive(UnsignedInteger32, uint32_t);
-	declare_primitive(UnsignedInteger64, uint64_t);
+	declare_primitive(Integer8, i8);
+	declare_primitive(Integer16, i16);
+	declare_primitive(Integer32, i32);
+	declare_primitive(Integer64, i64);
+	declare_primitive(UnsignedInteger8, u8);
+	declare_primitive(UnsignedInteger16, u16);
+	declare_primitive(UnsignedInteger32, u32);
+	declare_primitive(UnsignedInteger64, u64);
 	declare_primitive(Float, float);
 	declare_primitive(Double, double);
 }// namespace Engine

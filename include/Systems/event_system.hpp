@@ -31,12 +31,12 @@ namespace Engine
 			ListenerNode* next = nullptr;
 			ListenerNode* prev = nullptr;
 
-			inline size_t index() const { return static_cast<size_t>(type); }
+			inline usize index() const { return static_cast<usize>(type); }
 
 			inline Identifier id() const { return reinterpret_cast<Identifier>(this); }
 		};
 
-		ListenerNode* m_listeners[static_cast<size_t>(EventType::COUNT)];
+		ListenerNode* m_listeners[static_cast<usize>(EventType::COUNT)];
 
 		EventSystem& (EventSystem::*m_process_events)() = nullptr;
 

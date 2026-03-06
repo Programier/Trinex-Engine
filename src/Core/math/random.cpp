@@ -5,15 +5,15 @@ namespace Engine::Random
 {
 	static std::mt19937_64 s_random(std::random_device{}());
 
-	float_t floating(float min, float max)
+	f32 floating(float min, float max)
 	{
-		std::uniform_real_distribution<float_t> dist(min, max);
+		std::uniform_real_distribution<f32> dist(min, max);
 		return dist(s_random);
 	}
 
-	int_t integer(int_t min, int_t max)
+	i32 integer(i32 min, i32 max)
 	{
-		std::uniform_int_distribution<int_t> dist(min, max);
+		std::uniform_int_distribution<i32> dist(min, max);
 		return dist(s_random);
 	}
 }// namespace Engine::Random

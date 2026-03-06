@@ -100,7 +100,7 @@ private:
 	protected:
 		BitMask m_flags = 0;
 
-		template<size_t size>
+		template<usize size>
 		struct InnerProperties {
 			Property* properties[size];
 		};
@@ -121,7 +121,7 @@ private:
 		using Super::display_name;
 		virtual void* address(void* context)                   = 0;
 		virtual const void* address(const void* context) const = 0;
-		virtual size_t size() const                            = 0;
+		virtual usize size() const                             = 0;
 		virtual bool serialize(void* object, Archive& ar)      = 0;
 		virtual const String& property_name(const void* context);
 		virtual Property& on_property_changed(const PropertyChangedEvent& event);
@@ -164,7 +164,7 @@ private:
 
 	public:
 		using PrimitiveProperty::PrimitiveProperty;
-		size_t size() const override;
+		usize size() const override;
 	};
 
 	class ENGINE_EXPORT IntegerProperty : public PrimitiveProperty
@@ -214,21 +214,21 @@ private:
 	public:
 		using PrimitiveProperty::PrimitiveProperty;
 
-		virtual size_t length() const              = 0;
+		virtual usize length() const               = 0;
 		virtual Property* element_property() const = 0;
-		virtual size_t element_size() const        = 0;
+		virtual usize element_size() const         = 0;
 
-		virtual void* element_address(void* context, size_t index, bool is_matrix_context = false)                   = 0;
-		virtual const void* element_address(const void* context, size_t index, bool is_matrix_context = false) const = 0;
+		virtual void* element_address(void* context, usize index, bool is_matrix_context = false)                   = 0;
+		virtual const void* element_address(const void* context, usize index, bool is_matrix_context = false) const = 0;
 
 		template<typename T>
-		T* element_address_as(void* context, size_t index, bool is_matrix_context = false)
+		T* element_address_as(void* context, usize index, bool is_matrix_context = false)
 		{
 			return reinterpret_cast<T*>(element_address(context, index, is_matrix_context));
 		}
 
 		template<typename T>
-		const T* element_address_as(const void* context, size_t index, bool is_vector_context = false) const
+		const T* element_address_as(const void* context, usize index, bool is_vector_context = false) const
 		{
 			return reinterpret_cast<const T*>(element_address(context, index, is_vector_context));
 		}
@@ -252,22 +252,22 @@ private:
 	public:
 		using PrimitiveProperty::PrimitiveProperty;
 
-		virtual size_t columns() const         = 0;
-		virtual size_t rows() const            = 0;
+		virtual usize columns() const          = 0;
+		virtual usize rows() const             = 0;
 		virtual Property* row_property() const = 0;
-		virtual size_t row_size() const        = 0;
+		virtual usize row_size() const         = 0;
 
-		virtual void* row_address(void* context, size_t index, bool is_vector_context = false)                   = 0;
-		virtual const void* row_address(const void* context, size_t index, bool is_vector_context = false) const = 0;
+		virtual void* row_address(void* context, usize index, bool is_vector_context = false)                   = 0;
+		virtual const void* row_address(const void* context, usize index, bool is_vector_context = false) const = 0;
 
 		template<typename T>
-		T* row_address_as(void* context, size_t index, bool is_vector_context = false)
+		T* row_address_as(void* context, usize index, bool is_vector_context = false)
 		{
 			return reinterpret_cast<T*>(row_address(context, index, is_vector_context));
 		}
 
 		template<typename T>
-		const T* row_address_as(const void* context, size_t index, bool is_vector_context = false) const
+		const T* row_address_as(const void* context, usize index, bool is_vector_context = false) const
 		{
 			return reinterpret_cast<const T*>(row_address(context, index, is_vector_context));
 		}
@@ -328,7 +328,7 @@ private:
 		using Property::Property;
 
 		bool serialize(void* object, Archive& ar) override;
-		size_t size() const override;
+		usize size() const override;
 	};
 
 	class ENGINE_EXPORT NameProperty : public Property
@@ -364,7 +364,7 @@ private:
 	public:
 		using Property::Property;
 
-		size_t size() const override;
+		usize size() const override;
 		bool serialize(void* object, Archive& ar) override;
 
 		Engine::Object* object(void* context);
@@ -421,28 +421,28 @@ private:
 
 		bool serialize(void* object, Archive& ar) override;
 
-		virtual const String& index_name(const void* object, size_t index) const;
+		virtual const String& index_name(const void* object, usize index) const;
 		virtual Property* element_property() const = 0;
-		virtual size_t element_size() const        = 0;
+		virtual usize element_size() const         = 0;
 
-		virtual void* at(void* context, size_t index, bool is_vector_context = false)                   = 0;
-		virtual const void* at(const void* context, size_t index, bool is_vector_context = false) const = 0;
+		virtual void* at(void* context, usize index, bool is_vector_context = false)                   = 0;
+		virtual const void* at(const void* context, usize index, bool is_vector_context = false) const = 0;
 
-		virtual size_t length(const void* context, bool is_vector_context = false) const                             = 0;
-		virtual ArrayProperty& emplace_back(void* context, bool is_vector_context = false)                           = 0;
-		virtual ArrayProperty& pop_back(void* context, bool is_vector_context = false)                               = 0;
-		virtual ArrayProperty& insert(void* context, size_t index, size_t count = 1, bool is_vector_context = false) = 0;
-		virtual ArrayProperty& erase(void* context, size_t index, size_t count = 1, bool is_vector_context = false)  = 0;
-		virtual ArrayProperty& resize(void* context, size_t new_size, bool is_vector_context = false)                = 0;
+		virtual usize length(const void* context, bool is_vector_context = false) const                            = 0;
+		virtual ArrayProperty& emplace_back(void* context, bool is_vector_context = false)                         = 0;
+		virtual ArrayProperty& pop_back(void* context, bool is_vector_context = false)                             = 0;
+		virtual ArrayProperty& insert(void* context, usize index, usize count = 1, bool is_vector_context = false) = 0;
+		virtual ArrayProperty& erase(void* context, usize index, usize count = 1, bool is_vector_context = false)  = 0;
+		virtual ArrayProperty& resize(void* context, usize new_size, bool is_vector_context = false)               = 0;
 
 		template<typename T>
-		T* at_as(void* context, size_t index, bool is_vector_context = false)
+		T* at_as(void* context, usize index, bool is_vector_context = false)
 		{
 			return reinterpret_cast<T*>(at(context, index, is_vector_context));
 		}
 
 		template<typename T>
-		const T* at_as(const void* context, size_t index, bool is_vector_context = false) const
+		const T* at_as(const void* context, usize index, bool is_vector_context = false) const
 		{
 			return reinterpret_cast<const T*>(at(context, index, is_vector_context));
 		}
@@ -456,7 +456,7 @@ private:
 	public:
 		using Property::Property;
 
-		size_t size() const override;
+		usize size() const override;
 		bool serialize(void* object, Archive& ar) override;
 
 		Refl::Object* object(void* context);
@@ -554,7 +554,7 @@ private:
 			return &(instance->*prop);
 		}
 
-		size_t size() const override { return sizeof(Type); }
+		usize size() const override { return sizeof(Type); }
 
 		TypedProperty& on_property_changed(const PropertyChangedEvent& event) override
 		{
@@ -616,22 +616,22 @@ private:
 			return *this;
 		}
 
-		size_t length() const override { return T::length(); }
+		usize length() const override { return T::length(); }
 		Property* element_property() const override { return m_inner_property; }
-		size_t element_size() const override { return sizeof(typename T::value_type); }
+		usize element_size() const override { return sizeof(typename T::value_type); }
 
-		void* element_address(void* context, size_t index, bool is_vector_context = false) override
+		void* element_address(void* context, usize index, bool is_vector_context = false) override
 		{
-			if (index >= static_cast<size_t>(T::length()))
+			if (index >= static_cast<usize>(T::length()))
 				return nullptr;
 
 			if (!is_vector_context)
 				context = this->address(context);
 
-			return reinterpret_cast<byte*>(context) + sizeof(typename T::value_type) * index;
+			return reinterpret_cast<u8*>(context) + sizeof(typename T::value_type) * index;
 		}
 
-		const void* element_address(const void* context, size_t index, bool is_vector_context = false) const override
+		const void* element_address(const void* context, usize index, bool is_vector_context = false) const override
 		{
 			if (index >= length())
 				return nullptr;
@@ -639,7 +639,7 @@ private:
 			if (!is_vector_context)
 				context = this->address(context);
 
-			return reinterpret_cast<const byte*>(context) + sizeof(typename T::value_type) * index;
+			return reinterpret_cast<const u8*>(context) + sizeof(typename T::value_type) * index;
 		}
 
 		~NativePropertyTyped() override { Refl::Object::destroy_instance(m_inner_property); }
@@ -663,34 +663,34 @@ private:
 			return *this;
 		}
 
-		size_t columns() const override { return T::col_type::length(); }
+		usize columns() const override { return T::col_type::length(); }
 
-		size_t rows() const override { return T::row_type::length(); }
+		usize rows() const override { return T::row_type::length(); }
 
 		Property* row_property() const override { return m_inner_property; }
 
-		size_t row_size() const override { return sizeof(typename T::row_type); }
+		usize row_size() const override { return sizeof(typename T::row_type); }
 
-		void* row_address(void* context, size_t index, bool is_vector_context = false) override
+		void* row_address(void* context, usize index, bool is_vector_context = false) override
 		{
-			if (index >= static_cast<size_t>(T::row_type::length()))
+			if (index >= static_cast<usize>(T::row_type::length()))
 				return nullptr;
 
 			if (!is_vector_context)
 				context = this->address(context);
 
-			return reinterpret_cast<byte*>(context) + sizeof(typename T::row_type) * index;
+			return reinterpret_cast<u8*>(context) + sizeof(typename T::row_type) * index;
 		}
 
-		const void* row_address(const void* context, size_t index, bool is_vector_context = false) const override
+		const void* row_address(const void* context, usize index, bool is_vector_context = false) const override
 		{
-			if (index >= static_cast<size_t>(T::row_type::length()))
+			if (index >= static_cast<usize>(T::row_type::length()))
 				return nullptr;
 
 			if (!is_vector_context)
 				context = this->address(context);
 
-			return reinterpret_cast<const byte*>(context) + sizeof(typename T::row_type) * index;
+			return reinterpret_cast<const u8*>(context) + sizeof(typename T::row_type) * index;
 		}
 
 		~NativePropertyTyped() override { Refl::Object::destroy_instance(m_inner_property); }
@@ -774,7 +774,7 @@ private:
 
 	public:
 		Property* element_property() const override { return Property::null_property<typename T::value_type>(); }
-		size_t element_size() const override { return sizeof(Value); }
+		usize element_size() const override { return sizeof(Value); }
 
 		T& array_of(void* context, bool is_vector_context)
 		{
@@ -790,7 +790,7 @@ private:
 			return *reinterpret_cast<const T*>(context);
 		}
 
-		void* at(void* context, size_t index, bool is_vector_context = false) override
+		void* at(void* context, usize index, bool is_vector_context = false) override
 		{
 			T& array = array_of(context, is_vector_context);
 
@@ -800,7 +800,7 @@ private:
 			return array.data() + index;
 		}
 
-		const void* at(const void* context, size_t index, bool is_vector_context = false) const override
+		const void* at(const void* context, usize index, bool is_vector_context = false) const override
 		{
 			const T& array = array_of(context, is_vector_context);
 
@@ -810,7 +810,7 @@ private:
 			return array.data() + index;
 		}
 
-		size_t length(const void* context, bool is_vector_context = false) const override
+		usize length(const void* context, bool is_vector_context = false) const override
 		{
 			return array_of(context, is_vector_context).size();
 		}
@@ -827,21 +827,21 @@ private:
 			return *this;
 		}
 
-		ArrayProperty& insert(void* context, size_t index, size_t count = 1, bool is_vector_context = false) override
+		ArrayProperty& insert(void* context, usize index, usize count = 1, bool is_vector_context = false) override
 		{
 			T& array = array_of(context, is_vector_context);
 			array.insert(array.begin() + index, count, Value());
 			return *this;
 		}
 
-		ArrayProperty& erase(void* context, size_t index, size_t count = 1, bool is_vector_context = false) override
+		ArrayProperty& erase(void* context, usize index, usize count = 1, bool is_vector_context = false) override
 		{
 			T& array = array_of(context, is_vector_context);
 			array.erase(array.begin() + index, array.begin() + index + count);
 			return *this;
 		}
 
-		ArrayProperty& resize(void* context, size_t new_size, bool is_vector_context = false) override
+		ArrayProperty& resize(void* context, usize new_size, bool is_vector_context = false) override
 		{
 			array_of(context, is_vector_context).resize(new_size, Value());
 			return *this;
@@ -916,7 +916,7 @@ private:
 			return instance;
 		}
 
-		size_t size() const override { return sizeof(T); }
+		usize size() const override { return sizeof(T); }
 
 		using VirtualProperty::construct;
 		static TypedVirtualProperty* construct(Object* owner, StringView name, Getter getter, Setter setter, BitMask flags = 0)

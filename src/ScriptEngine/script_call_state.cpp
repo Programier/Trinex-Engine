@@ -11,7 +11,7 @@ namespace Engine
 		return *this;
 	}
 
-	ScriptCallState& ScriptCallState::save(uint_t stack_level, bool save_local_variables, bool save_arguments)
+	ScriptCallState& ScriptCallState::save(u32 stack_level, bool save_local_variables, bool save_arguments)
 	{
 		asIScriptContext* context   = ScriptContext::context();
 		asIScriptFunction* function = nullptr;
@@ -24,12 +24,12 @@ namespace Engine
 		if (save_local_variables)
 		{
 			// Serialize variables
-			const uint_t var_count = ScriptContext::var_count(stack_level);
-			for (uint_t var = 0; var < var_count; ++var)
+			const u32 var_count = ScriptContext::var_count(stack_level);
+			for (u32 var = 0; var < var_count; ++var)
 			{
 				StringView name;
-				int_t type_id;
-				int_t offset = 0;
+				i32 type_id;
+				i32 offset = 0;
 				ScriptContext::var(var, stack_level, &name, &type_id, nullptr, nullptr, &offset);
 				void* address = ScriptContext::address_of_var(var, stack_level);
 
@@ -52,13 +52,13 @@ namespace Engine
 		                               m_stack_index);
 
 		// Deserialize variables
-		const uint_t var_count = ScriptContext::var_count(0);
+		const u32 var_count = ScriptContext::var_count(0);
 
-		for (uint_t var = 0; var < var_count; ++var)
+		for (u32 var = 0; var < var_count; ++var)
 		{
 			StringView name;
-			int_t type_id;
-			int_t offset;
+			i32 type_id;
+			i32 offset;
 			ScriptContext::var(var, 0, &name, &type_id, nullptr, nullptr, &offset);
 			void* address = ScriptContext::address_of_var(var, 0, false);
 

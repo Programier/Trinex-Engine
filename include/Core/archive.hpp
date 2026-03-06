@@ -54,12 +54,12 @@ namespace Engine
 		BufferReader* reader() const;
 		BufferWriter* writer() const;
 
-		Archive& write_data(const byte* data, size_t size);
-		Archive& read_data(byte* data, size_t size);
-		Archive& serialize_memory(byte* data, size_t size);
+		Archive& write_data(const u8* data, usize size);
+		Archive& read_data(u8* data, usize size);
+		Archive& serialize_memory(u8* data, usize size);
 
-		size_t position() const;
-		Archive& position(size_t position);
+		usize position() const;
+		Archive& position(usize position);
 		bool is_open() const;
 
 		template<typename Type>
@@ -82,8 +82,8 @@ namespace Engine
 			}
 			else
 			{
-				size_t size = sizeof(Type);
-				byte* data  = reinterpret_cast<byte*>(&value);
+				usize size = sizeof(Type);
+				u8* data   = reinterpret_cast<u8*>(&value);
 
 				if (is_reading())
 				{
@@ -112,17 +112,17 @@ namespace Engine
 			if (is_saving())
 			{
 				String name = object ? object->full_name() : "";
-				size_t size = name.length();
+				usize size  = name.length();
 				serialize(size);
-				write_data(reinterpret_cast<const byte*>(name.data()), size);
+				write_data(reinterpret_cast<const u8*>(name.data()), size);
 			}
 			else if (is_reading())
 			{
 				String name;
-				size_t size;
+				usize size;
 				serialize(size);
 				name.resize(size);
-				read_data(reinterpret_cast<byte*>(name.data()), size);
+				read_data(reinterpret_cast<u8*>(name.data()), size);
 
 				if (name.empty())
 				{
@@ -140,7 +140,7 @@ namespace Engine
 		template<typename Type>
 		FORCE_INLINE bool serialize_vector(Type& vector)
 		{
-			size_t size = vector.size();
+			usize size  = vector.size();
 			Archive& ar = *this;
 			serialize(size);
 
@@ -151,8 +151,8 @@ namespace Engine
 
 			if constexpr (std::is_trivially_copyable_v<Type>)
 			{
-				byte* data   = reinterpret_cast<byte*>(vector.data());
-				size_t bytes = size * sizeof(Type);
+				u8* data    = reinterpret_cast<u8*>(vector.data());
+				usize bytes = size * sizeof(Type);
 
 				if (ar.is_reading())
 				{
@@ -177,7 +177,7 @@ namespace Engine
 		template<typename Type>
 		FORCE_INLINE bool serialize_set(Type& set)
 		{
-			size_t size = set.size();
+			usize size  = set.size();
 			Archive& ar = *this;
 
 			serialize(size);
@@ -207,7 +207,7 @@ namespace Engine
 		template<typename Type>
 		FORCE_INLINE bool serialize_map(Type& map)
 		{
-			size_t size = map.size();
+			usize size = map.size();
 			serialize(size);
 
 			if (is_reading())
@@ -238,7 +238,7 @@ namespace Engine
 		template<typename Type>
 		FORCE_INLINE bool serialize_container(Type& container)
 		{
-			size_t size = container.size();
+			usize size = container.size();
 			serialize(size);
 			if (is_reading())
 			{

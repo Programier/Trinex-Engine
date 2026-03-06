@@ -53,12 +53,12 @@ namespace Engine
 		return m_fingers[window];
 	}
 
-	size_t TouchScreenSystem::finger_count(Window* window) const
+	usize TouchScreenSystem::finger_count(Window* window) const
 	{
 		return find_fingers_data(window).size();
 	}
 
-	bool TouchScreenSystem::is_finger_down(size_t finger_index, Window* window) const
+	bool TouchScreenSystem::is_finger_down(usize finger_index, Window* window) const
 	{
 		auto& data = find_fingers_data(window);
 		if (data.size() <= finger_index)
@@ -66,7 +66,7 @@ namespace Engine
 		return data[finger_index].is_down;
 	}
 
-	Vector2f TouchScreenSystem::finger_location(size_t finger_index, Window* window) const
+	Vector2f TouchScreenSystem::finger_location(usize finger_index, Window* window) const
 	{
 		auto& data = find_fingers_data(window);
 		if (data.size() <= finger_index)
@@ -74,7 +74,7 @@ namespace Engine
 		return {data[finger_index].x, data[finger_index].y};
 	}
 
-	Vector2f TouchScreenSystem::finger_offset(size_t finger_index, Window* window) const
+	Vector2f TouchScreenSystem::finger_offset(usize finger_index, Window* window) const
 	{
 		auto& data = find_fingers_data(window);
 		if (data.size() <= finger_index)
@@ -82,7 +82,7 @@ namespace Engine
 		return {data[finger_index].x_offset, data[finger_index].y_offset};
 	}
 
-	const TouchScreenSystem::Finger& TouchScreenSystem::finger_info(size_t finger_index, Window* window) const
+	const TouchScreenSystem::Finger& TouchScreenSystem::finger_info(usize finger_index, Window* window) const
 	{
 		auto& data = find_fingers_data(window);
 		if (data.size() <= finger_index)
@@ -94,7 +94,7 @@ namespace Engine
 	}
 
 	static FORCE_INLINE Vector<TouchScreenSystem::Finger>& validate_fingers(Vector<TouchScreenSystem::Finger>& data,
-	                                                                        Index finger_index)
+	                                                                        usize finger_index)
 	{
 		if (data.size() <= finger_index)
 			data.resize(finger_index + 1);

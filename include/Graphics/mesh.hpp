@@ -12,8 +12,8 @@ namespace Engine
 	struct MeshVertexAttribute {
 		RHIVertexSemantic semantic;
 		RHIVertexFormat format;
-		byte stream;
-		byte offset;
+		u8 stream;
+		u8 offset;
 
 		inline bool operator<(const MeshVertexAttribute& attribute) const { return semantic < attribute.semantic; }
 	};
@@ -22,10 +22,10 @@ namespace Engine
 		trinex_struct(MeshSurface, void);
 
 		RHIPrimitiveTopology topology = RHIPrimitiveTopology::TriangleList;
-		uint32_t first_vertex         = 0;
-		uint32_t first_index          = ~0U;
-		uint32_t vertices_count       = 0;
-		uint16_t material_index       = 0;
+		u32 first_vertex              = 0;
+		u32 first_index               = ~0U;
+		u32 vertices_count            = 0;
+		u16 material_index            = 0;
 
 		bool serialize(Archive& ar);
 
@@ -89,25 +89,25 @@ namespace Engine
 			Vector<MeshSurface> surfaces;
 
 		private:
-			VertexBufferBase* find_position_buffer(Index index);
-			VertexBufferBase* find_tex_coord_buffer(Index index);
-			VertexBufferBase* find_color_buffer(Index index);
-			VertexBufferBase* find_normal_buffer(Index index);
-			VertexBufferBase* find_tangent_buffer(Index index);
-			VertexBufferBase* find_blend_weights_buffer(Index index);
-			VertexBufferBase* find_blend_indices_buffer(Index index);
+			VertexBufferBase* find_position_buffer(usize index);
+			VertexBufferBase* find_tex_coord_buffer(usize index);
+			VertexBufferBase* find_color_buffer(usize index);
+			VertexBufferBase* find_normal_buffer(usize index);
+			VertexBufferBase* find_tangent_buffer(usize index);
+			VertexBufferBase* find_blend_weights_buffer(usize index);
+			VertexBufferBase* find_blend_indices_buffer(usize index);
 
 		public:
-			VertexBufferBase* find_vertex_buffer(RHIVertexSemantic semantic, Index index = 0);
-			size_t vertex_count() const;
-			size_t indices_count() const;
+			VertexBufferBase* find_vertex_buffer(RHIVertexSemantic semantic, usize index = 0);
+			usize vertex_count() const;
+			usize indices_count() const;
 			bool serialize(Archive& ar);
 		};
 
 		Vector<MaterialInterface*> materials;
 		Box3f bounds = {};
 		Vector<LOD> lods;
-		uint32_t bones = 0;
+		u32 bones = 0;
 
 		SkeletalMesh& init_render_resources();
 		bool serialize(Archive& ar) override;

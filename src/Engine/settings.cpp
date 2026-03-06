@@ -4,15 +4,15 @@
 
 namespace Engine::Settings
 {
-	ENGINE_EXPORT String engine_class          = "Engine::BaseEngine";
-	ENGINE_EXPORT String default_language      = "eng";
-	ENGINE_EXPORT String current_language      = "eng";
-	ENGINE_EXPORT uint_t num_threads           = 0;
-	ENGINE_EXPORT int_t lz4_compression_level  = 0;
-	ENGINE_EXPORT int_t gc_max_object_per_tick = 1;
-	ENGINE_EXPORT int_t fps_limit              = 60;
-	ENGINE_EXPORT float screen_percentage      = 1.f;
-	ENGINE_EXPORT Vector<String> languages     = {"eng"};
+	ENGINE_EXPORT String engine_class        = "Engine::BaseEngine";
+	ENGINE_EXPORT String default_language    = "eng";
+	ENGINE_EXPORT String current_language    = "eng";
+	ENGINE_EXPORT u32 num_threads            = 0;
+	ENGINE_EXPORT i32 lz4_compression_level  = 0;
+	ENGINE_EXPORT i32 gc_max_object_per_tick = 1;
+	ENGINE_EXPORT i32 fps_limit              = 60;
+	ENGINE_EXPORT float screen_percentage    = 1.f;
+	ENGINE_EXPORT Vector<String> languages   = {"eng"};
 	ENGINE_EXPORT Vector<String> systems;
 	ENGINE_EXPORT Vector<String> plugins;
 	ENGINE_EXPORT bool debug_shaders = false;
@@ -25,7 +25,7 @@ namespace Engine::Settings
 		ENGINE_EXPORT String rhi = "Vulkan";
 #endif
 		ENGINE_EXPORT bool force_keep_cpu_resources = false;
-		ENGINE_EXPORT uint_t shadow_map_size        = 1024;
+		ENGINE_EXPORT u32 shadow_map_size           = 1024;
 		ENGINE_EXPORT float anisotropy              = 8.f;
 	}// namespace Rendering
 
@@ -33,10 +33,10 @@ namespace Engine::Settings
 	{
 		ENGINE_EXPORT String title                       = "Trinex Engine";
 		ENGINE_EXPORT String client                      = "Engine::DefaultClient";
-		ENGINE_EXPORT int_t size_x                       = 1280;
-		ENGINE_EXPORT int_t size_y                       = 720;
-		ENGINE_EXPORT int_t pos_x                        = -1;
-		ENGINE_EXPORT int_t pos_y                        = -1;
+		ENGINE_EXPORT i32 size_x                         = 1280;
+		ENGINE_EXPORT i32 size_y                         = 720;
+		ENGINE_EXPORT i32 pos_x                          = -1;
+		ENGINE_EXPORT i32 pos_y                          = -1;
 		ENGINE_EXPORT bool vsync                         = true;
 		ENGINE_EXPORT Vector<WindowAttribute> attributes = {WindowAttribute::Resizable};
 		ENGINE_EXPORT Vector<Orientation> orientations;
@@ -44,13 +44,13 @@ namespace Engine::Settings
 
 	namespace Splash
 	{
-		ENGINE_EXPORT bool show                 = true;
-		ENGINE_EXPORT String image              = "resources/splash/splash.png";
-		ENGINE_EXPORT String font               = "";
-		ENGINE_EXPORT int_t startup_text_size   = 14;
-		ENGINE_EXPORT int_t version_text_size   = 14;
-		ENGINE_EXPORT int_t copyright_text_size = 14;
-		ENGINE_EXPORT int_t game_name_text_size = 32;
+		ENGINE_EXPORT bool show               = true;
+		ENGINE_EXPORT String image            = "resources/splash/splash.png";
+		ENGINE_EXPORT String font             = "";
+		ENGINE_EXPORT i32 startup_text_size   = 14;
+		ENGINE_EXPORT i32 version_text_size   = 14;
+		ENGINE_EXPORT i32 copyright_text_size = 14;
+		ENGINE_EXPORT i32 game_name_text_size = 32;
 	}// namespace Splash
 
 

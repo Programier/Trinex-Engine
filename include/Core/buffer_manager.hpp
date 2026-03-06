@@ -9,14 +9,14 @@ namespace Engine
 	{
 	public:
 		using Stream    = std::ostream;
-		using WritePos  = size_t;
-		using PosOffset = int64_t;
+		using WritePos  = usize;
+		using PosOffset = i64;
 
 
-		size_t size();
+		usize size();
 		BufferWriter& position(WritePos pos);
 
-		virtual bool write(const byte* data, size_t size)                                          = 0;
+		virtual bool write(const u8* data, usize size)                                             = 0;
 		virtual WritePos position()                                                                = 0;
 		virtual BufferWriter& offset(PosOffset offset, BufferSeekDir dir = BufferSeekDir::Current) = 0;
 		virtual bool is_open() const                                                               = 0;
@@ -24,7 +24,7 @@ namespace Engine
 		template<typename... T>
 		FORCE_INLINE bool write_primitives(const T&... value)
 		{
-			return (write(reinterpret_cast<const byte*>(&value), sizeof(T)), ...);
+			return (write(reinterpret_cast<const u8*>(&value), sizeof(T)), ...);
 		}
 
 		virtual ~BufferWriter() {}
@@ -34,14 +34,14 @@ namespace Engine
 	class ENGINE_EXPORT BufferReader
 	{
 	public:
-		using ReadPos   = size_t;
-		using PosOffset = int64_t;
+		using ReadPos   = usize;
+		using PosOffset = i64;
 		using Stream    = std::istream;
 
-		size_t size();
+		usize size();
 		BufferReader& position(ReadPos pos);
 
-		virtual bool read(byte* data, size_t size)                                                 = 0;
+		virtual bool read(u8* data, usize size)                                                    = 0;
 		virtual ReadPos position()                                                                 = 0;
 		virtual BufferReader& offset(PosOffset offset, BufferSeekDir dir = BufferSeekDir::Current) = 0;
 		virtual bool is_open() const                                                               = 0;
@@ -49,7 +49,7 @@ namespace Engine
 		template<typename... T>
 		FORCE_INLINE bool read_primitives(T&... value)
 		{
-			return (read(reinterpret_cast<byte*>(&value), sizeof(T)), ...);
+			return (read(reinterpret_cast<u8*>(&value), sizeof(T)), ...);
 		}
 
 		template<typename T>
@@ -67,13 +67,13 @@ namespace Engine
 	class ENGINE_EXPORT VectorWriterBase : public BufferWriter
 	{
 	protected:
-		static void copy_data(byte* to, const byte* from, size_t count);
+		static void copy_data(u8* to, const u8* from, usize count);
 	};
 
 	class ENGINE_EXPORT VectorReaderBase : public BufferReader
 	{
 	protected:
-		static void copy_data(byte* to, const byte* from, size_t count);
+		static void copy_data(u8* to, const u8* from, usize count);
 	};
 
 	template<typename T>
@@ -100,15 +100,15 @@ namespace Engine
 			return *this;
 		}
 
-		bool write(const byte* data, size_t size) override
+		bool write(const u8* data, usize size) override
 		{
-			size_t required_size = (m_write_pos + size + sizeof(T) - 1) / sizeof(T);
+			usize required_size = (m_write_pos + size + sizeof(T) - 1) / sizeof(T);
 			if (m_buffer->size() < required_size)
 			{
 				m_buffer->resize(required_size, T());
 			}
 
-			byte* write_to = reinterpret_cast<byte*>(m_buffer->data()) + m_write_pos;
+			u8* write_to = reinterpret_cast<u8*>(m_buffer->data()) + m_write_pos;
 			copy_data(write_to, data, size);
 			m_write_pos += size;
 			return true;
@@ -141,15 +141,15 @@ namespace Engine
 			return *this;
 		}
 
-		bool read(byte* data, size_t size) override
+		bool read(u8* data, usize size) override
 		{
-			size_t required_size = (m_read_pos + size + sizeof(T) - 1) / sizeof(T);
+			usize required_size = (m_read_pos + size + sizeof(T) - 1) / sizeof(T);
 			if (m_buffer->size() < required_size)
 			{
 				return false;
 			}
 
-			const byte* read_from = reinterpret_cast<const byte*>(m_buffer->data()) + m_read_pos;
+			const u8* read_from = reinterpret_cast<const u8*>(m_buffer->data()) + m_read_pos;
 			copy_data(data, read_from, size);
 			m_read_pos += size;
 			return true;

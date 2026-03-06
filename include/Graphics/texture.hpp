@@ -57,25 +57,25 @@ namespace Engine
 		RHIColorFormat format;
 
 		Texture2D& init_render_resources() override;
-		uint_t width(byte mip = 0) const;
-		uint_t height(byte mip = 0) const;
-		Vector2u size(byte mip = 0) const;
+		u32 width(u8 mip = 0) const;
+		u32 height(u8 mip = 0) const;
+		Vector2u size(u8 mip = 0) const;
 		bool serialize(Archive& archive) override;
 	};
-	
+
 	class ENGINE_EXPORT Texture3D : public Texture
 	{
 		trinex_class(Texture2D, Texture);
-		
+
 	public:
 		Vector<Texture3DMip> mips;
 		RHIColorFormat format;
-		
+
 		Texture3D& init_render_resources() override;
-		uint_t width(byte mip = 0) const;
-		uint_t height(byte mip = 0) const;
-		uint_t depth(byte mip = 0) const;
-		Vector3u size(byte mip = 0) const;
+		u32 width(u8 mip = 0) const;
+		u32 height(u8 mip = 0) const;
+		u32 depth(u8 mip = 0) const;
+		Vector3u size(u8 mip = 0) const;
 		bool serialize(Archive& archive) override;
 	};
 
@@ -88,9 +88,9 @@ namespace Engine
 		RHIColorFormat format;
 
 		TextureCube& init_render_resources() override;
-		uint_t width(byte mip = 0) const;
-		uint_t height(byte mip = 0) const;
-		Vector2u size(byte mip = 0) const;
+		u32 width(u8 mip = 0) const;
+		u32 height(u8 mip = 0) const;
+		Vector2u size(u8 mip = 0) const;
 		bool serialize(Archive& archive) override;
 	};
 }// namespace Engine

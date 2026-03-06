@@ -38,15 +38,15 @@ namespace Engine
 			return reconstruct_position_ndc(uv * 2.f - 1.f, depth);
 		}
 
-		inline uint_t compute_lod(const Vector3f& object_location, uint_t lod_count) const
+		inline u32 compute_lod(const Vector3f& object_location, u32 lod_count) const
 		{
 			if (lod_count <= 1)
 				return 0;
 
-			float_t distance   = Math::distance(object_location, location());
-			float_t lod_factor = ((far - near) * 0.75f) / lod_count;
-			uint_t lod_index   = static_cast<uint_t>((distance - near) / lod_factor);
-			return glm::min<uint_t>(lod_index, lod_count - 1);
+			f32 distance   = Math::distance(object_location, location());
+			f32 lod_factor = ((far - near) * 0.75f) / lod_count;
+			u32 lod_index  = static_cast<u32>((distance - near) / lod_factor);
+			return glm::min<u32>(lod_index, lod_count - 1);
 		}
 	};
 }// namespace Engine

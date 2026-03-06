@@ -37,9 +37,9 @@ namespace Engine
 		return entries;
 	}
 
-	static MultiMap<uint64_t, Index>& name_index_map()
+	static MultiMap<u64, usize>& name_index_map()
 	{
-		static MultiMap<uint64_t, Index> indices;
+		static MultiMap<u64, usize> indices;
 		return indices;
 	}
 
@@ -49,7 +49,7 @@ namespace Engine
 		return default_name;
 	}
 
-	static FORCE_INLINE void push_new_name(const char* name, size_t len, uint64_t hash)
+	static FORCE_INLINE void push_new_name(const char* name, usize len, u64 hash)
 	{
 		name_index_map().insert({hash, name_entries().size()});
 		name_entries().push_back(Name::Entry{String(name, len), hash});
@@ -60,13 +60,13 @@ namespace Engine
 	Name Name::find_name(const StringView& name)
 	{
 		Name out_name;
-		uint64_t hash = memory_hash(name.data(), name.length(), 0);
+		u64 hash = memory_hash(name.data(), name.length(), 0);
 
 		Vector<Name::Entry>& name_table = name_entries();
 
 		out_name.m_index = name_table.size();
 
-		for (Index index = 0; index < out_name.m_index; ++index)
+		for (usize index = 0; index < out_name.m_index; ++index)
 		{
 			const Name::Entry& entry = name_table[index];
 
@@ -81,7 +81,7 @@ namespace Engine
 		return out_name;
 	}
 
-	size_t Name::static_count()
+	usize Name::static_count()
 	{
 		return name_entries().size();
 	}
@@ -94,9 +94,9 @@ namespace Engine
 			return *this;
 		}
 
-		uint64_t hash                      = memory_hash(view.data(), view.length(), 0);
-		Vector<Name::Entry>& name_table    = name_entries();
-		MultiMap<uint64_t, Index>& indices = name_index_map();
+		u64 hash                        = memory_hash(view.data(), view.length(), 0);
+		Vector<Name::Entry>& name_table = name_entries();
+		MultiMap<u64, usize>& indices   = name_index_map();
 
 		m_index = name_table.size();
 
@@ -104,7 +104,7 @@ namespace Engine
 
 		while (range.first != range.second)
 		{
-			Index index = range.first->second;
+			usize index = range.first->second;
 
 			if (name_table[index].name == view)
 			{
@@ -123,7 +123,7 @@ namespace Engine
 
 	Name::Name(const char* name) : Name(StringView(name)) {}
 
-	Name::Name(const char* name, size_t len) : Name(StringView(name, len)) {}
+	Name::Name(const char* name, usize len) : Name(StringView(name, len)) {}
 
 	Name::Name(const String& name) : Name(StringView(name)) {}
 
@@ -153,7 +153,7 @@ namespace Engine
 	Name& Name::operator=(const Name&) = default;
 	Name& Name::operator=(Name&&)      = default;
 
-	uint64_t Name::hash() const
+	u64 Name::hash() const
 	{
 		return is_valid() ? name_entries()[m_index].hash : Constants::invalid_hash;
 	}
@@ -198,7 +198,7 @@ namespace Engine
 		return equals(StringView(name));
 	}
 
-	bool Name::equals(const char* name, size_t len) const
+	bool Name::equals(const char* name, usize len) const
 	{
 		return equals(StringView(name, len));
 	}

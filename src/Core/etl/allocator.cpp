@@ -46,9 +46,9 @@ namespace Engine
 			struct Node {
 				Node* m_next = nullptr;
 
-				byte* m_begin;
-				byte* m_end;
-				byte* m_stack;
+				u8* m_begin;
+				u8* m_end;
+				u8* m_stack;
 
 				inline Node(size_type size, size_type align)
 				{
@@ -92,13 +92,13 @@ namespace Engine
 				return trx_new Node(Math::max(size, min_block_size), Math::max(align, min_block_alignment));
 			}
 
-			inline byte* allocate_aligned(size_type size, size_type align)
+			inline u8* allocate_aligned(size_type size, size_type align)
 			{
 				Node* prev = nullptr;
 
 				while (m_current)
 				{
-					byte* ptr = align_memory(m_current->m_stack, align);
+					u8* ptr = align_memory(m_current->m_stack, align);
 
 					if (ptr + size < m_current->m_end)
 					{
@@ -169,7 +169,7 @@ namespace Engine
 	StackByteAllocator::Mark& StackByteAllocator::Mark::reset()
 	{
 		s_stack_allocator.m_current          = static_cast<TempAllocatorData::Node*>(m_datas[0]);
-		s_stack_allocator.m_current->m_stack = static_cast<byte*>(m_datas[1]);
+		s_stack_allocator.m_current->m_stack = static_cast<u8*>(m_datas[1]);
 		return *this;
 	}
 

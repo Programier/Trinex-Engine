@@ -59,8 +59,8 @@ namespace Engine
 	{
 		ViewDesc desc;
 
-		desc.first_array_slice = Math::min<uint16_t>(view->base_slice, texture->layer_count() - 1);
-		desc.array_size        = Math::min<uint16_t>(view->slice_count, texture->layer_count() - desc.first_array_slice);
+		desc.first_array_slice = Math::min<u16>(view->base_slice, texture->layer_count() - 1);
+		desc.array_size        = Math::min<u16>(view->slice_count, texture->layer_count() - desc.first_array_slice);
 
 		desc.view_type = view->view_type == RHITextureType::Undefined ? texture->texture_type() : view->view_type;
 		return desc;
@@ -73,8 +73,8 @@ namespace Engine
 			view = &default_value_of<RHITextureDescSRV>();
 
 		ViewDesc desc   = from_base(view, texture);
-		desc.first_mip  = Math::min<uint8_t>(view->base_mip, texture->mipmap_count() - 1);
-		desc.mip_levels = Math::min<uint8_t>(view->mip_count, texture->mipmap_count() - desc.first_mip);
+		desc.first_mip  = Math::min<u8>(view->base_mip, texture->mipmap_count() - 1);
+		desc.mip_levels = Math::min<u8>(view->mip_count, texture->mipmap_count() - desc.first_mip);
 		return desc;
 	}
 
@@ -85,7 +85,7 @@ namespace Engine
 			view = &default_value_of<RHITextureDescUAV>();
 
 		ViewDesc desc   = from_base(view, texture);
-		desc.first_mip  = Math::min<uint8_t>(view->base_mip, texture->mipmap_count() - 1);
+		desc.first_mip  = Math::min<u8>(view->base_mip, texture->mipmap_count() - 1);
 		desc.mip_levels = 1;
 
 		return desc;
@@ -98,7 +98,7 @@ namespace Engine
 			view = &default_value_of<RHITextureDescRTV>();
 
 		ViewDesc desc   = from_base(view, texture);
-		desc.first_mip  = Math::min<uint8_t>(view->base_mip, texture->mipmap_count() - 1);
+		desc.first_mip  = Math::min<u8>(view->base_mip, texture->mipmap_count() - 1);
 		desc.mip_levels = 1;
 
 		return desc;
@@ -112,21 +112,19 @@ namespace Engine
 
 		ViewDesc desc = from_base(view, texture);
 
-		desc.first_mip  = Math::min<uint8_t>(view->base_mip, texture->mipmap_count() - 1);
+		desc.first_mip  = Math::min<u8>(view->base_mip, texture->mipmap_count() - 1);
 		desc.mip_levels = 1;
 
 
 		return desc;
 	}
 
-	VulkanTexture& VulkanTexture::create(RHIColorFormat format, Vector3u size, uint_t layers, uint32_t mips,
-	                                     RHITextureCreateFlags flags)
+	VulkanTexture& VulkanTexture::create(RHIColorFormat format, Vector3u size, u32 layers, u32 mips, RHITextureCreateFlags flags)
 	{
 		return create(VulkanEnums::format_of(format), size, layers, mips, flags);
 	}
 
-	VulkanTexture& VulkanTexture::create(vk::Format format, Vector3u size, uint_t layers, uint32_t mips,
-	                                     RHITextureCreateFlags flags)
+	VulkanTexture& VulkanTexture::create(vk::Format format, Vector3u size, u32 layers, u32 mips, RHITextureCreateFlags flags)
 	{
 		m_format       = format;
 		m_extent       = vk::Extent3D{size.x, size.y, size.z};
@@ -242,12 +240,12 @@ namespace Engine
 			vmaDestroyImage(API->m_allocator, m_image, m_allocation);
 	}
 
-	RHITexture* VulkanAPI::create_texture(RHITextureType type, RHIColorFormat format, Vector3u size, uint32_t mips,
+	RHITexture* VulkanAPI::create_texture(RHITextureType type, RHIColorFormat format, Vector3u size, u32 mips,
 	                                      RHITextureCreateFlags flags)
 	{
 		VulkanTexture* texture = nullptr;
 
-		uint_t layers = 1;
+		u32 layers = 1;
 
 		switch (type)
 		{
@@ -299,10 +297,10 @@ namespace Engine
 	}
 
 	VulkanContext& VulkanContext::update_texture(RHITexture* texture, const RHITextureRegion& region, const void* data,
-	                                             size_t size, size_t buffer_width, size_t buffer_height)
+	                                             usize size, usize buffer_width, usize buffer_height)
 	{
 		auto buffer = API->stagging_manager()->allocate(size, RHIBufferCreateFlags::TransferSrc);
-		buffer->copy(this, 0, static_cast<const byte*>(data), size);
+		buffer->copy(this, 0, static_cast<const u8*>(data), size);
 
 		VulkanTexture* vulkan_texture = static_cast<VulkanTexture*>(texture);
 
@@ -316,9 +314,9 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanContext& VulkanContext::copy_texture_to_buffer(RHITexture* texture, uint8_t mip_level, uint16_t array_slice,
+	VulkanContext& VulkanContext::copy_texture_to_buffer(RHITexture* texture, u8 mip_level, u16 array_slice,
 	                                                     const Vector3u& offset, const Vector3u& extent, RHIBuffer* buffer,
-	                                                     size_t buffer_offset)
+	                                                     usize buffer_offset)
 	{
 		VulkanTexture* src = static_cast<VulkanTexture*>(texture);
 		VulkanBuffer* dst  = static_cast<VulkanBuffer*>(buffer);
@@ -329,8 +327,8 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanContext& VulkanContext::copy_buffer_to_texture(RHIBuffer* buffer, size_t buffer_offset, RHITexture* texture,
-	                                                     uint8_t mip_level, uint16_t array_slice, const Vector3u& offset,
+	VulkanContext& VulkanContext::copy_buffer_to_texture(RHIBuffer* buffer, usize buffer_offset, RHITexture* texture,
+	                                                     u8 mip_level, u16 array_slice, const Vector3u& offset,
 	                                                     const Vector3u& extent)
 	{
 		VulkanTexture* dst = static_cast<VulkanTexture*>(texture);

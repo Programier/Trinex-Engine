@@ -16,7 +16,7 @@ namespace Engine
 	public:
 		struct MemoryBlock {
 			void* memory = nullptr;
-			size_t size  = 0;
+			usize size   = 0;
 		};
 
 		struct CombinedSamplerImage {
@@ -24,11 +24,11 @@ namespace Engine
 			RHISampler* sampler            = nullptr;
 		};
 
-		using Binding = Variant<bool, Vector2b, Vector3b, Vector4b,  //
-		                        int_t, Vector2i, Vector3i, Vector4i, //
-		                        uint_t, Vector2u, Vector3u, Vector4u,//
-		                        float, Vector2f, Vector3f, Vector4f, //
-		                        MemoryBlock, CombinedSamplerImage,   //
+		using Binding = Variant<bool, Vector2b, Vector3b, Vector4b, //
+		                        i32, Vector2i, Vector3i, Vector4i,  //
+		                        u32, Vector2u, Vector3u, Vector4u,  //
+		                        float, Vector2f, Vector3f, Vector4f,//
+		                        MemoryBlock, CombinedSamplerImage,  //
 		                        RHISampler*, RHIShaderResourceView*>;
 
 		using Container = TreeMap<Name, Binding>;
@@ -79,7 +79,7 @@ namespace Engine
 			return *this;
 		}
 
-		inline size_t size() const { return m_bindings.size(); }
+		inline usize size() const { return m_bindings.size(); }
 		inline bool empty() const { return m_bindings.empty(); }
 
 		inline Container::const_iterator begin() const { return m_bindings.begin(); }

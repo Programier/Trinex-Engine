@@ -24,7 +24,7 @@ namespace Engine::Refl
 		ScriptClass(Class* parent, Script* script, const ScriptTypeInfo& info, BitMask flags = 0);
 		ScriptClass& destroy_object(Engine::Object* object) override;
 		Script* script() const;
-		size_t size() const override;
+		usize size() const override;
 		~ScriptClass();
 	};
 }// namespace Engine::Refl

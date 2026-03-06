@@ -238,9 +238,9 @@ namespace Engine
 			return result;
 		}
 
-		TreeMap<int_t, TreeSet<String>> parse_func_metadata(const std::map<int, std::vector<std::string>>& in_map)
+		TreeMap<i32, TreeSet<String>> parse_func_metadata(const std::map<int, std::vector<std::string>>& in_map)
 		{
-			TreeMap<int_t, TreeSet<String>> result;
+			TreeMap<i32, TreeSet<String>> result;
 
 			for (auto& [func_id, metadata] : in_map)
 			{
@@ -284,7 +284,7 @@ namespace Engine
 			return result;
 		}
 
-		TreeMap<int_t, TreeSet<String>> func_metadata_map() { return parse_func_metadata(funcMetadataMap); }
+		TreeMap<i32, TreeSet<String>> func_metadata_map() { return parse_func_metadata(funcMetadataMap); }
 
 		TreeMap<String, TreeSet<String>> var_metadata_map() { return parse_var_metadata(varMetadataMap); }
 
@@ -380,7 +380,7 @@ namespace Engine
 		{
 			String new_code(reader.size(), 0);
 
-			if (new_code.size() > 0 && reader.read(reinterpret_cast<byte*>(new_code.data()), new_code.size()))
+			if (new_code.size() > 0 && reader.read(reinterpret_cast<u8*>(new_code.data()), new_code.size()))
 			{
 				m_code = std::move(new_code);
 				return true;
@@ -396,7 +396,7 @@ namespace Engine
 
 		if (writer.is_open())
 		{
-			if (writer.write(reinterpret_cast<const byte*>(m_code.c_str()), m_code.size()))
+			if (writer.write(reinterpret_cast<const u8*>(m_code.c_str()), m_code.size()))
 			{
 				m_is_dirty = false;
 				return true;
@@ -431,7 +431,7 @@ namespace Engine
 	{
 		auto count = m_module.object_type_count();
 
-		for (uint_t i = 0; i < count; ++i)
+		for (u32 i = 0; i < count; ++i)
 		{
 			auto type = m_module.object_type_by_index(i);
 
@@ -519,7 +519,7 @@ namespace Engine
 
 	// Metadata
 
-	const TreeMap<int_t, TreeSet<String>>& Script::func_metadata_map() const
+	const TreeMap<i32, TreeSet<String>>& Script::func_metadata_map() const
 	{
 		return m_func_metadata_map;
 	}
@@ -544,7 +544,7 @@ namespace Engine
 		return metadata_for_func(type_info.method_by_decl(decl, get_virtual));
 	}
 
-	const TreeSet<String>& Script::ClassMetadata::metadata_for_func(int_t func_id) const
+	const TreeSet<String>& Script::ClassMetadata::metadata_for_func(i32 func_id) const
 	{
 		auto it = func_metadata_map.find(func_id);
 		if (it != func_metadata_map.end())
@@ -552,7 +552,7 @@ namespace Engine
 		return default_value_of<TreeSet<String>>();
 	}
 
-	const TreeSet<String>& Script::ClassMetadata::metadata_for_property(uint_t prop_index) const
+	const TreeSet<String>& Script::ClassMetadata::metadata_for_property(u32 prop_index) const
 	{
 		return metadata_for_property(String(type_info.property_name(prop_index)));
 	}
@@ -577,7 +577,7 @@ namespace Engine
 		return default_value_of<TreeSet<String>>();
 	}
 
-	const TreeSet<String>& Script::metadata_for_func(int_t func_id) const
+	const TreeSet<String>& Script::metadata_for_func(i32 func_id) const
 	{
 		auto it = m_func_metadata_map.find(func_id);
 		if (it != m_func_metadata_map.end())
@@ -585,7 +585,7 @@ namespace Engine
 		return default_value_of<TreeSet<String>>();
 	}
 
-	const TreeSet<String>& Script::metadata_for_var(uint_t var_index) const
+	const TreeSet<String>& Script::metadata_for_var(u32 var_index) const
 	{
 		if (m_module.is_valid())
 		{
@@ -619,7 +619,7 @@ namespace Engine
 	}
 
 
-	const Script::ClassMetadata& Script::metadata_for_class(int_t type_id) const
+	const Script::ClassMetadata& Script::metadata_for_class(i32 type_id) const
 	{
 		if (m_module.is_valid())
 		{
@@ -629,12 +629,12 @@ namespace Engine
 	}
 
 	// Functions
-	uint_t Script::functions_count() const
+	u32 Script::functions_count() const
 	{
 		return m_module.functions_count();
 	}
 
-	ScriptFunction Script::function_by_index(uint_t index) const
+	ScriptFunction Script::function_by_index(u32 index) const
 	{
 		return m_module.function_by_index(index);
 	}
@@ -660,63 +660,63 @@ namespace Engine
 	}
 
 	// Global variables
-	uint_t Script::global_var_count() const
+	u32 Script::global_var_count() const
 	{
 		return m_module.global_var_count();
 	}
 
-	int_t Script::global_var_index_by_name(const char* name) const
+	i32 Script::global_var_index_by_name(const char* name) const
 	{
 		return m_module.global_var_index_by_name(name);
 	}
 
-	int_t Script::global_var_index_by_decl(const char* decl) const
+	i32 Script::global_var_index_by_decl(const char* decl) const
 	{
 		return m_module.global_var_index_by_decl(decl);
 	}
 
-	int_t Script::global_var_index_by_name(const String& name) const
+	i32 Script::global_var_index_by_name(const String& name) const
 	{
 		return m_module.global_var_index_by_name(name);
 	}
 
-	int_t Script::global_var_index_by_decl(const String& decl) const
+	i32 Script::global_var_index_by_decl(const String& decl) const
 	{
 		return m_module.global_var_index_by_decl(decl);
 	}
 
-	bool Script::global_var(uint_t index, StringView* name, StringView* name_space, int_t* type_id, bool* is_const) const
+	bool Script::global_var(u32 index, StringView* name, StringView* name_space, i32* type_id, bool* is_const) const
 	{
 		return m_module.global_var(index, name, name_space, type_id, is_const);
 	}
 
-	String Script::global_var_declaration(uint_t index, bool include_namespace) const
+	String Script::global_var_declaration(u32 index, bool include_namespace) const
 	{
 		return m_module.global_var_declaration(index, include_namespace);
 	}
 
-	void* Script::address_of_global_var(uint_t index)
+	void* Script::address_of_global_var(u32 index)
 	{
 		return m_module.address_of_global_var(index);
 	}
 
 	// Type identification
-	uint_t Script::object_type_count() const
+	u32 Script::object_type_count() const
 	{
 		return m_module.object_type_count();
 	}
 
-	ScriptTypeInfo Script::object_type_by_index(uint_t index) const
+	ScriptTypeInfo Script::object_type_by_index(u32 index) const
 	{
 		return m_module.object_type_by_index(index);
 	}
 
-	int_t Script::type_id_by_decl(const char* decl) const
+	i32 Script::type_id_by_decl(const char* decl) const
 	{
 		return m_module.type_id_by_decl(decl);
 	}
 
-	int_t Script::type_id_by_decl(const String& decl) const
+	i32 Script::type_id_by_decl(const String& decl) const
 	{
 		return m_module.type_id_by_decl(decl);
 	}
@@ -742,23 +742,23 @@ namespace Engine
 	}
 
 	// Enums
-	uint_t Script::enum_count() const
+	u32 Script::enum_count() const
 	{
 		return m_module.enum_count();
 	}
 
-	ScriptTypeInfo Script::enum_by_index(uint_t index) const
+	ScriptTypeInfo Script::enum_by_index(u32 index) const
 	{
 		return m_module.enum_by_index(index);
 	}
 
 	// Typedefs
-	uint_t Script::typedef_count() const
+	u32 Script::typedef_count() const
 	{
 		return m_module.typedef_count();
 	}
 
-	ScriptTypeInfo Script::typedef_by_index(uint_t index) const
+	ScriptTypeInfo Script::typedef_by_index(u32 index) const
 	{
 		return m_module.typedef_by_index(index);
 	}

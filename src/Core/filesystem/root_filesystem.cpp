@@ -23,7 +23,7 @@ namespace Engine::VFS
 	{
 	public:
 		Vector<DirectoryIteratorInterface*> m_iterators;
-		mutable size_t m_index = 0;
+		mutable usize m_index = 0;
 
 		bool next() override
 		{
@@ -57,7 +57,7 @@ namespace Engine::VFS
 			FileSystemIterator* new_iterator = trx_new FileSystemIterator();
 			new_iterator->m_iterators.reserve(m_iterators.size() - m_index);
 
-			for (size_t index = m_index, count = m_iterators.size(); index < count; ++index)
+			for (usize index = m_index, count = m_iterators.size(); index < count; ++index)
 				new_iterator->m_iterators.push_back(m_iterators[index]->copy());
 
 			return new_iterator;
@@ -87,7 +87,7 @@ namespace Engine::VFS
 	{
 	public:
 		Vector<FileSystem*> m_file_systems;
-		mutable size_t m_index = 0;
+		mutable usize m_index = 0;
 
 		bool next() override { return ++m_index < m_file_systems.size(); }
 		const Path& path() override { return m_file_systems[m_index]->mount_point(); }
@@ -97,14 +97,14 @@ namespace Engine::VFS
 		{
 			MountPointIterator* new_iterator = trx_new MountPointIterator();
 			new_iterator->m_file_systems.reserve(m_file_systems.size() - m_index);
-			for (size_t index = m_index, count = m_file_systems.size(); index < count; ++index)
+			for (usize index = m_index, count = m_file_systems.size(); index < count; ++index)
 				new_iterator->m_file_systems.push_back(m_file_systems[index]);
 			return new_iterator;
 		}
 
 		Identifier id() const override
 		{
-			static const byte id = 0;
+			static const u8 id = 0;
 			return reinterpret_cast<Identifier>(&id);
 		}
 

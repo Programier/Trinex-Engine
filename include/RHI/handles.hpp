@@ -23,16 +23,16 @@ namespace Engine
 	class ENGINE_EXPORT RHIPipelineStatistics : public RHIObject
 	{
 	public:
-		uint64_t vertices                                = 0;
-		uint64_t primitives                              = 0;
-		uint64_t vertex_shader_invocations               = 0;
-		uint64_t geometry_shader_invocations             = 0;
-		uint64_t geometry_shader_primitives              = 0;
-		uint64_t clipping_invocations                    = 0;
-		uint64_t clipping_primitives                     = 0;
-		uint64_t fragment_shader_invocations             = 0;
-		uint64_t tessellation_control_shader_invocations = 0;
-		uint64_t tesselation_shader_invocations          = 0;
+		u64 vertices                                = 0;
+		u64 primitives                              = 0;
+		u64 vertex_shader_invocations               = 0;
+		u64 geometry_shader_invocations             = 0;
+		u64 geometry_shader_primitives              = 0;
+		u64 clipping_invocations                    = 0;
+		u64 clipping_primitives                     = 0;
+		u64 fragment_shader_invocations             = 0;
+		u64 tessellation_control_shader_invocations = 0;
+		u64 tesselation_shader_invocations          = 0;
 
 		virtual RHIPipelineStatistics& fetch() = 0;
 	};
@@ -89,19 +89,19 @@ namespace Engine
 	{
 	private:
 		RHITexture* m_texture;
-		uint16_t m_type;
-		uint16_t m_base_slice;
-		uint16_t m_slice_count;
-		uint16_t m_base_mip;
-		uint16_t m_mip_count;
+		u16 m_type;
+		u16 m_base_slice;
+		u16 m_slice_count;
+		u16 m_base_mip;
+		u16 m_mip_count;
 
 	private:
 		template<typename T>
 		T initialize_description(const T* desc);
 
 	public:
-		RHITextureView(RHITexture* texture, RHITextureType type, uint16_t base_slice = 0, uint16_t slice_count = 65535,
-		               uint16_t base_mip = 0, uint16_t mip_count = 65535);
+		RHITextureView(RHITexture* texture, RHITextureType type, u16 base_slice = 0, u16 slice_count = 65535, u16 base_mip = 0,
+		               u16 mip_count = 65535);
 
 		void destroy() override;
 
@@ -124,12 +124,12 @@ namespace Engine
 	public:
 		bool serialize(Archive& ar);
 
-		virtual size_t size() const                = 0;
-		virtual RHIDeviceAddress address()         = 0;
-		virtual byte* map(RHIMappingAccess access) = 0;
-		virtual void unmap()                       = 0;
-		virtual RHIShaderResourceView* as_srv()    = 0;
-		virtual RHIUnorderedAccessView* as_uav()   = 0;
+		virtual usize size() const               = 0;
+		virtual RHIDeviceAddress address()       = 0;
+		virtual u8* map(RHIMappingAccess access) = 0;
+		virtual void unmap()                     = 0;
+		virtual RHIShaderResourceView* as_srv()  = 0;
+		virtual RHIUnorderedAccessView* as_uav() = 0;
 	};
 
 	class ENGINE_EXPORT RHISwapchain : public RHIObject

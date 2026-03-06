@@ -51,7 +51,7 @@ namespace Engine
 		vk::DescriptorPool m_descriptor_pool;
 
 	private:
-		VulkanDescriptorHeap& initialize(HeapType heap, vk::DescriptorType type, size_t count);
+		VulkanDescriptorHeap& initialize(HeapType heap, vk::DescriptorType type, usize count);
 		VulkanDescriptorHeap& create();
 		RHIDescriptor allocate(HeapType type);
 

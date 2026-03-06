@@ -165,12 +165,12 @@ namespace Engine
 	bool VulkanPipeline::is_dirty_state(VulkanStateManager* manager) const
 	{
 		trinex_profile_cpu_n("VulkanPipeline::is_dirty_state");
-		size_t descriptors_count = m_layout->descriptors_count();
+		usize descriptors_count = m_layout->descriptors_count();
 
 		if (manager->is_dirty(VulkanStateManager::Pipeline))
 			return descriptors_count != 0;
 
-		for (size_t i = 0; i < descriptors_count; ++i)
+		for (usize i = 0; i < descriptors_count; ++i)
 		{
 			if (is_descriptor_dirty(manager, m_layout->descriptor(i)))
 				return true;
@@ -179,7 +179,7 @@ namespace Engine
 		return false;
 	}
 
-	VulkanPipelineLayout* VulkanPipeline::create_layout(const RHIShaderParameterInfo* parameter, size_t count,
+	VulkanPipelineLayout* VulkanPipeline::create_layout(const RHIShaderParameterInfo* parameter, usize count,
 	                                                    vk::ShaderStageFlags stages)
 	{
 		if (m_layout)
@@ -202,11 +202,11 @@ namespace Engine
 		};
 
 		StackByteAllocator::Mark mark;
-		size_t uniforms_count   = m_layout->uniform_buffers_count();
+		usize uniforms_count    = m_layout->uniform_buffers_count();
 		const auto* descriptors = m_layout->descriptors();
-		uint32_t* offsets       = StackAllocator<uint32_t>::allocate(uniforms_count);
+		u32* offsets            = StackAllocator<u32>::allocate(uniforms_count);
 
-		for (uint64_t i = 0; i < uniforms_count; ++i)
+		for (u64 i = 0; i < uniforms_count; ++i)
 		{
 			offsets[i] = state->uniform_buffers.resource(descriptors[i].binding).offset;
 		}
@@ -214,7 +214,7 @@ namespace Engine
 		{
 			trinex_profile_cpu_n("bindDescriptorSets");
 			ctx->handle()->bindDescriptorSets(bind_point, m_layout->layout(), 0, sets,
-			                                  vk::ArrayProxy<uint32_t>(uniforms_count, offsets));
+			                                  vk::ArrayProxy<u32>(uniforms_count, offsets));
 		}
 		return *this;
 	}
@@ -239,7 +239,7 @@ namespace Engine
 		vk::PipelineColorBlendAttachmentState attachments[4];
 
 		vk::DynamicState dynamic_states[3];
-		size_t dynamic_states_count = 0;
+		usize dynamic_states_count = 0;
 
 		dynamic_states[dynamic_states_count++] = vk::DynamicState::eViewport;
 		dynamic_states[dynamic_states_count++] = vk::DynamicState::eScissor;
@@ -285,7 +285,7 @@ namespace Engine
 		if (m_vertex_attributes_count)
 			m_vertex_attributes = Allocator<VulkanVertexAttribute>::allocate(m_vertex_attributes_count);
 
-		for (size_t index = 0; index < pipeline->vertex_attributes_count; ++index)
+		for (usize index = 0; index < pipeline->vertex_attributes_count; ++index)
 		{
 			auto& src = pipeline->vertex_attributes[index];
 			auto& dst = m_vertex_attributes[index];
@@ -302,7 +302,7 @@ namespace Engine
 		        vk::ShaderStageFlagBits::eFragment,
 		};
 
-		for (uint_t i = 0; i < 5; ++i)
+		for (u32 i = 0; i < 5; ++i)
 		{
 			if (pipeline->shaders[i])
 			{
@@ -314,7 +314,7 @@ namespace Engine
 
 	bool VulkanGraphicsPipeline::is_dirty_vertex_input(VulkanStateManager* manager)
 	{
-		for (uint16_t i = 0; i < m_vertex_attributes_count; ++i)
+		for (u16 i = 0; i < m_vertex_attributes_count; ++i)
 		{
 			const VulkanVertexAttribute& attribute = m_vertex_attributes[i];
 
@@ -356,7 +356,7 @@ namespace Engine
 			Allocator<VulkanVertexAttribute>::deallocate(m_vertex_attributes);
 	}
 
-	uint64_t VulkanMeshPipeline::KeyHasher::operator()(const Key& key) const
+	u64 VulkanMeshPipeline::KeyHasher::operator()(const Key& key) const
 	{
 		return memory_hash(&key, sizeof(key));
 	}
@@ -377,7 +377,7 @@ namespace Engine
 		        vk::ShaderStageFlagBits::eFragment,
 		};
 
-		for (uint_t i = 0; i < 5; ++i)
+		for (u32 i = 0; i < 5; ++i)
 		{
 			if (pipeline->shaders[i])
 			{
@@ -490,15 +490,15 @@ namespace Engine
 		DESTROY_CALL(destroyPipeline, m_pipeline);
 	}
 
-	static void align_shader_binding_table(byte* storage, size_t count, size_t handle, size_t aligned_handle)
+	static void align_shader_binding_table(u8* storage, usize count, usize handle, usize aligned_handle)
 	{
 		if (handle == aligned_handle)
 			return;
 
-		for (size_t i = count; i-- > 0;)
+		for (usize i = count; i-- > 0;)
 		{
-			byte* src = storage + i * handle;
-			byte* dst = storage + i * aligned_handle;
+			u8* src = storage + i * handle;
+			u8* dst = storage + i * aligned_handle;
 			std::memmove(dst, src, handle);
 
 			if (aligned_handle > handle)
@@ -526,7 +526,7 @@ namespace Engine
 		state.pipeline_info.pGroups                      = state.groups_info;
 		state.pipeline_info.maxPipelineRayRecursionDepth = pipeline->max_recursion;
 
-		auto find_shader_index = [&](const RHIShader* handle, vk::ShaderStageFlagBits stage) -> uint32_t {
+		auto find_shader_index = [&](const RHIShader* handle, vk::ShaderStageFlagBits stage) -> u32 {
 			if (handle == nullptr)
 				return vk::ShaderUnusedKHR;
 
@@ -535,18 +535,18 @@ namespace Engine
 
 			state.stages |= stage;
 
-			for (uint32_t i = 0, count = state.pipeline_info.stageCount; i < count; ++i)
+			for (u32 i = 0, count = state.pipeline_info.stageCount; i < count; ++i)
 			{
 				if (state.stages_info->module == module)
 					return i;
 			}
 
-			uint32_t index = state.pipeline_info.stageCount++;
+			u32 index = state.pipeline_info.stageCount++;
 			new (state.stages_info + index) vk::PipelineShaderStageCreateInfo({}, stage, module, "main");
 			return index;
 		};
 
-		for (size_t i = 0; i < pipeline->groups_count; ++i)
+		for (usize i = 0; i < pipeline->groups_count; ++i)
 		{
 			auto& src = pipeline->groups[i];
 			auto& dst = state.groups_info[i];
@@ -584,12 +584,12 @@ namespace Engine
 
 		// Creating shader binding table
 		{
-			auto& props                        = API->ray_trace_properties();
-			const uint32_t handle_size         = props.shaderGroupHandleSize;
-			const uint32_t handle_size_aligned = align_up(handle_size, props.shaderGroupBaseAlignment);
+			auto& props                   = API->ray_trace_properties();
+			const u32 handle_size         = props.shaderGroupHandleSize;
+			const u32 handle_size_aligned = align_up(handle_size, props.shaderGroupBaseAlignment);
 
-			const size_t storage_size = pipeline->groups_count * handle_size_aligned;
-			byte* storage             = StackByteAllocator::allocate(pipeline->groups_count * handle_size);
+			const usize storage_size = pipeline->groups_count * handle_size_aligned;
+			u8* storage              = StackByteAllocator::allocate(pipeline->groups_count * handle_size);
 
 			auto result = API->m_device.getRayTracingShaderGroupHandlesKHR(m_pipeline, 0, pipeline->groups_count, storage_size,
 			                                                               storage);

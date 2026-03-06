@@ -17,7 +17,7 @@ namespace Engine
 		vk::ShaderModule m_shader;
 
 	public:
-		VulkanShader(const byte* shader, size_t size);
+		VulkanShader(const u8* shader, usize size);
 		~VulkanShader();
 
 		inline vk::ShaderModule module() const { return m_shader; }

@@ -27,14 +27,14 @@ namespace Engine
 		Vector2f m_smooth_translate = {0.f, 0.f};
 		float m_scale               = 1.f;
 		float m_smooth_scale        = 1.f;
-		uint_t m_mip                = 0;
+		u32 m_mip                   = 0;
 
 	public:
 		TextureEditorClient();
 		TextureEditorClient& on_bind_viewport(RenderViewport* vp) override;
 		TextureEditorClient& update(float dt) override;
 		TextureEditorClient& select(Object* object) override;
-		uint32_t build_dock(uint32_t dock_id) override;
+		u32 build_dock(u32 dock_id) override;
 		Matrix4f build_projection(Vector2u texture_size, Vector2u viewport_size) const;
 
 		TextureEditorClient& rhi_render(Texture2D* texture, Vector2u size);
@@ -46,6 +46,6 @@ namespace Engine
 		inline Vector2f range() const { return m_range; }
 		inline Vector2f translate() const { return m_smooth_translate; }
 		inline float scale() const { return m_smooth_scale; }
-		inline uint_t mip() const { return m_mip; }
+		inline u32 mip() const { return m_mip; }
 	};
 }// namespace Engine

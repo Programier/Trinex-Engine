@@ -38,10 +38,10 @@ namespace Engine
 		TouchScreenSystem& update(float dt) override;
 		TouchScreenSystem& shutdown() override;
 
-		size_t finger_count(Window* window = nullptr) const;
-		bool is_finger_down(size_t finger_index, Window* window = nullptr) const;
-		Vector2f finger_location(size_t finger_index, Window* window = nullptr) const;
-		Vector2f finger_offset(size_t finger_index, Window* window = nullptr) const;
-		const Finger& finger_info(size_t finger_index, Window* window = nullptr) const;
+		usize finger_count(Window* window = nullptr) const;
+		bool is_finger_down(usize finger_index, Window* window = nullptr) const;
+		Vector2f finger_location(usize finger_index, Window* window = nullptr) const;
+		Vector2f finger_offset(usize finger_index, Window* window = nullptr) const;
+		const Finger& finger_info(usize finger_index, Window* window = nullptr) const;
 	};
 }// namespace Engine

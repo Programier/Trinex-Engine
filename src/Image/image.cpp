@@ -20,7 +20,7 @@ namespace Engine
 		load_from_memory(buffer.data(), buffer.size());
 	}
 
-	Image::Image(const Vector2u& size, uint_t channels, const void* data) : m_size(size)
+	Image::Image(const Vector2u& size, u32 channels, const void* data) : m_size(size)
 	{
 		m_data.resize(width() * height() * channels);
 
@@ -28,17 +28,17 @@ namespace Engine
 			std::memcpy(m_data.data(), data, m_data.size());
 	}
 
-	Image::Image(Color color, const Vector2u& size, uint_t channels) : m_size(size)
+	Image::Image(Color color, const Vector2u& size, u32 channels) : m_size(size)
 	{
 		m_data.resize(width() * height() * channels);
 
-		for (uint_t x = 0; x < width(); ++x)
+		for (u32 x = 0; x < width(); ++x)
 		{
-			for (uint_t y = 0; y < height(); ++y)
+			for (u32 y = 0; y < height(); ++y)
 			{
-				byte* data = sample(x, y);
+				u8* data = sample(x, y);
 
-				for (uint_t component = 0; component < channels; ++component)
+				for (u32 component = 0; component < channels; ++component)
 				{
 					data[component] = color[component];
 				}
@@ -46,7 +46,7 @@ namespace Engine
 		}
 	}
 
-	Image::Image(const void* data, size_t size)
+	Image::Image(const void* data, usize size)
 	{
 		load_from_memory(data, size);
 	}
@@ -85,14 +85,14 @@ namespace Engine
 		return *this;
 	}
 
-	void Image::load_from_memory(const void* buffer, size_t size)
+	void Image::load_from_memory(const void* buffer, usize size)
 	{
-		int_t pixel_channels = 0;
+		i32 pixel_channels = 0;
 		int w, h;
 		stbi_uc* image_data =
 		        stbi_load_from_memory(static_cast<const stbi_uc*>(buffer), static_cast<int>(size), &w, &h, &pixel_channels, 0);
-		m_size.x = static_cast<uint_t>(w);
-		m_size.y = static_cast<uint_t>(h);
+		m_size.x = static_cast<u32>(w);
+		m_size.y = static_cast<u32>(h);
 
 		if (pixel_channels != 3)
 		{
@@ -103,7 +103,7 @@ namespace Engine
 		}
 
 		m_data.resize(m_size.x * m_size.y * 4, 255);
-		byte* dst = m_data.data();
+		u8* dst = m_data.data();
 
 		for (int x = 0; x < w; ++x)
 		{
@@ -119,7 +119,7 @@ namespace Engine
 
 	bool Image::resize(const Vector2u& size)
 	{
-		Vector<byte> resized_image(size.x * size.y * channels(), 0);
+		Vector<u8> resized_image(size.x * size.y * channels(), 0);
 
 		stbir_resize_uint8_linear(m_data.data(), width(), height(), width() * channels(), resized_image.data(), size.x, size.y,
 		                          size.x * channels(), STBIR_RGBA);
@@ -131,7 +131,7 @@ namespace Engine
 	static void image_writer_func(void* context, void* data, int size)
 	{
 		VFS::File* file = static_cast<VFS::File*>(context);
-		file->write(static_cast<byte*>(data), size);
+		file->write(static_cast<u8*>(data), size);
 	}
 
 	bool Image::save(const Path& path)
@@ -175,15 +175,15 @@ namespace Engine
 		return false;
 	}
 
-	byte* Image::sample(uint_t x, uint_t y)
+	u8* Image::sample(u32 x, u32 y)
 	{
 		trinex_assert_msg(x < m_size.x && y < m_size.y, "Invalid sample coords");
 
-		uint_t index = y * (width() * channels()) + x * channels();
+		u32 index = y * (width() * channels()) + x * channels();
 		return m_data.data() + index;
 	}
 
-	const byte* Image::sample(uint_t x, uint_t y) const
+	const u8* Image::sample(u32 x, u32 y) const
 	{
 		return const_cast<Image*>(this)->sample(x, y);
 	}

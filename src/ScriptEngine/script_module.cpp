@@ -79,12 +79,12 @@ namespace Engine
 	}
 
 	// Compilation
-	bool ScriptModule::add_script_section(const char* section_name, const char* code, size_t code_length, int_t line_offset)
+	bool ScriptModule::add_script_section(const char* section_name, const char* code, usize code_length, i32 line_offset)
 	{
 		return m_module->AddScriptSection(section_name, code, code_length, line_offset) >= 0;
 	}
 
-	bool ScriptModule::add_script_section(const String& section_name, const String& code, size_t code_length, int_t line_offset)
+	bool ScriptModule::add_script_section(const String& section_name, const String& code, usize code_length, i32 line_offset)
 	{
 		return add_script_section(section_name.c_str(), code.c_str(), code_length, line_offset);
 	}
@@ -94,7 +94,7 @@ namespace Engine
 		return m_module->Build() >= 0;
 	}
 
-	bool ScriptModule::compile_global_var(const char* section_name, const char* code, int_t line_offset)
+	bool ScriptModule::compile_global_var(const char* section_name, const char* code, i32 line_offset)
 	{
 		return m_module->CompileGlobalVar(section_name, code, line_offset) >= 0;
 	}
@@ -114,13 +114,13 @@ namespace Engine
 		return m_module->GetDefaultNamespace();
 	}
 
-	uint_t ScriptModule::functions_count() const
+	u32 ScriptModule::functions_count() const
 	{
-		return static_cast<Counter>(m_module->GetFunctionCount());
+		return static_cast<usize>(m_module->GetFunctionCount());
 	}
 
 
-	ScriptFunction ScriptModule::function_by_index(uint_t index) const
+	ScriptFunction ScriptModule::function_by_index(u32 index) const
 	{
 		return ScriptFunction(m_module->GetFunctionByIndex(index));
 	}
@@ -157,32 +157,32 @@ namespace Engine
 		return false;
 	}
 
-	uint_t ScriptModule::global_var_count() const
+	u32 ScriptModule::global_var_count() const
 	{
-		return static_cast<Counter>(m_module->GetGlobalVarCount());
+		return static_cast<usize>(m_module->GetGlobalVarCount());
 	}
 
-	int_t ScriptModule::global_var_index_by_name(const char* module_name) const
+	i32 ScriptModule::global_var_index_by_name(const char* module_name) const
 	{
 		return m_module->GetGlobalVarIndexByName(module_name);
 	}
 
-	int_t ScriptModule::global_var_index_by_decl(const char* decl) const
+	i32 ScriptModule::global_var_index_by_decl(const char* decl) const
 	{
 		return m_module->GetGlobalVarIndexByDecl(decl);
 	}
 
-	int_t ScriptModule::global_var_index_by_name(const String& module_name) const
+	i32 ScriptModule::global_var_index_by_name(const String& module_name) const
 	{
 		return m_module->GetGlobalVarIndexByName(module_name.c_str());
 	}
 
-	int_t ScriptModule::global_var_index_by_decl(const String& decl) const
+	i32 ScriptModule::global_var_index_by_decl(const String& decl) const
 	{
 		return m_module->GetGlobalVarIndexByDecl(decl.c_str());
 	}
 
-	bool ScriptModule::global_var(uint_t index, StringView* name, StringView* name_space, int_t* type_id, bool* is_const) const
+	bool ScriptModule::global_var(u32 index, StringView* name, StringView* name_space, i32* type_id, bool* is_const) const
 	{
 		const char* out_name      = nullptr;
 		const char* out_namespace = nullptr;
@@ -205,17 +205,17 @@ namespace Engine
 		return result;
 	}
 
-	String ScriptModule::global_var_declaration(uint_t index, bool include_namespace) const
+	String ScriptModule::global_var_declaration(u32 index, bool include_namespace) const
 	{
 		return Strings::make_string(m_module->GetGlobalVarDeclaration(index, include_namespace));
 	}
 
-	void* ScriptModule::address_of_global_var(uint_t index)
+	void* ScriptModule::address_of_global_var(u32 index)
 	{
 		return m_module->GetAddressOfGlobalVar(index);
 	}
 
-	int_t ScriptModule::remove_global_var(uint_t index)
+	i32 ScriptModule::remove_global_var(u32 index)
 	{
 		return m_module->RemoveGlobalVar(index);
 	}
@@ -232,22 +232,22 @@ namespace Engine
 		return *this;
 	}
 
-	uint_t ScriptModule::object_type_count() const
+	u32 ScriptModule::object_type_count() const
 	{
 		return m_module->GetObjectTypeCount();
 	}
 
-	ScriptTypeInfo ScriptModule::object_type_by_index(uint_t index) const
+	ScriptTypeInfo ScriptModule::object_type_by_index(u32 index) const
 	{
 		return ScriptTypeInfo(m_module->GetObjectTypeByIndex(index));
 	}
 
-	int_t ScriptModule::type_id_by_decl(const char* decl) const
+	i32 ScriptModule::type_id_by_decl(const char* decl) const
 	{
 		return m_module->GetTypeIdByDecl(decl);
 	}
 
-	int_t ScriptModule::type_id_by_decl(const String& decl) const
+	i32 ScriptModule::type_id_by_decl(const String& decl) const
 	{
 		return type_id_by_decl(decl.c_str());
 	}
@@ -273,23 +273,23 @@ namespace Engine
 	}
 
 	// Enums
-	uint_t ScriptModule::enum_count() const
+	u32 ScriptModule::enum_count() const
 	{
 		return m_module->GetEnumCount();
 	}
 
-	ScriptTypeInfo ScriptModule::enum_by_index(uint_t index) const
+	ScriptTypeInfo ScriptModule::enum_by_index(u32 index) const
 	{
 		return ScriptTypeInfo(m_module->GetEnumByIndex(index));
 	}
 
 	// Typedefs
-	uint_t ScriptModule::typedef_count() const
+	u32 ScriptModule::typedef_count() const
 	{
 		return m_module->GetTypedefCount();
 	}
 
-	ScriptTypeInfo ScriptModule::typedef_by_index(uint_t index) const
+	ScriptTypeInfo ScriptModule::typedef_by_index(u32 index) const
 	{
 		return ScriptTypeInfo(m_module->GetTypedefByIndex(index));
 	}

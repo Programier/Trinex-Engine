@@ -20,7 +20,7 @@ namespace Engine
 		return *reinterpret_cast<void**>(address);
 	}
 
-	static FORCE_INLINE int_t find_type_id(const char* declaration, const char* module_name)
+	static FORCE_INLINE i32 find_type_id(const char* declaration, const char* module_name)
 	{
 		auto module = ScriptModule(module_name, ScriptModuleLookup::OnlyIfExists);
 
@@ -30,12 +30,12 @@ namespace Engine
 		return 0;
 	}
 
-	static FORCE_INLINE int_t find_type_id(const char* declaration)
+	static FORCE_INLINE i32 find_type_id(const char* declaration)
 	{
 		return ScriptEngine::type_id_by_decl(declaration);
 	}
 
-	ScriptObject::ScriptObject(void* address, int_t type_id, bool consider_handle_as_object)
+	ScriptObject::ScriptObject(void* address, i32 type_id, bool consider_handle_as_object)
 	{
 		if (ScriptEngine::is_object_type(type_id, true))
 		{
@@ -125,7 +125,7 @@ namespace Engine
 		return *this;
 	}
 
-	bool ScriptObject::create(int_t type_id, bool is_uninitialized)
+	bool ScriptObject::create(i32 type_id, bool is_uninitialized)
 	{
 		if (!ScriptEngine::is_object_type(type_id))
 		{
@@ -168,7 +168,7 @@ namespace Engine
 		return create(find_type_id(type_declaration, module_name), is_uninitialized);
 	}
 
-	bool ScriptObject::create(void* src_address, int_t type_id, bool consider_handle_as_object)
+	bool ScriptObject::create(void* src_address, i32 type_id, bool consider_handle_as_object)
 	{
 		if (!ScriptEngine::is_object_type(type_id, true))
 		{
@@ -230,12 +230,12 @@ namespace Engine
 		return create(const_cast<Object*>(src));
 	}
 
-	uint_t ScriptObject::factory_count() const
+	u32 ScriptObject::factory_count() const
 	{
 		return type_info().factory_count();
 	}
 
-	ScriptFunction ScriptObject::factory_by_index(uint_t index) const
+	ScriptFunction ScriptObject::factory_by_index(u32 index) const
 	{
 		return type_info().factory_by_index(index);
 	}
@@ -251,12 +251,12 @@ namespace Engine
 	}
 
 	// Methods
-	uint_t ScriptObject::method_count() const
+	u32 ScriptObject::method_count() const
 	{
 		return type_info().method_count();
 	}
 
-	ScriptFunction ScriptObject::method_by_index(uint_t index, bool get_virtual) const
+	ScriptFunction ScriptObject::method_by_index(u32 index, bool get_virtual) const
 	{
 		return type_info().method_by_index(index, get_virtual);
 	}
@@ -282,29 +282,29 @@ namespace Engine
 	}
 
 	// Properties
-	uint_t ScriptObject::property_count() const
+	u32 ScriptObject::property_count() const
 	{
 		return type_info().property_count();
 	}
 
-	bool ScriptObject::property(uint_t index, StringView* name, int_t* type_id, bool* is_private, bool* is_protected,
-	                            int_t* offset, bool* is_reference) const
+	bool ScriptObject::property(u32 index, StringView* name, i32* type_id, bool* is_private, bool* is_protected, i32* offset,
+	                            bool* is_reference) const
 	{
 		return type_info().property(index, name, type_id, is_private, is_protected, offset, is_reference);
 	}
 
-	String ScriptObject::property_declaration(uint_t index, bool include_bamespace) const
+	String ScriptObject::property_declaration(u32 index, bool include_bamespace) const
 	{
 		return type_info().property_declaration(index, include_bamespace);
 	}
 
 	// Behaviours
-	uint_t ScriptObject::behaviour_count() const
+	u32 ScriptObject::behaviour_count() const
 	{
 		return type_info().behaviour_count();
 	}
 
-	ScriptFunction ScriptObject::behaviour_by_index(uint_t index, ScriptClassBehave* behaviour) const
+	ScriptFunction ScriptObject::behaviour_by_index(u32 index, ScriptClassBehave* behaviour) const
 	{
 		return type_info().behaviour_by_index(index, behaviour);
 	}

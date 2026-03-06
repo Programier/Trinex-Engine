@@ -108,7 +108,7 @@ namespace Engine
 
 		m_size = {swapchain->extent.width, swapchain->extent.height};
 
-		for (int_t i = 0; auto& backbuffer : m_backbuffers)
+		for (i32 i = 0; auto& backbuffer : m_backbuffers)
 		{
 			backbuffer = trx_new VulkanSwapchainTexture(images[i], vk::Format(swapchain->image_format), m_size);
 			++i;
@@ -161,14 +161,14 @@ namespace Engine
 		return *this;
 	}
 
-	int_t VulkanSwapchain::acquire_image_index()
+	i32 VulkanSwapchain::acquire_image_index()
 	{
 		trinex_profile_cpu_n("VulkanSwapchain::acquire_image_index");
 
 		const auto prev_sync_index = m_sync_index;
 		m_sync_index               = (m_sync_index + 1) % m_image_present_semaphores.size();
 
-		vk::ResultValue<uint32_t> result =
+		vk::ResultValue<u32> result =
 		        API->m_device.acquireNextImageKHR(m_swapchain, UINT64_MAX, m_image_present_semaphores[m_sync_index].semaphore());
 
 		if (result.result == vk::Result::eErrorOutOfDateKHR)
@@ -195,12 +195,12 @@ namespace Engine
 		return m_image_index;
 	}
 
-	int_t VulkanSwapchain::do_present()
+	i32 VulkanSwapchain::do_present()
 	{
 		if (m_image_index == -1)
 			return Status::Success;
 
-		auto image_index             = static_cast<uint32_t>(m_image_index);
+		auto image_index             = static_cast<u32>(m_image_index);
 		vk::Semaphore wait_semaphore = render_finished_semaphore();
 		vk::PresentInfoKHR present_info(wait_semaphore, m_swapchain, image_index);
 
@@ -222,7 +222,7 @@ namespace Engine
 		}
 	}
 
-	int_t VulkanSwapchain::try_present(int_t (VulkanSwapchain::*callback)(), bool skip_on_out_of_date)
+	i32 VulkanSwapchain::try_present(i32 (VulkanSwapchain::*callback)(), bool skip_on_out_of_date)
 	{
 		if (m_need_recreate)
 		{
@@ -230,7 +230,7 @@ namespace Engine
 			return try_present(callback, skip_on_out_of_date);
 		}
 
-		int_t status = (this->*callback)();
+		i32 status = (this->*callback)();
 
 		while (status < 0)
 		{

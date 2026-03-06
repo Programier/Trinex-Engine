@@ -80,7 +80,7 @@ namespace Engine::EditorPipelines
 		float camera_height = Math::abs(renderer->scene_view().camera_view().location().y);
 		float log_scale     = Math::log(camera_height / (perspective_scale)) / Math::log(scale_step);
 
-		int32_t step = Math::max(0, (int32_t) Math::floor(log_scale));
+		i32 step = Math::max(0, (i32) Math::floor(log_scale));
 
 		float lower_height = perspective_scale * Math::pow(scale_step, step);
 		float upper_height = lower_height * scale_step;

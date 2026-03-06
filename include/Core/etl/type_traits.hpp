@@ -89,16 +89,16 @@ namespace Engine
 	namespace Concepts
 	{
 		template<typename T>
-		concept is_byte = std::is_integral_v<T> && sizeof(T) == sizeof(byte);
+		concept is_byte = std::is_integral_v<T> && sizeof(T) == sizeof(u8);
 
 		template<typename T>
-		concept is_word = std::is_integral_v<T> && sizeof(T) == sizeof(word);
+		concept is_word = std::is_integral_v<T> && sizeof(T) == sizeof(u16);
 
 		template<typename T>
-		concept is_dword = std::is_integral_v<T> && sizeof(T) == sizeof(dword);
+		concept is_dword = std::is_integral_v<T> && sizeof(T) == sizeof(u32);
 
 		template<typename T>
-		concept is_qword = std::is_integral_v<T> && sizeof(T) == sizeof(qword);
+		concept is_qword = std::is_integral_v<T> && sizeof(T) == sizeof(u64);
 
 		template<typename T>
 		concept is_float = std::is_same_v<T, float>;

@@ -21,7 +21,7 @@ namespace Engine::Refl
 		void* create_struct() override;
 		ScriptStruct& destroy_struct(void* obj) override;
 		Script* script() const;
-		size_t size() const override;
+		usize size() const override;
 		~ScriptStruct();
 	};
 }// namespace Engine::Refl

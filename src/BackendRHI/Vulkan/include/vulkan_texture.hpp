@@ -17,13 +17,13 @@ namespace Engine
 			union
 			{
 				struct {
-					uint16_t first_array_slice;
-					uint16_t array_size;
-					uint8_t first_mip;
-					uint8_t mip_levels;
+					u16 first_array_slice;
+					u16 array_size;
+					u8 first_mip;
+					u8 mip_levels;
 					RHITextureType::Enum view_type;
 				};
-				uint64_t id;
+				u64 id;
 			};
 
 
@@ -44,7 +44,7 @@ namespace Engine
 			FORCE_INLINE bool operator!=(const ViewDesc& other) const noexcept { return id != other.id; }
 		};
 
-		static_assert(sizeof(ViewDesc) == sizeof(uint64_t));
+		static_assert(sizeof(ViewDesc) == sizeof(u64));
 
 		template<typename Value>
 		struct View {
@@ -66,8 +66,8 @@ namespace Engine
 		vk::Format m_format;
 		vk::Extent3D m_extent;
 
-		uint16_t m_layers_count;
-		uint8_t m_mips_count;
+		u16 m_layers_count;
+		u8 m_mips_count;
 
 	public:
 		virtual vk::ImageViewType image_view_type() const = 0;
@@ -87,8 +87,8 @@ namespace Engine
 		}
 		inline vk::Format format() const { return m_format; }
 		inline vk::Extent3D extent() const { return m_extent; }
-		inline uint16_t layer_count() const { return m_layers_count; }
-		inline uint8_t mipmap_count() const { return m_mips_count; }
+		inline u16 layer_count() const { return m_layers_count; }
+		inline u8 mipmap_count() const { return m_mips_count; }
 		inline bool is_cube_compatible() const
 		{
 			vk::ImageViewType type = image_view_type();
@@ -109,8 +109,8 @@ namespace Engine
 			}
 		}
 
-		VulkanTexture& create(RHIColorFormat format, Vector3u size, uint_t layers, uint32_t mips, RHITextureCreateFlags flags);
-		VulkanTexture& create(vk::Format format, Vector3u size, uint_t layers, uint32_t mips, RHITextureCreateFlags flags);
+		VulkanTexture& create(RHIColorFormat format, Vector3u size, u32 layers, u32 mips, RHITextureCreateFlags flags);
+		VulkanTexture& create(vk::Format format, Vector3u size, u32 layers, u32 mips, RHITextureCreateFlags flags);
 		VulkanTexture& barrier(VulkanContext* ctx, RHIAccess access);
 
 		RHIShaderResourceView* as_srv(RHITextureDescSRV* desc) override;

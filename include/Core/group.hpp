@@ -13,7 +13,7 @@ namespace Engine
 		Group* m_parent = nullptr;
 		Name m_name;
 
-		Group* find_subgroup(const char* name, size_t len, bool create);
+		Group* find_subgroup(const char* name, usize len, bool create);
 
 		Group();
 
@@ -21,7 +21,7 @@ namespace Engine
 		static Group* root();
 		static Group* find(const String& name, bool create = false);
 		static Group* find(const char* name, bool create = false);
-		static Group* find(const char* name, size_t len, bool create = false);
+		static Group* find(const char* name, usize len, bool create = false);
 
 		Group* parent() const;
 		const Vector<Group*>& childs() const;

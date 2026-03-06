@@ -30,7 +30,7 @@ namespace Engine
 		bool open(const Path& filename, bool clear = true);
 		FileWriter& close();
 
-		bool write(const byte* data, size_t size) override;
+		bool write(const u8* data, usize size) override;
 		WritePos position() override;
 		FileWriter& offset(PosOffset offset, BufferSeekDir dir = BufferSeekDir::Current) override;
 		bool is_open() const override;
@@ -56,13 +56,13 @@ namespace Engine
 		bool open(const Path& path);
 		FileReader& close();
 
-		bool read(byte* data, size_t size) override;
+		bool read(u8* data, usize size) override;
 		ReadPos position() override;
 		FileReader& offset(PosOffset offset, BufferSeekDir dir = BufferSeekDir::Current) override;
 		bool is_open() const override;
 
-		String read_string(size_t len = -1);
-		Buffer read_buffer(size_t len = -1);
+		String read_string(usize len = -1);
+		Buffer read_buffer(usize len = -1);
 
 		~FileReader();
 	};

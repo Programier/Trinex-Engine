@@ -69,19 +69,19 @@ namespace Engine
 	{
 	private:
 		struct VarTraceEntry {
-			static constexpr size_t exclude_scalar          = BIT(0);
-			static constexpr size_t exclude_vector          = BIT(1);
-			static constexpr size_t exclude_matrix          = BIT(2);
-			static constexpr size_t exclude_resource        = BIT(3);
-			static constexpr size_t exclude_sampler         = BIT(4);
-			static constexpr size_t exclude_struct          = BIT(5);
-			static constexpr size_t exclude_constant_buffer = BIT(6);
+			static constexpr usize exclude_scalar          = BIT(0);
+			static constexpr usize exclude_vector          = BIT(1);
+			static constexpr usize exclude_matrix          = BIT(2);
+			static constexpr usize exclude_resource        = BIT(3);
+			static constexpr usize exclude_sampler         = BIT(4);
+			static constexpr usize exclude_struct          = BIT(5);
+			static constexpr usize exclude_constant_buffer = BIT(6);
 
 			String name;
 			slang::VariableLayoutReflection* var = nullptr;
 			const VarTraceEntry* const prev      = nullptr;
 			slang::TypeReflection::Kind kind;
-			size_t exclude_flags;
+			usize exclude_flags;
 
 			VarTraceEntry(slang::VariableLayoutReflection* const var, const VarTraceEntry* const prev = nullptr)
 			    : var(var), prev(prev), kind(var->getTypeLayout()->getKind()), exclude_flags(prev ? prev->exclude_flags : 0)
@@ -94,10 +94,10 @@ namespace Engine
 				}
 			}
 
-			size_t trace_offset(SlangParameterCategory category) const
+			usize trace_offset(SlangParameterCategory category) const
 			{
 				const VarTraceEntry* current = this;
-				size_t result                = 0;
+				usize result                 = 0;
 
 				while (current)
 				{
@@ -108,15 +108,15 @@ namespace Engine
 				return result;
 			}
 
-			size_t trace_offset(slang::ParameterCategory category) const
+			usize trace_offset(slang::ParameterCategory category) const
 			{
 				return trace_offset(static_cast<SlangParameterCategory>(category));
 			}
 
-			size_t trace_space(SlangParameterCategory category) const
+			usize trace_space(SlangParameterCategory category) const
 			{
 				const VarTraceEntry* current = this;
-				size_t result                = 0;
+				usize result                 = 0;
 
 				while (current)
 				{
@@ -127,7 +127,7 @@ namespace Engine
 				return result;
 			}
 
-			size_t trace_space(slang::ParameterCategory category) const
+			usize trace_space(slang::ParameterCategory category) const
 			{
 				return trace_space(static_cast<SlangParameterCategory>(category));
 			}
@@ -153,9 +153,9 @@ namespace Engine
 
 			inline bool has_attribute(const char* attribute) { return find_attribute(attribute) != nullptr; }
 			inline slang::ParameterCategory category() const { return var->getCategory(); }
-			inline slang::ParameterCategory category(uint_t index) const { return var->getCategoryByIndex(index); }
-			inline uint_t category_count() const { return var->getCategoryCount(); }
-			inline bool is_excluded(size_t flags) const { return (exclude_flags & flags) == flags; }
+			inline slang::ParameterCategory category(u32 index) const { return var->getCategoryByIndex(index); }
+			inline u32 category_count() const { return var->getCategoryCount(); }
+			inline bool is_excluded(usize flags) const { return (exclude_flags & flags) == flags; }
 			inline slang::VariableLayoutReflection* operator->() const { return var; }
 		};
 
@@ -164,13 +164,13 @@ namespace Engine
 		Span<Slang::ComPtr<slang::IMetadata>> m_metadatas;
 
 	public:
-		using TypeDetector = RHIShaderParameterType(slang::VariableLayoutReflection*, uint_t, uint_t, uint_t,
+		using TypeDetector = RHIShaderParameterType(slang::VariableLayoutReflection*, u32, u32, u32,
 		                                            slang::TypeReflection::ScalarType);
 		static Vector<TypeDetector*> type_detectors;
 
-		static inline StringView parse_string_attribute(slang::UserAttribute* attribute, uint_t index)
+		static inline StringView parse_string_attribute(slang::UserAttribute* attribute, u32 index)
 		{
-			size_t size;
+			usize size;
 			const char* name = attribute->getArgumentValueString(0, &size);
 			if (name)
 				return StringView(name, size);
@@ -224,15 +224,15 @@ namespace Engine
 			}
 		}
 
-		inline bool is_variable_used(const VarTraceEntry& var, byte index)
+		inline bool is_variable_used(const VarTraceEntry& var, u8 index)
 		{
 			using SPC = SlangParameterCategory;
 
 			for (slang::IMetadata* meta : m_metadatas)
 			{
-				uint_t categories = var.category_count();
+				u32 categories = var.category_count();
 
-				for (uint_t i = 0; i < categories; ++i)
+				for (u32 i = 0; i < categories; ++i)
 				{
 					slang::ParameterCategory category = var->getCategory();
 
@@ -261,7 +261,7 @@ namespace Engine
 				auto layout       = var->getTypeLayout();
 				auto fields_count = layout->getFieldCount();
 
-				for (uint32_t field_index = 0; field_index < fields_count; ++field_index)
+				for (u32 field_index = 0; field_index < fields_count; ++field_index)
 				{
 					VarTraceEntry field(layout->getFieldByIndex(field_index), &var);
 
@@ -289,9 +289,9 @@ namespace Engine
 				}
 
 				{
-					const size_t max_semantic_index = attribute.semantic == RHIVertexSemantic::TexCoord0 ? 3 : 0;
+					const usize max_semantic_index = attribute.semantic == RHIVertexSemantic::TexCoord0 ? 3 : 0;
 
-					size_t index = var->getSemanticIndex();
+					usize index = var->getSemanticIndex();
 
 					if (index > max_semantic_index)
 					{
@@ -365,7 +365,7 @@ namespace Engine
 			//  MutableTypedBuffer = SLANG_BINDING_TYPE_MUTABLE_TYPED_BUFFER,
 			//  MutableRawBuffer = SLANG_BINDING_TYPE_MUTABLE_RAW_BUFFER,
 
-			for (uint_t i = 0, count = refl->getBindingRangeCount(); i < count; ++i)
+			for (u32 i = 0, count = refl->getBindingRangeCount(); i < count; ++i)
 			{
 				slang::BindingType binding_type = refl->getBindingRangeType(i);
 
@@ -504,7 +504,7 @@ namespace Engine
 				auto layout = param.var->getTypeLayout();
 				auto fields = layout->getFieldCount();
 
-				size_t additional_exclude = 0;
+				usize additional_exclude = 0;
 
 				RHIShaderParameterType flags = find_parameter_type(param.var->getVariable());
 
@@ -596,8 +596,8 @@ namespace Engine
 			// Parse vertex attributes
 			if (auto entry_point = reflection->findEntryPointByName("vertex_main"))
 			{
-				uint32_t parameter_count = entry_point->getParameterCount();
-				for (uint32_t i = 0; i < parameter_count; i++)
+				u32 parameter_count = entry_point->getParameterCount();
+				for (u32 i = 0; i < parameter_count; i++)
 				{
 					return_if_false(parse_vertex_attribute(entry_point->getParameterByIndex(i))) false;
 				}
@@ -624,7 +624,7 @@ namespace Engine
 		using SVLR   = slang ::VariableLayoutReflection;
 
 		template<RHIShaderParameterType type, Scalar required_scalar>
-		static RHIShaderParameterType primitive(SVLR*, uint_t rows, uint_t columns, uint_t elements, Scalar scalar)
+		static RHIShaderParameterType primitive(SVLR*, u32 rows, u32 columns, u32 elements, Scalar scalar)
 		{
 			return_undefined_if_not(rows == 1);
 			return_undefined_if_not(columns == 1);
@@ -633,8 +633,8 @@ namespace Engine
 			return type;
 		}
 
-		template<RHIShaderParameterType type, uint32_t len, Scalar required_scalar>
-		static RHIShaderParameterType vector(SVLR*, uint_t rows, uint_t columns, uint_t elements, Scalar scalar)
+		template<RHIShaderParameterType type, u32 len, Scalar required_scalar>
+		static RHIShaderParameterType vector(SVLR*, u32 rows, u32 columns, u32 elements, Scalar scalar)
 		{
 			return_undefined_if_not(rows == 1);
 			return_undefined_if_not(columns == len);
@@ -643,8 +643,8 @@ namespace Engine
 			return type;
 		}
 
-		template<RHIShaderParameterType type, Scalar required_scalar, uint_t required_rows, uint_t required_columns>
-		static RHIShaderParameterType matrix(SVLR* var, uint_t rows, uint_t columns, uint_t elements, Scalar scalar)
+		template<RHIShaderParameterType type, Scalar required_scalar, u32 required_rows, u32 required_columns>
+		static RHIShaderParameterType matrix(SVLR* var, u32 rows, u32 columns, u32 elements, Scalar scalar)
 		{
 			return_undefined_if_not(rows == required_rows);
 			return_undefined_if_not(rows == required_rows);
@@ -803,10 +803,10 @@ namespace Engine
 		///////// STEP ONE: COLLECT COMPONENTS /////////
 		{
 			// Process sources
-			for (size_t i = 0, count = env->sources_count(); i < count; ++i)
+			for (usize i = 0, count = env->sources_count(); i < count; ++i)
 			{
 				const char* source = env->source(i);
-				static uint_t id   = 0;
+				static u32 id      = 0;
 				String name        = Strings::format("Unnamed module {}", ++id);
 
 				Slang::ComPtr<slang::IBlob> diagnostics;
@@ -830,7 +830,7 @@ namespace Engine
 			}
 
 			// Process modules
-			for (size_t i = 0, count = env->modules_count(); i < count; ++i)
+			for (usize i = 0, count = env->modules_count(); i < count; ++i)
 			{
 				Slang::ComPtr<slang::IBlob> diagnostics;
 				slang::IModule* module = m_session->loadModule(env->module(i), diagnostics.writeRef());
@@ -856,10 +856,10 @@ namespace Engine
 
 		///////// STEP TWO: COLLECT ENTRY POINTS  /////////
 		{
-			const size_t module_count = components.size();
+			const usize module_count = components.size();
 			for (auto& info : shader_infos)
 			{
-				for (size_t module_index = 0; module_index < module_count; ++module_index)
+				for (usize module_index = 0; module_index < module_count; ++module_index)
 				{
 					auto module = static_cast<slang::IModule*>(components[module_index]);
 
@@ -967,34 +967,33 @@ namespace Engine
 		trinex_unreachable_msg("Something is wrong! Cannot compile shaders for None API!");
 	}
 
-	bool VULKAN_ShaderCompiler::strip_vertex_inputs(const uint32_t* spirv, const uint32_t words,
-	                                                Vector<RHIVertexAttribute>& attributes)
+	bool VULKAN_ShaderCompiler::strip_vertex_inputs(const u32* spirv, const u32 words, Vector<RHIVertexAttribute>& attributes)
 	{
 		if (words < 5)
 			return false;
 
 		StackByteAllocator::Mark mark;
 
-		FlatSet<uint32_t, Less<uint32_t>, StackAllocator<uint32_t>> inputs;
-		FlatSet<uint32_t, Less<uint32_t>, StackAllocator<uint32_t>> locations;
+		FlatSet<u32, Less<u32>, StackAllocator<u32>> inputs;
+		FlatSet<u32, Less<u32>, StackAllocator<u32>> locations;
 		inputs.reserve(attributes.size());
 		locations.reserve(attributes.size());
 
 		// Collect all vertex inputs
 		{
-			size_t i = 5;
+			usize i = 5;
 			while (i < words)
 			{
-				uint16_t wc = SPIRV::wordcount(spirv[i]);
-				uint16_t op = SPIRV::opcode(spirv[i]);
+				u16 wc = SPIRV::wordcount(spirv[i]);
+				u16 op = SPIRV::opcode(spirv[i]);
 
 				if (wc == 0 || i + wc > words)
 					return false;
 
 				if (op == SPIRV::OpVariable && wc >= 4)
 				{
-					uint32_t target  = spirv[i + 2];
-					uint32_t storage = spirv[i + 3];
+					u32 target  = spirv[i + 2];
+					u32 storage = spirv[i + 3];
 
 					if (storage == SPIRV::StorageClass_Input)
 						inputs.insert(target);
@@ -1013,20 +1012,20 @@ namespace Engine
 
 		// Collect all vertex locations
 		{
-			size_t i = 5;
+			usize i = 5;
 			while (i < words && inputs.size() != locations.size())
 			{
-				uint32_t first = spirv[i];
-				uint16_t wc    = SPIRV::wordcount(first);
-				uint16_t op    = SPIRV::opcode(first);
+				u32 first = spirv[i];
+				u16 wc    = SPIRV::wordcount(first);
+				u16 op    = SPIRV::opcode(first);
 
 				if (wc == 0 || i + wc > words)
 					return false;
 
 				if (op == SPIRV::OpDecorate)
 				{
-					uint32_t target     = spirv[i + 1];
-					uint32_t decoration = spirv[i + 2];
+					u32 target     = spirv[i + 1];
+					u32 decoration = spirv[i + 2];
 
 					if (decoration == SPIRV::Decoration_Location && inputs.contains(target))
 						locations.insert(spirv[i + 3]);
@@ -1037,8 +1036,8 @@ namespace Engine
 		}
 
 		{
-			size_t index = 0;
-			size_t count = attributes.size();
+			usize index = 0;
+			usize count = attributes.size();
 
 			while (index < count)
 			{
@@ -1072,8 +1071,8 @@ namespace Engine
 
 		if (status && !result.reflection.vertex_attributes.empty())
 		{
-			const uint32_t* spirv = reinterpret_cast<uint32_t*>(result.shaders.vertex.data());
-			const uint32_t words  = result.shaders.vertex.size() / 4;
+			const u32* spirv = reinterpret_cast<u32*>(result.shaders.vertex.data());
+			const u32 words  = result.shaders.vertex.size() / 4;
 
 			status = strip_vertex_inputs(spirv, words, result.reflection.vertex_attributes);
 		}

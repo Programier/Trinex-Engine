@@ -10,6 +10,6 @@ namespace Engine
 		trinex_class(EntryPoint, Object);
 
 	public:
-		virtual int_t execute();
+		virtual i32 execute();
 	};
 }// namespace Engine

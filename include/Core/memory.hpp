@@ -4,43 +4,43 @@
 
 namespace Engine
 {
-	ENGINE_EXPORT void* memcpy_elements(void* dst, const void* src, size_t element_size, size_t element_count,
-	                                    size_t dst_stride = 0, size_t src_stride = 0);
-	ENGINE_EXPORT void* memcpy_transform(void* dst, const void* src, size_t element_count, size_t dst_stride, size_t src_stride,
+	ENGINE_EXPORT void* memcpy_elements(void* dst, const void* src, usize element_size, usize element_count, usize dst_stride = 0,
+	                                    usize src_stride = 0);
+	ENGINE_EXPORT void* memcpy_transform(void* dst, const void* src, usize element_count, usize dst_stride, usize src_stride,
 	                                     void (*transform)(void* dst, const void* src));
-	ENGINE_EXPORT uint128_t memory_hash(const void* memory, const size_t size, uint128_t seed = 0);
-	ENGINE_EXPORT const byte* memory_search(const byte* haystack, size_t haystack_len, const byte* needle, size_t needle_len);
+	ENGINE_EXPORT u128 memory_hash(const void* memory, const usize size, u128 seed = 0);
+	ENGINE_EXPORT const u8* memory_search(const u8* haystack, usize haystack_len, const u8* needle, usize needle_len);
 
-	FORCE_INLINE constexpr size_t align_memory(size_t size, size_t alignment)
+	FORCE_INLINE constexpr usize align_memory(usize size, usize alignment)
 	{
 		return ((size) + (alignment - 1)) & (~(alignment - 1));
 	}
 
 	template<typename Type>
-	FORCE_INLINE Type align_memory(Type in, size_t alignment)
+	FORCE_INLINE Type align_memory(Type in, usize alignment)
 	{
-		return reinterpret_cast<Type>((reinterpret_cast<size_t>(in) + (alignment - 1)) & (~(alignment - 1)));
+		return reinterpret_cast<Type>((reinterpret_cast<usize>(in) + (alignment - 1)) & (~(alignment - 1)));
 	}
 
-	FORCE_INLINE constexpr size_t align_up(size_t size, size_t alignment)
+	FORCE_INLINE constexpr usize align_up(usize size, usize alignment)
 	{
 		return (size + (alignment - 1)) & ~(alignment - 1);
 	}
 
-	FORCE_INLINE constexpr size_t align_down(size_t size, size_t alignment)
+	FORCE_INLINE constexpr usize align_down(usize size, usize alignment)
 	{
 		return size & ~(alignment - 1);
 	}
 
 	template<typename Type>
-	FORCE_INLINE Type* align_up_ptr(Type* in, size_t alignment)
+	FORCE_INLINE Type* align_up_ptr(Type* in, usize alignment)
 	{
-		return reinterpret_cast<Type*>(align_up(reinterpret_cast<size_t>(in), alignment));
+		return reinterpret_cast<Type*>(align_up(reinterpret_cast<usize>(in), alignment));
 	}
 
 	template<typename Type>
-	FORCE_INLINE Type* align_down_ptr(Type* in, size_t alignment)
+	FORCE_INLINE Type* align_down_ptr(Type* in, usize alignment)
 	{
-		return reinterpret_cast<Type*>(align_down(reinterpret_cast<size_t>(in), alignment));
+		return reinterpret_cast<Type*>(align_down(reinterpret_cast<usize>(in), alignment));
 	}
 }// namespace Engine

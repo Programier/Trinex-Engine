@@ -5,7 +5,7 @@
 namespace Engine
 {
 	Map<String, Arguments::Argument> Arguments::m_arguments;
-	int_t Arguments::m_argc        = 0;
+	i32 Arguments::m_argc          = 0;
 	const char** Arguments::m_argv = nullptr;
 
 	Arguments::Argument::Argument() = default;
@@ -49,7 +49,7 @@ namespace Engine
 		}
 	}
 
-	int_t Arguments::argc()
+	i32 Arguments::argc()
 	{
 		return m_argc;
 	}
@@ -59,10 +59,10 @@ namespace Engine
 		return m_argv;
 	}
 
-	String Arguments::parse_string_argument(const char* argument, size_t* out_pos)
+	String Arguments::parse_string_argument(const char* argument, usize* out_pos)
 	{
 		char end_char = '\0';
-		size_t start  = 0;
+		usize start   = 0;
 
 		if (argument[0] == '\'' || argument[0] == '"')
 		{
@@ -70,7 +70,7 @@ namespace Engine
 			start    = 1;
 		}
 
-		size_t end = start;
+		usize end = start;
 
 		while (argument[end] != end_char && argument[end] != '\0')
 		{
@@ -116,12 +116,12 @@ namespace Engine
 
 	void Arguments::push_argument(const char* name)
 	{
-		size_t pos = 0;
-		size_t len = std::strlen(name);
+		usize pos = 0;
+		usize len = std::strlen(name);
 
 		for (pos = 0; pos < len && name[pos] != '='; ++pos);
 
-		size_t arg_pos = pos + 1;
+		usize arg_pos = pos + 1;
 		for (; arg_pos < len && name[arg_pos] == ' '; ++arg_pos);
 
 		String arg_name = String(name, pos);

@@ -30,8 +30,8 @@ namespace Engine
 		ENGINE_EXPORT OperationSystemType system_type();
 		ENGINE_EXPORT const char* system_name();
 		ENGINE_EXPORT Path find_exec_directory();
-		ENGINE_EXPORT size_t monitors_count();
-		ENGINE_EXPORT MonitorInfo monitor_info(Index monitor_index = 0);
+		ENGINE_EXPORT usize monitors_count();
+		ENGINE_EXPORT MonitorInfo monitor_info(usize monitor_index = 0);
 
 		namespace EventSystem
 		{

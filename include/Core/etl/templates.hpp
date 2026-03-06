@@ -8,10 +8,10 @@ namespace Engine
 	template<typename... Args>
 	struct TypesList {
 	private:
-		template<size_t index, typename... Rest>
+		template<usize index, typename... Rest>
 		struct type_at_impl;
 
-		template<size_t index, typename First, typename... Rest>
+		template<usize index, typename First, typename... Rest>
 		struct type_at_impl<index, First, Rest...> {
 			using type = typename type_at_impl<index - 1, Rest...>::type;
 		};
@@ -64,9 +64,9 @@ namespace Engine
 			(func.template operator()<Args>(std::forward<Arguments>(args)...), ...);
 		}
 
-		consteval static size_t size() { return sizeof...(Args); }
+		consteval static usize size() { return sizeof...(Args); }
 
-		template<size_t index>
+		template<usize index>
 		using type_at = typename type_at_impl<index, Args...>::type;
 
 		template<typename Type>
@@ -75,8 +75,8 @@ namespace Engine
 			return (std::is_same_v<Type, Args> || ...);
 		}
 
-		template<typename Type, size_t index = 0>
-		static consteval int32_t index_of()
+		template<typename Type, usize index = 0>
+		static consteval i32 index_of()
 		{
 			if constexpr (index == size())
 			{
@@ -366,10 +366,10 @@ namespace Engine
 	}
 
 	template<typename FieldType, typename ClassType>
-	inline size_t offset_of(FieldType ClassType::* field)
+	inline usize offset_of(FieldType ClassType::* field)
 	{
 		ClassType* instance = reinterpret_cast<ClassType*>(1024);
-		return reinterpret_cast<size_t>(&(instance->*field)) - reinterpret_cast<size_t>(instance);
+		return reinterpret_cast<usize>(&(instance->*field)) - reinterpret_cast<usize>(instance);
 	}
 
 	template<typename T>

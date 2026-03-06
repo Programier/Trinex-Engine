@@ -544,8 +544,7 @@ namespace JIT
 				}
 
 
-				default:
-					break;
+				default: break;
 			}
 			start += instruction_size(op);
 		}

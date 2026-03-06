@@ -44,7 +44,7 @@ namespace Engine
 		return *this;
 	}
 
-	uint32_t ObjectViewClient::build_dock(uint32_t dock)
+	u32 ObjectViewClient::build_dock(u32 dock)
 	{
 		ImGui::DockBuilderDockWindow(PropertyRenderer::static_name(), dock);
 		return dock;

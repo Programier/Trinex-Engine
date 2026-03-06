@@ -14,7 +14,7 @@
 
 namespace Engine
 {
-	VulkanPipelineLayout::VulkanPipelineLayout(size_t hash, vk::ShaderStageFlags stages, Descriptor* descriptors, size_t count)
+	VulkanPipelineLayout::VulkanPipelineLayout(usize hash, vk::ShaderStageFlags stages, Descriptor* descriptors, usize count)
 	    : m_descriptors(nullptr), m_hash(hash), m_descriptors_count(count)
 	{
 		m_descriptors = Allocator<Descriptor>::allocate(count);
@@ -28,7 +28,7 @@ namespace Engine
 		{
 			vk::DescriptorSetLayoutBinding* bindings = StackAllocator<vk::DescriptorSetLayoutBinding>::allocate(count);
 
-			for (size_t i = 0; i < count; ++i)
+			for (usize i = 0; i < count; ++i)
 			{
 				auto dst = bindings + i;
 				auto src = descriptors + i;
@@ -78,7 +78,7 @@ namespace Engine
 		API->pipeline_layout_manager()->desctroy(this);
 	}
 
-	VulkanPipelineLayout* VulkanPipelineLayoutManager::allocate(const RHIShaderParameterInfo* parameters, size_t count,
+	VulkanPipelineLayout* VulkanPipelineLayoutManager::allocate(const RHIShaderParameterInfo* parameters, usize count,
 	                                                            vk::ShaderStageFlags stages)
 	{
 		using Descriptor = VulkanPipelineLayout::Descriptor;
@@ -86,14 +86,14 @@ namespace Engine
 		StackByteAllocator::Mark mark;
 		Descriptor* descriptors = StackAllocator<Descriptor>::allocate(count);
 
-		size_t descriptors_count = 0;
+		usize descriptors_count = 0;
 
-		for (size_t i = 0; i < count; ++i)
+		for (usize i = 0; i < count; ++i)
 		{
 			auto type    = VulkanEnums::descriptor_type_of(parameters[i].type);
 			auto binding = parameters[i].binding;
 
-			for (size_t j = 0; j < descriptors_count; ++j)
+			for (usize j = 0; j < descriptors_count; ++j)
 			{
 				if (descriptors[j].type == type && descriptors[j].binding == binding)
 				{
@@ -110,8 +110,8 @@ namespace Engine
 
 		std::sort(descriptors, descriptors + descriptors_count);
 
-		uint64_t hash = static_cast<uint64_t>(static_cast<VkShaderStageFlags>(stages));
-		hash          = memory_hash(descriptors, descriptors_count * sizeof(Descriptor), hash);
+		u64 hash = static_cast<u64>(static_cast<VkShaderStageFlags>(stages));
+		hash     = memory_hash(descriptors, descriptors_count * sizeof(Descriptor), hash);
 
 		ScopeLock lock(m_section);
 		auto search_result = m_pipeline_layouts.equal_range(hash);
@@ -155,27 +155,27 @@ namespace Engine
 	}
 
 	struct VulkanDescriptorSetAllocator::VulkanDescriptorPool {
-		static constexpr inline uint32_t s_descriptor_sets_per_pool = 1024;
+		static constexpr inline u32 s_descriptor_sets_per_pool = 1024;
 
 	private:
 		vk::DescriptorPool m_pool;
-		uint32_t m_descriptors;
+		u32 m_descriptors;
 
 		union
 		{
 			struct {
-				uint32_t m_textures;
-				uint32_t m_samplers;
-				uint32_t m_combined_image_sampler;
-				uint32_t m_storage_images;
-				uint32_t m_uniform_buffers;
-				uint32_t m_storage_buffers;
-				uint32_t m_uniform_texel_buffers;
-				uint32_t m_storage_texel_buffers;
-				uint32_t m_acceleration_structures;
+				u32 m_textures;
+				u32 m_samplers;
+				u32 m_combined_image_sampler;
+				u32 m_storage_images;
+				u32 m_uniform_buffers;
+				u32 m_storage_buffers;
+				u32 m_uniform_texel_buffers;
+				u32 m_storage_texel_buffers;
+				u32 m_acceleration_structures;
 			};
 
-			uint32_t m_pool_sizes[9];
+			u32 m_pool_sizes[9];
 		};
 
 		void reset_counters()
@@ -211,7 +211,7 @@ namespace Engine
 			        {vk::DescriptorType::eAccelerationStructureKHR, m_acceleration_structures},
 			};
 
-			size_t count = API->is_raytracing_supported() ? 9 : 8;
+			usize count = API->is_raytracing_supported() ? 9 : 8;
 
 			vk::DescriptorPoolCreateInfo info({}, s_descriptor_sets_per_pool, count, sizes);
 			m_pool = vk::check_result(API->m_device.createDescriptorPool(info));
@@ -234,7 +234,7 @@ namespace Engine
 
 			{
 				trinex_profile_cpu_n("Check available");
-				const uint32_t pool_sizes[] = {
+				const u32 pool_sizes[] = {
 				        layout->textures_count(),
 				        layout->samplers_count(),
 				        layout->combined_image_sampler_count(),
@@ -246,9 +246,9 @@ namespace Engine
 				        layout->acceleartion_structures_count(),
 				};
 
-				static constexpr uint32_t count = sizeof(m_pool_sizes) / sizeof(m_pool_sizes[0]);
+				static constexpr u32 count = sizeof(m_pool_sizes) / sizeof(m_pool_sizes[0]);
 
-				for (uint32_t i = 0; i < count; ++i)
+				for (u32 i = 0; i < count; ++i)
 				{
 					if (pool_sizes[i] > m_pool_sizes[i])
 						return {};
@@ -274,7 +274,7 @@ namespace Engine
 		struct Descriptor {
 			using enum vk::ImageLayout;
 
-			uint64_t data[2];
+			u64 data[2];
 
 			inline void zeros() { data[0] = data[1] = 0; }
 
@@ -284,7 +284,7 @@ namespace Engine
 				static_assert(alignof(T) == alignof(Descriptor));
 				static_assert(sizeof(T) <= sizeof(Descriptor));
 
-				const uint64_t* src = reinterpret_cast<const uint64_t*>(&object);
+				const u64* src = reinterpret_cast<const u64*>(&object);
 
 				data[0] = src[0];
 
@@ -365,7 +365,7 @@ namespace Engine
 		};
 
 		vk::DescriptorType type;
-		uint32_t binding;
+		u32 binding;
 		Descriptor descriptor;
 	};
 
@@ -409,13 +409,13 @@ namespace Engine
 
 	vk::DescriptorSet VulkanDescriptorSetAllocator::allocate(VulkanPipelineLayout* layout, VulkanStateManager* state)
 	{
-		const size_t count     = layout->descriptors_count();
+		const usize count      = layout->descriptors_count();
 		const auto* descritors = layout->descriptors();
 		StackByteAllocator::Mark mark;
 
 		Binding* bindings = StackAllocator<Binding>::allocate(count);
 
-		for (size_t i = 0; i < count; ++i)
+		for (usize i = 0; i < count; ++i)
 		{
 			const auto* src = descritors + i;
 			Binding* dst    = bindings + i;
@@ -455,7 +455,7 @@ namespace Engine
 			}
 		}
 
-		uint64_t hash = memory_hash(bindings, count * sizeof(Binding), reinterpret_cast<uint64_t>(layout));
+		u64 hash = memory_hash(bindings, count * sizeof(Binding), reinterpret_cast<u64>(layout));
 
 		vk::DescriptorSet& set = m_table[hash];
 
@@ -466,7 +466,7 @@ namespace Engine
 
 		vk::WriteDescriptorSet* writes = StackAllocator<vk::WriteDescriptorSet>::allocate(count);
 
-		for (size_t i = 0; i < count; ++i)
+		for (usize i = 0; i < count; ++i)
 		{
 			Binding* src                = bindings + i;
 			vk::WriteDescriptorSet* dst = writes + i;

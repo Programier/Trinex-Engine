@@ -4,6 +4,6 @@
 
 namespace Engine
 {
-	using RHIDescriptor    = uint64_t;
-	using RHIDeviceAddress = uint64_t;
+	using RHIDescriptor    = u64;
+	using RHIDeviceAddress = u64;
 }// namespace Engine

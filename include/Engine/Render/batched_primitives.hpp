@@ -54,7 +54,7 @@ namespace Engine
 		struct Node {
 			Node* next;
 			Vertex* vertices;
-			size_t vtx_count;
+			usize vtx_count;
 
 			Node();
 		};
@@ -70,13 +70,13 @@ namespace Engine
 
 		BatchedLines& add_line(const Vertex& point1, const Vertex& point2);
 		BatchedLines& add_circle(const Vector3f& position, const Vector3f& normal, float radius,
-		                         const Color& color = {255, 255, 255, 255}, uint_t segments = 0, float thickness = 1.f);
+		                         const Color& color = {255, 255, 255, 255}, u32 segments = 0, float thickness = 1.f);
 		BatchedLines& add_sphere(const Vector3f& position, float radius, const Color& color = {255, 255, 255, 255},
-		                         uint_t segments = 0, float thickness = 1.f);
+		                         u32 segments = 0, float thickness = 1.f);
 		BatchedLines& add_arrow(const Vector3f& position, const Vector3f& direction, const Color& color = {255, 255, 255, 255},
 		                        float thickness = 1.f);
 		BatchedLines& add_cone(const Vector3f& position, const Vector3f& direction, float radius,
-		                       const Color& color = {255, 255, 255, 255}, uint_t segments = 0, float thickness = 1.f);
+		                       const Color& color = {255, 255, 255, 255}, u32 segments = 0, float thickness = 1.f);
 		BatchedLines& add_box(const Vector3f& min, const Vector3f& max, const Color& color = {255, 255, 255, 255},
 		                      float thickness = 1.f);
 
@@ -89,7 +89,7 @@ namespace Engine
 	{
 		PositionVertexBuffer m_position_buffer;
 		ColorVertexBuffer m_color_buffer;
-		size_t m_vtx_count = 0;
+		usize m_vtx_count = 0;
 
 	public:
 		BatchedTriangles();

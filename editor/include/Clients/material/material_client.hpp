@@ -23,7 +23,7 @@ namespace Engine
 
 		MaterialEditorClient& on_bind_viewport(class RenderViewport* viewport) override;
 		MaterialEditorClient& update(float dt) override;
-		uint32_t build_dock(uint32_t dock) override;
+		u32 build_dock(u32 dock) override;
 		MaterialEditorClient& select(Object* object) override;
 
 		inline Material* material() const { return m_material; }

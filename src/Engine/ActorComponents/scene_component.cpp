@@ -15,12 +15,12 @@
 namespace Engine
 {
 	static ScriptFunction script_scene_comp_transform_changed;
-	static size_t childs_count(const SceneComponent* component)
+	static usize childs_count(const SceneComponent* component)
 	{
 		return component->childs().size();
 	}
 
-	static SceneComponent* child_at(const SceneComponent* component, size_t index)
+	static SceneComponent* child_at(const SceneComponent* component, usize index)
 	{
 		auto& childs = component->childs();
 		if (childs.size() <= index)
@@ -91,7 +91,7 @@ namespace Engine
 	{
 		if (m_parent)
 		{
-			for (size_t index = 0, count = m_parent->m_childs.size(); index < count; ++index)
+			for (usize index = 0, count = m_parent->m_childs.size(); index < count; ++index)
 			{
 				SceneComponent* component = m_parent->m_childs[index];
 				if (component == this)

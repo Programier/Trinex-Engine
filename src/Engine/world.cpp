@@ -21,7 +21,7 @@ namespace Engine
 	World::~World()
 	{
 		stop_play();
-		
+
 		while (!m_levels.empty())
 		{
 			Level* level = m_levels.back();
@@ -84,7 +84,7 @@ namespace Engine
 		return this;
 	}
 
-	bool World::register_child(Object* child, uint32_t& index)
+	bool World::register_child(Object* child, u32& index)
 	{
 		Level* level = instance_cast<Level>(child);
 

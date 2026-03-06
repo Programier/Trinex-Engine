@@ -136,13 +136,13 @@ namespace Engine
 
 
 		ScriptClassRegistrar(const StringView& name);
-		ScriptClassRegistrar(const StringView& name, size_t size, BitMask flags);
+		ScriptClassRegistrar(const StringView& name, usize size, BitMask flags);
 
 		ScriptClassRegistrar& modify_name_if_template(const BaseInfo& info);
 
 	public:
-		static ScriptClassRegistrar value_class(const StringView& name, size_t size, const ValueInfo& info = ValueInfo());
-		static ScriptClassRegistrar reference_class(const StringView& name, const RefInfo& info = RefInfo(), size_t size = 0);
+		static ScriptClassRegistrar value_class(const StringView& name, usize size, const ValueInfo& info = ValueInfo());
+		static ScriptClassRegistrar reference_class(const StringView& name, const RefInfo& info = RefInfo(), usize size = 0);
 		static ScriptClassRegistrar reference_class(Refl::Class* class_instance);
 		static ScriptClassRegistrar existing_class(const String& name);
 		static ScriptClassRegistrar existing_class(Refl::Class* class_instance);
@@ -151,7 +151,7 @@ namespace Engine
 		const String& class_base_name() const;
 		const String& namespace_name() const;
 		class ScriptTypeInfo type_info() const;
-		int_t type_id() const;
+		i32 type_id() const;
 
 		// Method registration
 		ScriptFunction method(const char* declaration, ScriptMethodPtr* method, ScriptCallConv conv = ScriptCallConv::ThisCall,
@@ -191,7 +191,7 @@ namespace Engine
 		}
 
 		// Property registration
-		ScriptClassRegistrar& property(const char* declaration, size_t offset);
+		ScriptClassRegistrar& property(const char* declaration, usize offset);
 
 		template<typename T, typename C>
 		ScriptClassRegistrar& property(const char* declaration, T C::* prop)
@@ -248,15 +248,15 @@ namespace Engine
 	public:
 		ScriptEnumRegistrar(const StringView& namespace_name, const StringView& base_name, bool init = true);
 		ScriptEnumRegistrar(const StringView& full_name, bool init = true);
-		ScriptEnumRegistrar& set(const char* name, int_t value);
-		int_t type_id();
+		ScriptEnumRegistrar& set(const char* name, i32 value);
+		i32 type_id();
 		ScriptTypeInfo type_info();
 
 		template<typename T>
 		ScriptEnumRegistrar& set(const char* name, T value)
 		{
-			static_assert(sizeof(T) <= sizeof(int_t), "Size of enum value must be less or equal to sizeof int_t");
-			return set(name, static_cast<int_t>(value));
+			static_assert(sizeof(T) <= sizeof(i32), "Size of enum value must be less or equal to sizeof int_t");
+			return set(name, static_cast<i32>(value));
 		}
 	};
 }// namespace Engine

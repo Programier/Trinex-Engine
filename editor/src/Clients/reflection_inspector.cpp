@@ -100,7 +100,7 @@ namespace Engine
 			return *this;
 		}
 
-		uint32_t build_dock(uint32_t dock) override
+		u32 build_dock(u32 dock) override
 		{
 			ImGui::DockBuilderDockWindow("View", dock);
 			return dock;

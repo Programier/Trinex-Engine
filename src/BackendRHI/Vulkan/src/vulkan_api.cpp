@@ -339,8 +339,8 @@ namespace Engine
 
 	VulkanAPI& VulkanAPI::update(float dt)
 	{
-		const uint64_t current_frame = ++m_frame;
-		const uint64_t gpu_frame     = vk::check_result(m_device.getSemaphoreCounterValueKHR(m_timeline));
+		const u64 current_frame = ++m_frame;
+		const u64 gpu_frame     = vk::check_result(m_device.getSemaphoreCounterValueKHR(m_timeline));
 
 		while (!m_garbage.empty() && m_garbage.front().frame <= gpu_frame)
 		{

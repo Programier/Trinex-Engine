@@ -14,7 +14,7 @@ namespace Engine
 	class ScriptVector
 	{
 	public:
-		struct Instance : public Vector<byte> {
+		struct Instance : public Vector<u8> {
 			using Vector::Vector;
 
 			using Vector::m_end;
@@ -24,9 +24,9 @@ namespace Engine
 
 		static Instance* m_self;
 		static asITypeInfo* m_type;
-		static int_t m_type_id;
-		static size_t m_type_size;
-		static size_t m_refs;
+		static i32 m_type_id;
+		static usize m_type_size;
+		static usize m_refs;
 
 
 		struct TypeInitializer {
@@ -91,7 +91,7 @@ namespace Engine
 		struct TempInstance : public Instance {
 			using Instance::Instance;
 
-			byte* init_temp(byte* src)
+			u8* init_temp(u8* src)
 			{
 				++m_refs;
 				reserve(m_type_size);
@@ -117,7 +117,7 @@ namespace Engine
 
 		static inline asIScriptFunction* primitive_behaviour()
 		{
-			static auto beh = reinterpret_cast<asIScriptFunction*>(static_cast<byte*>(nullptr) + 1);
+			static auto beh = reinterpret_cast<asIScriptFunction*>(static_cast<u8*>(nullptr) + 1);
 			return beh;
 		}
 
@@ -156,7 +156,7 @@ namespace Engine
 
 				if (beh_type == asBEHAVE_CONSTRUCT && beh->GetParamCount() == 1)
 				{
-					int_t type_id;
+					i32 type_id;
 					asDWORD flags;
 
 					if (beh->GetParam(0, &type_id, &flags) >= 0)
@@ -197,7 +197,7 @@ namespace Engine
 
 		static Instance* instance(asIScriptGeneric* g, asUINT arg) { return reinterpret_cast<Instance*>(g->GetArgAddress(arg)); }
 
-		static void fill_primitives(byte* begin, byte* end, byte* default_value)
+		static void fill_primitives(u8* begin, u8* end, u8* default_value)
 		{
 			while (begin < end)
 			{
@@ -206,12 +206,12 @@ namespace Engine
 			}
 		}
 
-		static void fill_primitives(Instance& array, byte* default_value)
+		static void fill_primitives(Instance& array, u8* default_value)
 		{
 			fill_primitives(array.m_start, array.m_finish, default_value);
 		}
 
-		static void fill_primitives_list(byte* begin, byte* end, byte* default_value)
+		static void fill_primitives_list(u8* begin, u8* end, u8* default_value)
 		{
 			while (begin < end)
 			{
@@ -221,12 +221,12 @@ namespace Engine
 			}
 		}
 
-		static void fill_primitives_list(Instance& array, byte* default_value)
+		static void fill_primitives_list(Instance& array, u8* default_value)
 		{
 			fill_primitives_list(array.m_start, array.m_finish, default_value);
 		}
 
-		static void call_default_constructor(byte* mem, asIScriptFunction* f = nullptr)
+		static void call_default_constructor(u8* mem, asIScriptFunction* f = nullptr)
 		{
 			if (f == nullptr)
 				f = find_default_constructor();
@@ -246,7 +246,7 @@ namespace Engine
 			std::memset(mem, 0, m_type_size);
 		}
 
-		static void call_default_constructor(byte* begin, byte* end, asIScriptFunction* f = nullptr)
+		static void call_default_constructor(u8* begin, u8* end, asIScriptFunction* f = nullptr)
 		{
 			if (f == nullptr)
 				f = find_default_constructor();
@@ -266,7 +266,7 @@ namespace Engine
 			call_default_constructor(array.m_start, array.m_finish, f);
 		}
 
-		static void call_copy_constructor(byte* mem, byte* src, asIScriptFunction* f = nullptr)
+		static void call_copy_constructor(u8* mem, u8* src, asIScriptFunction* f = nullptr)
 		{
 			if (f == nullptr)
 				f = find_copy_constructor();
@@ -287,7 +287,7 @@ namespace Engine
 			std::memcpy(mem, src, m_type_size);
 		}
 
-		static void call_copy_constructor(byte* begin, byte* end, byte* src)
+		static void call_copy_constructor(u8* begin, u8* end, u8* src)
 		{
 			auto f = find_copy_constructor();
 
@@ -301,7 +301,7 @@ namespace Engine
 			}
 		}
 
-		static void call_copy_constructor_list(byte* begin, byte* end, byte* src)
+		static void call_copy_constructor_list(u8* begin, u8* end, u8* src)
 		{
 			auto f = find_copy_constructor();
 
@@ -316,17 +316,14 @@ namespace Engine
 			}
 		}
 
-		static void call_copy_constructor(Instance& array, byte* src)
-		{
-			call_copy_constructor(array.m_start, array.m_finish, src);
-		}
+		static void call_copy_constructor(Instance& array, u8* src) { call_copy_constructor(array.m_start, array.m_finish, src); }
 
-		static void call_copy_constructor_list(Instance& array, byte* src)
+		static void call_copy_constructor_list(Instance& array, u8* src)
 		{
 			call_copy_constructor_list(array.m_start, array.m_finish, src);
 		}
 
-		static void call_destructor(byte* mem, asIScriptFunction* f = nullptr)
+		static void call_destructor(u8* mem, asIScriptFunction* f = nullptr)
 		{
 			if (f == nullptr)
 				f = find_destructor();
@@ -343,7 +340,7 @@ namespace Engine
 			}
 		}
 
-		static void call_destructor(byte* begin, byte* end, asIScriptFunction* f = nullptr)
+		static void call_destructor(u8* begin, u8* end, asIScriptFunction* f = nullptr)
 		{
 			if (f == nullptr)
 				f = find_destructor();
@@ -363,13 +360,13 @@ namespace Engine
 			call_destructor(array.m_start, array.m_finish, f);
 		}
 
-		static bool is_current_array_element(byte* obj) { return obj >= m_self->m_start && obj <= m_self->m_end; }
+		static bool is_current_array_element(u8* obj) { return obj >= m_self->m_start && obj <= m_self->m_end; }
 
 		///////////////// IMPLEMENTATION /////////////////
 
 		static void constructor(Instance* self, asITypeInfo* ot) { new (self) Instance(); }
 
-		static void constructor_sz(Instance* self, asITypeInfo* ot, size_t size)
+		static void constructor_sz(Instance* self, asITypeInfo* ot, usize size)
 		{
 			ScriptVector::TypeInitializer initializer(self, ot);
 
@@ -386,7 +383,7 @@ namespace Engine
 			call_default_constructor(*self);
 		}
 
-		static void constructor_sz_v(Instance* self, asITypeInfo* ot, size_t size, byte* default_value)
+		static void constructor_sz_v(Instance* self, asITypeInfo* ot, usize size, u8* default_value)
 		{
 			ScriptVector::TypeInitializer initializer(self, ot);
 			constructor(self, ot);
@@ -404,8 +401,8 @@ namespace Engine
 		{
 			ScriptVector::TypeInitializer initializer(self, ot);
 
-			size_t size = static_cast<size_t>(*lst) * m_type_size;
-			byte* src   = reinterpret_cast<byte*>(lst + 1);
+			usize size = static_cast<usize>(*lst) * m_type_size;
+			u8* src    = reinterpret_cast<u8*>(lst + 1);
 
 			if (m_type)
 			{
@@ -469,7 +466,7 @@ namespace Engine
 			g->SetReturnAddress(&(m_self->at(g->GetArgQWord(0) * m_type_size)));
 		}
 
-		static byte* front(Instance* self)
+		static u8* front(Instance* self)
 		{
 			if (self->empty())
 			{
@@ -525,7 +522,7 @@ namespace Engine
 			m_self->m_finish = m_self->m_start;
 		}
 
-		static void reserve_impl(size_t result_cap)
+		static void reserve_impl(usize result_cap)
 		{
 			if (m_self->capacity() >= result_cap)
 				return;
@@ -556,9 +553,9 @@ namespace Engine
 		{
 			ScriptVector::TypeInitializer initializer(g);
 
-			size_t n            = static_cast<size_t>(g->GetArgQWord(0));
-			size_t bytes        = n * m_type_size;
-			size_t current_size = m_self->size();
+			usize n            = static_cast<usize>(g->GetArgQWord(0));
+			usize bytes        = n * m_type_size;
+			usize current_size = m_self->size();
 
 			if (bytes > current_size)
 			{
@@ -587,13 +584,13 @@ namespace Engine
 		{
 			ScriptVector::TypeInitializer initializer(g);
 
-			size_t n            = static_cast<size_t>(g->GetArgQWord(0));
-			size_t bytes        = n * m_type_size;
-			size_t current_size = m_self->size();
+			usize n            = static_cast<usize>(g->GetArgQWord(0));
+			usize bytes        = n * m_type_size;
+			usize current_size = m_self->size();
 
 			if (bytes > current_size)
 			{
-				byte* src = static_cast<byte*>(g->GetArgAddress(1));
+				u8* src = static_cast<u8*>(g->GetArgAddress(1));
 				TempInstance tmp;
 
 				if (bytes > m_self->capacity() && is_current_array_element(src))
@@ -623,8 +620,8 @@ namespace Engine
 		static void assign_nv(asIScriptGeneric* g)
 		{
 			ScriptVector::TypeInitializer initializer(g);
-			size_t n = static_cast<size_t>(g->GetArgQWord(0)) * m_type_size;
-			byte* v  = static_cast<byte*>(g->GetArgAddress(1));
+			usize n = static_cast<usize>(g->GetArgQWord(0)) * m_type_size;
+			u8* v   = static_cast<u8*>(g->GetArgAddress(1));
 
 			TempInstance tmp;
 			if (n > m_self->capacity() && is_current_array_element(v))
@@ -643,9 +640,9 @@ namespace Engine
 			fill_primitives(m_self->m_start, m_self->m_finish, v);
 		}
 
-		static void grow(size_t bytes)
+		static void grow(usize bytes)
 		{
-			size_t c = m_self->capacity();
+			usize c = m_self->capacity();
 
 			if (c == 0)
 				c = 1;
@@ -654,7 +651,7 @@ namespace Engine
 			reserve_impl(c);
 		}
 
-		static void prepare_insert(size_t start_bytes, size_t num_bytes)
+		static void prepare_insert(usize start_bytes, usize num_bytes)
 		{
 			grow(num_bytes);
 
@@ -683,7 +680,7 @@ namespace Engine
 			}
 		}
 
-		static void insert_pnv_impl(size_t p, size_t n, byte* v)
+		static void insert_pnv_impl(usize p, usize n, u8* v)
 		{
 			p *= m_type_size;
 			n *= m_type_size;
@@ -705,17 +702,17 @@ namespace Engine
 		{
 			ScriptVector::TypeInitializer initializer(g);
 			Instance* other = instance(g, 1);
-			size_t p        = g->GetArgQWord(0) * m_type_size;
-			size_t n        = other->size();
+			usize p         = g->GetArgQWord(0) * m_type_size;
+			usize n         = other->size();
 
 			prepare_insert(p, n);
-			auto* callback = m_type ? overload_of<void(byte*, byte*, byte*)>(call_copy_constructor_list)
-			                        : overload_of<void(byte*, byte*, byte*)>(fill_primitives_list);
+			auto* callback = m_type ? overload_of<void(u8*, u8*, u8*)>(call_copy_constructor_list)
+			                        : overload_of<void(u8*, u8*, u8*)>(fill_primitives_list);
 
 			if (m_self == other)
 			{
-				byte* uninitialized_start = m_self->m_start;
-				byte* uninitialized_end   = uninitialized_start + n;
+				u8* uninitialized_start = m_self->m_start;
+				u8* uninitialized_end   = uninitialized_start + n;
 
 				callback(m_self->m_start, uninitialized_start, uninitialized_start);
 				uninitialized_start += uninitialized_start - m_self->m_start;
@@ -731,8 +728,8 @@ namespace Engine
 		{
 			ScriptVector::TypeInitializer initializer(g);
 
-			size_t p = g->GetArgQWord(0);
-			byte* v  = static_cast<byte*>(g->GetArgAddress(1));
+			usize p = g->GetArgQWord(0);
+			u8* v   = static_cast<u8*>(g->GetArgAddress(1));
 			insert_pnv_impl(p, 1, v);
 		}
 
@@ -740,16 +737,16 @@ namespace Engine
 		{
 			ScriptVector::TypeInitializer initializer(g);
 
-			size_t p = g->GetArgQWord(0);
-			size_t n = g->GetArgQWord(1);
-			byte* v  = static_cast<byte*>(g->GetArgAddress(2));
+			usize p = g->GetArgQWord(0);
+			usize n = g->GetArgQWord(1);
+			u8* v   = static_cast<u8*>(g->GetArgAddress(2));
 			insert_pnv_impl(p, n, v);
 		}
 
 		static void push_back(asIScriptGeneric* g)
 		{
 			ScriptVector::TypeInitializer initializer(g);
-			byte* v = static_cast<byte*>(g->GetArgAddress(0));
+			u8* v = static_cast<u8*>(g->GetArgAddress(0));
 
 			TempInstance tmp;
 			if ((m_self->size() + m_type_size > m_self->capacity()) && is_current_array_element(v))
@@ -784,13 +781,13 @@ namespace Engine
 		{
 			ScriptVector::TypeInitializer initializer(g);
 
-			size_t p = static_cast<size_t>(g->GetArgQWord(0)) * m_type_size;
-			size_t n = static_cast<size_t>(g->GetArgQWord(1)) * m_type_size;
+			usize p = static_cast<usize>(g->GetArgQWord(0)) * m_type_size;
+			usize n = static_cast<usize>(g->GetArgQWord(1)) * m_type_size;
 
 			if (m_type)
 			{
-				byte* start = m_self->m_start + p;
-				byte* end   = start + n;
+				u8* start = m_self->m_start + p;
+				u8* end   = start + n;
 
 				auto copy_f    = find_copy_constructor();
 				auto destroy_f = find_destructor();
@@ -817,9 +814,9 @@ namespace Engine
 
 	ScriptVector::Instance* ScriptVector::m_self = nullptr;
 	asITypeInfo* ScriptVector::m_type            = nullptr;
-	int_t ScriptVector::m_type_id                = 0;
-	size_t ScriptVector::m_type_size             = 0;
-	size_t ScriptVector::m_refs                  = 0;
+	i32 ScriptVector::m_type_id                  = 0;
+	usize ScriptVector::m_type_size              = 0;
+	usize ScriptVector::m_refs                   = 0;
 
 	static bool template_callback(asITypeInfo* ot, bool& dont_garbage_collect)
 	{

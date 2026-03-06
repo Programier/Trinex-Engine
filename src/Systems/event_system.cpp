@@ -29,7 +29,7 @@ namespace Engine
 
 	Identifier EventSystem::add_listener(EventType type, const Listener& listener)
 	{
-		size_t index       = static_cast<size_t>(type);
+		usize index        = static_cast<usize>(type);
 		ListenerNode* node = trx_new ListenerNode();
 		node->type         = type;
 		node->listener     = listener;
@@ -109,8 +109,8 @@ namespace Engine
 
 	EventSystem& EventSystem::push_event(const Event& event)
 	{
-		size_t index  = static_cast<size_t>(event.type);
-		size_t index2 = static_cast<size_t>(EventType::Undefined);
+		usize index  = static_cast<usize>(event.type);
+		usize index2 = static_cast<usize>(EventType::Undefined);
 		execute_listeners(m_listeners[index], event);
 		execute_listeners(m_listeners[index2], event);
 		return *this;

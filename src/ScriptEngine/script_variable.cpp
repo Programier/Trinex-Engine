@@ -168,7 +168,7 @@ namespace Engine
 		}
 		else
 		{
-			int_t size = ScriptEngine::sizeof_primitive_type(type_id());
+			i32 size = ScriptEngine::sizeof_primitive_type(type_id());
 
 			if (size > 0)
 			{
@@ -200,7 +200,7 @@ namespace Engine
 		else
 		{
 			asIScriptEngine* engine = ScriptEngine::engine();
-			size_t size             = engine->GetSizeOfPrimitiveType(type_id());
+			usize size              = engine->GetSizeOfPrimitiveType(type_id());
 			if (size > 0)
 			{
 				std::memcpy(dst, address(), size);
@@ -282,7 +282,7 @@ namespace Engine
 		return m_type_id != 0;
 	}
 
-	bool ScriptVariableBase::check_type(int_t mask) const
+	bool ScriptVariableBase::check_type(i32 mask) const
 	{
 		return m_type_id == mask;
 	}
@@ -326,7 +326,7 @@ namespace Engine
 		return &m_address;
 	}
 
-	int_t ScriptVariableBase::type_id() const
+	i32 ScriptVariableBase::type_id() const
 	{
 		return m_type_id;
 	}
@@ -341,7 +341,7 @@ namespace Engine
 		release();
 	}
 
-	ScriptVariable::ScriptVariable(int_t type_id)
+	ScriptVariable::ScriptVariable(i32 type_id)
 	{
 		if (!create(type_id))
 		{
@@ -351,7 +351,7 @@ namespace Engine
 
 	ScriptVariable::ScriptVariable(const char* declaration) : ScriptVariable(ScriptEngine::type_id_by_decl(declaration)) {}
 
-	static int_t find_type_id_internal(const char* declaration, const char* module_name)
+	static i32 find_type_id_internal(const char* declaration, const char* module_name)
 	{
 		ScriptModule module(module_name, ScriptModuleLookup::OnlyIfExists);
 		if (module.is_valid())
@@ -365,7 +365,7 @@ namespace Engine
 	    : ScriptVariable(find_type_id_internal(declaration, module))
 	{}
 
-	ScriptVariable::ScriptVariable(void* address, int_t type_id, bool handle_is_object, const ScriptTypeModifiers& modifiers)
+	ScriptVariable::ScriptVariable(void* address, i32 type_id, bool handle_is_object, const ScriptTypeModifiers& modifiers)
 	{
 		if (!create(address, type_id, handle_is_object, modifiers))
 		{
@@ -408,7 +408,7 @@ namespace Engine
 		return *this;
 	}
 
-	bool ScriptVariable::create(int_t type_id, bool is_uninitialized)
+	bool ScriptVariable::create(i32 type_id, bool is_uninitialized)
 	{
 		release();
 		m_type_id = type_id;
@@ -438,7 +438,7 @@ namespace Engine
 		return true;
 	}
 
-	bool ScriptVariable::create(void* address, int_t type_id, bool handle_is_object, const ScriptTypeModifiers& modifiers)
+	bool ScriptVariable::create(void* address, i32 type_id, bool handle_is_object, const ScriptTypeModifiers& modifiers)
 	{
 		release();
 		m_type_id   = type_id;
@@ -470,7 +470,7 @@ namespace Engine
 		}
 		else
 		{
-			int_t size = ScriptEngine::sizeof_primitive_type(type_id);
+			i32 size = ScriptEngine::sizeof_primitive_type(type_id);
 			if (size > 0)
 			{
 				std::memcpy(&m_address, address, size);
@@ -484,7 +484,7 @@ namespace Engine
 	bool ScriptVariable::create(void* src_address, const char* type_declaration, bool handle_is_object,
 	                            const ScriptTypeModifiers& modifiers)
 	{
-		int_t type_id = ScriptEngine::type_id_by_decl(type_declaration);
+		i32 type_id = ScriptEngine::type_id_by_decl(type_declaration);
 		if (type_id < 0)
 		{
 			error_log("ScriptVariableBase", "Cannot create script variable, because type_id is invalid!");
@@ -496,7 +496,7 @@ namespace Engine
 	bool ScriptVariable::create(void* src_address, const char* type_declaration, const char* module, bool handle_is_object,
 	                            const ScriptTypeModifiers& modifiers)
 	{
-		int_t type_id = find_type_id_internal(type_declaration, module);
+		i32 type_id = find_type_id_internal(type_declaration, module);
 		if (type_id < 0)
 		{
 			error_log("ScriptVariableBase", "Cannot create script variable, because type_id is invalid!");
@@ -512,7 +512,7 @@ namespace Engine
 
 	bool ScriptVariable::create(const char* type_declaration, bool is_uninitialized)
 	{
-		int_t type_id = ScriptEngine::type_id_by_decl(type_declaration);
+		i32 type_id = ScriptEngine::type_id_by_decl(type_declaration);
 		if (type_id < 0)
 		{
 			error_log("ScriptVariableBase", "Cannot create script variable, because type_id is invalid!");
@@ -523,7 +523,7 @@ namespace Engine
 
 	bool ScriptVariable::create(const char* type_declaration, const char* module, bool is_uninitialized)
 	{
-		int_t type_id = find_type_id_internal(type_declaration, module);
+		i32 type_id = find_type_id_internal(type_declaration, module);
 		if (type_id < 0)
 		{
 			error_log("ScriptVariableBase", "Cannot create script variable, because type_id is invalid!");
@@ -592,42 +592,42 @@ namespace Engine
 		return m_bool_value;
 	}
 
-	int8_t ScriptVariable::int8_value() const
+	i8 ScriptVariable::int8_value() const
 	{
 		return m_int8_value;
 	}
 
-	int16_t ScriptVariable::int16_value() const
+	i16 ScriptVariable::int16_value() const
 	{
 		return m_int16_value;
 	}
 
-	int32_t ScriptVariable::int32_value() const
+	i32 ScriptVariable::int32_value() const
 	{
 		return m_int32_value;
 	}
 
-	int64_t ScriptVariable::int64_value() const
+	i64 ScriptVariable::int64_value() const
 	{
 		return m_int64_value;
 	}
 
-	uint8_t ScriptVariable::uint8_value() const
+	u8 ScriptVariable::uint8_value() const
 	{
 		return m_uint8_value;
 	}
 
-	uint16_t ScriptVariable::uint16_value() const
+	u16 ScriptVariable::uint16_value() const
 	{
 		return m_uint16_value;
 	}
 
-	uint32_t ScriptVariable::uint32_value() const
+	u32 ScriptVariable::uint32_value() const
 	{
 		return m_uint32_value;
 	}
 
-	uint64_t ScriptVariable::uint64_value() const
+	u64 ScriptVariable::uint64_value() const
 	{
 		return m_uint64_value;
 	}

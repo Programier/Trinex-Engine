@@ -1325,7 +1325,7 @@ namespace Engine
 
 			static bool Checkbox(const String& text, bool& value) { return ImGui::Checkbox(text.c_str(), &value); }
 
-			static bool CheckboxFlags(const String& text, uint64_t& flags, uint64_t value)
+			static bool CheckboxFlags(const String& text, u64& flags, u64 value)
 			{
 				return ImGui::CheckboxFlags(text.c_str(), reinterpret_cast<ImU64*>(&flags), static_cast<ImU64>(value));
 			}
@@ -1339,8 +1339,8 @@ namespace Engine
 			{
 				StackByteAllocator::Mark mark;
 
-				const size_t count = items.size();
-				const char** data  = StackAllocator<const char*>::allocate(count);
+				const usize count = items.size();
+				const char** data = StackAllocator<const char*>::allocate(count);
 
 				etl::transform(items.begin(), items.end(), data, [](const String& item) -> const char* { return item.c_str(); });
 				return ImGui::Combo(label.c_str(), &current_item, data, count, height_in_items);

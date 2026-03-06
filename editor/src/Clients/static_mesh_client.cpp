@@ -97,7 +97,7 @@ namespace Engine
 		return *this;
 	}
 
-	uint32_t StaticMeshClient::build_dock(uint32_t dock)
+	u32 StaticMeshClient::build_dock(u32 dock)
 	{
 		auto dock_right  = ImGui::DockBuilderSplitNode(dock, ImGuiDir_Right, 0.35f, nullptr, &dock);
 		auto dock_botton = ImGui::DockBuilderSplitNode(dock, ImGuiDir_Down, 0.35f, nullptr, &dock);

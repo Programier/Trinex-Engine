@@ -34,9 +34,9 @@ namespace Engine
 	private:
 		DeferredRenderer& register_debug_lines();
 
-		DeferredRenderer& register_shadow_light(PointLightComponent* light, byte* shadow_data);
-		DeferredRenderer& register_shadow_light(SpotLightComponent* light, byte* shadow_data);
-		DeferredRenderer& register_shadow_light(DirectionalLightComponent* light, byte* shadow_data);
+		DeferredRenderer& register_shadow_light(PointLightComponent* light, u8* shadow_data);
+		DeferredRenderer& register_shadow_light(SpotLightComponent* light, u8* shadow_data);
+		DeferredRenderer& register_shadow_light(DirectionalLightComponent* light, u8* shadow_data);
 
 		DeferredRenderer& register_lit_mode_passes();
 		DeferredRenderer& geometry_pass(RHIContext* ctx);

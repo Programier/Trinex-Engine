@@ -18,7 +18,7 @@ namespace Engine
 		Vector<FunctionInfo> m_callstack;
 
 	public:
-		StackTrace(uint_t skip = 1);
+		StackTrace(u32 skip = 1);
 		const Vector<FunctionInfo>& callstack() const;
 		String to_string(bool with_filename = false, const char* line_sep = "\n") const;
 	};

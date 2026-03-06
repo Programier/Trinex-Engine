@@ -32,7 +32,7 @@ namespace Engine
 		const Refl::Class* self = class_instance();
 
 		trinex_verify_msg(self != static_reflection(), "Each class based from Engine::System must be registered!");
-		
+
 		debug_log("System", "Created system with type '%s'", self->name().c_str());
 		m_is_initialized = true;
 		return *this;
@@ -133,7 +133,7 @@ namespace Engine
 		return *this;
 	}
 
-	System* System::find_system_private_no_recurse(const char* _name, size_t len) const
+	System* System::find_system_private_no_recurse(const char* _name, usize len) const
 	{
 		for (System* system : m_subsystems)
 		{
@@ -148,20 +148,20 @@ namespace Engine
 		return nullptr;
 	}
 
-	System* System::find_subsystem(const char* _name, size_t len)
+	System* System::find_subsystem(const char* _name, usize len)
 	{
-		const char* end_name       = _name + len;
-		const size_t separator_len = Constants::name_separator.length();
-		const char* separator      = Strings::strnstr(_name, len, Constants::name_separator.c_str(), separator_len);
-		const System* system       = this;
+		const char* end_name      = _name + len;
+		const usize separator_len = Constants::name_separator.length();
+		const char* separator     = Strings::strnstr(_name, len, Constants::name_separator.c_str(), separator_len);
+		const System* system      = this;
 
 
 		while (separator && system)
 		{
-			size_t current_len = separator - _name;
-			system             = system->find_system_private_no_recurse(_name, current_len);
-			_name              = separator + separator_len;
-			separator          = Strings::strnstr(_name, end_name - _name, Constants::name_separator.c_str(), separator_len);
+			usize current_len = separator - _name;
+			system            = system->find_system_private_no_recurse(_name, current_len);
+			_name             = separator + separator_len;
+			separator         = Strings::strnstr(_name, end_name - _name, Constants::name_separator.c_str(), separator_len);
 		}
 
 		return system ? system->find_system_private_no_recurse(_name, end_name - _name) : nullptr;

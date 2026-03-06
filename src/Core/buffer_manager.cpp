@@ -4,14 +4,14 @@
 
 namespace Engine
 {
-	size_t BufferWriter::size()
+	usize BufferWriter::size()
 	{
 		if (!is_open())
 			return 0;
 
 		auto current_pos = position();
 		offset(0, BufferSeekDir::End);
-		size_t size = position();
+		usize size = position();
 		position(current_pos);
 		return size;
 	}
@@ -21,14 +21,14 @@ namespace Engine
 		return offset(pos, BufferSeekDir::Begin);
 	}
 
-	size_t BufferReader::size()
+	usize BufferReader::size()
 	{
 		if (!is_open())
 			return 0;
 
 		auto current_pos = position();
 		offset(0, BufferSeekDir::End);
-		size_t size = position();
+		usize size = position();
 		position(current_pos);
 		return size;
 	}
@@ -39,12 +39,12 @@ namespace Engine
 	}
 
 
-	void VectorWriterBase::copy_data(byte* to, const byte* from, size_t count)
+	void VectorWriterBase::copy_data(u8* to, const u8* from, usize count)
 	{
 		std::memcpy(to, from, count);
 	}
 
-	void VectorReaderBase::copy_data(byte* to, const byte* from, size_t count)
+	void VectorReaderBase::copy_data(u8* to, const u8* from, usize count)
 	{
 		std::memcpy(to, from, count);
 	}

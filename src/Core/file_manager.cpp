@@ -44,7 +44,7 @@ namespace Engine
 		return m_file != nullptr;
 	}
 
-	bool FileWriter::write(const byte* data, size_t size)
+	bool FileWriter::write(const u8* data, usize size)
 	{
 		if (is_open())
 			return m_file->write(data, size) == size;
@@ -106,23 +106,23 @@ namespace Engine
 		return m_file != nullptr;
 	}
 
-	String FileReader::read_string(size_t len)
+	String FileReader::read_string(usize len)
 	{
 		len = Math::min(len, size());
 		String result(len, 0);
-		read(reinterpret_cast<byte*>(result.data()), len);
+		read(reinterpret_cast<u8*>(result.data()), len);
 		return result;
 	}
 
-	Buffer FileReader::read_buffer(size_t len)
+	Buffer FileReader::read_buffer(usize len)
 	{
 		len = Math::min(len, size());
 		Buffer result(len, 0);
-		read(reinterpret_cast<byte*>(result.data()), len);
+		read(reinterpret_cast<u8*>(result.data()), len);
 		return result;
 	}
 
-	bool FileReader::read(byte* data, size_t size)
+	bool FileReader::read(u8* data, usize size)
 	{
 		if (is_open())
 			return m_file->read(data, size) == size;

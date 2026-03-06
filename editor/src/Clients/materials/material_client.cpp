@@ -185,7 +185,7 @@ namespace Engine
 		return *this;
 	}
 
-	uint32_t MaterialEditorClient::build_dock(uint32_t dock)
+	u32 MaterialEditorClient::build_dock(u32 dock)
 	{
 		auto properties = ImGui::DockBuilderSplitNode(dock, ImGuiDir_Left, 0.3f, nullptr, &dock);
 		auto preview    = ImGui::DockBuilderSplitNode(properties, ImGuiDir_Up, 0.3f, nullptr, &properties);

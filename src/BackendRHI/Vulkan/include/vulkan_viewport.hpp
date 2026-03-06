@@ -14,7 +14,7 @@ namespace Engine
 	class VulkanSwapchain : public RHISwapchain
 	{
 	private:
-		enum Status : int_t
+		enum Status : i32
 		{
 			Success     = 0,
 			OutOfDate   = -1,
@@ -43,8 +43,8 @@ namespace Engine
 		vk::SurfaceKHR m_surface;
 		vk::PresentModeKHR m_present_mode;
 		vk::SwapchainKHR m_swapchain;
-		int32_t m_sync_index  = 0;
-		int32_t m_image_index = -1;
+		i32 m_sync_index  = 0;
+		i32 m_image_index = -1;
 		Vector2u m_size;
 		bool m_need_recreate  = false;
 
@@ -57,10 +57,10 @@ namespace Engine
 		VulkanSwapchain(Window* window, bool vsync);
 		~VulkanSwapchain();
 
-		int_t acquire_image_index();
-		int_t do_present();
+		i32 acquire_image_index();
+		i32 do_present();
 		VulkanTexture* backbuffer();
-		int_t try_present(int_t (VulkanSwapchain::*callback)(), bool skip_on_out_of_date);
+		i32 try_present(i32 (VulkanSwapchain::*callback)(), bool skip_on_out_of_date);
 
 		vk::Semaphore render_finished_semaphore();
 		vk::Semaphore image_present_semaphore();

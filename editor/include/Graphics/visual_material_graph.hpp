@@ -42,8 +42,8 @@ namespace Engine::VisualMaterialGraph
 		static bool is_compatible_types(RHIShaderParameterType src, RHIShaderParameterType dst);
 
 		static RHIShaderParameterType static_make_float(RHIShaderParameterType self);
-		static RHIShaderParameterType static_vector_clamp(RHIShaderParameterType self, byte min, byte max);
-		static inline RHIShaderParameterType static_make_vector(RHIShaderParameterType self, byte len)
+		static RHIShaderParameterType static_vector_clamp(RHIShaderParameterType self, u8 min, u8 max);
+		static inline RHIShaderParameterType static_make_vector(RHIShaderParameterType self, u8 len)
 		{
 			return self.make_vector(len);
 		}
@@ -52,8 +52,8 @@ namespace Engine::VisualMaterialGraph
 		static inline bool static_is_vector(RHIShaderParameterType self) { return self.is_vector(); }
 		static inline bool static_is_matrix(RHIShaderParameterType self) { return self.is_matrix(); }
 		static inline bool static_is_numeric(RHIShaderParameterType self) { return self.is_numeric(); }
-		static inline byte static_columns(RHIShaderParameterType self) { return self.columns(); }
-		static inline byte static_rows(RHIShaderParameterType self) { return self.rows(); }
+		static inline u8 static_columns(RHIShaderParameterType self) { return self.columns(); }
+		static inline u8 static_rows(RHIShaderParameterType self) { return self.rows(); }
 
 		inline Expression() : type(RHIShaderParameterType::Undefined) {}
 		Expression(RHIShaderParameterType type, const char* value) : type(type), value(value) {}
@@ -117,12 +117,12 @@ namespace Engine::VisualMaterialGraph
 		~Compiler();
 
 		static String static_uniform_parameter_name(Node* node);
-		static String static_uniform_parameter_name(Refl::Class* node_class, uint16_t id);
+		static String static_uniform_parameter_name(Refl::Class* node_class, u16 id);
 
-		Node* create_temp_node(Refl::Class* node_class, uint16_t id);
+		Node* create_temp_node(Refl::Class* node_class, u16 id);
 
 		template<typename T>
-		inline T* create_temp_node(uint16_t id)
+		inline T* create_temp_node(u16 id)
 		{
 			static_assert(std::is_base_of_v<Node, T>, "Node class must be derived from Node");
 			return Object::instance_cast<T>(create_temp_node(T::static_reflection(), id));
@@ -139,9 +139,9 @@ namespace Engine::VisualMaterialGraph
 		Expression compile(InputPin* pin);
 		Expression compile(OutputPin* pin);
 
-		String compile_includes(size_t tabs = 0) const;
-		String compile_global_expressions(size_t tabs = 0) const;
-		String compile_local_expressions(size_t tabs = 1) const;
+		String compile_includes(usize tabs = 0) const;
+		String compile_global_expressions(usize tabs = 0) const;
+		String compile_local_expressions(usize tabs = 1) const;
 		inline Node* current_node() const { return m_current_node; }
 	};
 
@@ -149,7 +149,7 @@ namespace Engine::VisualMaterialGraph
 	{
 	public:
 		struct DefaultValue {
-			virtual byte* address()                     = 0;
+			virtual u8* address()                       = 0;
 			virtual RHIShaderParameterType type() const = 0;
 			virtual Expression compile() const          = 0;
 			virtual ~DefaultValue()                     = default;
@@ -167,7 +167,7 @@ namespace Engine::VisualMaterialGraph
 		DefaultValue* m_default_value = nullptr;
 
 		RHIShaderParameterType m_type = RHIShaderParameterType::Undefined;
-		uint16_t m_index              = 0;
+		u16 m_index                   = 0;
 
 	public:
 		enum Kind
@@ -180,12 +180,12 @@ namespace Engine::VisualMaterialGraph
 		inline Node* node() const { return m_node; }
 		inline DefaultValue* default_value() const { return m_default_value; }
 		inline RHIShaderParameterType type() const { return m_type; }
-		inline uint16_t index() const { return m_index; }
+		inline u16 index() const { return m_index; }
 
 		virtual Pin& unlink() = 0;
 		virtual inline OutputPin* as_output() { return nullptr; };
 		virtual inline InputPin* as_input() { return nullptr; };
-		virtual inline size_t links_count() const { return 0; }
+		virtual inline usize links_count() const { return 0; }
 		virtual inline Kind kind() const = 0;
 		virtual ~Pin();
 
@@ -202,7 +202,7 @@ namespace Engine::VisualMaterialGraph
 		OutputPin& unlink() override;
 
 		inline OutputPin* as_output() override { return this; };
-		inline size_t links_count() const override { return m_links.size(); }
+		inline usize links_count() const override { return m_links.size(); }
 		inline Kind kind() const override { return Kind::Output; }
 
 		friend class InputPin;
@@ -220,7 +220,7 @@ namespace Engine::VisualMaterialGraph
 
 		inline OutputPin* linked_pin() const { return m_link; }
 		inline InputPin* as_input() override { return this; };
-		inline size_t links_count() const override { return m_link ? 1 : 0; }
+		inline usize links_count() const override { return m_link ? 1 : 0; }
 		inline Kind kind() const override { return Kind::Input; }
 
 		friend class Pin;
@@ -234,7 +234,7 @@ namespace Engine::VisualMaterialGraph
 	private:
 		Vector<InputPin*> m_inputs;
 		Vector<OutputPin*> m_outputs;
-		uint16_t m_id = 0;
+		u16 m_id = 0;
 
 		Expression script_compile(OutputPin* pin, Compiler& compiler);
 		void script_render();
@@ -264,10 +264,10 @@ namespace Engine::VisualMaterialGraph
 
 		virtual Expression compile(OutputPin* pin, Compiler& compiler);
 		virtual Node& render();
-		virtual Node& change_id(uint16_t id);
+		virtual Node& change_id(u16 id);
 		virtual Node& post_compile(VisualMaterial* material);
 
-		inline uint16_t id() const { return m_id; }
+		inline u16 id() const { return m_id; }
 		inline const Vector<InputPin*>& inputs() const { return m_inputs; }
 		inline const Vector<OutputPin*>& outputs() const { return m_outputs; }
 

@@ -17,14 +17,14 @@ namespace Engine
 		Vector2u m_size;
 
 	private:
-		void load_from_memory(const void* buffer, size_t size);
+		void load_from_memory(const void* buffer, usize size);
 
 	public:
 		Image();
 		Image(const Path& path);
-		Image(const Vector2u& size, uint_t channels = 4, const void* data = nullptr);
-		Image(Color color, const Vector2u& size, uint_t channels = 4);
-		Image(const void* buffer, size_t size);
+		Image(const Vector2u& size, u32 channels = 4, const void* data = nullptr);
+		Image(Color color, const Vector2u& size, u32 channels = 4);
+		Image(const void* buffer, usize size);
 
 		Image(const Image&);
 		Image& operator=(const Image&);
@@ -35,19 +35,19 @@ namespace Engine
 		RHIColorFormat format() const;
 		bool save(const Path& path);
 
-		byte* sample(uint_t x, uint_t y);
-		const byte* sample(uint_t x, uint_t y) const;
+		u8* sample(u32 x, u32 y);
+		const u8* sample(u32 x, u32 y) const;
 		~Image();
 
 		bool serialize(Archive& archive);
 
-		inline byte* data() { return m_data.data(); }
-		inline const byte* data() const { return m_data.data(); }
+		inline u8* data() { return m_data.data(); }
+		inline const u8* data() const { return m_data.data(); }
 		inline const Buffer& buffer() const { return m_data; }
 		inline bool is_empty() const { return m_data.empty() || m_size.x == 0 || m_size.y == 0; }
 		inline Vector2u size() const { return m_size; }
-		inline uint_t width() const { return m_size.x; }
-		inline uint_t height() const { return m_size.y; }
-		inline uint_t channels() const { return m_data.size() / (width() * height()); }
+		inline u32 width() const { return m_size.x; }
+		inline u32 height() const { return m_size.y; }
+		inline u32 channels() const { return m_data.size() / (width() * height()); }
 	};
 }// namespace Engine

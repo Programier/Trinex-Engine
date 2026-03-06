@@ -34,12 +34,12 @@ namespace Engine
 		new (mem) ScriptPointer();
 	}
 
-	static void nullptr_constructor(void* mem, asITypeInfo* ti, byte* null)
+	static void nullptr_constructor(void* mem, asITypeInfo* ti, u8* null)
 	{
 		new (mem) ScriptPointer();
 	}
 
-	static void nullptr_constructor_void(void* mem, byte* null)
+	static void nullptr_constructor_void(void* mem, u8* null)
 	{
 		new (mem) ScriptPointer();
 	}
@@ -87,12 +87,12 @@ namespace Engine
 
 	static void register_nullptr()
 	{
-		ScriptClassRegistrar::ValueInfo info = ScriptClassRegistrar::ValueInfo::from<byte>();
+		ScriptClassRegistrar::ValueInfo info = ScriptClassRegistrar::ValueInfo::from<u8>();
 		info.pod                             = true;
 		info.is_primitive                    = true;
 
-		auto r           = ScriptClassRegistrar::value_class("NullPtr", sizeof(byte), info);
-		static byte null = 0;
+		auto r         = ScriptClassRegistrar::value_class("NullPtr", sizeof(u8), info);
+		static u8 null = 0;
 		ScriptEngine::instance().register_property("const NullPtr nullptr", &null);
 	}
 

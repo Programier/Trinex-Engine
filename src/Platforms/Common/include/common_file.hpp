@@ -27,8 +27,8 @@ namespace Engine::VFS
 		FilePosition wpos() override;
 		FilePosition rseek(FileOffset offset, FileSeekDir dir) override;
 		FilePosition rpos() override;
-		size_t read(byte* buffer, size_t size) override;
-		size_t write(const byte* buffer, size_t size) override;
+		usize read(u8* buffer, usize size) override;
+		usize write(const u8* buffer, usize size) override;
 
 		friend class CommonFileSystem;
 	};
@@ -43,7 +43,7 @@ namespace Engine::VFS
 
 		FilePosition wseek(FileOffset offset, FileSeekDir dir) override;
 		FilePosition wpos() override;
-		size_t write(const byte* buffer, size_t size) override;
+		usize write(const u8* buffer, usize size) override;
 	};
 
 	class ENGINE_EXPORT WriteOnlyCommonFile : public CommonFile
@@ -56,6 +56,6 @@ namespace Engine::VFS
 
 		FilePosition rseek(FileOffset offset, FileSeekDir dir) override;
 		FilePosition rpos() override;
-		size_t read(byte* buffer, size_t size) override;
+		usize read(u8* buffer, usize size) override;
 	};
 }// namespace Engine::VFS

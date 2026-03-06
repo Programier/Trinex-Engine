@@ -59,16 +59,10 @@ namespace Engine
 
 		api->device()->CreateDepthStencilView(resource, &desc, m_descriptor.cpu_handle());
 	}
-	
-	void D3D12_DSV::clear(float depth, byte stencil)
-	{
-		
-	}
-	
-	void D3D12_DSV::blit(RHIDepthStencilView* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter)
-	{
-		
-	}
+
+	void D3D12_DSV::clear(float depth, byte stencil) {}
+
+	void D3D12_DSV::blit(RHIDepthStencilView* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter) {}
 
 	D3D12_DSV::~D3D12_DSV()
 	{

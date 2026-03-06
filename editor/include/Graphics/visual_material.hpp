@@ -20,7 +20,7 @@ namespace Engine
 		using RootNode = VisualMaterialGraph::MaterialRoot;
 
 		Vector<Pointer<VisualMaterialGraph::Node>> m_nodes;
-		uint16_t m_next_node_id = 0;
+		u16 m_next_node_id = 0;
 
 		VisualMaterial& recalculate_nodes_ids();
 

@@ -116,9 +116,9 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanBuffer& VulkanBuffer::copy(VulkanContext* ctx, vk::DeviceSize offset, const byte* data, vk::DeviceSize size)
+	VulkanBuffer& VulkanBuffer::copy(VulkanContext* ctx, vk::DeviceSize offset, const u8* data, vk::DeviceSize size)
 	{
-		if (byte* mapped = VulkanBuffer::map())
+		if (u8* mapped = VulkanBuffer::map())
 		{
 			std::memcpy(mapped + offset, data, size);
 			VulkanBuffer::unmap();
@@ -150,7 +150,7 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanBuffer& VulkanBuffer::update(VulkanContext* ctx, size_t offset, size_t size, const byte* data)
+	VulkanBuffer& VulkanBuffer::update(VulkanContext* ctx, usize offset, usize size, const u8* data)
 	{
 		auto cmd = ctx->handle();
 		barrier(ctx, RHIAccess::TransferDst);
@@ -211,14 +211,14 @@ namespace Engine
 		return m_address;
 	}
 
-	byte* VulkanBuffer::map(RHIMappingAccess access)
+	u8* VulkanBuffer::map(RHIMappingAccess access)
 	{
 		if (m_allocation->IsMappingAllowed())
 		{
 			void* mapped = nullptr;
 			auto res     = vmaMapMemory(API->m_allocator, m_allocation, &mapped);
 			trinex_assert_msg(res == VK_SUCCESS, "Failed to map buffer");
-			return reinterpret_cast<byte*>(mapped);
+			return reinterpret_cast<u8*>(mapped);
 		}
 		return nullptr;
 	}
@@ -231,7 +231,7 @@ namespace Engine
 		}
 	}
 
-	size_t VulkanBuffer::size() const
+	usize VulkanBuffer::size() const
 	{
 		return m_size;
 	}
@@ -248,9 +248,9 @@ namespace Engine
 			trx_delete m_uav;
 	}
 
-	VulkanUniformBuffer::VulkanUniformBuffer(size_t min_size)
+	VulkanUniformBuffer::VulkanUniformBuffer(usize min_size)
 	{
-		static constexpr size_t uniform_buffer_page_size = 1024 * 32;// 32 KB
+		static constexpr usize uniform_buffer_page_size = 1024 * 32;// 32 KB
 
 		constexpr auto flags =
 		        RHIBufferCreateFlags::UniformBuffer | RHIBufferCreateFlags::CPURead | RHIBufferCreateFlags::CPUWrite;
@@ -269,10 +269,10 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanUniformBuffer& VulkanUniformBuffer::update(const void* data, size_t size, size_t offset)
+	VulkanUniformBuffer& VulkanUniformBuffer::update(const void* data, usize size, usize offset)
 	{
 		std::memcpy(m_block_start + offset, data, size);
-		m_block_end = std::max<byte*>(m_block_end, m_block_start + offset + size);
+		m_block_end = std::max<u8*>(m_block_end, m_block_start + offset + size);
 		m_block_end = align_up_ptr(m_block_end, API->m_properties.limits.minUniformBufferOffsetAlignment);
 		return *this;
 	}
@@ -294,7 +294,7 @@ namespace Engine
 	{
 		flags |= RHIBufferCreateFlags::CPUWrite;
 
-		for (size_t i = 0, size = m_free.size(); i < size; i++)
+		for (usize i = 0, size = m_free.size(); i < size; i++)
 		{
 			auto buffer = m_free[i].m_buffer;
 			if (buffer->size() >= buffer_size && (buffer->flags() & flags) == flags)
@@ -319,7 +319,7 @@ namespace Engine
 
 	VulkanStaggingBufferManager& VulkanStaggingBufferManager::update()
 	{
-		for (size_t i = 0, size = m_free.size(); i < size;)
+		for (usize i = 0, size = m_free.size(); i < size;)
 		{
 			auto& entry = m_free[i];
 			--entry.m_frame_number;
@@ -356,12 +356,12 @@ namespace Engine
 		m_buffers.clear();
 	}
 
-	RHIBuffer* VulkanAPI::create_buffer(size_t size, RHIBufferCreateFlags flags)
+	RHIBuffer* VulkanAPI::create_buffer(usize size, RHIBufferCreateFlags flags)
 	{
 		return &(trx_new VulkanBuffer())->create(size, flags);
 	}
 
-	VulkanContext& VulkanContext::bind_vertex_buffer(RHIBuffer* buffer, size_t byte_offset, uint16_t stride, byte stream,
+	VulkanContext& VulkanContext::bind_vertex_buffer(RHIBuffer* buffer, usize byte_offset, u16 stride, u8 stream,
 	                                                 RHIVertexInputRate rate)
 	{
 		m_cmd->bindVertexBuffers(stream, static_cast<VulkanBuffer*>(buffer)->buffer(), byte_offset);
@@ -373,7 +373,7 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanContext& VulkanContext::bind_index_buffer(RHIBuffer* buffer, RHIIndexFormat format, size_t byte_offset)
+	VulkanContext& VulkanContext::bind_index_buffer(RHIBuffer* buffer, RHIIndexFormat format, usize byte_offset)
 	{
 		VulkanBuffer* vulkan_buffer = static_cast<VulkanBuffer*>(buffer);
 		m_cmd->bindIndexBuffer(vulkan_buffer->buffer(), byte_offset,
@@ -381,13 +381,13 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanContext& VulkanContext::bind_uniform_buffer(RHIBuffer* buffer, byte slot)
+	VulkanContext& VulkanContext::bind_uniform_buffer(RHIBuffer* buffer, u8 slot)
 	{
 		VulkanBuffer* vulkan_buffer = static_cast<VulkanBuffer*>(buffer);
 		return bind_uniform_buffer(vulkan_buffer, vulkan_buffer->size(), 0, slot);
 	}
 
-	VulkanContext& VulkanContext::bind_uniform_buffer(VulkanBuffer* buffer, uint32_t size, uint32_t offset, byte slot)
+	VulkanContext& VulkanContext::bind_uniform_buffer(VulkanBuffer* buffer, u32 size, u32 offset, u8 slot)
 	{
 		m_state_manager->uniform_buffers.bind(VulkanStateManager::UniformBuffer(buffer->buffer(), size, offset), slot);
 		return *this;
@@ -399,14 +399,14 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanContext& VulkanContext::update_buffer(RHIBuffer* buffer, size_t offset, size_t size, const byte* data)
+	VulkanContext& VulkanContext::update_buffer(RHIBuffer* buffer, usize offset, usize size, const u8* data)
 	{
 		static_cast<VulkanBuffer*>(buffer)->update(this, offset, size, data);
 		return *this;
 	}
 
-	VulkanContext& VulkanContext::copy_buffer_to_buffer(RHIBuffer* src, RHIBuffer* dst, size_t size, size_t src_offset,
-	                                                    size_t dst_offset)
+	VulkanContext& VulkanContext::copy_buffer_to_buffer(RHIBuffer* src, RHIBuffer* dst, usize size, usize src_offset,
+	                                                    usize dst_offset)
 	{
 		VulkanBuffer* src_buffer = static_cast<VulkanBuffer*>(src);
 		VulkanBuffer* dst_buffer = static_cast<VulkanBuffer*>(dst);

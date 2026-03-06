@@ -70,7 +70,7 @@ namespace Engine
 		return *this;
 	}
 
-	DepthCubeRenderer& DepthCubeRenderer::render_depth(RHIContext* ctx, const Vector3f& forward, const Vector3f& up, uint_t face)
+	DepthCubeRenderer& DepthCubeRenderer::render_depth(RHIContext* ctx, const Vector3f& forward, const Vector3f& up, u32 face)
 	{
 		const auto& current_scene_view = scene_view();
 

@@ -20,14 +20,14 @@ namespace Engine
 		trinex_refl_prop(m_material_overrides)->tooltip("Material overrides of this component");
 	}
 
-	MaterialInterface* MeshComponent::material(size_t index) const
+	MaterialInterface* MeshComponent::material(usize index) const
 	{
 		if (index < m_material_overrides.size())
 			return m_material_overrides[index];
 		return nullptr;
 	}
 
-	MeshComponent& MeshComponent::material(MaterialInterface* material, size_t index)
+	MeshComponent& MeshComponent::material(MaterialInterface* material, usize index)
 	{
 		if (index >= m_material_overrides.size())
 		{
@@ -47,13 +47,13 @@ namespace Engine
 	MeshComponent& MeshComponent::render(PrimitiveRenderingContext* ctx)
 	{
 		trinex_profile_cpu_n("MeshComponent::render");
-		
+
 		const auto& camera = ctx->renderer->scene_view().camera_view();
 
-		const uint_t lod      = camera.compute_lod(world_transform().location, lods_count());
-		const uint_t surfaces = surfaces_count(lod);
+		const u32 lod      = camera.compute_lod(world_transform().location, lods_count());
+		const u32 surfaces = surfaces_count(lod);
 
-		for (uint_t surface_index = 0; surface_index < surfaces; ++surface_index)
+		for (u32 surface_index = 0; surface_index < surfaces; ++surface_index)
 		{
 			const MeshSurface* surface_data = surface(surface_index, lod);
 
@@ -80,9 +80,9 @@ namespace Engine
 			const VertexBufferBase* null_buffer = VertexBufferBase::static_null();
 			ctx->context->bind_vertex_buffer(null_buffer->rhi_buffer(), 0, 0, 0);
 
-			uint64_t buffer_mask = 0;
+			u64 buffer_mask = 0;
 
-			for (Index i = 0, count = pipeline->vertex_attributes.size(); i < count; ++i)
+			for (usize i = 0, count = pipeline->vertex_attributes.size(); i < count; ++i)
 			{
 				RHIVertexSemantic semantic = pipeline->vertex_attributes[i].semantic;
 				auto va                    = vertex_attribute(semantic, lod);

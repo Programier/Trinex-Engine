@@ -71,20 +71,20 @@ namespace Engine::UI
 
 	static FORCE_INLINE bool has_only_one_property(Refl::Struct* self)
 	{
-		uint_t count = 0;
+		u32 count = 0;
 
 		while (self && count < 2)
 		{
-			count += static_cast<uint_t>(self->properties().size());
+			count += static_cast<u32>(self->properties().size());
 			self = self->parent();
 		}
 
 		return count < 2;
 	}
 
-	static FORCE_INLINE size_t properties_count(Refl::Struct* self)
+	static FORCE_INLINE usize properties_count(Refl::Struct* self)
 	{
-		size_t count = 0;
+		usize count = 0;
 
 		while (self)
 		{
@@ -95,7 +95,7 @@ namespace Engine::UI
 		return count;
 	}
 
-	static Refl::Property** collect_properties(Refl::Struct* self, size_t& count)
+	static Refl::Property** collect_properties(Refl::Struct* self, usize& count)
 	{
 		count                       = properties_count(self);
 		Refl::Property** properties = StackAllocator<Refl::Property*>::allocate(count);
@@ -161,14 +161,14 @@ namespace Engine::UI
 		return *this;
 	}
 
-	uint_t PropertyRenderer::Context::columns() const
+	u32 PropertyRenderer::Context::columns() const
 	{
 		if (m_prev)
 			return m_prev->columns();
 		return 0;
 	}
 
-	PropertyRenderer::Context& PropertyRenderer::Context::column(uint_t index)
+	PropertyRenderer::Context& PropertyRenderer::Context::column(u32 index)
 	{
 		if (m_prev)
 			m_prev->column(index);
@@ -320,7 +320,7 @@ namespace Engine::UI
 
 		StackByteAllocator::Mark mark;
 
-		size_t props_count;
+		usize props_count;
 		auto properties = collect_properties(struct_class, props_count);
 
 		if (props_count == 0)
@@ -339,7 +339,7 @@ namespace Engine::UI
 			return group1 < group2;
 		});
 
-		for (size_t i = 0; i < props_count; ++i)
+		for (usize i = 0; i < props_count; ++i)
 		{
 			Refl::Property* prop = properties[i];
 
@@ -411,9 +411,9 @@ namespace Engine::UI
 			return *this;
 		};
 
-		uint_t columns() const override { return ImGui::TableGetColumnCount(); }
+		u32 columns() const override { return ImGui::TableGetColumnCount(); }
 
-		Context& column(uint_t index) override
+		Context& column(u32 index) override
 		{
 			ImGui::TableSetColumnIndex(index);
 			return *this;
@@ -536,10 +536,10 @@ namespace Engine::UI
 	}
 
 	static bool render_scalar_property(void* context, Refl::Property* prop, PropertyRenderer* renderer, ImGuiDataType type,
-	                                   int_t components, bool read_only)
+	                                   i32 components, bool read_only)
 	{
 		PropertyRenderer::Context* ctx = renderer->context();
-		byte* address                  = reinterpret_cast<byte*>(prop->address(context));
+		u8* address                    = reinterpret_cast<u8*>(prop->address(context));
 		ImGuiInputTextFlags flags      = read_only ? ImGuiInputTextFlags_ReadOnly : 0;
 		bool changed                   = false;
 
@@ -550,7 +550,7 @@ namespace Engine::UI
 		}
 		else
 		{
-			const size_t type_size = ImGui::DataTypeGetInfo(type)->Size;
+			const usize type_size = ImGui::DataTypeGetInfo(type)->Size;
 
 			static const char* labels[] = {"X", "Y", "Z", "W"};
 			static const ImU32 colors[] = {
@@ -653,12 +653,12 @@ namespace Engine::UI
 			renderer->context()->next_row();
 			render_name(renderer, prop);
 
-			bool* data         = prop->address_as<bool>(renderer->property_address());
-			const size_t count = prop->length();
+			bool* data        = prop->address_as<bool>(renderer->property_address());
+			const usize count = prop->length();
 
 			ImGui::PushID(prop);
 
-			for (size_t i = 0; i < count; ++i)
+			for (usize i = 0; i < count; ++i)
 			{
 				if (i > 0)
 					ImGui::SameLine();
@@ -703,9 +703,9 @@ namespace Engine::UI
 
 	static bool render_matrix_property(PropertyRenderer* renderer, Refl::Property* prop_base, bool read_only)
 	{
-		auto prop         = prop_cast_checked<Refl::MatrixProperty>(prop_base);
-		auto row_prop     = prop->row_property();
-		const size_t rows = prop->rows();
+		auto prop        = prop_cast_checked<Refl::MatrixProperty>(prop_base);
+		auto row_prop    = prop->row_property();
+		const usize rows = prop->rows();
 
 		read_only       = read_only | row_prop->is_read_only();
 		bool is_changed = false;
@@ -719,7 +719,7 @@ namespace Engine::UI
 
 			void* address = renderer->property_address();
 
-			for (size_t i = 0; i < rows; i++)
+			for (usize i = 0; i < rows; i++)
 			{
 				void* row_address = prop->row_address(address, i);
 				is_changed        = renderer->render_property(row_address, row_prop, read_only, names[i]) || is_changed;
@@ -806,7 +806,7 @@ namespace Engine::UI
 		        static_cast<float>(color->a) / 255.f,
 		};
 
-		uint32_t flags = ImGuiColorEditFlags_Uint8;
+		u32 flags = ImGuiColorEditFlags_Uint8;
 
 		if (read_only)
 			flags |= ImGuiColorEditFlags_NoInputs;
@@ -831,7 +831,7 @@ namespace Engine::UI
 		void* context      = renderer->property_address();
 		LinearColor* color = prop->address_as<LinearColor>(context);
 
-		uint32_t flags = ImGuiColorEditFlags_Float;
+		u32 flags = ImGuiColorEditFlags_Float;
 
 		if (read_only)
 			flags |= ImGuiColorEditFlags_NoInputs;
@@ -1078,9 +1078,9 @@ namespace Engine::UI
 			ImGui::Indent();
 			Refl::Property* element_prop = prop->element_property();
 
-			size_t count = prop->length(address);
+			usize count = prop->length(address);
 
-			for (size_t i = 0; i < count; ++i)
+			for (usize i = 0; i < count; ++i)
 			{
 				ImGui::PushID(i);
 
@@ -1227,9 +1227,9 @@ namespace Engine::UI
 
 		if (collapsing_header(renderer, prop))
 		{
-			void* context   = renderer->property_address();
-			uint32_t* flags = prop->address_as<uint32_t>(context);
-			auto& userdata  = renderer->userdata.get(flags);
+			void* context  = renderer->property_address();
+			u32* flags     = prop->address_as<u32>(context);
+			auto& userdata = renderer->userdata.get(flags);
 
 			if (!userdata.has_value())
 			{

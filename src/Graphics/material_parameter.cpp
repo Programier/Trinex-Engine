@@ -41,19 +41,19 @@ namespace Engine::MaterialParameters
 
 #define implement_parameter(name) trinex_implement_class(Engine::MaterialParameters::name, 0)
 
-	PrimitiveBase& PrimitiveBase::update(const PrimitiveRenderingContext* ctx, const void* data, size_t size,
+	PrimitiveBase& PrimitiveBase::update(const PrimitiveRenderingContext* ctx, const void* data, usize size,
 	                                     const RHIShaderParameterInfo* info)
 	{
 		ctx->context->update_scalar(data, size, info->offset, info->binding);
 		return *this;
 	}
 
-	bool PrimitiveBase::serialize_internal(Archive& ar, void* data, size_t size)
+	bool PrimitiveBase::serialize_internal(Archive& ar, void* data, usize size)
 	{
 		if (ar.is_reading())
-			ar.read_data(reinterpret_cast<byte*>(data), size);
+			ar.read_data(reinterpret_cast<u8*>(data), size);
 		else
-			ar.write_data(reinterpret_cast<const byte*>(data), size);
+			ar.write_data(reinterpret_cast<const u8*>(data), size);
 		return ar;
 	}
 

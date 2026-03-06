@@ -9,7 +9,7 @@ namespace Engine
 	VulkanQueryPool::VulkanQueryPool(const vk::QueryPoolCreateInfo& info)
 	{
 		m_pool = vk::check_result(API->m_device.createQueryPool(info));
-		m_free.resize(info.queryCount / 64, ~static_cast<uint64_t>(0));
+		m_free.resize(info.queryCount / 64, ~static_cast<u64>(0));
 	}
 
 	VulkanQueryPool::~VulkanQueryPool()
@@ -17,15 +17,15 @@ namespace Engine
 		API->m_device.destroyQueryPool(m_pool);
 	}
 
-	bool VulkanQueryPool::find_index(uint64_t& index)
+	bool VulkanQueryPool::find_index(u64& index)
 	{
-		for (uint32_t word_index = m_index / 64, count = m_free.size(); word_index < count; ++word_index)
+		for (u32 word_index = m_index / 64, count = m_free.size(); word_index < count; ++word_index)
 		{
-			uint64_t& word = m_free[word_index];
+			u64& word = m_free[word_index];
 
 			if (word)
 			{
-				uint64_t bit_index = std::countr_zero(word);
+				u64 bit_index = std::countr_zero(word);
 				word &= ~(1 << bit_index);
 
 				index   = bit_index + word_index * 64;
@@ -36,11 +36,11 @@ namespace Engine
 		return false;
 	}
 
-	bool VulkanQueryPool::is_available(uint64_t index)
+	bool VulkanQueryPool::is_available(u64 index)
 	{
 		struct {
-			uint64_t value;
-			uint64_t available;
+			u64 value;
+			u64 available;
 		} result{};
 
 		vk::Result res =
@@ -55,13 +55,13 @@ namespace Engine
 		return false;
 	}
 
-	bool VulkanQueryPool::query(uint64_t index, void* dst, size_t stride)
+	bool VulkanQueryPool::query(u64 index, void* dst, usize stride)
 	{
 		vk::Result res = API->m_device.getQueryPoolResults(m_pool, index, 1, stride, dst, stride, vk::QueryResultFlagBits::e64);
 		return res == vk::Result::eSuccess;
 	}
 
-	VulkanQueryPool& VulkanQueryPool::release_index(uint64_t index)
+	VulkanQueryPool& VulkanQueryPool::release_index(u64 index)
 	{
 		if (m_index > index)
 			m_index = index;
@@ -107,15 +107,15 @@ namespace Engine
 	private:
 		struct Marker {
 			VulkanQueryPool* pool = nullptr;
-			uint64_t index        = 0;
+			u64 index             = 0;
 
 			inline bool is_valid() const { return pool != nullptr; }
 
-			inline uint64_t query()
+			inline u64 query()
 			{
 				if (pool)
 				{
-					uint64_t result = 0;
+					u64 result = 0;
 					pool->query(index, &result, sizeof(result));
 					return result;
 				}
@@ -172,7 +172,7 @@ namespace Engine
 		{
 			if (m_begin.is_valid() && m_end.is_valid())
 			{
-				uint64_t delta = m_end.query() - m_begin.query();
+				u64 delta = m_end.query() - m_begin.query();
 				return static_cast<float>(delta) * API->m_properties.limits.timestampPeriod / 1000000.0f;
 			}
 			return 0.f;
@@ -183,21 +183,21 @@ namespace Engine
 	{
 	private:
 		struct Stats {
-			uint64_t vertices;
-			uint64_t primitives;
-			uint64_t vertex_shader_invocations;
-			uint64_t geometry_shader_invocations;
-			uint64_t geometry_shader_primitives;
-			uint64_t clipping_invocations;
-			uint64_t clipping_primitives;
-			uint64_t fragment_shader_invocations;
-			uint64_t tessellation_control_shader_invocations;
-			uint64_t tesselation_shader_invocations;
+			u64 vertices;
+			u64 primitives;
+			u64 vertex_shader_invocations;
+			u64 geometry_shader_invocations;
+			u64 geometry_shader_primitives;
+			u64 clipping_invocations;
+			u64 clipping_primitives;
+			u64 fragment_shader_invocations;
+			u64 tessellation_control_shader_invocations;
+			u64 tesselation_shader_invocations;
 		};
 
 		struct Marker {
 			VulkanQueryPool* pool = nullptr;
-			uint64_t index        = 0;
+			u64 index             = 0;
 
 			inline bool is_valid() const { return pool != nullptr; }
 

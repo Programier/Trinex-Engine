@@ -42,13 +42,13 @@ namespace Engine
 		});
 	}
 
-	int_t BaseEngine::init()
+	i32 BaseEngine::init()
 	{
 		EngineSystem::system_of<EngineSystem>();
 		return 0;
 	}
 
-	int_t BaseEngine::update()
+	i32 BaseEngine::update()
 	{
 		trinex_profile_frame_mark();
 		trinex_profile_cpu_n("BaseEngine::update");
@@ -75,7 +75,7 @@ namespace Engine
 		{
 			auto& viewports = RenderViewport::viewports();
 
-			for (size_t i = 0; i < viewports.size(); ++i)
+			for (usize i = 0; i < viewports.size(); ++i)
 			{
 				trinex_profile_cpu_n("RenderViewport::update");
 				auto viewport = viewports[i];
@@ -85,7 +85,7 @@ namespace Engine
 		return 0;
 	}
 
-	int_t BaseEngine::terminate()
+	i32 BaseEngine::terminate()
 	{
 		m_flags(Flag::IsShuttingDown, 1);
 		return 0;

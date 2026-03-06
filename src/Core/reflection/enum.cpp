@@ -10,7 +10,7 @@ namespace Engine::Refl
 {
 	trinex_implement_reflect_type(Enum);
 
-	Enum::Enum(byte flags) : m_flags(flags) {}
+	Enum::Enum(u8 flags) : m_flags(flags) {}
 
 	Enum& Enum::register_enum_with_entries(const Vector<Enum::Entry>& entries)
 	{
@@ -42,7 +42,7 @@ namespace Engine::Refl
 		return Strings::class_name_sv_of(full_name);
 	}
 
-	Index Enum::index_of(const Name& name) const
+	usize Enum::index_of(const Name& name) const
 	{
 		auto it = m_entries_by_name.find(name);
 		if (it == m_entries_by_name.end())
@@ -50,7 +50,7 @@ namespace Engine::Refl
 		return it->second;
 	}
 
-	Index Enum::index_of(EnumerateType value) const
+	usize Enum::index_of(EnumerateType value) const
 	{
 		auto it = m_entries_by_value.find(value);
 		if (it == m_entries_by_value.end())
@@ -60,13 +60,13 @@ namespace Engine::Refl
 
 	const Enum::Entry* Enum::entry(EnumerateType value) const
 	{
-		Index index = index_of(value);
+		usize index = index_of(value);
 		return index == Constants::index_none ? nullptr : &(m_entries[index]);
 	}
 
 	const Enum::Entry* Enum::entry(const Name& name) const
 	{
-		Index index = index_of(name);
+		usize index = index_of(name);
 		return index == Constants::index_none ? nullptr : &(m_entries[index]);
 	}
 
@@ -81,7 +81,7 @@ namespace Engine::Refl
 		new_entry.name  = name;
 		new_entry.value = value;
 
-		Index index = m_entries.size();
+		usize index = m_entries.size();
 
 		m_entries.push_back(new_entry);
 		m_entries_by_name.insert({name, index});
@@ -90,7 +90,7 @@ namespace Engine::Refl
 		if (registrar_ptr)
 		{
 			ScriptEnumRegistrar* registrar = reinterpret_cast<ScriptEnumRegistrar*>(registrar_ptr);
-			registrar->set(name.c_str(), static_cast<int_t>(value));
+			registrar->set(name.c_str(), static_cast<i32>(value));
 		}
 
 		return &m_entries.back();

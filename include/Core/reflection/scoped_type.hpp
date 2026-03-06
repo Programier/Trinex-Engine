@@ -9,7 +9,7 @@ namespace Engine::Refl
 
 	protected:
 		Map<String, Object*> m_childs;
-		mutable ushort_t m_lock_count = 0;
+		mutable u16 m_lock_count = 0;
 
 		ScopedType& unregister_subobject(Object* subobject) override;
 		ScopedType& register_subobject(Object* subobject) override;

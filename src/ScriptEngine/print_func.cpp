@@ -10,13 +10,13 @@ namespace Engine
 	static String to_string(asIScriptGeneric* gen, asUINT arg)
 	{
 		const void* address = gen->GetArgAddress(arg);
-		int_t type_id       = gen->GetArgTypeId(arg);
-		return ScriptEngine::to_string(reinterpret_cast<const byte*>(address), type_id, false);
+		i32 type_id         = gen->GetArgTypeId(arg);
+		return ScriptEngine::to_string(reinterpret_cast<const u8*>(address), type_id, false);
 	}
 
-	static String to_string(StringView fmt, asIScriptGeneric* gen, int_t skip_args)
+	static String to_string(StringView fmt, asIScriptGeneric* gen, i32 skip_args)
 	{
-		int_t argc = gen->GetArgCount() - skip_args;
+		i32 argc = gen->GetArgCount() - skip_args;
 
 		if (argc <= 0)
 		{
@@ -26,7 +26,7 @@ namespace Engine
 		String result;
 		result.reserve(fmt.size());
 
-		for (size_t itr = 0, next = 0; itr < fmt.size(); itr = next)
+		for (usize itr = 0, next = 0; itr < fmt.size(); itr = next)
 		{
 			next = fmt.find_first_of('%', itr);
 			result += fmt.substr(itr, next - itr);
@@ -42,8 +42,8 @@ namespace Engine
 				while (next < fmt.size() && isdigit(fmt[next])) ++next;
 				arg += skip_args;
 
-				const byte* address = reinterpret_cast<const byte*>(gen->GetArgAddress(arg));
-				int_t type_id       = gen->GetArgTypeId(arg);
+				const u8* address = reinterpret_cast<const u8*>(gen->GetArgAddress(arg));
+				i32 type_id       = gen->GetArgTypeId(arg);
 				result += ScriptEngine::to_string(address, type_id, false);
 			}
 		}

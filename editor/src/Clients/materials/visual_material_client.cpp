@@ -81,20 +81,20 @@ namespace Engine
 		bool on_begin_rendering(UI::PropertyRenderer* renderer) override { return true; }
 		Context& on_end_rendering(UI::PropertyRenderer* renderer, bool rendered) override { return *this; }
 
-		uint_t columns() const override { return 2; }
-		Context& column(uint_t index) override { return *this; }
+		u32 columns() const override { return 2; }
+		Context& column(u32 index) override { return *this; }
 		Context& next_row(ImGuiTableRowFlags row_flags = 0, float row_min_height = 0.f) override { return *this; }
 
 		float cell_width() const override { return cell; }
 	};
 
 	template<typename T>
-	static int_t find_max_pin_name_len(const T& pins)
+	static i32 find_max_pin_name_len(const T& pins)
 	{
-		int_t len = 0;
+		i32 len = 0;
 		for (VisualMaterialGraph::Pin* pin : pins)
 		{
-			len = glm::max<int_t>(pin->name().length(), len);
+			len = glm::max<i32>(pin->name().length(), len);
 		}
 		return len;
 	}
@@ -102,8 +102,8 @@ namespace Engine
 	static void render_default_type(VisualMaterialGraph::Pin::DefaultValue* value)
 	{
 		RHIShaderParameterType type = value->type();
-		const byte length           = type.columns();
-		byte* address               = value->address();
+		const u8 length             = type.columns();
+		u8* address                 = value->address();
 
 
 		static Refl::Property* property_table[4][4] = {
@@ -114,13 +114,13 @@ namespace Engine
 		                Refl::Property::null_property<Vector4f>(),
 		        },
 		        {
-		                Refl::Property::null_property<uint32_t>(),
+		                Refl::Property::null_property<u32>(),
 		                Refl::Property::null_property<Vector2u>(),
 		                Refl::Property::null_property<Vector3u>(),
 		                Refl::Property::null_property<Vector4u>(),
 		        },
 		        {
-		                Refl::Property::null_property<int32_t>(),
+		                Refl::Property::null_property<i32>(),
 		                Refl::Property::null_property<Vector2i>(),
 		                Refl::Property::null_property<Vector3i>(),
 		                Refl::Property::null_property<Vector4i>(),
@@ -134,7 +134,7 @@ namespace Engine
 		};
 
 		const bool is_unsigned = type.is_unsigned();
-		uint32_t type_index    = 0;
+		u32 type_index         = 0;
 
 		switch (type.type())
 		{
@@ -427,8 +427,8 @@ namespace Engine
 			ImGui::Spring(1.f);
 			builder.end_header();
 
-			const int_t max_input_name_len  = find_max_pin_name_len(node->inputs());
-			const int_t max_output_name_len = find_max_pin_name_len(node->outputs());
+			const i32 max_input_name_len  = find_max_pin_name_len(node->inputs());
+			const i32 max_output_name_len = find_max_pin_name_len(node->outputs());
 
 			// Inputs rendering
 			for (auto* input : node->inputs())
@@ -919,7 +919,7 @@ namespace Engine
 		return *this;
 	}
 
-	uint32_t VisualMaterialEditorClient::build_dock(uint32_t dock)
+	u32 VisualMaterialEditorClient::build_dock(u32 dock)
 	{
 		auto center = Super::build_dock(dock);
 		ImGui::DockBuilderDockWindow("###Graph", center);

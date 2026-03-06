@@ -10,7 +10,7 @@ namespace Engine
 	{
 		trinex_class(BaseEngine, Object);
 
-		uint64_t m_frame_index;
+		u64 m_frame_index;
 		float m_delta_time;
 		float m_prev_time;
 
@@ -26,9 +26,9 @@ namespace Engine
 	public:
 		BaseEngine();
 
-		virtual int_t init();
-		virtual int_t update();
-		virtual int_t terminate();
+		virtual i32 init();
+		virtual i32 update();
+		virtual i32 terminate();
 		virtual StringView application_name() const;
 		virtual float max_tick_rate() const;
 		virtual float gamma() const;
@@ -43,7 +43,7 @@ namespace Engine
 		BaseEngine& make_inited();
 
 		inline float delta_time() const { return m_delta_time; }
-		inline uint64_t frame_index() const { return m_frame_index; }
+		inline u64 frame_index() const { return m_frame_index; }
 	};
 
 	ENGINE_EXPORT extern BaseEngine* engine_instance;

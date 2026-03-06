@@ -8,17 +8,17 @@ namespace Engine
 	{
 	private:
 		vk::QueryPool m_pool;
-		Vector<uint64_t> m_free;
-		uint64_t m_index = 0;
+		Vector<u64> m_free;
+		u64 m_index = 0;
 
 	public:
 		VulkanQueryPool(const vk::QueryPoolCreateInfo& info);
 		~VulkanQueryPool();
 
-		bool find_index(uint64_t& index);
-		bool is_available(uint64_t index);
-		bool query(uint64_t index, void* dst, size_t size);
-		VulkanQueryPool& release_index(uint64_t index);
+		bool find_index(u64& index);
+		bool is_available(u64 index);
+		bool query(u64 index, void* dst, usize size);
+		VulkanQueryPool& release_index(u64 index);
 
 		inline bool has_free_indices() const { return m_index < m_free.size() * 64 && m_free[m_index / 64] != 0; }
 		inline vk::QueryPool pool() const { return m_pool; }

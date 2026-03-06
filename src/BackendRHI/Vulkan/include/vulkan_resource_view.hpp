@@ -18,7 +18,7 @@ namespace Engine
 		RHIDescriptor m_descriptor;
 
 	public:
-		virtual VulkanSRV& bind(VulkanStateManager* manager, byte index) = 0;
+		virtual VulkanSRV& bind(VulkanStateManager* manager, u8 index) = 0;
 		RHIDescriptor descriptor() const override;
 	};
 
@@ -28,7 +28,7 @@ namespace Engine
 		RHIDescriptor m_descriptor;
 
 	public:
-		virtual VulkanUAV& bind(VulkanStateManager* manager, byte index) = 0;
+		virtual VulkanUAV& bind(VulkanStateManager* manager, u8 index) = 0;
 		RHIDescriptor descriptor() const override;
 	};
 
@@ -54,7 +54,7 @@ namespace Engine
 		    : VulkanTextureSRV(texture, view)
 		{}
 		~VulkanTextureSRV();
-		VulkanSRV& bind(VulkanStateManager* manager, byte index) override;
+		VulkanSRV& bind(VulkanStateManager* manager, u8 index) override;
 
 		FORCE_INLINE VulkanTexture* texture() const { return m_texture; }
 		FORCE_INLINE vk::ImageView view() const { return m_view; }
@@ -72,7 +72,7 @@ namespace Engine
 		    : VulkanTextureUAV(texture, view)
 		{}
 		~VulkanTextureUAV();
-		VulkanUAV& bind(VulkanStateManager* manager, byte index) override;
+		VulkanUAV& bind(VulkanStateManager* manager, u8 index) override;
 
 		FORCE_INLINE VulkanTexture* texture() const { return m_texture; }
 		FORCE_INLINE vk::ImageView view() const { return m_view; }
@@ -84,9 +84,9 @@ namespace Engine
 		VulkanTexture* m_texture;
 		vk::ImageView m_view;
 
-		uint16_t m_base_layer;
-		uint16_t m_layer_count;
-		uint16_t m_mip;
+		u16 m_base_layer;
+		u16 m_layer_count;
+		u16 m_mip;
 
 	public:
 		VulkanTextureRTV(VulkanTexture* texture, vk::ImageView view, const VulkanTexture::ViewDesc& desc)
@@ -100,9 +100,9 @@ namespace Engine
 		FORCE_INLINE vk::Image image() const { return m_texture->image(); }
 		FORCE_INLINE VulkanTexture* texture() const { return m_texture; }
 		FORCE_INLINE vk::ImageView view() const { return m_view; }
-		FORCE_INLINE uint16_t base_layer() const { return m_base_layer; }
-		FORCE_INLINE uint16_t layer_count() const { return m_layer_count; }
-		FORCE_INLINE uint16_t mip() const { return m_mip; }
+		FORCE_INLINE u16 base_layer() const { return m_base_layer; }
+		FORCE_INLINE u16 layer_count() const { return m_layer_count; }
+		FORCE_INLINE u16 mip() const { return m_mip; }
 	};
 
 	class VulkanTextureDSV : public VulkanDSV
@@ -111,9 +111,9 @@ namespace Engine
 		VulkanTexture* m_texture;
 		vk::ImageView m_view;
 
-		uint16_t m_base_layer;
-		uint16_t m_layer_count;
-		uint16_t m_mip;
+		u16 m_base_layer;
+		u16 m_layer_count;
+		u16 m_mip;
 
 	public:
 		VulkanTextureDSV(VulkanTexture* texture, vk::ImageView view, const VulkanTexture::ViewDesc& desc)
@@ -127,9 +127,9 @@ namespace Engine
 		FORCE_INLINE vk::Image image() const { return m_texture->image(); }
 		FORCE_INLINE VulkanTexture* texture() const { return m_texture; }
 		FORCE_INLINE vk::ImageView view() const { return m_view; }
-		FORCE_INLINE uint16_t base_layer() const { return m_base_layer; }
-		FORCE_INLINE uint16_t layer_count() const { return m_layer_count; }
-		FORCE_INLINE uint16_t mip() const { return m_mip; }
+		FORCE_INLINE u16 base_layer() const { return m_base_layer; }
+		FORCE_INLINE u16 layer_count() const { return m_layer_count; }
+		FORCE_INLINE u16 mip() const { return m_mip; }
 	};
 
 	class VulkanBufferSRV : public VulkanSRV
@@ -148,7 +148,7 @@ namespace Engine
 		VulkanStorageBufferSRV(VulkanBuffer* buffer);
 		~VulkanStorageBufferSRV();
 
-		VulkanSRV& bind(VulkanStateManager* manager, byte index) override;
+		VulkanSRV& bind(VulkanStateManager* manager, u8 index) override;
 	};
 
 	class VulkanUniformTexelBufferSRV : public VulkanBufferSRV
@@ -157,7 +157,7 @@ namespace Engine
 		VulkanUniformTexelBufferSRV(VulkanBuffer* buffer);
 		~VulkanUniformTexelBufferSRV();
 
-		VulkanSRV& bind(VulkanStateManager* manager, byte index) override;
+		VulkanSRV& bind(VulkanStateManager* manager, u8 index) override;
 	};
 
 	class VulkanBufferUAV : public VulkanUAV
@@ -170,6 +170,6 @@ namespace Engine
 		~VulkanBufferUAV();
 
 		FORCE_INLINE VulkanBuffer* buffer() const { return m_buffer; };
-		VulkanUAV& bind(VulkanStateManager* manager, byte index) override;
+		VulkanUAV& bind(VulkanStateManager* manager, u8 index) override;
 	};
 }// namespace Engine

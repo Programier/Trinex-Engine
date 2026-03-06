@@ -21,7 +21,7 @@ namespace Engine
 
 	public:
 		struct ENGINE_EXPORT Hash {
-			size_t operator()(const Path& p) const noexcept;
+			usize operator()(const Path& p) const noexcept;
 		};
 
 		static const char separator;
@@ -69,7 +69,7 @@ namespace Engine
 
 		FORCE_INLINE const StringView& base_path() const { return m_base_path; }
 
-		FORCE_INLINE size_t length() const { return m_path.length(); }
+		FORCE_INLINE usize length() const { return m_path.length(); }
 
 		FORCE_INLINE bool empty() const { return length() == 0; }
 

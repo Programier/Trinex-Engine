@@ -42,7 +42,7 @@ namespace Engine
 			return prop;
 		}
 
-		const String& index_name(const void* context, size_t index) const override
+		const String& index_name(const void* context, usize index) const override
 		{
 			const Refl::ArrayProperty* prop = this;
 			const Parameter* parameter      = *prop->at_as<const Parameter*>(context, index);
@@ -74,12 +74,12 @@ namespace Engine
 		bool operator()(Vector3b value) const { return bind_scalar<RHIShaderParameterType::Bool3>(value); }
 		bool operator()(Vector4b value) const { return bind_scalar<RHIShaderParameterType::Bool4>(value); }
 
-		bool operator()(int_t value) const { return bind_scalar<RHIShaderParameterType::Int>(value); }
+		bool operator()(i32 value) const { return bind_scalar<RHIShaderParameterType::Int>(value); }
 		bool operator()(Vector2i value) const { return bind_scalar<RHIShaderParameterType::Int2>(value); }
 		bool operator()(const Vector3i& value) const { return bind_scalar<RHIShaderParameterType::Int3>(value); }
 		bool operator()(const Vector4i& value) const { return bind_scalar<RHIShaderParameterType::Int4>(value); }
 
-		bool operator()(uint_t value) const { return bind_scalar<RHIShaderParameterType::UInt>(value); }
+		bool operator()(u32 value) const { return bind_scalar<RHIShaderParameterType::UInt>(value); }
 		bool operator()(Vector2u value) const { return bind_scalar<RHIShaderParameterType::UInt2>(value); }
 		bool operator()(const Vector3u& value) const { return bind_scalar<RHIShaderParameterType::UInt3>(value); }
 		bool operator()(const Vector4u& value) const { return bind_scalar<RHIShaderParameterType::UInt4>(value); }
@@ -185,7 +185,7 @@ namespace Engine
 		if (!Super::serialize(archive))
 			return false;
 
-		size_t size = m_child_objects.size();
+		usize size = m_child_objects.size();
 		archive.serialize(size);
 
 		if (archive.is_reading())
@@ -333,7 +333,7 @@ namespace Engine
 		return pipeline;
 	}
 
-	bool Material::register_child(Object* child, uint32_t& index)
+	bool Material::register_child(Object* child, u32& index)
 	{
 		if (child && child->is_instance_of<Pipeline>())
 			return true;
@@ -359,7 +359,7 @@ namespace Engine
 		// Checking that all registered passes supported by this material are compiled
 		if (ShaderCompiler* compiler = ShaderCompiler::instance())
 		{
-			uint_t count         = 0;
+			u32 count            = 0;
 			String material_name = full_name();
 
 			for (auto pass = RenderPass::static_first_pass(); pass; pass = pass->next())
@@ -449,7 +449,7 @@ namespace Engine
 
 		archive.serialize(domain, depth_test, stencil_test, color_blending);
 
-		size_t pipelines_count = m_pipelines.size();
+		usize pipelines_count = m_pipelines.size();
 		archive.serialize(pipelines_count);
 
 		if (archive.is_saving())
@@ -483,7 +483,7 @@ namespace Engine
 
 	Material& Material::remove_unreferenced_parameters()
 	{
-		for (ptrdiff_t i = static_cast<ptrdiff_t>(m_child_objects.size()) - 1; i >= 0; --i)
+		for (isize i = static_cast<isize>(m_child_objects.size()) - 1; i >= 0; --i)
 		{
 			Parameter* parameter = m_child_objects[i];
 

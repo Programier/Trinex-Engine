@@ -38,7 +38,7 @@ public:                                                                         
 			trinex_class(Parameter, Object);
 
 		private:
-			uint16_t m_pipeline_refs = 0;
+			u16 m_pipeline_refs = 0;
 
 		protected:
 			virtual Parameter& apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info) = 0;
@@ -54,9 +54,9 @@ public:                                                                         
 		class ENGINE_EXPORT PrimitiveBase : public Parameter
 		{
 		protected:
-			PrimitiveBase& update(const PrimitiveRenderingContext* ctx, const void* data, size_t size,
+			PrimitiveBase& update(const PrimitiveRenderingContext* ctx, const void* data, usize size,
 			                      const RHIShaderParameterInfo* info);
-			bool serialize_internal(Archive& ar, void* data, size_t size);
+			bool serialize_internal(Archive& ar, void* data, usize size);
 		};
 
 		template<typename T>
@@ -87,12 +87,12 @@ public:                                                                         
 			trinex_material_parameter(Bool, Parameter);
 		};
 
-		class ENGINE_EXPORT Int : public Primitive<int32_t>
+		class ENGINE_EXPORT Int : public Primitive<i32>
 		{
 			trinex_material_parameter(Int, Parameter);
 		};
 
-		class ENGINE_EXPORT UInt : public Primitive<uint32_t>
+		class ENGINE_EXPORT UInt : public Primitive<u32>
 		{
 			trinex_material_parameter(UInt, Parameter);
 		};

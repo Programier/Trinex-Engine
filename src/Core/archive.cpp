@@ -19,8 +19,8 @@ namespace Engine
 	Archive::Archive(BufferWriter* writer) : m_is_saving(true)
 	{
 		trinex_assert(writer);
-		
-		m_writer = writer;
+
+		m_writer         = writer;
 		m_process_status = m_writer->is_open();
 	}
 
@@ -78,7 +78,7 @@ namespace Engine
 		return m_is_saving ? m_writer : nullptr;
 	}
 
-	Archive& Archive::write_data(const byte* data, size_t size)
+	Archive& Archive::write_data(const u8* data, usize size)
 	{
 		if (is_saving())
 		{
@@ -88,7 +88,7 @@ namespace Engine
 		return *this;
 	}
 
-	Archive& Archive::read_data(byte* data, size_t size)
+	Archive& Archive::read_data(u8* data, usize size)
 	{
 		if (is_reading())
 		{
@@ -98,7 +98,7 @@ namespace Engine
 		return *this;
 	}
 
-	Archive& Archive::serialize_memory(byte* data, size_t size)
+	Archive& Archive::serialize_memory(u8* data, usize size)
 	{
 		if (is_reading())
 		{
@@ -112,7 +112,7 @@ namespace Engine
 		return *this;
 	}
 
-	size_t Archive::position() const
+	usize Archive::position() const
 	{
 		if (is_saving())
 		{
@@ -126,7 +126,7 @@ namespace Engine
 		return 0;
 	}
 
-	Archive& Archive::position(size_t position)
+	Archive& Archive::position(usize position)
 	{
 		if (is_saving())
 		{
@@ -155,17 +155,17 @@ namespace Engine
 
 	bool Archive::serialize_string(String& str)
 	{
-		size_t size = str.length();
+		usize size = str.length();
 		serialize(size);
 
 		if (is_reading())
 		{
 			str.resize(size);
-			read_data(reinterpret_cast<byte*>(str.data()), size);
+			read_data(reinterpret_cast<u8*>(str.data()), size);
 		}
 		else if (is_saving())
 		{
-			write_data(reinterpret_cast<byte*>(str.data()), size);
+			write_data(reinterpret_cast<u8*>(str.data()), size);
 		}
 		return *this;
 	}

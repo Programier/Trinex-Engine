@@ -54,7 +54,7 @@ namespace Engine
 		RHIContextPool::global_instance()->execute([this](RHIContext* ctx) {
 			ctx->barrier(m_texture, RHIAccess::TransferDst);
 
-			for (byte index = 0; auto& mip : mips)
+			for (u8 index = 0; auto& mip : mips)
 			{
 				RHITextureRegion region(mip.size, {0, 0}, index++);
 				ctx->update_texture(m_texture, region, mip.data.data(), mip.data.size());
@@ -66,19 +66,19 @@ namespace Engine
 		return *this;
 	}
 
-	uint_t Texture2D::width(byte mip) const
+	u32 Texture2D::width(u8 mip) const
 	{
-		return mips.size() <= static_cast<size_t>(mip) ? mips[mip].size.x : 0;
+		return mips.size() <= static_cast<usize>(mip) ? mips[mip].size.x : 0;
 	}
 
-	uint_t Texture2D::height(byte mip) const
+	u32 Texture2D::height(u8 mip) const
 	{
-		return mips.size() <= static_cast<size_t>(mip) ? mips[mip].size.y : 0;
+		return mips.size() <= static_cast<usize>(mip) ? mips[mip].size.y : 0;
 	}
 
-	Vector2u Texture2D::size(byte mip) const
+	Vector2u Texture2D::size(u8 mip) const
 	{
-		return mips.size() <= static_cast<size_t>(mip) ? Vector2u{0, 0} : mips[mip].size;
+		return mips.size() <= static_cast<usize>(mip) ? Vector2u{0, 0} : mips[mip].size;
 	}
 
 	bool Texture2D::serialize(Archive& archive)
@@ -101,7 +101,7 @@ namespace Engine
 		RHIContextPool::global_instance()->execute([this](RHIContext* ctx) {
 			ctx->barrier(m_texture, RHIAccess::TransferDst);
 
-			for (byte index = 0; auto& mip : mips)
+			for (u8 index = 0; auto& mip : mips)
 			{
 				RHITextureRegion region(mip.size, {0, 0, 0}, index++);
 				ctx->update_texture(m_texture, region, mip.data.data(), mip.data.size());
@@ -113,24 +113,24 @@ namespace Engine
 		return *this;
 	}
 
-	uint_t Texture3D::width(byte mip) const
+	u32 Texture3D::width(u8 mip) const
 	{
-		return mips.size() <= static_cast<size_t>(mip) ? mips[mip].size.x : 0;
+		return mips.size() <= static_cast<usize>(mip) ? mips[mip].size.x : 0;
 	}
 
-	uint_t Texture3D::height(byte mip) const
+	u32 Texture3D::height(u8 mip) const
 	{
-		return mips.size() <= static_cast<size_t>(mip) ? mips[mip].size.y : 0;
+		return mips.size() <= static_cast<usize>(mip) ? mips[mip].size.y : 0;
 	}
 
-	uint_t Texture3D::depth(byte mip) const
+	u32 Texture3D::depth(u8 mip) const
 	{
-		return mips.size() <= static_cast<size_t>(mip) ? mips[mip].size.z : 0;
+		return mips.size() <= static_cast<usize>(mip) ? mips[mip].size.z : 0;
 	}
 
-	Vector3u Texture3D::size(byte mip) const
+	Vector3u Texture3D::size(u8 mip) const
 	{
-		return mips.size() <= static_cast<size_t>(mip) ? Vector3u{0, 0, 0} : mips[mip].size;
+		return mips.size() <= static_cast<usize>(mip) ? Vector3u{0, 0, 0} : mips[mip].size;
 	}
 
 	bool Texture3D::serialize(Archive& archive)
@@ -153,12 +153,12 @@ namespace Engine
 		RHIContextPool::global_instance()->execute([this](RHIContext* ctx) {
 			ctx->barrier(m_texture, RHIAccess::TransferDst);
 
-			for (byte index = 0; auto& mip : mips)
+			for (u8 index = 0; auto& mip : mips)
 			{
-				const byte* data      = mip.data.data();
-				const size_t mip_size = mip.data.size() / 6;
+				const u8* data       = mip.data.data();
+				const usize mip_size = mip.data.size() / 6;
 
-				for (byte face = 0; face < 6; ++face)
+				for (u8 face = 0; face < 6; ++face)
 				{
 					RHITextureRegion region(mip.size, {0, 0}, index);
 					region.slice = face;
@@ -175,19 +175,19 @@ namespace Engine
 		return *this;
 	}
 
-	uint_t TextureCube::width(byte mip) const
+	u32 TextureCube::width(u8 mip) const
 	{
-		return mips.size() <= static_cast<size_t>(mip) ? mips[mip].size.x : 0;
+		return mips.size() <= static_cast<usize>(mip) ? mips[mip].size.x : 0;
 	}
 
-	uint_t TextureCube::height(byte mip) const
+	u32 TextureCube::height(u8 mip) const
 	{
-		return mips.size() <= static_cast<size_t>(mip) ? mips[mip].size.y : 0;
+		return mips.size() <= static_cast<usize>(mip) ? mips[mip].size.y : 0;
 	}
 
-	Vector2u TextureCube::size(byte mip) const
+	Vector2u TextureCube::size(u8 mip) const
 	{
-		return mips.size() <= static_cast<size_t>(mip) ? Vector2u{0, 0} : mips[mip].size;
+		return mips.size() <= static_cast<usize>(mip) ? Vector2u{0, 0} : mips[mip].size;
 	}
 
 	bool TextureCube::serialize(Archive& archive)

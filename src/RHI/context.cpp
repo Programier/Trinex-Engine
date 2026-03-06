@@ -11,14 +11,14 @@ namespace Engine
 	private:
 		static T s_default;
 
-		T* m_data         = nullptr;
-		size_t m_size     = 0;
-		size_t m_capacity = 0;
+		T* m_data        = nullptr;
+		usize m_size     = 0;
+		usize m_capacity = 0;
 
 		void grow()
 		{
-			size_t new_capacity = m_capacity ? m_capacity * 2 : 4;
-			T* new_data         = Allocator<T>::allocate(new_capacity);
+			usize new_capacity = m_capacity ? m_capacity * 2 : 4;
+			T* new_data        = Allocator<T>::allocate(new_capacity);
 
 			if (m_data)
 			{

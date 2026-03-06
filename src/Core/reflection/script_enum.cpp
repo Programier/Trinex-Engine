@@ -12,9 +12,9 @@ namespace Engine::Refl
 		String name = full_name();
 
 		auto count = info.enum_value_count();
-		for (uint_t i = 0; i < count; ++i)
+		for (u32 i = 0; i < count; ++i)
 		{
-			int64_t value;
+			i64 value;
 			StringView name = info.enum_value_by_index(i, &value);
 			create_entry(nullptr, name, value);
 		}

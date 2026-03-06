@@ -17,8 +17,8 @@ namespace Engine
 
 	const String& Localization::localize(const StringView& line) const
 	{
-		uint64_t hash = memory_hash(line.data(), line.length());
-		auto it       = m_translation_map.find(hash);
+		u64 hash = memory_hash(line.data(), line.length());
+		auto it  = m_translation_map.find(hash);
 
 		if (it != m_translation_map.end())
 			return it->second;
@@ -31,7 +31,7 @@ namespace Engine
 			if (it != m_default_translation_map.end())
 				return it->second;
 
-			size_t separator_index = line.find_last_of('/');
+			usize separator_index = line.find_last_of('/');
 
 			if (separator_index == StringView::npos)
 			{
@@ -79,7 +79,7 @@ namespace Engine
 		}
 	}
 
-	static void load_localization(Map<uint64_t, String>& out, const Path& path)
+	static void load_localization(Map<u64, String>& out, const Path& path)
 	{
 		std::stringstream stream;
 
@@ -102,10 +102,10 @@ namespace Engine
 				String key, value;
 				if (parse_string(line, key, value))
 				{
-					String p      = entry.relative(path);
-					key           = p.substr(0, p.length() - Constants::translation_config_extension.length()) + "/" + key;
-					uint64_t hash = memory_hash(key.c_str(), key.length());
-					out[hash]     = value;
+					String p  = entry.relative(path);
+					key       = p.substr(0, p.length() - Constants::translation_config_extension.length()) + "/" + key;
+					u64 hash  = memory_hash(key.c_str(), key.length());
+					out[hash] = value;
 				}
 			}
 		}
@@ -149,7 +149,7 @@ namespace Engine
 		return Localization::instance()->localize(line);
 	}
 
-	ENGINE_EXPORT const char* operator""_localized(const char* line, size_t len)
+	ENGINE_EXPORT const char* operator""_localized(const char* line, usize len)
 	{
 		return Localization::instance()->localize(StringView(line, len)).c_str();
 	}

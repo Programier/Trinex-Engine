@@ -94,9 +94,9 @@ namespace Engine
 	};
 
 	struct NoneBuffer : public NoneApiDestroyable<RHIBuffer> {
-		size_t size() const override { return 0; }
+		usize size() const override { return 0; }
 		RHIDeviceAddress address() override { return 0; }
-		byte* map(RHIMappingAccess access) override { return nullptr; }
+		u8* map(RHIMappingAccess access) override { return nullptr; }
 		void unmap() override {}
 
 		RHIShaderResourceView* as_srv() override { return rhi_default<NoneSRV>(); }
@@ -148,13 +148,13 @@ namespace Engine
 		return new NoneSampler();
 	}
 
-	RHITexture* NoneApi::create_texture(RHITextureType type, RHIColorFormat format, Vector3u size, uint32_t mips,
+	RHITexture* NoneApi::create_texture(RHITextureType type, RHIColorFormat format, Vector3u size, u32 mips,
 	                                    RHITextureCreateFlags flags)
 	{
 		return new NoneTexture();
 	}
 
-	RHIShader* NoneApi::create_shader(const byte* source, size_t size)
+	RHIShader* NoneApi::create_shader(const u8* source, usize size)
 	{
 		return new NoneShader();
 	}
@@ -179,7 +179,7 @@ namespace Engine
 		return new NonePipeline();
 	}
 
-	RHIBuffer* NoneApi::create_buffer(size_t size, RHIBufferCreateFlags flags)
+	RHIBuffer* NoneApi::create_buffer(usize size, RHIBufferCreateFlags flags)
 	{
 		return new NoneBuffer();
 	}
@@ -199,10 +199,10 @@ namespace Engine
 		return new NoneAccelerationStructure();
 	}
 
-	const byte* NoneApi::translate_ray_tracing_instances(const RHIRayTracingGeometryInstance* instances, size_t& size)
+	const u8* NoneApi::translate_ray_tracing_instances(const RHIRayTracingGeometryInstance* instances, usize& size)
 	{
 		size *= sizeof(RHIRayTracingGeometryInstance);
-		return reinterpret_cast<const byte*>(instances);
+		return reinterpret_cast<const u8*>(instances);
 	}
 
 	NoneApi& NoneApi::present(RHISwapchain* swapchain)

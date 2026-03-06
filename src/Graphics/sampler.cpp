@@ -26,7 +26,7 @@ namespace Engine
 	}
 
 	struct SamplerInitializerHash {
-		inline size_t operator()(const RHISamplerInitializer& initializer) const { return initializer.hash(); }
+		inline usize operator()(const RHISamplerInitializer& initializer) const { return initializer.hash(); }
 	};
 
 	using SamplersMap = Map<RHISamplerInitializer, class SamplerImpl*, SamplerInitializerHash>;
@@ -40,10 +40,10 @@ namespace Engine
 	class SamplerImpl
 	{
 	private:
-		Atomic<uint64_t> m_references = 0;
-		RHISampler* m_sampler         = nullptr;
-		SamplerImpl* m_prev           = nullptr;
-		SamplerImpl* m_next           = nullptr;
+		Atomic<u64> m_references = 0;
+		RHISampler* m_sampler    = nullptr;
+		SamplerImpl* m_prev      = nullptr;
+		SamplerImpl* m_next      = nullptr;
 		RHISamplerInitializer m_initializer;
 
 	public:
@@ -80,7 +80,7 @@ namespace Engine
 			}
 		}
 
-		inline uint64_t references() const { return m_references; }
+		inline u64 references() const { return m_references; }
 		inline const RHISamplerInitializer& initializer() const { return m_initializer; }
 		inline RHISampler* rhi_sampler() const { return m_sampler; }
 		inline SamplerImpl* prev() const { return m_prev; }
@@ -172,20 +172,20 @@ namespace Engine
 
 	bool Sampler::serialize(Archive& ar)
 	{
-		byte size = m_sampler ? sizeof(RHISamplerInitializer) : 0;
+		u8 size = m_sampler ? sizeof(RHISamplerInitializer) : 0;
 		ar.serialize(size);
 
 		if (size > 0 && ar.is_saving())
 		{
 			RHISamplerInitializer inititalizer = m_sampler->initializer();
-			ar.serialize_memory(reinterpret_cast<byte*>(&inititalizer), size);
+			ar.serialize_memory(reinterpret_cast<u8*>(&inititalizer), size);
 		}
 		else if (ar.is_reading())
 		{
 			if (size > 0)
 			{
 				RHISamplerInitializer inititalizer;
-				ar.serialize_memory(reinterpret_cast<byte*>(&inititalizer), size);
+				ar.serialize_memory(reinterpret_cast<u8*>(&inititalizer), size);
 				init(inititalizer);
 			}
 			else

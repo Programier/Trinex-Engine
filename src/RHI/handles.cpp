@@ -10,8 +10,8 @@
 
 namespace Engine
 {
-	RHITextureView::RHITextureView(RHITexture* texture, RHITextureType type, uint16_t base_slice, uint16_t slice_count,
-	                               uint16_t base_mip, uint16_t mip_count)
+	RHITextureView::RHITextureView(RHITexture* texture, RHITextureType type, u16 base_slice, u16 slice_count, u16 base_mip,
+	                               u16 mip_count)
 	    : m_texture(texture), m_base_slice(base_slice), m_slice_count(slice_count), m_base_mip(base_mip), m_mip_count(mip_count)
 	{}
 
@@ -58,11 +58,11 @@ namespace Engine
 
 	bool RHIBuffer::serialize(Archive& ar)
 	{
-		size_t buffer_size = size();
+		usize buffer_size = size();
 
 		if (ar.is_reading())
 		{
-			if (byte* data = map(RHIMappingAccess::Write))
+			if (u8* data = map(RHIMappingAccess::Write))
 			{
 				const bool status = ar.read_data(data, buffer_size);
 				unmap();
@@ -70,7 +70,7 @@ namespace Engine
 			}
 
 			StackByteAllocator::Mark mark;
-			byte* data = StackByteAllocator::allocate(buffer_size);
+			u8* data = StackByteAllocator::allocate(buffer_size);
 
 			if (!ar.read_data(data, buffer_size))
 			{
@@ -88,7 +88,7 @@ namespace Engine
 		}
 		else
 		{
-			if (byte* data = map(RHIMappingAccess::Read))
+			if (u8* data = map(RHIMappingAccess::Read))
 			{
 				const bool status = ar.write_data(data, buffer_size);
 				unmap();
@@ -107,7 +107,7 @@ namespace Engine
 			RHIContextPool::global_instance()->end_context(ctx);
 			rhi->idle();
 
-			const byte* data  = buffer->map(RHIMappingAccess::Read);
+			const u8* data    = buffer->map(RHIMappingAccess::Read);
 			const bool status = ar.write_data(data, buffer_size);
 			buffer->unmap();
 

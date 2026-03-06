@@ -14,7 +14,7 @@ namespace Engine
 	private:
 		vk::AccelerationStructureKHR m_acceleration;
 		VulkanBuffer* m_acceleration_buffer;
-		size_t m_scratch_size = 0;
+		usize m_scratch_size = 0;
 
 	public:
 		VulkanAccelerationStructure(const RHIRayTracingAccelerationInputs* inputs);

@@ -89,7 +89,7 @@ namespace Engine
 		ScriptContext::execute(this, script_level_stop_play, nullptr);
 	}
 
-	bool Level::register_child(Object* child, uint32_t& index)
+	bool Level::register_child(Object* child, u32& index)
 	{
 		Actor* actor = instance_cast<Actor>(child);
 
@@ -136,7 +136,7 @@ namespace Engine
 		if (m_is_playing)
 			return *this;
 
-		for (size_t index = 0; index < m_actors.size(); index++)
+		for (usize index = 0; index < m_actors.size(); index++)
 		{
 			m_actors[index]->start_play();
 		}
@@ -153,7 +153,7 @@ namespace Engine
 
 		ScopeVariable level_scope(s_current_level, this);
 
-		for (size_t index = 0, count = m_actors.size(); index < count; ++index)
+		for (usize index = 0, count = m_actors.size(); index < count; ++index)
 		{
 			Actor* actor = m_actors[index];
 			if (actor->is_playing())
@@ -170,7 +170,7 @@ namespace Engine
 		if (!m_is_playing)
 			return *this;
 
-		for (size_t index = 0; index < m_actors.size(); index++)
+		for (usize index = 0; index < m_actors.size(); index++)
 		{
 			m_actors[index]->stop_play();
 		}

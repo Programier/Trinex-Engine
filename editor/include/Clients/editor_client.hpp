@@ -153,7 +153,7 @@ namespace Engine
 		EditorClient& on_unbind_viewport(class RenderViewport* viewport) override;
 		EditorClient& update(float dt) override;
 
-		uint32_t build_dock(uint32_t dock_id) override;
+		u32 build_dock(u32 dock_id) override;
 		EditorClient& render_viewport_window();
 		EditorClient& render_guizmo();
 		EditorClient& render_viewport_menu();

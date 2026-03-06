@@ -10,23 +10,23 @@ namespace Engine
 		union
 		{
 			struct {
-				byte r, g, b, a;
+				u8 r, g, b, a;
 			};
 
-			uint32_t rgba;
+			u32 rgba;
 		};
 
 		constexpr Color() : r(0), g(0), b(0), a(255) {}
-		constexpr Color(byte r, byte g, byte b, byte a = 255) : r(r), g(g), b(b), a(a) {}
-		constexpr Color(uint32_t rgba) : rgba(rgba) {}
+		constexpr Color(u8 r, u8 g, u8 b, u8 a = 255) : r(r), g(g), b(b), a(a) {}
+		constexpr Color(u32 rgba) : rgba(rgba) {}
 
 		constexpr explicit Color(const LinearColor& linear);
 
-		static inline constexpr float_t byte_to_float(byte value) { return static_cast<float_t>(value) / 255.f; }
-		static inline constexpr byte float_to_byte(float_t value)
+		static inline constexpr f32 byte_to_float(u8 value) { return static_cast<f32>(value) / 255.f; }
+		static inline constexpr u8 float_to_byte(f32 value)
 		{
 			value = value < 0.0f ? 0.0f : (value > 1.0f ? 1.0f : value);
-			return static_cast<byte>(value * 255.0f + 0.5f);
+			return static_cast<u8>(value * 255.0f + 0.5f);
 		}
 
 		static constexpr Color white() { return {255, 255, 255, 255}; }
@@ -42,7 +42,7 @@ namespace Engine
 		explicit operator Vector4b() const { return Vector4b(r, g, b, a); }
 		Color(const Vector4b& v) : r(v[0]), g(v[1]), b(v[2]), a(v[3]) {}
 
-		constexpr Color& operator=(uint32_t value)
+		constexpr Color& operator=(u32 value)
 		{
 			rgba = value;
 			return *this;
@@ -57,7 +57,7 @@ namespace Engine
 			return *this;
 		}
 
-		constexpr byte& operator[](uint_t i)
+		constexpr u8& operator[](u32 i)
 		{
 			switch (i)
 			{
@@ -69,7 +69,7 @@ namespace Engine
 			}
 		}
 
-		constexpr byte operator[](uint_t i) const
+		constexpr u8 operator[](u32 i) const
 		{
 			switch (i)
 			{
@@ -90,14 +90,14 @@ namespace Engine
 	};
 
 	struct LinearColor {
-		float_t r, g, b, a;
+		f32 r, g, b, a;
 
 		constexpr LinearColor() : r(0), g(0), b(0), a(1) {}
-		constexpr LinearColor(float_t rr, float_t gg, float_t bb, float_t aa = 1.0f) : r(rr), g(gg), b(bb), a(aa) {}
+		constexpr LinearColor(f32 rr, f32 gg, f32 bb, f32 aa = 1.0f) : r(rr), g(gg), b(bb), a(aa) {}
 
 		constexpr explicit LinearColor(const Color& color)
-		    : r(static_cast<float_t>(color.r) / 255.0f), g(static_cast<float_t>(color.g) / 255.0f),
-		      b(static_cast<float_t>(color.b) / 255.0f), a(static_cast<float_t>(color.a) / 255.0f)
+		    : r(static_cast<f32>(color.r) / 255.0f), g(static_cast<f32>(color.g) / 255.0f), b(static_cast<f32>(color.b) / 255.0f),
+		      a(static_cast<f32>(color.a) / 255.0f)
 		{}
 
 		static constexpr LinearColor white() { return {1, 1, 1, 1}; }
@@ -119,7 +119,7 @@ namespace Engine
 			return *this;
 		}
 
-		constexpr float& operator[](uint_t i)
+		constexpr float& operator[](u32 i)
 		{
 			switch (i)
 			{
@@ -131,7 +131,7 @@ namespace Engine
 			}
 		}
 
-		constexpr float operator[](uint_t i) const
+		constexpr float operator[](u32 i) const
 		{
 			switch (i)
 			{
@@ -150,7 +150,7 @@ namespace Engine
 
 		constexpr bool operator!=(const LinearColor& other) const { return !(*this == other); }
 
-		constexpr LinearColor& operator+=(float_t value)
+		constexpr LinearColor& operator+=(f32 value)
 		{
 			r += value;
 			g += value;
@@ -177,7 +177,7 @@ namespace Engine
 			return *this;
 		}
 
-		constexpr LinearColor& operator-=(float_t value)
+		constexpr LinearColor& operator-=(f32 value)
 		{
 			r -= value;
 			g -= value;
@@ -204,7 +204,7 @@ namespace Engine
 			return *this;
 		}
 
-		constexpr LinearColor& operator*=(float_t value)
+		constexpr LinearColor& operator*=(f32 value)
 		{
 			r *= value;
 			g *= value;
@@ -231,7 +231,7 @@ namespace Engine
 			return *this;
 		}
 
-		constexpr LinearColor& operator/=(float_t value)
+		constexpr LinearColor& operator/=(f32 value)
 		{
 			r *= value;
 			g *= value;

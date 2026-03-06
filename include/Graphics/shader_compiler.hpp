@@ -17,11 +17,11 @@ namespace Engine
 		virtual ShaderCompilationEnvironment& add_module(const char* module) = 0;
 		virtual ShaderCompilationEnvironment& add_source(const char* source) = 0;
 
-		virtual size_t modules_count() const = 0;
-		virtual size_t sources_count() const = 0;
+		virtual usize modules_count() const = 0;
+		virtual usize sources_count() const = 0;
 
-		virtual const char* module(size_t index) const = 0;
-		virtual const char* source(size_t index) const = 0;
+		virtual const char* module(usize index) const = 0;
+		virtual const char* source(usize index) const = 0;
 	};
 
 	class ShaderCompilationResult
@@ -82,11 +82,11 @@ namespace Engine
 				return *this;
 			}
 
-			size_t modules_count() const override { return m_modules.size(); }
-			size_t sources_count() const override { return m_sources.size(); }
+			usize modules_count() const override { return m_modules.size(); }
+			usize sources_count() const override { return m_sources.size(); }
 
-			const char* module(size_t index) const override { return m_modules[index]; }
-			const char* source(size_t index) const override { return m_sources[index]; }
+			const char* module(usize index) const override { return m_modules[index]; }
+			const char* source(usize index) const override { return m_sources[index]; }
 		};
 
 		class StackEnvironment : public Environment<StackAllocator>

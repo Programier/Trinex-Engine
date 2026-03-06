@@ -31,22 +31,22 @@ namespace Engine
 		class Script* m_script_for_popup = nullptr;
 
 		ScriptFunction m_last_function;
-		int_t m_last_line = -1;
+		i32 m_last_line = -1;
 
 		ImGui::TextEditor::DebugAction m_action;
-		uint_t m_last_command_at_stack_level;
-		uint_t m_current_stack_level;
+		u32 m_last_command_at_stack_level;
+		u32 m_current_stack_level;
 
 		bool m_is_in_debug_loop;
 
-		void on_debugger_jump(ImGui::TextEditor* editor, int_t line);
+		void on_debugger_jump(ImGui::TextEditor* editor, i32 line);
 		void on_debugger_action(ImGui::TextEditor* editor, ImGui::TextEditor::DebugAction);
 		void on_identifier_hover(ImGui::TextEditor* editor, const String& identifier);
 		bool has_identifier_hover(ImGui::TextEditor* editor, const String& identifier);
 		void on_expression_hover(ImGui::TextEditor* editor, const String& identifier);
 		bool has_expression_hover(ImGui::TextEditor* editor, const String& identifier);
-		void on_breakpoint_remove(ImGui::TextEditor* editor, int_t line);
-		void on_breakpoint_update(ImGui::TextEditor* editor, int_t line);
+		void on_breakpoint_remove(ImGui::TextEditor* editor, i32 line);
+		void on_breakpoint_update(ImGui::TextEditor* editor, i32 line);
 		void on_ctrl_alt_click(ImGui::TextEditor* editor, const String&, ImGui::TextEditor::Coordinates coords);
 		void on_request_open(ImGui::TextEditor* editor, const std::string&, const std::string&);
 		void on_content_update(ImGui::TextEditor* editor);

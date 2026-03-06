@@ -14,7 +14,7 @@
 
 namespace Engine
 {
-	VulkanUniformBuffer* VulkanCommandHandle::UniformBuffer::request_uniform_page(size_t size)
+	VulkanUniformBuffer* VulkanCommandHandle::UniformBuffer::request_uniform_page(usize size)
 	{
 		while (*m_uniform_buffer_current)
 		{
@@ -263,7 +263,7 @@ namespace Engine
 					inherit_rendering.setPColorAttachmentFormats(formats);
 					inherit_rendering.setRasterizationSamples(VulkanEnums::sample_count_of(inheritance->samples));
 
-					for (uint_t i = 0; i < 4; ++i)
+					for (u32 i = 0; i < 4; ++i)
 					{
 						formats[i] = VulkanEnums::format_of(inheritance->colors[i].as_color_format());
 					}
@@ -322,7 +322,7 @@ namespace Engine
 		vk::RenderingAttachmentInfo* depth   = nullptr;
 		vk::RenderingAttachmentInfo* stencil = nullptr;
 
-		for (uint_t i = 0; i < 4; ++i)
+		for (u32 i = 0; i < 4; ++i)
 		{
 			const RHIColorAttachmentInfo& src = info.colors[i];
 
@@ -451,29 +451,28 @@ namespace Engine
 		return *this;
 	}
 
-	VulkanContext& VulkanContext::draw(size_t vertex_count, size_t vertices_offset, size_t instances)
+	VulkanContext& VulkanContext::draw(usize vertex_count, usize vertices_offset, usize instances)
 	{
 		trinex_profile_cpu_n("VulkanContext::draw");
 		m_state_manager->flush_graphics(this)->draw(vertex_count, instances, vertices_offset, 0);
 		return *this;
 	}
 
-	VulkanContext& VulkanContext::draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset,
-	                                           size_t instances)
+	VulkanContext& VulkanContext::draw_indexed(usize indices_count, usize indices_offset, usize vertices_offset, usize instances)
 	{
 		trinex_profile_cpu_n("VulkanContext::draw_indexed");
 		m_state_manager->flush_graphics(this)->drawIndexed(indices_count, instances, indices_offset, vertices_offset, 0);
 		return *this;
 	}
 
-	VulkanContext& VulkanContext::draw_mesh(uint32_t x, uint32_t y, uint32_t z)
+	VulkanContext& VulkanContext::draw_mesh(u32 x, u32 y, u32 z)
 	{
 		trinex_profile_cpu_n("VulkanContext::draw_mesh");
 		m_state_manager->flush_graphics(this)->drawMeshTasksEXT(x, y, z);
 		return *this;
 	}
 
-	VulkanContext& VulkanContext::dispatch(uint32_t group_x, uint32_t group_y, uint32_t group_z)
+	VulkanContext& VulkanContext::dispatch(u32 group_x, u32 group_y, u32 group_z)
 	{
 		trinex_profile_cpu_n("VulkanContext::dispatch");
 		m_state_manager->flush_compute(this)->dispatch(group_x, group_y, group_z);
