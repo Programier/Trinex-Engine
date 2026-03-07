@@ -8,7 +8,7 @@
 #include <cstring>
 #include <filesystem>
 
-namespace Engine::VFS
+namespace Trinex::VFS
 {
 	namespace fs = std::filesystem;
 
@@ -209,10 +209,10 @@ namespace Engine::VFS
 	{
 		return m_directory / path;
 	}
-}// namespace Engine::VFS
+}// namespace Trinex::VFS
 
 
-namespace Engine::Platform::FileSystem
+namespace Trinex::Platform::FileSystem
 {
 	ENGINE_EXPORT VFS::FileSystem* create(const Path& mount, const Path& path)
 	{
@@ -223,4 +223,4 @@ namespace Engine::Platform::FileSystem
 	{
 		trx_delete_inline(fs);
 	}
-}// namespace Engine::Platform::FileSystem
+}// namespace Trinex::Platform::FileSystem

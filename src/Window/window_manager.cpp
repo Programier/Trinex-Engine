@@ -15,7 +15,7 @@
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	static const Image& load_image_icon()
 	{
@@ -193,4 +193,4 @@ namespace Engine
 	{
 		return m_windows;
 	}
-}// namespace Engine
+}// namespace Trinex

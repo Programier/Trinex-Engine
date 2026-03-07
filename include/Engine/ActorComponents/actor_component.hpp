@@ -3,7 +3,7 @@
 #include <Core/object.hpp>
 
 
-namespace Engine
+namespace Trinex
 {
 	class Actor;
 	class ScriptFunction;
@@ -81,4 +81,4 @@ namespace Engine
 		class Scene* scene() const;
 		class ActorComponent& actor(Actor* actor);
 	};
-}// namespace Engine
+}// namespace Trinex

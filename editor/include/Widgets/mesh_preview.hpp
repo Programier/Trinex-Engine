@@ -2,7 +2,7 @@
 #include <Core/pointer.hpp>
 #include <Graphics/imgui.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class CameraComponent;
 	class StaticMeshActor;
@@ -39,4 +39,4 @@ namespace Engine
 		virtual const char* name();
 		static const char* static_name();
 	};
-}// namespace Engine
+}// namespace Trinex

@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/engine_types.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT RHIObject
 	{
@@ -40,4 +40,4 @@ namespace Engine
 			return static_cast<const T*>(this);
 		}
 	};
-}// namespace Engine
+}// namespace Trinex

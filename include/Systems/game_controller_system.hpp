@@ -4,7 +4,7 @@
 #include <Systems/system.hpp>
 
 
-namespace Engine
+namespace Trinex
 {
 	class GameController;
 	struct Event;
@@ -35,4 +35,4 @@ namespace Engine
 
 		friend class Singletone<GameControllerSystem, System>;
 	};
-}// namespace Engine
+}// namespace Trinex

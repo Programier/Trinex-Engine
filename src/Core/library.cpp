@@ -10,7 +10,7 @@
 #include <Platform/platform.hpp>
 
 
-namespace Engine
+namespace Trinex
 {
 	struct LibInfo {
 		void* handle = nullptr;
@@ -22,7 +22,7 @@ namespace Engine
 	};
 
 
-	static Engine::TreeSet<LibInfo, Less> m_libraries;
+	static Trinex::TreeSet<LibInfo, Less> m_libraries;
 	Library::Library(const String& libname)
 	{
 		load(libname);
@@ -110,4 +110,4 @@ namespace Engine
 		}
 		m_libraries.clear();
 	}
-}// namespace Engine
+}// namespace Trinex

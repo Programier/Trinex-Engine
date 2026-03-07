@@ -3,7 +3,7 @@
 #include <Core/pointer.hpp>
 #include <Graphics/material.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	namespace VisualMaterialGraph
 	{
@@ -45,4 +45,4 @@ namespace Engine
 		inline RootNode* root_node() const { return reinterpret_cast<RootNode*>(nodes()[0].ptr()); }
 		inline bool is_root_node(VisualMaterialGraph::Node* node) const { return m_nodes[0].ptr() == node; }
 	};
-}// namespace Engine
+}// namespace Trinex

@@ -2,7 +2,7 @@
 #include <Core/export.hpp>
 #include <utility>
 
-namespace Engine
+namespace Trinex
 {
 	struct AllocatorBase {
 		using value_type      = unsigned char;
@@ -120,4 +120,4 @@ namespace Engine
 
 	template<typename T>
 	using FrameAllocator = TypedAllocator<T, FrameByteAllocator>;
-}// namespace Engine
+}// namespace Trinex

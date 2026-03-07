@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/etl/string.hpp>
 
-namespace Engine::Settings::Editor
+namespace Trinex::Settings::Editor
 {
 	extern String font_path;
 	extern float small_font_size;
@@ -9,4 +9,4 @@ namespace Engine::Settings::Editor
 	extern float large_font_size;
 
 	extern bool show_grid;
-}// namespace Engine::Settings::Editor
+}// namespace Trinex::Settings::Editor

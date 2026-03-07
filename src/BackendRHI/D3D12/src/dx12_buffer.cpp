@@ -4,7 +4,7 @@
 #include <dx12_buffer.hpp>
 #include <dx12_enums.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	D3D12Buffer::D3D12Buffer(size_t size, const byte* data, BufferCreateFlags flags) : m_size(size)
 	{
@@ -200,4 +200,4 @@ namespace Engine
 		static_cast<D3D12Buffer*>(buffer)->transition(resource_state_of(access));
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

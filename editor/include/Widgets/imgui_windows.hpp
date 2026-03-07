@@ -9,7 +9,7 @@ namespace ImGui
 	class FileBrowser;
 }
 
-namespace Engine
+namespace Trinex
 {
 	class ImGuiNotificationMessage : public ImGuiWidget
 	{
@@ -176,4 +176,4 @@ namespace Engine
 	public:
 		bool render(RenderViewport* viewport) override;
 	};
-}// namespace Engine
+}// namespace Trinex

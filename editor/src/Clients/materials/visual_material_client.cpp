@@ -19,9 +19,9 @@
 #include <imgui_internal.h>
 #include <imgui_stacklayout.h>
 
-namespace Engine
+namespace Trinex
 {
-	trinex_implement_class(Engine::VisualMaterialEditorClient, 0)
+	trinex_implement_class(Trinex::VisualMaterialEditorClient, 0)
 	{
 		register_client(VisualMaterial::static_reflection(), static_reflection());
 	}
@@ -520,7 +520,7 @@ namespace Engine
 
 			ImGui::Separator();
 
-			static Group* root_group = Group::find("Engine::VisualMaterialGraph::Nodes");
+			static Group* root_group = Group::find("Trinex::VisualMaterialGraph::Nodes");
 			if (Refl::Class* self = render_node_types(root_group, m_create_node_ctx.filter, filter_changed))
 			{
 				auto node = m_material->create_node(self, m_create_node_ctx.pos);
@@ -925,4 +925,4 @@ namespace Engine
 		ImGui::DockBuilderDockWindow("###Graph", center);
 		return center;
 	}
-}// namespace Engine
+}// namespace Trinex

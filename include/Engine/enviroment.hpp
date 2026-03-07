@@ -2,9 +2,9 @@
 #include <Core/engine_types.hpp>
 #include <Core/types/color.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	struct ENGINE_EXPORT WorldEnvironment {
 		LinearColor ambient_color = LinearColor(0.05, 0.05, 0.05, 1.f);
 	};
-}// namespace Engine
+}// namespace Trinex

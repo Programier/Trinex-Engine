@@ -2,7 +2,7 @@
 #include <Core/export.hpp>
 #include <Core/filesystem/path.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class Path;
 	namespace VFS
@@ -74,4 +74,4 @@ namespace Engine
 			bool operator==(const RecursiveDirectoryIterator& other) const;
 		};
 	}// namespace VFS
-}// namespace Engine
+}// namespace Trinex

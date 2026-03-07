@@ -6,7 +6,7 @@
 #include <Graphics/imgui.hpp>
 #include <imgui_internal.h>
 
-namespace Engine
+namespace Trinex
 {
 	class ReflInspector : public ImGuiViewportClient
 	{
@@ -108,4 +108,4 @@ namespace Engine
 	};
 
 	trinex_implement_engine_class_default_init(ReflInspector, 0);
-}// namespace Engine
+}// namespace Trinex

@@ -5,7 +5,7 @@
 #include <spirv_glsl.hpp>
 
 
-namespace Engine
+namespace Trinex
 {
 	class Material;
 	class Pipeline;
@@ -169,4 +169,4 @@ namespace Engine
 	public:
 		void initialize_context(SessionInitializer* session) override;
 	};
-}// namespace Engine
+}// namespace Trinex

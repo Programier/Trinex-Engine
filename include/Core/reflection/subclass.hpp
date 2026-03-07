@@ -1,14 +1,14 @@
 #pragma once
 
-namespace Engine
+namespace Trinex
 {
 	class Object;
 }
 
-namespace Engine::Refl
+namespace Trinex::Refl
 {
 	class Class;
-	template<typename T = Engine::Object>
+	template<typename T = Trinex::Object>
 	class SubClassOf final
 	{
 	private:
@@ -52,4 +52,4 @@ namespace Engine::Refl
 
 		bool operator!=(Class* class_instance) const { return m_class != class_instance; }
 	};
-}// namespace Engine::Refl
+}// namespace Trinex::Refl

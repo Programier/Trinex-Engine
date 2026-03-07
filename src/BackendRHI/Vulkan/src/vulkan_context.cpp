@@ -12,7 +12,7 @@
 #include <vulkan_resource_view.hpp>
 #include <vulkan_state.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	VulkanUniformBuffer* VulkanCommandHandle::UniformBuffer::request_uniform_page(usize size)
 	{
@@ -535,4 +535,4 @@ namespace Engine
 	{
 		return trx_new VulkanContext(flags);
 	}
-}// namespace Engine
+}// namespace Trinex

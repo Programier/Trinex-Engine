@@ -1,7 +1,7 @@
 #pragma once
 #include <imgui.h>
 
-namespace Engine::UI
+namespace Trinex::UI
 {
 	using IconDrawFunc = void (*)(ImVec2, float, float);
 
@@ -19,4 +19,4 @@ namespace Engine::UI
 
 
 	bool icon_button(IconDrawFunc func, const char* str_id, float size = 0.f, float scale = 1.f, ImGuiButtonFlags flags = 0);
-}// namespace Engine::UI
+}// namespace Trinex::UI

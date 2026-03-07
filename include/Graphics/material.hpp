@@ -5,7 +5,7 @@
 #include <Graphics/material_parameter.hpp>
 #include <RHI/structures.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	namespace MaterialParameters
 	{
@@ -100,4 +100,4 @@ namespace Engine
 		bool apply(const PrimitiveRenderingContext* ctx) override;
 		bool serialize(Archive& archive) override;
 	};
-}// namespace Engine
+}// namespace Trinex

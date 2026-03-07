@@ -3,7 +3,7 @@
 #include <Core/etl/archive_predef.hpp>
 #include <deque>
 
-namespace Engine
+namespace Trinex
 {
 	template<typename Type, typename AllocatorType = Allocator<Type>>
 	using Deque = std::deque<Type, AllocatorType>;
@@ -19,4 +19,4 @@ namespace Engine
 	struct Serializer<Deque<T, AllocatorType>> {
 		bool serialize(Archive& ar, Deque<T, AllocatorType>& list) { return trinex_serialize_deque(ar, list); }
 	};
-}// namespace Engine
+}// namespace Trinex

@@ -3,7 +3,7 @@
 #include <Core/transform.hpp>
 #include <Engine/ActorComponents/actor_component.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT SceneComponent : public ActorComponent
 	{
@@ -66,4 +66,4 @@ namespace Engine
 		virtual SceneComponent& on_transform_changed();
 		SceneComponent& on_property_changed(const Refl::PropertyChangedEvent& event) override;
 	};
-}// namespace Engine
+}// namespace Trinex

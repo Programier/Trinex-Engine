@@ -17,7 +17,7 @@
 #include <RHI/initializers.hpp>
 #include <RHI/rhi.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	static FORCE_INLINE bool init_shader(Shader* shader)
 	{
@@ -490,4 +490,4 @@ namespace Engine
 	trinex_implement_engine_class_default_init(GraphicsPipeline, 0);
 	trinex_implement_engine_class_default_init(ComputePipeline, 0);
 
-}// namespace Engine
+}// namespace Trinex

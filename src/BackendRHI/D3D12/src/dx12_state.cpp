@@ -2,7 +2,7 @@
 #include <dx12_pipeline.hpp>
 #include <dx12_state.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	D3D12_State& D3D12_State::flush_render_target()
 	{
@@ -50,4 +50,4 @@ namespace Engine
 	{
 		return true;
 	}
-}// namespace Engine
+}// namespace Trinex

@@ -1,6 +1,6 @@
 #include <Core/userdata.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	UserData& UserData::clear()
 	{
@@ -28,4 +28,4 @@ namespace Engine
 	{
 		return get(reinterpret_cast<Identifier>(id));
 	}
-}// namespace Engine
+}// namespace Trinex

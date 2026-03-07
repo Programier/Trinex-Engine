@@ -6,7 +6,7 @@
 #include <Core/pointer.hpp>
 #include <RHI/enums.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class RenderSurface;
 	class RHITexture;
@@ -208,4 +208,4 @@ namespace Engine
 			return *this;
 		}
 	};
-}// namespace Engine
+}// namespace Trinex

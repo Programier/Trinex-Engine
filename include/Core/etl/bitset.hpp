@@ -1,7 +1,7 @@
 #pragma once
 #include <bitset>
 
-namespace Engine
+namespace Trinex
 {
 	template<std::size_t size>
 	using BitSet = std::bitset<size>;

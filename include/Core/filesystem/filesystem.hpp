@@ -3,7 +3,7 @@
 #include <Core/etl/function.hpp>
 #include <Core/filesystem/path.hpp>
 
-namespace Engine::VFS
+namespace Trinex::VFS
 {
 	class DirectoryIteratorInterface;
 	class File;
@@ -48,4 +48,4 @@ namespace Engine::VFS
 
 		friend class RootFS;
 	};
-}// namespace Engine::VFS
+}// namespace Trinex::VFS

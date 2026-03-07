@@ -2,7 +2,7 @@
 #include <Core/reflection/script_struct.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 
-namespace Engine::Refl
+namespace Trinex::Refl
 {
 	usize ScriptEnumProperty::size() const
 	{
@@ -27,4 +27,4 @@ namespace Engine::Refl
 	{
 		return m_instance->size();
 	}
-}// namespace Engine::Refl
+}// namespace Trinex::Refl

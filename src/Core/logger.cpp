@@ -61,7 +61,7 @@ static void set_output_color(ConsoleColor color, FILE* output)
 
 #endif
 
-namespace Engine
+namespace Trinex
 {
 	Logger* Logger::logger = Logger::standart();
 
@@ -226,4 +226,4 @@ namespace Engine
 		static BasicLogger logger_object;
 		return &logger_object;
 	}
-}// namespace Engine
+}// namespace Trinex

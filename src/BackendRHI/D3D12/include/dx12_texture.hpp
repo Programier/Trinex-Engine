@@ -3,7 +3,7 @@
 #include <dx12_destroyable.hpp>
 #include <dx12_headers.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class D3D12_RTV;
 	class D3D12_DSV;
@@ -31,4 +31,4 @@ namespace Engine
 		RHIShaderResourceView* as_srv() override;
 		RHIUnorderedAccessView* as_uav() override;
 	};
-}// namespace Engine
+}// namespace Trinex

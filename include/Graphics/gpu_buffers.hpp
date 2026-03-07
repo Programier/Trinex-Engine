@@ -5,7 +5,7 @@
 #include <RHI/resource_ptr.hpp>
 #include <initializer_list>
 
-namespace Engine
+namespace Trinex
 {
 	// VERTEX BUFFER IMPLEMENTATION
 	class RHIBuffer;
@@ -199,4 +199,4 @@ namespace Engine
 	class IndexBuffer16 : public TypedIndexBuffer<u16> { using TypedIndexBuffer::TypedIndexBuffer; };
 	class IndexBuffer32 : public TypedIndexBuffer<u32> { using TypedIndexBuffer::TypedIndexBuffer; };
 	// clang-format on
-}// namespace Engine
+}// namespace Trinex

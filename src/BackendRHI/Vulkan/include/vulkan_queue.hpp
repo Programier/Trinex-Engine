@@ -3,7 +3,7 @@
 #include <Core/etl/critical_section.hpp>
 #include <vulkan_headers.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class VulkanCommandHandle;
 
@@ -21,4 +21,4 @@ namespace Engine
 		VulkanQueue& idle();
 		inline u32 index() const { return m_index; }
 	};
-}// namespace Engine
+}// namespace Trinex

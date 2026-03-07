@@ -1,7 +1,7 @@
 #pragma once
 #include <mutex>
 
-namespace Engine
+namespace Trinex
 {
 	using CriticalSection = std::mutex;
 
@@ -21,4 +21,4 @@ namespace Engine
 
 		inline ~ScopeLock() { m_critical_section.unlock(); }
 	};
-}// namespace Engine
+}// namespace Trinex

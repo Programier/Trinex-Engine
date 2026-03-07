@@ -3,7 +3,7 @@
 #include <Engine/Actors/spot_light_actor.hpp>
 #include <Graphics/texture.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	trinex_implement_engine_class_default_init(SpotLightActor, 0);
 
@@ -16,4 +16,4 @@ namespace Engine
 	{
 		return m_spot_light_component;
 	}
-}// namespace Engine
+}// namespace Trinex

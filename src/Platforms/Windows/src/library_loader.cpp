@@ -4,7 +4,7 @@
 #include <windows.h>
 
 
-namespace Engine::Platform::LibraryLoader
+namespace Trinex::Platform::LibraryLoader
 {
 	enum LibPathModification
 	{
@@ -76,7 +76,7 @@ namespace Engine::Platform::LibraryLoader
 		}
 
 		return nullptr;
-	}// namespace Engine::Platform::LibraryLoader
+	}// namespace Trinex::Platform::LibraryLoader
 
 	ENGINE_EXPORT void close_library(void* handle)
 	{
@@ -92,4 +92,4 @@ namespace Engine::Platform::LibraryLoader
 			return nullptr;
 		return (void*) GetProcAddress((HMODULE) (handle), (LPCSTR) name.c_str());
 	}
-}// namespace Engine::Platform::LibraryLoader
+}// namespace Trinex::Platform::LibraryLoader

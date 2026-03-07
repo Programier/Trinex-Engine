@@ -6,7 +6,7 @@
 #include <vulkan_headers.hpp>
 #include <vulkan_thread_local.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class RHIObject;
 	class VulkanRenderTarget;
@@ -216,4 +216,4 @@ namespace Engine
 		inline VulkanCommandHandle* handle() const { return m_cmd; }
 		inline VulkanStateManager* state() const { return m_state_manager; }
 	};
-}// namespace Engine
+}// namespace Trinex

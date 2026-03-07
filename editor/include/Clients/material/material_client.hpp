@@ -2,7 +2,7 @@
 #include <Clients/imgui_client.hpp>
 #include <Widgets/imgui_windows.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class MaterialEditorClient : public ImGuiViewportClient
 	{
@@ -28,4 +28,4 @@ namespace Engine
 
 		inline Material* material() const { return m_material; }
 	};
-}// namespace Engine
+}// namespace Trinex

@@ -1,7 +1,7 @@
 #pragma once
 #include <optional>
 
-namespace Engine
+namespace Trinex
 {
 	template<typename T>
 	using Optional = std::optional<T>;
@@ -11,4 +11,4 @@ namespace Engine
 	{
 
 	}
-}// namespace Engine
+}// namespace Trinex

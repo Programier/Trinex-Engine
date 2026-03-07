@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/engine_types.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	struct PostProcessParameters final {
 		trinex_struct(PostProcessParameters, void);
@@ -37,4 +37,4 @@ namespace Engine
 
 		PostProcessParameters& blend(const PostProcessParameters& parameters, float blend_factor);
 	};
-}// namespace Engine
+}// namespace Trinex

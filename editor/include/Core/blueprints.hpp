@@ -2,7 +2,7 @@
 #include <Core/engine_types.hpp>
 #include <imgui_node_editor.h>
 
-namespace Engine
+namespace Trinex
 {
 	namespace ed = ax::NodeEditor;
 
@@ -81,4 +81,4 @@ namespace Engine
 		static void icon(const ImVec2& size, IconType type, bool filled, const ImVec4& color = ImVec4(1, 1, 1, 1),
 		                 const ImVec4& inner_color = ImVec4(0, 0, 0, 0));
 	};
-}// namespace Engine
+}// namespace Trinex

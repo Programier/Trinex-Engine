@@ -5,7 +5,7 @@
 #include <Core/etl/string.hpp>
 #include <Core/etl/type_traits.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	namespace VFS
 	{
@@ -66,4 +66,4 @@ namespace Engine
 
 		~FileReader();
 	};
-}// namespace Engine
+}// namespace Trinex

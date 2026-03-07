@@ -3,7 +3,7 @@
 #include <Core/etl/vector.hpp>
 #include <ostream>
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT BufferWriter
 	{
@@ -158,4 +158,4 @@ namespace Engine
 		bool is_open() const override { return true; }
 	};
 
-}// namespace Engine
+}// namespace Trinex

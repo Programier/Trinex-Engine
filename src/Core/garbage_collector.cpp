@@ -10,7 +10,7 @@
 
 #define DISABLE_GC 1
 
-namespace Engine
+namespace Trinex
 {
 	enum GCStage : EnumerateType
 	{
@@ -220,4 +220,4 @@ namespace Engine
 				++index;
 		}
 	}
-}// namespace Engine
+}// namespace Trinex

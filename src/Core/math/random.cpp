@@ -1,7 +1,7 @@
 #include <Core/math/random.hpp>
 #include <random>
 
-namespace Engine::Random
+namespace Trinex::Random
 {
 	static std::mt19937_64 s_random(std::random_device{}());
 
@@ -16,4 +16,4 @@ namespace Engine::Random
 		std::uniform_int_distribution<i32> dist(min, max);
 		return dist(s_random);
 	}
-}// namespace Engine::Random
+}// namespace Trinex::Random

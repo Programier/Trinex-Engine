@@ -2,7 +2,7 @@
 
 #include <Core/engine_types.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	struct ENGINE_EXPORT FileFlag final {
 		union
@@ -20,4 +20,4 @@ namespace Engine
 		static const FileFlag& package_flag();
 		static const FileFlag& asset_flag();
 	};
-}// namespace Engine
+}// namespace Trinex

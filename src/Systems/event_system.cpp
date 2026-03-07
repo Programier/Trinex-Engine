@@ -20,7 +20,7 @@
 #include <Systems/touchscreen_system.hpp>
 
 
-namespace Engine
+namespace Trinex
 {
 	EventSystem::EventSystem()
 	{
@@ -135,7 +135,7 @@ namespace Engine
 
 	Name EventSystem::event_name(EventType type)
 	{
-		static Refl::Enum* event_type_enum = Refl::Enum::static_find("Engine::EventType", Refl::FindFlags::IsRequired);
+		static Refl::Enum* event_type_enum = Refl::Enum::static_find("Trinex::EventType", Refl::FindFlags::IsRequired);
 		auto entry                         = event_type_enum->entry(static_cast<EnumerateType>(type));
 
 		if (entry)
@@ -198,13 +198,13 @@ namespace Engine
 
 	trinex_implement_engine_class(EventSystem, Refl::Class::IsScriptable)
 	{
-		ReflectionInitializeController().require("Engine::Event");
+		ReflectionInitializeController().require("Trinex::Event");
 
 		auto reg = ScriptClassRegistrar::existing_class(static_reflection());
 
-		reg.funcdef("void Listener(const Engine::Event&)");
+		reg.funcdef("void Listener(const Trinex::Event&)");
 		reg.static_function("EventSystem@ instance()", instance);
 		reg.method("uint64 add_listener(EventType type, EventSystem::Listener@ listener) final", script_add_listener);
 		reg.method("void remove_listener(uint64 listener)", &EventSystem::remove_listener);
 	}
-}// namespace Engine
+}// namespace Trinex

@@ -10,7 +10,7 @@
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 
-namespace Engine::Refl
+namespace Trinex::Refl
 {
 	trinex_implement_reflect_type(Property);
 	trinex_implement_reflect_type(PrimitiveProperty);
@@ -37,7 +37,7 @@ namespace Engine::Refl
 
 	void Property::trigger_object_event(const PropertyChangedEvent& event)
 	{
-		Engine::Object* object = reinterpret_cast<Engine::Object*>(event.context);
+		Trinex::Object* object = reinterpret_cast<Trinex::Object*>(event.context);
 		object->on_property_changed(event);
 	}
 
@@ -115,12 +115,12 @@ namespace Engine::Refl
 
 	usize ObjectProperty::size() const
 	{
-		return sizeof(Engine::Object*);
+		return sizeof(Trinex::Object*);
 	}
 
 	bool ObjectProperty::serialize(void* object, Archive& ar)
 	{
-		Engine::Object*& instance = *address_as<Engine::Object*>(object);
+		Trinex::Object*& instance = *address_as<Trinex::Object*>(object);
 
 		if (m_is_composite)
 		{
@@ -132,24 +132,24 @@ namespace Engine::Refl
 		}
 	}
 
-	Engine::Object* ObjectProperty::object(void* context)
+	Trinex::Object* ObjectProperty::object(void* context)
 	{
-		return *address_as<Engine::Object*>(context);
+		return *address_as<Trinex::Object*>(context);
 	}
 
-	bool ObjectProperty::object(void* context, Engine::Object* object)
+	bool ObjectProperty::object(void* context, Trinex::Object* object)
 	{
 		if (object == nullptr || object->class_instance()->is_a(class_instance()))
 		{
-			(*address_as<Engine::Object*>(context)) = object;
+			(*address_as<Trinex::Object*>(context)) = object;
 			return true;
 		}
 		return false;
 	}
 
-	const Engine::Object* ObjectProperty::object(const void* context) const
+	const Trinex::Object* ObjectProperty::object(const void* context) const
 	{
-		return *address_as<Engine::Object*>(context);
+		return *address_as<Trinex::Object*>(context);
 	}
 
 	bool ObjectProperty::is_composite() const
@@ -258,7 +258,7 @@ namespace Engine::Refl
 		return false;
 	}
 
-	const Engine::Refl::Object* ReflObjectProperty::object(const void* context) const
+	const Trinex::Refl::Object* ReflObjectProperty::object(const void* context) const
 	{
 		return *address_as<const Refl::ObjectProperty*>(context);
 	}
@@ -330,7 +330,7 @@ namespace Engine::Refl
 		{
 			using T = Property::Flag;
 
-			ScriptEnumRegistrar r("Engine::Refl::Property::Flag");
+			ScriptEnumRegistrar r("Trinex::Refl::Property::Flag");
 			r.set("property", 0);
 			r.set("is_read_only", T::IsReadOnly);
 			r.set("is_transient", T::IsTransient);
@@ -343,9 +343,9 @@ namespace Engine::Refl
 		info.implicit_handle = true;
 		info.no_count        = true;
 
-		auto r = ScriptClassRegistrar::reference_class("Engine::Refl::Property", info);
+		auto r = ScriptClassRegistrar::reference_class("Trinex::Refl::Property", info);
 		Property::register_layout(r, Property::static_refl_class_info(), script_downcast<Property>);
 	}
 
-	static ReflectionInitializeController initializer(on_init, "Engine::Refl::Property");
-}// namespace Engine::Refl
+	static ReflectionInitializeController initializer(on_init, "Trinex::Refl::Property");
+}// namespace Trinex::Refl

@@ -22,7 +22,7 @@
 #include <vulkan_state.hpp>
 #include <vulkan_texture.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	static FORCE_INLINE vk::ShaderStageFlags parse_stages_flags(const RHIGraphicsPipelineInitializer* pipeline)
 	{
@@ -646,4 +646,4 @@ namespace Engine
 			return trx_new VulkanRayTracingPipeline(pipeline);
 		return nullptr;
 	}
-}// namespace Engine
+}// namespace Trinex

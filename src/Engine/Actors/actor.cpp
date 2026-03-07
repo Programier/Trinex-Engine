@@ -10,7 +10,7 @@
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_object.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	static ScriptFunction script_actor_spawned;
 	static ScriptFunction script_actor_start_play;
@@ -273,4 +273,4 @@ namespace Engine
 		        ->display_name("Is Visible")
 		        .tooltip("If true, actor is visible in the scene");
 	}
-}// namespace Engine
+}// namespace Trinex

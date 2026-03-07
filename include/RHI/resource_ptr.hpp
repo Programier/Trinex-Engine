@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/export.hpp>
 
-namespace Engine
+namespace Trinex
 {
 
 	class ENGINE_EXPORT RHIResourcePtrBase
@@ -66,4 +66,4 @@ namespace Engine
 
 		RHIResourcePtr& operator=(T* ptr) { return reset(ptr); }
 	};
-}// namespace Engine
+}// namespace Trinex

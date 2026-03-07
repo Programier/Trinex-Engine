@@ -14,7 +14,7 @@
 #include <glm/ext/matrix_integer.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-namespace Engine::Bindings::GLM
+namespace Trinex::Bindings::GLM
 {
 	using glm_element_types = TypesList<bool, i32, u32, float>;
 
@@ -27,7 +27,7 @@ namespace Engine::Bindings::GLM
 
 #define trinex_bindings_engine_typename(type)                                                                                    \
 	template<>                                                                                                                   \
-	constexpr const char* type_names<type> = "Engine::" #type
+	constexpr const char* type_names<type> = "Trinex::" #type
 
 	trinex_bindings_typename(void, void);
 	trinex_bindings_typename(bool, bool);
@@ -1148,4 +1148,4 @@ namespace Engine::Bindings::GLM
 	}
 
 	static PreInitializeController bindings(bind, "glm");
-}// namespace Engine::Bindings::GLM
+}// namespace Trinex::Bindings::GLM

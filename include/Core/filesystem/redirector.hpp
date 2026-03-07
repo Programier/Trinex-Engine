@@ -1,6 +1,6 @@
 #include <Core/filesystem/filesystem.hpp>
 
-namespace Engine::VFS
+namespace Trinex::VFS
 {
 	class ENGINE_EXPORT Redirector : public FileSystem
 	{
@@ -30,4 +30,4 @@ namespace Engine::VFS
 		Type type() const override;
 		Path native_path(const Path& path) const override;
 	};
-}// namespace Engine::VFS
+}// namespace Trinex::VFS

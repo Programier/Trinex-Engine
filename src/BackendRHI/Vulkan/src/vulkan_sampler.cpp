@@ -10,7 +10,7 @@
 #include <vulkan_sampler.hpp>
 #include <vulkan_state.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	static vk::BorderColor parse_border_color(Color color)
 	{
@@ -103,4 +103,4 @@ namespace Engine
 	{
 		return &(trx_new VulkanSampler())->create(sampler);
 	}
-}// namespace Engine
+}// namespace Trinex

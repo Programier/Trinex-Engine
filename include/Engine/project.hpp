@@ -2,7 +2,7 @@
 #include <Core/etl/string.hpp>
 #include <Core/export.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class Path;
 	struct ENGINE_EXPORT Project {
@@ -27,4 +27,4 @@ namespace Engine
 		static String to_string();
 		static void initialize();
 	};
-}// namespace Engine
+}// namespace Trinex

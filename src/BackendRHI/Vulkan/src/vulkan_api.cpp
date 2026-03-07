@@ -30,7 +30,7 @@
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
-namespace Engine
+namespace Trinex
 {
 	VulkanAPI* VulkanAPI::m_vulkan = nullptr;
 
@@ -39,7 +39,7 @@ namespace Engine
 		using VULKAN = VulkanAPI;
 	}
 
-	trinex_implement_struct_default_init(Engine::TRINEX_RHI::VULKAN, 0);
+	trinex_implement_struct_default_init(Trinex::TRINEX_RHI::VULKAN, 0);
 
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
 	                                                     VkDebugUtilsMessageTypeFlagsEXT message_type,
@@ -450,4 +450,4 @@ namespace Engine
 	{
 		API->add_garbage(object);
 	}
-}// namespace Engine
+}// namespace Trinex

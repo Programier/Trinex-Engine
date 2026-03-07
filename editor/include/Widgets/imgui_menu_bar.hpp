@@ -2,7 +2,7 @@
 #include <Core/callback.hpp>
 #include <Core/etl/string.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ImGuiMenuBar final
 	{
@@ -53,4 +53,4 @@ namespace Engine
 		ImGuiMenuBar& clear();
 		~ImGuiMenuBar();
 	};
-}// namespace Engine
+}// namespace Trinex

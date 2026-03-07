@@ -1,36 +1,36 @@
 #include <Core/etl/allocator.hpp>
 
-ENGINE_EXPORT void* operator new(std::size_t size, Engine::ByteAllocatorTag) noexcept
+ENGINE_EXPORT void* operator new(std::size_t size, Trinex::ByteAllocatorTag) noexcept
 {
-	return Engine::ByteAllocator::allocate(size);
+	return Trinex::ByteAllocator::allocate(size);
 }
 
-ENGINE_EXPORT void* operator new(std::size_t size, Engine::StackByteAllocatorTag) noexcept
+ENGINE_EXPORT void* operator new(std::size_t size, Trinex::StackByteAllocatorTag) noexcept
 {
-	return Engine::StackByteAllocator::allocate(size);
+	return Trinex::StackByteAllocator::allocate(size);
 }
 
-ENGINE_EXPORT void* operator new(std::size_t size, Engine::FrameByteAllocatorTag) noexcept
+ENGINE_EXPORT void* operator new(std::size_t size, Trinex::FrameByteAllocatorTag) noexcept
 {
-	return Engine::FrameByteAllocator::allocate(size);
+	return Trinex::FrameByteAllocator::allocate(size);
 }
 
-ENGINE_EXPORT void* operator new(std::size_t size, std::align_val_t align, Engine::ByteAllocatorTag) noexcept
+ENGINE_EXPORT void* operator new(std::size_t size, std::align_val_t align, Trinex::ByteAllocatorTag) noexcept
 {
-	return Engine::ByteAllocator::allocate_aligned(size, static_cast<std::size_t>(align));
+	return Trinex::ByteAllocator::allocate_aligned(size, static_cast<std::size_t>(align));
 }
 
-ENGINE_EXPORT void* operator new(std::size_t size, std::align_val_t align, Engine::StackByteAllocatorTag) noexcept
+ENGINE_EXPORT void* operator new(std::size_t size, std::align_val_t align, Trinex::StackByteAllocatorTag) noexcept
 {
-	return Engine::StackByteAllocator::allocate_aligned(size, static_cast<std::size_t>(align));
+	return Trinex::StackByteAllocator::allocate_aligned(size, static_cast<std::size_t>(align));
 }
 
-ENGINE_EXPORT void* operator new(std::size_t size, std::align_val_t align, Engine::FrameByteAllocatorTag) noexcept
+ENGINE_EXPORT void* operator new(std::size_t size, std::align_val_t align, Trinex::FrameByteAllocatorTag) noexcept
 {
-	return Engine::FrameByteAllocator::allocate_aligned(size, static_cast<std::size_t>(align));
+	return Trinex::FrameByteAllocator::allocate_aligned(size, static_cast<std::size_t>(align));
 }
 
-ENGINE_EXPORT void operator delete(void* ptr, Engine::ByteAllocatorTag) noexcept
+ENGINE_EXPORT void operator delete(void* ptr, Trinex::ByteAllocatorTag) noexcept
 {
-	Engine::ByteAllocator::deallocate(static_cast<unsigned char*>(ptr));
+	Trinex::ByteAllocator::deallocate(static_cast<unsigned char*>(ptr));
 }

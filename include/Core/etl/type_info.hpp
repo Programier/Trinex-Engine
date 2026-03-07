@@ -5,7 +5,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace Engine
+namespace Trinex
 {
 	class Object;
 
@@ -15,7 +15,7 @@ namespace Engine
 		static consteval auto substring_as_array(std::string_view str, std::index_sequence<indices...>)
 		{
 			return std::array{str[indices]..., '\0'};
-		}// namespace Engine
+		}// namespace Trinex
 
 		template<typename T>
 		static consteval auto type_name_array()
@@ -108,4 +108,4 @@ namespace Engine
 
 		consteval bool operator!=(const type_info& info) const { return name() != info.name(); }
 	};
-}// namespace Engine
+}// namespace Trinex

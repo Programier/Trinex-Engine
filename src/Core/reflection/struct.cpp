@@ -7,7 +7,7 @@
 
 #include <Graphics/gpu_buffers.hpp>
 
-namespace Engine::Refl
+namespace Trinex::Refl
 {
 	trinex_implement_reflect_type(Struct);
 
@@ -360,7 +360,7 @@ namespace Engine::Refl
 	void Struct::register_layout(ScriptClassRegistrar& r, ClassInfo* info, DownCast downcast)
 	{
 		Super::register_layout(r, info, downcast);
-		ReflectionInitializeController().require("Engine::Refl::Property").require("Engine::ScriptVector");
+		ReflectionInitializeController().require("Trinex::Refl::Property").require("Trinex::ScriptVector");
 
 		using T = Struct;
 		r.method("uint64 size() const", &T::size);
@@ -381,13 +381,13 @@ namespace Engine::Refl
 		info.implicit_handle = true;
 		info.no_count        = true;
 
-		auto r = ScriptClassRegistrar::reference_class("Engine::Refl::Struct", info);
+		auto r = ScriptClassRegistrar::reference_class("Trinex::Refl::Struct", info);
 		Struct::register_layout(r, Struct::static_refl_class_info(), script_downcast<Struct>);
 
 		r.method("Struct@ parent() const", &Struct::parent);
-		r.static_function("Struct@ static_find(Engine::StringView name, int flags = 0)", Struct::static_find<Struct>);
+		r.static_function("Struct@ static_find(Trinex::StringView name, int flags = 0)", Struct::static_find<Struct>);
 		r.static_function("Struct@ static_require(StringView name, int flags = 0)", Struct::static_require<Struct>);
 	}
 
-	static ReflectionInitializeController initializer(on_init, "Engine::Refl::Struct");
-}// namespace Engine::Refl
+	static ReflectionInitializeController initializer(on_init, "Trinex::Refl::Struct");
+}// namespace Trinex::Refl

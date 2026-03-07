@@ -7,7 +7,7 @@ struct ANativeWindow;
 struct AInputEvent;
 struct ImGuiContext;
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT AndroidWindow : public Window
 	{
@@ -63,4 +63,4 @@ namespace Engine
 
 		~AndroidWindow();
 	};
-}// namespace Engine
+}// namespace Trinex

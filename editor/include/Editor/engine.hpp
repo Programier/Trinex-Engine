@@ -2,7 +2,7 @@
 #include <Core/base_engine.hpp>
 #include <Core/etl/flat_set.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class Actor;
 	class Level;
@@ -26,4 +26,4 @@ namespace Engine
 		EditorEngine& is_selected(Actor* actor, bool status);
 		bool is_selected(Actor* actor) const;
 	};
-}// namespace Engine
+}// namespace Trinex

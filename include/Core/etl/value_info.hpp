@@ -3,7 +3,7 @@
 #include <string_view>
 #include <utility>
 
-namespace Engine
+namespace Trinex
 {
 	template<auto value>
 	class value_info
@@ -45,4 +45,4 @@ namespace Engine
 	public:
 		static consteval const char* name() { return m_value.data(); }
 	};
-}// namespace Engine
+}// namespace Trinex

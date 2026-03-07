@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/engine_types.hpp>
 
-namespace Engine::Mouse
+namespace Trinex::Mouse
 {
 	struct Status {
 		enum Enum : EnumerateType
@@ -31,4 +31,4 @@ namespace Engine::Mouse
 		trinex_enum_struct(Button);
 		trinex_enum(Button);
 	};
-}// namespace Engine::Mouse
+}// namespace Trinex::Mouse

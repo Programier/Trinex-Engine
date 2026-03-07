@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/engine_types.hpp>
 
-namespace Engine::Keyboard
+namespace Trinex::Keyboard
 {
 	enum Status : EnumerateType
 	{
@@ -134,4 +134,4 @@ namespace Engine::Keyboard
 		Menu,
 		__COUNT__
 	};
-}// namespace Engine::Keyboard
+}// namespace Trinex::Keyboard

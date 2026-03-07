@@ -6,7 +6,7 @@
 #include <ScriptEngine/script_type_info.hpp>
 #include <angelscript.h>
 
-namespace Engine::Refl
+namespace Trinex::Refl
 {
 	trinex_implement_reflect_type(Enum);
 
@@ -106,4 +106,4 @@ namespace Engine::Refl
 	{
 		return m_entries;
 	}
-}// namespace Engine::Refl
+}// namespace Trinex::Refl

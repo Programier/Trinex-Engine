@@ -6,7 +6,7 @@
 #include <vulkan_destroyable.hpp>
 #include <vulkan_headers.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class VulkanContext;
 
@@ -128,4 +128,4 @@ namespace Engine
 		vk::ImageViewType image_view_type() const override { return m_view_type; }
 		RHITextureType texture_type() const override { return m_texture_type; }
 	};
-}// namespace Engine
+}// namespace Trinex

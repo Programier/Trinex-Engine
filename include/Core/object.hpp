@@ -8,7 +8,7 @@
 #include <Core/name.hpp>
 #include <angelscript_object.h>
 
-namespace Engine
+namespace Trinex
 {
 	class Package;
 	class Object;
@@ -204,7 +204,7 @@ namespace Engine
 		{
 			constexpr bool invalid =
 			        check_constructible &&
-			        (std::is_abstract_v<Type> || (!std::is_constructible_v<Type, Args...> && !Engine::is_singletone_v<Type>) );
+			        (std::is_abstract_v<Type> || (!std::is_constructible_v<Type, Args...> && !Trinex::is_singletone_v<Type>) );
 
 			if constexpr (invalid)
 			{
@@ -237,7 +237,7 @@ namespace Engine
 		{
 			constexpr bool invalid =
 			        check_constructible &&
-			        (std::is_abstract_v<Type> || (!std::is_constructible_v<Type, Args...> && !Engine::is_singletone_v<Type>) );
+			        (std::is_abstract_v<Type> || (!std::is_constructible_v<Type, Args...> && !Trinex::is_singletone_v<Type>) );
 
 			if constexpr (invalid)
 			{
@@ -379,36 +379,36 @@ namespace Engine
 
 #define trinex_class(class_name, base_name)                                                                                      \
 protected:                                                                                                                       \
-	static class Engine::Refl::Class* m_static_class;                                                                            \
+	static class Trinex::Refl::Class* m_static_class;                                                                            \
                                                                                                                                  \
 public:                                                                                                                          \
 	using This  = class_name;                                                                                                    \
 	using Super = base_name;                                                                                                     \
 	static void static_initialize_class();                                                                                       \
-	static class Engine::Refl::Class* static_reflection();                                                                       \
+	static class Trinex::Refl::Class* static_reflection();                                                                       \
                                                                                                                                  \
 private:
 
 #define trinex_implement_class(decl, flags)                                                                                      \
-	class Engine::Refl::Class* decl::m_static_class = nullptr;                                                                   \
+	class Trinex::Refl::Class* decl::m_static_class = nullptr;                                                                   \
                                                                                                                                  \
-	class Engine::Refl::Class* decl::static_reflection()                                                                         \
+	class Trinex::Refl::Class* decl::static_reflection()                                                                         \
 	{                                                                                                                            \
 		if (!m_static_class)                                                                                                     \
 		{                                                                                                                        \
-			m_static_class = Engine::Refl::NativeClass<decl>::create(#decl, flags);                                              \
+			m_static_class = Trinex::Refl::NativeClass<decl>::create(#decl, flags);                                              \
 		}                                                                                                                        \
 		return m_static_class;                                                                                                   \
 	}                                                                                                                            \
-	static Engine::u8 TRINEX_CONCAT(trinex_engine_refl_class_, __LINE__) = static_cast<Engine::u8>(                              \
-	        Engine::Refl::Object::static_register_initializer([]() { decl::static_reflection(); }, #decl));                      \
+	static Trinex::u8 TRINEX_CONCAT(trinex_engine_refl_class_, __LINE__) = static_cast<Trinex::u8>(                              \
+	        Trinex::Refl::Object::static_register_initializer([]() { decl::static_reflection(); }, #decl));                      \
 	void decl::static_initialize_class()
 
 
 #define trinex_implement_class_default_init(decl, flags)                                                                         \
 	trinex_implement_class(decl, flags) {}
 
-#define trinex_implement_engine_class(decl, flags) trinex_implement_class(Engine::decl, flags)
+#define trinex_implement_engine_class(decl, flags) trinex_implement_class(Trinex::decl, flags)
 #define trinex_implement_engine_class_default_init(decl, flags)                                                                  \
 	trinex_implement_engine_class(decl, flags) {}
-}// namespace Engine
+}// namespace Trinex

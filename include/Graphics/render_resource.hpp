@@ -2,7 +2,7 @@
 #include <Core/object.hpp>
 #include <RHI/resource_ptr.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT RenderResource : public Object
 	{
@@ -15,4 +15,4 @@ namespace Engine
 		RenderResource& on_destroy() override;
 		RenderResource& postload() override;
 	};
-}// namespace Engine
+}// namespace Trinex

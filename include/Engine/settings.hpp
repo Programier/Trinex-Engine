@@ -2,7 +2,7 @@
 #include <Core/etl/string.hpp>
 #include <Core/etl/vector.hpp>
 
-namespace Engine::Settings
+namespace Trinex::Settings
 {
 	extern ENGINE_EXPORT String engine_class;
 	extern ENGINE_EXPORT String default_language;
@@ -48,4 +48,4 @@ namespace Engine::Settings
 		extern ENGINE_EXPORT i32 copyright_text_size;
 		extern ENGINE_EXPORT i32 game_name_text_size;
 	}// namespace Splash
-}// namespace Engine::Settings
+}// namespace Trinex::Settings

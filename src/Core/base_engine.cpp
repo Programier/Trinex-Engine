@@ -14,7 +14,7 @@
 #include <Window/window_manager.hpp>
 #include <chrono>
 
-namespace Engine
+namespace Trinex
 {
 	trinex_implement_engine_class_default_init(BaseEngine, 0);
 
@@ -139,4 +139,4 @@ namespace Engine
 	}
 
 	ENGINE_EXPORT BaseEngine* engine_instance = nullptr;
-}// namespace Engine
+}// namespace Trinex

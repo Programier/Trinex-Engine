@@ -3,7 +3,7 @@
 #include <Core/etl/function.hpp>
 #include <Core/etl/vector.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	template<typename Signature>
 	using CallBack = Function<Signature>;
@@ -165,4 +165,4 @@ namespace Engine
 
 		~CallBacks() { clear(); }
 	};
-}// namespace Engine
+}// namespace Trinex

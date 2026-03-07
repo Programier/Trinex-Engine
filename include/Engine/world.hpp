@@ -1,7 +1,7 @@
 #pragma once
 #include <Engine/level.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class Scene;
 
@@ -32,4 +32,4 @@ namespace Engine
 		inline const Vector<class Level*>& levels() const { return m_levels; }
 		inline Scene* scene() const { return m_scene; }
 	};
-}// namespace Engine
+}// namespace Trinex

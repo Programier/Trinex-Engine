@@ -3,7 +3,7 @@
 #include <dxgi1_4.h>
 #include <none_api.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class D3D12DescritorManager;
 	class D3D12CommandAlloctor;
@@ -80,4 +80,4 @@ namespace Engine
 
 		D3D12& draw(size_t vertex_count, size_t vertices_offset) override;
 	};
-}// namespace Engine
+}// namespace Trinex

@@ -4,7 +4,7 @@
 
 class asIScriptGeneric;
 
-namespace Engine
+namespace Trinex
 {
 	struct ENGINE_EXPORT ScriptFuncPtr {
 	public:
@@ -49,4 +49,4 @@ namespace Engine
 			return method_ptr_general(reinterpret_cast<GeneralMethod>(func));
 		}
 	};
-}// namespace Engine
+}// namespace Trinex

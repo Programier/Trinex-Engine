@@ -2,7 +2,7 @@
 #include <Core/userdata.hpp>
 #include <Graphics/imgui.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	namespace Refl
 	{
@@ -104,4 +104,4 @@ namespace Engine
 			static Context* static_context();
 		};
 	}// namespace UI
-}// namespace Engine
+}// namespace Trinex

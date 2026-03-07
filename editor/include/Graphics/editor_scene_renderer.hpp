@@ -3,7 +3,7 @@
 #include <Core/math/vector.hpp>
 #include <Engine/Render/deferred_renderer.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class Actor;
 
@@ -19,4 +19,4 @@ namespace Engine
 		EditorRenderer& render_outlines(Actor* const* actors = nullptr, usize count = 0);
 		EditorRenderer& render_primitives(Actor* const* actors = nullptr, usize count = 0);
 	};
-}// namespace Engine
+}// namespace Trinex

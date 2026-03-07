@@ -2,12 +2,12 @@
 #include <Core/keyboard.hpp>
 #include <ScriptEngine/registrar.hpp>
 
-namespace Engine::Keyboard
+namespace Trinex::Keyboard
 {
 	static void on_init()
 	{
-		ScriptEnumRegistrar status_registrar("Engine::Keyboard::Status");
-		ScriptEnumRegistrar key_registrar("Engine::Keyboard::Key");
+		ScriptEnumRegistrar status_registrar("Trinex::Keyboard::Status");
+		ScriptEnumRegistrar key_registrar("Trinex::Keyboard::Key");
 
 		status_registrar.set("Released", Released);
 		status_registrar.set("JustReleased", JustReleased);
@@ -137,5 +137,5 @@ namespace Engine::Keyboard
 	};
 
 
-	static ReflectionInitializeController controller(on_init, "Engine::Keyboard");
-}// namespace Engine::Keyboard
+	static ReflectionInitializeController controller(on_init, "Trinex::Keyboard");
+}// namespace Trinex::Keyboard

@@ -6,14 +6,14 @@
 #include <Core/reflection/object.hpp>
 #include <Core/types/color.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class Object;
 	class ScriptFunction;
 	class Path;
-}// namespace Engine
+}// namespace Trinex
 
-namespace Engine::Refl
+namespace Trinex::Refl
 {
 	template<typename T>
 	class SubClassOf;
@@ -303,7 +303,7 @@ private:
 
 	class ENGINE_EXPORT ColorProperty : public PrimitiveProperty
 	{
-		trinex_refl_prop_type_filter(std::is_same_v<T, Engine::Color>);
+		trinex_refl_prop_type_filter(std::is_same_v<T, Trinex::Color>);
 		trinex_reflect_type(ColorProperty, PrimitiveProperty);
 
 	public:
@@ -312,7 +312,7 @@ private:
 
 	class ENGINE_EXPORT LinearColorProperty : public PrimitiveProperty
 	{
-		trinex_refl_prop_type_filter(std::is_same_v<T, Engine::LinearColor>);
+		trinex_refl_prop_type_filter(std::is_same_v<T, Trinex::LinearColor>);
 		trinex_reflect_type(LinearColorProperty, PrimitiveProperty);
 
 	public:
@@ -356,7 +356,7 @@ private:
 	class ENGINE_EXPORT ObjectProperty : public Property
 	{
 		trinex_reflect_type(ObjectProperty, Property);
-		trinex_refl_prop_type_filter(std::is_pointer_v<T>&& std::is_base_of_v<Engine::Object, std::remove_pointer_t<T>>);
+		trinex_refl_prop_type_filter(std::is_pointer_v<T>&& std::is_base_of_v<Trinex::Object, std::remove_pointer_t<T>>);
 
 	private:
 		bool m_is_composite = false;
@@ -367,9 +367,9 @@ private:
 		usize size() const override;
 		bool serialize(void* object, Archive& ar) override;
 
-		Engine::Object* object(void* context);
-		bool object(void* context, Engine::Object* object);
-		const Engine::Object* object(const void* context) const;
+		Trinex::Object* object(void* context);
+		bool object(void* context, Trinex::Object* object);
+		const Trinex::Object* object(const void* context) const;
 		bool is_composite() const;
 		ObjectProperty& is_composite(bool flag);
 
@@ -403,7 +403,7 @@ private:
 		};
 
 		template<typename T, typename Alloc>
-		struct IsArray<Engine::Vector<T, Alloc>> : std::true_type {
+		struct IsArray<Trinex::Vector<T, Alloc>> : std::true_type {
 		};
 
 		template<typename T>
@@ -411,7 +411,7 @@ private:
 		};
 
 		template<typename T>
-		struct IsScriptableArray<Engine::Vector<T>> : std::true_type {
+		struct IsScriptableArray<Trinex::Vector<T>> : std::true_type {
 		};
 
 		trinex_refl_prop_type_filter(IsArray<T>::value);
@@ -451,7 +451,7 @@ private:
 	class ENGINE_EXPORT ReflObjectProperty : public Property
 	{
 		trinex_reflect_type(ReflObjectProperty, Property);
-		trinex_refl_prop_type_filter(std::is_pointer_v<T>&& std::is_base_of_v<Engine::Refl::Object, std::remove_pointer_t<T>>);
+		trinex_refl_prop_type_filter(std::is_pointer_v<T>&& std::is_base_of_v<Trinex::Refl::Object, std::remove_pointer_t<T>>);
 
 	public:
 		using Property::Property;
@@ -461,7 +461,7 @@ private:
 
 		Refl::Object* object(void* context);
 		bool object(void* context, Refl::Object* object);
-		const Engine::Refl::Object* object(const void* context) const;
+		const Trinex::Refl::Object* object(const void* context) const;
 
 		virtual Refl::ClassInfo* info() const = 0;
 	};
@@ -558,7 +558,7 @@ private:
 
 		TypedProperty& on_property_changed(const PropertyChangedEvent& event) override
 		{
-			if constexpr (std::is_base_of_v<Engine::Object, Instance>)
+			if constexpr (std::is_base_of_v<Trinex::Object, Instance>)
 			{
 				Property::trigger_object_event(event);
 			}
@@ -928,17 +928,17 @@ private:
 
 #undef trinex_refl_prop_type_filter
 #define trinex_refl_prop(prop_name, ...)                                                                                         \
-	This::static_reflection()->new_child<Engine::Refl::NativeProperty<&This::prop_name>>(#prop_name __VA_OPT__(, ) __VA_ARGS__)
+	This::static_reflection()->new_child<Trinex::Refl::NativeProperty<&This::prop_name>>(#prop_name __VA_OPT__(, ) __VA_ARGS__)
 
 #define trinex_refl_virtual_prop(prop_name, getter, setter, ...)                                                                 \
-	decltype(Engine::Refl::TypedVirtualProperty(&This::getter, &This::setter))::construct(                                       \
+	decltype(Trinex::Refl::TypedVirtualProperty(&This::getter, &This::setter))::construct(                                       \
 	        This::static_reflection(), #prop_name, &This::getter, &This::setter __VA_OPT__(, ) __VA_ARGS__)
 
 #define trinex_refl_prop_ext(extension, prop_name, ...)                                                                          \
-	This::static_reflection()->new_child<extension<Engine::Refl::NativeProperty<&This::prop_name>>>(#prop_name __VA_OPT__(, )    \
+	This::static_reflection()->new_child<extension<Trinex::Refl::NativeProperty<&This::prop_name>>>(#prop_name __VA_OPT__(, )    \
 	                                                                                                        __VA_ARGS__)
 
 #define trinex_refl_virtual_prop_ext(extension, prop_name, getter, setter, ...)                                                  \
-	This::static_reflection()->new_child<extension<decltype(Engine::Refl::TypedVirtualProperty(&This::getter, &This::setter))>>( \
+	This::static_reflection()->new_child<extension<decltype(Trinex::Refl::TypedVirtualProperty(&This::getter, &This::setter))>>( \
 	        #prop_name, &This::getter, &This::setter __VA_OPT__(, ) __VA_ARGS__)
-}// namespace Engine::Refl
+}// namespace Trinex::Refl

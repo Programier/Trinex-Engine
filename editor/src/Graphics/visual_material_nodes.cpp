@@ -8,11 +8,11 @@
 #include <Graphics/visual_material_nodes.hpp>
 #include <RHI/initializers.hpp>
 
-namespace Engine::VisualMaterialGraph
+namespace Trinex::VisualMaterialGraph
 {
-	trinex_implement_class(Engine::VisualMaterialGraph::MaterialRoot, 0) {}
+	trinex_implement_class(Trinex::VisualMaterialGraph::MaterialRoot, 0) {}
 
-	trinex_implement_class(Engine::VisualMaterialGraph::Texture2D, 0)
+	trinex_implement_class(Trinex::VisualMaterialGraph::Texture2D, 0)
 	{
 		static_node_group(static_reflection(), "Textures");
 
@@ -20,7 +20,7 @@ namespace Engine::VisualMaterialGraph
 		trinex_refl_prop(texture);
 	}
 
-	trinex_implement_class(Engine::VisualMaterialGraph::Sampler, 0)
+	trinex_implement_class(Trinex::VisualMaterialGraph::Sampler, 0)
 	{
 		static_node_group(static_reflection(), "Textures");
 
@@ -28,7 +28,7 @@ namespace Engine::VisualMaterialGraph
 		trinex_refl_prop(sampler, Refl::Property::Inline);
 	}
 
-	trinex_implement_class(Engine::VisualMaterialGraph::SampleTexture, 0)
+	trinex_implement_class(Trinex::VisualMaterialGraph::SampleTexture, 0)
 	{
 		static_node_group(static_reflection(), "Textures");
 
@@ -59,7 +59,7 @@ namespace Engine::VisualMaterialGraph
 		new_output("Tex", RHIShaderParameterType::Texture2D);
 	}
 
-	Texture2D* Texture2D::static_find_node(Engine::Texture2D* texture, Compiler& compiler, u16 id)
+	Texture2D* Texture2D::static_find_node(Trinex::Texture2D* texture, Compiler& compiler, u16 id)
 	{
 		Node* redirected_node = compiler.find_redirection(static_reflection(), reinterpret_cast<Identifier>(texture));
 
@@ -107,7 +107,7 @@ namespace Engine::VisualMaterialGraph
 		return *this;
 	}
 
-	void Texture2D::static_post_compile(VisualMaterial* material, Engine::Texture2D* texture, u16 id, StringView name_override)
+	void Texture2D::static_post_compile(VisualMaterial* material, Trinex::Texture2D* texture, u16 id, StringView name_override)
 	{
 		MaterialParameters::Parameter* parameter = nullptr;
 
@@ -133,7 +133,7 @@ namespace Engine::VisualMaterialGraph
 			new_output("Out", RHIShaderParameterType::Sampler);
 	}
 
-	Sampler* Sampler::static_find_node(const Engine::Sampler& sampler, Compiler& compiler, u16 id)
+	Sampler* Sampler::static_find_node(const Trinex::Sampler& sampler, Compiler& compiler, u16 id)
 	{
 		Node* redirected_node = compiler.find_redirection(static_reflection(), sampler.initializer().hash());
 
@@ -171,7 +171,7 @@ namespace Engine::VisualMaterialGraph
 		return *this;
 	}
 
-	void Sampler::static_post_compile(VisualMaterial* material, const Engine::Sampler& sampler, u16 id, StringView name_override)
+	void Sampler::static_post_compile(VisualMaterial* material, const Trinex::Sampler& sampler, u16 id, StringView name_override)
 	{
 		MaterialParameters::Parameter* parameter = nullptr;
 
@@ -236,7 +236,7 @@ namespace Engine::VisualMaterialGraph
 		return compiler.compile(sampler_node->sampler_pin());
 	}
 
-	Engine::Texture2D* SampleTexture::find_texture()
+	Trinex::Texture2D* SampleTexture::find_texture()
 	{
 		Node* node = this;
 
@@ -334,4 +334,4 @@ namespace Engine::VisualMaterialGraph
 
 		return *this;
 	}
-}// namespace Engine::VisualMaterialGraph
+}// namespace Trinex::VisualMaterialGraph

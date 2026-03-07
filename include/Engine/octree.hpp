@@ -3,7 +3,7 @@
 #include <Core/etl/set.hpp>
 #include <Core/math/box.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	template<typename ElementType, typename HashType = Hash<ElementType>, typename Pred = std::equal_to<ElementType>>
 	class Octree
@@ -216,4 +216,4 @@ namespace Engine
 
 		~Octree() { trx_delete_inline(m_root_node); }
 	};
-}// namespace Engine
+}// namespace Trinex

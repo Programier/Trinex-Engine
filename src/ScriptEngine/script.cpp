@@ -16,7 +16,7 @@
 #include <angelscript.h>
 #include <scriptbuilder.h>
 
-namespace Engine
+namespace Trinex
 {
 	ScriptFolder::ScriptFolder(const String& name, ScriptFolder* parent) : m_name(name), m_parent(parent)
 	{
@@ -417,7 +417,7 @@ namespace Engine
 	static bool is_child_of_object(const ScriptTypeInfo& info)
 	{
 		auto p_info      = info.info();
-		auto object_info = Engine::Object::static_reflection()->script_type_info.info();
+		auto object_info = Trinex::Object::static_reflection()->script_type_info.info();
 
 		while (p_info && p_info != object_info)
 		{
@@ -768,4 +768,4 @@ namespace Engine
 		scripts_folder()->load_scripts();
 		return instance();
 	}
-}// namespace Engine
+}// namespace Trinex

@@ -2,7 +2,7 @@
 #include <Core/enums.hpp>
 #include <Core/reflection/enum.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	trinex_implement_engine_enum(OperationSystemType, Refl::Enum::IsScriptable, Linux, Windows, Android);
 	trinex_implement_engine_enum(PhysicalSizeMetric, Refl::Enum::IsScriptable, Inch, Сentimeters);
@@ -16,4 +16,4 @@ namespace Engine
 	trinex_implement_engine_enum(MessageBoxType, Refl::Enum::IsScriptable, Error, Warning, Info);
 	trinex_implement_engine_enum(MaterialDomain, Refl::Enum::IsScriptable, Surface, PostProcess);
 	trinex_implement_engine_enum(SplashTextType, Refl::Enum::IsScriptable, StartupProgress, VersionInfo, CopyrightInfo, GameName);
-}// namespace Engine
+}// namespace Trinex

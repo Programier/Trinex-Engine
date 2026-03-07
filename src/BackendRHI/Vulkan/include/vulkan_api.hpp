@@ -12,7 +12,7 @@
 #include <vulkan_definitions.hpp>
 #include <vulkan_headers.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class VulkanBuffer;
 	class VulkanTexture;
@@ -195,4 +195,4 @@ namespace Engine
 
 		~VulkanAPI();
 	};
-}// namespace Engine
+}// namespace Trinex

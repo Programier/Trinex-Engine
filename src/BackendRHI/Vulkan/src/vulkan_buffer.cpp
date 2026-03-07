@@ -15,7 +15,7 @@
 #include <vulkan_resource_view.hpp>
 #include <vulkan_state.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	VulkanBuffer& VulkanBuffer::create(vk::DeviceSize size, RHIBufferCreateFlags flags, VmaMemoryUsage memory_usage)
 	{
@@ -415,4 +415,4 @@ namespace Engine
 		m_cmd->copyBuffer(src_buffer->buffer(), dst_buffer->buffer(), region);
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

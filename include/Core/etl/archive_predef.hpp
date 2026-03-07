@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/serializer.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class Archive;
 
@@ -17,4 +17,4 @@ namespace Engine
 
 	template<typename T>
 	concept is_complete_archive_type = requires { is_archive<T>::value && sizeof(T); };
-}// namespace Engine
+}// namespace Trinex

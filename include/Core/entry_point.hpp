@@ -3,7 +3,7 @@
 #include <Core/object.hpp>
 
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT EntryPoint : public Object
 	{
@@ -12,4 +12,4 @@ namespace Engine
 	public:
 		virtual i32 execute();
 	};
-}// namespace Engine
+}// namespace Trinex

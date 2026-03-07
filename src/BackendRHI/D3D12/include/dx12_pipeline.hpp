@@ -5,7 +5,7 @@
 #include <dx12_destroyable.hpp>
 #include <dx12_headers.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class D3D12_State;
 
@@ -51,4 +51,4 @@ namespace Engine
 		D3D12_GraphicsPipeline& flush(D3D12_State* state);
 		void bind() override;
 	};
-}// namespace Engine
+}// namespace Trinex

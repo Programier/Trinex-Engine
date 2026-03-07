@@ -2,7 +2,7 @@
 #include <Core/etl/vector.hpp>
 #include <Core/name.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class Object;
 
@@ -106,4 +106,4 @@ namespace Engine
 			return Super::find_child_object(name.to_string());
 		}
 	};
-}// namespace Engine
+}// namespace Trinex

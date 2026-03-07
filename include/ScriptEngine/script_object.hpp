@@ -8,7 +8,7 @@
 
 class asIScriptObject;
 
-namespace Engine
+namespace Trinex
 {
 	class ScriptTypeInfo;
 	class ScriptFunction;
@@ -85,4 +85,4 @@ namespace Engine
 
 		ScriptTypeInfo type_info() const override;
 	};
-}// namespace Engine
+}// namespace Trinex

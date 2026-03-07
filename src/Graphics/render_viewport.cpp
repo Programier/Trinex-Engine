@@ -11,7 +11,7 @@
 #include <ScriptEngine/script_object.hpp>
 #include <Window/window.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	static ScriptFunction vc_update;
 	static ScriptFunction vc_on_bind_viewport;
@@ -238,4 +238,4 @@ namespace Engine
 	{
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

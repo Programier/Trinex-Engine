@@ -3,7 +3,7 @@
 #include <Engine/Render/batched_primitives.hpp>
 #include <Engine/scene_view.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class Scene;
 	class RenderSurface;
@@ -104,4 +104,4 @@ namespace Engine
 		virtual ~Renderer() {}
 	};
 
-}// namespace Engine
+}// namespace Trinex

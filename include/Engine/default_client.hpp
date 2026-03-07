@@ -1,7 +1,7 @@
 #pragma once
 #include <Graphics/render_viewport.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	// This viewport can be used for testing something
 	class ENGINE_EXPORT DefaultClient : public ViewportClient
@@ -14,4 +14,4 @@ namespace Engine
 		DefaultClient& on_bind_viewport(class RenderViewport* viewport) override;
 		DefaultClient& update(class RenderViewport* viewport, float dt) override;
 	};
-}// namespace Engine
+}// namespace Trinex

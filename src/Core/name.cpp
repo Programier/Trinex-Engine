@@ -8,7 +8,7 @@
 #include <Core/name.hpp>
 #include <ScriptEngine/registrar.hpp>
 
-namespace Engine
+namespace Trinex
 {
 
 #define declare_custom_name(var_name, name) const Name Name::var_name = #name
@@ -276,7 +276,7 @@ namespace Engine
 
 	static void on_init()
 	{
-		ReflectionInitializeController().require("Engine::StringView");
+		ReflectionInitializeController().require("Trinex::StringView");
 		ScriptClassRegistrar::ValueInfo info;
 		info.all_ints          = true;
 		info.more_constructors = true;
@@ -284,7 +284,7 @@ namespace Engine
 		info.has_constructor   = true;
 		info.align8            = true;
 
-		ScriptClassRegistrar registrar = ScriptClassRegistrar::value_class("Engine::Name", sizeof(Name), info);
+		ScriptClassRegistrar registrar = ScriptClassRegistrar::value_class("Trinex::Name", sizeof(Name), info);
 
 		registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<Name>,
 		                 ScriptCallConv::CDeclObjFirst);
@@ -299,8 +299,8 @@ namespace Engine
 		registrar.method("const string& to_string() const", overload_of<const String&()>(&Name::to_string));
 		registrar.method("const Name& to_string(string&) const", overload_of<const Name&()>(&Name::to_string));
 
-		registrar.method("Engine::Name& opAssign(const StringView&)", overload_of<Name&(const StringView&)>(&Name::operator=));
-		registrar.method("Engine::Name& opAssign(const string&)", overload_of<Name&(const String&)>(&Name::operator=));
+		registrar.method("Trinex::Name& opAssign(const StringView&)", overload_of<Name&(const StringView&)>(&Name::operator=));
+		registrar.method("Trinex::Name& opAssign(const string&)", overload_of<Name&(const String&)>(&Name::operator=));
 		registrar.method("bool opEquals(const StringView&) const", overload_of<bool(const StringView&)>(&Name::operator==));
 		registrar.method("bool opEquals(const string&) const", overload_of<bool(const String&)>(&Name::operator==));
 		registrar.method("bool opEquals(const Name&) const", overload_of<bool(const Name&)>(&Name::operator==));
@@ -309,5 +309,5 @@ namespace Engine
 		registrar.method("const string& opImplConv() const", &Name::operator const std::basic_string<char>&);
 	}
 
-	static ReflectionInitializeController controller(on_init, "Engine::Name");
-}// namespace Engine
+	static ReflectionInitializeController controller(on_init, "Trinex::Name");
+}// namespace Trinex

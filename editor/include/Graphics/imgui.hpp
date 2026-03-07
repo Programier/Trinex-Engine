@@ -5,16 +5,16 @@
 #include <Core/object.hpp>
 #include <imgui.h>
 
-namespace Engine
+namespace Trinex
 {
 	struct Event;
 	class RenderViewport;
 	class Window;
 	class RHIContext;
-}// namespace Engine
+}// namespace Trinex
 
 
-namespace Engine
+namespace Trinex
 {
 	namespace ImGuiBackend_RHI
 	{
@@ -144,22 +144,22 @@ namespace Engine
 		template<typename T>
 		friend class Refl::NativeClass;
 	};
-}// namespace Engine
+}// namespace Trinex
 
 
 struct ImGuiWindow;
 
 namespace ImGui
 {
-	Engine::RHIContext* GetCurrentRHI();
+	Trinex::RHIContext* GetCurrentRHI();
 
 	FORCE_INLINE ImVec4 MakeHoveredColor(ImVec4 color)
 	{
 		const float factor = 0.2f;
 
-		color.x = Engine::Math::lerp(color.x, 1.f, factor);
-		color.y = Engine::Math::lerp(color.y, 1.f, factor);
-		color.z = Engine::Math::lerp(color.z, 1.f, factor);
+		color.x = Trinex::Math::lerp(color.x, 1.f, factor);
+		color.y = Trinex::Math::lerp(color.y, 1.f, factor);
+		color.z = Trinex::Math::lerp(color.z, 1.f, factor);
 		return color;
 	}
 
@@ -167,13 +167,13 @@ namespace ImGui
 
 	void TextEllipsis(const char* text, float max_width);
 
-	bool InputText(const char* label, Engine::String& buffer, ImGuiInputTextFlags flags = 0,
+	bool InputText(const char* label, Trinex::String& buffer, ImGuiInputTextFlags flags = 0,
 	               ImGuiInputTextCallback callback = nullptr, void* user_data = nullptr);
 
-	bool InputTextMultiline(const char* label, Engine::String& buffer, const ImVec2& size = ImVec2(0.0f, 0.0f),
+	bool InputTextMultiline(const char* label, Trinex::String& buffer, const ImVec2& size = ImVec2(0.0f, 0.0f),
 	                        ImGuiInputTextFlags flags = 0, ImGuiInputTextCallback callback = nullptr, void* user_data = nullptr);
 
-	bool InputTextWithHint(const char* label, const char* hint, Engine::String& buffer, ImGuiInputTextFlags flags = 0,
+	bool InputTextWithHint(const char* label, const char* hint, Trinex::String& buffer, ImGuiInputTextFlags flags = 0,
 	                       ImGuiInputTextCallback callback = nullptr, void* user_data = nullptr);
 
 	bool ImageButton(ImTextureID user_texture_id, const ImVec2& image_size, const ImVec2& uv0 = ImVec2(0, 0),
@@ -188,22 +188,22 @@ namespace ImGui
 	                           const void* p_step = nullptr, const void* p_step_fast = nullptr, const char* format = nullptr,
 	                           ImGuiInputTextFlags flags = 0);
 
-	FORCE_INLINE ImVec2 ImVecFrom(const Engine::Vector2f& vec)
+	FORCE_INLINE ImVec2 ImVecFrom(const Trinex::Vector2f& vec)
 	{
 		return {vec.x, vec.y};
 	}
 
-	FORCE_INLINE ImVec4 ImVecFrom(const Engine::Vector4f& vec)
+	FORCE_INLINE ImVec4 ImVecFrom(const Trinex::Vector4f& vec)
 	{
 		return {vec.x, vec.y, vec.z, vec.w};
 	}
 
-	FORCE_INLINE Engine::Vector2f EngineVecFrom(const ImVec2& vec)
+	FORCE_INLINE Trinex::Vector2f EngineVecFrom(const ImVec2& vec)
 	{
 		return {vec.x, vec.y};
 	}
 
-	FORCE_INLINE Engine::Vector4f EngineVecFrom(const ImVec4& vec)
+	FORCE_INLINE Trinex::Vector4f EngineVecFrom(const ImVec4& vec)
 	{
 		return {vec.x, vec.y, vec.z, vec.w};
 	}

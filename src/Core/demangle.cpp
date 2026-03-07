@@ -2,7 +2,7 @@
 #include <Core/string_functions.hpp>
 #include <cxxabi.h>
 
-namespace Engine::Demangle
+namespace Trinex::Demangle
 {
 	ENGINE_EXPORT String decode_name(const String& name)
 	{
@@ -17,4 +17,4 @@ namespace Engine::Demangle
 		delete ptr;
 		return m_name;
 	}
-}// namespace Engine::Demangle
+}// namespace Trinex::Demangle

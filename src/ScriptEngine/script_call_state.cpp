@@ -3,7 +3,7 @@
 #include <ScriptEngine/script_context.hpp>
 #include <angelscript.h>
 
-namespace Engine
+namespace Trinex
 {
 	ScriptCallState& ScriptCallState::clear()
 	{
@@ -77,4 +77,4 @@ namespace Engine
 		context->FinishDeserialization();
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

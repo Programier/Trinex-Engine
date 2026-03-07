@@ -8,7 +8,7 @@
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	MouseSystem* MouseSystem::m_instance = nullptr;
 
@@ -209,4 +209,4 @@ namespace Engine
 	}
 
 	trinex_implement_engine_class_default_init(MouseSystem, 0);
-}// namespace Engine
+}// namespace Trinex

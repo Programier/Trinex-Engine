@@ -15,7 +15,7 @@
 #include <RHI/rhi.hpp>
 #include <Widgets/mesh_preview.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	static constexpr float s_default_zooms[] = {1.0f,     1.056962, 1.113924, 1.170886, 1.262025, 1.455696,
 	                                            1.740506, 2.025316, 2.310126, 2.594936, 3.164556, 3.734177,
@@ -211,4 +211,4 @@ namespace Engine
 		return "editor/StaticMeshPreview"_localized;
 	}
 
-}// namespace Engine
+}// namespace Trinex

@@ -4,7 +4,7 @@
 #include <Core/theme.hpp>
 #include <imgui.h>
 
-namespace Engine::EditorTheme
+namespace Trinex::EditorTheme
 {
 	void initialize_theme(ImGuiContext* ctx)
 	{
@@ -134,4 +134,4 @@ namespace Engine::EditorTheme
 	{
 		return font_by_index(2);
 	}
-}// namespace Engine::EditorTheme
+}// namespace Trinex::EditorTheme

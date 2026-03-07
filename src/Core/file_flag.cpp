@@ -2,7 +2,7 @@
 #include <Core/file_flag.hpp>
 
 
-namespace Engine
+namespace Trinex
 {
 	static constexpr usize make_flag_from_string(const char* string)
 	{
@@ -52,4 +52,4 @@ namespace Engine
 		static FileFlag flag(make_flag_from_string("TRINEX"), make_flag_from_string("ASSET"));
 		return flag;
 	}
-}// namespace Engine
+}// namespace Trinex

@@ -3,7 +3,7 @@
 #include <Core/serializer.hpp>
 #include <cstdint>
 
-namespace Engine
+namespace Trinex
 {
 	using u8   = std::uint8_t;
 	using u16  = std::uint16_t;
@@ -36,4 +36,4 @@ namespace Engine
 		class Property;
 		struct PropertyChangedEvent;
 	}// namespace Refl
-}// namespace Engine
+}// namespace Trinex

@@ -6,7 +6,7 @@
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	static ScriptFunction script_actor_comp_spawned;
 	static ScriptFunction script_actor_comp_start_play;
@@ -128,4 +128,4 @@ namespace Engine
 		owner(actor);
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

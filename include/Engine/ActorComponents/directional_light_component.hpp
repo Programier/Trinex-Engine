@@ -1,7 +1,7 @@
 #pragma once
 #include <Engine/ActorComponents/light_component.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT DirectionalLightComponent : public LightComponent
 	{
@@ -21,4 +21,4 @@ namespace Engine
 		inline Vector3f direction() const { return world_transform().forward_vector(); }
 		inline float shadows_distance() const { return m_shadows_distance; }
 	};
-}// namespace Engine
+}// namespace Trinex

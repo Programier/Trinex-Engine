@@ -3,7 +3,7 @@
 #include <Core/etl/string.hpp>
 #include <Core/etl/vector.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class Archive;
 
@@ -101,15 +101,15 @@ namespace Engine
 
 		bool serialize(Archive& ar);
 	};
-}// namespace Engine
+}// namespace Trinex
 
 namespace std
 {
 	template<>
-	struct hash<Engine::Path> {
-		size_t operator()(const Engine::Path& p) const noexcept
+	struct hash<Trinex::Path> {
+		size_t operator()(const Trinex::Path& p) const noexcept
 		{
-			static Engine::Path::Hash h;
+			static Trinex::Path::Hash h;
 			return h(p);
 		}
 	};

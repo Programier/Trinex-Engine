@@ -7,7 +7,7 @@
 #include <Engine/frustum.hpp>
 #include <Engine/scene.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	Scene& Scene::add_primitive(PrimitiveComponent* primitive)
 	{
@@ -171,4 +171,4 @@ namespace Engine
 	{
 		return m_primitive_octree.root_node()->box();
 	}
-}// namespace Engine
+}// namespace Trinex

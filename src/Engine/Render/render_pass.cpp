@@ -5,7 +5,7 @@
 #include <Graphics/shader_compiler.hpp>
 #include <RHI/context.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	static Map<Name, RenderPass*, Name::HashFunction> s_render_pass_table;
 
@@ -207,4 +207,4 @@ namespace Engine
 			return *this;
 		}
 	}// namespace RenderPasses
-}// namespace Engine
+}// namespace Trinex

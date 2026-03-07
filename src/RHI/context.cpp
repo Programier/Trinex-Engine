@@ -3,7 +3,7 @@
 #include <RHI/context.hpp>
 #include <cstring>
 
-namespace Engine
+namespace Trinex
 {
 	template<typename T>
 	class RHIStateStack
@@ -149,4 +149,4 @@ namespace Engine
 		m_state->reset();
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

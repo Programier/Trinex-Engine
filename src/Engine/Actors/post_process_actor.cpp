@@ -2,7 +2,7 @@
 #include <Engine/ActorComponents/post_process_component.hpp>
 #include <Engine/Actors/post_process_actor.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	trinex_implement_engine_class(PostProcessActor, 0) {}
 
@@ -10,4 +10,4 @@ namespace Engine
 	{
 		m_post_process_component = new_instance<PostProcessComponent>("Post Process Component", this);
 	}
-}// namespace Engine
+}// namespace Trinex

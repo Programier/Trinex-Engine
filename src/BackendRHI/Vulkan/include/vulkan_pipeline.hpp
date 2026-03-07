@@ -4,7 +4,7 @@
 #include <vulkan_destroyable.hpp>
 #include <vulkan_headers.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class VulkanPipelineLayout;
 	class VulkanSampler;
@@ -120,4 +120,4 @@ namespace Engine
 		inline usize groups() const { return m_groups; }
 		inline VulkanBuffer* shader_binding_table() const { return m_sbt; }
 	};
-}// namespace Engine
+}// namespace Trinex

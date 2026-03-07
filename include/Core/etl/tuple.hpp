@@ -1,7 +1,7 @@
 #pragma once
 #include <tuple>
 
-namespace Engine
+namespace Trinex
 {
 	template<typename... Args>
 	using Tuple = std::tuple<Args...>;
@@ -10,4 +10,4 @@ namespace Engine
 	{
 		using std::get;
 	}
-}// namespace Engine
+}// namespace Trinex

@@ -6,7 +6,7 @@
 class asIScriptModule;
 class asITypeInfo;
 
-namespace Engine
+namespace Trinex
 {
 	class ScriptFunction;
 	class ScriptTypeInfo;
@@ -89,4 +89,4 @@ namespace Engine
 		friend class ScriptFunction;
 		friend class ScriptTypeInfo;
 	};
-}// namespace Engine
+}// namespace Trinex

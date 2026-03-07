@@ -4,7 +4,7 @@
 #include <Core/types/color.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class RenderSurface;
 	struct LightRenderParameters;
@@ -79,4 +79,4 @@ namespace Engine
 		LightComponent& on_property_changed(const Refl::PropertyChangedEvent& event) override;
 		~LightComponent();
 	};
-}// namespace Engine
+}// namespace Trinex

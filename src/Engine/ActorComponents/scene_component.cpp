@@ -12,7 +12,7 @@
 #include <ScriptEngine/script_function.hpp>
 #include <ScriptEngine/script_object.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	static ScriptFunction script_scene_comp_transform_changed;
 	static usize childs_count(const SceneComponent* component)
@@ -295,4 +295,4 @@ namespace Engine
 		return *this;
 	}
 
-}// namespace Engine
+}// namespace Trinex

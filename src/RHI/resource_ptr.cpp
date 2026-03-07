@@ -1,11 +1,11 @@
 #include <RHI/resource_ptr.hpp>
 #include <RHI/rhi.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	void RHIResourcePtrBase::release(void* object)
 	{
 		RHIObject::static_release(static_cast<RHIObject*>(object));
 	}
 
-}// namespace Engine
+}// namespace Trinex

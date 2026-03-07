@@ -9,7 +9,7 @@
 #include <RHI/handles.hpp>
 #include <RHI/rhi.hpp>
 
-namespace Engine::RenderGraph
+namespace Trinex::RenderGraph
 {
 	static constexpr usize s_default_reserve_size = 64;
 
@@ -408,4 +408,4 @@ namespace Engine::RenderGraph
 		for (Plugin* plugin : m_plugins) plugin->on_frame_end(this, ctx);
 		return true;
 	}
-}// namespace Engine::RenderGraph
+}// namespace Trinex::RenderGraph

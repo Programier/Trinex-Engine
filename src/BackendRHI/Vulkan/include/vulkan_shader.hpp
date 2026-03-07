@@ -6,7 +6,7 @@
 #include <vulkan_destroyable.hpp>
 #include <vulkan_headers.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	struct VulkanDescriptorPool;
 	struct VulkanDescriptorSet;
@@ -22,4 +22,4 @@ namespace Engine
 
 		inline vk::ShaderModule module() const { return m_shader; }
 	};
-}// namespace Engine
+}// namespace Trinex

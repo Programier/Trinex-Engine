@@ -2,7 +2,7 @@
 
 #include <Engine/Actors/actor.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT StaticMeshActor : public Actor
 	{
@@ -17,4 +17,4 @@ namespace Engine
 		StaticMeshActor();
 		~StaticMeshActor();
 	};
-}// namespace Engine
+}// namespace Trinex

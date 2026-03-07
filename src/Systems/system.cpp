@@ -6,7 +6,7 @@
 #include <Core/string_functions.hpp>
 #include <Systems/system.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	void System::on_create_fail()
 	{
@@ -31,7 +31,7 @@ namespace Engine
 	{
 		const Refl::Class* self = class_instance();
 
-		trinex_verify_msg(self != static_reflection(), "Each class based from Engine::System must be registered!");
+		trinex_verify_msg(self != static_reflection(), "Each class based from Trinex::System must be registered!");
 
 		debug_log("System", "Created system with type '%s'", self->name().c_str());
 		m_is_initialized = true;
@@ -257,4 +257,4 @@ namespace Engine
 	}
 
 	trinex_implement_engine_class(System, Refl::Class::IsScriptable) {}
-}// namespace Engine
+}// namespace Trinex

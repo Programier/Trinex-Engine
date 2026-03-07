@@ -16,7 +16,7 @@
 		type op_conv() const;                                                                                                    \
 	}
 
-namespace Engine
+namespace Trinex
 {
 	declare_primitive(Boolean, bool);
 	declare_primitive(Integer8, i8);
@@ -29,6 +29,6 @@ namespace Engine
 	declare_primitive(UnsignedInteger64, u64);
 	declare_primitive(Float, float);
 	declare_primitive(Double, double);
-}// namespace Engine
+}// namespace Trinex
 
 #undef declare_primitive

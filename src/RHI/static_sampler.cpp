@@ -5,7 +5,7 @@
 #include <RHI/rhi.hpp>
 #include <RHI/static_sampler.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	static Vector<RHISampler*> s_static_samplers;
 
@@ -36,4 +36,4 @@ namespace Engine
 	}
 
 	static DestroyController on_destroy(destroy_default_samplers);
-}// namespace Engine
+}// namespace Trinex

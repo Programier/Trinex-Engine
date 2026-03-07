@@ -26,7 +26,7 @@ using PlatformJitCompiler = JIT::X86_64_Compiler;
 
 static constexpr bool enable_jit = false;
 
-namespace Engine
+namespace Trinex
 {
 	struct ScriptEngineData {
 		Vector<class Script*> scripts;
@@ -59,6 +59,7 @@ namespace Engine
 			if (ScriptEngine::exception_on_error)
 			{
 				//trinex_(Strings::format("{} ({}, {}): {}", msg->section, msg->row, msg->col, msg->message));
+				error_log("ScriptEngine", "%s (%d, %d): %s", msg->section, msg->row, msg->col, msg->message);
 			}
 			else
 				error_log("ScriptEngine", "%s (%d, %d): %s", msg->section, msg->row, msg->col, msg->message);
@@ -107,9 +108,9 @@ namespace Engine
 	static void trigger_addons_initialization()
 	{
 		const char* addons[] = {
-		        "Engine::DefaultScriptAddons",
-		        "Engine::ScriptVector",
-		        "Engine::ScriptPointer",
+		        "Trinex::DefaultScriptAddons",
+		        "Trinex::ScriptVector",
+		        "Trinex::ScriptPointer",
 		};
 
 		for (auto addon : addons)
@@ -147,7 +148,7 @@ namespace Engine
 			data->engine->SetJITCompiler(data->jit_compiler);
 		}
 #endif
-		PostDestroyController controller(ScriptEngine::terminate, "Engine::ScriptEngine");
+		PostDestroyController controller(ScriptEngine::terminate, "Trinex::ScriptEngine");
 		ScriptContext::initialize();
 
 		data->script_folder = trx_new ScriptFolder("[scripts]:");
@@ -938,11 +939,11 @@ namespace Engine
 
 	static void reflection_init()
 	{
-		ScriptEngine::default_namespace("Engine::ScriptEngine");
+		ScriptEngine::default_namespace("Trinex::ScriptEngine");
 		ScriptEngine::register_function("string variable_name(const ?& variable, bool include_namespace = true)",
 		                                variable_name_generic, ScriptCallConv::Generic);
 		ScriptEngine::default_namespace("");
 	}
 
-	static ReflectionInitializeController on_reflection_init(reflection_init, "Engine::ScriptEngine");
-}// namespace Engine
+	static ReflectionInitializeController on_reflection_init(reflection_init, "Trinex::ScriptEngine");
+}// namespace Trinex

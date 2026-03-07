@@ -2,7 +2,7 @@
 #include <Core/engine_types.hpp>
 #include <Core/etl/string.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT Name
 	{
@@ -100,4 +100,4 @@ namespace Engine
 
 		bool serialize(class Archive& ar);
 	};
-}// namespace Engine
+}// namespace Trinex

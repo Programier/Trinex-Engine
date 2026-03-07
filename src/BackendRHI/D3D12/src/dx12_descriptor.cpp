@@ -2,7 +2,7 @@
 #include <dx12_api.hpp>
 #include <dx12_descriptor.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	static constexpr D3D12_DESCRIPTOR_HEAP_DESC s_rtv_config = {
 	        D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
@@ -126,4 +126,4 @@ namespace Engine
 		}
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

@@ -5,7 +5,7 @@
 #include <dx12_headers.hpp>
 
 
-namespace Engine
+namespace Trinex
 {
 	static inline const char* semantic_name(VertexBufferSemantic semantic)
 	{
@@ -358,4 +358,4 @@ namespace Engine
 			default: return format;
 		}
 	}
-}// namespace Engine
+}// namespace Trinex

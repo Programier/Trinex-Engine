@@ -5,7 +5,7 @@
 #include <Core/pointer.hpp>
 #include <Graphics/gpu_buffers.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class MaterialInterface;
 
@@ -113,4 +113,4 @@ namespace Engine
 		bool serialize(Archive& ar) override;
 		SkeletalMesh& postload() override;
 	};
-}// namespace Engine
+}// namespace Trinex

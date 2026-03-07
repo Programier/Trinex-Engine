@@ -4,7 +4,7 @@
 #include <RHI/enums.hpp>
 #include <RHI/resource_ptr.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class RHIShaderResourceView;
 	class RHISampler;
@@ -93,4 +93,4 @@ namespace Engine
 		Vector2u size(u8 mip = 0) const;
 		bool serialize(Archive& archive) override;
 	};
-}// namespace Engine
+}// namespace Trinex

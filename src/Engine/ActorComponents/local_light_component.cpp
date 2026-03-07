@@ -4,7 +4,7 @@
 #include <Engine/ActorComponents/local_light_component.hpp>
 #include <Engine/Render/lighting.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	trinex_implement_engine_class(LocalLightComponent, 0)
 	{
@@ -40,4 +40,4 @@ namespace Engine
 		out.inv_attenuation_radius = 1.f / m_attenuation_radius;
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

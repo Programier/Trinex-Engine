@@ -13,7 +13,7 @@
 #include <scriptstdstring.h>
 
 
-namespace Engine
+namespace Trinex
 {
 	static String parse_string_value(const u8* address, i32 type_id, bool repr)
 	{
@@ -37,5 +37,5 @@ namespace Engine
 		ScriptEngine::register_custom_variable_parser(type_id, parse_string_value);
 	}
 
-	static PreInitializeController init(on_init, "Engine::DefaultScriptAddons");
-}// namespace Engine
+	static PreInitializeController init(on_init, "Trinex::DefaultScriptAddons");
+}// namespace Trinex

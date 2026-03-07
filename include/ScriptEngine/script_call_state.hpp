@@ -2,7 +2,7 @@
 #include <ScriptEngine/script_function.hpp>
 #include <ScriptEngine/script_variable.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT ScriptCallState final
 	{
@@ -21,4 +21,4 @@ namespace Engine
 		ScriptCallState& save(u32 stack_level, bool save_local_variables = true, bool save_arguments = true);
 		const ScriptCallState& restore() const;
 	};
-}// namespace Engine
+}// namespace Trinex

@@ -8,7 +8,7 @@
 #include <Core/reflection/object.hpp>
 #include <Core/threading.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	enum class ControllerType : BitMask
 	{
@@ -195,4 +195,4 @@ namespace Engine
 
 	IMPLEMENT_CONTROLLER(StartupResourcesInitializeController, ResourcesInit);
 	IMPLEMENT_CONTROLLER(ConfigsInitializeController, ConfigsInitialize);
-}// namespace Engine
+}// namespace Trinex

@@ -1,6 +1,6 @@
 #include <algorithm>
 
-namespace Engine::etl
+namespace Trinex::etl
 {
 	using std::all_of;
 	using std::any_of;
@@ -23,4 +23,4 @@ namespace Engine::etl
 	using std::transform;
 	using std::unique;
 	using std::upper_bound;
-}// namespace Engine::etl
+}// namespace Trinex::etl

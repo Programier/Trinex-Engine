@@ -7,7 +7,7 @@
 
 struct ImGuiContext;
 
-namespace Engine
+namespace Trinex
 {
 	class ImGuiWindow;
 	class Window;
@@ -67,4 +67,4 @@ namespace Engine
 		virtual ImGuiViewportClient& select(Object* object);
 		virtual u32 build_dock(u32 dock);
 	};
-}// namespace Engine
+}// namespace Trinex

@@ -2,7 +2,7 @@
 #include <Core/types/color.hpp>
 #include <RHI/enums.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class RHIShader;
 
@@ -97,4 +97,4 @@ namespace Engine
 
 		u8 max_recursion = 2;
 	};
-}// namespace Engine
+}// namespace Trinex

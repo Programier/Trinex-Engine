@@ -5,7 +5,7 @@
 #include <Graphics/shader_compiler.hpp>
 #include <imgui.h>
 
-namespace Engine
+namespace Trinex
 {
 	trinex_implement_engine_class(PipelineEditorClient, 0)
 	{
@@ -52,4 +52,4 @@ namespace Engine
 		Super::select(object);
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

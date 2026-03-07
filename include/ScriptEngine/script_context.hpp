@@ -13,7 +13,7 @@
 class asIScriptContext;
 class asIScriptFunction;
 
-namespace Engine
+namespace Trinex
 {
 	class ScriptFunction;
 	class ScriptObject;
@@ -212,4 +212,4 @@ namespace Engine
 		static ScriptFunction system_function();
 		friend class ScriptEngine;
 	};
-}// namespace Engine
+}// namespace Trinex

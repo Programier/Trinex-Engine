@@ -1,4 +1,4 @@
-namespace Engine::VisualMaterialGraph
+namespace Trinex::VisualMaterialGraph
 {
 	class CommonInput : Node
 	{

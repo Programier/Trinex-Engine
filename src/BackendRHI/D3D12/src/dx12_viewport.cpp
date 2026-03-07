@@ -5,7 +5,7 @@
 #include <dx12_api.hpp>
 #include <dx12_viewport.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	extern HWND extract_d3dx12_hwnd(class Window* window);
 
@@ -143,4 +143,4 @@ namespace Engine
 	{
 		return allocate<D3D12_Viewport>(viewport, vsync);
 	}
-}// namespace Engine
+}// namespace Trinex

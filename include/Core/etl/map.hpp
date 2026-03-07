@@ -6,7 +6,7 @@
 #include <map>
 #include <unordered_map>
 
-namespace Engine
+namespace Trinex
 {
 	class Archive;
 
@@ -50,4 +50,4 @@ namespace Engine
 	struct Serializer<TreeMap<Key, Value, Compare, AllocatorType>> {
 		bool serialize(Archive& ar, TreeMap<Key, Value, Compare, AllocatorType>& map) { return trinex_serialize_map(ar, map); }
 	};
-}// namespace Engine
+}// namespace Trinex

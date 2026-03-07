@@ -13,9 +13,9 @@
 #include <RHI/initializers.hpp>
 #include <RHI/rhi.hpp>
 
-namespace Engine
+namespace Trinex
 {
-	trinex_implement_struct(Engine::Sampler, 0)
+	trinex_implement_struct(Trinex::Sampler, 0)
 	{
 		trinex_refl_virtual_prop(filter, filter, filter, Refl::Property::IsTransient);
 		trinex_refl_virtual_prop(address_u, address_u, address_u, Refl::Property::IsTransient);
@@ -354,4 +354,4 @@ namespace Engine
 	static PreInitializeController preinitializer(construct_default_samplers);
 	static StartupResourcesInitializeController initializer(initialize_default_samplers);
 	static DestroyController terminate(terminate_samplers);
-}// namespace Engine
+}// namespace Trinex

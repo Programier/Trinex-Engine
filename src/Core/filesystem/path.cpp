@@ -4,7 +4,7 @@
 #include <Core/math/math.hpp>
 #include <Core/string_functions.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	const char Path::separator            = '/';
 	const StringView Path::sv_separator   = "/";
@@ -12,7 +12,7 @@ namespace Engine
 
 	usize Path::Hash::operator()(const Path& p) const noexcept
 	{
-		static Engine::Hash<String> hasher;
+		static Trinex::Hash<String> hasher;
 		return hasher(p.m_path);
 	}
 
@@ -220,4 +220,4 @@ namespace Engine
 	{
 		return ar.serialize(m_path);
 	}
-}// namespace Engine
+}// namespace Trinex

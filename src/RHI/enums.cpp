@@ -3,7 +3,7 @@
 #include <Core/reflection/enum.hpp>
 #include <RHI/enums.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	trinex_implement_engine_enum(RHISamplerFilter, 0, Point, Bilinear, Trilinear);
 	trinex_implement_engine_enum(RHISamplerAddressMode, 0, Repeat, ClampToEdge, ClampToBorder, MirroredRepeat, MirrorClampToEdge);
@@ -114,4 +114,4 @@ namespace Engine
 
 		return RHIShaderParameterType();
 	}
-}// namespace Engine
+}// namespace Trinex

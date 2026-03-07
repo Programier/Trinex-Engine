@@ -12,7 +12,7 @@
 #include <vulkan_resource_view.hpp>
 #include <vulkan_state.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	vk::PipelineRenderingCreateInfo VulkanStateManager::Framebuffer::pipeline_create_info() const
 	{
@@ -379,4 +379,4 @@ namespace Engine
 		m_state_manager->vertex_attributes.bind(va, semantic);
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

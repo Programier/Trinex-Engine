@@ -5,13 +5,13 @@
 #include <Core/reflection/scoped_type.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class Group;
 	class Archive;
-}// namespace Engine
+}// namespace Trinex
 
-namespace Engine::Refl
+namespace Trinex::Refl
 {
 	class ENGINE_EXPORT Struct : public ScopedType
 	{
@@ -69,7 +69,7 @@ namespace Engine::Refl
 				mask |= Flag::IsSingletone;
 			}
 
-			if constexpr (!(std::is_abstract_v<T> || (!std::is_constructible_v<T> && !Engine::is_singletone_v<T>) ))
+			if constexpr (!(std::is_abstract_v<T> || (!std::is_constructible_v<T> && !Trinex::is_singletone_v<T>) ))
 			{
 				mask |= Flag::IsConstructible;
 			}
@@ -206,22 +206,22 @@ namespace Engine::Refl
 	};
 
 #define trinex_implement_struct(decl, flags)                                                                                     \
-	class Engine::Refl::Struct* decl::m_static_struct = nullptr;                                                                 \
+	class Trinex::Refl::Struct* decl::m_static_struct = nullptr;                                                                 \
                                                                                                                                  \
-	class Engine::Refl::Struct* decl::static_reflection()                                                                        \
+	class Trinex::Refl::Struct* decl::static_reflection()                                                                        \
 	{                                                                                                                            \
 		if (!m_static_struct)                                                                                                    \
 		{                                                                                                                        \
-			m_static_struct = Engine::Refl::NativeStruct<decl>::create(#decl, flags);                                            \
+			m_static_struct = Trinex::Refl::NativeStruct<decl>::create(#decl, flags);                                            \
 		}                                                                                                                        \
 		return m_static_struct;                                                                                                  \
 	}                                                                                                                            \
                                                                                                                                  \
-	static Engine::u8 TRINEX_CONCAT(trinex_engine_refl_struct_, __LINE__) = static_cast<Engine::u8>(                             \
-	        Engine::Refl::Object::static_register_initializer([]() { decl::static_reflection(); }, #decl));                      \
+	static Trinex::u8 TRINEX_CONCAT(trinex_engine_refl_struct_, __LINE__) = static_cast<Trinex::u8>(                             \
+	        Trinex::Refl::Object::static_register_initializer([]() { decl::static_reflection(); }, #decl));                      \
                                                                                                                                  \
 	void decl::static_initialize_struct()
 
 #define trinex_implement_struct_default_init(decl, flags)                                                                        \
 	trinex_implement_struct(decl, flags) {}
-}// namespace Engine::Refl
+}// namespace Trinex::Refl

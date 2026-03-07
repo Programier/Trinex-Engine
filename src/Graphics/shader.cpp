@@ -4,7 +4,7 @@
 #include <Graphics/shader.hpp>
 #include <RHI/rhi.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	trinex_implement_engine_class_default_init(Shader, 0);
 
@@ -20,4 +20,4 @@ namespace Engine
 		m_shader = nullptr;
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

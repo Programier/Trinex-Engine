@@ -3,7 +3,7 @@
 #include <Core/pointer.hpp>
 #include <Engine/ActorComponents/mesh_component.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class RHIBuffer;
 
@@ -38,4 +38,4 @@ namespace Engine
 			return update_bounding_box();
 		}
 	};
-}// namespace Engine
+}// namespace Trinex

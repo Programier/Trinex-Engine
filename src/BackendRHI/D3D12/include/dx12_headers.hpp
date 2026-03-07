@@ -2,7 +2,7 @@
 #include <d3d12.h>
 #include <wrl.h>
 
-namespace Engine
+namespace Trinex
 {
 	template<typename T>
 	using ComPtr = Microsoft::WRL::ComPtr<T>;
@@ -48,4 +48,4 @@ namespace Engine
 	{
 		return !(a == b);
 	}
-}// namespace Engine
+}// namespace Trinex

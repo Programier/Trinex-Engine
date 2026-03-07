@@ -4,7 +4,7 @@
 #include <Systems/system.hpp>
 
 
-namespace Engine
+namespace Trinex
 {
 	class Window;
 	struct Event;
@@ -44,4 +44,4 @@ namespace Engine
 		Vector2f finger_offset(usize finger_index, Window* window = nullptr) const;
 		const Finger& finger_info(usize finger_index, Window* window = nullptr) const;
 	};
-}// namespace Engine
+}// namespace Trinex

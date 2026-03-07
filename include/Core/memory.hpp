@@ -2,7 +2,7 @@
 #include <Core/engine_types.hpp>
 #include <cstring>
 
-namespace Engine
+namespace Trinex
 {
 	ENGINE_EXPORT void* memcpy_elements(void* dst, const void* src, usize element_size, usize element_count, usize dst_stride = 0,
 	                                    usize src_stride = 0);
@@ -43,4 +43,4 @@ namespace Engine
 	{
 		return reinterpret_cast<Type*>(align_down(reinterpret_cast<usize>(in), alignment));
 	}
-}// namespace Engine
+}// namespace Trinex

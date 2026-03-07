@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Engine
+namespace Trinex
 {
 	class RHIObject;
 	void trinex_vulkan_deferred_destroy(RHIObject* object);
@@ -24,4 +24,4 @@ namespace Engine
 
 		void destroy() override { trx_delete this; }
 	};
-}// namespace Engine
+}// namespace Trinex

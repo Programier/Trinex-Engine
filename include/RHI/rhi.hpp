@@ -4,7 +4,7 @@
 #include <RHI/handles.hpp>
 #include <RHI/structures.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class Window;
 	class GraphicsPipeline;
@@ -68,4 +68,4 @@ namespace Engine
 	};
 
 	ENGINE_EXPORT extern RHI* rhi;
-}// namespace Engine
+}// namespace Trinex

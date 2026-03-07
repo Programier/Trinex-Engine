@@ -17,7 +17,7 @@
 #include <imgui_internal.h>
 #include <imgui_stacklayout.h>
 
-namespace Engine
+namespace Trinex
 {
 	void ContentBrowser::init(RenderViewport* viewport)
 	{
@@ -492,4 +492,4 @@ namespace Engine
 	}
 
 	ContentBrowser::~ContentBrowser() {}
-}// namespace Engine
+}// namespace Trinex

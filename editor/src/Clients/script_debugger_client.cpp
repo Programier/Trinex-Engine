@@ -20,7 +20,7 @@
 #include <imgui_internal.h>
 #include <imgui_stacklayout.h>
 
-namespace Engine
+namespace Trinex
 {
 	class DebugExecScriptFunction : public ImGuiWidget
 	{
@@ -872,11 +872,11 @@ namespace Engine
 
 			switch (data.key)
 			{
-				case Engine::Keyboard::Key::F5:
+				case Trinex::Keyboard::Key::F5:
 					self->on_debugger_action(nullptr, ImGui::TextEditor::DebugAction::Continue);
 					break;
-				case Engine::Keyboard::Key::F10: self->on_debugger_action(nullptr, ImGui::TextEditor::DebugAction::Step); break;
-				case Engine::Keyboard::Key::F11:
+				case Trinex::Keyboard::Key::F10: self->on_debugger_action(nullptr, ImGui::TextEditor::DebugAction::Step); break;
+				case Trinex::Keyboard::Key::F11:
 					self->on_debugger_action(nullptr, ImGui::TextEditor::DebugAction::StepInto);
 					break;
 
@@ -985,4 +985,4 @@ namespace Engine
 		}
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

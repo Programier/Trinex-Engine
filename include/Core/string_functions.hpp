@@ -6,7 +6,7 @@
 #include <fmt/format.h>
 #include <numeric>
 
-namespace Engine::Strings
+namespace Trinex::Strings
 {
 	using fmt::format;
 
@@ -112,4 +112,4 @@ namespace Engine::Strings
 	}
 
 
-}// namespace Engine::Strings
+}// namespace Trinex::Strings

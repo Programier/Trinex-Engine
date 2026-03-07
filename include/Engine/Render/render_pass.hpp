@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/name.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class Material;
 	class ShaderCompilationEnvironment;
@@ -84,7 +84,7 @@ private:
 
 #define trinex_implement_render_pass(pass_name)                                                                                  \
 	static const u8 TRINEX_CONCAT(trinex_engine_refl_render_pass_, __LINE__) =                                                   \
-	        Engine::ReflectionInitializeController([]() { pass_name::static_instance(); }).id();                                 \
+	        Trinex::ReflectionInitializeController([]() { pass_name::static_instance(); }).id();                                 \
                                                                                                                                  \
 	pass_name* pass_name::static_instance()                                                                                      \
 	{                                                                                                                            \
@@ -154,4 +154,4 @@ private:
 			Translucent& modify_shader_compilation_env(ShaderCompilationEnvironment* env) override;
 		};
 	}// namespace RenderPasses
-}// namespace Engine
+}// namespace Trinex

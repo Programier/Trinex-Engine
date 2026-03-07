@@ -3,7 +3,7 @@
 #include <Core/etl/string.hpp>
 #include <Core/math/fwd.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	struct ENGINE_EXPORT Constants {
 		static const u32 processor_count;
@@ -41,4 +41,4 @@ namespace Engine
 		static const String translation_config_extension;
 		static const u64 script_userdata_id;
 	};
-}// namespace Engine
+}// namespace Trinex

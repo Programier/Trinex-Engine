@@ -2,7 +2,7 @@
 #include <Core/engine_types.hpp>
 #include <Core/math/vector.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	struct LinearColor;
 
@@ -263,4 +263,4 @@ namespace Engine
 	    : r(Color::float_to_byte(linear.r)), g(Color::float_to_byte(linear.g)), b(Color::float_to_byte(linear.b)),
 	      a(Color::float_to_byte(linear.a))
 	{}
-}// namespace Engine
+}// namespace Trinex

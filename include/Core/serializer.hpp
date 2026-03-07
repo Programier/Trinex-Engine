@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Engine
+namespace Trinex
 {
 	/*
 	 *  Implement method with next signature:
@@ -9,4 +9,4 @@ namespace Engine
 	template<typename T>
 	struct Serializer {
 	};
-}// namespace Engine
+}// namespace Trinex

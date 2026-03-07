@@ -2,17 +2,17 @@
 #include <cstddef>
 struct ImGuiContext;
 
-namespace Engine
+namespace Trinex
 {
 	class RHITexture;
 	class RHISampler;
-}// namespace Engine
+}// namespace Trinex
 
 struct ImGuiTrinexTextureId {
-	Engine::RHITexture* texture;
-	Engine::RHISampler* sampler;
+	Trinex::RHITexture* texture;
+	Trinex::RHISampler* sampler;
 
-	inline constexpr ImGuiTrinexTextureId(Engine::RHITexture* texture = nullptr, Engine::RHISampler* sampler = nullptr)
+	inline constexpr ImGuiTrinexTextureId(Trinex::RHITexture* texture = nullptr, Trinex::RHISampler* sampler = nullptr)
 	    : texture(texture), sampler(sampler)
 	{}
 

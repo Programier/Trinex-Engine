@@ -2,7 +2,7 @@
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Engine/Render/post_process_parameters.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT PostProcessComponent : public SceneComponent
 	{
@@ -23,4 +23,4 @@ namespace Engine
 		inline float priority() const { return m_priority; }
 		inline float blend_weight() const { return m_blend_weight; }
 	};
-}// namespace Engine
+}// namespace Trinex

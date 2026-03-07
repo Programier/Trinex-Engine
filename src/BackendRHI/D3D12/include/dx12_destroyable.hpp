@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Engine
+namespace Trinex
 {
 	class RHIObject;
 	void d3d12_deferred_destroy(RHIObject* object);
@@ -12,4 +12,4 @@ namespace Engine
 		using Base::Base;
 		void destroy() override { d3d12_deferred_destroy(this); }
 	};
-}// namespace Engine
+}// namespace Trinex

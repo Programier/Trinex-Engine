@@ -8,7 +8,7 @@
 #include <RHI/rhi.hpp>
 #include <RHI/structures.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	RHITextureView::RHITextureView(RHITexture* texture, RHITextureType type, u16 base_slice, u16 slice_count, u16 base_mip,
 	                               u16 mip_count)
@@ -116,4 +116,4 @@ namespace Engine
 			return status;
 		}
 	}
-}// namespace Engine
+}// namespace Trinex

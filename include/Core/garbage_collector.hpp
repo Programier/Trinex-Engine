@@ -2,7 +2,7 @@
 #include <Core/callback.hpp>
 #include <Core/export.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class Object;
 
@@ -34,4 +34,4 @@ namespace Engine
 
 		ENGINE_EXPORT static void destroy_all_objects();
 	};
-}// namespace Engine
+}// namespace Trinex

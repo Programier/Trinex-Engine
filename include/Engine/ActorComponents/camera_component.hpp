@@ -3,7 +3,7 @@
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Engine/enums.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	struct CameraView;
 
@@ -27,4 +27,4 @@ namespace Engine
 		Matrix4f view_matrix();
 		Matrix4f prev_view_matrix();
 	};
-}// namespace Engine
+}// namespace Trinex

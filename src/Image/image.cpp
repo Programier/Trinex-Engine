@@ -10,7 +10,7 @@
 #include <stb_image_resize.h>
 #include <stb_image_write.h>
 
-namespace Engine
+namespace Trinex
 {
 	Image::Image() = default;
 
@@ -203,4 +203,4 @@ namespace Engine
 	{
 		return archive.serialize(m_size, m_data);
 	}
-}// namespace Engine
+}// namespace Trinex

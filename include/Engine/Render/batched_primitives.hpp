@@ -4,7 +4,7 @@
 #include <Core/pointer.hpp>
 #include <Graphics/gpu_buffers.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class Renderer;
 	class RHIContext;
@@ -101,4 +101,4 @@ namespace Engine
 		                               Color color3 = {255, 255, 255, 255});
 		BatchedTriangles& render(RHIContext* ctx, Renderer* renderer);
 	};
-}// namespace Engine
+}// namespace Trinex

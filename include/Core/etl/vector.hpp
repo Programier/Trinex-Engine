@@ -7,7 +7,7 @@
 #include <memory>
 #include <stdexcept>
 
-namespace Engine
+namespace Trinex
 {
 	template<typename T, typename AllocatorType = Allocator<T>>
 	class Vector : private AllocatorType
@@ -779,10 +779,10 @@ namespace Engine
 	struct Serializer<Vector<Type, Alloc>> {
 		bool serialize(Archive& ar, Vector<Type, Alloc>& vector) { return trinex_serialize_vector(ar, vector); }
 	};
-}// namespace Engine
+}// namespace Trinex
 
 
-namespace Engine
+namespace Trinex
 {
 
-}// namespace Engine
+}// namespace Trinex

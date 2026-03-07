@@ -3,18 +3,18 @@
 #include <Core/reflection/struct.hpp>
 #include <RHI/structures.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	static constexpr auto s_flags = Refl::Property::IsTransient;
 
-	trinex_implement_struct(Engine::RHIDepthState, 0)
+	trinex_implement_struct(Trinex::RHIDepthState, 0)
 	{
 		trinex_refl_prop(enable, s_flags)->tooltip("Enable depth test");
 		trinex_refl_prop(write_enable, s_flags)->tooltip("Enable write to depth buffer");
 		trinex_refl_prop(func, s_flags)->tooltip("Depth compare function");
 	}
 
-	trinex_implement_struct(Engine::RHIStencilState, 0)
+	trinex_implement_struct(Trinex::RHIStencilState, 0)
 	{
 		trinex_refl_prop(enable, s_flags)->tooltip("Enable stencil test");
 		trinex_refl_prop(fail, s_flags)->tooltip("Operation on fail");
@@ -25,7 +25,7 @@ namespace Engine
 		trinex_refl_prop(write_mask, s_flags)->tooltip("Stencil write mask");
 	}
 
-	trinex_implement_struct(Engine::RHIBlendingState, 0)
+	trinex_implement_struct(Trinex::RHIBlendingState, 0)
 	{
 		trinex_refl_prop(enable, s_flags);
 		trinex_refl_prop(src_color_func, s_flags);
@@ -103,4 +103,4 @@ namespace Engine
 		ar.serialize(semantic);
 		return ar.serialize(binding);
 	}
-}// namespace Engine
+}// namespace Trinex

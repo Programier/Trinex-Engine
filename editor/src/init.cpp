@@ -14,7 +14,7 @@
 #include <Graphics/gpu_buffers.hpp>
 #include <Platform/platform.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	static void skip_destroy_assets(Object* object)
 	{
@@ -41,7 +41,7 @@ namespace Engine
 		fs->mount("[shaders]:/TrinexEditor", "[exec]:/resources/TrinexEditor/shaders");
 		fs->mount("[scripts]:/TrinexEditor", "[exec]:/resources/TrinexEditor/scripts");
 
-		Settings::engine_class                        = "Engine::EditorEngine";
+		Settings::engine_class                        = "Trinex::EditorEngine";
 		Settings::Rendering::force_keep_cpu_resources = true;
 	}
 
@@ -68,10 +68,10 @@ namespace Engine
 
 	static void load_configs()
 	{
-		Engine::Settings::Splash::font = "[content]:/TrinexEditor/fonts/Source Code Pro/SourceCodePro-Bold.ttf";
+		Trinex::Settings::Splash::font = "[content]:/TrinexEditor/fonts/Source Code Pro/SourceCodePro-Bold.ttf";
 	}
 
 	static StartupResourcesInitializeController on_init(initialialize_editor, "Load Editor Package");
-	static Engine::ConfigsInitializeController configs_initializer(load_configs, "EditorConfig");
-	static Engine::PreInitializeController on_preinit(preinit, "EditorPreinit");
-}// namespace Engine
+	static Trinex::ConfigsInitializeController configs_initializer(load_configs, "EditorConfig");
+	static Trinex::PreInitializeController on_preinit(preinit, "EditorPreinit");
+}// namespace Trinex

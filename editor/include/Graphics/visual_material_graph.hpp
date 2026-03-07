@@ -6,12 +6,12 @@
 #include <Core/string_functions.hpp>
 #include <RHI/enums.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class VisualMaterial;
 }
 
-namespace Engine::VisualMaterialGraph
+namespace Trinex::VisualMaterialGraph
 {
 	class Pin;
 	class OutputPin;
@@ -273,4 +273,4 @@ namespace Engine::VisualMaterialGraph
 
 		~Node();
 	};
-}// namespace Engine::VisualMaterialGraph
+}// namespace Trinex::VisualMaterialGraph

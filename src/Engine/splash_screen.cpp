@@ -16,10 +16,10 @@
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	ENGINE_EXPORT void show_splash_screen() {}
 	ENGINE_EXPORT void splash_screen_text(SplashTextType type, const StringView& text) {}
 	ENGINE_EXPORT void stop_thread(Thread*& thread) {}
 	ENGINE_EXPORT void hide_splash_screen() {}
-}// namespace Engine
+}// namespace Trinex

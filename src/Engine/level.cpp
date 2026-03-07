@@ -11,7 +11,7 @@
 #include <ScriptEngine/script_function.hpp>
 #include <angelscript.h>
 
-namespace Engine
+namespace Trinex
 {
 
 	static ScriptFunction script_level_start_play;
@@ -30,7 +30,7 @@ namespace Engine
 
 	static void scriptable_spawn_actor_t(asIScriptGeneric* generic) {}
 
-	trinex_implement_class(Engine::Level, Refl::Class::IsScriptable)
+	trinex_implement_class(Trinex::Level, Refl::Class::IsScriptable)
 	{
 		auto self = static_reflection();
 		auto r    = ScriptClassRegistrar::existing_class(self);
@@ -189,4 +189,4 @@ namespace Engine
 	{
 		return instance_cast<World>(owner());
 	}
-}// namespace Engine
+}// namespace Trinex

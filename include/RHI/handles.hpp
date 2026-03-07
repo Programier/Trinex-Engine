@@ -3,7 +3,7 @@
 #include <RHI/object.hpp>
 #include <RHI/types.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class Archive;
 	struct LinearColor;
@@ -145,4 +145,4 @@ namespace Engine
 	{
 	public:
 	};
-}// namespace Engine
+}// namespace Trinex

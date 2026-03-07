@@ -4,7 +4,7 @@
 #include <Core/mouse.hpp>
 #include <Systems/system.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class Window;
 	struct Event;
@@ -75,4 +75,4 @@ namespace Engine
 		friend class Singletone<MouseSystem, System>;
 	};
 
-}// namespace Engine
+}// namespace Trinex

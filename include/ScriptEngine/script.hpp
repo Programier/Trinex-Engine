@@ -9,7 +9,7 @@
 #include <ScriptEngine/script_module.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	namespace Refl
 	{
@@ -174,4 +174,4 @@ namespace Engine
 		friend class Refl::ScriptStruct;
 		friend class Refl::ScriptEnum;
 	};
-}// namespace Engine
+}// namespace Trinex

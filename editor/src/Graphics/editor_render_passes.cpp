@@ -2,7 +2,7 @@
 #include <Graphics/editor_render_passes.hpp>
 #include <Graphics/shader_compiler.hpp>
 
-namespace Engine::EditorRenderPasses
+namespace Trinex::EditorRenderPasses
 {
 	trinex_implement_render_pass(HitProxy)
 	{
@@ -25,4 +25,4 @@ namespace Engine::EditorRenderPasses
 		env->add_module("editor/templates/hitproxy.slang");
 		return *this;
 	}
-}// namespace Engine::EditorRenderPasses
+}// namespace Trinex::EditorRenderPasses

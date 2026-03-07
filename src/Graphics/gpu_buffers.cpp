@@ -10,7 +10,7 @@
 #include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class NullVertexBuffer : public VertexBufferBase
 	{
@@ -378,4 +378,4 @@ namespace Engine
 		}
 		return ar;
 	}
-}// namespace Engine
+}// namespace Trinex

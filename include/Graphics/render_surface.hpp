@@ -4,7 +4,7 @@
 #include <RHI/enums.hpp>
 #include <RHI/resource_ptr.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class RHIShaderResourceView;
 	class RHIUnorderedAccessView;
@@ -34,4 +34,4 @@ namespace Engine
 		inline Vector2u size() const { return m_size; }
 		inline RHISurfaceFormat format() const { return m_format; }
 	};
-}// namespace Engine
+}// namespace Trinex

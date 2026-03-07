@@ -1,7 +1,7 @@
 #include <Core/engine_types.hpp>
 #include <Core/filesystem/path.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	struct ENGINE_EXPORT SplashConfig {
 		Path image_path;
@@ -15,4 +15,4 @@ namespace Engine
 		SplashConfig();
 		SplashConfig& init();
 	};
-}// namespace Engine
+}// namespace Trinex

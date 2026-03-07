@@ -7,7 +7,7 @@
 #include <Platform/platform.hpp>
 #include <ScriptEngine/script_engine.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	String Project::name;
 	String Project::version;
@@ -30,7 +30,7 @@ namespace Engine
 		if (initialized)
 			return;
 
-		ScriptNamespaceScopedChanger changer("Engine::Project");
+		ScriptNamespaceScopedChanger changer("Trinex::Project");
 
 #define register_var(name) ScriptEngine::register_property("string " #name, &Project::name)
 
@@ -189,17 +189,17 @@ Engine::Project::shader_cache_dir = "{}";
 
 	static void setup_default_project()
 	{
-		Engine::Project::name             = "Trinex Engine Project";
-		Engine::Project::version          = "1.0.0";
-		Engine::Project::project_dir      = "[exec]:";
-		Engine::Project::resources_dir    = "[exec]:/resources";
-		Engine::Project::configs_dir      = "[resources]:/configs";
-		Engine::Project::assets_dir       = "[resources]:/assets";
-		Engine::Project::scripts_dir      = "[resources]:/scripts";
-		Engine::Project::shaders_dir      = "[resources]:/shaders";
-		Engine::Project::localization_dir = "[resources]:/localization";
-		Engine::Project::libraries_dir    = "[project]:/libs";
-		Engine::Project::shader_cache_dir = "[project]:/ShaderCache";
+		Trinex::Project::name             = "Trinex Engine Project";
+		Trinex::Project::version          = "1.0.0";
+		Trinex::Project::project_dir      = "[exec]:";
+		Trinex::Project::resources_dir    = "[exec]:/resources";
+		Trinex::Project::configs_dir      = "[resources]:/configs";
+		Trinex::Project::assets_dir       = "[resources]:/assets";
+		Trinex::Project::scripts_dir      = "[resources]:/scripts";
+		Trinex::Project::shaders_dir      = "[resources]:/shaders";
+		Trinex::Project::localization_dir = "[resources]:/localization";
+		Trinex::Project::libraries_dir    = "[project]:/libs";
+		Trinex::Project::shader_cache_dir = "[project]:/ShaderCache";
 
 		apply_project_config();
 	}
@@ -223,4 +223,4 @@ Engine::Project::shader_cache_dir = "{}";
 			setup_default_project();
 		}
 	}
-}// namespace Engine
+}// namespace Trinex

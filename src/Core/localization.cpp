@@ -11,7 +11,7 @@
 #include <regex>
 #include <sstream>
 
-namespace Engine
+namespace Trinex
 {
 	Localization* Localization::s_instance = nullptr;
 
@@ -156,4 +156,4 @@ namespace Engine
 
 	static InitializeController post_init([]() { Localization::create_instance()->reload(true, true); });
 
-}// namespace Engine
+}// namespace Trinex

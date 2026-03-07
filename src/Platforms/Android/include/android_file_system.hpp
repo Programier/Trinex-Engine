@@ -2,7 +2,7 @@
 #include <Core/filesystem/filesystem.hpp>
 #include <Core/filesystem/path.hpp>
 
-namespace Engine::VFS
+namespace Trinex::VFS
 {
 	class ENGINE_EXPORT AndroidFileSystem : public FileSystem
 	{
@@ -34,4 +34,4 @@ namespace Engine::VFS
 		bool is_dir(const Path& dir) const override;
 		Type type() const override;
 	};
-}// namespace Engine::VFS
+}// namespace Trinex::VFS

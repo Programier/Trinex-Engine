@@ -3,7 +3,7 @@
 #include <Core/etl/hash.hpp>
 #include <Core/export.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class Object;
 
@@ -100,4 +100,4 @@ namespace Engine
 
 		bool serialize(class Archive& ar, bool is_reference = true) { return PointerBase::serialize(ar, m_object, is_reference); }
 	};
-}// namespace Engine
+}// namespace Trinex

@@ -36,12 +36,12 @@ SOFTWARE.
 
 namespace ImViewGuizmo
 {
-	using vec3_t = Engine::Vector3f;
-	using vec4_t = Engine::Vector4f;
-	using quat_t = Engine::Quaternion;
-	using mat4_t = Engine::Matrix4f;
+	using vec3_t = Trinex::Vector3f;
+	using vec4_t = Trinex::Vector4f;
+	using quat_t = Trinex::Quaternion;
+	using mat4_t = Trinex::Matrix4f;
 
-	namespace Math = Engine::Math;
+	namespace Math = Trinex::Math;
 
 	// INTERFACE
 	struct Style {

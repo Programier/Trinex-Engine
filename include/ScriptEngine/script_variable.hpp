@@ -2,7 +2,7 @@
 #include <Core/engine_types.hpp>
 #include <ScriptEngine/enums.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ScriptTypeInfo;
 
@@ -126,4 +126,4 @@ namespace Engine
 		float float_value() const;
 		double double_value() const;
 	};
-}// namespace Engine
+}// namespace Trinex

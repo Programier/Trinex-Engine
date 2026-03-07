@@ -1,7 +1,7 @@
 #pragma once
 #include <RHI/types.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	struct RHIShaderParameterType {
 		enum Enum : EnumerateType
@@ -979,4 +979,4 @@ namespace Engine
 
 		trinex_bitfield_enum_struct(RHIRayTracingGeometryInstanceFlags, u8);
 	};
-}// namespace Engine
+}// namespace Trinex

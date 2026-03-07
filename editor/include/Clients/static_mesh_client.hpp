@@ -4,7 +4,7 @@
 #include <Engine/scene_view.hpp>
 #include <Widgets/imgui_windows.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class StaticMesh;
 	class CameraComponent;
@@ -42,4 +42,4 @@ namespace Engine
 		StaticMeshClient& select(Object* object) override;
 		u32 build_dock(u32 dock) override;
 	};
-}// namespace Engine
+}// namespace Trinex

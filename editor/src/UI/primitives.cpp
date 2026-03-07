@@ -2,7 +2,7 @@
 #include <UI/primitives.hpp>
 #include <imgui_internal.h>
 
-namespace Engine::UI
+namespace Trinex::UI
 {
 	static inline float validate_icon_size(float size)
 	{
@@ -237,4 +237,4 @@ namespace Engine::UI
 
 		return pressed;
 	}
-}// namespace Engine::UI
+}// namespace Trinex::UI

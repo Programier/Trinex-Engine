@@ -5,7 +5,7 @@
 #include <Core/name.hpp>
 #include <RHI/enums.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class RHIContext;
 	class RHIBuffer;
@@ -387,4 +387,4 @@ namespace Engine
 		RHISampleCount samples           = RHISampleCount::x1;
 		RHIContextInheritanceFlags flags = RHIContextInheritanceFlags::Undefined;
 	};
-}// namespace Engine
+}// namespace Trinex

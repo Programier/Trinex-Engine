@@ -4,7 +4,7 @@
 #include <Core/math/quaternion.hpp>
 #include <Core/math/vector.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class Archive;
 
@@ -50,4 +50,4 @@ namespace Engine
 		String as_string() const;
 		bool serialize(Archive& ar);
 	};
-}// namespace Engine
+}// namespace Trinex

@@ -1,7 +1,7 @@
 #include <Engine/Render/frame_history.hpp>
 #include <Graphics/render_pools.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	void FrameHistory::release_texture(RHITexture* texture)
 	{
@@ -12,4 +12,4 @@ namespace Engine
 	{
 		RHIBufferPool::global_instance()->return_buffer(buffer);
 	}
-}// namespace Engine
+}// namespace Trinex

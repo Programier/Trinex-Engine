@@ -16,7 +16,7 @@
 #include <Window/window_manager.hpp>
 #include <imgui_internal.h>
 
-namespace Engine
+namespace Trinex
 {
 	static ScriptFunction m_ic_script_update;
 	static ScriptFunction m_ic_script_select;
@@ -238,4 +238,4 @@ namespace Engine
 	{
 		return dock;
 	}
-}// namespace Engine
+}// namespace Trinex

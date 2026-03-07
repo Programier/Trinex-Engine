@@ -15,7 +15,7 @@
 #include <android_window.hpp>
 #include <unistd.h>
 
-namespace Engine::Platform
+namespace Trinex::Platform
 {
 	static AndroidWindow* m_window = nullptr;
 
@@ -507,4 +507,4 @@ namespace Engine::Platform
 		app->onAppCmd     = handle_app_cmd;
 		app->onInputEvent = handle_input_event;
 	}
-}// namespace Engine::Platform
+}// namespace Trinex::Platform

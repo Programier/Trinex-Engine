@@ -2,7 +2,7 @@
 #include <Core/math/angle.hpp>
 #include <Engine/ActorComponents/point_light_component.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT SpotLightComponent : public PointLightComponent
 	{
@@ -29,4 +29,4 @@ namespace Engine
 		inline Angle outer_cone_angle() const { return m_outer_cone_angle; }
 	};
 
-}// namespace Engine
+}// namespace Trinex

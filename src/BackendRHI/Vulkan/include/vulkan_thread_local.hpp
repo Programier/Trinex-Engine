@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Engine
+namespace Trinex
 {
 	class VulkanThreadLocal
 	{
@@ -8,4 +8,4 @@ namespace Engine
 		VulkanThreadLocal();
 		virtual ~VulkanThreadLocal();
 	};
-}// namespace Engine
+}// namespace Trinex

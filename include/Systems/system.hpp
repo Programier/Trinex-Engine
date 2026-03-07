@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/object.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT System : public Object
 	{
@@ -49,4 +49,4 @@ namespace Engine
 		~System();
 		Identifier id() const;
 	};
-}// namespace Engine
+}// namespace Trinex

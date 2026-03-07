@@ -2,7 +2,7 @@
 
 #include <Engine/Actors/actor.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT LightActor : public Actor
 	{
@@ -10,4 +10,4 @@ namespace Engine
 
 	public:
 	};
-}// namespace Engine
+}// namespace Trinex

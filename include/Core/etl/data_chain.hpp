@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/etl/flat_set.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	template<typename T, typename Compare = std::less<T>, size_t chunk_size = 64, typename AllocatorType = Allocator<T>>
 	class DataChain
@@ -142,4 +142,4 @@ namespace Engine
 		}
 	};
 
-}// namespace Engine
+}// namespace Trinex

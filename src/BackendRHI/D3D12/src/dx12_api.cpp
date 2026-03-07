@@ -8,7 +8,7 @@
 #include <dx12_descriptor.hpp>
 #include <dx12_state.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	D3D12* D3D12::s_d3d12 = nullptr;
 
@@ -237,4 +237,4 @@ namespace Engine
 	{
 		D3D12::api()->deferred_destroy(object);
 	}
-}// namespace Engine
+}// namespace Trinex

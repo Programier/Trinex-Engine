@@ -3,7 +3,7 @@
 #include <Core/etl/singletone.hpp>
 #include <Core/filesystem/filesystem.hpp>
 
-namespace Engine::VFS
+namespace Trinex::VFS
 {
 	class ENGINE_EXPORT RootFS : public Singletone<RootFS, FileSystem>
 	{
@@ -52,10 +52,10 @@ namespace Engine::VFS
 		friend class DirectoryIterator;
 		friend class RecursiveDirectoryIterator;
 	};
-}// namespace Engine::VFS
+}// namespace Trinex::VFS
 
 
-namespace Engine
+namespace Trinex
 {
 	ENGINE_EXPORT VFS::RootFS* rootfs();
 }

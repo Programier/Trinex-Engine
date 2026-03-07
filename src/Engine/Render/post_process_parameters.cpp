@@ -2,9 +2,9 @@
 #include <Core/reflection/struct.hpp>
 #include <Engine/Render/post_process_parameters.hpp>
 
-namespace Engine
+namespace Trinex
 {
-	trinex_implement_struct(Engine::PostProcessParameters::SSAO, 0)
+	trinex_implement_struct(Trinex::PostProcessParameters::SSAO, 0)
 	{
 		trinex_refl_prop(enabled);
 		trinex_refl_prop(intensity);
@@ -17,7 +17,7 @@ namespace Engine
 		trinex_refl_prop(samples);
 	}
 
-	trinex_implement_struct(Engine::PostProcessParameters::Bloom, 0)
+	trinex_implement_struct(Trinex::PostProcessParameters::Bloom, 0)
 	{
 		trinex_refl_prop(enabled);
 		trinex_refl_prop(intensity);
@@ -28,7 +28,7 @@ namespace Engine
 		trinex_refl_prop(fade_max);
 	}
 
-	trinex_implement_struct(Engine::PostProcessParameters, 0)
+	trinex_implement_struct(Trinex::PostProcessParameters, 0)
 	{
 		trinex_refl_prop(ssao);
 		trinex_refl_prop(bloom);
@@ -39,4 +39,4 @@ namespace Engine
 		(*this) = parameters;
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

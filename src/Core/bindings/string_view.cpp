@@ -3,7 +3,7 @@
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	static void on_init()
 	{
@@ -11,7 +11,7 @@ namespace Engine
 		info.pod      = true;
 		info.all_ints = true;
 
-		ScriptClassRegistrar registrar = ScriptClassRegistrar::value_class("Engine::StringView", sizeof(StringView), info);
+		ScriptClassRegistrar registrar = ScriptClassRegistrar::value_class("Trinex::StringView", sizeof(StringView), info);
 
 		registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<StringView>);
 		registrar.behave(ScriptClassBehave::Construct, "void f(const string& in)",
@@ -56,5 +56,5 @@ namespace Engine
 		                 overload_of<StringView::size_type(StringView, StringView::size_type)>(&StringView::find_last_of));
 	}
 
-	static ReflectionInitializeController initialize(on_init, "Engine::StringView");
-}// namespace Engine
+	static ReflectionInitializeController initialize(on_init, "Trinex::StringView");
+}// namespace Trinex

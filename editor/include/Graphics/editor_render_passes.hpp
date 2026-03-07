@@ -1,7 +1,7 @@
 #pragma once
 #include <Engine/Render/render_pass.hpp>
 
-namespace Engine::EditorRenderPasses
+namespace Trinex::EditorRenderPasses
 {
 	class HitProxy : public RenderPass
 	{
@@ -13,4 +13,4 @@ namespace Engine::EditorRenderPasses
 		bool is_material_compatible(const Material* material) override;
 		RenderPass& modify_shader_compilation_env(ShaderCompilationEnvironment* env) override;
 	};
-}// namespace Engine::EditorRenderPasses
+}// namespace Trinex::EditorRenderPasses

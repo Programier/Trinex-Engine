@@ -2,7 +2,7 @@
 #include <Core/engine_types.hpp>
 #include <Core/math/vector.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	struct CameraView;
 
@@ -52,4 +52,4 @@ namespace Engine
 
 		ContaintmentType containtment_type(const Box3f& box) const;
 	};
-}// namespace Engine
+}// namespace Trinex

@@ -3,7 +3,7 @@
 #include <vulkan_headers.hpp>
 
 
-namespace Engine::VulkanEnums
+namespace Trinex::VulkanEnums
 {
 	constexpr inline vk::ImageAspectFlags aspect_of(RHIColorFormat format)
 	{
@@ -635,4 +635,4 @@ namespace Engine::VulkanEnums
 			default: return vk::SampleCountFlagBits::e1;
 		}
 	}
-}// namespace Engine::VulkanEnums
+}// namespace Trinex::VulkanEnums

@@ -2,7 +2,7 @@
 #include <Engine/settings.hpp>
 #include <RHI/initializers.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	RHISamplerInitializer::RHISamplerInitializer()
 	    : filter(RHISamplerFilter::Point),            //
@@ -35,4 +35,4 @@ namespace Engine
 		       min_lod == initializer.min_lod &&          //
 		       max_lod == initializer.max_lod;
 	}
-}// namespace Engine
+}// namespace Trinex

@@ -22,7 +22,7 @@
 #include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class HitproxyRenderer : public Renderer
 	{
@@ -248,4 +248,4 @@ namespace Engine
 
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

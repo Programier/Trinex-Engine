@@ -1,7 +1,6 @@
 #pragma once
-#include <Core/definitions.hpp>
 
-#define API Engine::VulkanAPI::m_vulkan
+#define API Trinex::VulkanAPI::m_vulkan
 #define VIEW_PORT API->window_data.view_port
 
 #define DESTROY_CALL(func, instance)                                                                                             \

@@ -4,7 +4,7 @@
 #include <dx12_headers.hpp>
 #include <dx12_resource_view.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class D3D12_GraphicsPipeline;
 
@@ -101,4 +101,4 @@ namespace Engine
 		bool flush_graphics();
 		bool flush_compute();
 	};
-}// namespace Engine
+}// namespace Trinex

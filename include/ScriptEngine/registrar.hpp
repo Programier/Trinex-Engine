@@ -6,7 +6,7 @@
 
 class asIScriptEngine;
 
-namespace Engine
+namespace Trinex
 {
 	class Class;
 
@@ -259,4 +259,4 @@ namespace Engine
 			return set(name, static_cast<i32>(value));
 		}
 	};
-}// namespace Engine
+}// namespace Trinex

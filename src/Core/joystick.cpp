@@ -3,7 +3,7 @@
 #include <Core/logger.hpp>
 
 
-namespace Engine
+namespace Trinex
 {
 	TreeMap<Identifier, Joystick*> Joystick::m_joysticks;
 
@@ -56,4 +56,4 @@ namespace Engine
 	}
 
 	static DestroyController on_destroy_controller(on_destroy);
-}// namespace Engine
+}// namespace Trinex

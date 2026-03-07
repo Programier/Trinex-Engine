@@ -5,7 +5,7 @@
 #include <Core/etl/string.hpp>
 #include <Core/etl/vector.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT Arguments
 	{
@@ -73,4 +73,4 @@ namespace Engine
 		static Argument* find(const String& name);
 		static void push_argument(const Argument& argument, bool override = false);
 	};
-}// namespace Engine
+}// namespace Trinex

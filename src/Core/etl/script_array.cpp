@@ -3,7 +3,7 @@
 #include <angelscript.h>
 #include <scriptarray.h>
 
-namespace Engine
+namespace Trinex
 {
 #define script_array_init_check(fail_ret)                                                                                        \
 	if (m_as_array == nullptr)                                                                                                   \
@@ -175,4 +175,4 @@ namespace Engine
 	{
 		release();
 	}
-}// namespace Engine
+}// namespace Trinex

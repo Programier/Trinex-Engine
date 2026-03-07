@@ -5,7 +5,7 @@
 #include <Engine/Actors/skeletal_mesh_actor.hpp>
 #include <ScriptEngine/registrar.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	trinex_implement_engine_class(SkeletalMeshActor, Refl::Class::IsScriptable)
 	{
@@ -24,4 +24,4 @@ namespace Engine
 	}
 
 	SkeletalMeshActor::~SkeletalMeshActor() {}
-}// namespace Engine
+}// namespace Trinex

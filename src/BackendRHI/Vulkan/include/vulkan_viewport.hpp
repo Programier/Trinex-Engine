@@ -6,7 +6,7 @@
 #include <vulkan_headers.hpp>
 #include <vulkan_state.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class VulkanCommandHandle;
 	class VulkanTexture;
@@ -72,4 +72,4 @@ namespace Engine
 		RHITexture* as_texture() override;
 		void destroy() override;
 	};
-}// namespace Engine
+}// namespace Trinex

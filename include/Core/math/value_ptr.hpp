@@ -1,7 +1,7 @@
 #pragma once
 #include <glm/gtc/type_ptr.hpp>
 
-namespace Engine::Math
+namespace Trinex::Math
 {
 	using glm::value_ptr;
 }

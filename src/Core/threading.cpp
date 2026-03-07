@@ -11,7 +11,7 @@
 #include <mutex>
 #include <thread>
 
-namespace Engine
+namespace Trinex
 {
 	///////////////// GLOBAL VARIABLES /////////////////
 
@@ -817,4 +817,4 @@ namespace Engine
 	{
 		destroy_thread(s_logic_thread);
 	}
-}// namespace Engine
+}// namespace Trinex

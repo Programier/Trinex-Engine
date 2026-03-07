@@ -2,7 +2,7 @@
 #include <Core/reflection/script_enum.hpp>
 #include <ScriptEngine/script.hpp>
 
-namespace Engine::Refl
+namespace Trinex::Refl
 {
 	trinex_implement_reflect_type(ScriptEnum);
 
@@ -31,4 +31,4 @@ namespace Engine::Refl
 	{
 		m_script->m_refl_objects.erase(this);
 	}
-}// namespace Engine::Refl
+}// namespace Trinex::Refl

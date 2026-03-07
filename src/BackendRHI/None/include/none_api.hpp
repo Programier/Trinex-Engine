@@ -4,7 +4,7 @@
 #include <RHI/rhi.hpp>
 
 
-namespace Engine
+namespace Trinex
 {
 	class NoneApi : public RHI
 	{
@@ -39,4 +39,4 @@ namespace Engine
 
 		NoneApi& present(RHISwapchain* swapchain) override;
 	};
-}// namespace Engine
+}// namespace Trinex

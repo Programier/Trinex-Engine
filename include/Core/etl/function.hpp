@@ -1,7 +1,7 @@
 #pragma once
 #include <functional>
 
-namespace Engine
+namespace Trinex
 {
 	template<typename Signature>
 	using Function = std::function<Signature>;

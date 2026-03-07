@@ -4,7 +4,7 @@
 #include <RHI/rhi.hpp>
 #include <vulkan_headers.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class VulkanBuffer;
 
@@ -66,4 +66,4 @@ namespace Engine
 		inline vk::DescriptorSetLayout descriptor_set_layout() const { return m_descriptor_set_layout; }
 		inline vk::DescriptorSet descriptor_set() const { return m_descriptor_set; }
 	};
-}// namespace Engine
+}// namespace Trinex

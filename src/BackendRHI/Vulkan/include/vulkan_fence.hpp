@@ -3,7 +3,7 @@
 #include <vulkan_destroyable.hpp>
 #include <vulkan_headers.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class VulkanCommandHandle;
 
@@ -41,4 +41,4 @@ namespace Engine
 			return *this;
 		}
 	};
-}// namespace Engine
+}// namespace Trinex

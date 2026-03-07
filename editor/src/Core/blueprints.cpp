@@ -5,7 +5,7 @@
 #include <imgui_internal.h>
 #include <imgui_stacklayout.h>
 
-namespace Engine
+namespace Trinex
 {
 	using namespace ax::NodeEditor;
 
@@ -482,4 +482,4 @@ namespace Engine
 		ImGui::Dummy(size);
 	}
 
-}// namespace Engine
+}// namespace Trinex

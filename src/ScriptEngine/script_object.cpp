@@ -7,7 +7,7 @@
 #include <ScriptEngine/script_type_info.hpp>
 #include <angelscript.h>
 
-namespace Engine
+namespace Trinex
 {
 	static FORCE_INLINE void* object_from_handle(void* address, bool is_object_address_for_handle)
 	{
@@ -48,11 +48,11 @@ namespace Engine
 	}
 
 	ScriptObject::ScriptObject(void* address, const char* declaration, bool consider_handle_as_object)
-	    : Engine::ScriptObject(address, find_type_id(declaration), consider_handle_as_object)
+	    : Trinex::ScriptObject(address, find_type_id(declaration), consider_handle_as_object)
 	{}
 
 	ScriptObject::ScriptObject(void* address, const char* declaration, const char* module, bool consider_handle_as_object)
-	    : Engine::ScriptObject(address, find_type_id(declaration, module), consider_handle_as_object)
+	    : Trinex::ScriptObject(address, find_type_id(declaration, module), consider_handle_as_object)
 	{}
 
 	ScriptObject::ScriptObject(Object* self)
@@ -317,4 +317,4 @@ namespace Engine
 		}
 		return m_info;
 	}
-}// namespace Engine
+}// namespace Trinex

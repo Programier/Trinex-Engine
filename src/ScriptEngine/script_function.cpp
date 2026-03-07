@@ -9,7 +9,7 @@
 #include <ScriptEngine/script_type_info.hpp>
 #include <angelscript.h>
 
-namespace Engine
+namespace Trinex
 {
 
 #define check_function(return_value)                                                                                             \
@@ -21,7 +21,7 @@ namespace Engine
 		add_ref();
 	}
 
-	ScriptFunction::ScriptFunction(const ScriptFunction& obj) : Engine::ScriptFunction(obj.function()) {}
+	ScriptFunction::ScriptFunction(const ScriptFunction& obj) : Trinex::ScriptFunction(obj.function()) {}
 
 	ScriptFunction::ScriptFunction(ScriptFunction&& obj)
 	{
@@ -299,4 +299,4 @@ namespace Engine
 	{
 		release();
 	}
-}// namespace Engine
+}// namespace Trinex

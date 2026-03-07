@@ -3,7 +3,7 @@
 #include <Core/pointer.hpp>
 #include <Core/transform.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ActorComponent;
 	class ScriptFunction;
@@ -94,4 +94,4 @@ namespace Engine
 
 		friend class World;
 	};
-}// namespace Engine
+}// namespace Trinex

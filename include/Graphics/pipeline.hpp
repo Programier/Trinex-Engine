@@ -4,7 +4,7 @@
 #include <RHI/resource_ptr.hpp>
 #include <RHI/structures.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class Shader;
 	class RenderPass;
@@ -142,13 +142,13 @@ public:                                                                         
 	Path shader_path() const override;                                                                                           \
 	void initialize() override;                                                                                                  \
 	~class_name();                                                                                                               \
-	friend class Engine::Object;                                                                                                 \
+	friend class Trinex::Object;                                                                                                 \
                                                                                                                                  \
 private:
 
 #define trinex_implement_pipeline(class_name, path)                                                                              \
-	static Engine::u8 TRINEX_CONCAT(trinex_global_pipeline_, __LINE__) =                                                         \
-	        static_cast<Engine::u8>(Engine::InitializeController([]() { class_name::create(); }, #class_name).id());             \
+	static Trinex::u8 TRINEX_CONCAT(trinex_global_pipeline_, __LINE__) =                                                         \
+	        static_cast<Trinex::u8>(Trinex::InitializeController([]() { class_name::create(); }, #class_name).id());             \
                                                                                                                                  \
 	class_name* class_name::s_instance = nullptr;                                                                                \
 	class_name::class_name() : Super(#class_name)                                                                                \
@@ -174,4 +174,4 @@ private:
 		return path;                                                                                                             \
 	}                                                                                                                            \
 	void class_name::initialize()
-}// namespace Engine
+}// namespace Trinex

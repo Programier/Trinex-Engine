@@ -4,7 +4,7 @@
 #include <Systems/touchscreen_system.hpp>
 #include <Window/window_manager.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	trinex_implement_engine_class_default_init(TouchScreenSystem, 0);
 
@@ -139,4 +139,4 @@ namespace Engine
 			data.y_offset = finger.yrel;
 		}
 	}
-}// namespace Engine
+}// namespace Trinex

@@ -1,7 +1,7 @@
 #pragma once
 #include <type_traits>
 
-namespace Engine
+namespace Trinex
 {
 	template<typename Type, std::size_t max_count = ~static_cast<std::size_t>(0),
 	         typename = typename std::enable_if<std::is_arithmetic<Type>::value>::type>
@@ -63,4 +63,4 @@ namespace Engine
 			return Average<OutType, out_max_cout>(static_cast<OutType>(m_value), m_count);
 		}
 	};
-}// namespace Engine
+}// namespace Trinex

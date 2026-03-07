@@ -2,7 +2,7 @@
 
 struct ImGuiTrinexTextureId;
 
-namespace Engine
+namespace Trinex
 {
 	class Texture2D;
 	class Object;
@@ -19,4 +19,4 @@ namespace Engine
 		ImGuiTrinexTextureId find_icon(Object* object);
 		ImGuiTrinexTextureId find_icon(Refl::Class* class_instance);
 	}// namespace Icons
-}// namespace Engine
+}// namespace Trinex

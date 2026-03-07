@@ -4,7 +4,7 @@
 #include <Core/flags.hpp>
 #include <Core/object.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT BaseEngine : public EngineResource<Object>
 	{
@@ -47,4 +47,4 @@ namespace Engine
 	};
 
 	ENGINE_EXPORT extern BaseEngine* engine_instance;
-}// namespace Engine
+}// namespace Trinex

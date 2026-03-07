@@ -20,7 +20,7 @@
 #include <Window/window.hpp>
 #include <imgui_internal.h>
 
-namespace Engine
+namespace Trinex
 {
 	trinex_implement_engine_class(StaticMeshClient, 0)
 	{
@@ -108,4 +108,4 @@ namespace Engine
 		return dock;
 	}
 
-}// namespace Engine
+}// namespace Trinex

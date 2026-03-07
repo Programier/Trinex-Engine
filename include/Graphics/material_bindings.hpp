@@ -5,7 +5,7 @@
 #include <Core/math/vector.hpp>
 #include <Core/name.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class RHITexture;
 	class RHISampler;
@@ -92,4 +92,4 @@ namespace Engine
 		inline Container::const_reverse_iterator crbegin() const { return m_bindings.crbegin(); }
 		inline Container::const_reverse_iterator crend() const { return m_bindings.crend(); }
 	};
-}// namespace Engine
+}// namespace Trinex

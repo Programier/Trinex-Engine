@@ -8,7 +8,7 @@
 #include <RHI/rhi.hpp>
 #include <RHI/static_sampler.hpp>
 
-namespace Engine::EditorPipelines
+namespace Trinex::EditorPipelines
 {
 	trinex_implement_pipeline(Outline, "[shaders]:/TrinexEditor/outlines.slang")
 	{
@@ -106,4 +106,4 @@ namespace Engine::EditorPipelines
 		ctx->pop_cull_mode();
 		ctx->pop_primitive_topology();
 	}
-}// namespace Engine::EditorPipelines
+}// namespace Trinex::EditorPipelines

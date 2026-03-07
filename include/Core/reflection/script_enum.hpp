@@ -1,13 +1,13 @@
 #pragma once
 #include <Core/reflection/enum.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class Script;
 	class ScriptTypeInfo;
-}// namespace Engine
+}// namespace Trinex
 
-namespace Engine::Refl
+namespace Trinex::Refl
 {
 	class ENGINE_EXPORT ScriptEnum : public Enum
 	{
@@ -20,4 +20,4 @@ namespace Engine::Refl
 		Script* script() const;
 		~ScriptEnum();
 	};
-}// namespace Engine::Refl
+}// namespace Trinex::Refl

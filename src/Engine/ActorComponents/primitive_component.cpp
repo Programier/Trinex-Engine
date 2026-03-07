@@ -9,7 +9,7 @@
 #include <Engine/world.hpp>
 #include <ScriptEngine/registrar.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	trinex_implement_engine_class(PrimitiveComponent, Refl::Class::IsScriptable)
 	{
@@ -87,4 +87,4 @@ namespace Engine
 
 
 	PrimitiveComponent::~PrimitiveComponent() {}
-}// namespace Engine
+}// namespace Trinex

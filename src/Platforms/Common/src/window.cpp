@@ -10,7 +10,7 @@
 #include <sdl_window.hpp>
 
 
-namespace Engine
+namespace Trinex
 {
 	static const Map<WindowAttribute::Enum, SDL_WindowFlags> window_attributes = {
 	        {WindowAttribute::Resizable, SDL_WINDOW_RESIZABLE},
@@ -462,4 +462,4 @@ namespace Engine
 			m_window = 0;
 		}
 	}
-}// namespace Engine
+}// namespace Trinex

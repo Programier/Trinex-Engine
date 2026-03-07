@@ -4,7 +4,7 @@
 #include <Core/etl/type_traits.hpp>
 #include <Core/flags.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class BufferReader;
 	class BufferWriter;
@@ -107,7 +107,7 @@ namespace Engine
 		inline operator bool() { return m_process_status; }
 
 		template<typename Type>
-		typename std::enable_if<std::is_base_of_v<class Engine::Object, Type>, bool>::type serialize_reference(Type*& object)
+		typename std::enable_if<std::is_base_of_v<class Trinex::Object, Type>, bool>::type serialize_reference(Type*& object)
 		{
 			if (is_saving())
 			{
@@ -261,4 +261,4 @@ namespace Engine
 	{
 		return serialize_string(value);
 	}
-}// namespace Engine
+}// namespace Trinex

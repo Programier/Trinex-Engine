@@ -3,7 +3,7 @@
 #include <vulkan_api.hpp>
 #include <vulkan_thread_local.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	VulkanThreadLocal::VulkanThreadLocal()
 	{
@@ -13,4 +13,4 @@ namespace Engine
 	}
 
 	VulkanThreadLocal::~VulkanThreadLocal() {}
-}// namespace Engine
+}// namespace Trinex

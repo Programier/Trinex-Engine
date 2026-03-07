@@ -6,7 +6,7 @@
 #include <Core/object.hpp>
 
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT SingletoneBase
 	{
@@ -103,4 +103,4 @@ namespace Engine
 			}
 		}
 	};
-}// namespace Engine
+}// namespace Trinex

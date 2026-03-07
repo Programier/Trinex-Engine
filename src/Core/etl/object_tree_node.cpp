@@ -5,7 +5,7 @@
 #include <Core/string_functions.hpp>
 #include <algorithm>
 
-namespace Engine
+namespace Trinex
 {
 	static bool predicate(const Object* object, Identifier id)
 	{
@@ -51,4 +51,4 @@ namespace Engine
 		}
 		return nullptr;
 	}
-}// namespace Engine
+}// namespace Trinex

@@ -5,7 +5,7 @@
 #include <dx12_destroyable.hpp>
 #include <dx12_headers.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class D3D12Buffer : public D3D12_DeferredDestroyable<RHIBuffer>
 	{
@@ -62,4 +62,4 @@ namespace Engine
 		D3D12UploadBuffer* allocate(size_t size, const byte* data);
 		friend D3D12UploadBuffer;
 	};
-}// namespace Engine
+}// namespace Trinex

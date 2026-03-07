@@ -3,7 +3,7 @@
 #include <Core/etl/any.hpp>
 #include <Core/etl/map.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT UserData final
 	{
@@ -18,4 +18,4 @@ namespace Engine
 		Any& get(Identifier id);
 		Any& get(const void* id);
 	};
-}// namespace Engine
+}// namespace Trinex

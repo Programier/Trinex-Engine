@@ -5,7 +5,7 @@
 #include <set>
 #include <unordered_set>
 
-namespace Engine
+namespace Trinex
 {
 	class Archive;
 
@@ -47,4 +47,4 @@ namespace Engine
 	struct Serializer<TreeSet<Type, Compare, AllocatorType>> {
 		bool serialize(Archive& ar, TreeSet<Type, Compare, AllocatorType>& set) { return trinex_serialize_set(set); }
 	};
-}// namespace Engine
+}// namespace Trinex

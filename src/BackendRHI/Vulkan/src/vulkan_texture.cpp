@@ -16,7 +16,7 @@
 #include <vulkan_state.hpp>
 #include <vulkan_texture.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	template<typename Value>
 	static inline Value* static_as_view(VulkanTexture* texture, Vector<VulkanTexture::View<Value>>& views,
@@ -388,4 +388,4 @@ namespace Engine
 		static_cast<VulkanTexture*>(texture)->barrier(this, access);
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

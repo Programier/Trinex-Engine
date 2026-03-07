@@ -4,7 +4,7 @@
 #include <Core/math/vector.hpp>
 #include <Core/types/color.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class Image;
 	class Path;
@@ -33,4 +33,4 @@ namespace Engine
 
 		~Font();
 	};
-}// namespace Engine
+}// namespace Trinex

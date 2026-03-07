@@ -1,12 +1,12 @@
 #include <Graphics/sampler.hpp>
 #include <Graphics/visual_material_graph.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class Texture2D;
 }
 
-namespace Engine::VisualMaterialGraph
+namespace Trinex::VisualMaterialGraph
 {
 	class MaterialRoot : public Node
 	{
@@ -32,15 +32,15 @@ namespace Engine::VisualMaterialGraph
 
 	public:
 		String name;
-		Engine::Texture2D* texture;
+		Trinex::Texture2D* texture;
 
 		Texture2D();
 
-		static Texture2D* static_find_node(Engine::Texture2D* texture, Compiler& compiler, u16 id);
+		static Texture2D* static_find_node(Trinex::Texture2D* texture, Compiler& compiler, u16 id);
 		Expression compile(OutputPin* pin, Compiler& compiler) override;
 		Texture2D& render() override;
 		Texture2D& post_compile(VisualMaterial* material) override;
-		static void static_post_compile(VisualMaterial* material, Engine::Texture2D* texture, u16 id,
+		static void static_post_compile(VisualMaterial* material, Trinex::Texture2D* texture, u16 id,
 		                                StringView name_override = "");
 
 		inline OutputPin* texture_pin() const { return outputs()[0]; }
@@ -52,14 +52,14 @@ namespace Engine::VisualMaterialGraph
 
 	public:
 		String name;
-		Engine::Sampler sampler;
+		Trinex::Sampler sampler;
 
 		Sampler();
-		static Sampler* static_find_node(const Engine::Sampler& sampler, Compiler& compiler, u16 id);
+		static Sampler* static_find_node(const Trinex::Sampler& sampler, Compiler& compiler, u16 id);
 		Expression compile(OutputPin* pin, Compiler& compiler) override;
 		Sampler& post_compile(VisualMaterial* material) override;
 
-		static void static_post_compile(VisualMaterial* material, const Engine::Sampler& sampler, u16 id,
+		static void static_post_compile(VisualMaterial* material, const Trinex::Sampler& sampler, u16 id,
 		                                StringView name_override = "");
 
 		inline OutputPin* sampler_pin() const { return outputs()[0]; }
@@ -72,11 +72,11 @@ namespace Engine::VisualMaterialGraph
 		Expression compile_texture(Compiler& compiler);
 		Expression compile_uv(Compiler& compiler);
 		Expression compile_sampler(Compiler& compiler);
-		Engine::Texture2D* find_texture();
+		Trinex::Texture2D* find_texture();
 
 	public:
-		Engine::Texture2D* texture;
-		Engine::Sampler sampler;
+		Trinex::Texture2D* texture;
+		Trinex::Sampler sampler;
 
 		SampleTexture();
 		Expression compile(OutputPin* pin, Compiler& compiler) override;
@@ -93,4 +93,4 @@ namespace Engine::VisualMaterialGraph
 		inline OutputPin* b_pin() const { return outputs()[3]; }
 		inline OutputPin* a_pin() const { return outputs()[4]; }
 	};
-}// namespace Engine::VisualMaterialGraph
+}// namespace Trinex::VisualMaterialGraph

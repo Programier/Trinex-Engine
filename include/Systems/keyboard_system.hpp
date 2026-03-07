@@ -3,7 +3,7 @@
 #include <Core/keyboard.hpp>
 #include <Systems/system.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	struct Event;
 	class ENGINE_EXPORT KeyboardSystem : public Singletone<KeyboardSystem, System>
@@ -62,4 +62,4 @@ namespace Engine
 
 		friend class Singletone<KeyboardSystem, System>;
 	};
-}// namespace Engine
+}// namespace Trinex

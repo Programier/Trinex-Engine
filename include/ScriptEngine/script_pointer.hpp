@@ -3,7 +3,7 @@
 
 class asITypeInfo;
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT ScriptPointer
 	{
@@ -24,4 +24,4 @@ namespace Engine
 			return reinterpret_cast<T*>(address());
 		}
 	};
-}// namespace Engine
+}// namespace Trinex

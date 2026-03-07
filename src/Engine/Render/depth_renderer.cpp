@@ -11,7 +11,7 @@
 #include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	DepthRenderer::DepthRenderer(Scene* scene, const SceneView& view, ViewMode mode) : Renderer(scene, view, mode)
 	{
@@ -136,4 +136,4 @@ namespace Engine
 
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

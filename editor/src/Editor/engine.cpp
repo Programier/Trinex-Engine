@@ -1,9 +1,9 @@
 #include <Core/reflection/class.hpp>
 #include <Editor/engine.hpp>
 
-namespace Engine
+namespace Trinex
 {
-	trinex_implement_class(Engine::EditorEngine, 0) {}
+	trinex_implement_class(Trinex::EditorEngine, 0) {}
 
 	EditorEngine* EditorEngine::instance()
 	{
@@ -48,4 +48,4 @@ namespace Engine
 	{
 		return m_selected_actors.contains(actor);
 	}
-}// namespace Engine
+}// namespace Trinex

@@ -1,7 +1,7 @@
 #include <Core/reflection/class.hpp>
 #include <Graphics/render_resource.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	trinex_implement_engine_class_default_init(RenderResource, 0);
 
@@ -27,4 +27,4 @@ namespace Engine
 		release_render_resources();
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

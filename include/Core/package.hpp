@@ -3,7 +3,7 @@
 #include <Core/etl/object_tree_node.hpp>
 #include <Core/object.hpp>
 
-namespace Engine
+namespace Trinex
 {
 
 	class ENGINE_EXPORT Package : public ObjectTreeNode<Object, Object>
@@ -30,4 +30,4 @@ namespace Engine
 		bool save(BufferWriter* writer = nullptr, SerializationFlags flags = {}) override;
 		friend class Object;
 	};
-}// namespace Engine
+}// namespace Trinex

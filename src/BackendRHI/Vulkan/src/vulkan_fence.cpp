@@ -3,7 +3,7 @@
 #include <vulkan_fence.hpp>
 #include <vulkan_queue.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	VulkanFence::VulkanFence(bool is_signaled)
 	{
@@ -68,4 +68,4 @@ namespace Engine
 		m_graphics_queue->submit({}, static_cast<VulkanFence*>(fence)->fence());
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

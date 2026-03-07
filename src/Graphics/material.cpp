@@ -22,7 +22,7 @@
 #include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	using Parameter = MaterialInterface::Parameter;
 
@@ -654,4 +654,4 @@ namespace Engine
 			return false;
 		return true;
 	}
-}// namespace Engine
+}// namespace Trinex

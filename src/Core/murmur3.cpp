@@ -1,6 +1,6 @@
 #include <Core/memory.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	static FORCE_INLINE u64 rotl64(u64 x, i8 r)
 	{
@@ -120,4 +120,4 @@ namespace Engine
 	{
 		return murmur_hash(static_cast<const u8*>(memory), size, seed);
 	}
-}// namespace Engine
+}// namespace Trinex

@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <printf.h>
 
-namespace Engine::Asserts
+namespace Trinex::Asserts
 {
 	namespace
 	{
@@ -77,4 +77,4 @@ namespace Engine::Asserts
 
 		report_failure(condition, file, line, function, buffer);
 	}
-}// namespace Engine::Asserts
+}// namespace Trinex::Asserts

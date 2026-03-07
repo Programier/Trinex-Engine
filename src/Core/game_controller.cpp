@@ -6,7 +6,7 @@
 #include <ScriptEngine/registrar.hpp>
 #include <Systems/game_controller_system.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	GameController::GameController(Identifier controller_id) : m_ID(controller_id)
 	{
@@ -50,9 +50,8 @@ namespace Engine
 
 	static void on_init()
 	{
-
 		{
-			ScriptEnumRegistrar axis_enum("Engine::GameController::Axis");
+			ScriptEnumRegistrar axis_enum("Trinex::GameController::Axis");
 			axis_enum.set("Unknown", GameController::Unknown);
 			axis_enum.set("LeftX", GameController::LeftX);
 			axis_enum.set("LeftY", GameController::LeftY);
@@ -68,12 +67,12 @@ namespace Engine
 		info.implicit_handle = true;
 		info.no_count        = true;
 
-		ScriptClassRegistrar r = ScriptClassRegistrar::reference_class("Engine::GameController", info);
+		ScriptClassRegistrar r = ScriptClassRegistrar::reference_class("Trinex::GameController", info);
 
 		r.static_function("GameController find(uint64 id)", &GameController::find);
 		r.method("uint64 id() const", &GameController::id);
-		r.method("float axis_value(Engine::GameController::Axis, float dead_zone = 0.f) const", &GameController::axis_value);
+		r.method("float axis_value(Trinex::GameController::Axis, float dead_zone = 0.f) const", &GameController::axis_value);
 	}
 
-	static ReflectionInitializeController init(on_init, "Engine::GameController");
-}// namespace Engine
+	static ReflectionInitializeController init(on_init, "Trinex::GameController");
+}// namespace Trinex

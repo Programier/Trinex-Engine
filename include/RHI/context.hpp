@@ -3,7 +3,7 @@
 #include <RHI/object.hpp>
 #include <RHI/structures.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class RHIBuffer;
 	class RHITexture;
@@ -162,4 +162,4 @@ namespace Engine
 	{                                                                                                                            \
 	} while (false)
 #endif
-}// namespace Engine
+}// namespace Trinex

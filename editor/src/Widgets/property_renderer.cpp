@@ -3,7 +3,7 @@
 #include <UI/property_renderer.hpp>
 #include <Widgets/property_renderer.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	PropertyRenderer::PropertyRenderer() : m_object(nullptr), m_struct(nullptr)
 	{
@@ -67,4 +67,4 @@ namespace Engine
 		return "editor/Properties"_localized;
 	}
 
-}// namespace Engine
+}// namespace Trinex

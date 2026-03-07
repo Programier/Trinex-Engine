@@ -3,7 +3,7 @@
 #include <Core/etl/vector.hpp>
 #include <Core/name.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT Group final
 	{
@@ -32,4 +32,4 @@ namespace Engine
 
 		~Group();
 	};
-}// namespace Engine
+}// namespace Trinex

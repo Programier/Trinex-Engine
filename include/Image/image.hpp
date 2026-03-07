@@ -4,7 +4,7 @@
 #include <Core/math/vector.hpp>
 #include <Core/types/color.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class Archive;
 	class Path;
@@ -50,4 +50,4 @@ namespace Engine
 		inline u32 height() const { return m_size.y; }
 		inline u32 channels() const { return m_data.size() / (width() * height()); }
 	};
-}// namespace Engine
+}// namespace Trinex

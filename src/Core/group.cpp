@@ -5,7 +5,7 @@
 #include <Core/string_functions.hpp>
 #include <cstring>
 
-namespace Engine
+namespace Trinex
 {
 	Group* Group::root()
 	{
@@ -154,4 +154,4 @@ namespace Engine
 			m_parent = nullptr;
 		}
 	}
-}// namespace Engine
+}// namespace Trinex

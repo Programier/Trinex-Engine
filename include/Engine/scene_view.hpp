@@ -3,7 +3,7 @@
 #include <Engine/enums.hpp>
 #include <RHI/structures.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	struct FrameHistory;
 
@@ -47,4 +47,4 @@ namespace Engine
 		FORCE_INLINE ShowFlags show_flags() const { return m_show_flags; }
 		FORCE_INLINE FrameHistory* history() const { return m_history; }
 	};
-}// namespace Engine
+}// namespace Trinex

@@ -1,7 +1,7 @@
 #include <Core/colors.hpp>
 
 
-namespace Engine
+namespace Trinex
 {
 	const ENGINE_EXPORT Color Colors::IndianRed(0.8039f, 0.3608f, 0.3608f, 1.0f);
 	const ENGINE_EXPORT Color Colors::LightCoral(0.9412f, 0.502f, 0.502f, 1.0f);
@@ -150,4 +150,4 @@ namespace Engine
 	const ENGINE_EXPORT Color Colors::DarkSlateGray(0.1843f, 0.3098f, 0.3098f, 1.0f);
 	const ENGINE_EXPORT Color Colors::DarkSlateGrey(0.1843f, 0.3098f, 0.3098f, 1.0f);
 	const ENGINE_EXPORT Color Colors::Black(0.0f, 0.0f, 0.0f, 1.0f);
-}// namespace Engine
+}// namespace Trinex

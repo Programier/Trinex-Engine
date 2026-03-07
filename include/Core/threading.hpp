@@ -6,7 +6,7 @@
 #include <Core/etl/type_traits.hpp>
 #include <Core/etl/utility.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT Task final
 	{
@@ -203,4 +203,4 @@ namespace Engine
 	{
 		return this_thread() == logic_thread();
 	}
-}// namespace Engine
+}// namespace Trinex

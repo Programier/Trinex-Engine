@@ -5,7 +5,7 @@
 #include <Systems/event_system.hpp>
 #include <Systems/game_controller_system.hpp>
 
-namespace Engine
+namespace Trinex
 {
 #define new_listener(type, func)                                                                                                 \
 	m_listener_ids[listener_index] = event_system->add_listener(                                                                 \
@@ -86,4 +86,4 @@ namespace Engine
 
 	trinex_implement_engine_class(GameControllerSystem, Refl::Class::IsScriptable) {}
 
-}// namespace Engine
+}// namespace Trinex

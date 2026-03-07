@@ -3,7 +3,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace Engine
+namespace Trinex
 {
 	template<typename... Args>
 	struct TypesList {
@@ -310,14 +310,14 @@ namespace Engine
 	}
 
 #define trinex_scoped_method(class_name, method_name, ...)                                                                       \
-	static_cast<Engine::Signature<decltype(overload_of<__VA_ARGS__>(&class_name::method_name))>::Func<>>(                        \
+	static_cast<Trinex::Signature<decltype(overload_of<__VA_ARGS__>(&class_name::method_name))>::Func<>>(                        \
 	        []<typename Instance, typename... Args>(Instance* instance,                                                          \
 	                                                Args... args) -> decltype(instance->method_name(args...)) {                  \
 		        return instance->class_name::method_name(args...);                                                               \
 	        })
 
 #define trinex_scoped_void_method(class_name, method_name, ...)                                                                  \
-	static_cast<Engine::Signature<Engine::Signature<decltype(overload_of<__VA_ARGS__>(&class_name::method_name))>::Func<>>::     \
+	static_cast<Trinex::Signature<Trinex::Signature<decltype(overload_of<__VA_ARGS__>(&class_name::method_name))>::Func<>>::     \
 	                    Args::template make_function<void>>(                                                                     \
 	        []<typename Instance, typename... Args>(Instance* instance, Args... args) {                                          \
 		        instance->class_name::method_name(args...);                                                                      \
@@ -378,4 +378,4 @@ namespace Engine
 		static T value{};
 		return value;
 	}
-}// namespace Engine
+}// namespace Trinex

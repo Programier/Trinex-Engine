@@ -9,7 +9,7 @@
 #include <Window/window_manager.hpp>
 #include <sdl_window.hpp>
 
-namespace Engine::Platform
+namespace Trinex::Platform
 {
 	static Map<SDL_JoystickID, SDL_GameController*> m_game_controllers;
 
@@ -237,7 +237,7 @@ namespace Engine::Platform
 				case SDL_WINDOWEVENT_MOVED:
 				{
 					m_engine_event.window.x = x;
-					Window* window          = Engine::WindowManager::instance()->find(m_event.window.windowID);
+					Window* window          = Trinex::WindowManager::instance()->find(m_event.window.windowID);
 					if (window)
 					{
 						usize index             = window->monitor_index();
@@ -252,7 +252,7 @@ namespace Engine::Platform
 				case SDL_WINDOWEVENT_SIZE_CHANGED:
 				{
 					WindowSDL* window =
-					        reinterpret_cast<WindowSDL*>(Engine::WindowManager::instance()->find(m_event.window.windowID));
+					        reinterpret_cast<WindowSDL*>(Trinex::WindowManager::instance()->find(m_event.window.windowID));
 
 					m_engine_event.window.x = x;
 					m_engine_event.window.y = y;
@@ -474,4 +474,4 @@ namespace Engine::Platform
 			pool_events_loop(callback, userdata);
 		}
 	}// namespace EventSystem
-}// namespace Engine::Platform
+}// namespace Trinex::Platform

@@ -10,9 +10,9 @@
 #include <Graphics/mesh.hpp>
 #include <RHI/enums.hpp>
 
-namespace Engine
+namespace Trinex
 {
-	trinex_implement_struct(Engine::MeshSurface, 0)
+	trinex_implement_struct(Trinex::MeshSurface, 0)
 	{
 		trinex_refl_prop(topology, Refl::Property::IsReadOnly | Refl::Property::IsTransient);
 		trinex_refl_prop(first_vertex, Refl::Property::IsReadOnly | Refl::Property::IsTransient);
@@ -21,7 +21,7 @@ namespace Engine
 		trinex_refl_prop(material_index, Refl::Property::IsTransient);
 	}
 
-	trinex_implement_struct(Engine::StaticMesh::LOD, 0)
+	trinex_implement_struct(Trinex::StaticMesh::LOD, 0)
 	{
 		trinex_refl_prop(surfaces, Refl::Property::IsReadOnly | Refl::Property::IsTransient);
 	}
@@ -32,7 +32,7 @@ namespace Engine
 		trinex_refl_prop(lods, Refl::Property::IsReadOnly | Refl::Property::IsTransient)->tooltip("Array of lods of this mesh");
 	}
 
-	trinex_implement_struct(Engine::SkeletalMesh::LOD, 0)
+	trinex_implement_struct(Trinex::SkeletalMesh::LOD, 0)
 	{
 		trinex_refl_prop(surfaces, Refl::Property::IsReadOnly | Refl::Property::IsTransient);
 	}
@@ -243,4 +243,4 @@ namespace Engine
 	{
 		return init_render_resources();
 	}
-}// namespace Engine
+}// namespace Trinex

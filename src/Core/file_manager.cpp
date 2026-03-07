@@ -3,7 +3,7 @@
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/math/math.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	FileWriter::FileWriter() = default;
 	FileWriter::FileWriter(const Path& filename, bool clear)
@@ -152,4 +152,4 @@ namespace Engine
 	{
 		close();
 	}
-}// namespace Engine
+}// namespace Trinex

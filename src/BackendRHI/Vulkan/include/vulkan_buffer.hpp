@@ -7,7 +7,7 @@
 #include <vulkan_destroyable.hpp>
 #include <vulkan_headers.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class VulkanContext;
 
@@ -102,4 +102,4 @@ namespace Engine
 		VulkanStaggingBufferManager& update();
 		~VulkanStaggingBufferManager();
 	};
-}// namespace Engine
+}// namespace Trinex

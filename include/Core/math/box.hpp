@@ -2,7 +2,7 @@
 #include <Core/math/matrix.hpp>
 #include <Core/math/vector.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	template<size_t N, typename T>
 	class BoxNT
@@ -186,4 +186,4 @@ namespace Engine
 			return *this;
 		}
 	};
-}// namespace Engine
+}// namespace Trinex

@@ -8,7 +8,7 @@
 #include <glm/gtc/matrix_access.hpp>
 #include <glm/gtx/vector_angle.hpp>
 
-namespace Engine::Math
+namespace Trinex::Math
 {
 	using glm::abs;
 	using glm::acos;
@@ -193,4 +193,4 @@ namespace Engine::Math
 		return glm::half_pi<T>();
 	}
 
-}// namespace Engine::Math
+}// namespace Trinex::Math

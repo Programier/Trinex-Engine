@@ -1,7 +1,7 @@
 #pragma once
 #include <Engine/ActorComponents/local_light_component.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT PointLightComponent : public LocalLightComponent
 	{
@@ -36,4 +36,4 @@ namespace Engine
 		}
 	};
 
-}// namespace Engine
+}// namespace Trinex

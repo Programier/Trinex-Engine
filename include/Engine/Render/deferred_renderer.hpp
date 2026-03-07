@@ -2,7 +2,7 @@
 #include <Core/etl/vector.hpp>
 #include <Engine/Render/renderer.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	namespace Pipelines
 	{
@@ -74,4 +74,4 @@ namespace Engine
 		inline const FrameVector<PostProcessComponent*> visible_post_processes() const { return m_visible_post_processes; }
 		inline const PostProcessParameters* post_process_parameters() const { return m_post_process_params; }
 	};
-}// namespace Engine
+}// namespace Trinex

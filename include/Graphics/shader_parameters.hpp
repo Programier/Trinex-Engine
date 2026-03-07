@@ -2,7 +2,7 @@
 #include <Core/engine_types.hpp>
 #include <Core/math/matrix.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	struct GlobalShaderParameters {
 		struct Viewport {
@@ -41,4 +41,4 @@ namespace Engine
 
 		ENGINE_EXPORT GlobalShaderParameters& update(const class SceneView* scene_view, Vector2u target_size);
 	};
-}// namespace Engine
+}// namespace Trinex

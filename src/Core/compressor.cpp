@@ -2,7 +2,7 @@
 #include <Engine/settings.hpp>
 #include <lz4hc.h>
 
-namespace Engine::Compressor
+namespace Trinex::Compressor
 {
 
 	ENGINE_EXPORT void compress(const Buffer& src, Buffer& dst)
@@ -31,4 +31,4 @@ namespace Engine::Compressor
 		trinex_verify(out_size >= 0);
 		dst.resize(out_size);
 	}
-}// namespace Engine::Compressor
+}// namespace Trinex::Compressor

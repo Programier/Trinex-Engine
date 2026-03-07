@@ -2,13 +2,13 @@
 #include <Core/reflection/class.hpp>
 #include <ScriptEngine/script_function.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class Script;
 	class ScriptTypeInfo;
-}// namespace Engine
+}// namespace Trinex
 
-namespace Engine::Refl
+namespace Trinex::Refl
 {
 	class ENGINE_EXPORT ScriptClass : public Class
 	{
@@ -18,13 +18,13 @@ namespace Engine::Refl
 		Script* m_script;
 		ScriptFunction m_factory;
 
-		Engine::Object* object_constructor(StringView name, Engine::Object* owner, bool scriptable) override;
+		Trinex::Object* object_constructor(StringView name, Trinex::Object* owner, bool scriptable) override;
 
 	public:
 		ScriptClass(Class* parent, Script* script, const ScriptTypeInfo& info, BitMask flags = 0);
-		ScriptClass& destroy_object(Engine::Object* object) override;
+		ScriptClass& destroy_object(Trinex::Object* object) override;
 		Script* script() const;
 		usize size() const override;
 		~ScriptClass();
 	};
-}// namespace Engine::Refl
+}// namespace Trinex::Refl

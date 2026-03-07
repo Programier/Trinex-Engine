@@ -4,7 +4,7 @@
 #include <dx12_resource_view.hpp>
 #include <dx12_texture.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	D3D12Texture::~D3D12Texture()
 	{
@@ -135,4 +135,4 @@ namespace Engine
 	{
 		return &allocate<D3D12Texture>()->create_2d(format, size, mips, flags);
 	}
-}// namespace Engine
+}// namespace Trinex

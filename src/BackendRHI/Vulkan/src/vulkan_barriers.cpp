@@ -3,7 +3,7 @@
 #include <vulkan_context.hpp>
 #include <vulkan_texture.hpp>
 
-namespace Engine::Barrier
+namespace Trinex::Barrier
 {
 	struct LayoutFlags {
 		vk::AccessFlags access;
@@ -84,4 +84,4 @@ namespace Engine::Barrier
 		barrier.dstAccessMask = dst.access;
 		cmd->pipelineBarrier(src.stage, dst.stage, {}, {}, {}, barrier);
 	}
-}// namespace Engine::Barrier
+}// namespace Trinex::Barrier

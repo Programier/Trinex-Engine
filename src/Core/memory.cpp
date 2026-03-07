@@ -1,6 +1,6 @@
 #include <Core/memory.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	ENGINE_EXPORT void* memcpy_elements(void* dst, const void* src, usize element_size, usize element_count, usize dst_stride,
 	                                    usize src_stride)
@@ -63,4 +63,4 @@ namespace Engine
 
 		return nullptr;
 	}
-}// namespace Engine
+}// namespace Trinex

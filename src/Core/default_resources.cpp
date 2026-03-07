@@ -9,7 +9,7 @@
 #include <Graphics/texture.hpp>
 #include <random>
 
-namespace Engine
+namespace Trinex
 {
 	namespace DefaultResources
 	{
@@ -245,4 +245,4 @@ namespace Engine
 	}
 
 	static u8 destroy_id = DestroyController(on_destroy).id();
-}// namespace Engine
+}// namespace Trinex

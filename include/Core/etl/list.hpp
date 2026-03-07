@@ -4,7 +4,7 @@
 #include <forward_list>
 #include <list>
 
-namespace Engine
+namespace Trinex
 {
 	class Archive;
 
@@ -37,4 +37,4 @@ namespace Engine
 	struct Serializer<List<T, AllocatorType>> {
 		bool serialize(Archive& ar, List<T, AllocatorType>& list) { return trinex_serialize_list(ar, list); }
 	};
-}// namespace Engine
+}// namespace Trinex

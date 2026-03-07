@@ -1,7 +1,7 @@
 #pragma once
 #include <span>
 
-namespace Engine
+namespace Trinex
 {
 	template<typename Type, std::size_t extend = std::dynamic_extent>
 	using Span = std::span<Type, extend>;

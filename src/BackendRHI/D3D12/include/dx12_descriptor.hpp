@@ -3,7 +3,7 @@
 #include <Core/etl/vector.hpp>
 #include <dx12_headers.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	struct D3D12Descriptor;
 
@@ -80,4 +80,4 @@ namespace Engine
 		D3D12Descriptor allocate_resource();
 		D3D12DescritorManager& bind();
 	};
-}// namespace Engine
+}// namespace Trinex

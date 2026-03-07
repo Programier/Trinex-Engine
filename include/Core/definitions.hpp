@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Engine
+namespace Trinex
 {
 	template<typename T>
 	struct TrinexDefer {
@@ -11,7 +11,7 @@ namespace Engine
 		TrinexDefer(const T& f) : func(f) {}
 		~TrinexDefer() { func(); }
 	};
-}// namespace Engine
+}// namespace Trinex
 
 #if defined(_WIN32)
 #define PLATFORM_WINDOWS 1
@@ -232,22 +232,22 @@ public:                                                                         
 
 #define trinex_struct(struct_name, base_name)                                                                                    \
 protected:                                                                                                                       \
-	static Engine::Refl::Struct* m_static_struct;                                                                                \
+	static Trinex::Refl::Struct* m_static_struct;                                                                                \
                                                                                                                                  \
 public:                                                                                                                          \
 	using This  = struct_name;                                                                                                   \
 	using Super = base_name;                                                                                                     \
 	static void static_initialize_struct();                                                                                      \
-	static class Engine::Refl::Struct* static_reflection();
+	static class Trinex::Refl::Struct* static_reflection();
 
 #define trinex_enum(enum_name)                                                                                                   \
 	static constexpr bool is_enum_reflected = true;                                                                              \
                                                                                                                                  \
 private:                                                                                                                         \
-	static Engine::Refl::Enum* s_enum;                                                                                           \
+	static Trinex::Refl::Enum* s_enum;                                                                                           \
                                                                                                                                  \
 public:                                                                                                                          \
-	static inline class Engine::Refl::Enum* static_reflection()                                                                  \
+	static inline class Trinex::Refl::Enum* static_reflection()                                                                  \
 	{                                                                                                                            \
 		return s_enum;                                                                                                           \
 	}                                                                                                                            \
@@ -308,4 +308,4 @@ public:                                                                         
 	class_name(class_name&&)            = delete;                                                                                \
 	class_name& operator=(class_name&&) = delete
 
-#define trinex_defer Engine::TrinexDefer TRINEX_CONCAT(trinex_engine_defer, __LINE__) = [&]()
+#define trinex_defer Trinex::TrinexDefer TRINEX_CONCAT(trinex_engine_defer, __LINE__) = [&]()

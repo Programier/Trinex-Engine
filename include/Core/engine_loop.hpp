@@ -1,6 +1,6 @@
 #include <Core/engine_types.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT EngineLoop
 	{
@@ -13,4 +13,4 @@ namespace Engine
 		void update();
 		void terminate();
 	};
-}// namespace Engine
+}// namespace Trinex

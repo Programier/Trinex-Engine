@@ -5,7 +5,7 @@
 #include <Core/etl/vector.hpp>
 #include <Core/math/vector.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class Window;
 	struct WindowConfig;
@@ -59,4 +59,4 @@ namespace Engine
 			ENGINE_EXPORT void* find_function(void* handle, const String& name);
 		}// namespace LibraryLoader
 	}// namespace Platform
-}// namespace Engine
+}// namespace Trinex

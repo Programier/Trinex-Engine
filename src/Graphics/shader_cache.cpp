@@ -12,7 +12,7 @@
 #include <Graphics/shader_compiler.hpp>
 #include <RHI/rhi.hpp>
 
-namespace Engine
+namespace Trinex
 {
 
 	static inline StringView find_rhi_name(const StringView& rhi_name)
@@ -177,4 +177,4 @@ namespace Engine
 	{
 		return ar.serialize(parameters, compute);
 	}
-}// namespace Engine
+}// namespace Trinex

@@ -20,7 +20,7 @@ namespace ImGuizmo
 	enum MODE : unsigned int;
 }// namespace ImGuizmo
 
-namespace Engine
+namespace Trinex
 {
 	struct EditorState {
 		struct {
@@ -171,4 +171,4 @@ namespace Engine
 		void on_mouse_move(const Event& event);
 		void on_finger_move(const Event& event);
 	};
-}// namespace Engine
+}// namespace Trinex

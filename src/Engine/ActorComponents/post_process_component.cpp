@@ -5,7 +5,7 @@
 #include <Engine/scene.hpp>
 #include <Engine/world.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	trinex_implement_engine_class(PostProcessComponent, 0)
 	{
@@ -49,4 +49,4 @@ namespace Engine
 
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

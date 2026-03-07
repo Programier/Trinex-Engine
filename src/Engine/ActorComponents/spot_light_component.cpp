@@ -5,7 +5,7 @@
 #include <Engine/ActorComponents/spot_light_component.hpp>
 #include <Engine/Render/lighting.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	trinex_implement_engine_class(SpotLightComponent, 0)
 	{
@@ -57,4 +57,4 @@ namespace Engine
 		out.direction   = direction();
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

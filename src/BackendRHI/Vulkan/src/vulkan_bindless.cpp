@@ -4,7 +4,7 @@
 #include <vulkan_context.hpp>
 #include <vulkan_descriptor.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	static inline const char* heap_name(VulkanDescriptorHeap::HeapType type)
 	{
@@ -163,4 +163,4 @@ namespace Engine
 		m_free[heap].push_back(descriptor);
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

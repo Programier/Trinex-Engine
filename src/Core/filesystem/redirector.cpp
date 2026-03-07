@@ -1,7 +1,7 @@
 #include <Core/filesystem/redirector.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 
-namespace Engine::VFS
+namespace Trinex::VFS
 {
 	Redirector::Redirector(const Path& mount_point, const Path& redirect_path)
 	    : FileSystem(mount_point), m_redirect(redirect_path)
@@ -98,4 +98,4 @@ namespace Engine::VFS
 		FileSystem* fs = rootfs()->filesystem_of(m_redirect);
 		return fs->native_path(m_redirect.relative(fs->mount_point()) / path);
 	}
-}// namespace Engine::VFS
+}// namespace Trinex::VFS

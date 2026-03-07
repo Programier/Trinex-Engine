@@ -2,9 +2,9 @@
 #include <Engine/settings.hpp>
 #include <ScriptEngine/script_engine.hpp>
 
-namespace Engine::Settings
+namespace Trinex::Settings
 {
-	ENGINE_EXPORT String engine_class        = "Engine::BaseEngine";
+	ENGINE_EXPORT String engine_class        = "Trinex::BaseEngine";
 	ENGINE_EXPORT String default_language    = "eng";
 	ENGINE_EXPORT String current_language    = "eng";
 	ENGINE_EXPORT u32 num_threads            = 0;
@@ -32,7 +32,7 @@ namespace Engine::Settings
 	namespace Window
 	{
 		ENGINE_EXPORT String title                       = "Trinex Engine";
-		ENGINE_EXPORT String client                      = "Engine::DefaultClient";
+		ENGINE_EXPORT String client                      = "Trinex::DefaultClient";
 		ENGINE_EXPORT i32 size_x                         = 1280;
 		ENGINE_EXPORT i32 size_y                         = 720;
 		ENGINE_EXPORT i32 pos_x                          = -1;
@@ -56,7 +56,7 @@ namespace Engine::Settings
 
 	static void init()
 	{
-		ReflectionInitializeController().require("Engine::WindowAttribute").require("Engine::Orientation");
+		ReflectionInitializeController().require("Trinex::WindowAttribute").require("Trinex::Orientation");
 
 #define bind_value(type, name) e.register_property(#type " " #name, &name)
 
@@ -64,7 +64,7 @@ namespace Engine::Settings
 		e.begin_config_group("engine/engine.config");
 
 		{
-			ScriptNamespaceScopedChanger changer("Engine::Settings");
+			ScriptNamespaceScopedChanger changer("Trinex::Settings");
 
 			bind_value(string, engine_class);
 			bind_value(string, default_language);
@@ -73,14 +73,14 @@ namespace Engine::Settings
 			bind_value(int, lz4_compression_level);
 			bind_value(int, gc_max_object_per_tick);
 			bind_value(float, fps_limit);
-			bind_value(Engine::Vector<string>, languages);
-			bind_value(Engine::Vector<string>, systems);
-			bind_value(Engine::Vector<string>, plugins);
-			bind_value(Engine::Vector<string>, debug_shaders);
+			bind_value(Trinex::Vector<string>, languages);
+			bind_value(Trinex::Vector<string>, systems);
+			bind_value(Trinex::Vector<string>, plugins);
+			bind_value(Trinex::Vector<string>, debug_shaders);
 		}
 
 		{
-			ScriptNamespaceScopedChanger changer("Engine::Settings::Rendering");
+			ScriptNamespaceScopedChanger changer("Trinex::Settings::Rendering");
 
 			using namespace Rendering;
 
@@ -89,7 +89,7 @@ namespace Engine::Settings
 		}
 
 		{
-			ScriptNamespaceScopedChanger changer("Engine::Settings::Window");
+			ScriptNamespaceScopedChanger changer("Trinex::Settings::Window");
 
 			using namespace Window;
 
@@ -100,12 +100,12 @@ namespace Engine::Settings
 			bind_value(int, pos_x);
 			bind_value(int, pos_y);
 			bind_value(bool, vsync);
-			bind_value(Engine::Vector<Engine::WindowAttribute>, attributes);
-			bind_value(Engine::Vector<Engine::Orientation>, orientations);
+			bind_value(Trinex::Vector<Trinex::WindowAttribute>, attributes);
+			bind_value(Trinex::Vector<Trinex::Orientation>, orientations);
 		}
 
 		{
-			ScriptNamespaceScopedChanger changer("Engine::Settings::Splash");
+			ScriptNamespaceScopedChanger changer("Trinex::Settings::Splash");
 			using namespace Splash;
 
 			bind_value(bool, show);
@@ -120,5 +120,5 @@ namespace Engine::Settings
 		e.end_config_group();
 	}
 
-	static PreInitializeController on_init(init, "Engine::Settings");
-}// namespace Engine::Settings
+	static PreInitializeController on_init(init, "Trinex::Settings");
+}// namespace Trinex::Settings

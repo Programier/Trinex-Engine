@@ -2,7 +2,7 @@
 #include <Core/engine_types.hpp>
 #include <Core/etl/string.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT Library final
 	{
@@ -36,4 +36,4 @@ namespace Engine
 
 		friend class EngineInstance;
 	};
-}// namespace Engine
+}// namespace Trinex

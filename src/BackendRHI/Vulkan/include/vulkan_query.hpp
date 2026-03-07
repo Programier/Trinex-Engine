@@ -2,7 +2,7 @@
 #include <Core/etl/vector.hpp>
 #include <vulkan_headers.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class VulkanQueryPool
 	{
@@ -57,4 +57,4 @@ namespace Engine
 		inline VulkanQueryPool* find_occlusion_pool() { return find_pool(m_occlusion_pools, m_occlustion_info); }
 		inline VulkanQueryPool* find_statistics_pool() { return find_pool(m_statistics_pools, m_statistics_info); }
 	};
-}// namespace Engine
+}// namespace Trinex

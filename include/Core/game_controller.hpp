@@ -2,7 +2,7 @@
 #include <Core/callback.hpp>
 #include <Core/engine_types.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	struct Event;
 
@@ -41,4 +41,4 @@ namespace Engine
 
 		friend class GameControllerSystem;
 	};
-}// namespace Engine
+}// namespace Trinex

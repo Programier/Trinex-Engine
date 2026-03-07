@@ -2,7 +2,7 @@
 #include <Core/etl/singletone.hpp>
 #include <Systems/system.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT LogicSystem : public Singletone<LogicSystem, System>
 	{
@@ -18,4 +18,4 @@ namespace Engine
 		class Refl::Class* depends_on() const override;
 		friend class Singletone<LogicSystem, System>;
 	};
-}// namespace Engine
+}// namespace Trinex

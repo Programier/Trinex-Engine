@@ -22,7 +22,7 @@
 #include <imgui_internal.h>
 #include <imgui_stacklayout.h>
 
-namespace Engine::UI
+namespace Trinex::UI
 {
 	struct PropertyChangedEvent : Refl::PropertyChangedEvent {
 		PropertyChangedEvent(void* ctx, Refl::Property* prop, Refl::PropertyChangedEvent* owner)
@@ -1314,4 +1314,4 @@ namespace Engine::UI
 	}
 
 	static PreInitializeController pre_init(on_preinit);
-}// namespace Engine::UI
+}// namespace Trinex::UI

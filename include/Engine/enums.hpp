@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/engine_types.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	struct ENGINE_EXPORT ShowFlags {
 		enum Enum : EnumerateType
@@ -53,4 +53,4 @@ namespace Engine
 		trinex_enum(CameraProjectionMode);
 	};
 
-}// namespace Engine
+}// namespace Trinex

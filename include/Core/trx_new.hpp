@@ -1,7 +1,7 @@
 #pragma once
 #include <new>
 
-namespace Engine
+namespace Trinex
 {
 	struct ByteAllocatorTag {
 	};
@@ -9,18 +9,18 @@ namespace Engine
 	};
 	struct FrameByteAllocatorTag {
 	};
-}// namespace Engine
+}// namespace Trinex
 
-ENGINE_EXPORT void* operator new(std::size_t size, Engine::ByteAllocatorTag) noexcept;
-ENGINE_EXPORT void* operator new(std::size_t size, Engine::StackByteAllocatorTag) noexcept;
-ENGINE_EXPORT void* operator new(std::size_t size, Engine::FrameByteAllocatorTag) noexcept;
+ENGINE_EXPORT void* operator new(std::size_t size, Trinex::ByteAllocatorTag) noexcept;
+ENGINE_EXPORT void* operator new(std::size_t size, Trinex::StackByteAllocatorTag) noexcept;
+ENGINE_EXPORT void* operator new(std::size_t size, Trinex::FrameByteAllocatorTag) noexcept;
 
-ENGINE_EXPORT void* operator new(std::size_t size, std::align_val_t align, Engine::ByteAllocatorTag) noexcept;
-ENGINE_EXPORT void* operator new(std::size_t size, std::align_val_t align, Engine::StackByteAllocatorTag) noexcept;
-ENGINE_EXPORT void* operator new(std::size_t size, std::align_val_t align, Engine::FrameByteAllocatorTag) noexcept;
-ENGINE_EXPORT void operator delete(void* ptr, Engine::ByteAllocatorTag) noexcept;
+ENGINE_EXPORT void* operator new(std::size_t size, std::align_val_t align, Trinex::ByteAllocatorTag) noexcept;
+ENGINE_EXPORT void* operator new(std::size_t size, std::align_val_t align, Trinex::StackByteAllocatorTag) noexcept;
+ENGINE_EXPORT void* operator new(std::size_t size, std::align_val_t align, Trinex::FrameByteAllocatorTag) noexcept;
+ENGINE_EXPORT void operator delete(void* ptr, Trinex::ByteAllocatorTag) noexcept;
 
-namespace Engine
+namespace Trinex
 {
 	struct ByteAllocatorDeleter {
 		template<typename T>
@@ -42,23 +42,23 @@ namespace Engine
 			if (ptr)
 			{
 				ptr->~T();
-				::operator delete(const_cast<T*>(ptr), Engine::ByteAllocatorTag{});
+				::operator delete(const_cast<T*>(ptr), Trinex::ByteAllocatorTag{});
 			}
 		}
 	};
-}// namespace Engine
+}// namespace Trinex
 
-#define trx_new new (Engine::ByteAllocatorTag{})
-#define trx_stack_new new (Engine::StackByteAllocatorTag{})
-#define trx_frame_new new (Engine::FrameByteAllocatorTag{})
-#define trx_delete Engine::ByteAllocatorDeleter() =
+#define trx_new new (Trinex::ByteAllocatorTag{})
+#define trx_stack_new new (Trinex::StackByteAllocatorTag{})
+#define trx_frame_new new (Trinex::FrameByteAllocatorTag{})
+#define trx_delete Trinex::ByteAllocatorDeleter() =
 #define trx_delete_inline(ptr)                                                                                                   \
 	do                                                                                                                           \
 	{                                                                                                                            \
 		if (ptr)                                                                                                                 \
 		{                                                                                                                        \
-			using ElemType = typename Engine::ByteAllocatorDeleter::strip_ref<decltype(*ptr)>::type;                             \
+			using ElemType = typename Trinex::ByteAllocatorDeleter::strip_ref<decltype(*ptr)>::type;                             \
 			ptr->~ElemType();                                                                                                    \
-			::operator delete(ptr, Engine::ByteAllocatorTag{});                                                                  \
+			::operator delete(ptr, Trinex::ByteAllocatorTag{});                                                                  \
 		}                                                                                                                        \
 	} while (0)

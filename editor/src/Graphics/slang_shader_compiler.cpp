@@ -36,7 +36,7 @@
 	if (!(cond))                                                                                                                 \
 	return
 
-namespace Engine
+namespace Trinex
 {
 	class CompileLogHandler : public Logger
 	{
@@ -688,10 +688,10 @@ namespace Engine
 
 	static PreInitializeController preinit(setup_detectors);
 
-	trinex_implement_class_default_init(Engine::SLANG_ShaderCompiler, Refl::Class::IsSingletone);
-	trinex_implement_class_default_init(Engine::VULKAN_ShaderCompiler, Refl::Class::IsSingletone);
-	trinex_implement_class_default_init(Engine::NONE_ShaderCompiler, Refl::Class::IsSingletone);
-	trinex_implement_class_default_init(Engine::D3D12_ShaderCompiler, Refl::Class::IsSingletone);
+	trinex_implement_class_default_init(Trinex::SLANG_ShaderCompiler, Refl::Class::IsSingletone);
+	trinex_implement_class_default_init(Trinex::VULKAN_ShaderCompiler, Refl::Class::IsSingletone);
+	trinex_implement_class_default_init(Trinex::NONE_ShaderCompiler, Refl::Class::IsSingletone);
+	trinex_implement_class_default_init(Trinex::D3D12_ShaderCompiler, Refl::Class::IsSingletone);
 
 	SLANG_ShaderCompiler::SLANG_ShaderCompiler()
 	{
@@ -1091,6 +1091,6 @@ namespace Engine
 		session->add_definition("TRINEX_D3D12_RHI", "1");
 		session->add_definition("TRINEX_DIRECT_X_RHI", "1");
 	}
-}// namespace Engine
+}// namespace Trinex
 
 #endif

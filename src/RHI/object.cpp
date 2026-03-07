@@ -1,7 +1,7 @@
 #include <Core/threading.hpp>
 #include <RHI/object.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	RHIObject::RHIObject(usize init_ref_count) : m_references(init_ref_count) {}
 
@@ -32,4 +32,4 @@ namespace Engine
 	}
 
 	RHIObject::~RHIObject() {}
-}// namespace Engine
+}// namespace Trinex

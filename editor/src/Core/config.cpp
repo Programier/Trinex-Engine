@@ -2,7 +2,7 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <ScriptEngine/script_engine.hpp>
 
-namespace Engine::Settings::Editor
+namespace Trinex::Settings::Editor
 {
 	String font_path       = "[content]:/TrinexEditor/fonts/Source Code Pro/SourceCodePro-Bold.ttf";
 	float small_font_size  = 12.f;
@@ -15,7 +15,7 @@ namespace Engine::Settings::Editor
 
 		e.begin_config_group("editor/editor.config");
 		{
-			ScriptNamespaceScopedChanger changer("Engine::Settings::Editor");
+			ScriptNamespaceScopedChanger changer("Trinex::Settings::Editor");
 
 			e.register_property("string font_path", &font_path);
 			e.register_property("float small_font_size", &small_font_size);
@@ -25,4 +25,4 @@ namespace Engine::Settings::Editor
 		}
 		e.end_config_group();
 	});
-}// namespace Engine::Settings::Editor
+}// namespace Trinex::Settings::Editor

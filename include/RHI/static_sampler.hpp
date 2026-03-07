@@ -2,7 +2,7 @@
 #include <Core/types/color.hpp>
 #include <RHI/enums.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class RHISampler;
 
@@ -56,4 +56,4 @@ namespace Engine
 	using RHIShadowSampler = RHIStaticSampler<RHISamplerFilter::Bilinear, RHISamplerAddressMode::ClampToBorder,
 	                                          RHISamplerAddressMode::ClampToBorder, RHISamplerAddressMode::ClampToBorder, 0, 1,
 	                                          Color(0, 0, 0, 0), RHICompareFunc::Lequal>;
-}// namespace Engine
+}// namespace Trinex

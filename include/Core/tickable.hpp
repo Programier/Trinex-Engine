@@ -2,7 +2,7 @@
 #include <Core/definitions.hpp>
 #include <Core/export.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT TickableObject
 	{
@@ -29,4 +29,4 @@ namespace Engine
 		virtual bool is_tickable_when_paused() const;
 		virtual ~TickableObject();
 	};
-}// namespace Engine
+}// namespace Trinex

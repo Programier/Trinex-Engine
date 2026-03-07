@@ -2,7 +2,7 @@
 #include <Core/logger.hpp>
 #include <cstring>
 
-namespace Engine
+namespace Trinex
 {
 	usize BufferWriter::size()
 	{
@@ -48,4 +48,4 @@ namespace Engine
 	{
 		std::memcpy(to, from, count);
 	}
-}// namespace Engine
+}// namespace Trinex

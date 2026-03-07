@@ -10,9 +10,9 @@
 #include <ScriptEngine/registrar.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 
-namespace Engine
+namespace Trinex
 {
-	trinex_implement_struct(Engine::Transform, 0)
+	trinex_implement_struct(Trinex::Transform, 0)
 	{
 		auto& location = *trinex_refl_prop(location);
 		auto& rotation = *trinex_refl_prop(rotation);
@@ -158,27 +158,27 @@ namespace Engine
 		ScriptClassRegistrar::ValueInfo info = ScriptClassRegistrar::ValueInfo::from<Transform>();
 		info.pod                             = true;
 
-		ScriptClassRegistrar registrar = ScriptClassRegistrar::value_class("Engine::Transform", sizeof(Transform), info);
+		ScriptClassRegistrar registrar = ScriptClassRegistrar::value_class("Trinex::Transform", sizeof(Transform), info);
 
 		registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<Transform>,
 		                 ScriptCallConv::CDeclObjFirst);
-		registrar.behave(ScriptClassBehave::Construct, "void f(const Engine::Transform&)",
+		registrar.behave(ScriptClassBehave::Construct, "void f(const Trinex::Transform&)",
 		                 ScriptClassRegistrar::constructor<Transform, const Transform&>, ScriptCallConv::CDeclObjFirst);
 		registrar.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<Transform>,
 		                 ScriptCallConv::CDeclObjFirst);
 
-		registrar.property("Engine::Vector3f location", &Transform::location);
-		registrar.property("Engine::Quaternion rotation", &Transform::rotation);
-		registrar.property("Engine::Vector3f scale", &Transform::scale);
+		registrar.property("Trinex::Vector3f location", &Transform::location);
+		registrar.property("Trinex::Quaternion rotation", &Transform::rotation);
+		registrar.property("Trinex::Vector3f scale", &Transform::scale);
 
-		registrar.method("Engine::Transform& opAssign(const Engine::Transform&)", op_assign, ScriptCallConv::CDeclObjFirst);
-		registrar.method("const Engine::Matrix4f& matrix() const final", &Transform::matrix);
-		registrar.method("Engine::Matrix4f translation_matrix() const final", &Transform::translation_matrix);
-		registrar.method("Engine::Matrix4f rotation_matrix() const final", &Transform::rotation_matrix);
-		registrar.method("Engine::Matrix4f scale_matrix() const final", &Transform::scale_matrix);
+		registrar.method("Trinex::Transform& opAssign(const Trinex::Transform&)", op_assign, ScriptCallConv::CDeclObjFirst);
+		registrar.method("const Trinex::Matrix4f& matrix() const final", &Transform::matrix);
+		registrar.method("Trinex::Matrix4f translation_matrix() const final", &Transform::translation_matrix);
+		registrar.method("Trinex::Matrix4f rotation_matrix() const final", &Transform::rotation_matrix);
+		registrar.method("Trinex::Matrix4f scale_matrix() const final", &Transform::scale_matrix);
 
 		Transform::static_reflection()->script_type_info = registrar.type_info();
 	}
 
 	static ReflectionInitializeController init(on_init);
-}// namespace Engine
+}// namespace Trinex

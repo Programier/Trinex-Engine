@@ -2,7 +2,7 @@
 #include <Core/filesystem/file.hpp>
 #include <fstream>
 
-namespace Engine::VFS
+namespace Trinex::VFS
 {
 	class AndroidFileSystem;
 
@@ -32,4 +32,4 @@ namespace Engine::VFS
 
 		friend class AndroidFileSystem;
 	};
-}// namespace Engine::VFS
+}// namespace Trinex::VFS

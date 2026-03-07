@@ -3,7 +3,7 @@
 #include <Core/engine_types.hpp>
 #include <glm/fwd.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	template<usize N, typename T>
 	using VectorNT = glm::vec<N, T, glm::defaultp>;
@@ -118,4 +118,4 @@ namespace Engine
 	using Box3i = BoxNT<3, i32>;
 
 	struct Angle;
-}// namespace Engine
+}// namespace Trinex

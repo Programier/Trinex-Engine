@@ -7,7 +7,7 @@
 #include <freetype/freetype.h>
 
 
-namespace Engine
+namespace Trinex
 {
 	static FT_Library m_library;
 
@@ -212,4 +212,4 @@ namespace Engine
 	{
 		close();
 	}
-}// namespace Engine
+}// namespace Trinex

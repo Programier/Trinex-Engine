@@ -7,7 +7,7 @@
 #include <Core/exception.hpp>
 #include <vulkan/vulkan_android.h>
 
-namespace Engine
+namespace Trinex
 {
 	vk::SurfaceKHR create_vulkan_surface(void* native_window, vk::Instance instance)
 	{
@@ -31,4 +31,4 @@ namespace Engine
 		required_extensions.push_back("VK_KHR_surface");
 		required_extensions.push_back("VK_KHR_android_surface");
 	}
-}// namespace Engine
+}// namespace Trinex

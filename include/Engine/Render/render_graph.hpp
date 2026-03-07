@@ -7,15 +7,15 @@
 #include <Core/etl/vector.hpp>
 #include <RHI/enums.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class RHIObject;
 	class RHIBuffer;
 	class RHITexture;
 	class RHIContext;
-}// namespace Engine
+}// namespace Trinex
 
-namespace Engine::RenderGraph
+namespace Trinex::RenderGraph
 {
 	template<typename T>
 	using RGVector = Vector<T, FrameAllocator<T>>;
@@ -214,4 +214,4 @@ namespace Engine::RenderGraph
 	{
 		return pass->name();
 	}
-}// namespace Engine::RenderGraph
+}// namespace Trinex::RenderGraph

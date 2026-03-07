@@ -1,13 +1,13 @@
 #pragma once
 #include <vulkan_headers.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class VulkanContext;
 }
 
-namespace Engine::Barrier
+namespace Trinex::Barrier
 {
 
 	void transition_image_layout(VulkanContext* ctx, vk::ImageMemoryBarrier& barrier);
-}// namespace Engine::Barrier
+}// namespace Trinex::Barrier

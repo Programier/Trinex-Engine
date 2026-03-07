@@ -3,7 +3,7 @@
 #include <Core/etl/string.hpp>
 #include <Core/etl/vector.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT StackTrace final
 	{
@@ -22,4 +22,4 @@ namespace Engine
 		const Vector<FunctionInfo>& callstack() const;
 		String to_string(bool with_filename = false, const char* line_sep = "\n") const;
 	};
-}// namespace Engine
+}// namespace Trinex

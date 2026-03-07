@@ -15,7 +15,7 @@
 #include <RHI/rhi.hpp>
 #include <RHI/static_sampler.hpp>
 
-namespace Engine::Pipelines
+namespace Trinex::Pipelines
 {
 	static inline void push_context_state(Pipeline* pipeline, RHIContext* ctx)
 	{
@@ -474,4 +474,4 @@ namespace Engine::Pipelines
 		pop_context_state(ctx);
 		return *this;
 	}
-}// namespace Engine::Pipelines
+}// namespace Trinex::Pipelines

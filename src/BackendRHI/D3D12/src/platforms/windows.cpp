@@ -3,7 +3,7 @@
 #include <Window/window.hpp>
 #include <windows.h>
 
-namespace Engine
+namespace Trinex
 {
 	HWND extract_d3dx12_hwnd(class Window* main_window)
 	{
@@ -13,4 +13,4 @@ namespace Engine
 		SDL_GetWindowWMInfo(window, &info);
 		return info.info.win.window;
 	}
-}// namespace Engine
+}// namespace Trinex

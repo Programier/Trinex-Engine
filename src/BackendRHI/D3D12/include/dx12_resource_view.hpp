@@ -2,7 +2,7 @@
 #include <Graphics/rhi.hpp>
 #include <dx12_descriptor.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class D3D12_SRV : public RHIShaderResourceView
 	{
@@ -60,4 +60,4 @@ namespace Engine
 		inline const D3D12Descriptor& descriptor() const { return m_descriptor; }
 		inline DXGI_FORMAT format() const { return m_format; }
 	};
-}// namespace Engine
+}// namespace Trinex

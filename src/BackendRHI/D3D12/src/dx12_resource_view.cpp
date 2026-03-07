@@ -1,7 +1,7 @@
 #include <dx12_api.hpp>
 #include <dx12_resource_view.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	D3D12_SRV::D3D12_SRV(ID3D12Resource* resource, const D3D12_SHADER_RESOURCE_VIEW_DESC& desc)
 	{
@@ -68,4 +68,4 @@ namespace Engine
 	{
 		m_descriptor.release();
 	}
-}// namespace Engine
+}// namespace Trinex

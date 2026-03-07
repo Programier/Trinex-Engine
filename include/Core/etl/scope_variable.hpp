@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Engine
+namespace Trinex
 {
 	template<typename T>
 	class ScopeVariable
@@ -12,4 +12,4 @@ namespace Engine
 		inline ScopeVariable(T& var, const T& new_value) : m_var(var), m_prev(var) { m_var = new_value; }
 		inline ~ScopeVariable() { m_var = m_prev; }
 	};
-}// namespace Engine
+}// namespace Trinex

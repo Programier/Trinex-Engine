@@ -3,7 +3,7 @@
 #include <Core/reflection/object.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 
-namespace Engine::Refl
+namespace Trinex::Refl
 {
 	class ENGINE_EXPORT Enum : public Object
 	{
@@ -67,13 +67,13 @@ namespace Engine::Refl
 	};
 
 #define trinex_implement_enum(enum_name, flags, ...)                                                                             \
-	Engine::Refl::Enum* enum_name::s_enum = nullptr;                                                                             \
+	Trinex::Refl::Enum* enum_name::s_enum = nullptr;                                                                             \
 	void enum_name::static_initialize_enum()                                                                                     \
 	{                                                                                                                            \
-		s_enum = Engine::Refl::Enum::create<enum_name::Enum, __VA_ARGS__>(#enum_name, flags);                                    \
+		s_enum = Trinex::Refl::Enum::create<enum_name::Enum, __VA_ARGS__>(#enum_name, flags);                                    \
 	}                                                                                                                            \
-	static Engine::u8 TRINEX_CONCAT(trinex_engine_refl_enum_, __LINE__) = static_cast<Engine::u8>(                               \
-	        Engine::ReflectionInitializeController([]() { enum_name::static_initialize_enum(); }, #enum_name).id())
+	static Trinex::u8 TRINEX_CONCAT(trinex_engine_refl_enum_, __LINE__) = static_cast<Trinex::u8>(                               \
+	        Trinex::ReflectionInitializeController([]() { enum_name::static_initialize_enum(); }, #enum_name).id())
 
-#define trinex_implement_engine_enum(enum_name, flags, ...) trinex_implement_enum(Engine::enum_name, flags, __VA_ARGS__)
-}// namespace Engine::Refl
+#define trinex_implement_engine_enum(enum_name, flags, ...) trinex_implement_enum(Trinex::enum_name, flags, __VA_ARGS__)
+}// namespace Trinex::Refl

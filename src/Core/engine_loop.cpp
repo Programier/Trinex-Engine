@@ -27,7 +27,7 @@
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	EngineLoop::EngineLoop() {}
 
@@ -42,8 +42,8 @@ namespace Engine
 		}
 
 		String api = Settings::Rendering::rhi;
-		auto decl  = Strings::format("Engine::TRINEX_RHI::{}", Strings::to_upper(api));
-		rhi        = reinterpret_cast<RHI*>(Refl::Struct::static_find(decl, Refl::FindFlags::IsRequired)->create_struct());
+		auto decl  = Strings::format("Trinex::TRINEX_RHI::{}", Strings::to_upper(api));
+		rhi        = static_cast<RHI*>(Refl::Struct::static_find(decl, Refl::FindFlags::IsRequired)->create_struct());
 
 		trinex_verify_msg(rhi, "Failed to init RHI API");
 	}
@@ -148,10 +148,10 @@ namespace Engine
 
 		if (show_splash)
 		{
-			Engine::show_splash_screen();
-			Engine::splash_screen_text(Engine::SplashTextType::GameName, Project::name);
-			Engine::splash_screen_text(Engine::SplashTextType::VersionInfo, Project::version);
-			Engine::splash_screen_text(Engine::SplashTextType::StartupProgress, "Starting Engine");
+			Trinex::show_splash_screen();
+			Trinex::splash_screen_text(Trinex::SplashTextType::GameName, Project::name);
+			Trinex::splash_screen_text(Trinex::SplashTextType::VersionInfo, Project::version);
+			Trinex::splash_screen_text(Trinex::SplashTextType::StartupProgress, "Starting Engine");
 		}
 
 		StartupResourcesInitializeController().execute();
@@ -165,7 +165,7 @@ namespace Engine
 		}
 
 		if (show_splash)
-			Engine::hide_splash_screen();
+			Trinex::hide_splash_screen();
 
 		if (Window* window = WindowManager::instance()->main_window())
 		{
@@ -210,4 +210,4 @@ namespace Engine
 		PostDestroyController().execute();
 		destroy_threads();
 	}
-}// namespace Engine
+}// namespace Trinex

@@ -2,7 +2,7 @@
 #include <Core/reflection/scoped_type.hpp>
 #include <Core/string_functions.hpp>
 
-namespace Engine::Refl
+namespace Trinex::Refl
 {
 	trinex_implement_reflect_type(ScopedType);
 
@@ -147,4 +147,4 @@ namespace Engine::Refl
 		if (this == root)
 			root = nullptr;
 	}
-}// namespace Engine::Refl
+}// namespace Trinex::Refl

@@ -6,7 +6,7 @@
 #include <ScriptEngine/script_variable.hpp>
 #include <angelscript.h>
 
-namespace Engine
+namespace Trinex
 {
 	static FORCE_INLINE void* object_from_handle(void* address, bool handle_is_object)
 	{
@@ -641,4 +641,4 @@ namespace Engine
 	{
 		return m_double_value;
 	}
-}// namespace Engine
+}// namespace Trinex

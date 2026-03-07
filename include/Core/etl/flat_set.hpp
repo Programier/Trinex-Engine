@@ -5,7 +5,7 @@
 #include <Core/etl/vector.hpp>
 #include <algorithm>
 
-namespace Engine
+namespace Trinex
 {
 	template<typename T, typename Compare = Less<T>, typename AllocatorType = Allocator<T>>
 	class FlatSet : protected Vector<T, AllocatorType>
@@ -175,4 +175,4 @@ namespace Engine
 	struct Serializer<FlatSet<T, C, A>> {
 		bool serialize(Archive& ar, FlatSet<T, C, A>& set) { return trinex_serialize_flat_set(ar, set); }
 	};
-}// namespace Engine
+}// namespace Trinex

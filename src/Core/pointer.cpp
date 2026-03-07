@@ -3,7 +3,7 @@
 #include <Core/object.hpp>
 #include <Core/pointer.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	PointerBase::PointerBase() = default;
 
@@ -46,4 +46,4 @@ namespace Engine
 
 		return ar;
 	}
-}// namespace Engine
+}// namespace Trinex

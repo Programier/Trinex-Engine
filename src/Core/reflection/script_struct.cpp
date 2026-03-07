@@ -5,7 +5,7 @@
 #include <ScriptEngine/script_variable.hpp>
 #include <angelscript.h>
 
-namespace Engine::Refl
+namespace Trinex::Refl
 {
 	trinex_implement_reflect_type(ScriptStruct);
 
@@ -40,4 +40,4 @@ namespace Engine::Refl
 	{
 		m_script->m_refl_objects.erase(this);
 	}
-}// namespace Engine::Refl
+}// namespace Trinex::Refl

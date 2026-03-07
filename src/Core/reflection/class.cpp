@@ -8,7 +8,7 @@
 #include <ScriptEngine/script_engine.hpp>
 #include <angelscript.h>
 
-namespace Engine::Refl
+namespace Trinex::Refl
 {
 	trinex_implement_reflect_type(Class);
 
@@ -40,14 +40,14 @@ namespace Engine::Refl
 		return *this;
 	}
 
-	void Class::script_object_constructor(void* object, StringView name, Engine::Object* owner)
+	void Class::script_object_constructor(void* object, StringView name, Trinex::Object* owner)
 	{
-		if (!Engine::Object::static_setup_next_object_info())
+		if (!Trinex::Object::static_setup_next_object_info())
 		{
 			i32 type_id = ScriptContext::this_type_id();
 
 			if (Class* script_class = ScriptEngine::find_class(type_id))
-				Engine::Object::static_setup_next_object_info(script_class);
+				Trinex::Object::static_setup_next_object_info(script_class);
 		}
 
 		create_placement_object(object, name, owner);
@@ -73,13 +73,13 @@ namespace Engine::Refl
 			if (flags(IsConstructible))
 			{
 				auto factory =
-				        Strings::format(R"({}@ f(Engine::StringView name = "", Engine::Object owner = null))", full_name());
+				        Strings::format(R"({}@ f(Trinex::StringView name = "", Trinex::Object owner = null))", full_name());
 
 				registrar.behave(ScriptClassBehave::Construct, "void f()", &Class::script_object_constructor_default,
 				                 ScriptCallConv::ThisCall_ObjFirst, this);
 
 				registrar.behave(ScriptClassBehave::Construct,
-				                 R"(void f(Engine::StringView name = "", Engine::Object owner = null))",
+				                 R"(void f(Trinex::StringView name = "", Trinex::Object owner = null))",
 				                 &Class::script_object_constructor, ScriptCallConv::ThisCall_ObjFirst, this);
 
 				registrar.behave(ScriptClassBehave::Factory, factory.c_str(), script_object_factory(), ScriptCallConv::CDecl);
@@ -89,13 +89,13 @@ namespace Engine::Refl
 		return *this;
 	}
 
-	Engine::Object* Class::object_constructor(StringView name, Engine::Object* owner, bool scriptable)
+	Trinex::Object* Class::object_constructor(StringView name, Trinex::Object* owner, bool scriptable)
 	{
 		trinex_unreachable();
 		return nullptr;
 	}
 
-	Engine::Object* Class::object_placement_constructor(void* mem, StringView name, Engine::Object* owner, bool scriptable)
+	Trinex::Object* Class::object_placement_constructor(void* mem, StringView name, Trinex::Object* owner, bool scriptable)
 	{
 		trinex_unreachable();
 		return nullptr;
@@ -122,35 +122,35 @@ namespace Engine::Refl
 		return *this;
 	}
 
-	Engine::Object* Class::create_object(StringView name, Engine::Object* owner)
+	Trinex::Object* Class::create_object(StringView name, Trinex::Object* owner)
 	{
 		if (flags(Class::IsSingletone))
 		{
 			if (m_singletone_object == nullptr)
 			{
-				bool scriptable     = !Engine::Object::static_setup_next_object_info(this)->is_native();
+				bool scriptable     = !Trinex::Object::static_setup_next_object_info(this)->is_native();
 				m_singletone_object = object_constructor(name, owner, scriptable);
-				m_singletone_object->flags |= Engine::Object::StandAlone;
+				m_singletone_object->flags |= Trinex::Object::StandAlone;
 				m_singletone_object->add_reference();
 			}
 
 			return m_singletone_object;
 		}
 
-		bool scriptable        = !Engine::Object::static_setup_next_object_info(this)->is_native();
-		Engine::Object* object = object_constructor(name, owner, scriptable);
+		bool scriptable        = !Trinex::Object::static_setup_next_object_info(this)->is_native();
+		Trinex::Object* object = object_constructor(name, owner, scriptable);
 		return object;
 	}
 
-	Engine::Object* Class::create_placement_object(void* place, StringView name, Engine::Object* owner)
+	Trinex::Object* Class::create_placement_object(void* place, StringView name, Trinex::Object* owner)
 	{
 		if (flags(Class::IsSingletone))
 		{
 			if (m_singletone_object == nullptr)
 			{
-				bool scriptable     = !Engine::Object::static_setup_next_object_info(this)->is_native();
+				bool scriptable     = !Trinex::Object::static_setup_next_object_info(this)->is_native();
 				m_singletone_object = object_placement_constructor(place, name, owner, scriptable);
-				m_singletone_object->flags |= Engine::Object::StandAlone;
+				m_singletone_object->flags |= Trinex::Object::StandAlone;
 				m_singletone_object->add_reference();
 				return m_singletone_object;
 			}
@@ -158,12 +158,12 @@ namespace Engine::Refl
 			return nullptr;
 		}
 
-		bool scriptable        = !Engine::Object::static_setup_next_object_info(this)->is_native();
-		Engine::Object* object = object_placement_constructor(place, name, owner, scriptable);
+		bool scriptable        = !Trinex::Object::static_setup_next_object_info(this)->is_native();
+		Trinex::Object* object = object_placement_constructor(place, name, owner, scriptable);
 		return object;
 	}
 
-	Class& Class::destroy_object(Engine::Object* object)
+	Class& Class::destroy_object(Trinex::Object* object)
 	{
 		trx_delete object;
 		return *this;
@@ -176,7 +176,7 @@ namespace Engine::Refl
 		return self->script_type_info;
 	}
 
-	Engine::Object* Class::singletone_instance() const
+	Trinex::Object* Class::singletone_instance() const
 	{
 		return m_singletone_object;
 	}
@@ -189,7 +189,7 @@ namespace Engine::Refl
 	void Class::register_layout(ScriptClassRegistrar& r, ClassInfo* info, DownCast downcast)
 	{
 		Super::register_layout(r, info, downcast);
-		r.method("Engine::Object@ singletone_instance() const", &Class::singletone_instance);
+		r.method("Trinex::Object@ singletone_instance() const", &Class::singletone_instance);
 	}
 
 	static void on_init()
@@ -198,12 +198,12 @@ namespace Engine::Refl
 		info.implicit_handle = true;
 		info.no_count        = true;
 
-		auto r = ScriptClassRegistrar::reference_class("Engine::Refl::Class", info);
+		auto r = ScriptClassRegistrar::reference_class("Trinex::Refl::Class", info);
 		Class::register_layout(r, Class::static_refl_class_info(), script_downcast<Class>);
 		r.method("Class@ parent() const", &Class::parent);
-		r.static_function("Class@ static_find(Engine::StringView name, int flags = 0)", Class::static_find<Class>);
+		r.static_function("Class@ static_find(Trinex::StringView name, int flags = 0)", Class::static_find<Class>);
 		r.static_function("Class@ static_require(StringView name, int flags = 0)", Class::static_require<Class>);
 	}
 
-	static ReflectionInitializeController initializer(on_init, "Engine::Refl::Class");
-}// namespace Engine::Refl
+	static ReflectionInitializeController initializer(on_init, "Trinex::Refl::Class");
+}// namespace Trinex::Refl

@@ -4,7 +4,7 @@
 #include <Engine/settings.hpp>
 #include <Window/config.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	WindowConfig::WindowConfig(bool init)
 	{
@@ -35,4 +35,4 @@ namespace Engine
 			return false;
 		return true;
 	}
-}// namespace Engine
+}// namespace Trinex

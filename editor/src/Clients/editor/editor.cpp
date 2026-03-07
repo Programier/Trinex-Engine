@@ -38,11 +38,11 @@
 #include <imgui_stacklayout.h>
 
 
-namespace Engine
+namespace Trinex
 {
 	EditorState::EditorState()
 	{
-		viewport.view_mode_entry = Refl::Enum::static_find("Engine::ViewMode", Refl::FindFlags::IsRequired)
+		viewport.view_mode_entry = Refl::Enum::static_find("Trinex::ViewMode", Refl::FindFlags::IsRequired)
 		                                   ->entry(static_cast<EnumerateType>(ViewMode::Lit));
 	}
 
@@ -731,7 +731,7 @@ namespace Engine
 			if (ImGui::BeginPopup("##addition_menu", ImGuiWindowFlags_NoMove))
 			{
 				{
-					static auto* self = Refl::Enum::static_find("Engine::ViewMode", Refl::FindFlags::IsRequired);
+					static auto* self = Refl::Enum::static_find("Trinex::ViewMode", Refl::FindFlags::IsRequired);
 
 					if (ImGui::BeginCombo("editor/View Mode"_localized, m_state.viewport.view_mode_entry->name.c_str()))
 					{
@@ -943,4 +943,4 @@ namespace Engine
 		}
 	}
 
-}// namespace Engine
+}// namespace Trinex

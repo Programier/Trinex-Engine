@@ -5,7 +5,7 @@
 #include <Systems/event_system.hpp>
 #include <Systems/keyboard_system.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	void KeyboardSystem::on_key_pressed(const Event& event)
 	{
@@ -107,4 +107,4 @@ namespace Engine
 	}
 
 	trinex_implement_engine_class_default_init(KeyboardSystem, 0);
-}// namespace Engine
+}// namespace Trinex

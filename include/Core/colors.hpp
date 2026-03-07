@@ -2,7 +2,7 @@
 #include <Core/engine_types.hpp>
 #include <Core/types/color.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	struct Colors {
 		static const ENGINE_EXPORT Color IndianRed;
@@ -153,4 +153,4 @@ namespace Engine
 		static const ENGINE_EXPORT Color DarkSlateGrey;
 		static const ENGINE_EXPORT Color Black;
 	};
-}// namespace Engine
+}// namespace Trinex

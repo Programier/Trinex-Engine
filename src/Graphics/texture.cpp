@@ -8,7 +8,7 @@
 #include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	bool Texture2DMip::serialize(Archive& ar)
 	{
@@ -196,4 +196,4 @@ namespace Engine
 			return false;
 		return archive.serialize(mips);
 	}
-}// namespace Engine
+}// namespace Trinex

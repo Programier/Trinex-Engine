@@ -1,7 +1,7 @@
 #pragma once
 #include <utility>
 
-namespace Engine::Binder
+namespace Trinex::Binder
 {
 	template<int index, typename T>
 	struct Arg {
@@ -72,4 +72,4 @@ namespace Engine::Binder
 	template<template<class T> class TypeRemapper, auto func, typename... Overrides>
 	struct ScriptBinder : ScriptBinderImpl<TypeRemapper, func, decltype(func), Overrides...> {
 	};
-}// namespace Engine::Binder
+}// namespace Trinex::Binder

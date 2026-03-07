@@ -1,7 +1,7 @@
 #pragma once
 #include <Graphics/imgui.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	namespace Refl
 	{
@@ -35,4 +35,4 @@ namespace Engine
 		static const char* static_name();
 	};
 
-}// namespace Engine
+}// namespace Trinex

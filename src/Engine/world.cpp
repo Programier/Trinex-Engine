@@ -10,7 +10,7 @@
 #include <ScriptEngine/script_object.hpp>
 #include <Systems/logic_system.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	trinex_implement_engine_class_default_init(World, 0);
 
@@ -119,4 +119,4 @@ namespace Engine
 
 		return level->remove_from(m_levels);
 	}
-}// namespace Engine
+}// namespace Trinex

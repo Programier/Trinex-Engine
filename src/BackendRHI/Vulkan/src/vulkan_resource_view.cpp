@@ -8,7 +8,7 @@
 #include <vulkan_sampler.hpp>
 #include <vulkan_state.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	RHIDescriptor VulkanSRV::descriptor() const
 	{
@@ -170,4 +170,4 @@ namespace Engine
 		m_cmd->clearDepthStencilImage(view->image(), vk::ImageLayout::eTransferDstOptimal, value, range);
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/engine_types.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	enum class FlagsOperator
 	{
@@ -132,4 +132,4 @@ namespace Engine
 		}
 	};
 
-}// namespace Engine
+}// namespace Trinex

@@ -7,7 +7,7 @@ class CScriptArray;
 class asIScriptEngine;
 class asITypeInfo;
 
-namespace Engine
+namespace Trinex
 {
 #define script_array_init_check(fail_ret)                                                                                        \
 	if (m_as_array == nullptr)                                                                                                   \
@@ -274,4 +274,4 @@ namespace Engine
 #undef script_array_init_check
 #undef script_array_init_check_noret
 
-}// namespace Engine
+}// namespace Trinex

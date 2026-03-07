@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/math/matrix.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class Renderer;
 	class RHIContext;
@@ -20,4 +20,4 @@ namespace Engine
 		    : renderer(renderer), context(ctx), pass(pass), local_to_world(local_to_world), bindings(bindings)
 		{}
 	};
-}// namespace Engine
+}// namespace Trinex

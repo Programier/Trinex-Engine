@@ -4,7 +4,7 @@
 #include <memory>
 #include <type_traits>
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT Any
 	{
@@ -245,4 +245,4 @@ namespace Engine
 
 		friend struct ScriptAny;
 	};
-}// namespace Engine
+}// namespace Trinex

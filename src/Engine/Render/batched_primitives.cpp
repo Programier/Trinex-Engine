@@ -9,7 +9,7 @@
 #include <RHI/rhi.hpp>
 
 
-namespace Engine
+namespace Trinex
 {
 	static constexpr usize s_line_vtx_per_node = 1024;
 	static constexpr auto s_vtx_buffer_flags =
@@ -257,4 +257,4 @@ namespace Engine
 		trinex_rhi_pop_stage(ctx);
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

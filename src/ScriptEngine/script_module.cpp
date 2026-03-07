@@ -12,7 +12,7 @@
 #include <angelscript.h>
 
 
-namespace Engine
+namespace Trinex
 {
 	ScriptModule::ScriptModule(const ScriptModule&) = default;
 
@@ -302,4 +302,4 @@ namespace Engine
 		}
 		return nullptr;
 	}
-}// namespace Engine
+}// namespace Trinex

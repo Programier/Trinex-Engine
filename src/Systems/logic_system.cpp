@@ -4,7 +4,7 @@
 #include <Systems/event_system.hpp>
 #include <Systems/logic_system.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	LogicSystem& LogicSystem::create()
 	{
@@ -38,4 +38,4 @@ namespace Engine
 	}
 
 	trinex_implement_engine_class_default_init(LogicSystem, 0);
-}// namespace Engine
+}// namespace Trinex

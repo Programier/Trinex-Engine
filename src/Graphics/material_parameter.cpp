@@ -16,7 +16,7 @@
 #include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 
-namespace Engine::MaterialParameters
+namespace Trinex::MaterialParameters
 {
 	static FlatMap<EnumerateType, Refl::Class*> s_parameter_classes;
 
@@ -39,7 +39,7 @@ namespace Engine::MaterialParameters
 		return it->second;
 	}
 
-#define implement_parameter(name) trinex_implement_class(Engine::MaterialParameters::name, 0)
+#define implement_parameter(name) trinex_implement_class(Trinex::MaterialParameters::name, 0)
 
 	PrimitiveBase& PrimitiveBase::update(const PrimitiveRenderingContext* ctx, const void* data, usize size,
 	                                     const RHIShaderParameterInfo* info)
@@ -329,4 +329,4 @@ namespace Engine::MaterialParameters
 		trinex_refl_prop(surface, Refl::Property::IsTransient);
 		trinex_refl_prop(sampler, Refl::Property::IsTransient);
 	}
-}// namespace Engine::MaterialParameters
+}// namespace Trinex::MaterialParameters

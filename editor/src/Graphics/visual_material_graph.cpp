@@ -11,12 +11,12 @@
 #include <ScriptEngine/script_function.hpp>
 #include <utility>
 
-namespace Engine::VisualMaterialGraph
+namespace Trinex::VisualMaterialGraph
 {
 	static ScriptFunction s_node_compile_output;
 	static ScriptFunction s_node_render;
 
-	trinex_implement_class(Engine::VisualMaterialGraph::Node, Refl::Class::IsScriptable)
+	trinex_implement_class(Trinex::VisualMaterialGraph::Node, Refl::Class::IsScriptable)
 	{
 		auto r = ScriptClassRegistrar::reference_class(static_reflection());
 
@@ -724,9 +724,9 @@ namespace Engine::VisualMaterialGraph
 	void Node::static_node_group(Refl::Class* node_class, const String& group)
 	{
 		trinex_assert_msg(node_class->is_a<Node>(),
-		                  "Cannot use 'node_group' with classes, which is not derived from Engine::VisualMaterialGraph::Node!");
+		                  "Cannot use 'node_group' with classes, which is not derived from Trinex::VisualMaterialGraph::Node!");
 
-		String full_group_name = Strings::format("Engine::VisualMaterialGraph::Nodes::{}", group);
+		String full_group_name = Strings::format("Trinex::VisualMaterialGraph::Nodes::{}", group);
 		Group::find(full_group_name, true)->add_struct(node_class);
 	}
 
@@ -826,7 +826,7 @@ namespace Engine::VisualMaterialGraph
 
 	static void register_metadata_functions()
 	{
-		ScriptClassRegistrar r = ScriptClassRegistrar::existing_class("Engine::Refl::Class");
+		ScriptClassRegistrar r = ScriptClassRegistrar::existing_class("Trinex::Refl::Class");
 		r.method("void node_group(const string& group_name) const final", Node::static_node_group);
 	}
 
@@ -858,10 +858,10 @@ namespace Engine::VisualMaterialGraph
 		value_class_info.has_assignment_operator = true;
 		value_class_info.has_copy_constructor    = true;
 
-		auto compiler   = Reg::reference_class("Engine::VisualMaterialGraph::Compiler", ref_class_info);
-		auto input_pin  = Reg::reference_class("Engine::VisualMaterialGraph::InputPin", ref_class_info);
-		auto output_pin = Reg::reference_class("Engine::VisualMaterialGraph::OutputPin", ref_class_info);
-		auto expression = Reg::value_class("Engine::VisualMaterialGraph::Expression", sizeof(Expression), value_class_info);
+		auto compiler   = Reg::reference_class("Trinex::VisualMaterialGraph::Compiler", ref_class_info);
+		auto input_pin  = Reg::reference_class("Trinex::VisualMaterialGraph::InputPin", ref_class_info);
+		auto output_pin = Reg::reference_class("Trinex::VisualMaterialGraph::OutputPin", ref_class_info);
+		auto expression = Reg::value_class("Trinex::VisualMaterialGraph::Expression", sizeof(Expression), value_class_info);
 
 		register_pin_methods<InputPin>(input_pin);
 		register_pin_methods<OutputPin>(output_pin);
@@ -936,7 +936,7 @@ namespace Engine::VisualMaterialGraph
 		// static RHIShaderParameterType component_type(RHIShaderParameterType type);
 	}
 
-	static ReflectionInitializeController init(reflection_init, "Engine::VisualMaterialGraph",
-	                                           {"Engine::RHIShaderParameterType", "Engine::Refl::Class",
-	                                            "Engine::VisualMaterialGraph::Node"});
-}// namespace Engine::VisualMaterialGraph
+	static ReflectionInitializeController init(reflection_init, "Trinex::VisualMaterialGraph",
+	                                           {"Trinex::RHIShaderParameterType", "Trinex::Refl::Class",
+	                                            "Trinex::VisualMaterialGraph::Node"});
+}// namespace Trinex::VisualMaterialGraph

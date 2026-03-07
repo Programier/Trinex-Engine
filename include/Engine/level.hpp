@@ -4,7 +4,7 @@
 #include <Core/pointer.hpp>
 
 
-namespace Engine
+namespace Trinex
 {
 	class World;
 	class Actor;
@@ -64,4 +64,4 @@ namespace Engine
 		inline bool is_playing() const { return m_is_playing; }
 		inline const Vector<class Actor*>& actors() const { return m_actors; }
 	};
-}// namespace Engine
+}// namespace Trinex

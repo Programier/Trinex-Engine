@@ -35,7 +35,7 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
-namespace Engine
+namespace Trinex
 {
 	//////////////////////////// IMGUI RHI IMPLEMENTATION ////////////////////////////
 
@@ -106,14 +106,14 @@ namespace Engine
 			        rhi->create_buffer(sizeof(Matrix4f), RHIBufferCreateFlags::UniformBuffer | RHIBufferCreateFlags::TransferDst);
 		}
 
-		bool imgui_trinex_rhi_init(Engine::Window*, ImGuiContext* ctx);
+		bool imgui_trinex_rhi_init(Trinex::Window*, ImGuiContext* ctx);
 		void imgui_trinex_rhi_shutdown(ImGuiContext* ctx);
 		void imgui_trinex_rhi_render_draw_data(RHIContext* ctx);
 
 		struct ImGuiTrinexData {
 			RHIContext* context            = nullptr;
 			Texture2D* font_texture        = nullptr;
-			Engine::RenderViewport* window = nullptr;
+			Trinex::RenderViewport* window = nullptr;
 			Sampler sampler;
 		};
 
@@ -351,7 +351,7 @@ namespace Engine
 		static void imgui_trinex_destroy_device_objects()
 		{
 			ImGuiTrinexData* bd         = imgui_trinex_backend_data();
-			bool call_garbage_collector = !Engine::engine_instance->is_shuting_down();
+			bool call_garbage_collector = !Trinex::engine_instance->is_shuting_down();
 
 			if (bd->font_texture)
 			{
@@ -401,7 +401,7 @@ namespace Engine
 			// Do not destroy from render thread!
 		}
 
-		bool imgui_trinex_rhi_init(Engine::Window* window, ImGuiContext* ctx)
+		bool imgui_trinex_rhi_init(Trinex::Window* window, ImGuiContext* ctx)
 		{
 			ImGui::SetCurrentContext(ctx);
 			ImGuiIO& io = ImGui::GetIO();
@@ -454,7 +454,7 @@ namespace Engine
 
 	namespace ImGuiBackend_Window
 	{
-		static Map<Engine::Window*, ImGuiWindow*> m_window_map;
+		static Map<Trinex::Window*, ImGuiWindow*> m_window_map;
 
 		struct ImGuiTrinexWindowData {
 			Window* window;
@@ -513,7 +513,7 @@ namespace Engine
 			                                  : nullptr;
 		}
 
-		static FORCE_INLINE Engine::Window* window_from(const Event& event)
+		static FORCE_INLINE Trinex::Window* window_from(const Event& event)
 		{
 			return WindowManager::instance()->find(event.window_id);
 		}
@@ -670,7 +670,7 @@ namespace Engine
 
 #define IMGUI_EVENT_FUNC_HEADER(return_value)                                                                                    \
 	ImGuiContext* context         = nullptr;                                                                                     \
-	Engine::Window* engine_window = window_from(event);                                                                          \
+	Trinex::Window* engine_window = window_from(event);                                                                          \
 	{                                                                                                                            \
 		ImGuiWindow* window = nullptr;                                                                                           \
                                                                                                                                  \
@@ -707,7 +707,7 @@ namespace Engine
 	}                                                                                                                            \
 	ImGuiContextSaver imgui_context_saver(context);
 
-		static void imgui_sent_mouse_position(Engine::Window* engine_window, float x, float y)
+		static void imgui_sent_mouse_position(Trinex::Window* engine_window, float x, float y)
 		{
 			auto& io = ImGui::GetIO();
 			if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -909,9 +909,9 @@ namespace Engine
 			m_listener_id       = system->add_listener(EventType::Undefined, on_event_recieved);
 		}
 
-		static FORCE_INLINE Engine::Window* window_from(ImGuiViewport* vp)
+		static FORCE_INLINE Trinex::Window* window_from(ImGuiViewport* vp)
 		{
-			return reinterpret_cast<Engine::Window*>(vp->PlatformHandle);
+			return reinterpret_cast<Trinex::Window*>(vp->PlatformHandle);
 		}
 
 		static void imgui_trinex_window_create(ImGuiViewport* vp)
@@ -936,7 +936,7 @@ namespace Engine
 			config.client = "";
 
 			auto parent_window = window_from(ImGui::FindViewportByID(vp->ParentViewportId));
-			auto new_window    = Engine::WindowManager::instance()->create_window(config, parent_window);
+			auto new_window    = Trinex::WindowManager::instance()->create_window(config, parent_window);
 
 			auto render_viewport = new_window->render_viewport();
 			auto client          = Object::new_instance<ImGuiViewportClient>();
@@ -959,7 +959,7 @@ namespace Engine
 			if (vp->ParentViewportId != 0)
 			{
 				Identifier id = reinterpret_cast<Identifier>(vp->PlatformUserData);
-				if (Engine::Window* window = WindowManager::instance()->find(id))
+				if (Trinex::Window* window = WindowManager::instance()->find(id))
 				{
 					WindowManager::instance()->destroy_window(window);
 				}
@@ -970,7 +970,7 @@ namespace Engine
 
 		static void imgui_trinex_window_show(ImGuiViewport* vp)
 		{
-			if (Engine::Window* wd = window_from(vp))
+			if (Trinex::Window* wd = window_from(vp))
 			{
 				wd->show();
 			}
@@ -978,7 +978,7 @@ namespace Engine
 
 		static void imgui_trinex_set_window_pos(ImGuiViewport* vp, ImVec2 pos)
 		{
-			if (Engine::Window* wd = window_from(vp))
+			if (Trinex::Window* wd = window_from(vp))
 			{
 				auto info = Platform::monitor_info(wd->monitor_index());
 				wd->position({pos.x, info.size.y - (pos.y + wd->size().y)});
@@ -987,7 +987,7 @@ namespace Engine
 
 		static ImVec2 imgui_trinex_get_window_pos(ImGuiViewport* vp)
 		{
-			if (Engine::Window* wd = window_from(vp))
+			if (Trinex::Window* wd = window_from(vp))
 			{
 				auto pos    = wd->position();
 				auto info   = Platform::monitor_info(wd->monitor_index());
@@ -1000,7 +1000,7 @@ namespace Engine
 
 		static void imgui_trinex_set_window_size(ImGuiViewport* vp, ImVec2 size)
 		{
-			if (Engine::Window* wd = window_from(vp))
+			if (Trinex::Window* wd = window_from(vp))
 			{
 				wd->size({size.x, size.y});
 			}
@@ -1008,7 +1008,7 @@ namespace Engine
 
 		static ImVec2 imgui_trinex_get_window_size(ImGuiViewport* vp)
 		{
-			if (Engine::Window* wd = window_from(vp))
+			if (Trinex::Window* wd = window_from(vp))
 			{
 				auto size = wd->size();
 				return {static_cast<float>(size.x), static_cast<float>(size.y)};
@@ -1019,7 +1019,7 @@ namespace Engine
 
 		static bool imgui_trinex_get_window_focus(ImGuiViewport* vp)
 		{
-			if (Engine::Window* wd = window_from(vp))
+			if (Trinex::Window* wd = window_from(vp))
 			{
 				return wd->focused();
 			}
@@ -1028,7 +1028,7 @@ namespace Engine
 
 		static void imgui_trinex_set_window_focus(ImGuiViewport* vp)
 		{
-			if (Engine::Window* wd = window_from(vp))
+			if (Trinex::Window* wd = window_from(vp))
 			{
 				wd->focus();
 			}
@@ -1036,7 +1036,7 @@ namespace Engine
 
 		static void imgui_trinex_set_window_title(ImGuiViewport* vp, const char* title)
 		{
-			if (Engine::Window* wd = window_from(vp))
+			if (Trinex::Window* wd = window_from(vp))
 			{
 				wd->title(title);
 			}
@@ -1044,14 +1044,14 @@ namespace Engine
 
 		static bool imgui_trinex_get_window_minimized(ImGuiViewport* vp)
 		{
-			if (Engine::Window* wd = window_from(vp))
+			if (Trinex::Window* wd = window_from(vp))
 			{
 				return wd->is_iconify();
 			}
 			return false;
 		}
 
-		static void imgui_trinex_window_init_platform_interface(Engine::Window* window)
+		static void imgui_trinex_window_init_platform_interface(Trinex::Window* window)
 		{
 			ImGuiPlatformIO& platform_io            = ImGui::GetPlatformIO();
 			platform_io.Platform_CreateWindow       = imgui_trinex_window_create;
@@ -1071,7 +1071,7 @@ namespace Engine
 			main_viewport->PlatformUserData = reinterpret_cast<void*>(window->id());
 		}
 
-		static void imgui_trinex_window_init(Engine::Window* window)
+		static void imgui_trinex_window_init(Trinex::Window* window)
 		{
 			ImGuiIO& io            = ImGui::GetIO();
 			io.BackendPlatformName = "imgui_impl_trinex";
@@ -1117,7 +1117,7 @@ namespace Engine
 			}
 		}
 
-		static void imgui_trinex_window_new_frame(Engine::Window* window)
+		static void imgui_trinex_window_new_frame(Trinex::Window* window)
 		{
 			ImGuiIO& io = ImGui::GetIO();
 			auto bd     = imgui_trinex_backend_data();
@@ -1259,7 +1259,7 @@ namespace Engine
 
 	static ImGuiWindow* m_current_window = nullptr;
 
-	bool ImGuiWindow::initialize(Engine::Window* window, ImGuiContext* context)
+	bool ImGuiWindow::initialize(Trinex::Window* window, ImGuiContext* context)
 	{
 		m_window                                    = window;
 		m_context                                   = context;
@@ -1368,7 +1368,7 @@ namespace Engine
 		return *this;
 	}
 
-	Engine::Window* ImGuiWindow::window() const
+	Trinex::Window* ImGuiWindow::window() const
 	{
 		return m_window;
 	}
@@ -1382,14 +1382,14 @@ namespace Engine
 	{
 		return m_current_window;
 	}
-}// namespace Engine
+}// namespace Trinex
 
 namespace ImGui
 {
 	struct InputTextCallback {
 		ImGuiInputTextCallback callback;
 		void* userdata;
-		Engine::String* str;
+		Trinex::String* str;
 	};
 
 	static int input_text_callback(ImGuiInputTextCallbackData* data)
@@ -1398,7 +1398,7 @@ namespace ImGui
 
 		if (data->EventFlag == ImGuiInputTextFlags_CallbackResize)
 		{
-			Engine::String* str = userdata->str;
+			Trinex::String* str = userdata->str;
 			const int new_size  = data->BufTextLen;
 			str->resize(new_size);
 			data->Buf = str->data();
@@ -1413,9 +1413,9 @@ namespace ImGui
 		return 0;
 	}
 
-	Engine::RHIContext* GetCurrentRHI()
+	Trinex::RHIContext* GetCurrentRHI()
 	{
-		return Engine::ImGuiBackend_RHI::imgui_trinex_backend_data()->context;
+		return Trinex::ImGuiBackend_RHI::imgui_trinex_backend_data()->context;
 	}
 
 	void Paint(ImVec2 size, ImDrawCallback callback, void* userdata, size_t userdata_size)
@@ -1434,8 +1434,8 @@ namespace ImGui
 		ImGuiViewport* vp = window->Viewport;
 
 		struct Args {
-			Engine::Vector2f16 pos;
-			Engine::Vector2f16 size;
+			Trinex::Vector2f16 pos;
+			Trinex::Vector2f16 size;
 		} args;
 
 		args.pos  = EngineVecFrom((ImGui::GetItemRectMin() - vp->Pos) / vp->Size);
@@ -1445,8 +1445,8 @@ namespace ImGui
 			Args* args = reinterpret_cast<Args*>(cmd->UserCallbackData);
 
 			auto ctx = ImGui::GetCurrentRHI();
-			ctx->viewport(Engine::RHIViewport(args->size, args->pos));
-			ctx->scissor(Engine::RHIScissor(args->size, args->pos));
+			ctx->viewport(Trinex::RHIViewport(args->size, args->pos));
+			ctx->scissor(Trinex::RHIScissor(args->size, args->pos));
 		};
 
 		list->AddCallback(viewport_setup, &args, sizeof(args));
@@ -1485,7 +1485,7 @@ namespace ImGui
 		ImGui::TextUnformatted(ellipsis);
 	}
 
-	bool InputText(const char* label, Engine::String& buffer, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback,
+	bool InputText(const char* label, Trinex::String& buffer, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback,
 	               void* user_data)
 	{
 		InputTextCallback data;
@@ -1497,7 +1497,7 @@ namespace ImGui
 		return ImGui::InputText(label, buffer.data(), buffer.size() + 1, flags, input_text_callback, &data);
 	}
 
-	bool InputTextMultiline(const char* label, Engine::String& buffer, const ImVec2& size, ImGuiInputTextFlags flags,
+	bool InputTextMultiline(const char* label, Trinex::String& buffer, const ImVec2& size, ImGuiInputTextFlags flags,
 	                        ImGuiInputTextCallback callback, void* user_data)
 	{
 		InputTextCallback data;
@@ -1509,7 +1509,7 @@ namespace ImGui
 		return ImGui::InputTextMultiline(label, buffer.data(), buffer.size() + 1, size, flags, input_text_callback, &data);
 	}
 
-	bool InputTextWithHint(const char* label, const char* hint, Engine::String& buffer, ImGuiInputTextFlags flags,
+	bool InputTextWithHint(const char* label, const char* hint, Trinex::String& buffer, ImGuiInputTextFlags flags,
 	                       ImGuiInputTextCallback callback, void* user_data)
 	{
 		InputTextCallback data;
@@ -1635,7 +1635,7 @@ namespace ImGui
 }// namespace ImGui
 
 
-namespace Engine
+namespace Trinex
 {
-	trinex_implement_class_default_init(Engine::ImGuiBackend_Window::ImGuiViewportClient, 0);
-}// namespace Engine
+	trinex_implement_class_default_init(Trinex::ImGuiBackend_Window::ImGuiViewportClient, 0);
+}// namespace Trinex

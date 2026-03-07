@@ -1,7 +1,7 @@
 #pragma once
 #include <Engine/Render/renderer.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	struct CameraView;
 
@@ -30,4 +30,4 @@ namespace Engine
 
 		inline RHITexture* cubemap() const { return m_cubemap; }
 	};
-}// namespace Engine
+}// namespace Trinex

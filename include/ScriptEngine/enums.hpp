@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/engine_types.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	struct ScriptModuleLookup {
 		enum Enum : u8
@@ -65,4 +65,4 @@ namespace Engine
 
 		trinex_enum_struct(ScriptClassBehave);
 	};
-}// namespace Engine
+}// namespace Trinex

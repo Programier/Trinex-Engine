@@ -6,7 +6,7 @@
 #include <ScriptEngine/script_function.hpp>
 #include <TextEditor.h>
 
-namespace Engine
+namespace Trinex
 {
 	class ScriptDebuggerClient : public ImGuiViewportClient
 	{
@@ -81,4 +81,4 @@ namespace Engine
 
 		ScriptDebuggerClient& on_script_select(class Script* script, bool setup_for_edit);
 	};
-}// namespace Engine
+}// namespace Trinex

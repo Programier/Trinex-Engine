@@ -15,7 +15,7 @@
 #include <scriptdictionary.h>
 #include <scripthelper.h>
 
-namespace Engine
+namespace Trinex
 {
 	static asIScriptContext* m_context      = nullptr;
 	static Function<void(void*)> m_callback = {};
@@ -503,4 +503,4 @@ namespace Engine
 	{
 		return reinterpret_cast<u8*>(m_context->GetThisPointer(stack_level));
 	}
-}// namespace Engine
+}// namespace Trinex

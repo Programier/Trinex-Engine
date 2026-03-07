@@ -10,7 +10,7 @@
 #include <Core/threading.hpp>
 #include <cstdlib>
 
-namespace Engine
+namespace Trinex
 {
 	namespace
 	{
@@ -204,4 +204,4 @@ namespace Engine
 	{
 		reset_stack_allocator(&s_frame_sync);
 	}
-}// namespace Engine
+}// namespace Trinex

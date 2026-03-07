@@ -3,7 +3,7 @@
 #include <Core/engine_types.hpp>
 #include <Core/etl/map.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT Joystick
 	{
@@ -20,4 +20,4 @@ namespace Engine
 		~Joystick();
 		friend struct JoystickEvent;
 	};
-}// namespace Engine
+}// namespace Trinex

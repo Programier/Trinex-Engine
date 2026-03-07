@@ -7,7 +7,7 @@
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
 
-namespace Engine::Refl
+namespace Trinex::Refl
 {
 	namespace Meta
 	{
@@ -383,7 +383,7 @@ namespace Engine::Refl
 	void Object::register_layout(ScriptClassRegistrar& r, ClassInfo* info, DownCast downcast)
 	{
 		using T = Object;
-		ReflectionInitializeController().require("Engine::Name");
+		ReflectionInitializeController().require("Trinex::Name");
 
 		info->is_scriptable = true;
 
@@ -391,13 +391,13 @@ namespace Engine::Refl
 		{
 			if (!i->is_scriptable)
 			{
-				ReflectionInitializeController().require(Strings::format("Engine::Refl::{}", i->class_name.to_string()));
+				ReflectionInitializeController().require(Strings::format("Trinex::Refl::{}", i->class_name.to_string()));
 			}
 		}
 
-		r.method("Engine::Refl::Object@ owner(Engine::Refl::Object@ new_owner)", overload_of<Object&>(&T::owner));
-		r.method("Engine::Refl::Object@ owner()", overload_of<Object*>(&T::owner));
-		r.method("const Engine::Name& name() const", &T::name);
+		r.method("Trinex::Refl::Object@ owner(Trinex::Refl::Object@ new_owner)", overload_of<Object&>(&T::owner));
+		r.method("Trinex::Refl::Object@ owner()", overload_of<Object*>(&T::owner));
+		r.method("const Trinex::Name& name() const", &T::name);
 		r.method("string full_name() const", overload_of<String>(&T::full_name));
 		r.method("string scope_name() const", &T::scope_name);
 		r.method("bool is_initialized() const", &T::is_initialized);
@@ -407,15 +407,15 @@ namespace Engine::Refl
 		r.method("const string& description() const", overload_of<const String&>(&T::description));
 		r.method("const string& group() const", overload_of<const String&>(&T::group));
 
-		r.method("Engine::Refl::Object@ display_name(Engine::StringView name)", overload_of<Object&>(&T::display_name));
-		r.method("Engine::Refl::Object@ tooltip(Engine::StringView tooltip)", overload_of<Object&>(&T::tooltip));
-		r.method("Engine::Refl::Object@ description(Engine::StringView description)", overload_of<Object&>(&T::description));
-		r.method("Engine::Refl::Object@ group(Engine::StringView group)", overload_of<Object&>(&T::group));
+		r.method("Trinex::Refl::Object@ display_name(Trinex::StringView name)", overload_of<Object&>(&T::display_name));
+		r.method("Trinex::Refl::Object@ tooltip(Trinex::StringView tooltip)", overload_of<Object&>(&T::tooltip));
+		r.method("Trinex::Refl::Object@ description(Trinex::StringView description)", overload_of<Object&>(&T::description));
+		r.method("Trinex::Refl::Object@ group(Trinex::StringView group)", overload_of<Object&>(&T::group));
 
-		r.method("Engine::Refl::Object@ remove_metadata(const Engine::Name& name)", &T::remove_metadata);
+		r.method("Trinex::Refl::Object@ remove_metadata(const Trinex::Name& name)", &T::remove_metadata);
 
-		r.method("Engine::Refl::Object@ find(const Engine::Name& name)", &T::find<Object>);
-		r.method("Engine::Refl::ClassInfo@ refl_class_info() const", &T::refl_class_info);
+		r.method("Trinex::Refl::Object@ find(const Trinex::Name& name)", &T::find<Object>);
+		r.method("Trinex::Refl::ClassInfo@ refl_class_info() const", &T::refl_class_info);
 
 
 		String current_type = r.class_name();
@@ -427,10 +427,10 @@ namespace Engine::Refl
 			}
 
 			// upcast
-			String opconv           = Strings::format("Engine::Refl::{}@ opConv()", i->class_name.to_string());
-			String const_opconv     = Strings::format("const Engine::Refl::{}@ opConv() const", i->class_name.to_string());
-			String opimplconv       = Strings::format("Engine::Refl::{}@ opImplConv()", i->class_name.to_string());
-			String const_opimplconv = Strings::format("const Engine::Refl::{}@ opImplConv() const", i->class_name.to_string());
+			String opconv           = Strings::format("Trinex::Refl::{}@ opConv()", i->class_name.to_string());
+			String const_opconv     = Strings::format("const Trinex::Refl::{}@ opConv() const", i->class_name.to_string());
+			String opimplconv       = Strings::format("Trinex::Refl::{}@ opImplConv()", i->class_name.to_string());
+			String const_opimplconv = Strings::format("const Trinex::Refl::{}@ opImplConv() const", i->class_name.to_string());
 
 			r.method(opconv.c_str(), self_address);
 			r.method(const_opconv.c_str(), self_address);
@@ -441,7 +441,7 @@ namespace Engine::Refl
 			String opcast       = Strings::format("{}@ opCast()", current_type);
 			String const_opcast = Strings::format("const {}@ opCast() const", current_type);
 
-			auto r = ScriptClassRegistrar::existing_class(Strings::format("Engine::Refl::{}", i->class_name.to_string()));
+			auto r = ScriptClassRegistrar::existing_class(Strings::format("Trinex::Refl::{}", i->class_name.to_string()));
 			r.method(opcast.c_str(), downcast);
 			r.method(const_opcast.c_str(), downcast);
 		}
@@ -454,28 +454,28 @@ namespace Engine::Refl
 		info.no_count        = true;
 
 		{
-			ScriptEnumRegistrar r("Engine::Refl::FindFlags");
+			ScriptEnumRegistrar r("Trinex::Refl::FindFlags");
 			r.set("None", FindFlags::None);
 			r.set("CreateScope", FindFlags::CreateScope);
 			r.set("IsRequired", FindFlags::IsRequired);
 			r.set("DisableReflectionCheck", FindFlags::DisableReflectionCheck);
 		}
 		{
-			auto r = ScriptClassRegistrar::reference_class("Engine::Refl::ClassInfo", info);
+			auto r = ScriptClassRegistrar::reference_class("Trinex::Refl::ClassInfo", info);
 			r.property("const Name class_name", &ClassInfo::class_name);
 			r.property("const ClassInfo@ parent", &ClassInfo::parent);
 			r.method("bool is_a(const ClassInfo@ info) const", &ClassInfo::is_a);
 		}
 
-		auto r = ScriptClassRegistrar::reference_class("Engine::Refl::Object", info);
-		r.static_function("Engine::Refl::ClassInfo@ static_refl_class_info()", &Object::static_refl_class_info);
+		auto r = ScriptClassRegistrar::reference_class("Trinex::Refl::Object", info);
+		r.static_function("Trinex::Refl::ClassInfo@ static_refl_class_info()", &Object::static_refl_class_info);
 		r.static_function("bool is_valid(Object@ object)", Object::is_valid);
 		r.static_function("Object@ static_root()", Object::static_root);
 
-		r.static_function("Object@ static_find(Engine::StringView name, int flags = 0)", Object::static_find<Object>);
+		r.static_function("Object@ static_find(Trinex::StringView name, int flags = 0)", Object::static_find<Object>);
 		r.static_function("Object@ static_require(StringView name, int flags = 0)", Object::static_require<Object>);
 		Object::register_layout(r, Object::static_refl_class_info(), script_downcast<Object>);
 	}
 
-	static ReflectionInitializeController initializer(on_init, "Engine::Refl::Object");
-}// namespace Engine::Refl
+	static ReflectionInitializeController initializer(on_init, "Trinex::Refl::Object");
+}// namespace Trinex::Refl

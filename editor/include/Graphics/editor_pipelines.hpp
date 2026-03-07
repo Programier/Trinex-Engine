@@ -2,14 +2,14 @@
 #include <Graphics/pipeline.hpp>
 #include <Graphics/sampler.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class Renderer;
 	class RHIShaderResourceView;
 	class RHIContext;
-}// namespace Engine
+}// namespace Trinex
 
-namespace Engine::EditorPipelines
+namespace Trinex::EditorPipelines
 {
 	class Outline : public GlobalGraphicsPipeline
 	{
@@ -50,4 +50,4 @@ namespace Engine::EditorPipelines
 		void render(RHIContext* ctx, Renderer* renderer);
 	};
 
-}// namespace Engine::EditorPipelines
+}// namespace Trinex::EditorPipelines

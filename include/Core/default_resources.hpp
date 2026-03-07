@@ -2,7 +2,7 @@
 #include <Core/engine_types.hpp>
 #include <Core/etl/string.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class Sampler;
 	class Texture;
@@ -52,4 +52,4 @@ namespace Engine
 	}// namespace DefaultResources
 
 	ENGINE_EXPORT class Object* load_object_from_memory(const u8* data, usize size, const StringView& fullname);
-}// namespace Engine
+}// namespace Trinex

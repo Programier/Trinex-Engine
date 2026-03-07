@@ -7,7 +7,7 @@
 #include <dlfcn.h>
 #include <execinfo.h>
 #endif
-namespace Engine
+namespace Trinex
 {
 
 #if PLATFORM_WINDOWS
@@ -61,4 +61,4 @@ namespace Engine
 		return ss.str();
 	}
 
-}// namespace Engine
+}// namespace Trinex

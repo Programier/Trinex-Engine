@@ -2,7 +2,7 @@
 #include <Widgets/imgui_menu_bar.hpp>
 #include <imgui.h>
 
-namespace Engine
+namespace Trinex
 {
 	void ImGuiMenuBar::remove(Menu* menu)
 	{
@@ -162,4 +162,4 @@ namespace Engine
 	{
 		clear();
 	}
-}// namespace Engine
+}// namespace Trinex

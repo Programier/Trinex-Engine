@@ -4,7 +4,7 @@
 //#include <stdexcept>
 
 
-//namespace Engine
+//namespace Trinex
 //{
 //    /*
 //    SDL_SensorGetDeviceName
@@ -153,4 +153,4 @@
 //    {
 //        close();
 //    }
-//}// namespace Engine
+//}// namespace Trinex

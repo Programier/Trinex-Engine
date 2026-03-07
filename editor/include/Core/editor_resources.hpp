@@ -1,7 +1,7 @@
 #pragma once
 
 
-namespace Engine
+namespace Trinex
 {
 	class Texture2D;
 	class Material;
@@ -13,4 +13,4 @@ namespace Engine
 		extern Texture2D* light_sprite;
 		extern Texture2D* blueprint_texture;
 	}// namespace EditorResources
-}// namespace Engine
+}// namespace Trinex

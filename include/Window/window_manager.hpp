@@ -2,7 +2,7 @@
 #include <Core/etl/map.hpp>
 #include <Core/etl/singletone.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	struct WindowInterface;
 	class Window;
@@ -29,4 +29,4 @@ namespace Engine
 		friend class Window;
 		friend class Singletone<WindowManager, EmptySingletoneParent>;
 	};
-}// namespace Engine
+}// namespace Trinex

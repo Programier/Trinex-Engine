@@ -10,7 +10,7 @@
 #include <Graphics/visual_material_nodes.hpp>
 #include <limits>
 
-namespace Engine
+namespace Trinex
 {
 	static constexpr const char* s_material_template = R"(
 import "trinex/material.slang";
@@ -176,4 +176,4 @@ export Material main<Material : IMaterial>(in IMaterialInput input)
 		                        metalness.value, roughness.value, opacity.value, AO.value, normal.value, position_offset.value);
 		return true;
 	}
-}// namespace Engine
+}// namespace Trinex

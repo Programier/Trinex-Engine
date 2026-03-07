@@ -7,7 +7,7 @@
 #include <cstring>
 #include <filesystem>
 
-namespace Engine::VFS
+namespace Trinex::VFS
 {
 	namespace fs = std::filesystem;
 
@@ -209,13 +209,13 @@ namespace Engine::VFS
 	{
 		return m_directory / path;
 	}
-}// namespace Engine::VFS
+}// namespace Trinex::VFS
 
 
-namespace Engine::Platform
+namespace Trinex::Platform
 {
 	ENGINE_EXPORT VFS::FileSystem* create_filesystem(const Path& mount, const Path& path)
 	{
 		return trx_new VFS::CommonFileSystem(mount, path);
 	}
-}// namespace Engine::Platform
+}// namespace Trinex::Platform

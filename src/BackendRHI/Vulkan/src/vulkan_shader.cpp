@@ -6,7 +6,7 @@
 #include <vulkan_state.hpp>
 #include <vulkan_texture.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	VulkanShader::VulkanShader(const u8* shader, usize size)
 	{
@@ -21,4 +21,4 @@ namespace Engine
 		return trx_new VulkanShader(shader, size);
 	}
 
-}// namespace Engine
+}// namespace Trinex

@@ -1,6 +1,6 @@
 #include <Core/tickable.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	TickableObject* TickableObject::s_first = nullptr;
 	TickableObject* TickableObject::s_last  = nullptr;
@@ -54,4 +54,4 @@ namespace Engine
 			s_last = m_prev;
 		}
 	}
-}// namespace Engine
+}// namespace Trinex

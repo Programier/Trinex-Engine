@@ -3,7 +3,7 @@
 #include <Core/object.hpp>
 #include <RHI/structures.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class Logger;
 	class Material;
@@ -100,4 +100,4 @@ namespace Engine
 		virtual bool compile(const ShaderCompilationEnvironment* env, ShaderCompilationResult& result) = 0;
 	};
 
-}// namespace Engine
+}// namespace Trinex

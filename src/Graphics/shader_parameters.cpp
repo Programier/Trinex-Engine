@@ -6,7 +6,7 @@
 #include <RHI/rhi.hpp>
 
 
-namespace Engine
+namespace Trinex
 {
 	ENGINE_EXPORT GlobalShaderParameters& GlobalShaderParameters::update(const SceneView* scene_view, Vector2u target_size)
 	{
@@ -47,4 +47,4 @@ namespace Engine
 		delta_time = engine_instance->delta_time();
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

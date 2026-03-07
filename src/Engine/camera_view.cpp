@@ -1,7 +1,7 @@
 #include <Core/math/math.hpp>
 #include <Engine/camera_view.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	static inline void static_initialize(CameraView& view, const Vector3f& origin, const Vector3f& forward, const Vector3f& up,
 	                                     float near, float far)
@@ -86,4 +86,4 @@ namespace Engine
 		return {view_pos.x, view_pos.y, view_pos.z};
 	}
 
-}// namespace Engine
+}// namespace Trinex

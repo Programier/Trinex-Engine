@@ -7,7 +7,7 @@
 #include <ScriptEngine/script_variable.hpp>
 #include <angelscript.h>
 
-namespace Engine::Refl
+namespace Trinex::Refl
 {
 	trinex_implement_reflect_type(ScriptClass);
 
@@ -40,11 +40,11 @@ namespace Engine::Refl
 		trinex_verify_msg(m_factory.is_valid(), "The script class does not contain a default constructor");
 	}
 
-	Engine::Object* ScriptClass::object_constructor(StringView name, Engine::Object* owner, bool scriptable)
+	Trinex::Object* ScriptClass::object_constructor(StringView name, Trinex::Object* owner, bool scriptable)
 	{
 		trinex_verify_msg(scriptable, "Cannot create non-scriptable object from scriptable class");
 
-		Engine::Object* obj = nullptr;
+		Trinex::Object* obj = nullptr;
 		ScriptContext::execute(m_factory, &obj);
 
 		if (obj == nullptr)
@@ -61,7 +61,7 @@ namespace Engine::Refl
 		return obj;
 	}
 
-	ScriptClass& ScriptClass::destroy_object(Engine::Object* object)
+	ScriptClass& ScriptClass::destroy_object(Trinex::Object* object)
 	{
 		auto script_object = reinterpret_cast<asIScriptObject*>(object);
 		script_object->Destroy();
@@ -83,4 +83,4 @@ namespace Engine::Refl
 
 		m_script->m_refl_objects.erase(this);
 	}
-}// namespace Engine::Refl
+}// namespace Trinex::Refl

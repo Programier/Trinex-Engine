@@ -2,7 +2,7 @@
 #include <Core/types/color.hpp>
 #include <RHI/enums.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	struct RHISamplerInitializer;
 	class RHISampler;
@@ -68,4 +68,4 @@ namespace Engine
 
 		inline ~Sampler() { release(); }
 	};
-}// namespace Engine
+}// namespace Trinex

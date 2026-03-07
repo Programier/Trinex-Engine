@@ -1,7 +1,7 @@
 #pragma once
 #include <atomic>
 
-namespace Engine
+namespace Trinex
 {
 	template<typename Type>
 	using Atomic = std::atomic<Type>;
@@ -20,4 +20,4 @@ namespace Engine
 		inline constexpr auto memory_order_acq_rel = std::memory_order::acq_rel;
 		inline constexpr auto memory_order_seq_cst = std::memory_order::seq_cst;
 	}// namespace etl
-}// namespace Engine
+}// namespace Trinex

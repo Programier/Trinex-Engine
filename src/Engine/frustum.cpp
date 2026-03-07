@@ -4,7 +4,7 @@
 #include <Engine/camera_view.hpp>
 #include <Engine/frustum.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	Plane::Plane() : normal(Constants::zero_vector), offset(0.f) {}
 	Plane::Plane(const Vector4f& normal_distance) : Plane(static_cast<const Vector3f&>(normal_distance), normal_distance.w) {}
@@ -170,4 +170,4 @@ namespace Engine
 
 		return intersects ? Intersects : Contains;
 	}
-}// namespace Engine
+}// namespace Trinex

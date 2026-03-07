@@ -6,7 +6,7 @@
 #include <RHI/enums.hpp>
 #include <RHI/resource_ptr.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class Window;
 	class RenderTarget;
@@ -85,4 +85,4 @@ namespace Engine
 		RenderSurface* render_surface() const;
 		SurfaceRenderViewport& rhi_present() override;
 	};
-}// namespace Engine
+}// namespace Trinex

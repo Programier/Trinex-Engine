@@ -1,7 +1,7 @@
 #pragma once
 #include <Engine/Actors/light_actor.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class PointLightComponent;
 
@@ -16,4 +16,4 @@ namespace Engine
 		PointLightActor();
 		PointLightComponent* point_light_component() const;
 	};
-}// namespace Engine
+}// namespace Trinex

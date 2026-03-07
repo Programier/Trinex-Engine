@@ -2,7 +2,7 @@
 #include <Core/filesystem/path.hpp>
 #include <Graphics/material.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT ShaderMaterial : public Material
 	{
@@ -14,4 +14,4 @@ namespace Engine
 		bool shader_source(String& out_source) override;
 		bool serialize(Archive& archive) override;
 	};
-}// namespace Engine
+}// namespace Trinex

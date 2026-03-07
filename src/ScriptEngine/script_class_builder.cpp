@@ -5,7 +5,7 @@
 #include <ScriptEngine/script_engine.hpp>
 #include <angelscript.h>
 
-namespace Engine::Refl
+namespace Trinex::Refl
 {
 	static void visit_script_classes(Object* object)
 	{
@@ -46,7 +46,7 @@ namespace Engine::Refl
 			ti = ti->GetSubType(0);
 
 			asITypeInfo* current = ti;
-			auto target          = Engine::Object::static_reflection()->script_type_info.info();
+			auto target          = Trinex::Object::static_reflection()->script_type_info.info();
 
 			while (current && current != target) current = current->GetBaseType();
 
@@ -71,15 +71,15 @@ namespace Engine::Refl
 		info.has_copy_constructor = true;
 		info.has_destructor       = true;
 
-		auto reg = ScriptClassRegistrar::value_class("Engine::class_of<class T>", sizeof(ClassOf), info);
+		auto reg = ScriptClassRegistrar::value_class("Trinex::class_of<class T>", sizeof(ClassOf), info);
 		reg.behave(ScriptClassBehave::Construct, "void f(int&)", ScriptClassRegistrar::constructor<ClassOf, asITypeInfo*>);
 		reg.behave(ScriptClassBehave::Construct, "void f(int&, const class_of<T>& in other)",
 		           ScriptClassRegistrar::constructor<ClassOf, asITypeInfo*, const ClassOf&>);
 		reg.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<ClassOf>);
 
-		reg.method("Engine::Refl::Class@ opImplCast() const", &ClassOf::class_of_impl_cast);
+		reg.method("Trinex::Refl::Class@ opImplCast() const", &ClassOf::class_of_impl_cast);
 	}
 
 	static PreInitializeController pre_init(on_pre_init);
-	static ReflectionInitializeController reflection_init(on_reflection_init, "Engine::class_of", {"Engine::Refl::Class"});
-}// namespace Engine::Refl
+	static ReflectionInitializeController reflection_init(on_reflection_init, "Trinex::class_of", {"Trinex::Refl::Class"});
+}// namespace Trinex::Refl

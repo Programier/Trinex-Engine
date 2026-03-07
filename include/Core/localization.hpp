@@ -4,7 +4,7 @@
 #include <Core/etl/map.hpp>
 #include <Core/etl/singletone.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT Localization : public Singletone<Localization, EmptySingletoneParent>
 	{
@@ -26,4 +26,4 @@ namespace Engine
 	};
 
 
-}// namespace Engine
+}// namespace Trinex

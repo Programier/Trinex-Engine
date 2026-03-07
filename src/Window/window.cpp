@@ -8,7 +8,7 @@
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
 
-namespace Engine
+namespace Trinex
 {
 
 	f32 Window::width()
@@ -231,4 +231,4 @@ namespace Engine
 		}
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

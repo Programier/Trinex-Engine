@@ -10,7 +10,7 @@ class asIScriptContext;
 class asIJITCompiler;
 class asIScriptGeneric;
 
-namespace Engine
+namespace Trinex
 {
 	class ScriptModule;
 	class ScriptTypeInfo;
@@ -190,4 +190,4 @@ namespace Engine
 		friend class ScriptClassRegistrar;
 		friend class ScriptObject;
 	};
-}// namespace Engine
+}// namespace Trinex

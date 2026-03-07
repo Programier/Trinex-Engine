@@ -2,7 +2,7 @@
 #include <Core/callback.hpp>
 #include <Graphics/imgui.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ContentBrowser : public ImGuiWidget
 	{
@@ -42,4 +42,4 @@ namespace Engine
 		static const char* static_name();
 		~ContentBrowser();
 	};
-}// namespace Engine
+}// namespace Trinex

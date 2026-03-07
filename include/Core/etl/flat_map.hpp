@@ -4,7 +4,7 @@
 #include <Core/etl/vector.hpp>
 #include <algorithm>
 
-namespace Engine
+namespace Trinex
 {
 	template<typename Key, typename Value, typename Compare = Less<Key>, typename AllocatorType = Allocator<Pair<Key, Value>>>
 	class FlatMap : private Vector<Pair<Key, Value>, AllocatorType>
@@ -183,4 +183,4 @@ namespace Engine
 		constexpr const_iterator erase(const_iterator first, const_iterator last) { return container_type::erase(first, last); }
 	};
 
-}// namespace Engine
+}// namespace Trinex

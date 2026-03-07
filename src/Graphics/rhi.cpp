@@ -2,7 +2,7 @@
 #include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	ENGINE_EXPORT RHI* rhi = nullptr;
-}// namespace Engine
+}// namespace Trinex

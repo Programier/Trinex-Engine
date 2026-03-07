@@ -2,7 +2,7 @@
 #include <Clients/imgui_client.hpp>
 #include <Core/pointer.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class PropertyRenderer;
 
@@ -24,4 +24,4 @@ namespace Engine
 
 		inline Object* selected_object() const { return m_object.ptr(); }
 	};
-}// namespace Engine
+}// namespace Trinex

@@ -2,7 +2,7 @@
 #include <Core/etl/singletone.hpp>
 #include <Systems/system.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT EngineSystem : public Singletone<EngineSystem, System>
 	{
@@ -17,4 +17,4 @@ namespace Engine
 
 		friend class Singletone<EngineSystem, System>;
 	};
-}// namespace Engine
+}// namespace Trinex

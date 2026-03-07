@@ -2,7 +2,7 @@
 #include <Core/reflection/struct.hpp>
 #include <none_api.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	template<typename T>
 	T* rhi_default()
@@ -47,7 +47,7 @@ namespace Engine
 		using NONE = NoneApi;
 	}
 
-	trinex_implement_struct_default_init(Engine::TRINEX_RHI::NONE, 0);
+	trinex_implement_struct_default_init(Trinex::TRINEX_RHI::NONE, 0);
 
 	struct NoneTimestamp : public NoneApiDestroyable<RHITimestamp> {
 		float milliseconds() override { return 0.f; }
@@ -209,4 +209,4 @@ namespace Engine
 	{
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

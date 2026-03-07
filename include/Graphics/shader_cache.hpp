@@ -4,7 +4,7 @@
 #include <Core/name.hpp>
 #include <RHI/structures.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ShaderCompilationResult;
 
@@ -37,4 +37,4 @@ namespace Engine
 		bool store(const StringView& object_path, StringView rhi_name = {}) const;
 		bool serialize(Archive& ar);
 	};
-}// namespace Engine
+}// namespace Trinex

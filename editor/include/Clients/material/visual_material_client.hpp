@@ -5,7 +5,7 @@ namespace ax::NodeEditor
 	class EditorContext;
 }
 
-namespace Engine
+namespace Trinex
 {
 	namespace VisualMaterialGraph
 	{
@@ -53,4 +53,4 @@ namespace Engine
 		VisualMaterialEditorClient& select(Object* object) override;
 		u32 build_dock(u32 dock) override;
 	};
-}// namespace Engine
+}// namespace Trinex

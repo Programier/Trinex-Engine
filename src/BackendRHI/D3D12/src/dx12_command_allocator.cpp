@@ -3,7 +3,7 @@
 #include <dx12_api.hpp>
 #include <dx12_command_allocator.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	D3D12CommandAlloctor::Entry::Entry() : m_next(nullptr), m_last_signaled(0)
 	{
@@ -75,4 +75,4 @@ namespace Engine
 		}
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

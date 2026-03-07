@@ -4,7 +4,7 @@
 #include <Core/keyboard.hpp>
 #include <Core/mouse.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	enum class EventType : u8
 	{
@@ -93,7 +93,7 @@ namespace Engine
 		};
 
 		struct Keyboard {
-			Engine::Keyboard::Key key;
+			Trinex::Keyboard::Key key;
 		};
 
 		union Mouse
@@ -111,7 +111,7 @@ namespace Engine
 			} motion;
 
 			struct MouseButtonEvent {
-				Engine::Mouse::Button button;
+				Trinex::Mouse::Button button;
 				float x;
 				float y;
 			} button;
@@ -121,7 +121,7 @@ namespace Engine
 			Identifier id;
 
 			struct AxisMotionEvent {
-				Engine::GameController::Axis axis;
+				Trinex::GameController::Axis axis;
 				float value;
 			};
 
@@ -173,4 +173,4 @@ namespace Engine
 		Event& operator=(const Event&) = default;
 		Event& operator=(Event&&)      = default;
 	};
-}// namespace Engine
+}// namespace Trinex

@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/reflection/property.hpp>
 
-namespace Engine::Refl
+namespace Trinex::Refl
 {
 	template<typename Super, bool dereference = false>
 	class ScriptProperty : public Super
@@ -94,4 +94,4 @@ namespace Engine::Refl
 	// NameProperty;
 	// ObjectProperty;
 	// ArrayProperty;
-}// namespace Engine::Refl
+}// namespace Trinex::Refl

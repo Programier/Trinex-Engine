@@ -4,7 +4,7 @@
 #include <vulkan_fence.hpp>
 #include <vulkan_query.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	VulkanQueryPool::VulkanQueryPool(const vk::QueryPoolCreateInfo& info)
 	{
@@ -305,4 +305,4 @@ namespace Engine
 		return *this;
 	}
 
-}// namespace Engine
+}// namespace Trinex

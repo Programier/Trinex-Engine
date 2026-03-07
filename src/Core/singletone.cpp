@@ -2,7 +2,7 @@
 #include <Core/reflection/class.hpp>
 
 
-namespace Engine
+namespace Trinex
 {
 	void SingletoneBase::register_singletone(const Refl::Class* class_instance, Object* object)
 	{
@@ -18,4 +18,4 @@ namespace Engine
 	{
 		return class_instance->singletone_instance();
 	}
-}// namespace Engine
+}// namespace Trinex

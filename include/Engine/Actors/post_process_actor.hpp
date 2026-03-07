@@ -1,7 +1,7 @@
 #pragma once
 #include <Engine/Actors/actor.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class PostProcessComponent;
 
@@ -16,4 +16,4 @@ namespace Engine
 		PostProcessActor();
 		inline PostProcessComponent* post_process_component() const { return m_post_process_component; }
 	};
-}// namespace Engine
+}// namespace Trinex

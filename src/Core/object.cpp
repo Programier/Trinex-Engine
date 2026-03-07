@@ -22,7 +22,7 @@
 #include <ScriptEngine/script_object.hpp>
 #include <angelscript.h>
 
-namespace Engine
+namespace Trinex
 {
 	static ScriptFunction script_object_preload;
 	static ScriptFunction script_object_postload;
@@ -88,7 +88,7 @@ namespace Engine
 		});
 
 		{
-			ScriptNamespaceScopedChanger changer("Engine::Object");
+			ScriptNamespaceScopedChanger changer("Trinex::Object");
 			ScriptEngine::register_function("Object@ static_find_object(StringView object_name)", static_find_object);
 		}
 	}
@@ -858,4 +858,4 @@ namespace Engine
 		}
 		return nullptr;
 	}
-}// namespace Engine
+}// namespace Trinex

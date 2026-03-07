@@ -3,7 +3,7 @@
 #include <vulkan_destroyable.hpp>
 #include <vulkan_headers.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	struct RHIRayTracingAccelerationInputs;
 	class VulkanBuffer;
@@ -23,4 +23,4 @@ namespace Engine
 		vk::DeviceAddress address() const;
 		inline vk::AccelerationStructureKHR handle() const { return m_acceleration; }
 	};
-}// namespace Engine
+}// namespace Trinex

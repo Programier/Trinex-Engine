@@ -3,7 +3,7 @@
 #include <SDL.h>
 #include <Window/window.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	struct ENGINE_EXPORT WindowSDL : public Window {
 		using Window::m_size;
@@ -62,4 +62,4 @@ namespace Engine
 		void destroy_cursor();
 		~WindowSDL();
 	};
-}// namespace Engine
+}// namespace Trinex

@@ -4,7 +4,7 @@
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	i32 EntryPoint::execute()
 	{
@@ -12,4 +12,4 @@ namespace Engine
 	}
 
 	trinex_implement_engine_class_default_init(EntryPoint, 0);
-}// namespace Engine
+}// namespace Trinex

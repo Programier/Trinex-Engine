@@ -14,7 +14,7 @@
 #include <Graphics/render_pools.hpp>
 #include <RHI/rhi.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	trinex_implement_engine_enum(LightUnits, 0, Unitless, Candelas, Lumens, EV);
 
@@ -182,4 +182,4 @@ namespace Engine
 	}
 
 	LightComponent::~LightComponent() {}
-}// namespace Engine
+}// namespace Trinex

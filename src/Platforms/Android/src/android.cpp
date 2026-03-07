@@ -24,7 +24,7 @@ extern "C" JNIEXPORT void JNICALL Java_com_TrinexEngine_TrinexActivity_initializ
         jstring device_build_number, jstring system_version, jstring system_language, jstring cache_dir, jstring executable_path,
         jstring libraries_path, jint screen_width, jint screen_height)
 {
-	using namespace Engine::Platform;
+	using namespace Trinex::Platform;
 	m_android_platform_info.app_package_name    = to_string(env, app_package_name);
 	m_android_platform_info.device_manufacturer = to_string(env, device_manufacturer);
 	m_android_platform_info.device_model        = to_string(env, device_model);
@@ -41,14 +41,14 @@ extern "C" JNIEXPORT void JNICALL Java_com_TrinexEngine_TrinexActivity_initializ
 extern "C" JNIEXPORT void JNICALL Java_com_TrinexEngine_TrinexActivity_updateOrientation(JNIEnv* env, jobject thiz,
                                                                                          jint orientation)
 {
-	using namespace Engine::Platform;
+	using namespace Trinex::Platform;
 
 	m_android_platform_info.orientation            = static_cast<Engine::Orientation::Enum>(orientation);
 	m_android_platform_info.is_orientation_updated = true;
 }
 
 
-namespace Engine::Platform
+namespace Trinex::Platform
 {
 	AndroidPlatformInfo m_android_platform_info = {};
 	static android_app* m_application           = nullptr;
@@ -102,4 +102,4 @@ namespace Engine::Platform
 	{
 		return m_application;
 	}
-}// namespace Engine::Platform
+}// namespace Trinex::Platform

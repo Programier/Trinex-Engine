@@ -7,7 +7,7 @@
 #include <ScriptEngine/script_type_info.hpp>
 #include <angelscript.h>
 
-namespace Engine
+namespace Trinex
 {
 	static FORCE_INLINE asIScriptEngine* script_engine()
 	{
@@ -345,4 +345,4 @@ namespace Engine
 		release_namespace();
 		return info;
 	}
-}// namespace Engine
+}// namespace Trinex

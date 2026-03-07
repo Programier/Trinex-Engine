@@ -3,7 +3,7 @@
 #include <Widgets/property_renderer.hpp>
 #include <imgui_internal.h>
 
-namespace Engine
+namespace Trinex
 {
 	trinex_implement_engine_class(ObjectViewClient, 0)
 	{
@@ -67,4 +67,4 @@ namespace Engine
 		}
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

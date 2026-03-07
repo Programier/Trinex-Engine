@@ -5,7 +5,7 @@
 #include <dx12_resource_view.hpp>
 #include <dxgi1_4.h>
 
-namespace Engine
+namespace Trinex
 {
 	class Window;
 	class D3D12_Viewport : public D3D12_DeferredDestroyable<RHIViewport>
@@ -43,4 +43,4 @@ namespace Engine
 		inline ID3D12Resource* resource() { return acquire_frame().m_render_targets[m_frame].Get(); }
 		inline D3D12_RTV* rtv() { return acquire_frame().m_rtv[m_frame]; }
 	};
-}// namespace Engine
+}// namespace Trinex

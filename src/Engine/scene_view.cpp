@@ -1,7 +1,7 @@
 #include <Core/math/math.hpp>
 #include <Engine/scene_view.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	SceneView::SceneView(ShowFlags show_flags) : m_show_flags(show_flags) {}
 
@@ -101,4 +101,4 @@ namespace Engine
 		return Vector3f(result.x / result.w, result.y / result.w, result.z / result.w);
 	}
 
-}// namespace Engine
+}// namespace Trinex

@@ -3,7 +3,7 @@
 #include <concepts>
 #include <type_traits>
 
-namespace Engine
+namespace Trinex
 {
 	class Archive;
 	class Object;
@@ -113,18 +113,18 @@ namespace Engine
 		};
 
 		template<typename T, typename... Args>
-		concept is_serializable = requires(T* obj, Args&&... args, Engine::Archive& ar) {
+		concept is_serializable = requires(T* obj, Args&&... args, Trinex::Archive& ar) {
 			{ obj->serialize(ar, std::forward<Args>(args)...) } -> std::same_as<bool>;
 		};
 
 		template<typename T>
 		concept is_reflected_struct = requires(T* obj) {
-			{ obj->static_reflection() } -> std::same_as<Engine::Refl::Struct*>;
+			{ obj->static_reflection() } -> std::same_as<Trinex::Refl::Struct*>;
 		};
 
 		template<typename T>
 		concept is_reflected_class = requires(T* obj) {
-			{ obj->static_reflection() } -> std::same_as<Engine::Refl::Class*>;
+			{ obj->static_reflection() } -> std::same_as<Trinex::Refl::Class*>;
 		};
 	}// namespace Concepts
-}// namespace Engine
+}// namespace Trinex

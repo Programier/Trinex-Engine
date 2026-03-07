@@ -7,7 +7,7 @@
 #include <Core/string_functions.hpp>
 #include <thread>
 
-namespace Engine
+namespace Trinex
 {
 	const u32 Constants::processor_count = std::thread::hardware_concurrency();
 	const Vector3f Constants::OX(1.f, 0.f, 0.f);
@@ -36,11 +36,11 @@ namespace Engine
 	const String Constants::asset_extention               = ".tasset";
 	const String Constants::shader_extention              = ".tsdr";
 	const String Constants::name_separator                = "::";
-	const String Constants::default_entry_point           = "Engine::EngineStart";
+	const String Constants::default_entry_point           = "Trinex::EngineStart";
 	const String Constants::library_load_function_name    = "create_library_interface";
 	const String Constants::script_extension              = ".as";
 	const String Constants::script_byte_code_extension    = ".asbc";
 	const String Constants::virtual_file_system_extension = ".tvfs";
 	const String Constants::translation_config_extension  = ".lang";
 	const u64 Constants::script_userdata_id               = Strings::hash_of("script_userdata_id");
-}// namespace Engine
+}// namespace Trinex

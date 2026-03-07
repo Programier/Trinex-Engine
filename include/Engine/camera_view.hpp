@@ -3,7 +3,7 @@
 #include <Core/math/matrix.hpp>
 #include <Core/math/vector.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	struct ENGINE_EXPORT CameraView {
 		Matrix4f projection;
@@ -49,4 +49,4 @@ namespace Engine
 			return glm::min<u32>(lod_index, lod_count - 1);
 		}
 	};
-}// namespace Engine
+}// namespace Trinex

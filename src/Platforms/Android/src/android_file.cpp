@@ -1,7 +1,7 @@
 #include <android_file.hpp>
 #include <android_file_system.hpp>
 
-namespace Engine::VFS
+namespace Trinex::VFS
 {
 	AndroidFile::AndroidFile(AndroidFileSystem* fs, const Path& path, std::fstream&& stream)
 	    : m_fs(fs), m_path(path), m_stream(std::move(stream))
@@ -77,4 +77,4 @@ namespace Engine::VFS
 
 		return static_cast<size_t>(m_stream.gcount());
 	}
-}// namespace Engine::VFS
+}// namespace Trinex::VFS

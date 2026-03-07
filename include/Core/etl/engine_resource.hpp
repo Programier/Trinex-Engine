@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/object.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	template<typename Parent>
 	class EngineResource : public Parent
@@ -11,4 +11,4 @@ namespace Engine
 
 		EngineResource() { Object::flags(Object::StandAlone, true); }
 	};
-}// namespace Engine
+}// namespace Trinex

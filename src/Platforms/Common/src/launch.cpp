@@ -6,10 +6,10 @@
 
 FORCE_ENGINE_EXPORT int main(int argc, const char** argv)
 {
-	Engine::EngineLoop loop;
+	Trinex::EngineLoop loop;
 
 	loop.init(argc, argv);
-	auto engine = Engine::engine_instance;
+	auto engine = Trinex::engine_instance;
 
 	while (!engine->is_requesting_exit())
 	{

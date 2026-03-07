@@ -5,7 +5,7 @@
 #include <angelscript.h>
 
 
-namespace Engine
+namespace Trinex
 {
 	static String to_string(asIScriptGeneric* gen, asUINT arg)
 	{
@@ -89,5 +89,5 @@ namespace Engine
 		e.register_function("void printf(const string& fmt, const ?& ...)", script_printf, ScriptCallConv::Generic);
 	}
 
-	static Engine::PreInitializeController on_init(initialize, "Engine::PrintFunction", {"Engine::DefaultScriptAddons"});
-}// namespace Engine
+	static Trinex::PreInitializeController on_init(initialize, "Trinex::PrintFunction", {"Trinex::DefaultScriptAddons"});
+}// namespace Trinex

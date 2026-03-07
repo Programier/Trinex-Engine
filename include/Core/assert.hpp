@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Engine::Asserts
+namespace Trinex::Asserts
 {
 	using AssertHandler = void (*)(const char* condition, const char* file, int line, const char* function, const char* message);
 
@@ -9,7 +9,7 @@ namespace Engine::Asserts
 	                                               const char* message = nullptr);
 	[[noreturn]] ENGINE_EXPORT void report_failure_fmt(const char* condition, const char* file, int line, const char* function,
 	                                                   const char* format = nullptr, ...);
-}// namespace Engine::Asserts
+}// namespace Trinex::Asserts
 
 
 #if !defined(TRINEX_ENABLE_ASSERTS)
@@ -27,7 +27,7 @@ namespace Engine::Asserts
 	{                                                                                                                            \
 		if (!(condition)) [[unlikely]]                                                                                           \
 		{                                                                                                                        \
-			::Engine::Asserts::report_failure(#condition, __FILE__, __LINE__, __func__);                                         \
+			::Trinex::Asserts::report_failure(#condition, __FILE__, __LINE__, __func__);                                         \
 		}                                                                                                                        \
 	} while (false)
 
@@ -36,7 +36,7 @@ namespace Engine::Asserts
 	{                                                                                                                            \
 		if (!(condition)) [[unlikely]]                                                                                           \
 		{                                                                                                                        \
-			::Engine::Asserts::report_failure(#condition, __FILE__, __LINE__, __func__, message);                                \
+			::Trinex::Asserts::report_failure(#condition, __FILE__, __LINE__, __func__, message);                                \
 		}                                                                                                                        \
 	} while (false)
 
@@ -45,13 +45,13 @@ namespace Engine::Asserts
 	{                                                                                                                            \
 		if (!(condition)) [[unlikely]]                                                                                           \
 		{                                                                                                                        \
-			::Engine::Asserts::report_failure_fmt(#condition, __FILE__, __LINE__, __func__, format, ##__VA_ARGS__);              \
+			::Trinex::Asserts::report_failure_fmt(#condition, __FILE__, __LINE__, __func__, format, ##__VA_ARGS__);              \
 		}                                                                                                                        \
 	} while (false)
 
-#define trinex_failure() ::Engine::Asserts::report_failure(nullptr, __FILE__, __LINE__, __func__)
-#define trinex_failure_msg(message) ::Engine::Asserts::report_failure(nullptr, __FILE__, __LINE__, __func__, message)
-#define trinex_failure_fmt(message) ::Engine::Asserts::report_failure(nullptr, __FILE__, __LINE__, __func__, format, ##__VA_)
+#define trinex_failure() ::Trinex::Asserts::report_failure(nullptr, __FILE__, __LINE__, __func__)
+#define trinex_failure_msg(message) ::Trinex::Asserts::report_failure(nullptr, __FILE__, __LINE__, __func__, message)
+#define trinex_failure_fmt(message) ::Trinex::Asserts::report_failure(nullptr, __FILE__, __LINE__, __func__, format, ##__VA_)
 
 #else
 #define trinex_assert(condition) ((void) 0)
@@ -68,7 +68,7 @@ namespace Engine::Asserts
 	{                                                                                                                            \
 		if (!(condition)) [[unlikely]]                                                                                           \
 		{                                                                                                                        \
-			::Engine::Asserts::report_failure(#condition, __FILE__, __LINE__, __func__);                                         \
+			::Trinex::Asserts::report_failure(#condition, __FILE__, __LINE__, __func__);                                         \
 		}                                                                                                                        \
 	} while (false)
 
@@ -77,7 +77,7 @@ namespace Engine::Asserts
 	{                                                                                                                            \
 		if (!(condition)) [[unlikely]]                                                                                           \
 		{                                                                                                                        \
-			::Engine::Asserts::report_failure(#condition, __FILE__, __LINE__, __func__, message);                                \
+			::Trinex::Asserts::report_failure(#condition, __FILE__, __LINE__, __func__, message);                                \
 		}                                                                                                                        \
 	} while (false)
 
@@ -86,42 +86,42 @@ namespace Engine::Asserts
 	{                                                                                                                            \
 		if (!(condition)) [[unlikely]]                                                                                           \
 		{                                                                                                                        \
-			::Engine::Asserts::report_failure_fmt(#condition, __FILE__, __LINE__, __func__, format, ##__VA_ARGS__);              \
+			::Trinex::Asserts::report_failure_fmt(#condition, __FILE__, __LINE__, __func__, format, ##__VA_ARGS__);              \
 		}                                                                                                                        \
 	} while (false)
 
 #define trinex_unreachable()                                                                                                     \
 	do                                                                                                                           \
 	{                                                                                                                            \
-		::Engine::Asserts::report_failure("Unreachable code reached!", __FILE__, __LINE__, __func__);                            \
+		::Trinex::Asserts::report_failure("Unreachable code reached!", __FILE__, __LINE__, __func__);                            \
 	} while (false)
 
 #define trinex_unreachable_msg(message)                                                                                          \
 	do                                                                                                                           \
 	{                                                                                                                            \
-		::Engine::Asserts::report_failure("Unreachable code reached!", __FILE__, __LINE__, __func__, message);                   \
+		::Trinex::Asserts::report_failure("Unreachable code reached!", __FILE__, __LINE__, __func__, message);                   \
 	} while (false)
 
 #define trinex_unreachable_fmt(format, ...)                                                                                      \
 	do                                                                                                                           \
 	{                                                                                                                            \
-		::Engine::Asserts::report_failure_fmt("Unreachable code reached!", __FILE__, __LINE__, __func__, format, ##__VA_ARGS__); \
+		::Trinex::Asserts::report_failure_fmt("Unreachable code reached!", __FILE__, __LINE__, __func__, format, ##__VA_ARGS__); \
 	} while (false)
 
 #define trinex_not_implemented()                                                                                                 \
 	do                                                                                                                           \
 	{                                                                                                                            \
-		::Engine::Asserts::report_failure("Feature not implemented yet!", __FILE__, __LINE__, __func__);                         \
+		::Trinex::Asserts::report_failure("Feature not implemented yet!", __FILE__, __LINE__, __func__);                         \
 	} while (false)
 
 #define trinex_not_implemented_msg(message)                                                                                      \
 	do                                                                                                                           \
 	{                                                                                                                            \
-		::Engine::Asserts::report_failure("Feature not implemented yet!", __FILE__, __LINE__, __func__, message);                \
+		::Trinex::Asserts::report_failure("Feature not implemented yet!", __FILE__, __LINE__, __func__, message);                \
 	} while (false)
 
 #define trinex_not_implemented_fmt(format, ...)                                                                                  \
 	do                                                                                                                           \
 	{                                                                                                                            \
-		::Engine::Asserts::report_failure("Feature not implemented yet!", __FILE__, __LINE__, __func__, format, ##__VA_ARGS__);  \
+		::Trinex::Asserts::report_failure("Feature not implemented yet!", __FILE__, __LINE__, __func__, format, ##__VA_ARGS__);  \
 	} while (false)

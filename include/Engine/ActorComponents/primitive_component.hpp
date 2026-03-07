@@ -2,7 +2,7 @@
 #include <Core/math/box.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class PrimitiveComponent;
 	class MaterialInterface;
@@ -36,4 +36,4 @@ namespace Engine
 		virtual PrimitiveComponent& update_bounding_box();
 		~PrimitiveComponent();
 	};
-}// namespace Engine
+}// namespace Trinex

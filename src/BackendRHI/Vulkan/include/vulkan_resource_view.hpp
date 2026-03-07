@@ -3,7 +3,7 @@
 #include <vulkan_headers.hpp>
 #include <vulkan_texture.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class VulkanSampler;
 	class VulkanTexture;
@@ -172,4 +172,4 @@ namespace Engine
 		FORCE_INLINE VulkanBuffer* buffer() const { return m_buffer; };
 		VulkanUAV& bind(VulkanStateManager* manager, u8 index) override;
 	};
-}// namespace Engine
+}// namespace Trinex

@@ -3,7 +3,7 @@
 #include <Graphics/render_resource.hpp>
 #include <Graphics/shader_parameters.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class RHIShader;
 	class ENGINE_EXPORT Shader : public RenderResource
@@ -20,4 +20,4 @@ namespace Engine
 		Shader& release_render_resources() override;
 		inline RHIShader* rhi_shader() const { return m_shader; }
 	};
-}// namespace Engine
+}// namespace Trinex

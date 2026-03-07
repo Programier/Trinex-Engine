@@ -6,7 +6,7 @@
 #include <angelscript.h>
 #include <cstring>
 
-namespace Engine
+namespace Trinex
 {
 	const char* Any::bad_any_cast::what() const noexcept
 	{
@@ -302,7 +302,7 @@ namespace Engine
 		info.has_assignment_operator = true;
 		info.more_constructors       = true;
 
-		auto reg = ScriptClassRegistrar::value_class("Engine::Any", sizeof(Any), info);
+		auto reg = ScriptClassRegistrar::value_class("Trinex::Any", sizeof(Any), info);
 		reg.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<Any>);
 		reg.behave(ScriptClassBehave::Construct, "void f(const Any& any)", ScriptClassRegistrar::constructor<Any, const Any&>);
 		reg.behave(ScriptClassBehave::Construct, "void f(const ?& value)", ScriptAny::constructor);
@@ -317,4 +317,4 @@ namespace Engine
 	}
 
 	static ReflectionInitializeController on_init(initialize);
-}// namespace Engine
+}// namespace Trinex

@@ -2,7 +2,7 @@
 #include <Core/engine_types.hpp>
 #include <algorithm>
 
-namespace Engine
+namespace Trinex
 {
 	template<usize N>
 	struct ConstexprString {
@@ -57,4 +57,4 @@ namespace Engine
 	{
 		return ConstexprString<s2>(str) == fs;
 	}
-}// namespace Engine
+}// namespace Trinex

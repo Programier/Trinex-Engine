@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/reflection/object.hpp>
 
-namespace Engine::Refl
+namespace Trinex::Refl
 {
 	class ENGINE_EXPORT ScopedType : public Object
 	{
@@ -37,4 +37,4 @@ namespace Engine::Refl
 
 		FORCE_INLINE bool is_locked() const { return m_lock_count > 0; }
 	};
-}// namespace Engine::Refl
+}// namespace Trinex::Refl

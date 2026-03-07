@@ -3,7 +3,7 @@
 #include <dx12_headers.hpp>
 
 
-namespace Engine
+namespace Trinex
 {
 	class RHIObject;
 
@@ -38,4 +38,4 @@ namespace Engine
 			return *this;
 		}
 	};
-}// namespace Engine
+}// namespace Trinex

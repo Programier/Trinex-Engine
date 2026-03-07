@@ -6,9 +6,9 @@
 #include <Graphics/shader_compiler.hpp>
 #include <RHI/rhi.hpp>
 
-namespace Engine
+namespace Trinex
 {
-	trinex_implement_class_default_init(Engine::ShaderCompiler, 0);
+	trinex_implement_class_default_init(Trinex::ShaderCompiler, 0);
 
 	bool ShaderCompilationResult::initialize_pipeline(class GraphicsPipeline* pipeline)
 	{
@@ -51,7 +51,7 @@ namespace Engine
 			return instance(new_name);
 		}
 
-		String full_class_name = Strings::format("Engine::{}_ShaderCompiler", api_name);
+		String full_class_name = Strings::format("Trinex::{}_ShaderCompiler", api_name);
 		auto* compiler_class   = Refl::Class::static_find(full_class_name);
 
 		if (compiler_class == nullptr)
@@ -81,4 +81,4 @@ namespace Engine
 
 		return compiler;
 	}
-}// namespace Engine
+}// namespace Trinex

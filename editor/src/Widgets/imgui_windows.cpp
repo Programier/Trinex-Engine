@@ -16,7 +16,7 @@
 #include <imfilebrowser.h>
 #include <imgui_internal.h>
 
-namespace Engine
+namespace Trinex
 {
 #define text_wrapped_colored(color, format, ...)                                                                                 \
 	ImGui::PushStyleColor(ImGuiCol_Text, color);                                                                                 \
@@ -417,7 +417,7 @@ namespace Engine
 
 	ImGuiSpawnNewActor::ImGuiSpawnNewActor(class World* world) : world(world)
 	{
-		auto* actor_class = Refl::Class::static_find("Engine::Actor", Refl::FindFlags::IsRequired);
+		auto* actor_class = Refl::Class::static_find("Trinex::Actor", Refl::FindFlags::IsRequired);
 		m_root            = trx_new Node();
 		build_tree(m_root, actor_class);
 		m_monitor_size = Platform::monitor_info().size;
@@ -614,4 +614,4 @@ namespace Engine
 		ImGui::End();
 		return is_open;
 	}
-}// namespace Engine
+}// namespace Trinex

@@ -2,7 +2,7 @@
 
 #include <Engine/Actors/actor.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT SkeletalMeshActor : public Actor
 	{
@@ -17,4 +17,4 @@ namespace Engine
 		SkeletalMeshActor();
 		~SkeletalMeshActor();
 	};
-}// namespace Engine
+}// namespace Trinex

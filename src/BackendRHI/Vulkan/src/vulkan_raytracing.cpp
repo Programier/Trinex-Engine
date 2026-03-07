@@ -11,7 +11,7 @@
 #include <vulkan_raytracing.hpp>
 #include <vulkan_state.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	static inline vk::AccelerationStructureTypeKHR acceleration_type_of(RHIRayTracingAccelerationLevel level)
 	{
@@ -358,4 +358,4 @@ namespace Engine
 		cmd->traceRaysKHR(raygen_region, miss_region, hit_region, callable_region, width, height, depth);
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

@@ -1,6 +1,6 @@
 #include <Graphics/material_bindings.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	MaterialBindings::MaterialBindings(const std::initializer_list<Container::value_type>& list) : m_bindings(list) {}
 	MaterialBindings::MaterialBindings(const Container& list) : m_bindings(list) {}
@@ -42,4 +42,4 @@ namespace Engine
 
 		return false;
 	}
-}// namespace Engine
+}// namespace Trinex

@@ -13,7 +13,7 @@
 #include <angelscript.h>
 #include <regex>
 
-namespace Engine
+namespace Trinex
 {
 	static Map<String, Script::PropertyReflectionParser> m_custom_parsers;
 
@@ -28,7 +28,7 @@ namespace Engine
 	static bool is_child_of_object(const ScriptTypeInfo& info)
 	{
 		auto p_info      = info.info();
-		auto object_info = Engine::Object::static_reflection()->script_type_info.info();
+		auto object_info = Trinex::Object::static_reflection()->script_type_info.info();
 
 		while (p_info && p_info != object_info)
 		{
@@ -71,7 +71,7 @@ namespace Engine
 			}
 		};
 
-		static asITypeInfo* enum_type = ScriptEngine::engine()->GetTypeInfoByDecl("Engine::Refl::Property::Flag");
+		static asITypeInfo* enum_type = ScriptEngine::engine()->GetTypeInfoByDecl("Trinex::Refl::Property::Flag");
 
 		asUINT count = enum_type->GetEnumValueCount();
 
@@ -96,7 +96,7 @@ namespace Engine
 
 		trinex_verify_fmt(refl_info, "Cannot find scriptable property type for prop '{}'", self->full_name().c_str());
 
-		String code = Strings::format("void __trinex_engine_execute_meta__(Engine::Refl::{}@ prop) {{ prop.{}; }}",
+		String code = Strings::format("void __trinex_engine_execute_meta__(Trinex::Refl::{}@ prop) {{ prop.{}; }}",
 		                              refl_info->class_name.to_string(), meta);
 
 		auto module    = script->module().as_module();
@@ -374,4 +374,4 @@ namespace Engine
 	}
 
 	static PreInitializeController preinit(on_preinit);
-}// namespace Engine
+}// namespace Trinex

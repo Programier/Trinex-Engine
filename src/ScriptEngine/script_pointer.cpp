@@ -6,7 +6,7 @@
 #include <ScriptEngine/script_pointer.hpp>
 #include <angelscript.h>
 
-namespace Engine
+namespace Trinex
 {
 	ScriptPointer::ScriptPointer(void* address) : m_address(address) {}
 
@@ -143,5 +143,5 @@ namespace Engine
 		}
 	}
 
-	static PreInitializeController init(on_init, "Engine::ScriptPointer");
-}// namespace Engine
+	static PreInitializeController init(on_init, "Trinex::ScriptPointer");
+}// namespace Trinex

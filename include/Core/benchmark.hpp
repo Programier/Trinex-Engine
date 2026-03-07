@@ -4,7 +4,7 @@
 #include <Core/logger.hpp>
 #include <chrono>
 
-namespace Engine
+namespace Trinex
 {
 #define BENCH_CODE(code)                                                                                                         \
 	{                                                                                                                            \
@@ -48,4 +48,4 @@ namespace Engine
 				         (int) time());
 		}
 	};
-}// namespace Engine
+}// namespace Trinex

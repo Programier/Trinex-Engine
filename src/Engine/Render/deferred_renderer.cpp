@@ -26,7 +26,7 @@
 #include <RHI/static_sampler.hpp>
 #include <algorithm>
 
-namespace Engine
+namespace Trinex
 {
 	static constexpr u32 s_cascades_per_directional_light = 4;
 
@@ -1032,4 +1032,4 @@ namespace Engine
 
 		return m_shadow_buffer;
 	}
-}// namespace Engine
+}// namespace Trinex

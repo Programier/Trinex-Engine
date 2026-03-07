@@ -5,7 +5,7 @@
 
 struct android_app;
 
-namespace Engine::Platform
+namespace Trinex::Platform
 {
 	struct AndroidPlatformInfo {
 		String app_package_name;
@@ -31,4 +31,4 @@ namespace Engine::Platform
 	void initialize_android_application(struct android_app* app);
 	void initialize_android_events_callbacks(struct android_app* app);
 	android_app* android_application();
-}// namespace Engine::Platform
+}// namespace Trinex::Platform

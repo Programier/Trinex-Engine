@@ -5,7 +5,7 @@
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	Package::Package()
 	{
@@ -139,4 +139,4 @@ namespace Engine
 
 
 	trinex_implement_engine_class(Package, Refl::Class::IsScriptable) {}
-}// namespace Engine
+}// namespace Trinex

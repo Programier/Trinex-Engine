@@ -3,7 +3,7 @@
 #include <Core/etl/string.hpp>
 #include <Core/etl/type_traits.hpp>
 
-namespace Engine::Demangle
+namespace Trinex::Demangle
 {
 	ENGINE_EXPORT String decode_name(const String& name);
 
@@ -12,4 +12,4 @@ namespace Engine::Demangle
 	{
 		return Type::static_reflection()->name();
 	}
-}// namespace Engine::Demangle
+}// namespace Trinex::Demangle

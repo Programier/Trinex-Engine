@@ -1,7 +1,7 @@
 #pragma once
 #include <variant>
 
-namespace Engine
+namespace Trinex
 {
 	template<typename... Variants>
 	using Variant = std::variant<Variants...>;
@@ -10,4 +10,4 @@ namespace Engine
 	{
 		using std::get;
 	}// namespace etl
-}// namespace Engine
+}// namespace Trinex

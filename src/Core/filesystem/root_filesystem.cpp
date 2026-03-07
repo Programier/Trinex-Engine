@@ -8,16 +8,16 @@
 #include <Core/memory.hpp>
 #include <Platform/platform.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	ENGINE_EXPORT VFS::RootFS* rootfs()
 	{
 		return VFS::RootFS::instance();
 	}
 
-}// namespace Engine
+}// namespace Trinex
 
-namespace Engine::VFS
+namespace Trinex::VFS
 {
 	class FileSystemIterator : public DirectoryIteratorInterface
 	{
@@ -390,4 +390,4 @@ namespace Engine::VFS
 	{
 		return m_file_systems;
 	}
-}// namespace Engine::VFS
+}// namespace Trinex::VFS

@@ -8,7 +8,7 @@
 #include <vulkan_headers.hpp>
 #include <vulkan_thread_local.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class VulkanStateManager;
 
@@ -125,4 +125,4 @@ namespace Engine
 
 		static VulkanDescriptorSetAllocator* instance();
 	};
-}// namespace Engine
+}// namespace Trinex

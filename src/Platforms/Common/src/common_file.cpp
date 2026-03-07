@@ -1,7 +1,7 @@
 #include <common_file.hpp>
 #include <common_file_system.hpp>
 
-namespace Engine::VFS
+namespace Trinex::VFS
 {
 	CommonFile::CommonFile(CommonFileSystem* fs, const Path& path, std::fstream&& stream)
 	    : m_fs(fs), m_path(path), m_stream(std::move(stream))
@@ -115,4 +115,4 @@ namespace Engine::VFS
 	{
 		return 0;
 	}
-}// namespace Engine::VFS
+}// namespace Trinex::VFS

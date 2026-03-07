@@ -1,7 +1,7 @@
 #pragma once
 #include <utility>
 
-namespace Engine
+namespace Trinex
 {
 	template<typename T>
 	class LRef
@@ -70,4 +70,4 @@ namespace Engine
 
 		friend struct Ref;
 	};
-}// namespace Engine
+}// namespace Trinex

@@ -3,7 +3,7 @@
 #include <Core/filesystem/path.hpp>
 #include <Core/flags.hpp>
 
-namespace Engine::VFS
+namespace Trinex::VFS
 {
 	class FileSystem;
 
@@ -37,4 +37,4 @@ namespace Engine::VFS
 			return write(data, sizeof(data)) == sizeof(data);
 		}
 	};
-}// namespace Engine::VFS
+}// namespace Trinex::VFS

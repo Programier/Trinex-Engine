@@ -5,7 +5,7 @@
 #include <Graphics/gpu_buffers.hpp>
 
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT StaticMeshComponent : public MeshComponent
 	{
@@ -37,4 +37,4 @@ namespace Engine
 			return *this;
 		}
 	};
-}// namespace Engine
+}// namespace Trinex

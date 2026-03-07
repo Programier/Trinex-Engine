@@ -4,7 +4,7 @@
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/struct.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	Archive::Archive() : m_reader(nullptr), m_is_saving(false), m_process_status(false) {}
 
@@ -169,4 +169,4 @@ namespace Engine
 		}
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

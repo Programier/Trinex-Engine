@@ -10,7 +10,7 @@
 #include <ScriptEngine/registrar.hpp>
 #include <Window/window.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	trinex_implement_engine_class(CameraComponent, 0)
 	{
@@ -84,4 +84,4 @@ namespace Engine
 		const Transform& transform = prev_world_transform();
 		return Math::look_at(transform.location, transform.location + transform.forward_vector(), transform.up_vector());
 	}
-}// namespace Engine
+}// namespace Trinex

@@ -7,7 +7,7 @@
 #include <Engine/enviroment.hpp>
 #include <Engine/octree.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class PrimitiveComponent;
 	class LightComponent;
@@ -53,4 +53,4 @@ namespace Engine
 		FrameVector<PostProcessComponent*> collect_post_processes(const Vector3f& location);
 		const Box3f& bounds() const;
 	};
-}// namespace Engine
+}// namespace Trinex

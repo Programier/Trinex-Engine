@@ -9,7 +9,7 @@
 #include <RHI/rhi.hpp>
 #include <Systems/engine_system.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	EngineSystem& EngineSystem::create()
 	{
@@ -53,4 +53,4 @@ namespace Engine
 	}
 
 	trinex_implement_engine_class_default_init(EngineSystem, 0);
-}// namespace Engine
+}// namespace Trinex

@@ -5,7 +5,7 @@
 #include <Engine/ActorComponents/point_light_component.hpp>
 #include <Engine/Render/lighting.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	trinex_implement_engine_class(PointLightComponent, 0)
 	{
@@ -33,4 +33,4 @@ namespace Engine
 
 		return Super::calculate_light_intensity();
 	}
-}// namespace Engine
+}// namespace Trinex

@@ -1,7 +1,7 @@
 #pragma once
 #include <Graphics/pipeline.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class RHIShaderResourceView;
 	class RHISampler;
@@ -248,4 +248,4 @@ namespace Engine
 			CameraVelocity& render(RHIContext* ctx, Renderer* renderer);
 		};
 	}// namespace Pipelines
-}// namespace Engine
+}// namespace Trinex

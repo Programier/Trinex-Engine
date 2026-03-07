@@ -9,7 +9,7 @@
 #include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class HelloTriangle : public GlobalGraphicsPipeline
 	{
@@ -38,4 +38,4 @@ namespace Engine
 	}
 
 	trinex_implement_engine_class_default_init(DefaultClient, 0);
-}// namespace Engine
+}// namespace Trinex

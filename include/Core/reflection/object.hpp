@@ -5,12 +5,12 @@
 #include <Core/etl/map.hpp>
 #include <Core/name.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ScriptClassRegistrar;
 }
 
-namespace Engine::Refl
+namespace Trinex::Refl
 {
 	namespace Meta
 	{
@@ -216,42 +216,42 @@ namespace Engine::Refl
 public:                                                                                                                          \
 	using This  = name;                                                                                                          \
 	using Super = base;                                                                                                          \
-	friend class Engine::Refl::Object;                                                                                           \
+	friend class Trinex::Refl::Object;                                                                                           \
                                                                                                                                  \
-	static Engine::Refl::ClassInfo* static_refl_class_info();                                                                    \
-	virtual Engine::Refl::ClassInfo* refl_class_info() const override;                                                           \
+	static Trinex::Refl::ClassInfo* static_refl_class_info();                                                                    \
+	virtual Trinex::Refl::ClassInfo* refl_class_info() const override;                                                           \
                                                                                                                                  \
-	static name* static_find(StringView object_name, Engine::Refl::FindFlags flags = Engine::Refl::FindFlags::None);             \
-	static name* static_require(StringView object_name, Engine::Refl::FindFlags flags = Engine::Refl::FindFlags::None);          \
+	static name* static_find(StringView object_name, Trinex::Refl::FindFlags flags = Trinex::Refl::FindFlags::None);             \
+	static name* static_require(StringView object_name, Trinex::Refl::FindFlags flags = Trinex::Refl::FindFlags::None);          \
 	template<typename T>                                                                                                         \
-	static T* static_find(StringView object_name, Engine::Refl::FindFlags flags = Engine::Refl::FindFlags::None)                 \
+	static T* static_find(StringView object_name, Trinex::Refl::FindFlags flags = Trinex::Refl::FindFlags::None)                 \
 	{                                                                                                                            \
 		return Object::static_find<T>(object_name, flags);                                                                       \
 	}                                                                                                                            \
 	template<typename T>                                                                                                         \
-	static T* static_require(StringView object_name, Engine::Refl::FindFlags flags = Engine::Refl::FindFlags::None)              \
+	static T* static_require(StringView object_name, Trinex::Refl::FindFlags flags = Trinex::Refl::FindFlags::None)              \
 	{                                                                                                                            \
 		return Object::static_require<T>(object_name, flags);                                                                    \
 	}
 
 
 #define trinex_implement_reflect_type(name)                                                                                      \
-	Engine::Refl::ClassInfo* name::static_refl_class_info()                                                                      \
+	Trinex::Refl::ClassInfo* name::static_refl_class_info()                                                                      \
 	{                                                                                                                            \
-		static Engine::Refl::ClassInfo info(#name, Super::static_refl_class_info());                                             \
+		static Trinex::Refl::ClassInfo info(#name, Super::static_refl_class_info());                                             \
 		return &info;                                                                                                            \
 	}                                                                                                                            \
                                                                                                                                  \
-	Engine::Refl::ClassInfo* name::refl_class_info() const                                                                       \
+	Trinex::Refl::ClassInfo* name::refl_class_info() const                                                                       \
 	{                                                                                                                            \
 		return name::static_refl_class_info();                                                                                   \
 	}                                                                                                                            \
-	name* name::static_find(StringView object_name, Engine::Refl::FindFlags flags)                                               \
+	name* name::static_find(StringView object_name, Trinex::Refl::FindFlags flags)                                               \
 	{                                                                                                                            \
-		return Engine::Refl::Object::static_find<name>(object_name, flags);                                                      \
+		return Trinex::Refl::Object::static_find<name>(object_name, flags);                                                      \
 	}                                                                                                                            \
-	name* name::static_require(StringView object_name, Engine::Refl::FindFlags flags)                                            \
+	name* name::static_require(StringView object_name, Trinex::Refl::FindFlags flags)                                            \
 	{                                                                                                                            \
-		return Engine::Refl::Object::static_require<name>(object_name, flags);                                                   \
+		return Trinex::Refl::Object::static_require<name>(object_name, flags);                                                   \
 	}
-}// namespace Engine::Refl
+}// namespace Trinex::Refl

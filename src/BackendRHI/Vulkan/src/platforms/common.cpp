@@ -3,7 +3,7 @@
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	VkSurfaceKHR create_vulkan_surface(void* native_window, VkInstance instance)
 	{
@@ -27,4 +27,4 @@ namespace Engine
 			required_extensions.push_back(extention);
 		}
 	}
-}// namespace Engine
+}// namespace Trinex

@@ -4,7 +4,7 @@
 #include <Core/etl/string.hpp>
 #include <initializer_list>
 
-namespace Engine
+namespace Trinex
 {
 	using ControllerCallback = Function<void()>;
 
@@ -58,4 +58,4 @@ namespace Engine
 
 	IMPLEMENT_CONTROLLER(ReflectionInitializeController, ReflectionInitializeController& execute(););
 #undef IMPLEMENT_CONTROLLER
-}// namespace Engine
+}// namespace Trinex

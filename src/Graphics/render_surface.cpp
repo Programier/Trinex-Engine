@@ -4,7 +4,7 @@
 #include <RHI/enums.hpp>
 #include <RHI/rhi.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	trinex_implement_engine_class_default_init(RenderSurface, 0);
 
@@ -64,4 +64,4 @@ namespace Engine
 	{
 		return m_texture ? m_texture->as_srv() : nullptr;
 	}
-}// namespace Engine
+}// namespace Trinex

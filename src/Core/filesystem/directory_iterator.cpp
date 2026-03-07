@@ -3,7 +3,7 @@
 #include <Core/filesystem/root_filesystem.hpp>
 
 
-namespace Engine::VFS
+namespace Trinex::VFS
 {
 	DirectoryIterator::DirectoryIterator() : m_interface(nullptr) {}
 
@@ -195,4 +195,4 @@ namespace Engine::VFS
 
 		return m_interface->is_equal(other.m_interface);
 	}
-}// namespace Engine::VFS
+}// namespace Trinex::VFS

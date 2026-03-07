@@ -3,7 +3,7 @@
 #include <Core/filesystem/path.hpp>
 #include <Platform/platform.hpp>
 
-namespace Engine::Platform
+namespace Trinex::Platform
 {
 	ENGINE_EXPORT OperationSystemType system_type()
 	{
@@ -24,4 +24,4 @@ namespace Engine::Platform
 			return Path("./");
 		return Path(argv[0]).base_path();
 	}
-}// namespace Engine::Platform
+}// namespace Trinex::Platform

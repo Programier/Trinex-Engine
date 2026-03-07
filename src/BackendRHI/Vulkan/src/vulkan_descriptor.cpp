@@ -12,7 +12,7 @@
 #include <vulkan_state.hpp>
 #include <vulkan_texture.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	VulkanPipelineLayout::VulkanPipelineLayout(usize hash, vk::ShaderStageFlags stages, Descriptor* descriptors, usize count)
 	    : m_descriptors(nullptr), m_hash(hash), m_descriptors_count(count)
@@ -496,4 +496,4 @@ namespace Engine
 		static thread_local VulkanDescriptorSetAllocator* allocator = trx_new VulkanDescriptorSetAllocator();
 		return allocator;
 	}
-}// namespace Engine
+}// namespace Trinex

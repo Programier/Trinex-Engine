@@ -1,7 +1,7 @@
 #pragma once
 #include <functional>
 
-namespace Engine
+namespace Trinex
 {
 	template<typename T>
 	using Less = std::less<T>;
@@ -20,4 +20,4 @@ namespace Engine
 
 	template<typename T>
 	using NotEqualTo = std::not_equal_to<T>;
-}// namespace Engine
+}// namespace Trinex

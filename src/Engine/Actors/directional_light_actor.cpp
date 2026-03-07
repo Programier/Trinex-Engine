@@ -2,7 +2,7 @@
 #include <Engine/ActorComponents/directional_light_component.hpp>
 #include <Engine/Actors/directional_light_actor.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	trinex_implement_engine_class_default_init(DirectionalLightActor, 0);
 
@@ -15,4 +15,4 @@ namespace Engine
 	{
 		return m_directional_light_component;
 	}
-}// namespace Engine
+}// namespace Trinex

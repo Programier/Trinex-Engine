@@ -9,7 +9,7 @@
 #include <angelscript.h>
 #include <cstring>
 
-namespace Engine
+namespace Trinex
 {
 	class ScriptVector
 	{
@@ -865,7 +865,7 @@ namespace Engine
 		info.has_assignment_operator = true;
 		info.template_type           = "<T>";
 
-		auto r = ScriptClassRegistrar::value_class("Engine::Vector<class T>", sizeof(ScriptVector::Instance), info);
+		auto r = ScriptClassRegistrar::value_class("Trinex::Vector<class T>", sizeof(ScriptVector::Instance), info);
 
 		r.behave(ScriptClassBehave::TemplateCallback, "bool f(int &in, bool&out)", template_callback, ScriptCallConv::CDecl);
 
@@ -901,5 +901,5 @@ namespace Engine
 		r.method("void erase(uint64 p, uint64 n = 1)", T::erase, ScriptCallConv::Generic);
 	}
 
-	static PreInitializeController initializer(initialize, "Engine::ScriptVector");
-}// namespace Engine
+	static PreInitializeController initializer(initialize, "Trinex::ScriptVector");
+}// namespace Trinex

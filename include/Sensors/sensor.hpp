@@ -3,7 +3,7 @@
 //#include <Core/engine_types.hpp>
 
 
-//namespace Engine
+//namespace Trinex
 //{
 //    struct ENGINE_EXPORT Sensor
 //    {

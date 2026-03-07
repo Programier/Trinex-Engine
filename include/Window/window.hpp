@@ -7,7 +7,7 @@
 #include <Core/math/vector.hpp>
 #include <Core/pointer.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	struct WindowConfig;
 	class Image;
@@ -76,4 +76,4 @@ namespace Engine
 		friend class WindowManager;
 		friend class WindowRenderViewport;
 	};
-}// namespace Engine
+}// namespace Trinex

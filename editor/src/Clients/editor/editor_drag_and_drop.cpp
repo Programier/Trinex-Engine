@@ -4,7 +4,7 @@
 #include <Engine/world.hpp>
 #include <Graphics/mesh.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	EditorClient& EditorClient::on_object_dropped(Object* object)
 	{
@@ -17,4 +17,4 @@ namespace Engine
 
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

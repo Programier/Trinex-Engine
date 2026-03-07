@@ -12,7 +12,7 @@
 #include <fstream>
 #include <scripthelper.h>
 
-namespace Engine
+namespace Trinex
 {
 	class ScriptExec : public EntryPoint
 	{
@@ -83,4 +83,4 @@ namespace Engine
 
 	trinex_implement_class_default_init(ScriptExec, 0);
 	trinex_implement_class_default_init(ScriptConfigDump, 0);
-}// namespace Engine
+}// namespace Trinex

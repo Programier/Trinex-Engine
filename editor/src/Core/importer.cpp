@@ -31,7 +31,7 @@
 #include <Engine/ActorComponents/static_mesh_component.hpp>
 
 
-namespace Engine::Importer
+namespace Trinex::Importer
 {
 	struct ImporterContext {
 	private:
@@ -349,11 +349,11 @@ namespace Engine::Importer
 				m_package.materials = m_package.create_subpackage("Materials");
 			}
 
-			// static auto float_node_class  = Refl::Class::static_require("Engine::VisualMaterialGraph::ConstantFloat");
-			// static auto float2_node_class = Refl::Class::static_require("Engine::VisualMaterialGraph::ConstantFloat2");
-			static auto float3_node_class = Refl::Class::static_require("Engine::VisualMaterialGraph::ConstantFloat3");
-			// static auto float4_node_class = Refl::Class::static_require("Engine::VisualMaterialGraph::ConstantFloat4");
-			static auto mul_node_class = Refl::Class::static_require("Engine::VisualMaterialGraph::Mul");
+			// static auto float_node_class  = Refl::Class::static_require("Trinex::VisualMaterialGraph::ConstantFloat");
+			// static auto float2_node_class = Refl::Class::static_require("Trinex::VisualMaterialGraph::ConstantFloat2");
+			static auto float3_node_class = Refl::Class::static_require("Trinex::VisualMaterialGraph::ConstantFloat3");
+			// static auto float4_node_class = Refl::Class::static_require("Trinex::VisualMaterialGraph::ConstantFloat4");
+			static auto mul_node_class = Refl::Class::static_require("Trinex::VisualMaterialGraph::Mul");
 
 
 			const tinygltf::Material& gltf_material = model.materials[index];
@@ -757,4 +757,4 @@ namespace Engine::Importer
 		ImporterContext context(world, package, transform);
 		context.import(file);
 	}
-}// namespace Engine::Importer
+}// namespace Trinex::Importer

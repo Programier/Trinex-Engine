@@ -8,7 +8,7 @@
 
 #include <vulkan/vulkan.h>
 
-namespace Engine
+namespace Trinex
 {
 	AndroidWindow::~AndroidWindow()
 	{
@@ -209,4 +209,4 @@ namespace Engine
 	{
 		return 0;
 	}
-}// namespace Engine
+}// namespace Trinex

@@ -2,7 +2,7 @@
 #include <cstring>
 #include <regex>
 
-namespace Engine
+namespace Trinex
 {
 	Map<String, Arguments::Argument> Arguments::m_arguments;
 	i32 Arguments::m_argc          = 0;
@@ -182,4 +182,4 @@ namespace Engine
 		m_arguments[argument.name] = argument;
 		return;
 	}
-}// namespace Engine
+}// namespace Trinex

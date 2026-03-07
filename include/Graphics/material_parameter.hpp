@@ -7,7 +7,7 @@
 #include <Core/pointer.hpp>
 #include <Graphics/sampler.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	struct PrimitiveRenderingContext;
 	struct RHIShaderParameterInfo;
@@ -23,14 +23,14 @@ namespace Engine
 	trinex_class(self, super);                                                                                                   \
                                                                                                                                  \
 public:                                                                                                                          \
-	static Engine::RHIShaderParameterType static_type()                                                                          \
+	static Trinex::RHIShaderParameterType static_type()                                                                          \
 	{                                                                                                                            \
-		return Engine::RHIShaderParameterType::self;                                                                             \
+		return Trinex::RHIShaderParameterType::self;                                                                             \
 	}                                                                                                                            \
                                                                                                                                  \
-	inline Engine::RHIShaderParameterType type() const override                                                                  \
+	inline Trinex::RHIShaderParameterType type() const override                                                                  \
 	{                                                                                                                            \
-		return Engine::RHIShaderParameterType::self;                                                                             \
+		return Trinex::RHIShaderParameterType::self;                                                                             \
 	}
 
 		class ENGINE_EXPORT Parameter : public Object
@@ -47,8 +47,8 @@ public:                                                                         
 			static Refl::Class* static_find_class(RHIShaderParameterType type);
 
 			virtual RHIShaderParameterType type() const = 0;
-			friend class Engine::Material;
-			friend class Engine::MaterialInterface;
+			friend class Trinex::Material;
+			friend class Trinex::MaterialInterface;
 		};
 
 		class ENGINE_EXPORT PrimitiveBase : public Parameter
@@ -192,7 +192,7 @@ public:                                                                         
 			trinex_material_parameter(Sampler, Parameter);
 
 		public:
-			Engine::Sampler sampler;
+			Trinex::Sampler sampler;
 
 			Sampler();
 			Sampler& apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info) override;
@@ -204,8 +204,8 @@ public:                                                                         
 			trinex_material_parameter(Sampler2D, Parameter);
 
 		public:
-			Engine::Sampler sampler;
-			Engine::Texture2D* texture;
+			Trinex::Sampler sampler;
+			Trinex::Texture2D* texture;
 
 			Sampler2D();
 			Sampler2D& apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info) override;
@@ -217,7 +217,7 @@ public:                                                                         
 			trinex_material_parameter(Texture2D, Parameter);
 
 		public:
-			Engine::Texture2D* texture;
+			Trinex::Texture2D* texture;
 
 			Texture2D();
 			Texture2D& apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info) override;
@@ -237,7 +237,7 @@ public:                                                                         
 			trinex_material_parameter(Surface, Parameter);
 
 		public:
-			Engine::RenderSurface* surface;
+			Trinex::RenderSurface* surface;
 
 			Surface();
 			Surface& apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info) override;
@@ -249,12 +249,12 @@ public:                                                                         
 			trinex_material_parameter(CombinedSurface, Parameter);
 
 		public:
-			Engine::RenderSurface* surface;
-			Engine::Sampler sampler;
+			Trinex::RenderSurface* surface;
+			Trinex::Sampler sampler;
 
 			CombinedSurface();
 			CombinedSurface& apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info) override;
 			bool serialize(Archive& ar) override;
 		};
 	}// namespace MaterialParameters
-}// namespace Engine
+}// namespace Trinex

@@ -2,7 +2,7 @@
 #include <Clients/imgui_client.hpp>
 #include <Core/etl/variant.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class Texture2D;
 	class Texture3D;
@@ -48,4 +48,4 @@ namespace Engine
 		inline float scale() const { return m_smooth_scale; }
 		inline u32 mip() const { return m_mip; }
 	};
-}// namespace Engine
+}// namespace Trinex

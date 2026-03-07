@@ -11,7 +11,7 @@
 #include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 
-namespace Engine
+namespace Trinex
 {
 #if TRINEX_DEBUG_BUILD
 	static Package* surfaces_package()
@@ -734,4 +734,4 @@ namespace Engine
 
 	static DestroyController destroy_controller(on_destroy);
 
-}// namespace Engine
+}// namespace Trinex

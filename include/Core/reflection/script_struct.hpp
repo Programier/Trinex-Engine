@@ -1,13 +1,13 @@
 #pragma once
 #include <Core/reflection/struct.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class Script;
 	class ScriptTypeInfo;
-}// namespace Engine
+}// namespace Trinex
 
-namespace Engine::Refl
+namespace Trinex::Refl
 {
 	class ENGINE_EXPORT ScriptStruct : public Struct
 	{
@@ -24,4 +24,4 @@ namespace Engine::Refl
 		usize size() const override;
 		~ScriptStruct();
 	};
-}// namespace Engine::Refl
+}// namespace Trinex::Refl

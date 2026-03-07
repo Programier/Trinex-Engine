@@ -5,7 +5,7 @@
 #include <cstring>
 #include <vulkan_headers.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class VulkanCommandHandle;
 	class VulkanSampler;
@@ -356,4 +356,4 @@ namespace Engine
 
 		friend class VulkanUniformBuffer;
 	};
-}// namespace Engine
+}// namespace Trinex

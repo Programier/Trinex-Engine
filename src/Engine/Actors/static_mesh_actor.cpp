@@ -5,7 +5,7 @@
 #include <Engine/Actors/static_mesh_actor.hpp>
 #include <ScriptEngine/registrar.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	trinex_implement_engine_class(StaticMeshActor, Refl::Class::IsScriptable)
 	{
@@ -24,4 +24,4 @@ namespace Engine
 	}
 
 	StaticMeshActor::~StaticMeshActor() {}
-}// namespace Engine
+}// namespace Trinex

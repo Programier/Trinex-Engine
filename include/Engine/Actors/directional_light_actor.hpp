@@ -1,7 +1,7 @@
 #pragma once
 #include <Engine/Actors/light_actor.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class ENGINE_EXPORT DirectionalLightActor : public LightActor
 	{
@@ -14,4 +14,4 @@ namespace Engine
 		DirectionalLightActor();
 		DirectionalLightComponent* directional_light_component() const;
 	};
-}// namespace Engine
+}// namespace Trinex

@@ -2,7 +2,7 @@
 #include <Clients/object_view_client.hpp>
 
 
-namespace Engine
+namespace Trinex
 {
 	class PipelineEditorClient : public ObjectViewClient
 	{
@@ -12,4 +12,4 @@ namespace Engine
 		PipelineEditorClient();
 		PipelineEditorClient& select(Object* object) override;
 	};
-}// namespace Engine
+}// namespace Trinex

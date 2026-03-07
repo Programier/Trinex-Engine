@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Engine
+namespace Trinex
 {
 	class RHITexture;
 	class RHIBuffer;
@@ -56,4 +56,4 @@ namespace Engine
 		Texture ssao  = nullptr;
 		Texture depth = nullptr;
 	};
-}// namespace Engine
+}// namespace Trinex

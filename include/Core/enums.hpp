@@ -2,7 +2,7 @@
 #include <Core/engine_types.hpp>
 #include <Core/math/vector.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	struct OperationSystemType {
 		enum Enum
@@ -164,4 +164,4 @@ namespace Engine
 		trinex_enum_struct(SplashTextType);
 		trinex_enum(SplashTextType);
 	};
-}// namespace Engine
+}// namespace Trinex

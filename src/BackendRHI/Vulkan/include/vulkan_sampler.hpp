@@ -4,7 +4,7 @@
 #include <vulkan_destroyable.hpp>
 #include <vulkan_headers.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	struct VulkanSamplerCreateInfo {
 		vk::Filter mag_filter;
@@ -36,4 +36,4 @@ namespace Engine
 		inline vk::Sampler sampler() const { return m_sampler; }
 		~VulkanSampler();
 	};
-}// namespace Engine
+}// namespace Trinex

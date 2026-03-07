@@ -10,7 +10,7 @@
 #include <dx12_pipeline.hpp>
 #include <dx12_state.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	D3D12_Shader::D3D12_Shader(const byte* src, size_t size) : data(ByteAllocator::allocate(size)), size(size)
 	{
@@ -270,4 +270,4 @@ namespace Engine
 	{
 		return NoneApi::create_compute_pipeline(pipeline);
 	}
-}// namespace Engine
+}// namespace Trinex

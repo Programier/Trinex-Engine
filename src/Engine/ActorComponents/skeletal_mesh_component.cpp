@@ -9,7 +9,7 @@
 #include <RHI/handles.hpp>
 #include <ScriptEngine/registrar.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	trinex_implement_engine_class(SkeletalMeshComponent, Refl::Class::IsScriptable)
 	{
@@ -99,4 +99,4 @@ namespace Engine
 		}
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

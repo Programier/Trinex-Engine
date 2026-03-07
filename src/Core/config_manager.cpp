@@ -10,7 +10,7 @@
 #include <angelscript.h>
 #include <scriptbuilder.h>
 
-namespace Engine::ConfigManager
+namespace Trinex::ConfigManager
 {
 #define check_result()                                                                                                           \
 	if (r < 0)                                                                                                                   \
@@ -69,9 +69,9 @@ namespace Engine::ConfigManager
 
 		check_result();
 		const char* section = compiled.empty() ? "__TRINEX_ENGINE_ROOT_CONFIG__" : compiled.begin()->c_str();
-		builder.AddSectionFromMemory(section, config.c_str(), config.length());
+		r                   = builder.AddSectionFromMemory(section, config.c_str(), config.length());
 		check_result();
-		builder.BuildModule();
+		r = builder.BuildModule();
 		check_result();
 
 		auto module  = builder.GetModule();
@@ -146,4 +146,4 @@ namespace Engine::ConfigManager
 		ConfigsInitializeController().execute();
 		return true;
 	}
-}// namespace Engine::ConfigManager
+}// namespace Trinex::ConfigManager

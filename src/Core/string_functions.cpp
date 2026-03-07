@@ -8,7 +8,7 @@
 #include <string>
 
 
-namespace Engine::Strings
+namespace Trinex::Strings
 {
 	ENGINE_EXPORT String c_style_format(const char* text, ...)
 	{
@@ -343,4 +343,4 @@ namespace Engine::Strings
 		stream.remove_prefix(pos + 1);
 		return true;
 	}
-}// namespace Engine::Strings
+}// namespace Trinex::Strings

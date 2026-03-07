@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/engine_types.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	template<usize size, usize align = size>
 	struct Storage {
@@ -25,4 +25,4 @@ namespace Engine
 			return *reinterpret_cast<const T*>(data + offset);
 		}
 	};
-}// namespace Engine
+}// namespace Trinex

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Engine
+namespace Trinex
 {
 	struct Angle {
 		float value;
@@ -48,4 +48,4 @@ namespace Engine
 		constexpr bool operator<=(Angle rhs) const { return value <= rhs.value; }
 		constexpr bool operator>=(Angle rhs) const { return value >= rhs.value; }
 	};
-}// namespace Engine
+}// namespace Trinex

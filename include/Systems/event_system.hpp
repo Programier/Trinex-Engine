@@ -7,9 +7,9 @@
 #include <Systems/system.hpp>
 
 
-namespace Engine
+namespace Trinex
 {
-	class ENGINE_EXPORT EventSystem : public Singletone<EventSystem, Engine::System>
+	class ENGINE_EXPORT EventSystem : public Singletone<EventSystem, Trinex::System>
 	{
 		trinex_class(EventSystem, System);
 
@@ -59,6 +59,6 @@ namespace Engine
 
 		EventSystem& process_event_method(ProcessEventMethod method);
 
-		friend class Singletone<EventSystem, Engine::System>;
+		friend class Singletone<EventSystem, Trinex::System>;
 	};
-}// namespace Engine
+}// namespace Trinex

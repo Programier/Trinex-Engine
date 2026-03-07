@@ -9,7 +9,7 @@
 #include <Graphics/render_surface.hpp>
 #include <Graphics/texture.hpp>
 
-namespace Engine::Icons
+namespace Trinex::Icons
 {
 	ImGuiTrinexTextureId default_texture()
 	{
@@ -44,4 +44,4 @@ namespace Engine::Icons
 
 		return default_texture();
 	}
-}// namespace Engine::Icons
+}// namespace Trinex::Icons

@@ -2,7 +2,7 @@
 #include <Core/filesystem/file.hpp>
 #include <fstream>
 
-namespace Engine::VFS
+namespace Trinex::VFS
 {
 	class CommonFileSystem;
 
@@ -58,4 +58,4 @@ namespace Engine::VFS
 		FilePosition rpos() override;
 		usize read(u8* buffer, usize size) override;
 	};
-}// namespace Engine::VFS
+}// namespace Trinex::VFS

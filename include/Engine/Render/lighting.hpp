@@ -3,7 +3,7 @@
 #include <Core/math/vector.hpp>
 #include <Core/types/color.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	struct LightRenderParameters {
 		alignas(16) LinearColor color;
@@ -56,4 +56,4 @@ namespace Engine
 		float depth_bias;
 		float slope_scale;
 	};
-}// namespace Engine
+}// namespace Trinex

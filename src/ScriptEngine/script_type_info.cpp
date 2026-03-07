@@ -9,7 +9,7 @@
 #include <ScriptEngine/script_type_info.hpp>
 #include <angelscript.h>
 
-namespace Engine
+namespace Trinex
 {
 #define check_info(return_value)                                                                                                 \
 	if (m_info == nullptr)                                                                                                       \
@@ -520,4 +520,4 @@ namespace Engine
 	{
 		release();
 	}
-}// namespace Engine
+}// namespace Trinex

@@ -4,7 +4,7 @@
 #include <Core/etl/string.hpp>
 #include <Core/math/vector.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	struct ENGINE_EXPORT WindowConfig {
 		Set<WindowAttribute::Enum> attributes;
@@ -21,4 +21,4 @@ namespace Engine
 		WindowConfig& initialize();
 		bool contains_attribute(WindowAttribute attribute) const;
 	};
-}// namespace Engine
+}// namespace Trinex

@@ -24,7 +24,7 @@
 #include <Window/window.hpp>
 #include <imgui_internal.h>
 
-namespace Engine
+namespace Trinex
 {
 	trinex_implement_engine_class(MaterialEditorClient, 0)
 	{
@@ -197,4 +197,4 @@ namespace Engine
 		ImGui::DockBuilderDockWindow("###Material Source", dock);
 		return dock;
 	}
-}// namespace Engine
+}// namespace Trinex

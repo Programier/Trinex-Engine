@@ -16,7 +16,7 @@
 #include <vulkan_texture.hpp>
 #include <vulkan_viewport.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	class VulkanSwapchainTexture : public VulkanTypedTexture<vk::ImageViewType::e2D, RHITextureType::Texture2D>
 	{
@@ -357,4 +357,4 @@ namespace Engine
 		static_cast<VulkanSwapchain*>(swapchain)->present();
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

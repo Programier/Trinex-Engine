@@ -15,7 +15,7 @@
 #include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 
-namespace Engine
+namespace Trinex
 {
 	Renderer::Renderer(Scene* scene, const SceneView& view, ViewMode mode) : m_scene(scene), m_view(view), m_view_mode(mode)
 	{
@@ -153,4 +153,4 @@ namespace Engine
 		}
 		return m_globals;
 	}
-}// namespace Engine
+}// namespace Trinex

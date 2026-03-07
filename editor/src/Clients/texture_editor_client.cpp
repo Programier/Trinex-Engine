@@ -20,7 +20,7 @@
 #include <imgui_internal.h>
 #include <imgui_stacklayout.h>
 
-namespace Engine
+namespace Trinex
 {
 	class TextureView : public GlobalGraphicsPipeline
 	{
@@ -488,4 +488,4 @@ namespace Engine
 		render_texture_2d(texture->rhi_texture(), projection, range(), 0, mask());
 		return *this;
 	}
-}// namespace Engine
+}// namespace Trinex

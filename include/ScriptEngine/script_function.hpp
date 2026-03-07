@@ -6,7 +6,7 @@
 class asIScriptContext;
 class asIScriptFunction;
 
-namespace Engine
+namespace Trinex
 {
 	class ScriptTypeInfo;
 	class ScriptModule;
@@ -85,4 +85,4 @@ namespace Engine
 	};
 
 	using ScriptClassMethod = ScriptFunction;
-}// namespace Engine
+}// namespace Trinex
