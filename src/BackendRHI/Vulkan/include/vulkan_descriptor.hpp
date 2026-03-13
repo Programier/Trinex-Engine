@@ -10,7 +10,7 @@
 
 namespace Trinex
 {
-	class VulkanStateManager;
+	class VulkanContext;
 
 	class VulkanPipelineLayout : public RHIObject
 	{
@@ -121,7 +121,7 @@ namespace Trinex
 	public:
 		VulkanDescriptorSetAllocator();
 		~VulkanDescriptorSetAllocator();
-		vk::DescriptorSet allocate(VulkanPipelineLayout* layout, VulkanStateManager* state);
+		vk::DescriptorSet allocate(VulkanPipelineLayout* layout, VulkanContext* context);
 
 		static VulkanDescriptorSetAllocator* instance();
 	};

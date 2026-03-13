@@ -10,7 +10,6 @@ namespace Trinex
 	class VulkanSampler;
 	class VulkanSRV;
 	class VulkanUAV;
-	class VulkanStateManager;
 	class VulkanContext;
 	class VulkanBuffer;
 	class Pipeline;
@@ -25,7 +24,7 @@ namespace Trinex
 	private:
 		VulkanPipelineLayout* m_layout = nullptr;
 
-		bool is_dirty_state(VulkanStateManager* manager) const;
+		bool is_dirty_state(VulkanContext* context) const;
 
 	protected:
 		VulkanPipelineLayout* create_layout(const RHIShaderParameterInfo* parameter, usize count, vk::ShaderStageFlags stages);
@@ -50,8 +49,8 @@ namespace Trinex
 
 		FlatMap<u128, vk::Pipeline> m_pipelines;
 
-		vk::Pipeline find_or_create_pipeline(VulkanStateManager* manager);
-		bool is_dirty_vertex_input(VulkanStateManager* manager);
+		vk::Pipeline find_or_create_pipeline(VulkanContext* context);
+		bool is_dirty_vertex_input(VulkanContext* context);
 
 	public:
 		VulkanGraphicsPipeline(const RHIGraphicsPipelineInitializer* pipeline);
@@ -86,7 +85,7 @@ namespace Trinex
 		FlatMap<u128, vk::Pipeline> m_pipelines;
 
 	private:
-		vk::Pipeline find_or_create_pipeline(VulkanStateManager* manager);
+		vk::Pipeline find_or_create_pipeline(VulkanContext* context);
 
 	public:
 		VulkanMeshPipeline(const RHIMeshPipelineInitializer* pipeline);

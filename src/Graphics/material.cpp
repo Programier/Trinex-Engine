@@ -134,9 +134,8 @@ namespace Trinex
 	trinex_implement_engine_class(Material, Refl::Class::IsAsset)
 	{
 		trinex_refl_prop(domain, Refl::Property::IsTransient);
-		trinex_refl_prop(depth_test, Refl::Property::IsTransient);
-		trinex_refl_prop(stencil_test, Refl::Property::IsTransient);
-		trinex_refl_prop(color_blending, Refl::Property::IsTransient);
+		trinex_refl_prop(depth_mode, Refl::Property::IsTransient);
+		trinex_refl_prop(blend_mode, Refl::Property::IsTransient);
 	}
 
 	trinex_implement_engine_class(MaterialInstance, Refl::Class::IsAsset)
@@ -215,7 +214,7 @@ namespace Trinex
 		return true;
 	}
 
-	Material::Material() : domain(MaterialDomain::Surface) {}
+	Material::Material() : domain(MaterialDomain::Surface), depth_mode(MaterialDepthMode::TestAndWrite) {}
 
 	GraphicsPipeline* Material::pipeline(RenderPass* pass) const
 	{
@@ -400,9 +399,31 @@ namespace Trinex
 		if (pipeline_object == nullptr)
 			return false;
 
-		pass->apply_depth_state(ctx->context, depth_test);
-		pass->apply_stencil_state(ctx->context, stencil_test);
-		pass->apply_blending_state(ctx->context, color_blending);
+		// Apply depth state
+		{
+			RHIDepthStencilState state;
+			state.depth.func  = depth_mode.is_test_enabled() ? RHICompareFunc::Equal : RHICompareFunc::Always;
+			state.depth.write = depth_mode.is_write_enabled();
+
+			if (pass->depth_stencil_state(state))
+				ctx->context->depth_stencil_state(state);
+		}
+
+		// Apply blending state
+		{
+			RHIBlendingState state;
+
+			switch (blend_mode)
+			{
+				case MaterialBlendMode::Translucent: state = RHIBlendingState::translucent(); break;
+				case MaterialBlendMode::Additive: state = RHIBlendingState::additive(); break;
+				case MaterialBlendMode::Modulate: state = RHIBlendingState::multiply(); break;
+				default: state = RHIBlendingState::opaque(); break;
+			}
+
+			if (pass->blending_state(state))
+				ctx->context->blending_state(state);
+		}
 
 		ctx->context->bind_pipeline(pipeline_object->rhi_pipeline());
 
@@ -447,7 +468,8 @@ namespace Trinex
 		if (!Super::serialize(archive))
 			return false;
 
-		archive.serialize(domain, depth_test, stencil_test, color_blending);
+		return true;
+		archive.serialize(domain);
 
 		usize pipelines_count = m_pipelines.size();
 		archive.serialize(pipelines_count);

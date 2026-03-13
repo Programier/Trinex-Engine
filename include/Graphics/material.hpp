@@ -2,6 +2,7 @@
 #include <Core/etl/map.hpp>
 #include <Core/etl/object_tree_node.hpp>
 #include <Core/object.hpp>
+#include <Graphics/enums.hpp>
 #include <Graphics/material_parameter.hpp>
 #include <RHI/structures.hpp>
 
@@ -34,11 +35,7 @@ namespace Trinex
 		Parameter* find_parameter(const Name& name) const;
 		const Vector<Parameter*>& parameters() const;
 
-		template<typename T>
-		T* find_parameter(const Name& name) const
-		{
-			return instance_cast<T>(find_parameter(name));
-		}
+		template<typename T> T* find_parameter(const Name& name) const { return instance_cast<T>(find_parameter(name)); }
 
 		virtual MaterialInterface* parent() const;
 		virtual class Material* material();
@@ -66,10 +63,8 @@ namespace Trinex
 
 	public:
 		MaterialDomain domain;
-
-		RHIDepthState depth_test;
-		RHIStencilState stencil_test;
-		RHIBlendingState color_blending;
+		MaterialDepthMode depth_mode;
+		MaterialBlendMode blend_mode;
 
 		Material();
 		GraphicsPipeline* pipeline(RenderPass* pass) const;

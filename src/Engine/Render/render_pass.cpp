@@ -1,6 +1,7 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/map.hpp>
 #include <Engine/Render/render_pass.hpp>
+#include <Engine/Render/renderer.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/shader_compiler.hpp>
 #include <RHI/context.hpp>
@@ -43,21 +44,28 @@ namespace Trinex
 		return it->second;
 	}
 
-	RenderPass& RenderPass::apply_depth_state(RHIContext* ctx, const RHIDepthState& state)
+	RenderPass& RenderPass::begin(Renderer* renderer, RHIContext* ctx)
 	{
-		ctx->depth_state(state);
 		return *this;
 	}
 
-	RenderPass& RenderPass::apply_stencil_state(RHIContext* ctx, const RHIStencilState& state)
+	bool RenderPass::depth_stencil_state(RHIDepthStencilState& state)
 	{
-		ctx->stencil_state(state);
-		return *this;
+		return true;
 	}
 
-	RenderPass& RenderPass::apply_blending_state(RHIContext* ctx, const RHIBlendingState& state)
+	bool RenderPass::blending_state(RHIBlendingState& state)
 	{
-		ctx->blending_state(state);
+		return true;
+	}
+
+	bool RenderPass::rasterizer_state(RHIRasterizerState& state)
+	{
+		return true;
+	}
+
+	RenderPass& RenderPass::end(Renderer* renderer, RHIContext* ctx)
+	{
 		return *this;
 	}
 
@@ -100,21 +108,30 @@ namespace Trinex
 
 	RenderPassPermutation::RenderPassPermutation(const char* name, RenderPass* owner) : RenderPass(name, owner), m_owner(owner) {}
 
-	RenderPassPermutation& RenderPassPermutation::apply_depth_state(RHIContext* ctx, const RHIDepthState& state)
+	RenderPassPermutation& RenderPassPermutation::begin(Renderer* renderer, RHIContext* ctx)
 	{
-		m_owner->apply_depth_state(ctx, state);
+		m_owner->begin(renderer, ctx);
 		return *this;
 	}
 
-	RenderPassPermutation& RenderPassPermutation::apply_stencil_state(RHIContext* ctx, const RHIStencilState& state)
+	bool RenderPassPermutation::depth_stencil_state(RHIDepthStencilState& state)
 	{
-		m_owner->apply_stencil_state(ctx, state);
-		return *this;
+		return m_owner->depth_stencil_state(state);
 	}
 
-	RenderPassPermutation& RenderPassPermutation::apply_blending_state(RHIContext* ctx, const RHIBlendingState& state)
+	bool RenderPassPermutation::blending_state(RHIBlendingState& state)
 	{
-		m_owner->apply_blending_state(ctx, state);
+		return m_owner->blending_state(state);
+	}
+
+	bool RenderPassPermutation::rasterizer_state(RHIRasterizerState& state)
+	{
+		return m_owner->rasterizer_state(state);
+	}
+
+	RenderPassPermutation& RenderPassPermutation::end(Renderer* renderer, RHIContext* ctx)
+	{
+		m_owner->end(renderer, ctx);
 		return *this;
 	}
 
@@ -173,7 +190,7 @@ namespace Trinex
 
 		bool Depth::is_material_compatible(const Material* material)
 		{
-			return material->domain == MaterialDomain::Surface && material->color_blending.is_opaque();
+			return material->domain == MaterialDomain::Surface && material->blend_mode.is_opaque();
 		}
 
 		Depth& Depth::modify_shader_compilation_env(ShaderCompilationEnvironment* env)
@@ -185,7 +202,7 @@ namespace Trinex
 
 		bool Geometry::is_material_compatible(const Material* material)
 		{
-			return material->domain == MaterialDomain::Surface && material->color_blending.is_opaque();
+			return material->domain == MaterialDomain::Surface && material->blend_mode.is_opaque();
 		}
 
 		Geometry& Geometry::modify_shader_compilation_env(ShaderCompilationEnvironment* env)
@@ -195,15 +212,49 @@ namespace Trinex
 			return *this;
 		}
 
+		Geometry& Geometry::begin(Renderer* renderer, RHIContext* ctx)
+		{
+			const ViewMode view_mode = renderer->view_mode();
+
+			RHIRasterizerState rasterizer;
+			rasterizer.polygon_mode = view_mode == ViewMode::Wireframe ? RHIPolygonMode::Line : RHIPolygonMode::Fill;
+
+			ctx->rasterizer_state(rasterizer);
+			ctx->blending_state(RHIBlendingState());
+			return *this;
+		}
+
+		bool Geometry::depth_stencil_state(RHIDepthStencilState& state)
+		{
+			state.depth.func = state.depth.is_enabled() ? RHICompareFunc::Lequal : RHICompareFunc::Always;
+			return Super::depth_stencil_state(state);
+		}
+
+		bool Geometry::blending_state(RHIBlendingState& state)
+		{
+			return false;
+		}
+
 		bool Translucent::is_material_compatible(const Material* material)
 		{
-			return material->domain == MaterialDomain::Surface && material->color_blending.is_translucent();
+			return material->domain == MaterialDomain::Surface && material->blend_mode.is_translucent();
 		}
 
 		Translucent& Translucent::modify_shader_compilation_env(ShaderCompilationEnvironment* env)
 		{
 			Super::modify_shader_compilation_env(env);
 			env->add_module("trinex/material_templates/surface_translucent.slang");
+			return *this;
+		}
+
+		Translucent& Translucent::begin(Renderer* renderer, RHIContext* ctx)
+		{
+			const ViewMode view_mode = renderer->view_mode();
+
+			RHIRasterizerState rasterizer;
+			rasterizer.polygon_mode = view_mode == ViewMode::Wireframe ? RHIPolygonMode::Line : RHIPolygonMode::Fill;
+			rasterizer.cull_mode    = RHICullMode::Back;
+			ctx->rasterizer_state(rasterizer);
 			return *this;
 		}
 	}// namespace RenderPasses

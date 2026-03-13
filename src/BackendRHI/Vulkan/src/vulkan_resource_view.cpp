@@ -6,7 +6,6 @@
 #include <vulkan_pipeline.hpp>
 #include <vulkan_resource_view.hpp>
 #include <vulkan_sampler.hpp>
-#include <vulkan_state.hpp>
 
 namespace Trinex
 {
@@ -31,9 +30,9 @@ namespace Trinex
 		API->m_device.destroyImageView(m_view);
 	}
 
-	VulkanSRV& VulkanTextureSRV::bind(VulkanStateManager* manager, u8 index)
+	VulkanSRV& VulkanTextureSRV::bind(VulkanContext* context, u8 index)
 	{
-		manager->srv_images.bind(this, index);
+		context->srv_images.bind(this, index);
 		return *this;
 	}
 
@@ -47,9 +46,9 @@ namespace Trinex
 		API->m_device.destroyImageView(m_view);
 	}
 
-	VulkanUAV& VulkanTextureUAV::bind(VulkanStateManager* manager, u8 index)
+	VulkanUAV& VulkanTextureUAV::bind(VulkanContext* context, u8 index)
 	{
-		manager->uav_images.bind(this, index);
+		context->uav_images.bind(this, index);
 		return *this;
 	}
 
@@ -73,9 +72,9 @@ namespace Trinex
 		API->descriptor_heap()->release(m_descriptor, VulkanDescriptorHeap::StorageBuffer);
 	}
 
-	VulkanSRV& VulkanStorageBufferSRV::bind(VulkanStateManager* manager, u8 index)
+	VulkanSRV& VulkanStorageBufferSRV::bind(VulkanContext* context, u8 index)
 	{
-		manager->storage_buffers.bind(buffer()->buffer(), index);
+		context->storage_buffers.bind(buffer()->buffer(), index);
 		return *this;
 	}
 
@@ -89,9 +88,9 @@ namespace Trinex
 		API->descriptor_heap()->release(m_descriptor, VulkanDescriptorHeap::UniformTexelBuffer);
 	}
 
-	VulkanSRV& VulkanUniformTexelBufferSRV::bind(VulkanStateManager* manager, u8 index)
+	VulkanSRV& VulkanUniformTexelBufferSRV::bind(VulkanContext* context, u8 index)
 	{
-		manager->uniform_texel_buffers.bind(buffer()->buffer(), index);
+		context->uniform_texel_buffers.bind(buffer()->buffer(), index);
 		return *this;
 	}
 
@@ -105,21 +104,21 @@ namespace Trinex
 		API->descriptor_heap()->release(m_descriptor, VulkanDescriptorHeap::StorageBuffer);
 	}
 
-	VulkanUAV& VulkanBufferUAV::bind(VulkanStateManager* manager, u8 index)
+	VulkanUAV& VulkanBufferUAV::bind(VulkanContext* context, u8 index)
 	{
-		manager->storage_buffers.bind(buffer()->buffer(), index);
+		context->storage_buffers.bind(buffer()->buffer(), index);
 		return *this;
 	}
 
 	VulkanContext& VulkanContext::bind_srv(RHIShaderResourceView* view, u8 slot)
 	{
-		static_cast<VulkanSRV*>(view)->bind(m_state_manager, slot);
+		static_cast<VulkanSRV*>(view)->bind(this, slot);
 		return *this;
 	}
 
 	VulkanContext& VulkanContext::bind_uav(RHIUnorderedAccessView* view, u8 slot)
 	{
-		static_cast<VulkanUAV*>(view)->bind(m_state_manager, slot);
+		static_cast<VulkanUAV*>(view)->bind(this, slot);
 		return *this;
 	}
 

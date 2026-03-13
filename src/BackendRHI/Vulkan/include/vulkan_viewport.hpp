@@ -4,7 +4,6 @@
 #include <VkBootstrap.h>
 #include <vulkan_destroyable.hpp>
 #include <vulkan_headers.hpp>
-#include <vulkan_state.hpp>
 
 namespace Trinex
 {
@@ -46,7 +45,7 @@ namespace Trinex
 		i32 m_sync_index  = 0;
 		i32 m_image_index = -1;
 		Vector2u m_size;
-		bool m_need_recreate  = false;
+		bool m_need_recreate = false;
 
 	private:
 		VulkanSwapchain& create_swapchain(vk::SwapchainKHR* old = nullptr);

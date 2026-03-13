@@ -23,29 +23,9 @@ namespace Trinex
 
 	class ENGINE_EXPORT RHIContext : public RHIObject
 	{
-	private:
-		struct State;
-		State* m_state;
-
 	public:
 		RHIContext();
 		~RHIContext();
-
-		RHIContext& push_primitive_topology(RHIPrimitiveTopology topology = RHIPrimitiveTopology::TriangleList);
-		RHIContext& push_polygon_mode(RHIPolygonMode mode = RHIPolygonMode::Fill);
-		RHIContext& push_cull_mode(RHICullMode mode = RHICullMode::None);
-		RHIContext& push_front_face(RHIFrontFace face = RHIFrontFace::CounterClockWise);
-		RHIContext& push_write_mask(RHIColorComponent mask = RHIColorComponent::RGBA);
-
-		RHIContext& pop_primitive_topology();
-		RHIContext& pop_polygon_mode();
-		RHIContext& pop_cull_mode();
-		RHIContext& pop_front_face();
-		RHIContext& pop_write_mask();
-
-	protected:
-		RHIContext& copy_state(RHIContext* src);
-		RHIContext& reset_state();
 
 	public:
 		virtual RHIContext& begin(const RHIContextInheritanceInfo* inheritance = nullptr) = 0;
@@ -56,9 +36,9 @@ namespace Trinex
 
 		virtual RHIContext& execute(RHICommandHandle* handle) = 0;
 
-		virtual RHIContext& draw(usize vertex_count, usize vertices_offset, usize instances = 1) = 0;
-		virtual RHIContext& draw_indexed(usize indices_count, usize indices_offset, usize vertices_offset,
-		                                 usize instances = 1)                                    = 0;
+		virtual RHIContext& draw(RHITopology topology, usize vertex_count, usize vertices_offset, usize instances = 1) = 0;
+		virtual RHIContext& draw_indexed(RHITopology topology, usize indices_count, usize indices_offset, usize vertices_offset,
+		                                 usize instances = 1)                                                          = 0;
 
 		virtual RHIContext& draw_mesh(u32 x, u32 y, u32 z) = 0;
 
@@ -97,16 +77,12 @@ namespace Trinex
 		virtual RHIContext& copy_texture_to_texture(RHITexture* src, const RHITextureRegion& src_region, RHITexture* dst,
 		                                            const RHITextureRegion& dst_region) = 0;
 
-		virtual RHIContext& depth_state(const RHIDepthState& state)                             = 0;
-		virtual RHIContext& stencil_state(const RHIStencilState& state)                         = 0;
-		virtual RHIContext& blending_state(const RHIBlendingState& state)                       = 0;
-		virtual RHIContext& rasterizer_state(const RHIRasterizerState& state)                   = 0;
-		virtual RHIContext& primitive_topology(RHIPrimitiveTopology topology)                   = 0;
-		virtual RHIContext& polygon_mode(RHIPolygonMode mode)                                   = 0;
-		virtual RHIContext& cull_mode(RHICullMode mode)                                         = 0;
-		virtual RHIContext& front_face(RHIFrontFace face)                                       = 0;
-		virtual RHIContext& write_mask(RHIColorComponent mask)                                  = 0;
-		virtual RHIContext& shading_rate(RHIShadingRate rate, RHIShadingRateCombiner* combiner) = 0;
+		virtual RHIContext& depth_stencil_state(const RHIDepthStencilState& state) = 0;
+		virtual RHIContext& blending_state(const RHIBlendingState& state)          = 0;
+		virtual RHIContext& rasterizer_state(const RHIRasterizerState& state)      = 0;
+
+		virtual RHIContext& depth_bias(float constant = 0.0f, float clamp = 0.0f, float slope = 0.0f) = 0;
+		virtual RHIContext& shading_rate(RHIShadingRate rate, RHIShadingRateCombiner* combiner)       = 0;
 
 		virtual RHIContext& bind_vertex_attribute(RHIVertexSemantic semantic, RHIVertexFormat format, u8 stream,
 		                                          u16 offset = 0)                                              = 0;

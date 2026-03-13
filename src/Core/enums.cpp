@@ -14,6 +14,5 @@ namespace Trinex
 	trinex_implement_engine_enum(CursorMode, Refl::Enum::IsScriptable, Normal, Hidden);
 	trinex_implement_engine_enum(Orientation, Refl::Enum::IsScriptable, Landscape, LandscapeFlipped, Portrait, PortraitFlipped);
 	trinex_implement_engine_enum(MessageBoxType, Refl::Enum::IsScriptable, Error, Warning, Info);
-	trinex_implement_engine_enum(MaterialDomain, Refl::Enum::IsScriptable, Surface, PostProcess);
 	trinex_implement_engine_enum(SplashTextType, Refl::Enum::IsScriptable, StartupProgress, VersionInfo, CopyrightInfo, GameName);
 }// namespace Trinex

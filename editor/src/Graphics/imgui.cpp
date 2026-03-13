@@ -86,14 +86,9 @@ namespace Trinex
 				m_sampler = nullptr;
 
 				ctx->bind_pipeline(rhi_pipeline());
-				ctx->depth_state(RHIDepthState(false, RHICompareFunc::Always, false));
-				ctx->stencil_state(RHIStencilState());
-				ctx->blending_state(RHIBlendingState::translucent);
-
-				ctx->primitive_topology(RHIPrimitiveTopology::TriangleList);
-				ctx->polygon_mode(RHIPolygonMode::Fill);
-				ctx->cull_mode(RHICullMode::None);
-				ctx->write_mask(RHIColorComponent::RGBA);
+				ctx->depth_stencil_state(RHIDepthStencilState());
+				ctx->blending_state(RHIBlendingState::translucent());
+				ctx->rasterizer_state(RHIRasterizerState());
 			}
 		};
 
@@ -304,7 +299,7 @@ namespace Trinex
 							pipeline->bind(ctx, pcmd->TextureId.sampler ? pcmd->TextureId.sampler : bd->sampler.rhi_sampler());
 
 							{
-								ctx->draw_indexed(pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset,
+								ctx->draw_indexed(RHITopology::TriangleList, pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset,
 								                  pcmd->VtxOffset + global_vtx_offset);
 							}
 						}

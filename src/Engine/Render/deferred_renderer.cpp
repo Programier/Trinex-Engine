@@ -412,9 +412,6 @@ namespace Trinex
 
 	DeferredRenderer& DeferredRenderer::geometry_pass(RHIContext* ctx)
 	{
-		RHIPolygonMode mode = view_mode() == ViewMode::Wireframe ? RHIPolygonMode::Line : RHIPolygonMode::Fill;
-		ctx->polygon_mode(mode);
-
 		RHIRenderingInfo info = {base_color_target()->as_rtv(), normal_target()->as_rtv(), scene_color_hdr_target()->as_rtv(),
 		                         msra_target()->as_rtv(), scene_depth_target()->as_dsv()};
 		info.flags            = RHIRenderingFlags::SecondaryBuffersOnly;
@@ -431,7 +428,6 @@ namespace Trinex
 			inherit.flags     = RHIContextInheritanceFlags::RenderPassContinue;
 
 			render_visible_primitives(ctx, RenderPasses::Geometry::static_instance(), &inherit);
-			ctx->polygon_mode(RHIPolygonMode::Fill);
 		}
 		ctx->end_rendering();
 		return *this;
@@ -441,7 +437,7 @@ namespace Trinex
 	{
 		ctx->begin_rendering(velocity_target()->as_rtv());
 		{
-			ctx->blending_state(RHIBlendingState::opaque);
+			ctx->blending_state(RHIBlendingState::opaque());
 			Pipelines::CameraVelocity::instance()->render(ctx, this);
 		}
 		ctx->end_rendering();
@@ -467,10 +463,6 @@ namespace Trinex
 		s_shadows->emplace<RHIShaderResourceView*>(shadow_buffer()->as_srv());
 		s_ranges->emplace<MaterialBindings::MemoryBlock>(ranges_block);
 
-		RHIPolygonMode mode = view_mode() == ViewMode::Wireframe ? RHIPolygonMode::Line : RHIPolygonMode::Fill;
-		ctx->polygon_mode(mode);
-		ctx->cull_mode(RHICullMode::Front);
-
 		RHIRenderingInfo info = {scene_color_hdr_target()->as_rtv(), scene_depth_target()->as_dsv()};
 		info.flags            = RHIRenderingFlags::SecondaryBuffersOnly;
 
@@ -486,8 +478,6 @@ namespace Trinex
 		}
 		ctx->end_rendering();
 
-		ctx->polygon_mode(RHIPolygonMode::Fill);
-		ctx->cull_mode(RHICullMode::None);
 		return *this;
 	}
 
@@ -531,7 +521,7 @@ namespace Trinex
 
 		ctx->begin_rendering(msra_target()->as_rtv());
 		{
-			ctx->blending_state(RHIBlendingState::multiply);
+			ctx->blending_state(RHIBlendingState::multiply());
 
 			Pipelines::GaussianBlur::blur(ctx, buffer2->as_srv(), {inv_half_size.x, 0.f}, 0.8, 2.f,
 			                              {Swizzle::One, Swizzle::One, Swizzle::One, Swizzle::R});
@@ -554,9 +544,8 @@ namespace Trinex
 
 		ctx->begin_rendering(scene_color_hdr_target()->as_rtv());
 		{
-			ctx->depth_state(RHIDepthState(false, RHICompareFunc::Always, false));
-			ctx->stencil_state(RHIStencilState(false));
-			ctx->blending_state(RHIBlendingState::additive);
+			ctx->depth_stencil_state(RHIDepthStencilState());
+			ctx->blending_state(RHIBlendingState::additive());
 
 			ctx->bind_pipeline(pipeline->rhi_pipeline());
 			ctx->bind_uniform_buffer(globals_uniform_buffer(), pipeline->scene_view->binding);
@@ -567,7 +556,7 @@ namespace Trinex
 			ctx->bind_sampler(sampler, pipeline->base_color->binding);
 			ctx->bind_sampler(sampler, pipeline->msra->binding);
 
-			ctx->draw(6, 0);
+			ctx->draw(RHITopology::TriangleList, 6, 0);
 		}
 		ctx->end_rendering();
 		return *this;
@@ -581,9 +570,8 @@ namespace Trinex
 		{
 			auto pipeline = Pipelines::DeferredLighting::instance();
 
-			ctx->depth_state(RHIDepthState(false, RHICompareFunc::Always, false));
-			ctx->stencil_state(RHIStencilState(false));
-			ctx->blending_state(RHIBlendingState::additive);
+			ctx->depth_stencil_state(RHIDepthStencilState());
+			ctx->blending_state(RHIBlendingState::additive());
 
 			ctx->bind_pipeline(pipeline->rhi_pipeline());
 			ctx->bind_srv(base_color_target()->as_srv(), pipeline->base_color_texture->binding);
@@ -601,7 +589,7 @@ namespace Trinex
 
 			ctx->update_scalar(m_light_ranges, pipeline->ranges);
 
-			ctx->draw(6, 0);
+			ctx->draw(RHITopology::TriangleList, 6, 0);
 		}
 
 		return *this;
@@ -627,12 +615,14 @@ namespace Trinex
 
 		auto& bloom = m_post_process_params->bloom;
 
-		ctx->blending_state(RHIBlendingState::opaque);
+		ctx->depth_stencil_state(RHIDepthStencilState());
+		ctx->rasterizer_state(RHIRasterizerState());
+		ctx->blending_state(RHIBlendingState::opaque());
+
 		ctx->barrier(chain[0].texture, RHIAccess::RTV);
 
 		ctx->begin_rendering(chain[0].texture->as_rtv());
 		{
-
 			auto& bloom = m_post_process_params->bloom;
 			Pipelines::BloomExtract::instance()->extract(ctx, hdr->as_srv(), bloom.threshold, bloom.knee, bloom.clamp);
 		}
@@ -680,7 +670,6 @@ namespace Trinex
 			}
 
 			trinex_rhi_pop_stage(ctx);
-
 			trinex_rhi_push_stage(ctx, "Apply");
 
 			ctx->barrier(chain[0].texture, RHIAccess::SRVGraphics);
@@ -688,10 +677,8 @@ namespace Trinex
 
 			ctx->begin_rendering(hdr->as_rtv());
 			{
-				ctx->write_mask(RHIColorComponent::RGB);
-				ctx->blending_state(RHIBlendingState::add);
+				ctx->blending_state(RHIBlendingState::add(RHIColorComponent::RGB));
 				Pipelines::BloomUpsample::instance()->upsample(ctx, chain[0].texture->as_srv(), bloom.intensity);
-				ctx->write_mask(RHIColorComponent::RGBA);
 			}
 			ctx->end_rendering();
 
@@ -807,64 +794,8 @@ namespace Trinex
 		return *this;
 	}
 
-	DeferredRenderer& DeferredRenderer::render_visible_primitives(RHIContext* ctx, RenderPass* pass,
-	                                                              RHIContextInheritanceInfo* inherit, MaterialBindings* bindings)
+	DeferredRenderer& DeferredRenderer::copy_depth_to_scene_color(RHIContext* ctx)
 	{
-		trinex_profile_cpu_n("DeferredRenderer::render_visible_primitives");
-
-		static constexpr u32 chunk = 64;
-
-		struct Worker {
-			RHIContext* context = nullptr;
-			usize objects;
-		};
-
-		TaskGraph* graph             = TaskGraph::instance();
-		RHIContextPool* context_pool = RHIContextPool::global_instance();
-
-		const u32 primitives_count = m_visible_primitives.size();
-		//const u32 worker_count     = Math::min<u32>(graph->workers() + 1, (primitives_count + chunk - 1) / chunk);
-		const u32 worker_count = 1;
-
-		StackByteAllocator::Mark mark;
-		Worker* workers = StackAllocator<Worker>::allocate(worker_count);
-
-		for (u32 i = 0; i < worker_count; ++i)
-		{
-			RHIContext* secondary = context_pool->request_context(RHIContextFlags::Secondary);
-			workers[i]            = {secondary, 0};
-		}
-
-		auto callback = [this, pass, workers, bindings, inherit](u32 idx) {
-			Worker& worker = workers[Task::worker_index()];
-
-			if (++worker.objects == 1)
-			{
-				worker.context->begin(inherit);
-			}
-
-			PrimitiveComponent* primitive = m_visible_primitives[idx];
-			Matrix4f matrix               = primitive->world_transform().matrix();
-			PrimitiveRenderingContext context(this, worker.context, pass, &matrix, bindings);
-			primitive->render(&context);
-		};
-
-		graph->for_each(primitives_count, callback, chunk, worker_count);
-
-		for (u32 i = 0; i < worker_count; ++i)
-		{
-			Worker& worker = workers[i];
-
-			if (worker.objects)
-			{
-				RHICommandHandle* handle = worker.context->end();
-				ctx->execute(handle);
-				handle->release();
-			}
-
-			context_pool->return_context(worker.context);
-		}
-
 		return *this;
 	}
 

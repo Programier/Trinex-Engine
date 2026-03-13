@@ -1,5 +1,4 @@
 #pragma once
-#include <Core/definitions.hpp>
 #include <Core/serializer.hpp>
 #include <cstdint>
 

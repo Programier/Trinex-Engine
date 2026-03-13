@@ -36,6 +36,7 @@ namespace Trinex
 			Emissive    = 7,
 			AO          = 8,
 			Velocity    = 9,
+			Depth       = 10,
 		};
 
 		trinex_enum_struct(ViewMode);

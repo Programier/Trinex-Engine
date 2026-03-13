@@ -50,7 +50,7 @@ namespace Trinex::EditorPipelines
 			ctx->update_scalar(&camera_view.near, m_near);
 			ctx->update_scalar(&camera_view.far, m_far);
 			ctx->update_scalar(&sample_offset, m_sample_offset);
-			ctx->draw(6, 0);
+			ctx->draw(RHITopology::TriangleList, 6, 0);
 		}
 		ctx->end_rendering();
 	}
@@ -91,19 +91,13 @@ namespace Trinex::EditorPipelines
 		args.upper_alpha = (camera_height - lower_height) / (upper_height - lower_height);
 		args.lower_alpha = 1.0f - args.upper_alpha;
 
-		ctx->depth_state(RHIDepthState(true, RHICompareFunc::Lequal, false));
-		ctx->stencil_state(RHIStencilState());
-		ctx->blending_state(RHIBlendingState(true));
+		ctx->depth_stencil_state(RHIDepthStencilState(RHICompareFunc::Lequal, false));
+		ctx->blending_state(RHIBlendingState::translucent());
+		ctx->rasterizer_state(RHIRasterizerState());
 		ctx->bind_pipeline(rhi_pipeline());
-
-		ctx->push_primitive_topology(RHIPrimitiveTopology::TriangleList);
-		ctx->push_cull_mode(RHICullMode::None);
 
 		ctx->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
 		ctx->update_scalar(&args, m_args);
-		ctx->draw(6, 0);
-
-		ctx->pop_cull_mode();
-		ctx->pop_primitive_topology();
+		ctx->draw(RHITopology::TriangleList, 6, 0);
 	}
 }// namespace Trinex::EditorPipelines

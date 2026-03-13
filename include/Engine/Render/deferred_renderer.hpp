@@ -55,10 +55,15 @@ namespace Trinex
 		DeferredRenderer& copy_emissive_to_scene_color(RHIContext* ctx);
 		DeferredRenderer& copy_ambient_to_scene_color(RHIContext* ctx);
 		DeferredRenderer& copy_velocity_to_scene_color(RHIContext* ctx);
-		DeferredRenderer& copy_world_to_scene_color(RHIContext* ctx);
-		DeferredRenderer& render_visible_primitives(RHIContext* ctx, RenderPass* pass, RHIContextInheritanceInfo* inherit,
-		                                            MaterialBindings* bindings = nullptr);
+		DeferredRenderer& copy_depth_to_scene_color(RHIContext* ctx);
 		DeferredRenderer& cull_lights(RHIContext* ctx);
+
+		inline DeferredRenderer& render_visible_primitives(RHIContext* ctx, RenderPass* pass, RHIContextInheritanceInfo* inherit,
+		                                                   MaterialBindings* bindings = nullptr)
+		{
+			render_primitives(m_visible_primitives.data(), m_visible_primitives.size(), ctx, pass, inherit, bindings);
+			return *this;
+		}
 
 	public:
 		DeferredRenderer(Scene* scene, const SceneView& view, ViewMode mode);

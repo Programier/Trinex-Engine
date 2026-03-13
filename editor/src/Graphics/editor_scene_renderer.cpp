@@ -56,7 +56,7 @@ namespace Trinex
 				ctx->viewport(scene_view().viewport());
 				ctx->scissor(scene_view().scissor());
 
-				ctx->blending_state(RHIBlendingState::opaque);
+				ctx->blending_state(RHIBlendingState::opaque());
 
 				static MaterialBindings bindings;
 				static MaterialBindings::Binding* proxy_id = bindings.find_or_create("hitproxy.id");

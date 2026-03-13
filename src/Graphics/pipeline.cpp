@@ -444,6 +444,8 @@ namespace Trinex
 			FileReader reader(self->shader_path());
 
 			trinex_verify_msg(reader.is_open(), "Failed to read global shader");
+			source_code = reader.read_string();
+			trinex_verify_msg(!source_code.empty(), "Failed to read global shader");
 
 			ShaderCompiler::StackEnvironment env;
 			ShaderCompilationResult result;

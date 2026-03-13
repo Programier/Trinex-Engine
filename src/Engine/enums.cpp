@@ -7,6 +7,6 @@ namespace Trinex
 	trinex_implement_engine_enum(ShowFlags, 0, Statistics, PointLights, SpotLights, DirectionalLights, PostProcess, StaticMesh,
 	                             PrimitiveBounds, PrimitiveOctree);
 	trinex_implement_engine_enum(ViewMode, 0, Lit, Unlit, Wireframe, WorldNormal, Metalic, Roughness, Specular, Emissive, AO,
-	                             Velocity);
+	                             Velocity, Depth);
 	trinex_implement_engine_enum(CameraProjectionMode, 0, Perspective, Orthographic);
 }// namespace Trinex

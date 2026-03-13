@@ -11,10 +11,10 @@ namespace Trinex
 	trinex_implement_engine_enum(RHICompareFunc, 0, Always, Lequal, Gequal, Less, Greater, Equal, NotEqual, Never);
 	trinex_implement_engine_enum(RHIStencilOp, 0, Keep, Zero, Replace, Incr, IncrWrap, Decr, DecrWrap, Invert);
 	trinex_implement_engine_enum(RHIBlendFunc, 0, Zero, One, SrcColor, OneMinusSrcColor, DstColor, OneMinusDstColor, SrcAlpha,
-	                             OneMinusSrcAlpha, DstAlpha, OneMinusDstAlpha, BlendFactor, OneMinusBlendFactor);
+	                             OneMinusSrcAlpha, DstAlpha, OneMinusDstAlpha);
 	trinex_implement_engine_enum(RHIBlendOp, 0, Add, Subtract, ReverseSubtract, Min, Max);
-	trinex_implement_engine_enum(RHIPrimitiveTopology, 0, TriangleList, PointList, LineList, LineStrip, TriangleStrip);
-	trinex_implement_engine_enum(RHIPolygonMode, 0, Fill, Line, Point);
+	trinex_implement_engine_enum(RHITopology, 0, TriangleList, LineList, LineStrip, TriangleStrip);
+	trinex_implement_engine_enum(RHIPolygonMode, 0, Fill, Line);
 	trinex_implement_engine_enum(RHICullMode, 0, None, Front, Back);
 	trinex_implement_engine_enum(RHIFrontFace, 0, ClockWise, CounterClockWise);
 	trinex_implement_engine_enum(RHIShaderParameterType, Refl::Enum::IsScriptable, Undefined, META_UniformBuffer, META_Sampler,

@@ -172,9 +172,7 @@ namespace Trinex
 		ctx->bind_vertex_attribute(RHIVertexSemantic::Position, RHIVertexFormat::RGB32F, 0, 0);
 		ctx->bind_vertex_attribute(RHIVertexSemantic::Color, RHIVertexFormat::RGBA8, 0, 12);
 		ctx->bind_vertex_attribute(RHIVertexSemantic::UserData, RHIVertexFormat::R32F, 0, 16);
-
 		ctx->bind_vertex_buffer(vtx_buffer, 0, sizeof(Vertex), 0);
-		ctx->primitive_topology(RHIPrimitiveTopology::LineList);
 
 		while (m_first)
 		{
@@ -182,13 +180,12 @@ namespace Trinex
 			ctx->update_buffer(vtx_buffer, 0, m_first->vtx_count * sizeof(Vertex), reinterpret_cast<u8*>(m_first->vertices));
 			ctx->barrier(vtx_buffer, RHIAccess::VertexBuffer);
 
-			ctx->draw(m_first->vtx_count, 0);
+			ctx->draw(RHITopology::LineList, m_first->vtx_count, 0);
 			m_first = m_first->next;
 		}
 
 		m_last = nullptr;
 
-		ctx->primitive_topology(RHIPrimitiveTopology::TriangleList);
 #if TRINEX_DEBUG_BUILD
 		ctx->pop_debug_stage();
 #endif
@@ -252,7 +249,7 @@ namespace Trinex
 		ctx->bind_vertex_buffer(m_position_buffer.rhi_buffer(), 0, m_position_buffer.stride(), 0);
 		ctx->bind_vertex_buffer(m_color_buffer.rhi_buffer(), 0, m_color_buffer.stride(), 1);
 
-		ctx->draw(m_vtx_count, 0);
+		ctx->draw(RHITopology::TriangleList, m_vtx_count, 0);
 
 		trinex_rhi_pop_stage(ctx);
 		return *this;

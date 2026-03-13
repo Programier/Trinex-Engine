@@ -36,7 +36,7 @@ namespace Trinex
 		inline bool is_valid() const { return !name.empty(); }
 	};
 
-	class VulkanAPI : public RHI
+	class VulkanAPI final : public RHI
 	{
 		trinex_struct(VulkanAPI, void);
 

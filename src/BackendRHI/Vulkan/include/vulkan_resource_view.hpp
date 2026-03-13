@@ -9,7 +9,6 @@ namespace Trinex
 	class VulkanTexture;
 	class VulkanContext;
 	class VulkanBuffer;
-	class VulkanStateManager;
 
 
 	class VulkanSRV : public RHIShaderResourceView
@@ -18,7 +17,7 @@ namespace Trinex
 		RHIDescriptor m_descriptor;
 
 	public:
-		virtual VulkanSRV& bind(VulkanStateManager* manager, u8 index) = 0;
+		virtual VulkanSRV& bind(VulkanContext* context, u8 index) = 0;
 		RHIDescriptor descriptor() const override;
 	};
 
@@ -28,7 +27,7 @@ namespace Trinex
 		RHIDescriptor m_descriptor;
 
 	public:
-		virtual VulkanUAV& bind(VulkanStateManager* manager, u8 index) = 0;
+		virtual VulkanUAV& bind(VulkanContext* context, u8 index) = 0;
 		RHIDescriptor descriptor() const override;
 	};
 
@@ -54,7 +53,7 @@ namespace Trinex
 		    : VulkanTextureSRV(texture, view)
 		{}
 		~VulkanTextureSRV();
-		VulkanSRV& bind(VulkanStateManager* manager, u8 index) override;
+		VulkanSRV& bind(VulkanContext* context, u8 index) override;
 
 		FORCE_INLINE VulkanTexture* texture() const { return m_texture; }
 		FORCE_INLINE vk::ImageView view() const { return m_view; }
@@ -72,7 +71,7 @@ namespace Trinex
 		    : VulkanTextureUAV(texture, view)
 		{}
 		~VulkanTextureUAV();
-		VulkanUAV& bind(VulkanStateManager* manager, u8 index) override;
+		VulkanUAV& bind(VulkanContext* context, u8 index) override;
 
 		FORCE_INLINE VulkanTexture* texture() const { return m_texture; }
 		FORCE_INLINE vk::ImageView view() const { return m_view; }
@@ -148,7 +147,7 @@ namespace Trinex
 		VulkanStorageBufferSRV(VulkanBuffer* buffer);
 		~VulkanStorageBufferSRV();
 
-		VulkanSRV& bind(VulkanStateManager* manager, u8 index) override;
+		VulkanSRV& bind(VulkanContext* context, u8 index) override;
 	};
 
 	class VulkanUniformTexelBufferSRV : public VulkanBufferSRV
@@ -157,7 +156,7 @@ namespace Trinex
 		VulkanUniformTexelBufferSRV(VulkanBuffer* buffer);
 		~VulkanUniformTexelBufferSRV();
 
-		VulkanSRV& bind(VulkanStateManager* manager, u8 index) override;
+		VulkanSRV& bind(VulkanContext* context, u8 index) override;
 	};
 
 	class VulkanBufferUAV : public VulkanUAV
@@ -170,6 +169,6 @@ namespace Trinex
 		~VulkanBufferUAV();
 
 		FORCE_INLINE VulkanBuffer* buffer() const { return m_buffer; };
-		VulkanUAV& bind(VulkanStateManager* manager, u8 index) override;
+		VulkanUAV& bind(VulkanContext* context, u8 index) override;
 	};
 }// namespace Trinex

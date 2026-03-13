@@ -23,7 +23,6 @@
 #include <vulkan_query.hpp>
 #include <vulkan_queue.hpp>
 #include <vulkan_shader.hpp>
-#include <vulkan_state.hpp>
 #include <vulkan_texture.hpp>
 #include <vulkan_thread_local.hpp>
 #include <vulkan_viewport.hpp>

@@ -1241,7 +1241,10 @@ namespace Trinex::UI
 
 				for (auto& entry : enum_entries)
 				{
-					entries.emplace_back(Strings::make_sentence(entry.name.to_string()), entry.value);
+					if (entry.value != 0)
+					{
+						entries.emplace_back(Strings::make_sentence(entry.name.to_string()), entry.value);
+					}
 				}
 			}
 

@@ -21,7 +21,7 @@ namespace Trinex
 	struct ENGINE_EXPORT MeshSurface {
 		trinex_struct(MeshSurface, void);
 
-		RHIPrimitiveTopology topology = RHIPrimitiveTopology::TriangleList;
+		RHITopology topology = RHITopology::TriangleList;
 		u32 first_vertex              = 0;
 		u32 first_index               = ~0U;
 		u32 vertices_count            = 0;

@@ -143,15 +143,14 @@ namespace Trinex::Importer
 			return ((accessors ? accessors->count : 0) + ...);
 		}
 
-		static inline RHIPrimitiveTopology topology_of(u8 mode)
+		static inline RHITopology topology_of(u8 mode)
 		{
 			switch (mode)
 			{
-				case TINYGLTF_MODE_POINTS: return RHIPrimitiveTopology::PointList;
-				case TINYGLTF_MODE_LINE: return RHIPrimitiveTopology::LineList;
-				case TINYGLTF_MODE_LINE_STRIP: return RHIPrimitiveTopology::LineStrip;
-				case TINYGLTF_MODE_TRIANGLE_STRIP: return RHIPrimitiveTopology::TriangleStrip;
-				default: return RHIPrimitiveTopology::TriangleList;
+				case TINYGLTF_MODE_LINE: return RHITopology::LineList;
+				case TINYGLTF_MODE_LINE_STRIP: return RHITopology::LineStrip;
+				case TINYGLTF_MODE_TRIANGLE_STRIP: return RHITopology::TriangleStrip;
+				default: return RHITopology::TriangleList;
 			}
 		}
 

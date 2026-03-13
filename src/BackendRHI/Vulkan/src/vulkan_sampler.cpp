@@ -8,7 +8,6 @@
 #include <vulkan_enums.hpp>
 #include <vulkan_pipeline.hpp>
 #include <vulkan_sampler.hpp>
-#include <vulkan_state.hpp>
 
 namespace Trinex
 {
@@ -95,7 +94,7 @@ namespace Trinex
 
 	VulkanContext& VulkanContext::bind_sampler(RHISampler* sampler, u8 slot)
 	{
-		m_state_manager->samplers.bind(static_cast<VulkanSampler*>(sampler)->sampler(), slot);
+		samplers.bind(static_cast<VulkanSampler*>(sampler)->sampler(), slot);
 		return *this;
 	}
 

@@ -13,7 +13,6 @@
 #include <vulkan_enums.hpp>
 #include <vulkan_pipeline.hpp>
 #include <vulkan_resource_view.hpp>
-#include <vulkan_state.hpp>
 
 namespace Trinex
 {
@@ -366,10 +365,10 @@ namespace Trinex
 	{
 		m_cmd->bindVertexBuffers(stream, static_cast<VulkanBuffer*>(buffer)->buffer(), byte_offset);
 
-		VulkanStateManager::VertexStream vertex_stream;
+		VulkanContext::VertexStream vertex_stream;
 		vertex_stream.stride = stride;
 		vertex_stream.rate   = VulkanEnums::input_rate_of(rate);
-		m_state_manager->vertex_streams.bind(vertex_stream, stream);
+		vertex_streams.bind(vertex_stream, stream);
 		return *this;
 	}
 
@@ -389,7 +388,7 @@ namespace Trinex
 
 	VulkanContext& VulkanContext::bind_uniform_buffer(VulkanBuffer* buffer, u32 size, u32 offset, u8 slot)
 	{
-		m_state_manager->uniform_buffers.bind(VulkanStateManager::UniformBuffer(buffer->buffer(), size, offset), slot);
+		uniform_buffers.bind(VulkanContext::UniformBuffer(buffer->buffer(), size, offset), slot);
 		return *this;
 	}
 

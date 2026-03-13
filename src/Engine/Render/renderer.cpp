@@ -1,7 +1,11 @@
+#include <Core/profiler.hpp>
+#include <Core/threading.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/Render/deferred_renderer.hpp>
+#include <Engine/Render/primitive_context.hpp>
 #include <Engine/Render/render_graph.hpp>
+#include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/renderer.hpp>
 #include <Engine/scene.hpp>
 #include <Engine/settings.hpp>
@@ -69,6 +73,70 @@ namespace Trinex
 
 			return false;
 		});
+	}
+
+	Renderer& Renderer::render_primitives(PrimitiveComponent* const* primitives, usize count, RHIContext* ctx, RenderPass* pass,
+	                                      RHIContextInheritanceInfo* inherit, MaterialBindings* bindings)
+	{
+		trinex_profile_cpu_n("Renderer::render_primitives");
+
+		static constexpr u32 chunk = 64;
+
+		struct Worker {
+			RHIContext* context = nullptr;
+			usize objects;
+		};
+
+		TaskGraph* graph             = TaskGraph::instance();
+		RHIContextPool* context_pool = RHIContextPool::global_instance();
+
+		//const u32 worker_count     = Math::min<u32>(graph->workers() + 1, (count + chunk - 1) / chunk);
+		const u32 worker_count = 1;
+
+		StackByteAllocator::Mark mark;
+		Worker* workers = StackAllocator<Worker>::allocate(worker_count);
+
+		for (u32 i = 0; i < worker_count; ++i)
+		{
+			RHIContext* secondary = context_pool->request_context(RHIContextFlags::Secondary);
+			workers[i]            = {secondary, 0};
+		}
+
+		auto callback = [this, primitives, pass, workers, bindings, inherit](u32 idx) {
+			Worker& worker = workers[Task::worker_index()];
+
+			if (++worker.objects == 1)
+			{
+				worker.context->begin(inherit);
+			}
+
+			PrimitiveComponent* primitive = primitives[idx];
+			Matrix4f matrix               = primitive->world_transform().matrix();
+			PrimitiveRenderingContext context(this, worker.context, pass, &matrix, bindings);
+			primitive->render(&context);
+		};
+
+		pass->begin(this, ctx);
+		{
+			graph->for_each(count, callback, chunk, worker_count);
+
+			for (u32 i = 0; i < worker_count; ++i)
+			{
+				Worker& worker = workers[i];
+
+				if (worker.objects)
+				{
+					RHICommandHandle* handle = worker.context->end();
+					ctx->execute(handle);
+					handle->release();
+				}
+
+				context_pool->return_context(worker.context);
+			}
+		}
+		pass->end(this, ctx);
+
+		return *this;
 	}
 
 	Renderer& Renderer::render(RHIContext* ctx)

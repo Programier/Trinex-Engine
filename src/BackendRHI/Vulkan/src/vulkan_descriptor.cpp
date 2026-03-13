@@ -9,7 +9,6 @@
 #include <vulkan_fence.hpp>
 #include <vulkan_resource_view.hpp>
 #include <vulkan_sampler.hpp>
-#include <vulkan_state.hpp>
 #include <vulkan_texture.hpp>
 
 namespace Trinex
@@ -296,12 +295,12 @@ namespace Trinex
 				return *this;
 			}
 
-			inline Descriptor& operator=(const VulkanStateManager::UniformBuffer& buffer)
+			inline Descriptor& operator=(const VulkanContext::UniformBuffer& buffer)
 			{
-				VulkanStateManager::UniformBuffer& dst = as<VulkanStateManager::UniformBuffer>();
-				dst.buffer                             = buffer.buffer;
-				dst.size                               = buffer.size;
-				dst.offset                             = buffer.offset;
+				VulkanContext::UniformBuffer& dst = as<VulkanContext::UniformBuffer>();
+				dst.buffer                        = buffer.buffer;
+				dst.size                          = buffer.size;
+				dst.offset                        = buffer.offset;
 				return *this;
 			}
 
@@ -335,7 +334,7 @@ namespace Trinex
 
 			inline void write_combined_image_sampler(vk::WriteDescriptorSet* write)
 			{
-				auto& [srv, sampler] = as<VulkanStateManager::CombinedImage>();
+				auto& [srv, sampler] = as<VulkanContext::CombinedImage>();
 				write->pImageInfo    = trx_stack_new vk::DescriptorImageInfo(sampler, srv->view(), eShaderReadOnlyOptimal);
 			}
 
@@ -347,7 +346,7 @@ namespace Trinex
 
 			inline void write_uniform_buffer(vk::WriteDescriptorSet* write)
 			{
-				auto& buffer       = as<VulkanStateManager::UniformBuffer>();
+				auto& buffer       = as<VulkanContext::UniformBuffer>();
 				write->pBufferInfo = trx_stack_new vk::DescriptorBufferInfo(buffer.buffer, 0, buffer.size);
 			}
 
@@ -407,7 +406,7 @@ namespace Trinex
 		return set;
 	}
 
-	vk::DescriptorSet VulkanDescriptorSetAllocator::allocate(VulkanPipelineLayout* layout, VulkanStateManager* state)
+	vk::DescriptorSet VulkanDescriptorSetAllocator::allocate(VulkanPipelineLayout* layout, VulkanContext* context)
 	{
 		const usize count      = layout->descriptors_count();
 		const auto* descritors = layout->descriptors();
@@ -425,31 +424,31 @@ namespace Trinex
 
 			switch (dst->type)
 			{
-				case vk::DescriptorType::eSampledImage: dst->descriptor = state->srv_images.resource(dst->binding); break;
-				case vk::DescriptorType::eSampler: dst->descriptor = state->samplers.resource(dst->binding); break;
+				case vk::DescriptorType::eSampledImage: dst->descriptor = context->srv_images.resource(dst->binding); break;
+				case vk::DescriptorType::eSampler: dst->descriptor = context->samplers.resource(dst->binding); break;
 				case vk::DescriptorType::eCombinedImageSampler:
 				{
-					dst->descriptor = VulkanStateManager::CombinedImage{
-					        state->srv_images.resource(dst->binding),
-					        state->samplers.resource(dst->binding),
+					dst->descriptor = VulkanContext::CombinedImage{
+					        context->srv_images.resource(dst->binding),
+					        context->samplers.resource(dst->binding),
 					};
 					break;
 				}
-				case vk::DescriptorType::eStorageImage: dst->descriptor = state->storage_buffers.resource(dst->binding); break;
+				case vk::DescriptorType::eStorageImage: dst->descriptor = context->storage_buffers.resource(dst->binding); break;
 				case vk::DescriptorType::eUniformBufferDynamic:
 				{
-					dst->descriptor = state->uniform_buffers.resource(dst->binding);
+					dst->descriptor = context->uniform_buffers.resource(dst->binding);
 					break;
 				}
-				case vk::DescriptorType::eStorageBuffer: dst->descriptor = state->storage_buffers.resource(dst->binding); break;
+				case vk::DescriptorType::eStorageBuffer: dst->descriptor = context->storage_buffers.resource(dst->binding); break;
 				case vk::DescriptorType::eUniformTexelBuffer:
-					dst->descriptor = state->uniform_texel_buffers.resource(dst->binding);
+					dst->descriptor = context->uniform_texel_buffers.resource(dst->binding);
 					break;
 				case vk::DescriptorType::eStorageTexelBuffer:
-					dst->descriptor = state->storage_texel_buffers.resource(dst->binding);
+					dst->descriptor = context->storage_texel_buffers.resource(dst->binding);
 					break;
 				case vk::DescriptorType::eAccelerationStructureKHR:
-					dst->descriptor = state->acceleration_structures.resource(dst->binding);
+					dst->descriptor = context->acceleration_structures.resource(dst->binding);
 					break;
 				default: dst->descriptor.zeros(); break;
 			}

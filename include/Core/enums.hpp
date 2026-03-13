@@ -122,35 +122,6 @@ namespace Trinex
 
 	using FileSeekDir = BufferSeekDir;
 
-	struct ShaderType {
-		enum Enum : EnumerateType
-		{
-			Undefined           = 0,
-			Vertex              = BIT(0),
-			TessellationControl = BIT(1),
-			Tessellation        = BIT(2),
-			Geometry            = BIT(3),
-			Fragment            = BIT(4),
-			Compute             = BIT(5),
-
-			All           = Vertex | TessellationControl | Tessellation | Geometry | Fragment | Compute,
-			BasicGraphics = Vertex | Fragment,
-		};
-
-		trinex_bitfield_enum_struct(ShaderType, EnumerateType);
-	};
-
-	struct MaterialDomain {
-		enum Enum : EnumerateType
-		{
-			Surface     = 0,
-			PostProcess = 1,
-		};
-
-		trinex_enum_struct(MaterialDomain);
-		trinex_enum(MaterialDomain);
-	};
-
 	struct SplashTextType {
 		enum Enum : EnumerateType
 		{

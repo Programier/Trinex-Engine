@@ -141,7 +141,7 @@ namespace Trinex::VulkanEnums
 		}
 	}
 
-	constexpr inline vk::BlendFactor blend_func_of(RHIBlendFunc func, bool is_for_alpha)
+	constexpr inline vk::BlendFactor blend_func_of(RHIBlendFunc func)
 	{
 		switch (func)
 		{
@@ -155,11 +155,6 @@ namespace Trinex::VulkanEnums
 			case RHIBlendFunc::OneMinusSrcAlpha: return vk::BlendFactor::eOneMinusSrcAlpha;
 			case RHIBlendFunc::DstAlpha: return vk::BlendFactor::eDstAlpha;
 			case RHIBlendFunc::OneMinusDstAlpha: return vk::BlendFactor::eOneMinusDstAlpha;
-			case RHIBlendFunc::BlendFactor:
-				return is_for_alpha ? vk::BlendFactor::eConstantAlpha : vk::BlendFactor::eConstantColor;
-			case RHIBlendFunc::OneMinusBlendFactor:
-				return is_for_alpha ? vk::BlendFactor::eOneMinusConstantAlpha : vk::BlendFactor::eOneMinusConstantColor;
-
 			default: return vk::BlendFactor::eZero;
 		}
 	}
@@ -413,15 +408,14 @@ namespace Trinex::VulkanEnums
 		}
 	}
 
-	static inline vk::PrimitiveTopology primitive_topology_of(RHIPrimitiveTopology topology)
+	static inline vk::PrimitiveTopology primitive_topology_of(RHITopology topology)
 	{
 		switch (topology)
 		{
-			case RHIPrimitiveTopology::TriangleList: return vk::PrimitiveTopology::eTriangleList;
-			case RHIPrimitiveTopology::TriangleStrip: return vk::PrimitiveTopology::eTriangleStrip;
-			case RHIPrimitiveTopology::LineList: return vk::PrimitiveTopology::eLineList;
-			case RHIPrimitiveTopology::LineStrip: return vk::PrimitiveTopology::eLineStrip;
-			case RHIPrimitiveTopology::PointList: return vk::PrimitiveTopology::ePointList;
+			case RHITopology::TriangleList: return vk::PrimitiveTopology::eTriangleList;
+			case RHITopology::TriangleStrip: return vk::PrimitiveTopology::eTriangleStrip;
+			case RHITopology::LineList: return vk::PrimitiveTopology::eLineList;
+			case RHITopology::LineStrip: return vk::PrimitiveTopology::eLineStrip;
 			default: return vk::PrimitiveTopology::eTriangleList;
 		}
 	}
@@ -431,7 +425,6 @@ namespace Trinex::VulkanEnums
 		switch (mode)
 		{
 			case RHIPolygonMode::Line: return vk::PolygonMode::eLine;
-			case RHIPolygonMode::Point: return vk::PolygonMode::ePoint;
 			default: return vk::PolygonMode::eFill;
 		}
 	}
@@ -609,30 +602,5 @@ namespace Trinex::VulkanEnums
 			result |= vk::RenderingFlagBits::eContentsSecondaryCommandBuffers;
 
 		return result;
-	}
-
-	static constexpr inline vk::SampleCountFlagBits sample_count_of(RHITextureCreateFlags flags)
-	{
-		if (flags & RHITextureCreateFlags::Samples8)
-			return vk::SampleCountFlagBits::e8;
-
-		if (flags & RHITextureCreateFlags::Samples4)
-			return vk::SampleCountFlagBits::e4;
-
-		if (flags & RHITextureCreateFlags::Samples2)
-			return vk::SampleCountFlagBits::e2;
-
-		return vk::SampleCountFlagBits::e1;
-	}
-
-	static constexpr inline vk::SampleCountFlagBits sample_count_of(RHISampleCount count)
-	{
-		switch (count)
-		{
-			case RHISampleCount::x2: return vk::SampleCountFlagBits::e2;
-			case RHISampleCount::x4: return vk::SampleCountFlagBits::e4;
-			case RHISampleCount::x8: return vk::SampleCountFlagBits::e8;
-			default: return vk::SampleCountFlagBits::e1;
-		}
 	}
 }// namespace Trinex::VulkanEnums

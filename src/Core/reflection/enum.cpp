@@ -15,7 +15,6 @@ namespace Trinex::Refl
 	Enum& Enum::register_enum_with_entries(const Vector<Enum::Entry>& entries)
 	{
 		String name = full_name();
-		info_log("Enum", "Register enum '%s'", name.c_str());
 
 		if (m_flags & IsScriptable)
 		{

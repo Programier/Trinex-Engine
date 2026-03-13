@@ -25,7 +25,6 @@ namespace Trinex::Refl
 
 	Class::Class(Class* parent, BitMask flags) : Struct(parent, flags)
 	{
-		info_log("Class", "Created class instance '%s'", this->full_name().c_str());
 		m_singletone_object = nullptr;
 
 		if (is_asset())

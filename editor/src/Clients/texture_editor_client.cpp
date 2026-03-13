@@ -184,7 +184,7 @@ namespace Trinex
 
 		ctx->bind_pipeline(pipeline->rhi_pipeline());
 		pipeline->update_mip(level).update_texture(src).update_transform(transform).update_mask(mask).update_range(range);
-		ctx->draw(6, 0);
+		ctx->draw(RHITopology::TriangleList, 6, 0);
 	}
 
 	static inline void render_texture_3d(RHITexture* src, u32 grid, u32 z, const Matrix4f& transform, Vector2f range, u32 level,
@@ -218,7 +218,7 @@ namespace Trinex
 			        .update_mask(mask)
 			        .update_range(range);
 
-			ctx->draw(6, 0);
+			ctx->draw(RHITopology::TriangleList, 6, 0);
 		}
 	}
 
@@ -253,7 +253,7 @@ namespace Trinex
 			        .update_mask(mask)
 			        .update_range(range);
 
-			ctx->draw(6, 0);
+			ctx->draw(RHITopology::TriangleList, 6, 0);
 		}
 	}
 

@@ -9,7 +9,6 @@
 #include <vulkan_enums.hpp>
 #include <vulkan_pipeline.hpp>
 #include <vulkan_raytracing.hpp>
-#include <vulkan_state.hpp>
 
 namespace Trinex
 {
@@ -323,7 +322,7 @@ namespace Trinex
 	VulkanContext& VulkanContext::bind_acceleration(RHIAccelerationStructure* acceleration, u8 slot)
 	{
 		auto tlas = static_cast<VulkanAccelerationStructure*>(acceleration);
-		m_state_manager->acceleration_structures.bind(tlas->handle(), slot);
+		acceleration_structures.bind(tlas->handle(), slot);
 		return *this;
 	}
 
@@ -333,7 +332,7 @@ namespace Trinex
 		auto& properties = API->ray_trace_properties();
 		const u64 handle = align_up(properties.shaderGroupHandleSize, properties.shaderGroupBaseAlignment);
 
-		auto pipeline = static_cast<VulkanRayTracingPipeline*>(m_state_manager->pipeline());
+		auto pipeline = static_cast<VulkanRayTracingPipeline*>(m_pipeline);
 
 		const vk::DeviceAddress sbt = pipeline->shader_binding_table()->address();
 		const usize groups          = pipeline->groups();
@@ -354,8 +353,7 @@ namespace Trinex
 			callable_region.size          = 0;
 		}
 
-		VulkanCommandHandle* cmd = m_state_manager->flush_raytrace(this);
-		cmd->traceRaysKHR(raygen_region, miss_region, hit_region, callable_region, width, height, depth);
+		flush_raytrace()->traceRaysKHR(raygen_region, miss_region, hit_region, callable_region, width, height, depth);
 		return *this;
 	}
 }// namespace Trinex

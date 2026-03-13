@@ -10,11 +10,6 @@ namespace Trinex::EditorRenderPasses
 		static RenderPassPermutations::SkeletalMesh skeletal_mesh(this);
 	}
 
-	HitProxy& HitProxy::apply_blending_state(RHIContext* ctx, const RHIBlendingState& state)
-	{
-		return *this;
-	}
-
 	bool HitProxy::is_material_compatible(const Material* material)
 	{
 		return true;

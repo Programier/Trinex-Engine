@@ -43,4 +43,17 @@ namespace Trinex
 	{
 		return reinterpret_cast<Type*>(align_down(reinterpret_cast<usize>(in), alignment));
 	}
+
+	struct HashBuilder {
+		u128 hash = 0;
+
+		HashBuilder(u128 seed = 0) : hash(seed) {}
+
+		template<typename... Args>
+		inline HashBuilder& add(const Args&... args)
+		{
+			((hash = memory_hash(&args, sizeof(Args), hash)), ...);
+			return *this;
+		}
+	};
 }// namespace Trinex

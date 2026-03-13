@@ -174,9 +174,6 @@ namespace Trinex
 			UnorderedAccess    = BIT(1),
 			RenderTarget       = BIT(2),
 			DepthStencilTarget = BIT(3),
-			Samples2           = BIT(4),
-			Samples4           = BIT(5),
-			Samples8           = BIT(6),
 		};
 
 		trinex_bitfield_enum_struct(RHITextureCreateFlags, u8);
@@ -334,18 +331,16 @@ namespace Trinex
 	struct RHIBlendFunc {
 		enum Enum : u8
 		{
-			Zero                = 0,
-			One                 = 1,
-			SrcColor            = 2,
-			OneMinusSrcColor    = 3,
-			DstColor            = 4,
-			OneMinusDstColor    = 5,
-			SrcAlpha            = 6,
-			OneMinusSrcAlpha    = 7,
-			DstAlpha            = 8,
-			OneMinusDstAlpha    = 9,
-			BlendFactor         = 10,
-			OneMinusBlendFactor = 11,
+			Zero             = 0,
+			One              = 1,
+			SrcColor         = 2,
+			OneMinusSrcColor = 3,
+			DstColor         = 4,
+			OneMinusDstColor = 5,
+			SrcAlpha         = 6,
+			OneMinusSrcAlpha = 7,
+			DstAlpha         = 8,
+			OneMinusDstAlpha = 9,
 		};
 
 		trinex_enum_struct(RHIBlendFunc);
@@ -366,26 +361,24 @@ namespace Trinex
 		trinex_enum(RHIBlendOp);
 	};
 
-	struct RHIPrimitiveTopology {
+	struct RHITopology {
 		enum Enum : u8
 		{
 			TriangleList  = 0,
 			TriangleStrip = 1,
 			LineList      = 2,
 			LineStrip     = 3,
-			PointList     = 4,
 		};
 
-		trinex_enum_struct(RHIPrimitiveTopology);
-		trinex_enum(RHIPrimitiveTopology);
+		trinex_enum_struct(RHITopology);
+		trinex_enum(RHITopology);
 	};
 
 	struct RHIPolygonMode {
 		enum Enum : u8
 		{
-			Fill  = 0,
-			Line  = 1,
-			Point = 2,
+			Fill = 0,
+			Line = 1,
 		};
 
 		trinex_enum_struct(RHIPolygonMode);
@@ -800,18 +793,6 @@ namespace Trinex
 
 		inline u32 width() const { return 1u << (value & 0b11); }
 		inline u32 height() const { return 1u << ((value >> 2) & 0b11); }
-	};
-
-	struct RHISampleCount {
-		enum Enum : u8
-		{
-			x1 = 0,
-			x2 = 1,
-			x4 = 2,
-			x8 = 3,
-		};
-
-		trinex_enum_struct(RHISampleCount);
 	};
 
 	struct RHILoadFunc {

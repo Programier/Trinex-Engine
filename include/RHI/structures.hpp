@@ -170,146 +170,170 @@ namespace Trinex
 		};
 	};
 
-	struct RHIDepthState final {
-		trinex_struct(RHIDepthState, void);
-		trinex_default_comparable(RHIDepthState);
+	struct ENGINE_EXPORT RHIDepthStencilState final {
+		trinex_default_comparable(RHIDepthStencilState);
 
-		RHICompareFunc func = RHICompareFunc::Less;
-		bool enable         = true;
-		bool write_enable   = true;
+		struct Depth {
+			trinex_default_comparable(Depth);
 
-		RHIDepthState(bool enable = true, RHICompareFunc func = RHICompareFunc::Less, bool write_enable = true)
-		    : func(func), enable(enable), write_enable(write_enable)
+			RHICompareFunc::Enum func : 7;
+			u8 write : 1;
+
+			constexpr inline Depth(RHICompareFunc func, bool write) : func(func), write(write) {}
+			constexpr inline bool is_enabled() const { return func != RHICompareFunc::Always; }
+		} depth;
+
+		struct Stencil {
+			trinex_default_comparable(Stencil);
+
+			RHIStencilOp::Enum fail : 4;
+			RHIStencilOp::Enum depth_pass : 4;
+			RHIStencilOp::Enum depth_fail : 4;
+			RHICompareFunc::Enum compare : 4;
+			u8 compare_mask;
+			u8 write_mask;
+			u8 reference;
+
+			constexpr inline Stencil(RHICompareFunc compare = RHICompareFunc::Always, RHIStencilOp fail = RHIStencilOp::Keep,
+			                         RHIStencilOp depth_fail = RHIStencilOp::Keep, RHIStencilOp depth_pass = RHIStencilOp::Keep,
+			                         u8 reference = 0, u8 compare_mask = 0xFF, u8 write_mask = 0xFF)
+			    : fail(fail), depth_pass(depth_pass), depth_fail(depth_fail), compare(compare), compare_mask(compare_mask),
+			      write_mask(write_mask), reference(reference)
+			{}
+
+			constexpr inline bool is_enabled() const
+			{
+				if (compare != RHICompareFunc::Always && compare_mask != 0)
+					return true;
+
+				if ((fail | depth_pass | depth_fail) && write_mask != 0)
+					return true;
+
+				return false;
+			}
+		} stencil;
+
+		constexpr inline RHIDepthStencilState(RHICompareFunc depth_func = RHICompareFunc::Always, bool depth_write = false,
+		                                      RHICompareFunc stencil_compare  = RHICompareFunc::Always,
+		                                      RHIStencilOp stencil_fail       = RHIStencilOp::Keep,
+		                                      RHIStencilOp stencil_depth_fail = RHIStencilOp::Keep,
+		                                      RHIStencilOp stencil_depth_pass = RHIStencilOp::Keep, u8 stencil_reference = 0,
+		                                      u8 stencil_compare_mask = 0xFF, u8 stencil_write_mask = 0xFF)
+		    : depth(depth_func, depth_write), stencil(stencil_compare, stencil_fail, stencil_depth_fail, stencil_depth_pass,
+		                                              stencil_reference, stencil_compare_mask, stencil_write_mask)
 		{}
 
-		bool serialize(Archive& ar);
-	};
-
-	struct RHIStencilState final {
-		trinex_struct(RHIStencilState, void);
-		trinex_default_comparable(RHIStencilState);
-
-		RHIStencilOp fail;
-		RHIStencilOp depth_pass;
-		RHIStencilOp depth_fail;
-		RHICompareFunc compare;
-		u8 compare_mask;
-		u8 write_mask;
-		u8 reference;
-		bool enable;
-
-		inline RHIStencilState(bool enable = false, RHICompareFunc compare = RHICompareFunc::Always,
-		                       RHIStencilOp fail = RHIStencilOp::Keep, RHIStencilOp depth_fail = RHIStencilOp::Keep,
-		                       RHIStencilOp depth_pass = RHIStencilOp::Keep, u8 reference = 0, u8 compare_mask = 0xFF,
-		                       u8 write_mask = 0xFF)
-		    : fail(fail), depth_pass(depth_pass), depth_fail(depth_fail), compare(compare), compare_mask(compare_mask),
-		      write_mask(write_mask), reference(reference), enable(enable)
-		{}
-
-		bool serialize(Archive& ar);
+		constexpr inline bool is_enabled() const { return depth.is_enabled() || stencil.is_enabled(); }
 	};
 
 	struct ENGINE_EXPORT RHIBlendingState final {
-		trinex_struct(RHIBlendingState, void);
 		trinex_default_comparable(RHIBlendingState);
 
-		static RHIBlendingState opaque;
-		static RHIBlendingState translucent;
-		static RHIBlendingState additive;
-		static RHIBlendingState add;
-		static RHIBlendingState multiply;
+		static constexpr RHIBlendingState opaque(RHIColorComponent write_mask = RHIColorComponent::RGBA)
+		{
+			return RHIBlendingState(write_mask, RHIBlendFunc::One, RHIBlendFunc::Zero, RHIBlendOp::Add, RHIBlendFunc::One,
+			                        RHIBlendFunc::Zero, RHIBlendOp::Add);
+		}
 
-		RHIBlendFunc src_color_func;
-		RHIBlendFunc dst_color_func;
-		RHIBlendOp color_op;
-		RHIBlendFunc src_alpha_func;
-		RHIBlendFunc dst_alpha_func;
-		RHIBlendOp alpha_op;
-		bool enable;
+		static constexpr RHIBlendingState translucent(RHIColorComponent write_mask = RHIColorComponent::RGBA)
+		{
+			return RHIBlendingState(write_mask, RHIBlendFunc::SrcAlpha, RHIBlendFunc::OneMinusSrcAlpha, RHIBlendOp::Add,
+			                        RHIBlendFunc::One, RHIBlendFunc::OneMinusSrcAlpha, RHIBlendOp::Add);
+		}
 
-		inline RHIBlendingState(bool enable = false, RHIBlendFunc src_color_func = RHIBlendFunc::SrcAlpha,
-		                        RHIBlendFunc dst_color_func = RHIBlendFunc::OneMinusSrcAlpha,
-		                        RHIBlendOp color_op = RHIBlendOp::Add, RHIBlendFunc src_alpha_func = RHIBlendFunc::One,
-		                        RHIBlendFunc dst_alpha_func = RHIBlendFunc::OneMinusSrcAlpha,
-		                        RHIBlendOp alpha_op         = RHIBlendOp::Add)
-		    : src_color_func(src_color_func), dst_color_func(dst_color_func), color_op(color_op), src_alpha_func(src_alpha_func),
-		      dst_alpha_func(dst_alpha_func), alpha_op(alpha_op), enable(enable)
+		static constexpr RHIBlendingState additive(RHIColorComponent write_mask = RHIColorComponent::RGBA)
+		{
+			return RHIBlendingState(write_mask, RHIBlendFunc::SrcAlpha, RHIBlendFunc::One, RHIBlendOp::Add,
+			                        RHIBlendFunc::SrcAlpha, RHIBlendFunc::One, RHIBlendOp::Add);
+		}
+
+		static constexpr RHIBlendingState add(RHIColorComponent write_mask = RHIColorComponent::RGBA)
+		{
+			return RHIBlendingState(write_mask, RHIBlendFunc::One, RHIBlendFunc::One, RHIBlendOp::Add, RHIBlendFunc::One,
+			                        RHIBlendFunc::One, RHIBlendOp::Add);
+		}
+
+		static constexpr RHIBlendingState multiply(RHIColorComponent write_mask = RHIColorComponent::RGBA)
+		{
+			return RHIBlendingState(write_mask, RHIBlendFunc::DstColor, RHIBlendFunc::Zero, RHIBlendOp::Add,
+			                        RHIBlendFunc::DstAlpha, RHIBlendFunc::Zero, RHIBlendOp::Add);
+		}
+
+		RHIColorComponent write_mask = RHIColorComponent::RGBA;
+		RHIBlendFunc::Enum src_color_func : 4;
+		RHIBlendFunc::Enum dst_color_func : 4;
+		RHIBlendFunc::Enum src_alpha_func : 4;
+		RHIBlendFunc::Enum dst_alpha_func : 4;
+		RHIBlendOp::Enum color_op : 4;
+		RHIBlendOp::Enum alpha_op : 4;
+
+		constexpr inline RHIBlendingState(RHIColorComponent write_mask = RHIColorComponent::RGBA,
+		                                  RHIBlendFunc src_color_func  = RHIBlendFunc::One,
+		                                  RHIBlendFunc dst_color_func = RHIBlendFunc::Zero, RHIBlendOp color_op = RHIBlendOp::Add,
+		                                  RHIBlendFunc src_alpha_func = RHIBlendFunc::One,
+		                                  RHIBlendFunc dst_alpha_func = RHIBlendFunc::Zero, RHIBlendOp alpha_op = RHIBlendOp::Add)
+		    : write_mask(write_mask), src_color_func(src_color_func), dst_color_func(dst_color_func),
+		      src_alpha_func(src_alpha_func), dst_alpha_func(dst_alpha_func), color_op(color_op), alpha_op(alpha_op)
 		{}
 
-		bool serialize(Archive& ar);
-
-		inline bool is_opaque() const
+		constexpr inline bool is_enabled() const
 		{
-			return !enable ||
-			       (src_color_func == RHIBlendFunc::One && dst_color_func == RHIBlendFunc::Zero && color_op == RHIBlendOp::Add);
+			const bool color_blend = (src_color_func != RHIBlendFunc::One) || (dst_color_func != RHIBlendFunc::Zero) ||
+			                         (color_op != RHIBlendOp::Add);
+
+			const bool alpha_blend = (src_alpha_func != RHIBlendFunc::One) || (dst_alpha_func != RHIBlendFunc::Zero) ||
+			                         (alpha_op != RHIBlendOp::Add);
+
+			return color_blend || alpha_blend;
 		}
 
-		inline bool is_translucent() const { return !is_opaque(); }
-
-		inline bool is_alpha_blend() const
+		constexpr inline bool is_opaque() const
 		{
-			return enable && src_color_func == RHIBlendFunc::SrcAlpha && dst_color_func == RHIBlendFunc::OneMinusSrcAlpha &&
+			return (src_color_func == RHIBlendFunc::One && dst_color_func == RHIBlendFunc::Zero && color_op == RHIBlendOp::Add) &&
+			       (src_alpha_func == RHIBlendFunc::One && dst_alpha_func == RHIBlendFunc::Zero && alpha_op == RHIBlendOp::Add);
+		}
+
+		constexpr inline bool is_translucent() const
+		{
+			return (dst_color_func != RHIBlendFunc::Zero) || (dst_alpha_func != RHIBlendFunc::Zero);
+		}
+
+		constexpr inline bool is_alpha_blend() const
+		{
+			return src_color_func == RHIBlendFunc::SrcAlpha && dst_color_func == RHIBlendFunc::OneMinusSrcAlpha &&
 			       color_op == RHIBlendOp::Add;
 		}
 
-		inline bool is_additive() const
+		constexpr inline bool is_additive() const
 		{
-			return enable && src_color_func == RHIBlendFunc::One && dst_color_func == RHIBlendFunc::One &&
-			       color_op == RHIBlendOp::Add;
+			return src_color_func == RHIBlendFunc::One && dst_color_func == RHIBlendFunc::One && color_op == RHIBlendOp::Add;
 		}
 
-		inline bool is_multiplicative() const
+		constexpr inline bool is_multiplicative() const
 		{
-			return enable && src_color_func == RHIBlendFunc::DstColor && dst_color_func == RHIBlendFunc::Zero &&
-			       color_op == RHIBlendOp::Add;
+			return (src_color_func == RHIBlendFunc::DstColor && dst_color_func == RHIBlendFunc::Zero &&
+			        color_op == RHIBlendOp::Add) ||
+			       (src_color_func == RHIBlendFunc::Zero && dst_color_func == RHIBlendFunc::SrcColor &&
+			        color_op == RHIBlendOp::Add);
 		}
 
-		inline bool is_alpha_replace() const
+		constexpr inline bool is_alpha_replace() const
 		{
-			return enable && src_alpha_func == RHIBlendFunc::One && dst_alpha_func == RHIBlendFunc::Zero &&
-			       alpha_op == RHIBlendOp::Add;
-		}
-
-		inline bool is_symmetric() const
-		{
-			return src_color_func == src_alpha_func && dst_color_func == dst_alpha_func && color_op == alpha_op;
-		}
-
-		inline bool affects_color() const
-		{
-			return enable && !(src_color_func == RHIBlendFunc::One && dst_color_func == RHIBlendFunc::Zero);
+			return src_alpha_func == RHIBlendFunc::One && dst_alpha_func == RHIBlendFunc::Zero && alpha_op == RHIBlendOp::Add;
 		}
 	};
 
 	struct RHIRasterizerState {
-		RHIPrimitiveTopology topology   = RHIPrimitiveTopology::TriangleList;
-		RHIPolygonMode polygon_mode     = RHIPolygonMode::Fill;
-		RHICullMode cull_mode           = RHICullMode::None;
-		RHIFrontFace front_face         = RHIFrontFace::CounterClockWise;
-		RHIColorComponent write_mask    = RHIColorComponent::RGBA;
-		bool depth_clamp_enable         = false;
-		bool rasterizer_discard         = false;
-		bool conservative_raster_enable = false;
+		trinex_default_comparable(RHIRasterizerState);
 
-		struct DepthBias {
-			float constant = 0.0f;
-			float clamp    = 0.0f;
-			float slope    = 0.0f;
-
-			inline bool is_enabled() const { return constant != 0.0f || clamp != 0.0f || slope != 0.0f; }
-		} depth_bias;
-	};
-
-	struct RHIMultiSampleState {
-		u32 sample_mask               = 0xFFFFFFFF;
-		RHISampleCount samples        = RHISampleCount::x1;
-		bool alpha_to_coverage_enable = false;
-		bool alpha_to_one_enable      = false;
+		RHICullMode::Enum cull_mode : 2       = RHICullMode::None;
+		RHIPolygonMode::Enum polygon_mode : 1 = RHIPolygonMode::Fill;
+		RHIFrontFace::Enum front_face : 1     = RHIFrontFace::CounterClockWise;
+		u8 depth_bias : 1                     = false;
 	};
 
 	struct RHIColorAttachmentInfo {
-		RHIRenderTargetView* view         = nullptr;
-		RHIRenderTargetView* resolve_view = nullptr;
+		RHIRenderTargetView* view = nullptr;
 
 		union
 		{
@@ -318,23 +342,19 @@ namespace Trinex
 			Vector4f color;
 		};
 
-		RHILoadFunc load       = RHILoadFunc::Load;
-		RHIStoreFunc store     = RHIStoreFunc::Store;
-		RHIResolveFunc resolve = RHIResolveFunc::Undefined;
+		RHILoadFunc load   = RHILoadFunc::Load;
+		RHIStoreFunc store = RHIStoreFunc::Store;
 	};
 
 	struct RHIDepthStencilAttachmentInfo {
-		RHIDepthStencilView* view         = nullptr;
-		RHIDepthStencilView* resolve_view = nullptr;
+		RHIDepthStencilView* view = nullptr;
 
-		float depth                    = 0.f;
-		u8 stencil                     = 0;
-		RHILoadFunc depth_load         = RHILoadFunc::Load;
-		RHILoadFunc stencil_load       = RHILoadFunc::Load;
-		RHIStoreFunc depth_store       = RHIStoreFunc::Store;
-		RHIStoreFunc stencil_store     = RHIStoreFunc::Store;
-		RHIResolveFunc depth_resolve   = RHIResolveFunc::Undefined;
-		RHIResolveFunc stencil_resolve = RHIResolveFunc::Undefined;
+		float depth                = 0.f;
+		u8 stencil                 = 0;
+		RHILoadFunc depth_load     = RHILoadFunc::Load;
+		RHILoadFunc stencil_load   = RHILoadFunc::Load;
+		RHIStoreFunc depth_store   = RHIStoreFunc::Store;
+		RHIStoreFunc stencil_store = RHIStoreFunc::Store;
 	};
 
 	struct RHIRenderingInfo {
@@ -384,7 +404,6 @@ namespace Trinex
 		RHIContext* primary              = nullptr;
 		RHISurfaceFormat colors[4]       = {RHISurfaceFormat::Undefined};
 		RHISurfaceFormat depth           = RHISurfaceFormat::Undefined;
-		RHISampleCount samples           = RHISampleCount::x1;
 		RHIContextInheritanceFlags flags = RHIContextInheritanceFlags::Undefined;
 	};
 }// namespace Trinex

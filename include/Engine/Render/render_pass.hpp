@@ -8,9 +8,10 @@ namespace Trinex
 	class RenderPassPermutation;
 
 	class RHIContext;
-	struct RHIDepthState;
-	struct RHIStencilState;
+	class Renderer;
+	struct RHIDepthStencilState;
 	struct RHIBlendingState;
+	struct RHIRasterizerState;
 
 	class ENGINE_EXPORT RenderPass
 	{
@@ -36,9 +37,11 @@ namespace Trinex
 		static inline RenderPass* static_last_pass() { return s_tail; }
 		static RenderPass* static_find(const Name& name);
 
-		virtual RenderPass& apply_depth_state(RHIContext* ctx, const RHIDepthState& state);
-		virtual RenderPass& apply_stencil_state(RHIContext* ctx, const RHIStencilState& state);
-		virtual RenderPass& apply_blending_state(RHIContext* ctx, const RHIBlendingState& state);
+		virtual RenderPass& begin(Renderer* renderer, RHIContext* ctx);
+		virtual bool depth_stencil_state(RHIDepthStencilState& state);
+		virtual bool blending_state(RHIBlendingState& state);
+		virtual bool rasterizer_state(RHIRasterizerState& state);
+		virtual RenderPass& end(Renderer* renderer, RHIContext* ctx);
 
 		virtual bool is_material_compatible(const Material* material);
 		virtual RenderPass& modify_shader_compilation_env(ShaderCompilationEnvironment* env);
@@ -62,9 +65,11 @@ namespace Trinex
 	public:
 		RenderPassPermutation(const char* name, RenderPass* owner);
 
-		RenderPassPermutation& apply_depth_state(RHIContext* ctx, const RHIDepthState& state) override;
-		RenderPassPermutation& apply_stencil_state(RHIContext* ctx, const RHIStencilState& state) override;
-		RenderPassPermutation& apply_blending_state(RHIContext* ctx, const RHIBlendingState& state) override;
+		RenderPassPermutation& begin(Renderer* renderer, RHIContext* ctx) override;
+		bool depth_stencil_state(RHIDepthStencilState& state) override;
+		bool blending_state(RHIBlendingState& state) override;
+		bool rasterizer_state(RHIRasterizerState& state) override;
+		RenderPassPermutation& end(Renderer* renderer, RHIContext* ctx) override;
 
 		bool is_material_compatible(const Material* material) override;
 		RenderPassPermutation& modify_shader_compilation_env(ShaderCompilationEnvironment* env) override;
@@ -143,6 +148,10 @@ private:
 		public:
 			bool is_material_compatible(const Material* material) override;
 			Geometry& modify_shader_compilation_env(ShaderCompilationEnvironment* env) override;
+
+			Geometry& begin(Renderer* renderer, RHIContext* ctx) override;
+			bool depth_stencil_state(RHIDepthStencilState& state) override;
+			bool blending_state(RHIBlendingState& state) override;
 		};
 
 		class ENGINE_EXPORT Translucent : public RenderPass
@@ -152,6 +161,8 @@ private:
 		public:
 			bool is_material_compatible(const Material* material) override;
 			Translucent& modify_shader_compilation_env(ShaderCompilationEnvironment* env) override;
+
+			Translucent& begin(Renderer* renderer, RHIContext* ctx) override;
 		};
 	}// namespace RenderPasses
 }// namespace Trinex

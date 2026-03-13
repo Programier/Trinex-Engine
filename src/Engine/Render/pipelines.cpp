@@ -19,17 +19,10 @@ namespace Trinex::Pipelines
 {
 	static inline void push_context_state(Pipeline* pipeline, RHIContext* ctx)
 	{
-		ctx->depth_state(RHIDepthState(false));
-		ctx->stencil_state(RHIStencilState(false));
-		ctx->push_primitive_topology(RHIPrimitiveTopology::TriangleList);
-		ctx->push_cull_mode(RHICullMode::None);
+		ctx->depth_stencil_state(RHIDepthStencilState());
+		ctx->blending_state(RHIBlendingState());
+		ctx->rasterizer_state(RHIRasterizerState());
 		ctx->bind_pipeline(pipeline->rhi_pipeline());
-	}
-
-	static inline void pop_context_state(RHIContext* ctx)
-	{
-		ctx->pop_primitive_topology();
-		ctx->pop_cull_mode();
 	}
 
 	trinex_implement_pipeline(GaussianBlur, "[shaders]:/TrinexEngine/trinex/graphics/gaussian_blur.slang")
@@ -68,9 +61,7 @@ namespace Trinex::Pipelines
 		ctx->bind_sampler(sampler, self->m_source->binding);
 		ctx->update_scalar(&args, sizeof(args), self->m_args);
 
-		ctx->draw(6, 0);
-
-		pop_context_state(ctx);
+		ctx->draw(RHITopology::TriangleList, 6, 0);
 	}
 
 	trinex_implement_pipeline(Blit2D, "[shaders]:/TrinexEngine/trinex/graphics/blit.slang")
@@ -104,9 +95,7 @@ namespace Trinex::Pipelines
 		ctx->bind_sampler(sampler, self->m_source->binding);
 		ctx->update_scalar(&shader_args, sizeof(shader_args), self->m_args);
 
-		ctx->draw(6, 0);
-
-		pop_context_state(ctx);
+		ctx->draw(RHITopology::TriangleList, 6, 0);
 	}
 
 	trinex_implement_pipeline(Passthrow, "[shaders]:/TrinexEngine/trinex/graphics/passthrow.slang")
@@ -138,9 +127,7 @@ namespace Trinex::Pipelines
 		ctx->bind_srv(src, self->m_scene->binding);
 		ctx->bind_sampler(sampler, self->m_scene->binding);
 		ctx->update_scalar(&args, sizeof(args), self->m_args);
-		ctx->draw(6, 0);
-
-		pop_context_state(ctx);
+		ctx->draw(RHITopology::TriangleList, 6, 0);
 	}
 
 	trinex_implement_pipeline(Downsample, "[shaders]:/TrinexEngine/trinex/graphics/downsample.slang")
@@ -165,9 +152,7 @@ namespace Trinex::Pipelines
 		ctx->bind_srv(src, m_scene->binding);
 		ctx->bind_sampler(RHIBilinearSampler::static_sampler(), m_scene->binding);
 		ctx->update_scalar(&args, m_args);
-		ctx->draw(6, 0);
-
-		pop_context_state(ctx);
+		ctx->draw(RHITopology::TriangleList, 6, 0);
 	}
 
 	trinex_implement_pipeline(BloomExtract, "[shaders]:/TrinexEngine/trinex/graphics/bloom/extract.slang")
@@ -179,8 +164,6 @@ namespace Trinex::Pipelines
 	void BloomExtract::extract(RHIContext* ctx, RHIShaderResourceView* src, float threshold, float knee, float clamp,
 	                           Vector2f offset, Vector2f size)
 	{
-		push_context_state(this, ctx);
-
 		struct Args {
 			alignas(8) Vector2f offset;
 			alignas(8) Vector2f size;
@@ -196,12 +179,11 @@ namespace Trinex::Pipelines
 		args.knee      = threshold * knee;
 		args.clamp     = clamp;
 
+		ctx->bind_pipeline(rhi_pipeline());
 		ctx->bind_srv(src, m_scene->binding);
 		ctx->bind_sampler(RHIBilinearSampler::static_sampler(), m_scene->binding);
 		ctx->update_scalar(&args, sizeof(args), m_args);
-		ctx->draw(6, 0);
-
-		pop_context_state(ctx);
+		ctx->draw(RHITopology::TriangleList, 6, 0);
 	}
 
 	trinex_implement_pipeline(BloomDownsample, "[shaders]:/TrinexEngine/trinex/graphics/bloom/downsample.slang")
@@ -211,13 +193,10 @@ namespace Trinex::Pipelines
 
 	void BloomDownsample::downsample(RHIContext* ctx, RHIShaderResourceView* src)
 	{
-		push_context_state(this, ctx);
-
+		ctx->bind_pipeline(rhi_pipeline());
 		ctx->bind_srv(src, m_scene->binding);
 		ctx->bind_sampler(RHIBilinearSampler::static_sampler(), m_scene->binding);
-		ctx->draw(6, 0);
-
-		pop_context_state(ctx);
+		ctx->draw(RHITopology::TriangleList, 6, 0);
 	}
 
 	trinex_implement_pipeline(BloomUpsample, "[shaders]:/TrinexEngine/trinex/graphics/bloom/upsample.slang")
@@ -228,8 +207,6 @@ namespace Trinex::Pipelines
 
 	void BloomUpsample::upsample(RHIContext* ctx, RHIShaderResourceView* src, float weight, Vector2f offset, Vector2f size)
 	{
-		push_context_state(this, ctx);
-
 		struct Args {
 			Vector2f offset;
 			Vector2f size;
@@ -241,12 +218,11 @@ namespace Trinex::Pipelines
 		args.size   = size;
 		args.weight = weight;
 
+		ctx->bind_pipeline(rhi_pipeline());
 		ctx->bind_srv(src, m_scene->binding);
 		ctx->bind_sampler(RHIBilinearSampler::static_sampler(), m_scene->binding);
 		ctx->update_scalar(&args, m_args);
-		ctx->draw(6, 0);
-
-		pop_context_state(ctx);
+		ctx->draw(RHITopology::TriangleList, 6, 0);
 	}
 
 	trinex_implement_pipeline(BatchedLines, "[shaders]:/TrinexEngine/trinex/graphics/batched_lines.slang")
@@ -295,11 +271,11 @@ namespace Trinex::Pipelines
 		ctx->begin_rendering(renderer->scene_color_ldr_target()->as_rtv());
 		{
 			push_context_state(this, ctx);
+
 			ctx->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
 			ctx->bind_srv(renderer->scene_color_hdr_target()->as_srv(), m_hdr_target->binding);
 			ctx->bind_sampler(RHIPointSampler::static_sampler(), m_hdr_target->binding);
-			ctx->draw(6, 0);
-			pop_context_state(ctx);
+			ctx->draw(RHITopology::TriangleList, 6, 0);
 		}
 		ctx->end_rendering();
 
@@ -409,7 +385,7 @@ namespace Trinex::Pipelines
 		ctx->bind_srv(m_samples_buffer->as_srv(), m_samples->binding);
 		ctx->bind_sampler(RHIBilinearWrapSampler::static_sampler(), m_sampler->binding);
 
-		ctx->draw(6, 0);
+		ctx->draw(RHITopology::TriangleList, 6, 0);
 		return *this;
 	}
 
@@ -469,9 +445,7 @@ namespace Trinex::Pipelines
 		push_context_state(this, ctx);
 
 		ctx->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
-		ctx->draw(6, 0);
-
-		pop_context_state(ctx);
+		ctx->draw(RHITopology::TriangleList, 6, 0);
 		return *this;
 	}
 }// namespace Trinex::Pipelines

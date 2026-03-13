@@ -13,7 +13,6 @@
 #include <vulkan_resource_view.hpp>
 #include <vulkan_sampler.hpp>
 #include <vulkan_shader.hpp>
-#include <vulkan_state.hpp>
 #include <vulkan_texture.hpp>
 
 namespace Trinex

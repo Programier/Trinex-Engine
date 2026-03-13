@@ -68,6 +68,9 @@ namespace Trinex
 		RenderGraph::Pass* surface_clear_pass(SurfaceType type);
 		RHIBuffer* globals_uniform_buffer();
 
+		Renderer& render_primitives(PrimitiveComponent* const* primitives, usize count, RHIContext* ctx, RenderPass* pass,
+		                            RHIContextInheritanceInfo* inherit, MaterialBindings* bindings = nullptr);
+
 		virtual Renderer& render(RHIContext* ctx);
 		virtual Renderer& reset(const SceneView& view);
 
