@@ -12,7 +12,7 @@ namespace Trinex
 
 	bool ShaderCompilationResult::initialize_pipeline(class GraphicsPipeline* pipeline)
 	{
-		if (shaders.vertex.empty() || shaders.fragment.empty())
+		if (shaders.vertex.empty())
 			return false;
 
 		pipeline->clear();

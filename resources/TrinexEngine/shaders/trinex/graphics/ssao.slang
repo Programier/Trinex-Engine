@@ -65,7 +65,7 @@ float4 fragment_main(in float4 position: SV_Position) : SV_Target
 
 	float3 noise  = noise_texture.Sample(sampler, viewport_uv * args.noise_scale).xyz * 2.0 - 1.f;
 	float3 normal = rotate_normal(scene_normal.Sample(sampler, screen_uv).xyz * 2.f - 1.f);
-	float3 position = to_view_space(scene_view.reconstruct_position(position.xy, scene_depth.Sample(sampler, screen_uv).r));
+	float3 position = to_view_space(scene_view.reconstruct_position(scene_view.screen_ndc(position.xy), scene_depth.Sample(sampler, screen_uv).r));
 	float1 depth    = position.z;
 
 	float occlusion = 0.0;
@@ -80,7 +80,7 @@ float4 fragment_main(in float4 position: SV_Position) : SV_Target
 
 		float2 sample_uv = sample_ndc.xy * 0.5 + 0.5;
 
-		float3 sample_position = to_view_space(scene_view.reconstruct_position_from_ndc(sample_ndc, scene_depth.Sample(sampler, sample_uv).r));
+		float3 sample_position = to_view_space(scene_view.reconstruct_position(sample_ndc, scene_depth.Sample(sampler, sample_uv).r));
 		float1 sample_depth = sample_position.z;
 
 		float range_check = smoothstep(0.0, 1.0, args.radius / abs(depth - sample_depth));

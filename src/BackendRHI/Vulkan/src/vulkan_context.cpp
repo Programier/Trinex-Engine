@@ -71,29 +71,10 @@ namespace Trinex
 
 	VulkanCommandHandle* VulkanContext::flush_graphics()
 	{
-		trinex_profile_cpu_n("VulkanStateManagerREMOVE::flush_graphics");
+		trinex_profile_cpu_n("VulkanContext::flush_graphics");
 		trinex_assert_msg(m_pipeline, "Pipeline can't be nullptr");
 
 		m_pipeline->flush(this);
-
-		if (is_dirty(ShadingRate))
-		{
-			if (API->is_extension_enabled(VulkanAPI::find_extension_index(VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME)))
-			{
-				vk::Extent2D extent;
-				extent.width  = m_shading_rate.width();
-				extent.height = m_shading_rate.height();
-
-				vk::FragmentShadingRateCombinerOpKHR ops[2] = {
-				        VulkanEnums::shading_rate_combiner_of(m_shading_rate_combiners[0]),
-				        VulkanEnums::shading_rate_combiner_of(m_shading_rate_combiners[1]),
-				};
-
-				m_cmd->setFragmentShadingRateKHR(extent, ops);
-			}
-
-			remove_dirty(ShadingRate);
-		}
 
 		if (is_dirty(Viewport))
 		{
@@ -102,8 +83,8 @@ namespace Trinex
 			vulkan_viewport.setHeight(m_viewport.size.y * static_cast<float>(m_framebuffer.size.y));
 			vulkan_viewport.setX(m_viewport.pos.x * static_cast<float>(m_framebuffer.size.x));
 			vulkan_viewport.setY(m_viewport.pos.y * static_cast<float>(m_framebuffer.size.y));
-			vulkan_viewport.setMinDepth(m_viewport.min_depth);
-			vulkan_viewport.setMaxDepth(m_viewport.max_depth);
+			vulkan_viewport.setMinDepth(0.f);
+			vulkan_viewport.setMaxDepth(1.f);
 			m_cmd->setViewport(0, vulkan_viewport);
 
 			remove_dirty(Viewport);
@@ -163,10 +144,6 @@ namespace Trinex
 		vertex_attributes.make_dirty();
 		m_framebuffer = Framebuffer();
 		m_topology    = RHITopology::TriangleList;
-
-		m_shading_rate              = RHIShadingRate::e1x1;
-		m_shading_rate_combiners[0] = RHIShadingRateCombiner::Keep;
-		m_shading_rate_combiners[1] = RHIShadingRateCombiner::Keep;
 
 		m_pipeline_state->depth_stencil = {};
 		m_pipeline_state->blending      = {};
@@ -860,28 +837,6 @@ namespace Trinex
 			m_dirty_flags |= DepthBias;
 		}
 
-		return *this;
-	}
-
-	VulkanContext& VulkanContext::shading_rate(RHIShadingRate rate, RHIShadingRateCombiner* combiners)
-	{
-		if (!API->is_extension_enabled(VulkanAPI::find_extension_index(VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME)))
-			return *this;
-
-		if (m_shading_rate != rate)
-		{
-			m_shading_rate = rate;
-			m_dirty_flags |= ShadingRate;
-		}
-
-		for (u32 i = 0; i < 2; ++i)
-		{
-			if (m_shading_rate_combiners[i] != combiners[i])
-			{
-				m_shading_rate_combiners[i] = combiners[i];
-				m_dirty_flags |= ShadingRate;
-			}
-		}
 		return *this;
 	}
 

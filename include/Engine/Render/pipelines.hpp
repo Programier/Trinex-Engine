@@ -247,5 +247,17 @@ namespace Trinex
 		public:
 			CameraVelocity& render(RHIContext* ctx, Renderer* renderer);
 		};
+
+		class DepthView : public GlobalGraphicsPipeline
+		{
+			trinex_declare_pipeline(DepthView, GlobalGraphicsPipeline);
+
+		private:
+			const RHIShaderParameterInfo* m_scene_view;
+			const RHIShaderParameterInfo* m_scene_depth;
+
+		public:
+			DepthView& render(RHIContext* ctx, Renderer* renderer);
+		};
 	}// namespace Pipelines
 }// namespace Trinex

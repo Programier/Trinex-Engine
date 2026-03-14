@@ -113,12 +113,22 @@ namespace Trinex
 			}
 
 			case ViewMode::Unlit:
-			case ViewMode::Wireframe:
 			{
 				graph->add_pass("Base Color Resolve")
-				        .add_resource(base_color_target(), RHIAccess::TransferDst)
-				        .add_resource(scene_color_ldr_target(), RHIAccess::TransferDst)
-				        .add_func([this](RHIContext* ctx) { copy_base_color_to_scene_color(ctx); });
+				        .add_resource(base_color_target(), RHIAccess::SRVGraphics)
+				        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
+				        .add_func([this](RHIContext* ctx) {
+					        copy_to_scene_color(ctx, base_color_target(), {Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::One});
+				        });
+				break;
+			}
+
+			case ViewMode::Wireframe:
+			{
+				graph->add_pass("Wireframe Rendering")
+				        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
+				        .add_resource(scene_depth_target(), RHIAccess::DSV)
+				        .add_func([this](RHIContext* ctx) { wireframe_pass(ctx); });
 				break;
 			}
 
@@ -127,7 +137,9 @@ namespace Trinex
 				graph->add_pass("World Normal Resolve")
 				        .add_resource(normal_target(), RHIAccess::SRVGraphics)
 				        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
-				        .add_func([this](RHIContext* ctx) { copy_world_normal_to_scene_color(ctx); });
+				        .add_func([this](RHIContext* ctx) {
+					        copy_to_scene_color(ctx, normal_target(), {Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::One});
+				        });
 				break;
 			}
 
@@ -136,7 +148,9 @@ namespace Trinex
 				graph->add_pass("Metalic Resolve")
 				        .add_resource(msra_target(), RHIAccess::SRVGraphics)
 				        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
-				        .add_func([this](RHIContext* ctx) { copy_metalic_to_scene_color(ctx); });
+				        .add_func([this](RHIContext* ctx) {
+					        copy_to_scene_color(ctx, msra_target(), {Swizzle::R, Swizzle::R, Swizzle::R, Swizzle::One});
+				        });
 				break;
 			}
 
@@ -145,7 +159,9 @@ namespace Trinex
 				graph->add_pass("Roughness Resolve")
 				        .add_resource(msra_target(), RHIAccess::SRVGraphics)
 				        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
-				        .add_func([this](RHIContext* ctx) { copy_roughness_to_scene_color(ctx); });
+				        .add_func([this](RHIContext* ctx) {
+					        copy_to_scene_color(ctx, msra_target(), {Swizzle::G, Swizzle::G, Swizzle::G, Swizzle::One});
+				        });
 				break;
 			}
 
@@ -154,7 +170,9 @@ namespace Trinex
 				graph->add_pass("Specular Resolve")
 				        .add_resource(msra_target(), RHIAccess::SRVGraphics)
 				        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
-				        .add_func([this](RHIContext* ctx) { copy_specular_to_scene_color(ctx); });
+				        .add_func([this](RHIContext* ctx) {
+					        copy_to_scene_color(ctx, msra_target(), {Swizzle::B, Swizzle::B, Swizzle::B, Swizzle::One});
+				        });
 				break;
 			}
 
@@ -163,7 +181,10 @@ namespace Trinex
 				graph->add_pass("Emissive Resolve")
 				        .add_resource(scene_color_hdr_target(), RHIAccess::SRVGraphics)
 				        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
-				        .add_func([this](RHIContext* ctx) { copy_emissive_to_scene_color(ctx); });
+				        .add_func([this](RHIContext* ctx) {
+					        copy_to_scene_color(ctx, scene_color_hdr_target(),
+					                            {Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::One});
+				        });
 				break;
 			}
 
@@ -172,7 +193,9 @@ namespace Trinex
 				graph->add_pass("AO Resolve")
 				        .add_resource(msra_target(), RHIAccess::SRVGraphics)
 				        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
-				        .add_func([this](RHIContext* ctx) { copy_ambient_to_scene_color(ctx); });
+				        .add_func([this](RHIContext* ctx) {
+					        copy_to_scene_color(ctx, msra_target(), {Swizzle::A, Swizzle::A, Swizzle::A, Swizzle::One});
+				        });
 				break;
 			}
 
@@ -181,7 +204,18 @@ namespace Trinex
 				graph->add_pass("Velocity Resolve")
 				        .add_resource(velocity_target(), RHIAccess::TransferSrc)
 				        .add_resource(scene_color_ldr_target(), RHIAccess::TransferDst)
-				        .add_func([this](RHIContext* ctx) { copy_velocity_to_scene_color(ctx); });
+				        .add_func([this](RHIContext* ctx) {
+					        copy_to_scene_color(ctx, velocity_target(), {Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::One});
+				        });
+				break;
+			}
+
+			case ViewMode::Depth:
+			{
+				graph->add_pass("Depth Resolve")
+				        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
+				        .add_resource(scene_depth_target(), RHIAccess::SRVGraphics)
+				        .add_func([this](RHIContext* ctx) { copy_depth_to_scene_color(ctx); });
 				break;
 			}
 
@@ -236,11 +270,7 @@ namespace Trinex
 		        .add_func([this](RHIContext* ctx) {
 			        if (!lines.is_empty())
 			        {
-				        ctx->begin_rendering({scene_color_ldr_target()->as_rtv(), scene_depth_target()->as_dsv()});
-				        {
-					        lines.flush(ctx, this);
-				        }
-				        ctx->end_rendering();
+				        lines.flush(ctx, this);
 			        }
 		        });
 
@@ -410,6 +440,34 @@ namespace Trinex
 		return *this;
 	}
 
+	DeferredRenderer& DeferredRenderer::wireframe_pass(RHIContext* ctx)
+	{
+		// RHITexture* depth = request_surface(RHISurfaceFormat::D16);
+
+		// // Clear depth
+		// ctx->barrier(depth, RHIAccess::TransferDst);
+		// ctx->clear_dsv(depth->as_dsv());
+		// ctx->barrier(depth, RHIAccess::DSV);
+
+		// RHIRenderingInfo info = {scene_color_ldr_target()->as_rtv(), depth->as_dsv()};
+		// info.flags            = RHIRenderingFlags::SecondaryBuffersOnly;
+
+		// ctx->begin_rendering(info);
+		// {
+		// 	RHIContextInheritanceInfo inherit;
+		// 	inherit.primary   = ctx;
+		// 	inherit.colors[0] = scene_color_ldr_format();
+		// 	inherit.depth     = RHISurfaceFormat::D16;
+		// 	inherit.flags     = RHIContextInheritanceFlags::RenderPassContinue;
+
+		// 	render_visible_primitives(ctx, RenderPasses::Wireframe::static_instance(), &inherit);
+		// }
+		// ctx->end_rendering();
+
+		// return_surface(depth);
+		return *this;
+	}
+
 	DeferredRenderer& DeferredRenderer::geometry_pass(RHIContext* ctx)
 	{
 		RHIRenderingInfo info = {base_color_target()->as_rtv(), normal_target()->as_rtv(), scene_color_hdr_target()->as_rtv(),
@@ -564,14 +622,17 @@ namespace Trinex
 
 	DeferredRenderer& DeferredRenderer::deferred_lighting_pass(RHIContext* ctx)
 	{
-		RHISampler* sampler = Sampler(RHISamplerFilter::Point).rhi_sampler();
+		if (m_visible_lights.empty())
+			return *this;
 
-		if (!m_visible_lights.empty())
+		ctx->begin_rendering(scene_color_hdr_target()->as_rtv());
 		{
-			auto pipeline = Pipelines::DeferredLighting::instance();
+			RHISampler* sampler = Sampler(RHISamplerFilter::Point).rhi_sampler();
+			auto pipeline       = Pipelines::DeferredLighting::instance();
 
 			ctx->depth_stencil_state(RHIDepthStencilState());
 			ctx->blending_state(RHIBlendingState::additive());
+			ctx->rasterizer_state(RHIRasterizerState());
 
 			ctx->bind_pipeline(pipeline->rhi_pipeline());
 			ctx->bind_srv(base_color_target()->as_srv(), pipeline->base_color_texture->binding);
@@ -591,6 +652,7 @@ namespace Trinex
 
 			ctx->draw(RHITopology::TriangleList, 6, 0);
 		}
+		ctx->end_rendering();
 
 		return *this;
 	}
@@ -689,113 +751,30 @@ namespace Trinex
 		return *this;
 	}
 
-	DeferredRenderer& DeferredRenderer::copy_base_color_to_scene_color(RHIContext* ctx)
+	DeferredRenderer& DeferredRenderer::copy_to_scene_color(RHIContext* ctx, RHITexture* src, const Swizzle& swizzle)
 	{
-		auto src = base_color_target();
 		auto dst = scene_color_ldr_target();
-
-		RHITextureRegion region(scene_view().view_size());
-		ctx->blending_state(RHIBlendingState());
-		ctx->copy_texture_to_texture(src, region, dst, region);
-		return *this;
-	}
-
-	DeferredRenderer& DeferredRenderer::copy_world_normal_to_scene_color(RHIContext* ctx)
-	{
-		ctx->begin_rendering(scene_color_ldr_target()->as_rtv());
-		{
-			auto src = normal_target()->as_srv();
-			ctx->blending_state(RHIBlendingState());
-			Pipelines::Blit2D::instance()->blit(ctx, src, {0.f, 0.f}, 1.f / Vector2f(scene_view().view_size()),
-			                                    {Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::One});
-		}
-		ctx->end_rendering();
-		return *this;
-	}
-
-	DeferredRenderer& DeferredRenderer::copy_metalic_to_scene_color(RHIContext* ctx)
-	{
-		ctx->begin_rendering(scene_color_ldr_target()->as_rtv());
-		{
-			auto src = msra_target()->as_srv();
-
-			ctx->blending_state(RHIBlendingState());
-			Pipelines::Blit2D::instance()->blit(ctx, src, {0.f, 0.f}, 1.f / Vector2f(scene_view().view_size()),
-			                                    {Swizzle::R, Swizzle::R, Swizzle::R, Swizzle::One});
-		}
-		ctx->end_rendering();
-		return *this;
-	}
-
-	DeferredRenderer& DeferredRenderer::copy_specular_to_scene_color(RHIContext* ctx)
-	{
-		ctx->begin_rendering(scene_color_ldr_target()->as_rtv());
-		{
-			auto src = msra_target()->as_srv();
-			ctx->blending_state(RHIBlendingState());
-
-			RHIRect rect(scene_view().view_size());
-			Pipelines::Blit2D::instance()->blit(ctx, src, {0.f, 0.f}, 1.f / Vector2f(scene_view().view_size()),
-			                                    {Swizzle::G, Swizzle::G, Swizzle::G, Swizzle::One});
-		}
-		ctx->end_rendering();
-		return *this;
-	}
-
-	DeferredRenderer& DeferredRenderer::copy_roughness_to_scene_color(RHIContext* ctx)
-	{
-		ctx->begin_rendering(scene_color_ldr_target()->as_rtv());
-		{
-			auto src = msra_target()->as_srv();
-			ctx->blending_state(RHIBlendingState());
-
-			RHIRect rect(scene_view().view_size());
-			Pipelines::Blit2D::instance()->blit(ctx, src, {0.f, 0.f}, 1.f / Vector2f(scene_view().view_size()),
-			                                    {Swizzle::B, Swizzle::B, Swizzle::B, Swizzle::One});
-		}
-		ctx->end_rendering();
-		return *this;
-	}
-
-	DeferredRenderer& DeferredRenderer::copy_emissive_to_scene_color(RHIContext* ctx)
-	{
-		auto src = scene_color_hdr_target();
-		auto dst = scene_color_ldr_target();
-		ctx->blending_state(RHIBlendingState());
-
-		RHITextureRegion region(scene_view().view_size());
-		ctx->copy_texture_to_texture(src, region, dst, region);
-		return *this;
-	}
-
-	DeferredRenderer& DeferredRenderer::copy_ambient_to_scene_color(RHIContext* ctx)
-	{
-		auto src = msra_target()->as_srv();
-		ctx->begin_rendering(scene_color_ldr_target()->as_rtv());
+		ctx->begin_rendering(dst->as_rtv());
 		{
 			ctx->blending_state(RHIBlendingState());
-
-			RHIRect rect(scene_view().view_size());
-			Pipelines::Blit2D::instance()->blit(ctx, src, {0.f, 0.f}, 1.f / Vector2f(scene_view().view_size()),
-			                                    {Swizzle::A, Swizzle::A, Swizzle::A, Swizzle::One});
+			Pipelines::Blit2D::instance()->blit(ctx, src->as_srv(), {0.f, 0.f}, 1.f / Vector2f(scene_view().view_size()),
+			                                    swizzle);
 		}
 		ctx->end_rendering();
-		return *this;
-	}
-
-	DeferredRenderer& DeferredRenderer::copy_velocity_to_scene_color(RHIContext* ctx)
-	{
-		auto src = velocity_target();
-		auto dst = scene_color_ldr_target();
-		ctx->blending_state(RHIBlendingState());
-
-		RHITextureRegion region(scene_view().view_size());
-		ctx->copy_texture_to_texture(src, region, dst, region);
 		return *this;
 	}
 
 	DeferredRenderer& DeferredRenderer::copy_depth_to_scene_color(RHIContext* ctx)
 	{
+		ctx->depth_stencil_state(RHIDepthStencilState());
+		ctx->blending_state(RHIBlendingState());
+		ctx->rasterizer_state(RHIRasterizerState());
+
+		ctx->begin_rendering(RHIRenderingInfo(scene_color_ldr_target()->as_rtv()));
+		{
+			Pipelines::DepthView::instance()->render(ctx, this);
+		}
+		ctx->end_rendering();
 		return *this;
 	}
 

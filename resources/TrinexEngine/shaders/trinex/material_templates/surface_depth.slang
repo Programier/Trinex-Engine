@@ -49,6 +49,3 @@ float4 vertex_main(in VertexInput vs_input) : SV_Position
 	VertexMaterial material = main<VertexMaterial>(material_input);
 	return scene_view.camera.projview * float4(material_input.world_position + material.position_offset, 1.0f);
 }
-
-[shader("fragment")]
-float4 fragment_main() : SV_Target { return 0; }

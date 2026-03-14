@@ -86,8 +86,8 @@ void vertex_main(out VertexOutput output, uint vertex : SV_VertexID)
     float3 p = grid_plane[vertex];
     output.position = float4(p, 1.0);
 
-    output.near = unproject_point(p.x, p.y, 0.0);
-    output.far = unproject_point(p.x, p.y, 1.0);
+    output.near = unproject_point(p.x, p.y, 1.0);
+    output.far = unproject_point(p.x, p.y, 0.0);
 }
 
 [shader("fragment")]

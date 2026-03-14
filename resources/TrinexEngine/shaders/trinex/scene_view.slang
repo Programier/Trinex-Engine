@@ -6,9 +6,6 @@ struct SceneView
 		float2 pos;
 		float2 size;
 		float2 inv_size;
-
-		float min_depth;
-		float max_depth;
 	};
 
 	struct RenderTarget
@@ -42,20 +39,13 @@ struct SceneView
 	float time;
 	float delta_time;
 
+	inline int2 screen_coord(float2 coord) { return int2(viewport.pos + coord); }
 	inline float2 screen_uv(float2 coord) { return (viewport.pos + coord) * render_target.inv_size; }
-	inline float2 screen_uv_from_ndc(float2 ndc) { return screen_uv((ndc * 0.5f + 0.5f) * viewport.size); }
-	inline float2 viewport_uv(float2 coord) { return coord * viewport.inv_size; }
-	inline float2 viewport_uv_from_ndc(float2 ndc) { return ndc * 0.5f + 0.5f; }
 	inline float2 screen_ndc(float2 coord) { return (coord * viewport.inv_size) * 2.f - 1.f; }
-
-	inline float3 reconstruct_position(float2 coord, float depth)
-	{
-		float4 clip_space_pos = float4(screen_ndc(coord), depth, 1.0);
-		float4 view_space_pos = scene_view.camera.inv_projview * clip_space_pos;
-		return view_space_pos.xyz /= view_space_pos.w;
-	}
-
-	inline float3 reconstruct_position_from_ndc(float2 ndc, float depth)
+	
+	inline float2 viewport_uv(float2 coord) { return coord * viewport.inv_size; }
+	
+	inline float3 reconstruct_position(float2 ndc, float depth)
 	{
 		float4 clip_space_pos = float4(ndc, depth, 1.0);
 		float4 view_space_pos = scene_view.camera.inv_projview * clip_space_pos;

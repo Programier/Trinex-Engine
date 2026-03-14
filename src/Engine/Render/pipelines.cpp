@@ -448,4 +448,19 @@ namespace Trinex::Pipelines
 		ctx->draw(RHITopology::TriangleList, 6, 0);
 		return *this;
 	}
+
+	trinex_implement_pipeline(DepthView, "[shaders]:/TrinexEngine/trinex/graphics/depth_view.slang")
+	{
+		m_scene_view  = find_parameter("scene_view");
+		m_scene_depth = find_parameter("scene_depth");
+	}
+
+	DepthView& DepthView::render(RHIContext* ctx, Renderer* renderer)
+	{
+		ctx->bind_pipeline(rhi_pipeline());
+		ctx->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
+		ctx->bind_srv(renderer->scene_depth_target()->as_srv(), m_scene_depth->binding);
+		ctx->draw(RHITopology::TriangleList, 6, 0);
+		return *this;
+	}
 }// namespace Trinex::Pipelines

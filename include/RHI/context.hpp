@@ -58,7 +58,7 @@ namespace Trinex
 		virtual RHIContext& clear_urtv(RHIRenderTargetView* rtv, u32 r = 0u, u32 g = 0u, u32 b = 0u, u32 a = 0u)    = 0;
 		virtual RHIContext& clear_irtv(RHIRenderTargetView* rtv, i32 r = 0, i32 g = 0, i32 b = 0, i32 a = 0)        = 0;
 
-		virtual RHIContext& clear_dsv(RHIDepthStencilView* dsv, f32 depth = 1.f, u8 stencil = 0) = 0;
+		virtual RHIContext& clear_dsv(RHIDepthStencilView* dsv, f32 depth = 0.f, u8 stencil = 0) = 0;
 
 		virtual RHIContext& update_buffer(RHIBuffer* buffer, usize offset, usize size, const u8* data) = 0;
 
@@ -82,7 +82,6 @@ namespace Trinex
 		virtual RHIContext& rasterizer_state(const RHIRasterizerState& state)      = 0;
 
 		virtual RHIContext& depth_bias(float constant = 0.0f, float clamp = 0.0f, float slope = 0.0f) = 0;
-		virtual RHIContext& shading_rate(RHIShadingRate rate, RHIShadingRateCombiner* combiner)       = 0;
 
 		virtual RHIContext& bind_vertex_attribute(RHIVertexSemantic semantic, RHIVertexFormat format, u8 stream,
 		                                          u16 offset = 0)                                              = 0;

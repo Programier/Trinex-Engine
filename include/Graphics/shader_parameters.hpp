@@ -5,21 +5,18 @@
 namespace Trinex
 {
 	struct GlobalShaderParameters {
-		struct Viewport {
+		struct alignas(16) Viewport {
 			alignas(8) Vector2f pos;
 			alignas(8) Vector2f size;
 			alignas(8) Vector2f inv_size;
-
-			alignas(4) float min_depth;
-			alignas(4) float max_depth;
 		};
 
-		struct RenderTarget {
+		struct alignas(16) RenderTarget {
 			alignas(8) Vector2f size;
 			alignas(8) Vector2f inv_size;
 		};
 
-		struct Camera {
+		struct alignas(16) Camera {
 			alignas(16) Matrix4f projection;
 			alignas(16) Matrix4f view;
 			alignas(16) Matrix4f projview;

@@ -36,9 +36,6 @@ namespace Trinex
 			viewport.size     = vp.size * size;
 			viewport.inv_size = 1.f / viewport.size;
 
-			viewport.min_depth = vp.min_depth;
-			viewport.max_depth = vp.max_depth;
-
 			render_target.size     = size;
 			render_target.inv_size = 1.f / size;
 		}

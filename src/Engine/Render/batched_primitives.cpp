@@ -11,7 +11,7 @@
 
 namespace Trinex
 {
-	static constexpr usize s_line_vtx_per_node = 1024;
+	static constexpr usize s_line_vtx_per_node = 40960;
 	static constexpr auto s_vtx_buffer_flags =
 	        RHIBufferCreateFlags::VertexBuffer | RHIBufferCreateFlags::TransferDst | RHIBufferCreateFlags::Dynamic;
 
@@ -180,7 +180,15 @@ namespace Trinex
 			ctx->update_buffer(vtx_buffer, 0, m_first->vtx_count * sizeof(Vertex), reinterpret_cast<u8*>(m_first->vertices));
 			ctx->barrier(vtx_buffer, RHIAccess::VertexBuffer);
 
-			ctx->draw(RHITopology::LineList, m_first->vtx_count, 0);
+			RHIRenderTargetView* rtv = renderer->scene_color_ldr_target()->as_rtv();
+			RHIDepthStencilView* dsv = renderer->scene_depth_target()->as_dsv();
+
+			ctx->begin_rendering({rtv, dsv});
+			{
+				ctx->draw(RHITopology::LineList, m_first->vtx_count, 0);
+			}
+			ctx->end_rendering();
+
 			m_first = m_first->next;
 		}
 

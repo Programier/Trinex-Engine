@@ -68,6 +68,10 @@ namespace Trinex
 		RenderGraph::Pass* surface_clear_pass(SurfaceType type);
 		RHIBuffer* globals_uniform_buffer();
 
+		RHITexture* request_surface(RHISurfaceFormat format, float scale = 1.f);
+		RHITexture* request_transient_surface(RHISurfaceFormat format, float scale = 1.f);
+		Renderer& return_surface(RHITexture* surface);
+
 		Renderer& render_primitives(PrimitiveComponent* const* primitives, usize count, RHIContext* ctx, RenderPass* pass,
 		                            RHIContextInheritanceInfo* inherit, MaterialBindings* bindings = nullptr);
 

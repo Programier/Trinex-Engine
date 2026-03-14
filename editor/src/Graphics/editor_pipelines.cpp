@@ -39,6 +39,10 @@ namespace Trinex::EditorPipelines
 			SRV* scene_depth = renderer->scene_depth_target()->as_srv();
 
 			ctx->bind_pipeline(rhi_pipeline());
+			ctx->depth_stencil_state({});
+			ctx->blending_state({});
+			ctx->rasterizer_state({});
+
 			ctx->bind_srv(scene_color, m_scene_color->binding);
 			ctx->bind_srv(scene_depth, m_scene_depth->binding);
 			ctx->bind_srv(outline_depth, m_outline_depth->binding);
@@ -91,7 +95,7 @@ namespace Trinex::EditorPipelines
 		args.upper_alpha = (camera_height - lower_height) / (upper_height - lower_height);
 		args.lower_alpha = 1.0f - args.upper_alpha;
 
-		ctx->depth_stencil_state(RHIDepthStencilState(RHICompareFunc::Lequal, false));
+		ctx->depth_stencil_state(RHIDepthStencilState(RHICompareFunc::Gequal, false));
 		ctx->blending_state(RHIBlendingState::translucent());
 		ctx->rasterizer_state(RHIRasterizerState());
 		ctx->bind_pipeline(rhi_pipeline());

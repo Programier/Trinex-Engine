@@ -90,11 +90,11 @@ target_compile_options(TrinexEngine PUBLIC
 
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    target_compile_definitions(TrinexEngine PRIVATE -DTRINEX_DEBUG_BUILD=1)
-    target_compile_definitions(TrinexEngine PRIVATE -DTRINEX_RELEASE_BUILD=0)
+    target_compile_definitions(TrinexEngine PUBLIC -DTRINEX_DEBUG_BUILD=1)
+    target_compile_definitions(TrinexEngine PUBLIC -DTRINEX_RELEASE_BUILD=0)
 elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
-    target_compile_definitions(TrinexEngine PRIVATE -DTRINEX_DEBUG_BUILD=0)
-    target_compile_definitions(TrinexEngine PRIVATE -DTRINEX_RELEASE_BUILD=1)
+    target_compile_definitions(TrinexEngine PUBLIC -DTRINEX_DEBUG_BUILD=0)
+    target_compile_definitions(TrinexEngine PUBLIC -DTRINEX_RELEASE_BUILD=1)
 endif()
 
 target_compile_options(TrinexEngine PRIVATE "-Wall")

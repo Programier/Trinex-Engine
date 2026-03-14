@@ -9,7 +9,6 @@
 namespace Trinex
 {
 	class RHIObject;
-	class VulkanStateManagerREMOVE;
 	class VulkanBuffer;
 	class VulkanUniformBuffer;
 	class VulkanFence;
@@ -179,11 +178,10 @@ namespace Trinex
 			BlendingState     = 1 << 3,
 			RasterizerState   = 1 << 4,
 			DepthBias         = 1 << 5,
-			ShadingRate       = 1 << 6,
-			Viewport          = 1 << 7,
-			Scissor           = 1 << 8,
+			Viewport          = 1 << 6,
+			Scissor           = 1 << 7,
 
-			GeneralMask  = ShadingRate | Viewport | Scissor,
+			GeneralMask  = Viewport | Scissor,
 			GraphicsMask = RenderTarget | Pipeline | DepthStencilState | BlendingState | RasterizerState,
 			ComputeMask  = Pipeline,
 		};
@@ -246,8 +244,6 @@ namespace Trinex
 		RHIViewport m_viewport;
 		RHIScissor m_scissor;
 		RHITopology m_topology;
-		RHIShadingRate m_shading_rate;
-		RHIShadingRateCombiner m_shading_rate_combiners[2];
 
 		struct {
 			float constant;
@@ -383,7 +379,6 @@ namespace Trinex
 		VulkanContext& rasterizer_state(const RHIRasterizerState& state) override;
 
 		VulkanContext& depth_bias(float constant = 0.0f, float clamp = 0.0f, float slope = 0.0f) override;
-		VulkanContext& shading_rate(RHIShadingRate rate, RHIShadingRateCombiner* combiners) override;
 
 		VulkanContext& bind_vertex_attribute(RHIVertexSemantic semantic, RHIVertexFormat format, u8 stream, u16 offset) override;
 		VulkanContext& bind_vertex_buffer(RHIBuffer* buffer, usize byte_offset, u16 stride, u8 stream,

@@ -247,9 +247,6 @@ namespace Trinex
 		dynamic_states[dynamic_states_count++] = vk::DynamicState::eStencilWriteMask;
 		dynamic_states[dynamic_states_count++] = vk::DynamicState::eStencilReference;
 
-		if (API->is_extension_enabled(VulkanAPI::find_extension_index(VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME)))
-			dynamic_states[dynamic_states_count++] = vk::DynamicState::eFragmentShadingRateKHR;
-
 		vk::Viewport viewport(0.f, 0.f, 1280.f, 720.f, 0.0f, 1.f);
 		vk::Rect2D scissor({0, 0}, vk::Extent2D(1280, 720));
 

@@ -150,7 +150,6 @@ private:
 			Geometry& modify_shader_compilation_env(ShaderCompilationEnvironment* env) override;
 
 			Geometry& begin(Renderer* renderer, RHIContext* ctx) override;
-			bool depth_stencil_state(RHIDepthStencilState& state) override;
 			bool blending_state(RHIBlendingState& state) override;
 		};
 

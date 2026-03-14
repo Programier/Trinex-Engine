@@ -112,13 +112,13 @@ namespace Math
 	[ForceInline]
 	float linearize_depth(float depth, float near, float far)
 	{
-		return (near * far) / (far + depth * (near - far));
+		return (far * near) / (near + depth * (far - near));
 	}
 
 	[ForceInline]
 	float unlinearize_depth(float depth, float near, float far)
 	{
-		return ((near * far) / depth - far) / (near - far);
+		return ((near * far) / depth - near) / (far - near);
 	}
 
 	[ForceInline]

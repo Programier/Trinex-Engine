@@ -17,6 +17,7 @@ namespace Trinex
 	class MaterialBindings;
 	struct PostProcessParameters;
 	struct LightRenderRanges;
+	struct Swizzle;
 
 	class ENGINE_EXPORT DeferredRenderer : public Renderer
 	{
@@ -39,6 +40,7 @@ namespace Trinex
 		DeferredRenderer& register_shadow_light(DirectionalLightComponent* light, u8* shadow_data);
 
 		DeferredRenderer& register_lit_mode_passes();
+		DeferredRenderer& wireframe_pass(RHIContext* ctx);
 		DeferredRenderer& geometry_pass(RHIContext* ctx);
 		DeferredRenderer& reflection_pass(RHIContext* ctx);
 		DeferredRenderer& velocity_pass(RHIContext* ctx);
@@ -47,14 +49,8 @@ namespace Trinex
 		DeferredRenderer& global_illumination_pass(RHIContext* ctx);
 		DeferredRenderer& deferred_lighting_pass(RHIContext* ctx);
 		DeferredRenderer& bloom_pass(RHIContext* ctx);
-		DeferredRenderer& copy_base_color_to_scene_color(RHIContext* ctx);
-		DeferredRenderer& copy_world_normal_to_scene_color(RHIContext* ctx);
-		DeferredRenderer& copy_metalic_to_scene_color(RHIContext* ctx);
-		DeferredRenderer& copy_specular_to_scene_color(RHIContext* ctx);
-		DeferredRenderer& copy_roughness_to_scene_color(RHIContext* ctx);
-		DeferredRenderer& copy_emissive_to_scene_color(RHIContext* ctx);
-		DeferredRenderer& copy_ambient_to_scene_color(RHIContext* ctx);
-		DeferredRenderer& copy_velocity_to_scene_color(RHIContext* ctx);
+
+		DeferredRenderer& copy_to_scene_color(RHIContext* ctx, RHITexture* src, const Swizzle& swizzle);
 		DeferredRenderer& copy_depth_to_scene_color(RHIContext* ctx);
 		DeferredRenderer& cull_lights(RHIContext* ctx);
 

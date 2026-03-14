@@ -544,19 +544,6 @@ namespace Trinex::VulkanEnums
 		return color_mask;
 	}
 
-	static inline vk::FragmentShadingRateCombinerOpKHR shading_rate_combiner_of(RHIShadingRateCombiner combiner)
-	{
-		switch (combiner)
-		{
-			case RHIShadingRateCombiner::Keep: return vk::FragmentShadingRateCombinerOpKHR::eKeep;
-			case RHIShadingRateCombiner::Replace: return vk::FragmentShadingRateCombinerOpKHR::eReplace;
-			case RHIShadingRateCombiner::Min: return vk::FragmentShadingRateCombinerOpKHR::eMin;
-			case RHIShadingRateCombiner::Max: return vk::FragmentShadingRateCombinerOpKHR::eMax;
-			case RHIShadingRateCombiner::Mul: return vk::FragmentShadingRateCombinerOpKHR::eMul;
-			default: return vk::FragmentShadingRateCombinerOpKHR::eKeep;
-		}
-	}
-
 	static constexpr inline vk::AttachmentLoadOp load_of(RHILoadFunc func)
 	{
 		switch (func)

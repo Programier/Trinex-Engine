@@ -175,9 +175,9 @@ namespace Trinex
 		init_shader(m_tessellation_control_shader);
 		init_shader(m_tessellation_shader);
 		init_shader(m_geometry_shader);
-		const bool fs_inited = init_shader(m_fragment_shader);
+		init_shader(m_fragment_shader);
 
-		if (vs_inited && fs_inited)
+		if (vs_inited)
 		{
 			RHIGraphicsPipelineInitializer initializer;
 			initializer.vertex_shader               = extract_shader(vertex_shader());

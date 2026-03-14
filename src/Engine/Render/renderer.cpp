@@ -221,4 +221,22 @@ namespace Trinex
 		}
 		return m_globals;
 	}
+
+	RHITexture* Renderer::request_surface(RHISurfaceFormat format, float scale)
+	{
+		Vector2u size = Vector2u(Vector2f(m_view.view_size()) * scale);
+		return RHITexturePool::global_instance()->request_surface(format, size);
+	}
+
+	RHITexture* Renderer::request_transient_surface(RHISurfaceFormat format, float scale)
+	{
+		Vector2u size = Vector2u(Vector2f(m_view.view_size()) * scale);
+		return RHITexturePool::global_instance()->request_transient_surface(format, size);
+	}
+
+	Renderer& Renderer::return_surface(RHITexture* surface)
+	{
+		RHITexturePool::global_instance()->return_surface(surface);
+		return *this;
+	}
 }// namespace Trinex

@@ -43,8 +43,6 @@ namespace Trinex::Math
 	using glm::min;
 	using glm::mod;
 	using glm::normalize;
-	using glm::ortho;
-	using glm::perspective;
 	using glm::pow;
 	using glm::quat_cast;
 	using glm::radians;
@@ -64,6 +62,18 @@ namespace Trinex::Math
 	using glm::translate;
 	using glm::transpose;
 	using glm::trunc;
+
+	template<typename T>
+	GLM_FUNC_QUALIFIER glm::mat<4, 4, T, glm::defaultp> ortho(T left, T right, T bottom, T top, T zNear, T zFar)
+	{
+		return glm::ortho(left, right, bottom, top, zFar, zNear);
+	}
+
+	template<typename T>
+	GLM_FUNC_QUALIFIER glm::mat<4, 4, T, glm::defaultp> perspective(T fovy, T aspect, T zNear, T zFar)
+	{
+		return glm::perspective(fovy, aspect, zFar, zNear);
+	}
 
 	template<typename T, glm::qualifier Q>
 	GLM_FUNC_QUALIFIER glm::mat<4, 4, T, Q> look_at(glm::vec<3, T, Q> const& eye, glm::vec<3, T, Q> const& center,
@@ -193,4 +203,10 @@ namespace Trinex::Math
 		return glm::half_pi<T>();
 	}
 
+	template<typename T>
+	    requires(std::is_integral_v<T>)
+	FORCE_INLINE bool is_power_of_two(T value)
+	{
+		return value && !(value & (value - 1));
+	}
 }// namespace Trinex::Math

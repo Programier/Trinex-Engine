@@ -51,6 +51,7 @@ namespace Trinex
 
 	bool RenderPass::depth_stencil_state(RHIDepthStencilState& state)
 	{
+		state.depth.func = state.depth.is_enabled() ? RHICompareFunc::Gequal : RHICompareFunc::Always;
 		return true;
 	}
 
@@ -224,12 +225,6 @@ namespace Trinex
 			return *this;
 		}
 
-		bool Geometry::depth_stencil_state(RHIDepthStencilState& state)
-		{
-			state.depth.func = state.depth.is_enabled() ? RHICompareFunc::Lequal : RHICompareFunc::Always;
-			return Super::depth_stencil_state(state);
-		}
-
 		bool Geometry::blending_state(RHIBlendingState& state)
 		{
 			return false;
@@ -249,10 +244,8 @@ namespace Trinex
 
 		Translucent& Translucent::begin(Renderer* renderer, RHIContext* ctx)
 		{
-			const ViewMode view_mode = renderer->view_mode();
-
 			RHIRasterizerState rasterizer;
-			rasterizer.polygon_mode = view_mode == ViewMode::Wireframe ? RHIPolygonMode::Line : RHIPolygonMode::Fill;
+			rasterizer.polygon_mode = RHIPolygonMode::Fill;
 			rasterizer.cull_mode    = RHICullMode::Back;
 			ctx->rasterizer_state(rasterizer);
 			return *this;

@@ -461,9 +461,9 @@ namespace Trinex
 		{
 			Undefined = 0,
 
-			D32F      = 1,
-			D16_UNORM = 3,
+			D16_UNORM = 1,
 			D24S8     = 2,
+			D32F      = 3,
 
 			R8          = 4,
 			R8G8        = 5,
@@ -550,7 +550,7 @@ namespace Trinex
 		constexpr inline bool is_color() const { return value >= R8 && value <= P010; }
 		constexpr inline bool is_depth_stencil() const { return value == D24S8; }
 		constexpr inline bool is_depth() const { return value == D32F || value == D16_UNORM; }
-		constexpr inline bool has_depth() const { return value >= D32F && value <= D24S8; }
+		constexpr inline bool has_depth() const { return value & 0b11; }
 
 		template<typename Func>
 		constexpr static void static_foreach(Func&& func)
@@ -777,24 +777,6 @@ namespace Trinex
 		trinex_enum_struct(RHICubeFace);
 	};
 
-	struct RHIShadingRate {
-		enum Enum : u8
-		{
-			e1x1 = (0 << 0) | (0 << 2),
-			e1x2 = (0 << 0) | (1 << 2),
-			e2x1 = (1 << 0) | (0 << 2),
-			e2x2 = (1 << 0) | (1 << 2),
-			e2x4 = (1 << 0) | (2 << 2),
-			e4x2 = (2 << 0) | (1 << 2),
-			e4x4 = (2 << 0) | (2 << 2)
-		};
-
-		trinex_enum_struct(RHIShadingRate);
-
-		inline u32 width() const { return 1u << (value & 0b11); }
-		inline u32 height() const { return 1u << ((value >> 2) & 0b11); }
-	};
-
 	struct RHILoadFunc {
 		enum Enum : u8
 		{
@@ -862,19 +844,6 @@ namespace Trinex
 		};
 
 		trinex_bitfield_enum_struct(RHIContextFlags, u8);
-	};
-
-	struct RHIShadingRateCombiner {
-		enum Enum : u8
-		{
-			Keep    = 0,
-			Replace = 1,
-			Min     = 2,
-			Max     = 3,
-			Mul     = 4,
-		};
-
-		trinex_enum_struct(RHIShadingRateCombiner);
 	};
 
 	struct RHIMappingAccess {
