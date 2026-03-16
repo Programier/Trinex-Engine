@@ -2,7 +2,7 @@
 #include <Core/callback.hpp>
 #include <Core/etl/set.hpp>
 #include <Core/pointer.hpp>
-#include <Graphics/imgui.hpp>
+#include <UI/imgui.hpp>
 
 namespace ImGui
 {
@@ -162,7 +162,17 @@ namespace Trinex
 
 	class ImGuiLevelExplorer : public ImGuiWidget
 	{
+	private:
 		Pointer<World> m_world;
+
+	private:
+		static void render_vector(const char* name, const Vector3f& vector);
+		static void render_tooltip(Object* object);
+		static void render_tooltip(class LevelInstance* level);
+		static void render_tooltip(class Actor* actor);
+
+		ImGuiLevelExplorer& render(class LevelInstance* level, class Actor* actor);
+		ImGuiLevelExplorer& render(class LevelInstance* level);
 
 	public:
 		ImGuiLevelExplorer(World* world);

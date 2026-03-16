@@ -35,7 +35,11 @@ namespace Trinex
 		Parameter* find_parameter(const Name& name) const;
 		const Vector<Parameter*>& parameters() const;
 
-		template<typename T> T* find_parameter(const Name& name) const { return instance_cast<T>(find_parameter(name)); }
+		template<typename T>
+		T* find_parameter(const Name& name) const
+		{
+			return instance_cast<T>(find_parameter(name));
+		}
 
 		virtual MaterialInterface* parent() const;
 		virtual class Material* material();
@@ -51,7 +55,7 @@ namespace Trinex
 	protected:
 		Map<RenderPass*, GraphicsPipeline*> m_pipelines;
 
-		bool register_child(Object* child, u32& index) override;
+		Object* register_child(Object* child, u32& index) override;
 		bool unregister_child(Object* child) override;
 		bool apply_internal(MaterialInterface* head, const PrimitiveRenderingContext* ctx);
 

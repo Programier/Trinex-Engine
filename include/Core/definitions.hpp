@@ -309,3 +309,7 @@ public:                                                                         
 	class_name& operator=(class_name&&) = delete
 
 #define trinex_defer Trinex::TrinexDefer TRINEX_CONCAT(trinex_engine_defer, __LINE__) = [&]()
+
+#define trinex_this_return(x)                                                                                                    \
+	x;                                                                                                                           \
+	return *this

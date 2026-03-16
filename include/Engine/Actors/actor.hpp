@@ -8,8 +8,8 @@ namespace Trinex
 	class ActorComponent;
 	class ScriptFunction;
 	class World;
-	class Level;
-
+	class LevelInstance;
+	class Scene;
 
 	class ENGINE_EXPORT Actor : public Object
 	{
@@ -53,8 +53,8 @@ namespace Trinex
 		Pointer<class SceneComponent> m_root_component;
 		Vector<class ActorComponent*> m_components;
 
-		bool m_is_playing : 1 = false;
-		bool m_is_visible : 1 = true;
+		bool m_is_playing : 1;
+		bool m_is_visible : 1;
 
 		void scriptable_update(float dt);
 		void scriptable_start_play();
@@ -63,10 +63,13 @@ namespace Trinex
 		void scriptable_despawned();
 
 	protected:
-		bool register_child(Object* child, u32& index) override;
+		Object* register_child(Object* child, u32& index) override;
 		bool unregister_child(Object* child) override;
 
 	public:
+		Actor();
+		~Actor();
+
 		using Super::new_instance;
 
 		static Actor* new_instance(Refl::Class* self, const Vector3f& location = {0.f, 0.f, 0.f},
@@ -87,9 +90,9 @@ namespace Trinex
 		const Transform& transfrom() const;
 		SceneComponent* scene_component() const;
 
-		class Level* level() const;
-		class World* world() const;
-		class Scene* scene() const;
+		LevelInstance* level() const;
+		World* world() const;
+		Scene* scene() const;
 		bool serialize(Archive& archive) override;
 
 		friend class World;

@@ -15,5 +15,7 @@ add_subdirectory(ImViewGuizmo EXCLUDE_FROM_ALL)
 
 add_subdirectory(tinygltf-2.9.6 EXCLUDE_FROM_ALL)
 
+target_include_directories(${TRINEX_EDITOR_TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/IconFont)
+
 target_compile_options(spirv-cross-core PRIVATE "-fPIC")
 target_compile_options(spirv-cross-glsl PRIVATE "-fPIC")

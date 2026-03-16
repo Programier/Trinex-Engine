@@ -332,10 +332,10 @@ namespace Trinex
 		return pipeline;
 	}
 
-	bool Material::register_child(Object* child, u32& index)
+	Object* Material::register_child(Object* child, u32& index)
 	{
 		if (child && child->is_instance_of<Pipeline>())
-			return true;
+			return this;
 
 		return ObjectTreeNode::register_child(child, index);
 	}

@@ -1,3 +1,5 @@
+#include <Core/archive.hpp>
+#include <Core/buffer_manager.hpp>
 #include <Core/etl/scope_variable.hpp>
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
@@ -21,7 +23,7 @@ namespace Trinex
 	static ScriptFunction script_level_spawn_actor;
 	static ScriptFunction script_level_spawn_actor_t;
 
-	static Actor* scriptable_spawn_actor(Level* level, class Refl::Class* self, const Vector3f& location,
+	static Actor* scriptable_spawn_actor(LevelInstance* level, class Refl::Class* self, const Vector3f& location,
 	                                     const Vector3f& rotation, const Vector3f& scale, const Name& name)
 	{
 		return nullptr;
@@ -30,7 +32,7 @@ namespace Trinex
 
 	static void scriptable_spawn_actor_t(asIScriptGeneric* generic) {}
 
-	trinex_implement_class(Trinex::Level, Refl::Class::IsScriptable)
+	trinex_implement_class(Trinex::LevelInstance, Refl::Class::IsScriptable)
 	{
 		auto self = static_reflection();
 		auto r    = ScriptClassRegistrar::existing_class(self);
@@ -45,14 +47,14 @@ namespace Trinex
 		};
 
 
-		script_level_start_play    = r.method(signatures[0], trinex_scoped_void_method(Level, start_play));
-		script_level_update        = r.method(signatures[1], trinex_scoped_void_method(Level, update));
-		script_level_stop_play     = r.method(signatures[2], trinex_scoped_void_method(Level, stop_play));
+		script_level_start_play    = r.method(signatures[0], trinex_scoped_void_method(LevelInstance, start_play));
+		script_level_update        = r.method(signatures[1], trinex_scoped_void_method(LevelInstance, update));
+		script_level_stop_play     = r.method(signatures[2], trinex_scoped_void_method(LevelInstance, stop_play));
 		script_level_spawn_actor   = r.method(signatures[3], scriptable_spawn_actor);
 		script_level_spawn_actor_t = r.method(signatures[4], scriptable_spawn_actor_t, ScriptCallConv::Generic);
 
-		r.method("bool is_playing() const final", &Level::is_playing);
-		r.method("const Vector<Actor@>& actors() const final", &Level::actors);
+		r.method("bool is_playing() const final", &LevelInstance::is_playing);
+		r.method("const Vector<Actor@>& actors() const final", &LevelInstance::actors);
 
 		ScriptEngine::on_terminate.push([]() {
 			script_level_update.release();
@@ -61,11 +63,12 @@ namespace Trinex
 		});
 	}
 
-	static thread_local Level* s_current_level = nullptr;
+	static thread_local LevelInstance* s_current_level = nullptr;
+	static thread_local Level* s_next_level            = nullptr;
 
-	Level::Level() : m_is_playing(false) {}
+	LevelInstance::LevelInstance() : m_level(s_next_level), m_is_playing(false), m_is_visible(true) {}
 
-	Level::~Level()
+	LevelInstance::~LevelInstance()
 	{
 		while (!m_actors.empty())
 		{
@@ -74,22 +77,22 @@ namespace Trinex
 		}
 	}
 
-	void Level::scriptable_start_play()
+	void LevelInstance::scriptable_start_play()
 	{
 		ScriptContext::execute(this, script_level_start_play, nullptr);
 	}
 
-	void Level::scriptable_update(float dt)
+	void LevelInstance::scriptable_update(float dt)
 	{
 		ScriptContext::execute(this, script_level_update, nullptr, dt);
 	}
 
-	void Level::scriptable_stop_play()
+	void LevelInstance::scriptable_stop_play()
 	{
 		ScriptContext::execute(this, script_level_stop_play, nullptr);
 	}
 
-	bool Level::register_child(Object* child, u32& index)
+	Object* LevelInstance::register_child(Object* child, u32& index)
 	{
 		Actor* actor = instance_cast<Actor>(child);
 
@@ -106,10 +109,10 @@ namespace Trinex
 			actor->start_play();
 		}
 
-		return true;
+		return this;
 	}
 
-	bool Level::unregister_child(Object* child)
+	bool LevelInstance::unregister_child(Object* child)
 	{
 		Actor* actor = instance_cast<Actor>(child);
 
@@ -126,12 +129,12 @@ namespace Trinex
 		return actor->remove_from(m_actors);
 	}
 
-	Level& Level::spawned()
+	LevelInstance& LevelInstance::spawned()
 	{
 		return *this;
 	}
 
-	Level& Level::start_play()
+	LevelInstance& LevelInstance::start_play()
 	{
 		if (m_is_playing)
 			return *this;
@@ -146,7 +149,7 @@ namespace Trinex
 		return *this;
 	}
 
-	Level& Level::update(float dt)
+	LevelInstance& LevelInstance::update(float dt)
 	{
 		if (!m_is_playing)
 			return *this;
@@ -165,7 +168,7 @@ namespace Trinex
 		return *this;
 	}
 
-	Level& Level::stop_play()
+	LevelInstance& LevelInstance::stop_play()
 	{
 		if (!m_is_playing)
 			return *this;
@@ -180,13 +183,72 @@ namespace Trinex
 		return *this;
 	}
 
-	Level& Level::despawned()
+	LevelInstance& LevelInstance::despawned()
 	{
+		if (is_playing())
+		{
+			stop_play();
+		}
+
+		for (usize index = 0, count = m_actors.size(); index < count; ++index)
+		{
+			Actor* actor = m_actors[index];
+			actor->despawned();
+		}
+
 		return *this;
 	}
 
-	World* Level::world()
+	World* LevelInstance::world()
 	{
 		return instance_cast<World>(owner());
+	}
+
+	bool LevelInstance::serialize(Archive& archive)
+	{
+		if (!Super::serialize(archive))
+			return false;
+
+		return true;
+	}
+
+	trinex_implement_class(Trinex::Level, Refl::Class::IsScriptable | Refl::Class::IsAsset) {}
+
+	Level::Level() : m_class(LevelInstance::static_reflection()) {}
+
+	LevelInstance* Level::create_instance(StringView name, Object* owner)
+	{
+		ScopeVariable scope(s_next_level, this);
+
+		if (name.empty())
+			name = Level::name();
+		LevelInstance* instance = instance_cast<LevelInstance>(m_class->create_object(name, owner));
+
+		if (!m_state.empty())
+		{
+			VectorReader reader = &m_state;
+			Archive archive     = &reader;
+			instance->serialize(archive);
+		}
+
+		return instance;
+	}
+
+	bool Level::update(LevelInstance* instance)
+	{
+		trinex_assert(instance);
+
+		Buffer state;
+		VectorReader reader = &state;
+		Archive archive     = &reader;
+
+		if (instance->serialize(archive))
+		{
+			m_class = instance->class_instance();
+			m_state.swap(state);
+			return true;
+		}
+
+		return false;
 	}
 }// namespace Trinex

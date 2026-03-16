@@ -43,11 +43,11 @@ namespace Trinex
 		return Object::static_reflection();
 	}
 
-	bool Package::register_child(Object* object, u32& index)
+	Object* Package::register_child(Object* object, u32& index)
 	{
 		if (can_add_object(object))
 			return ObjectTreeNode::register_child(object, index);
-		return false;
+		return nullptr;
 	}
 
 	bool Package::add_object(Object* object)

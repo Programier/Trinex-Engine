@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/pointer.hpp>
-#include <Graphics/imgui.hpp>
+#include <UI/imgui.hpp>
 
 namespace Trinex
 {

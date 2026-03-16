@@ -2,11 +2,11 @@
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/string_functions.hpp>
-#include <Graphics/imgui.hpp>
 #include <Graphics/texture.hpp>
 #include <Graphics/visual_material.hpp>
 #include <Graphics/visual_material_nodes.hpp>
 #include <RHI/initializers.hpp>
+#include <UI/imgui.hpp>
 
 namespace Trinex::VisualMaterialGraph
 {

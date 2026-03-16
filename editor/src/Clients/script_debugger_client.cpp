@@ -4,9 +4,7 @@
 #include <Core/event.hpp>
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
-#include <Core/theme.hpp>
 #include <Core/threading.hpp>
-#include <Graphics/imgui.hpp>
 #include <Platform/platform.hpp>
 #include <RHI/rhi.hpp>
 #include <ScriptEngine/script.hpp>
@@ -16,6 +14,8 @@
 #include <ScriptEngine/script_type_info.hpp>
 #include <ScriptEngine/script_variable.hpp>
 #include <Systems/event_system.hpp>
+#include <UI/imgui.hpp>
+#include <UI/theme.hpp>
 #include <Window/window.hpp>
 #include <imgui_internal.h>
 #include <imgui_stacklayout.h>

@@ -298,9 +298,9 @@ namespace Trinex
 		return *this;
 	}
 
-	bool Object::register_child(Object* child, u32& index)
+	Object* Object::register_child(Object* child, u32& index)
 	{
-		return true;
+		return this;
 	}
 
 	bool Object::unregister_child(Object* child)
@@ -447,29 +447,39 @@ namespace Trinex
 			m_owner = nullptr;
 		}
 
-		if (new_owner)
-		{
-			m_owner       = new_owner;
-			u32 idx       = m_child_index;
-			m_child_index = 0xFFFFFFFF;
+		const u32 idx = m_child_index;
 
-			if (new_owner->register_child(this, m_child_index))
+		while (new_owner)
+		{
+			m_child_index    = 0xFFFFFFFF;
+			m_owner          = new_owner;
+			Object* redirect = new_owner->register_child(this, m_child_index);
+
+			if (redirect == new_owner)
 			{
 				if (is_global)
 				{
 					remove_from(s_root_objects, idx);
 				}
+				break;
 			}
 			else
 			{
-				error_log("Object", "Failed to register object to owner!");
-				m_owner = nullptr;
+				new_owner = redirect;
 			}
 		}
-		else
+
+		if (new_owner == nullptr)
 		{
-			m_child_index = s_root_objects.size();
-			s_root_objects.push_back(this);
+			if (is_global)
+			{
+				m_child_index = idx;
+			}
+			else
+			{
+				m_child_index = s_root_objects.size();
+				s_root_objects.push_back(this);
+			}
 		}
 
 		on_owner_update(m_owner);

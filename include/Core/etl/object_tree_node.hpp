@@ -50,7 +50,7 @@ namespace Trinex
 	protected:
 		virtual Refl::Class* object_tree_child_class() const = 0;
 
-		bool register_child(Object* child, u32& index) override
+		Object* register_child(Object* child, u32& index) override
 		{
 			Object** begin = reinterpret_cast<Object**>(Holder::m_child_objects.begin());
 			Object** end   = reinterpret_cast<Object**>(Holder::m_child_objects.end());
@@ -60,7 +60,7 @@ namespace Trinex
 				return Super::register_child(child, index);
 
 			Holder::m_child_objects.insert(reinterpret_cast<Element**>(place), Super::template instance_cast<Element>(child));
-			return true;
+			return this;
 		}
 
 		bool unregister_child(Object* child) override

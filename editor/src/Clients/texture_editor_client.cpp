@@ -8,7 +8,6 @@
 #include <Core/threading.hpp>
 #include <Engine/Render/pipelines.hpp>
 #include <Graphics/gpu_buffers.hpp>
-#include <Graphics/imgui.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/shader_compiler.hpp>
@@ -16,6 +15,7 @@
 #include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 #include <RHI/static_sampler.hpp>
+#include <UI/imgui.hpp>
 #include <Widgets/property_renderer.hpp>
 #include <imgui_internal.h>
 #include <imgui_stacklayout.h>

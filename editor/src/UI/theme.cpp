@@ -1,33 +1,55 @@
 #include <Core/editor_config.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/path.hpp>
-#include <Core/theme.hpp>
-#include <imgui.h>
+#include <UI/imgui.hpp>
+#include <UI/theme.hpp>
 
-namespace Trinex::EditorTheme
+namespace Trinex::UI
 {
-	void initialize_theme(ImGuiContext* ctx)
+	static void register_font(Buffer& buffer, const ImFontConfig& config, const ImWchar* range, f32 scale = 1.f, f32 offset = 0.f)
 	{
-		// Initialize fonts
 		auto& io = ImGui::GetIO();
 
-		FileReader reader(Settings::Editor::font_path);
+		const f32 small  = Settings::Editor::small_font_size * scale + offset;
+		const f32 normal = Settings::Editor::normal_font_size * scale + offset;
+		const f32 large  = Settings::Editor::large_font_size * scale + offset;
 
-		if (reader.is_open())
+		io.Fonts->AddFontFromMemoryTTF(buffer.data(), buffer.size(), small, &config, range);
+		io.Fonts->AddFontFromMemoryTTF(buffer.data(), buffer.size(), normal, &config, range);
+		io.Fonts->AddFontFromMemoryTTF(buffer.data(), buffer.size(), large, &config, range);
+	}
+
+	static void register_font(const Path& path, const ImFontConfig& config, const ImWchar* range, f32 scale = 1.f,
+	                          f32 offset = 0.f)
+	{
+		FileReader reader(path);
+		trinex_verify(reader.is_open());
+
+		Buffer buffer = reader.read_buffer();
+		register_font(buffer, config, range, scale, offset);
+	}
+
+	void initialize_theme(ImGuiContext* ctx)
+	{
+		auto& io = ImGui::GetIO();
 		{
-			Buffer buffer = reader.read_buffer();
-			ImFontConfig config;
-			config.FontDataOwnedByAtlas = false;
+			const ImWchar icons_ranges[] = {
+			        0x0020,      0x00FF,// ASCII + Latin
+			        0x2000,      0x206F,// punctuation
+			        0x2190,      0x21FF,// arrows
+			        0x2700,      0x27BF,// dingbats
+			        ICON_MIN_LC, ICON_MAX_LC, 0,
+			};
 
-			io.Fonts->AddFontFromMemoryTTF(buffer.data(), buffer.size(), Settings::Editor::small_font_size, &config,
-			                               io.Fonts->GetGlyphRangesCyrillic());
-			auto default_font = io.Fonts->AddFontFromMemoryTTF(buffer.data(), buffer.size(), Settings::Editor::normal_font_size,
-			                                                   &config, io.Fonts->GetGlyphRangesCyrillic());
-			io.Fonts->AddFontFromMemoryTTF(buffer.data(), buffer.size(), Settings::Editor::large_font_size, &config,
-			                               io.Fonts->GetGlyphRangesCyrillic());
-			io.FontDefault = default_font;
+			ImFontConfig cfg;
+			cfg.FontDataOwnedByAtlas = false;
+
+			register_font(Settings::Editor::font_path, cfg, io.Fonts->GetGlyphRangesCyrillic());
+			register_font("[content]:/TrinexEditor/fonts/Lucide/lucide.ttf", cfg, icons_ranges);
 		}
 
+		io.Fonts->Build();
+		io.FontDefault = text_font();
 		io.IniFilename = nullptr;
 		io.LogFilename = nullptr;
 
@@ -60,7 +82,7 @@ namespace Trinex::EditorTheme
 		colors[ImGuiCol_ButtonActive]              = ImVec4(0.06f, 0.53f, 0.98f, 1.00f);
 		colors[ImGuiCol_Header]                    = ImVec4(0.20f, 0.25f, 0.30f, 1.00f);
 		colors[ImGuiCol_HeaderHovered]             = ImVec4(0.28f, 0.36f, 0.45f, 1.00f);
-		colors[ImGuiCol_HeaderActive]              = ImVec4(0.06f, 0.53f, 0.98f, 1.00f);
+		colors[ImGuiCol_HeaderActive]              = ImVec4(0.15f, 0.40f, 0.70f, 1.00f);
 		colors[ImGuiCol_Separator]                 = ImVec4(0.12f, 0.12f, 0.18f, 0.85f);
 		colors[ImGuiCol_SeparatorHovered]          = ImVec4(0.26f, 0.59f, 0.98f, 0.78f);
 		colors[ImGuiCol_SeparatorActive]           = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
@@ -114,24 +136,13 @@ namespace Trinex::EditorTheme
 		style.AntiAliasedFill  = true;
 	}
 
-	static inline ImFont* font_by_index(i32 index)
+	ImFont* text_font(FontSize size)
 	{
-		auto& io = ImGui::GetIO();
-		return io.Fonts->Fonts[index];
+		return ImGui::GetIO().Fonts->Fonts[static_cast<u32>(size)];
 	}
 
-	ImFont* small_font()
+	ImFont* icons_font(FontSize size)
 	{
-		return font_by_index(0);
+		return ImGui::GetIO().Fonts->Fonts[3 + static_cast<u32>(size)];
 	}
-
-	ImFont* normal_font()
-	{
-		return font_by_index(1);
-	}
-
-	ImFont* large_font()
-	{
-		return font_by_index(2);
-	}
-}// namespace Trinex::EditorTheme
+}// namespace Trinex::UI

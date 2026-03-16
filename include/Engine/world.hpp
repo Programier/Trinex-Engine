@@ -5,16 +5,17 @@ namespace Trinex
 {
 	class Scene;
 
-	class ENGINE_EXPORT World : public Level
+	class ENGINE_EXPORT World : public LevelInstance
 	{
-		trinex_class(World, Level);
+		trinex_class(World, LevelInstance);
 
 	private:
-		Vector<class Level*> m_levels;
+		Vector<LevelInstance*> m_levels;
+		LevelInstance* m_active;
 		Scene* m_scene = nullptr;
 
 	protected:
-		bool register_child(Object* child, u32& index) override;
+		Object* register_child(Object* child, u32& index) override;
 		bool unregister_child(Object* child) override;
 
 	public:
@@ -28,8 +29,10 @@ namespace Trinex
 		World& stop_play() override;
 
 		World* world() override;
+		World& active_level(LevelInstance* instance);
 
-		inline const Vector<class Level*>& levels() const { return m_levels; }
+		inline LevelInstance* active_level() const { return m_active; }
+		inline const Vector<LevelInstance*>& levels() const { return m_levels; }
 		inline Scene* scene() const { return m_scene; }
 	};
 }// namespace Trinex

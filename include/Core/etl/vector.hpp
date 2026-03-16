@@ -5,7 +5,6 @@
 #include <iterator>
 #include <limits>
 #include <memory>
-#include <stdexcept>
 
 namespace Trinex
 {
@@ -53,14 +52,6 @@ namespace Trinex
 		constexpr const AllocatorType& allocator() const { return *this; }
 
 	private:
-		constexpr inline void range_check(size_type n) const
-		{
-#if TRINEX_WITH_EXCEPTIONS
-			if (n >= size())
-				throw std::out_of_range("Index out of range");
-#endif
-		}
-
 		template<typename Ptr>
 		constexpr inline typename std::pointer_traits<Ptr>::element_type* data_ptr(Ptr ptr) const
 		{
@@ -541,17 +532,9 @@ namespace Trinex
 
 		constexpr const_reference operator[](size_type n) const { return *(m_start + n); }
 
-		constexpr reference at(size_type n)
-		{
-			range_check(n);
-			return (*this)[n];
-		}
+		constexpr reference at(size_type n) { return (*this)[n]; }
 
-		constexpr const_reference at(size_type n) const
-		{
-			range_check(n);
-			return (*this)[n];
-		}
+		constexpr const_reference at(size_type n) const { return (*this)[n]; }
 
 		constexpr reference front() { return *begin(); }
 

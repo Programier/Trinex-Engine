@@ -16,7 +16,7 @@ namespace Trinex
 
 	static thread_local World* s_current_world = nullptr;
 
-	World::World() : m_scene(trx_new Scene()) {}
+	World::World() : m_active(this), m_scene(trx_new Scene()) {}
 
 	World::~World()
 	{
@@ -24,7 +24,7 @@ namespace Trinex
 
 		while (!m_levels.empty())
 		{
-			Level* level = m_levels.back();
+			LevelInstance* level = m_levels.back();
 			level->owner(nullptr);
 		}
 
@@ -43,7 +43,7 @@ namespace Trinex
 
 		Super::start_play();
 
-		for (Level* level : m_levels)
+		for (LevelInstance* level : m_levels)
 		{
 			level->start_play();
 		}
@@ -57,7 +57,7 @@ namespace Trinex
 
 		Super::update(dt);
 
-		for (Level* level : m_levels)
+		for (LevelInstance* level : m_levels)
 		{
 			level->update(dt);
 		}
@@ -70,7 +70,7 @@ namespace Trinex
 		if (!is_playing())
 			return *this;
 
-		for (Level* level : m_levels)
+		for (LevelInstance* level : m_levels)
 		{
 			level->stop_play();
 		}
@@ -84,12 +84,30 @@ namespace Trinex
 		return this;
 	}
 
-	bool World::register_child(Object* child, u32& index)
+	World& World::active_level(LevelInstance* instance)
 	{
-		Level* level = instance_cast<Level>(child);
+		if (instance->owner() == this || instance == this)
+		{
+			m_active = instance;
+		}
+
+		return *this;
+	}
+
+	Object* World::register_child(Object* child, u32& index)
+	{
+		LevelInstance* level = instance_cast<LevelInstance>(child);
 
 		if (level == nullptr)
+		{
+			if (m_active != this && instance_cast<Actor>(child))
+			{
+				// Redirect to active level
+				return m_active;
+			}
+
 			return Super::register_child(child, index);
+		}
 
 		index = m_levels.size();
 		m_levels.push_back(level);
@@ -100,15 +118,18 @@ namespace Trinex
 		{
 			level->start_play();
 		}
-		return true;
+		return this;
 	}
 
 	bool World::unregister_child(Object* child)
 	{
-		Level* level = instance_cast<Level>(child);
+		LevelInstance* level = instance_cast<LevelInstance>(child);
 
 		if (level == nullptr)
 			return Super::unregister_child(child);
+
+		if (m_active == child)
+			m_active = this;
 
 		if (level->is_playing())
 		{

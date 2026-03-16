@@ -3,15 +3,15 @@
 #include <Core/icons.hpp>
 #include <Core/package.hpp>
 #include <Core/reflection/class.hpp>
-#include <Core/theme.hpp>
 #include <Editor/engine.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Engine/Actors/actor.hpp>
 #include <Engine/scene.hpp>
 #include <Engine/world.hpp>
-#include <Graphics/imgui.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Platform/platform.hpp>
+#include <UI/imgui.hpp>
+#include <UI/theme.hpp>
 #include <Widgets/imgui_windows.hpp>
 #include <imfilebrowser.h>
 #include <imgui_internal.h>
@@ -22,6 +22,40 @@ namespace Trinex
 	ImGui::PushStyleColor(ImGuiCol_Text, color);                                                                                 \
 	ImGui::TextWrapped(format __VA_OPT__(, ) __VA_ARGS__);                                                                       \
 	ImGui::PopStyleColor()
+
+	static bool render_class_name(Refl::Object* object)
+	{
+		if (object == nullptr || object == Refl::Object::static_root())
+			return false;
+
+		if (render_class_name(object->owner()))
+		{
+			ImGui::SameLine(0.f, 0.f);
+			ImGui::TextColored(ImVec4(0.4f, 0.7f, 1.0f, 1.0f), "::%s", object->name().c_str());
+		}
+		else
+		{
+			ImGui::TextColored(ImVec4(0.4f, 0.7f, 1.0f, 1.0f), "%s", object->name().c_str());
+		}
+		return true;
+	}
+
+	static bool render_object_name(Object* object)
+	{
+		if (object == nullptr)
+			return false;
+
+		if (render_object_name(object->owner()))
+		{
+			ImGui::SameLine(0.f, 0.f);
+			ImGui::TextColored(ImVec4(0.4f, 0.7f, 1.0f, 1.0f), "::%s", object->name().c_str());
+		}
+		else
+		{
+			ImGui::TextColored(ImVec4(0.4f, 0.7f, 1.0f, 1.0f), "%s", object->name().c_str());
+		}
+		return true;
+	}
 
 
 	ImGuiNotificationMessage::ImGuiNotificationMessage(const String& msg, Type type) : m_message(msg), m_type(type) {}
@@ -522,73 +556,283 @@ namespace Trinex
 
 	ImGuiLevelExplorer::ImGuiLevelExplorer(World* world) : m_world(world) {}
 
+	void ImGuiLevelExplorer::render_vector(const char* name, const Vector3f& vector)
+	{
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+		ImGui::TextDisabled("%s", name);
+		ImGui::TableNextColumn();
+		ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "%.1f ", vector.x + 0.005f);
+		ImGui::TableNextColumn();
+		ImGui::TextColored(ImVec4(0.4f, 1.0f, 0.4f, 1.0f), "%.1f ", vector.y + 0.005f);
+		ImGui::TableNextColumn();
+		ImGui::TextColored(ImVec4(0.4f, 0.4f, 1.0f, 1.0f), "%.1f", vector.z + 0.005f);
+	}
+
+	void ImGuiLevelExplorer::render_tooltip(Object* object)
+	{
+		ImGui::TextDisabled("Class: ");
+		ImGui::SameLine();
+		render_class_name(object->class_instance());
+	}
+
+	void ImGuiLevelExplorer::render_tooltip(class LevelInstance* level)
+	{
+		render_tooltip(static_cast<Object*>(level));
+
+		if (Level* asset = level->level())
+		{
+			ImGui::TextDisabled("Asset: ");
+			ImGui::SameLine();
+			render_object_name(asset);
+		}
+	}
+
+	void ImGuiLevelExplorer::render_tooltip(class Actor* actor)
+	{
+		render_tooltip(static_cast<Object*>(actor));
+
+		if (auto component = actor->scene_component())
+		{
+			const Transform& transform = component->world_transform();
+			ImGui::Separator();
+
+			if (ImGui::BeginTable("TooltipTransform", 4, ImGuiTableFlags_SizingFixedFit))
+			{
+				ImGui::TableSetupColumn("Label");
+				ImGui::TableSetupColumn("X");
+				ImGui::TableSetupColumn("Y");
+				ImGui::TableSetupColumn("Z");
+
+				render_vector("Location: ", transform.location);
+				render_vector("Rotation: ", Math::degrees(Math::euler_angles(transform.rotation)));
+				render_vector("Scale: ", transform.scale);
+
+				ImGui::EndTable();
+			}
+		}
+	}
+
+	ImGuiLevelExplorer& ImGuiLevelExplorer::render(class LevelInstance* level, class Actor* actor)
+	{
+		auto editor = EditorEngine::instance();
+
+		ImGui::PushID(actor);
+		ImGui::TableNextRow();
+
+		ImGui::TableSetColumnIndex(0);
+		{
+			const char* actor_name = actor->is_noname() ? "No Name" : actor->name().c_str();
+			const bool is_selected = editor->is_selected(actor);
+
+			if (ImGui::Selectable(actor_name, is_selected, 0, {0.f, ImGui::GetTextLineHeightWithSpacing()}))
+			{
+				editor->is_selected(actor, !is_selected);
+			}
+
+			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+			{
+				ImGui::SetDragDropPayload("DND_ACTOR", &actor, sizeof(Actor*));
+
+				ImGui::Text("Move: %s", actor_name);
+				ImGui::EndDragDropSource();
+			}
+
+			if (ImGui::BeginItemTooltip())
+			{
+				render_tooltip(actor);
+				ImGui::EndTooltip();
+			}
+		}
+
+		ImGui::TableSetColumnIndex(1);
+		{
+			bool actor_visible = actor->is_visible();
+			const char* icon   = actor_visible ? ICON_LC_EYE : ICON_LC_EYE_OFF;
+
+			if (ImGui::IconButton(icon) && level->is_visible())
+			{
+				actor->is_visible(!actor_visible);
+			}
+		}
+
+		ImGui::TableSetColumnIndex(2);
+		{
+			if (ImGui::IconButton(ICON_LC_TRASH_2))
+			{
+				actor->owner(nullptr);
+			}
+		}
+
+		ImGui::PopID();
+		return *this;
+	}
+
+	ImGuiLevelExplorer& ImGuiLevelExplorer::render(class LevelInstance* level)
+	{
+		ImGui::PushID(level);
+		ImGui::TableNextRow();
+
+		const bool is_active_level = m_world->active_level() == level;
+		bool is_node_open          = false;
+
+		ImGui::TableSetColumnIndex(0);
+		{
+			ImGuiTreeNodeFlags node_flags = 0;
+
+			if (is_active_level)
+			{
+				auto active_color = ImGui::GetStyleColorVec4(ImGuiCol_HeaderActive);
+				ImGui::PushStyleColor(ImGuiCol_Header, active_color);
+				ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImGui::MakeHoveredColor(active_color));
+			}
+
+			is_node_open = ImGui::CollapsingHeader(level->name().c_str(), node_flags);
+
+			ImGui::PopStyleColor(is_active_level ? 2 : 0);
+
+			if (ImGui::BeginItemTooltip())
+			{
+				render_tooltip(level);
+				ImGui::EndTooltip();
+			}
+
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DND_ACTOR"))
+				{
+					IM_ASSERT(payload->DataSize == sizeof(Actor*));
+					Actor* actor = *(Actor**) payload->Data;
+					actor->owner(level);
+				}
+				ImGui::EndDragDropTarget();
+			}
+
+			if (ImGui::BeginPopupContextItem("LevelContextMenu"))
+			{
+				if (ImGui::MenuItem("Set as Active Level"))
+				{
+					m_world->active_level(level);
+				}
+				ImGui::EndPopup();
+			}
+		}
+
+		ImGui::TableSetColumnIndex(1);
+		{
+			bool level_visible = level->is_visible();
+			const char* icon   = level_visible ? ICON_LC_EYE : ICON_LC_EYE_OFF;
+
+			if (ImGui::IconButton(icon))
+			{
+				level->is_visible(!level_visible);
+			}
+		}
+
+		ImGui::TableSetColumnIndex(2);
+		{
+			if (level != m_world)
+			{
+				if (ImGui::IconButton(ICON_LC_TRASH_2))
+				{
+					level->owner(nullptr);
+				}
+			}
+		}
+
+		ImGui::TableSetColumnIndex(3);
+		{
+			if (Level* asset = level->level())
+			{
+				if (ImGui::IconButton(ICON_LC_SAVE))
+				{
+					asset->update(level);
+				}
+			}
+		}
+
+		if (is_node_open)
+		{
+			ImGui::Indent();
+			auto& actors = level->actors();
+			for (usize i = 0, count = actors.size(); i < count; ++i)
+			{
+				if (Actor* actor = actors[i])
+				{
+					render(level, actor);
+				}
+			}
+			ImGui::Unindent();
+		}
+
+		ImGui::PopID();
+		return *this;
+	}
+
 	bool ImGuiLevelExplorer::render(RenderViewport* viewport)
 	{
 		bool is_open = true;
 
 		if (ImGui::Begin(name(), &is_open))
 		{
-			ImGui::BeginTable("##LevelTable", 3, ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg);
+			Actor* pending_move_actor          = nullptr;
+			LevelInstance* pending_move_target = nullptr;
 
-			ImGui::TableSetupColumn("editor/Visibility"_localized);
-			ImGui::TableSetupColumn("editor/Name"_localized);
-			ImGui::TableSetupColumn("editor/Class"_localized);
-			ImGui::TableHeadersRow();
+			ImGuiTableFlags table_flags = ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter |
+			                              ImGuiTableFlags_BordersInner | ImGuiTableFlags_BordersV;
 
-			if (m_world)
+			if (ImGui::BeginTable("##LevelTable", 4, table_flags))
 			{
-				Level* level      = m_world;
-				usize level_index = 0;
+				const char* name             = "editor/Name"_localized;
+				const float padding          = ImGui::GetStyle().FramePadding.x;
+				const float header_icon_size = ImGui::GetTextLineHeight() + padding * 2;
 
-				do
+				ImGui::TableSetupColumn(name, ImGuiTableColumnFlags_WidthStretch);
+				ImGui::TableSetupColumn(ICON_LC_EYE, ImGuiTableColumnFlags_WidthFixed, header_icon_size);
+				ImGui::TableSetupColumn(ICON_LC_TRASH_2, ImGuiTableColumnFlags_WidthFixed, header_icon_size);
+				ImGui::TableSetupColumn(ICON_LC_SAVE, ImGuiTableColumnFlags_WidthFixed, header_icon_size);
+
+				ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
 				{
-					auto& actors = level->actors();
-					auto editor  = EditorEngine::instance();
+					ImGui::TableNextColumn();
+					ImGui::TextUnformatted(name);
 
-					for (usize i = 0, count = actors.size(); i < count; ++i)
+					ImGui::PushIconFont();
 					{
-						if (Actor* actor = actors[i])
+
+						ImGui::TableNextColumn();
+						ImGui::SameLine(0.f, padding);
+						ImGui::TextUnformatted(ICON_LC_EYE);
+						ImGui::SameLine(0.f, padding);
+
+						ImGui::TableNextColumn();
+						ImGui::SameLine(0.f, padding);
+						ImGui::TextUnformatted(ICON_LC_TRASH_2);
+						ImGui::SameLine(0.f, padding);
+
+						ImGui::TableNextColumn();
+						ImGui::SameLine(0.f, padding);
+						ImGui::TextUnformatted(ICON_LC_SAVE);
+						ImGui::SameLine(0.f, padding);
+					}
+					ImGui::PopFont();
+				}
+
+				if (m_world)
+				{
+					render(m_world);
+
+					for (LevelInstance* sub_level : m_world->levels())
+					{
+						if (sub_level)
 						{
-							ImGui::PushID(i);
-							ImGui::TableNextRow();
-							ImGui::TableNextColumn();
-
-							bool is_visible = actor->is_visible();
-
-							if (ImGui::Checkbox("###Visible", &is_visible))
-							{
-								actor->is_visible(is_visible);
-							}
-
-							ImGui::TableNextColumn();
-							ImGui::Text("%s", actor->is_noname() ? "No Name" : actor->name().c_str());
-
-							ImGui::TableNextColumn();
-
-							bool selected = editor->is_selected(actor);
-							if (ImGui::Selectable(actor->class_instance()->name().c_str(), selected,
-							                      ImGuiSelectableFlags_SpanAllColumns))
-							{
-								editor->is_selected(actor, !selected);
-							}
-
-							ImGui::PopID();
+							render(sub_level);
 						}
 					}
+				}
 
-					if (level_index < m_world->levels().size())
-					{
-						level = m_world->levels()[level_index++];
-					}
-					else
-					{
-						level = nullptr;
-					}
-
-				} while (level);
+				ImGui::EndTable();
 			}
-
-			ImGui::EndTable();
 		}
 
 		ImGui::End();

@@ -3,7 +3,7 @@
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Core/reflection/scoped_type.hpp>
-#include <Graphics/imgui.hpp>
+#include <UI/imgui.hpp>
 #include <imgui_internal.h>
 
 namespace Trinex

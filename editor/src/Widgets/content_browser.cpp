@@ -7,11 +7,10 @@
 #include <Core/package.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
-#include <Core/theme.hpp>
 #include <Engine/project.hpp>
 #include <Graphics/texture.hpp>
 #include <RHI/static_sampler.hpp>
-#include <UI/primitives.hpp>
+#include <UI/theme.hpp>
 #include <Widgets/content_browser.hpp>
 #include <Widgets/imgui_windows.hpp>
 #include <imgui_internal.h>
@@ -153,7 +152,7 @@ namespace Trinex
 	{
 		ImGui::Begin("##ContentBrowserPackages"_localized, nullptr, ImGuiWindowFlags_NoTitleBar);
 
-		if (UI::icon_button(UI::plus_icon, "###add", ImGui::GetFontSize()))
+		if (ImGui::IconButton(ICON_LC_PLUS "###add"))
 		{
 			Flags<ImGuiOpenFile::Flag> flags = Flags(ImGuiOpenFile::MultipleSelection);
 			auto window                      = ImGuiWindow::current()->widgets.create_identified<ImGuiOpenFile>(this, flags);
@@ -313,7 +312,7 @@ namespace Trinex
 		ImGui::Spring(1.0);
 
 		ImGui::BeginVertical(1, {image_size.x, 0}, 0.0);
-		ImGui::PushFont(EditorTheme::small_font());
+		ImGui::PushFont(UI::text_font(UI::FontSize::Small));
 		ImGui::TextEllipsis(object->class_instance()->name().c_str(), image_size.x);
 		ImGui::PopFont();
 		ImGui::EndVertical();

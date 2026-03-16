@@ -1,5 +1,5 @@
 #pragma once
-#include <Graphics/imgui.hpp>
+#include <UI/imgui.hpp>
 
 namespace Trinex
 {

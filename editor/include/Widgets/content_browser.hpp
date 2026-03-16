@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/callback.hpp>
-#include <Graphics/imgui.hpp>
+#include <UI/imgui.hpp>
 
 namespace Trinex
 {

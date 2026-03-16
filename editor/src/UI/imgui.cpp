@@ -15,7 +15,6 @@
 #include <Core/string_functions.hpp>
 #include <Core/threading.hpp>
 #include <Graphics/gpu_buffers.hpp>
-#include <Graphics/imgui.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/render_surface.hpp>
@@ -29,6 +28,8 @@
 #include <RHI/resource_ptr.hpp>
 #include <RHI/rhi.hpp>
 #include <Systems/event_system.hpp>
+#include <UI/imgui.hpp>
+#include <UI/theme.hpp>
 #include <Window/config.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
@@ -1250,11 +1251,9 @@ namespace Trinex
 		}
 	}
 
-	trinex_implement_engine_class_default_init(ImGuiWindow, 0);
-
 	static ImGuiWindow* m_current_window = nullptr;
 
-	bool ImGuiWindow::initialize(Trinex::Window* window, ImGuiContext* context)
+	ImGuiWindow::ImGuiWindow(Trinex::Window* window, ImGuiContext* context)
 	{
 		m_window                                    = window;
 		m_context                                   = context;
@@ -1264,10 +1263,9 @@ namespace Trinex
 
 		ImGuiBackend_Window::imgui_trinex_window_init(window);
 		ImGuiBackend_RHI::imgui_trinex_rhi_init(window, context);
-		return true;
 	}
 
-	bool ImGuiWindow::terminate()
+	ImGuiWindow::~ImGuiWindow()
 	{
 		ImGuiWindow* current_window = ImGuiWindow::current();
 
@@ -1287,7 +1285,6 @@ namespace Trinex
 		m_context = nullptr;
 
 		ImGuiWindow::make_current(current_window);
-		return true;
 	}
 
 	ImGuiWindow& ImGuiWindow::free_resources()
@@ -1626,6 +1623,19 @@ namespace ImGui
 
 		ImGui::PopID();
 		return changed;
+	}
+
+	void PushIconFont()
+	{
+		ImGui::PushFont(Trinex::UI::icons_font());
+	}
+
+	bool IconButton(const char* icon, float size, ImGuiButtonFlags flags)
+	{
+		PushIconFont();
+		bool status = ImGui::ButtonEx(icon, {size, size}, flags);
+		ImGui::PopFont();
+		return status;
 	}
 }// namespace ImGui
 

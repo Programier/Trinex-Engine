@@ -114,7 +114,7 @@ namespace Trinex
 		bool private_check_instance(const class Refl::Class* const check_class) const;
 
 		virtual Object& on_owner_update(Object* new_owner);
-		virtual bool register_child(Object* child, u32& index);
+		virtual Object* register_child(Object* child, u32& index);
 		virtual bool unregister_child(Object* child);
 		virtual Object& post_rename(Object* old_owner, Name old_name);
 

@@ -1,11 +1,11 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/algorithm.hpp>
 #include <Core/etl/templates.hpp>
-#include <Graphics/imgui.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_binder.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_pointer.hpp>
+#include <UI/imgui.hpp>
 #include <angelscript.h>
 #include <imgui_internal.h>
 #include <scriptarray.h>

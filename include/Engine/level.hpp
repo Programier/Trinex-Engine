@@ -1,21 +1,23 @@
 #pragma once
-#include <Core/etl/deque.hpp>
+#include <Core/etl/vector.hpp>
 #include <Core/object.hpp>
 #include <Core/pointer.hpp>
-
 
 namespace Trinex
 {
 	class World;
+	class Level;
 	class Actor;
 
-	class ENGINE_EXPORT Level : public Object
+	class ENGINE_EXPORT LevelInstance : public Object
 	{
-		trinex_class(Level, Object);
+		trinex_class(LevelInstance, Object);
 
 	private:
+		Pointer<Level> m_level;
 		Vector<Actor*> m_actors;
 		bool m_is_playing;
+		bool m_is_visible;
 
 
 	private:
@@ -24,7 +26,7 @@ namespace Trinex
 		void scriptable_stop_play();
 
 	protected:
-		bool register_child(Object* child, u32& index) override;
+		Object* register_child(Object* child, u32& index) override;
 		bool unregister_child(Object* child) override;
 
 	public:
@@ -32,36 +34,55 @@ namespace Trinex
 		struct Scriptable : Super::Scriptable<NativeType> {
 			Scriptable& start_play() override
 			{
-				static_cast<Level*>(this)->scriptable_start_play();
+				static_cast<LevelInstance*>(this)->scriptable_start_play();
 				return *this;
 			}
 
 			Scriptable& update(float dt) override
 			{
-				static_cast<Level*>(this)->scriptable_update(dt);
+				static_cast<LevelInstance*>(this)->scriptable_update(dt);
 				return *this;
 			}
 
 			Scriptable& stop_play() override
 			{
-				static_cast<Level*>(this)->scriptable_stop_play();
+				static_cast<LevelInstance*>(this)->scriptable_stop_play();
 				return *this;
 			}
 		};
 
 	public:
-		Level();
-		~Level();
+		LevelInstance();
+		~LevelInstance();
 
-		virtual Level& spawned();
-		virtual Level& start_play();
-		virtual Level& update(float dt);
-		virtual Level& stop_play();
-		virtual Level& despawned();
-
+		virtual LevelInstance& spawned();
+		virtual LevelInstance& start_play();
+		virtual LevelInstance& update(float dt);
+		virtual LevelInstance& stop_play();
+		virtual LevelInstance& despawned();
 		virtual World* world();
+		
+		bool serialize(Archive& archive) override;
 
+		inline Level* level() const { return m_level; }
+		inline bool is_visible() const { return m_is_visible; }
+		inline LevelInstance& is_visible(bool visible) { trinex_this_return(m_is_visible = visible); }
 		inline bool is_playing() const { return m_is_playing; }
 		inline const Vector<class Actor*>& actors() const { return m_actors; }
+	};
+
+	class ENGINE_EXPORT Level : public Object
+	{
+		trinex_class(Level, Object);
+
+	private:
+		Refl::Class* m_class;
+		Buffer m_state;
+
+	public:
+		Level();
+
+		LevelInstance* create_instance(StringView name = "", Object* owner = nullptr);
+		bool update(LevelInstance* instance);
 	};
 }// namespace Trinex

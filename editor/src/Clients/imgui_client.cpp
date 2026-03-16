@@ -3,14 +3,14 @@
 #include <Core/localization.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
-#include <Core/theme.hpp>
 #include <Core/threading.hpp>
 #include <Core/types/color.hpp>
-#include <Graphics/imgui.hpp>
 #include <RHI/rhi.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
+#include <UI/imgui.hpp>
+#include <UI/theme.hpp>
 #include <Window/config.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
@@ -82,7 +82,7 @@ namespace Trinex
 
 		ImGuiContextLock lock(context);
 
-		EditorTheme::initialize_theme(context);
+		UI::initialize_theme(context);
 
 #if !PLATFORM_ANDROID
 		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
@@ -169,9 +169,7 @@ namespace Trinex
 		auto window = m_viewport->window();
 
 		trinex_verify_msg(window, "ImGuiViewportClient requires valid window object!");
-
-		m_window = Object::new_instance<ImGuiWindow>();
-		m_window->initialize(window, m_context);
+		m_window = trx_new ImGuiWindow(window, m_context);
 		return *this;
 	}
 
@@ -180,7 +178,7 @@ namespace Trinex
 		m_opened_clients.erase(class_instance());
 
 		Super::on_unbind_viewport(viewport);
-		m_window->terminate();
+		trx_delete_inline(m_window);
 		m_window   = nullptr;
 		m_viewport = nullptr;
 

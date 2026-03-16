@@ -13,12 +13,10 @@
 #include <Core/reflection/object.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/string_functions.hpp>
-#include <Core/theme.hpp>
-#include <Graphics/imgui.hpp>
-#include <UI/primitives.hpp>
+#include <UI/imgui.hpp>
 #include <UI/property_renderer.hpp>
+#include <UI/theme.hpp>
 #include <imfilebrowser.h>
-#include <imgui.h>
 #include <imgui_internal.h>
 #include <imgui_stacklayout.h>
 
@@ -380,7 +378,8 @@ namespace Trinex::UI
 		bool on_begin_rendering(PropertyRenderer* renderer) override
 		{
 			bool status = ImGui::BeginTable("###properties", 3,
-			                                ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInner);
+			                                ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter |
+			                                        ImGuiTableFlags_BordersInner | ImGuiTableFlags_BordersV);
 			if (status)
 			{
 				ImGui::TableSetupColumn("##Column1", ImGuiTableColumnFlags_WidthStretch, 0.45);
@@ -912,7 +911,7 @@ namespace Trinex::UI
 		{
 			renderer->context()->column(2);
 
-			if (UI::icon_button(UI::select_icon, "##Select", size))
+			if (ImGui::IconButton(ICON_LC_MOUSE_POINTER "##Select", size))
 			{
 				Function<void(const Path&)> callback = [renderer, value, &str](const Path& path) {
 					*value = path;
@@ -1031,7 +1030,7 @@ namespace Trinex::UI
 			{
 				ctx->column(2);
 
-				if (UI::icon_button(UI::rotate_icon, "###reset", size))
+				if (ImGui::IconButton(ICON_LC_ROTATE_CCW "###reset", size))
 				{
 					object  = nullptr;
 					changed = true;
@@ -1065,7 +1064,7 @@ namespace Trinex::UI
 		{
 			ctx->column(2);
 
-			if (!read_only && UI::icon_button(UI::plus_icon, "##emplace_back", size))
+			if (!read_only && ImGui::IconButton(ICON_LC_PLUS "##emplace_back", size))
 			{
 				prop->emplace_back(address);
 				renderer->propagate_property_event();
@@ -1096,7 +1095,7 @@ namespace Trinex::UI
 				{
 					ctx->column(2);
 
-					if (!read_only && UI::icon_button(UI::minus_icon, "##erase", size))
+					if (!read_only && ImGui::IconButton(ICON_LC_MINUS "##erase", size))
 					{
 						prop->erase(address, i);
 						--count;

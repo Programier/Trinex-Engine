@@ -1,8 +1,9 @@
 #pragma once
 #include <Core/callback.hpp>
 #include <Core/engine_types.hpp>
+#include <Core/etl/string.hpp>
 #include <Core/math/math.hpp>
-#include <Core/object.hpp>
+#include <IconsLucide.h>
 #include <imgui.h>
 
 namespace Trinex
@@ -112,10 +113,8 @@ namespace Trinex
 		class NativeClass;
 	}
 
-	class ImGuiWindow final : private Object
+	class ImGuiWindow final
 	{
-		trinex_class(ImGuiWindow, Object);
-
 	private:
 		usize m_frame;
 
@@ -128,8 +127,8 @@ namespace Trinex
 		ImGuiWidgetsList widgets;
 		CallBacks<void()> on_destroy;
 
-		bool initialize(Window* window, ImGuiContext* context);
-		bool terminate();
+		ImGuiWindow(Window* window, ImGuiContext* context);
+		~ImGuiWindow();
 
 		ImGuiContext* context() const;
 		ImGuiWindow& new_frame();
@@ -138,11 +137,6 @@ namespace Trinex
 		usize frame_index() const;
 		static ImGuiWindow* current();
 		static void make_current(ImGuiWindow*);
-
-		friend class Object;
-
-		template<typename T>
-		friend class Refl::NativeClass;
 	};
 }// namespace Trinex
 
@@ -187,6 +181,9 @@ namespace ImGui
 	bool InputScalarWithPrefix(const char* prefix, ImU32 prefix_bg, ImGuiDataType data_type, void* p_data,
 	                           const void* p_step = nullptr, const void* p_step_fast = nullptr, const char* format = nullptr,
 	                           ImGuiInputTextFlags flags = 0);
+
+	void PushIconFont();
+	bool IconButton(const char* icon, float size = 0.f, ImGuiButtonFlags flags = 0);
 
 	FORCE_INLINE ImVec2 ImVecFrom(const Trinex::Vector2f& vec)
 	{

@@ -6,7 +6,6 @@
 #include <Core/localization.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
-#include <Core/theme.hpp>
 #include <Core/threading.hpp>
 #include <Editor/engine.hpp>
 #include <Engine/ActorComponents/camera_component.hpp>
@@ -16,7 +15,6 @@
 #include <Engine/Render/render_graph.hpp>
 #include <Engine/settings.hpp>
 #include <Engine/world.hpp>
-#include <Graphics/imgui.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/texture.hpp>
@@ -28,7 +26,8 @@
 #include <Systems/event_system.hpp>
 #include <Systems/keyboard_system.hpp>
 #include <Systems/mouse_system.hpp>
-#include <UI/primitives.hpp>
+#include <UI/imgui.hpp>
+#include <UI/theme.hpp>
 #include <Widgets/content_browser.hpp>
 #include <Widgets/imgui_windows.hpp>
 #include <Window/window.hpp>
@@ -49,6 +48,7 @@ namespace Trinex
 	trinex_implement_engine_class(EditorClient, 0)
 	{
 		register_client(Actor::static_reflection(), static_reflection());
+		register_client(Level::static_reflection(), static_reflection());
 	}
 
 	void EditorClient::Stats::Pipeline::update()
@@ -285,7 +285,7 @@ namespace Trinex
 		wd->size(monitor_info.size);
 
 		EventSystem::system_of<EventSystem>()->process_event_method(EventSystem::PoolEvents);
-		m_world = Object::new_instance<World>();
+		m_world = Object::new_instance<World>("World");
 		// m_on_actor_select_callback_id = m_world->on_actor_select.push(
 		//         std::bind(&This::on_actor_select, this, std::placeholders::_1, std::placeholders::_2));
 		// m_on_actor_unselect_callback_id = m_world->on_actor_unselect.push(
@@ -615,7 +615,7 @@ namespace Trinex
 		}
 	}
 
-	static bool render_viewport_item_button(const char* id, UI::IconDrawFunc func, bool active = false)
+	static bool render_viewport_item_button(const char* icon, bool active = false)
 	{
 		if (active)
 		{
@@ -624,7 +624,7 @@ namespace Trinex
 			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::MakeHoveredColor(active_color));
 		}
 
-		const bool result = UI::icon_button(func, id, ImGui::GetFontSize());
+		const bool result = ImGui::IconButton(icon);
 
 		if (active)
 			ImGui::PopStyleColor(2);
@@ -648,16 +648,15 @@ namespace Trinex
 
 		struct {
 			ImGuizmo::OPERATION op;
-			UI::IconDrawFunc func;
 			const char* name;
 		} operation_controls[] = {
-		        {ImGuizmo::OPERATION::UNIVERSAL, UI::select_icon, "##op_universal"},
-		        {ImGuizmo::OPERATION::TRANSLATE, UI::move_icon, "##op_translate"},
-		        {ImGuizmo::OPERATION::ROTATE, UI::rotate_icon, "##op_rotate"},
-		        {ImGuizmo::OPERATION::SCALE, UI::scale_icon, "##op_scale"},
+		        {ImGuizmo::OPERATION::UNIVERSAL, ICON_LC_MOUSE_POINTER "##op_universal"},
+		        {ImGuizmo::OPERATION::TRANSLATE, ICON_LC_MOVE "##op_translate"},
+		        {ImGuizmo::OPERATION::ROTATE, ICON_LC_ROTATE_CCW "##op_rotate"},
+		        {ImGuizmo::OPERATION::SCALE, ICON_LC_EXPAND "##op_scale"},
 		};
 
-		if (UI::icon_button(UI::more_icon, "##View", height))
+		if (ImGui::IconButton(ICON_LC_ELLIPSIS_VERTICAL "##View"))
 		{
 			m_state.viewport.show_additional_menu = true;
 			ImGui::OpenPopup("##addition_menu");
@@ -670,7 +669,7 @@ namespace Trinex
 		{
 			const bool is_active = m_guizmo_operation == control.op;
 
-			if (render_viewport_item_button(control.name, control.func, is_active))
+			if (render_viewport_item_button(control.name, is_active))
 			{
 				m_guizmo_operation = control.op;
 			}
@@ -685,14 +684,14 @@ namespace Trinex
 
 		if (m_properties)
 		{
-			if (render_viewport_item_button("##Camera", UI::camera_icon, m_properties->object() == camera))
+			if (render_viewport_item_button(ICON_LC_CAMERA "##Camera", m_properties->object() == camera))
 			{
 				m_properties->object(camera);
 			}
 			ImGui::SameLine();
 		}
 		{
-			if (render_viewport_item_button("###globe_mode", UI::globe_icon, ImGuizmo::WORLD == m_guizmo_mode))
+			if (render_viewport_item_button(ICON_LC_GLOBE "###globe_mode", ImGuizmo::WORLD == m_guizmo_mode))
 			{
 				m_guizmo_mode = m_guizmo_mode == ImGuizmo::LOCAL ? ImGuizmo::WORLD : ImGuizmo::LOCAL;
 			}
@@ -702,7 +701,7 @@ namespace Trinex
 
 		render_separator();
 
-		if (UI::icon_button(UI::plus_icon, "##SpawnActor", height))
+		if (ImGui::IconButton(ICON_LC_PLUS "##Add"))
 		{
 			window()->widgets.create_identified<ImGuiSpawnNewActor>(this, m_world);
 		}
@@ -941,6 +940,25 @@ namespace Trinex
 			make_rotation_quat(yaw, pitch, rotation);
 			camera->rotation(rotation);
 		}
+	}
+
+	EditorClient& EditorClient::select(Object* object)
+	{
+		if (Level* level = instance_cast<Level>(object))
+		{
+			for (LevelInstance* instance : m_world->levels())
+			{
+				if (instance->level() == level)
+					return *this;
+			}
+
+			level->create_instance("", m_world);
+		}
+		else
+		{
+			Super::select(object);
+		}
+		return *this;
 	}
 
 }// namespace Trinex

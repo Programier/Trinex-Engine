@@ -18,6 +18,17 @@ namespace Trinex
 	static ScriptFunction script_actor_stop_play;
 	static ScriptFunction script_actor_despawned;
 
+	Actor::Actor() : m_is_playing(false), m_is_visible(true) {}
+
+	Actor::~Actor()
+	{
+		while (!m_components.empty())
+		{
+			ActorComponent* component = m_components.back();
+			component->owner(nullptr);
+		}
+	}
+
 	void Actor::scriptable_spawned()
 	{
 		ScriptObject(this).execute(script_actor_spawned);
@@ -59,7 +70,7 @@ namespace Trinex
 		return actor;
 	}
 
-	bool Actor::register_child(Object* child, u32& index)
+	Object* Actor::register_child(Object* child, u32& index)
 	{
 		ActorComponent* component = instance_cast<ActorComponent>(child);
 
@@ -81,7 +92,7 @@ namespace Trinex
 			component->start_play();
 		}
 
-		return true;
+		return this;
 	}
 
 	bool Actor::unregister_child(Object* child)
@@ -108,7 +119,7 @@ namespace Trinex
 
 	bool Actor::is_visible() const
 	{
-		return m_is_visible;
+		return m_is_visible && level()->is_visible();
 	}
 
 	Actor& Actor::is_visible(bool visible)
@@ -178,13 +189,10 @@ namespace Trinex
 			stop_play();
 		}
 
-		// Call destroy for each component
 		for (usize index = 0, count = m_components.size(); index < count; ++index)
 		{
 			ActorComponent* component = m_components[index];
-
 			component->despawned();
-			component->owner(nullptr);
 		}
 
 		return *this;
@@ -200,19 +208,19 @@ namespace Trinex
 		return m_root_component.ptr();
 	}
 
-	class Level* Actor::level() const
+	LevelInstance* Actor::level() const
 	{
-		return instance_cast<Level>(owner());
+		return instance_cast<LevelInstance>(owner());
 	}
 
-	class World* Actor::world() const
+	World* Actor::world() const
 	{
-		if (Level* actor_level = level())
+		if (LevelInstance* actor_level = level())
 			return actor_level->world();
 		return nullptr;
 	}
 
-	class Scene* Actor::scene() const
+	Scene* Actor::scene() const
 	{
 		if (World* actor_world = world())
 			return actor_world->scene();

@@ -14,7 +14,7 @@ namespace Trinex
 
 	protected:
 		Refl::Class* object_tree_child_class() const override;
-		bool register_child(Object* object, u32& index) override;
+		Object* register_child(Object* object, u32& index) override;
 
 	public:
 		delete_copy_constructors(Package);
