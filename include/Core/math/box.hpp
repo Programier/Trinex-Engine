@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/math/matrix.hpp>
 #include <Core/math/vector.hpp>
+#include <glm/common.hpp>
 
 namespace Trinex
 {
@@ -18,12 +19,30 @@ namespace Trinex
 
 	public:
 		constexpr BoxNT(const VectorType& min = {}, const VectorType& max = {}) : min(min), max(max) {}
-		constexpr BoxNT(const BoxNT& other)            = default;
-		constexpr BoxNT& operator=(const BoxNT& other) = default;
+
+		template<typename ArgumentType>
+		    requires(std::is_floating_point_v<ArgumentType> && !std::is_floating_point_v<T>)
+		constexpr BoxNT(const BoxNT<N, ArgumentType>& other) : min(glm::floor(other.min)), max(glm::ceil(other.max))
+		{}
 
 		template<typename ArgumentType>
 		constexpr BoxNT(const BoxNT<N, ArgumentType>& other) : min(other.min), max(other.max)
 		{}
+
+		template<typename ArgumentType>
+		    requires(std::is_floating_point_v<ArgumentType> && !std::is_floating_point_v<T>)
+		constexpr BoxNT& operator=(const BoxNT& other)
+		{
+			min = glm::floor(other.min);
+			max = glm::ceil(other.max);
+		}
+
+		template<typename ArgumentType>
+		constexpr BoxNT& operator=(const BoxNT& other)
+		{
+			min = other.min;
+			max = other.max;
+		}
 
 		constexpr VectorType extents() const { return (max - min) / static_cast<T>(2); }
 		constexpr VectorType center() const { return (min + max) / static_cast<T>(2); }
@@ -119,6 +138,9 @@ namespace Trinex
 
 			return true;
 		}
+
+		constexpr bool operator==(const BoxNT& other) const { return min == other.min && max == other.max; }
+		constexpr bool operator!=(const BoxNT& other) const { return min != other.min || max != other.max; }
 
 		constexpr BoxNT operator+(T value) const { return BoxNT(min + value, max + value); }
 		constexpr BoxNT operator-(T value) const { return BoxNT(min - value, max - value); }

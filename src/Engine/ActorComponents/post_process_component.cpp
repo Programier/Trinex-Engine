@@ -25,7 +25,7 @@ namespace Trinex
 			{
 				if (Scene* scene = world->scene())
 				{
-					scene->add_post_process(this);
+					//scene->add_post_process(this);
 				}
 			}
 		}
@@ -42,7 +42,7 @@ namespace Trinex
 			{
 				if (Scene* scene = world->scene())
 				{
-					scene->remove_post_process(this);
+					//scene->remove_post_process(this);
 				}
 			}
 		}

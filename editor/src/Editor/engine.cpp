@@ -38,7 +38,6 @@ namespace Trinex
 		return *this;
 	}
 
-
 	EditorEngine& EditorEngine::is_selected(Actor* actor, bool status)
 	{
 		return status ? select(actor) : unselect(actor);

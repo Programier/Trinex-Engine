@@ -38,6 +38,7 @@ namespace Trinex
 		Box3f m_bounding_box;
 
 	private:
+		u32 m_light_id = 0xFFFFFFFF;
 		Color m_light_color;
 		LightUnits m_intensity_units;
 		float m_intensity;
@@ -45,8 +46,6 @@ namespace Trinex
 		float m_slope_scale;
 		bool m_is_enabled;
 		bool m_is_shadows_enabled;
-
-		LightComponent& submit_light_info_render_thread();
 
 	protected:
 		virtual float calculate_light_intensity() const;

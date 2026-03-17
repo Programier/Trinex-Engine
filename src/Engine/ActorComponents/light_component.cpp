@@ -9,6 +9,7 @@
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/camera_view.hpp>
 #include <Engine/scene.hpp>
+#include <Engine/world.hpp>
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/render_pools.hpp>
@@ -48,10 +49,11 @@ namespace Trinex
 	LightComponent& LightComponent::on_transform_changed()
 	{
 		Super::on_transform_changed();
+		update_bounding_box();
 
-		if (Scene* world_scene = scene())
+		if (m_light_id != 0xFFFFFFFF)
 		{
-			world_scene->update_light_transform(this);
+			world()->scene()->update_light(m_light_id, m_bounding_box);
 		}
 
 		return *this;
@@ -60,24 +62,24 @@ namespace Trinex
 	LightComponent& LightComponent::start_play()
 	{
 		Super::start_play();
-		Scene* world_scene = scene();
-		if (world_scene)
+
+		if (World* light_world = world())
 		{
-			world_scene->add_light(this);
+			m_light_id = light_world->scene()->add_light(this, m_bounding_box);
 		}
-		return submit_light_info_render_thread();
+		return *this;
 	}
 
 	LightComponent& LightComponent::stop_play()
 	{
 		Super::stop_play();
 
-		Scene* world_scene = scene();
-
-		if (world_scene)
+		if (m_light_id != 0xFFFFFFFF)
 		{
-			world_scene->remove_light(this);
+			world()->scene()->remove_light(m_light_id);
+			m_light_id = 0xFFFFFFFF;
 		}
+
 		return *this;
 	}
 
@@ -98,7 +100,7 @@ namespace Trinex
 	LightComponent& LightComponent::light_color(const Color& color)
 	{
 		m_light_color = color;
-		return submit_light_info_render_thread();
+		return *this;
 	}
 
 	LightComponent& LightComponent::intensity_units(LightUnits units)
@@ -107,50 +109,31 @@ namespace Trinex
 			return *this;
 
 		m_intensity_units = units;
-		return submit_light_info_render_thread();
+		return *this;
 	}
 
 	LightComponent& LightComponent::intensity(float value)
 	{
 		m_intensity = value;
-		return submit_light_info_render_thread();
+		return *this;
 	}
 
 	LightComponent& LightComponent::intensity(float value, LightUnits units)
 	{
 		m_intensity       = value;
 		m_intensity_units = units;
-		return submit_light_info_render_thread();
+		return *this;
 	}
 
 	LightComponent& LightComponent::is_enabled(bool enabled)
 	{
 		m_is_enabled = enabled;
-		return submit_light_info_render_thread();
+		return *this;
 	}
 
 	LightComponent& LightComponent::is_shadows_enabled(bool enabled)
 	{
 		m_is_shadows_enabled = enabled;
-		return submit_light_info_render_thread();
-	}
-
-	LightComponent& LightComponent::submit_light_info_render_thread()
-	{
-		// render_thread()->call([proxy           = proxy(),                    //
-		//                        color           = m_light_color,              //
-		//                        intensity       = calculate_light_intensity(),//
-		//                        depth_bias      = m_depth_bias,               //
-		//                        slope_scale     = m_slope_scale,              //
-		//                        enabled         = m_is_enabled,               //
-		//                        shadows_enabled = m_is_shadows_enabled]() {
-		// 	proxy->m_light_color        = color;
-		// 	proxy->m_intensity          = intensity;
-		// 	proxy->m_depth_bias         = depth_bias;
-		// 	proxy->m_slope_scale        = slope_scale;
-		// 	proxy->m_is_enabled         = enabled;
-		// 	proxy->m_is_shadows_enabled = shadows_enabled;
-		// });
 		return *this;
 	}
 
@@ -171,10 +154,6 @@ namespace Trinex
 			if (event.property->address(this) == &m_is_shadows_enabled)
 			{
 				is_shadows_enabled(m_is_shadows_enabled);
-			}
-			else
-			{
-				submit_light_info_render_thread();
 			}
 		}
 

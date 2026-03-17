@@ -31,16 +31,12 @@ namespace Trinex
 	PrimitiveComponent& PrimitiveComponent::start_play()
 	{
 		Super::start_play();
-		if (Actor* owner_actor = actor())
+
+		if (World* actor_world = world())
 		{
-			if (World* world = owner_actor->world())
-			{
-				if (Scene* scene = world->scene())
-				{
-					scene->add_primitive(this);
-				}
-			}
+			m_primitive_id = actor_world->scene()->add_primitive(this, m_bounding_box);
 		}
+
 		return *this;
 	}
 
@@ -48,30 +44,26 @@ namespace Trinex
 	{
 		Super::stop_play();
 
-		if (Actor* owner_actor = actor())
+		if (World* actor_world = world())
 		{
-			if (World* world = owner_actor->world())
-			{
-				if (Scene* scene = world->scene())
-				{
-					scene->remove_primitive(this);
-				}
-			}
+			actor_world->scene()->remove_primitive(m_primitive_id);
 		}
 
+		m_primitive_id = 0xFFFFFFFF;
 		return *this;
 	}
 
 	PrimitiveComponent& PrimitiveComponent::on_transform_changed()
 	{
 		Super::on_transform_changed();
+		update_bounding_box();
 
-		if (Scene* world_scene = scene())
+		if (m_primitive_id != 0xFFFFFFFF)
 		{
-			world_scene->update_primitive_transform(this);
+			scene()->update_primitive(m_primitive_id, m_bounding_box);
 		}
 
-		return update_bounding_box();
+		return *this;
 	}
 
 	PrimitiveComponent& PrimitiveComponent::render(PrimitiveRenderingContext* context)
@@ -84,7 +76,6 @@ namespace Trinex
 		m_bounding_box = default_bounds.transform(world_transform().matrix());
 		return *this;
 	}
-
 
 	PrimitiveComponent::~PrimitiveComponent() {}
 }// namespace Trinex

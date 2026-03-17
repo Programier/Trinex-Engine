@@ -225,7 +225,7 @@ namespace Trinex
 		register_debug_lines();
 	}
 
-	static void render_octree(Scene::PrimitiveOctree::Node* node, const Frustum& frustum, BatchedLines& lines)
+	static void render_octree(Octree::Node* node, const Frustum& frustum, BatchedLines& lines)
 	{
 		auto box = node->box();
 
@@ -236,7 +236,7 @@ namespace Trinex
 
 		for (u8 i = 0; i < 8; i++)
 		{
-			auto child = node->child_at(i);
+			auto child = node->child(i);
 
 			if (child)
 			{
@@ -260,7 +260,7 @@ namespace Trinex
 
 		if (flags & ShowFlags::PrimitiveOctree)
 		{
-			render_octree(scene()->primitive_octree().root_node(), Frustum(scene_view().camera_view().projview), lines);
+			render_octree(scene()->primitive_octree().root(), Frustum(scene_view().camera_view().projview), lines);
 		}
 
 		render_graph()
