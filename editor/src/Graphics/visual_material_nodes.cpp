@@ -95,7 +95,7 @@ namespace Trinex::VisualMaterialGraph
 		if (texture)
 		{
 			float size = 4.f * ImGui::GetFrameHeight();
-			ImGui::Image(texture->rhi_texture(), {size, size});
+			ImGui::Image(ImTextureID(texture->rhi_texture()), {size, size});
 		}
 		return *this;
 	}
@@ -312,7 +312,7 @@ namespace Trinex::VisualMaterialGraph
 		if (icon)
 		{
 			float size = 4.f * ImGui::GetFrameHeight();
-			ImGui::Image(icon, {size, size});
+			ImGui::Image(ImTextureID(icon), {size, size});
 		}
 
 		return *this;

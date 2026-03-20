@@ -1,32 +1,30 @@
 #include <Core/editor_config.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/path.hpp>
+#include <Core/memory.hpp>
 #include <UI/imgui.hpp>
 #include <UI/theme.hpp>
 
 namespace Trinex::UI
 {
-	static void register_font(Buffer& buffer, const ImFontConfig& config, const ImWchar* range, f32 scale = 1.f, f32 offset = 0.f)
+	static void register_font(Buffer& buffer, const ImFontConfig& config, const ImWchar* range, f32 size)
 	{
 		auto& io = ImGui::GetIO();
 
-		const f32 small  = Settings::Editor::small_font_size * scale + offset;
-		const f32 normal = Settings::Editor::normal_font_size * scale + offset;
-		const f32 large  = Settings::Editor::large_font_size * scale + offset;
-
-		io.Fonts->AddFontFromMemoryTTF(buffer.data(), buffer.size(), small, &config, range);
-		io.Fonts->AddFontFromMemoryTTF(buffer.data(), buffer.size(), normal, &config, range);
-		io.Fonts->AddFontFromMemoryTTF(buffer.data(), buffer.size(), large, &config, range);
+		void* memory = ImGui::MemAlloc(buffer.size());
+		memcpy(memory, buffer.data(), buffer.size());
+		io.Fonts->AddFontFromMemoryTTF(memory, buffer.size(), size, &config, range);
 	}
 
-	static void register_font(const Path& path, const ImFontConfig& config, const ImWchar* range, f32 scale = 1.f,
-	                          f32 offset = 0.f)
+	static void register_font(const Path& path, const ImFontConfig& config, const ImWchar* range)
 	{
 		FileReader reader(path);
 		trinex_verify(reader.is_open());
 
 		Buffer buffer = reader.read_buffer();
-		register_font(buffer, config, range, scale, offset);
+		register_font(buffer, config, range, Settings::Editor::small_font_size);
+		register_font(buffer, config, range, Settings::Editor::normal_font_size);
+		register_font(buffer, config, range, Settings::Editor::large_font_size);
 	}
 
 	void initialize_theme(ImGuiContext* ctx)
@@ -42,7 +40,7 @@ namespace Trinex::UI
 			};
 
 			ImFontConfig cfg;
-			cfg.FontDataOwnedByAtlas = false;
+			cfg.FontDataOwnedByAtlas = true;
 
 			register_font(Settings::Editor::font_path, cfg, io.Fonts->GetGlyphRangesCyrillic());
 			register_font("[content]:/TrinexEditor/fonts/Lucide/lucide.ttf", cfg, icons_ranges);

@@ -79,10 +79,7 @@ namespace Trinex
 	static ImGuiContext* imgui_create_context()
 	{
 		ImGuiContext* context = ImGui::CreateContext();
-
 		ImGuiContextLock lock(context);
-
-		UI::initialize_theme(context);
 
 #if !PLATFORM_ANDROID
 		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;

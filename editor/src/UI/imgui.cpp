@@ -133,8 +133,6 @@ namespace Trinex
 			auto pipeline = ImGuiPipeline::instance();
 
 			bd->context->viewport(RHIViewport());
-			//bd->context->barrier(bd->window->rhi_texture(), RHIAccess::RTV);
-			//bd->context->bind_render_target1(bd->window->rhi_rtv());
 
 			float L = draw_data->DisplayPos.x;
 			float R = L + draw_data->DisplaySize.x;
@@ -143,6 +141,61 @@ namespace Trinex
 
 			pipeline->setup(bd->context);
 			pipeline->bind(bd->context, Math::ortho(L, R, B, T, 0.f, 1.f));
+		}
+
+		static void imgui_trinex_rhi_destroy_texture(ImTextureData* tex)
+		{
+			RHITexture* texture = static_cast<RHITexture*>(tex->BackendUserData);
+			texture->release();
+
+			tex->BackendUserData = nullptr;
+			tex->SetTexID(ImTextureID_Invalid);
+			tex->SetStatus(ImTextureStatus_Destroyed);
+		}
+
+		static void imgui_trinex_rhi_update_texture(RHIContext* ctx, ImTextureData* tex)
+		{
+			auto bd = imgui_trinex_backend_data();
+
+			if (tex->Status == ImTextureStatus_WantCreate)
+			{
+				trinex_assert(tex->TexID == ImTextureID_Invalid && tex->BackendUserData == nullptr);
+				trinex_assert(tex->Format == ImTextureFormat_RGBA32);
+				unsigned int* pixels = (unsigned int*) tex->GetPixels();
+
+				auto rhi             = RHI::instance();
+				constexpr auto flags = RHITextureCreateFlags::ShaderResource;
+
+				RHITexture* texture = rhi->create_texture(RHITextureType::Texture2D, RHIColorFormat::R8G8B8A8,
+				                                          {tex->Width, tex->Height, 1}, 1, flags);
+
+				RHITextureRegion region = RHITextureRegion({tex->Width, tex->Height, 1});
+				ctx->barrier(texture, RHIAccess::TransferDst);
+				ctx->update_texture(texture, region, tex->GetPixels(), tex->GetSizeInBytes());
+
+				// Store identifiers
+				tex->SetTexID(ImTextureID(texture));
+				tex->SetStatus(ImTextureStatus_OK);
+				tex->BackendUserData = texture;
+			}
+			else if (tex->Status == ImTextureStatus_WantUpdates)
+			{
+				// RHITexture* texture = static_cast<RHITexture*>(tex->BackendUserData);
+
+				// for (ImTextureRect& r : tex->Updates)
+				// {
+				// 	RHITextureRegion region;
+				// 	region.offset = {r.x, r.y, 0};
+				// 	region.extent = {r.w, r.h, 1};
+
+				// 	ctx->update_texture(texture, region, tex->GetPixelsAt(r.x, r.y), 0, tex->GetPitch());
+				// }
+				tex->SetStatus(ImTextureStatus_OK);
+			}
+			else if (tex->Status == ImTextureStatus_WantDestroy && tex->UnusedFrames > 0)
+			{
+				imgui_trinex_rhi_destroy_texture(tex);
+			}
 		}
 
 		void imgui_trinex_rhi_render_draw_data(RHIContext* ctx, ImDrawData* draw_data)
@@ -169,6 +222,17 @@ namespace Trinex
 			bd->context = ctx;
 
 			trinex_rhi_push_stage(ctx, "ImGui Setup state");
+
+			if (draw_data->Textures != nullptr)
+			{
+				for (ImTextureData* tex : *draw_data->Textures)
+				{
+					if (tex->Status != ImTextureStatus_OK)
+					{
+						imgui_trinex_rhi_update_texture(ctx, tex);
+					}
+				}
+			}
 
 			if (!vd->vertex_buffer || static_cast<int>(vd->vertex_count) < draw_data->TotalVtxCount)
 			{
@@ -230,9 +294,9 @@ namespace Trinex
 				{
 					const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
 
-					if (pcmd->TextureId.texture)
+					if (RHITexture* texture = pcmd->TexRef.GetTexID().texture)
 					{
-						ctx->barrier(pcmd->TextureId.texture, RHIAccess::SRVGraphics);
+						ctx->barrier(texture, RHIAccess::SRVGraphics);
 					}
 				}
 			}
@@ -295,9 +359,10 @@ namespace Trinex
 
 							ctx->scissor(scissor);
 
-							pipeline->bind(ctx,
-							               pcmd->TextureId.texture ? pcmd->TextureId.texture : bd->font_texture->rhi_texture());
-							pipeline->bind(ctx, pcmd->TextureId.sampler ? pcmd->TextureId.sampler : bd->sampler.rhi_sampler());
+							ImTextureID texture = pcmd->GetTexID();
+
+							pipeline->bind(ctx, texture.texture ? texture.texture : bd->font_texture->rhi_texture());
+							pipeline->bind(ctx, texture.sampler ? texture.sampler : bd->sampler.rhi_sampler());
 
 							{
 								ctx->draw_indexed(RHITopology::TriangleList, pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset,
@@ -317,45 +382,17 @@ namespace Trinex
 			bd->context = nullptr;
 		}
 
-		static void imgui_trinex_create_fonts_texture()
-		{
-			// Build texture atlas
-			ImGuiIO& io         = ImGui::GetIO();
-			ImGuiTrinexData* bd = imgui_trinex_backend_data();
-			unsigned char* pixels;
-			int width, height;
-			io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-
-			bd->font_texture = Object::new_instance<EngineResource<Texture2D>>(
-			        Strings::format("FontsTexture {}", reinterpret_cast<usize>(ImGui::GetCurrentContext())));
-			bd->font_texture->format = RHIColorFormat::R8G8B8A8;
-			bd->font_texture->mips.emplace_back();
-			auto& mip = bd->font_texture->mips[0];
-			mip.size  = {width, height};
-			mip.data  = Buffer(pixels, pixels + width * height * 4);
-			bd->font_texture->init_render_resources();
-
-			auto package = Package::static_find_package("TrinexEditor::ImGui", true);
-			package->add_object(bd->font_texture);
-
-			bd->sampler = Sampler(RHISamplerFilter::Bilinear);
-
-			// Store our identifier
-			io.Fonts->SetTexID(bd->font_texture->rhi_texture());
-		}
-
 		static void imgui_trinex_destroy_device_objects()
 		{
 			ImGuiTrinexData* bd         = imgui_trinex_backend_data();
 			bool call_garbage_collector = !Trinex::engine_instance->is_shuting_down();
 
-			if (bd->font_texture)
+			for (ImTextureData* tex : ImGui::GetPlatformIO().Textures)
 			{
-				if (call_garbage_collector)
-					GarbageCollector::destroy(bd->font_texture);
-
-				ImGui::GetIO().Fonts->SetTexID(ImTextureID());
-				bd->font_texture = {};
+				if (tex->RefCount == 1)
+				{
+					imgui_trinex_rhi_destroy_texture(tex);
+				}
 			}
 		}
 
@@ -366,7 +403,6 @@ namespace Trinex
 				imgui_trinex_destroy_device_objects();
 
 			ImGuiPipeline::create();
-			imgui_trinex_create_fonts_texture();
 		}
 
 
@@ -409,6 +445,7 @@ namespace Trinex
 
 			io.BackendRendererUserData = (void*) bd;
 			io.BackendRendererName     = "imgui_impl_trinex";
+			io.BackendFlags |= ImGuiBackendFlags_RendererHasTextures;
 			io.BackendFlags |= ImGuiBackendFlags_RendererHasViewports;
 			io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
 
@@ -1270,6 +1307,7 @@ namespace Trinex
 
 		ImGuiBackend_Window::imgui_trinex_window_init(window);
 		ImGuiBackend_RHI::imgui_trinex_rhi_init(window, context);
+		UI::initialize_theme(context);
 	}
 
 	ImGuiWindow::~ImGuiWindow()
@@ -1278,8 +1316,6 @@ namespace Trinex
 
 		if (this == current_window)
 			current_window = nullptr;
-
-		free_resources();
 
 		ImGuiContextLock lock(m_context);
 
@@ -1292,12 +1328,6 @@ namespace Trinex
 		m_context = nullptr;
 
 		ImGuiWindow::make_current(current_window);
-	}
-
-	ImGuiWindow& ImGuiWindow::free_resources()
-	{
-		on_destroy();
-		return *this;
 	}
 
 	ImGuiContext* ImGuiWindow::context() const

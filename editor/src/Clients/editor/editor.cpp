@@ -806,7 +806,7 @@ namespace Trinex
 
 			if (RHITexture* scene = capture_scene())
 			{
-				ImGui::Image(scene, viewport_size);
+				ImGui::Image(ImTextureID(scene), viewport_size);
 				m_state.viewport.is_hovered = ImGui::IsWindowHovered();
 			}
 

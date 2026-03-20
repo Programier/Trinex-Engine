@@ -159,19 +159,17 @@ namespace Trinex
 			new_enum_v(ImGuiWindowFlags, NoNav);
 			new_enum_v(ImGuiWindowFlags, NoDecoration);
 			new_enum_v(ImGuiWindowFlags, NoInputs);
-			new_enum_v(ImGuiWindowFlags, NavFlattened);
 			new_enum_v(ImGuiWindowFlags, ChildWindow);
 			new_enum_v(ImGuiWindowFlags, Tooltip);
 			new_enum_v(ImGuiWindowFlags, Popup);
 			new_enum_v(ImGuiWindowFlags, Modal);
 			new_enum_v(ImGuiWindowFlags, ChildMenu);
 			new_enum_v(ImGuiWindowFlags, DockNodeHost);
-			new_enum_v(ImGuiWindowFlags, AlwaysUseWindowPadding);
 		}
 		{
 			ScriptEnumRegistrar new_enum("ImGuiChildFlags");
 			new_enum_v(ImGuiChildFlags, None);
-			new_enum_v(ImGuiChildFlags, Border);
+			new_enum_v(ImGuiChildFlags, Borders);
 			new_enum_v(ImGuiChildFlags, AlwaysUseWindowPadding);
 			new_enum_v(ImGuiChildFlags, ResizeX);
 			new_enum_v(ImGuiChildFlags, ResizeY);
@@ -224,7 +222,6 @@ namespace Trinex
 			new_enum_v(ImGuiTreeNodeFlags, SpanAllColumns);
 			new_enum_v(ImGuiTreeNodeFlags, NavLeftJumpsBackHere);
 			new_enum_v(ImGuiTreeNodeFlags, CollapsingHeader);
-			new_enum_v(ImGuiTreeNodeFlags, AllowItemOverlap);
 		}
 		{
 			ScriptEnumRegistrar new_enum("ImGuiPopupFlags");
@@ -233,7 +230,6 @@ namespace Trinex
 			new_enum_v(ImGuiPopupFlags, MouseButtonRight);
 			new_enum_v(ImGuiPopupFlags, MouseButtonMiddle);
 			new_enum_v(ImGuiPopupFlags, MouseButtonMask_);
-			new_enum_v(ImGuiPopupFlags, MouseButtonDefault_);
 			new_enum_v(ImGuiPopupFlags, NoOpenOverExistingPopup);
 			new_enum_v(ImGuiPopupFlags, NoOpenOverItems);
 			new_enum_v(ImGuiPopupFlags, AnyPopupId);
@@ -248,7 +244,6 @@ namespace Trinex
 			new_enum_v(ImGuiSelectableFlags, AllowDoubleClick);
 			new_enum_v(ImGuiSelectableFlags, Disabled);
 			new_enum_v(ImGuiSelectableFlags, AllowOverlap);
-			new_enum_v(ImGuiSelectableFlags, AllowItemOverlap);
 		}
 		{
 			ScriptEnumRegistrar new_enum("ImGuiComboFlags");
@@ -630,10 +625,10 @@ namespace Trinex
 			new_enum_v(ImGuiKey, NamedKey_BEGIN);
 			new_enum_v(ImGuiKey, NamedKey_END);
 			new_enum_v(ImGuiKey, NamedKey_COUNT);
-			new_enum_v(ImGuiKey, ModCtrl);
-			new_enum_v(ImGuiKey, ModShift);
-			new_enum_v(ImGuiKey, ModAlt);
-			new_enum_v(ImGuiKey, ModSuper);
+			// new_enum_v(ImGuiKey, ModCtrl);
+			// new_enum_v(ImGuiKey, ModShift);
+			// new_enum_v(ImGuiKey, ModAlt);
+			// new_enum_v(ImGuiKey, ModSuper);
 		}
 
 		{

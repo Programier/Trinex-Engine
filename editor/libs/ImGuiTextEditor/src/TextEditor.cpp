@@ -2180,13 +2180,13 @@ namespace ImGui
                         if ((lineNo == highlightBracketCoord.mLine && i == highlightBracketCoord.mColumn) ||
                             (lineNo == highlightBracketCursor.mLine && i == highlightBracketCursor.mColumn))
                         {
-                            const ImVec2 p1(textScreenPos.x + bufferOffset.x, textScreenPos.y + bufferOffset.y);
-                            const ImVec2 p2(
-                                    textScreenPos.x + bufferOffset.x +
-                                            ImGui::GetFont()->GetCharAdvance(
-                                                    mLines[highlightBracketCoord.mLine][highlightBracketCoord.mColumn].mChar),
-                                    textScreenPos.y + bufferOffset.y + ImGui::GetFontSize());
-                            drawList->AddRectFilled(p1, p2, mPalette[(int) PaletteIndex::Selection]);
+                            // const ImVec2 p1(textScreenPos.x + bufferOffset.x, textScreenPos.y + bufferOffset.y);
+                            // const ImVec2 p2(
+                            //         textScreenPos.x + bufferOffset.x +
+                            //                 ImGui::GetFont()->I(
+                            //                         mLines[highlightBracketCoord.mLine][highlightBracketCoord.mColumn].mChar),
+                            //         textScreenPos.y + bufferOffset.y + ImGui::GetFontSize());
+                            // drawList->AddRectFilled(p1, p2, mPalette[(int) PaletteIndex::Selection]);
                         }
                     }
 
@@ -3562,7 +3562,7 @@ namespace ImGui
         if (mHandleKeyboardInputs)
         {
             HandleKeyboardInputs();
-            ImGui::PushAllowKeyboardFocus(true);
+            //ImGui::PushAllowKeyboardFocus(true);
         }
 
         if (mHandleMouseInputs)
@@ -3970,8 +3970,8 @@ namespace ImGui
             ImGui::EndChild();
         }
 
-        if (mHandleKeyboardInputs)
-            ImGui::PopAllowKeyboardFocus();
+        //if (mHandleKeyboardInputs)
+            //ImGui::PopAllowKeyboardFocus();
 
         if (!mIgnoreImGuiChild)
             ImGui::EndChild();

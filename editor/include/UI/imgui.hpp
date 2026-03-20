@@ -121,11 +121,8 @@ namespace Trinex
 		ImGuiContext* m_context = nullptr;
 		Window* m_window        = nullptr;
 
-		ImGuiWindow& free_resources();
-
 	public:
 		ImGuiWidgetsList widgets;
-		CallBacks<void()> on_destroy;
 
 		ImGuiWindow(Window* window, ImGuiContext* context);
 		~ImGuiWindow();

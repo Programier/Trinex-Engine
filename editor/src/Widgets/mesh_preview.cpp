@@ -196,7 +196,7 @@ namespace Trinex
 
 		if (auto surface = render_preview(content_size))
 		{
-			ImGui::Image(surface->rhi_texture(), content_size);
+			ImGui::Image(ImTextureID(surface->rhi_texture()), content_size);
 		}
 
 		ImGui::End();
