@@ -26,10 +26,10 @@ namespace Trinex
 	}
 
 	struct SamplerInitializerHash {
-		inline usize operator()(const RHISamplerInitializer& initializer) const { return initializer.hash(); }
+		inline usize operator()(const RHISamplerDesc& initializer) const { return initializer.hash(); }
 	};
 
-	using SamplersMap = Map<RHISamplerInitializer, class SamplerImpl*, SamplerInitializerHash>;
+	using SamplersMap = Map<RHISamplerDesc, class SamplerImpl*, SamplerInitializerHash>;
 
 	static SamplersMap s_samplers;
 	static Array<SamplerImpl*, 3> s_default_samplers;
@@ -44,10 +44,10 @@ namespace Trinex
 		RHISampler* m_sampler    = nullptr;
 		SamplerImpl* m_prev      = nullptr;
 		SamplerImpl* m_next      = nullptr;
-		RHISamplerInitializer m_initializer;
+		RHISamplerDesc m_initializer;
 
 	public:
-		SamplerImpl(const RHISamplerInitializer& initializer) : m_initializer(initializer)
+		SamplerImpl(const RHISamplerDesc& initializer) : m_initializer(initializer)
 		{
 			if (s_last_sampler)
 			{
@@ -63,7 +63,7 @@ namespace Trinex
 
 		SamplerImpl& initialize()
 		{
-			m_sampler                 = RHI::instance()->create_sampler(&m_initializer);
+			m_sampler                 = RHI::instance()->create_sampler(m_initializer);
 			s_samplers[m_initializer] = this;
 			return *this;
 		}
@@ -81,12 +81,12 @@ namespace Trinex
 		}
 
 		inline u64 references() const { return m_references; }
-		inline const RHISamplerInitializer& initializer() const { return m_initializer; }
+		inline const RHISamplerDesc& initializer() const { return m_initializer; }
 		inline RHISampler* rhi_sampler() const { return m_sampler; }
 		inline SamplerImpl* prev() const { return m_prev; }
 		inline SamplerImpl* next() const { return m_next; }
 
-		static inline SamplerImpl* static_find_or_create(const RHISamplerInitializer& initializer)
+		static inline SamplerImpl* static_find_or_create(const RHISamplerDesc& initializer)
 		{
 			auto it = s_samplers.find(initializer);
 
@@ -144,7 +144,7 @@ namespace Trinex
 		return *this;
 	}
 
-	Sampler& Sampler::init(const RHISamplerInitializer& initializer)
+	Sampler& Sampler::init(const RHISamplerDesc& initializer)
 	{
 		release();
 		m_sampler = SamplerImpl::static_find_or_create(initializer);
@@ -158,7 +158,7 @@ namespace Trinex
 		return add_ref();
 	}
 
-	const RHISamplerInitializer& Sampler::initializer() const
+	const RHISamplerDesc& Sampler::initializer() const
 	{
 		return m_sampler->initializer();
 	}
@@ -172,19 +172,19 @@ namespace Trinex
 
 	bool Sampler::serialize(Archive& ar)
 	{
-		u8 size = m_sampler ? sizeof(RHISamplerInitializer) : 0;
+		u8 size = m_sampler ? sizeof(RHISamplerDesc) : 0;
 		ar.serialize(size);
 
 		if (size > 0 && ar.is_saving())
 		{
-			RHISamplerInitializer inititalizer = m_sampler->initializer();
+			RHISamplerDesc inititalizer = m_sampler->initializer();
 			ar.serialize_memory(reinterpret_cast<u8*>(&inititalizer), size);
 		}
 		else if (ar.is_reading())
 		{
 			if (size > 0)
 			{
-				RHISamplerInitializer inititalizer;
+				RHISamplerDesc inititalizer;
 				ar.serialize_memory(reinterpret_cast<u8*>(&inititalizer), size);
 				init(inititalizer);
 			}
@@ -199,7 +199,7 @@ namespace Trinex
 
 	Sampler& Sampler::filter(RHISamplerFilter filter)
 	{
-		RHISamplerInitializer new_initializer = initializer();
+		RHISamplerDesc new_initializer = initializer();
 
 		if (new_initializer.filter != filter)
 		{
@@ -211,7 +211,7 @@ namespace Trinex
 
 	Sampler& Sampler::address_u(RHISamplerAddressMode address)
 	{
-		RHISamplerInitializer new_initializer = initializer();
+		RHISamplerDesc new_initializer = initializer();
 
 		if (new_initializer.address_u != address)
 		{
@@ -223,7 +223,7 @@ namespace Trinex
 
 	Sampler& Sampler::address_v(RHISamplerAddressMode address)
 	{
-		RHISamplerInitializer new_initializer = initializer();
+		RHISamplerDesc new_initializer = initializer();
 
 		if (new_initializer.address_v != address)
 		{
@@ -235,7 +235,7 @@ namespace Trinex
 
 	Sampler& Sampler::address_w(RHISamplerAddressMode address)
 	{
-		RHISamplerInitializer new_initializer = initializer();
+		RHISamplerDesc new_initializer = initializer();
 
 		if (new_initializer.address_w != address)
 		{
@@ -247,7 +247,7 @@ namespace Trinex
 
 	Sampler& Sampler::compare_func(RHICompareFunc func)
 	{
-		RHISamplerInitializer new_initializer = initializer();
+		RHISamplerDesc new_initializer = initializer();
 
 		if (new_initializer.compare_func != func)
 		{
@@ -259,7 +259,7 @@ namespace Trinex
 
 	Sampler& Sampler::border_color(RHIBorderColor color)
 	{
-		RHISamplerInitializer new_initializer = initializer();
+		RHISamplerDesc new_initializer = initializer();
 
 		if (new_initializer.border_color != color)
 		{
@@ -304,7 +304,7 @@ namespace Trinex
 	{
 		static_assert(filter.value < s_default_samplers.size() && filter.value >= 0);
 
-		RHISamplerInitializer initializer;
+		RHISamplerDesc initializer;
 		initializer.filter   = filter;
 		SamplerImpl* sampler = trx_new SamplerImpl(initializer);
 		sampler->add_ref();

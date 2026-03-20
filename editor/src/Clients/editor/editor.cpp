@@ -23,6 +23,7 @@
 #include <Platform/platform.hpp>
 #include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
+#include <RHI/static_sampler.hpp>
 #include <Systems/event_system.hpp>
 #include <Systems/keyboard_system.hpp>
 #include <Systems/mouse_system.hpp>

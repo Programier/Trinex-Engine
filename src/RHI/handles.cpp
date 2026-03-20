@@ -80,7 +80,7 @@ namespace Trinex
 			RHIContext* ctx = RHIContextPool::global_instance()->begin_context();
 			{
 				ctx->barrier(this, RHIAccess::TransferDst);
-				ctx->update_buffer(this, 0, buffer_size, data);
+				ctx->update(this, data, {.size = buffer_size});
 			}
 			RHIContextPool::global_instance()->end_context(ctx);
 
@@ -102,7 +102,7 @@ namespace Trinex
 			{
 				ctx->barrier(this, RHIAccess::TransferSrc);
 				ctx->barrier(buffer, RHIAccess::TransferDst);
-				ctx->copy_buffer_to_buffer(this, buffer, buffer_size, 0, 0);
+				ctx->copy(buffer, this, {.size = buffer_size});
 			}
 			RHIContextPool::global_instance()->end_context(ctx);
 			RHI::instance()->idle();

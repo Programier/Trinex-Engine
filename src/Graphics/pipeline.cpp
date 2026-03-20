@@ -179,21 +179,21 @@ namespace Trinex
 
 		if (vs_inited)
 		{
-			RHIGraphicsPipelineInitializer initializer;
-			initializer.vertex_shader               = extract_shader(vertex_shader());
-			initializer.tessellation_control_shader = extract_shader(tessellation_control_shader());
-			initializer.tessellation_shader         = extract_shader(tessellation_shader());
-			initializer.geometry_shader             = extract_shader(geometry_shader());
-			initializer.fragment_shader             = extract_shader(fragment_shader());
-			initializer.parameters                  = parameters().data();
-			initializer.parameters_count            = parameters().size();
-			initializer.vertex_attributes           = vertex_attributes.data();
-			initializer.vertex_attributes_count     = vertex_attributes.size();
+			RHIGraphicsPipelineDesc desc;
+			desc.vertex_shader               = extract_shader(vertex_shader());
+			desc.tessellation_control_shader = extract_shader(tessellation_control_shader());
+			desc.tessellation_shader         = extract_shader(tessellation_shader());
+			desc.geometry_shader             = extract_shader(geometry_shader());
+			desc.fragment_shader             = extract_shader(fragment_shader());
+			desc.parameters                  = parameters().data();
+			desc.parameters_count            = parameters().size();
+			desc.vertex_attributes           = vertex_attributes.data();
+			desc.vertex_attributes_count     = vertex_attributes.size();
 
-			initializer.parameters       = parameters().data();
-			initializer.parameters_count = parameters().size();
+			desc.parameters       = parameters().data();
+			desc.parameters_count = parameters().size();
 
-			m_pipeline = RHI::instance()->create_graphics_pipeline(&initializer);
+			m_pipeline = RHI::instance()->create_graphics_pipeline(desc);
 		}
 		return *this;
 	}
@@ -421,12 +421,12 @@ namespace Trinex
 	{
 		init_shader(m_shader);
 
-		RHIComputePipelineInitializer initializer;
-		initializer.compute_shader   = compute_shader()->rhi_shader();
-		initializer.parameters       = parameters().data();
-		initializer.parameters_count = parameters().size();
+		RHIComputePipelineDesc desc;
+		desc.compute_shader   = compute_shader()->rhi_shader();
+		desc.parameters       = parameters().data();
+		desc.parameters_count = parameters().size();
 
-		m_pipeline = RHI::instance()->create_compute_pipeline(&initializer);
+		m_pipeline = RHI::instance()->create_compute_pipeline(desc);
 		return *this;
 	}
 

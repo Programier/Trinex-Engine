@@ -53,7 +53,7 @@ namespace Trinex
 		bool is_dirty_vertex_input(VulkanContext* context);
 
 	public:
-		VulkanGraphicsPipeline(const RHIGraphicsPipelineInitializer* pipeline);
+		VulkanGraphicsPipeline(const RHIGraphicsPipelineDesc& desc);
 		VulkanPipeline& flush(VulkanContext* ctx) override;
 		~VulkanGraphicsPipeline();
 	};
@@ -88,7 +88,7 @@ namespace Trinex
 		vk::Pipeline find_or_create_pipeline(VulkanContext* context);
 
 	public:
-		VulkanMeshPipeline(const RHIMeshPipelineInitializer* pipeline);
+		VulkanMeshPipeline(const RHIMeshPipelineDesc& desc);
 		VulkanMeshPipeline& flush(VulkanContext* ctx) override;
 		~VulkanMeshPipeline();
 	};
@@ -99,7 +99,7 @@ namespace Trinex
 		vk::Pipeline m_pipeline;
 
 	public:
-		VulkanComputePipeline(const RHIComputePipelineInitializer* pipeline);
+		VulkanComputePipeline(const RHIComputePipelineDesc& desc);
 		VulkanPipeline& flush(VulkanContext* ctx) override;
 		~VulkanComputePipeline();
 	};
@@ -112,7 +112,7 @@ namespace Trinex
 		vk::Pipeline m_pipeline;
 
 	public:
-		VulkanRayTracingPipeline(const RHIRayTracingPipelineInitializer* pipeline);
+		VulkanRayTracingPipeline(const RHIRayTracingPipelineDesc& desc);
 		VulkanRayTracingPipeline& flush(VulkanContext* ctx) override;
 		~VulkanRayTracingPipeline();
 

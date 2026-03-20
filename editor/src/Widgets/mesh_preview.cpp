@@ -114,7 +114,7 @@ namespace Trinex
 			        .add_resource(renderer.scene_color_ldr_target(), RHIAccess::TransferSrc)
 			        .add_func([&](RHIContext* ctx) {
 				        RHITextureRegion region(view_size);
-				        ctx->copy_texture_to_texture(renderer.scene_color_ldr_target(), region, surface->rhi_texture(), region);
+				        ctx->copy(surface->rhi_texture(), renderer.scene_color_ldr_target(), region);
 			        });
 
 			RHIContext* ctx = RHIContextPool::global_instance()->begin_context();

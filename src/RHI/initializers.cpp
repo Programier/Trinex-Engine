@@ -4,7 +4,7 @@
 
 namespace Trinex
 {
-	RHISamplerInitializer::RHISamplerInitializer()
+	RHISamplerDesc::RHISamplerDesc()
 	    : filter(RHISamplerFilter::Point),               //
 	      address_u(RHISamplerAddressMode::Repeat),      //
 	      address_v(RHISamplerAddressMode::Repeat),      //
@@ -17,12 +17,12 @@ namespace Trinex
 	      max_lod(std::numeric_limits<float>::max())     //
 	{}
 
-	u64 RHISamplerInitializer::hash() const
+	u64 RHISamplerDesc::hash() const
 	{
-		return memory_hash(this, sizeof(RHISamplerInitializer));
+		return memory_hash(this, sizeof(RHISamplerDesc));
 	}
 
-	bool RHISamplerInitializer::operator==(const RHISamplerInitializer& initializer) const
+	bool RHISamplerDesc::operator==(const RHISamplerDesc& initializer) const
 	{
 		return filter == initializer.filter &&            //
 		       address_u == initializer.address_u &&      //

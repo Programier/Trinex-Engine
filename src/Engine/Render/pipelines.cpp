@@ -343,7 +343,7 @@ namespace Trinex::Pipelines
 		RHIContext* ctx = RHIContextPool::global_instance()->begin_context();
 		{
 			ctx->barrier(m_samples_buffer, RHIAccess::TransferDst);
-			ctx->update_buffer(m_samples_buffer, 0, count * sizeof(Vector3f), reinterpret_cast<const u8*>(kernel));
+			ctx->update(m_samples_buffer, kernel, {.size = count * sizeof(Vector3f)});
 		}
 		RHIContextPool::global_instance()->end_context(ctx);
 		return *this;

@@ -1,7 +1,7 @@
 #include <Core/reflection/class.hpp>
 #include <Core/threading.hpp>
 #include <Graphics/render_surface.hpp>
-#include <RHI/enums.hpp>
+#include <RHI/initializers.hpp>
 #include <RHI/rhi.hpp>
 
 namespace Trinex
@@ -31,7 +31,15 @@ namespace Trinex
 			flags |= RHITextureCreateFlags::DepthStencilTarget;
 		}
 
-		m_texture = RHI::instance()->create_texture(RHITextureType::Texture2D, RHIColorFormat(m_format), {m_size, 1}, 1, flags);
+		RHITextureDesc desc = {
+		        .type   = RHITextureType::Texture2D,
+		        .format = RHIColorFormat(m_format),
+		        .size   = {m_size, 1},
+		        .mips   = 1,
+		        .flags  = flags,
+		};
+
+		m_texture = RHI::instance()->create_texture(desc);
 		return *this;
 	}
 

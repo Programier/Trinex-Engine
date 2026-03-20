@@ -173,14 +173,13 @@ namespace Trinex
 		RHITimestamp* create_timestamp() override;
 		RHIPipelineStatistics* create_pipeline_statistics() override;
 		RHIFence* create_fence() override;
-		RHISampler* create_sampler(const RHISamplerInitializer*) override;
-		RHITexture* create_texture(RHITextureType type, RHIColorFormat format, Vector3u size, u32 mips,
-		                           RHITextureCreateFlags flags) override;
+		RHISampler* create_sampler(const RHISamplerDesc& desc) override;
+		RHITexture* create_texture(const RHITextureDesc& desc) override;
 		RHIShader* create_shader(const u8* shader, usize size) override;
-		RHIPipeline* create_graphics_pipeline(const RHIGraphicsPipelineInitializer* pipeline) override;
-		RHIPipeline* create_mesh_pipeline(const RHIMeshPipelineInitializer* pipeline) override;
-		RHIPipeline* create_compute_pipeline(const RHIComputePipelineInitializer* pipeline) override;
-		RHIPipeline* create_ray_tracing_pipeline(const RHIRayTracingPipelineInitializer* pipeline) override;
+		RHIPipeline* create_graphics_pipeline(const RHIGraphicsPipelineDesc& desc) override;
+		RHIPipeline* create_mesh_pipeline(const RHIMeshPipelineDesc& desc) override;
+		RHIPipeline* create_compute_pipeline(const RHIComputePipelineDesc& desc) override;
+		RHIPipeline* create_ray_tracing_pipeline(const RHIRayTracingPipelineDesc& desc) override;
 		RHIBuffer* create_buffer(usize size, RHIBufferCreateFlags flags) override;
 		RHISwapchain* create_swapchain(Window* window, bool vsync) override;
 		RHIContext* create_context(RHIContextFlags flags) override;

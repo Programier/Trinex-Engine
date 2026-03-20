@@ -11,21 +11,21 @@
 
 namespace Trinex
 {
-	VulkanSampler& VulkanSampler::create(const RHISamplerInitializer* initializer)
+	VulkanSampler& VulkanSampler::create(const RHISamplerDesc& desc)
 	{
 		vk::SamplerCreateInfo sampler_info;
-		sampler_info.addressModeU     = VulkanEnums::address_mode_of(initializer->address_u);
-		sampler_info.addressModeV     = VulkanEnums::address_mode_of(initializer->address_v);
-		sampler_info.addressModeW     = VulkanEnums::address_mode_of(initializer->address_w);
-		sampler_info.compareOp        = VulkanEnums::compare_of(initializer->compare_func);
-		sampler_info.mipLodBias       = initializer->mip_lod_bias;
-		sampler_info.anisotropyEnable = initializer->anisotropy > 1.f;
-		sampler_info.maxAnisotropy    = initializer->anisotropy;
-		sampler_info.compareEnable    = initializer->compare_func != RHICompareFunc::Never;
-		sampler_info.minLod           = initializer->min_lod;
-		sampler_info.maxLod           = initializer->max_lod;
+		sampler_info.addressModeU     = VulkanEnums::address_mode_of(desc.address_u);
+		sampler_info.addressModeV     = VulkanEnums::address_mode_of(desc.address_v);
+		sampler_info.addressModeW     = VulkanEnums::address_mode_of(desc.address_w);
+		sampler_info.compareOp        = VulkanEnums::compare_of(desc.compare_func);
+		sampler_info.mipLodBias       = desc.mip_lod_bias;
+		sampler_info.anisotropyEnable = desc.anisotropy > 1.f;
+		sampler_info.maxAnisotropy    = desc.anisotropy;
+		sampler_info.compareEnable    = desc.compare_func != RHICompareFunc::Never;
+		sampler_info.minLod           = desc.min_lod;
+		sampler_info.maxLod           = desc.max_lod;
 
-		switch (initializer->filter)
+		switch (desc.filter)
 		{
 			case RHISamplerFilter::Trilinear:
 				sampler_info.magFilter  = vk::Filter::eLinear;
@@ -51,7 +51,7 @@ namespace Trinex
 				sampler_info.mipmapMode = vk::SamplerMipmapMode::eNearest;
 		}
 
-		sampler_info.borderColor = VulkanEnums::border_color_of(initializer->border_color);
+		sampler_info.borderColor = VulkanEnums::border_color_of(desc.border_color);
 
 		m_sampler    = vk::check_result(API->m_device.createSampler(sampler_info));
 		m_descriptor = API->descriptor_heap()->allocate(m_sampler);
@@ -75,8 +75,8 @@ namespace Trinex
 		return *this;
 	}
 
-	RHISampler* VulkanAPI::create_sampler(const RHISamplerInitializer* sampler)
+	RHISampler* VulkanAPI::create_sampler(const RHISamplerDesc& desc)
 	{
-		return &(trx_new VulkanSampler())->create(sampler);
+		return &(trx_new VulkanSampler())->create(desc);
 	}
 }// namespace Trinex

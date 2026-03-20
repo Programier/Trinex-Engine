@@ -68,7 +68,7 @@ namespace Trinex
 
 		bool serialize(Archive& ar);
 	};
-
+	
 	struct RHITextureRegion {
 		Vector3u extent;
 		Vector3u offset;
@@ -83,6 +83,19 @@ namespace Trinex
 		inline RHITextureRegion(const Vector2u& extent, const Vector2u& offset = {0, 0}, u16 mip = 0, u16 slice = 0)
 		    : extent(extent, 1), offset(offset, 0), mip(mip), slice(slice)
 		{}
+	};
+
+	struct RHIBufferCopy {
+		usize size       = 0;
+		usize dst_offset = 0;
+		usize src_offset = 0;
+	};
+
+	struct RHIBufferTextureCopy {
+		usize size   = 0;
+		usize offset = 0;
+		u16 width    = 0;
+		u16 height   = 0;
 	};
 
 	struct RHITextureDescSRV {

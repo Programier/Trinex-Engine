@@ -143,13 +143,12 @@ namespace Trinex
 		return new NoneFence();
 	}
 
-	RHISampler* NoneApi::create_sampler(const RHISamplerInitializer*)
+	RHISampler* NoneApi::create_sampler(const RHISamplerDesc& desc)
 	{
 		return new NoneSampler();
 	}
 
-	RHITexture* NoneApi::create_texture(RHITextureType type, RHIColorFormat format, Vector3u size, u32 mips,
-	                                    RHITextureCreateFlags flags)
+	RHITexture* NoneApi::create_texture(const RHITextureDesc& desc)
 	{
 		return new NoneTexture();
 	}
@@ -159,22 +158,22 @@ namespace Trinex
 		return new NoneShader();
 	}
 
-	RHIPipeline* NoneApi::create_graphics_pipeline(const RHIGraphicsPipelineInitializer* pipeline)
+	RHIPipeline* NoneApi::create_graphics_pipeline(const RHIGraphicsPipelineDesc& desc)
 	{
 		return new NonePipeline();
 	}
 
-	RHIPipeline* NoneApi::create_mesh_pipeline(const RHIMeshPipelineInitializer* pipeline)
+	RHIPipeline* NoneApi::create_mesh_pipeline(const RHIMeshPipelineDesc& desc)
 	{
 		return new NonePipeline();
 	}
 
-	RHIPipeline* NoneApi::create_compute_pipeline(const RHIComputePipelineInitializer* pipeline)
+	RHIPipeline* NoneApi::create_compute_pipeline(const RHIComputePipelineDesc& desc)
 	{
 		return new NonePipeline();
 	}
 
-	RHIPipeline* NoneApi::create_ray_tracing_pipeline(const RHIRayTracingPipelineInitializer* pipeline)
+	RHIPipeline* NoneApi::create_ray_tracing_pipeline(const RHIRayTracingPipelineDesc& desc)
 	{
 		return new NonePipeline();
 	}

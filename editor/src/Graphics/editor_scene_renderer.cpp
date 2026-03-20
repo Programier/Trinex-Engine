@@ -110,7 +110,8 @@ namespace Trinex
 
 		ctx->barrier(hitproxy, RHIAccess::TransferSrc);
 		ctx->barrier(buffer, RHIAccess::TransferDst);
-		ctx->copy_texture_to_buffer(hitproxy, 0, 0, offset, {1, 1, 1}, buffer, 0);
+
+		ctx->copy(buffer, {.size = 8}, hitproxy, RHITextureRegion({1, 1, 1}, offset));
 
 		context_pool->end_context(ctx);
 
@@ -194,7 +195,7 @@ namespace Trinex
 			        .add_resource(scene_color_ldr_target(), RHIAccess::TransferSrc)
 			        .add_func([this, color](RHIContext* ctx) {
 				        RHITextureRegion region = {scene_view().view_size()};
-				        ctx->copy_texture_to_texture(scene_color_ldr_target(), region, color, region);
+				        ctx->copy(color, scene_color_ldr_target(), region);
 			        });
 
 			render_graph()

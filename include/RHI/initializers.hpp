@@ -6,7 +6,15 @@ namespace Trinex
 {
 	class RHIShader;
 
-	struct ENGINE_EXPORT RHISamplerInitializer {
+	struct RHITextureDesc {
+		RHITextureType type         = RHITextureType::Texture2D;
+		RHIColorFormat format       = RHIColorFormat::R8G8B8A8;
+		Vector3u size               = {0, 0, 0};
+		u32 mips                    = 1;
+		RHITextureCreateFlags flags = RHITextureCreateFlags::ShaderResource;
+	};
+
+	struct ENGINE_EXPORT RHISamplerDesc {
 		RHISamplerFilter filter;
 		RHISamplerAddressMode address_u;
 		RHISamplerAddressMode address_v;
@@ -19,22 +27,22 @@ namespace Trinex
 		float min_lod;
 		float max_lod;
 
-		RHISamplerInitializer();
+		RHISamplerDesc();
 		u64 hash() const;
 
-		bool operator==(const RHISamplerInitializer& initializer) const;
-		inline bool operator!=(const RHISamplerInitializer& initializer) const { return !(*this == initializer); }
+		bool operator==(const RHISamplerDesc& initializer) const;
+		inline bool operator!=(const RHISamplerDesc& initializer) const { return !(*this == initializer); }
 	};
 
-	struct RHIGraphicsPipelineInitializer {
+	struct RHIGraphicsPipelineDesc {
 		union
 		{
 			struct {
-				RHIShader* vertex_shader;
-				RHIShader* tessellation_control_shader;
-				RHIShader* tessellation_shader;
-				RHIShader* geometry_shader;
-				RHIShader* fragment_shader;
+				RHIShader* vertex_shader               = nullptr;
+				RHIShader* tessellation_control_shader = nullptr;
+				RHIShader* tessellation_shader         = nullptr;
+				RHIShader* geometry_shader             = nullptr;
+				RHIShader* fragment_shader             = nullptr;
 			};
 
 			RHIShader* shaders[5];
@@ -44,13 +52,9 @@ namespace Trinex
 		const struct RHIVertexAttribute* vertex_attributes = nullptr;
 		usize parameters_count                             = 0;
 		usize vertex_attributes_count                      = 0;
-
-		inline RHIGraphicsPipelineInitializer()
-		    : shaders{nullptr}, parameters(nullptr), vertex_attributes(nullptr), parameters_count(0), vertex_attributes_count(0)
-		{}
 	};
 
-	struct RHIMeshPipelineInitializer {
+	struct RHIMeshPipelineDesc {
 		union
 		{
 			struct {
@@ -66,7 +70,7 @@ namespace Trinex
 		usize parameters_count                          = 0;
 	};
 
-	struct ENGINE_EXPORT RHIComputePipelineInitializer {
+	struct ENGINE_EXPORT RHIComputePipelineDesc {
 		RHIShader* compute_shader                       = nullptr;
 		const struct RHIShaderParameterInfo* parameters = nullptr;
 		usize parameters_count                          = 0;
@@ -88,7 +92,7 @@ namespace Trinex
 		RHIRayTracingShaderGroupType type = RHIRayTracingShaderGroupType::GeneralRayGen;
 	};
 
-	struct ENGINE_EXPORT RHIRayTracingPipelineInitializer {
+	struct ENGINE_EXPORT RHIRayTracingPipelineDesc {
 		RHIRayTracingShaderGroup* groups = nullptr;
 		u64 groups_count                 = 0;
 

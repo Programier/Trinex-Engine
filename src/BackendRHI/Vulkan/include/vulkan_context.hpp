@@ -356,23 +356,22 @@ namespace Trinex
 		VulkanContext& clear_irtv(RHIRenderTargetView* rtv, i32 r, i32 g, i32 b, i32 a) override;
 		VulkanContext& clear_dsv(RHIDepthStencilView* dsv, f32 depth, u8 stencil) override;
 
-		VulkanContext& update_buffer(RHIBuffer* buffer, usize offset, usize size, const u8* data) override;
 		VulkanContext& update_scalar(const void* data, usize size, usize offset, u8 buffer_index) override;
 
-		VulkanContext& update_texture(RHITexture* texture, const RHITextureRegion& region, const void* data, usize size,
-		                              usize buffer_width, usize buffer_height) override;
+		VulkanContext& update(RHIBuffer* dst, const void* src, const RHIBufferCopy& region) override;
+		VulkanContext& update(RHITexture* dst, const RHITextureRegion& dst_region, const void* src,
+		                      const RHIBufferTextureCopy& src_region) override;
 
-		VulkanContext& copy_buffer_to_buffer(RHIBuffer* src, RHIBuffer* dst, usize size, usize src_offset,
-		                                     usize dst_offset) override;
+		VulkanContext& copy(RHIBuffer* dst, RHIBuffer* src, const RHIBufferCopy& region) override;
 
-		VulkanContext& copy_texture_to_buffer(RHITexture* texture, u8 mip_level, u16 array_slice, const Vector3u& offset,
-		                                      const Vector3u& extent, RHIBuffer* buffer, usize buffer_offset) override;
+		VulkanContext& copy(RHITexture* dst, const RHITextureRegion& dst_region, RHITexture* src,
+		                    const RHITextureRegion& src_region) override;
 
-		VulkanContext& copy_buffer_to_texture(RHIBuffer* buffer, usize buffer_offset, RHITexture* texture, u8 mip_level,
-		                                      u16 array_slice, const Vector3u& offset, const Vector3u& extent) override;
+		VulkanContext& copy(RHIBuffer* dst, const RHIBufferTextureCopy& dst_region, RHITexture* src,
+		                    const RHITextureRegion& src_region) override;
 
-		VulkanContext& copy_texture_to_texture(RHITexture* src, const RHITextureRegion& src_region, RHITexture* dst,
-		                                       const RHITextureRegion& dst_region) override;
+		VulkanContext& copy(RHITexture* dst, const RHITextureRegion& dst_region, RHIBuffer* src,
+		                    const RHIBufferTextureCopy& src_region) override;
 
 		VulkanContext& depth_stencil_state(const RHIDepthStencilState& state) override;
 		VulkanContext& blending_state(const RHIBlendingState& state) override;

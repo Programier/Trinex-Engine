@@ -23,39 +23,39 @@
 
 namespace Trinex
 {
-	static FORCE_INLINE vk::ShaderStageFlags parse_stages_flags(const RHIGraphicsPipelineInitializer* pipeline)
+	static FORCE_INLINE vk::ShaderStageFlags parse_stages_flags(const RHIGraphicsPipelineDesc& desc)
 	{
 		vk::ShaderStageFlags stages = vk::ShaderStageFlags(0);
 
-		if (pipeline->vertex_shader)
+		if (desc.vertex_shader)
 			stages |= vk::ShaderStageFlagBits::eVertex;
 
-		if (pipeline->tessellation_control_shader)
+		if (desc.tessellation_control_shader)
 			stages |= vk::ShaderStageFlagBits::eTessellationControl;
 
-		if (pipeline->tessellation_shader)
+		if (desc.tessellation_shader)
 			stages |= vk::ShaderStageFlagBits::eTessellationEvaluation;
 
-		if (pipeline->geometry_shader)
+		if (desc.geometry_shader)
 			stages |= vk::ShaderStageFlagBits::eGeometry;
 
-		if (pipeline->fragment_shader)
+		if (desc.fragment_shader)
 			stages |= vk::ShaderStageFlagBits::eFragment;
 
 		return stages;
 	}
 
-	static FORCE_INLINE vk::ShaderStageFlags parse_stages_flags(const RHIMeshPipelineInitializer* pipeline)
+	static FORCE_INLINE vk::ShaderStageFlags parse_stages_flags(const RHIMeshPipelineDesc& desc)
 	{
 		vk::ShaderStageFlags stages = vk::ShaderStageFlags(0);
 
-		if (pipeline->task_shader)
+		if (desc.task_shader)
 			stages |= vk::ShaderStageFlagBits::eTaskEXT;
 
-		if (pipeline->mesh_shader)
+		if (desc.mesh_shader)
 			stages |= vk::ShaderStageFlagBits::eMeshEXT;
 
-		if (pipeline->fragment_shader)
+		if (desc.fragment_shader)
 			stages |= vk::ShaderStageFlagBits::eFragment;
 
 		return stages;
@@ -270,9 +270,9 @@ namespace Trinex
 		return pipeline;
 	}
 
-	VulkanGraphicsPipeline::VulkanGraphicsPipeline(const RHIGraphicsPipelineInitializer* pipeline)
+	VulkanGraphicsPipeline::VulkanGraphicsPipeline(const RHIGraphicsPipelineDesc& desc)
 	{
-		create_layout(pipeline->parameters, pipeline->parameters_count, parse_stages_flags(pipeline));
+		create_layout(desc.parameters, desc.parameters_count, parse_stages_flags(desc));
 
 		m_input_assembly.primitiveRestartEnable = vk::False;
 		m_input_assembly.topology               = vk::PrimitiveTopology::eTriangleList;
@@ -281,13 +281,13 @@ namespace Trinex
 		m_rasterizer.frontFace                  = vk::FrontFace::eClockwise;
 		m_rasterizer.lineWidth                  = 1.f;
 
-		m_vertex_attributes_count = pipeline->vertex_attributes_count;
+		m_vertex_attributes_count = desc.vertex_attributes_count;
 		if (m_vertex_attributes_count)
 			m_vertex_attributes = Allocator<VulkanVertexAttribute>::allocate(m_vertex_attributes_count);
 
-		for (usize index = 0; index < pipeline->vertex_attributes_count; ++index)
+		for (usize index = 0; index < desc.vertex_attributes_count; ++index)
 		{
-			auto& src = pipeline->vertex_attributes[index];
+			auto& src = desc.vertex_attributes[index];
 			auto& dst = m_vertex_attributes[index];
 
 			dst.semantic = src.semantic;
@@ -304,10 +304,10 @@ namespace Trinex
 
 		for (u32 i = 0; i < 5; ++i)
 		{
-			if (pipeline->shaders[i])
+			if (desc.shaders[i])
 			{
-				m_stages.emplace_back(vk::PipelineShaderStageCreateFlags(), graphics_stages[i],
-				                      vulkan_shader_of(pipeline->shaders[i]), "main");
+				vk::PipelineShaderStageCreateFlags flags = {};
+				m_stages.emplace_back(flags, graphics_stages[i], vulkan_shader_of(desc.shaders[i]), "main");
 			}
 		}
 	}
@@ -361,9 +361,9 @@ namespace Trinex
 		return memory_hash(&key, sizeof(key));
 	}
 
-	VulkanMeshPipeline::VulkanMeshPipeline(const RHIMeshPipelineInitializer* pipeline)
+	VulkanMeshPipeline::VulkanMeshPipeline(const RHIMeshPipelineDesc& desc)
 	{
-		create_layout(pipeline->parameters, pipeline->parameters_count, parse_stages_flags(pipeline));
+		create_layout(desc.parameters, desc.parameters_count, parse_stages_flags(desc));
 
 		m_rasterizer.polygonMode = vk::PolygonMode::eFill;
 		m_rasterizer.cullMode    = vk::CullModeFlagBits::eNone;
@@ -379,10 +379,10 @@ namespace Trinex
 
 		for (u32 i = 0; i < 5; ++i)
 		{
-			if (pipeline->shaders[i])
+			if (desc.shaders[i])
 			{
-				m_stages.emplace_back(vk::PipelineShaderStageCreateFlags(), graphics_stages[i],
-				                      vulkan_shader_of(pipeline->shaders[i]), "main");
+				vk::PipelineShaderStageCreateFlags flags = {};
+				m_stages.emplace_back(flags, graphics_stages[i], vulkan_shader_of(desc.shaders[i]), "main");
 			}
 		}
 	}
@@ -448,21 +448,19 @@ namespace Trinex
 		}
 	}
 
-	VulkanComputePipeline::VulkanComputePipeline(const RHIComputePipelineInitializer* pipeline)
+	VulkanComputePipeline::VulkanComputePipeline(const RHIComputePipelineDesc& desc)
 	{
 		vk::PipelineShaderStageCreateInfo stage;
-		if (pipeline->compute_shader)
+		if (desc.compute_shader)
 		{
-			stage.setStage(vk::ShaderStageFlagBits::eCompute)
-			        .setModule(vulkan_shader_of(pipeline->compute_shader))
-			        .setPName("main");
+			stage.setStage(vk::ShaderStageFlagBits::eCompute).setModule(vulkan_shader_of(desc.compute_shader)).setPName("main");
 		}
 		else
 		{
 			error_log("VulkanPipeline", "Cannot init pipeline, because 'Compute' shader is not valid");
 		}
 
-		create_layout(pipeline->parameters, pipeline->parameters_count, vk::ShaderStageFlagBits::eCompute);
+		create_layout(desc.parameters, desc.parameters_count, vk::ShaderStageFlagBits::eCompute);
 		vk::ComputePipelineCreateInfo info({}, stage, layout()->layout());
 
 		auto result = API->m_device.createComputePipeline({}, info);
@@ -506,8 +504,7 @@ namespace Trinex
 		}
 	}
 
-	VulkanRayTracingPipeline::VulkanRayTracingPipeline(const RHIRayTracingPipelineInitializer* pipeline)
-	    : m_groups(pipeline->groups_count)
+	VulkanRayTracingPipeline::VulkanRayTracingPipeline(const RHIRayTracingPipelineDesc& desc) : m_groups(desc.groups_count)
 	{
 		StackByteAllocator::Mark mark;
 
@@ -518,13 +515,13 @@ namespace Trinex
 			vk::PipelineShaderStageCreateInfo* stages_info;
 		} state;
 
-		state.groups_info = StackAllocator<vk::RayTracingShaderGroupCreateInfoKHR>::allocate(pipeline->groups_count);
-		state.stages_info = StackAllocator<vk::PipelineShaderStageCreateInfo>::allocate(pipeline->groups_count * 3);
+		state.groups_info = StackAllocator<vk::RayTracingShaderGroupCreateInfoKHR>::allocate(desc.groups_count);
+		state.stages_info = StackAllocator<vk::PipelineShaderStageCreateInfo>::allocate(desc.groups_count * 3);
 
 		state.pipeline_info.pStages                      = state.stages_info;
-		state.pipeline_info.groupCount                   = pipeline->groups_count;
+		state.pipeline_info.groupCount                   = desc.groups_count;
 		state.pipeline_info.pGroups                      = state.groups_info;
-		state.pipeline_info.maxPipelineRayRecursionDepth = pipeline->max_recursion;
+		state.pipeline_info.maxPipelineRayRecursionDepth = desc.max_recursion;
 
 		auto find_shader_index = [&](const RHIShader* handle, vk::ShaderStageFlagBits stage) -> u32 {
 			if (handle == nullptr)
@@ -546,9 +543,9 @@ namespace Trinex
 			return index;
 		};
 
-		for (usize i = 0; i < pipeline->groups_count; ++i)
+		for (usize i = 0; i < desc.groups_count; ++i)
 		{
-			auto& src = pipeline->groups[i];
+			auto& src = desc.groups[i];
 			auto& dst = state.groups_info[i];
 
 			new (&dst) vk::RayTracingShaderGroupCreateInfoKHR(vk::RayTracingShaderGroupTypeKHR::eGeneral, vk::ShaderUnusedKHR,
@@ -575,7 +572,7 @@ namespace Trinex
 			}
 		}
 
-		create_layout(pipeline->parameters, pipeline->parameters_count, state.stages);
+		create_layout(desc.parameters, desc.parameters_count, state.stages);
 		state.pipeline_info.layout = layout()->layout();
 
 		m_pipeline = API->m_device.createRayTracingPipelineKHR({}, {}, state.pipeline_info, nullptr).value;
@@ -588,14 +585,14 @@ namespace Trinex
 			const u32 handle_size         = props.shaderGroupHandleSize;
 			const u32 handle_size_aligned = align_up(handle_size, props.shaderGroupBaseAlignment);
 
-			const usize storage_size = pipeline->groups_count * handle_size_aligned;
-			u8* storage              = StackByteAllocator::allocate(pipeline->groups_count * handle_size);
+			const usize storage_size = desc.groups_count * handle_size_aligned;
+			u8* storage              = StackByteAllocator::allocate(desc.groups_count * handle_size);
 
-			auto result = API->m_device.getRayTracingShaderGroupHandlesKHR(m_pipeline, 0, pipeline->groups_count, storage_size,
-			                                                               storage);
+			auto result =
+			        API->m_device.getRayTracingShaderGroupHandlesKHR(m_pipeline, 0, desc.groups_count, storage_size, storage);
 			trinex_assert_msg(result == vk::Result::eSuccess, "Failed to create shader binding table!");
 
-			align_shader_binding_table(storage, pipeline->groups_count, handle_size, handle_size_aligned);
+			align_shader_binding_table(storage, desc.groups_count, handle_size, handle_size_aligned);
 
 			m_sbt = trx_new VulkanBuffer();
 			//m_sbt->create(storage_size, storage, RHIBufferCreateFlags::ShaderBindingTable | RHIBufferCreateFlags::DeviceAddress);
@@ -629,25 +626,25 @@ namespace Trinex
 		return *this;
 	}
 
-	RHIPipeline* VulkanAPI::create_graphics_pipeline(const RHIGraphicsPipelineInitializer* pipeline)
+	RHIPipeline* VulkanAPI::create_graphics_pipeline(const RHIGraphicsPipelineDesc& desc)
 	{
-		return trx_new VulkanGraphicsPipeline(pipeline);
+		return trx_new VulkanGraphicsPipeline(desc);
 	}
 
-	RHIPipeline* VulkanAPI::create_mesh_pipeline(const RHIMeshPipelineInitializer* pipeline)
+	RHIPipeline* VulkanAPI::create_mesh_pipeline(const RHIMeshPipelineDesc& desc)
 	{
-		return trx_new VulkanMeshPipeline(pipeline);
+		return trx_new VulkanMeshPipeline(desc);
 	}
 
-	RHIPipeline* VulkanAPI::create_compute_pipeline(const RHIComputePipelineInitializer* pipeline)
+	RHIPipeline* VulkanAPI::create_compute_pipeline(const RHIComputePipelineDesc& desc)
 	{
-		return trx_new VulkanComputePipeline(pipeline);
+		return trx_new VulkanComputePipeline(desc);
 	}
 
-	RHIPipeline* VulkanAPI::create_ray_tracing_pipeline(const RHIRayTracingPipelineInitializer* pipeline)
+	RHIPipeline* VulkanAPI::create_ray_tracing_pipeline(const RHIRayTracingPipelineDesc& desc)
 	{
 		if (API->is_extension_enabled(VulkanAPI::find_extension_index(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME)))
-			return trx_new VulkanRayTracingPipeline(pipeline);
+			return trx_new VulkanRayTracingPipeline(desc);
 		return nullptr;
 	}
 }// namespace Trinex

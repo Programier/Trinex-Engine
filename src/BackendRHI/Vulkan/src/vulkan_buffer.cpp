@@ -398,20 +398,18 @@ namespace Trinex
 		return *this;
 	}
 
-	VulkanContext& VulkanContext::update_buffer(RHIBuffer* buffer, usize offset, usize size, const u8* data)
+	VulkanContext& VulkanContext::update(RHIBuffer* dst, const void* src, const RHIBufferCopy& region)
 	{
-		static_cast<VulkanBuffer*>(buffer)->update(this, offset, size, data);
+		const u8* data = static_cast<const u8*>(src) + region.src_offset;
+		static_cast<VulkanBuffer*>(dst)->update(this, region.dst_offset, region.size, data);
 		return *this;
 	}
 
-	VulkanContext& VulkanContext::copy_buffer_to_buffer(RHIBuffer* src, RHIBuffer* dst, usize size, usize src_offset,
-	                                                    usize dst_offset)
+	VulkanContext& VulkanContext::copy(RHIBuffer* dst, RHIBuffer* src, const RHIBufferCopy& region)
 	{
-		VulkanBuffer* src_buffer = static_cast<VulkanBuffer*>(src);
-		VulkanBuffer* dst_buffer = static_cast<VulkanBuffer*>(dst);
-
-		vk::BufferCopy region(src_offset, dst_offset, size);
-		m_cmd->copyBuffer(src_buffer->buffer(), dst_buffer->buffer(), region);
+		vk::Buffer src_buffer = static_cast<VulkanBuffer*>(src)->buffer();
+		vk::Buffer dst_buffer = static_cast<VulkanBuffer*>(dst)->buffer();
+		m_cmd->copyBuffer(src_buffer, dst_buffer, vk::BufferCopy(region.src_offset, region.dst_offset, region.size));
 		return *this;
 	}
 }// namespace Trinex

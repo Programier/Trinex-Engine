@@ -22,7 +22,7 @@ namespace Trinex
 			RHIContextPool::global_instance()->execute([this](RHIContext* ctx) {
 				u8 memory[64] = {};
 				ctx->barrier(m_buffer, RHIAccess::TransferDst);
-				ctx->update_buffer(m_buffer, 0, 64, memory);
+				ctx->update(m_buffer, memory, {.size = 64});
 				ctx->barrier(m_buffer, RHIAccess::VertexBuffer);
 			});
 		}
@@ -113,7 +113,7 @@ namespace Trinex
 
 			RHIContextPool::global_instance()->execute([this](RHIContext* ctx) {
 				ctx->barrier(m_buffer.get(), RHIAccess::TransferDst);
-				ctx->update_buffer(m_buffer.get(), 0, size(), m_data);
+				ctx->update(m_buffer.get(), m_data, {.size = size()});
 				ctx->barrier(m_buffer.get(), RHIAccess::VertexBuffer);
 			});
 
@@ -175,7 +175,7 @@ namespace Trinex
 	VertexBufferBase& VertexBufferBase::rhi_update(class RHIContext* ctx, usize size, usize offset)
 	{
 		if (m_buffer && m_data)
-			ctx->update_buffer(m_buffer, offset, size, m_data + offset);
+			ctx->update(m_buffer, m_data, {.size = size, .dst_offset = offset, .src_offset = offset});
 		return *this;
 	}
 
@@ -322,7 +322,7 @@ namespace Trinex
 
 			RHIContextPool::global_instance()->execute([this](RHIContext* ctx) {
 				ctx->barrier(m_buffer.get(), RHIAccess::TransferDst);
-				ctx->update_buffer(m_buffer.get(), 0, size(), m_data);
+				ctx->update(m_buffer.get(), m_data, {.size = size()});
 				ctx->barrier(m_buffer.get(), RHIAccess::IndexBuffer);
 			});
 

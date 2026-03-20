@@ -177,7 +177,7 @@ namespace Trinex
 		while (m_first)
 		{
 			ctx->barrier(vtx_buffer, RHIAccess::TransferDst);
-			ctx->update_buffer(vtx_buffer, 0, m_first->vtx_count * sizeof(Vertex), reinterpret_cast<u8*>(m_first->vertices));
+			ctx->update(vtx_buffer, m_first->vertices, {.size = m_first->vtx_count * sizeof(Vertex)});
 			ctx->barrier(vtx_buffer, RHIAccess::VertexBuffer);
 
 			RHIRenderTargetView* rtv = renderer->scene_color_ldr_target()->as_rtv();

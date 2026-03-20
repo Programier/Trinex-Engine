@@ -9,6 +9,7 @@
 #include <Graphics/render_pools.hpp>
 #include <Graphics/render_surface.hpp>
 #include <RHI/context.hpp>
+#include <RHI/initializers.hpp>
 #include <RHI/rhi.hpp>
 
 namespace Trinex
@@ -338,7 +339,15 @@ namespace Trinex
 			return surface;
 		}
 
-		RHITexture* surface   = RHI::instance()->create_texture(type, RHIColorFormat(format), size, 1, flags);
+		RHITextureDesc desc = {
+		        .type   = type,
+		        .format = RHIColorFormat(format),
+		        .size   = size,
+		        .mips   = 1,
+		        .flags  = flags,
+		};
+
+		RHITexture* surface   = RHI::instance()->create_texture(desc);
 		m_surface_id[surface] = key;
 		return surface;
 	}

@@ -4,6 +4,7 @@
 #include <Core/math/math.hpp>
 #include <Core/memory.hpp>
 #include <Core/reflection/class.hpp>
+#include <RHI/initializers.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_barriers.hpp>
 #include <vulkan_buffer.hpp>
@@ -239,14 +240,14 @@ namespace Trinex
 			vmaDestroyImage(API->m_allocator, m_image, m_allocation);
 	}
 
-	RHITexture* VulkanAPI::create_texture(RHITextureType type, RHIColorFormat format, Vector3u size, u32 mips,
-	                                      RHITextureCreateFlags flags)
+	RHITexture* VulkanAPI::create_texture(const RHITextureDesc& desc)
 	{
 		VulkanTexture* texture = nullptr;
 
-		u32 layers = 1;
+		u32 layers    = 1;
+		Vector3u size = desc.size;
 
-		switch (type)
+		switch (desc.type)
 		{
 			case RHITextureType::Texture1D:
 				size    = {size.x, 1, 1};
@@ -290,57 +291,31 @@ namespace Trinex
 
 		if (texture)
 		{
-			texture->create(format, size, layers, Math::max(mips, 1u), flags);
+			texture->create(desc.format, size, layers, Math::max(desc.mips, 1u), desc.flags);
 		}
 		return texture;
 	}
 
-	VulkanContext& VulkanContext::update_texture(RHITexture* texture, const RHITextureRegion& region, const void* data,
-	                                             usize size, usize buffer_width, usize buffer_height)
+	VulkanContext& VulkanContext::update(RHITexture* dst, const RHITextureRegion& dst_region, const void* src,
+	                                     const RHIBufferTextureCopy& src_region)
 	{
-		auto buffer = API->stagging_manager()->allocate(size, RHIBufferCreateFlags::TransferSrc);
-		buffer->copy(this, 0, static_cast<const u8*>(data), size);
+		auto buffer = API->stagging_manager()->allocate(src_region.size, RHIBufferCreateFlags::TransferSrc);
+		buffer->copy(this, 0, static_cast<const u8*>(src) + src_region.offset, src_region.size);
 
-		VulkanTexture* vulkan_texture = static_cast<VulkanTexture*>(texture);
+		VulkanTexture* vulkan_texture = static_cast<VulkanTexture*>(dst);
 
-		vk::BufferImageCopy copy_region(0, buffer_width, buffer_height,
-		                                vk::ImageSubresourceLayers(vulkan_texture->aspect(), region.mip, region.slice, 1),
-		                                vk::Offset3D(region.offset.x, region.offset.y, region.offset.z),
-		                                vk::Extent3D(region.extent.x, region.extent.y, region.extent.z));
+		vk::BufferImageCopy copy_region(0, src_region.width, src_region.height,
+		                                vk::ImageSubresourceLayers(vulkan_texture->aspect(), dst_region.mip, dst_region.slice, 1),
+		                                vk::Offset3D(dst_region.offset.x, dst_region.offset.y, dst_region.offset.z),
+		                                vk::Extent3D(dst_region.extent.x, dst_region.extent.y, dst_region.extent.z));
 
 		m_cmd->copyBufferToImage(buffer->buffer(), vulkan_texture->image(), vk::ImageLayout::eTransferDstOptimal, copy_region);
 		m_cmd->add_stagging(buffer);
 		return *this;
 	}
 
-	VulkanContext& VulkanContext::copy_texture_to_buffer(RHITexture* texture, u8 mip_level, u16 array_slice,
-	                                                     const Vector3u& offset, const Vector3u& extent, RHIBuffer* buffer,
-	                                                     usize buffer_offset)
-	{
-		VulkanTexture* src = static_cast<VulkanTexture*>(texture);
-		VulkanBuffer* dst  = static_cast<VulkanBuffer*>(buffer);
-
-		vk::BufferImageCopy region(buffer_offset, 0, 0, vk::ImageSubresourceLayers(src->aspect(), mip_level, array_slice, 1),
-		                           vk::Offset3D(offset.x, offset.y, offset.z), vk::Extent3D(extent.x, extent.y, extent.z));
-		m_cmd->copyImageToBuffer(src->image(), vk::ImageLayout::eTransferSrcOptimal, dst->buffer(), region);
-		return *this;
-	}
-
-	VulkanContext& VulkanContext::copy_buffer_to_texture(RHIBuffer* buffer, usize buffer_offset, RHITexture* texture,
-	                                                     u8 mip_level, u16 array_slice, const Vector3u& offset,
-	                                                     const Vector3u& extent)
-	{
-		VulkanTexture* dst = static_cast<VulkanTexture*>(texture);
-		VulkanBuffer* src  = static_cast<VulkanBuffer*>(buffer);
-
-		vk::BufferImageCopy region(buffer_offset, 0, 0, vk::ImageSubresourceLayers(dst->aspect(), mip_level, array_slice, 1),
-		                           vk::Offset3D(offset.x, offset.y, offset.z), vk::Extent3D(extent.x, extent.y, extent.z));
-		m_cmd->copyBufferToImage(src->buffer(), dst->image(), vk::ImageLayout::eTransferDstOptimal, region);
-		return *this;
-	}
-
-	VulkanContext& VulkanContext::copy_texture_to_texture(RHITexture* src_texture, const RHITextureRegion& src_region,
-	                                                      RHITexture* dst_texture, const RHITextureRegion& dst_region)
+	VulkanContext& VulkanContext::copy(RHITexture* dst_texture, const RHITextureRegion& dst_region, RHITexture* src_texture,
+	                                   const RHITextureRegion& src_region)
 	{
 		VulkanTexture* src = static_cast<VulkanTexture*>(src_texture);
 		VulkanTexture* dst = static_cast<VulkanTexture*>(dst_texture);
@@ -381,6 +356,35 @@ namespace Trinex
 		return *this;
 	}
 
+	VulkanContext& VulkanContext::copy(RHIBuffer* dst_buffer, const RHIBufferTextureCopy& dst_region, RHITexture* src_texture,
+	                                   const RHITextureRegion& src_region)
+	{
+		VulkanTexture* src = static_cast<VulkanTexture*>(src_texture);
+		VulkanBuffer* dst  = static_cast<VulkanBuffer*>(dst_buffer);
+
+		vk::BufferImageCopy region(dst_region.offset, dst_region.width, dst_region.height,
+		                           vk::ImageSubresourceLayers(src->aspect(), src_region.mip, src_region.slice, 1),
+		                           vk::Offset3D(src_region.offset.x, src_region.offset.y, src_region.offset.z),
+		                           vk::Extent3D(src_region.extent.x, src_region.extent.y, src_region.extent.z));
+
+		m_cmd->copyImageToBuffer(src->image(), vk::ImageLayout::eTransferSrcOptimal, dst->buffer(), region);
+		return *this;
+	}
+
+	VulkanContext& VulkanContext::copy(RHITexture* dst_texture, const RHITextureRegion& dst_region, RHIBuffer* src_buffer,
+	                                   const RHIBufferTextureCopy& src_region)
+	{
+		VulkanTexture* dst = static_cast<VulkanTexture*>(dst_texture);
+		VulkanBuffer* src  = static_cast<VulkanBuffer*>(src_buffer);
+
+		vk::BufferImageCopy region(src_region.offset, src_region.width, src_region.height,
+		                           vk::ImageSubresourceLayers(dst->aspect(), dst_region.mip, dst_region.slice, 1),
+		                           vk::Offset3D(dst_region.offset.x, dst_region.offset.y, dst_region.offset.z),
+		                           vk::Extent3D(dst_region.extent.x, dst_region.extent.y, dst_region.extent.z));
+
+		m_cmd->copyBufferToImage(src->buffer(), dst->image(), vk::ImageLayout::eTransferDstOptimal, region);
+		return *this;
+	}
 
 	VulkanContext& VulkanContext::barrier(RHITexture* texture, RHIAccess access)
 	{

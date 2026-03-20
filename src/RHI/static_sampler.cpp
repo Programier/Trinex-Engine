@@ -13,7 +13,7 @@ namespace Trinex
 	                                  RHISamplerAddressMode address_v, RHISamplerAddressMode address_w, float mip_bias,
 	                                  float max_anisotropy, RHIBorderColor border_color, RHICompareFunc compare_func)
 	{
-		RHISamplerInitializer initializer;
+		RHISamplerDesc initializer;
 		initializer.filter       = filter;
 		initializer.address_u    = address_u;
 		initializer.address_v    = address_v;
@@ -23,7 +23,7 @@ namespace Trinex
 		initializer.anisotropy   = max_anisotropy;
 		initializer.mip_lod_bias = mip_bias;
 
-		sampler = RHI::instance()->create_sampler(&initializer);
+		sampler = RHI::instance()->create_sampler(initializer);
 		s_static_samplers.push_back(sampler);
 	}
 

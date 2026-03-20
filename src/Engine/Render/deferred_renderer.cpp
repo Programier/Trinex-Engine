@@ -860,7 +860,7 @@ namespace Trinex
 					}
 
 					ctx->barrier(m_lights_buffer, RHIAccess::TransferDst);
-					ctx->update_buffer(m_lights_buffer, 0, size, reinterpret_cast<u8*>(parameters));
+					ctx->update(m_lights_buffer, parameters, {.size = size});
 				};
 
 				render_graph()
@@ -931,7 +931,7 @@ namespace Trinex
 					                s_cascades_per_directional_light * sizeof(DirectionalLightShadowCascade);
 				}
 
-				ctx->update_buffer(m_shadow_buffer, 0, buffer_size, buffer);
+				ctx->update(m_shadow_buffer, buffer, {.size = buffer_size});
 			};
 
 			render_graph()

@@ -59,22 +59,25 @@ namespace Trinex
 
 		virtual RHIContext& clear_dsv(RHIDepthStencilView* dsv, f32 depth = 0.f, u8 stencil = 0) = 0;
 
-		virtual RHIContext& update_buffer(RHIBuffer* buffer, usize offset, usize size, const u8* data) = 0;
+		virtual RHIContext& update(RHIBuffer* dst, const void* src, const RHIBufferCopy& region) = 0;
+		virtual RHIContext& update(RHITexture* dst, const RHITextureRegion& dst_region, const void* src,
+		                           const RHIBufferTextureCopy& src_region)                       = 0;
 
-		virtual RHIContext& update_texture(RHITexture* texture, const RHITextureRegion& region, const void* data, usize size,
-		                                   usize buffer_width = 0, usize buffer_height = 0) = 0;
+		virtual RHIContext& copy(RHIBuffer* dst, RHIBuffer* src, const RHIBufferCopy& region) = 0;
 
-		virtual RHIContext& copy_buffer_to_buffer(RHIBuffer* src, RHIBuffer* dst, usize size, usize src_offset,
-		                                          usize dst_offset) = 0;
+		virtual RHIContext& copy(RHITexture* dst, const RHITextureRegion& dst_region, RHITexture* src,
+		                         const RHITextureRegion& src_region) = 0;
 
-		virtual RHIContext& copy_texture_to_buffer(RHITexture* texture, u8 mip_level, u16 array_slice, const Vector3u& offset,
-		                                           const Vector3u& extent, RHIBuffer* buffer, usize buffer_offset) = 0;
+		virtual RHIContext& copy(RHIBuffer* dst, const RHIBufferTextureCopy& dst_region, RHITexture* src,
+		                         const RHITextureRegion& src_region) = 0;
 
-		virtual RHIContext& copy_buffer_to_texture(RHIBuffer* buffer, usize buffer_offset, RHITexture* texture, u8 mip_level,
-		                                           u16 array_slice, const Vector3u& offset, const Vector3u& extent) = 0;
+		virtual RHIContext& copy(RHITexture* dst, const RHITextureRegion& dst_region, RHIBuffer* src,
+		                         const RHIBufferTextureCopy& src_region) = 0;
 
-		virtual RHIContext& copy_texture_to_texture(RHITexture* src, const RHITextureRegion& src_region, RHITexture* dst,
-		                                            const RHITextureRegion& dst_region) = 0;
+		inline RHIContext& copy(RHITexture* dst, RHITexture* src, const RHITextureRegion& region)
+		{
+			return copy(dst, region, src, region);
+		}
 
 		virtual RHIContext& depth_stencil_state(const RHIDepthStencilState& state) = 0;
 		virtual RHIContext& blending_state(const RHIBlendingState& state)          = 0;

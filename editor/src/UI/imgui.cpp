@@ -25,8 +25,10 @@
 #include <Graphics/texture.hpp>
 #include <Platform/platform.hpp>
 #include <RHI/context.hpp>
+#include <RHI/initializers.hpp>
 #include <RHI/resource_ptr.hpp>
 #include <RHI/rhi.hpp>
+#include <RHI/static_sampler.hpp>
 #include <Systems/event_system.hpp>
 #include <UI/imgui.hpp>
 #include <UI/theme.hpp>
@@ -58,7 +60,7 @@ namespace Trinex
 			void bind(RHIContext* ctx, const Matrix4f& projection)
 			{
 				ctx->barrier(m_projection.get(), RHIAccess::TransferDst);
-				ctx->update_buffer(m_projection.get(), 0, sizeof(projection), reinterpret_cast<const u8*>(&projection));
+				ctx->update(m_projection.get(), &projection, {.size = sizeof(projection)});
 				ctx->barrier(m_projection.get(), RHIAccess::UniformBuffer);
 				ctx->bind_uniform_buffer(m_projection.get(), m_projection_parameter->binding);
 			}
@@ -110,7 +112,6 @@ namespace Trinex
 			RHIContext* context            = nullptr;
 			Texture2D* font_texture        = nullptr;
 			Trinex::RenderViewport* window = nullptr;
-			Sampler sampler;
 		};
 
 		struct ImGuiTrinexViewportData {
@@ -166,12 +167,19 @@ namespace Trinex
 				auto rhi             = RHI::instance();
 				constexpr auto flags = RHITextureCreateFlags::ShaderResource;
 
-				RHITexture* texture = rhi->create_texture(RHITextureType::Texture2D, RHIColorFormat::R8G8B8A8,
-				                                          {tex->Width, tex->Height, 1}, 1, flags);
+				RHITextureDesc desc = {
+				        .type   = RHITextureType::Texture2D,
+				        .format = RHIColorFormat::R8G8B8A8,
+				        .size   = {tex->Width, tex->Height, 1},
+				        .mips   = 1,
+				        .flags  = RHITextureCreateFlags::ShaderResource,
+				};
+
+				RHITexture* texture = rhi->create_texture(desc);
 
 				RHITextureRegion region = RHITextureRegion({tex->Width, tex->Height, 1});
 				ctx->barrier(texture, RHIAccess::TransferDst);
-				ctx->update_texture(texture, region, tex->GetPixels(), tex->GetSizeInBytes());
+				ctx->update(texture, region, tex->GetPixels(), {.size = static_cast<usize>(tex->GetSizeInBytes())});
 
 				// Store identifiers
 				tex->SetTexID(ImTextureID(texture));
@@ -180,16 +188,22 @@ namespace Trinex
 			}
 			else if (tex->Status == ImTextureStatus_WantUpdates)
 			{
-				// RHITexture* texture = static_cast<RHITexture*>(tex->BackendUserData);
+				RHITexture* texture = static_cast<RHITexture*>(tex->BackendUserData);
+				ctx->barrier(texture, RHIAccess::TransferDst);
 
-				// for (ImTextureRect& r : tex->Updates)
-				// {
-				// 	RHITextureRegion region;
-				// 	region.offset = {r.x, r.y, 0};
-				// 	region.extent = {r.w, r.h, 1};
+				for (ImTextureRect& r : tex->Updates)
+				{
+					RHITextureRegion region;
+					region.offset = {r.x, r.y, 0};
+					region.extent = {r.w, r.h, 1};
 
-				// 	ctx->update_texture(texture, region, tex->GetPixelsAt(r.x, r.y), 0, tex->GetPitch());
-				// }
+					u8* begin               = static_cast<u8*>(tex->GetPixelsAt(r.x, r.y));
+					u8* end                 = static_cast<u8*>(tex->GetPixelsAt(r.x + r.w, r.y + r.h));
+					const usize buffer_size = end - begin;
+
+					ctx->update(texture, region, begin, {.size = buffer_size, .width = static_cast<u16>(tex->Width)});
+				}
+
 				tex->SetStatus(ImTextureStatus_OK);
 			}
 			else if (tex->Status == ImTextureStatus_WantDestroy && tex->UnusedFrames > 0)
@@ -268,15 +282,13 @@ namespace Trinex
 
 					if (vtx_size > 0)
 					{
-						ctx->update_buffer(vd->vertex_buffer, vtx_offset, vtx_size,
-						                   reinterpret_cast<const u8*>(cmd_list->VtxBuffer.Data));
+						ctx->update(vd->vertex_buffer, cmd_list->VtxBuffer.Data, {.size = vtx_size, .dst_offset = vtx_offset});
 						vtx_offset += vtx_size;
 					}
 
 					if (idx_size > 0)
 					{
-						ctx->update_buffer(vd->index_buffer, idx_offset, idx_size,
-						                   reinterpret_cast<const u8*>(cmd_list->IdxBuffer.Data));
+						ctx->update(vd->index_buffer, cmd_list->IdxBuffer.Data, {.size = idx_size, .dst_offset = idx_offset});
 						idx_offset += idx_size;
 					}
 				}
@@ -362,12 +374,10 @@ namespace Trinex
 							ImTextureID texture = pcmd->GetTexID();
 
 							pipeline->bind(ctx, texture.texture ? texture.texture : bd->font_texture->rhi_texture());
-							pipeline->bind(ctx, texture.sampler ? texture.sampler : bd->sampler.rhi_sampler());
+							pipeline->bind(ctx, texture.sampler ? texture.sampler : RHIBilinearSampler::static_sampler());
 
-							{
-								ctx->draw_indexed(RHITopology::TriangleList, pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset,
-								                  pcmd->VtxOffset + global_vtx_offset);
-							}
+							ctx->draw_indexed(RHITopology::TriangleList, pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset,
+							                  pcmd->VtxOffset + global_vtx_offset);
 						}
 					}
 

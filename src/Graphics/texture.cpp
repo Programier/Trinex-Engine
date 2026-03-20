@@ -6,6 +6,7 @@
 #include <Graphics/sampler.hpp>
 #include <Graphics/texture.hpp>
 #include <RHI/context.hpp>
+#include <RHI/initializers.hpp>
 #include <RHI/rhi.hpp>
 
 namespace Trinex
@@ -48,8 +49,15 @@ namespace Trinex
 
 	Texture2D& Texture2D::init_render_resources()
 	{
-		m_texture = RHI::instance()->create_texture(RHITextureType::Texture2D, format, {size(), 1}, mips.size(),
-		                                            RHITextureCreateFlags::ShaderResource);
+		RHITextureDesc desc = {
+		        .type   = RHITextureType::Texture2D,
+		        .format = format,
+		        .size   = {size(), 1},
+		        .mips   = static_cast<u32>(mips.size()),
+		        .flags  = RHITextureCreateFlags::ShaderResource,
+		};
+
+		m_texture = RHI::instance()->create_texture(desc);
 
 		RHIContextPool::global_instance()->execute([this](RHIContext* ctx) {
 			ctx->barrier(m_texture, RHIAccess::TransferDst);
@@ -57,7 +65,7 @@ namespace Trinex
 			for (u8 index = 0; auto& mip : mips)
 			{
 				RHITextureRegion region(mip.size, {0, 0}, index++);
-				ctx->update_texture(m_texture, region, mip.data.data(), mip.data.size());
+				ctx->update(m_texture, region, mip.data.data(), {.size = mip.data.size()});
 			}
 
 			ctx->barrier(m_texture, RHIAccess::SRVGraphics);
@@ -95,8 +103,15 @@ namespace Trinex
 
 	Texture3D& Texture3D::init_render_resources()
 	{
-		m_texture = RHI::instance()->create_texture(RHITextureType::Texture3D, format, size(), mips.size(),
-		                                            RHITextureCreateFlags::ShaderResource);
+		RHITextureDesc desc = {
+		        .type   = RHITextureType::Texture3D,
+		        .format = format,
+		        .size   = size(),
+		        .mips   = static_cast<u32>(mips.size()),
+		        .flags  = RHITextureCreateFlags::ShaderResource,
+		};
+
+		m_texture = RHI::instance()->create_texture(desc);
 
 		RHIContextPool::global_instance()->execute([this](RHIContext* ctx) {
 			ctx->barrier(m_texture, RHIAccess::TransferDst);
@@ -104,7 +119,7 @@ namespace Trinex
 			for (u8 index = 0; auto& mip : mips)
 			{
 				RHITextureRegion region(mip.size, {0, 0, 0}, index++);
-				ctx->update_texture(m_texture, region, mip.data.data(), mip.data.size());
+				ctx->update(m_texture, region, mip.data.data(), {.size = mip.data.size()});
 			}
 
 			ctx->barrier(m_texture, RHIAccess::SRVGraphics);
@@ -147,8 +162,15 @@ namespace Trinex
 
 	TextureCube& TextureCube::init_render_resources()
 	{
-		m_texture = RHI::instance()->create_texture(RHITextureType::TextureCube, format, {size(), 1}, mips.size(),
-		                                            RHITextureCreateFlags::ShaderResource);
+		RHITextureDesc desc = {
+		        .type   = RHITextureType::TextureCube,
+		        .format = format,
+		        .size   = {size(), 1},
+		        .mips   = static_cast<u32>(mips.size()),
+		        .flags  = RHITextureCreateFlags::ShaderResource,
+		};
+
+		m_texture = RHI::instance()->create_texture(desc);
 
 		RHIContextPool::global_instance()->execute([this](RHIContext* ctx) {
 			ctx->barrier(m_texture, RHIAccess::TransferDst);
@@ -162,7 +184,7 @@ namespace Trinex
 				{
 					RHITextureRegion region(mip.size, {0, 0}, index);
 					region.slice = face;
-					ctx->update_texture(m_texture, region, data, mip_size);
+					ctx->update(m_texture, region, data, {.size = mip_size});
 					data += mip_size;
 				}
 
@@ -173,7 +195,7 @@ namespace Trinex
 		});
 
 		return *this;
-	}
+	}// namespace Trinex
 
 	u32 TextureCube::width(u8 mip) const
 	{

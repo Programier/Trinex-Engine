@@ -4,7 +4,7 @@
 
 namespace Trinex
 {
-	struct RHISamplerInitializer;
+	struct RHISamplerDesc;
 	class RHISampler;
 
 	class ENGINE_EXPORT Sampler final
@@ -20,13 +20,13 @@ namespace Trinex
 		inline Sampler() { init(RHISamplerFilter::Point); };
 		inline Sampler(const Sampler& sampler) : m_sampler(sampler.m_sampler) { add_ref(); }
 		inline Sampler(Sampler&& sampler) : m_sampler(sampler.m_sampler) { sampler.m_sampler = nullptr; }
-		inline Sampler(const RHISamplerInitializer& initializer) { init(initializer); }
+		inline Sampler(const RHISamplerDesc& initializer) { init(initializer); }
 		inline Sampler(RHISamplerFilter filter) { init(filter); }
 
-		Sampler& init(const RHISamplerInitializer& initializer);
+		Sampler& init(const RHISamplerDesc& initializer);
 		Sampler& init(RHISamplerFilter filter);
 		Sampler& release();
-		const RHISamplerInitializer& initializer() const;
+		const RHISamplerDesc& initializer() const;
 		RHISampler* rhi_sampler() const;
 		bool serialize(class Archive& ar);
 
