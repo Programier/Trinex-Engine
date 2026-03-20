@@ -857,6 +857,22 @@ namespace Trinex
 		trinex_enum_struct(RHIMappingAccess);
 	};
 
+	struct RHIBorderColor {
+		enum Enum : u8
+		{
+			FloatOpaqueBlack      = 0,
+			FloatOpaqueWhite      = 1,
+			FloatTransparentBlack = 2,
+
+			IntOpaqueBlack      = 3,
+			IntOpaqueWhite      = 4,
+			IntTransparentBlack = 5,
+		};
+
+		trinex_enum_struct(RHIBorderColor);
+		trinex_enum(RHIBorderColor);
+	};
+
 	struct RHIRayTracingGeometryType {
 		enum Enum : u8
 		{

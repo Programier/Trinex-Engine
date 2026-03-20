@@ -1,7 +1,7 @@
 #include <vulkan_api.hpp>
 #include <vulkan_context.hpp>
-#include <vulkan_fence.hpp>
 #include <vulkan_queue.hpp>
+#include <vulkan_sync.hpp>
 
 
 namespace Trinex

@@ -183,7 +183,7 @@ namespace Trinex
 
 	void Window::initialize(const WindowConfig& config)
 	{
-		m_render_viewport = Object::new_instance<WindowRenderViewport>("", nullptr, this, config.vsync);
+		m_render_viewport = Object::new_instance<RenderViewport>("", nullptr, this, config.vsync);
 
 		if (!InitializeController().is_triggered())
 		{
@@ -196,7 +196,7 @@ namespace Trinex
 		}
 	}
 
-	WindowRenderViewport* Window::render_viewport() const
+	RenderViewport* Window::render_viewport() const
 	{
 		return m_render_viewport;
 	}

@@ -41,12 +41,9 @@ namespace Trinex
 
 	static SDL_WindowFlags sdl_api()
 	{
-		const Name api_name = rhi->info.struct_instance->name();
-		if (api_name == "OPENGL")
-		{
-			return SDL_WINDOW_OPENGL;
-		}
-		else if (api_name == "VULKAN")
+		const Name api_name = RHI::instance()->info.struct_instance->name();
+
+		if (api_name == "VULKAN")
 		{
 			return SDL_WINDOW_VULKAN;
 		}

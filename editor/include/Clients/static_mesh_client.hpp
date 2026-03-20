@@ -10,6 +10,7 @@ namespace Trinex
 	class CameraComponent;
 	class World;
 	class StaticMeshActor;
+	class SkeletalMeshActor;
 	class RenderSurface;
 	class PropertyRenderer;
 
@@ -22,11 +23,11 @@ namespace Trinex
 
 		Vector3f m_camera_move;
 		Vector<Identifier> m_listeners;
-		Pointer<StaticMesh> m_mesh;
-		StaticMeshActor* m_actor = nullptr;
 		Pointer<CameraComponent> m_camera;
 		Pointer<World> m_world;
 		Viewport* m_viewport = nullptr;
+
+		StaticMeshActor* m_static_mesh = nullptr;
 
 		class ContentBrowser* m_browser = nullptr;
 		PropertyRenderer* m_property_renderer;

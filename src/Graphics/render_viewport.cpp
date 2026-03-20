@@ -27,9 +27,6 @@ namespace Trinex
 		// r.method("RenderViewport client(ViewportClient) final", method_of<RenderViewport&>(&This::client));
 	}
 
-	trinex_implement_engine_class_default_init(WindowRenderViewport, 0);
-	trinex_implement_engine_class_default_init(SurfaceRenderViewport, 0);
-
 	trinex_implement_engine_class(ViewportClient, Refl::Class::IsScriptable)
 	{
 		auto r = ScriptClassRegistrar::existing_class(static_reflection());
@@ -86,13 +83,21 @@ namespace Trinex
 
 	Vector<RenderViewport*> RenderViewport::m_viewports;
 
-	RenderViewport::RenderViewport()
+	RenderViewport::RenderViewport(Window* window, bool vsync)
 	{
 		m_viewports.push_back(this);
+		m_window    = window;
+		m_swapchain = RHI::instance()->create_swapchain(window, vsync);
+		m_size      = window->size();
 	}
 
 	RenderViewport::~RenderViewport()
 	{
+		client(nullptr);
+		m_window->m_render_viewport = nullptr;
+		m_window                    = nullptr;
+		m_swapchain                 = nullptr;
+
 		auto it = std::remove_if(m_viewports.begin(), m_viewports.end(), [this](RenderViewport* vp) { return vp == this; });
 		m_viewports.erase(it, m_viewports.end());
 	}
@@ -157,6 +162,25 @@ namespace Trinex
 		return *this;
 	}
 
+	RenderViewport& RenderViewport::vsync(bool flag)
+	{
+		m_swapchain->vsync(flag);
+		return *this;
+	}
+
+	RenderViewport& RenderViewport::on_resize(const Vector2u& size)
+	{
+		m_size = size;
+		m_swapchain->resize(size);
+		return *this;
+	}
+
+	RenderViewport& RenderViewport::on_orientation_changed(Orientation orientation)
+	{
+		m_swapchain->resize(size());
+		return *this;
+	}
+
 	RenderViewport* RenderViewport::current()
 	{
 		return m_current_render_viewport;
@@ -165,77 +189,5 @@ namespace Trinex
 	const Vector<RenderViewport*>& RenderViewport::viewports()
 	{
 		return m_viewports;
-	}
-
-	WindowRenderViewport::WindowRenderViewport(Window* window, bool vsync)
-	{
-		m_window    = window;
-		m_swapchain = rhi->create_swapchain(window, vsync);
-		m_size      = window->size();
-	}
-
-	WindowRenderViewport::~WindowRenderViewport()
-	{
-		client(nullptr);
-		m_window->m_render_viewport = nullptr;
-		m_window                    = nullptr;
-		m_swapchain                 = nullptr;
-	}
-
-	Window* WindowRenderViewport::window() const
-	{
-		return m_window;
-	}
-
-	WindowRenderViewport& WindowRenderViewport::rhi_present()
-	{
-		rhi->present(m_swapchain);
-		return *this;
-	}
-
-	RHIRenderTargetView* WindowRenderViewport::rhi_rtv()
-	{
-		return m_swapchain->as_rtv();
-	}
-
-	RHITexture* WindowRenderViewport::rhi_texture()
-	{
-		return m_swapchain->as_texture();
-	}
-
-	WindowRenderViewport& WindowRenderViewport::vsync(bool flag)
-	{
-		m_swapchain->vsync(flag);
-		return *this;
-	}
-
-	WindowRenderViewport& WindowRenderViewport::on_resize(const Vector2u& size)
-	{
-		m_size = size;
-		m_swapchain->resize(size);
-		return *this;
-	}
-
-	WindowRenderViewport& WindowRenderViewport::on_orientation_changed(Orientation orientation)
-	{
-		m_swapchain->resize(size());
-		return *this;
-	}
-
-	SurfaceRenderViewport::SurfaceRenderViewport(RenderSurface* surface)
-	{
-		m_surface = surface;
-		if (surface)
-			m_size = surface->size();
-	}
-
-	RenderSurface* SurfaceRenderViewport::render_surface() const
-	{
-		return m_surface;
-	}
-
-	SurfaceRenderViewport& SurfaceRenderViewport::rhi_present()
-	{
-		return *this;
 	}
 }// namespace Trinex

@@ -35,14 +35,14 @@ namespace Trinex
 		Sampler& address_v(RHISamplerAddressMode address);
 		Sampler& address_w(RHISamplerAddressMode address);
 		Sampler& compare_func(RHICompareFunc func);
-		Sampler& border_color(const Color& color);
+		Sampler& border_color(RHIBorderColor color);
 
 		RHISamplerFilter filter() const;
 		RHISamplerAddressMode address_u() const;
 		RHISamplerAddressMode address_v() const;
 		RHISamplerAddressMode address_w() const;
 		RHICompareFunc compare_func() const;
-		Color border_color() const;
+		RHIBorderColor border_color() const;
 
 		inline Sampler& operator=(const Sampler& sampler)
 		{

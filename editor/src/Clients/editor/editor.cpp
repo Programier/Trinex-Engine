@@ -81,7 +81,7 @@ namespace Trinex
 		{
 			auto& last = m_pool.back();
 			last.fence = RHIFencePool::global_instance()->request_fence();
-			rhi->signal(last.fence);
+			RHI::instance()->submit(last.fence);
 		}
 	}
 
@@ -152,7 +152,7 @@ namespace Trinex
 			if (!last.queries.empty())
 			{
 				last.fence = RHIFencePool::global_instance()->request_fence();
-				rhi->signal(last.fence);
+				RHI::instance()->submit(last.fence);
 			}
 		}
 	}
@@ -244,9 +244,9 @@ namespace Trinex
 		menu_bar.create("")->actions.push([this]() {
 			ImGui::Text("FPS: %.2f\n", 1.f / m_dt.average());
 			ImGui::Spacing();
-			ImGui::Text("RHI: %s\n", rhi->info.name.c_str());
+			ImGui::Text("RHI: %s\n", RHI::instance()->info.name.c_str());
 			ImGui::Spacing();
-			ImGui::Text("GPU: %s\n", rhi->info.renderer.c_str());
+			ImGui::Text("GPU: %s\n", RHI::instance()->info.renderer.c_str());
 		});
 
 		m_scene_view.history(&m_history);
@@ -278,7 +278,7 @@ namespace Trinex
 		Super::on_bind_viewport(viewport);
 
 		auto wd          = window()->window();
-		String new_title = Strings::format("Trinex Editor [{} RHI]", rhi->info.name.c_str());
+		String new_title = Strings::format("Trinex Editor [{} RHI]", RHI::instance()->info.name.c_str());
 		wd->title(new_title);
 
 		auto monitor_info = Platform::monitor_info(wd->monitor_index());

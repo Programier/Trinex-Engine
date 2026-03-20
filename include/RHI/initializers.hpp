@@ -12,7 +12,7 @@ namespace Trinex
 		RHISamplerAddressMode address_v;
 		RHISamplerAddressMode address_w;
 		RHICompareFunc compare_func;
-		Color border_color;
+		RHIBorderColor border_color;
 
 		float anisotropy;
 		float mip_lod_bias;

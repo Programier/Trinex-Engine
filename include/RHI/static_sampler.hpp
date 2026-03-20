@@ -11,7 +11,7 @@ namespace Trinex
 	protected:
 		static ENGINE_EXPORT void create(RHISampler*& sampler, RHISamplerFilter filter, RHISamplerAddressMode address_u,
 		                                 RHISamplerAddressMode address_v, RHISamplerAddressMode address_w, float mip_bias,
-		                                 float max_anisotropy, Color border_color, RHICompareFunc compare_func);
+		                                 float max_anisotropy, RHIBorderColor border_color, RHICompareFunc compare_func);
 	};
 
 	template<RHISamplerFilter filter         = RHISamplerFilter::Point,           //
@@ -20,7 +20,7 @@ namespace Trinex
 	         RHISamplerAddressMode address_w = RHISamplerAddressMode::ClampToEdge,//
 	         u32 mip_bias                    = 0,                                 //
 	         u32 max_anisotropy              = 1,                                 //
-	         Color border_color              = Color(0, 0, 0, 0),                 //
+	         RHIBorderColor border_color     = RHIBorderColor::FloatOpaqueBlack,  //
 	         RHICompareFunc compare_func     = RHICompareFunc::Never>
 	class RHIStaticSampler final : public RHIStaticSamplerBase
 	{
@@ -55,5 +55,5 @@ namespace Trinex
 
 	using RHIShadowSampler = RHIStaticSampler<RHISamplerFilter::Bilinear, RHISamplerAddressMode::ClampToBorder,
 	                                          RHISamplerAddressMode::ClampToBorder, RHISamplerAddressMode::ClampToBorder, 0, 1,
-	                                          Color(0, 0, 0, 0), RHICompareFunc::Lequal>;
+	                                          RHIBorderColor::FloatTransparentBlack, RHICompareFunc::Lequal>;
 }// namespace Trinex

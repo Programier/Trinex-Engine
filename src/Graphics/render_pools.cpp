@@ -114,7 +114,7 @@ namespace Trinex
 			m_pool.pop_back();
 			return fence;
 		}
-		return rhi->create_fence();
+		return RHI::instance()->create_fence();
 	}
 
 	RHIFence* RHIFencePool::request_transient_fence()
@@ -205,7 +205,7 @@ namespace Trinex
 			return buffer;
 		}
 
-		RHIBuffer* buffer   = rhi->create_buffer(size, flags);
+		RHIBuffer* buffer   = RHI::instance()->create_buffer(size, flags);
 		m_buffer_id[buffer] = buffer_id;
 		return buffer;
 	}
@@ -338,7 +338,7 @@ namespace Trinex
 			return surface;
 		}
 
-		RHITexture* surface   = rhi->create_texture(type, RHIColorFormat(format), size, 1, flags);
+		RHITexture* surface   = RHI::instance()->create_texture(type, RHIColorFormat(format), size, 1, flags);
 		m_surface_id[surface] = key;
 		return surface;
 	}
@@ -520,7 +520,7 @@ namespace Trinex
 			m_pool.pop_back();
 			return timestamp;
 		}
-		return rhi->create_timestamp();
+		return RHI::instance()->create_timestamp();
 	}
 
 	RHITimestampPool& RHITimestampPool::release_all()
@@ -576,7 +576,7 @@ namespace Trinex
 			m_pool.pop_back();
 			return stats;
 		}
-		return rhi->create_pipeline_statistics();
+		return RHI::instance()->create_pipeline_statistics();
 	}
 
 	RHIPipelineStatisticsPool& RHIPipelineStatisticsPool::release_all()
@@ -640,7 +640,7 @@ namespace Trinex
 			return ctx;
 		}
 
-		RHIContext* ctx   = rhi->create_context(flags);
+		RHIContext* ctx   = RHI::instance()->create_context(flags);
 		m_context_id[ctx] = flags;
 		return ctx;
 	}
@@ -694,11 +694,11 @@ namespace Trinex
 		return &request_context(flags)->begin();
 	}
 
-	RHIContextPool& RHIContextPool::end_context(RHIContext* context)
+	RHIContextPool& RHIContextPool::end_context(RHIContext* context, RHISemaphore* wait, RHISemaphore* signal, RHIFence* fence)
 	{
 		if (auto handle = context->end())
 		{
-			rhi->submit(handle);
+			RHI::instance()->submit(RHISubmitInfo(handle, wait, signal, fence));
 			handle->release();
 		}
 

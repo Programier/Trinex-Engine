@@ -15,6 +15,7 @@ namespace Trinex
 	class RHITimestamp;
 	class RHIPipelineStatistics;
 	class RHIContext;
+	class RHISemaphore;
 
 	class ENGINE_EXPORT RHIFencePool final
 	{
@@ -195,7 +196,8 @@ namespace Trinex
 		RHIContextPool& return_context(RHIContext* context);
 
 		RHIContext* begin_context(RHIContextFlags flags = RHIContextFlags::Undefined);
-		RHIContextPool& end_context(RHIContext* context);
+		RHIContextPool& end_context(RHIContext* context, RHISemaphore* wait = nullptr, RHISemaphore* signal = nullptr,
+		                            RHIFence* fence = nullptr);
 
 		template<typename Func>
 		inline RHIContextPool& execute(const Func& func)

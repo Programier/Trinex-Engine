@@ -35,6 +35,9 @@ namespace Trinex
 	                             RGBA32UI, R8SI, RG8SI, RGBA8SI, R16SI, RG16SI, RGBA16SI, R32SI, RG32SI, RGBA32SI, R16F, RG16F,
 	                             RGBA16F, R32F, RG32F, RGBA32F);
 
+	trinex_implement_engine_enum(RHIBorderColor, 0, FloatOpaqueBlack, FloatOpaqueWhite, FloatTransparentBlack, IntOpaqueBlack,
+	                             IntOpaqueWhite, IntTransparentBlack);
+
 	static RHIColorFormat::Capabilities s_capabilities[RHIColorFormat::static_count()] = {};
 
 	RHIColorFormat::Capabilities RHIColorFormat::capabilities() const

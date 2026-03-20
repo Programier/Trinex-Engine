@@ -15,8 +15,7 @@ namespace Trinex
 
 		static NoneApi* m_instance;
 
-		NoneApi& signal(RHIFence* fence) override;
-		NoneApi& submit(RHICommandHandle*) override;
+		NoneApi& submit(const RHISubmitInfo& info) override;
 		NoneApi& idle() override;
 
 		RHITimestamp* create_timestamp() override;

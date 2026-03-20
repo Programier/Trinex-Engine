@@ -62,12 +62,12 @@ namespace Trinex
 			return;
 
 		{
-			auto x                                = event.window.x;
-			auto y                                = event.window.y;
-			WindowRenderViewport* render_viewport = window->render_viewport();
-			if (render_viewport)
+			auto x = event.window.x;
+			auto y = event.window.y;
+
+			if (RenderViewport* viewport = window->render_viewport())
 			{
-				render_viewport->on_resize({x, y});
+				viewport->on_resize({x, y});
 			}
 		}
 	}
@@ -79,12 +79,9 @@ namespace Trinex
 		if (!window)
 			return;
 
+		if (RenderViewport* viewport = window->render_viewport())
 		{
-			WindowRenderViewport* render_viewport = window->render_viewport();
-			if (render_viewport)
-			{
-				render_viewport->on_orientation_changed(event.display.orientation);
-			}
+			viewport->on_orientation_changed(event.display.orientation);
 		}
 	}
 

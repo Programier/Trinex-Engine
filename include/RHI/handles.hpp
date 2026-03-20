@@ -44,6 +44,11 @@ namespace Trinex
 		virtual void reset()       = 0;
 	};
 
+	class ENGINE_EXPORT RHISemaphore : public RHIObject
+	{
+	public:
+	};
+
 	class ENGINE_EXPORT RHIShaderResourceView
 	{
 	public:
@@ -137,6 +142,9 @@ namespace Trinex
 	public:
 		virtual void vsync(bool flag)             = 0;
 		virtual void resize(const Vector2u& size) = 0;
+
+		virtual RHISemaphore* acquire_semaphore() = 0;
+		virtual RHISemaphore* present_semaphore() = 0;
 		virtual RHIRenderTargetView* as_rtv()     = 0;
 		virtual RHITexture* as_texture()          = 0;
 	};

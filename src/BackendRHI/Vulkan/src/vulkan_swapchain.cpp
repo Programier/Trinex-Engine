@@ -13,8 +13,8 @@
 #include <vulkan_enums.hpp>
 #include <vulkan_queue.hpp>
 #include <vulkan_resource_view.hpp>
+#include <vulkan_swapchain.hpp>
 #include <vulkan_texture.hpp>
-#include <vulkan_viewport.hpp>
 
 namespace Trinex
 {
@@ -35,21 +35,17 @@ namespace Trinex
 		~VulkanSwapchainTexture() { m_image = vk::Image(); }
 	};
 
-	VulkanSwapchain::Semaphore::Semaphore()
+	static void initialize_semaphores(Vector<RHIResourcePtr<VulkanSemaphore>>& semaphores, usize size)
 	{
-		m_semaphore = vk::check_result(API->m_device.createSemaphore(vk::SemaphoreCreateInfo()));
-	}
+		semaphores.resize(size);
 
-	VulkanSwapchain::Semaphore::Semaphore(Semaphore&& semaphore)
-	{
-		m_semaphore           = semaphore.m_semaphore;
-		semaphore.m_semaphore = VK_NULL_HANDLE;
-	}
-
-	VulkanSwapchain::Semaphore::~Semaphore()
-	{
-		if (m_semaphore)
-			API->m_device.destroySemaphore(m_semaphore);
+		for (auto& semaphore : semaphores)
+		{
+			if (semaphore == nullptr)
+			{
+				semaphore = trx_new VulkanSemaphore();
+			}
+		}
 	}
 
 	VulkanSwapchain::VulkanSwapchain(Window* window, bool vsync) : m_surface(API->create_surface(window))
@@ -103,8 +99,8 @@ namespace Trinex
 		auto& images = images_result.value();
 
 		m_backbuffers.resize(images.size());
-		m_image_present_semaphores.resize(images.size() + 1);
-		m_render_finished_semaphores.resize(images.size());
+		initialize_semaphores(m_image_present_semaphores, images.size() + 1);
+		initialize_semaphores(m_render_finished_semaphores, images.size());
 
 		m_size = {swapchain->extent.width, swapchain->extent.height};
 
@@ -115,14 +111,6 @@ namespace Trinex
 		}
 
 		m_swapchain = swapchain->swapchain;
-
-		// Creating render buffer
-		{
-			constexpr RHITextureCreateFlags flags = RHITextureCreateFlags::ShaderResource | RHITextureCreateFlags::RenderTarget;
-			vk::Format format                     = vk::Format(swapchain->image_format);
-			m_render_buffer = trx_new VulkanTypedTexture<vk::ImageViewType::e2D, RHITextureType::Texture2D>();
-			m_render_buffer->create(format, Vector3u(m_size, 1u), 1, 1, flags);
-		}
 		return *this;
 	}
 
@@ -135,10 +123,7 @@ namespace Trinex
 			trx_delete backbuffer;
 		}
 
-		trx_delete m_render_buffer;
-
 		m_backbuffers.clear();
-		m_render_buffer = nullptr;
 
 		if (m_swapchain)
 			API->m_device.destroySwapchainKHR(m_swapchain);
@@ -168,8 +153,10 @@ namespace Trinex
 		const auto prev_sync_index = m_sync_index;
 		m_sync_index               = (m_sync_index + 1) % m_image_present_semaphores.size();
 
-		vk::ResultValue<u32> result =
-		        API->m_device.acquireNextImageKHR(m_swapchain, UINT64_MAX, m_image_present_semaphores[m_sync_index].semaphore());
+		VulkanSemaphore* semaphore = m_image_present_semaphores[m_sync_index];
+		semaphore->is_signaled(true);
+
+		vk::ResultValue<u32> result = API->m_device.acquireNextImageKHR(m_swapchain, UINT64_MAX, semaphore->semaphore());
 
 		if (result.result == vk::Result::eErrorOutOfDateKHR)
 		{
@@ -200,13 +187,20 @@ namespace Trinex
 		if (m_image_index == -1)
 			return Status::Success;
 
-		auto image_index             = static_cast<u32>(m_image_index);
-		vk::Semaphore wait_semaphore = render_finished_semaphore();
-		vk::PresentInfoKHR present_info(wait_semaphore, m_swapchain, image_index);
+		auto image_index = static_cast<u32>(m_image_index);
+
+		VulkanSemaphore* semaphore = present_semaphore();
+		vk::PresentInfoKHR info({}, m_swapchain, image_index);
+
+		if (semaphore->is_signaled())
+		{
+			info.setWaitSemaphores(semaphore->semaphore());
+			semaphore->is_signaled(false);
+		}
 
 		{
 			trinex_profile_cpu_n("VulkanSwapchain::Present KHR");
-			vk::Result result = API->m_graphics_queue->present(present_info);
+			vk::Result result = API->m_graphics_queue->present(info);
 			m_image_index     = -1;
 
 			if (result == vk::Result::eErrorOutOfDateKHR)
@@ -257,16 +251,16 @@ namespace Trinex
 		return status;
 	}
 
-	vk::Semaphore VulkanSwapchain::render_finished_semaphore()
+	VulkanSemaphore* VulkanSwapchain::acquire_semaphore()
 	{
 		backbuffer();
-		return m_render_finished_semaphores[m_image_index].semaphore();
+		return m_image_present_semaphores[m_sync_index].get();
 	}
 
-	vk::Semaphore VulkanSwapchain::image_present_semaphore()
+	VulkanSemaphore* VulkanSwapchain::present_semaphore()
 	{
 		backbuffer();
-		return m_image_present_semaphores[m_sync_index].semaphore();
+		return m_render_finished_semaphores[m_image_index].get();
 	}
 
 	VulkanTexture* VulkanSwapchain::backbuffer()
@@ -296,12 +290,12 @@ namespace Trinex
 
 	RHIRenderTargetView* VulkanSwapchain::as_rtv()
 	{
-		return m_render_buffer->as_rtv(nullptr);
+		return backbuffer()->as_rtv(nullptr);
 	}
 
 	RHITexture* VulkanSwapchain::as_texture()
 	{
-		return m_render_buffer;
+		return backbuffer();
 	}
 
 	void VulkanSwapchain::resize(const Vector2u& size)
@@ -311,34 +305,6 @@ namespace Trinex
 
 	void VulkanSwapchain::present()
 	{
-		VulkanContext* ctx = static_cast<VulkanContext*>(RHIContextPool::global_instance()->request_context());
-		ctx->begin();
-
-		RHITexture* dst = backbuffer();
-		RHITexture* src = m_render_buffer;
-
-		RHITextureRegion region;
-		region.extent = {m_size, 1u};
-
-		ctx->barrier(src, RHIAccess::TransferSrc);
-		ctx->barrier(dst, RHIAccess::TransferDst);
-		ctx->copy_texture_to_texture(src, region, dst, region);
-		ctx->barrier(dst, RHIAccess::PresentSrc);
-
-		VulkanCommandHandle* handle = ctx->end();
-		{
-			auto wait_semaphore          = image_present_semaphore();
-			vk::PipelineStageFlags flags = vk::PipelineStageFlagBits::eAllCommands;
-			auto finish_semaphore        = render_finished_semaphore();
-
-			vk::CommandBuffer& cmd = *handle;
-			vk::SubmitInfo info(wait_semaphore, flags, cmd, finish_semaphore);
-			API->m_graphics_queue->submit(info);
-		}
-
-		handle->release();
-		RHIContextPool::global_instance()->return_context(ctx);
-
 		try_present(&VulkanSwapchain::do_present, true);
 	}
 

@@ -11,16 +11,6 @@
 
 namespace Trinex
 {
-	static vk::BorderColor parse_border_color(Color color)
-	{
-		const u8 color_intensity = (color.r + color.g + color.b) / 3;
-		const u8 alpha_intensity = color.a;
-
-		if (alpha_intensity <= 127)
-			return vk::BorderColor::eFloatTransparentBlack;
-		return color_intensity > 127 ? vk::BorderColor::eFloatOpaqueWhite : vk::BorderColor::eFloatOpaqueBlack;
-	}
-
 	VulkanSampler& VulkanSampler::create(const RHISamplerInitializer* initializer)
 	{
 		vk::SamplerCreateInfo sampler_info;
@@ -61,20 +51,7 @@ namespace Trinex
 				sampler_info.mipmapMode = vk::SamplerMipmapMode::eNearest;
 		}
 
-		vk::SamplerCustomBorderColorCreateInfoEXT border_color;
-
-		if (API->is_extension_enabled(VulkanAPI::find_extension_index(VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME)))
-		{
-			sampler_info.borderColor = vk::BorderColor::eFloatCustomEXT;
-			border_color.format      = vk::Format::eR32G32B32A32Sfloat;
-			for (int i = 0; i < 4; ++i)
-				border_color.customBorderColor.float32[i] = static_cast<float>(initializer->border_color[i]) / 255.f;
-			sampler_info.setPNext(&border_color);
-		}
-		else
-		{
-			sampler_info.borderColor = parse_border_color(initializer->border_color);
-		}
+		sampler_info.borderColor = VulkanEnums::border_color_of(initializer->border_color);
 
 		m_sampler    = vk::check_result(API->m_device.createSampler(sampler_info));
 		m_descriptor = API->descriptor_heap()->allocate(m_sampler);

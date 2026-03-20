@@ -5,7 +5,7 @@
 namespace Trinex
 {
 	class CameraComponent;
-	class StaticMeshActor;
+	class PrimitiveComponent;
 	class World;
 	class MaterialInterface;
 	class RenderSurface;
@@ -13,7 +13,7 @@ namespace Trinex
 	class ImGuiStaticMeshPreview : public ImGuiWidget
 	{
 		Pointer<CameraComponent> m_camera;
-		Pointer<StaticMeshActor> m_mesh;
+		Pointer<PrimitiveComponent> m_primitive;
 
 		float m_target_zoom  = 1.f;
 		float m_current_zoom = 1.f;
@@ -33,7 +33,7 @@ namespace Trinex
 		ImGuiStaticMeshPreview& update_zoom();
 		ImGuiStaticMeshPreview& update_rotation(const ImVec2& size);
 		ImGuiStaticMeshPreview& update_input(const ImVec2& size);
-		ImGuiStaticMeshPreview& mesh(StaticMeshActor* actor);
+		ImGuiStaticMeshPreview& primitive(PrimitiveComponent* primitive);
 		bool render(RenderViewport* viewport = nullptr) override;
 
 		virtual const char* name();

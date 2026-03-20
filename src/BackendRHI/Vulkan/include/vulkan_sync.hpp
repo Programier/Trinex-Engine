@@ -41,4 +41,19 @@ namespace Trinex
 			return *this;
 		}
 	};
+
+	class VulkanSemaphore : public VulkanDeferredDestroy<RHISemaphore>
+	{
+	private:
+		vk::Semaphore m_semaphore;
+		bool m_signaled;
+
+	public:
+		VulkanSemaphore();
+		~VulkanSemaphore();
+
+		inline const vk::Semaphore& semaphore() const { return m_semaphore; }
+		inline bool is_signaled() const { return m_signaled; }
+		inline VulkanSemaphore& is_signaled(bool signaled) { trinex_this_return(m_signaled = signaled); }
+	};
 }// namespace Trinex

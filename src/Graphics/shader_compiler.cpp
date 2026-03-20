@@ -45,7 +45,7 @@ namespace Trinex
 	{
 		if (api_name.empty())
 		{
-			StringView new_name = rhi->info.struct_instance->name().to_string();
+			StringView new_name = RHI::instance()->info.struct_instance->name().to_string();
 			if (new_name.empty())
 				return nullptr;
 			return instance(new_name);

@@ -20,7 +20,7 @@ namespace Trinex
 		CallBacks<void(Window* window)> on_destroy;
 
 	private:
-		Pointer<class WindowRenderViewport> m_render_viewport;
+		Pointer<class RenderViewport> m_render_viewport;
 		Window* m_parent_window = nullptr;
 		Vector<Window*> m_childs;
 
@@ -65,7 +65,7 @@ namespace Trinex
 		virtual void* native_window();
 		virtual usize monitor_index();
 
-		WindowRenderViewport* render_viewport() const;
+		RenderViewport* render_viewport() const;
 		Window* parent_window() const;
 		const Vector<Window*>& child_windows() const;
 
@@ -74,6 +74,6 @@ namespace Trinex
 		virtual ~Window();
 
 		friend class WindowManager;
-		friend class WindowRenderViewport;
+		friend class RenderViewport;
 	};
 }// namespace Trinex

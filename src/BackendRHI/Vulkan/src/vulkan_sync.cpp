@@ -1,7 +1,7 @@
 #include <vulkan_api.hpp>
 #include <vulkan_context.hpp>
-#include <vulkan_fence.hpp>
 #include <vulkan_queue.hpp>
+#include <vulkan_sync.hpp>
 
 namespace Trinex
 {
@@ -57,15 +57,18 @@ namespace Trinex
 		DESTROY_CALL(destroyFence, m_fence);
 	}
 
+	VulkanSemaphore::VulkanSemaphore() : m_signaled(false)
+	{
+		m_semaphore = vk::check_result(API->m_device.createSemaphore(vk::SemaphoreCreateInfo()));
+	}
+
+	VulkanSemaphore::~VulkanSemaphore()
+	{
+		API->m_device.destroySemaphore(m_semaphore);
+	}
+
 	RHIFence* VulkanAPI::create_fence()
 	{
 		return trx_new VulkanFence();
-	}
-
-	VulkanAPI& VulkanAPI::signal(RHIFence* fence)
-	{
-		static_cast<VulkanFence*>(fence)->make_pending();
-		m_graphics_queue->submit({}, static_cast<VulkanFence*>(fence)->fence());
-		return *this;
 	}
 }// namespace Trinex

@@ -161,7 +161,7 @@ namespace Trinex
 
 	ImGuiViewportClient& ImGuiViewportClient::on_bind_viewport(class RenderViewport* viewport)
 	{
-		m_viewport = instance_cast<WindowRenderViewport>(viewport);
+		m_viewport = viewport;
 		trinex_verify_msg(m_viewport, "Viewport is invalid");
 
 		m_opened_clients.insert({class_instance(), this});

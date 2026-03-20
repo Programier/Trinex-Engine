@@ -98,13 +98,13 @@ namespace Trinex
 			m_texture_parameter    = find_parameter("texture");
 			m_projection_parameter = find_parameter("projection");
 
-			m_projection =
-			        rhi->create_buffer(sizeof(Matrix4f), RHIBufferCreateFlags::UniformBuffer | RHIBufferCreateFlags::TransferDst);
+			constexpr auto flags = RHIBufferCreateFlags::UniformBuffer | RHIBufferCreateFlags::TransferDst;
+			m_projection         = RHI::instance()->create_buffer(sizeof(Matrix4f), flags);
 		}
 
 		bool imgui_trinex_rhi_init(Trinex::Window*, ImGuiContext* ctx);
 		void imgui_trinex_rhi_shutdown(ImGuiContext* ctx);
-		void imgui_trinex_rhi_render_draw_data(RHIContext* ctx);
+		void imgui_trinex_rhi_render_draw_data(RHIContext* ctx, ImDrawData* draw_data);
 
 		struct ImGuiTrinexData {
 			RHIContext* context            = nullptr;
@@ -145,12 +145,10 @@ namespace Trinex
 			pipeline->bind(bd->context, Math::ortho(L, R, B, T, 0.f, 1.f));
 		}
 
-		void imgui_trinex_rhi_render_draw_data(RHIContext* ctx)
+		void imgui_trinex_rhi_render_draw_data(RHIContext* ctx, ImDrawData* draw_data)
 		{
 			trinex_profile_cpu_n("ImGui");
 			trinex_rhi_push_stage(ctx, "ImGui Render");
-
-			ImDrawData* draw_data = ImGui::GetDrawData();
 
 			// Avoid rendering when minimized
 			if (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f)
@@ -174,16 +172,18 @@ namespace Trinex
 
 			if (!vd->vertex_buffer || static_cast<int>(vd->vertex_count) < draw_data->TotalVtxCount)
 			{
-				vd->vertex_count  = draw_data->TotalVtxCount + 5000;
-				auto len          = vd->vertex_count * sizeof(ImDrawVert);
-				vd->vertex_buffer = rhi->create_buffer(len, RHIBufferCreateFlags::Dynamic | RHIBufferCreateFlags::VertexBuffer);
+				constexpr auto flags = RHIBufferCreateFlags::Dynamic | RHIBufferCreateFlags::VertexBuffer;
+				vd->vertex_count     = draw_data->TotalVtxCount + 5000;
+				auto len             = vd->vertex_count * sizeof(ImDrawVert);
+				vd->vertex_buffer    = RHI::instance()->create_buffer(len, flags);
 			}
 
 			if (!vd->index_buffer || static_cast<int>(vd->index_count) < draw_data->TotalIdxCount)
 			{
-				vd->index_count  = draw_data->TotalIdxCount + 10000;
-				auto len         = vd->index_count * sizeof(ImDrawIdx);
-				vd->index_buffer = rhi->create_buffer(len, RHIBufferCreateFlags::Dynamic | RHIBufferCreateFlags::IndexBuffer);
+				constexpr auto flags = RHIBufferCreateFlags::Dynamic | RHIBufferCreateFlags::IndexBuffer;
+				vd->index_count      = draw_data->TotalIdxCount + 10000;
+				auto len             = vd->index_count * sizeof(ImDrawIdx);
+				vd->index_buffer     = RHI::instance()->create_buffer(len, flags);
 			}
 
 			// Upload vertex/index data into a single contiguous GPU buffer
@@ -253,7 +253,7 @@ namespace Trinex
 			trinex_rhi_pop_stage(ctx);
 			{
 				trinex_profile_cpu_n("Render");
-				ctx->begin_rendering(bd->window->rhi_rtv());
+				ctx->begin_rendering(bd->window->swapchain()->as_rtv());
 
 				auto pipeline = ImGuiPipeline::instance();
 				for (int n = 0; n < draw_data->CmdListsCount; n++)
@@ -271,7 +271,7 @@ namespace Trinex
 							{
 								ctx->end_rendering();
 								imgui_trinex_setup_render_state(draw_data);
-								ctx->begin_rendering(bd->window->rhi_rtv());
+								ctx->begin_rendering(bd->window->swapchain()->as_rtv());
 							}
 							else
 								pcmd->UserCallback(cmd_list, pcmd);
@@ -464,10 +464,18 @@ namespace Trinex
 		{
 			trinex_class(ImGuiViewportClient, ViewportClient);
 			class ImGuiWindow* m_window;
+			ImGuiViewport* m_viewport = nullptr;
+			ImGuiContext* m_context   = nullptr;
 
 		public:
-			ImGuiViewport* viewport = nullptr;
-			ImGuiContext* context;
+			inline ImGuiViewportClient& init(ImGuiViewport* viewport)
+			{
+				m_viewport = viewport;
+				m_context  = ImGui::GetCurrentContext();
+				return *this;
+			}
+
+			inline ImGuiContext* context() const { return m_context; }
 
 			ViewportClient& on_bind_viewport(class RenderViewport* viewport) override
 			{
@@ -475,30 +483,31 @@ namespace Trinex
 				return *this;
 			}
 
-			ViewportClient& render_frame(RenderViewport* viewport)
+			ViewportClient& update(class RenderViewport* viewport, float dt) override
 			{
 				ImGuiContextLock lock(m_window->context());
+
+				RHISwapchain* swapchain = viewport->swapchain();
 
 				auto bd = ImGuiBackend_RHI::imgui_trinex_backend_data();
 				std::swap(viewport, bd->window);// Temporary set as main viewport
 
 				RHIContext* ctx = RHIContextPool::global_instance()->begin_context();
 				{
+					RHITexture* texture = swapchain->as_texture();
+					ctx->barrier(texture, RHIAccess::RTV);
+
 					trinex_rhi_push_stage(ctx, "ImGuiViewportClient");
-					ImGuiBackend_RHI::imgui_trinex_rhi_render_draw_data(ctx);
+					ImGuiBackend_RHI::imgui_trinex_rhi_render_draw_data(ctx, m_viewport->DrawData);
 					trinex_rhi_pop_stage(ctx);
+
+					ctx->barrier(texture, RHIAccess::PresentSrc);
 				}
-				RHIContextPool::global_instance()->end_context(ctx);
+				RHIContextPool::global_instance()->end_context(ctx, swapchain->acquire_semaphore(),
+				                                               swapchain->present_semaphore());
+				RHI::instance()->present(swapchain);
 
 				std::swap(viewport, bd->window);// Restore main viewport
-
-				viewport->rhi_present();
-				return *this;
-			}
-
-			ViewportClient& update(class RenderViewport* vp, float dt) override
-			{
-				render_frame(vp);
 				return *this;
 			}
 		};
@@ -692,7 +701,7 @@ namespace Trinex
 			{                                                                                                                    \
 				if (ImGuiViewportClient* client = Object::instance_cast<ImGuiViewportClient>(render_viewport->client()))         \
 				{                                                                                                                \
-					context = client->context;                                                                                   \
+					context = client->context();                                                                                 \
 				}                                                                                                                \
 			}                                                                                                                    \
 		}                                                                                                                        \
@@ -936,8 +945,7 @@ namespace Trinex
 
 			auto render_viewport = new_window->render_viewport();
 			auto client          = Object::new_instance<ImGuiViewportClient>();
-			client->viewport     = vp;
-			client->context      = ImGui::GetCurrentContext();
+			client->init(vp);
 			render_viewport->client(client);
 
 			vp->PlatformHandle   = new_window;
@@ -948,7 +956,6 @@ namespace Trinex
 				vp->PlatformUserData = nullptr;
 			});
 		}
-
 
 		static void imgui_trinex_window_destroy(ImGuiViewport* vp)
 		{
@@ -1338,21 +1345,25 @@ namespace Trinex
 		}
 
 		{
-			auto viewport = window()->render_viewport();
+			auto viewport           = window()->render_viewport();
+			RHISwapchain* swapchain = viewport->swapchain();
 
 			RHIContext* ctx = RHIContextPool::global_instance()->begin_context();
 			{
-				auto rtv = viewport->rhi_rtv();
-				ctx->barrier(viewport->rhi_texture(), RHIAccess::TransferDst);
+				auto texture = swapchain->as_texture();
+				auto rtv     = texture->as_rtv();
+
+				ctx->barrier(texture, RHIAccess::TransferDst);
 				ctx->clear_rtv(rtv, 0.f, 0.f, 0.f, 1.f);
-				ctx->barrier(viewport->rhi_texture(), RHIAccess::RTV);
+				ctx->barrier(texture, RHIAccess::RTV);
 
 				ImGuiContextLock lock(m_context);
-				ImGuiBackend_RHI::imgui_trinex_rhi_render_draw_data(ctx);
-			}
-			RHIContextPool::global_instance()->end_context(ctx);
+				ImGuiBackend_RHI::imgui_trinex_rhi_render_draw_data(ctx, ImGui::GetDrawData());
 
-			viewport->rhi_present();
+				ctx->barrier(texture, RHIAccess::PresentSrc);
+			}
+			RHIContextPool::global_instance()->end_context(ctx, swapchain->acquire_semaphore(), swapchain->present_semaphore());
+			RHI::instance()->present(swapchain);
 		}
 
 		make_current(nullptr);

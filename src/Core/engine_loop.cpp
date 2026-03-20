@@ -41,11 +41,7 @@ namespace Trinex
 			Settings::Splash::show   = false;
 		}
 
-		String api = Settings::Rendering::rhi;
-		auto decl  = Strings::format("Trinex::TRINEX_RHI::{}", Strings::to_upper(api));
-		rhi        = static_cast<RHI*>(Refl::Struct::static_find(decl, Refl::FindFlags::IsRequired)->create_struct());
-
-		trinex_verify_msg(rhi, "Failed to init RHI API");
+		RHI::create(Settings::Rendering::rhi.c_str());
 	}
 
 	static void initialize_filesystem()
@@ -195,13 +191,7 @@ namespace Trinex
 			trx_delete WindowManager::instance();
 
 		GarbageCollector::destroy_all_objects();
-
-		if (rhi)
-		{
-			rhi->info.struct_instance->destroy_struct(rhi);
-			rhi = nullptr;
-		}
-
+		RHI::destroy();
 		Library::close_all();
 
 		GarbageCollector::destroy(engine_instance);

@@ -6,9 +6,9 @@
 #include <vulkan_context.hpp>
 #include <vulkan_descriptor.hpp>
 #include <vulkan_enums.hpp>
-#include <vulkan_fence.hpp>
 #include <vulkan_resource_view.hpp>
 #include <vulkan_sampler.hpp>
+#include <vulkan_sync.hpp>
 #include <vulkan_texture.hpp>
 
 namespace Trinex

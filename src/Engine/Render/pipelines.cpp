@@ -337,8 +337,8 @@ namespace Trinex::Pipelines
 			sample *= glm::mix(0.1f, 1.0f, factor * factor);
 		}
 
-		m_samples_buffer = rhi->create_buffer(count * sizeof(Vector3f),
-		                                      RHIBufferCreateFlags::StructuredBuffer | RHIBufferCreateFlags::ShaderResource);
+		constexpr auto flags = RHIBufferCreateFlags::StructuredBuffer | RHIBufferCreateFlags::ShaderResource;
+		m_samples_buffer     = RHI::instance()->create_buffer(count * sizeof(Vector3f), flags);
 
 		RHIContext* ctx = RHIContextPool::global_instance()->begin_context();
 		{

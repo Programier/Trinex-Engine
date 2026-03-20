@@ -8,7 +8,6 @@ namespace Trinex
 	class RHIBuffer;
 	class RHITexture;
 	class RHISampler;
-	class RHIFence;
 	class RHIRenderTargetView;
 	class RHIDepthStencilView;
 	class RHIShaderResourceView;

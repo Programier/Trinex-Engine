@@ -1,16 +1,18 @@
 #pragma once
 #include <Core/etl/vector.hpp>
+#include <RHI/resource_ptr.hpp>
 #include <RHI/rhi.hpp>
 #include <VkBootstrap.h>
 #include <vulkan_destroyable.hpp>
 #include <vulkan_headers.hpp>
+#include <vulkan_sync.hpp>
 
 namespace Trinex
 {
 	class VulkanCommandHandle;
 	class VulkanTexture;
 
-	class VulkanSwapchain : public RHISwapchain
+	class VulkanSwapchain final : public RHISwapchain
 	{
 	private:
 		enum Status : i32
@@ -20,24 +22,9 @@ namespace Trinex
 			SurfaceLost = -2,
 		};
 
-		class Semaphore
-		{
-		private:
-			vk::Semaphore m_semaphore;
-
-		public:
-			Semaphore();
-			Semaphore(const Semaphore& semaphore) = delete;
-			Semaphore(Semaphore&& semaphore);
-			~Semaphore();
-
-			inline vk::Semaphore semaphore() const { return m_semaphore; }
-		};
-
 		Vector<VulkanTexture*> m_backbuffers;
-		VulkanTexture* m_render_buffer = nullptr;
-		Vector<Semaphore> m_image_present_semaphores;
-		Vector<Semaphore> m_render_finished_semaphores;
+		Vector<RHIResourcePtr<VulkanSemaphore>> m_image_present_semaphores;
+		Vector<RHIResourcePtr<VulkanSemaphore>> m_render_finished_semaphores;
 
 		vk::SurfaceKHR m_surface;
 		vk::PresentModeKHR m_present_mode;
@@ -61,8 +48,8 @@ namespace Trinex
 		VulkanTexture* backbuffer();
 		i32 try_present(i32 (VulkanSwapchain::*callback)(), bool skip_on_out_of_date);
 
-		vk::Semaphore render_finished_semaphore();
-		vk::Semaphore image_present_semaphore();
+		VulkanSemaphore* acquire_semaphore() override;
+		VulkanSemaphore* present_semaphore() override;
 
 		void present();
 		void resize(const Vector2u& size) override;

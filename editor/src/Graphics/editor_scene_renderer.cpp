@@ -113,7 +113,8 @@ namespace Trinex
 		ctx->copy_texture_to_buffer(hitproxy, 0, 0, offset, {1, 1, 1}, buffer, 0);
 
 		context_pool->end_context(ctx);
-		rhi->signal(fence);
+
+		RHI::instance()->submit(fence);
 
 		while (!fence->is_signaled()) Thread::static_yield();
 

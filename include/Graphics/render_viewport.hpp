@@ -31,58 +31,31 @@ namespace Trinex
 	{
 		trinex_class(RenderViewport, Object);
 
-	protected:
-		Pointer<ViewportClient> m_client;
-		Vector2u m_size;
+	private:
 		static Vector<RenderViewport*> m_viewports;
 
-	public:
-		RenderViewport();
-		~RenderViewport();
+		class Window* m_window;
+		RHIResourcePtr<class RHISwapchain> m_swapchain;
+		Pointer<ViewportClient> m_client;
+		Vector2u m_size;
 
-		virtual RHIRenderTargetView* rhi_rtv() = 0;
-		virtual RHITexture* rhi_texture()      = 0;
-		virtual RenderViewport& rhi_present()  = 0;
-		inline Vector2u size() const { return m_size; }
-		inline float aspect() const { return static_cast<float>(m_size.x) / static_cast<float>(m_size.y); }
+	public:
+		RenderViewport(Window* window, bool vsync);
+		~RenderViewport();
 
 		RenderViewport& update(float dt);
 		ViewportClient* client() const;
 		RenderViewport& client(ViewportClient* client);
+		RenderViewport& vsync(bool flag);
+		RenderViewport& on_resize(const Vector2u& size);
+		RenderViewport& on_orientation_changed(Orientation orientation);
+
+		inline Window* window() const { return m_window; }
+		inline RHISwapchain* swapchain() const { return m_swapchain; }
+		inline Vector2u size() const { return m_size; }
+		inline float aspect() const { return static_cast<float>(m_size.x) / static_cast<float>(m_size.y); }
 
 		static RenderViewport* current();
 		static const Vector<RenderViewport*>& viewports();
-	};
-
-	class ENGINE_EXPORT WindowRenderViewport : public RenderViewport
-	{
-		trinex_class(WindowRenderViewport, RenderViewport);
-		class Window* m_window;
-		RHIResourcePtr<class RHISwapchain> m_swapchain;
-
-	public:
-		WindowRenderViewport(Window* window, bool vsync);
-		~WindowRenderViewport();
-		Window* window() const;
-
-		WindowRenderViewport& vsync(bool flag);
-		WindowRenderViewport& on_resize(const Vector2u& size);
-		WindowRenderViewport& on_orientation_changed(Orientation orientation);
-
-		WindowRenderViewport& rhi_present() override;
-		RHIRenderTargetView* rhi_rtv() override;
-		RHITexture* rhi_texture() override;
-		inline RHISwapchain* rhi_swapchain() const { return m_swapchain; }
-	};
-
-	class ENGINE_EXPORT SurfaceRenderViewport : public RenderViewport
-	{
-		trinex_class(SurfaceRenderViewport, RenderViewport);
-		Pointer<RenderSurface> m_surface;
-
-	public:
-		SurfaceRenderViewport(RenderSurface* surface);
-		RenderSurface* render_surface() const;
-		SurfaceRenderViewport& rhi_present() override;
 	};
 }// namespace Trinex

@@ -32,8 +32,6 @@ namespace Trinex
 
 	DefaultClient& DefaultClient::update(class RenderViewport* viewport, float dt)
 	{
-		viewport->rhi_present();
-
 		return *this;
 	}
 

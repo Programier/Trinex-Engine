@@ -20,9 +20,9 @@ namespace Trinex
 		static constexpr u32 s_dock_id = 0x524F4F54;// 'ROOT'
 
 	private:
-		ImGuiContext* m_context          = nullptr;
-		ImGuiWindow* m_window            = nullptr;
-		WindowRenderViewport* m_viewport = nullptr;
+		ImGuiContext* m_context    = nullptr;
+		ImGuiWindow* m_window      = nullptr;
+		RenderViewport* m_viewport = nullptr;
 
 		ImGuiViewportClient& update(class RenderViewport* viewport, float dt) final override;
 
@@ -60,7 +60,7 @@ namespace Trinex
 		ImGuiViewportClient& on_unbind_viewport(class RenderViewport* viewport) override;
 
 		inline ImGuiWindow* window() const { return m_window; }
-		inline WindowRenderViewport* viewport() const { return m_viewport; }
+		inline RenderViewport* viewport() const { return m_viewport; }
 		inline ImGuiContext* context() const { return m_context; }
 
 		virtual ImGuiViewportClient& update(float dt);

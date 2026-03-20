@@ -63,7 +63,7 @@ namespace Trinex
 
 		SamplerImpl& initialize()
 		{
-			m_sampler                 = rhi->create_sampler(&m_initializer);
+			m_sampler                 = RHI::instance()->create_sampler(&m_initializer);
 			s_samplers[m_initializer] = this;
 			return *this;
 		}
@@ -257,7 +257,7 @@ namespace Trinex
 		return *this;
 	}
 
-	Sampler& Sampler::border_color(const Color& color)
+	Sampler& Sampler::border_color(RHIBorderColor color)
 	{
 		RHISamplerInitializer new_initializer = initializer();
 
@@ -294,7 +294,7 @@ namespace Trinex
 		return initializer().compare_func;
 	}
 
-	Color Sampler::border_color() const
+	RHIBorderColor Sampler::border_color() const
 	{
 		return initializer().border_color;
 	}

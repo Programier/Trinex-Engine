@@ -193,7 +193,7 @@ namespace Trinex
 			initializer.parameters       = parameters().data();
 			initializer.parameters_count = parameters().size();
 
-			m_pipeline = rhi->create_graphics_pipeline(&initializer);
+			m_pipeline = RHI::instance()->create_graphics_pipeline(&initializer);
 		}
 		return *this;
 	}
@@ -426,7 +426,7 @@ namespace Trinex
 		initializer.parameters       = parameters().data();
 		initializer.parameters_count = parameters().size();
 
-		m_pipeline = rhi->create_compute_pipeline(&initializer);
+		m_pipeline = RHI::instance()->create_compute_pipeline(&initializer);
 		return *this;
 	}
 

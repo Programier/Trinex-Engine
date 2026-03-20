@@ -5,16 +5,16 @@
 namespace Trinex
 {
 	RHISamplerInitializer::RHISamplerInitializer()
-	    : filter(RHISamplerFilter::Point),            //
-	      address_u(RHISamplerAddressMode::Repeat),   //
-	      address_v(RHISamplerAddressMode::Repeat),   //
-	      address_w(RHISamplerAddressMode::Repeat),   //
-	      compare_func(RHICompareFunc::Always),       //
-	      border_color(0, 0, 0, 255),                 //
-	      anisotropy(Settings::Rendering::anisotropy),//
-	      mip_lod_bias(0.0),                          //
-	      min_lod(0.f),                               //
-	      max_lod(std::numeric_limits<float>::max())  //
+	    : filter(RHISamplerFilter::Point),               //
+	      address_u(RHISamplerAddressMode::Repeat),      //
+	      address_v(RHISamplerAddressMode::Repeat),      //
+	      address_w(RHISamplerAddressMode::Repeat),      //
+	      compare_func(RHICompareFunc::Always),          //
+	      border_color(RHIBorderColor::FloatOpaqueBlack),//
+	      anisotropy(Settings::Rendering::anisotropy),   //
+	      mip_lod_bias(0.0),                             //
+	      min_lod(0.f),                                  //
+	      max_lod(std::numeric_limits<float>::max())     //
 	{}
 
 	u64 RHISamplerInitializer::hash() const

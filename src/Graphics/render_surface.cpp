@@ -31,7 +31,7 @@ namespace Trinex
 			flags |= RHITextureCreateFlags::DepthStencilTarget;
 		}
 
-		m_texture = rhi->create_texture(RHITextureType::Texture2D, RHIColorFormat(m_format), {m_size, 1}, 1, flags);
+		m_texture = RHI::instance()->create_texture(RHITextureType::Texture2D, RHIColorFormat(m_format), {m_size, 1}, 1, flags);
 		return *this;
 	}
 

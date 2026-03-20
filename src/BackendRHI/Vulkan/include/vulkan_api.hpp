@@ -101,7 +101,6 @@ namespace Trinex
 			        {VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME, true},
 			        {VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME, false},
 			        {VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME, true},
-			        {VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME, false},
 			        {VK_EXT_MESH_SHADER_EXTENSION_NAME, false},
 			});
 		}
@@ -166,8 +165,7 @@ namespace Trinex
 
 		VulkanAPI();
 
-		VulkanAPI& signal(RHIFence* fence) override;
-		VulkanAPI& submit(RHICommandHandle* cmd) override;
+		VulkanAPI& submit(const RHISubmitInfo& info) override;
 		VulkanAPI& idle() override;
 
 		vk::PresentModeKHR present_mode_of(bool vsync, vk::SurfaceKHR surface);

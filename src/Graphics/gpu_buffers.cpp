@@ -17,7 +17,7 @@ namespace Trinex
 	public:
 		void init()
 		{
-			m_buffer = rhi->create_buffer(64, m_flags | RHIBufferCreateFlags::VertexBuffer);
+			m_buffer = RHI::instance()->create_buffer(64, m_flags | RHIBufferCreateFlags::VertexBuffer);
 
 			RHIContextPool::global_instance()->execute([this](RHIContext* ctx) {
 				u8 memory[64] = {};
@@ -109,7 +109,7 @@ namespace Trinex
 	{
 		if (m_vtx_count > 0 && m_buffer == nullptr)
 		{
-			m_buffer = rhi->create_buffer(m_vtx_count * m_stride, m_flags | RHIBufferCreateFlags::VertexBuffer);
+			m_buffer = RHI::instance()->create_buffer(m_vtx_count * m_stride, m_flags | RHIBufferCreateFlags::VertexBuffer);
 
 			RHIContextPool::global_instance()->execute([this](RHIContext* ctx) {
 				ctx->barrier(m_buffer.get(), RHIAccess::TransferDst);
@@ -318,7 +318,7 @@ namespace Trinex
 	{
 		if (m_idx_count > 0 && m_buffer == nullptr)
 		{
-			m_buffer = rhi->create_buffer(size(), m_flags | RHIBufferCreateFlags::IndexBuffer);
+			m_buffer = RHI::instance()->create_buffer(size(), m_flags | RHIBufferCreateFlags::IndexBuffer);
 
 			RHIContextPool::global_instance()->execute([this](RHIContext* ctx) {
 				ctx->barrier(m_buffer.get(), RHIAccess::TransferDst);

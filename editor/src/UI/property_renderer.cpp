@@ -911,7 +911,7 @@ namespace Trinex::UI
 		{
 			renderer->context()->column(2);
 
-			if (ImGui::IconButton(ICON_LC_MOUSE_POINTER "##Select", size))
+			if (ImGui::IconButton(ICON_LC_MOUSE_POINTER "##Select"))
 			{
 				Function<void(const Path&)> callback = [renderer, value, &str](const Path& path) {
 					*value = path;
@@ -1030,7 +1030,7 @@ namespace Trinex::UI
 			{
 				ctx->column(2);
 
-				if (ImGui::IconButton(ICON_LC_ROTATE_CCW "###reset", size))
+				if (ImGui::IconButton(ICON_LC_ROTATE_CCW "###reset"))
 				{
 					object  = nullptr;
 					changed = true;
@@ -1052,9 +1052,8 @@ namespace Trinex::UI
 
 	static bool render_array_property(PropertyRenderer* renderer, Refl::Property* prop_base, bool read_only)
 	{
-		auto prop        = prop_cast_checked<Refl::ArrayProperty>(prop_base);
-		bool is_changed  = false;
-		const float size = ImGui::GetTextLineHeight() - ImGui::GetStyle().FramePadding.y;
+		auto prop       = prop_cast_checked<Refl::ArrayProperty>(prop_base);
+		bool is_changed = false;
 
 		auto ctx      = renderer->context();
 		void* address = renderer->property_address();
@@ -1064,7 +1063,7 @@ namespace Trinex::UI
 		{
 			ctx->column(2);
 
-			if (!read_only && ImGui::IconButton(ICON_LC_PLUS "##emplace_back", size))
+			if (!read_only && ImGui::IconButton(ICON_LC_PLUS "##emplace_back"))
 			{
 				prop->emplace_back(address);
 				renderer->propagate_property_event();
@@ -1095,7 +1094,7 @@ namespace Trinex::UI
 				{
 					ctx->column(2);
 
-					if (!read_only && ImGui::IconButton(ICON_LC_MINUS "##erase", size))
+					if (!read_only && ImGui::IconButton(ICON_LC_MINUS "##erase"))
 					{
 						prop->erase(address, i);
 						--count;

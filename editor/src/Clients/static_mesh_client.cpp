@@ -50,9 +50,10 @@ namespace Trinex
 	{
 		Super::on_bind_viewport(vp);
 
-		m_world = System::system_of<World>();
-		m_actor = new_instance<StaticMeshActor>("", m_world);
-		m_viewport->mesh(m_actor);
+		m_world       = new_instance<World>("World");
+		m_static_mesh = new_instance<StaticMeshActor>("Static Mesh", m_world);
+
+		m_world->start_play();
 
 		m_camera = new_instance<CameraComponent>();
 		m_camera->location({0, 3, 5});
@@ -89,9 +90,9 @@ namespace Trinex
 	{
 		if (auto mesh = instance_cast<StaticMesh>(object))
 		{
-			m_mesh = mesh;
 			m_property_renderer->object(object);
-			m_actor->mesh_component()->mesh(mesh);
+			m_static_mesh->mesh_component()->mesh(mesh);
+			m_viewport->primitive(m_static_mesh->mesh_component());
 		}
 
 		return *this;

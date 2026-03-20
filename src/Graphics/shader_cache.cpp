@@ -19,7 +19,7 @@ namespace Trinex
 	{
 		if (rhi_name.empty())
 		{
-			return rhi->info.struct_instance->name().to_string();
+			return RHI::instance()->info.struct_instance->name().to_string();
 		}
 		return rhi_name;
 	}

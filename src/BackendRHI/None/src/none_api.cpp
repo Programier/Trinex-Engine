@@ -62,6 +62,9 @@ namespace Trinex
 		void reset() override {}
 	};
 
+	struct NoneSemaphore : public NoneApiDestroyable<RHISemaphore> {
+	};
+
 	struct NoneSampler : public NoneApiDestroyable<RHISampler> {
 		RHIDescriptor descriptor() const override { return 0; }
 	};
@@ -106,6 +109,8 @@ namespace Trinex
 	struct NoneSwapchain : public NoneApiDestroyable<RHISwapchain> {
 		void vsync(bool flag) override {}
 		void resize(const Vector2u& new_size) override {}
+		RHISemaphore* acquire_semaphore() override { return rhi_default<NoneSemaphore>(); }
+		RHISemaphore* present_semaphore() override { return rhi_default<NoneSemaphore>(); }
 		RHIRenderTargetView* as_rtv() override { return rhi_default<NoneRTV>(); }
 		RHITexture* as_texture() override { return rhi_default<NoneTexture>(); }
 	};
@@ -113,12 +118,7 @@ namespace Trinex
 	struct NoneAccelerationStructure : public NoneApiDestroyable<RHIAccelerationStructure> {
 	};
 
-	NoneApi& NoneApi::signal(RHIFence* fence)
-	{
-		return *this;
-	}
-
-	NoneApi& NoneApi::submit(RHICommandHandle* cmd)
+	NoneApi& NoneApi::submit(const RHISubmitInfo& info)
 	{
 		return *this;
 	}

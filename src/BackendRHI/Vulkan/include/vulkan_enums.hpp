@@ -590,4 +590,17 @@ namespace Trinex::VulkanEnums
 
 		return result;
 	}
+
+	static constexpr inline vk::BorderColor border_color_of(RHIBorderColor color)
+	{
+		switch (color)
+		{
+			case RHIBorderColor::FloatOpaqueWhite: return vk::BorderColor::eFloatOpaqueWhite;
+			case RHIBorderColor::FloatTransparentBlack: return vk::BorderColor::eFloatTransparentBlack;
+			case RHIBorderColor::IntOpaqueBlack: return vk::BorderColor::eIntOpaqueBlack;
+			case RHIBorderColor::IntOpaqueWhite: return vk::BorderColor::eIntOpaqueWhite;
+			case RHIBorderColor::IntTransparentBlack: return vk::BorderColor::eIntTransparentBlack;
+			default: return vk::BorderColor::eFloatOpaqueBlack;
+		}
+	}
 }// namespace Trinex::VulkanEnums

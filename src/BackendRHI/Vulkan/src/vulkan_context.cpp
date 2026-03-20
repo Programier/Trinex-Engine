@@ -8,11 +8,11 @@
 #include <vulkan_context.hpp>
 #include <vulkan_descriptor.hpp>
 #include <vulkan_enums.hpp>
-#include <vulkan_fence.hpp>
 #include <vulkan_pipeline.hpp>
 #include <vulkan_query.hpp>
 #include <vulkan_queue.hpp>
 #include <vulkan_resource_view.hpp>
+#include <vulkan_sync.hpp>
 
 namespace Trinex
 {

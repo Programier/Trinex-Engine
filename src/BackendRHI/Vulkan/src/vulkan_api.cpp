@@ -23,9 +23,9 @@
 #include <vulkan_query.hpp>
 #include <vulkan_queue.hpp>
 #include <vulkan_shader.hpp>
+#include <vulkan_sync.hpp>
 #include <vulkan_texture.hpp>
 #include <vulkan_thread_local.hpp>
-#include <vulkan_viewport.hpp>
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
@@ -112,7 +112,6 @@ namespace Trinex
 		vkb::DeviceBuilder builder(physical_device);
 
 		vk::PhysicalDeviceFeatures2 features;
-		vk::PhysicalDeviceCustomBorderColorFeaturesEXT custom_border;
 		vk::PhysicalDeviceVulkan11Features vk11_features;
 		vk::PhysicalDeviceMeshShaderFeaturesEXT mesh_shaders;
 		vk::PhysicalDeviceDescriptorIndexingFeaturesEXT descriptor_indexing;
@@ -123,8 +122,7 @@ namespace Trinex
 		vk::PhysicalDeviceFragmentShadingRateFeaturesKHR shading_rate;
 		vk::PhysicalDeviceDynamicRenderingFeaturesKHR dynamic_rendering;
 
-		features.pNext            = &custom_border;
-		custom_border.pNext       = &vk11_features;
+		features.pNext            = &vk11_features;
 		vk11_features.pNext       = &mesh_shaders;
 		mesh_shaders.pNext        = &descriptor_indexing;
 		descriptor_indexing.pNext = &timeline_semaphore;
@@ -146,9 +144,6 @@ namespace Trinex
 		builder.add_pNext(&descriptor_indexing);
 		builder.add_pNext(&timeline_semaphore);
 		builder.add_pNext(&dynamic_rendering);
-
-		if (API->is_extension_enabled(VulkanAPI::find_extension_index(VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME)))
-			builder.add_pNext(&custom_border);
 
 		if (API->is_extension_enabled(VulkanAPI::find_extension_index(VK_EXT_MESH_SHADER_EXTENSION_NAME)))
 			builder.add_pNext(&mesh_shaders);
@@ -177,7 +172,6 @@ namespace Trinex
 
 		new_features.samplerAnisotropy                    = features.samplerAnisotropy;
 		new_features.fillModeNonSolid                     = features.fillModeNonSolid;
-		new_features.wideLines                            = features.wideLines;
 		new_features.tessellationShader                   = features.tessellationShader;
 		new_features.geometryShader                       = features.geometryShader;
 		new_features.shaderStorageImageReadWithoutFormat  = features.shaderStorageImageReadWithoutFormat;
@@ -185,6 +179,8 @@ namespace Trinex
 		new_features.shaderInt16                          = features.shaderInt16;
 		new_features.shaderInt64                          = features.shaderInt64;
 		new_features.pipelineStatisticsQuery              = features.pipelineStatisticsQuery;
+		new_features.vertexPipelineStoresAndAtomics       = features.vertexPipelineStoresAndAtomics;
+		new_features.fragmentStoresAndAtomics             = features.fragmentStoresAndAtomics;
 
 		return new_features;
 	}
@@ -421,11 +417,37 @@ namespace Trinex
 		return (feature_flags & flags) == flags;
 	}
 
-	VulkanAPI& VulkanAPI::submit(RHICommandHandle* cmd)
+	VulkanAPI& VulkanAPI::submit(const RHISubmitInfo& info)
 	{
-		vk::CommandBuffer& buffer = *static_cast<VulkanCommandHandle*>(cmd);
-		vk::SubmitInfo info({}, {}, buffer, {});
-		m_graphics_queue->submit(info);
+		vk::SubmitInfo submit_info;
+
+		if (info.command)
+		{
+			vk::CommandBuffer& cmd = *static_cast<VulkanCommandHandle*>(info.command);
+			submit_info.setCommandBuffers(cmd);
+		}
+
+		if (info.wait_semaphore)
+		{
+			VulkanSemaphore* semaphore = static_cast<VulkanSemaphore*>(info.wait_semaphore);
+			trinex_assert(semaphore->is_signaled());
+			submit_info.setWaitSemaphores(semaphore->is_signaled(false).semaphore());
+
+			vk::PipelineStageFlags wait_mask = vk::PipelineStageFlagBits::eAllCommands;
+			submit_info.setWaitDstStageMask(wait_mask);
+		}
+
+		if (info.signal_semaphore)
+		{
+			VulkanSemaphore* semaphore = static_cast<VulkanSemaphore*>(info.signal_semaphore);
+			trinex_assert(!semaphore->is_signaled());
+			submit_info.setSignalSemaphores(semaphore->is_signaled(true).semaphore());
+		}
+
+		VulkanFence* signal = static_cast<VulkanFence*>(info.signal_fence);
+		vk::Fence fence     = info.signal_fence ? signal->make_pending().fence() : VK_NULL_HANDLE;
+
+		m_graphics_queue->submit(submit_info, fence);
 		return *this;
 	}
 

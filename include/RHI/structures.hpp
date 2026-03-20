@@ -11,6 +11,9 @@ namespace Trinex
 	class RHIBuffer;
 	class RHIRenderTargetView;
 	class RHIDepthStencilView;
+	class RHICommandHandle;
+	class RHIFence;
+	class RHISemaphore;
 
 	struct RHIRect {
 		Vector2i size;
@@ -396,5 +399,20 @@ namespace Trinex
 		RHISurfaceFormat colors[4]       = {RHISurfaceFormat::Undefined};
 		RHISurfaceFormat depth           = RHISurfaceFormat::Undefined;
 		RHIContextInheritanceFlags flags = RHIContextInheritanceFlags::Undefined;
+	};
+
+	struct RHISubmitInfo {
+		RHICommandHandle* command      = nullptr;
+		RHISemaphore* wait_semaphore   = nullptr;
+		RHISemaphore* signal_semaphore = nullptr;
+		RHIFence* signal_fence         = nullptr;
+
+		inline RHISubmitInfo(RHICommandHandle* command = nullptr, RHISemaphore* wait = nullptr, RHISemaphore* signal = nullptr,
+		                     RHIFence* fence = nullptr)
+		    : command(command), wait_semaphore(wait), signal_semaphore(signal), signal_fence(fence)
+		{}
+
+		inline RHISubmitInfo(RHICommandHandle* command, RHIFence* fence) : command(command), signal_fence(fence) {}
+		inline RHISubmitInfo(RHIFence* fence) : signal_fence(fence) {}
 	};
 }// namespace Trinex

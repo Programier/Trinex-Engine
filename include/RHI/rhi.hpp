@@ -26,6 +26,9 @@ namespace Trinex
 
 	class ENGINE_EXPORT RHI
 	{
+	private:
+		static RHI* s_rhi;
+
 	public:
 		static constexpr usize s_max_srv             = 32;
 		static constexpr usize s_max_samplers        = 32;
@@ -39,9 +42,16 @@ namespace Trinex
 			Refl::Struct* struct_instance = nullptr;
 		} info;
 
-		virtual RHI& signal(RHIFence* fence)          = 0;
-		virtual RHI& submit(RHICommandHandle* handle) = 0;
-		virtual RHI& idle()                           = 0;
+		static RHI* create(const char* name);
+		static void destroy();
+		static inline RHI* instance() { return s_rhi; }
+
+
+		RHI();
+		virtual ~RHI();
+
+		virtual RHI& submit(const RHISubmitInfo& info) = 0;
+		virtual RHI& idle()                            = 0;
 
 		virtual RHITimestamp* create_timestamp()                                                           = 0;
 		virtual RHIPipelineStatistics* create_pipeline_statistics()                                        = 0;
@@ -63,9 +73,5 @@ namespace Trinex
 		virtual const u8* translate_ray_tracing_instances(const RHIRayTracingGeometryInstance* instances, usize& size) = 0;
 
 		virtual RHI& present(RHISwapchain* swapchain) = 0;
-
-		virtual ~RHI() {};
 	};
-
-	ENGINE_EXPORT extern RHI* rhi;
 }// namespace Trinex

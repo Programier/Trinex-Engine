@@ -1,10 +1,10 @@
 #include <Core/base_engine.hpp>
 #include <Core/default_resources.hpp>
 #include <Core/logger.hpp>
+#include <Core/math/math.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/camera_component.hpp>
-#include <Engine/ActorComponents/static_mesh_component.hpp>
-#include <Engine/Actors/static_mesh_actor.hpp>
+#include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/Render/render_graph.hpp>
 #include <Engine/Render/renderer.hpp>
 #include <Engine/world.hpp>
@@ -44,7 +44,7 @@ namespace Trinex
 
 		for (int i = 0; i < 18; ++i)
 		{
-			auto distance = glm::abs(s_default_zooms[i] - m_target_zoom);
+			auto distance = Math::abs(s_default_zooms[i] - m_target_zoom);
 			if (distance < bestDistance || bestIndex < 0)
 			{
 				bestDistance = distance;
@@ -88,7 +88,7 @@ namespace Trinex
 
 	RenderSurface* ImGuiStaticMeshPreview::render_preview(ImVec2 size)
 	{
-		if (size.x < 1.f || size.y < 1.f || m_mesh == nullptr)
+		if (size.x < 1.f || size.y < 1.f || m_primitive == nullptr)
 			return nullptr;
 
 		auto pool          = RenderSurfacePool::global_instance();
@@ -97,9 +97,11 @@ namespace Trinex
 
 		if (surface)
 		{
-			auto scene = m_mesh->world()->scene();
+			auto scene = m_primitive->scene();
+			if (scene == nullptr)
+				return nullptr;
 
-			SceneView scene_view(m_camera->camera_view(), view_size);
+			SceneView scene_view(m_camera->camera_view(size.x / size.y), view_size);
 
 			EditorRenderer renderer(scene, scene_view);
 			RenderGraph::Graph* graph = renderer.render_graph();
@@ -132,7 +134,7 @@ namespace Trinex
 		int steps      = ImGui::IsWindowHovered() ? -static_cast<int>(io.MouseWheel) : 0;
 		float fallback = s_default_zooms[steps < 0 ? 0 : 17];
 		m_target_zoom  = match_zoom(steps, fallback);
-		m_current_zoom = glm::mix(m_current_zoom, m_target_zoom, engine_instance->delta_time() * m_lerp_speed);
+		m_current_zoom = Math::lerp(m_current_zoom, m_target_zoom, engine_instance->delta_time() * m_lerp_speed);
 		return *this;
 	}
 
@@ -142,22 +144,22 @@ namespace Trinex
 		{
 			const ImVec2 mouse_move = (ImGui::GetIO().MouseDelta / size) * m_mouse_sensitivity;
 
-			float azimuth   = glm::atan(m_target_location.z, m_target_location.x) + mouse_move.x;
-			float elevation = glm::acos(m_target_location.y) - mouse_move.y;
+			float azimuth   = Math::atan(m_target_location.z, m_target_location.x) - mouse_move.x;
+			float elevation = Math::acos(m_target_location.y) - mouse_move.y;
 
 			static constexpr float clamp_angle = 0.017453f;
 
 			if (elevation < clamp_angle && elevation > -clamp_angle)
 				elevation = elevation < 0.f ? -clamp_angle : clamp_angle;
 
-			m_target_location = glm::normalize(Vector3f{
-			        glm::sin(elevation) * glm::cos(azimuth),
-			        glm::cos(elevation),
-			        glm::sin(elevation) * glm::sin(azimuth),
+			m_target_location = Math::normalize(Vector3f{
+			        Math::sin(elevation) * Math::cos(azimuth),
+			        Math::cos(elevation),
+			        Math::sin(elevation) * Math::sin(azimuth),
 			});
 		}
 
-		m_current_location = glm::mix(m_current_location, m_target_location, engine_instance->delta_time() * m_lerp_speed);
+		m_current_location = Math::lerp(m_current_location, m_target_location, engine_instance->delta_time() * m_lerp_speed);
 		return *this;
 	}
 
@@ -165,11 +167,11 @@ namespace Trinex
 	{
 		update_rotation(size).update_zoom();
 
-		if (m_mesh)
+		if (m_primitive)
 		{
-			auto bounds        = m_mesh->mesh_component()->bounding_box().size();
-			float min_distance = glm::max(bounds.x, glm::max(bounds.y, bounds.z));
-			min_distance       = glm::length(Vector2f(min_distance, min_distance)) + m_camera->near + 0.01;
+			auto bounds        = m_primitive->bounding_box().size();
+			float min_distance = Math::max(bounds.x, Math::max(bounds.y, bounds.z));
+			min_distance       = Math::length(Vector2f(min_distance, min_distance)) + m_camera->near + 0.01;
 
 			m_camera->location(m_current_location * min_distance * m_current_zoom);
 			m_camera->look_at({0.f, 0.f, 0.f});
@@ -177,9 +179,9 @@ namespace Trinex
 		return *this;
 	}
 
-	ImGuiStaticMeshPreview& ImGuiStaticMeshPreview::mesh(StaticMeshActor* actor)
+	ImGuiStaticMeshPreview& ImGuiStaticMeshPreview::primitive(PrimitiveComponent* primitive)
 	{
-		m_mesh = actor;
+		m_primitive = primitive;
 		return *this;
 	}
 

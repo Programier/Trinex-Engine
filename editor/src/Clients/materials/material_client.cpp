@@ -144,7 +144,7 @@ namespace Trinex
 		Super::on_bind_viewport(viewport);
 
 		auto wd = window()->window();
-		wd->title(Strings::format("Trinex Material Editor [{} RHI]", rhi->info.name.c_str()));
+		wd->title(Strings::format("Trinex Material Editor [{} RHI]", RHI::instance()->info.name.c_str()));
 
 		ImGuiWindow* prev_window = ImGuiWindow::current();
 
