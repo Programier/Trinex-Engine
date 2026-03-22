@@ -209,7 +209,7 @@ namespace Trinex
 		if (!Super::serialize(archive))
 			return false;
 
-		return true;
+		return archive.serialize_childs(this, m_actors.begin(), m_actors.end());
 	}
 
 	trinex_implement_class(Trinex::Level, Refl::Class::IsScriptable | Refl::Class::IsAsset) {}
@@ -222,13 +222,18 @@ namespace Trinex
 
 		if (name.empty())
 			name = Level::name();
-		LevelInstance* instance = instance_cast<LevelInstance>(m_class->create_object(name, owner));
 
-		if (!m_state.empty())
+		LevelInstance* instance = nullptr;
+
+		if (m_state.empty())
+		{
+			return instance_cast<LevelInstance>(m_class->create_object(name, owner));
+		}
+		else
 		{
 			VectorReader reader = &m_state;
 			Archive archive     = &reader;
-			instance->serialize(archive);
+			archive.serialize_object(instance, name, owner);
 		}
 
 		return instance;
@@ -239,10 +244,10 @@ namespace Trinex
 		trinex_assert(instance);
 
 		Buffer state;
-		VectorReader reader = &state;
-		Archive archive     = &reader;
+		VectorWriter writer = &state;
+		Archive archive     = &writer;
 
-		if (instance->serialize(archive))
+		if (archive.serialize_object(instance))
 		{
 			m_class = instance->class_instance();
 			m_state.swap(state);
@@ -250,5 +255,13 @@ namespace Trinex
 		}
 
 		return false;
+	}
+
+	bool Level::serialize(Archive& ar)
+	{
+		if (!Super::serialize(ar))
+			return false;
+
+		return ar.serialize_memory(m_state);
 	}
 }// namespace Trinex

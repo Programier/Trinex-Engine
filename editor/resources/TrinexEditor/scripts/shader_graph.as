@@ -69,7 +69,7 @@ namespace Trinex::VisualMaterialGraph
 		
 		RHIShaderParameterType resolve_args(Expression& in0, Expression& in1) const 
 		{
-			RHIShaderParameterType type = Expression::static_resolve(in0.type, in1.type);
+			RHIShaderParameterType type = Expression::resolve(in0.type, in1.type);
 			in0 = in0.convert(type);
 			in1 = in1.convert(type);
 			return type;
@@ -107,7 +107,7 @@ namespace Trinex::VisualMaterialGraph
 		
 		RHIShaderParameterType resolve_args(Expression& in0, Expression& in1, Expression& in2) const 
 		{
-			RHIShaderParameterType type = Expression::static_resolve(in0.type, in1.type, in2.type);
+			RHIShaderParameterType type = Expression::resolve(in0.type, in1.type, in2.type);
 			
 			in0 = in0.convert(type);
 			in1 = in1.convert(type);
@@ -139,7 +139,7 @@ namespace Trinex::VisualMaterialGraph
 	{
 		RHIShaderParameterType resolve_args(Expression& in0, Expression& in1) const override 
 		{ 
-			RHIShaderParameterType type = Expression::static_resolve(Expression::static_make_float(in0.type), Expression::static_make_float(in1.type));
+			RHIShaderParameterType type = Expression::resolve(Expression::make_floating(in0.type), Expression::make_floating(in1.type));
 			in0 = in0.convert(type); 
 			in1 = in1.convert(type); 
 			return type;
@@ -158,10 +158,10 @@ namespace Trinex::VisualMaterialGraph
 	{
 		RHIShaderParameterType resolve_args(Expression& in0, Expression& in1, Expression& in2) const override 
 		{ 
-			RHIShaderParameterType type = Expression::static_resolve(
-				Expression::static_make_float(in0.type), 
-				Expression::static_make_float(in1.type),
-				Expression::static_make_float(in2.type)
+			RHIShaderParameterType type = Expression::resolve(
+				Expression::make_floating(in0.type), 
+				Expression::make_floating(in1.type),
+				Expression::make_floating(in2.type)
 			);
 			
 			in0 = in0.convert(type); 
@@ -414,8 +414,8 @@ namespace Trinex::VisualMaterialGraph
 		
 		RHIShaderParameterType resolve_args(Expression& in0, Expression& in1) const override 
 		{
-			RHIShaderParameterType type = Expression::static_resolve(Expression::static_make_float(in0.type), Expression::static_make_float(in1.type));
-			type = Expression::static_vector_clamp(type, 1, 3);
+			RHIShaderParameterType type = Expression::resolve(Expression::make_floating(in0.type), Expression::make_floating(in1.type));
+			type = Expression::vector_clamp(type, 1, 3);
 			
 			in0 = in0.convert(type);
 			in1 = in1.convert(type);
@@ -437,7 +437,7 @@ namespace Trinex::VisualMaterialGraph
 		
 		RHIShaderParameterType resolve_args(Expression& in0, Expression& in1, Expression& in2) const override 
 		{
-			RHIShaderParameterType type = Expression::static_resolve(Expression::static_make_float(in0.type), Expression::static_make_float(in1.type));
+			RHIShaderParameterType type = Expression::resolve(Expression::make_floating(in0.type), Expression::make_floating(in1.type));
 			
 			in0 = in0.convert(type);
 			in1 = in1.convert(type);
@@ -473,14 +473,14 @@ namespace Trinex::VisualMaterialGraph
 			if (w) { swizzle += "w"; input_len = 4; }
 
 			Expression expression = compiler.compile(in0);
-			expression = expression.convert(Expression::static_make_vector(expression.type, input_len));
+			expression = expression.convert(Expression::make_numeric(expression.type, input_len));
 
 			if(swizzle.length() != input_len)
 			{
 				expression.value += ".";
 				expression.value += swizzle;
 
-				expression.type = Expression::static_make_vector(expression.type, swizzle.length());
+				expression.type = Expression::make_numeric(expression.type, swizzle.length());
 			}
 
 			return expression;
@@ -497,21 +497,21 @@ namespace Trinex::VisualMaterialGraph
 
 	[node_group("Common")] class MakeVector2 : Node
 	{
-		InputPin@ m_in0 = new_input("A", RHIShaderParameterType::META_Scalar, RHIShaderParameterType::Float);
-		InputPin@ m_in1 = new_input("B", RHIShaderParameterType::META_Scalar, RHIShaderParameterType::Float);
-		OutputPin@ m_out0 = new_output("Out", RHIShaderParameterType::META_Vector);
+		InputPin@ m_in0 = new_input("A", RHIShaderParameterType::META_Numeric, RHIShaderParameterType::Float);
+		InputPin@ m_in1 = new_input("B", RHIShaderParameterType::META_Numeric, RHIShaderParameterType::Float);
+		OutputPin@ m_out0 = new_output("Out", RHIShaderParameterType::META_Numeric);
 
 		Expression compile(OutputPin@ pin, Compiler@ compiler)
 		{
 			Expression in0 = compiler.compile(m_in0);
 			Expression in1 = compiler.compile(m_in1);
 
-			RHIShaderParameterType scalar0 = Expression::static_make_scalar(in0.type);
-			RHIShaderParameterType scalar1 = Expression::static_make_scalar(in1.type);
-			RHIShaderParameterType component_type = Expression::static_resolve(scalar0, scalar1);
-			RHIShaderParameterType vector_type = Expression::static_make_vector(component_type, 2);
+			RHIShaderParameterType scalar0 = Expression::make_numeric(in0.type);
+			RHIShaderParameterType scalar1 = Expression::make_numeric(in1.type);
+			RHIShaderParameterType component_type = Expression::resolve(scalar0, scalar1);
+			RHIShaderParameterType vector_type = Expression::make_numeric(component_type, 2);
 
-			string type_name = Expression::static_typename_of(vector_type);
+			string type_name = Expression::typename_of(vector_type);
 
 			in0 = in0.convert(component_type);
 			in1 = in1.convert(component_type);
@@ -522,10 +522,10 @@ namespace Trinex::VisualMaterialGraph
 
 	[node_group("Common")] class MakeVector3 : Node
 	{
-		InputPin@ m_in0 = new_input("A", RHIShaderParameterType::META_Scalar, RHIShaderParameterType::Float);
-		InputPin@ m_in1 = new_input("B", RHIShaderParameterType::META_Scalar, RHIShaderParameterType::Float);
-		InputPin@ m_in2 = new_input("C", RHIShaderParameterType::META_Scalar, RHIShaderParameterType::Float);
-		OutputPin@ m_out0 = new_output("Out", RHIShaderParameterType::META_Vector);
+		InputPin@ m_in0 = new_input("A", RHIShaderParameterType::META_Numeric, RHIShaderParameterType::Float);
+		InputPin@ m_in1 = new_input("B", RHIShaderParameterType::META_Numeric, RHIShaderParameterType::Float);
+		InputPin@ m_in2 = new_input("C", RHIShaderParameterType::META_Numeric, RHIShaderParameterType::Float);
+		OutputPin@ m_out0 = new_output("Out", RHIShaderParameterType::META_Numeric);
 
 		Expression compile(OutputPin@ pin, Compiler@ compiler)
 		{
@@ -533,13 +533,13 @@ namespace Trinex::VisualMaterialGraph
 			Expression in1 = compiler.compile(m_in1);
 			Expression in2 = compiler.compile(m_in2);
 
-			RHIShaderParameterType scalar0 = Expression::static_make_scalar(in0.type);
-			RHIShaderParameterType scalar1 = Expression::static_make_scalar(in1.type);
-			RHIShaderParameterType scalar2 = Expression::static_make_scalar(in2.type);
+			RHIShaderParameterType scalar0 = Expression::make_numeric(in0.type);
+			RHIShaderParameterType scalar1 = Expression::make_numeric(in1.type);
+			RHIShaderParameterType scalar2 = Expression::make_numeric(in2.type);
 			
-			RHIShaderParameterType component_type = Expression::static_resolve(scalar0, scalar1, scalar2);
-			RHIShaderParameterType vector_type = Expression::static_make_vector(component_type, 3);
-			string type_name = Expression::static_typename_of(vector_type);
+			RHIShaderParameterType component_type = Expression::resolve(scalar0, scalar1, scalar2);
+			RHIShaderParameterType vector_type = Expression::make_numeric(component_type, 3);
+			string type_name = Expression::typename_of(vector_type);
 
 			in0 = in0.convert(component_type);
 			in1 = in1.convert(component_type);
@@ -551,11 +551,11 @@ namespace Trinex::VisualMaterialGraph
 
 	[node_group("Common")] class MakeVector4 : Node
 	{
-		InputPin@ m_in0 = new_input("A", RHIShaderParameterType::META_Scalar, RHIShaderParameterType::Float);
-		InputPin@ m_in1 = new_input("B", RHIShaderParameterType::META_Scalar, RHIShaderParameterType::Float);
-		InputPin@ m_in2 = new_input("C", RHIShaderParameterType::META_Scalar, RHIShaderParameterType::Float);
-		InputPin@ m_in3 = new_input("D", RHIShaderParameterType::META_Scalar, RHIShaderParameterType::Float);
-		OutputPin@ m_out0 = new_output("Out", RHIShaderParameterType::META_Vector);
+		InputPin@ m_in0 = new_input("A", RHIShaderParameterType::META_Numeric, RHIShaderParameterType::Float);
+		InputPin@ m_in1 = new_input("B", RHIShaderParameterType::META_Numeric, RHIShaderParameterType::Float);
+		InputPin@ m_in2 = new_input("C", RHIShaderParameterType::META_Numeric, RHIShaderParameterType::Float);
+		InputPin@ m_in3 = new_input("D", RHIShaderParameterType::META_Numeric, RHIShaderParameterType::Float);
+		OutputPin@ m_out0 = new_output("Out", RHIShaderParameterType::META_Numeric);
 
 		Expression compile(OutputPin@ pin, Compiler@ compiler)
 		{
@@ -564,14 +564,14 @@ namespace Trinex::VisualMaterialGraph
 			Expression in2 = compiler.compile(m_in2);
 			Expression in3 = compiler.compile(m_in3);
 
-			RHIShaderParameterType scalar0 = Expression::static_make_scalar(in0.type);
-			RHIShaderParameterType scalar1 = Expression::static_make_scalar(in1.type);
-			RHIShaderParameterType scalar2 = Expression::static_make_scalar(in2.type);
-			RHIShaderParameterType scalar3 = Expression::static_make_scalar(in3.type);
+			RHIShaderParameterType scalar0 = Expression::make_numeric(in0.type);
+			RHIShaderParameterType scalar1 = Expression::make_numeric(in1.type);
+			RHIShaderParameterType scalar2 = Expression::make_numeric(in2.type);
+			RHIShaderParameterType scalar3 = Expression::make_numeric(in3.type);
 			
-			RHIShaderParameterType component_type = Expression::static_resolve(scalar0, scalar1, scalar2, scalar3);
-			RHIShaderParameterType vector_type = Expression::static_make_vector(component_type, 4);
-			string type_name = Expression::static_typename_of(vector_type);
+			RHIShaderParameterType component_type = Expression::resolve(scalar0, scalar1, scalar2, scalar3);
+			RHIShaderParameterType vector_type = Expression::make_numeric(component_type, 4);
+			string type_name = Expression::typename_of(vector_type);
 
 			in0 = in0.convert(component_type);
 			in1 = in1.convert(component_type);
@@ -602,7 +602,7 @@ namespace Trinex::VisualMaterialGraph
 			Expression in2 = compiler.compile(m_in2);
 			Expression in4 = compiler.compile(m_in4);
 
-			RHIShaderParameterType type = Expression::static_resolve(in2.type, in4.type);
+			RHIShaderParameterType type = Expression::resolve(in2.type, in4.type);
 			in2 = in2.convert(type);
 			in4 = in4.convert(type);
 
@@ -618,7 +618,7 @@ namespace Trinex::VisualMaterialGraph
 			Expression in3 = compiler.compile(m_in3);
 			Expression in4 = compiler.compile(m_in4);
 
-			RHIShaderParameterType type = Expression::static_resolve(in2.type, in3.type, in4.type);
+			RHIShaderParameterType type = Expression::resolve(in2.type, in3.type, in4.type);
 
 			in2 = in2.convert(type);
 			in3 = in3.convert(type);
@@ -650,7 +650,7 @@ namespace Trinex::VisualMaterialGraph
 			Expression in1 = compiler.compile(m_in1);
 			Expression in2 = compiler.compile(m_in2);
 
-			const RHIShaderParameterType type = Expression::static_resolve(in1.type, in2.type);
+			const RHIShaderParameterType type = Expression::resolve(in1.type, in2.type);
 			in1 = in1.convert(type);
 			in2 = in2.convert(type);
 

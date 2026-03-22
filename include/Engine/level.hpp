@@ -84,5 +84,6 @@ namespace Trinex
 
 		LevelInstance* create_instance(StringView name = "", Object* owner = nullptr);
 		bool update(LevelInstance* instance);
+		bool serialize(Archive& ar) override;
 	};
 }// namespace Trinex

@@ -27,33 +27,32 @@ namespace Trinex::VisualMaterialGraph
 		RHIShaderParameterType type;
 		String value;
 
-		static Expression static_zero(RHIShaderParameterType type);
-		static Expression static_half(RHIShaderParameterType type);
-		static Expression static_one(RHIShaderParameterType type);
-		static Expression static_convert(const Expression& expression, RHIShaderParameterType type);
+		static Expression make_zero(RHIShaderParameterType type);
+		static Expression make_half(RHIShaderParameterType type);
+		static Expression make_one(RHIShaderParameterType type);
+		static Expression convert(const Expression& expression, RHIShaderParameterType type);
 
-		static RHIShaderParameterType static_component_type_of(RHIShaderParameterType type);
-		static RHIShaderParameterType static_resolve(RHIShaderParameterType type1, RHIShaderParameterType type2);
-		static RHIShaderParameterType static_resolve(RHIShaderParameterType type1, RHIShaderParameterType type2,
-		                                             RHIShaderParameterType type3);
-		static RHIShaderParameterType static_resolve(RHIShaderParameterType type1, RHIShaderParameterType type2,
-		                                             RHIShaderParameterType type3, RHIShaderParameterType type4);
-		static String static_typename_of(RHIShaderParameterType type);
+		static RHIShaderParameterType component_type_of(RHIShaderParameterType type);
+		static RHIShaderParameterType resolve(RHIShaderParameterType type1, RHIShaderParameterType type2);
+		static RHIShaderParameterType resolve(RHIShaderParameterType type1, RHIShaderParameterType type2,
+		                                      RHIShaderParameterType type3);
+		static RHIShaderParameterType resolve(RHIShaderParameterType type1, RHIShaderParameterType type2,
+		                                      RHIShaderParameterType type3, RHIShaderParameterType type4);
+		static String typename_of(RHIShaderParameterType type);
 		static bool is_compatible_types(RHIShaderParameterType src, RHIShaderParameterType dst);
 
-		static RHIShaderParameterType static_make_float(RHIShaderParameterType self);
-		static RHIShaderParameterType static_vector_clamp(RHIShaderParameterType self, u8 min, u8 max);
-		static inline RHIShaderParameterType static_make_vector(RHIShaderParameterType self, u8 len)
+		static RHIShaderParameterType make_floating(RHIShaderParameterType self);
+		static RHIShaderParameterType vector_clamp(RHIShaderParameterType self, u8 min, u8 max);
+
+		ENGINE_EXPORT static RHIShaderParameterType make_numeric(RHIShaderParameterType base, u8 len = 1)
 		{
-			return self.make_vector(len);
+			return RHIShaderParameterType::make_numeric(base, len);
 		}
-		static inline RHIShaderParameterType static_make_scalar(RHIShaderParameterType self) { return self.make_scalar(); }
-		static inline bool static_is_scalar(RHIShaderParameterType self) { return self.is_scalar(); }
-		static inline bool static_is_vector(RHIShaderParameterType self) { return self.is_vector(); }
-		static inline bool static_is_matrix(RHIShaderParameterType self) { return self.is_matrix(); }
-		static inline bool static_is_numeric(RHIShaderParameterType self) { return self.is_numeric(); }
-		static inline u8 static_columns(RHIShaderParameterType self) { return self.columns(); }
-		static inline u8 static_rows(RHIShaderParameterType self) { return self.rows(); }
+
+		ENGINE_EXPORT static RHIShaderParameterType make_matrix(RHIShaderParameterType base, u8 rows = 4, u8 columns = 4)
+		{
+			return RHIShaderParameterType::make_matrix(base, rows, columns);
+		}
 
 		inline Expression() : type(RHIShaderParameterType::Undefined) {}
 		Expression(RHIShaderParameterType type, const char* value) : type(type), value(value) {}
@@ -67,7 +66,7 @@ namespace Trinex::VisualMaterialGraph
 
 		Expression convert(RHIShaderParameterType dst) const;
 		Expression vector_length() const;
-		inline Expression to_floating() const { return convert(static_make_float(type)); }
+		inline Expression to_floating() const { return convert(make_floating(type)); }
 
 		FORCE_INLINE bool is_valid() const { return type != RHIShaderParameterType::Undefined; }
 		FORCE_INLINE Expression& clear()

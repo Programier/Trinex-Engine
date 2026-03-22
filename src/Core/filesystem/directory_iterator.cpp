@@ -7,7 +7,8 @@ namespace Trinex::VFS
 {
 	DirectoryIterator::DirectoryIterator() : m_interface(nullptr) {}
 
-	DirectoryIterator::DirectoryIterator(const Path& path) : m_interface(rootfs()->create_directory_iterator(path)) {}
+	DirectoryIterator::DirectoryIterator(const Path& path) : DirectoryIterator(rootfs(), path) {}
+	DirectoryIterator::DirectoryIterator(FileSystem* fs, const Path& path) : m_interface(fs->create_directory_iterator(path)) {}
 
 	DirectoryIterator::DirectoryIterator(const DirectoryIterator& other)
 	    : m_interface(other.m_interface ? other.m_interface->copy() : nullptr)
@@ -101,9 +102,10 @@ namespace Trinex::VFS
 
 
 	RecursiveDirectoryIterator::RecursiveDirectoryIterator() : m_interface(nullptr) {}
+	RecursiveDirectoryIterator::RecursiveDirectoryIterator(const Path& path) : RecursiveDirectoryIterator(rootfs(), path) {}
 
-	RecursiveDirectoryIterator::RecursiveDirectoryIterator(const Path& path)
-	    : m_interface(rootfs()->create_recursive_directory_iterator(path))
+	RecursiveDirectoryIterator::RecursiveDirectoryIterator(FileSystem* fs, const Path& path)
+	    : m_interface(fs->create_recursive_directory_iterator(path))
 	{}
 
 	RecursiveDirectoryIterator::RecursiveDirectoryIterator(const RecursiveDirectoryIterator& other)

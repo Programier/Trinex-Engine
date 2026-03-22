@@ -35,7 +35,6 @@ namespace Trinex
 		}
 
 		bool serialize_struct(Refl::Struct* self, void* obj);
-		class Object* load_object(const StringView& name, class Refl::Class* self);
 
 	public:
 		Flags<SerializationFlags> flags;
@@ -61,6 +60,15 @@ namespace Trinex
 		usize position() const;
 		Archive& position(usize position);
 		bool is_open() const;
+
+		bool begin_chunk(u32& offset);
+		bool end_chunk(u32 offset);
+
+		bool serialize_string(String& value);
+		bool serialize_object(Object*& object, StringView name = "", Object* owner = nullptr);
+		bool serialize_object_ref(Object*& object);
+
+		inline operator bool() { return m_process_status; }
 
 		template<typename Type>
 		bool serialize(Type& value)
@@ -104,33 +112,62 @@ namespace Trinex
 			return (serialize(values) && ...);
 		}
 
-		inline operator bool() { return m_process_status; }
-
-		template<typename Type>
-		typename std::enable_if<std::is_base_of_v<class Trinex::Object, Type>, bool>::type serialize_reference(Type*& object)
+		template<typename T>
+		bool serialize_object(T*& object, StringView name = "", Object* owner = nullptr)
 		{
-			if (is_saving())
-			{
-				String name = object ? object->full_name() : "";
-				usize size  = name.length();
-				serialize(size);
-				write_data(reinterpret_cast<const u8*>(name.data()), size);
-			}
-			else if (is_reading())
-			{
-				String name;
-				usize size;
-				serialize(size);
-				name.resize(size);
-				read_data(reinterpret_cast<u8*>(name.data()), size);
+			Object* self = object;
+			bool valid   = serialize_object(self, name, owner);
 
-				if (name.empty())
+			if (valid && is_reading())
+			{
+				object = static_cast<T*>(self);
+			}
+
+			return valid;
+		}
+
+		template<typename T>
+		bool serialize_object_ref(T*& object)
+		{
+			Object* self = object;
+			bool valid   = serialize_object_ref(self);
+
+			if (valid && is_reading())
+			{
+				object = static_cast<T*>(self);
+			}
+
+			return valid;
+		}
+
+		template<typename T>
+		inline bool serialize_childs(Object* owner, T** begin = nullptr, T** end = nullptr)
+		{
+			u32 size = end - begin;
+			serialize(size);
+
+			if (m_is_saving)
+			{
+				while (begin != end)
 				{
-					object = nullptr;
+					T* instance = *(begin++);
+
+					u32 offset;
+					begin_chunk(offset);
+					serialize_object(instance);
+					end_chunk(offset);
 				}
-				else
+			}
+			else
+			{
+				T* instance = nullptr;
+
+				while (size--)
 				{
-					object = reinterpret_cast<Type*>(load_object(name, Type::static_reflection()));
+					u32 offset;
+					begin_chunk(offset);
+					serialize_object(instance, "", owner);
+					end_chunk(offset);
 				}
 			}
 
@@ -138,7 +175,7 @@ namespace Trinex
 		}
 
 		template<typename Type>
-		FORCE_INLINE bool serialize_vector(Type& vector)
+		inline bool serialize_vector(Type& vector)
 		{
 			usize size  = vector.size();
 			Archive& ar = *this;
@@ -149,33 +186,33 @@ namespace Trinex
 				vector.resize(size);
 			}
 
-			if constexpr (std::is_trivially_copyable_v<Type>)
+			for (auto& ell : vector)
 			{
-				u8* data    = reinterpret_cast<u8*>(vector.data());
-				usize bytes = size * sizeof(Type);
-
-				if (ar.is_reading())
-				{
-					ar.read_data(data, bytes);
-				}
-				else if (ar.is_saving())
-				{
-					ar.write_data(data, bytes);
-				}
-			}
-			else
-			{
-				for (auto& ell : vector)
-				{
-					serialize(ell);
-				}
+				serialize(ell);
 			}
 
 			return ar;
 		}
 
 		template<typename Type>
-		FORCE_INLINE bool serialize_set(Type& set)
+		inline bool serialize_memory(Type& vector)
+		{
+			u32 size    = vector.size();
+			Archive& ar = *this;
+			serialize(size);
+
+			if (ar.is_reading())
+			{
+				vector.resize(size);
+			}
+
+			u8* data    = reinterpret_cast<u8*>(vector.data());
+			usize bytes = size * sizeof(typename Type::value_type);
+			return serialize_memory(data, bytes);
+		}
+
+		template<typename Type>
+		inline bool serialize_set(Type& set)
 		{
 			usize size  = set.size();
 			Archive& ar = *this;
@@ -205,7 +242,7 @@ namespace Trinex
 		}
 
 		template<typename Type>
-		FORCE_INLINE bool serialize_map(Type& map)
+		inline bool serialize_map(Type& map)
 		{
 			usize size = map.size();
 			serialize(size);
@@ -236,7 +273,7 @@ namespace Trinex
 		}
 
 		template<typename Type>
-		FORCE_INLINE bool serialize_container(Type& container)
+		inline bool serialize_container(Type& container)
 		{
 			usize size = container.size();
 			serialize(size);
@@ -252,8 +289,6 @@ namespace Trinex
 
 			return *this;
 		}
-
-		bool serialize_string(String& value);
 	};
 
 	template<>

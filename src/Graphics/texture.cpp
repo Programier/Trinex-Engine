@@ -13,17 +13,23 @@ namespace Trinex
 {
 	bool Texture2DMip::serialize(Archive& ar)
 	{
-		return ar.serialize(size, data);
+		ar.serialize(size);
+		ar.serialize_memory(data);
+		return ar;
 	}
 
 	bool Texture3DMip::serialize(Archive& ar)
 	{
-		return ar.serialize(size, data);
+		ar.serialize(size);
+		ar.serialize_memory(data);
+		return ar;
 	}
 
 	bool TextureCubeMip::serialize(Archive& ar)
 	{
-		return ar.serialize(size, data);
+		ar.serialize(size);
+		ar.serialize_memory(data);
+		return ar;
 	}
 
 	trinex_implement_engine_class(Texture, Refl::Class::IsAsset) {}

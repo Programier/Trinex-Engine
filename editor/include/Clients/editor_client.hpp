@@ -136,8 +136,8 @@ namespace Trinex
 		ImGuizmo::MODE m_guizmo_mode;
 
 	private:
-		void on_actor_select(World* world, class Actor* actor);
-		void on_actor_unselect(World* world, class Actor* actor);
+		void on_actor_select(class Actor* actor);
+		void on_actor_unselect(class Actor* actor);
 		RHITexture* capture_scene();
 
 		EditorClient& update_render_stats(Renderer* renderer);

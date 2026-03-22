@@ -57,7 +57,7 @@ namespace Trinex
 				          object->class_instance()->full_name().c_str());
 			}
 		}
-
+		
 		object->on_destroy();
 		on_destroy(object);
 		object->class_instance()->destroy_object(object);

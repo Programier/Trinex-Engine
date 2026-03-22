@@ -36,7 +36,7 @@ namespace Trinex
 	{
 		if (is_reference)
 		{
-			ar.serialize_reference(object);
+			ar.serialize_object_ref(object);
 		}
 		else
 		{

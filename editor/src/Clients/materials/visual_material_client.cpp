@@ -136,7 +136,7 @@ namespace Trinex
 		const bool is_unsigned = type.is_unsigned();
 		u32 type_index         = 0;
 
-		switch (type.type())
+		switch (type & RHIShaderParameterType::META_ElementMask)
 		{
 			case RHIShaderParameterType::META_Integer: type_index = is_unsigned ? 1 : 2; break;
 			case RHIShaderParameterType::META_Boolean: type_index = 3; break;

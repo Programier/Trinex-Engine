@@ -486,8 +486,11 @@ namespace Trinex
 		return true;
 	}
 
-	static FORCE_INLINE Package* find_next_package(Package* package, const StringView& name, bool create)
+	static FORCE_INLINE Package* find_next_package(Package* package, StringView name, bool create)
 	{
+		if (name.empty())
+			return package;
+
 		Package* next_package = package->find_child_object_checked<Package>(name);
 		if (next_package == nullptr && create && !name.empty())
 		{
@@ -611,20 +614,17 @@ namespace Trinex
 			return false;
 		}
 
-		bool status;
 		Vector<u8> raw_buffer;
 		VectorWriter raw_writer = &raw_buffer;
-		Archive raw_ar          = &raw_writer;
-		raw_ar.flags            = serialization_flags;
+		Archive raw             = &raw_writer;
+		raw.flags               = serialization_flags;
 
-		auto hierarchy = class_instance()->hierarchy(1);
-		raw_ar.serialize(hierarchy);
-
-		status = serialize(raw_ar);
-
-		if (!status)
 		{
-			return false;
+			Object* self = this;
+			if (!raw.serialize_object(self))
+			{
+				return false;
+			}
 		}
 
 		Vector<u8> compressed_buffer;
@@ -651,21 +651,6 @@ namespace Trinex
 		}
 
 		return ar;
-	}
-
-	static FORCE_INLINE Refl::Class* find_class(const Vector<Name>& hierarchy)
-	{
-		Refl::Class* instance = nullptr;
-
-		for (Name name : hierarchy)
-		{
-			if ((instance = Refl::Class::static_find(name)))
-			{
-				return instance;
-			}
-		}
-
-		return instance;
 	}
 
 	ENGINE_EXPORT Object* Object::load_object(StringView fullname, class BufferReader* reader,
@@ -704,48 +689,22 @@ namespace Trinex
 		Vector<u8> raw_data;
 		Compressor::decompress(compressed_buffer, raw_data);
 		VectorReader raw_reader = &raw_data;
-		Archive raw_ar          = &raw_reader;
+		Archive raw             = &raw_reader;
 
-		Vector<Name> hierarchy;
-		raw_ar.serialize(hierarchy);
+		Object* object = nullptr;
 
-		Refl::Class* self = find_class(hierarchy);
-
-		if (self == nullptr)
+		if (fullname.empty())
 		{
-			error_log("Object", "Cannot load object. Class '%s' not found!", hierarchy.front().c_str());
-			return nullptr;
-		}
-
-		Object* object = self->create_object();
-
-		if (object == nullptr)
-		{
-			error_log("Object", "Cannot create object of class '%s'!", hierarchy.front().c_str());
-			return nullptr;
-		}
-
-		if (!fullname.empty())
-		{
-			StringView package_name = package_name_sv_of(fullname);
-			StringView object_name  = object_name_sv_of(fullname);
-
-			object->rename(object_name, Package::static_find_package(package_name, true));
-		}
-
-		object->preload();
-		bool valid = object->serialize(raw_ar);
-
-		if (!valid)
-		{
-			error_log("Object", "Failed to load object");
-			trx_delete object;
-			object = nullptr;
+			raw.serialize_object(object);
 		}
 		else
 		{
-			object->postload();
+			StringView package_name = Object::package_name_sv_of(fullname);
+			StringView object_name  = Object::object_name_sv_of(fullname);
+
+			raw.serialize_object(object, object_name, Package::static_find_package(package_name, true));
 		}
+
 		return object;
 	}
 

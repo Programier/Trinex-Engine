@@ -7,6 +7,8 @@ namespace Trinex
 	class Path;
 	namespace VFS
 	{
+		class FileSystem;
+
 		class ENGINE_EXPORT DirectoryIteratorInterface
 		{
 		protected:
@@ -33,6 +35,7 @@ namespace Trinex
 		public:
 			DirectoryIterator();
 			DirectoryIterator(const Path& path);
+			DirectoryIterator(FileSystem* fs, const Path& path);
 			DirectoryIterator(const DirectoryIterator&);
 			DirectoryIterator(DirectoryIterator&&);
 			~DirectoryIterator();
@@ -41,7 +44,7 @@ namespace Trinex
 			DirectoryIterator& operator=(DirectoryIterator&&);
 
 			DirectoryIterator& begin();
-			DirectoryIterator& end();
+			static DirectoryIterator& end();
 			DirectoryIterator& operator++();
 			const Path& operator*();
 
@@ -58,6 +61,7 @@ namespace Trinex
 		public:
 			RecursiveDirectoryIterator();
 			RecursiveDirectoryIterator(const Path& path);
+			RecursiveDirectoryIterator(FileSystem* fs, const Path& path);
 			RecursiveDirectoryIterator(const RecursiveDirectoryIterator&);
 			RecursiveDirectoryIterator(RecursiveDirectoryIterator&&);
 			~RecursiveDirectoryIterator();

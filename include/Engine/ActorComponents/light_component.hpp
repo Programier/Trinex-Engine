@@ -61,12 +61,17 @@ namespace Trinex
 		inline bool is_enabled() const { return m_is_enabled; }
 		inline bool is_shadows_enabled() const { return m_is_shadows_enabled; }
 
-		LightComponent& light_color(const Color& color);
-		LightComponent& intensity_units(LightUnits units);
-		LightComponent& intensity(float value);
-		LightComponent& intensity(float value, LightUnits units);
-		LightComponent& is_enabled(bool enabled);
-		LightComponent& is_shadows_enabled(bool enabled);
+		inline LightComponent& light_color(const Color& color) { trinex_this_return(m_light_color = color); }
+		inline LightComponent& intensity_units(LightUnits units) { trinex_this_return(m_intensity_units = units); }
+		inline LightComponent& intensity(float value) { trinex_this_return(m_intensity = value); };
+		inline LightComponent& is_enabled(bool enabled) { trinex_this_return(m_is_enabled = enabled); }
+		inline LightComponent& is_shadows_enabled(bool enabled) { trinex_this_return(m_is_shadows_enabled = enabled); }
+		inline LightComponent& intensity(float value, LightUnits units)
+		{
+			m_intensity       = value;
+			m_intensity_units = units;
+			return *this;
+		}
 
 		virtual LightComponent& render_parameters(LightRenderParameters& out);
 		virtual Type light_type() const = 0;
@@ -75,7 +80,6 @@ namespace Trinex
 		LightComponent& on_transform_changed() override;
 		LightComponent& start_play() override;
 		LightComponent& stop_play() override;
-		LightComponent& on_property_changed(const Refl::PropertyChangedEvent& event) override;
 		~LightComponent();
 	};
 }// namespace Trinex

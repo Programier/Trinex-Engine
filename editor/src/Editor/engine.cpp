@@ -18,11 +18,13 @@ namespace Trinex
 	EditorEngine& EditorEngine::select(Actor* actor)
 	{
 		m_selected_actors.insert(actor);
+		on_actor_select(actor);
 		return *this;
 	}
 
 	EditorEngine& EditorEngine::unselect(Actor* actor)
 	{
+		on_actor_unselect(actor);
 		m_selected_actors.erase(actor);
 		return *this;
 	}
@@ -34,6 +36,10 @@ namespace Trinex
 
 	EditorEngine& EditorEngine::unselect(World* world)
 	{
+		for (Actor* actor : m_selected_actors)
+		{
+			on_actor_unselect(actor);
+		}
 		m_selected_actors.clear();
 		return *this;
 	}

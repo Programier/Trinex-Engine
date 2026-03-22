@@ -95,7 +95,11 @@ namespace Trinex::VFS
 		return it;
 	}
 
-	CommonFileSystem::CommonFileSystem(const Path& mount, const Path& directory) : FileSystem(mount), m_directory(directory) {}
+	CommonFileSystem::CommonFileSystem(const Path& mount, const Path& directory) : FileSystem(mount), m_directory(directory)
+	{
+		if (m_directory.empty())
+			m_directory = ".";
+	}
 
 	const Path& CommonFileSystem::path() const
 	{
@@ -116,9 +120,9 @@ namespace Trinex::VFS
 
 		std::ios_base::openmode open_mode = std::ios_base::binary;
 
-		if (mode & FileOpenMode::In)
+		if (mode & FileOpenMode::Read)
 			open_mode |= std::ios_base::in;
-		if (mode & FileOpenMode::Out)
+		if (mode & FileOpenMode::Write)
 			open_mode |= std::ios_base::out;
 		if (mode & FileOpenMode::Append)
 			open_mode |= std::ios_base::app;
@@ -128,9 +132,9 @@ namespace Trinex::VFS
 
 		if (file.is_open())
 		{
-			if (mode & FileOpenMode::In)
+			if (mode & FileOpenMode::Read)
 			{
-				if (mode & FileOpenMode::Out)
+				if (mode & FileOpenMode::Write)
 					return trx_new CommonFile(this, full_path, std::move(file));
 
 				return trx_new ReadOnlyCommonFile(this, full_path, std::move(file));

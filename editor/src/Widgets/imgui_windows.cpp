@@ -208,9 +208,8 @@ namespace Trinex
 		             m_filtered_classes.size());
 
 		ImGui::InputText("editor/Asset Name"_localized, new_asset_name);
-		ImGui::Checkbox("editor/Allow rename"_localized, &allow_rename);
 
-		if (!allow_rename && m_parent->contains_object(new_asset_name))
+		if (m_parent->contains_object(new_asset_name))
 		{
 			text_wrapped_colored(ImVec4(1.0, 0.0, 0.0, 1.0),
 			                     "Cannot create new Asset! Object with name '%s' already exists in package '%s'",

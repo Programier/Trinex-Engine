@@ -60,11 +60,10 @@ namespace Trinex
 		// {
 		// 	m_directional_lights.erase(light);
 		// }
-		// else
-		// {
-		// 	Box3f box = light->bounding_box();
-		// 	m_light_octree.remove(box, light);
-		// }
+		//else
+		{
+			m_light_octree.remove(id);
+		}
 		return *this;
 	}
 

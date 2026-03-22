@@ -4,10 +4,10 @@ namespace meta
 {
 	enum type
 	{
-		UniformBuffer            = 2,
-		ExcludeMaterialParameter = 0 | 1 << 25,
-		SceneView                = 2 | 1 << 31,
-		LocalToWorld             = 0 | 1 << 31,
+		UniformBuffer            = 1 << 1,
+		ExcludeMaterialParameter = 0 << 0 | 1 << 24,
+		SceneView                = 1 << 1 | 1 << 31,
+		LocalToWorld             = 0 << 0 | 1 << 31,
 
 		// Descriptors
 		Descriptor = 1 << 0

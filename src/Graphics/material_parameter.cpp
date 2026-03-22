@@ -111,7 +111,7 @@ namespace Trinex::MaterialParameters
 			return false;
 
 		ar.serialize(sampler);
-		ar.serialize_reference(texture);
+		ar.serialize_object_ref(texture);
 		return ar;
 	}
 
@@ -130,7 +130,7 @@ namespace Trinex::MaterialParameters
 	{
 		if (!Super::serialize(ar))
 			return false;
-		ar.serialize_reference(texture);
+		ar.serialize_object_ref(texture);
 		return true;
 	}
 
@@ -154,7 +154,7 @@ namespace Trinex::MaterialParameters
 	{
 		if (!Super::serialize(ar))
 			return false;
-		return ar.serialize_reference(surface);
+		return ar.serialize_object_ref(surface);
 	}
 
 	CombinedSurface::CombinedSurface() : surface(nullptr), sampler() {}
@@ -176,7 +176,7 @@ namespace Trinex::MaterialParameters
 	{
 		if (!Super::serialize(ar))
 			return false;
-		return ar.serialize_reference(surface) && ar.serialize(sampler);
+		return ar.serialize_object_ref(surface) && ar.serialize(sampler);
 	}
 
 	implement_parameter(Parameter) {}

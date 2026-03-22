@@ -9,9 +9,8 @@ namespace Trinex
 {
 	trinex_implement_engine_class(PointLightComponent, 0)
 	{
-		trinex_refl_virtual_prop(Source Radius, source_radius, source_radius)->tooltip("Source radius of this light");
-		trinex_refl_virtual_prop(Fall Off Exponent, fall_off_exponent, fall_off_exponent)
-		        ->tooltip("Fall Off Exponent of this light");
+		trinex_refl_prop(m_source_radius)->tooltip("Source radius of this light");
+		trinex_refl_prop(m_fall_off_exponent)->tooltip("Fall Off Exponent of this light");
 	}
 
 	PointLightComponent::PointLightComponent() : m_fall_off_exponent(2.f) {}

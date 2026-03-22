@@ -65,5 +65,6 @@ namespace Trinex
 
 		virtual SceneComponent& on_transform_changed();
 		SceneComponent& on_property_changed(const Refl::PropertyChangedEvent& event) override;
+		bool serialize(Archive& ar) override;
 	};
 }// namespace Trinex

@@ -50,7 +50,6 @@ namespace Trinex
 	{
 		class Package* m_parent = nullptr;
 		String new_asset_name;
-		bool allow_rename = false;
 		int current_index = 0;
 
 		Vector<Refl::Class*> m_filtered_classes;

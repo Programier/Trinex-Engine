@@ -214,7 +214,9 @@ namespace Trinex
 		return true;
 	}
 
-	Material::Material() : domain(MaterialDomain::Surface), depth_mode(MaterialDepthMode::TestAndWrite) {}
+	Material::Material()
+	    : domain(MaterialDomain::Surface), depth_mode(MaterialDepthMode::TestAndWrite), blend_mode(MaterialBlendMode::Opaque)
+	{}
 
 	GraphicsPipeline* Material::pipeline(RenderPass* pass) const
 	{

@@ -97,66 +97,11 @@ namespace Trinex
 		return m_intensity;
 	}
 
-	LightComponent& LightComponent::light_color(const Color& color)
-	{
-		m_light_color = color;
-		return *this;
-	}
-
-	LightComponent& LightComponent::intensity_units(LightUnits units)
-	{
-		if (m_intensity_units == units)
-			return *this;
-
-		m_intensity_units = units;
-		return *this;
-	}
-
-	LightComponent& LightComponent::intensity(float value)
-	{
-		m_intensity = value;
-		return *this;
-	}
-
-	LightComponent& LightComponent::intensity(float value, LightUnits units)
-	{
-		m_intensity       = value;
-		m_intensity_units = units;
-		return *this;
-	}
-
-	LightComponent& LightComponent::is_enabled(bool enabled)
-	{
-		m_is_enabled = enabled;
-		return *this;
-	}
-
-	LightComponent& LightComponent::is_shadows_enabled(bool enabled)
-	{
-		m_is_shadows_enabled = enabled;
-		return *this;
-	}
-
 	LightComponent& LightComponent::update_bounding_box()
 	{
 		static const Vector3f extents = {1.f, 1.f, 1.f};
 		const Vector3f& location      = world_transform().location;
 		m_bounding_box                = Box3f(location - extents, location + extents);
-		return *this;
-	}
-
-	LightComponent& LightComponent::on_property_changed(const Refl::PropertyChangedEvent& event)
-	{
-		Super::on_property_changed(event);
-
-		if (event.property->owner() == static_reflection())
-		{
-			if (event.property->address(this) == &m_is_shadows_enabled)
-			{
-				is_shadows_enabled(m_is_shadows_enabled);
-			}
-		}
-
 		return *this;
 	}
 

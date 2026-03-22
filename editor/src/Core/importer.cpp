@@ -275,6 +275,36 @@ namespace Trinex::Importer
 			return RHIColorFormat::Undefined;
 		}
 
+		static Box3f bounding_box(Vector3f* positions, usize count)
+		{
+			if (positions == nullptr || count == 0)
+				return Box3f();
+
+			Vector3f min = positions[0];
+			Vector3f max = positions[0];
+
+			for (usize i = 1; i < count; ++i)
+			{
+				const Vector3f& p = positions[i];
+
+				min = Math::min(min, p);
+				max = Math::max(max, p);
+			}
+
+			return Box3f(min, max);
+		}
+
+		static void offset_vertices(Vector3f* vertices, usize count, Vector3f offset)
+		{
+			if (Math::length(offset) < 0.000001)
+				return;
+
+			for (usize i = 0; i < count; ++i)
+			{
+				vertices[i] += offset;
+			}
+		}
+
 	public:
 		ImporterContext(World* world, Package* package, const Transform& transform)
 		    : m_world(world), m_package(package), m_transform(transform.matrix())
@@ -298,9 +328,15 @@ namespace Trinex::Importer
 				m_package.textures = m_package.create_subpackage("Textures");
 			}
 
-			const tinygltf::Image& gltf_image = model.images[index];
+			const tinygltf::Texture& gltf_texture = model.textures[index];
+			const tinygltf::Image& gltf_image     = model.images[gltf_texture.source];
 
-			StringView name = gltf_image.name;
+			StringView name = gltf_texture.name;
+
+			if (name.empty())
+			{
+				name = gltf_image.name;
+			}
 
 			if (name.empty())
 			{
@@ -410,7 +446,6 @@ namespace Trinex::Importer
 			const usize primitives          = gltf_mesh.primitives.size();
 
 			StaticMesh* mesh = Object::new_instance<StaticMesh>(gltf_mesh.name, m_package.meshes);
-			mesh->bounds     = {{-1, -1, -1}, {1, 1, 1}};
 			mesh->materials.reserve(primitives);
 
 			auto& lod = mesh->lods.emplace_back();
@@ -631,6 +666,9 @@ namespace Trinex::Importer
 				vertex_count += vertices;
 				index_count += indices;
 			}
+
+			mesh->bounds = bounding_box(reinterpret_cast<Vector3f*>(position.data), vertex_count);
+			offset_vertices(reinterpret_cast<Vector3f*>(position.data), vertex_count, -mesh->bounds.center());
 
 			mesh->init_render_resources();
 			m_meshes[index] = mesh;

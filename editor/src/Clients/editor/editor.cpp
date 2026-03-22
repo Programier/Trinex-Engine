@@ -287,10 +287,15 @@ namespace Trinex
 
 		EventSystem::system_of<EventSystem>()->process_event_method(EventSystem::PoolEvents);
 		m_world = Object::new_instance<World>("World");
-		// m_on_actor_select_callback_id = m_world->on_actor_select.push(
-		//         std::bind(&This::on_actor_select, this, std::placeholders::_1, std::placeholders::_2));
-		// m_on_actor_unselect_callback_id = m_world->on_actor_unselect.push(
-		//         std::bind(&This::on_actor_unselect, this, std::placeholders::_1, std::placeholders::_2));
+
+		{
+			auto& on_select   = EditorEngine::instance()->on_actor_select;
+			auto& on_unselect = EditorEngine::instance()->on_actor_unselect;
+
+			m_on_actor_select_callback_id   = on_select.push(std::bind(&This::on_actor_select, this, std::placeholders::_1));
+			m_on_actor_unselect_callback_id = on_unselect.push(std::bind(&This::on_actor_unselect, this, std::placeholders::_1));
+		}
+
 		m_world->start_play();
 
 		ImGuiWindow* prev_window = ImGuiWindow::current();
@@ -322,8 +327,8 @@ namespace Trinex
 	{
 		Super::on_unbind_viewport(viewport);
 
-		// m_world->on_actor_select.remove(m_on_actor_select_callback_id);
-		// m_world->on_actor_unselect.remove(m_on_actor_unselect_callback_id);
+		EditorEngine::instance()->on_actor_select.remove(m_on_actor_select_callback_id);
+		EditorEngine::instance()->on_actor_unselect.remove(m_on_actor_unselect_callback_id);
 
 		m_world->stop_play();
 
@@ -341,17 +346,17 @@ namespace Trinex
 		return *this;
 	}
 
-	void EditorClient::on_actor_select(World* world, class Actor* actor)
+	void EditorClient::on_actor_select(class Actor* actor)
 	{
-		if (m_properties && world == m_world)
+		if (m_properties && actor->world() == m_world)
 		{
 			m_properties->object(actor);
 		}
 	}
 
-	void EditorClient::on_actor_unselect(World* world, class Actor* actor)
+	void EditorClient::on_actor_unselect(class Actor* actor)
 	{
-		if (m_properties && world == m_world)
+		if (m_properties && actor->world() == m_world)
 		{
 			if (m_properties->object() == actor || actor == nullptr)
 			{

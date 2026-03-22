@@ -18,7 +18,7 @@ namespace Trinex
 	static ScriptFunction script_actor_stop_play;
 	static ScriptFunction script_actor_despawned;
 
-	Actor::Actor() : m_is_playing(false), m_is_visible(true) {}
+	Actor::Actor() : m_default_components_count(0), m_is_playing(false), m_is_visible(true) {}
 
 	Actor::~Actor()
 	{
@@ -133,6 +133,13 @@ namespace Trinex
 		return m_is_playing;
 	}
 
+	Actor& Actor::on_create()
+	{
+		Super::on_create();
+		m_default_components_count = m_components.size();
+		return *this;
+	}
+
 	Actor& Actor::spawned()
 	{
 		for (usize index = 0, count = m_components.size(); index < count; ++index)
@@ -227,11 +234,20 @@ namespace Trinex
 		return nullptr;
 	}
 
-	bool Actor::serialize(Archive& archive)
+	bool Actor::serialize(Archive& ar)
 	{
-		if (!Super::serialize(archive))
+		if (!Super::serialize(ar))
 			return false;
-		return static_cast<bool>(archive);
+
+		for (u32 i = 0; i < m_default_components_count; ++i)
+		{
+			u32 offset;
+			ar.begin_chunk(offset);
+			m_components[i]->serialize(ar);
+			ar.end_chunk(offset);
+		}
+
+		return ar;
 	}
 
 	template<typename T>
@@ -269,7 +285,8 @@ namespace Trinex
 			script_actor_despawned.release();
 		});
 
-		auto components = trinex_refl_prop_ext(ActorComponentsExt, m_components, Refl::Property::IsReadOnly);
+		auto flags      = Refl::Property::IsReadOnly | Refl::Property::IsTransient;
+		auto components = trinex_refl_prop_ext(ActorComponentsExt, m_components, flags);
 
 		if (auto element = Refl::Object::instance_cast<Refl::ObjectProperty>(components->element_property()))
 		{

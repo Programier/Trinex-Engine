@@ -50,7 +50,7 @@ namespace Trinex::VisualMaterialGraph
 		static String format(const T& value, RHIShaderParameterType type, u32 depth = 0)
 		{
 			if (depth == 0)
-				return Strings::format("{}({})", Expression::static_typename_of(type), value);
+				return Strings::format("{}({})", Expression::typename_of(type), value);
 			return Strings::format("{}", value);
 		}
 	};
@@ -59,12 +59,11 @@ namespace Trinex::VisualMaterialGraph
 	struct DataTypeFormatter<glm::vec<L, T, Q>> {
 		static String format(const glm::vec<L, T, Q>& value, RHIShaderParameterType type, u32 depth = 0)
 		{
-			String result = Expression::static_typename_of(type);
+			String result = Expression::typename_of(type);
 			result.push_back('(');
 
-			type = type.make_scalar();
+			type = type.element_type();
 			result += DataTypeFormatter<T>::format(value.x, type, depth + 1);
-
 
 			for (usize i = 1; i < L; ++i)
 			{
@@ -127,7 +126,7 @@ namespace Trinex::VisualMaterialGraph
 
 	const char* Expression::s_swizzle[4] = {".x", ".y", ".z", ".w"};
 
-	Expression Expression::static_zero(RHIShaderParameterType type)
+	Expression Expression::make_zero(RHIShaderParameterType type)
 	{
 		switch (type)
 		{
@@ -156,7 +155,7 @@ namespace Trinex::VisualMaterialGraph
 		}
 	}
 
-	Expression Expression::static_half(RHIShaderParameterType type)
+	Expression Expression::make_half(RHIShaderParameterType type)
 	{
 		switch (type)
 		{
@@ -185,7 +184,7 @@ namespace Trinex::VisualMaterialGraph
 		}
 	}
 
-	Expression Expression::static_one(RHIShaderParameterType type)
+	Expression Expression::make_one(RHIShaderParameterType type)
 	{
 		switch (type)
 		{
@@ -214,7 +213,7 @@ namespace Trinex::VisualMaterialGraph
 		}
 	}
 
-	RHIShaderParameterType Expression::static_component_type_of(RHIShaderParameterType type)
+	RHIShaderParameterType Expression::component_type_of(RHIShaderParameterType type)
 	{
 		switch (type)
 		{
@@ -240,45 +239,45 @@ namespace Trinex::VisualMaterialGraph
 		}
 	}
 
-	RHIShaderParameterType Expression::static_resolve(RHIShaderParameterType type1, RHIShaderParameterType type2)
+	RHIShaderParameterType Expression::resolve(RHIShaderParameterType type1, RHIShaderParameterType type2)
 	{
 		if (type1 == type2)
 			return type1;
 
-		if ((type1.is_scalar() || type1.is_vector()) && (type2.is_scalar() || type2.is_vector()))
+		if (type1.is_numeric() && type2.is_numeric())
 		{
-			auto type_component1 = static_component_type_of(type1);
-			auto type_component2 = static_component_type_of(type2);
+			auto type_component1 = component_type_of(type1);
+			auto type_component2 = component_type_of(type2);
 			u8 result_len        = glm::max(type1.columns(), type2.columns());
 
 			if (type_component1 == RHIShaderParameterType::Float || type_component2 == RHIShaderParameterType::Float)
-				return RHIShaderParameterType(RHIShaderParameterType::Float).make_vector(result_len);
+				return RHIShaderParameterType::make_numeric(RHIShaderParameterType::Float, result_len);
 
 			if (type_component1 == RHIShaderParameterType::Bool || type_component2 == RHIShaderParameterType::Bool)
-				return RHIShaderParameterType(RHIShaderParameterType::Bool).make_vector(result_len);
+				return RHIShaderParameterType::make_numeric(RHIShaderParameterType::Bool, result_len);
 
 			if (type_component1 == RHIShaderParameterType::UInt || type_component2 == RHIShaderParameterType::UInt)
-				return RHIShaderParameterType(RHIShaderParameterType::UInt).make_vector(result_len);
+				return RHIShaderParameterType::make_numeric(RHIShaderParameterType::UInt, result_len);
 
-			return RHIShaderParameterType(RHIShaderParameterType::Int).make_vector(result_len);
+			return RHIShaderParameterType::make_numeric(RHIShaderParameterType::Int, result_len);
 		}
 
 		return RHIShaderParameterType();
 	}
 
-	RHIShaderParameterType Expression::static_resolve(RHIShaderParameterType type1, RHIShaderParameterType type2,
-	                                                  RHIShaderParameterType type3)
+	RHIShaderParameterType Expression::resolve(RHIShaderParameterType type1, RHIShaderParameterType type2,
+	                                           RHIShaderParameterType type3)
 	{
-		return static_resolve(static_resolve(type1, type2), type3);
+		return resolve(resolve(type1, type2), type3);
 	}
 
-	RHIShaderParameterType Expression::static_resolve(RHIShaderParameterType type1, RHIShaderParameterType type2,
-	                                                  RHIShaderParameterType type3, RHIShaderParameterType type4)
+	RHIShaderParameterType Expression::resolve(RHIShaderParameterType type1, RHIShaderParameterType type2,
+	                                           RHIShaderParameterType type3, RHIShaderParameterType type4)
 	{
-		return static_resolve(static_resolve(type1, type2, type3), type4);
+		return resolve(resolve(type1, type2, type3), type4);
 	}
 
-	String Expression::static_typename_of(RHIShaderParameterType type)
+	String Expression::typename_of(RHIShaderParameterType type)
 	{
 		// clang-format off
 		switch (type)
@@ -317,7 +316,7 @@ namespace Trinex::VisualMaterialGraph
 		if (src == dst)
 			return true;
 
-		if ((src.is_scalar() || src.is_vector()) && (dst.is_scalar() || dst.is_vector()))
+		if (src.is_numeric() && dst.is_numeric())
 			return true;
 
 		if (src.is_matrix() && dst.is_matrix())
@@ -327,21 +326,23 @@ namespace Trinex::VisualMaterialGraph
 		return (src & dst) == dst;
 	}
 
-	RHIShaderParameterType Expression::static_make_float(RHIShaderParameterType self)
+	RHIShaderParameterType Expression::make_floating(RHIShaderParameterType self)
 	{
 		if (self.is_numeric())
 		{
 			u8 len = self.columns();
-			return RHIShaderParameterType(RHIShaderParameterType::Float).make_vector(len);
+			return RHIShaderParameterType::make_numeric(RHIShaderParameterType::Float, len);
 		}
 
 		if (self.is_matrix())
-			return self;
+		{
+			return RHIShaderParameterType::make_matrix(RHIShaderParameterType::Float, self.rows(), self.columns());
+		}
 
 		return RHIShaderParameterType::Undefined;
 	}
 
-	RHIShaderParameterType Expression::static_vector_clamp(RHIShaderParameterType self, u8 min, u8 max)
+	RHIShaderParameterType Expression::vector_clamp(RHIShaderParameterType self, u8 min, u8 max)
 	{
 		if (self.is_numeric())
 		{
@@ -349,7 +350,9 @@ namespace Trinex::VisualMaterialGraph
 			u8 normalized = glm::clamp<u8>(glm::clamp(len, min, max), 1, 4);
 
 			if (normalized != len)
-				return self.make_vector(normalized);
+			{
+				return RHIShaderParameterType::make_numeric(self.element_type(), normalized);
+			}
 			return self;
 		}
 
@@ -358,50 +361,50 @@ namespace Trinex::VisualMaterialGraph
 
 	Expression Expression::x() const
 	{
-		auto component = static_component_type_of(type);
+		auto component = component_type_of(type);
 
-		if (component.is_scalar())
+		if (component.is_numeric())
 		{
 			return Expression(component, value + s_swizzle[0]);
 		}
 
-		return static_zero(component);
+		return make_zero(component);
 	}
 
 	Expression Expression::y() const
 	{
-		auto component = static_component_type_of(type);
+		auto component = component_type_of(type);
 
-		if (component.is_scalar() && type.columns() > 1)
+		if (component.is_numeric() && type.columns() > 1)
 		{
 			return Expression(component, value + s_swizzle[1]);
 		}
 
-		return static_zero(component);
+		return make_zero(component);
 	}
 
 	Expression Expression::z() const
 	{
-		auto component = static_component_type_of(type);
+		auto component = component_type_of(type);
 
-		if (component.is_scalar() && type.columns() > 2)
+		if (component.is_numeric() && type.columns() > 2)
 		{
 			return Expression(component, value + s_swizzle[2]);
 		}
 
-		return static_zero(component);
+		return make_zero(component);
 	}
 
 	Expression Expression::w() const
 	{
-		auto component = static_component_type_of(type);
+		auto component = component_type_of(type);
 
-		if (component.is_scalar() && type.columns() > 3)
+		if (component.is_numeric() && type.columns() > 3)
 		{
 			return Expression(component, value + s_swizzle[3]);
 		}
 
-		return static_zero(component);
+		return make_zero(component);
 	}
 
 	Expression Expression::convert(RHIShaderParameterType dst) const
@@ -409,23 +412,22 @@ namespace Trinex::VisualMaterialGraph
 		if (type == dst || value.empty())
 			return *this;
 
-		if ((dst.is_vector() || dst.is_scalar()) && (type.is_vector() || type.is_scalar()))
+		if (dst.is_numeric() && type.is_numeric())
 		{
 			usize src_components = type.columns();
 			usize dst_components = dst.columns();
 
-			const auto src_component_type = static_component_type_of(type);
-			const auto dst_component_type = static_component_type_of(dst);
+			const auto src_component_type = component_type_of(type);
+			const auto dst_component_type = component_type_of(dst);
 
 			String result;
 
 			const bool need_wrap = !(src_component_type == dst_component_type && src_components > dst_components);
 
 			if (need_wrap)
-				result = Strings::format("{}({}", static_typename_of(dst), value);
+				result = Strings::format("{}({}", typename_of(dst), value);
 			else
 				result = value;
-
 
 			if (src_components != 1)
 			{
@@ -439,7 +441,7 @@ namespace Trinex::VisualMaterialGraph
 				if (dst_components > src_components)
 				{
 					usize push_count = dst_components - src_components;
-					Expression zero  = static_zero(dst_component_type);
+					Expression zero  = make_zero(dst_component_type);
 
 					while (push_count > 0)
 					{
@@ -462,16 +464,24 @@ namespace Trinex::VisualMaterialGraph
 
 	Expression Expression::vector_length() const
 	{
-		if (type.is_vector())
+		if (!type.is_numeric())
+			return Expression();
+
+		if (type.columns() > 1)
 		{
 			Expression result = to_floating();
 			result.type       = RHIShaderParameterType::Float;
 			result.value      = Strings::format("length({})", result.value);
 			return result;
 		}
+		else
+		{
+			Expression result;
+			result.type  = type;
+			result.value = Strings::format("abs({})", value);
+			return result;
+		}
 
-		if (type.is_scalar())
-			return to_floating();
 		return Expression();
 	}
 
@@ -554,7 +564,7 @@ namespace Trinex::VisualMaterialGraph
 		if (name_override.empty())
 		{
 			String var_name   = static_uniform_parameter_name(m_current_node);
-			String expression = Strings::format("uniform {} {}", Expression::static_typename_of(type), var_name);
+			String expression = Strings::format("uniform {} {}", Expression::typename_of(type), var_name);
 			m_globals.insert(expression);
 			m_var_names.insert(var_name);
 			return Expression(type, var_name);
@@ -566,9 +576,9 @@ namespace Trinex::VisualMaterialGraph
 
 			m_param_names.insert(name_override);
 
-			String var_name   = static_uniform_parameter_name(m_current_node);
-			String expression = Strings::format("[name(\"{}\")] uniform {} {}", name_override,
-			                                    Expression::static_typename_of(type), var_name);
+			String var_name = static_uniform_parameter_name(m_current_node);
+			String expression =
+			        Strings::format("[name(\"{}\")] uniform {} {}", name_override, Expression::typename_of(type), var_name);
 			m_globals.insert(expression);
 			m_var_names.insert(var_name);
 			return Expression(type, var_name);
@@ -579,7 +589,7 @@ namespace Trinex::VisualMaterialGraph
 	{
 		String var_name = next_var_name();
 
-		String var = Strings::format("{} {}", Expression::static_typename_of(type), var_name);
+		String var = Strings::format("{} {}", Expression::typename_of(type), var_name);
 		m_locals.push_back(var);
 		m_var_names.insert(var_name);
 		return Expression(type, var_name);
@@ -590,7 +600,7 @@ namespace Trinex::VisualMaterialGraph
 		if (m_var_names.contains(expression.value))
 			return expression;
 
-		String type     = Expression::static_typename_of(expression.type);
+		String type     = Expression::typename_of(expression.type);
 		String var_name = next_var_name();
 		String var      = Strings::format("{} {} = {}", type, var_name, expression.value);
 		m_locals.push_back(var);
@@ -616,7 +626,11 @@ namespace Trinex::VisualMaterialGraph
 		if (output_pin)
 		{
 			Expression expression = compile(output_pin);
-			return expression.convert(pin->type());
+
+			if (pin->type().is_concrete())
+				expression = expression.convert(pin->type());
+
+			return expression;
 		}
 
 		return compile_default(pin);
@@ -903,33 +917,28 @@ namespace Trinex::VisualMaterialGraph
 		expression.method("Expression w() const", &Expression::w);
 		expression.method("Expression& clear()", &Expression::clear);
 		expression.method("bool is_valid() const", &Expression::is_valid);
-		expression.method("Expression convert(RHIShaderParameterType type) const", &Expression::convert);
+		expression.method("Expression convert(RHIShaderParameterType type) const",
+		                  overload_of<Expression(RHIShaderParameterType)>(&Expression::convert));
 		expression.method("Expression to_floating() const", &Expression::to_floating);
 		expression.method("Expression vector_length() const", &Expression::vector_length);
 
 		// clang-format off
-		expression.static_function("Expression static_zero(RHIShaderParameterType type)", &Expression::static_zero);
-		expression.static_function("Expression static_half(RHIShaderParameterType type)", &Expression::static_half);
-		expression.static_function("Expression static_one(RHIShaderParameterType type)", &Expression::static_one);
-		expression.static_function("RHIShaderParameterType static_component_type_of(RHIShaderParameterType type)", &Expression::static_component_type_of);
-		constexpr auto static_resolve1 = overload_of<SPType(SPType, SPType)>(&Expression::static_resolve);
-		constexpr auto static_resolve2 = overload_of<SPType(SPType, SPType, SPType)>(&Expression::static_resolve);
-		constexpr auto static_resolve3 = overload_of<SPType(SPType, SPType, SPType, SPType)>(&Expression::static_resolve);
-		expression.static_function("RHIShaderParameterType static_resolve(RHIShaderParameterType type1, RHIShaderParameterType type2)", static_resolve1);
-		expression.static_function("RHIShaderParameterType static_resolve(RHIShaderParameterType type1, RHIShaderParameterType type2, RHIShaderParameterType type3)", static_resolve2);
-		expression.static_function("RHIShaderParameterType static_resolve(RHIShaderParameterType type1, RHIShaderParameterType type2, RHIShaderParameterType type3, RHIShaderParameterType type4)", static_resolve3);
-		expression.static_function("string static_typename_of(RHIShaderParameterType type)", &Expression::static_typename_of);
+		expression.static_function("Expression make_zero(RHIShaderParameterType type)", &Expression::make_zero);
+		expression.static_function("Expression make_half(RHIShaderParameterType type)", &Expression::make_half);
+		expression.static_function("Expression make_one(RHIShaderParameterType type)", &Expression::make_one);
+		expression.static_function("RHIShaderParameterType component_type_of(RHIShaderParameterType type)", &Expression::component_type_of);
+		constexpr auto resolve1 = overload_of<SPType(SPType, SPType)>(&Expression::resolve);
+		constexpr auto resolve2 = overload_of<SPType(SPType, SPType, SPType)>(&Expression::resolve);
+		constexpr auto resolve3 = overload_of<SPType(SPType, SPType, SPType, SPType)>(&Expression::resolve);
+		expression.static_function("RHIShaderParameterType resolve(RHIShaderParameterType type1, RHIShaderParameterType type2)", resolve1);
+		expression.static_function("RHIShaderParameterType resolve(RHIShaderParameterType type1, RHIShaderParameterType type2, RHIShaderParameterType type3)", resolve2);
+		expression.static_function("RHIShaderParameterType resolve(RHIShaderParameterType type1, RHIShaderParameterType type2, RHIShaderParameterType type3, RHIShaderParameterType type4)", resolve3);
+		expression.static_function("string typename_of(RHIShaderParameterType type)", &Expression::typename_of);
 
-		expression.static_function("RHIShaderParameterType static_make_float(RHIShaderParameterType self)", &Expression::static_make_float);
-		expression.static_function("RHIShaderParameterType static_vector_clamp(RHIShaderParameterType self, uint8 min, uint8 max)", &Expression::static_vector_clamp);
-		expression.static_function("RHIShaderParameterType static_make_vector(RHIShaderParameterType self, uint8 len)", &Expression::static_make_vector);
-		expression.static_function("RHIShaderParameterType static_make_scalar(RHIShaderParameterType self)", &Expression::static_make_scalar);
-		expression.static_function("bool static_is_scalar(RHIShaderParameterType self)", &Expression::static_is_scalar);
-		expression.static_function("bool static_is_vector(RHIShaderParameterType self)", &Expression::static_is_vector);
-		expression.static_function("bool static_is_matrix(RHIShaderParameterType self)", &Expression::static_is_matrix);
-		expression.static_function("bool static_is_numeric(RHIShaderParameterType self)", &Expression::static_is_numeric);
-		expression.static_function("uint8 static_columns(RHIShaderParameterType self)", &Expression::static_columns);
-        expression.static_function("uint8 static_rows(RHIShaderParameterType self)", &Expression::static_rows);
+		expression.static_function("RHIShaderParameterType make_floating(RHIShaderParameterType self)", &Expression::make_floating);
+		expression.static_function("RHIShaderParameterType vector_clamp(RHIShaderParameterType self, uint8 min, uint8 max)", &Expression::vector_clamp);
+		expression.static_function("RHIShaderParameterType make_numeric(RHIShaderParameterType self, uint8 len = 1)", &Expression::make_numeric);
+		expression.static_function("RHIShaderParameterType make_matrix(RHIShaderParameterType self, uint8 rows = 1, uint8 columns = 1)", &Expression::make_matrix);
 
 		// clang-format on
 

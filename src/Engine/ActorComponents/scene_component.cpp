@@ -1,3 +1,4 @@
+#include <Core/archive.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/math/math.hpp>
 #include <Core/profiler.hpp>
@@ -156,6 +157,19 @@ namespace Trinex
 		}
 
 		return *this;
+	}
+
+	bool SceneComponent::serialize(Archive& ar)
+	{
+		if (!Super::serialize(ar))
+			return false;
+
+		if (ar.is_reading())
+		{
+			m_is_transform_dirty   = true;
+			m_is_transform_changed = true;
+		}
+		return ar;
 	}
 
 	SceneComponent& SceneComponent::despawned()

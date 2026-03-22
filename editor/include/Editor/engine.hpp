@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/base_engine.hpp>
+#include <Core/callback.hpp>
 #include <Core/etl/flat_set.hpp>
 
 namespace Trinex
@@ -14,6 +15,10 @@ namespace Trinex
 
 	private:
 		FlatSet<Actor*> m_selected_actors;
+
+	public:
+		CallBacks<void(Actor*)> on_actor_select;
+		CallBacks<void(Actor*)> on_actor_unselect;
 
 	public:
 		static EditorEngine* instance();

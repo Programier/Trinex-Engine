@@ -137,7 +137,7 @@ namespace Trinex
 	bool Image::save(const Path& path)
 	{
 		StringView extension = path.extension();
-		VFS::File* file      = rootfs()->open(path, FileOpenMode::Out);
+		VFS::File* file      = rootfs()->open(path, FileOpenMode::Write);
 
 		if (file == nullptr)
 			return false;

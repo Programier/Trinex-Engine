@@ -18,9 +18,9 @@ namespace Trinex
 	trinex_implement_engine_enum(RHICullMode, 0, None, Front, Back);
 	trinex_implement_engine_enum(RHIFrontFace, 0, ClockWise, CounterClockWise);
 	trinex_implement_engine_enum(RHIShaderParameterType, Refl::Enum::IsScriptable, Undefined, META_UniformBuffer, META_Sampler,
-	                             META_Texture, META_Scalar, META_Vector, META_Matrix, META_Numeric, META_Any, Bool, Bool2, Bool3,
-	                             Bool4, Int, Int2, Int3, Int4, UInt, UInt2, UInt3, UInt4, Float, Float2, Float3, Float4, Float3x3,
-	                             Float4x4, UniformBuffer, Sampler, Sampler2D, Texture2D);
+	                             META_Texture, META_Numeric, META_Matrix, META_Any, Bool, Bool2, Bool3, Bool4, Int, Int2, Int3,
+	                             Int4, UInt, UInt2, UInt3, UInt4, Float, Float2, Float3, Float4, Float3x3, Float4x4,
+	                             UniformBuffer, Sampler, Sampler2D, Texture2D);
 
 	trinex_implement_engine_enum(RHIColorFormat, 0, Undefined, R8, R8G8, R8G8B8A8, R8_SNORM, R8G8_SNORM, R8G8B8A8_SNORM, R8_UINT,
 	                             R8G8_UINT, R8G8B8A8_UINT, R8_SINT, R8G8_SINT, R8G8B8A8_SINT, R16, R16G16, R16G16B16A16,
@@ -57,64 +57,42 @@ namespace Trinex
 		return *this;
 	}
 
-	ENGINE_EXPORT RHIShaderParameterType RHIShaderParameterType::make_vector(u8 len)
+	ENGINE_EXPORT RHIShaderParameterType RHIShaderParameterType::make_numeric(RHIShaderParameterType base, u8 len)
 	{
-		len = Math::clamp<u8>(len, 1, 4);
+		base = base.element_type();
 
-		if (is_scalar())
-		{
-			if (len == 1)
-				return *this;
+		if (base == Undefined)
+			return Undefined;
 
-			RHIShaderParameterType result = *this;
-			result &= RHIShaderParameterType(~META_Scalar);
-			result |= META_Vector;
-			result.bitfield += static_cast<EnumerateType>(len - 1);
-			return result;
-		}
-		else if (is_vector())
-		{
-			RHIShaderParameterType result = *this;
-			u8 current_len                = columns();
+		base &= RHIShaderParameterType(~META_DimensionMask);
 
-			if (current_len > len)
-			{
-				result.bitfield -= static_cast<EnumerateType>(current_len - len);
-
-				if (len == 1)
-				{
-					result &= RHIShaderParameterType(~META_Vector);
-					result |= META_Scalar;
-				}
-			}
-			else if (current_len < len)
-			{
-				result.bitfield += static_cast<EnumerateType>(len - current_len);
-			}
-			return result;
-		}
-
-		return RHIShaderParameterType();
+		const EnumerateType size = Math::clamp<EnumerateType>(len, 1, 4);
+		return base | (size << 17) | (size << 20);
 	}
 
-	ENGINE_EXPORT RHIShaderParameterType RHIShaderParameterType::make_scalar()
+	ENGINE_EXPORT RHIShaderParameterType RHIShaderParameterType::make_matrix(RHIShaderParameterType base, u8 rows, u8 columns)
 	{
-		if (is_scalar())
-			return *this;
+		base = base.element_type();
 
-		if (is_vector())
+		if (base == Undefined)
+			return Undefined;
+
+		base &= RHIShaderParameterType(~META_DimensionMask);
+		return (Math::clamp<EnumerateType>(rows, 1, 4) << 17) | (Math::clamp<EnumerateType>(columns, 1, 4) << 20);
+	}
+
+	RHIShaderParameterType RHIShaderParameterType::element_type()
+	{
+		RHIShaderParameterType result = value & META_ElementMask;
+
+		if (result != Undefined)
 		{
-			RHIShaderParameterType result = *this;
+			if (result == META_Unsigned)
+				result |= META_Integer;
 
-			result &= RHIShaderParameterType(~(META_1D | META_2D | META_3D | META_4D));
-			result |= META_1D;
-
-			result &= RHIShaderParameterType(~META_Vector);
-			result |= META_Scalar;
-
-			return result;
+			return result | META_Concrete | META_Numeric | META_UniformBuffer | META_1D;
 		}
 
-		return RHIShaderParameterType();
+		return Undefined;
 	}
 }// namespace Trinex

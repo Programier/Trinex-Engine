@@ -128,7 +128,7 @@ namespace Trinex::Refl
 		}
 		else
 		{
-			return ar.serialize_reference(instance);
+			return ar.serialize_object_ref(instance);
 		}
 	}
 

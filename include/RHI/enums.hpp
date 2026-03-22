@@ -18,72 +18,76 @@ namespace Trinex
 			META_ByteAddressBuffer     = BIT(6),
 			META_AccelerationStructure = BIT(7),
 
-			META_Scalar  = BIT(8),
-			META_Vector  = BIT(9),
-			META_Matrix  = BIT(10),
-			META_Numeric = META_Scalar | META_Vector,
+			META_Numeric = BIT(8),
+			META_Matrix  = BIT(9),
 
-			META_RW       = BIT(11),
-			META_Array    = BIT(12),
-			META_Cube     = BIT(13),
-			META_Boolean  = BIT(14),
-			META_Integer  = BIT(15),
-			META_Floating = BIT(16),
-			META_Unsigned = BIT(17),
+			META_RW    = BIT(10),
+			META_Array = BIT(11),
+			META_Cube  = BIT(12),
+
+			// Element type
+			META_Boolean     = BIT(13),
+			META_Integer     = BIT(14),
+			META_Floating    = BIT(15),
+			META_Unsigned    = BIT(16),
+			META_ElementMask = META_Boolean | META_Integer | META_Floating | META_Unsigned,
 
 			// Dimensions
-			META_1R = BIT(18),
-			META_2R = BIT(19),
-			META_3R = BIT(18) | BIT(19),
-			META_4R = BIT(20),
+			META_1R       = BIT(17),
+			META_2R       = BIT(18),
+			META_3R       = BIT(17) | BIT(18),
+			META_4R       = BIT(19),
+			META_RowsMask = META_1R | META_2R | META_3R | META_4R,
 
-			META_1C = BIT(21),
-			META_2C = BIT(22),
-			META_3C = BIT(21) | BIT(22),
-			META_4C = BIT(23),
+			META_1C          = BIT(20),
+			META_2C          = BIT(21),
+			META_3C          = BIT(20) | BIT(21),
+			META_4C          = BIT(22),
+			META_ColumnsMask = META_1C | META_2C | META_3C | META_4C,
 
-			META_1D = META_1R | META_1C,
-			META_2D = META_2R | META_2C,
-			META_3D = META_3R | META_3C,
-			META_4D = META_4R | META_4C,
+			META_1D            = META_1R | META_1C,
+			META_2D            = META_2R | META_2C,
+			META_3D            = META_3R | META_3C,
+			META_4D            = META_4R | META_4C,
+			META_DimensionMask = META_1D | META_2D | META_3D | META_4D,
 
-			META_Color = BIT(24),
-
-			META_ExcludeMaterialParameter = BIT(25),
+			META_Color                    = BIT(23),
+			META_ExcludeMaterialParameter = BIT(24),
+			META_Concrete                 = BIT(25),
 
 			META_Special0 = BIT(31),
 			META_Any      = ~0U,
 
 			// Scalars
-			Bool          = META_Boolean | META_Scalar | META_UniformBuffer | META_1D,
-			Bool2         = META_Boolean | META_Scalar | META_UniformBuffer | META_2D,
-			Bool3         = META_Boolean | META_Scalar | META_UniformBuffer | META_3D,
-			Bool4         = META_Boolean | META_Scalar | META_UniformBuffer | META_4D,
-			Int           = META_Integer | META_Scalar | META_UniformBuffer | META_1D,
-			Int2          = META_Integer | META_Scalar | META_UniformBuffer | META_2D,
-			Int3          = META_Integer | META_Scalar | META_UniformBuffer | META_3D,
-			Int4          = META_Integer | META_Scalar | META_UniformBuffer | META_4D,
-			UInt          = META_Integer | META_Scalar | META_UniformBuffer | META_1D | META_Unsigned,
-			UInt2         = META_Integer | META_Scalar | META_UniformBuffer | META_2D | META_Unsigned,
-			UInt3         = META_Integer | META_Scalar | META_UniformBuffer | META_3D | META_Unsigned,
-			UInt4         = META_Integer | META_Scalar | META_UniformBuffer | META_4D | META_Unsigned,
-			Float         = META_Floating | META_Scalar | META_UniformBuffer | META_1D,
-			Float2        = META_Floating | META_Scalar | META_UniformBuffer | META_2D,
-			Float3        = META_Floating | META_Scalar | META_UniformBuffer | META_3D,
-			Float4        = META_Floating | META_Scalar | META_UniformBuffer | META_4D,
-			Float3x3      = META_Floating | META_Matrix | META_UniformBuffer | META_3D,
-			Float4x4      = META_Floating | META_Matrix | META_UniformBuffer | META_4D,
-			UniformBuffer = META_UniformBuffer,
+			Bool          = META_Concrete | META_Boolean | META_Numeric | META_UniformBuffer | META_1D,
+			Bool2         = META_Concrete | META_Boolean | META_Numeric | META_UniformBuffer | META_2D,
+			Bool3         = META_Concrete | META_Boolean | META_Numeric | META_UniformBuffer | META_3D,
+			Bool4         = META_Concrete | META_Boolean | META_Numeric | META_UniformBuffer | META_4D,
+			Int           = META_Concrete | META_Integer | META_Numeric | META_UniformBuffer | META_1D,
+			Int2          = META_Concrete | META_Integer | META_Numeric | META_UniformBuffer | META_2D,
+			Int3          = META_Concrete | META_Integer | META_Numeric | META_UniformBuffer | META_3D,
+			Int4          = META_Concrete | META_Integer | META_Numeric | META_UniformBuffer | META_4D,
+			UInt          = META_Concrete | META_Integer | META_Numeric | META_UniformBuffer | META_1D | META_Unsigned,
+			UInt2         = META_Concrete | META_Integer | META_Numeric | META_UniformBuffer | META_2D | META_Unsigned,
+			UInt3         = META_Concrete | META_Integer | META_Numeric | META_UniformBuffer | META_3D | META_Unsigned,
+			UInt4         = META_Concrete | META_Integer | META_Numeric | META_UniformBuffer | META_4D | META_Unsigned,
+			Float         = META_Concrete | META_Floating | META_Numeric | META_UniformBuffer | META_1D,
+			Float2        = META_Concrete | META_Floating | META_Numeric | META_UniformBuffer | META_2D,
+			Float3        = META_Concrete | META_Floating | META_Numeric | META_UniformBuffer | META_3D,
+			Float4        = META_Concrete | META_Floating | META_Numeric | META_UniformBuffer | META_4D,
+			Float3x3      = META_Concrete | META_Floating | META_Matrix | META_UniformBuffer | META_3D,
+			Float4x4      = META_Concrete | META_Floating | META_Matrix | META_UniformBuffer | META_4D,
+			UniformBuffer = META_Concrete | META_UniformBuffer,
 
 			// Samplers
-			Sampler          = META_Sampler,
-			Sampler1D        = META_Texture | META_Sampler | META_1D,
-			Sampler2D        = META_Texture | META_Sampler | META_2D,
-			Sampler3D        = META_Texture | META_Sampler | META_3D,
-			SamplerCube      = META_Texture | META_Sampler | META_Cube,
-			Sampler1DArray   = META_Texture | META_Sampler | META_1D | META_Array,
-			Sampler2DArray   = META_Texture | META_Sampler | META_2D | META_Array,
-			SamplerCubeArray = META_Texture | META_Sampler | META_Cube | META_Array,
+			Sampler          = META_Concrete | META_Sampler,
+			Sampler1D        = META_Concrete | META_Texture | META_Sampler | META_1D,
+			Sampler2D        = META_Concrete | META_Texture | META_Sampler | META_2D,
+			Sampler3D        = META_Concrete | META_Texture | META_Sampler | META_3D,
+			SamplerCube      = META_Concrete | META_Texture | META_Sampler | META_Cube,
+			Sampler1DArray   = META_Concrete | META_Texture | META_Sampler | META_1D | META_Array,
+			Sampler2DArray   = META_Concrete | META_Texture | META_Sampler | META_2D | META_Array,
+			SamplerCubeArray = META_Concrete | META_Texture | META_Sampler | META_Cube | META_Array,
 
 			RWSampler1D        = META_RW | Sampler1D,
 			RWSampler2D        = META_RW | Sampler2D,
@@ -94,13 +98,13 @@ namespace Trinex
 			RWSamplerCubeArray = META_RW | SamplerCubeArray,
 
 			// Textures
-			Texture1D        = META_Texture | META_1D,
-			Texture2D        = META_Texture | META_2D,
-			Texture3D        = META_Texture | META_3D,
-			TextureCube      = META_Texture | META_Cube,
-			Texture1DArray   = META_Texture | META_1D | META_Array,
-			Texture2DArray   = META_Texture | META_2D | META_Array,
-			TextureCubeArray = META_Texture | META_Cube | META_Array,
+			Texture1D        = META_Concrete | META_Texture | META_1D,
+			Texture2D        = META_Concrete | META_Texture | META_2D,
+			Texture3D        = META_Concrete | META_Texture | META_3D,
+			TextureCube      = META_Concrete | META_Texture | META_Cube,
+			Texture1DArray   = META_Concrete | META_Texture | META_1D | META_Array,
+			Texture2DArray   = META_Concrete | META_Texture | META_2D | META_Array,
+			TextureCubeArray = META_Concrete | META_Texture | META_Cube | META_Array,
 
 			RWTexture1D        = META_RW | Texture1D,
 			RWTexture2D        = META_RW | Texture2D,
@@ -111,15 +115,15 @@ namespace Trinex
 			RWTextureCubeArray = META_RW | TextureCubeArray,
 
 			// Buffers
-			Buffer            = META_Buffer,
-			StructuredBuffer  = META_StructuredBuffer,
-			ByteAddressBuffer = META_ByteAddressBuffer,
+			Buffer            = META_Concrete | META_Buffer,
+			StructuredBuffer  = META_Concrete | META_StructuredBuffer,
+			ByteAddressBuffer = META_Concrete | META_ByteAddressBuffer,
 
 			RWBuffer            = META_RW | Buffer,
 			RWStructuredBuffer  = META_RW | StructuredBuffer,
 			RWByteAddressBuffer = META_RW | ByteAddressBuffer,
 
-			AccelerationStructure = META_AccelerationStructure,
+			AccelerationStructure = META_Concrete | META_AccelerationStructure,
 
 			// Descriptors
 			DescriptorTexture1D        = Texture1D | META_Descriptor,
@@ -140,29 +144,28 @@ namespace Trinex
 		trinex_bitfield_enum_struct(RHIShaderParameterType, EnumerateType);
 		trinex_enum(RHIShaderParameterType);
 
-		ENGINE_EXPORT RHIShaderParameterType make_vector(u8 len);
-		ENGINE_EXPORT RHIShaderParameterType make_scalar();
+		ENGINE_EXPORT static RHIShaderParameterType make_numeric(RHIShaderParameterType base, u8 len = 1);
+		ENGINE_EXPORT static RHIShaderParameterType make_matrix(RHIShaderParameterType base, u8 rows = 4, u8 columns = 4);
 
-		inline constexpr bool is_scalar() const { return (value & META_Scalar) == META_Scalar; }
-		inline constexpr bool is_vector() const { return (value & META_Vector) == META_Vector; }
-		inline constexpr bool is_matrix() const { return (value & META_Matrix) == META_Matrix; }
+		ENGINE_EXPORT RHIShaderParameterType element_type();
+
 		inline constexpr bool is_numeric() const { return (value & META_Numeric); }
+		inline constexpr bool is_matrix() const { return (value & META_Matrix) == META_Matrix; }
 		inline constexpr bool is_unsigned() const { return value & META_Unsigned; }
 		inline constexpr bool is_color() const { return value & META_Color; }
-		inline constexpr RHIShaderParameterType type() const { return value & (META_Boolean | META_Integer | META_Floating); }
+		inline constexpr bool is_concrete() const { return value & META_Concrete; }
+		inline constexpr bool is_meta() const { return !is_concrete(); }
 
 		inline constexpr u8 rows() const
 		{
-			constexpr EnumerateType mask = META_1R | META_2R | META_3R | META_4R;
-			EnumerateType value          = bitfield & mask;
-			return value >> 18;
+			EnumerateType value = bitfield & META_RowsMask;
+			return value >> 17;
 		}
 
 		inline constexpr u8 columns() const
 		{
-			constexpr EnumerateType mask = META_1C | META_2C | META_3C | META_4C;
-			EnumerateType value          = bitfield & mask;
-			return value >> 21;
+			EnumerateType value = bitfield & META_ColumnsMask;
+			return value >> 20;
 		}
 	};
 

@@ -111,10 +111,10 @@ namespace Trinex
 	struct FileOpenMode {
 		enum Enum : u8
 		{
-			In        = BIT(0),
-			Out       = BIT(1),
-			ReadWrite = In | Out,
-			Append    = BIT(2) | Out,
+			Read      = BIT(0),
+			Write     = BIT(1),
+			ReadWrite = Read | Write,
+			Append    = BIT(2) | Write,
 		};
 
 		trinex_bitfield_enum_struct(FileOpenMode, u8);

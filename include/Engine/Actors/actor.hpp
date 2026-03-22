@@ -6,6 +6,7 @@
 namespace Trinex
 {
 	class ActorComponent;
+	class SceneComponent;
 	class ScriptFunction;
 	class World;
 	class LevelInstance;
@@ -50,8 +51,9 @@ namespace Trinex
 		};
 
 	private:
-		Pointer<class SceneComponent> m_root_component;
-		Vector<class ActorComponent*> m_components;
+		Pointer<SceneComponent> m_root_component;
+		Vector<ActorComponent*> m_components;
+		u32 m_default_components_count;
 
 		bool m_is_playing : 1;
 		bool m_is_visible : 1;
@@ -76,6 +78,8 @@ namespace Trinex
 		                           const Quaternion& rotation = {0.f, 0.f, 0.f, 1.f}, const Vector3f& scale = {1.f, 1.f, 1.f},
 		                           const Name& name = Name::none);
 
+		Actor& on_create() override;
+
 		virtual Actor& spawned();
 		virtual Actor& start_play();
 		virtual Actor& update(float dt);
@@ -86,14 +90,16 @@ namespace Trinex
 		Actor& is_visible(bool visible);
 		bool is_playing() const;
 
-		inline const Vector<class ActorComponent*>& components() const { return m_components; }
 		const Transform& transfrom() const;
 		SceneComponent* scene_component() const;
 
 		LevelInstance* level() const;
 		World* world() const;
 		Scene* scene() const;
-		bool serialize(Archive& archive) override;
+		bool serialize(Archive& ar) override;
+
+		inline const Vector<class ActorComponent*>& components() const { return m_components; }
+		inline u32 default_components_count() const { return m_default_components_count; }
 
 		friend class World;
 	};

@@ -18,7 +18,7 @@ namespace Trinex
 	{
 		close();
 
-		FileOpenMode flags = FileOpenMode::Out;
+		FileOpenMode flags = FileOpenMode::Write;
 
 		if (!clear)
 		{
@@ -87,7 +87,7 @@ namespace Trinex
 	bool FileReader::open(const Path& path)
 	{
 		close();
-		m_file = rootfs()->open(path, Flags<FileOpenMode>(FileOpenMode::In));
+		m_file = rootfs()->open(path, Flags<FileOpenMode>(FileOpenMode::Read));
 		return is_open();
 	}
 

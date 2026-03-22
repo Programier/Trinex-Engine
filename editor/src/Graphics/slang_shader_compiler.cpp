@@ -378,11 +378,19 @@ namespace Trinex
 					case slang::BindingType::MutableTexture: type |= RHIShaderParameterType::META_RW;
 					case slang::BindingType::Texture: type |= RHIShaderParameterType::META_Texture; break;
 
-					default: return false;
+					default: return RHIShaderParameterType::Undefined;
 				}
 			}
 
 			return type;
+		}
+
+		bool register_parameter(const RHIShaderParameterInfo& info, RHIShaderParameterType flags = {})
+		{
+			auto& param = m_reflection->parameters.emplace_back(info);
+			param.type |= RHIShaderParameterType::META_Concrete;
+			param.type |= flags;
+			return true;
 		}
 
 		bool parse_shader_parameter(const VarTraceEntry& param)
@@ -422,9 +430,7 @@ namespace Trinex
 					error_log("ShaderCompiler", "Failed to get parameter layout info!");
 					return false;
 				}
-
-				m_reflection->parameters.push_back(info);
-				return true;
+				return register_parameter(info);
 			}
 			else if (is_in<slang::TypeReflection::Kind::Resource, slang::TypeReflection::Kind::SamplerState>(param.kind) &&
 			         !param.is_excluded(VarTraceEntry::exclude_resource))
@@ -463,39 +469,27 @@ namespace Trinex
 
 					if (shape_mask == SLANG_TEXTURE_2D)
 					{
-						object.type |= RHIShaderParameterType::META_2D;
-						m_reflection->parameters.push_back(object);
-						return true;
+						return register_parameter(object, RHIShaderParameterType::META_2D);
 					}
 					else if (shape_mask == SLANG_TEXTURE_3D)
 					{
-						object.type |= RHIShaderParameterType::META_2D;
-						m_reflection->parameters.push_back(object);
-						return true;
+						return register_parameter(object, RHIShaderParameterType::META_3D);
 					}
 					else if (shape_mask == SLANG_TEXTURE_CUBE)
 					{
-						object.type |= RHIShaderParameterType::META_Cube;
-						m_reflection->parameters.push_back(object);
-						return true;
+						return register_parameter(object, RHIShaderParameterType::META_Cube);
 					}
 					else if (shape_mask == SLANG_STRUCTURED_BUFFER)
 					{
-						object.type |= RHIShaderParameterType::META_StructuredBuffer;
-						m_reflection->parameters.push_back(object);
-						return true;
+						return register_parameter(object, RHIShaderParameterType::META_StructuredBuffer);
 					}
 					else if (shape_mask == SLANG_BYTE_ADDRESS_BUFFER)
 					{
-						object.type |= RHIShaderParameterType::META_ByteAddressBuffer;
-						m_reflection->parameters.push_back(object);
-						return true;
+						return register_parameter(object, RHIShaderParameterType::META_ByteAddressBuffer);
 					}
 					else if (param.kind == slang::TypeReflection::Kind::SamplerState)
 					{
-						object.type |= RHIShaderParameterType::META_Sampler;
-						m_reflection->parameters.push_back(object);
-						return true;
+						return register_parameter(object, RHIShaderParameterType::META_Sampler);
 					}
 				}
 			}
@@ -533,8 +527,7 @@ namespace Trinex
 						info.name   = param.parameter_name();
 						info.offset = param.trace_offset(slang::ParameterCategory::Uniform);
 
-						m_reflection->parameters.push_back(info);
-						return true;
+						return register_parameter(info);
 					}
 				}
 
@@ -562,8 +555,7 @@ namespace Trinex
 					object.type   = RHIShaderParameterType::Globals;
 					object.size   = sizeof(GlobalShaderParameters);
 					object.offset = 0;
-					m_reflection->parameters.push_back(object);
-					return true;
+					return register_parameter(object);
 				}
 				else
 				{

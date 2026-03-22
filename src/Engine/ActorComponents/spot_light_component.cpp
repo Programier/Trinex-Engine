@@ -9,11 +9,8 @@ namespace Trinex
 {
 	trinex_implement_engine_class(SpotLightComponent, 0)
 	{
-		trinex_refl_virtual_prop(m_outer_cone_angle, outer_cone_angle, outer_cone_angle)
-		        ->tooltip("Outer Cone Angle of this spot light");
-
-		trinex_refl_virtual_prop(m_inner_cone_angle, inner_cone_angle, inner_cone_angle)
-		        ->tooltip("Inner Cone Angle of this spot light");
+		trinex_refl_prop(m_outer_cone_angle)->tooltip("Outer Cone Angle of this spot light");
+		trinex_refl_prop(m_inner_cone_angle)->tooltip("Inner Cone Angle of this spot light");
 	}
 
 	SpotLightComponent::SpotLightComponent() : m_inner_cone_angle(Math::radians(10.f)), m_outer_cone_angle(Math::radians(43.f)) {}
