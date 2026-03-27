@@ -41,7 +41,7 @@ float4 vertex_main(in VertexInput vs_input) : SV_Position
 	float3 world_normal  = normalize(rotation * vs_input.normal);
 	float3 world_tangent = normalize(rotation * vs_input.tangent.xyz);
 
-	float3 world_bitangent = cross(world_normal, world_tangent);
+	float3 world_bitangent = cross(world_normal, world_tangent) * vs_input.tangent.w;
 	material_input.m_tbn   = Math::tangent_basis(world_normal, world_tangent, world_bitangent);
 
 	float4 ndc = scene_view.camera.projview * float4(material_input.world_position, 1.0f);

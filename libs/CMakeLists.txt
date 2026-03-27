@@ -27,7 +27,7 @@ if (WIN32 OR LINUX)
 endif()
 
 if (TRINEX_WITH_TRACY_PROFILER)
-	add_subdirectory(tracy)
+    add_subdirectory(tracy)
 endif()
 
 target_link_libraries(TrinexEngine PUBLIC fmt-header-only)

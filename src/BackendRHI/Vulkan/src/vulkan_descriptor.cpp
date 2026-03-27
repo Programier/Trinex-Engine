@@ -300,7 +300,7 @@ namespace Trinex
 				VulkanContext::UniformBuffer& dst = as<VulkanContext::UniformBuffer>();
 				dst.buffer                        = buffer.buffer;
 				dst.size                          = buffer.size;
-				dst.offset                        = buffer.offset;
+				dst.offset                        = 0;
 				return *this;
 			}
 

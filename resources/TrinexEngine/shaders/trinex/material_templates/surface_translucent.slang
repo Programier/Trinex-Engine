@@ -46,7 +46,7 @@ VertexOutput vertex_main(in VertexInput vs_input)
 	float3 world_normal   = normalize(rotation * vs_input.normal);
 	float3 world_tangent  = normalize(rotation * vs_input.tangent.xyz);
 
-	float3 world_bitangent = cross(world_normal, world_tangent);
+	float3 world_bitangent = cross(world_normal, world_tangent) * vs_input.tangent.w;
 	output.TBN             = Math::tangent_basis(world_normal, world_tangent, world_bitangent);
 
 	struct MaterialInput : IMaterialInput

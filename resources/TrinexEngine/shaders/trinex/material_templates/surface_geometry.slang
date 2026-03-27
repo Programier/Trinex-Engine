@@ -44,7 +44,7 @@ VertexOutput vertex_main(in VertexInput vs_input)
 	float3 world_normal   = normalize(rotation * vs_input.normal);
 	float3 world_tangent  = normalize(rotation * vs_input.tangent.xyz);
 
-	float3 world_bitangent = cross(world_normal, world_tangent);
+	float3 world_bitangent = cross(world_normal, world_tangent) * vs_input.tangent.w;
 	output.TBN             = Math::tangent_basis(world_normal, world_tangent, world_bitangent);
 
 	struct MaterialInput : IMaterialInput
@@ -78,10 +78,9 @@ GeometryFragmentOutput fragment_main(in VertexOutput input)
 
 	float3 normal = normalize(input.TBN * (material.normal * 2.0 - 1.0));
 	float3 view   = scene_view.camera.location - input.world_position;
-	normal        = normal * sign(dot(normal, view)) * 0.5f + 0.5f;
 	
 	output.base_color    = float4(material.base_color, 1.0);
-	output.normal        = float4(normal, 1.f);
+	output.normal        = float4(normal * 0.5f + 0.5f, 1.f);
 	output.emissive      = float4(material.emissive, 1.0);
 	output.msra          = float4(material.metalness, material.specular, material.roughness, material.ao);
 	return output;

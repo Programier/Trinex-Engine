@@ -1,34 +1,24 @@
 import "trinex/material.slang";
 
-struct MaterialTexture<T : ITexelElement>
-{
-	Texture2D<T> texture;
-	SamplerState sampler;
-
-	[ForceInline] T sample(float2 uv) { return texture.Sample(sampler, uv); }
-}
-
 struct BaseColor
 {
-	Texture2D<float3> texture;
-	SamplerState sampler;
+	Sampler2D<float3> texture;
 	float3 factor;
 
-	[ForceInline] float3 sample(float2 uv) { return texture.Sample(sampler, uv) * factor; }
+	[ForceInline] float3 sample(float2 uv) { return texture.Sample(uv) * factor; }
 };
 
 struct MetalicRoughness
 {
-	Texture2D texture;
-	SamplerState sampler;
+	Sampler2D texture;
 	float2 factor;
 
-	[ForceInline] float2 sample(float2 uv) { return texture.Sample(sampler, uv).gb * factor; }
+	[ForceInline] float2 sample(float2 uv) { return texture.Sample(uv).bg * factor; }
 };
 
 uniform BaseColor base_color;
 uniform MetalicRoughness metalic_roughness;
-uniform MaterialTexture<float3> normal;
+uniform Sampler2D<float3> normal;
 
 export Material main<Material : IMaterial>(in IMaterialInput input)
 {
@@ -39,7 +29,7 @@ export Material main<Material : IMaterial>(in IMaterialInput input)
 	float2 mr = metalic_roughness.sample(uv);
 
 	material.base_color      = base_color.sample(uv);
-	material.normal          = normal.sample(uv);
+	material.normal          = normal.Sample(uv);
 	material.emissive        = float3(0.f, 0.f, 0.f);
 	material.opacity         = 1.f;
 	material.metalness       = mr.x;

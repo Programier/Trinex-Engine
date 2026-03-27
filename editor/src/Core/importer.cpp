@@ -337,6 +337,8 @@ namespace Trinex::Importer
 			if (index < 0)
 				return base;
 
+			index = model.textures[index].source;
+
 			Pointer<Texture2D>& texture = m_textures[index];
 
 			if (texture)
@@ -347,10 +349,9 @@ namespace Trinex::Importer
 				m_package.textures = m_package.create_subpackage("Textures");
 			}
 
-			const tinygltf::Texture& gltf_texture = model.textures[index];
-			const tinygltf::Image& gltf_image     = model.images[gltf_texture.source];
+			const tinygltf::Image& gltf_image = model.images[index];
 
-			StringView name = gltf_texture.name;
+			StringView name = gltf_image.name;
 
 			if (name.empty())
 			{
@@ -380,16 +381,19 @@ namespace Trinex::Importer
 			return texture;
 		}
 
-		// VisualMaterialGraph::SampleTexture* import_sampler(VisualMaterial* material, const tinygltf::Model& model, i32 index,
-		//                                                    i32 uv = 0)
-		// {
-		// 	auto sample = material->create_node<VisualMaterialGraph::SampleTexture>();
+		Sampler import_sampler(const tinygltf::Model& model, i32 index, i32 uv = 0)
+		{
+			if (index < 0)
+				return Sampler(RHISamplerFilter::Point);
 
-		// 	const tinygltf::Texture& gltf_texture = model.textures[index];
+			index = model.textures[index].sampler;
 
-		// 	sample->texture = import_texture(model, gltf_texture.source);
-		// 	return sample;
-		// }
+			if (index < 0)
+				return Sampler(RHISamplerFilter::Point);
+
+			const tinygltf::Sampler& src = model.samplers[index];
+			return Sampler(RHISamplerFilter::Bilinear);
+		}
 
 		MaterialInterface* import_material(const tinygltf::Model& model, i32 index)
 		{
@@ -411,34 +415,39 @@ namespace Trinex::Importer
 
 				auto& pbr = gltf_material.pbrMetallicRoughness;
 
+				auto white_texture  = DefaultResources::Textures::white;
+				auto normal_texture = DefaultResources::Textures::normal;
+
 				// Base color initialization
 				{
 					auto& factor  = material->create_parameter<Parameters::Float3>("base_color.factor")->value;
-					auto& texture = material->create_parameter<Parameters::Texture2D>("base_color.texture")->texture;
+					auto* texture = material->create_parameter<Parameters::Sampler2D>("base_color.texture");
 
-					factor.r = pbr.baseColorFactor[0];
-					factor.g = pbr.baseColorFactor[1];
-					factor.b = pbr.baseColorFactor[2];
-					texture  = import_texture(model, pbr.baseColorTexture.index, DefaultResources::Textures::white);
+					factor.r         = pbr.baseColorFactor[0];
+					factor.g         = pbr.baseColorFactor[1];
+					factor.b         = pbr.baseColorFactor[2];
+					texture->texture = import_texture(model, pbr.baseColorTexture.index, white_texture);
+					texture->sampler = import_sampler(model, pbr.baseColorTexture.index);
 				}
 
 				// Metalic-Roughness initialization
 				{
 					auto& factor  = material->create_parameter<Parameters::Float3>("metalic_roughness.factor")->value;
-					auto& texture = material->create_parameter<Parameters::Texture2D>("metalic_roughness.texture")->texture;
+					auto* texture = material->create_parameter<Parameters::Sampler2D>("metalic_roughness.texture");
 
-					factor.r = pbr.metallicFactor;
-					factor.g = pbr.roughnessFactor;
-					texture  = import_texture(model, pbr.metallicRoughnessTexture.index, DefaultResources::Textures::white);
+					factor.x         = pbr.metallicFactor;
+					factor.y         = pbr.roughnessFactor;
+					texture->texture = import_texture(model, pbr.metallicRoughnessTexture.index, white_texture);
+					texture->sampler = import_sampler(model, pbr.metallicRoughnessTexture.index);
 				}
 
 				// Normal initialization
 				{
-					//normalize((sample * 2.0 - 1.0) * vec3(<normal scale>, <normal scale>, 1.0)
 					auto& normal  = gltf_material.normalTexture;
-					auto& texture = material->create_parameter<Parameters::Texture2D>("normal.texture")->texture;
+					auto* texture = material->create_parameter<Parameters::Sampler2D>("normal");
 
-					texture = import_texture(model, normal.index, DefaultResources::Textures::normal);
+					texture->texture = import_texture(model, normal.index, normal_texture);
+					texture->sampler = import_sampler(model, normal.index);
 				}
 			}
 
@@ -805,7 +814,7 @@ namespace Trinex::Importer
 			}
 
 			m_meshes.resize(model.meshes.size());
-			m_textures.resize(model.textures.size());
+			m_textures.resize(model.images.size());
 			m_materials.resize(model.materials.size());
 
 			for (const tinygltf::Scene& scene : model.scenes)
