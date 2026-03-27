@@ -1,3 +1,4 @@
+#include <Core/math/math.hpp>
 #include <Core/memory.hpp>
 
 namespace Trinex
@@ -16,6 +17,8 @@ namespace Trinex
 
 		auto* d = static_cast<u8*>(dst);
 		auto* s = static_cast<const u8*>(src);
+
+		element_size = Math::min(dst_stride, src_stride);
 
 		for (usize i = 0; i < element_count; ++i)
 		{

@@ -3,18 +3,17 @@
 
 namespace Trinex
 {
-	using CriticalSection = std::mutex;
+	using CriticalSection          = std::mutex;
+	using CriticalSectionRecursive = std::recursive_mutex;
 
+	template<typename T>
 	class ScopeLock final
 	{
 	private:
-		CriticalSection& m_critical_section;
+		T& m_critical_section;
 
 	public:
-		explicit inline ScopeLock(CriticalSection& criticalSection) : m_critical_section(criticalSection)
-		{
-			m_critical_section.lock();
-		}
+		explicit inline ScopeLock(T& section) : m_critical_section(section) { m_critical_section.lock(); }
 
 		ScopeLock(const ScopeLock&)            = delete;
 		ScopeLock& operator=(const ScopeLock&) = delete;

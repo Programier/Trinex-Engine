@@ -9,13 +9,13 @@
 #include <Core/memory.hpp>
 #include <Core/package.hpp>
 #include <Core/reflection/class.hpp>
+#include <Core/string_functions.hpp>
 #include <Engine/world.hpp>
 #include <Graphics/gpu_buffers.hpp>
+#include <Graphics/material.hpp>
 #include <Graphics/mesh.hpp>
 #include <Graphics/shader_compiler.hpp>
 #include <Graphics/texture.hpp>
-#include <Graphics/visual_material.hpp>
-#include <Graphics/visual_material_nodes.hpp>
 #include <Image/image.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <tiny_gltf.h>
@@ -79,7 +79,7 @@ namespace Trinex::Importer
 			{
 				u64 result  = 0;
 				usize index = 0;
-				result |= ((result |= (accessors ? (1ull << index) : 0ull), ++index), ...);
+				((result |= (accessors ? (1ull << index) : 0ull), ++index), ...);
 				return result;
 			}
 
@@ -100,11 +100,16 @@ namespace Trinex::Importer
 
 		} m_package;
 
+		struct MeshInfo {
+			Mesh mesh;
+			Vector3f offset;
+		};
+
 		Matrix4f m_transform;
 
-		Vector<Pointer<VisualMaterial>> m_materials;
+		Vector<Pointer<MaterialInstance>> m_materials;
 		Vector<Pointer<Texture2D>> m_textures;
-		Vector<Optional<Mesh>> m_meshes;
+		Vector<Optional<MeshInfo>> m_meshes;
 
 	private:
 		static Matrix4f make_matrix(const tinygltf::Node& node)
@@ -137,10 +142,20 @@ namespace Trinex::Importer
 			return &model.accessors[it->second];
 		}
 
+
+		static inline usize accessor_element_size(const tinygltf::Accessor* accessor)
+		{
+			const usize component_size  = tinygltf::GetComponentSizeInBytes(accessor->componentType);
+			const usize component_count = tinygltf::GetNumComponentsInType(accessor->type);
+			return component_size * component_count;
+		}
+
 		template<typename... Accessors>
 		static inline usize elements_count(const Accessors*... accessors)
 		{
-			return ((accessors ? accessors->count : 0) + ...);
+			usize max_count = 0;
+			((max_count = Math::max(max_count, accessors ? accessors->count : 0)), ...);
+			return max_count;
 		}
 
 		static inline RHITopology topology_of(u8 mode)
@@ -150,7 +165,8 @@ namespace Trinex::Importer
 				case TINYGLTF_MODE_LINE: return RHITopology::LineList;
 				case TINYGLTF_MODE_LINE_STRIP: return RHITopology::LineStrip;
 				case TINYGLTF_MODE_TRIANGLE_STRIP: return RHITopology::TriangleStrip;
-				default: return RHITopology::TriangleList;
+				case TINYGLTF_MODE_TRIANGLES: return RHITopology::TriangleList;
+				default: trinex_assert(false);
 			}
 		}
 
@@ -212,7 +228,7 @@ namespace Trinex::Importer
 			}
 		}
 
-		static u16 find_material_index(Vector<MaterialInterface*>& materials, Material* material)
+		static u16 find_material_index(Vector<MaterialInterface*>& materials, MaterialInterface* material)
 		{
 			u16 index = 0;
 
@@ -316,8 +332,11 @@ namespace Trinex::Importer
 			return Math::log2<float>(dimension) + 1;
 		}
 
-		Texture2D* import_texture(const tinygltf::Model& model, i32 index)
+		Texture2D* import_texture(const tinygltf::Model& model, i32 index, Texture2D* base)
 		{
+			if (index < 0)
+				return base;
+
 			Pointer<Texture2D>& texture = m_textures[index];
 
 			if (texture)
@@ -361,20 +380,20 @@ namespace Trinex::Importer
 			return texture;
 		}
 
-		VisualMaterialGraph::SampleTexture* import_sampler(VisualMaterial* material, const tinygltf::Model& model, i32 index,
-		                                                   i32 uv = 0)
+		// VisualMaterialGraph::SampleTexture* import_sampler(VisualMaterial* material, const tinygltf::Model& model, i32 index,
+		//                                                    i32 uv = 0)
+		// {
+		// 	auto sample = material->create_node<VisualMaterialGraph::SampleTexture>();
+
+		// 	const tinygltf::Texture& gltf_texture = model.textures[index];
+
+		// 	sample->texture = import_texture(model, gltf_texture.source);
+		// 	return sample;
+		// }
+
+		MaterialInterface* import_material(const tinygltf::Model& model, i32 index)
 		{
-			auto sample = material->create_node<VisualMaterialGraph::SampleTexture>();
-
-			const tinygltf::Texture& gltf_texture = model.textures[index];
-
-			sample->texture = import_texture(model, gltf_texture.source);
-			return sample;
-		}
-
-		Material* import_material(const tinygltf::Model& model, i32 index)
-		{
-			Pointer<VisualMaterial>& material = m_materials[index];
+			Pointer<MaterialInstance>& material = m_materials[index];
 
 			if (material)
 				return material;
@@ -384,56 +403,56 @@ namespace Trinex::Importer
 				m_package.materials = m_package.create_subpackage("Materials");
 			}
 
-			// static auto float_node_class  = Refl::Class::static_require("Trinex::VisualMaterialGraph::ConstantFloat");
-			// static auto float2_node_class = Refl::Class::static_require("Trinex::VisualMaterialGraph::ConstantFloat2");
-			static auto float3_node_class = Refl::Class::static_require("Trinex::VisualMaterialGraph::ConstantFloat3");
-			// static auto float4_node_class = Refl::Class::static_require("Trinex::VisualMaterialGraph::ConstantFloat4");
-			static auto mul_node_class = Refl::Class::static_require("Trinex::VisualMaterialGraph::Mul");
-
-
 			const tinygltf::Material& gltf_material = model.materials[index];
 
-			material = Object::new_instance<VisualMaterial>(gltf_material.name, m_package.materials);
+			material = Object::new_instance<MaterialInstance>(gltf_material.name, m_package.materials);
 			{
-				auto root = material->root_node();
+				namespace Parameters = MaterialParameters;
+
+				auto& pbr = gltf_material.pbrMetallicRoughness;
 
 				// Base color initialization
 				{
-					auto& pbr_mr = gltf_material.pbrMetallicRoughness;
+					auto& factor  = material->create_parameter<Parameters::Float3>("base_color.factor")->value;
+					auto& texture = material->create_parameter<Parameters::Texture2D>("base_color.texture")->texture;
 
-					Vector3f* factor = &root->base_color->default_value()->ref<Vector3f>();
+					factor.r = pbr.baseColorFactor[0];
+					factor.g = pbr.baseColorFactor[1];
+					factor.b = pbr.baseColorFactor[2];
+					texture  = import_texture(model, pbr.baseColorTexture.index, DefaultResources::Textures::white);
+				}
 
-					if (pbr_mr.baseColorTexture.index != -1)
-					{
-						auto& base_color = pbr_mr.baseColorTexture;
-						auto constant    = material->create_node(float3_node_class);
-						auto mul         = material->create_node(mul_node_class);
+				// Metalic-Roughness initialization
+				{
+					auto& factor  = material->create_parameter<Parameters::Float3>("metalic_roughness.factor")->value;
+					auto& texture = material->create_parameter<Parameters::Texture2D>("metalic_roughness.texture")->texture;
 
-						auto sample = import_sampler(material, model, base_color.index, base_color.texCoord);
+					factor.r = pbr.metallicFactor;
+					factor.g = pbr.roughnessFactor;
+					texture  = import_texture(model, pbr.metallicRoughnessTexture.index, DefaultResources::Textures::white);
+				}
 
-						mul->inputs()[0]->link(sample->rgba_pin());
-						mul->inputs()[1]->link(constant->outputs()[0]);
+				// Normal initialization
+				{
+					//normalize((sample * 2.0 - 1.0) * vec3(<normal scale>, <normal scale>, 1.0)
+					auto& normal  = gltf_material.normalTexture;
+					auto& texture = material->create_parameter<Parameters::Texture2D>("normal.texture")->texture;
 
-						sample->texture = import_texture(model, pbr_mr.baseColorTexture.index);
-
-						root->base_color->link(mul->outputs()[0]);
-						factor = &constant->outputs()[0]->default_value()->ref<Vector3f>();
-					}
-
-					factor->r = pbr_mr.baseColorFactor[0];
-					factor->g = pbr_mr.baseColorFactor[1];
-					factor->b = pbr_mr.baseColorFactor[2];
+					texture = import_texture(model, normal.index, DefaultResources::Textures::normal);
 				}
 			}
 
-			material->compile();
 			return material;
 		}
 
-		StaticMesh* import_static_mesh(const tinygltf::Model& model, i32 index)
+		StaticMesh* import_static_mesh(const tinygltf::Model& model, i32 index, Vector3f& offset)
 		{
 			if (m_meshes[index].has_value())
-				return etl::get<Pointer<StaticMesh>>(m_meshes[index].value());
+			{
+				MeshInfo& info = m_meshes[index].value();
+				offset         = info.offset;
+				return etl::get<Pointer<StaticMesh>>(info.mesh);
+			}
 
 			if (m_package.meshes == nullptr)
 			{
@@ -445,7 +464,8 @@ namespace Trinex::Importer
 			const tinygltf::Mesh& gltf_mesh = model.meshes[index];
 			const usize primitives          = gltf_mesh.primitives.size();
 
-			StaticMesh* mesh = Object::new_instance<StaticMesh>(gltf_mesh.name, m_package.meshes);
+			StaticMesh* mesh =
+			        Object::new_instance<StaticMesh>(Strings::format("{}_{}", gltf_mesh.name, index), m_package.meshes);
 			mesh->materials.reserve(primitives);
 
 			auto& lod = mesh->lods.emplace_back();
@@ -498,7 +518,7 @@ namespace Trinex::Importer
 					vertex_count += surface->vertices_count;
 				}
 
-				Material* material = DefaultResources::Materials::base_pass;
+				MaterialInterface* material = DefaultResources::Materials::base_pass;
 
 				if (primitive.material != -1)
 					material = import_material(model, primitive.material);
@@ -654,9 +674,11 @@ namespace Trinex::Importer
 				{
 					usize stride;
 
-					u8* dst       = indices.element(index_count);
-					const u8* src = buffer_address(model, accessor.indices, stride);
-					memcpy_elements(dst, src, indices.stride, accessor.indices->count, indices.stride, stride);
+					u8* dst            = indices.element(index_count);
+					const u8* src      = buffer_address(model, accessor.indices, stride);
+					usize element_size = accessor_element_size(accessor.indices);
+
+					memcpy_elements(dst, src, element_size, accessor.indices->count, indices.stride, stride);
 				}
 
 				usize vertices = elements_count(accessor.positions, accessor.texcoords0, accessor.normals, accessor.tangents,
@@ -668,10 +690,12 @@ namespace Trinex::Importer
 			}
 
 			mesh->bounds = bounding_box(reinterpret_cast<Vector3f*>(position.data), vertex_count);
-			offset_vertices(reinterpret_cast<Vector3f*>(position.data), vertex_count, -mesh->bounds.center());
+			offset       = mesh->bounds.center();
+			offset_vertices(reinterpret_cast<Vector3f*>(position.data), vertex_count, -offset);
+			mesh->bounds.center({0.f, 0.f, 0.f});
 
 			mesh->init_render_resources();
-			m_meshes[index] = mesh;
+			m_meshes[index] = MeshInfo{.mesh = mesh, .offset = offset};
 			return mesh;
 		}
 
@@ -685,10 +709,10 @@ namespace Trinex::Importer
 
 		SkeletalMesh* import_skeletal_mesh(const tinygltf::Model& model, i32 index, i32 skin)
 		{
-			Optional<Mesh>& mesh = m_meshes[index];
+			// Optional<Mesh>& mesh = m_meshes[index];
 
-			if (mesh.has_value())
-				return etl::get<Pointer<SkeletalMesh>>(mesh.value());
+			// if (mesh.has_value())
+			// 	return etl::get<Pointer<SkeletalMesh>>(mesh.value());
 
 			return nullptr;
 		}
@@ -727,7 +751,9 @@ namespace Trinex::Importer
 				}
 				else
 				{
-					spawn_mesh(node.name, import_static_mesh(model, node.mesh), local);
+					Vector3f offset;
+					StaticMesh* mesh = import_static_mesh(model, node.mesh, offset);
+					spawn_mesh(node.name, mesh, Math::translate(local, offset));
 				}
 			}
 

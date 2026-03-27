@@ -31,6 +31,8 @@ namespace Trinex
 		Refl::Class* object_tree_child_class() const override;
 		bool unregister_child(Object* child) override;
 
+		Parameter* create_parameter(const Name& name, RHIShaderParameterType type);
+
 	public:
 		Parameter* find_parameter(const Name& name) const;
 		const Vector<Parameter*>& parameters() const;
@@ -91,12 +93,22 @@ namespace Trinex
 	{
 		trinex_class(MaterialInstance, MaterialInterface);
 
-	public:
-		MaterialInterface* parent_material = nullptr;
+	private:
+		MaterialInterface* m_parent = nullptr;
 
-		class Material* material() override;
+	public:
+		MaterialInstance();
+		Material* material() override;
+		MaterialInstance& parent(MaterialInterface* material);
 		MaterialInterface* parent() const override;
 		bool apply(const PrimitiveRenderingContext* ctx) override;
-		bool serialize(Archive& archive) override;
+
+		using MaterialInterface::create_parameter;
+
+		template<typename T>
+		T* create_parameter(const Name& name)
+		{
+			return static_cast<T*>(MaterialInterface::create_parameter(name, T::static_type()));
+		}
 	};
 }// namespace Trinex

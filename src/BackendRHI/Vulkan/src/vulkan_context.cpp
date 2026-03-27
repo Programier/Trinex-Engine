@@ -388,6 +388,18 @@ namespace Trinex
 		static_cast<vk::CommandBuffer&>(*this) = vk::check_result(API->m_device.allocateCommandBuffers(alloc_info)).front();
 	}
 
+	VulkanCommandHandle& VulkanCommandHandle::release_transient_resources()
+	{
+		for (RHIObject* stagging : m_stagging)
+		{
+			stagging->destroy();
+		}
+
+		m_stagging.clear();
+
+		return *this;
+	}
+
 	VulkanCommandHandle& VulkanCommandHandle::refresh_fence_status()
 	{
 		if (m_state == State::Submitted)
@@ -402,6 +414,8 @@ namespace Trinex
 				{
 					page.reset();
 				}
+
+				release_transient_resources();
 			}
 		}
 
@@ -459,12 +473,6 @@ namespace Trinex
 
 	void VulkanCommandHandle::destroy()
 	{
-		for (RHIObject* stagging : m_stagging)
-		{
-			stagging->destroy();
-		}
-
-		m_stagging.clear();
 		m_manager->return_handle(this);
 	}
 
@@ -485,6 +493,8 @@ namespace Trinex
 			}
 		}
 		trx_delete m_fence;
+
+		release_transient_resources();
 	}
 
 	VulkanCommandBufferManager::VulkanCommandBufferManager()

@@ -1,5 +1,6 @@
 #include <Core/archive.hpp>
 #include <Core/base_engine.hpp>
+#include <Core/default_resources.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
@@ -140,7 +141,7 @@ namespace Trinex
 
 	trinex_implement_engine_class(MaterialInstance, Refl::Class::IsAsset)
 	{
-		trinex_refl_prop(parent_material)->display_name("Parent Material").tooltip("Parent Material of this instance");
+		trinex_refl_virtual_prop(Material, parent, parent)->tooltip("Parent Material of this instance");
 	}
 
 	Refl::Class* MaterialInterface::object_tree_child_class() const
@@ -152,6 +153,37 @@ namespace Trinex
 	{
 		bool result = ObjectTreeNode::unregister_child(child);
 		return result || child->is_instance_of<MaterialParameters::Parameter>();
+	}
+
+	Parameter* MaterialInterface::create_parameter(const Name& name, RHIShaderParameterType type)
+	{
+		if (Parameter* parameter = find_parameter(name))
+		{
+			if (parameter->type() == type)
+			{
+				return parameter;
+			}
+
+			error_log("MaterialInterface", "Ambiguous parameter type with name '%s'", name.c_str());
+			return nullptr;
+		}
+
+		auto class_instance = Parameter::static_find_class(type);
+
+		if (class_instance == nullptr)
+		{
+			error_log("MaterialInterface", "Failed to find material parameter class");
+			return nullptr;
+		}
+
+		Parameter* parameter = Object::instance_cast<Parameter>(class_instance->create_object(name, this));
+
+		if (parameter == nullptr)
+		{
+			error_log("MaterialInterface", "Failed to create material parameter '%s'", name.c_str());
+		}
+
+		return parameter;
 	}
 
 	Parameter* MaterialInterface::find_parameter(const Name& name) const
@@ -233,39 +265,12 @@ namespace Trinex
 			if (info.type & RHIShaderParameterType::META_ExcludeMaterialParameter)
 				continue;
 
-			if (Parameter* param = find_parameter(info.name))
+			if (Parameter* parameter = create_parameter(info.name, info.type))
 			{
-				if (param->type() == info.type)
-				{
-					++param->m_pipeline_refs;
-					continue;
-				}
-				else if (param->m_pipeline_refs == 0)
-				{
-					param->owner(nullptr);
-				}
-				else
-				{
-					error_log("Material", "Ambiguous parameter type with name '%s'", info.name.c_str());
-					return false;
-				}
-			}
-
-			auto class_instance = Parameter::static_find_class(info.type);
-
-			if (class_instance == nullptr)
-			{
-				error_log("Material", "Failed to find material parameter class");
-				return false;
-			}
-
-			if (auto parameter = Object::instance_cast<Parameter>(class_instance->create_object(info.name, this)))
-			{
-				parameter->m_pipeline_refs = 1;
+				++parameter->m_pipeline_refs;
 			}
 			else
 			{
-				error_log("Material", "Failed to create material parameter '%s'", info.name.c_str());
 				return false;
 			}
 		}
@@ -393,6 +398,23 @@ namespace Trinex
 		return apply_internal(this, ctx);
 	}
 
+	static MaterialParameters::Parameter* find_parameter_override(MaterialInterface* head, const Name& name)
+	{
+		do
+		{
+			Parameter* parameter = head->find_parameter(name);
+
+			if (parameter)
+			{
+				return parameter;
+			}
+
+			head = head->parent();
+		} while (head);
+
+		return nullptr;
+	}
+
 	bool Material::apply_internal(MaterialInterface* head, const PrimitiveRenderingContext* ctx)
 	{
 		RenderPass* pass     = ctx->pass;
@@ -441,7 +463,7 @@ namespace Trinex
 						continue;
 				}
 
-				Parameter* parameter = head->find_parameter(info.name);
+				Parameter* parameter = find_parameter_override(head, info.name);
 
 				if (parameter)
 					parameter->apply(ctx, &info);
@@ -451,7 +473,7 @@ namespace Trinex
 		{
 			for (const RHIShaderParameterInfo& info : pipeline_object->parameters())
 			{
-				Parameter* parameter = head->find_parameter(info.name);
+				Parameter* parameter = find_parameter_override(head, info.name);
 
 				if (parameter)
 					parameter->apply(ctx, &info);
@@ -487,6 +509,11 @@ namespace Trinex
 		}
 		else
 		{
+			for (isize i = static_cast<isize>(m_child_objects.size()) - 1; i >= 0; --i)
+			{
+				Parameter* parameter = m_child_objects[i];
+				parameter->owner(nullptr);
+			}
 			// while (pipelines_count > 0)
 			// {
 			// 	Name name;
@@ -646,18 +673,29 @@ namespace Trinex
 		}
 	}
 
+	MaterialInstance::MaterialInstance() : m_parent(DefaultResources::Materials::base_pass) {}
+
 	class Material* MaterialInstance::material()
 	{
-		if (parent_material)
+		if (m_parent)
 		{
-			return parent_material->material();
+			return m_parent->material();
 		}
 		return nullptr;
 	}
 
+	MaterialInstance& MaterialInstance::parent(MaterialInterface* material)
+	{
+		if (material)
+		{
+			m_parent = material;
+		}
+		return *this;
+	}
+
 	MaterialInterface* MaterialInstance::parent() const
 	{
-		return parent_material;
+		return m_parent;
 	}
 
 	bool MaterialInstance::apply(const PrimitiveRenderingContext* ctx)
@@ -670,12 +708,5 @@ namespace Trinex
 		}
 
 		return mat->apply_internal(this, ctx);
-	}
-
-	bool MaterialInstance::serialize(Archive& archive)
-	{
-		if (!Super::serialize(archive))
-			return false;
-		return true;
 	}
 }// namespace Trinex

@@ -105,6 +105,9 @@ namespace Trinex
 		State m_state = State::Unused;
 		const RHIContextFlags m_flags;
 
+	private:
+		VulkanCommandHandle& release_transient_resources();
+
 	public:
 		VulkanCommandHandle(class VulkanCommandBufferManager* manager, RHIContextFlags flags);
 		VulkanCommandHandle(const VulkanCommandHandle&) = delete;
@@ -149,7 +152,7 @@ namespace Trinex
 	class VulkanCommandBufferManager : public VulkanThreadLocal
 	{
 	private:
-		CriticalSection m_critical;
+		CriticalSectionRecursive m_critical;
 		vk::CommandPool m_pool;
 		Deque<VulkanCommandHandle*> m_primary;
 		Deque<VulkanCommandHandle*> m_secondary;

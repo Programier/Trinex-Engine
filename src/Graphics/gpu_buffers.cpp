@@ -69,6 +69,7 @@ namespace Trinex
 		buffer.m_vtx_count = 0;
 		buffer.m_stride    = 0;
 		buffer.m_data      = nullptr;
+		buffer.m_flags     = RHIBufferCreateFlags::Static;
 	}
 
 	VertexBufferBase& VertexBufferBase::operator=(const VertexBufferBase& buffer)

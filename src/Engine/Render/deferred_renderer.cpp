@@ -143,6 +143,18 @@ namespace Trinex
 				break;
 			}
 
+			case ViewMode::Emissive:
+			{
+				graph->add_pass("Emissive Resolve")
+				        .add_resource(scene_color_hdr_target(), RHIAccess::SRVGraphics)
+				        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
+				        .add_func([this](RHIContext* ctx) {
+					        copy_to_scene_color(ctx, scene_color_hdr_target(),
+					                            {Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::One});
+				        });
+				break;
+			}
+
 			case ViewMode::Metalic:
 			{
 				graph->add_pass("Metalic Resolve")
@@ -154,9 +166,9 @@ namespace Trinex
 				break;
 			}
 
-			case ViewMode::Roughness:
+			case ViewMode::Specular:
 			{
-				graph->add_pass("Roughness Resolve")
+				graph->add_pass("Specular Resolve")
 				        .add_resource(msra_target(), RHIAccess::SRVGraphics)
 				        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
 				        .add_func([this](RHIContext* ctx) {
@@ -165,25 +177,13 @@ namespace Trinex
 				break;
 			}
 
-			case ViewMode::Specular:
+			case ViewMode::Roughness:
 			{
-				graph->add_pass("Specular Resolve")
+				graph->add_pass("Roughness Resolve")
 				        .add_resource(msra_target(), RHIAccess::SRVGraphics)
 				        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
 				        .add_func([this](RHIContext* ctx) {
 					        copy_to_scene_color(ctx, msra_target(), {Swizzle::B, Swizzle::B, Swizzle::B, Swizzle::One});
-				        });
-				break;
-			}
-
-			case ViewMode::Emissive:
-			{
-				graph->add_pass("Emissive Resolve")
-				        .add_resource(scene_color_hdr_target(), RHIAccess::SRVGraphics)
-				        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
-				        .add_func([this](RHIContext* ctx) {
-					        copy_to_scene_color(ctx, scene_color_hdr_target(),
-					                            {Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::One});
 				        });
 				break;
 			}
