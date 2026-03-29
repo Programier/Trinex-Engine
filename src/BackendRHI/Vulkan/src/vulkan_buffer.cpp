@@ -78,14 +78,14 @@ namespace Trinex
 		}
 
 		VkBuffer out_buffer = VK_NULL_HANDLE;
-		auto res = vmaCreateBuffer(API->m_allocator, &static_cast<VkBufferCreateInfo&>(buffer_info), &alloc_info, &out_buffer,
-		                           &m_allocation, nullptr);
-		m_buffer = out_buffer;
+		auto res            = vmaCreateBuffer(VulkanAPI::instance()->m_allocator, &static_cast<VkBufferCreateInfo&>(buffer_info),
+		                                      &alloc_info, &out_buffer, &m_allocation, nullptr);
+		m_buffer            = out_buffer;
 		trinex_assert_msg(res == VK_SUCCESS, "Failed to create buffer");
 
 		if (flags & RHIBufferCreateFlags::DeviceAddress)
 		{
-			m_address = API->m_device.getBufferAddressKHR(vk::BufferDeviceAddressInfo(m_buffer));
+			m_address = VulkanAPI::instance()->m_device.getBufferAddressKHR(vk::BufferDeviceAddressInfo(m_buffer));
 		}
 
 		if (flags & RHIBufferCreateFlags::ShaderResource)
@@ -131,7 +131,7 @@ namespace Trinex
 				ctx = static_cast<VulkanContext*>(RHIContextPool::global_instance()->begin_context());
 			}
 
-			auto buffer = API->stagging_manager()->allocate(size, RHIBufferCreateFlags::TransferSrc);
+			auto buffer = VulkanAPI::instance()->stagging_manager()->allocate(size, RHIBufferCreateFlags::TransferSrc);
 			buffer->copy(ctx, offset, data, size);
 
 			barrier(ctx, RHIAccess::TransferDst);
@@ -161,7 +161,7 @@ namespace Trinex
 		}
 		else
 		{
-			auto staging = API->stagging_manager()->allocate(size, RHIBufferCreateFlags::TransferSrc);
+			auto staging = VulkanAPI::instance()->stagging_manager()->allocate(size, RHIBufferCreateFlags::TransferSrc);
 			staging->copy(ctx, 0, data, size);
 
 			vk::BufferCopy region(0, offset, size);
@@ -215,7 +215,7 @@ namespace Trinex
 		if (m_allocation->IsMappingAllowed())
 		{
 			void* mapped = nullptr;
-			auto res     = vmaMapMemory(API->m_allocator, m_allocation, &mapped);
+			auto res     = vmaMapMemory(VulkanAPI::instance()->m_allocator, m_allocation, &mapped);
 			trinex_assert_msg(res == VK_SUCCESS, "Failed to map buffer");
 			return reinterpret_cast<u8*>(mapped);
 		}
@@ -226,7 +226,7 @@ namespace Trinex
 	{
 		if (m_allocation->IsMappingAllowed())
 		{
-			vmaUnmapMemory(API->m_allocator, m_allocation);
+			vmaUnmapMemory(VulkanAPI::instance()->m_allocator, m_allocation);
 		}
 	}
 
@@ -238,7 +238,7 @@ namespace Trinex
 	VulkanBuffer::~VulkanBuffer()
 	{
 		if (m_allocation)
-			vmaDestroyBuffer(API->m_allocator, m_buffer, m_allocation);
+			vmaDestroyBuffer(VulkanAPI::instance()->m_allocator, m_buffer, m_allocation);
 
 		if (m_srv)
 			trx_delete m_srv;
@@ -264,7 +264,8 @@ namespace Trinex
 
 	VulkanUniformBuffer& VulkanUniformBuffer::flush()
 	{
-		m_block_start = m_block_end = align_up_ptr(m_block_end, API->m_properties.limits.minUniformBufferOffsetAlignment);
+		m_block_start = m_block_end =
+		        align_up_ptr(m_block_end, VulkanAPI::instance()->m_properties.limits.minUniformBufferOffsetAlignment);
 		return *this;
 	}
 
@@ -272,7 +273,7 @@ namespace Trinex
 	{
 		std::memcpy(m_block_start + offset, data, size);
 		m_block_end = std::max<u8*>(m_block_end, m_block_start + offset + size);
-		m_block_end = align_up_ptr(m_block_end, API->m_properties.limits.minUniformBufferOffsetAlignment);
+		m_block_end = align_up_ptr(m_block_end, VulkanAPI::instance()->m_properties.limits.minUniformBufferOffsetAlignment);
 		return *this;
 	}
 

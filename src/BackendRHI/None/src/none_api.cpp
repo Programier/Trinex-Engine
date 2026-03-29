@@ -118,6 +118,11 @@ namespace Trinex
 	struct NoneAccelerationStructure : public NoneApiDestroyable<RHIAccelerationStructure> {
 	};
 
+	NoneApi& NoneApi::update(float dt)
+	{
+		return *this;
+	}
+
 	NoneApi& NoneApi::submit(const RHISubmitInfo& info)
 	{
 		return *this;

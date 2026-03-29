@@ -243,7 +243,7 @@ namespace Trinex
 		const u32 primitives = primitives_count(inputs, build_ranges);
 
 		constexpr auto build_type = vk::AccelerationStructureBuildTypeKHR::eDevice;
-		auto sizes                = API->m_device.getAccelerationStructureBuildSizesKHR(build_type, build_info, primitives);
+		auto sizes = VulkanAPI::instance()->m_device.getAccelerationStructureBuildSizesKHR(build_type, build_info, primitives);
 
 		constexpr auto flags = RHIBufferCreateFlags::AccelerationStorage | RHIBufferCreateFlags::ByteAddressBuffer |
 		                       RHIBufferCreateFlags::ShaderResource | RHIBufferCreateFlags::UnorderedAccess |
@@ -258,7 +258,7 @@ namespace Trinex
 		info.type   = build_info.type;
 		info.offset = 0;
 
-		m_acceleration = vk::check_result(API->m_device.createAccelerationStructureKHR(info, nullptr));
+		m_acceleration = vk::check_result(VulkanAPI::instance()->m_device.createAccelerationStructureKHR(info, nullptr));
 
 		RHIBuffer* scratch = RHIBufferPool::global_instance()->request_buffer(sizes.buildScratchSize, flags);
 
@@ -272,7 +272,7 @@ namespace Trinex
 		cmd->buildAccelerationStructuresKHR(build_info, build_ranges);
 
 		cmd = ctx->end();
-		API->submit(cmd);
+		VulkanAPI::instance()->submit(cmd);
 		cmd->release();
 
 		RHIContextPool::global_instance()->return_context(ctx);
@@ -281,7 +281,7 @@ namespace Trinex
 
 	VulkanAccelerationStructure::~VulkanAccelerationStructure()
 	{
-		API->m_device.destroyAccelerationStructureKHR(m_acceleration, nullptr);
+		VulkanAPI::instance()->m_device.destroyAccelerationStructureKHR(m_acceleration, nullptr);
 		trx_delete m_acceleration_buffer;
 	}
 
@@ -329,7 +329,7 @@ namespace Trinex
 	VulkanContext& VulkanContext::trace_rays(u32 width, u32 height, u32 depth, u64 raygen, const RHIRange& miss,
 	                                         const RHIRange& hit, const RHIRange& callable)
 	{
-		auto& properties = API->ray_trace_properties();
+		auto& properties = VulkanAPI::instance()->ray_trace_properties();
 		const u64 handle = align_up(properties.shaderGroupHandleSize, properties.shaderGroupBaseAlignment);
 
 		auto pipeline = static_cast<VulkanRayTracingPipeline*>(m_pipeline);

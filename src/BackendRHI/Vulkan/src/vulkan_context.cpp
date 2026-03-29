@@ -385,7 +385,8 @@ namespace Trinex
 		vk::CommandPool pool = manager->command_pool();
 		vk::CommandBufferAllocateInfo alloc_info(pool, level, 1);
 
-		static_cast<vk::CommandBuffer&>(*this) = vk::check_result(API->m_device.allocateCommandBuffers(alloc_info)).front();
+		static_cast<vk::CommandBuffer&>(*this) =
+		        vk::check_result(VulkanAPI::instance()->m_device.allocateCommandBuffers(alloc_info)).front();
 	}
 
 	VulkanCommandHandle& VulkanCommandHandle::release_transient_resources()
@@ -443,7 +444,7 @@ namespace Trinex
 	{
 		trinex_profile_cpu_n("VulkanCommandBuffer::submit");
 		trinex_assert_msg(is_pending(), "Command Buffer must be in ended state!");
-		API->m_graphics_queue->submit({}, m_fence->fence());
+		VulkanAPI::instance()->m_graphics_queue->submit({}, m_fence->fence());
 		m_fence->make_pending();
 		m_state = State::Submitted;
 		return *this;
@@ -481,7 +482,7 @@ namespace Trinex
 		wait();
 
 		auto pool = m_manager->command_pool();
-		API->m_device.freeCommandBuffers(pool, *this);
+		VulkanAPI::instance()->m_device.freeCommandBuffers(pool, *this);
 
 		for (auto& page : m_uniform_buffers)
 		{
@@ -499,8 +500,8 @@ namespace Trinex
 
 	VulkanCommandBufferManager::VulkanCommandBufferManager()
 	{
-		m_pool = vk::check_result(API->m_device.createCommandPool(
-		        vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, API->m_graphics_queue->index())));
+		m_pool = vk::check_result(VulkanAPI::instance()->m_device.createCommandPool(vk::CommandPoolCreateInfo(
+		        vk::CommandPoolCreateFlagBits::eResetCommandBuffer, VulkanAPI::instance()->m_graphics_queue->index())));
 	}
 
 	VulkanCommandBufferManager::~VulkanCommandBufferManager()
@@ -515,7 +516,7 @@ namespace Trinex
 			trx_delete handle;
 		}
 
-		API->m_device.destroyCommandPool(m_pool);
+		VulkanAPI::instance()->m_device.destroyCommandPool(m_pool);
 	}
 
 	VulkanCommandBufferManager* VulkanCommandBufferManager::instance()

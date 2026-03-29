@@ -8,13 +8,13 @@ namespace Trinex
 {
 	VulkanQueryPool::VulkanQueryPool(const vk::QueryPoolCreateInfo& info)
 	{
-		m_pool = vk::check_result(API->m_device.createQueryPool(info));
+		m_pool = vk::check_result(VulkanAPI::instance()->m_device.createQueryPool(info));
 		m_free.resize(info.queryCount / 64, ~static_cast<u64>(0));
 	}
 
 	VulkanQueryPool::~VulkanQueryPool()
 	{
-		API->m_device.destroyQueryPool(m_pool);
+		VulkanAPI::instance()->m_device.destroyQueryPool(m_pool);
 	}
 
 	bool VulkanQueryPool::find_index(u64& index)
@@ -43,9 +43,9 @@ namespace Trinex
 			u64 available;
 		} result{};
 
-		vk::Result res =
-		        API->m_device.getQueryPoolResults(m_pool, index, 1, sizeof(result), &result, sizeof(result),
-		                                          vk::QueryResultFlagBits::e64 | vk::QueryResultFlagBits::eWithAvailability);
+		vk::Result res = VulkanAPI::instance()->m_device.getQueryPoolResults(
+		        m_pool, index, 1, sizeof(result), &result, sizeof(result),
+		        vk::QueryResultFlagBits::e64 | vk::QueryResultFlagBits::eWithAvailability);
 
 		if (res == vk::Result::eSuccess)
 		{
@@ -57,7 +57,8 @@ namespace Trinex
 
 	bool VulkanQueryPool::query(u64 index, void* dst, usize stride)
 	{
-		vk::Result res = API->m_device.getQueryPoolResults(m_pool, index, 1, stride, dst, stride, vk::QueryResultFlagBits::e64);
+		vk::Result res = VulkanAPI::instance()->m_device.getQueryPoolResults(m_pool, index, 1, stride, dst, stride,
+		                                                                     vk::QueryResultFlagBits::e64);
 		return res == vk::Result::eSuccess;
 	}
 
@@ -141,7 +142,7 @@ namespace Trinex
 
 		static void write_timestamp(Marker& marker, VulkanQueryPoolManager* manager, VulkanContext* ctx)
 		{
-			if (API->m_properties.limits.timestampComputeAndGraphics)
+			if (VulkanAPI::instance()->m_properties.limits.timestampComputeAndGraphics)
 			{
 				if (!marker.is_valid())
 				{
@@ -173,7 +174,7 @@ namespace Trinex
 			if (m_begin.is_valid() && m_end.is_valid())
 			{
 				u64 delta = m_end.query() - m_begin.query();
-				return static_cast<float>(delta) * API->m_properties.limits.timestampPeriod / 1000000.0f;
+				return static_cast<float>(delta) * VulkanAPI::instance()->m_properties.limits.timestampPeriod / 1000000.0f;
 			}
 			return 0.f;
 		}
@@ -219,7 +220,7 @@ namespace Trinex
 	public:
 		VulkanPipelineStats& begin(VulkanQueryPoolManager* manager, VulkanContext* ctx)
 		{
-			if (API->m_features.pipelineStatisticsQuery)
+			if (VulkanAPI::instance()->m_features.pipelineStatisticsQuery)
 			{
 				if (!m_marker.is_valid())
 				{
@@ -236,7 +237,7 @@ namespace Trinex
 
 		VulkanPipelineStats& end(VulkanQueryPoolManager* manager, VulkanContext* ctx)
 		{
-			if (API->m_features.pipelineStatisticsQuery)
+			if (VulkanAPI::instance()->m_features.pipelineStatisticsQuery)
 			{
 				if (m_marker.is_valid())
 				{
@@ -279,28 +280,28 @@ namespace Trinex
 
 	VulkanContext& VulkanContext::begin_timestamp(RHITimestamp* timestamp)
 	{
-		auto manager = API->query_pool_manager();
+		auto manager = VulkanAPI::instance()->query_pool_manager();
 		static_cast<VulkanTimestamp*>(timestamp)->begin(manager, this);
 		return *this;
 	}
 
 	VulkanContext& VulkanContext::end_timestamp(RHITimestamp* timestamp)
 	{
-		auto manager = API->query_pool_manager();
+		auto manager = VulkanAPI::instance()->query_pool_manager();
 		static_cast<VulkanTimestamp*>(timestamp)->end(manager, this);
 		return *this;
 	}
 
 	VulkanContext& VulkanContext::begin_statistics(RHIPipelineStatistics* stats)
 	{
-		auto manager = API->query_pool_manager();
+		auto manager = VulkanAPI::instance()->query_pool_manager();
 		static_cast<VulkanPipelineStats*>(stats)->begin(manager, this);
 		return *this;
 	}
 
 	VulkanContext& VulkanContext::end_statistics(RHIPipelineStatistics* stats)
 	{
-		auto manager = API->query_pool_manager();
+		auto manager = VulkanAPI::instance()->query_pool_manager();
 		static_cast<VulkanPipelineStats*>(stats)->end(manager, this);
 		return *this;
 	}

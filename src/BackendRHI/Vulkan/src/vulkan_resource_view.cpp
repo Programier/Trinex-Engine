@@ -21,13 +21,13 @@ namespace Trinex
 
 	VulkanTextureSRV::VulkanTextureSRV(VulkanTexture* texture, vk::ImageView view) : m_texture(texture), m_view(view)
 	{
-		m_descriptor = API->descriptor_heap()->allocate(view, VulkanDescriptorHeap::SampledImage);
+		m_descriptor = VulkanAPI::instance()->descriptor_heap()->allocate(view, VulkanDescriptorHeap::SampledImage);
 	}
 
 	VulkanTextureSRV::~VulkanTextureSRV()
 	{
-		API->descriptor_heap()->release(m_descriptor, VulkanDescriptorHeap::SampledImage);
-		API->m_device.destroyImageView(m_view);
+		VulkanAPI::instance()->descriptor_heap()->release(m_descriptor, VulkanDescriptorHeap::SampledImage);
+		VulkanAPI::instance()->m_device.destroyImageView(m_view);
 	}
 
 	VulkanSRV& VulkanTextureSRV::bind(VulkanContext* context, u8 index)
@@ -38,12 +38,12 @@ namespace Trinex
 
 	VulkanTextureUAV::VulkanTextureUAV(VulkanTexture* texture, vk::ImageView view) : m_texture(texture), m_view(view)
 	{
-		m_descriptor = API->descriptor_heap()->allocate(m_view, VulkanDescriptorHeap::StorageImage);
+		m_descriptor = VulkanAPI::instance()->descriptor_heap()->allocate(m_view, VulkanDescriptorHeap::StorageImage);
 	}
 
 	VulkanTextureUAV::~VulkanTextureUAV()
 	{
-		API->m_device.destroyImageView(m_view);
+		VulkanAPI::instance()->m_device.destroyImageView(m_view);
 	}
 
 	VulkanUAV& VulkanTextureUAV::bind(VulkanContext* context, u8 index)
@@ -54,22 +54,22 @@ namespace Trinex
 
 	VulkanTextureRTV::~VulkanTextureRTV()
 	{
-		API->m_device.destroyImageView(m_view);
+		VulkanAPI::instance()->m_device.destroyImageView(m_view);
 	}
 
 	VulkanTextureDSV::~VulkanTextureDSV()
 	{
-		API->m_device.destroyImageView(m_view);
+		VulkanAPI::instance()->m_device.destroyImageView(m_view);
 	}
 
 	VulkanStorageBufferSRV::VulkanStorageBufferSRV(VulkanBuffer* buffer) : VulkanBufferSRV(buffer)
 	{
-		m_descriptor = API->descriptor_heap()->allocate(buffer, VulkanDescriptorHeap::StorageBuffer);
+		m_descriptor = VulkanAPI::instance()->descriptor_heap()->allocate(buffer, VulkanDescriptorHeap::StorageBuffer);
 	}
 
 	VulkanStorageBufferSRV::~VulkanStorageBufferSRV()
 	{
-		API->descriptor_heap()->release(m_descriptor, VulkanDescriptorHeap::StorageBuffer);
+		VulkanAPI::instance()->descriptor_heap()->release(m_descriptor, VulkanDescriptorHeap::StorageBuffer);
 	}
 
 	VulkanSRV& VulkanStorageBufferSRV::bind(VulkanContext* context, u8 index)
@@ -80,12 +80,12 @@ namespace Trinex
 
 	VulkanUniformTexelBufferSRV::VulkanUniformTexelBufferSRV(VulkanBuffer* buffer) : VulkanBufferSRV(buffer)
 	{
-		m_descriptor = API->descriptor_heap()->allocate(buffer, VulkanDescriptorHeap::UniformTexelBuffer);
+		m_descriptor = VulkanAPI::instance()->descriptor_heap()->allocate(buffer, VulkanDescriptorHeap::UniformTexelBuffer);
 	}
 
 	VulkanUniformTexelBufferSRV::~VulkanUniformTexelBufferSRV()
 	{
-		API->descriptor_heap()->release(m_descriptor, VulkanDescriptorHeap::UniformTexelBuffer);
+		VulkanAPI::instance()->descriptor_heap()->release(m_descriptor, VulkanDescriptorHeap::UniformTexelBuffer);
 	}
 
 	VulkanSRV& VulkanUniformTexelBufferSRV::bind(VulkanContext* context, u8 index)
@@ -96,12 +96,12 @@ namespace Trinex
 
 	VulkanBufferUAV::VulkanBufferUAV(VulkanBuffer* buffer) : m_buffer(buffer)
 	{
-		m_descriptor = API->descriptor_heap()->allocate(buffer, VulkanDescriptorHeap::StorageBuffer);
+		m_descriptor = VulkanAPI::instance()->descriptor_heap()->allocate(buffer, VulkanDescriptorHeap::StorageBuffer);
 	}
 
 	VulkanBufferUAV::~VulkanBufferUAV()
 	{
-		API->descriptor_heap()->release(m_descriptor, VulkanDescriptorHeap::StorageBuffer);
+		VulkanAPI::instance()->descriptor_heap()->release(m_descriptor, VulkanDescriptorHeap::StorageBuffer);
 	}
 
 	VulkanUAV& VulkanBufferUAV::bind(VulkanContext* context, u8 index)

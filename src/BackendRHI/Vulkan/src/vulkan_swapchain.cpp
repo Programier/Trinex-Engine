@@ -48,16 +48,16 @@ namespace Trinex
 		}
 	}
 
-	VulkanSwapchain::VulkanSwapchain(Window* window, bool vsync) : m_surface(API->create_surface(window))
+	VulkanSwapchain::VulkanSwapchain(Window* window, bool vsync) : m_surface(VulkanAPI::instance()->create_surface(window))
 	{
-		m_present_mode = API->present_mode_of(vsync, m_surface);
+		m_present_mode = VulkanAPI::instance()->present_mode_of(vsync, m_surface);
 		create_swapchain();
 	}
 
 	VulkanSwapchain::~VulkanSwapchain()
 	{
 		release_swapchain();
-		vk::Instance(API->m_instance.instance).destroySurfaceKHR(m_surface);
+		vk::Instance(VulkanAPI::instance()->m_instance.instance).destroySurfaceKHR(m_surface);
 	}
 
 	VulkanSwapchain& VulkanSwapchain::create_swapchain(vk::SwapchainKHR* old)
@@ -65,11 +65,12 @@ namespace Trinex
 		info_log("Vulkan API", "Creating new swapchain");
 		m_need_recreate = false;
 
-		vkb::SwapchainBuilder builder(API->m_physical_device, API->m_device, m_surface, API->m_graphics_queue->index(),
-		                              API->m_graphics_queue->index());
+		vkb::SwapchainBuilder builder(VulkanAPI::instance()->m_physical_device, VulkanAPI::instance()->m_device, m_surface,
+		                              VulkanAPI::instance()->m_graphics_queue->index(),
+		                              VulkanAPI::instance()->m_graphics_queue->index());
 
 		builder.set_desired_present_mode(static_cast<VkPresentModeKHR>(m_present_mode));
-		auto capabilities = vk::check_result(API->m_physical_device.getSurfaceCapabilitiesKHR(m_surface));
+		auto capabilities = vk::check_result(VulkanAPI::instance()->m_physical_device.getSurfaceCapabilitiesKHR(m_surface));
 
 		builder.add_image_usage_flags(
 		        static_cast<VkImageUsageFlags>(vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst));
@@ -116,7 +117,7 @@ namespace Trinex
 
 	VulkanSwapchain& VulkanSwapchain::release_swapchain()
 	{
-		API->idle();
+		VulkanAPI::instance()->idle();
 
 		for (VulkanTexture* backbuffer : m_backbuffers)
 		{
@@ -126,7 +127,7 @@ namespace Trinex
 		m_backbuffers.clear();
 
 		if (m_swapchain)
-			API->m_device.destroySwapchainKHR(m_swapchain);
+			VulkanAPI::instance()->m_device.destroySwapchainKHR(m_swapchain);
 
 		m_sync_index  = 0;
 		m_image_index = -1;
@@ -141,7 +142,7 @@ namespace Trinex
 		release_swapchain();
 		create_swapchain(&swapchain);
 
-		API->m_device.destroySwapchainKHR(swapchain);
+		VulkanAPI::instance()->m_device.destroySwapchainKHR(swapchain);
 
 		return *this;
 	}
@@ -156,7 +157,8 @@ namespace Trinex
 		VulkanSemaphore* semaphore = m_image_present_semaphores[m_sync_index];
 		semaphore->is_signaled(true);
 
-		vk::ResultValue<u32> result = API->m_device.acquireNextImageKHR(m_swapchain, UINT64_MAX, semaphore->semaphore());
+		vk::ResultValue<u32> result =
+		        VulkanAPI::instance()->m_device.acquireNextImageKHR(m_swapchain, UINT64_MAX, semaphore->semaphore());
 
 		if (result.result == vk::Result::eErrorOutOfDateKHR)
 		{
@@ -200,7 +202,7 @@ namespace Trinex
 
 		{
 			trinex_profile_cpu_n("VulkanSwapchain::Present KHR");
-			vk::Result result = API->m_graphics_queue->present(info);
+			vk::Result result = VulkanAPI::instance()->m_graphics_queue->present(info);
 			m_image_index     = -1;
 
 			if (result == vk::Result::eErrorOutOfDateKHR)
@@ -280,7 +282,7 @@ namespace Trinex
 
 	void VulkanSwapchain::vsync(bool flag)
 	{
-		auto mode = API->present_mode_of(flag, m_surface);
+		auto mode = VulkanAPI::instance()->present_mode_of(flag, m_surface);
 		if (mode != m_present_mode)
 		{
 			m_present_mode  = mode;

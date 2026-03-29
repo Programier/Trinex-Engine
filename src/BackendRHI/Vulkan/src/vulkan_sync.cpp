@@ -9,19 +9,20 @@ namespace Trinex
 	{
 		if (is_signaled)
 		{
-			m_fence  = vk::check_result(API->m_device.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled)));
+			m_fence = vk::check_result(
+			        VulkanAPI::instance()->m_device.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled)));
 			m_status = Status::Signaled;
 		}
 		else
 		{
-			m_fence  = vk::check_result(API->m_device.createFence({}));
+			m_fence  = vk::check_result(VulkanAPI::instance()->m_device.createFence({}));
 			m_status = Status::Unsignaled;
 		}
 	}
 
 	bool VulkanFence::update_status() const
 	{
-		if (API->m_device.getFenceStatus(m_fence) == vk::Result::eSuccess)
+		if (VulkanAPI::instance()->m_device.getFenceStatus(m_fence) == vk::Result::eSuccess)
 		{
 			m_status = Status::Signaled;
 			return true;
@@ -41,13 +42,13 @@ namespace Trinex
 
 	void VulkanFence::reset()
 	{
-		vk::check_result(API->m_device.resetFences(m_fence));
+		vk::check_result(VulkanAPI::instance()->m_device.resetFences(m_fence));
 		m_status = Status::Unsignaled;
 	}
 
 	VulkanFence& VulkanFence::wait()
 	{
-		auto result = API->m_device.waitForFences(m_fence, vk::True, UINT64_MAX);
+		auto result = VulkanAPI::instance()->m_device.waitForFences(m_fence, vk::True, UINT64_MAX);
 		(void) result;
 		return *this;
 	}
@@ -59,12 +60,12 @@ namespace Trinex
 
 	VulkanSemaphore::VulkanSemaphore() : m_signaled(false)
 	{
-		m_semaphore = vk::check_result(API->m_device.createSemaphore(vk::SemaphoreCreateInfo()));
+		m_semaphore = vk::check_result(VulkanAPI::instance()->m_device.createSemaphore(vk::SemaphoreCreateInfo()));
 	}
 
 	VulkanSemaphore::~VulkanSemaphore()
 	{
-		API->m_device.destroySemaphore(m_semaphore);
+		VulkanAPI::instance()->m_device.destroySemaphore(m_semaphore);
 	}
 
 	RHIFence* VulkanAPI::create_fence()

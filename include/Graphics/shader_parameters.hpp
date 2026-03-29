@@ -23,6 +23,7 @@ namespace Trinex
 			alignas(16) Matrix4f inv_projection;
 			alignas(16) Matrix4f inv_view;
 			alignas(16) Matrix4f inv_projview;
+			alignas(8) Vector2f jitter;
 
 			alignas(4) float near;
 			alignas(4) float far;

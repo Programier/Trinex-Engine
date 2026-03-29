@@ -71,6 +71,11 @@ namespace Trinex
 			instance->wait();
 		}
 
+		if (RHI* rhi = RHI::instance())
+		{
+			rhi->update(m_delta_time);
+		}
+
 		if (!is_requesting_exit())
 		{
 			auto& viewports = RenderViewport::viewports();

@@ -53,8 +53,8 @@ namespace Trinex
 
 		sampler_info.borderColor = VulkanEnums::border_color_of(desc.border_color);
 
-		m_sampler    = vk::check_result(API->m_device.createSampler(sampler_info));
-		m_descriptor = API->descriptor_heap()->allocate(m_sampler);
+		m_sampler    = vk::check_result(VulkanAPI::instance()->m_device.createSampler(sampler_info));
+		m_descriptor = VulkanAPI::instance()->descriptor_heap()->allocate(m_sampler);
 		return *this;
 	}
 
@@ -65,7 +65,7 @@ namespace Trinex
 
 	VulkanSampler::~VulkanSampler()
 	{
-		API->descriptor_heap()->release(m_descriptor, VulkanDescriptorHeap::Sampler);
+		VulkanAPI::instance()->descriptor_heap()->release(m_descriptor, VulkanDescriptorHeap::Sampler);
 		DESTROY_CALL(destroySampler, m_sampler);
 	}
 

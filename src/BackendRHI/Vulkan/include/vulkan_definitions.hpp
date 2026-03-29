@@ -1,13 +1,10 @@
 #pragma once
 
-#define API Trinex::VulkanAPI::m_vulkan
-#define VIEW_PORT API->window_data.view_port
-
-#define DESTROY_CALL(func, instance)                                                                                             \
+#define DESTROY_CALL(func, obj)                                                                                                  \
 	{                                                                                                                            \
-		if (instance)                                                                                                            \
-			API->m_device.func(instance);                                                                                        \
-		instance = nullptr;                                                                                                      \
+		if (obj)                                                                                                                 \
+			VulkanAPI::instance()->m_device.func(obj);                                                                           \
+		obj = nullptr;                                                                                                           \
 	}
 
 #define VK_DESCRIPTOR_WAIT_FRAMES 300

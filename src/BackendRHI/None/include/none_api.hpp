@@ -14,7 +14,8 @@ namespace Trinex
 		static void static_destructor(NoneApi* api);
 
 		static NoneApi* m_instance;
-
+		
+		NoneApi& update(float dt) override;
 		NoneApi& submit(const RHISubmitInfo& info) override;
 		NoneApi& idle() override;
 

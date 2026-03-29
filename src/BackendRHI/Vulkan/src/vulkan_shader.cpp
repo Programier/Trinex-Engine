@@ -6,7 +6,7 @@ namespace Trinex
 	VulkanShader::VulkanShader(const u8* shader, usize size)
 	{
 		vk::ShaderModuleCreateInfo info(vk::ShaderModuleCreateFlags(), size, reinterpret_cast<const u32*>(shader));
-		m_shader = vk::check_result(API->m_device.createShaderModule(info));
+		m_shader = vk::check_result(VulkanAPI::instance()->m_device.createShaderModule(info));
 	}
 
 	VulkanShader::~VulkanShader(){DESTROY_CALL(destroyShaderModule, m_shader)}

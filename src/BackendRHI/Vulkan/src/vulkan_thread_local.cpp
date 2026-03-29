@@ -9,7 +9,7 @@ namespace Trinex
 	{
 		static CriticalSection s_section;
 		ScopeLock lock(s_section);
-		API->m_thread_locals.push_back(this);
+		VulkanAPI::instance()->m_thread_locals.push_back(this);
 	}
 
 	VulkanThreadLocal::~VulkanThreadLocal() {}

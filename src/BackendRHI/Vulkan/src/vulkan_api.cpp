@@ -31,8 +31,6 @@ VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
 namespace Trinex
 {
-	VulkanAPI* VulkanAPI::m_vulkan = nullptr;
-
 	namespace TRINEX_RHI
 	{
 		using VULKAN = VulkanAPI;
@@ -66,9 +64,9 @@ namespace Trinex
 
 	static vkb::PhysicalDevice initialize_physical_device()
 	{
-		vkb::PhysicalDeviceSelector phys_device_selector(API->m_instance);
+		vkb::PhysicalDeviceSelector phys_device_selector(VulkanAPI::instance()->m_instance);
 
-		for (const VulkanExtention& extension : API->extensions())
+		for (const VulkanExtention& extension : VulkanAPI::instance()->extensions())
 		{
 			if (extension.is_valid() && extension.enabled)
 			{
@@ -86,7 +84,7 @@ namespace Trinex
 
 		auto device = selected_device.value();
 
-		for (const VulkanExtention& extension : API->extensions())
+		for (const VulkanExtention& extension : VulkanAPI::instance()->extensions())
 		{
 			if (extension.is_valid() && !extension.enabled)
 			{
@@ -145,19 +143,19 @@ namespace Trinex
 		builder.add_pNext(&timeline_semaphore);
 		builder.add_pNext(&dynamic_rendering);
 
-		if (API->is_extension_enabled(VulkanAPI::find_extension_index(VK_EXT_MESH_SHADER_EXTENSION_NAME)))
+		if (VulkanAPI::instance()->is_extension_enabled<VK_EXT_MESH_SHADER_EXTENSION_NAME>())
 			builder.add_pNext(&mesh_shaders);
 
-		if (API->is_extension_enabled(VulkanAPI::find_extension_index(VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME)))
+		if (VulkanAPI::instance()->is_extension_enabled<VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME>())
 			builder.add_pNext(&device_address);
 
-		if (API->is_extension_enabled(VulkanAPI::find_extension_index(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME)))
+		if (VulkanAPI::instance()->is_extension_enabled<VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME>())
 			builder.add_pNext(&acceleration);
 
-		if (API->is_extension_enabled(VulkanAPI::find_extension_index(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME)))
+		if (VulkanAPI::instance()->is_extension_enabled<VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME>())
 			builder.add_pNext(&ray_tracing);
 
-		if (API->is_extension_enabled(VulkanAPI::find_extension_index(VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME)))
+		if (VulkanAPI::instance()->is_extension_enabled<VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME>())
 			builder.add_pNext(&shading_rate);
 
 		auto device_ret = builder.build();
@@ -185,37 +183,27 @@ namespace Trinex
 		return new_features;
 	}
 
-	struct VulkanAPI::VulkanUpdater : TickableObject {
-		VulkanUpdater& update(float dt) override
-		{
-			API->update(dt);
-			return *this;
-		}
-	};
-
 	VulkanAPI* VulkanAPI::static_constructor()
 	{
-		if (VulkanAPI::m_vulkan == nullptr)
+		if (VulkanAPI::instance() == nullptr)
 		{
 			auto& info           = (trx_new VulkanAPI())->info;
 			info.name            = "Vulkan";
 			info.struct_instance = static_reflection();
 		}
-		return VulkanAPI::m_vulkan;
+		return VulkanAPI::instance();
 	}
 
 	void VulkanAPI::static_destructor(VulkanAPI* vulkan)
 	{
-		if (vulkan == m_vulkan)
+		if (vulkan)
 		{
 			trx_delete vulkan;
-			m_vulkan = nullptr;
 		}
 	}
 
 	VulkanAPI::VulkanAPI()
 	{
-		m_vulkan   = this;
 		auto array = make_extensions_array();
 		m_device_extensions.assign(array.begin(), array.end());
 
@@ -278,7 +266,6 @@ namespace Trinex
 		m_pipeline_layout_manager = trx_new VulkanPipelineLayoutManager();
 		m_query_pool_manager      = trx_new VulkanQueryPoolManager();
 		m_descriptor_heap         = trx_new VulkanDescriptorHeap();
-		m_updater                 = trx_new VulkanUpdater();
 
 		// Initialize memory allocator
 		{
@@ -316,7 +303,6 @@ namespace Trinex
 			trx_delete local;
 		}
 
-		trx_delete m_updater;
 		trx_delete m_stagging_manager;
 		trx_delete m_pipeline_layout_manager;
 		trx_delete m_graphics_queue;
@@ -330,29 +316,6 @@ namespace Trinex
 
 		m_device.destroy();
 		vkb::destroy_instance(m_instance);
-	}
-
-	VulkanAPI& VulkanAPI::update(float dt)
-	{
-		const u64 current_frame = ++m_frame;
-		const u64 gpu_frame     = vk::check_result(m_device.getSemaphoreCounterValueKHR(m_timeline));
-
-		while (!m_garbage.empty() && m_garbage.front().frame <= gpu_frame)
-		{
-			m_garbage.front().object->destroy();
-			m_garbage.pop_front();
-		}
-
-		vk::TimelineSemaphoreSubmitInfo timeline_info(0, nullptr, 1, &current_frame);
-
-		vk::SubmitInfo submit_info;
-		submit_info.signalSemaphoreCount = 1;
-		submit_info.pSignalSemaphores    = &m_timeline;
-		submit_info.pNext                = &timeline_info;
-
-		m_graphics_queue->submit(submit_info);
-		m_stagging_manager->update();
-		return *this;
 	}
 
 	VulkanAPI& VulkanAPI::destroy_garbage()
@@ -417,6 +380,30 @@ namespace Trinex
 		return (feature_flags & flags) == flags;
 	}
 
+	VulkanAPI& VulkanAPI::update(float dt)
+	{
+		const u64 current_frame = ++m_frame;
+		const u64 gpu_frame     = vk::check_result(m_device.getSemaphoreCounterValueKHR(m_timeline));
+
+		while (!m_garbage.empty() && m_garbage.front().frame <= gpu_frame)
+		{
+			m_garbage.front().object->destroy();
+			m_garbage.pop_front();
+		}
+
+		vk::TimelineSemaphoreSubmitInfo timeline_info(0, nullptr, 1, &current_frame);
+
+		vk::SubmitInfo submit_info;
+		submit_info.signalSemaphoreCount = 1;
+		submit_info.pSignalSemaphores    = &m_timeline;
+		submit_info.pNext                = &timeline_info;
+
+		m_graphics_queue->submit(submit_info);
+		m_stagging_manager->update();
+
+		return *this;
+	}
+
 	VulkanAPI& VulkanAPI::submit(const RHISubmitInfo& info)
 	{
 		vk::SubmitInfo submit_info;
@@ -469,6 +456,6 @@ namespace Trinex
 
 	void trinex_vulkan_deferred_destroy(RHIObject* object)
 	{
-		API->add_garbage(object);
+		VulkanAPI::instance()->add_garbage(object);
 	}
 }// namespace Trinex

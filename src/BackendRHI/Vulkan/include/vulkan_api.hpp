@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/etl/array.hpp>
 #include <Core/etl/atomic.hpp>
+#include <Core/etl/constexpr_string.hpp>
 #include <Core/etl/deque.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/etl/vector.hpp>
@@ -44,7 +45,7 @@ namespace Trinex
 		static VulkanAPI* static_constructor();
 		static void static_destructor(VulkanAPI* vulkan);
 
-		static VulkanAPI* m_vulkan;
+		static inline VulkanAPI* instance() { return static_cast<VulkanAPI*>(RHI::instance()); }
 
 		// API DATA
 		vkb::Instance m_instance;
@@ -58,8 +59,6 @@ namespace Trinex
 		vk::PhysicalDeviceFeatures m_features;
 
 	private:
-		struct VulkanUpdater;
-
 		struct Garbage {
 			RHIObject* object;
 			u64 frame;
@@ -75,7 +74,6 @@ namespace Trinex
 		VulkanPipelineLayoutManager* m_pipeline_layout_manager;
 		VulkanDescriptorHeap* m_descriptor_heap;
 		VulkanStaggingBufferManager* m_stagging_manager = nullptr;
-		VulkanUpdater* m_updater                        = nullptr;
 
 		vk::Semaphore m_timeline;
 
@@ -105,7 +103,6 @@ namespace Trinex
 			});
 		}
 
-		VulkanAPI& update(float dt);
 		VulkanAPI& destroy_garbage();
 
 	public:
@@ -127,6 +124,13 @@ namespace Trinex
 	public:
 		inline const Vector<VulkanExtention>& extensions() const { return m_device_extensions; }
 		inline bool is_extension_enabled(usize index) const { return m_device_extensions[index].enabled; }
+
+		template<ConstexprString ext>
+		inline bool is_extension_enabled() const
+		{
+			return is_extension_enabled(find_extension_index(ext.c_str()));
+		}
+
 		inline VulkanDescriptorHeap* descriptor_heap() const { return m_descriptor_heap; }
 		inline VulkanQueryPoolManager* query_pool_manager() const { return m_query_pool_manager; }
 		inline VulkanStaggingBufferManager* stagging_manager() const { return m_stagging_manager; };
@@ -165,6 +169,7 @@ namespace Trinex
 
 		VulkanAPI();
 
+		VulkanAPI& update(float dt) override;
 		VulkanAPI& submit(const RHISubmitInfo& info) override;
 		VulkanAPI& idle() override;
 

@@ -21,7 +21,8 @@ struct SceneView
 		float4x4 inv_projection;
 		float4x4 inv_view;
 		float4x4 inv_projview;
-
+		float2 jitter;
+		
 		float near;
 		float far;
 

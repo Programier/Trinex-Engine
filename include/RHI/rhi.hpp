@@ -51,6 +51,7 @@ namespace Trinex
 		RHI();
 		virtual ~RHI();
 
+		virtual RHI& update(float dt)                  = 0;
 		virtual RHI& submit(const RHISubmitInfo& info) = 0;
 		virtual RHI& idle()                            = 0;
 

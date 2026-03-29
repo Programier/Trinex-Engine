@@ -18,6 +18,7 @@ namespace Trinex
 			camera.inv_projection = scene_view->camera_view().inv_projection;
 			camera.inv_view       = scene_view->camera_view().inv_view;
 			camera.inv_projview   = scene_view->camera_view().inv_projview;
+			camera.jitter         = {0.f, 0.f};
 			camera.near           = scene_view->camera_view().near;
 			camera.far            = scene_view->camera_view().far;
 
@@ -27,6 +28,7 @@ namespace Trinex
 			prev_camera.inv_projection = scene_view->prev_camera_view().inv_projection;
 			prev_camera.inv_view       = scene_view->prev_camera_view().inv_view;
 			prev_camera.inv_projview   = scene_view->prev_camera_view().inv_projview;
+			prev_camera.jitter         = {0.f, 0.f};
 			prev_camera.near           = scene_view->prev_camera_view().near;
 			prev_camera.far            = scene_view->prev_camera_view().far;
 

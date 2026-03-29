@@ -36,7 +36,7 @@ namespace Trinex
 		vk::ImageSubresourceRange range(aspect, desc.first_mip, desc.mip_levels, desc.first_array_slice, desc.array_size);
 		vk::ImageViewCreateInfo view_info({}, texture->image(), VulkanEnums::image_view_type_of(desc.view_type),
 		                                  texture->format(), {}, range);
-		vk::ImageView view = vk::check_result(API->m_device.createImageView(view_info));
+		vk::ImageView view = vk::check_result(VulkanAPI::instance()->m_device.createImageView(view_info));
 
 		auto& node = views.emplace_back();
 		node.desc  = desc;
@@ -161,8 +161,8 @@ namespace Trinex
 		alloc_info.usage                   = VMA_MEMORY_USAGE_GPU_ONLY;
 
 		VkImage out_image = VK_NULL_HANDLE;
-		auto res          = vmaCreateImage(API->m_allocator, &static_cast<VkImageCreateInfo&>(info), &alloc_info, &out_image,
-		                                   &m_allocation, nullptr);
+		auto res = vmaCreateImage(VulkanAPI::instance()->m_allocator, &static_cast<VkImageCreateInfo&>(info), &alloc_info,
+		                          &out_image, &m_allocation, nullptr);
 		trinex_assert_msg(res == VK_SUCCESS, "Failed to create texture!");
 		m_image = out_image;
 
@@ -237,7 +237,7 @@ namespace Trinex
 		static_destroy_view(m_dsv);
 
 		if (m_allocation)
-			vmaDestroyImage(API->m_allocator, m_image, m_allocation);
+			vmaDestroyImage(VulkanAPI::instance()->m_allocator, m_image, m_allocation);
 	}
 
 	RHITexture* VulkanAPI::create_texture(const RHITextureDesc& desc)
@@ -299,7 +299,7 @@ namespace Trinex
 	VulkanContext& VulkanContext::update(RHITexture* dst, const RHITextureRegion& dst_region, const void* src,
 	                                     const RHIBufferTextureCopy& src_region)
 	{
-		auto buffer = API->stagging_manager()->allocate(src_region.size, RHIBufferCreateFlags::TransferSrc);
+		auto buffer = VulkanAPI::instance()->stagging_manager()->allocate(src_region.size, RHIBufferCreateFlags::TransferSrc);
 		buffer->copy(this, 0, static_cast<const u8*>(src) + src_region.offset, src_region.size);
 
 		VulkanTexture* vulkan_texture = static_cast<VulkanTexture*>(dst);
