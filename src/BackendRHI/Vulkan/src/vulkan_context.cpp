@@ -796,10 +796,10 @@ namespace Trinex
 		return *this;
 	}
 
-	VulkanContext& VulkanContext::dispatch(u32 group_x, u32 group_y, u32 group_z)
+	VulkanContext& VulkanContext::dispatch(Vector3u groups, Vector3u base)
 	{
 		trinex_profile_cpu_n("VulkanContext::dispatch");
-		flush_compute()->dispatch(group_x, group_y, group_z);
+		flush_compute()->dispatchBase(base.x, base.y, base.z, groups.x, groups.y, groups.z);
 		return *this;
 	}
 

@@ -60,8 +60,8 @@ namespace Trinex
 		static RHIBufferPool* global_instance();
 
 		RHIBufferPool& update();
-		RHIBuffer* request_buffer(u32 size, RHIBufferCreateFlags flags);
-		RHIBuffer* request_transient_buffer(u32 size, RHIBufferCreateFlags flags);
+		RHIBuffer* request_buffer(u32 size, RHIBufferFlags flags);
+		RHIBuffer* request_transient_buffer(u32 size, RHIBufferFlags flags);
 		RHIBufferPool& release_all();
 		RHIBufferPool& return_buffer(RHIBuffer* buffer);
 	};
@@ -72,7 +72,7 @@ namespace Trinex
 		struct Key {
 			RHISurfaceFormat format;
 			RHITextureType type;
-			RHITextureCreateFlags flags;
+			RHITextureFlags flags;
 
 			u16 width;
 			u16 height;
@@ -101,12 +101,11 @@ namespace Trinex
 		static RHITexturePool* global_instance();
 
 		RHITexturePool& update();
-		RHITexture* request_surface(RHISurfaceFormat format, Vector2u size, RHITextureCreateFlags flags = {});
-		RHITexture* request_surface(RHITextureType type, RHISurfaceFormat format, Vector3u size,
-		                            RHITextureCreateFlags flags = {});
-		RHITexture* request_transient_surface(RHISurfaceFormat format, Vector2u size, RHITextureCreateFlags flags = {});
+		RHITexture* request_surface(RHISurfaceFormat format, Vector2u size, RHITextureFlags flags = {});
+		RHITexture* request_surface(RHITextureType type, RHISurfaceFormat format, Vector3u size, RHITextureFlags flags = {});
+		RHITexture* request_transient_surface(RHISurfaceFormat format, Vector2u size, RHITextureFlags flags = {});
 		RHITexture* request_transient_surface(RHITextureType type, RHISurfaceFormat format, Vector3u size,
-		                                      RHITextureCreateFlags flags = {});
+		                                      RHITextureFlags flags = {});
 		RHITexturePool& release_all();
 		RHITexturePool& return_surface(RHITexture* surface);
 	};

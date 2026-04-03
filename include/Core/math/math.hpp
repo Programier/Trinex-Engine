@@ -209,4 +209,13 @@ namespace Trinex::Math
 	{
 		return value && !(value & (value - 1));
 	}
+
+	inline Vector3u dispatch_groups(Vector3u threads, Vector3u group)
+	{
+		return Vector3u{
+		        (threads.x + group.x - 1) / group.x,
+		        (threads.y + group.y - 1) / group.y,
+		        (threads.z + group.z - 1) / group.z,
+		};
+	}
 }// namespace Trinex::Math

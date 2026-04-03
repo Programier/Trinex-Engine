@@ -19,16 +19,16 @@ namespace Trinex
 		m_format = format;
 		m_size   = size;
 
-		RHITextureCreateFlags flags = RHITextureCreateFlags::ShaderResource;
+		RHITextureFlags flags = RHITextureFlags::ShaderResource;
 
 		if (m_format.is_color())
 		{
-			flags |= RHITextureCreateFlags::RenderTarget;
-			flags |= RHITextureCreateFlags::UnorderedAccess;
+			flags |= RHITextureFlags::RenderTarget;
+			flags |= RHITextureFlags::UnorderedAccess;
 		}
 		else if (m_format.has_depth())
 		{
-			flags |= RHITextureCreateFlags::DepthStencilTarget;
+			flags |= RHITextureFlags::DepthStencilTarget;
 		}
 
 		RHITextureDesc desc = {

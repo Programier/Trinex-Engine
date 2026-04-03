@@ -12,11 +12,9 @@ namespace Trinex
 	private:
 		Transform m_local;
 		mutable Transform m_world;
-		Transform m_prev_world;
 
 		mutable bool m_is_transform_dirty : 1;
 		bool m_is_visible : 1;
-		bool m_is_transform_changed : 1;
 
 		Pointer<SceneComponent> m_parent = nullptr;
 		Vector<Pointer<SceneComponent>> m_childs;
@@ -43,8 +41,6 @@ namespace Trinex
 
 		const Transform& world_transform() const;
 		inline const Transform& local_transform() const { return m_local; }
-		inline const Transform& prev_world_transform() const { return m_prev_world; }
-		inline bool is_transform_changed() const { return m_is_transform_changed; }
 
 		bool is_visible() const;
 		SceneComponent& is_visible(bool visible);

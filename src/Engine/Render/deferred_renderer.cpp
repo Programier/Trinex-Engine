@@ -8,7 +8,6 @@
 #include <Engine/ActorComponents/spot_light_component.hpp>
 #include <Engine/Render/deferred_renderer.hpp>
 #include <Engine/Render/depth_renderer.hpp>
-#include <Engine/Render/frame_history.hpp>
 #include <Engine/Render/lighting.hpp>
 #include <Engine/Render/pipelines.hpp>
 #include <Engine/Render/post_process_parameters.hpp>
@@ -17,6 +16,7 @@
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/frustum.hpp>
 #include <Engine/scene.hpp>
+#include <Engine/scene_view_state.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/material_bindings.hpp>
 #include <Graphics/render_pools.hpp>
@@ -222,6 +222,22 @@ namespace Trinex
 			default: break;
 		}
 
+		if (mode == ViewMode::Lit)
+		{
+			if (m_post_process_params->bloom.enabled)
+			{
+				graph->add_pass("Bloom")
+				        .add_resource(scene_color_hdr_target(), RHIAccess::RTV, RHIAccess::SRVGraphics)
+				        .add_func([this](RHIContext* ctx) { bloom_pass(ctx); });
+			}
+
+			// Tonemapping
+			graph->add_pass("Tonemapping")
+			        .add_resource(scene_color_hdr_target(), RHIAccess::SRVGraphics)
+			        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
+			        .add_func([this](RHIContext* ctx) { Pipelines::TonemappingACES::instance()->apply(ctx, this); });
+		}
+
 		register_debug_lines();
 	}
 
@@ -423,19 +439,6 @@ namespace Trinex
 		        .add_resource(lights_buffer(), RHIAccess::SRVGraphics)
 		        .add_resource(shadow_buffer(), RHIAccess::SRVGraphics)
 		        .add_func([this](RHIContext* ctx) { translucent_pass(ctx); });
-
-		if (m_post_process_params->bloom.enabled)
-		{
-			graph->add_pass("Bloom")
-			        .add_resource(scene_color_hdr_target(), RHIAccess::RTV, RHIAccess::SRVGraphics)
-			        .add_func([this](RHIContext* ctx) { bloom_pass(ctx); });
-		}
-
-		// Tonemapping
-		graph->add_pass("Tonemapping")
-		        .add_resource(scene_color_hdr_target(), RHIAccess::SRVGraphics)
-		        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
-		        .add_func([this](RHIContext* ctx) { Pipelines::TonemappingACES::instance()->apply(ctx, this); });
 
 		return *this;
 	}
@@ -657,6 +660,13 @@ namespace Trinex
 		return *this;
 	}
 
+	DeferredRenderer& DeferredRenderer::temporal_antialiasing_pass(RHIContext* ctx)
+	{
+		// scene_view().state()->resize(ctx, scene_view().view_size());
+		// Pipelines::TAA::instance()->render(ctx, this);
+		return *this;
+	}
+
 	DeferredRenderer& DeferredRenderer::bloom_pass(RHIContext* ctx)
 	{
 		const Vector2u size = scene_view().view_size();
@@ -669,7 +679,7 @@ namespace Trinex
 
 		Chain chain[6];
 		chain[0].size    = size / 2u;
-		chain[0].texture = pool->request_surface(RHISurfaceFormat::RGBA16F, chain[0].size);
+		chain[0].texture = pool->request_surface(RHISurfaceFormat::RGBA16F, chain[0].size, RHITextureFlags::ColorAttachment);
 
 		RHITexture* const hdr = scene_color_hdr_target();
 
@@ -697,8 +707,9 @@ namespace Trinex
 		{
 			for (int i = 1; i < 6; ++i)
 			{
-				chain[i].size    = chain[i - 1].size / 2u;
-				chain[i].texture = pool->request_surface(RHISurfaceFormat::RGBA16F, chain[i].size);
+				chain[i].size = chain[i - 1].size / 2u;
+				chain[i].texture =
+				        pool->request_surface(RHISurfaceFormat::RGBA16F, chain[i].size, RHITextureFlags::ColorAttachment);
 
 				ctx->barrier(chain[i - 1].texture, RHIAccess::SRVGraphics);
 				ctx->barrier(chain[i].texture, RHIAccess::RTV);
@@ -805,9 +816,8 @@ namespace Trinex
 		if (m_lights_buffer == nullptr)
 		{
 			StackByteAllocator::Mark mark;
-			static constexpr RHIBufferCreateFlags flags = RHIBufferCreateFlags::StructuredBuffer |
-			                                              RHIBufferCreateFlags::ShaderResource |
-			                                              RHIBufferCreateFlags::TransferDst;
+			static constexpr RHIBufferFlags flags =
+			        RHIBufferFlags::StructuredBuffer | RHIBufferFlags::ShaderResource | RHIBufferFlags::TransferDst;
 
 			usize size      = sizeof(LightRenderParameters) * m_visible_lights.size();
 			m_lights_buffer = RHIBufferPool::global_instance()->request_transient_buffer(size, flags);
@@ -888,9 +898,9 @@ namespace Trinex
 			                                          s_cascades_per_directional_light * sizeof(DirectionalLightShadowCascade));//
 
 			auto pool       = RHIBufferPool::global_instance();
-			m_shadow_buffer = pool->request_transient_buffer(buffer_size, RHIBufferCreateFlags::ByteAddressBuffer |
-			                                                                      RHIBufferCreateFlags::ShaderResource |
-			                                                                      RHIBufferCreateFlags::TransferDst);
+			m_shadow_buffer = pool->request_transient_buffer(buffer_size, RHIBufferFlags::ByteAddressBuffer |
+			                                                                      RHIBufferFlags::ShaderResource |
+			                                                                      RHIBufferFlags::TransferDst);
 
 			if (buffer_size == 0)
 				return m_shadow_buffer;

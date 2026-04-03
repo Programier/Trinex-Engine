@@ -59,7 +59,7 @@ namespace Trinex
 		Vector<View<class VulkanTextureDSV>> m_dsv;
 
 		VmaAllocation m_allocation = VK_NULL_HANDLE;
-		RHITextureCreateFlags m_flags;
+		RHITextureFlags m_flags;
 
 		vk::Image m_image;
 		RHIAccess m_access;
@@ -109,8 +109,8 @@ namespace Trinex
 			}
 		}
 
-		VulkanTexture& create(RHIColorFormat format, Vector3u size, u32 layers, u32 mips, RHITextureCreateFlags flags);
-		VulkanTexture& create(vk::Format format, Vector3u size, u32 layers, u32 mips, RHITextureCreateFlags flags);
+		VulkanTexture& create(RHIColorFormat format, Vector3u size, u32 layers, u32 mips, RHITextureFlags flags);
+		VulkanTexture& create(vk::Format format, Vector3u size, u32 layers, u32 mips, RHITextureFlags flags);
 		VulkanTexture& barrier(VulkanContext* ctx, RHIAccess access);
 
 		RHIShaderResourceView* as_srv(RHITextureDescSRV* desc) override;

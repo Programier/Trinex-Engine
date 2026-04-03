@@ -47,5 +47,5 @@ float4 vertex_main(in VertexInput vs_input) : SV_Position
 	float4 ndc = scene_view.camera.projview * float4(material_input.world_position, 1.0f);
 
 	VertexMaterial material = main<VertexMaterial>(material_input);
-	return scene_view.camera.projview * float4(material_input.world_position + material.position_offset, 1.0f);
+	return scene_view.camera.world_to_clip_jittered(material_input.world_position + material.position_offset);
 }

@@ -48,9 +48,17 @@ namespace Trinex
 		return *this;
 	}
 
-	SceneView& SceneView::history(FrameHistory* history)
+	SceneView& SceneView::state(SceneViewState* state)
 	{
-		m_history = history;
+		m_state = state;
+		return *this;
+	}
+
+	const SceneView& SceneView::flush(Renderer* renderer) const
+	{
+		if (m_state == nullptr)
+			return *this;
+
 		return *this;
 	}
 

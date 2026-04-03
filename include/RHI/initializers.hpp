@@ -11,7 +11,7 @@ namespace Trinex
 		RHIColorFormat format       = RHIColorFormat::R8G8B8A8;
 		Vector3u size               = {0, 0, 0};
 		u32 mips                    = 1;
-		RHITextureCreateFlags flags = RHITextureCreateFlags::ShaderResource;
+		RHITextureFlags flags = RHITextureFlags::ShaderResource;
 	};
 
 	struct ENGINE_EXPORT RHISamplerDesc {

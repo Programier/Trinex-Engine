@@ -48,6 +48,7 @@ namespace Trinex
 		DeferredRenderer& ambient_occlusion_pass(RHIContext* ctx);
 		DeferredRenderer& global_illumination_pass(RHIContext* ctx);
 		DeferredRenderer& deferred_lighting_pass(RHIContext* ctx);
+		DeferredRenderer& temporal_antialiasing_pass(RHIContext* ctx);
 		DeferredRenderer& bloom_pass(RHIContext* ctx);
 
 		DeferredRenderer& copy_to_scene_color(RHIContext* ctx, RHITexture* src, const Swizzle& swizzle);

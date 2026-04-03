@@ -17,7 +17,7 @@ namespace Trinex
 	public:
 		void init()
 		{
-			m_buffer = RHI::instance()->create_buffer(64, m_flags | RHIBufferCreateFlags::VertexBuffer);
+			m_buffer = RHI::instance()->create_buffer(64, m_flags | RHIBufferFlags::VertexBuffer);
 
 			RHIContextPool::global_instance()->execute([this](RHIContext* ctx) {
 				u8 memory[64] = {};
@@ -47,7 +47,7 @@ namespace Trinex
 		}
 	}
 
-	VertexBufferBase::VertexBufferBase(RHIBufferCreateFlags type, u16 stride, usize size, const void* data, bool keep_cpu_data)
+	VertexBufferBase::VertexBufferBase(RHIBufferFlags type, u16 stride, usize size, const void* data, bool keep_cpu_data)
 	{
 		init(type, stride, size, data, keep_cpu_data);
 	}
@@ -69,7 +69,7 @@ namespace Trinex
 		buffer.m_vtx_count = 0;
 		buffer.m_stride    = 0;
 		buffer.m_data      = nullptr;
-		buffer.m_flags     = RHIBufferCreateFlags::Static;
+		buffer.m_flags     = RHIBufferFlags::Static;
 	}
 
 	VertexBufferBase& VertexBufferBase::operator=(const VertexBufferBase& buffer)
@@ -97,7 +97,7 @@ namespace Trinex
 		return *this;
 	}
 
-	VertexBufferBase& VertexBufferBase::init(RHIBufferCreateFlags type, usize stride, usize count, const void* data,
+	VertexBufferBase& VertexBufferBase::init(RHIBufferFlags type, usize stride, usize count, const void* data,
 	                                         bool keep_cpu_data)
 	{
 		allocate_data(type, stride, count);
@@ -110,7 +110,7 @@ namespace Trinex
 	{
 		if (m_vtx_count > 0 && m_buffer == nullptr)
 		{
-			m_buffer = RHI::instance()->create_buffer(m_vtx_count * m_stride, m_flags | RHIBufferCreateFlags::VertexBuffer);
+			m_buffer = RHI::instance()->create_buffer(m_vtx_count * m_stride, m_flags | RHIBufferFlags::VertexBuffer);
 
 			RHIContextPool::global_instance()->execute([this](RHIContext* ctx) {
 				ctx->barrier(m_buffer.get(), RHIAccess::TransferDst);
@@ -127,7 +127,7 @@ namespace Trinex
 		return *this;
 	}
 
-	u8* VertexBufferBase::allocate_data(RHIBufferCreateFlags type, u16 stride, usize count)
+	u8* VertexBufferBase::allocate_data(RHIBufferFlags type, u16 stride, usize count)
 	{
 		release();
 		m_flags     = type;
@@ -185,7 +185,7 @@ namespace Trinex
 		bool has_data = m_data != nullptr;
 		u8 flags;
 		ar.serialize(flags, m_stride, m_vtx_count, has_data);
-		m_flags = RHIBufferCreateFlags::Static;
+		m_flags = RHIBufferFlags::Static;
 
 		if (has_data)
 		{
@@ -209,32 +209,32 @@ namespace Trinex
 		}
 	}
 
-	IndexBuffer::IndexBuffer(RHIBufferCreateFlags type, usize size, const u16* data, bool keep_cpu_data)
+	IndexBuffer::IndexBuffer(RHIBufferFlags type, usize size, const u16* data, bool keep_cpu_data)
 	{
 		init(type, size, data, keep_cpu_data);
 	}
 
-	IndexBuffer::IndexBuffer(RHIBufferCreateFlags type, usize size, const u32* data, bool keep_cpu_data)
+	IndexBuffer::IndexBuffer(RHIBufferFlags type, usize size, const u32* data, bool keep_cpu_data)
 	{
 		init(type, size, data, keep_cpu_data);
 	}
 
-	IndexBuffer::IndexBuffer(const std::initializer_list<u16>& list, RHIBufferCreateFlags type, bool keep_cpu_data)
+	IndexBuffer::IndexBuffer(const std::initializer_list<u16>& list, RHIBufferFlags type, bool keep_cpu_data)
 	{
 		init(type, list.size(), list.begin(), keep_cpu_data);
 	}
 
-	IndexBuffer::IndexBuffer(const std::initializer_list<u32>& list, RHIBufferCreateFlags type, bool keep_cpu_data)
+	IndexBuffer::IndexBuffer(const std::initializer_list<u32>& list, RHIBufferFlags type, bool keep_cpu_data)
 	{
 		init(type, list.size(), list.begin(), keep_cpu_data);
 	}
 
-	IndexBuffer::IndexBuffer(const u16* start, const u16* end, RHIBufferCreateFlags type, bool keep_cpu_data)
+	IndexBuffer::IndexBuffer(const u16* start, const u16* end, RHIBufferFlags type, bool keep_cpu_data)
 	{
 		init(type, end - start, start, keep_cpu_data);
 	}
 
-	IndexBuffer::IndexBuffer(const u32* start, const u32* end, RHIBufferCreateFlags type, bool keep_cpu_data)
+	IndexBuffer::IndexBuffer(const u32* start, const u32* end, RHIBufferFlags type, bool keep_cpu_data)
 	{
 		init(type, end - start, start, keep_cpu_data);
 	}
@@ -299,7 +299,7 @@ namespace Trinex
 		return *this;
 	}
 
-	IndexBuffer& IndexBuffer::init(RHIBufferCreateFlags type, usize size, const u16* data, bool keep_cpu_data)
+	IndexBuffer& IndexBuffer::init(RHIBufferFlags type, usize size, const u16* data, bool keep_cpu_data)
 	{
 		allocate_data(type, RHIIndexFormat::UInt16, size);
 		if (data)
@@ -307,7 +307,7 @@ namespace Trinex
 		return init(keep_cpu_data);
 	}
 
-	IndexBuffer& IndexBuffer::init(RHIBufferCreateFlags type, usize size, const u32* data, bool keep_cpu_data)
+	IndexBuffer& IndexBuffer::init(RHIBufferFlags type, usize size, const u32* data, bool keep_cpu_data)
 	{
 		allocate_data(type, RHIIndexFormat::UInt32, size);
 		if (data)
@@ -319,7 +319,7 @@ namespace Trinex
 	{
 		if (m_idx_count > 0 && m_buffer == nullptr)
 		{
-			m_buffer = RHI::instance()->create_buffer(size(), m_flags | RHIBufferCreateFlags::IndexBuffer);
+			m_buffer = RHI::instance()->create_buffer(size(), m_flags | RHIBufferFlags::IndexBuffer);
 
 			RHIContextPool::global_instance()->execute([this](RHIContext* ctx) {
 				ctx->barrier(m_buffer.get(), RHIAccess::TransferDst);
@@ -337,7 +337,7 @@ namespace Trinex
 		return *this;
 	}
 
-	u8* IndexBuffer::allocate_data(RHIBufferCreateFlags type, RHIIndexFormat format, usize count)
+	u8* IndexBuffer::allocate_data(RHIBufferFlags type, RHIIndexFormat format, usize count)
 	{
 		release();
 		m_flags     = type;
@@ -366,7 +366,7 @@ namespace Trinex
 		bool has_data = m_data != nullptr;
 		u8 flags;
 		ar.serialize(m_idx_count, flags, m_format, has_data);
-		m_flags = RHIBufferCreateFlags::Static;
+		m_flags = RHIBufferFlags::Static;
 
 		if (has_data)
 		{

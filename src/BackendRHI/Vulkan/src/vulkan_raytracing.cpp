@@ -245,9 +245,9 @@ namespace Trinex
 		constexpr auto build_type = vk::AccelerationStructureBuildTypeKHR::eDevice;
 		auto sizes = VulkanAPI::instance()->m_device.getAccelerationStructureBuildSizesKHR(build_type, build_info, primitives);
 
-		constexpr auto flags = RHIBufferCreateFlags::AccelerationStorage | RHIBufferCreateFlags::ByteAddressBuffer |
-		                       RHIBufferCreateFlags::ShaderResource | RHIBufferCreateFlags::UnorderedAccess |
-		                       RHIBufferCreateFlags::DeviceAddress;
+		constexpr auto flags = RHIBufferFlags::AccelerationStorage | RHIBufferFlags::ByteAddressBuffer |
+		                       RHIBufferFlags::ShaderResource | RHIBufferFlags::UnorderedAccess |
+		                       RHIBufferFlags::DeviceAddress;
 
 		m_acceleration_buffer = trx_new VulkanBuffer();
 		m_acceleration_buffer->create(sizes.accelerationStructureSize, flags);

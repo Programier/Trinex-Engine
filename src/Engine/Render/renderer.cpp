@@ -41,6 +41,23 @@ namespace Trinex
 		}
 	}
 
+	RHITextureFlags Renderer::surface_flags_of(SurfaceType type)
+	{
+		using F = RHITextureFlags;
+
+		switch (type)
+		{
+			case SurfaceType::SceneColorHDR: return RHITextureFlags::RWColorAttachment;
+			case SurfaceType::SceneColorLDR: return RHITextureFlags::ColorAttachment;
+			case SurfaceType::SceneDepth: return RHITextureFlags::DepthStencilAttachment;
+			case SurfaceType::BaseColor: return RHITextureFlags::ColorAttachment;
+			case SurfaceType::Normal: return RHITextureFlags::ColorAttachment;
+			case SurfaceType::MSRA: return RHITextureFlags::ColorAttachment;
+			case SurfaceType::Velocity: return RHITextureFlags::ColorAttachment;
+			default: return F::Undefined;
+		}
+	}
+
 	const char* Renderer::surface_name_of(SurfaceType type)
 	{
 		switch (type)
@@ -153,13 +170,14 @@ namespace Trinex
 		RHIBuffer* view = globals_uniform_buffer();
 
 		GlobalShaderParameters params;
-		params.update(&m_view, m_view.view_size());
+		params.update(&m_view);
 		ctx->barrier(view, RHIAccess::TransferDst);
 		ctx->update(view, &params, {.size = sizeof(GlobalShaderParameters)});
 		ctx->barrier(view, RHIAccess::UniformBuffer);
 
 		m_graph->execute(ctx);
 
+		scene_view().flush(this);
 		return *this;
 	}
 
@@ -197,8 +215,10 @@ namespace Trinex
 			        "Clear Normal",         "Clear MSRA",           "Clear Velocity",
 			};
 
-			auto pool          = RHITexturePool::global_instance();
-			RHITexture* target = pool->request_transient_surface(surface_format_of(type), m_view.view_size());
+			auto pool               = RHITexturePool::global_instance();
+			RHISurfaceFormat format = surface_format_of(type);
+			RHITextureFlags flags   = surface_flags_of(type);
+			RHITexture* target      = pool->request_transient_surface(format, m_view.view_size(), flags);
 
 			RenderGraph::Pass* pass = &m_graph->add_pass(clear_pass_names[type]).add_resource(target, RHIAccess::TransferDst);
 			m_surface_clears[type]  = pass;
@@ -217,7 +237,7 @@ namespace Trinex
 		if (m_globals == nullptr)
 		{
 			m_globals = RHIBufferPool::global_instance()->request_transient_buffer(sizeof(GlobalShaderParameters),
-			                                                                       RHIBufferCreateFlags::UniformBuffer);
+			                                                                       RHIBufferFlags::UniformBuffer);
 		}
 		return m_globals;
 	}

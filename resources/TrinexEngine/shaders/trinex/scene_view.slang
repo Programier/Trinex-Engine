@@ -22,7 +22,7 @@ struct SceneView
 		float4x4 inv_view;
 		float4x4 inv_projview;
 		float2 jitter;
-		
+
 		float near;
 		float far;
 
@@ -30,6 +30,40 @@ struct SceneView
 		property float3 up { [ForceInline] get { return inv_view[1].xyz; } }
 		property float3 forward { [ForceInline] get { return inv_view[2].xyz; } }
 		property float3 location { [ForceInline] get { return inv_view[3].xyz; } }
+
+		[ForceInline]
+		float4 apply_jitter(float4 clip)
+		{
+			clip.xy += jitter * clip.w;
+			return clip;
+		}
+
+		[ForceInline] float4 world_to_clip(float3 point) { return projview * float4(point, 1.0f); }
+		[ForceInline] float4 view_to_clip(float3 point) { return projection * float4(point, 1.0f); }
+		[ForceInline] float4 world_to_view(float3 point) { return view * float4(point, 1.0f); }
+
+		[ForceInline] float4 world_to_clip_jittered(float3 point) { return apply_jitter(world_to_clip(point)); }
+		[ForceInline] float4 view_to_clip_jittered(float3 point) { return apply_jitter(view_to_clip(point)); }
+
+		[ForceInline]
+		float3 clip_to_world(float4 clip)
+		{
+			float4 position = inv_projview * clip;
+			return position.xyz / position.w;
+		}
+
+		[ForceInline]
+		float3 clip_to_view(float4 clip)
+		{
+			float4 position = inv_projection * clip;
+			return position.xyz / position.w;
+		}
+
+		[ForceInline] float3 clip_to_world(float3 clip) { return clip_to_world(float4(clip, 1.0f)); }
+		[ForceInline] float3 clip_to_world(float2 clip, float depth) { return clip_to_world(float4(clip, depth, 1.0f)); }
+		[ForceInline] float3 clip_to_view(float3 clip) { return clip_to_view(float4(clip, 1.0f)); }
+		[ForceInline] float3 clip_to_view(float2 clip, float depth) { return clip_to_view(float4(clip, depth, 1.0f)); }
+		[ForceInline] float3 view_to_world(float3 point) { return (inv_view * float4(point, 1.0f)).xyz; }
 	};
 
 	Viewport viewport;
@@ -45,13 +79,6 @@ struct SceneView
 	inline float2 screen_ndc(float2 coord) { return (coord * viewport.inv_size) * 2.f - 1.f; }
 	
 	inline float2 viewport_uv(float2 coord) { return coord * viewport.inv_size; }
-	
-	inline float3 reconstruct_position(float2 ndc, float depth)
-	{
-		float4 clip_space_pos = float4(ndc, depth, 1.0);
-		float4 view_space_pos = scene_view.camera.inv_projview * clip_space_pos;
-		return view_space_pos.xyz /= view_space_pos.w;
-	}
 };
 
 uniform ConstantBuffer<SceneView> scene_view;

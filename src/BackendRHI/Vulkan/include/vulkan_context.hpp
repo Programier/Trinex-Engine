@@ -346,7 +346,7 @@ namespace Trinex
 		                            usize instances) override;
 
 		VulkanContext& draw_mesh(u32 x, u32 y, u32 z) override;
-		VulkanContext& dispatch(u32 group_x, u32 group_y, u32 group_z) override;
+		VulkanContext& dispatch(Vector3u groups, Vector3u base) override;
 		VulkanContext& trace_rays(u32 width, u32 height, u32 depth, u64 raygen = 0, const RHIRange& miss = {},
 		                          const RHIRange& hit = {}, const RHIRange& callable = {}) override;
 

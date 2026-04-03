@@ -65,7 +65,7 @@ namespace Trinex
 		virtual RHIPipeline* create_mesh_pipeline(const RHIMeshPipelineDesc& desc)              = 0;
 		virtual RHIPipeline* create_compute_pipeline(const RHIComputePipelineDesc& desc)        = 0;
 		virtual RHIPipeline* create_ray_tracing_pipeline(const RHIRayTracingPipelineDesc& desc) = 0;
-		virtual RHIBuffer* create_buffer(usize size, RHIBufferCreateFlags flags)                = 0;
+		virtual RHIBuffer* create_buffer(usize size, RHIBufferFlags flags)                = 0;
 		virtual RHISwapchain* create_swapchain(Window* window, bool vsync)                      = 0;
 		virtual RHIContext* create_context(RHIContextFlags flags = RHIContextFlags::Undefined)  = 0;
 

@@ -8,7 +8,7 @@
 
 namespace Trinex
 {
-	ENGINE_EXPORT GlobalShaderParameters& GlobalShaderParameters::update(const SceneView* scene_view, Vector2u target_size)
+	ENGINE_EXPORT GlobalShaderParameters& GlobalShaderParameters::update(const SceneView* scene_view)
 	{
 		if (scene_view)
 		{
@@ -18,7 +18,7 @@ namespace Trinex
 			camera.inv_projection = scene_view->camera_view().inv_projection;
 			camera.inv_view       = scene_view->camera_view().inv_view;
 			camera.inv_projview   = scene_view->camera_view().inv_projview;
-			camera.jitter         = {0.f, 0.f};
+			camera.jitter         = Vector2f{0.f, 0.f};
 			camera.near           = scene_view->camera_view().near;
 			camera.far            = scene_view->camera_view().far;
 

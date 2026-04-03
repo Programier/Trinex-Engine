@@ -119,12 +119,12 @@ namespace Trinex
 		return desc;
 	}
 
-	VulkanTexture& VulkanTexture::create(RHIColorFormat format, Vector3u size, u32 layers, u32 mips, RHITextureCreateFlags flags)
+	VulkanTexture& VulkanTexture::create(RHIColorFormat format, Vector3u size, u32 layers, u32 mips, RHITextureFlags flags)
 	{
 		return create(VulkanEnums::format_of(format), size, layers, mips, flags);
 	}
 
-	VulkanTexture& VulkanTexture::create(vk::Format format, Vector3u size, u32 layers, u32 mips, RHITextureCreateFlags flags)
+	VulkanTexture& VulkanTexture::create(vk::Format format, Vector3u size, u32 layers, u32 mips, RHITextureFlags flags)
 	{
 		m_format       = format;
 		m_extent       = vk::Extent3D{size.x, size.y, size.z};
@@ -135,16 +135,16 @@ namespace Trinex
 
 		vk::ImageUsageFlags usage = vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eTransferSrc;
 
-		if ((flags & RHITextureCreateFlags::ShaderResource) == RHITextureCreateFlags::ShaderResource)
+		if ((flags & RHITextureFlags::ShaderResource) == RHITextureFlags::ShaderResource)
 			usage |= vk::ImageUsageFlagBits::eSampled;
 
-		if ((flags & RHITextureCreateFlags::UnorderedAccess) == RHITextureCreateFlags::UnorderedAccess)
+		if ((flags & RHITextureFlags::UnorderedAccess) == RHITextureFlags::UnorderedAccess)
 			usage |= vk::ImageUsageFlagBits::eStorage;
 
-		if ((flags & RHITextureCreateFlags::RenderTarget) == RHITextureCreateFlags::RenderTarget)
+		if ((flags & RHITextureFlags::RenderTarget) == RHITextureFlags::RenderTarget)
 			usage |= vk::ImageUsageFlagBits::eColorAttachment;
 
-		if ((flags & RHITextureCreateFlags::DepthStencilTarget) == RHITextureCreateFlags::DepthStencilTarget)
+		if ((flags & RHITextureFlags::DepthStencilTarget) == RHITextureFlags::DepthStencilTarget)
 			usage |= vk::ImageUsageFlagBits::eDepthStencilAttachment;
 
 		vk::ImageCreateFlags image_flags = {};
@@ -195,7 +195,7 @@ namespace Trinex
 
 	RHIShaderResourceView* VulkanTexture::as_srv(RHITextureDescSRV* desc)
 	{
-		if (!(m_flags & RHITextureCreateFlags::ShaderResource))
+		if (!(m_flags & RHITextureFlags::ShaderResource))
 			return nullptr;
 
 		static constexpr auto mask = vk::ImageAspectFlagBits::eColor | vk::ImageAspectFlagBits::eDepth;
@@ -204,7 +204,7 @@ namespace Trinex
 
 	RHIUnorderedAccessView* VulkanTexture::as_uav(RHITextureDescUAV* desc)
 	{
-		if (!(m_flags & RHITextureCreateFlags::UnorderedAccess))
+		if (!(m_flags & RHITextureFlags::UnorderedAccess))
 			return nullptr;
 
 		static constexpr auto mask = vk::ImageAspectFlagBits::eColor;
@@ -213,7 +213,7 @@ namespace Trinex
 
 	RHIRenderTargetView* VulkanTexture::as_rtv(RHITextureDescRTV* desc)
 	{
-		if (!(m_flags & RHITextureCreateFlags::RenderTarget))
+		if (!(m_flags & RHITextureFlags::RenderTarget))
 			return nullptr;
 
 		static constexpr auto mask = vk::ImageAspectFlagBits::eColor;
@@ -222,7 +222,7 @@ namespace Trinex
 
 	RHIDepthStencilView* VulkanTexture::as_dsv(RHITextureDescDSV* desc)
 	{
-		if (!(m_flags & RHITextureCreateFlags::DepthStencilTarget))
+		if (!(m_flags & RHITextureFlags::DepthStencilTarget))
 			return nullptr;
 
 		static constexpr auto mask = vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
@@ -299,7 +299,7 @@ namespace Trinex
 	VulkanContext& VulkanContext::update(RHITexture* dst, const RHITextureRegion& dst_region, const void* src,
 	                                     const RHIBufferTextureCopy& src_region)
 	{
-		auto buffer = VulkanAPI::instance()->stagging_manager()->allocate(src_region.size, RHIBufferCreateFlags::TransferSrc);
+		auto buffer = VulkanAPI::instance()->stagging_manager()->allocate(src_region.size, RHIBufferFlags::TransferSrc);
 		buffer->copy(this, 0, static_cast<const u8*>(src) + src_region.offset, src_region.size);
 
 		VulkanTexture* vulkan_texture = static_cast<VulkanTexture*>(dst);

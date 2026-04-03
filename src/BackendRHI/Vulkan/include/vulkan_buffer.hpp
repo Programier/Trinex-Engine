@@ -23,10 +23,10 @@ namespace Trinex
 		RHIDeviceAddress m_address = 0;
 
 		RHIAccess m_access           = RHIAccess::Undefined;
-		RHIBufferCreateFlags m_flags = {};
+		RHIBufferFlags m_flags = {};
 
 	public:
-		VulkanBuffer& create(vk::DeviceSize size, RHIBufferCreateFlags flags,
+		VulkanBuffer& create(vk::DeviceSize size, RHIBufferFlags flags,
 		                     VmaMemoryUsage memory_usage = VMA_MEMORY_USAGE_AUTO);
 
 		VulkanBuffer& copy(VulkanContext* ctx, vk::DeviceSize offset, const u8* data, vk::DeviceSize size);
@@ -40,7 +40,7 @@ namespace Trinex
 
 		RHIShaderResourceView* as_srv() override;
 		RHIUnorderedAccessView* as_uav() override;
-		inline RHIBufferCreateFlags flags() const { return m_flags; }
+		inline RHIBufferFlags flags() const { return m_flags; }
 		inline vk::Buffer buffer() const { return m_buffer; }
 		~VulkanBuffer();
 	};
@@ -97,7 +97,7 @@ namespace Trinex
 		Vector<FreeEntry> m_free;
 
 	public:
-		VulkanStaggingBuffer* allocate(vk::DeviceSize size, RHIBufferCreateFlags flags);
+		VulkanStaggingBuffer* allocate(vk::DeviceSize size, RHIBufferFlags flags);
 		VulkanStaggingBufferManager& release(VulkanStaggingBuffer* buffer);
 		VulkanStaggingBufferManager& update();
 		~VulkanStaggingBufferManager();

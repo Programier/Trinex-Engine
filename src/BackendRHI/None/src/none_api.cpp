@@ -183,7 +183,7 @@ namespace Trinex
 		return new NonePipeline();
 	}
 
-	RHIBuffer* NoneApi::create_buffer(usize size, RHIBufferCreateFlags flags)
+	RHIBuffer* NoneApi::create_buffer(usize size, RHIBufferFlags flags)
 	{
 		return new NoneBuffer();
 	}

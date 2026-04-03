@@ -434,7 +434,7 @@ namespace Trinex
 					};
 					break;
 				}
-				case vk::DescriptorType::eStorageImage: dst->descriptor = context->storage_buffers.resource(dst->binding); break;
+				case vk::DescriptorType::eStorageImage: dst->descriptor = context->uav_images.resource(dst->binding); break;
 				case vk::DescriptorType::eUniformBufferDynamic:
 				{
 					dst->descriptor = context->uniform_buffers.resource(dst->binding);

@@ -250,7 +250,7 @@ namespace Trinex
 			ImGui::Text("GPU: %s\n", RHI::instance()->info.renderer.c_str());
 		});
 
-		m_scene_view.history(&m_history);
+		m_scene_view.state(&m_scene_view_state);
 	}
 
 	EditorClient& EditorClient::create_content_browser()
@@ -864,7 +864,7 @@ namespace Trinex
 		if (aspect > 0.f)
 		{
 			m_scene_view.camera_view(camera->camera_view(aspect));
-			m_scene_view.prev_camera_view(camera->prev_camera_view(aspect));
+			//m_scene_view.prev_camera_view(camera->prev_camera_view(aspect));
 			m_scene_view.show_flags(m_show_flags);
 		}
 

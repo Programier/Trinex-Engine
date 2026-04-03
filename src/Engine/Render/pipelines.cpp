@@ -2,10 +2,10 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/allocator.hpp>
 #include <Core/math/random.hpp>
-#include <Engine/Render/frame_history.hpp>
 #include <Engine/Render/pipelines.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/renderer.hpp>
+#include <Engine/scene_view_state.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/shader.hpp>
@@ -337,7 +337,7 @@ namespace Trinex::Pipelines
 			sample *= glm::mix(0.1f, 1.0f, factor * factor);
 		}
 
-		constexpr auto flags = RHIBufferCreateFlags::StructuredBuffer | RHIBufferCreateFlags::ShaderResource;
+		constexpr auto flags = RHIBufferFlags::StructuredBuffer | RHIBufferFlags::ShaderResource;
 		m_samples_buffer     = RHI::instance()->create_buffer(count * sizeof(Vector3f), flags);
 
 		RHIContext* ctx = RHIContextPool::global_instance()->begin_context();
@@ -398,9 +398,9 @@ namespace Trinex::Pipelines
 	RHIBuffer* ClusterInitialize::create_clusters_buffer()
 	{
 		static constexpr usize cluster_size         = 576;
-		static constexpr RHIBufferCreateFlags flags = RHIBufferCreateFlags::UnorderedAccess |
-		                                              RHIBufferCreateFlags::ShaderResource |
-		                                              RHIBufferCreateFlags::StructuredBuffer;
+		static constexpr RHIBufferFlags flags = RHIBufferFlags::UnorderedAccess |
+		                                              RHIBufferFlags::ShaderResource |
+		                                              RHIBufferFlags::StructuredBuffer;
 
 		usize buffer_size = 16 * 9 * 24 * cluster_size;
 		return RHIBufferPool::global_instance()->request_transient_buffer(buffer_size, flags);
@@ -411,7 +411,7 @@ namespace Trinex::Pipelines
 		ctx->bind_pipeline(rhi_pipeline());
 		ctx->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
 		ctx->bind_uav(clusters->as_uav(), m_clusters->binding);
-		ctx->dispatch(16, 9, 24);
+		ctx->dispatch({16, 9, 24});
 		return *this;
 	}
 
@@ -431,7 +431,7 @@ namespace Trinex::Pipelines
 		ctx->bind_uav(clusters->as_uav(), m_clusters->binding);
 		ctx->bind_srv(lights->as_srv(), m_lights->binding);
 		ctx->update_scalar(&ranges, m_ranges);
-		ctx->dispatch(27, 1, 1);
+		ctx->dispatch({27, 1, 1});
 		return *this;
 	}
 
@@ -461,6 +461,28 @@ namespace Trinex::Pipelines
 		ctx->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
 		ctx->bind_srv(renderer->scene_depth_target()->as_srv(), m_scene_depth->binding);
 		ctx->draw(RHITopology::TriangleList, 6, 0);
+		return *this;
+	}
+
+	trinex_implement_pipeline(TAA, "[shaders]:/TrinexEngine/trinex/compute/TAA.slang")
+	{
+		m_scene_color      = find_parameter("scene_color");
+		m_prev_scene_color = find_parameter("prev_scene_color");
+	}
+
+	TAA& TAA::render(RHIContext* ctx, Renderer* renderer)
+	{
+		if (renderer->scene_view().state()->scene_color())
+		{
+			RHITexture* current = renderer->scene_color_hdr_target();
+			RHITexture* prev    = renderer->scene_view().state()->scene_color();
+
+			ctx->barrier(prev, RHIAccess::UAVCompute);
+			ctx->bind_pipeline(rhi_pipeline());
+			ctx->bind_uav(current->as_uav(), m_scene_color->binding);
+			ctx->bind_uav(prev->as_uav(), m_prev_scene_color->binding);
+			ctx->dispatch(Math::dispatch_groups({renderer->scene_view().view_size(), 1u}, {8u, 8u, 1u}));
+		}
 		return *this;
 	}
 }// namespace Trinex::Pipelines

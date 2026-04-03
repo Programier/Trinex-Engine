@@ -50,11 +50,6 @@ namespace Trinex
 		return camera_view(world_transform(), aspect);
 	}
 
-	CameraView CameraComponent::prev_camera_view(float aspect) const
-	{
-		return camera_view(prev_world_transform(), aspect);
-	}
-
 	Matrix4f CameraComponent::projection_matrix(float aspect)
 	{
 		if (projection_mode == CameraProjectionMode::Perspective)
@@ -76,12 +71,6 @@ namespace Trinex
 	Matrix4f CameraComponent::view_matrix()
 	{
 		const Transform& transform = world_transform();
-		return Math::look_at(transform.location, transform.location + transform.forward_vector(), transform.up_vector());
-	}
-
-	Matrix4f CameraComponent::prev_view_matrix()
-	{
-		const Transform& transform = prev_world_transform();
 		return Math::look_at(transform.location, transform.location + transform.forward_vector(), transform.up_vector());
 	}
 }// namespace Trinex

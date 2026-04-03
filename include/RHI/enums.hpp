@@ -169,7 +169,7 @@ namespace Trinex
 		}
 	};
 
-	struct RHITextureCreateFlags {
+	struct RHITextureFlags {
 		enum Enum : u8
 		{
 			Undefined          = 0,
@@ -177,12 +177,18 @@ namespace Trinex
 			UnorderedAccess    = BIT(1),
 			RenderTarget       = BIT(2),
 			DepthStencilTarget = BIT(3),
+
+
+			ColorAttachment        = RenderTarget | ShaderResource,
+			RWColorAttachment      = UnorderedAccess | ColorAttachment,
+			RWTexture              = ShaderResource | UnorderedAccess,
+			DepthStencilAttachment = DepthStencilTarget | ShaderResource,
 		};
 
-		trinex_bitfield_enum_struct(RHITextureCreateFlags, u8);
+		trinex_bitfield_enum_struct(RHITextureFlags, u8);
 	};
 
-	struct RHIBufferCreateFlags {
+	struct RHIBufferFlags {
 		enum Enum : u16
 		{
 			Undefined = 0,
@@ -206,7 +212,7 @@ namespace Trinex
 			ShaderBindingTable  = BIT(14),
 		};
 
-		trinex_bitfield_enum_struct(RHIBufferCreateFlags, u16);
+		trinex_bitfield_enum_struct(RHIBufferFlags, u16);
 	};
 
 	struct RHICompareFunc {
@@ -553,7 +559,7 @@ namespace Trinex
 		constexpr inline bool is_color() const { return value >= R8 && value <= P010; }
 		constexpr inline bool is_depth_stencil() const { return value == D24S8; }
 		constexpr inline bool is_depth() const { return value == D32F || value == D16_UNORM; }
-		constexpr inline bool has_depth() const { return value & 0b11; }
+		constexpr inline bool has_depth() const { return is_depth() || is_depth_stencil(); }
 
 		template<typename Func>
 		constexpr static void static_foreach(Func&& func)

@@ -60,7 +60,7 @@ namespace Trinex
 		        .format = format,
 		        .size   = {size(), 1},
 		        .mips   = static_cast<u32>(mips.size()),
-		        .flags  = RHITextureCreateFlags::ShaderResource,
+		        .flags  = RHITextureFlags::ShaderResource,
 		};
 
 		m_texture = RHI::instance()->create_texture(desc);
@@ -114,7 +114,7 @@ namespace Trinex
 		        .format = format,
 		        .size   = size(),
 		        .mips   = static_cast<u32>(mips.size()),
-		        .flags  = RHITextureCreateFlags::ShaderResource,
+		        .flags  = RHITextureFlags::ShaderResource,
 		};
 
 		m_texture = RHI::instance()->create_texture(desc);
@@ -173,7 +173,7 @@ namespace Trinex
 		        .format = format,
 		        .size   = {size(), 1},
 		        .mips   = static_cast<u32>(mips.size()),
-		        .flags  = RHITextureCreateFlags::ShaderResource,
+		        .flags  = RHITextureFlags::ShaderResource,
 		};
 
 		m_texture = RHI::instance()->create_texture(desc);

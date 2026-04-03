@@ -185,7 +185,7 @@ namespace Trinex
 		RHIPipeline* create_mesh_pipeline(const RHIMeshPipelineDesc& desc) override;
 		RHIPipeline* create_compute_pipeline(const RHIComputePipelineDesc& desc) override;
 		RHIPipeline* create_ray_tracing_pipeline(const RHIRayTracingPipelineDesc& desc) override;
-		RHIBuffer* create_buffer(usize size, RHIBufferCreateFlags flags) override;
+		RHIBuffer* create_buffer(usize size, RHIBufferFlags flags) override;
 		RHISwapchain* create_swapchain(Window* window, bool vsync) override;
 		RHIContext* create_context(RHIContextFlags flags) override;
 

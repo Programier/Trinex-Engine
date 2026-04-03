@@ -52,7 +52,7 @@ float4 fragment_main(in float4 position : SV_Position) : SV_Target
 	float2 uv                        = scene_view.screen_uv(position.xy);
 	float3 primitive_normal          = scene_normal.Sample(sampler, uv).xyz * 2.f - 1.f;
 	float1 primitive_depth           = scene_depth.Sample(sampler, uv).r;
-	float3 primitive_position        = scene_view.reconstruct_position(scene_view.screen_ndc(position.xy), primitive_depth);
+	float3 primitive_position        = scene_view.camera.clip_to_world(scene_view.screen_ndc(position.xy), primitive_depth);
 	float3 ray_start                 = float3(uv, primitive_depth);
 
 	float3 reflected_direction = normalize(reflect(primitive_position - scene_view.camera.location, primitive_normal));

@@ -53,6 +53,7 @@ namespace Trinex
 
 	public:
 		static RHISurfaceFormat surface_format_of(SurfaceType type);
+		static RHITextureFlags surface_flags_of(SurfaceType type);
 		static const char* surface_name_of(SurfaceType type);
 		static void sort_lights(FrameVector<LightComponent*>& visible_lights);
 

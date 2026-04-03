@@ -38,7 +38,7 @@ namespace Trinex
 		return x + 1;
 	}
 
-	static inline Identifier static_calculate_surface_id(RHISurfaceFormat format, Vector2u size, RHITextureCreateFlags flags)
+	static inline Identifier static_calculate_surface_id(RHISurfaceFormat format, Vector2u size, RHITextureFlags flags)
 	{
 		union SurfaceID
 		{
@@ -47,7 +47,7 @@ namespace Trinex
 			struct Value {
 				u16 x;
 				u16 y;
-				RHITextureCreateFlags flags;
+				RHITextureFlags flags;
 				RHISurfaceFormat format;
 			} value;
 
@@ -62,7 +62,7 @@ namespace Trinex
 		return id.id;
 	}
 
-	static inline Identifier static_calculate_buffer_id(u32 size, RHIBufferCreateFlags flags)
+	static inline Identifier static_calculate_buffer_id(u32 size, RHIBufferFlags flags)
 	{
 		return (static_cast<Identifier>(size) << 32) | flags.bitfield;
 	}
@@ -191,11 +191,11 @@ namespace Trinex
 		return *this;
 	}
 
-	RHIBuffer* RHIBufferPool::request_buffer(u32 size, RHIBufferCreateFlags flags)
+	RHIBuffer* RHIBufferPool::request_buffer(u32 size, RHIBufferFlags flags)
 	{
 		size = next_power_of_two(size);
 
-		flags |= RHIBufferCreateFlags::Dynamic;
+		flags |= RHIBufferFlags::Dynamic;
 		const Identifier buffer_id = static_calculate_buffer_id(size, flags);
 		auto& pool                 = m_pools[buffer_id];
 
@@ -211,7 +211,7 @@ namespace Trinex
 		return buffer;
 	}
 
-	RHIBuffer* RHIBufferPool::request_transient_buffer(u32 size, RHIBufferCreateFlags flags)
+	RHIBuffer* RHIBufferPool::request_transient_buffer(u32 size, RHIBufferFlags flags)
 	{
 		if (auto buffer = request_buffer(size, flags))
 		{
@@ -299,27 +299,18 @@ namespace Trinex
 		return *this;
 	}
 
-	RHITexture* RHITexturePool::request_surface(RHISurfaceFormat format, Vector2u size, RHITextureCreateFlags flags)
+	RHITexture* RHITexturePool::request_surface(RHISurfaceFormat format, Vector2u size, RHITextureFlags flags)
 	{
 		return request_surface(RHITextureType::Texture2D, format, {size, 1}, flags);
 	}
 
 	RHITexture* RHITexturePool::request_surface(RHITextureType type, RHISurfaceFormat format, Vector3u size,
-	                                            RHITextureCreateFlags flags)
+	                                            RHITextureFlags flags)
 	{
+		trinex_assert(flags != RHITextureFlags::Undefined);
+
 		if (size.x == 0 || size.y == 0 || size.z == 0)
 			return nullptr;
-
-		flags |= RHITextureCreateFlags::ShaderResource;
-
-		if (format.is_color())
-		{
-			flags |= RHITextureCreateFlags::RenderTarget;
-		}
-		else if (format.has_depth())
-		{
-			flags |= RHITextureCreateFlags::DepthStencilTarget;
-		}
 
 		Key key;
 
@@ -352,7 +343,7 @@ namespace Trinex
 		return surface;
 	}
 
-	RHITexture* RHITexturePool::request_transient_surface(RHISurfaceFormat format, Vector2u size, RHITextureCreateFlags flags)
+	RHITexture* RHITexturePool::request_transient_surface(RHISurfaceFormat format, Vector2u size, RHITextureFlags flags)
 	{
 		if (auto surface = request_surface(format, size, flags))
 		{
@@ -363,7 +354,7 @@ namespace Trinex
 	}
 
 	RHITexture* RHITexturePool::request_transient_surface(RHITextureType type, RHISurfaceFormat format, Vector3u size,
-	                                                      RHITextureCreateFlags flags)
+	                                                      RHITextureFlags flags)
 	{
 		if (auto surface = request_surface(type, format, size, flags))
 		{

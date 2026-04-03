@@ -16,7 +16,7 @@
 
 namespace Trinex
 {
-	VulkanBuffer& VulkanBuffer::create(vk::DeviceSize size, RHIBufferCreateFlags flags, VmaMemoryUsage memory_usage)
+	VulkanBuffer& VulkanBuffer::create(vk::DeviceSize size, RHIBufferFlags flags, VmaMemoryUsage memory_usage)
 	{
 		m_size  = size;
 		m_flags = flags;
@@ -26,53 +26,53 @@ namespace Trinex
 		VmaAllocationCreateInfo alloc_info = {};
 		alloc_info.usage                   = memory_usage;
 
-		if (flags & RHIBufferCreateFlags::VertexBuffer)
+		if (flags & RHIBufferFlags::VertexBuffer)
 			buffer_info.usage |= vk::BufferUsageFlagBits::eVertexBuffer;
 
-		if (flags & RHIBufferCreateFlags::IndexBuffer)
+		if (flags & RHIBufferFlags::IndexBuffer)
 			buffer_info.usage |= vk::BufferUsageFlagBits::eIndexBuffer;
 
-		if (flags & RHIBufferCreateFlags::UniformBuffer)
+		if (flags & RHIBufferFlags::UniformBuffer)
 			buffer_info.usage |= vk::BufferUsageFlagBits::eUniformBuffer;
 
-		if (flags & RHIBufferCreateFlags::TransferSrc)
+		if (flags & RHIBufferFlags::TransferSrc)
 			buffer_info.usage |= vk::BufferUsageFlagBits::eTransferSrc;
 
-		if (flags & RHIBufferCreateFlags::TransferDst)
+		if (flags & RHIBufferFlags::TransferDst)
 			buffer_info.usage |= vk::BufferUsageFlagBits::eTransferDst;
 
-		if (flags & RHIBufferCreateFlags::AccelerationStorage)
+		if (flags & RHIBufferFlags::AccelerationStorage)
 			buffer_info.usage |= vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR;
 
-		if (flags & RHIBufferCreateFlags::AccelerationInput)
+		if (flags & RHIBufferFlags::AccelerationInput)
 			buffer_info.usage |= vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR;
 
-		if (flags & RHIBufferCreateFlags::ShaderBindingTable)
+		if (flags & RHIBufferFlags::ShaderBindingTable)
 			buffer_info.usage |= vk::BufferUsageFlagBits::eShaderBindingTableKHR;
 
-		if (flags & RHIBufferCreateFlags::ShaderResource)
+		if (flags & RHIBufferFlags::ShaderResource)
 		{
-			if (flags & (RHIBufferCreateFlags::ByteAddressBuffer | RHIBufferCreateFlags::StructuredBuffer))
+			if (flags & (RHIBufferFlags::ByteAddressBuffer | RHIBufferFlags::StructuredBuffer))
 				buffer_info.usage |= vk::BufferUsageFlagBits::eStorageBuffer;
 			else
 				buffer_info.usage |= vk::BufferUsageFlagBits::eUniformTexelBuffer;
 		}
 
-		if (flags & RHIBufferCreateFlags::UnorderedAccess)
+		if (flags & RHIBufferFlags::UnorderedAccess)
 		{
-			if (flags & (RHIBufferCreateFlags::ByteAddressBuffer | RHIBufferCreateFlags::StructuredBuffer))
+			if (flags & (RHIBufferFlags::ByteAddressBuffer | RHIBufferFlags::StructuredBuffer))
 				buffer_info.usage |= vk::BufferUsageFlagBits::eStorageBuffer;
 			else
 				buffer_info.usage |= vk::BufferUsageFlagBits::eStorageTexelBuffer;
 		}
 
-		if (flags & RHIBufferCreateFlags::DeviceAddress)
+		if (flags & RHIBufferFlags::DeviceAddress)
 		{
 			buffer_info.usage |= vk::BufferUsageFlagBits::eShaderDeviceAddressKHR;
 			alloc_info.flags |= VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
 		}
 
-		if ((flags & RHIBufferCreateFlags::CPURead) || (flags & RHIBufferCreateFlags::CPUWrite))
+		if ((flags & RHIBufferFlags::CPURead) || (flags & RHIBufferFlags::CPUWrite))
 		{
 			alloc_info.flags |= VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
 		}
@@ -83,14 +83,14 @@ namespace Trinex
 		m_buffer            = out_buffer;
 		trinex_assert_msg(res == VK_SUCCESS, "Failed to create buffer");
 
-		if (flags & RHIBufferCreateFlags::DeviceAddress)
+		if (flags & RHIBufferFlags::DeviceAddress)
 		{
 			m_address = VulkanAPI::instance()->m_device.getBufferAddressKHR(vk::BufferDeviceAddressInfo(m_buffer));
 		}
 
-		if (flags & RHIBufferCreateFlags::ShaderResource)
+		if (flags & RHIBufferFlags::ShaderResource)
 		{
-			if (flags & (RHIBufferCreateFlags::ByteAddressBuffer | RHIBufferCreateFlags::StructuredBuffer))
+			if (flags & (RHIBufferFlags::ByteAddressBuffer | RHIBufferFlags::StructuredBuffer))
 			{
 				m_srv = trx_new VulkanStorageBufferSRV(this);
 			}
@@ -100,9 +100,9 @@ namespace Trinex
 			}
 		}
 
-		if (flags & RHIBufferCreateFlags::UnorderedAccess)
+		if (flags & RHIBufferFlags::UnorderedAccess)
 		{
-			if (flags & (RHIBufferCreateFlags::ByteAddressBuffer | RHIBufferCreateFlags::StructuredBuffer))
+			if (flags & (RHIBufferFlags::ByteAddressBuffer | RHIBufferFlags::StructuredBuffer))
 			{
 				m_uav = trx_new VulkanBufferUAV(this);
 			}
@@ -131,7 +131,7 @@ namespace Trinex
 				ctx = static_cast<VulkanContext*>(RHIContextPool::global_instance()->begin_context());
 			}
 
-			auto buffer = VulkanAPI::instance()->stagging_manager()->allocate(size, RHIBufferCreateFlags::TransferSrc);
+			auto buffer = VulkanAPI::instance()->stagging_manager()->allocate(size, RHIBufferFlags::TransferSrc);
 			buffer->copy(ctx, offset, data, size);
 
 			barrier(ctx, RHIAccess::TransferDst);
@@ -161,7 +161,7 @@ namespace Trinex
 		}
 		else
 		{
-			auto staging = VulkanAPI::instance()->stagging_manager()->allocate(size, RHIBufferCreateFlags::TransferSrc);
+			auto staging = VulkanAPI::instance()->stagging_manager()->allocate(size, RHIBufferFlags::TransferSrc);
 			staging->copy(ctx, 0, data, size);
 
 			vk::BufferCopy region(0, offset, size);
@@ -252,7 +252,7 @@ namespace Trinex
 		static constexpr usize uniform_buffer_page_size = 1024 * 32;// 32 KB
 
 		constexpr auto flags =
-		        RHIBufferCreateFlags::UniformBuffer | RHIBufferCreateFlags::CPURead | RHIBufferCreateFlags::CPUWrite;
+		        RHIBufferFlags::UniformBuffer | RHIBufferFlags::CPURead | RHIBufferFlags::CPUWrite;
 		create(Math::max(uniform_buffer_page_size, min_size), flags);
 		m_memory = m_block_start = m_block_end = map();
 	}
@@ -290,9 +290,9 @@ namespace Trinex
 			trx_delete this;
 	}
 
-	VulkanStaggingBuffer* VulkanStaggingBufferManager::allocate(vk::DeviceSize buffer_size, RHIBufferCreateFlags flags)
+	VulkanStaggingBuffer* VulkanStaggingBufferManager::allocate(vk::DeviceSize buffer_size, RHIBufferFlags flags)
 	{
-		flags |= RHIBufferCreateFlags::CPUWrite;
+		flags |= RHIBufferFlags::CPUWrite;
 
 		for (usize i = 0, size = m_free.size(); i < size; i++)
 		{
@@ -356,7 +356,7 @@ namespace Trinex
 		m_buffers.clear();
 	}
 
-	RHIBuffer* VulkanAPI::create_buffer(usize size, RHIBufferCreateFlags flags)
+	RHIBuffer* VulkanAPI::create_buffer(usize size, RHIBufferFlags flags)
 	{
 		return &(trx_new VulkanBuffer())->create(size, flags);
 	}

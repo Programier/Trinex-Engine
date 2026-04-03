@@ -69,7 +69,7 @@ namespace Trinex
 		ScriptEngine::on_terminate.push([]() { script_scene_comp_transform_changed.release(); });
 	}
 
-	SceneComponent::SceneComponent() : m_is_transform_dirty(false), m_is_visible(true), m_is_transform_changed(false) {}
+	SceneComponent::SceneComponent() : m_is_transform_dirty(false), m_is_visible(true) {}
 
 	void SceneComponent::script_on_transform_changed()
 	{
@@ -128,16 +128,6 @@ namespace Trinex
 	{
 		m_is_transform_dirty = true;
 
-		if (!m_is_transform_changed)
-		{
-			m_is_transform_changed = true;
-
-			logic_thread()->add_task(Task([this]() {
-				m_prev_world           = world_transform();
-				m_is_transform_changed = false;
-			}));
-		}
-
 		for (SceneComponent* child : m_childs)
 		{
 			child->on_transform_changed();
@@ -166,8 +156,7 @@ namespace Trinex
 
 		if (ar.is_reading())
 		{
-			m_is_transform_dirty   = true;
-			m_is_transform_changed = true;
+			m_is_transform_dirty = true;
 		}
 		return ar;
 	}

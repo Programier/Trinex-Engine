@@ -259,5 +259,17 @@ namespace Trinex
 		public:
 			DepthView& render(RHIContext* ctx, Renderer* renderer);
 		};
+
+		class TAA : public GlobalComputePipeline
+		{
+			trinex_declare_pipeline(TAA, GlobalComputePipeline);
+
+		private:
+			const RHIShaderParameterInfo* m_scene_color;
+			const RHIShaderParameterInfo* m_prev_scene_color;
+
+		public:
+			TAA& render(RHIContext* ctx, Renderer* renderer);
+		};
 	}// namespace Pipelines
 }// namespace Trinex

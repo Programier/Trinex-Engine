@@ -23,7 +23,7 @@ namespace Trinex
 	public:
 		VulkanSwapchainTexture(vk::Image image, vk::Format format, Vector2u size)
 		{
-			m_flags        = RHITextureCreateFlags::RenderTarget;
+			m_flags        = RHITextureFlags::RenderTarget;
 			m_image        = image;
 			m_access       = RHIAccess::Undefined;
 			m_format       = format;

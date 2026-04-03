@@ -549,7 +549,7 @@ namespace Trinex::Importer
 				lod.attributes.insert(attribute);
 				auto& buffer = lod.buffers.emplace_back();
 
-				position.data   = buffer.allocate_data(RHIBufferCreateFlags::VertexBuffer, 12, vertex_count);
+				position.data   = buffer.allocate_data(RHIBufferFlags::VertexBuffer, 12, vertex_count);
 				position.stride = 12;
 
 				position.zeroes(vertex_count);
@@ -589,7 +589,7 @@ namespace Trinex::Importer
 				}
 
 				auto& buffer = lod.buffers.emplace_back();
-				u8* data     = buffer.allocate_data(RHIBufferCreateFlags::VertexBuffer, attribute.offset, vertex_count);
+				u8* data     = buffer.allocate_data(RHIBufferFlags::VertexBuffer, attribute.offset, vertex_count);
 				memset(data, 0, vertex_count * attribute.offset);
 
 				uv0.data     = data + uv0.address;
@@ -605,7 +605,7 @@ namespace Trinex::Importer
 			{
 				RHIIndexFormat format = vertex_count > 0xFFFF ? RHIIndexFormat::UInt32 : RHIIndexFormat::UInt16;
 
-				indices.data   = lod.indices.allocate_data(RHIBufferCreateFlags::IndexBuffer, format, index_count);
+				indices.data   = lod.indices.allocate_data(RHIBufferFlags::IndexBuffer, format, index_count);
 				indices.stride = format.stride();
 				indices.zeroes(index_count);
 			}

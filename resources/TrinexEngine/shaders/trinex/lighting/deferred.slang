@@ -31,7 +31,7 @@ float4 fragment_main(in float4 position : SV_Position) : SV_Target
 		return float4(primitive.base_color, 1.f);
 	}
 
-	primitive.location   = scene_view.reconstruct_position(scene_view.screen_ndc(position.xy), primitive.depth);
+	primitive.location   = scene_view.camera.clip_to_world(scene_view.screen_ndc(position.xy), primitive.depth);
 	primitive.normal     = normal_texture.SampleLevel(screen_sampler, uv, 0.f).xyz * 2.f - 1.f;
 	primitive.msra       = msra_texture.SampleLevel(screen_sampler, uv, 0.f);
 	primitive.flags      = Lighting::PrimitiveFlags::Undefined;

@@ -4,10 +4,10 @@
 #include <Core/etl/critical_section.hpp>
 #include <Core/etl/deque.hpp>
 #include <Core/reflection/enum.hpp>
-#include <Engine/Render/frame_history.hpp>
 #include <Engine/Render/renderer.hpp>
 #include <Engine/camera_view.hpp>
 #include <Engine/scene.hpp>
+#include <Engine/scene_view_state.hpp>
 #include <Graphics/editor_scene_renderer.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <ScriptEngine/script_object.hpp>
@@ -120,7 +120,7 @@ namespace Trinex
 		ShowFlags m_show_flags = ShowFlags::DefaultFlags;
 		ViewMode m_view_mode   = ViewMode::Lit;
 		SceneView m_scene_view;
-		FrameHistory m_history;
+		SceneViewState m_scene_view_state;
 
 		class ContentBrowser* m_content_browser = nullptr;
 		PropertyRenderer* m_properties          = nullptr;
@@ -170,7 +170,7 @@ namespace Trinex
 		void on_mouse_release(const Event& event);
 		void on_mouse_move(const Event& event);
 		void on_finger_move(const Event& event);
-		
+
 		EditorClient& select(Object* object) override;
 	};
 }// namespace Trinex

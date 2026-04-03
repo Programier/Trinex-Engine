@@ -41,7 +41,7 @@ namespace Trinex
 
 		virtual RHIContext& draw_mesh(u32 x, u32 y, u32 z) = 0;
 
-		virtual RHIContext& dispatch(u32 group_x, u32 group_y, u32 group_z) = 0;
+		virtual RHIContext& dispatch(Vector3u groups, Vector3u base = {0u, 0u, 0u}) = 0;
 
 		virtual RHIContext& trace_rays(u32 width, u32 height, u32 depth, u64 raygen = 0, const RHIRange& miss = {},
 		                               const RHIRange& hit = {}, const RHIRange& callable = {}) = 0;

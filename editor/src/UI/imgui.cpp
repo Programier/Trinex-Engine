@@ -100,7 +100,7 @@ namespace Trinex
 			m_texture_parameter    = find_parameter("texture");
 			m_projection_parameter = find_parameter("projection");
 
-			constexpr auto flags = RHIBufferCreateFlags::UniformBuffer | RHIBufferCreateFlags::TransferDst;
+			constexpr auto flags = RHIBufferFlags::UniformBuffer | RHIBufferFlags::TransferDst;
 			m_projection         = RHI::instance()->create_buffer(sizeof(Matrix4f), flags);
 		}
 
@@ -165,14 +165,14 @@ namespace Trinex
 				unsigned int* pixels = (unsigned int*) tex->GetPixels();
 
 				auto rhi             = RHI::instance();
-				constexpr auto flags = RHITextureCreateFlags::ShaderResource;
+				constexpr auto flags = RHITextureFlags::ShaderResource;
 
 				RHITextureDesc desc = {
 				        .type   = RHITextureType::Texture2D,
 				        .format = RHIColorFormat::R8G8B8A8,
 				        .size   = {tex->Width, tex->Height, 1},
 				        .mips   = 1,
-				        .flags  = RHITextureCreateFlags::ShaderResource,
+				        .flags  = RHITextureFlags::ShaderResource,
 				};
 
 				RHITexture* texture = rhi->create_texture(desc);
@@ -250,7 +250,7 @@ namespace Trinex
 
 			if (!vd->vertex_buffer || static_cast<int>(vd->vertex_count) < draw_data->TotalVtxCount)
 			{
-				constexpr auto flags = RHIBufferCreateFlags::Dynamic | RHIBufferCreateFlags::VertexBuffer;
+				constexpr auto flags = RHIBufferFlags::Dynamic | RHIBufferFlags::VertexBuffer;
 				vd->vertex_count     = draw_data->TotalVtxCount + 5000;
 				auto len             = vd->vertex_count * sizeof(ImDrawVert);
 				vd->vertex_buffer    = RHI::instance()->create_buffer(len, flags);
@@ -258,7 +258,7 @@ namespace Trinex
 
 			if (!vd->index_buffer || static_cast<int>(vd->index_count) < draw_data->TotalIdxCount)
 			{
-				constexpr auto flags = RHIBufferCreateFlags::Dynamic | RHIBufferCreateFlags::IndexBuffer;
+				constexpr auto flags = RHIBufferFlags::Dynamic | RHIBufferFlags::IndexBuffer;
 				vd->index_count      = draw_data->TotalIdxCount + 10000;
 				auto len             = vd->index_count * sizeof(ImDrawIdx);
 				vd->index_buffer     = RHI::instance()->create_buffer(len, flags);
