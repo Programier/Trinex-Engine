@@ -2,7 +2,6 @@
 #include <Core/enums.hpp>
 #include <Core/etl/string.hpp>
 #include <Core/etl/type_traits.hpp>
-#include <Core/flags.hpp>
 
 namespace Trinex
 {
@@ -37,7 +36,7 @@ namespace Trinex
 		bool serialize_struct(Refl::Struct* self, void* obj);
 
 	public:
-		Flags<SerializationFlags> flags;
+		SerializationFlags flags;
 
 		Archive();
 		Archive(BufferReader* reader);

@@ -1,7 +1,5 @@
 #pragma once
-#include <Core/flags.hpp>
 #include <Core/object.hpp>
-
 
 namespace Trinex
 {

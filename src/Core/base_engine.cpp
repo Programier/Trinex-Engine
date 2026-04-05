@@ -31,8 +31,8 @@ namespace Trinex
 		m_frame_index = 0;
 		m_prev_time   = 0.f;
 
-		flags(StandAlone, true);
-		flags(IsAvailableForGC, false);
+		flags.set(Flags::StandAlone);
+		flags.remove(Flags::IsAvailableForGC);
 
 		System::system_of<EventSystem>()->add_listener(EventType::Quit, [](const Event&) {
 			if (engine_instance)
@@ -92,7 +92,7 @@ namespace Trinex
 
 	i32 BaseEngine::terminate()
 	{
-		m_flags(Flag::IsShuttingDown, 1);
+		m_is_shutting_down = true;
 		return 0;
 	}
 
@@ -113,29 +113,18 @@ namespace Trinex
 
 	BaseEngine& BaseEngine::request_exit()
 	{
-		m_flags(Flag::IsRequestExit, true);
+		m_is_requesting_exit = true;
 		return *this;
 	}
 
 	bool BaseEngine::is_requesting_exit() const
 	{
-		return m_flags(Flag::IsRequestExit);
+		return m_is_requesting_exit;
 	}
 
 	bool BaseEngine::is_shuting_down() const
 	{
-		return m_flags(Flag::IsShuttingDown);
-	}
-
-	bool BaseEngine::is_inited() const
-	{
-		return m_flags(Flag::IsInitied);
-	}
-
-	BaseEngine& BaseEngine::make_inited()
-	{
-		m_flags(Flag::IsInitied, true);
-		return *this;
+		return m_is_shutting_down;
 	}
 
 	float BaseEngine::time_seconds() const

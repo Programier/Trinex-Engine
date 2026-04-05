@@ -9,6 +9,16 @@
 
 namespace Trinex
 {
+	Scene& Scene::begin(float dt)
+	{
+		return *this;
+	}
+
+	Scene& Scene::end(float dt)
+	{
+		return *this;
+	}
+
 	u32 Scene::add_primitive(PrimitiveComponent* primitive, const Box3i& box)
 	{
 		trinex_profile_cpu_n("Scene::add_primitive");
@@ -19,6 +29,7 @@ namespace Trinex
 	{
 		trinex_profile_cpu_n("Scene::update_primitive");
 		m_primitive_octree.update(id, box);
+
 		return *this;
 	}
 

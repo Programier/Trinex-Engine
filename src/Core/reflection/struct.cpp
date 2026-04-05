@@ -148,17 +148,17 @@ namespace Trinex::Refl
 
 	bool Struct::is_asset() const
 	{
-		return flags(Struct::IsAsset);
+		return flags.all(Struct::IsAsset);
 	}
 
 	bool Struct::is_native() const
 	{
-		return flags(IsNative);
+		return flags.all(IsNative);
 	}
 
 	bool Struct::is_scriptable() const
 	{
-		return flags(IsScriptable);
+		return flags.all(IsScriptable);
 	}
 
 	bool Struct::is_a(const Struct* other) const

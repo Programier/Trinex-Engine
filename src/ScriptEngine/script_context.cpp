@@ -470,7 +470,7 @@ namespace Trinex
 
 		if (modifiers)
 		{
-			(*modifiers) = Flags<ScriptTypeModifiers>(static_cast<BitMask>(script_modifiers));
+			(*modifiers) = static_cast<BitMask>(script_modifiers);
 		}
 		return result;
 	}

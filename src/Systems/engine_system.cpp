@@ -18,7 +18,7 @@ namespace Trinex
 		Package* package = Package::static_find_package("TrinexEngine::Systems", false);
 		if (package)
 		{
-			package->flags(Object::IsSerializable, false);
+			package->flags.remove(Object::Flags::IsSerializable);
 		}
 		add_reference();
 		return *this;

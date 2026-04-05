@@ -155,37 +155,37 @@ namespace Trinex
 	Enum value
 
 
-#define trinex_bitfield_enum_struct(struct_type, type)                                                                           \
+#define trinex_bitfield_enum_struct(struct_type, underlying_type)                                                                \
 	static constexpr bool is_enum          = true;                                                                               \
 	static constexpr bool is_bitfield_enum = true;                                                                               \
 	constexpr struct_type()                = default;                                                                            \
-	constexpr struct_type(type other) : bitfield(other) {}                                                                       \
-	constexpr struct_type(Enum other) : value(other) {}                                                                          \
-	constexpr operator Enum() const                                                                                              \
+	constexpr struct_type(underlying_type other) : bitfield(other) {}                                                            \
+                                                                                                                                 \
+	constexpr operator underlying_type() const                                                                                   \
 	{                                                                                                                            \
-		return value;                                                                                                            \
+		return bitfield;                                                                                                         \
 	}                                                                                                                            \
-	constexpr inline bool operator==(Enum other) const noexcept                                                                  \
+	constexpr inline bool operator==(underlying_type other) const noexcept                                                       \
 	{                                                                                                                            \
-		return bitfield == type(other);                                                                                          \
+		return bitfield == other;                                                                                                \
 	}                                                                                                                            \
-	constexpr inline bool operator!=(Enum other) const noexcept                                                                  \
+	constexpr inline bool operator!=(underlying_type other) const noexcept                                                       \
 	{                                                                                                                            \
-		return bitfield != type(other);                                                                                          \
+		return bitfield != other;                                                                                                \
 	}                                                                                                                            \
-	constexpr inline struct_type operator|(Enum other) const noexcept                                                            \
+	constexpr inline struct_type operator|(underlying_type other) const noexcept                                                 \
 	{                                                                                                                            \
-		return struct_type(bitfield | type(other));                                                                              \
+		return struct_type(bitfield | other);                                                                                    \
 	}                                                                                                                            \
-	constexpr inline struct_type operator&(Enum other) const noexcept                                                            \
+	constexpr inline struct_type operator&(underlying_type other) const noexcept                                                 \
 	{                                                                                                                            \
-		return struct_type(bitfield & type(other));                                                                              \
+		return struct_type(bitfield & other);                                                                                    \
 	}                                                                                                                            \
-	constexpr inline struct_type operator^(Enum other) const noexcept                                                            \
+	constexpr inline struct_type operator^(underlying_type other) const noexcept                                                 \
 	{                                                                                                                            \
-		return struct_type(bitfield ^ type(other));                                                                              \
+		return struct_type(bitfield ^ other);                                                                                    \
 	}                                                                                                                            \
-	constexpr inline struct_type& operator|=(Enum other) noexcept                                                                \
+	constexpr inline struct_type& operator|=(underlying_type other) noexcept                                                     \
 	{                                                                                                                            \
 		bitfield |= other;                                                                                                       \
 		return *this;                                                                                                            \
@@ -194,19 +194,39 @@ namespace Trinex
 	{                                                                                                                            \
 		return struct_type(~bitfield);                                                                                           \
 	}                                                                                                                            \
-	constexpr inline struct_type& operator&=(Enum other) noexcept                                                                \
+	constexpr inline struct_type& operator&=(underlying_type other) noexcept                                                     \
 	{                                                                                                                            \
 		bitfield &= other;                                                                                                       \
 		return *this;                                                                                                            \
 	}                                                                                                                            \
-	constexpr inline struct_type& operator^=(Enum other) noexcept                                                                \
+	constexpr inline struct_type& operator^=(underlying_type other) noexcept                                                     \
 	{                                                                                                                            \
 		bitfield ^= other;                                                                                                       \
 		return *this;                                                                                                            \
 	}                                                                                                                            \
+	constexpr inline bool all(underlying_type mask) const noexcept                                                               \
+	{                                                                                                                            \
+		return (bitfield & mask) == mask;                                                                                        \
+	}                                                                                                                            \
+	constexpr inline bool any(underlying_type mask) const noexcept                                                               \
+	{                                                                                                                            \
+		return (bitfield & mask) != 0;                                                                                           \
+	}                                                                                                                            \
+	constexpr inline struct_type set(underlying_type mask) noexcept                                                              \
+	{                                                                                                                            \
+		mask = mask & (~bitfield);                                                                                               \
+		bitfield |= mask;                                                                                                        \
+		return mask;                                                                                                             \
+	}                                                                                                                            \
+	constexpr inline struct_type remove(underlying_type mask) noexcept                                                           \
+	{                                                                                                                            \
+		mask = mask & bitfield;                                                                                                  \
+		bitfield ^= mask;                                                                                                        \
+		return mask;                                                                                                             \
+	}                                                                                                                            \
 	union                                                                                                                        \
 	{                                                                                                                            \
-		type bitfield;                                                                                                           \
+		underlying_type bitfield;                                                                                                \
 		Enum value;                                                                                                              \
 	}
 

@@ -18,7 +18,7 @@ namespace Trinex
 		trinex_class(PrimitiveComponent, SceneComponent);
 
 	private:
-		u32 m_primitive_id = 0xFFFFFFFF;
+		u32 m_scene_id = 0xFFFFFFFF;
 
 	protected:
 		Box3f m_bounding_box;

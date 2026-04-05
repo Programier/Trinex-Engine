@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/object_listener.hpp>
 #include <UI/imgui.hpp>
 
 namespace Trinex
@@ -10,18 +11,14 @@ namespace Trinex
 
 	class ScriptFunction;
 
-	class PropertyRenderer : public ImGuiWidget
+	class PropertyRenderer : public ImGuiWidget, public ObjectDestroyListener
 	{
 	private:
-		void* m_object;
-		Refl::Struct* m_struct;
-		Identifier m_destroy_id;
+		void* m_object         = nullptr;
+		Refl::Struct* m_struct = nullptr;
 
 	public:
-	public:
-		PropertyRenderer();
-		~PropertyRenderer();
-
+		PropertyRenderer& on_object_destroy(Object* object) override;
 		bool render(RenderViewport* viewport) override;
 		PropertyRenderer& render();
 

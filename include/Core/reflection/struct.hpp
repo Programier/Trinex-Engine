@@ -1,7 +1,6 @@
 #pragma once
 #include <Core/etl/set.hpp>
 #include <Core/etl/type_traits.hpp>
-#include <Core/flags.hpp>
 #include <Core/reflection/scoped_type.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 
@@ -25,18 +24,24 @@ namespace Trinex::Refl
 			}
 		};
 
-		enum Flag : BitMask
-		{
-			IsSingletone    = BIT(0),
-			IsAbstract      = BIT(1),
-			IsConstructible = BIT(2),
-			IsFinal         = BIT(3),
-			IsNative        = BIT(4),
-			IsScriptable    = BIT(5),
-			IsAsset         = BIT(6),
+		struct Flags {
+			enum Enum : u8
+			{
+				IsSingletone    = BIT(0),
+				IsAbstract      = BIT(1),
+				IsConstructible = BIT(2),
+				IsFinal         = BIT(3),
+				IsNative        = BIT(4),
+				IsScriptable    = BIT(5),
+				IsAsset         = BIT(6),
+			};
+
+			trinex_bitfield_enum_struct(Flags, u8);
 		};
 
-		const Flags<Flag> flags;
+		using enum Flags::Enum;
+
+		const Flags flags;
 		ScriptTypeInfo script_type_info;
 
 	private:
@@ -52,26 +57,26 @@ namespace Trinex::Refl
 		template<typename T>
 		static consteval BitMask native_type_flags()
 		{
-			BitMask mask = Flag::IsNative;
+			BitMask mask = Flags::IsNative;
 
 			if constexpr (std::is_final_v<T>)
 			{
-				mask |= Flag::IsFinal;
+				mask |= Flags::IsFinal;
 			}
 
 			if constexpr (std::is_abstract_v<T>)
 			{
-				mask |= Flag::IsAbstract;
+				mask |= Flags::IsAbstract;
 			}
 
 			if constexpr (is_singletone_v<T>)
 			{
-				mask |= Flag::IsSingletone;
+				mask |= Flags::IsSingletone;
 			}
 
 			if constexpr (!(std::is_abstract_v<T> || (!std::is_constructible_v<T> && !Trinex::is_singletone_v<T>) ))
 			{
-				mask |= Flag::IsConstructible;
+				mask |= Flags::IsConstructible;
 			}
 
 			return mask;

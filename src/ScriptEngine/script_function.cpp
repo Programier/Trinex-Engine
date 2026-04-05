@@ -198,7 +198,7 @@ namespace Trinex
 		return m_function->GetParamCount();
 	}
 
-	bool ScriptFunction::param(u32 index, i32* type_id, Flags<ScriptTypeModifiers>* flags_ptr, StringView* name,
+	bool ScriptFunction::param(u32 index, i32* type_id, ScriptTypeModifiers* flags_ptr, StringView* name,
 	                           StringView* default_arg) const
 	{
 		check_function(false);
@@ -221,7 +221,7 @@ namespace Trinex
 
 			if (flags_ptr)
 			{
-				(*flags_ptr) = Flags<ScriptTypeModifiers>(as_flags);
+				(*flags_ptr) = as_flags;
 			}
 		}
 		return status;

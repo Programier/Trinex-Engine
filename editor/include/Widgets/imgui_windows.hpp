@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/callback.hpp>
 #include <Core/etl/set.hpp>
+#include <Core/filesystem/path.hpp>
 #include <Core/pointer.hpp>
 #include <UI/imgui.hpp>
 
@@ -81,26 +82,32 @@ namespace Trinex
 
 
 	public:
-		enum Flag
-		{
-			None              = 0,
-			SelectDirectory   = 1 << 0,
-			EnterNewFilename  = 1 << 1,
-			NoModal           = 1 << 2,
-			NoTitleBar        = 1 << 3,
-			NoStatusBar       = 1 << 4,
-			CloseOnEsc        = 1 << 5,
-			CreateNewDir      = 1 << 6,
-			MultipleSelection = 1 << 7,
+		struct Flags {
+			enum Enum : u8
+			{
+				None              = 0,
+				SelectDirectory   = 1 << 0,
+				EnterNewFilename  = 1 << 1,
+				NoModal           = 1 << 2,
+				NoTitleBar        = 1 << 3,
+				NoStatusBar       = 1 << 4,
+				CloseOnEsc        = 1 << 5,
+				CreateNewDir      = 1 << 6,
+				MultipleSelection = 1 << 7,
+			};
+
+			trinex_bitfield_enum_struct(Flags, u8);
 		};
 
+		using enum Flags::Enum;
+
 	private:
-		Flags<Flag> m_flags;
+		Flags m_flags;
 
 	public:
 		CallBacks<void(const Path&)> on_select;
 
-		ImGuiOpenFile(Flags<Flag> flags = 0);
+		ImGuiOpenFile(Flags flags = 0);
 		ImGuiOpenFile& window_pos(i32 posx, i32 posy) noexcept;
 		ImGuiOpenFile& window_size(i32 width, i32 height) noexcept;
 		ImGuiOpenFile& title(StringView title);

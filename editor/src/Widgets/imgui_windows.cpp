@@ -315,7 +315,7 @@ namespace Trinex
 	}
 
 
-	ImGuiOpenFile::ImGuiOpenFile(Flags<Flag> flags) : m_flags(flags)
+	ImGuiOpenFile::ImGuiOpenFile(Flags flags) : m_flags(flags)
 	{
 		m_browser = trx_new ImGui::FileBrowser(static_cast<ImGuiFileBrowserFlags>(flags));
 		m_browser->SetTitle(name());
@@ -381,7 +381,7 @@ namespace Trinex
 
 		if (m_browser->HasSelected())
 		{
-			if ((m_flags & Flags(Flag::MultipleSelection)) == Flag::MultipleSelection)
+			if (m_flags.all(MultipleSelection))
 			{
 				for (auto& path : m_browser->GetMultiSelected())
 				{

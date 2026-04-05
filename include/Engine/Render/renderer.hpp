@@ -76,8 +76,8 @@ namespace Trinex
 		Renderer& render_primitives(PrimitiveComponent* const* primitives, usize count, RHIContext* ctx, RenderPass* pass,
 		                            RHIContextInheritanceInfo* inherit, MaterialBindings* bindings = nullptr);
 
-		virtual Renderer& render(RHIContext* ctx);
-		virtual Renderer& reset(const SceneView& view);
+		Renderer& render(RHIContext* ctx);
+		Renderer& reset(const SceneView& view);
 
 		inline const SceneView& scene_view() const { return m_view; }
 		inline Scene* scene() const { return m_scene; }

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Core/etl/engine_resource.hpp>
-#include <Core/flags.hpp>
 #include <Core/object.hpp>
 
 namespace Trinex
@@ -14,14 +13,8 @@ namespace Trinex
 		float m_delta_time;
 		float m_prev_time;
 
-		enum class Flag
-		{
-			IsRequestExit  = BIT(0),
-			IsShuttingDown = BIT(1),
-			IsInitied      = BIT(2),
-		};
-
-		Flags<Flag> m_flags;
+		u8 m_is_requesting_exit : 1 = false;
+		u8 m_is_shutting_down : 1   = false;
 
 	public:
 		BaseEngine();
@@ -39,8 +32,6 @@ namespace Trinex
 
 		float time_seconds() const;
 		bool is_shuting_down() const;
-		bool is_inited() const;
-		BaseEngine& make_inited();
 
 		inline float delta_time() const { return m_delta_time; }
 		inline u64 frame_index() const { return m_frame_index; }

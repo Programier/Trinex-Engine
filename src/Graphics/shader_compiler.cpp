@@ -57,7 +57,7 @@ namespace Trinex
 		if (compiler_class == nullptr)
 			return nullptr;
 
-		if (compiler_class->flags(Refl::Struct::IsSingletone))
+		if (compiler_class->flags.any(Refl::Struct::IsSingletone))
 		{
 			if (ShaderCompiler* compiler = instance_cast<ShaderCompiler>(compiler_class->singletone_instance()))
 			{

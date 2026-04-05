@@ -719,7 +719,7 @@ namespace Trinex
 
 			return *this;
 		}
-	} m_pool_update;
+	} s_pool_update;
 
 
 	static void on_destroy()

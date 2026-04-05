@@ -15,7 +15,6 @@ namespace Trinex
 	{
 	public:
 		ENGINE_EXPORT static CallBacks<void(Object*)> on_unreachable_check;
-		ENGINE_EXPORT static CallBacks<void(Object*)> on_destroy;
 
 		ENGINE_EXPORT static void destroy(Object* object);
 		ENGINE_EXPORT static void update(float dt);
@@ -30,7 +29,6 @@ namespace Trinex
 		ENGINE_EXPORT static void mark_unreachable(float dt);
 		ENGINE_EXPORT static void collect_garbage(float dt);
 		ENGINE_EXPORT static void destroy_garbage(float dt);
-		ENGINE_EXPORT static void destroy_internal(Object* object);
 
 		ENGINE_EXPORT static void destroy_all_objects();
 	};

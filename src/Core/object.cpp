@@ -11,6 +11,7 @@
 #include <Core/logger.hpp>
 #include <Core/memory.hpp>
 #include <Core/object.hpp>
+#include <Core/object_listener.hpp>
 #include <Core/package.hpp>
 #include <Core/pointer.hpp>
 #include <Core/reflection/class.hpp>
@@ -46,7 +47,7 @@ namespace Trinex
 		if (s_root_package == nullptr)
 		{
 			s_root_package = Object::new_instance<Package>("Content");
-			s_root_package->flags(Object::IsSerializable, false);
+			s_root_package->flags.remove(Object::Flags::IsSerializable);
 			s_root_package->add_reference();
 		}
 	}
@@ -62,11 +63,13 @@ namespace Trinex
 		return s_next_object_info.class_instance;
 	}
 
-	void Object::static_setup_new_object(Object* object, StringView name, Object* owner)
+	void Object::initialize_new_object(Object* object, StringView name, Object* owner)
 	{
 		object->m_name = name;
 		object->owner(owner);
 		object->on_create();
+
+		ObjectCreateListener::for_each_invoke(object);
 		s_next_object_info.reset();
 	}
 
@@ -154,9 +157,7 @@ namespace Trinex
 	{
 		trinex_verify_msg(s_next_object_info.class_instance, "Next object class is invalid!");
 
-		flags(Flag::IsSerializable, true);
-		flags(Flag::IsEditable, true);
-		flags(Flag::IsAvailableForGC, true);
+		flags.set(Flags::IsSerializable | Flags::IsEditable | Flags::IsAvailableForGC);
 
 		m_owner = nullptr;
 		m_class = s_next_object_info.class_instance;
@@ -530,7 +531,7 @@ namespace Trinex
 
 	bool Object::serialize(Archive& archive)
 	{
-		if (!flags(Flag::IsSerializable))
+		if (!flags.any(Flags::IsSerializable))
 		{
 			return false;
 		}
@@ -561,18 +562,18 @@ namespace Trinex
 
 	bool Object::is_editable() const
 	{
-		return flags(IsEditable);
+		return flags.any(Flags::IsEditable);
 	}
 
 	const Object& Object::mark_dirty() const
 	{
-		flags(IsDirty, true);
+		flags |= Flags::IsDirty;
 		return *this;
 	}
 
 	bool Object::is_dirty() const
 	{
-		return flags(IsDirty);
+		return flags.all(Flags::IsDirty);
 	}
 
 	template<typename Type>
@@ -608,7 +609,7 @@ namespace Trinex
 
 	bool Object::save(class BufferWriter* writer, SerializationFlags serialization_flags)
 	{
-		if (!flags(Object::IsSerializable))
+		if (!flags.any(Flags::IsSerializable))
 		{
 			error_log("Object", "Cannot save non-serializable package!");
 			return false;
@@ -708,7 +709,7 @@ namespace Trinex
 		return object;
 	}
 
-	static Object* load_from_file_internal(const Path& path, StringView fullname, Flags<SerializationFlags> flags)
+	static Object* load_from_file_internal(const Path& path, StringView fullname, SerializationFlags flags)
 	{
 		FileReader reader(path);
 		if (reader.is_open())
@@ -750,7 +751,7 @@ namespace Trinex
 
 	bool Object::is_serializable() const
 	{
-		return flags(IsSerializable);
+		return flags.any(Flags::IsSerializable);
 	}
 
 	Package* Object::root_package()
@@ -784,7 +785,7 @@ namespace Trinex
 
 	ENGINE_EXPORT Object* Object::copy_from(Object* src)
 	{
-		Flags<SerializationFlags> flags = SerializationFlags::IsCopyProcess;
+		SerializationFlags flags = SerializationFlags::IsCopyProcess;
 
 		Buffer buffer;
 		{

@@ -26,7 +26,6 @@ namespace Trinex
 
 	public:
 		DepthCubeRenderer(Scene* scene, const SceneView& view, ViewMode mode = ViewMode::Lit);
-		DepthCubeRenderer& render(RHIContext* cxt) override;
 
 		inline RHITexture* cubemap() const { return m_cubemap; }
 	};

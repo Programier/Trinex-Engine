@@ -55,12 +55,6 @@ namespace Trinex
 		        .add_func([this](RHIContext* ctx) { render_depth(ctx); });
 	}
 
-	DepthCubeRenderer& DepthCubeRenderer::render(RHIContext* cxt)
-	{
-		Renderer::render(cxt);
-		return *this;
-	}
-
 	DepthCubeRenderer& DepthCubeRenderer::clear_depth(RHIContext* ctx)
 	{
 		trinex_rhi_push_stage(ctx, "Clear");

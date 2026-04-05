@@ -24,7 +24,7 @@ namespace Trinex
 
 	System::System() : m_parent_system(nullptr)
 	{
-		flags(IsSerializable, false);
+		flags.remove(Flags::IsSerializable);
 	}
 
 	System& System::create()

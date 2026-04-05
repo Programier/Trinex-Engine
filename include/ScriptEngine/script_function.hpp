@@ -1,6 +1,5 @@
 #pragma once
 #include <Core/etl/string.hpp>
-#include <Core/flags.hpp>
 #include <ScriptEngine/enums.hpp>
 
 class asIScriptContext;
@@ -68,7 +67,7 @@ namespace Trinex
 		bool is_variadic() const;
 
 		u32 param_count() const;
-		bool param(u32 index, i32* type_id, Flags<ScriptTypeModifiers>* flags = nullptr, StringView* name = nullptr,
+		bool param(u32 index, i32* type_id, ScriptTypeModifiers* flags = nullptr, StringView* name = nullptr,
 		           StringView* default_arg = nullptr) const;
 		i32 return_type_id(ScriptTypeModifiers* flags = nullptr) const;
 

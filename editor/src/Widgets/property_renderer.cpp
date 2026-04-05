@@ -5,20 +5,14 @@
 
 namespace Trinex
 {
-	PropertyRenderer::PropertyRenderer() : m_object(nullptr), m_struct(nullptr)
+	PropertyRenderer& PropertyRenderer::on_object_destroy(Object* object)
 	{
-		m_destroy_id = GarbageCollector::on_destroy.push([this](Object* garbage) {
-			if (m_object == garbage)
-			{
-				m_object = nullptr;
-				m_struct = nullptr;
-			}
-		});
-	}
-
-	PropertyRenderer::~PropertyRenderer()
-	{
-		GarbageCollector::on_destroy.remove(m_destroy_id);
+		if (m_object == object)
+		{
+			m_object = nullptr;
+			m_struct = nullptr;
+		}
+		return *this;
 	}
 
 	bool PropertyRenderer::render(RenderViewport* viewport)

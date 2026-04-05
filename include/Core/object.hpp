@@ -4,7 +4,6 @@
 #include <Core/etl/atomic.hpp>
 #include <Core/etl/type_traits.hpp>
 #include <Core/etl/vector.hpp>
-#include <Core/flags.hpp>
 #include <Core/name.hpp>
 #include <angelscript_object.h>
 
@@ -38,21 +37,25 @@ namespace Trinex
 
 		using ObjectClass = Object;
 
-		enum Flag : u32
-		{
-			None = 0,
+		struct Flags {
+			enum Enum : u32
+			{
+				None = 0,
 
-			/*  The object is kept around for editing even if is not referenced by anything.
+				/*  The object is kept around for editing even if is not referenced by anything.
                 The object is deleted at the end of the engine operation, or must be deleted manually */
-			StandAlone = BIT(0),
+				StandAlone = BIT(0),
 
-			// The object is kept around for editing even if is not referenced by anything. The object must always be deleted manually
-			IsAvailableForGC = BIT(1),
+				// The object is kept around for editing even if is not referenced by anything. The object must always be deleted manually
+				IsAvailableForGC = BIT(1),
 
-			IsSerializable = BIT(2),
-			IsUnreachable  = BIT(4),
-			IsEditable     = BIT(5),
-			IsDirty        = BIT(6),
+				IsSerializable = BIT(2),
+				IsUnreachable  = BIT(4),
+				IsEditable     = BIT(5),
+				IsDirty        = BIT(6),
+			};
+
+			trinex_bitfield_enum_struct(Flags, u32);
 		};
 
 	private:
@@ -68,19 +71,19 @@ namespace Trinex
 		static class Refl::Class* m_static_class;
 
 	public:
-		mutable Flags<Object::Flag, u32> flags;
+		mutable Flags flags;
 
 	private:
 		// Setup object info
 		static Refl::Class* static_setup_next_object_info(Refl::Class* self = nullptr);
-		static void static_setup_new_object(Object* object, StringView name, Object* owner);
+		static void initialize_new_object(Object* object, StringView name, Object* owner);
 
 		template<typename T>
-		static FORCE_INLINE T* static_setup_new_object_checked(T* object, StringView name, Object* owner)
+		static FORCE_INLINE T* initialize_new_object_checked(T* object, StringView name, Object* owner)
 		{
 			if constexpr (std::is_base_of_v<Object, T>)
 			{
-				static_setup_new_object(object, name, owner);
+				initialize_new_object(object, name, owner);
 			}
 			return object;
 		}
@@ -221,13 +224,13 @@ namespace Trinex
 
 					if constexpr (std::is_base_of_v<Object, Type>)
 						static_setup_next_object_info(Type::static_reflection());
-					return static_setup_new_object_checked(Type::create_instance(std::forward<Args>(args)...), name, owner);
+					return initialize_new_object_checked(Type::create_instance(std::forward<Args>(args)...), name, owner);
 				}
 				else
 				{
 					if constexpr (std::is_base_of_v<Object, Type>)
 						static_setup_next_object_info(Type::static_reflection());
-					return static_setup_new_object_checked(trx_new Type(std::forward<Args>(args)...), name, owner);
+					return initialize_new_object_checked(trx_new Type(std::forward<Args>(args)...), name, owner);
 				}
 			}
 		}
@@ -256,14 +259,14 @@ namespace Trinex
 
 					if constexpr (std::is_base_of_v<Object, Type>)
 						static_setup_next_object_info(Type::static_reflection());
-					return static_setup_new_object_checked(Type::create_placement_instance(place, std::forward<Args>(args)...),
-					                                       name, owner);
+					return initialize_new_object_checked(Type::create_placement_instance(place, std::forward<Args>(args)...),
+					                                     name, owner);
 				}
 				else
 				{
 					if constexpr (std::is_base_of_v<Object, Type>)
 						static_setup_next_object_info(Type::static_reflection());
-					return static_setup_new_object_checked(new (place) Type(std::forward<Args>(args)...), name, owner);
+					return initialize_new_object_checked(new (place) Type(std::forward<Args>(args)...), name, owner);
 				}
 			}
 		}

@@ -13,6 +13,7 @@ namespace Trinex
 	class LightComponent;
 	class PostProcessComponent;
 	struct Frustum;
+	class RHIContext;
 
 	class ENGINE_EXPORT Scene final
 	{
@@ -26,6 +27,9 @@ namespace Trinex
 
 	public:
 		WorldEnvironment environment;
+
+		Scene& begin(float dt);
+		Scene& end(float dt);
 
 		u32 add_primitive(PrimitiveComponent* primitive, const Box3i& box);
 		Scene& update_primitive(u32 id, const Box3i& box);

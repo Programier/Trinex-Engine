@@ -143,6 +143,7 @@ namespace Trinex
 
 			record.value = value;
 			record.node  = node;
+			record.flags = 0;
 			record.index = node->insert(id);
 			return id;
 		}
@@ -151,6 +152,7 @@ namespace Trinex
 		Record& record = m_pool.emplace_back();
 		record.value   = value;
 		record.node    = node;
+		record.flags   = 0;
 		record.index   = node->insert(id);
 
 		return id;
@@ -195,6 +197,12 @@ namespace Trinex
 	u32 Octree::insert(void* value, const Box3i& box)
 	{
 		return insert(value, find_or_create(box));
+	}
+
+	Flags<u32>& Octree::flags(u32 id)
+	{
+		trinex_assert(id < m_pool.size());
+		return m_pool[id].flags;
 	}
 
 	Octree& Octree::update(u32 id, const Box3i& box)

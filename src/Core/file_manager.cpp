@@ -87,7 +87,7 @@ namespace Trinex
 	bool FileReader::open(const Path& path)
 	{
 		close();
-		m_file = rootfs()->open(path, Flags<FileOpenMode>(FileOpenMode::Read));
+		m_file = rootfs()->open(path, FileOpenMode::Read);
 		return is_open();
 	}
 

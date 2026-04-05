@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/engine_types.hpp>
+#include <Core/etl/flags.hpp>
 #include <Core/etl/vector.hpp>
 #include <Core/math/box.hpp>
 
@@ -47,7 +48,8 @@ namespace Trinex
 	private:
 		struct Record {
 			void* value;
-			Node* node = nullptr;
+			Node* node;
+			Flags<u32> flags;
 
 			union
 			{
@@ -71,6 +73,7 @@ namespace Trinex
 		~Octree();
 
 		u32 insert(void* value, const Box3i& box);
+		Flags<u32>& flags(u32 id);
 		Octree& update(u32 id, const Box3i& box);
 		Octree& remove(u32 id);
 

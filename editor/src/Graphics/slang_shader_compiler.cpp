@@ -687,8 +687,8 @@ namespace Trinex
 
 	SLANG_ShaderCompiler::SLANG_ShaderCompiler()
 	{
-		flags(StandAlone, true);
-		flags(IsAvailableForGC, false);
+		flags.set(Flags::StandAlone);
+		flags.remove(Flags::IsAvailableForGC);
 
 		if (g_slang_global_session == nullptr)
 		{

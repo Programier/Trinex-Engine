@@ -154,8 +154,8 @@ namespace Trinex
 
 		if (ImGui::IconButton(ICON_LC_PLUS "###add"))
 		{
-			Flags<ImGuiOpenFile::Flag> flags = Flags(ImGuiOpenFile::MultipleSelection);
-			auto window                      = ImGuiWindow::current()->widgets.create_identified<ImGuiOpenFile>(this, flags);
+			ImGuiOpenFile::Flags flags = ImGuiOpenFile::MultipleSelection;
+			auto window                = ImGuiWindow::current()->widgets.create_identified<ImGuiOpenFile>(this, flags);
 			window->on_select.push([](const Path& path) {
 				Path relative = path.relative(rootfs()->native_path(Project::assets_dir));
 				Object::load_object_from_file(relative);

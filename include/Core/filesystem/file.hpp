@@ -1,7 +1,6 @@
 #pragma once
 #include <Core/enums.hpp>
 #include <Core/filesystem/path.hpp>
-#include <Core/flags.hpp>
 
 namespace Trinex::VFS
 {

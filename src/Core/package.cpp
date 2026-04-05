@@ -9,7 +9,7 @@ namespace Trinex
 {
 	Package::Package()
 	{
-		flags(Object::StandAlone, true);
+		flags |= Object::Flags::StandAlone;
 	}
 
 	bool Package::can_add_object(Object* object) const
@@ -84,7 +84,7 @@ namespace Trinex
 
 	bool Package::save(BufferWriter* writer, SerializationFlags serialization_flags)
 	{
-		if (!flags(Object::IsSerializable))
+		if (!is_serializable())
 		{
 			error_log("Package", "Cannot save non-serializable package!");
 			return false;

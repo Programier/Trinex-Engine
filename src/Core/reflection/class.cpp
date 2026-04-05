@@ -69,7 +69,7 @@ namespace Trinex::Refl
 				ScriptEngine::engine()->RegisterObjectBaseType(full_name().c_str(), base->full_name().c_str());
 			}
 
-			if (flags(IsConstructible))
+			if (flags.any(IsConstructible))
 			{
 				auto factory =
 				        Strings::format(R"({}@ f(Trinex::StringView name = "", Trinex::Object owner = null))", full_name());
@@ -123,13 +123,13 @@ namespace Trinex::Refl
 
 	Trinex::Object* Class::create_object(StringView name, Trinex::Object* owner)
 	{
-		if (flags(Class::IsSingletone))
+		if (flags.any(Class::IsSingletone))
 		{
 			if (m_singletone_object == nullptr)
 			{
 				bool scriptable     = !Trinex::Object::static_setup_next_object_info(this)->is_native();
 				m_singletone_object = object_constructor(name, owner, scriptable);
-				m_singletone_object->flags |= Trinex::Object::StandAlone;
+				m_singletone_object->flags |= Trinex::Object::Flags::StandAlone;
 				m_singletone_object->add_reference();
 			}
 
@@ -143,13 +143,13 @@ namespace Trinex::Refl
 
 	Trinex::Object* Class::create_placement_object(void* place, StringView name, Trinex::Object* owner)
 	{
-		if (flags(Class::IsSingletone))
+		if (flags.any(Class::IsSingletone))
 		{
 			if (m_singletone_object == nullptr)
 			{
 				bool scriptable     = !Trinex::Object::static_setup_next_object_info(this)->is_native();
 				m_singletone_object = object_placement_constructor(place, name, owner, scriptable);
-				m_singletone_object->flags |= Trinex::Object::StandAlone;
+				m_singletone_object->flags |= Trinex::Object::Flags::StandAlone;
 				m_singletone_object->add_reference();
 				return m_singletone_object;
 			}

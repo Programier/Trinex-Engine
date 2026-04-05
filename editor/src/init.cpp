@@ -20,7 +20,7 @@ namespace Trinex
 	{
 		if (object->class_instance()->is_asset())
 		{
-			object->flags(Object::Flag::IsUnreachable, false);
+			object->flags.remove(Object::Flags::IsUnreachable);
 		}
 	}
 

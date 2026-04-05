@@ -34,7 +34,7 @@ namespace Trinex
 
 		if (World* actor_world = world())
 		{
-			m_primitive_id = actor_world->scene()->add_primitive(this, m_bounding_box);
+			m_scene_id = actor_world->scene()->add_primitive(this, m_bounding_box);
 		}
 
 		return *this;
@@ -46,10 +46,10 @@ namespace Trinex
 
 		if (World* actor_world = world())
 		{
-			actor_world->scene()->remove_primitive(m_primitive_id);
+			actor_world->scene()->remove_primitive(m_scene_id);
 		}
 
-		m_primitive_id = 0xFFFFFFFF;
+		m_scene_id = 0xFFFFFFFF;
 		return *this;
 	}
 
@@ -58,9 +58,9 @@ namespace Trinex
 		Super::on_transform_changed();
 		update_bounding_box();
 
-		if (m_primitive_id != 0xFFFFFFFF)
+		if (m_scene_id != 0xFFFFFFFF)
 		{
-			scene()->update_primitive(m_primitive_id, m_bounding_box);
+			scene()->update_primitive(m_scene_id, m_bounding_box);
 		}
 
 		return *this;

@@ -167,8 +167,6 @@ namespace Trinex
 		{
 			window->show();
 		}
-
-		engine_instance->make_inited();
 	}
 
 	void EngineLoop::update()

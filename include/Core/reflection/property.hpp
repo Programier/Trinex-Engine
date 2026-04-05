@@ -1,7 +1,6 @@
 #pragma once
 #include <Core/etl/any.hpp>
 #include <Core/etl/type_traits.hpp>
-#include <Core/flags.hpp>
 #include <Core/math/angle.hpp>
 #include <Core/reflection/object.hpp>
 #include <Core/types/color.hpp>

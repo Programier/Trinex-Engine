@@ -5,7 +5,6 @@
 #include <Core/etl/ref.hpp>
 #include <Core/etl/string.hpp>
 #include <Core/etl/type_traits.hpp>
-#include <Core/flags.hpp>
 #include <Core/math/fwd.hpp>
 #include <ScriptEngine/script_variable.hpp>
 #include <angelscript.h>

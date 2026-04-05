@@ -3,6 +3,7 @@
 #include <Core/logger.hpp>
 #include <Core/math/math.hpp>
 #include <Core/object.hpp>
+#include <Core/object_listener.hpp>
 #include <Core/package.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/property.hpp>
@@ -28,16 +29,10 @@ namespace Trinex
 	} gc_state;
 
 	CallBacks<void(Object*)> GarbageCollector::on_unreachable_check;
-	CallBacks<void(Object*)> GarbageCollector::on_destroy;
 
 	static FORCE_INLINE u32 get_max_objects_per_tick()
 	{
 		return Math::max<u32>(1, Settings::gc_max_object_per_tick);
-	}
-
-	ENGINE_EXPORT void GarbageCollector::destroy_internal(Object* object)
-	{
-		trx_delete object;
 	}
 
 	void GarbageCollector::destroy(Object* object)
@@ -57,9 +52,9 @@ namespace Trinex
 				          object->class_instance()->full_name().c_str());
 			}
 		}
-		
+
 		object->on_destroy();
-		on_destroy(object);
+		ObjectDestroyListener::for_each_invoke(object);
 		object->class_instance()->destroy_object(object);
 	}
 
@@ -123,7 +118,7 @@ namespace Trinex
 
 	void GarbageCollector::mark_unreachable(float dt)
 	{
-		static void (*callback)(Object* object) = [](Object* object) { object->flags(Object::Flag::IsUnreachable, true); };
+		static void (*callback)(Object* object) = [](Object* object) { object->flags |= Object::Flags::IsUnreachable; };
 		process_objects(callback);
 	}
 
@@ -133,12 +128,12 @@ namespace Trinex
 
 		auto& flags = object->flags;
 
-		if (flags(Object::StandAlone) || object->references() > 0 || object->owner() != nullptr)
+		if (flags.any(Object::Flags::StandAlone) || object->references() > 0 || object->owner() != nullptr)
 		{
-			object->flags(Object::IsUnreachable, false);
+			object->flags.remove(Object::Flags::IsUnreachable);
 		}
 
-		if (!object->flags(Object::IsUnreachable))
+		if (!object->flags.all(Object::Flags::IsUnreachable))
 		{
 			Refl::Class* class_instance = object->class_instance();
 
@@ -156,7 +151,7 @@ namespace Trinex
 						Object* prop_object = object_prop->object(object);
 						if (prop_object)
 						{
-							prop_object->flags(Object::IsUnreachable, false);
+							prop_object->flags.remove(Object::Flags::IsUnreachable);
 						}
 					}
 				}
@@ -173,7 +168,7 @@ namespace Trinex
 	void GarbageCollector::destroy_garbage(float dt)
 	{
 		static void (*callback)(Object* object) = [](Object* object) {
-			if (object->flags(Object::Flag::IsUnreachable))
+			if (object->flags.all(Object::Flags::IsUnreachable))
 			{
 				destroy(object);
 			}
@@ -187,7 +182,7 @@ namespace Trinex
 		if (object == nullptr)
 			return true;
 
-		if (!object->flags.has_all(Object::IsAvailableForGC))
+		if (!object->flags.all(Object::Flags::IsAvailableForGC))
 			return false;
 
 		auto index = object->global_index();

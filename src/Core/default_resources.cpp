@@ -72,7 +72,7 @@ namespace Trinex
 	static T* create_texture(Package* package, const char* name)
 	{
 		T* texture = Object::new_instance<T>(name, package);
-		texture->flags |= Object::StandAlone;
+		texture->flags |= Object::Flags::StandAlone;
 		texture->format = RHIColorFormat::R8G8B8A8;
 		return texture;
 	}

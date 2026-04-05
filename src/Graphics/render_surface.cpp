@@ -10,8 +10,7 @@ namespace Trinex
 
 	RenderSurface::RenderSurface()
 	{
-		flags(IsSerializable, false);
-		flags(IsEditable, false);
+		flags.remove(Flags::IsSerializable | Flags::IsEditable);
 	}
 
 	RenderSurface& RenderSurface::init(RHISurfaceFormat format, Vector2i size)
