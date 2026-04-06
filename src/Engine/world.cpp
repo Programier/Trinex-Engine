@@ -54,17 +54,12 @@ namespace Trinex
 	World& World::update(float dt)
 	{
 		ScopeVariable scope_world(s_current_world, this);
+		Super::update(dt);
 
-		m_scene->begin(dt);
+		for (LevelInstance* level : m_levels)
 		{
-			Super::update(dt);
-
-			for (LevelInstance* level : m_levels)
-			{
-				level->update(dt);
-			}
+			level->update(dt);
 		}
-		m_scene->end(dt);
 
 		return *this;
 	}

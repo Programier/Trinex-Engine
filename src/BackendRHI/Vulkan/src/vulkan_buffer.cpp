@@ -195,12 +195,12 @@ namespace Trinex
 		return *this;
 	}
 
-	RHIShaderResourceView* VulkanBuffer::as_srv()
+	RHIShaderResourceView* VulkanBuffer::as_srv(RHIBufferViewType view, RHIColorFormat format)
 	{
 		return m_srv;
 	}
 
-	RHIUnorderedAccessView* VulkanBuffer::as_uav()
+	RHIUnorderedAccessView* VulkanBuffer::as_uav(RHIBufferViewType view, RHIColorFormat format)
 	{
 		return m_uav;
 	}
@@ -251,8 +251,7 @@ namespace Trinex
 	{
 		static constexpr usize uniform_buffer_page_size = 1024 * 32;// 32 KB
 
-		constexpr auto flags =
-		        RHIBufferFlags::UniformBuffer | RHIBufferFlags::CPURead | RHIBufferFlags::CPUWrite;
+		constexpr auto flags = RHIBufferFlags::UniformBuffer | RHIBufferFlags::CPURead | RHIBufferFlags::CPUWrite;
 		create(Math::max(uniform_buffer_page_size, min_size), flags);
 		m_memory = m_block_start = m_block_end = map();
 	}

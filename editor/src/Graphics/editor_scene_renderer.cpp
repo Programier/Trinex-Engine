@@ -27,13 +27,13 @@ namespace Trinex
 	class HitproxyRenderer : public Renderer
 	{
 	public:
-		HitproxyRenderer(Scene* scene, const SceneView& view, ViewMode mode = ViewMode::Lit) : Renderer(scene, view, mode) {}
+		HitproxyRenderer(const SceneView& view, ViewMode mode = ViewMode::Lit) : Renderer(view, mode) {}
 
 		RHITexture* render_hitproxies(RHIContext* ctx)
 		{
-			Vector2u size                               = scene_view().view_size();
-			const Matrix4f& projview                    = scene_view().camera_view().projview;
-			FrameVector<PrimitiveComponent*> primitives = scene()->collect_visible_primitives(projview);
+			Vector2u size            = scene_view().view_size();
+			const Matrix4f& projview = scene_view().camera_view().projview;
+			FrameVector<PrimitiveComponent*> primitives /*= scene()->collect_visible_primitives(projview)*/;
 
 			auto pool    = RHITexturePool::global_instance();
 			auto surface = pool->request_transient_surface(RHISurfaceFormat::RG32UI, size, RHITextureFlags::RenderTarget);
@@ -86,12 +86,12 @@ namespace Trinex
 		}
 	};
 
-	EditorRenderer::EditorRenderer(Scene* scene, const SceneView& view, ViewMode mode) : DeferredRenderer(scene, view, mode) {}
+	EditorRenderer::EditorRenderer(const SceneView& view, ViewMode mode) : DeferredRenderer(view, mode) {}
 
 	Actor* EditorRenderer::static_raycast(const SceneView& view, Vector2f uv, Scene* scene)
 	{
 		uv = glm::clamp(uv, Vector2f(0.f), Vector2f(1.f));
-		HitproxyRenderer renderer(scene, view);
+		HitproxyRenderer renderer(view);
 
 		auto buffer_pool  = RHIBufferPool::global_instance();
 		auto fence_pool   = RHIFencePool::global_instance();

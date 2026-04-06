@@ -11,7 +11,7 @@ namespace Trinex
 		DepthRenderer& render_depth(RHIContext* ctx);
 
 	public:
-		DepthRenderer(Scene* scene, const SceneView& view, ViewMode mode = ViewMode::Lit);
+		DepthRenderer(const SceneView& view, ViewMode mode = ViewMode::Lit);
 	};
 
 	class ENGINE_EXPORT DepthCubeRenderer : public Renderer
@@ -25,7 +25,7 @@ namespace Trinex
 		DepthCubeRenderer& render_depth(RHIContext* ctx);
 
 	public:
-		DepthCubeRenderer(Scene* scene, const SceneView& view, ViewMode mode = ViewMode::Lit);
+		DepthCubeRenderer(const SceneView& view, ViewMode mode = ViewMode::Lit);
 
 		inline RHITexture* cubemap() const { return m_cubemap; }
 	};

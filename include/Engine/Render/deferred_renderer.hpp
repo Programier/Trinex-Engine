@@ -63,7 +63,7 @@ namespace Trinex
 		}
 
 	public:
-		DeferredRenderer(Scene* scene, const SceneView& view, ViewMode mode);
+		DeferredRenderer(const SceneView& view, ViewMode mode);
 		trinex_non_copyable(DeferredRenderer);
 		trinex_non_moveable(DeferredRenderer);
 

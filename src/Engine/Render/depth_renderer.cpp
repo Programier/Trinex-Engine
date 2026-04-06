@@ -13,7 +13,7 @@
 
 namespace Trinex
 {
-	DepthRenderer::DepthRenderer(Scene* scene, const SceneView& view, ViewMode mode) : Renderer(scene, view, mode)
+	DepthRenderer::DepthRenderer(const SceneView& view, ViewMode mode) : Renderer(view, mode)
 	{
 		auto graph = render_graph();
 
@@ -27,7 +27,7 @@ namespace Trinex
 	{
 		Frustum frustum = scene_view().camera_view().projview;
 
-		FrameVector<PrimitiveComponent*> components = scene()->collect_visible_primitives(frustum);
+		FrameVector<PrimitiveComponent*> components /*= scene()->collect_visible_primitives(frustum)*/;
 		ctx->begin_rendering(scene_depth_target()->as_dsv());
 		{
 			for (PrimitiveComponent* component : components)
@@ -41,7 +41,7 @@ namespace Trinex
 		return *this;
 	}
 
-	DepthCubeRenderer::DepthCubeRenderer(Scene* scene, const SceneView& view, ViewMode mode) : Renderer(scene, view, mode)
+	DepthCubeRenderer::DepthCubeRenderer(const SceneView& view, ViewMode mode) : Renderer(view, mode)
 	{
 		auto pool = RHITexturePool::global_instance();
 		m_cubemap = pool->request_transient_surface(RHITextureType::TextureCube, RHISurfaceFormat::D32F, {view.view_size(), 1});
@@ -71,15 +71,15 @@ namespace Trinex
 		CameraView camera = scene_view().camera_view();
 		camera.look(camera.location(), forward, up);
 
-		reset(SceneView(camera, current_scene_view.view_size(), current_scene_view.show_flags()));
+		reset(SceneView(scene(), camera, current_scene_view.view_size(), current_scene_view.show_flags()));
 
 #if TRINEX_DEBUG_BUILD
 		static const char* face_names[6] = {"Right ", "Left", "Top", "Bottom", "Front", "Back"};
 		ctx->push_debug_stage(face_names[face]);
 #endif
 
-		Frustum frustum                             = scene_view().camera_view().projview;
-		FrameVector<PrimitiveComponent*> components = scene()->collect_visible_primitives(frustum);
+		Frustum frustum = scene_view().camera_view().projview;
+		FrameVector<PrimitiveComponent*> components /*= scene()->collect_visible_primitives(frustum)*/;
 
 		RHITextureDescDSV view;
 		view.base_slice  = face;

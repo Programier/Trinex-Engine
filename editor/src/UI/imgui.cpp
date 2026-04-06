@@ -250,7 +250,7 @@ namespace Trinex
 
 			if (!vd->vertex_buffer || static_cast<int>(vd->vertex_count) < draw_data->TotalVtxCount)
 			{
-				constexpr auto flags = RHIBufferFlags::Dynamic | RHIBufferFlags::VertexBuffer;
+				constexpr auto flags = RHIBufferFlags::VertexBuffer;
 				vd->vertex_count     = draw_data->TotalVtxCount + 5000;
 				auto len             = vd->vertex_count * sizeof(ImDrawVert);
 				vd->vertex_buffer    = RHI::instance()->create_buffer(len, flags);
@@ -258,7 +258,7 @@ namespace Trinex
 
 			if (!vd->index_buffer || static_cast<int>(vd->index_count) < draw_data->TotalIdxCount)
 			{
-				constexpr auto flags = RHIBufferFlags::Dynamic | RHIBufferFlags::IndexBuffer;
+				constexpr auto flags = RHIBufferFlags::IndexBuffer;
 				vd->index_count      = draw_data->TotalIdxCount + 10000;
 				auto len             = vd->index_count * sizeof(ImDrawIdx);
 				vd->index_buffer     = RHI::instance()->create_buffer(len, flags);

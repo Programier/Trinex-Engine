@@ -165,44 +165,9 @@ namespace Trinex
 	{                                                                                                                            \
 		return bitfield;                                                                                                         \
 	}                                                                                                                            \
-	constexpr inline bool operator==(underlying_type other) const noexcept                                                       \
+	constexpr operator underlying_type&()                                                                                        \
 	{                                                                                                                            \
-		return bitfield == other;                                                                                                \
-	}                                                                                                                            \
-	constexpr inline bool operator!=(underlying_type other) const noexcept                                                       \
-	{                                                                                                                            \
-		return bitfield != other;                                                                                                \
-	}                                                                                                                            \
-	constexpr inline struct_type operator|(underlying_type other) const noexcept                                                 \
-	{                                                                                                                            \
-		return struct_type(bitfield | other);                                                                                    \
-	}                                                                                                                            \
-	constexpr inline struct_type operator&(underlying_type other) const noexcept                                                 \
-	{                                                                                                                            \
-		return struct_type(bitfield & other);                                                                                    \
-	}                                                                                                                            \
-	constexpr inline struct_type operator^(underlying_type other) const noexcept                                                 \
-	{                                                                                                                            \
-		return struct_type(bitfield ^ other);                                                                                    \
-	}                                                                                                                            \
-	constexpr inline struct_type& operator|=(underlying_type other) noexcept                                                     \
-	{                                                                                                                            \
-		bitfield |= other;                                                                                                       \
-		return *this;                                                                                                            \
-	}                                                                                                                            \
-	constexpr inline struct_type operator~() const noexcept                                                                      \
-	{                                                                                                                            \
-		return struct_type(~bitfield);                                                                                           \
-	}                                                                                                                            \
-	constexpr inline struct_type& operator&=(underlying_type other) noexcept                                                     \
-	{                                                                                                                            \
-		bitfield &= other;                                                                                                       \
-		return *this;                                                                                                            \
-	}                                                                                                                            \
-	constexpr inline struct_type& operator^=(underlying_type other) noexcept                                                     \
-	{                                                                                                                            \
-		bitfield ^= other;                                                                                                       \
-		return *this;                                                                                                            \
+		return bitfield;                                                                                                         \
 	}                                                                                                                            \
 	constexpr inline bool all(underlying_type mask) const noexcept                                                               \
 	{                                                                                                                            \

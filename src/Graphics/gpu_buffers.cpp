@@ -69,7 +69,7 @@ namespace Trinex
 		buffer.m_vtx_count = 0;
 		buffer.m_stride    = 0;
 		buffer.m_data      = nullptr;
-		buffer.m_flags     = RHIBufferFlags::Static;
+		buffer.m_flags     = RHIBufferFlags::Undefined;
 	}
 
 	VertexBufferBase& VertexBufferBase::operator=(const VertexBufferBase& buffer)
@@ -97,8 +97,7 @@ namespace Trinex
 		return *this;
 	}
 
-	VertexBufferBase& VertexBufferBase::init(RHIBufferFlags type, usize stride, usize count, const void* data,
-	                                         bool keep_cpu_data)
+	VertexBufferBase& VertexBufferBase::init(RHIBufferFlags type, usize stride, usize count, const void* data, bool keep_cpu_data)
 	{
 		allocate_data(type, stride, count);
 		if (data)
@@ -185,7 +184,7 @@ namespace Trinex
 		bool has_data = m_data != nullptr;
 		u8 flags;
 		ar.serialize(flags, m_stride, m_vtx_count, has_data);
-		m_flags = RHIBufferFlags::Static;
+		m_flags = RHIBufferFlags::Undefined;
 
 		if (has_data)
 		{
@@ -366,7 +365,7 @@ namespace Trinex
 		bool has_data = m_data != nullptr;
 		u8 flags;
 		ar.serialize(m_idx_count, flags, m_format, has_data);
-		m_flags = RHIBufferFlags::Static;
+		m_flags = RHIBufferFlags::Undefined;
 
 		if (has_data)
 		{

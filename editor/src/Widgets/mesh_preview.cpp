@@ -101,9 +101,9 @@ namespace Trinex
 			if (scene == nullptr)
 				return nullptr;
 
-			SceneView scene_view(m_camera->camera_view(size.x / size.y), view_size);
+			SceneView scene_view(scene, m_camera->camera_view(size.x / size.y), view_size);
 
-			EditorRenderer renderer(scene, scene_view);
+			EditorRenderer renderer(scene_view);
 			RenderGraph::Graph* graph = renderer.render_graph();
 
 			renderer.render_grid();

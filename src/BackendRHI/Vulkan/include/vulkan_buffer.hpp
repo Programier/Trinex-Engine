@@ -19,15 +19,14 @@ namespace Trinex
 
 		vk::Buffer m_buffer        = VK_NULL_HANDLE;
 		VmaAllocation m_allocation = VK_NULL_HANDLE;
-		usize m_size              = 0;
+		usize m_size               = 0;
 		RHIDeviceAddress m_address = 0;
 
-		RHIAccess m_access           = RHIAccess::Undefined;
+		RHIAccess m_access     = RHIAccess::Undefined;
 		RHIBufferFlags m_flags = {};
 
 	public:
-		VulkanBuffer& create(vk::DeviceSize size, RHIBufferFlags flags,
-		                     VmaMemoryUsage memory_usage = VMA_MEMORY_USAGE_AUTO);
+		VulkanBuffer& create(vk::DeviceSize size, RHIBufferFlags flags, VmaMemoryUsage memory_usage = VMA_MEMORY_USAGE_AUTO);
 
 		VulkanBuffer& copy(VulkanContext* ctx, vk::DeviceSize offset, const u8* data, vk::DeviceSize size);
 
@@ -38,8 +37,8 @@ namespace Trinex
 		VulkanBuffer& update(VulkanContext* ctx, usize offset, usize size, const u8* data);
 		VulkanBuffer& barrier(VulkanContext* ctx, RHIAccess access);
 
-		RHIShaderResourceView* as_srv() override;
-		RHIUnorderedAccessView* as_uav() override;
+		RHIShaderResourceView* as_srv(RHIBufferViewType view, RHIColorFormat format = RHIColorFormat::Undefined) override;
+		RHIUnorderedAccessView* as_uav(RHIBufferViewType view, RHIColorFormat format = RHIColorFormat::Undefined) override;
 		inline RHIBufferFlags flags() const { return m_flags; }
 		inline vk::Buffer buffer() const { return m_buffer; }
 		~VulkanBuffer();
@@ -88,7 +87,7 @@ namespace Trinex
 	private:
 		struct FreeEntry {
 			VulkanStaggingBuffer* m_buffer = nullptr;
-			usize m_frame_number          = 0;
+			usize m_frame_number           = 0;
 
 			FreeEntry(VulkanStaggingBuffer* buffer, usize frames) : m_buffer(buffer), m_frame_number(frames) {}
 		};

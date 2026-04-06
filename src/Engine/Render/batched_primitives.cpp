@@ -12,8 +12,7 @@
 namespace Trinex
 {
 	static constexpr usize s_line_vtx_per_node = 40960;
-	static constexpr auto s_vtx_buffer_flags =
-	        RHIBufferFlags::VertexBuffer | RHIBufferFlags::TransferDst | RHIBufferFlags::Dynamic;
+	static constexpr auto s_vtx_buffer_flags   = RHIBufferFlags::VertexBuffer | RHIBufferFlags::TransferDst;
 
 	BatchedLines::Node::Node() : next(nullptr), vertices(FrameAllocator<Vertex>::allocate(s_line_vtx_per_node)), vtx_count(0) {}
 
@@ -205,8 +204,8 @@ namespace Trinex
 	// TRIANGLES
 
 	BatchedTriangles::BatchedTriangles()
-	    : m_position_buffer(RHIBufferFlags::Dynamic, 64, nullptr, true),
-	      m_color_buffer(RHIBufferFlags::Dynamic, 64, nullptr, true)
+	    : m_position_buffer(RHIBufferFlags::Undefined, 64, nullptr, true),
+	      m_color_buffer(RHIBufferFlags::Undefined, 64, nullptr, true)
 	{}
 
 	BatchedTriangles& BatchedTriangles::clear()

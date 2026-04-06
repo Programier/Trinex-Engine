@@ -94,7 +94,7 @@ namespace Trinex
 			skeletal_bindings.prev = ctx->bindings;
 			ctx->bindings          = &skeletal_bindings;
 
-			(*trx_skinning_bones) = m_bones->as_srv();
+			(*trx_skinning_bones) = m_bones->as_srv(RHIBufferViewType::ByteAddress);
 			Super::render(ctx);
 		}
 		return *this;

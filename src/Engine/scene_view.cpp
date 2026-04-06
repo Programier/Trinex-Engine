@@ -3,56 +3,9 @@
 
 namespace Trinex
 {
-	SceneView::SceneView(ShowFlags show_flags) : m_show_flags(show_flags) {}
-
-	SceneView::SceneView(const CameraView& view, const Vector2u& view_size, ShowFlags show_flags)
-	    : m_camera_view(view),     //
-	      m_prev_camera_view(view),//
-	      m_view_size(view_size),  //
-	      m_show_flags(show_flags)
+	SceneView::SceneView(Scene* scene, const CameraView& camera, Vector2u size, ShowFlags flags)
+	    : m_camera_view(camera), m_prev_camera_view(camera), m_view_size(size), m_show_flags(flags), m_scene(scene)
 	{}
-
-	SceneView& SceneView::camera_view(const CameraView& view)
-	{
-		m_camera_view = view;
-		return *this;
-	}
-
-	SceneView& SceneView::prev_camera_view(const CameraView& view)
-	{
-		m_prev_camera_view = view;
-		return *this;
-	}
-
-	SceneView& SceneView::view_size(Vector2u size)
-	{
-		m_view_size = size;
-		return *this;
-	}
-
-	SceneView& SceneView::viewport(const RHIViewport& viewport)
-	{
-		m_viewport = viewport;
-		return *this;
-	}
-
-	SceneView& SceneView::scissor(const RHIScissor& scissor)
-	{
-		m_scissor = scissor;
-		return *this;
-	}
-
-	SceneView& SceneView::show_flags(ShowFlags flags)
-	{
-		m_show_flags = flags;
-		return *this;
-	}
-
-	SceneView& SceneView::state(SceneViewState* state)
-	{
-		m_state = state;
-		return *this;
-	}
 
 	const SceneView& SceneView::flush(Renderer* renderer) const
 	{

@@ -1,10 +1,10 @@
 #include <Core/base_engine.hpp>
 #include <Core/math/math.hpp>
 #include <Engine/camera_view.hpp>
+#include <Engine/scene.hpp>
 #include <Engine/scene_view.hpp>
 #include <Graphics/shader_parameters.hpp>
-#include <RHI/rhi.hpp>
-
+#include <RHI/handles.hpp>
 
 namespace Trinex
 {
@@ -40,6 +40,8 @@ namespace Trinex
 
 			render_target.size     = size;
 			render_target.inv_size = 1.f / size;
+
+			scene = scene_view->scene()->scene_buffer()->as_uav(RHIBufferViewType::Structured)->descriptor();
 		}
 
 		time       = engine_instance->time_seconds();

@@ -61,10 +61,8 @@ namespace Trinex
 		range.shadowed.end   = lights_range.second - start;
 	}
 
-	DeferredRenderer::DeferredRenderer(Scene* scene, const SceneView& view, ViewMode mode)
-	    : Renderer(scene, view, mode), m_visible_primitives(scene->collect_visible_primitives(view.camera_view().projview)),
-	      m_visible_lights(scene->collect_visible_lights(view.camera_view().projview)),
-	      m_visible_post_processes(scene->collect_post_processes(view.camera_view().location()))
+	DeferredRenderer::DeferredRenderer(const SceneView& view, ViewMode mode)
+	    : Renderer(view, mode), m_visible_primitives(), m_visible_lights(), m_visible_post_processes()
 	{
 		sort_lights(m_visible_lights);
 		m_light_ranges = FrameAllocator<LightRenderRanges>::allocate(1);
@@ -241,26 +239,6 @@ namespace Trinex
 		register_debug_lines();
 	}
 
-	static void render_octree(Octree::Node* node, const Frustum& frustum, BatchedLines& lines)
-	{
-		auto box = node->box();
-
-		if (!frustum.intersects(node->box()))
-			return;
-
-		lines.add_box(box.min, box.max, {255, 0, 255, 255}, 3.f);
-
-		for (u8 i = 0; i < 8; i++)
-		{
-			auto child = node->child(i);
-
-			if (child)
-			{
-				render_octree(child, frustum, lines);
-			}
-		}
-	}
-
 	DeferredRenderer& DeferredRenderer::register_debug_lines()
 	{
 		ShowFlags flags = scene_view().show_flags();
@@ -272,11 +250,6 @@ namespace Trinex
 				auto& bounds = component->bounding_box();
 				lines.add_box(bounds.min - Vector3f(0.01f), bounds.max + Vector3f(0.01f), {255, 255, 0, 255}, 3.f);
 			}
-		}
-
-		if (flags & ShowFlags::PrimitiveOctree)
-		{
-			render_octree(scene()->primitive_octree().root(), Frustum(scene_view().camera_view().projview), lines);
 		}
 
 		render_graph()
@@ -303,7 +276,7 @@ namespace Trinex
 		                                                 Math::pi() / 2.f, 1.f, 0.1, light->attenuation_radius());
 
 		DepthCubeRenderer* renderer = FrameAllocator<DepthCubeRenderer>::allocate(1);
-		new (renderer) DepthCubeRenderer(scene(), SceneView(view, {shadow_map_size, shadow_map_size}));
+		new (renderer) DepthCubeRenderer(SceneView(scene(), view, {shadow_map_size, shadow_map_size}));
 		add_child_renderer(renderer);
 
 		PointLightShadowParameters* data = reinterpret_cast<PointLightShadowParameters*>(shadow_data);
@@ -323,7 +296,7 @@ namespace Trinex
 		                                                 light->outer_cone_angle() * 2.f, 1.f, 0.1, light->attenuation_radius());
 
 		DepthRenderer* renderer = FrameAllocator<DepthRenderer>::allocate(1);
-		new (renderer) DepthRenderer(scene(), SceneView(view, {shadow_map_size, shadow_map_size}));
+		new (renderer) DepthRenderer(SceneView(scene(), view, {shadow_map_size, shadow_map_size}));
 		add_child_renderer(renderer);
 
 		SpotLightShadowParameters* data = reinterpret_cast<SpotLightShadowParameters*>(shadow_data);
@@ -395,7 +368,7 @@ namespace Trinex
 			                                 -cascade_radius, cascade_radius, cascade_radius, -cascade_radius, -100, 100);
 
 			DepthRenderer* renderer = FrameAllocator<DepthRenderer>::allocate(1);
-			new (renderer) DepthRenderer(scene(), SceneView(camera, {shadow_map_size, shadow_map_size}));
+			new (renderer) DepthRenderer(SceneView(scene(), camera, {shadow_map_size, shadow_map_size}));
 			add_child_renderer(renderer);
 
 			cascades[cascade].projview   = camera.projview;
@@ -519,9 +492,9 @@ namespace Trinex
 		ranges_block.size   = sizeof(*m_light_ranges);
 
 		s_shadow_sampler->emplace<RHISampler*>(RHIShadowSampler::static_sampler());
-		s_clusters->emplace<RHIShaderResourceView*>(clusters_buffer()->as_srv());
-		s_lights->emplace<RHIShaderResourceView*>(lights_buffer()->as_srv());
-		s_shadows->emplace<RHIShaderResourceView*>(shadow_buffer()->as_srv());
+		s_clusters->emplace<RHIShaderResourceView*>(clusters_buffer()->as_srv(RHIBufferViewType::Structured));
+		s_lights->emplace<RHIShaderResourceView*>(lights_buffer()->as_srv(RHIBufferViewType::Structured));
+		s_shadows->emplace<RHIShaderResourceView*>(shadow_buffer()->as_srv(RHIBufferViewType::Structured));
 		s_ranges->emplace<MaterialBindings::MemoryBlock>(ranges_block);
 
 		RHIRenderingInfo info = {scene_color_hdr_target()->as_rtv(), scene_depth_target()->as_dsv()};
@@ -647,9 +620,9 @@ namespace Trinex
 			ctx->bind_sampler(RHIShadowSampler::static_sampler(), pipeline->shadow_sampler->binding);
 
 			ctx->bind_uniform_buffer(globals_uniform_buffer(), pipeline->scene_view->binding);
-			ctx->bind_srv(clusters_buffer()->as_srv(), pipeline->clusters->binding);
-			ctx->bind_srv(lights_buffer()->as_srv(), pipeline->lights->binding);
-			ctx->bind_srv(shadow_buffer()->as_srv(), pipeline->shadows->binding);
+			ctx->bind_srv(clusters_buffer()->as_srv(RHIBufferViewType::Structured), pipeline->clusters->binding);
+			ctx->bind_srv(lights_buffer()->as_srv(RHIBufferViewType::Structured), pipeline->lights->binding);
+			ctx->bind_srv(shadow_buffer()->as_srv(RHIBufferViewType::Structured), pipeline->shadows->binding);
 
 			ctx->update_scalar(m_light_ranges, pipeline->ranges);
 

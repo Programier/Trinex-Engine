@@ -68,7 +68,7 @@ namespace Trinex
 
 		bool serialize(Archive& ar);
 	};
-	
+
 	struct RHITextureRegion {
 		Vector3u extent;
 		Vector3u offset;
@@ -83,6 +83,11 @@ namespace Trinex
 		inline RHITextureRegion(const Vector2u& extent, const Vector2u& offset = {0, 0}, u16 mip = 0, u16 slice = 0)
 		    : extent(extent, 1), offset(offset, 0), mip(mip), slice(slice)
 		{}
+	};
+
+	struct RHIBufferAddress {
+		RHIBuffer* buffer = nullptr;
+		usize offset      = 0;
 	};
 
 	struct RHIBufferCopy {
@@ -362,6 +367,27 @@ namespace Trinex
 		RHILoadFunc stencil_load   = RHILoadFunc::Load;
 		RHIStoreFunc depth_store   = RHIStoreFunc::Store;
 		RHIStoreFunc stencil_store = RHIStoreFunc::Store;
+	};
+
+	struct RHIDrawIndirectCommand {
+		u32 vertex_count;
+		u32 instance_count;
+		u32 first_vertex;
+		u32 first_instance;
+	};
+
+	struct RHIDrawIndexedIndirectCommand {
+		u32 index_count;
+		u32 instance_count;
+		u32 first_index;
+		i32 vertex_offset;
+		u32 first_instance;
+	};
+
+	struct RHIDispatchIndirectCommand {
+		u32 x;
+		u32 y;
+		u32 z;
 	};
 
 	struct RHIRenderingInfo {

@@ -195,7 +195,6 @@ namespace Trinex
 	{
 		size = next_power_of_two(size);
 
-		flags |= RHIBufferFlags::Dynamic;
 		const Identifier buffer_id = static_calculate_buffer_id(size, flags);
 		auto& pool                 = m_pools[buffer_id];
 

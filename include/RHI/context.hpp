@@ -35,13 +35,23 @@ namespace Trinex
 
 		virtual RHIContext& execute(RHICommandHandle* handle) = 0;
 
-		virtual RHIContext& draw(RHITopology topology, usize vertex_count, usize vertices_offset, usize instances = 1) = 0;
+		virtual RHIContext& draw(RHITopology topology, usize vertex_count, usize vertices_offset, usize instances = 1,
+		                         usize first_instance = 0)                              = 0;
 		virtual RHIContext& draw_indexed(RHITopology topology, usize indices_count, usize indices_offset, usize vertices_offset,
-		                                 usize instances = 1)                                                          = 0;
+		                                 usize instances = 1, usize first_instance = 0) = 0;
+
+		virtual RHIContext& draw_indirect(RHITopology topology, const RHIBufferAddress& args, u32 count, u32 stride) = 0;
+		virtual RHIContext& draw_indirect(RHITopology topology, const RHIBufferAddress& args, const RHIBufferAddress& count,
+		                                  u32 max_count, u32 stride)                                                 = 0;
+		virtual RHIContext& draw_indexed_indirect(RHITopology topology, const RHIBufferAddress& args, uint32_t count,
+		                                          uint32_t stride)                                                   = 0;
+		virtual RHIContext& draw_indexed_indirect(RHITopology topology, const RHIBufferAddress& args,
+		                                          const RHIBufferAddress& count, u32 max_count, uint32_t stride)     = 0;
 
 		virtual RHIContext& draw_mesh(u32 x, u32 y, u32 z) = 0;
 
 		virtual RHIContext& dispatch(Vector3u groups, Vector3u base = {0u, 0u, 0u}) = 0;
+		virtual RHIContext& dispatch_indirect(const RHIBufferAddress& args)         = 0;
 
 		virtual RHIContext& trace_rays(u32 width, u32 height, u32 depth, u64 raygen = 0, const RHIRange& miss = {},
 		                               const RHIRange& hit = {}, const RHIRange& callable = {}) = 0;

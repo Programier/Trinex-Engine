@@ -15,10 +15,10 @@ namespace Trinex
 	{
 	private:
 		RHIResourcePtr<RHIBuffer> m_buffer;
-		u8* m_data                   = nullptr;
-		u32 m_vtx_count              = 0;
-		u16 m_stride                 = 0;
-		RHIBufferFlags m_flags = RHIBufferFlags::Static;
+		u8* m_data             = nullptr;
+		u32 m_vtx_count        = 0;
+		u16 m_stride           = 0;
+		RHIBufferFlags m_flags = RHIBufferFlags::Undefined;
 
 	public:
 		static const VertexBufferBase* static_null();
@@ -62,7 +62,7 @@ namespace Trinex
 	{
 	public:
 		VertexBuffer() = default;
-		VertexBuffer(const std::initializer_list<T>& list, RHIBufferFlags type = RHIBufferFlags::Static,
+		VertexBuffer(const std::initializer_list<T>& list, RHIBufferFlags type = RHIBufferFlags::Undefined,
 		             bool keep_cpu_data = false)
 		    : VertexBufferBase(type, sizeof(T), list.size(), reinterpret_cast<const u8*>(list.begin()), keep_cpu_data)
 		{}
@@ -71,8 +71,7 @@ namespace Trinex
 		    : VertexBufferBase(type, sizeof(T), count, reinterpret_cast<const u8*>(data), keep_cpu_data)
 		{}
 
-		VertexBuffer(const T* begin, const T* end, RHIBufferFlags type = RHIBufferFlags::Static,
-		             bool keep_cpu_data = false)
+		VertexBuffer(const T* begin, const T* end, RHIBufferFlags type = RHIBufferFlags::Undefined, bool keep_cpu_data = false)
 		    : VertexBufferBase(type, sizeof(T), end - begin, reinterpret_cast<const u8*>(begin), keep_cpu_data)
 		{}
 
@@ -114,10 +113,10 @@ namespace Trinex
 	{
 	private:
 		RHIResourcePtr<RHIBuffer> m_buffer;
-		u8* m_data                   = nullptr;
-		u32 m_idx_count              = 0;
-		RHIBufferFlags m_flags = RHIBufferFlags::Static;
-		RHIIndexFormat m_format      = RHIIndexFormat::UInt16;
+		u8* m_data              = nullptr;
+		u32 m_idx_count         = 0;
+		RHIBufferFlags m_flags  = RHIBufferFlags::Undefined;
+		RHIIndexFormat m_format = RHIIndexFormat::UInt16;
 
 	public:
 		IndexBuffer();
@@ -125,10 +124,10 @@ namespace Trinex
 		// clang-format off
 		IndexBuffer(RHIBufferFlags type, usize count, const u16* data = nullptr, bool keep_cpu_data = false);
 		IndexBuffer(RHIBufferFlags type, usize count, const u32* data = nullptr, bool keep_cpu_data = false);
-		IndexBuffer(const std::initializer_list<u16>& list, RHIBufferFlags type = RHIBufferFlags::Static, bool keep_cpu_data = false);
-		IndexBuffer(const std::initializer_list<u32>& list, RHIBufferFlags type = RHIBufferFlags::Static, bool keep_cpu_data = false);
-		IndexBuffer(const u16* start, const u16* end, RHIBufferFlags type = RHIBufferFlags::Static, bool keep_cpu_data = false);
-		IndexBuffer(const u32* start, const u32* end, RHIBufferFlags type = RHIBufferFlags::Static, bool keep_cpu_data = false);
+		IndexBuffer(const std::initializer_list<u16>& list, RHIBufferFlags type = RHIBufferFlags::Undefined, bool keep_cpu_data = false);
+		IndexBuffer(const std::initializer_list<u32>& list, RHIBufferFlags type = RHIBufferFlags::Undefined, bool keep_cpu_data = false);
+		IndexBuffer(const u16* start, const u16* end, RHIBufferFlags type = RHIBufferFlags::Undefined, bool keep_cpu_data = false);
+		IndexBuffer(const u32* start, const u32* end, RHIBufferFlags type = RHIBufferFlags::Undefined, bool keep_cpu_data = false);
 		IndexBuffer(const IndexBuffer& buffer);
 		IndexBuffer(IndexBuffer&& buffer);
 		IndexBuffer& operator=(const IndexBuffer& buffer);
@@ -163,12 +162,12 @@ namespace Trinex
 		    : IndexBuffer(type, size, data, keep_cpu_data)
 		{}
 
-		TypedIndexBuffer(const std::initializer_list<T>& list, RHIBufferFlags type = RHIBufferFlags::Static,
+		TypedIndexBuffer(const std::initializer_list<T>& list, RHIBufferFlags type = RHIBufferFlags::Undefined,
 		                 bool keep_cpu_data = false)
 		    : IndexBuffer(list, type, keep_cpu_data)
 		{}
 
-		TypedIndexBuffer(const T* start, const T* end, RHIBufferFlags type = RHIBufferFlags::Static,
+		TypedIndexBuffer(const T* start, const T* end, RHIBufferFlags type = RHIBufferFlags::Undefined,
 		                 bool keep_cpu_data = false)
 		    : IndexBuffer(start, end, type, keep_cpu_data)
 		{}

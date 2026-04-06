@@ -50,7 +50,7 @@ vector<T, C> operator*<T : __BuiltinFloatingPointType, let C : int, let R : int>
 
 // BINDLESS SECTION
 
-T getDescriptorFromHandle<T>(DescriptorHandle<T> handle) where T : IOpaqueDescriptor
+export T getDescriptorFromHandle<T>(DescriptorHandle<T> handle) where T : IOpaqueDescriptor
 {
 	return defaultGetDescriptorFromHandle(handle, BindlessDescriptorOptions::None);
 }

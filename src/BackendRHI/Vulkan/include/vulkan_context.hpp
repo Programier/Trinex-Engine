@@ -341,12 +341,23 @@ namespace Trinex
 		VulkanContext& viewport(const RHIViewport& viewport) override;
 		VulkanContext& scissor(const RHIScissor& scissor) override;
 
-		VulkanContext& draw(RHITopology topology, usize vertex_count, usize vertices_offset, usize instances) override;
+		VulkanContext& draw(RHITopology topology, usize vertex_count, usize vertices_offset, usize instances,
+		                    usize first_instance) override;
 		VulkanContext& draw_indexed(RHITopology topology, usize indices_count, usize indices_offset, usize vertices_offset,
-		                            usize instances) override;
+		                            usize instances, usize first_instance) override;
+		VulkanContext& draw_indirect(RHITopology topology, const RHIBufferAddress& args, u32 count, u32 stride) override;
+		VulkanContext& draw_indirect(RHITopology topology, const RHIBufferAddress& args, const RHIBufferAddress& count,
+		                             u32 max_count, u32 stride) override;
+		VulkanContext& draw_indexed_indirect(RHITopology topology, const RHIBufferAddress& args, uint32_t count,
+		                                     uint32_t stride) override;
+		VulkanContext& draw_indexed_indirect(RHITopology topology, const RHIBufferAddress& args, const RHIBufferAddress& count,
+		                                     u32 max_count, uint32_t stride) override;
 
 		VulkanContext& draw_mesh(u32 x, u32 y, u32 z) override;
+
 		VulkanContext& dispatch(Vector3u groups, Vector3u base) override;
+		VulkanContext& dispatch_indirect(const RHIBufferAddress& args) override;
+
 		VulkanContext& trace_rays(u32 width, u32 height, u32 depth, u64 raygen = 0, const RHIRange& miss = {},
 		                          const RHIRange& hit = {}, const RHIRange& callable = {}) override;
 

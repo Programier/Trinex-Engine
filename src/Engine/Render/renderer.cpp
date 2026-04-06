@@ -21,7 +21,7 @@
 
 namespace Trinex
 {
-	Renderer::Renderer(Scene* scene, const SceneView& view, ViewMode mode) : m_scene(scene), m_view(view), m_view_mode(mode)
+	Renderer::Renderer(const SceneView& view, ViewMode mode) : m_view(view), m_view_mode(mode)
 	{
 		m_graph = new (FrameAllocator<RenderGraph::Graph>::allocate(1)) RenderGraph::Graph();
 	}
@@ -163,6 +163,8 @@ namespace Trinex
 			m_child_renderer->renderer->render(ctx);
 			m_child_renderer = m_child_renderer->next;
 		}
+
+		scene()->flush(ctx);
 
 		ctx->viewport(m_view.viewport());
 		ctx->scissor(m_view.scissor());

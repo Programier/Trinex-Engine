@@ -13,7 +13,7 @@ namespace Trinex
 		static Actor* static_raycast(const SceneView& view, Vector2f uv, Scene* scene);
 
 	public:
-		EditorRenderer(Scene* scene, const SceneView& view, ViewMode mode = ViewMode::Lit);
+		EditorRenderer(const SceneView& view, ViewMode mode = ViewMode::Lit);
 
 		EditorRenderer& render_grid();
 		EditorRenderer& render_outlines(Actor* const* actors = nullptr, usize count = 0);

@@ -249,8 +249,6 @@ namespace Trinex
 			ImGui::Spacing();
 			ImGui::Text("GPU: %s\n", RHI::instance()->info.renderer.c_str());
 		});
-
-		m_scene_view.state(&m_scene_view_state);
 	}
 
 	EditorClient& EditorClient::create_content_browser()
@@ -287,6 +285,9 @@ namespace Trinex
 
 		EventSystem::system_of<EventSystem>()->process_event_method(EventSystem::PoolEvents);
 		m_world = Object::new_instance<World>("World");
+
+		m_scene_view.state(&m_scene_view_state);
+		m_scene_view.scene(m_world->scene());
 
 		{
 			auto& on_select   = EditorEngine::instance()->on_actor_select;
@@ -371,7 +372,7 @@ namespace Trinex
 
 		m_scene_view.view_size(size);
 
-		EditorRenderer renderer(m_world->scene(), m_scene_view, m_view_mode);
+		EditorRenderer renderer(m_scene_view, m_view_mode);
 		update_render_stats(&renderer);
 
 		const auto& selected = EditorEngine::instance()->selected_actors();

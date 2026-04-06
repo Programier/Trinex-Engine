@@ -102,8 +102,8 @@ namespace Trinex
 		u8* map(RHIMappingAccess access) override { return nullptr; }
 		void unmap() override {}
 
-		RHIShaderResourceView* as_srv() override { return rhi_default<NoneSRV>(); }
-		RHIUnorderedAccessView* as_uav() override { return rhi_default<NoneUAV>(); }
+		RHIShaderResourceView* as_srv(RHIBufferViewType type, RHIColorFormat format) override { return rhi_default<NoneSRV>(); }
+		RHIUnorderedAccessView* as_uav(RHIBufferViewType type, RHIColorFormat format) override { return rhi_default<NoneUAV>(); }
 	};
 
 	struct NoneSwapchain : public NoneApiDestroyable<RHISwapchain> {

@@ -191,28 +191,38 @@ namespace Trinex
 	struct RHIBufferFlags {
 		enum Enum : u16
 		{
-			Undefined = 0,
-			Static    = BIT(0),
-			Dynamic   = BIT(1),
+			Undefined         = 0,
+			ShaderResource    = BIT(0),
+			UnorderedAccess   = BIT(1),
+			StructuredBuffer  = BIT(2),
+			ByteAddressBuffer = BIT(3),
 
-			VertexBuffer        = BIT(2),
-			IndexBuffer         = BIT(3),
-			UniformBuffer       = BIT(4),
-			ShaderResource      = BIT(5),
-			UnorderedAccess     = BIT(6),
-			StructuredBuffer    = BIT(7),
-			ByteAddressBuffer   = BIT(8),
-			TransferSrc         = BIT(9),
-			TransferDst         = BIT(9),
-			CPURead             = BIT(10),
-			CPUWrite            = BIT(11),
-			DeviceAddress       = BIT(12),
-			AccelerationStorage = BIT(13),
-			AccelerationInput   = BIT(14),
+			VertexBuffer        = BIT(4),
+			IndexBuffer         = BIT(5),
+			UniformBuffer       = BIT(6),
+			TransferSrc         = BIT(7),
+			TransferDst         = BIT(8),
+			CPURead             = BIT(9),
+			CPUWrite            = BIT(10),
+			DeviceAddress       = BIT(11),
+			AccelerationStorage = BIT(12),
+			AccelerationInput   = BIT(13),
 			ShaderBindingTable  = BIT(14),
 		};
 
 		trinex_bitfield_enum_struct(RHIBufferFlags, u16);
+	};
+
+	struct RHIBufferViewType {
+		enum Enum : u8
+		{
+			ByteAddress  = 0,
+			Structured   = 1,
+			Typed        = 2,
+			Acceleration = 3,
+		};
+
+		trinex_enum_struct(RHIBufferViewType);
 	};
 
 	struct RHICompareFunc {

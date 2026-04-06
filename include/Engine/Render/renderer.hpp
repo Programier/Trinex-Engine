@@ -45,7 +45,6 @@ namespace Trinex
 
 		ChildRenderer* m_child_renderer = nullptr;
 		RenderGraph::Graph* m_graph;
-		Scene* m_scene;
 		RHIBuffer* m_globals = nullptr;
 		SceneView m_view;
 		ViewMode m_view_mode;
@@ -60,7 +59,7 @@ namespace Trinex
 	public:
 		BatchedLines lines;
 
-		Renderer(Scene* scene, const SceneView& view, ViewMode mode = ViewMode::Lit);
+		Renderer(const SceneView& view, ViewMode mode = ViewMode::Lit);
 		trinex_non_copyable(Renderer);
 		trinex_non_moveable(Renderer);
 
@@ -80,7 +79,7 @@ namespace Trinex
 		Renderer& reset(const SceneView& view);
 
 		inline const SceneView& scene_view() const { return m_view; }
-		inline Scene* scene() const { return m_scene; }
+		inline Scene* scene() const { return m_view.scene(); }
 		inline ViewMode view_mode() const { return m_view_mode; }
 
 		inline RHITexture* scene_color_hdr_target() { return surface(SceneColorHDR); }

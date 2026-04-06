@@ -774,18 +774,56 @@ namespace Trinex
 		return *this;
 	}
 
-	VulkanContext& VulkanContext::draw(RHITopology topology, usize vertex_count, usize vertices_offset, usize instances)
+	VulkanContext& VulkanContext::draw(RHITopology topology, usize vertex_count, usize vertices_offset, usize instances,
+	                                   usize first_instance)
 	{
 		trinex_profile_cpu_n("VulkanContext::draw");
-		flush_graphics(topology)->draw(vertex_count, instances, vertices_offset, 0);
+		flush_graphics(topology)->draw(vertex_count, instances, vertices_offset, first_instance);
 		return *this;
 	}
 
 	VulkanContext& VulkanContext::draw_indexed(RHITopology topology, usize indices_count, usize indices_offset,
-	                                           usize vertices_offset, usize instances)
+	                                           usize vertices_offset, usize instances, usize first_instance)
 	{
 		trinex_profile_cpu_n("VulkanContext::draw_indexed");
-		flush_graphics(topology)->drawIndexed(indices_count, instances, indices_offset, vertices_offset, 0);
+		flush_graphics(topology)->drawIndexed(indices_count, instances, indices_offset, vertices_offset, first_instance);
+		return *this;
+	}
+
+	VulkanContext& VulkanContext::draw_indirect(RHITopology topology, const RHIBufferAddress& args, u32 count, u32 stride)
+	{
+		trinex_profile_cpu_n("VulkanContext::draw_indirect");
+		vk::Buffer buffer = static_cast<VulkanBuffer*>(args.buffer)->buffer();
+		flush_graphics(topology)->drawIndirect(buffer, args.offset, count, stride);
+		return *this;
+	}
+
+	VulkanContext& VulkanContext::draw_indirect(RHITopology topology, const RHIBufferAddress& args, const RHIBufferAddress& count,
+	                                            u32 max_count, u32 stride)
+	{
+		trinex_profile_cpu_n("VulkanContext::draw_indirect");
+		vk::Buffer buffer       = static_cast<VulkanBuffer*>(args.buffer)->buffer();
+		vk::Buffer count_buffer = static_cast<VulkanBuffer*>(count.buffer)->buffer();
+		flush_graphics(topology)->drawIndirectCount(buffer, args.offset, count_buffer, count.offset, max_count, stride);
+		return *this;
+	}
+
+	VulkanContext& VulkanContext::draw_indexed_indirect(RHITopology topology, const RHIBufferAddress& args, uint32_t count,
+	                                                    uint32_t stride)
+	{
+		trinex_profile_cpu_n("VulkanContext::draw_indexed_indirect");
+		vk::Buffer buffer = static_cast<VulkanBuffer*>(args.buffer)->buffer();
+		flush_graphics(topology)->drawIndexedIndirect(buffer, args.offset, count, stride);
+		return *this;
+	}
+
+	VulkanContext& VulkanContext::draw_indexed_indirect(RHITopology topology, const RHIBufferAddress& args,
+	                                                    const RHIBufferAddress& count, u32 max_count, uint32_t stride)
+	{
+		trinex_profile_cpu_n("VulkanContext::draw_indexed_indirect");
+		vk::Buffer buffer       = static_cast<VulkanBuffer*>(args.buffer)->buffer();
+		vk::Buffer count_buffer = static_cast<VulkanBuffer*>(count.buffer)->buffer();
+		flush_graphics(topology)->drawIndexedIndirectCount(buffer, args.offset, count_buffer, count.offset, max_count, stride);
 		return *this;
 	}
 
@@ -800,6 +838,14 @@ namespace Trinex
 	{
 		trinex_profile_cpu_n("VulkanContext::dispatch");
 		flush_compute()->dispatchBase(base.x, base.y, base.z, groups.x, groups.y, groups.z);
+		return *this;
+	}
+
+	VulkanContext& VulkanContext::dispatch_indirect(const RHIBufferAddress& args)
+	{
+		trinex_profile_cpu_n("VulkanContext::dispatch_indirect");
+		vk::Buffer buffer = static_cast<VulkanBuffer*>(args.buffer)->buffer();
+		flush_compute()->dispatchIndirect(buffer, args.offset);
 		return *this;
 	}
 

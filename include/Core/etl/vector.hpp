@@ -8,6 +8,15 @@
 
 namespace Trinex
 {
+	struct VectorStorage {
+		void* start;
+		void* finish;
+		void* end;
+
+		inline usize size() const { return static_cast<u8*>(finish) - static_cast<u8*>(start); }
+		inline usize capacity() const { return static_cast<u8*>(end) - static_cast<u8*>(start); }
+	};
+
 	template<typename T, typename AllocatorType = Allocator<T>>
 	class Vector : private AllocatorType
 	{
@@ -26,9 +35,16 @@ namespace Trinex
 		using difference_type = std::ptrdiff_t;
 
 	protected:
-		pointer m_start;
-		pointer m_finish;
-		pointer m_end;
+		union
+		{
+			struct {
+				pointer m_start;
+				pointer m_finish;
+				pointer m_end;
+			};
+
+			VectorStorage m_storage;
+		};
 
 	protected:
 		template<typename IteratorType>
@@ -740,6 +756,8 @@ namespace Trinex
 			std::swap(m_finish, other.m_finish);
 			std::swap(m_end, other.m_end);
 		}
+
+		constexpr const VectorStorage& storage() const { return m_storage; }
 	};
 
 
@@ -749,7 +767,7 @@ namespace Trinex
 	template<typename T>
 	using StackVector = Vector<T, StackAllocator<T>>;
 
-	using Buffer = Vector<unsigned char>;
+	using Buffer = Vector<u8>;
 
 	template<typename Type, typename AllocatorType, typename ArchiveType>
 	inline bool trinex_serialize_vector(ArchiveType& ar, Vector<Type, AllocatorType>& vector)

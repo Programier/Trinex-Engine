@@ -382,7 +382,7 @@ namespace Trinex::Pipelines
 		ctx->bind_srv(renderer->scene_depth_target()->as_srv(), m_scene_depth->binding);
 		ctx->bind_srv(renderer->normal_target()->as_srv(), m_scene_normal->binding);
 		ctx->bind_srv(DefaultResources::Textures::noise4x4->rhi_srv(), m_noise->binding);
-		ctx->bind_srv(m_samples_buffer->as_srv(), m_samples->binding);
+		ctx->bind_srv(m_samples_buffer->as_srv(RHIBufferViewType::Structured), m_samples->binding);
 		ctx->bind_sampler(RHIBilinearWrapSampler::static_sampler(), m_sampler->binding);
 
 		ctx->draw(RHITopology::TriangleList, 6, 0);
@@ -397,10 +397,9 @@ namespace Trinex::Pipelines
 
 	RHIBuffer* ClusterInitialize::create_clusters_buffer()
 	{
-		static constexpr usize cluster_size         = 576;
-		static constexpr RHIBufferFlags flags = RHIBufferFlags::UnorderedAccess |
-		                                              RHIBufferFlags::ShaderResource |
-		                                              RHIBufferFlags::StructuredBuffer;
+		static constexpr usize cluster_size = 576;
+		static constexpr RHIBufferFlags flags =
+		        RHIBufferFlags::UnorderedAccess | RHIBufferFlags::ShaderResource | RHIBufferFlags::StructuredBuffer;
 
 		usize buffer_size = 16 * 9 * 24 * cluster_size;
 		return RHIBufferPool::global_instance()->request_transient_buffer(buffer_size, flags);
@@ -410,7 +409,7 @@ namespace Trinex::Pipelines
 	{
 		ctx->bind_pipeline(rhi_pipeline());
 		ctx->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
-		ctx->bind_uav(clusters->as_uav(), m_clusters->binding);
+		ctx->bind_uav(clusters->as_uav(RHIBufferViewType::Structured), m_clusters->binding);
 		ctx->dispatch({16, 9, 24});
 		return *this;
 	}
@@ -428,8 +427,8 @@ namespace Trinex::Pipelines
 	{
 		ctx->bind_pipeline(rhi_pipeline());
 		ctx->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
-		ctx->bind_uav(clusters->as_uav(), m_clusters->binding);
-		ctx->bind_srv(lights->as_srv(), m_lights->binding);
+		ctx->bind_uav(clusters->as_uav(RHIBufferViewType::Structured), m_clusters->binding);
+		ctx->bind_srv(lights->as_srv(RHIBufferViewType::Structured), m_lights->binding);
 		ctx->update_scalar(&ranges, m_ranges);
 		ctx->dispatch({27, 1, 1});
 		return *this;

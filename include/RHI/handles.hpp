@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/math/vector.hpp>
+#include <RHI/enums.hpp>
 #include <RHI/object.hpp>
 #include <RHI/types.hpp>
 
@@ -129,12 +130,12 @@ namespace Trinex
 	public:
 		bool serialize(Archive& ar);
 
-		virtual usize size() const               = 0;
-		virtual RHIDeviceAddress address()       = 0;
-		virtual u8* map(RHIMappingAccess access) = 0;
-		virtual void unmap()                     = 0;
-		virtual RHIShaderResourceView* as_srv()  = 0;
-		virtual RHIUnorderedAccessView* as_uav() = 0;
+		virtual usize size() const                                                                                        = 0;
+		virtual RHIDeviceAddress address()                                                                                = 0;
+		virtual u8* map(RHIMappingAccess access)                                                                          = 0;
+		virtual void unmap()                                                                                              = 0;
+		virtual RHIShaderResourceView* as_srv(RHIBufferViewType view, RHIColorFormat format = RHIColorFormat::Undefined)  = 0;
+		virtual RHIUnorderedAccessView* as_uav(RHIBufferViewType view, RHIColorFormat format = RHIColorFormat::Undefined) = 0;
 	};
 
 	class ENGINE_EXPORT RHISwapchain : public RHIObject

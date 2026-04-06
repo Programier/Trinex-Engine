@@ -1,4 +1,5 @@
 import "trinex/trinex.slang";
+import "trinex/scene.slang";
 
 struct SceneView
 {
@@ -42,8 +43,15 @@ struct SceneView
 		[ForceInline] float4 view_to_clip(float3 point) { return projection * float4(point, 1.0f); }
 		[ForceInline] float4 world_to_view(float3 point) { return view * float4(point, 1.0f); }
 
+		[ForceInline] float4 world_to_clip(float4 point) { return projview * point; }
+		[ForceInline] float4 view_to_clip(float4 point) { return projection * point; }
+		[ForceInline] float4 world_to_view(float4 point) { return view * point; }
+
 		[ForceInline] float4 world_to_clip_jittered(float3 point) { return apply_jitter(world_to_clip(point)); }
 		[ForceInline] float4 view_to_clip_jittered(float3 point) { return apply_jitter(view_to_clip(point)); }
+
+		[ForceInline] float4 world_to_clip_jittered(float4 point) { return apply_jitter(world_to_clip(point)); }
+		[ForceInline] float4 view_to_clip_jittered(float4 point) { return apply_jitter(view_to_clip(point)); }
 
 		[ForceInline]
 		float3 clip_to_world(float4 clip)
@@ -70,6 +78,8 @@ struct SceneView
 	RenderTarget render_target;
 	Camera camera;
 	Camera prev_camera;
+
+	RWStructuredBuffer<Scene>::Handle scene;
 
 	float time;
 	float delta_time;
