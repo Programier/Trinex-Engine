@@ -1,7 +1,7 @@
 #pragma once
 #include <Clients/imgui_client.hpp>
 #include <Core/pointer.hpp>
-#include <Engine/scene_view.hpp>
+#include <Engine/Render/scene_view.hpp>
 #include <Widgets/imgui_windows.hpp>
 
 namespace Trinex

@@ -3,7 +3,7 @@
 
 namespace Trinex
 {
-	class Scene;
+	class RenderScene;
 
 	class ENGINE_EXPORT World : public LevelInstance
 	{
@@ -12,7 +12,7 @@ namespace Trinex
 	private:
 		Vector<LevelInstance*> m_levels;
 		LevelInstance* m_active;
-		Scene* m_scene = nullptr;
+		RenderScene* m_scene = nullptr;
 
 	protected:
 		Object* register_child(Object* child, u32& index) override;
@@ -33,6 +33,6 @@ namespace Trinex
 
 		inline LevelInstance* active_level() const { return m_active; }
 		inline const Vector<LevelInstance*>& levels() const { return m_levels; }
-		inline Scene* scene() const { return m_scene; }
+		inline RenderScene* scene() const { return m_scene; }
 	};
 }// namespace Trinex

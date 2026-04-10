@@ -4,9 +4,9 @@
 #include <Engine/Render/primitive_context.hpp>
 #include <Engine/Render/render_graph.hpp>
 #include <Engine/Render/render_pass.hpp>
+#include <Engine/Render/scene.hpp>
 #include <Engine/camera_view.hpp>
 #include <Engine/frustum.hpp>
-#include <Engine/scene.hpp>
 #include <Graphics/render_pools.hpp>
 #include <RHI/context.hpp>
 #include <RHI/rhi.hpp>

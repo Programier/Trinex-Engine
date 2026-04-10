@@ -10,8 +10,8 @@
 #include <Engine/Render/render_graph.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/renderer.hpp>
+#include <Engine/Render/scene.hpp>
 #include <Engine/frustum.hpp>
-#include <Engine/scene.hpp>
 #include <Graphics/editor_pipelines.hpp>
 #include <Graphics/editor_render_passes.hpp>
 #include <Graphics/editor_scene_renderer.hpp>
@@ -88,7 +88,7 @@ namespace Trinex
 
 	EditorRenderer::EditorRenderer(const SceneView& view, ViewMode mode) : DeferredRenderer(view, mode) {}
 
-	Actor* EditorRenderer::static_raycast(const SceneView& view, Vector2f uv, Scene* scene)
+	Actor* EditorRenderer::static_raycast(const SceneView& view, Vector2f uv, RenderScene* scene)
 	{
 		uv = glm::clamp(uv, Vector2f(0.f), Vector2f(1.f));
 		HitproxyRenderer renderer(view);

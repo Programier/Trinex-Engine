@@ -5,7 +5,7 @@
 #include <Engine/Render/pipelines.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/renderer.hpp>
-#include <Engine/scene_view_state.hpp>
+#include <Engine/Render/scene_view_state.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/shader.hpp>

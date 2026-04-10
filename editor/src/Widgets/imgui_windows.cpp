@@ -6,7 +6,7 @@
 #include <Editor/engine.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Engine/Actors/actor.hpp>
-#include <Engine/scene.hpp>
+#include <Engine/Render/scene.hpp>
 #include <Engine/world.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Platform/platform.hpp>

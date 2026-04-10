@@ -4,7 +4,7 @@
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Engine/Actors/actor.hpp>
-#include <Engine/scene.hpp>
+#include <Engine/Render/scene.hpp>
 #include <Engine/world.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_object.hpp>
@@ -16,7 +16,7 @@ namespace Trinex
 
 	static thread_local World* s_current_world = nullptr;
 
-	World::World() : m_active(this), m_scene(trx_new Scene()) {}
+	World::World() : m_active(this), m_scene(trx_new RenderScene()) {}
 
 	World::~World()
 	{

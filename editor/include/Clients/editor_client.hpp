@@ -5,9 +5,9 @@
 #include <Core/etl/deque.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Engine/Render/renderer.hpp>
+#include <Engine/Render/scene.hpp>
+#include <Engine/Render/scene_view_state.hpp>
 #include <Engine/camera_view.hpp>
-#include <Engine/scene.hpp>
-#include <Engine/scene_view_state.hpp>
 #include <Graphics/editor_scene_renderer.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <ScriptEngine/script_object.hpp>

@@ -1,9 +1,9 @@
 #include <Core/math/math.hpp>
-#include <Engine/scene_view.hpp>
+#include <Engine/Render/scene_view.hpp>
 
 namespace Trinex
 {
-	SceneView::SceneView(Scene* scene, const CameraView& camera, Vector2u size, ShowFlags flags)
+	SceneView::SceneView(RenderScene* scene, const CameraView& camera, Vector2u size, ShowFlags flags)
 	    : m_camera_view(camera), m_prev_camera_view(camera), m_view_size(size), m_show_flags(flags), m_scene(scene)
 	{}
 

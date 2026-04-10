@@ -117,7 +117,7 @@ namespace Trinex
 		return owner_actor ? owner_actor->world() : nullptr;
 	}
 
-	class Scene* ActorComponent::scene() const
+	class RenderScene* ActorComponent::scene() const
 	{
 		Actor* owner_actor = actor();
 		return owner_actor ? owner_actor->scene() : nullptr;

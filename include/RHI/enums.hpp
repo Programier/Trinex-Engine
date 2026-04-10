@@ -200,14 +200,15 @@ namespace Trinex
 			VertexBuffer        = BIT(4),
 			IndexBuffer         = BIT(5),
 			UniformBuffer       = BIT(6),
-			TransferSrc         = BIT(7),
-			TransferDst         = BIT(8),
-			CPURead             = BIT(9),
-			CPUWrite            = BIT(10),
-			DeviceAddress       = BIT(11),
-			AccelerationStorage = BIT(12),
-			AccelerationInput   = BIT(13),
-			ShaderBindingTable  = BIT(14),
+			IndirectBuffer      = BIT(7),
+			TransferSrc         = BIT(8),
+			TransferDst         = BIT(9),
+			CPURead             = BIT(10),
+			CPUWrite            = BIT(11),
+			DeviceAddress       = BIT(12),
+			AccelerationStorage = BIT(13),
+			AccelerationInput   = BIT(14),
+			ShaderBindingTable  = BIT(15),
 		};
 
 		trinex_bitfield_enum_struct(RHIBufferFlags, u16);

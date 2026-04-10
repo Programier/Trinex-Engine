@@ -35,6 +35,9 @@ namespace Trinex
 		if (flags & RHIBufferFlags::UniformBuffer)
 			buffer_info.usage |= vk::BufferUsageFlagBits::eUniformBuffer;
 
+		if (flags & RHIBufferFlags::IndirectBuffer)
+			buffer_info.usage |= vk::BufferUsageFlagBits::eIndirectBuffer;
+
 		if (flags & RHIBufferFlags::TransferSrc)
 			buffer_info.usage |= vk::BufferUsageFlagBits::eTransferSrc;
 

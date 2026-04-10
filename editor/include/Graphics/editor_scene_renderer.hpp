@@ -10,7 +10,7 @@ namespace Trinex
 	class EditorRenderer : public DeferredRenderer
 	{
 	public:
-		static Actor* static_raycast(const SceneView& view, Vector2f uv, Scene* scene);
+		static Actor* static_raycast(const SceneView& view, Vector2f uv, RenderScene* scene);
 
 	public:
 		EditorRenderer(const SceneView& view, ViewMode mode = ViewMode::Lit);

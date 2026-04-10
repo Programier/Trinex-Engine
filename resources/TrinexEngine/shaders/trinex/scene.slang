@@ -2,14 +2,18 @@ import "trinex/trinex.slang";
 
 struct Scene
 {
-	typealias Transform = float4x4;
-
 	struct Geometry
     {
 		struct Buffer {
-			ByteAddressBuffer::Handle address;
+			RWByteAddressBuffer::Handle handle;
 			uint offset;
 			uint stride;
+
+			[ForceInline]
+			T load<T>(uint element)
+			{
+				return handle.Load<T>(offset + stride * element);
+			}
 		};
 
 		Buffer vertex_stream;
@@ -22,13 +26,20 @@ struct Scene
     }
 
 	struct Primitive {
+		[UnscopedEnum]
+		[Flags]
+		enum Flags
+		{
+			IsActive = 0x1,
+		}
+
 		uint transform;
 		uint material;
 		uint geometry;
-		uint flags;
+		Flags flags;
 	};
 
-	RWStructuredBuffer<Transform>::Handle transforms;
+	RWByteAddressBuffer::Handle heap;
 	RWStructuredBuffer<Geometry>::Handle geometries;
 	RWStructuredBuffer<Primitive>::Handle primitives;
 }

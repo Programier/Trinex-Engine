@@ -1,8 +1,8 @@
 #include <Core/base_engine.hpp>
 #include <Core/math/math.hpp>
+#include <Engine/Render/scene.hpp>
+#include <Engine/Render/scene_view.hpp>
 #include <Engine/camera_view.hpp>
-#include <Engine/scene.hpp>
-#include <Engine/scene_view.hpp>
 #include <Graphics/shader_parameters.hpp>
 #include <RHI/handles.hpp>
 

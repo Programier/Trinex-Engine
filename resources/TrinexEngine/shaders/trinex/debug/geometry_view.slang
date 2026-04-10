@@ -1,5 +1,6 @@
 import "trinex/trinex.slang";
 import "trinex/scene_view.slang";
+import "trinex/scene.slang";
 
 struct VertexOutput
 {
@@ -7,33 +8,30 @@ struct VertexOutput
 	float3 world : WORLD;
 }
 
-static const float3 s_positions[8] = {
-	float3(-0.5, -0.5, -0.5), float3(0.5, -0.5, -0.5), float3(0.5, 0.5, -0.5), float3(-0.5, 0.5, -0.5),
-	float3(-0.5, -0.5, 0.5),  float3(0.5, -0.5, 0.5),  float3(0.5, 0.5, 0.5),  float3(-0.5, 0.5, 0.5),
-};
-
-static const uint s_indices[36] = {
-	0, 1, 2, 2, 3, 0,// Front
-	1, 5, 6, 6, 2, 1,// Right
-	5, 4, 7, 7, 6, 5,// Back
-	4, 0, 3, 3, 7, 4,// Left
-	3, 2, 6, 6, 7, 3,// Top
-	4, 5, 1, 1, 0, 4 // Bottom
-};
-
-float3 load_vertex(uint id)
+float3 load_vertex(uint vertex_id, uint primitive_id)
 {
-	float4x4 local_to_world = scene_view.scene[0].transforms[0];
-	float4 vertex = local_to_world * float4(s_positions[s_indices[id]], 1.f);
+	let primitive = scene_view.scene[0].primitives[primitive_id];
+
+	if(primitive.flags & Scene::Primitive::IsActive)
+	{
+		
+	}
+
+	float4x4 local_to_world = scene_view.scene[0].heap.Load<float4x4>(primitive.transform);
+
+	let geometry = scene_view.scene[0].geometries[primitive.geometry];
+	let index    = geometry.index_stream.load<uint>(vertex_id);
+	
+	float4 vertex = local_to_world * float4(geometry.vertex_stream.load<float3>(index), 1.f);
 	return vertex.xyz / vertex.w;
 }
 
 [shader("vertex")]
-VertexOutput vertex_main(uint index : SV_VertexID)
+VertexOutput vertex_main(uint index : SV_VertexID, uint instance : SV_InstanceID)
 {
 	VertexOutput output;
 
-	float3 vertex = load_vertex(index);
+	float3 vertex = load_vertex(index, instance);
 	output.world = vertex;
 	output.screen = scene_view.camera.world_to_clip(vertex);
 	return output;

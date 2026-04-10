@@ -7,8 +7,8 @@
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/Render/lighting.hpp>
 #include <Engine/Render/render_pass.hpp>
+#include <Engine/Render/scene.hpp>
 #include <Engine/camera_view.hpp>
-#include <Engine/scene.hpp>
 #include <Engine/world.hpp>
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/material.hpp>
@@ -53,7 +53,7 @@ namespace Trinex
 
 		if (m_light_id != 0xFFFFFFFF)
 		{
-			world()->scene()->update_light(m_light_id, m_bounding_box);
+			//world()->scene()->update_light(m_light_id, m_bounding_box);
 		}
 
 		return *this;
@@ -65,7 +65,7 @@ namespace Trinex
 
 		if (World* light_world = world())
 		{
-			m_light_id = light_world->scene()->add_light(this, m_bounding_box);
+			//m_light_id = light_world->scene()->add_light(this, m_bounding_box);
 		}
 		return *this;
 	}
@@ -76,7 +76,7 @@ namespace Trinex
 
 		if (m_light_id != 0xFFFFFFFF)
 		{
-			world()->scene()->remove_light(m_light_id);
+			//world()->scene()->remove_light(m_light_id);
 			m_light_id = 0xFFFFFFFF;
 		}
 

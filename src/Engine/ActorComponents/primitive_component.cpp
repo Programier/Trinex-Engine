@@ -5,7 +5,7 @@
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/Actors/actor.hpp>
 #include <Engine/Render/render_pass.hpp>
-#include <Engine/scene.hpp>
+#include <Engine/Render/scene.hpp>
 #include <Engine/world.hpp>
 #include <ScriptEngine/registrar.hpp>
 
@@ -34,7 +34,7 @@ namespace Trinex
 
 		if (World* actor_world = world())
 		{
-			m_scene_id = actor_world->scene()->add_primitive(this, m_bounding_box);
+			//m_scene_id = actor_world->scene()->add_primitive(this, m_bounding_box);
 		}
 
 		return *this;
@@ -46,7 +46,7 @@ namespace Trinex
 
 		if (World* actor_world = world())
 		{
-			actor_world->scene()->remove_primitive(m_scene_id);
+			//actor_world->scene()->remove_primitive(m_scene_id);
 		}
 
 		m_scene_id = 0xFFFFFFFF;
@@ -60,7 +60,7 @@ namespace Trinex
 
 		if (m_scene_id != 0xFFFFFFFF)
 		{
-			scene()->update_primitive(m_scene_id, m_bounding_box);
+			//scene()->update_primitive(m_scene_id, m_bounding_box);
 		}
 
 		return *this;

@@ -14,9 +14,9 @@
 #include <Engine/Render/primitive_context.hpp>
 #include <Engine/Render/render_graph.hpp>
 #include <Engine/Render/render_pass.hpp>
+#include <Engine/Render/scene.hpp>
+#include <Engine/Render/scene_view_state.hpp>
 #include <Engine/frustum.hpp>
-#include <Engine/scene.hpp>
-#include <Engine/scene_view_state.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/material_bindings.hpp>
 #include <Graphics/render_pools.hpp>

@@ -227,7 +227,7 @@ namespace Trinex
 		return nullptr;
 	}
 
-	Scene* Actor::scene() const
+	RenderScene* Actor::scene() const
 	{
 		if (World* actor_world = world())
 			return actor_world->scene();

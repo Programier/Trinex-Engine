@@ -17,10 +17,13 @@ namespace Trinex
 	private:
 		World* m_world;
 		RHIBuffer* m_scene;
+		RHIBuffer* m_indirect;
 		Vector<RHIObject*> m_resources;
 
 	private:
 		RHIBuffer* create_buffer(RHIContext* ctx, const void* data, usize size);
+		RHIBuffer* create_buffer(RHIContext* ctx, usize size);
+		RHIDescriptor create_descriptor(RHIContext* ctx, const void* data, usize size);
 
 		template<typename T>
 		inline RHIBuffer* create_buffer(RHIContext* ctx, std::initializer_list<T> data)

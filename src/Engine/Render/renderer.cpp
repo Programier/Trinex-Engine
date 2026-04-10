@@ -7,7 +7,7 @@
 #include <Engine/Render/render_graph.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/renderer.hpp>
-#include <Engine/scene.hpp>
+#include <Engine/Render/scene.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/mesh.hpp>

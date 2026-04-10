@@ -2,7 +2,7 @@
 #include <Core/reflection/property.hpp>
 #include <Engine/ActorComponents/post_process_component.hpp>
 #include <Engine/Actors/actor.hpp>
-#include <Engine/scene.hpp>
+#include <Engine/Render/scene.hpp>
 #include <Engine/world.hpp>
 
 namespace Trinex
@@ -23,7 +23,7 @@ namespace Trinex
 		{
 			if (World* world = owner_actor->world())
 			{
-				if (Scene* scene = world->scene())
+				if (RenderScene* scene = world->scene())
 				{
 					//scene->add_post_process(this);
 				}
@@ -40,7 +40,7 @@ namespace Trinex
 		{
 			if (World* world = owner_actor->world())
 			{
-				if (Scene* scene = world->scene())
+				if (RenderScene* scene = world->scene())
 				{
 					//scene->remove_post_process(this);
 				}

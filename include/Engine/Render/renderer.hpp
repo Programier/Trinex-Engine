@@ -1,11 +1,11 @@
 #pragma once
 #include <Core/etl/vector.hpp>
 #include <Engine/Render/batched_primitives.hpp>
-#include <Engine/scene_view.hpp>
+#include <Engine/Render/scene_view.hpp>
 
 namespace Trinex
 {
-	class Scene;
+	class RenderScene;
 	class RenderSurface;
 	class RenderPass;
 	class PrimitiveComponent;
@@ -79,7 +79,7 @@ namespace Trinex
 		Renderer& reset(const SceneView& view);
 
 		inline const SceneView& scene_view() const { return m_view; }
-		inline Scene* scene() const { return m_view.scene(); }
+		inline RenderScene* scene() const { return m_view.scene(); }
 		inline ViewMode view_mode() const { return m_view_mode; }
 
 		inline RHITexture* scene_color_hdr_target() { return surface(SceneColorHDR); }

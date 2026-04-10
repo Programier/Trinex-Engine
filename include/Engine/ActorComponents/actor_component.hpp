@@ -76,7 +76,7 @@ namespace Trinex
 
 		class Actor* actor() const;
 		class World* world() const;
-		class Scene* scene() const;
+		class RenderScene* scene() const;
 		class ActorComponent& actor(Actor* actor);
 	};
 }// namespace Trinex

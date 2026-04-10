@@ -10,7 +10,7 @@ namespace Trinex
 	class ScriptFunction;
 	class World;
 	class LevelInstance;
-	class Scene;
+	class RenderScene;
 
 	class ENGINE_EXPORT Actor : public Object
 	{
@@ -95,7 +95,7 @@ namespace Trinex
 
 		LevelInstance* level() const;
 		World* world() const;
-		Scene* scene() const;
+		RenderScene* scene() const;
 		bool serialize(Archive& ar) override;
 
 		inline const Vector<class ActorComponent*>& components() const { return m_components; }
