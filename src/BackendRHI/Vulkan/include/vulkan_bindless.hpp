@@ -41,10 +41,13 @@ namespace Trinex
 		}
 
 	private:
+		struct alignas(8) Descriptor : RHIDescriptor {
+		};
+
 		CriticalSection m_criticals[HeapsCount];
 		vk::DescriptorSetLayoutBinding m_bindings[HeapsCount];
 		Vector<RHIDescriptor> m_free[HeapsCount];
-		RHIDescriptor m_last[HeapsCount] = {0};
+		Descriptor m_last[HeapsCount] = {{0}};
 
 		vk::DescriptorSetLayout m_descriptor_set_layout;
 		vk::DescriptorSet m_descriptor_set;

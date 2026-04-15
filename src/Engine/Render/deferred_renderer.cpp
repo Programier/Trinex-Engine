@@ -16,7 +16,6 @@
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/scene.hpp>
 #include <Engine/Render/scene_view_state.hpp>
-#include <Engine/frustum.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/material_bindings.hpp>
 #include <Graphics/render_pools.hpp>

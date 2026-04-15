@@ -1,6 +1,8 @@
 #pragma once
 #include <Core/engine_types.hpp>
+#include <Core/math/frustum.hpp>
 #include <Core/math/matrix.hpp>
+#include <RHI/types.hpp>
 
 namespace Trinex
 {
@@ -17,6 +19,7 @@ namespace Trinex
 		};
 
 		struct alignas(16) Camera {
+			alignas(16) Frustum frustum;
 			alignas(16) Matrix4f projection;
 			alignas(16) Matrix4f view;
 			alignas(16) Matrix4f projview;
@@ -34,7 +37,7 @@ namespace Trinex
 		Camera camera;
 		Camera prev_camera;
 
-		alignas(8) u64 scene;
+		alignas(8) RHIDescriptor scene;
 		alignas(4) float time;
 		alignas(4) float delta_time;
 

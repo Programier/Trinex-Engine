@@ -63,45 +63,54 @@ namespace Trinex::Math
 	using glm::transpose;
 	using glm::trunc;
 
-	template<typename T>
-	GLM_FUNC_QUALIFIER glm::mat<4, 4, T, glm::defaultp> ortho(T left, T right, T bottom, T top, T zNear, T zFar)
+	ENGINE_EXPORT Plane normalize(const Plane& plane);
+	ENGINE_EXPORT float distance(const Plane& plane, const Vector3f& point);
+	ENGINE_EXPORT float distance(const Plane& plane, const Box3f& box);
+
+	ENGINE_EXPORT Plane left_plane(const Matrix4f& projview);
+	ENGINE_EXPORT Plane right_plane(const Matrix4f& projview);
+	ENGINE_EXPORT Plane top_plane(const Matrix4f& projview);
+	ENGINE_EXPORT Plane bottom_plane(const Matrix4f& projview);
+	ENGINE_EXPORT Plane near_plane(const Matrix4f& projview);
+	ENGINE_EXPORT Plane far_plane(const Matrix4f& projview);
+
+	inline Matrix4f ortho(float left, float right, float bottom, float top, float near, float far)
 	{
-		return glm::ortho(left, right, bottom, top, zFar, zNear);
+		return glm::ortho(left, right, bottom, top, far, near);
 	}
 
-	template<typename T>
-	GLM_FUNC_QUALIFIER glm::mat<4, 4, T, glm::defaultp> perspective(T fovy, T aspect, T zNear, T zFar)
+	inline Matrix4f perspective(float fovy, float aspect, float near, float far)
 	{
-		return glm::perspective(fovy, aspect, zFar, zNear);
+		return glm::perspective(fovy, aspect, far, near);
 	}
 
 	template<typename T, glm::qualifier Q>
-	GLM_FUNC_QUALIFIER glm::mat<4, 4, T, Q> look_at(glm::vec<3, T, Q> const& eye, glm::vec<3, T, Q> const& center,
-	                                                glm::vec<3, T, Q> const& up)
+	inline glm::mat<4, 4, T, Q> look_at(glm::vec<3, T, Q> const& eye, glm::vec<3, T, Q> const& center,
+	                                    glm::vec<3, T, Q> const& up)
 	{
 		return glm::lookAt(eye, center, up);
 	}
 
 	template<typename T, glm::qualifier Q>
-	GLM_FUNC_QUALIFIER glm::qua<T, Q> quat_look_at(const glm::vec<3, T, Q>& direction, const glm::vec<3, T, Q>& up)
+	inline glm::qua<T, Q> quat_look_at(const glm::vec<3, T, Q>& direction, const glm::vec<3, T, Q>& up)
 	{
 		return glm::quatLookAt(direction, up);
 	}
 
 	template<typename genTypeT, typename genTypeU>
-	GLM_FUNC_QUALIFIER genTypeT lerp(genTypeT x, genTypeT y, genTypeU a)
+	inline genTypeT lerp(genTypeT x, genTypeT y, genTypeU a)
 	{
 		return glm::mix(x, y, a);
 	}
 
 	template<glm::length_t L, typename T, typename U, glm::qualifier Q>
-	GLM_FUNC_QUALIFIER glm::vec<L, T, Q> lerp(glm::vec<L, T, Q> const& x, glm::vec<L, T, Q> const& y, U a)
+	inline glm::vec<L, T, Q> lerp(glm::vec<L, T, Q> const& x, glm::vec<L, T, Q> const& y, U a)
 	{
 		return glm::mix(x, y, a);
 	}
 
 	template<glm::length_t L, typename T, typename U, glm::qualifier Q>
-	GLM_FUNC_QUALIFIER glm::vec<L, T, Q> lerp(glm::vec<L, T, Q> const& x, glm::vec<L, T, Q> const& y, glm::vec<L, U, Q> const& a)
+	inline glm::vec<L, T, Q> lerp(glm::vec<L, T, Q> const& x, glm::vec<L, T, Q> const& y, glm::vec<L, U, Q> const& a)
 	{
 		return glm::mix(x, y, a);
 	}
@@ -113,29 +122,29 @@ namespace Trinex::Math
 	}
 
 	template<typename T, glm::qualifier Q>
-	GLM_FUNC_QUALIFIER glm::qua<T, Q> angle_axis(T const& angle, glm::vec<3, T, Q> const& v)
+	inline glm::qua<T, Q> angle_axis(T const& angle, glm::vec<3, T, Q> const& v)
 	{
 		return glm::angleAxis(angle, v);
 	}
 
 	template<typename T, glm::qualifier Q>
-	GLM_FUNC_QUALIFIER glm::vec<3, T, Q> euler_angles(glm::qua<T, Q> const& x)
+	inline glm::vec<3, T, Q> euler_angles(glm::qua<T, Q> const& x)
 	{
 		return glm::eulerAngles(x);
 	}
 
-	FORCE_INLINE constexpr float linearize_depth(float depth, float near, float far)
+	inline constexpr float linearize_depth(float depth, float near, float far)
 	{
 		return (near * far) / (far + depth * (near - far));
 	}
 
-	FORCE_INLINE constexpr float unlinearize_depth(float depth, float near, float far)
+	inline constexpr float unlinearize_depth(float depth, float near, float far)
 	{
 		return ((near * far) / depth - far) / (near - far);
 	}
 
 	template<typename T, typename... Ts>
-	FORCE_INLINE constexpr T max(T a, T b, Ts... rest)
+	inline constexpr T max(T a, T b, Ts... rest)
 	{
 		a = glm::max(a, b);
 		return ((a = max(a, rest)), ...);
@@ -143,7 +152,7 @@ namespace Trinex::Math
 
 	template<glm::length_t N, typename T>
 	    requires(N > 0)
-	FORCE_INLINE constexpr T max(const VectorNT<N, T>& values)
+	inline constexpr T max(const VectorNT<N, T>& values)
 	{
 		T m = values[0];
 		for (usize i = 1; i < N; ++i)
@@ -153,7 +162,7 @@ namespace Trinex::Math
 	}
 
 	template<typename T, typename... Ts>
-	FORCE_INLINE constexpr T min(T a, T b, Ts... rest)
+	inline constexpr T min(T a, T b, Ts... rest)
 	{
 		a = glm::min(a, b);
 		return ((a = min(a, rest)), ...);
@@ -161,7 +170,7 @@ namespace Trinex::Math
 
 	template<glm::length_t N, typename T>
 	    requires(N > 0)
-	FORCE_INLINE constexpr T min(const VectorNT<N, T>& values)
+	inline constexpr T min(const VectorNT<N, T>& values)
 	{
 		T m = values[0];
 		for (usize i = 1; i < N; ++i)
@@ -170,42 +179,42 @@ namespace Trinex::Math
 		return m;
 	}
 
-	FORCE_INLINE constexpr float cascade_split(u32 index, u32 count, float distribution_exponent = 1.2f)
+	inline constexpr float cascade_split(u32 index, u32 count, float distribution_exponent = 1.2f)
 	{
 		float si = static_cast<float>(index) / static_cast<float>(count);
 		return pow(si, distribution_exponent);
 	}
 
-	FORCE_INLINE constexpr u32 cascade_index(float split, u32 count, float distribution_exponent = 1.2f)
+	inline constexpr u32 cascade_index(float split, u32 count, float distribution_exponent = 1.2f)
 	{
 		return static_cast<u32>(pow(split, 1.0f / distribution_exponent) * static_cast<float>(count));
 	}
 
-	FORCE_INLINE constexpr float ev100_to_luminance(float ev100)
+	inline constexpr float ev100_to_luminance(float ev100)
 	{
 		return 12.5f * pow(2.0f, ev100);
 	}
 
-	FORCE_INLINE float luminance_to_ev100(float luminance)
+	inline float luminance_to_ev100(float luminance)
 	{
 		return log2(luminance / 12.5f);
 	}
 
 	template<typename T = float>
-	FORCE_INLINE constexpr T pi()
+	inline constexpr T pi()
 	{
 		return glm::pi<T>();
 	}
 
 	template<typename T = float>
-	FORCE_INLINE constexpr T half_pi()
+	inline constexpr T half_pi()
 	{
 		return glm::half_pi<T>();
 	}
 
 	template<typename T>
 	    requires(std::is_integral_v<T>)
-	FORCE_INLINE bool is_power_of_two(T value)
+	inline bool is_power_of_two(T value)
 	{
 		return value && !(value & (value - 1));
 	}

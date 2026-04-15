@@ -11,7 +11,6 @@
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/renderer.hpp>
 #include <Engine/Render/scene.hpp>
-#include <Engine/frustum.hpp>
 #include <Graphics/editor_pipelines.hpp>
 #include <Graphics/editor_render_passes.hpp>
 #include <Graphics/editor_scene_renderer.hpp>

@@ -401,6 +401,15 @@ namespace Trinex
 		return *this;
 	}
 
+	VulkanContext& VulkanContext::memset(RHIBuffer* dst, usize size, usize offset, u32 value)
+	{
+		trinex_assert(size % 4 == 0);
+		trinex_assert(offset % 4 == 0);
+
+		handle()->fillBuffer(static_cast<VulkanBuffer*>(dst)->buffer(), offset, size, value);
+		return *this;
+	}
+
 	VulkanContext& VulkanContext::update(RHIBuffer* dst, const void* src, const RHIBufferCopy& region)
 	{
 		const u8* data = static_cast<const u8*>(src) + region.src_offset;

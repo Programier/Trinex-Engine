@@ -69,6 +69,7 @@ namespace Trinex
 
 		virtual RHIContext& clear_dsv(RHIDepthStencilView* dsv, f32 depth = 0.f, u8 stencil = 0) = 0;
 
+		virtual RHIContext& memset(RHIBuffer* dst, usize size, usize offset, u32 value = 0)      = 0;
 		virtual RHIContext& update(RHIBuffer* dst, const void* src, const RHIBufferCopy& region) = 0;
 		virtual RHIContext& update(RHITexture* dst, const RHITextureRegion& dst_region, const void* src,
 		                           const RHIBufferTextureCopy& src_region)                       = 0;

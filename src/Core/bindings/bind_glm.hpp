@@ -16,7 +16,8 @@
 
 namespace Trinex::Bindings::GLM
 {
-	using glm_element_types = TypesList<bool, i32, u32, float>;
+	using glm_vector_types = TypesList<bool, i32, u32, f32>;
+	using glm_matrix_types = TypesList<i32, f32>;
 
 	template<typename T>
 	constexpr const char* type_names = nullptr;
@@ -57,12 +58,6 @@ namespace Trinex::Bindings::GLM
 	trinex_bindings_engine_typename(Matrix4i);
 	trinex_bindings_engine_typename(Matrix3i);
 	trinex_bindings_engine_typename(Matrix2i);
-	trinex_bindings_engine_typename(Matrix4u);
-	trinex_bindings_engine_typename(Matrix3u);
-	trinex_bindings_engine_typename(Matrix2u);
-	trinex_bindings_engine_typename(Matrix4b);
-	trinex_bindings_engine_typename(Matrix3b);
-	trinex_bindings_engine_typename(Matrix2b);
 
 #undef trinex_bindings_typename_e
 #undef trinex_bindings_typename
@@ -815,14 +810,14 @@ namespace Trinex::Bindings::GLM
 
 	static void register_types()
 	{
-		glm_element_types::for_each([]<typename T>() {
+		glm_vector_types::for_each([]<typename T>() {
 			create_registrar<glm::vec<1, T>>();
 			create_registrar<glm::vec<2, T>>();
 			create_registrar<glm::vec<3, T>>();
 			create_registrar<glm::vec<4, T>>();
 		});
 
-		glm_element_types::for_each([]<typename T>() {
+		glm_matrix_types::for_each([]<typename T>() {
 			create_registrar<glm::mat<2, 2, T>>();
 			create_registrar<glm::mat<3, 3, T>>();
 			create_registrar<glm::mat<4, 4, T>>();
@@ -833,7 +828,7 @@ namespace Trinex::Bindings::GLM
 
 	static void bind_vector_types()
 	{
-		glm_element_types::for_each([]<typename T>() {
+		glm_vector_types::for_each([]<typename T>() {
 			bind_glm_type<glm::vec<1, T>, Vector1_Binder>();
 			bind_glm_type<glm::vec<2, T>, Vector2_Binder>();
 			bind_glm_type<glm::vec<3, T>, Vector3_Binder>();
@@ -848,7 +843,7 @@ namespace Trinex::Bindings::GLM
 		{
 			bind_constructor<T, typename T::value_type>(reg);
 
-			glm_element_types::for_each([r = reg]<typename E>() {
+			glm_matrix_types::for_each([r = reg]<typename E>() {
 				bind_constructor<T, glm::mat<2, 2, E>>(r);
 				bind_constructor<T, glm::mat<3, 3, E>>(r);
 				bind_constructor<T, glm::mat<4, 4, E>>(r);
@@ -904,7 +899,7 @@ namespace Trinex::Bindings::GLM
 
 	static void bind_matrix_types()
 	{
-		glm_element_types::for_each([]<typename T>() {
+		glm_matrix_types::for_each([]<typename T>() {
 			bind_glm_type<glm::mat<2, 2, T>, Matrix2_Binder>();
 			bind_glm_type<glm::mat<3, 3, T>, Matrix3_Binder>();
 			bind_glm_type<glm::mat<4, 4, T>, Matrix4_Binder>();
@@ -921,14 +916,18 @@ namespace Trinex::Bindings::GLM
 
 		bind_constructor<Quaternion, float, float, float, float>(&quat);
 
-		glm_element_types::for_each([&quat]<typename T>() {
+		glm_vector_types::for_each([&quat]<typename T>() {
 			using Vec3 = glm::vec<3, T>;
-			using Mat3 = glm::mat<3, 3, T>;
-			using Mat4 = glm::mat<4, 4, T>;
 
 			bind_constructor<Quaternion, Vec3>(&quat);
 			bind_constructor<Quaternion, T, Vec3>(&quat);
 			bind_constructor<Quaternion, Vec3, Vec3>(&quat);
+		});
+
+		glm_matrix_types::for_each([&quat]<typename T>() {
+			using Mat3 = glm::mat<3, 3, T>;
+			using Mat4 = glm::mat<4, 4, T>;
+
 			bind_constructor<Quaternion, Mat3>(&quat);
 			bind_constructor<Quaternion, Mat4>(&quat);
 		});
@@ -1131,7 +1130,7 @@ namespace Trinex::Bindings::GLM
 		bind_func("determinant", glm::determinant<3, 3, float, glm::defaultp>);
 		bind_func("determinant", glm::determinant<4, 4, float, glm::defaultp>);
 
-		glm_element_types::for_each([]<typename T>() {
+		glm_matrix_types::for_each([]<typename T>() {
 			bind_func("transpose", glm::transpose<2, 2, T, glm::defaultp>);
 			bind_func("transpose", glm::transpose<3, 3, T, glm::defaultp>);
 			bind_func("transpose", glm::transpose<4, 4, T, glm::defaultp>);

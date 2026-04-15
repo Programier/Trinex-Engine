@@ -1,4 +1,5 @@
 import "trinex/trinex.slang";
+import "trinex/math.slang";
 
 struct Scene
 {
@@ -21,25 +22,34 @@ struct Scene
 		Buffer index_stream;
 
 		uint vertices;
-		float3 aabb_min;
-		float3 aabb_max;
-    }
+		Math::Box aabb;
+	}
 
 	struct Primitive {
-		[UnscopedEnum]
-		[Flags]
 		enum Flags
 		{
-			IsActive = 0x1,
+			IsAlive = 0x1,
 		}
 
 		uint transform;
 		uint material;
 		uint geometry;
 		Flags flags;
+
+		inline bool is_alive() { return flags & Flags::IsAlive; }
 	};
 
 	RWByteAddressBuffer::Handle heap;
-	RWStructuredBuffer<Geometry>::Handle geometries;
-	RWStructuredBuffer<Primitive>::Handle primitives;
+	RWByteAddressBuffer::Handle geometries;
+	RWByteAddressBuffer::Handle primitives;
+
+	inline Geometry geometry(uint id = 0)
+	{
+		return geometries.Load<Geometry>(id * sizeof(Geometry));
+	}
+
+	inline Primitive primitive(uint id = 0)
+	{
+		return primitives.Load<Primitive>(id * sizeof(Primitive));
+	}
 }

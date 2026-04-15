@@ -19,8 +19,8 @@
 
 namespace Trinex
 {
-	static constexpr u32 objects = 20 * 20 * 20;
 	static constexpr u32 cube    = 20;
+	static constexpr u32 objects = cube * cube * cube;
 
 	class ENGINE_EXPORT GeometryView : public GlobalGraphicsPipeline
 	{

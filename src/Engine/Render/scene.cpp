@@ -8,7 +8,6 @@
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/scene.hpp>
-#include <Engine/frustum.hpp>
 #include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 

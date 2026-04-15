@@ -2,7 +2,99 @@ import "trinex/trinex.slang";
 
 namespace Math
 {
+	///////////////////// CONSTANTS /////////////////////
     static const float pi = 3.141592f;
+
+
+	///////////////////// STRUCTURES /////////////////////
+
+	struct Box
+	{
+		float3 min;
+		float3 max;
+
+		inline float3 center() { return (min + max) * 0.5f; }
+		inline float3 extents() { return (max - min) * 0.5f; }
+
+		inline Box transform(in float4x4 matrix) 
+		{
+			const float3 center = (matrix * float4(center(), 1.f)).xyz;
+			const float3 e      = extents();
+
+			float3 extents;
+			extents.x    = abs(matrix[0][0]) * e.x + abs(matrix[1][0]) * e.y + abs(matrix[2][0]) * e.z;
+			extents.y    = abs(matrix[0][1]) * e.x + abs(matrix[1][1]) * e.y + abs(matrix[2][1]) * e.z;
+			extents.z    = abs(matrix[0][2]) * e.x + abs(matrix[1][2]) * e.y + abs(matrix[2][2]) * e.z;
+
+			return { center - extents, center + extents };
+		}
+	}
+
+	struct Plane
+	{
+		float3 normal;
+		float offset;
+	}
+
+	struct Frustum
+	{
+		Plane left;
+		Plane right;
+		Plane top;
+		Plane bottom;
+		Plane near;
+		Plane far;
+
+
+		bool contains(float3 point)
+		{
+			if (distance(left, point) < 0) return false;
+			if (distance(right, point) < 0) return false;
+			if (distance(top, point) < 0) return false;
+			if (distance(bottom, point) < 0) return false;
+			if (distance(near, point) < 0) return false;
+			if (distance(far, point) < 0) return false;
+
+			return true;
+		}
+
+		bool intersects(Box box)
+		{
+			if (distance(left, box) < 0) return false;
+			if (distance(right, box) < 0) return false;
+			if (distance(top, box) < 0) return false;
+			if (distance(bottom, box) < 0) return false;
+			if (distance(near, box) < 0) return false;
+			if (distance(far, box) < 0) return false;
+
+			return true;
+		}
+	}
+
+	///////////////////// FUNCTIONS /////////////////////
+
+	Plane normalize(in Plane plane)
+	{
+		const float len = length(plane.normal);
+
+		if (len != 0.f)
+		{
+			const float rcp = 1.0f / len;
+			return Plane(plane.normal * rcp, plane.offset * rcp);
+		}
+		
+		return plane;
+	}
+
+	inline float distance(in Plane plane, in float3 point)
+	{
+		return dot(plane.normal, point) + plane.offset;
+	}
+
+	inline float distance(in Plane plane, in Box box)
+	{
+		return dot(plane.normal, box.center()) + dot(abs(plane.normal), box.extents()) + plane.offset;
+	}
 
     float3x3 inverse(in float3x3 m)
     {

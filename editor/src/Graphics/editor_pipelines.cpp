@@ -1,6 +1,6 @@
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/math/plane.hpp>
 #include <Engine/Render/renderer.hpp>
-#include <Engine/frustum.hpp>
 #include <Graphics/editor_pipelines.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/sampler.hpp>
@@ -72,8 +72,8 @@ namespace Trinex::EditorPipelines
 		Args args;
 
 		auto& projection = renderer->scene_view().camera_view().projection;
-		auto forward     = Plane::static_near(projection).normal;
-		auto bottom      = Plane::static_bottom(projection).normal;
+		auto forward     = Math::near_plane(projection).normal;
+		auto bottom      = Math::bottom_plane(projection).normal;
 
 		float angle             = Math::angle(forward, bottom);
 		float perspective_scale = Math::abs(Math::tan(angle)) * 1.4142135381698608f;

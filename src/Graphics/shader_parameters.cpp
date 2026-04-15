@@ -12,6 +12,7 @@ namespace Trinex
 	{
 		if (scene_view)
 		{
+			camera.frustum        = scene_view->camera_view().frustum;
 			camera.projection     = scene_view->camera_view().projection;
 			camera.view           = scene_view->camera_view().view;
 			camera.projview       = scene_view->camera_view().projview;
@@ -22,6 +23,7 @@ namespace Trinex
 			camera.near           = scene_view->camera_view().near;
 			camera.far            = scene_view->camera_view().far;
 
+			prev_camera.frustum        = scene_view->prev_camera_view().frustum;
 			prev_camera.projection     = scene_view->prev_camera_view().projection;
 			prev_camera.view           = scene_view->prev_camera_view().view;
 			prev_camera.projview       = scene_view->prev_camera_view().projview;

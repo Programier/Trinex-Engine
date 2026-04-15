@@ -1,5 +1,6 @@
 import "trinex/trinex.slang";
 import "trinex/scene.slang";
+import "trinex/math.slang";
 
 struct SceneView
 {
@@ -16,6 +17,7 @@ struct SceneView
 	};
 
 	struct Camera {
+		Math::Frustum frustum;
 		float4x4 projection;
 		float4x4 view;
 		float4x4 projview;

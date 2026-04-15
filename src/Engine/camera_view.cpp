@@ -15,6 +15,8 @@ namespace Trinex
 
 		view.near = near;
 		view.far  = far;
+
+		view.frustum = view.projview;
 	}
 
 	CameraView CameraView::static_perspective(const Vector3f& origin, const Vector3f& forward, const Vector3f& up, float fov,

@@ -372,6 +372,8 @@ namespace Trinex
 
 		VulkanContext& update_scalar(const void* data, usize size, usize offset, u8 buffer_index) override;
 
+		VulkanContext& memset(RHIBuffer* dst, usize size, usize offset, u32 value = 0) override;
+
 		VulkanContext& update(RHIBuffer* dst, const void* src, const RHIBufferCopy& region) override;
 		VulkanContext& update(RHITexture* dst, const RHITextureRegion& dst_region, const void* src,
 		                      const RHIBufferTextureCopy& src_region) override;

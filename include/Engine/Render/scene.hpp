@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/etl/sparce_vector.hpp>
+#include <Core/math/box.hpp>
 #include <Core/math/matrix.hpp>
 #include <Engine/enviroment.hpp>
 #include <RHI/types.hpp>
@@ -49,9 +50,7 @@ namespace Trinex
 			Buffer index_stream;
 
 			u32 vertices;
-
-			Vector3f aabb_min;
-			Vector3f aabb_max;
+			Box3f aabb;
 		};
 
 		struct Primitive {

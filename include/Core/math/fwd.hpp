@@ -102,14 +102,6 @@ namespace Trinex
 	using Matrix3i = MatrixNT<3, i32>;
 	using Matrix2i = MatrixNT<2, i32>;
 
-	using Matrix4u = MatrixNT<4, u32>;
-	using Matrix3u = MatrixNT<3, u32>;
-	using Matrix2u = MatrixNT<2, u32>;
-
-	using Matrix4b = MatrixNT<4, bool>;
-	using Matrix3b = MatrixNT<3, bool>;
-	using Matrix2b = MatrixNT<2, bool>;
-
 	using Quaternion = glm::quat;
 
 	using Box2f = BoxNT<2, f32>;
@@ -118,4 +110,6 @@ namespace Trinex
 	using Box3i = BoxNT<3, i32>;
 
 	struct Angle;
+	struct Plane;
+	struct Frustum;
 }// namespace Trinex

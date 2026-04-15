@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/math/frustum.hpp>
 #include <Core/math/math.hpp>
 #include <Core/math/matrix.hpp>
 #include <Core/math/vector.hpp>
@@ -6,6 +7,7 @@
 namespace Trinex
 {
 	struct ENGINE_EXPORT CameraView {
+		Frustum frustum;
 		Matrix4f projection;
 		Matrix4f view;
 		Matrix4f projview;

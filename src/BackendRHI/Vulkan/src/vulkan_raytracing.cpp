@@ -73,15 +73,15 @@ namespace Trinex
 	static inline vk::AccelerationStructureGeometryTrianglesDataKHR triangles_of(const RHIRayTracingGeometryTriangles* triangles)
 	{
 		vk::AccelerationStructureGeometryTrianglesDataKHR result;
-		result.transformData = triangles->transform;
-		result.vertexData    = triangles->vertex_buffer;
-		result.indexData     = triangles->index_buffer;
+		result.transformData = triangles->transform.as<vk::DeviceAddress>();
+		result.vertexData    = triangles->vertex_buffer.as<vk::DeviceAddress>();
+		result.indexData     = triangles->index_buffer.as<vk::DeviceAddress>();
 
 		result.vertexStride = triangles->vertex_stride;
 		result.maxVertex    = triangles->vertex_count;
 
 		result.vertexFormat = VulkanEnums::vertex_format_of(triangles->vertex_format);
-		if (triangles->index_buffer)
+		if (triangles->index_buffer.as<vk::DeviceAddress>())
 		{
 			if (triangles->index_format == RHIIndexFormat::UInt16)
 			{
@@ -103,7 +103,7 @@ namespace Trinex
 	static inline vk::AccelerationStructureGeometryAabbsDataKHR aabbs_of(const RHIRayTracingGeometryAABBs* aabbs)
 	{
 		vk::AccelerationStructureGeometryAabbsDataKHR result;
-		result.data   = aabbs->aabbs;
+		result.data   = aabbs->aabbs.as<vk::DeviceAddress>();
 		result.stride = aabbs->stride;
 		return result;
 	}
@@ -138,7 +138,7 @@ namespace Trinex
 	static inline u32 primitives_count(const RHIRayTracingGeometryTriangles* triangles,
 	                                   vk::AccelerationStructureBuildRangeInfoKHR* ranges)
 	{
-		const bool has_indices        = triangles->index_count && triangles->index_buffer;
+		const bool has_indices        = triangles->index_count && triangles->index_buffer.as<vk::DeviceAddress>();
 		ranges->firstVertex           = 0;
 		ranges->primitiveOffset       = 0;
 		ranges->transformOffset       = 0;
@@ -190,7 +190,7 @@ namespace Trinex
 		if (inputs->level == RHIRayTracingAccelerationLevel::Top)
 		{
 			auto* geometries = StackAllocator<vk::AccelerationStructureGeometryKHR>::allocate(1);
-			(*geometries)    = geometry_of(inputs->instances);
+			(*geometries)    = geometry_of(inputs->instances.as<vk::DeviceAddress>());
 
 			result.geometryCount = 1;
 			result.pGeometries   = geometries;
@@ -246,8 +246,7 @@ namespace Trinex
 		auto sizes = VulkanAPI::instance()->m_device.getAccelerationStructureBuildSizesKHR(build_type, build_info, primitives);
 
 		constexpr auto flags = RHIBufferFlags::AccelerationStorage | RHIBufferFlags::ByteAddressBuffer |
-		                       RHIBufferFlags::ShaderResource | RHIBufferFlags::UnorderedAccess |
-		                       RHIBufferFlags::DeviceAddress;
+		                       RHIBufferFlags::ShaderResource | RHIBufferFlags::UnorderedAccess | RHIBufferFlags::DeviceAddress;
 
 		m_acceleration_buffer = trx_new VulkanBuffer();
 		m_acceleration_buffer->create(sizes.accelerationStructureSize, flags);
@@ -266,7 +265,7 @@ namespace Trinex
 		ctx->begin().barrier(scratch, RHIAccess::AccelerationRead | RHIAccess::AccelerationWrite);
 
 		build_info.dstAccelerationStructure = m_acceleration;
-		build_info.scratchData              = scratch->address();
+		build_info.scratchData              = scratch->address().as<vk::DeviceAddress>();
 
 		VulkanCommandHandle* cmd = ctx->handle();
 		cmd->buildAccelerationStructuresKHR(build_info, build_ranges);
@@ -287,7 +286,7 @@ namespace Trinex
 
 	vk::DeviceAddress VulkanAccelerationStructure::address() const
 	{
-		return m_acceleration_buffer->address();
+		return m_acceleration_buffer->address().as<vk::DeviceAddress>();
 	}
 
 	RHIAccelerationStructure* VulkanAPI::create_acceleration_structure(const RHIRayTracingAccelerationInputs* inputs)
@@ -334,7 +333,7 @@ namespace Trinex
 
 		auto pipeline = static_cast<VulkanRayTracingPipeline*>(m_pipeline);
 
-		const vk::DeviceAddress sbt = pipeline->shader_binding_table()->address();
+		const vk::DeviceAddress sbt = pipeline->shader_binding_table()->address().as<vk::DeviceAddress>();
 		const usize groups          = pipeline->groups();
 
 

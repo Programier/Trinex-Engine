@@ -2,6 +2,7 @@
 #include <Core/math/matrix.hpp>
 #include <Core/math/vector.hpp>
 #include <Core/types/color.hpp>
+#include <RHI/types.hpp>
 
 namespace Trinex
 {
@@ -34,20 +35,20 @@ namespace Trinex
 	};
 
 	struct PointLightShadowParameters {
-		u64 descriptor;
+		RHIDescriptor descriptor;
 		float depth_bias;
 		float slope_scale;
 	};
 
 	struct SpotLightShadowParameters {
-		u64 descriptor;
+		RHIDescriptor descriptor;
 		Matrix4f projview;
 		float depth_bias;
 		float slope_scale;
 	};
 
 	struct DirectionalLightShadowCascade {
-		u64 descriptor;
+		RHIDescriptor descriptor;
 		Matrix4f projview;
 	};
 

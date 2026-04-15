@@ -10,16 +10,11 @@ struct VertexOutput
 
 float3 load_vertex(uint vertex_id, uint primitive_id)
 {
-	let primitive = scene_view.scene[0].primitives[primitive_id];
-
-	if(primitive.flags & Scene::Primitive::IsActive)
-	{
-		
-	}
+	let primitive = scene_view.scene[0].primitive(primitive_id);
 
 	float4x4 local_to_world = scene_view.scene[0].heap.Load<float4x4>(primitive.transform);
 
-	let geometry = scene_view.scene[0].geometries[primitive.geometry];
+	let geometry = scene_view.scene[0].geometry(primitive.geometry);
 	let index    = geometry.index_stream.load<uint>(vertex_id);
 	
 	float4 vertex = local_to_world * float4(geometry.vertex_stream.load<float3>(index), 1.f);
