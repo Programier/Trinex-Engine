@@ -322,7 +322,7 @@ namespace Trinex
 		return *this;
 	}
 
-	VulkanContext& VulkanContext::bind_vertex_attribute(RHIVertexSemantic semantic, RHIVertexFormat format, u8 stream, u16 offset)
+	VulkanContext& VulkanContext::bind_vertex_attribute(RHISemantic semantic, RHIVertexFormat format, u8 stream, u16 offset)
 	{
 		VertexAttribute va;
 		va.stream = stream;

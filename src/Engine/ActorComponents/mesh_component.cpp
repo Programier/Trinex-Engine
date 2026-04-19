@@ -84,9 +84,9 @@ namespace Trinex
 
 			for (usize i = 0, count = pipeline->vertex_attributes.size(); i < count; ++i)
 			{
-				RHIVertexSemantic semantic = pipeline->vertex_attributes[i].semantic;
-				auto va                    = vertex_attribute(semantic, lod);
-				VertexBufferBase* buffer   = va ? vertex_buffer(va->stream, lod) : nullptr;
+				RHISemantic semantic     = pipeline->vertex_attributes[i].semantic;
+				auto va                  = vertex_attribute(semantic, lod);
+				VertexBufferBase* buffer = va ? vertex_buffer(va->stream, lod) : nullptr;
 
 				if (buffer)
 				{

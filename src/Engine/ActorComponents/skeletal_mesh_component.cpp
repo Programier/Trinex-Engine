@@ -67,7 +67,7 @@ namespace Trinex
 		return &m_mesh->lods[lod].surfaces[index];
 	}
 
-	const MeshVertexAttribute* SkeletalMeshComponent::vertex_attribute(RHIVertexSemantic semantic, usize lod)
+	const MeshVertexAttribute* SkeletalMeshComponent::vertex_attribute(RHISemantic semantic, usize lod)
 	{
 		return nullptr;
 	}

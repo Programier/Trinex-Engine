@@ -49,20 +49,21 @@ namespace Trinex
 	};
 
 	struct ENGINE_EXPORT RHIShaderParameterInfo {
-		RHIShaderParameterType type = RHIShaderParameterType::Undefined;
 		Name name;
-		usize size   = 0;
-		usize offset = 0;
-		u8 binding   = 255;
+		u32 size                    = 0;
+		u32 offset                  = 0;
+		RHIShaderParameterType type = RHIShaderParameterType::Undefined;
+		RHISemantic semantic        = RHISemantic::Undefined;
+		u8 binding                  = 255;
 
 		bool serialize(Archive& ar);
 	};
 
-	struct RHIVertexAttribute {
-		RHIVertexSemantic semantic;
+	struct RHIInputAttribute {
+		RHISemantic semantic;
 		u8 binding;
 
-		FORCE_INLINE RHIVertexAttribute(RHIVertexSemantic semantic = RHIVertexSemantic::Position, u8 binding = 0)
+		FORCE_INLINE RHIInputAttribute(RHISemantic semantic = RHISemantic::Position, u8 binding = 0)
 		    : semantic(semantic), binding(binding)
 		{}
 

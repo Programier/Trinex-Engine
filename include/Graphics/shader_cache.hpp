@@ -10,7 +10,7 @@ namespace Trinex
 
 	struct ENGINE_EXPORT GraphicsShaderCache {
 		Vector<RHIShaderParameterInfo> parameters;
-		Vector<RHIVertexAttribute> vertex_attributes;
+		Vector<RHIInputAttribute> vertex_attributes;
 		Buffer vertex;
 		Buffer tessellation_control;
 		Buffer tessellation;

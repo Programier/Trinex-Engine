@@ -96,12 +96,11 @@ namespace Trinex
 
 		virtual RHIContext& depth_bias(float constant = 0.0f, float clamp = 0.0f, float slope = 0.0f) = 0;
 
-		virtual RHIContext& bind_vertex_attribute(RHIVertexSemantic semantic, RHIVertexFormat format, u8 stream,
-		                                          u16 offset = 0)                                              = 0;
+		virtual RHIContext& bind_vertex_attribute(RHISemantic semantic, RHIVertexFormat format, u8 stream, u16 offset = 0) = 0;
 		virtual RHIContext& bind_vertex_buffer(RHIBuffer* buffer, usize byte_offset, u16 stride, u8 stream,
-		                                       RHIVertexInputRate rate = RHIVertexInputRate::Vertex)           = 0;
-		virtual RHIContext& bind_index_buffer(RHIBuffer* buffer, RHIIndexFormat format, usize byte_offset = 0) = 0;
-		virtual RHIContext& bind_uniform_buffer(RHIBuffer* buffer, u8 slot)                                    = 0;
+		                                       RHIVertexInputRate rate = RHIVertexInputRate::Vertex)                       = 0;
+		virtual RHIContext& bind_index_buffer(RHIBuffer* buffer, RHIIndexFormat format, usize byte_offset = 0)             = 0;
+		virtual RHIContext& bind_uniform_buffer(RHIBuffer* buffer, u8 slot)                                                = 0;
 
 		virtual RHIContext& bind_pipeline(RHIPipeline* pipeline)                               = 0;
 		virtual RHIContext& bind_sampler(RHISampler* sampler, u8 slot)                         = 0;

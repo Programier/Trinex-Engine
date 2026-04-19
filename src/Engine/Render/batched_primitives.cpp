@@ -168,9 +168,9 @@ namespace Trinex
 		ctx->update_scalar(&projview, pipeline->projview());
 		ctx->update_scalar(&size, pipeline->viewport());
 
-		ctx->bind_vertex_attribute(RHIVertexSemantic::Position, RHIVertexFormat::RGB32F, 0, 0);
-		ctx->bind_vertex_attribute(RHIVertexSemantic::Color, RHIVertexFormat::RGBA8, 0, 12);
-		ctx->bind_vertex_attribute(RHIVertexSemantic::UserData, RHIVertexFormat::R32F, 0, 16);
+		ctx->bind_vertex_attribute(RHISemantic::Position, RHIVertexFormat::RGB32F, 0, 0);
+		ctx->bind_vertex_attribute(RHISemantic::Color, RHIVertexFormat::RGBA8, 0, 12);
+		ctx->bind_vertex_attribute(RHISemantic::UserData, RHIVertexFormat::R32F, 0, 16);
 		ctx->bind_vertex_buffer(vtx_buffer, 0, sizeof(Vertex), 0);
 
 		while (m_first)
@@ -250,8 +250,8 @@ namespace Trinex
 
 		ctx->bind_pipeline(Pipelines::BatchedTriangles::instance()->rhi_pipeline());
 		ctx->bind_pipeline(Pipelines::BatchedTriangles::instance()->rhi_pipeline());
-		ctx->bind_vertex_attribute(RHIVertexSemantic::Position, RHIVertexFormat::RGB32F, 0);
-		ctx->bind_vertex_attribute(RHIVertexSemantic::Color, RHIVertexFormat::RGBA8, 1);
+		ctx->bind_vertex_attribute(RHISemantic::Position, RHIVertexFormat::RGB32F, 0);
+		ctx->bind_vertex_attribute(RHISemantic::Color, RHIVertexFormat::RGBA8, 1);
 
 		ctx->bind_vertex_buffer(m_position_buffer.rhi_buffer(), 0, m_position_buffer.stride(), 0);
 		ctx->bind_vertex_buffer(m_color_buffer.rhi_buffer(), 0, m_color_buffer.stride(), 1);

@@ -16,17 +16,17 @@ namespace Trinex
 			return false;
 
 		pipeline->clear();
-		pipeline->vertex_attributes                  = reflection.vertex_attributes;
-		pipeline->vertex_shader(true)->source_code   = shaders.vertex;
-		pipeline->fragment_shader(true)->source_code = shaders.fragment;
+		pipeline->vertex_attributes             = reflection.vertex_attributes;
+		pipeline->vertex_shader(true)->source   = shaders.vertex;
+		pipeline->fragment_shader(true)->source = shaders.fragment;
 		pipeline->parameters(reflection.parameters);
 
 		if (!shaders.tessellation_control.empty())
-			pipeline->tessellation_control_shader(true)->source_code = shaders.tessellation_control;
+			pipeline->tessellation_control_shader(true)->source = shaders.tessellation_control;
 		if (!shaders.tessellation.empty())
-			pipeline->tessellation_shader(true)->source_code = shaders.tessellation;
+			pipeline->tessellation_shader(true)->source = shaders.tessellation;
 		if (!shaders.geometry.empty())
-			pipeline->geometry_shader(true)->source_code = shaders.geometry;
+			pipeline->geometry_shader(true)->source = shaders.geometry;
 		return true;
 	}
 
@@ -36,7 +36,7 @@ namespace Trinex
 			return false;
 
 		pipeline->clear();
-		pipeline->compute_shader()->source_code = shaders.compute;
+		pipeline->compute_shader()->source = shaders.compute;
 		pipeline->parameters(reflection.parameters);
 		return true;
 	}

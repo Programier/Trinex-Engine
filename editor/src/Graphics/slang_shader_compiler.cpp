@@ -195,20 +195,20 @@ namespace Trinex
 			return RHIShaderParameterType::Undefined;
 		}
 
-		static bool find_semantic(String name, RHIVertexSemantic& out_semantic)
+		static bool find_semantic(String name, RHISemantic& out_semantic)
 		{
 			name = Strings::to_lower(name);
 
-			static const TreeMap<String, RHIVertexSemantic> semantics = {
-			        {"position", RHIVertexSemantic::Position},        //
-			        {"texcoord", RHIVertexSemantic::TexCoord0},       //
-			        {"color", RHIVertexSemantic::Color},              //
-			        {"normal", RHIVertexSemantic::Normal},            //
-			        {"tangent", RHIVertexSemantic::Tangent},          //
-			        {"bitangent", RHIVertexSemantic::Bitangent},      //
-			        {"blendweight", RHIVertexSemantic::BlendWeight},  //
-			        {"blendindices", RHIVertexSemantic::BlendIndices},//
-			        {"userdata", RHIVertexSemantic::UserData}         //
+			static const TreeMap<String, RHISemantic> semantics = {
+			        {"position", RHISemantic::Position},        //
+			        {"texcoord", RHISemantic::TexCoord0},       //
+			        {"color", RHISemantic::Color},              //
+			        {"normal", RHISemantic::Normal},            //
+			        {"tangent", RHISemantic::Tangent},          //
+			        {"bitangent", RHISemantic::Bitangent},      //
+			        {"blendweight", RHISemantic::BlendWeight},  //
+			        {"blendindices", RHISemantic::BlendIndices},//
+			        {"userdata", RHISemantic::UserData}         //
 			};
 
 			auto it = semantics.find(name);
@@ -273,7 +273,7 @@ namespace Trinex
 			}
 			else if (var.kind == slang::TypeReflection::Kind::Vector || var.kind == slang::TypeReflection::Kind::Scalar)
 			{
-				RHIVertexAttribute attribute;
+				RHIInputAttribute attribute;
 
 				const char* semantic_name = var->getSemanticName();
 
@@ -289,7 +289,7 @@ namespace Trinex
 				}
 
 				{
-					const usize max_semantic_index = attribute.semantic == RHIVertexSemantic::TexCoord0 ? 3 : 0;
+					const usize max_semantic_index = attribute.semantic == RHISemantic::TexCoord0 ? 3 : 0;
 
 					usize index = var->getSemanticIndex();
 
@@ -299,7 +299,7 @@ namespace Trinex
 						return false;
 					}
 
-					attribute.semantic = static_cast<RHIVertexSemantic::Enum>(attribute.semantic.value + index);
+					attribute.semantic = static_cast<RHISemantic::Enum>(attribute.semantic.value + index);
 				}
 
 				attribute.binding = var.trace_offset(category);
@@ -959,7 +959,7 @@ namespace Trinex
 		trinex_unreachable_msg("Something is wrong! Cannot compile shaders for None API!");
 	}
 
-	bool VULKAN_ShaderCompiler::strip_vertex_inputs(const u32* spirv, const u32 words, Vector<RHIVertexAttribute>& attributes)
+	bool VULKAN_ShaderCompiler::strip_vertex_inputs(const u32* spirv, const u32 words, Vector<RHIInputAttribute>& attributes)
 	{
 		if (words < 5)
 			return false;

@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/etl/span.hpp>
 #include <Core/types/color.hpp>
 #include <RHI/enums.hpp>
 #include <RHI/handles.hpp>
@@ -55,19 +56,19 @@ namespace Trinex
 		virtual RHI& submit(const RHISubmitInfo& info) = 0;
 		virtual RHI& idle()                            = 0;
 
-		virtual RHITimestamp* create_timestamp()                                                = 0;
-		virtual RHIPipelineStatistics* create_pipeline_statistics()                             = 0;
-		virtual RHIFence* create_fence()                                                        = 0;
-		virtual RHISampler* create_sampler(const RHISamplerDesc& desc)                          = 0;
-		virtual RHITexture* create_texture(const RHITextureDesc& desc)                          = 0;
-		virtual RHIShader* create_shader(const u8* shader, usize size)                          = 0;
-		virtual RHIPipeline* create_graphics_pipeline(const RHIGraphicsPipelineDesc& desc)      = 0;
-		virtual RHIPipeline* create_mesh_pipeline(const RHIMeshPipelineDesc& desc)              = 0;
-		virtual RHIPipeline* create_compute_pipeline(const RHIComputePipelineDesc& desc)        = 0;
-		virtual RHIPipeline* create_ray_tracing_pipeline(const RHIRayTracingPipelineDesc& desc) = 0;
-		virtual RHIBuffer* create_buffer(usize size, RHIBufferFlags flags)                = 0;
-		virtual RHISwapchain* create_swapchain(Window* window, bool vsync)                      = 0;
-		virtual RHIContext* create_context(RHIContextFlags flags = RHIContextFlags::Undefined)  = 0;
+		virtual RHITimestamp* create_timestamp()                                                   = 0;
+		virtual RHIPipelineStatistics* create_pipeline_statistics()                                = 0;
+		virtual RHIFence* create_fence()                                                           = 0;
+		virtual RHISampler* create_sampler(const RHISamplerDesc& desc)                             = 0;
+		virtual RHITexture* create_texture(const RHITextureDesc& desc)                             = 0;
+		virtual RHIShader* create_shader(Span<u8> source, Span<RHIShaderParameterInfo> parameters) = 0;
+		virtual RHIPipeline* create_graphics_pipeline(const RHIGraphicsPipelineDesc& desc)         = 0;
+		virtual RHIPipeline* create_mesh_pipeline(const RHIMeshPipelineDesc& desc)                 = 0;
+		virtual RHIPipeline* create_compute_pipeline(const RHIComputePipelineDesc& desc)           = 0;
+		virtual RHIPipeline* create_ray_tracing_pipeline(const RHIRayTracingPipelineDesc& desc)    = 0;
+		virtual RHIBuffer* create_buffer(usize size, RHIBufferFlags flags)                         = 0;
+		virtual RHISwapchain* create_swapchain(Window* window, bool vsync)                         = 0;
+		virtual RHIContext* create_context(RHIContextFlags flags = RHIContextFlags::Undefined)     = 0;
 
 		// Raytracing
 		virtual RHIAccelerationStructure* create_acceleration_structure(const RHIRayTracingAccelerationInputs* inputs) = 0;

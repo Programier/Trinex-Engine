@@ -155,7 +155,7 @@ namespace Trinex
 			static inline u16 opcode(u32 w) { return static_cast<u16>(w & 0xFFFF); }
 		};
 
-		static bool strip_vertex_inputs(const u32* spirv, const u32 words, Vector<RHIVertexAttribute>& attributes);
+		static bool strip_vertex_inputs(const u32* spirv, const u32 words, Vector<RHIInputAttribute>& attributes);
 
 	public:
 		void initialize_context(SessionInitializer* session) override;

@@ -15,7 +15,7 @@ namespace Trinex
 	class Pipeline;
 
 	struct VulkanVertexAttribute {
-		RHIVertexSemantic semantic;
+		RHISemantic semantic;
 		u8 binding;
 	};
 

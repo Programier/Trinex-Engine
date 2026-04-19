@@ -7,10 +7,10 @@ namespace Trinex
 	class RHIShader;
 
 	struct RHITextureDesc {
-		RHITextureType type         = RHITextureType::Texture2D;
-		RHIColorFormat format       = RHIColorFormat::R8G8B8A8;
-		Vector3u size               = {0, 0, 0};
-		u32 mips                    = 1;
+		RHITextureType type   = RHITextureType::Texture2D;
+		RHIColorFormat format = RHIColorFormat::R8G8B8A8;
+		Vector3u size         = {0, 0, 0};
+		u32 mips              = 1;
 		RHITextureFlags flags = RHITextureFlags::ShaderResource;
 	};
 
@@ -48,10 +48,10 @@ namespace Trinex
 			RHIShader* shaders[5];
 		};
 
-		const struct RHIShaderParameterInfo* parameters    = nullptr;
-		const struct RHIVertexAttribute* vertex_attributes = nullptr;
-		usize parameters_count                             = 0;
-		usize vertex_attributes_count                      = 0;
+		const struct RHIShaderParameterInfo* parameters   = nullptr;
+		const struct RHIInputAttribute* vertex_attributes = nullptr;
+		usize parameters_count                            = 0;
+		usize vertex_attributes_count                     = 0;
 	};
 
 	struct RHIMeshPipelineDesc {

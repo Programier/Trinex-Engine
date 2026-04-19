@@ -180,7 +180,7 @@ namespace Trinex
 		RHIFence* create_fence() override;
 		RHISampler* create_sampler(const RHISamplerDesc& desc) override;
 		RHITexture* create_texture(const RHITextureDesc& desc) override;
-		RHIShader* create_shader(const u8* shader, usize size) override;
+		RHIShader* create_shader(Span<u8> source, Span<RHIShaderParameterInfo> parameters) override;
 		RHIPipeline* create_graphics_pipeline(const RHIGraphicsPipelineDesc& desc) override;
 		RHIPipeline* create_mesh_pipeline(const RHIMeshPipelineDesc& desc) override;
 		RHIPipeline* create_compute_pipeline(const RHIComputePipelineDesc& desc) override;

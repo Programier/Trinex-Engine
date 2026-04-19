@@ -10,7 +10,7 @@ namespace Trinex
 	class MaterialInterface;
 
 	struct MeshVertexAttribute {
-		RHIVertexSemantic semantic;
+		RHISemantic semantic;
 		RHIVertexFormat format;
 		u8 stream;
 		u8 offset;
@@ -22,10 +22,10 @@ namespace Trinex
 		trinex_struct(MeshSurface, void);
 
 		RHITopology topology = RHITopology::TriangleList;
-		u32 first_vertex              = 0;
-		u32 first_index               = ~0U;
-		u32 vertices_count            = 0;
-		u16 material_index            = 0;
+		u32 first_vertex     = 0;
+		u32 first_index      = ~0U;
+		u32 vertices_count   = 0;
+		u16 material_index   = 0;
 
 		bool serialize(Archive& ar);
 
@@ -48,7 +48,7 @@ namespace Trinex
 		public:
 			bool serialize(Archive& ar);
 
-			inline const MeshVertexAttribute* find_attribute(RHIVertexSemantic semantic) const
+			inline const MeshVertexAttribute* find_attribute(RHISemantic semantic) const
 			{
 				MeshVertexAttribute attribute;
 				attribute.semantic = semantic;
@@ -98,7 +98,7 @@ namespace Trinex
 			VertexBufferBase* find_blend_indices_buffer(usize index);
 
 		public:
-			VertexBufferBase* find_vertex_buffer(RHIVertexSemantic semantic, usize index = 0);
+			VertexBufferBase* find_vertex_buffer(RHISemantic semantic, usize index = 0);
 			usize vertex_count() const;
 			usize indices_count() const;
 			bool serialize(Archive& ar);

@@ -148,7 +148,7 @@ namespace Trinex
 		return blend_indices.size() <= index ? nullptr : &blend_indices[index];
 	}
 
-	VertexBufferBase* SkeletalMesh::LOD::find_vertex_buffer(RHIVertexSemantic semantic, usize index)
+	VertexBufferBase* SkeletalMesh::LOD::find_vertex_buffer(RHISemantic semantic, usize index)
 	{
 		using Func = VertexBufferBase* (*) (LOD * lod, usize);
 

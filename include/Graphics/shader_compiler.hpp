@@ -48,7 +48,7 @@ namespace Trinex
 		} shaders;
 
 		struct Reflection {
-			Vector<RHIVertexAttribute> vertex_attributes;
+			Vector<RHIInputAttribute> vertex_attributes;
 			Vector<RHIShaderParameterInfo> parameters;
 		} reflection;
 

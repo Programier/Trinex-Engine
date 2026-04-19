@@ -21,7 +21,7 @@ namespace Trinex
 {
 	static FORCE_INLINE bool init_shader(Shader* shader)
 	{
-		if (shader && !shader->source_code.empty())
+		if (shader && !shader->source.empty())
 		{
 			shader->init_render_resources();
 			return true;

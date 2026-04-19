@@ -14,7 +14,7 @@ namespace Trinex
 		RHIResourcePtr<RHIShader> m_shader;
 
 	public:
-		Buffer source_code;
+		Buffer source;
 
 		Shader& init_render_resources() override;
 		Shader& release_render_resources() override;

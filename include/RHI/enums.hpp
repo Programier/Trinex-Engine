@@ -51,9 +51,13 @@ namespace Trinex
 			META_4D            = META_4R | META_4C,
 			META_DimensionMask = META_1D | META_2D | META_3D | META_4D,
 
-			META_Color                    = BIT(23),
-			META_ExcludeMaterialParameter = BIT(24),
-			META_Concrete                 = BIT(25),
+			META_VaryingInput  = BIT(23),
+			META_VaryingOutput = BIT(24),
+			META_VaryingMask   = META_VaryingInput | META_VaryingOutput,
+
+			META_Color                    = BIT(25),
+			META_ExcludeMaterialParameter = BIT(26),
+			META_Concrete                 = BIT(27),
 
 			META_Special0 = BIT(31),
 			META_Any      = ~0U,
@@ -154,6 +158,7 @@ namespace Trinex
 		inline constexpr bool is_unsigned() const { return value & META_Unsigned; }
 		inline constexpr bool is_color() const { return value & META_Color; }
 		inline constexpr bool is_concrete() const { return value & META_Concrete; }
+		inline constexpr bool is_varying() const { return value & META_VaryingMask; }
 		inline constexpr bool is_meta() const { return !is_concrete(); }
 
 		inline constexpr u8 rows() const
@@ -285,24 +290,25 @@ namespace Trinex
 		trinex_bitfield_enum_struct(RHIAccess, EnumerateType);
 	};
 
-	struct RHIVertexSemantic {
+	struct RHISemantic {
 		enum Enum : u8
 		{
-			Position     = 0,
-			TexCoord0    = 1,
-			TexCoord1    = 2,
-			TexCoord2    = 3,
-			TexCoord3    = 4,
-			Color        = 5,
-			Normal       = 6,
-			Tangent      = 7,
-			Bitangent    = 8,
-			BlendWeight  = 9,
-			BlendIndices = 10,
-			UserData     = 11,
+			Undefined    = 0,
+			Position     = 1,
+			TexCoord0    = 2,
+			TexCoord1    = 3,
+			TexCoord2    = 4,
+			TexCoord3    = 5,
+			Color        = 6,
+			Normal       = 7,
+			Tangent      = 8,
+			Bitangent    = 9,
+			BlendWeight  = 10,
+			BlendIndices = 11,
+			UserData     = 12,
 		};
 
-		trinex_enum_struct(RHIVertexSemantic);
+		trinex_enum_struct(RHISemantic);
 	};
 
 	struct RHISamplerFilter {

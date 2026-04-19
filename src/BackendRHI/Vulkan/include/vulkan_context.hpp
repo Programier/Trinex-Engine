@@ -395,7 +395,7 @@ namespace Trinex
 
 		VulkanContext& depth_bias(float constant = 0.0f, float clamp = 0.0f, float slope = 0.0f) override;
 
-		VulkanContext& bind_vertex_attribute(RHIVertexSemantic semantic, RHIVertexFormat format, u8 stream, u16 offset) override;
+		VulkanContext& bind_vertex_attribute(RHISemantic semantic, RHIVertexFormat format, u8 stream, u16 offset) override;
 		VulkanContext& bind_vertex_buffer(RHIBuffer* buffer, usize byte_offset, u16 stride, u8 stream,
 		                                  RHIVertexInputRate rate) override;
 		VulkanContext& bind_index_buffer(RHIBuffer* buffer, RHIIndexFormat format, usize byte_offset = 0) override;

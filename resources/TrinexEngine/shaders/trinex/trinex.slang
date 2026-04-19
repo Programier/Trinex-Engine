@@ -5,7 +5,7 @@ namespace meta
 	enum type
 	{
 		UniformBuffer            = 1 << 1,
-		ExcludeMaterialParameter = 0 << 0 | 1 << 24,
+		ExcludeMaterialParameter = 0 << 0 | 1 << 26,
 		SceneView                = 1 << 1 | 1 << 31,
 		LocalToWorld             = 0 << 0 | 1 << 31,
 

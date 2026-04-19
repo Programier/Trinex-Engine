@@ -53,7 +53,7 @@ namespace Trinex
 		return &m_mesh->lods[lod].surfaces[index];
 	}
 
-	const MeshVertexAttribute* StaticMeshComponent::vertex_attribute(RHIVertexSemantic semantic, usize lod)
+	const MeshVertexAttribute* StaticMeshComponent::vertex_attribute(RHISemantic semantic, usize lod)
 	{
 		return m_mesh->lods[lod].find_attribute(semantic);
 	}

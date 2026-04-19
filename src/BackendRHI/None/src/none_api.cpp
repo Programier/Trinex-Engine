@@ -158,7 +158,7 @@ namespace Trinex
 		return new NoneTexture();
 	}
 
-	RHIShader* NoneApi::create_shader(const u8* source, usize size)
+	RHIShader* NoneApi::create_shader(Span<u8> source, Span<RHIShaderParameterInfo> parameters)
 	{
 		return new NoneShader();
 	}

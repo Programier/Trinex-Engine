@@ -85,7 +85,7 @@ namespace Trinex
 	{
 		if (shader)
 		{
-			buffer = shader->source_code;
+			buffer = shader->source;
 		}
 		else
 		{
@@ -98,7 +98,7 @@ namespace Trinex
 	{
 		if (shader)
 		{
-			shader->source_code = buffer;
+			shader->source = buffer;
 		}
 	}
 
@@ -132,17 +132,17 @@ namespace Trinex
 			return;
 
 		pipeline->clear();
-		pipeline->vertex_attributes                  = vertex_attributes;
-		pipeline->vertex_shader(true)->source_code   = vertex;
-		pipeline->fragment_shader(true)->source_code = fragment;
+		pipeline->vertex_attributes             = vertex_attributes;
+		pipeline->vertex_shader(true)->source   = vertex;
+		pipeline->fragment_shader(true)->source = fragment;
 		pipeline->parameters(parameters);
 
 		if (!tessellation_control.empty())
-			pipeline->tessellation_control_shader(true)->source_code = tessellation_control;
+			pipeline->tessellation_control_shader(true)->source = tessellation_control;
 		if (!tessellation.empty())
-			pipeline->tessellation_shader(true)->source_code = tessellation;
+			pipeline->tessellation_shader(true)->source = tessellation;
 		if (!geometry.empty())
-			pipeline->geometry_shader(true)->source_code = geometry;
+			pipeline->geometry_shader(true)->source = geometry;
 	}
 
 	void ComputeShaderCache::init_from(const class ComputePipeline* pipeline)

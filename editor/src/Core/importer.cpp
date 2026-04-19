@@ -541,7 +541,7 @@ namespace Trinex::Importer
 			{
 				MeshVertexAttribute attribute;
 
-				attribute.semantic = RHIVertexSemantic::Position;
+				attribute.semantic = RHISemantic::Position;
 				attribute.format   = RHIVertexFormat::RGB32F;
 				attribute.stream   = lod.buffers.size();
 				attribute.offset   = 0;
@@ -563,7 +563,7 @@ namespace Trinex::Importer
 
 				if (accessor_mask & Accessors::s_texcoord0_flag)
 				{
-					attribute.semantic = RHIVertexSemantic::TexCoord0;
+					attribute.semantic = RHISemantic::TexCoord0;
 					attribute.format   = RHIVertexFormat::RG32F;
 					lod.attributes.insert(attribute);
 					uv0.address = attribute.offset;
@@ -572,7 +572,7 @@ namespace Trinex::Importer
 
 				if (accessor_mask & Accessors::s_normals_flag)
 				{
-					attribute.semantic = RHIVertexSemantic::Normal;
+					attribute.semantic = RHISemantic::Normal;
 					attribute.format   = RHIVertexFormat::RGB32F;
 					lod.attributes.insert(attribute);
 					normal.address = attribute.offset;
@@ -581,7 +581,7 @@ namespace Trinex::Importer
 
 				if (accessor_mask & Accessors::s_tangents_flag)
 				{
-					attribute.semantic = RHIVertexSemantic::Tangent;
+					attribute.semantic = RHISemantic::Tangent;
 					attribute.format   = RHIVertexFormat::RGBA32F;
 					lod.attributes.insert(attribute);
 					tangent.address = attribute.offset;

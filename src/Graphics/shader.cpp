@@ -10,7 +10,7 @@ namespace Trinex
 
 	Shader& Shader::init_render_resources()
 	{
-		m_shader = RHI::instance()->create_shader(source_code.data(), source_code.size());
+		m_shader = RHI::instance()->create_shader(source, {});
 		return *this;
 	}
 

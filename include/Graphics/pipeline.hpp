@@ -50,7 +50,7 @@ namespace Trinex
 		trinex_class(GraphicsPipeline, Pipeline);
 
 	public:
-		Vector<RHIVertexAttribute> vertex_attributes;
+		Vector<RHIInputAttribute> vertex_attributes;
 
 	private:
 		Shader* m_vertex_shader               = nullptr;

@@ -17,7 +17,7 @@ namespace Trinex
 		vk::ShaderModule m_shader;
 
 	public:
-		VulkanShader(const u8* shader, usize size);
+		VulkanShader(Span<u8> source, Span<RHIShaderParameterInfo> parameters);
 		~VulkanShader();
 
 		inline vk::ShaderModule module() const { return m_shader; }
