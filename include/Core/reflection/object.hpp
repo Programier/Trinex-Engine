@@ -23,16 +23,14 @@ namespace Trinex::Refl
 
 	enum class FindFlags
 	{
-		None                   = 0,
-		CreateScope            = BIT(0),
-		IsRequired             = BIT(2),
-		DisableReflectionCheck = BIT(3),
+		None        = 0,
+		CreateScope = BIT(0),
+		IsRequired  = BIT(1),
 	};
 
 	struct ENGINE_EXPORT ClassInfo {
 		const Name class_name;
 		const ClassInfo* const parent;
-		bool is_scriptable;
 
 		ClassInfo(const char* name, const ClassInfo* const parent = nullptr);
 		bool is_a(const ClassInfo* const info) const;
@@ -54,6 +52,7 @@ namespace Trinex::Refl
 		static String concat_scoped_name(StringView scope, StringView name);
 		static void initialize_next_object(StringView name);
 		static void initialize_next_object(Object* owner, StringView name);
+		static void initialize_reflection();
 
 		void full_name(String& out) const;
 
@@ -104,9 +103,8 @@ namespace Trinex::Refl
 		static Object* static_root();
 		static Object* static_find(StringView name, FindFlags flags = FindFlags::None);
 		static Object* static_require(StringView name, FindFlags flags = FindFlags::None);
-		static Identifier static_register_initializer(const Function<void()>& func, const String& name = "",
-		                                              const std::initializer_list<String>& required = {});
-		static void static_initialize(Object* root = nullptr, bool force_recursive = false);
+
+		static void load_reflection(Object* root = nullptr, bool force_recursive = false);
 		static bool destroy_instance(Object* object);
 		static bool is_valid(Object* object);
 		static void register_layout(ScriptClassRegistrar& r, ClassInfo* info, DownCast downcast);
@@ -232,26 +230,52 @@ public:                                                                         
 	static T* static_require(StringView object_name, Trinex::Refl::FindFlags flags = Trinex::Refl::FindFlags::None)              \
 	{                                                                                                                            \
 		return Object::static_require<T>(object_name, flags);                                                                    \
-	}
+	}                                                                                                                            \
+	static void initialize_reflection();                                                                                         \
+                                                                                                                                 \
+private:
 
 
-#define trinex_implement_reflect_type(name)                                                                                      \
-	Trinex::Refl::ClassInfo* name::static_refl_class_info()                                                                      \
+#define trinex_implement_reflect_type(decl, ...)                                                                                 \
+	Trinex::Refl::ClassInfo* decl::static_refl_class_info()                                                                      \
 	{                                                                                                                            \
-		static Trinex::Refl::ClassInfo info(#name, Super::static_refl_class_info());                                             \
+		static Trinex::Refl::ClassInfo info(#decl, Super::static_refl_class_info());                                             \
 		return &info;                                                                                                            \
 	}                                                                                                                            \
                                                                                                                                  \
-	Trinex::Refl::ClassInfo* name::refl_class_info() const                                                                       \
+	Trinex::Refl::ClassInfo* decl::refl_class_info() const                                                                       \
 	{                                                                                                                            \
-		return name::static_refl_class_info();                                                                                   \
+		return decl::static_refl_class_info();                                                                                   \
 	}                                                                                                                            \
-	name* name::static_find(StringView object_name, Trinex::Refl::FindFlags flags)                                               \
+	decl* decl::static_find(StringView object_name, Trinex::Refl::FindFlags flags)                                               \
 	{                                                                                                                            \
-		return Trinex::Refl::Object::static_find<name>(object_name, flags);                                                      \
+		return Trinex::Refl::Object::static_find<decl>(object_name, flags);                                                      \
 	}                                                                                                                            \
-	name* name::static_require(StringView object_name, Trinex::Refl::FindFlags flags)                                            \
+	decl* decl::static_require(StringView object_name, Trinex::Refl::FindFlags flags)                                            \
 	{                                                                                                                            \
-		return Trinex::Refl::Object::static_require<name>(object_name, flags);                                                   \
-	}
+		return Trinex::Refl::Object::static_require<decl>(object_name, flags);                                                   \
+	}                                                                                                                            \
+	static void TRINEX_CONCAT(trinex_refl_initializer_, __LINE__)(Trinex::ScriptClassRegistrar & r);                             \
+	void decl::initialize_reflection()                                                                                           \
+	{                                                                                                                            \
+		static bool initialized = false;                                                                                         \
+		if (!initialized)                                                                                                        \
+		{                                                                                                                        \
+			initialized = true;                                                                                                  \
+			Super::initialize_reflection();                                                                                      \
+                                                                                                                                 \
+			Trinex::ScriptClassRegistrar::RefInfo info;                                                                          \
+			info.implicit_handle = true;                                                                                         \
+			info.no_count        = true;                                                                                         \
+                                                                                                                                 \
+			auto r = Trinex::ScriptClassRegistrar::reference_class(#decl, info);                                                 \
+			TRINEX_CONCAT(trinex_refl_initializer_, __LINE__)(r);                                                                \
+			decl::register_layout(r, decl::static_refl_class_info(), script_downcast<decl>);                                     \
+		}                                                                                                                        \
+	}                                                                                                                            \
+	trinex_on_reflection_init({.name = #decl, .after = {__VA_ARGS__}})                                                           \
+	{                                                                                                                            \
+		decl::initialize_reflection();                                                                                           \
+	}                                                                                                                            \
+	static void TRINEX_CONCAT(trinex_refl_initializer_, __LINE__)(Trinex::ScriptClassRegistrar & r)
 }// namespace Trinex::Refl

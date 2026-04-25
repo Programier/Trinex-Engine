@@ -1,5 +1,4 @@
 #include <Core/constants.hpp>
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/group.hpp>
 #include <Core/reflection/struct.hpp>
 #include <Core/string_functions.hpp>
@@ -7,23 +6,23 @@
 
 namespace Trinex
 {
-	Group* Group::root()
+	static Group* s_root_group = nullptr;
+
+	trinex_on_post_shutdown()
 	{
-		static Group* root_group = nullptr;
-
-		if (root_group == nullptr)
-		{
-			root_group         = trx_new Group();
-			root_group->m_name = "Root Group";
-
-			PostDestroyController([]() {
-				trx_delete root_group;
-				root_group = nullptr;
-			});
-		}
-		return root_group;
+		trx_delete s_root_group;
+		s_root_group = nullptr;
 	}
 
+	Group* Group::root()
+	{
+		if (s_root_group == nullptr)
+		{
+			s_root_group         = trx_new Group();
+			s_root_group->m_name = "Root Group";
+		}
+		return s_root_group;
+	}
 
 	Group* Group::find(const String& name, bool create)
 	{

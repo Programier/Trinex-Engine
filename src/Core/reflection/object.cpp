@@ -1,5 +1,4 @@
 #include <Core/constants.hpp>
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/set.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/reflection/object.hpp>
@@ -25,7 +24,7 @@ namespace Trinex::Refl
 	static StringView m_next_object_name = "";
 	static Object* m_next_object_owner   = nullptr;
 
-	static void destroy_reflection_instances()
+	trinex_on_post_shutdown()
 	{
 		m_check_exiting_instance = false;
 
@@ -37,10 +36,8 @@ namespace Trinex::Refl
 		m_check_exiting_instance = true;
 	}
 
-	static PostDestroyController destroy_controller(destroy_reflection_instances);
-
 	ClassInfo::ClassInfo(const char* name, const ClassInfo* const parent)
-	    : class_name(Strings::class_name_sv_of(name)), parent(parent), is_scriptable(false)
+	    : class_name(Strings::class_name_sv_of(name)), parent(parent)
 	{}
 
 	bool ClassInfo::is_a(const ClassInfo* const info) const
@@ -69,8 +66,7 @@ namespace Trinex::Refl
 
 		if (name != "Root")
 		{
-			trinex_verify_msg(static_find(name, FindFlags::DisableReflectionCheck) == nullptr,
-			                  "Object with same name already exist");
+			trinex_verify_msg(static_find(name) == nullptr, "Object with same name already exist");
 		}
 
 		auto owner_name = Strings::namespace_sv_of(name);
@@ -97,13 +93,49 @@ namespace Trinex::Refl
 
 		if (owner)
 		{
-			trinex_verify_msg(owner->find(name, FindFlags::DisableReflectionCheck) == nullptr,
-			                  "Object with same name already exist");
+			trinex_verify_msg(owner->find(name) == nullptr, "Object with same name already exist");
 		}
 
 		m_next_object_name     = Strings::class_name_sv_of(name);
 		m_next_object_owner    = owner;
 		m_has_next_object_info = true;
+	}
+
+	void Object::initialize_reflection()
+	{
+		static bool initialized = false;
+
+		if (!initialized)
+		{
+			initialized = true;
+
+			ScriptClassRegistrar::RefInfo info;
+			info.implicit_handle = true;
+			info.no_count        = true;
+
+			{
+				ScriptEnumRegistrar r("Trinex::Refl::FindFlags");
+				r.set("None", FindFlags::None);
+				r.set("CreateScope", FindFlags::CreateScope);
+				r.set("IsRequired", FindFlags::IsRequired);
+			}
+			{
+				auto r = ScriptClassRegistrar::reference_class("Trinex::Refl::ClassInfo", info);
+				r.property("const Name class_name", &ClassInfo::class_name);
+				r.property("const ClassInfo@ parent", &ClassInfo::parent);
+				r.method("bool is_a(const ClassInfo@ info) const", &ClassInfo::is_a);
+			}
+
+			auto r = ScriptClassRegistrar::reference_class("Trinex::Refl::Object", info);
+			r.static_function("Trinex::Refl::ClassInfo@ static_refl_class_info()", &Object::static_refl_class_info);
+			r.static_function("bool is_valid(Object@ object)", Object::is_valid);
+			r.static_function("Object@ static_root()", Object::static_root);
+
+			r.static_function("Object@ static_find(Trinex::StringView name, int flags = 0)", Object::static_find<Object>);
+			r.static_function("Object@ static_require(StringView name, int flags = 0)", Object::static_require<Object>);
+
+			Object::register_layout(r, Object::static_refl_class_info(), script_downcast<Object>);
+		}
 	}
 
 	void Object::setup_owner()
@@ -383,17 +415,6 @@ namespace Trinex::Refl
 	void Object::register_layout(ScriptClassRegistrar& r, ClassInfo* info, DownCast downcast)
 	{
 		using T = Object;
-		ReflectionInitializeController().require("Trinex::Name");
-
-		info->is_scriptable = true;
-
-		for (auto i = info->parent; i; i = i->parent)
-		{
-			if (!i->is_scriptable)
-			{
-				ReflectionInitializeController().require(Strings::format("Trinex::Refl::{}", i->class_name.to_string()));
-			}
-		}
 
 		r.method("Trinex::Refl::Object@ owner(Trinex::Refl::Object@ new_owner)", overload_of<Object&>(&T::owner));
 		r.method("Trinex::Refl::Object@ owner()", overload_of<Object*>(&T::owner));
@@ -417,15 +438,10 @@ namespace Trinex::Refl
 		r.method("Trinex::Refl::Object@ find(const Trinex::Name& name)", &T::find<Object>);
 		r.method("Trinex::Refl::ClassInfo@ refl_class_info() const", &T::refl_class_info);
 
-
 		String current_type = r.class_name();
+
 		for (auto i = info->parent; i; i = i->parent)
 		{
-			if (!i->is_scriptable)
-			{
-				continue;
-			}
-
 			// upcast
 			String opconv           = Strings::format("Trinex::Refl::{}@ opConv()", i->class_name.to_string());
 			String const_opconv     = Strings::format("const Trinex::Refl::{}@ opConv() const", i->class_name.to_string());
@@ -442,40 +458,11 @@ namespace Trinex::Refl
 			String const_opcast = Strings::format("const {}@ opCast() const", current_type);
 
 			auto r = ScriptClassRegistrar::existing_class(Strings::format("Trinex::Refl::{}", i->class_name.to_string()));
-			r.method(opcast.c_str(), downcast);
-			r.method(const_opcast.c_str(), downcast);
+			if (downcast)
+			{
+				r.method(opcast.c_str(), downcast);
+				r.method(const_opcast.c_str(), downcast);
+			}
 		}
 	}
-
-	static void on_init()
-	{
-		ScriptClassRegistrar::RefInfo info;
-		info.implicit_handle = true;
-		info.no_count        = true;
-
-		{
-			ScriptEnumRegistrar r("Trinex::Refl::FindFlags");
-			r.set("None", FindFlags::None);
-			r.set("CreateScope", FindFlags::CreateScope);
-			r.set("IsRequired", FindFlags::IsRequired);
-			r.set("DisableReflectionCheck", FindFlags::DisableReflectionCheck);
-		}
-		{
-			auto r = ScriptClassRegistrar::reference_class("Trinex::Refl::ClassInfo", info);
-			r.property("const Name class_name", &ClassInfo::class_name);
-			r.property("const ClassInfo@ parent", &ClassInfo::parent);
-			r.method("bool is_a(const ClassInfo@ info) const", &ClassInfo::is_a);
-		}
-
-		auto r = ScriptClassRegistrar::reference_class("Trinex::Refl::Object", info);
-		r.static_function("Trinex::Refl::ClassInfo@ static_refl_class_info()", &Object::static_refl_class_info);
-		r.static_function("bool is_valid(Object@ object)", Object::is_valid);
-		r.static_function("Object@ static_root()", Object::static_root);
-
-		r.static_function("Object@ static_find(Trinex::StringView name, int flags = 0)", Object::static_find<Object>);
-		r.static_function("Object@ static_require(StringView name, int flags = 0)", Object::static_require<Object>);
-		Object::register_layout(r, Object::static_refl_class_info(), script_downcast<Object>);
-	}
-
-	static ReflectionInitializeController initializer(on_init, "Trinex::Refl::Object");
 }// namespace Trinex::Refl

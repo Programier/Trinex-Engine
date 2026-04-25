@@ -1,4 +1,5 @@
 #include <Core/reflection/script_struct.hpp>
+#include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_function.hpp>
@@ -7,7 +8,7 @@
 
 namespace Trinex::Refl
 {
-	trinex_implement_reflect_type(ScriptStruct);
+	trinex_implement_reflect_type(Trinex::Refl::ScriptStruct) {}
 
 	ScriptStruct::ScriptStruct(ScriptStruct* parent, Script* script, const ScriptTypeInfo& info, BitMask flags)
 	    : Struct(parent, flags | IsScriptable), m_script(script)

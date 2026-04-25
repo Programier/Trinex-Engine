@@ -1,5 +1,4 @@
 #include <Core/base_engine.hpp>
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/keyboard.hpp>
 #include <Core/logger.hpp>
 #include <Core/memory.hpp>
@@ -198,8 +197,6 @@ namespace Trinex
 
 	trinex_implement_engine_class(EventSystem, Refl::Class::IsScriptable)
 	{
-		ReflectionInitializeController().require("Trinex::Event");
-
 		auto reg = ScriptClassRegistrar::existing_class(static_reflection());
 
 		reg.funcdef("void Listener(const Trinex::Event&)");

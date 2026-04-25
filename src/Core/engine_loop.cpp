@@ -80,7 +80,7 @@ namespace Trinex
 		initialize_filesystem();
 		ScriptEngine::initialize();
 
-		PreInitializeController().execute();
+		LifeCycle::execute(LifeCycle::PreInit);
 		Project::initialize();
 
 		ConfigManager::initialize();
@@ -93,7 +93,8 @@ namespace Trinex
 			}
 		}
 
-		ReflectionInitializeController().execute();
+		LifeCycle::execute(LifeCycle::ReflectionInit);
+		Refl::Object::load_reflection();
 
 		Refl::Class* engine_class = Refl::Class::static_find(Settings::engine_class, Refl::FindFlags::IsRequired);
 		engine_instance           = Object::instance_cast<BaseEngine>(engine_class->create_object());
@@ -150,8 +151,8 @@ namespace Trinex
 			Trinex::splash_screen_text(Trinex::SplashTextType::StartupProgress, "Starting Engine");
 		}
 
-		StartupResourcesInitializeController().execute();
-		InitializeController().execute();
+		LifeCycle::execute(LifeCycle::ResourcesInit);
+		LifeCycle::execute(LifeCycle::Init);
 
 		wait_time = 2.0f - (engine_instance->time_seconds() - wait_time);
 
@@ -179,7 +180,7 @@ namespace Trinex
 	{
 		info_log("EngineInstance", "Terminate Engine");
 
-		DestroyController().execute();
+		LifeCycle::execute(LifeCycle::Shutdown);
 		engine_instance->terminate();
 
 		if (WindowManager::instance())
@@ -195,7 +196,7 @@ namespace Trinex
 		GarbageCollector::destroy(engine_instance);
 		engine_instance = nullptr;
 
-		PostDestroyController().execute();
+		LifeCycle::execute(LifeCycle::PostShutdown);
 		destroy_threads();
 	}
 }// namespace Trinex

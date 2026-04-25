@@ -1,4 +1,3 @@
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/algorithm.hpp>
 #include <Core/etl/templates.hpp>
 #include <ScriptEngine/registrar.hpp>
@@ -1767,12 +1766,10 @@ namespace Trinex
 		// clang-format on
 	}
 
-	static void register_imgui()
+	trinex_on_pre_init({.after = {"Trinex::ScriptPointer", "Trinex::DefaultScriptAddons", "Trinex::ScriptVector"}})
 	{
 		register_enums();
 		register_structures();
 		register_functions();
 	}
-
-	static ReflectionInitializeController on_init(register_imgui, "ImGui");
 }// namespace Trinex

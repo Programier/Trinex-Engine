@@ -1,8 +1,7 @@
 #pragma once
 
 #include <Core/definitions.hpp>
-#include <Core/engine_loading_controllers.hpp>
-#include <Core/etl/type_traits.hpp>
+#include <Core/etl/utility.hpp>
 #include <Core/object.hpp>
 
 
@@ -40,7 +39,7 @@ namespace Trinex
 
 					if constexpr (with_destroy_controller)
 					{
-						PostDestroyController post_destroy([]() {
+						LifeCycle::on_post_shutdown([]() {
 							if (Type::s_instance)
 							{
 								trx_delete_inline(Type::s_instance);

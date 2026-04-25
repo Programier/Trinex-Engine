@@ -1,4 +1,3 @@
-#include <Core/engine_loading_controllers.hpp>
 #include <Engine/settings.hpp>
 #include <ScriptEngine/script_engine.hpp>
 
@@ -54,9 +53,10 @@ namespace Trinex::Settings
 	}// namespace Splash
 
 
-	static void init()
+	trinex_on_pre_init({.after = {"Trinex::ScriptVector", "Trinex::DefaultScriptAddons"}})
 	{
-		ReflectionInitializeController().require("Trinex::WindowAttribute").require("Trinex::Orientation");
+		// LifeCycle::execute(LifeCycle::ReflectionInit, "Trinex::WindowAttribute");
+		// LifeCycle::execute(LifeCycle::ReflectionInit, "Trinex::Orientation");
 
 #define bind_value(type, name) e.register_property(#type " " #name, &name)
 
@@ -100,8 +100,8 @@ namespace Trinex::Settings
 			bind_value(int, pos_x);
 			bind_value(int, pos_y);
 			bind_value(bool, vsync);
-			bind_value(Trinex::Vector<Trinex::WindowAttribute>, attributes);
-			bind_value(Trinex::Vector<Trinex::Orientation>, orientations);
+			// bind_value(Trinex::Vector<Trinex::WindowAttribute>, attributes);
+			// bind_value(Trinex::Vector<Trinex::Orientation>, orientations);
 		}
 
 		{
@@ -119,6 +119,4 @@ namespace Trinex::Settings
 
 		e.end_config_group();
 	}
-
-	static PreInitializeController on_init(init, "Trinex::Settings");
 }// namespace Trinex::Settings

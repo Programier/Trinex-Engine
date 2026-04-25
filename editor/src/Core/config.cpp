@@ -1,5 +1,4 @@
 #include <Core/editor_config.hpp>
-#include <Core/engine_loading_controllers.hpp>
 #include <ScriptEngine/script_engine.hpp>
 
 namespace Trinex::Settings::Editor
@@ -10,7 +9,8 @@ namespace Trinex::Settings::Editor
 	float large_font_size  = 24.f;
 	bool show_grid         = true;
 
-	static PreInitializeController initialize([]() {
+	trinex_on_pre_init()
+	{
 		auto& e = ScriptEngine::instance();
 
 		e.begin_config_group("editor/editor.config");
@@ -24,5 +24,5 @@ namespace Trinex::Settings::Editor
 			e.register_property("bool show_grid", &show_grid);
 		}
 		e.end_config_group();
-	});
+	}
 }// namespace Trinex::Settings::Editor

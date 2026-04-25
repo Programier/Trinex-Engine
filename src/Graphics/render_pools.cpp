@@ -1,5 +1,4 @@
 #include <Core/base_engine.hpp>
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/math/vector.hpp>
 #include <Core/memory.hpp>
 #include <Core/package.hpp>
@@ -721,7 +720,7 @@ namespace Trinex
 	} s_pool_update;
 
 
-	static void on_destroy()
+	trinex_on_shutdown()
 	{
 		RHIBufferPool::global_instance()->release_all();
 		RHITexturePool::global_instance()->release_all();
@@ -730,7 +729,4 @@ namespace Trinex
 		RHIPipelineStatisticsPool::global_instance()->release_all();
 		RHIContextPool::global_instance()->release_all();
 	}
-
-	static DestroyController destroy_controller(on_destroy);
-
 }// namespace Trinex

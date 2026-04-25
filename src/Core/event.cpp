@@ -1,4 +1,3 @@
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/event.hpp>
 #include <Core/reflection/enum.hpp>
@@ -24,7 +23,7 @@ namespace Trinex
 		return info;
 	}
 
-	static void register_event_type()
+	trinex_on_pre_init({.name = "Trinex::EventType"})
 	{
 		ScriptEnumRegistrar r("Trinex::EventType");
 		using enum EventType;
@@ -73,9 +72,13 @@ namespace Trinex
 		r.set("DropComplete", DropComplete);
 	}
 
-	static ReflectionInitializeController enum_initializer(register_event_type, "Trinex::EventType");
-
-	static void on_init()
+	trinex_on_reflection_init({.name  = "Trinex::Event",
+	                           .after = {
+	                                   "Trinex::Orientation",
+	                                   "Trinex::Keyboard",
+	                                   "Trinex::Mouse::Button",
+	                                   "Trinex::GameController",
+	                           }})
 	{
 		auto r = ScriptClassRegistrar::value_class("Trinex::Event", sizeof(Event), info_of<Event>());
 
@@ -129,8 +132,4 @@ namespace Trinex
 		r.property("Trinex::Event::Mouse mouse", &Event::mouse);
 		r.property("Trinex::Event::Gamepad gamepad", &Event::gamepad);
 	}
-
-	static ReflectionInitializeController initializer(on_init, "Trinex::Event",
-	                                                  {"Trinex::EventType", "Trinex::Orientation", "Trinex::Keyboard",
-	                                                   "Trinex::Mouse::Button", "Trinex::GameController"});
 }// namespace Trinex

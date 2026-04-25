@@ -1,7 +1,6 @@
 #include <Core/constants.hpp>
 #include <Core/editor_config.hpp>
 #include <Core/editor_resources.hpp>
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/algorithm.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/filesystem/path.hpp>
@@ -1288,7 +1287,7 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	static void on_preinit()
+	trinex_on_pre_init()
 	{
 		auto ctx = PropertyRenderer::static_context();
 
@@ -1313,6 +1312,4 @@ namespace Trinex::UI
 		ctx->renderer<Refl::FlagsProperty>(render_flags_property);
 		ctx->renderer<Refl::VirtualProperty>(render_virtual_property);
 	}
-
-	static PreInitializeController pre_init(on_preinit);
 }// namespace Trinex::UI

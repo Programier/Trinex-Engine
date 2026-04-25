@@ -1,4 +1,3 @@
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
 #include <ScriptEngine/registrar.hpp>
@@ -28,7 +27,7 @@ namespace Trinex::Refl
 		visit_script_classes(Object::static_root());
 	}
 
-	static void on_pre_init()
+	trinex_on_pre_init()
 	{
 		ScriptEngine::on_terminate.push(on_script_engine_terminate);
 	}
@@ -62,7 +61,7 @@ namespace Trinex::Refl
 		Class* class_of_impl_cast() const { return self; }
 	};
 
-	static void on_reflection_init()
+	trinex_on_reflection_init({.after = {"Trinex::Refl::Class"}})
 	{
 		ScriptClassRegistrar::ValueInfo info;
 		info.template_type        = "<T>";
@@ -79,7 +78,4 @@ namespace Trinex::Refl
 
 		reg.method("Trinex::Refl::Class@ opImplCast() const", &ClassOf::class_of_impl_cast);
 	}
-
-	static PreInitializeController pre_init(on_pre_init);
-	static ReflectionInitializeController reflection_init(on_reflection_init, "Trinex::class_of", {"Trinex::Refl::Class"});
 }// namespace Trinex::Refl

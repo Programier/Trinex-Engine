@@ -1,5 +1,4 @@
 #include <Core/archive.hpp>
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/array.hpp>
 #include <Core/etl/atomic.hpp>
 #include <Core/etl/map.hpp>
@@ -311,14 +310,14 @@ namespace Trinex
 		s_default_samplers[filter.value] = sampler;
 	}
 
-	static void construct_default_samplers()
+	trinex_on_pre_init()
 	{
 		construct_default_sampler<RHISamplerFilter::Point>();
 		construct_default_sampler<RHISamplerFilter::Bilinear>();
 		construct_default_sampler<RHISamplerFilter::Trilinear>();
 	}
 
-	static void initialize_default_samplers()
+	trinex_on_resources_init()
 	{
 		for (SamplerImpl* sampler : s_default_samplers)
 		{
@@ -329,7 +328,7 @@ namespace Trinex
 		}
 	}
 
-	static void terminate_samplers()
+	trinex_on_shutdown()
 	{
 		s_gc_disabled = true;
 		for (SamplerImpl* sampler : s_default_samplers) sampler->release();
@@ -350,8 +349,4 @@ namespace Trinex
 			}
 		}
 	}
-
-	static PreInitializeController preinitializer(construct_default_samplers);
-	static StartupResourcesInitializeController initializer(initialize_default_samplers);
-	static DestroyController terminate(terminate_samplers);
 }// namespace Trinex

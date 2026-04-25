@@ -1,5 +1,6 @@
 #include <Core/logger.hpp>
 #include <Core/reflection/script_class.hpp>
+#include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
@@ -9,7 +10,7 @@
 
 namespace Trinex::Refl
 {
-	trinex_implement_reflect_type(ScriptClass);
+	trinex_implement_reflect_type(Trinex::Refl::ScriptClass) {}
 
 	bool Class::is_script_class(Class* self)
 	{
@@ -80,7 +81,6 @@ namespace Trinex::Refl
 
 	ScriptClass::~ScriptClass()
 	{
-
 		m_script->m_refl_objects.erase(this);
 	}
 }// namespace Trinex::Refl

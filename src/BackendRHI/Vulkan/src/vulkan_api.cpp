@@ -1,6 +1,5 @@
 ﻿#include <VkBootstrap.h>
 
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/logger.hpp>
 #include <Core/memory.hpp>
 #include <Core/profiler.hpp>

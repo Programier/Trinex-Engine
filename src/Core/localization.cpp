@@ -1,5 +1,4 @@
 #include <Core/constants.hpp>
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/directory_iterator.hpp>
 #include <Core/localization.hpp>
@@ -154,6 +153,8 @@ namespace Trinex
 		return Localization::instance()->localize(StringView(line, len)).c_str();
 	}
 
-	static InitializeController post_init([]() { Localization::create_instance()->reload(true, true); });
-
+	trinex_on_init()
+	{
+		Localization::create_instance()->reload(true, true);
+	}
 }// namespace Trinex

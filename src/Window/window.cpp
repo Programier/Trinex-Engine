@@ -184,16 +184,7 @@ namespace Trinex
 	void Window::initialize(const WindowConfig& config)
 	{
 		m_render_viewport = Object::new_instance<RenderViewport>("", nullptr, this, config.vsync);
-
-		if (!InitializeController().is_triggered())
-		{
-			// Default resources is not loaded now, so, using deferred initialization
-			InitializeController().push([this, client = config.client]() { create_client(client); });
-		}
-		else
-		{
-			create_client(config.client);
-		}
+		create_client(config.client);
 	}
 
 	RenderViewport* Window::render_viewport() const

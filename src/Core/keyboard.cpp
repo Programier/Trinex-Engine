@@ -1,10 +1,9 @@
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/keyboard.hpp>
 #include <ScriptEngine/registrar.hpp>
 
 namespace Trinex::Keyboard
 {
-	static void on_init()
+	trinex_on_pre_init({.name = "Trinex::Keyboard"})
 	{
 		ScriptEnumRegistrar status_registrar("Trinex::Keyboard::Status");
 		ScriptEnumRegistrar key_registrar("Trinex::Keyboard::Key");
@@ -135,7 +134,4 @@ namespace Trinex::Keyboard
 		key_registrar.set("Menu", Menu);
 		key_registrar.set("__COUNT__", __COUNT__);
 	};
-
-
-	static ReflectionInitializeController controller(on_init, "Trinex::Keyboard");
 }// namespace Trinex::Keyboard

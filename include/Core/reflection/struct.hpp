@@ -221,10 +221,10 @@ namespace Trinex::Refl
 		}                                                                                                                        \
 		return m_static_struct;                                                                                                  \
 	}                                                                                                                            \
-                                                                                                                                 \
-	static Trinex::u8 TRINEX_CONCAT(trinex_engine_refl_struct_, __LINE__) = static_cast<Trinex::u8>(                             \
-	        Trinex::Refl::Object::static_register_initializer([]() { decl::static_reflection(); }, #decl));                      \
-                                                                                                                                 \
+	trinex_on_reflection_init({.name = #decl})                                                                                   \
+	{                                                                                                                            \
+		decl::static_reflection();                                                                                               \
+	}                                                                                                                            \
 	void decl::static_initialize_struct()
 
 #define trinex_implement_struct_default_init(decl, flags)                                                                        \

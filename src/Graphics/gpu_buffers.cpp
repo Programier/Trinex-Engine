@@ -1,5 +1,4 @@
 #include <Core/archive.hpp>
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/allocator.hpp>
 #include <Core/math/math.hpp>
 #include <Core/memory.hpp>
@@ -29,8 +28,15 @@ namespace Trinex
 
 	} s_null_vertex_buffer;
 
-	static StartupResourcesInitializeController on_resource_init([]() { s_null_vertex_buffer.init(); });
-	static DestroyController on_resource_destroy([]() { s_null_vertex_buffer.release(); });
+	trinex_on_resources_init()
+	{
+		s_null_vertex_buffer.init();
+	}
+
+	trinex_on_shutdown()
+	{
+		s_null_vertex_buffer.release();
+	}
 
 	const VertexBufferBase* VertexBufferBase::static_null()
 	{

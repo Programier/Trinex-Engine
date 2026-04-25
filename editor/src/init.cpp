@@ -1,6 +1,5 @@
 #include <Core/config_manager.hpp>
 #include <Core/default_resources.hpp>
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/engine_resource.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
@@ -31,7 +30,7 @@ namespace Trinex
 		Texture2D* blueprint_texture = nullptr;
 	}// namespace EditorResources
 
-	static void preinit()
+	trinex_on_pre_init()
 	{
 		auto fs = rootfs();
 
@@ -52,7 +51,7 @@ namespace Trinex
 		return reinterpret_cast<T*>(obj);
 	}
 
-	static void initialialize_editor()
+	trinex_on_resources_init()
 	{
 #define load_resource(var, name, type, group_name)                                                                               \
 	EditorResources::var =                                                                                                       \
@@ -66,12 +65,8 @@ namespace Trinex
 		GarbageCollector::on_unreachable_check.push(skip_destroy_assets);
 	}
 
-	static void load_configs()
+	trinex_on_configs_init()
 	{
 		Trinex::Settings::Splash::font = "[content]:/TrinexEditor/fonts/Source Code Pro/SourceCodePro-Bold.ttf";
 	}
-
-	static StartupResourcesInitializeController on_init(initialialize_editor, "Load Editor Package");
-	static Trinex::ConfigsInitializeController configs_initializer(load_configs, "EditorConfig");
-	static Trinex::PreInitializeController on_preinit(preinit, "EditorPreinit");
 }// namespace Trinex

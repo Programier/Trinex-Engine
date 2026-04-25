@@ -2,7 +2,6 @@
 #include <Core/base_engine.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/default_resources.hpp>
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/memory.hpp>
 #include <Core/package.hpp>
 #include <Graphics/gpu_buffers.hpp>
@@ -238,11 +237,9 @@ namespace Trinex
 		});
 	}
 
-	static void on_destroy()
+	trinex_on_shutdown()
 	{
 		if (DefaultResources::Buffers::screen_quad)
 			trx_delete DefaultResources::Buffers::screen_quad;
 	}
-
-	static u8 destroy_id = DestroyController(on_destroy).id();
 }// namespace Trinex

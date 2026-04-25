@@ -1,4 +1,3 @@
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/joystick.hpp>
 #include <Core/logger.hpp>
 
@@ -46,7 +45,7 @@ namespace Trinex
 		//SDL_JoystickClose(joystick);
 	}
 
-	static void on_destroy()
+	trinex_on_shutdown()
 	{
 		while (!Joystick::joysticks().empty())
 		{
@@ -54,6 +53,4 @@ namespace Trinex
 			trx_delete joystick;
 		}
 	}
-
-	static DestroyController on_destroy_controller(on_destroy);
 }// namespace Trinex

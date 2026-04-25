@@ -403,8 +403,10 @@ private:
 		}                                                                                                                        \
 		return m_static_class;                                                                                                   \
 	}                                                                                                                            \
-	static Trinex::u8 TRINEX_CONCAT(trinex_engine_refl_class_, __LINE__) = static_cast<Trinex::u8>(                              \
-	        Trinex::Refl::Object::static_register_initializer([]() { decl::static_reflection(); }, #decl));                      \
+	trinex_on_reflection_init({.name = #decl})                                                                                   \
+	{                                                                                                                            \
+		decl::static_reflection();                                                                                               \
+	}                                                                                                                            \
 	void decl::static_initialize_class()
 
 

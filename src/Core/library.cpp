@@ -1,6 +1,5 @@
 #include <Core/base_engine.hpp>
 #include <Core/config_manager.hpp>
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/etl/set.hpp>
 #include <Core/file_manager.hpp>
@@ -54,8 +53,6 @@ namespace Trinex
 			info.handle = m_handle;
 			info.name   = libname;
 			m_libraries.insert(info);
-
-			LoadingControllerBase::exec_all_if_already_triggered();
 		}
 
 		return *this;

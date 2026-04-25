@@ -88,9 +88,10 @@ public:                                                                         
 private:
 
 #define trinex_implement_render_pass(pass_name)                                                                                  \
-	static const u8 TRINEX_CONCAT(trinex_engine_refl_render_pass_, __LINE__) =                                                   \
-	        Trinex::ReflectionInitializeController([]() { pass_name::static_instance(); }).id();                                 \
-                                                                                                                                 \
+	trinex_on_reflection_init()                                                                                                  \
+	{                                                                                                                            \
+		pass_name::static_instance();                                                                                            \
+	}                                                                                                                            \
 	pass_name* pass_name::static_instance()                                                                                      \
 	{                                                                                                                            \
 		static pass_name s_instance(#pass_name);                                                                                 \

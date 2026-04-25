@@ -1,4 +1,3 @@
-#include <Core/engine_loading_controllers.hpp>
 #include <ScriptEngine/script_engine.hpp>
 
 #include <angelscript.h>
@@ -22,7 +21,7 @@ namespace Trinex
 		return *reinterpret_cast<const String*>(address);
 	}
 
-	static void on_init()
+	trinex_on_pre_init({.name = "Trinex::DefaultScriptAddons"})
 	{
 		asIScriptEngine* engine = ScriptEngine::engine();
 
@@ -36,6 +35,4 @@ namespace Trinex
 		i32 type_id = ScriptEngine::type_id_by_decl("string");
 		ScriptEngine::register_custom_variable_parser(type_id, parse_string_value);
 	}
-
-	static PreInitializeController init(on_init, "Trinex::DefaultScriptAddons");
 }// namespace Trinex

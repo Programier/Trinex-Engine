@@ -1,4 +1,3 @@
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/logger.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
@@ -79,7 +78,7 @@ namespace Trinex
 		info_log("ScriptEngine", "%s", result.c_str());
 	}
 
-	static void initialize()
+	trinex_on_pre_init({.after = {"Trinex::DefaultScriptAddons"}})
 	{
 		auto& e  = ScriptEngine::instance();
 		auto str = ScriptClassRegistrar::existing_class("string");
@@ -88,6 +87,4 @@ namespace Trinex
 		e.register_function("void print(const ?& ...)", script_print, ScriptCallConv::Generic);
 		e.register_function("void printf(const string& fmt, const ?& ...)", script_printf, ScriptCallConv::Generic);
 	}
-
-	static Trinex::PreInitializeController on_init(initialize, "Trinex::PrintFunction", {"Trinex::DefaultScriptAddons"});
 }// namespace Trinex

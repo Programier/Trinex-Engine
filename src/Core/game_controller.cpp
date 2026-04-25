@@ -1,4 +1,3 @@
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/event.hpp>
 #include <Core/game_controller.hpp>
 #include <Core/logger.hpp>
@@ -48,7 +47,7 @@ namespace Trinex
 		return nullptr;
 	}
 
-	static void on_init()
+	trinex_on_pre_init({.name = "Trinex::GameController"})
 	{
 		{
 			ScriptEnumRegistrar axis_enum("Trinex::GameController::Axis");
@@ -73,6 +72,4 @@ namespace Trinex
 		r.method("uint64 id() const", &GameController::id);
 		r.method("float axis_value(Trinex::GameController::Axis, float dead_zone = 0.f) const", &GameController::axis_value);
 	}
-
-	static ReflectionInitializeController init(on_init, "Trinex::GameController");
 }// namespace Trinex

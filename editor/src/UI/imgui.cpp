@@ -1,6 +1,5 @@
 #include <Core/base_engine.hpp>
 #include <Core/editor_resources.hpp>
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/engine_resource.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/event.hpp>

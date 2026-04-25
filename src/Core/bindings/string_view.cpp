@@ -1,11 +1,10 @@
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/templates.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
 
 namespace Trinex
 {
-	static void on_init()
+	trinex_on_pre_init({.name = "Trinex::StringView", .after = {"Trinex::DefaultScriptAddons"}})
 	{
 		ScriptClassRegistrar::ValueInfo info;
 		info.pod      = true;
@@ -55,6 +54,4 @@ namespace Trinex
 		registrar.method("uint64 find_last_of(StringView, uint64 = 0) const",
 		                 overload_of<StringView::size_type(StringView, StringView::size_type)>(&StringView::find_last_of));
 	}
-
-	static ReflectionInitializeController initialize(on_init, "Trinex::StringView");
 }// namespace Trinex

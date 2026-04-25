@@ -1137,7 +1137,7 @@ namespace Trinex::Bindings::GLM
 		});
 	}
 
-	static void bind()
+	trinex_on_pre_init()
 	{
 		register_types();
 		bind_vector_types();
@@ -1145,6 +1145,4 @@ namespace Trinex::Bindings::GLM
 		bind_quaternion();
 		bind_functions();
 	}
-
-	static PreInitializeController bindings(bind, "glm");
 }// namespace Trinex::Bindings::GLM

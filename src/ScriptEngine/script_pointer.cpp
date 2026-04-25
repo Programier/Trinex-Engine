@@ -1,4 +1,3 @@
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/string_functions.hpp>
 #include <ScriptEngine/registrar.hpp>
@@ -96,7 +95,7 @@ namespace Trinex
 		ScriptEngine::instance().register_property("const NullPtr nullptr", &null);
 	}
 
-	static void on_init()
+	trinex_on_pre_init({.name = "Trinex::ScriptPointer"})
 	{
 		register_nullptr();
 
@@ -142,6 +141,4 @@ namespace Trinex
 			r.method("Ptr<void> opImplCast() const", self_return);
 		}
 	}
-
-	static PreInitializeController init(on_init, "Trinex::ScriptPointer");
 }// namespace Trinex

@@ -647,7 +647,7 @@ namespace Trinex
 		}
 	};
 
-	static void setup_detectors()
+	trinex_on_pre_init()
 	{
 		using T      = TypeDetector;
 		using Scalar = slang::TypeReflection::ScalarType;
@@ -677,8 +677,6 @@ namespace Trinex
 		ReflectionParser::type_detectors.push_back(T::matrix<MP::Float3x3, Scalar::Float32, 3, 3>);
 		ReflectionParser::type_detectors.push_back(T::matrix<MP::Float4x4, Scalar::Float32, 4, 4>);
 	}
-
-	static PreInitializeController preinit(setup_detectors);
 
 	trinex_implement_class_default_init(Trinex::SLANG_ShaderCompiler, Refl::Class::IsSingletone);
 	trinex_implement_class_default_init(Trinex::VULKAN_ShaderCompiler, Refl::Class::IsSingletone);

@@ -1,4 +1,3 @@
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/group.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/reflection/script_class.hpp>
@@ -92,7 +91,6 @@ namespace Trinex
 	static void register_expression_meta(Script* script, Refl::Object* self, const String& meta)
 	{
 		const Refl::ClassInfo* refl_info = self->refl_class_info();
-		while (!refl_info->is_scriptable) refl_info = refl_info->parent;
 
 		trinex_verify_fmt(refl_info, "Cannot find scriptable property type for prop '{}'", self->full_name().c_str());
 
@@ -368,10 +366,8 @@ namespace Trinex
 		return self->new_child<Refl::ScriptStringProperty>(name, offset);
 	}
 
-	static void on_preinit()
+	trinex_on_pre_init()
 	{
 		Script::register_custom_reflection_parser("string", string_property);
 	}
-
-	static PreInitializeController preinit(on_preinit);
 }// namespace Trinex

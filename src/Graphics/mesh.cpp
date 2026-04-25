@@ -26,7 +26,7 @@ namespace Trinex
 		trinex_refl_prop(surfaces, Refl::Property::IsReadOnly | Refl::Property::IsTransient);
 	}
 
-	trinex_implement_engine_class(StaticMesh, Refl::Class::IsAsset | Refl::Class::IsScriptable)
+	trinex_implement_class(Trinex::StaticMesh, Refl::Class::IsAsset | Refl::Class::IsScriptable)
 	{
 		trinex_refl_prop(materials)->tooltip("Array of materials for this mesh");
 		trinex_refl_prop(lods, Refl::Property::IsReadOnly | Refl::Property::IsTransient)->tooltip("Array of lods of this mesh");

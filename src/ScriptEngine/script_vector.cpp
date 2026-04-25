@@ -1,4 +1,3 @@
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/logger.hpp>
@@ -852,7 +851,7 @@ namespace Trinex
 		return true;
 	}
 
-	static void initialize()
+	trinex_on_pre_init({.name = "Trinex::ScriptVector"})
 	{
 		using T                      = ScriptVector;
 		auto info                    = ScriptClassRegistrar::ValueInfo();
@@ -900,6 +899,4 @@ namespace Trinex
 		r.method("void pop_back()", T::pop_back, ScriptCallConv::Generic);
 		r.method("void erase(uint64 p, uint64 n = 1)", T::erase, ScriptCallConv::Generic);
 	}
-
-	static PreInitializeController initializer(initialize, "Trinex::ScriptVector");
 }// namespace Trinex

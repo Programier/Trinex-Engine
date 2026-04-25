@@ -1,4 +1,3 @@
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/group.hpp>
 #include <Core/logger.hpp>
 #include <Core/memory.hpp>
@@ -840,8 +839,15 @@ namespace Trinex::VisualMaterialGraph
 
 	static void register_metadata_functions()
 	{
-		ScriptClassRegistrar r = ScriptClassRegistrar::existing_class("Trinex::Refl::Class");
-		r.method("void node_group(const string& group_name) const final", Node::static_node_group);
+		{
+			ScriptClassRegistrar r = ScriptClassRegistrar::existing_class("Trinex::Refl::Class");
+			r.method("void node_group(const string& group_name) const final", Node::static_node_group);
+		}
+
+		{
+			ScriptClassRegistrar r = ScriptClassRegistrar::existing_class("Trinex::Refl::ScriptClass");
+			r.method("void node_group(const string& group_name) const final", Node::static_node_group);
+		}
 	}
 
 	template<typename T>
@@ -854,7 +860,13 @@ namespace Trinex::VisualMaterialGraph
 		r.method("uint64 links_count() const", &T::links_count);
 	}
 
-	static void reflection_init()
+	trinex_on_reflection_init({.name  = "Trinex::VisualMaterialGraph",
+	                           .after = {
+	                                   "Trinex::RHIShaderParameterType",
+	                                   "Trinex::Refl::Class",
+	                                   "Trinex::Refl::ScriptClass",
+	                                   "Trinex::VisualMaterialGraph::Node",
+	                           }})
 	{
 		using SPType = RHIShaderParameterType;
 		register_metadata_functions();
@@ -944,8 +956,4 @@ namespace Trinex::VisualMaterialGraph
 
 		// static RHIShaderParameterType component_type(RHIShaderParameterType type);
 	}
-
-	static ReflectionInitializeController init(reflection_init, "Trinex::VisualMaterialGraph",
-	                                           {"Trinex::RHIShaderParameterType", "Trinex::Refl::Class",
-	                                            "Trinex::VisualMaterialGraph::Node"});
 }// namespace Trinex::VisualMaterialGraph

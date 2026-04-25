@@ -1,4 +1,3 @@
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/logger.hpp>
 #include <Core/math/math.hpp>
@@ -11,15 +10,18 @@ namespace Trinex
 {
 	static FT_Library m_library;
 
-	static PreInitializeController preinitilize_controller([]() { trinex_assert(!FT_Init_FreeType(&m_library)); });
+	trinex_on_pre_init()
+	{
+		trinex_assert(!FT_Init_FreeType(&m_library));
+	}
 
-	static PostDestroyController destroy_controller([]() {
+	trinex_on_shutdown()
+	{
 		if (FT_Done_FreeType(m_library))
 		{
 			error_log("Font", "Failed to terminate FreeType library!");
 		}
-	});
-
+	}
 
 	FontConfig::FontConfig() : image_size(512, 512), color(255, 255, 255, 255), font_size({0, 16}), dynamic_size(false) {}
 

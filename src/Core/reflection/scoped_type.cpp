@@ -1,10 +1,10 @@
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/reflection/scoped_type.hpp>
 #include <Core/string_functions.hpp>
+#include <ScriptEngine/registrar.hpp>
 
 namespace Trinex::Refl
 {
-	trinex_implement_reflect_type(ScopedType);
+	trinex_implement_reflect_type(Trinex::Refl::ScopedType) {}
 
 	static ScopedType* root = nullptr;
 
@@ -18,7 +18,7 @@ namespace Trinex::Refl
 		return root;
 	}
 
-	static inline void static_initialize_childs(Object* root, bool force_recursive)
+	static inline void load_childs_reflection(Object* root, bool force_recursive)
 	{
 		if (auto scope = Object::instance_cast<ScopedType>(root))
 		{
@@ -28,19 +28,13 @@ namespace Trinex::Refl
 			{
 				if (child)
 				{
-					Object::static_initialize(child, force_recursive);
+					Object::load_reflection(child, force_recursive);
 				}
 			}
 		}
 	}
 
-	Identifier Object::static_register_initializer(const Function<void()>& func, const String& name,
-	                                               const std::initializer_list<String>& required)
-	{
-		return ReflectionInitializeController(func, name, required).id();
-	}
-
-	void Object::static_initialize(Object* root, bool force_recursive)
+	void Object::load_reflection(Object* root, bool force_recursive)
 	{
 		if (root == nullptr)
 			root = static_root();
@@ -50,12 +44,12 @@ namespace Trinex::Refl
 			root->m_is_initialized = true;
 			root->initialize();
 			root->on_initialize(root);
-			static_initialize_childs(root, force_recursive);
+			load_childs_reflection(root, force_recursive);
 		}
 
 		if (force_recursive)
 		{
-			static_initialize_childs(root, force_recursive);
+			load_childs_reflection(root, force_recursive);
 		}
 	}
 
@@ -80,10 +74,10 @@ namespace Trinex::Refl
 		auto it        = m_childs.find(instance);
 		Object* object = nullptr;
 
-		if (it == m_childs.end() && !(flags & FindFlags::DisableReflectionCheck))
+		if (it == m_childs.end())
 		{
-			String controller_name = concat_scoped_name(full_name(), instance);
-			ReflectionInitializeController().require(controller_name);
+			String handler = concat_scoped_name(full_name(), instance);
+			//LifeCycle::execute(LifeCycle::ReflectionInit, handler.c_str());
 			it = m_childs.find(instance);
 		}
 

@@ -1,4 +1,3 @@
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
@@ -10,7 +9,12 @@
 
 namespace Trinex::Refl
 {
-	trinex_implement_reflect_type(Class);
+	trinex_implement_reflect_type(Trinex::Refl::Class)
+	{
+		r.method("Class@ parent() const", &Class::parent);
+		r.static_function("Class@ static_find(Trinex::StringView name, int flags = 0)", Class::static_find<Class>);
+		r.static_function("Class@ static_require(StringView name, int flags = 0)", Class::static_require<Class>);
+	}
 
 	bool Struct::is_class() const
 	{
@@ -190,19 +194,4 @@ namespace Trinex::Refl
 		Super::register_layout(r, info, downcast);
 		r.method("Trinex::Object@ singletone_instance() const", &Class::singletone_instance);
 	}
-
-	static void on_init()
-	{
-		ScriptClassRegistrar::RefInfo info;
-		info.implicit_handle = true;
-		info.no_count        = true;
-
-		auto r = ScriptClassRegistrar::reference_class("Trinex::Refl::Class", info);
-		Class::register_layout(r, Class::static_refl_class_info(), script_downcast<Class>);
-		r.method("Class@ parent() const", &Class::parent);
-		r.static_function("Class@ static_find(Trinex::StringView name, int flags = 0)", Class::static_find<Class>);
-		r.static_function("Class@ static_require(StringView name, int flags = 0)", Class::static_require<Class>);
-	}
-
-	static ReflectionInitializeController initializer(on_init, "Trinex::Refl::Class");
 }// namespace Trinex::Refl

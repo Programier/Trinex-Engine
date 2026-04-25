@@ -1,4 +1,3 @@
-#include <Core/engine_loading_controllers.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <VkBootstrap.h>
@@ -15,7 +14,8 @@ namespace Trinex::VulkanConfig
 	bool enable_validation               = static_cast<bool>(TRINEX_DEBUG_BUILD);
 	bool allow_any_gpu_type              = false;
 
-	static PreInitializeController on_init([]() {
+	trinex_on_pre_init()
+	{
 		ScriptEnumRegistrar reg("Trinex::VulkanGPU");
 		reg.set("other", vkb::DeviceType::other);
 		reg.set("integrated", vkb::DeviceType::integrated);
@@ -33,5 +33,5 @@ namespace Trinex::VulkanConfig
 			e.register_property("bool allow_any_gpu_type", &allow_any_gpu_type);
 		}
 		e.end_config_group();
-	});
+	}
 }// namespace Trinex::VulkanConfig

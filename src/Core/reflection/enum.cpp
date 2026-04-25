@@ -8,7 +8,7 @@
 
 namespace Trinex::Refl
 {
-	trinex_implement_reflect_type(Enum);
+	trinex_implement_reflect_type(Trinex::Refl::Enum) {}
 
 	Enum::Enum(u8 flags) : m_flags(flags) {}
 

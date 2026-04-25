@@ -1,4 +1,3 @@
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/vector.hpp>
 #include <Core/threading.hpp>
 #include <RHI/initializers.hpp>
@@ -27,13 +26,11 @@ namespace Trinex
 		s_static_samplers.push_back(sampler);
 	}
 
-	static void destroy_default_samplers()
+	trinex_on_shutdown()
 	{
 		for (RHISampler* sampler : s_static_samplers)
 		{
 			sampler->release();
 		}
 	}
-
-	static DestroyController on_destroy(destroy_default_samplers);
 }// namespace Trinex

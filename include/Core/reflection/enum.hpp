@@ -67,13 +67,15 @@ namespace Trinex::Refl
 	};
 
 #define trinex_implement_enum(enum_name, flags, ...)                                                                             \
-	Trinex::Refl::Enum* enum_name::s_enum = nullptr;                                                                             \
+	trinex_on_reflection_init({.name = #enum_name})                                                                              \
+	{                                                                                                                            \
+		enum_name::static_initialize_enum();                                                                                     \
+	}                                                                                                                            \
 	void enum_name::static_initialize_enum()                                                                                     \
 	{                                                                                                                            \
 		s_enum = Trinex::Refl::Enum::create<enum_name::Enum, __VA_ARGS__>(#enum_name, flags);                                    \
 	}                                                                                                                            \
-	static Trinex::u8 TRINEX_CONCAT(trinex_engine_refl_enum_, __LINE__) = static_cast<Trinex::u8>(                               \
-	        Trinex::ReflectionInitializeController([]() { enum_name::static_initialize_enum(); }, #enum_name).id())
+	Trinex::Refl::Enum* enum_name::s_enum = nullptr
 
 #define trinex_implement_engine_enum(enum_name, flags, ...) trinex_implement_enum(Trinex::enum_name, flags, __VA_ARGS__)
 }// namespace Trinex::Refl

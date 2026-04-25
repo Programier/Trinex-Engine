@@ -1,5 +1,4 @@
 #include <Core/default_resources.hpp>
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/allocator.hpp>
 #include <Core/math/random.hpp>
 #include <Engine/Render/pipelines.hpp>
@@ -301,7 +300,7 @@ namespace Trinex::Pipelines
 		m_args         = find_parameter("args");
 		m_samples      = find_parameter("samples");
 
-		DestroyController([]() {
+		LifeCycle::on_shutdown([]() {
 			RHIBuffer* buffer = SSAO::instance()->m_samples_buffer;
 			if (buffer)
 			{

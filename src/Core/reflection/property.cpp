@@ -1,5 +1,4 @@
 #include <Core/archive.hpp>
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/filesystem/path.hpp>
 #include <Core/logger.hpp>
@@ -12,28 +11,40 @@
 
 namespace Trinex::Refl
 {
-	trinex_implement_reflect_type(Property);
-	trinex_implement_reflect_type(PrimitiveProperty);
-	trinex_implement_reflect_type(BooleanProperty);
-	trinex_implement_reflect_type(IntegerProperty);
-	trinex_implement_reflect_type(FloatProperty);
-	trinex_implement_reflect_type(AngleProperty);
-	trinex_implement_reflect_type(EnumProperty);
-	trinex_implement_reflect_type(ColorProperty);
-	trinex_implement_reflect_type(LinearColorProperty);
-	trinex_implement_reflect_type(VectorProperty);
-	trinex_implement_reflect_type(MatrixProperty);
-	trinex_implement_reflect_type(QuaternionProperty);
-	trinex_implement_reflect_type(StringProperty);
-	trinex_implement_reflect_type(NameProperty);
-	trinex_implement_reflect_type(PathProperty);
-	trinex_implement_reflect_type(ObjectProperty);
-	trinex_implement_reflect_type(StructProperty);
-	trinex_implement_reflect_type(ArrayProperty);
-	trinex_implement_reflect_type(ReflObjectProperty);
-	trinex_implement_reflect_type(SubClassProperty);
-	trinex_implement_reflect_type(FlagsProperty);
-	trinex_implement_reflect_type(VirtualProperty);
+	trinex_implement_reflect_type(Trinex::Refl::Property)
+	{
+		using T = Property::Flag;
+
+		ScriptEnumRegistrar e("Trinex::Refl::Property::Flag");
+		e.set("property", 0);
+		e.set("is_read_only", T::IsReadOnly);
+		e.set("is_transient", T::IsTransient);
+		e.set("is_hidden", T::IsHidden);
+		e.set("inline_single_field", T::InlineSingleField);
+		e.set("inline", T::Inline);
+	}
+
+	trinex_implement_reflect_type(Trinex::Refl::PrimitiveProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::BooleanProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::IntegerProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::FloatProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::AngleProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::EnumProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::ColorProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::LinearColorProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::VectorProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::MatrixProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::QuaternionProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::StringProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::NameProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::PathProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::ObjectProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::StructProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::ArrayProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::ReflObjectProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::SubClassProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::FlagsProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::VirtualProperty) {}
 
 	void Property::trigger_object_event(const PropertyChangedEvent& event)
 	{
@@ -324,28 +335,4 @@ namespace Trinex::Refl
 
 		return false;
 	}
-
-	static void on_init()
-	{
-		{
-			using T = Property::Flag;
-
-			ScriptEnumRegistrar r("Trinex::Refl::Property::Flag");
-			r.set("property", 0);
-			r.set("is_read_only", T::IsReadOnly);
-			r.set("is_transient", T::IsTransient);
-			r.set("is_hidden", T::IsHidden);
-			r.set("inline_single_field", T::InlineSingleField);
-			r.set("inline", T::Inline);
-		}
-
-		ScriptClassRegistrar::RefInfo info;
-		info.implicit_handle = true;
-		info.no_count        = true;
-
-		auto r = ScriptClassRegistrar::reference_class("Trinex::Refl::Property", info);
-		Property::register_layout(r, Property::static_refl_class_info(), script_downcast<Property>);
-	}
-
-	static ReflectionInitializeController initializer(on_init, "Trinex::Refl::Property");
 }// namespace Trinex::Refl

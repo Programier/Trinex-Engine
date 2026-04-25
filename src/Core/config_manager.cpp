@@ -1,5 +1,4 @@
 #include <Core/config_manager.hpp>
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/set.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/path.hpp>
@@ -143,7 +142,7 @@ namespace Trinex::ConfigManager
 			}
 		}
 
-		ConfigsInitializeController().execute();
+		LifeCycle::execute(LifeCycle::ConfigsInit);
 		return true;
 	}
 }// namespace Trinex::ConfigManager

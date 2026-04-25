@@ -1,6 +1,5 @@
 #include <Clients/material/visual_material_client.hpp>
 #include <Core/blueprints.hpp>
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/group.hpp>
 #include <Core/icons.hpp>
 #include <Core/memory.hpp>

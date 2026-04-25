@@ -1,4 +1,3 @@
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/any.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
@@ -292,7 +291,7 @@ namespace Trinex
 		static void constructor(void* self, void* value, i32 type_id) { opAssignValue(*new (self) Any(), value, type_id); }
 	};
 
-	static void initialize()
+	trinex_on_pre_init()
 	{
 		auto info                    = ScriptClassRegistrar::ValueInfo();
 		info.is_class                = true;
@@ -315,6 +314,4 @@ namespace Trinex
 		reg.method("bool get(?& value)", &ScriptAny::get);
 		reg.method("void opConv(?&)", &ScriptAny::opCast);
 	}
-
-	static ReflectionInitializeController on_init(initialize);
 }// namespace Trinex

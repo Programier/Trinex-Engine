@@ -1,4 +1,3 @@
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/array.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/logger.hpp>
@@ -105,20 +104,6 @@ namespace Trinex
 		ScriptEngine::default_namespace(m_prev_namespace);
 	}
 
-	static void trigger_addons_initialization()
-	{
-		const char* addons[] = {
-		        "Trinex::DefaultScriptAddons",
-		        "Trinex::ScriptVector",
-		        "Trinex::ScriptPointer",
-		};
-
-		for (auto addon : addons)
-		{
-			PreInitializeController().require(addon);
-		}
-	}
-
 	ScriptEngine& ScriptEngine::initialize()
 	{
 		ScriptEngineData* data = ScriptEngineData::instance();
@@ -148,11 +133,10 @@ namespace Trinex
 			data->engine->SetJITCompiler(data->jit_compiler);
 		}
 #endif
-		PostDestroyController controller(ScriptEngine::terminate, "Trinex::ScriptEngine");
+		LifeCycle::on_post_shutdown(ScriptEngine::terminate);
 		ScriptContext::initialize();
 
 		data->script_folder = trx_new ScriptFolder("[scripts]:");
-		trigger_addons_initialization();
 		return instance();
 	}
 
@@ -937,13 +921,11 @@ namespace Trinex
 		generic->SetReturnObject(&name);
 	}
 
-	static void reflection_init()
+	trinex_on_reflection_init()
 	{
 		ScriptEngine::default_namespace("Trinex::ScriptEngine");
 		ScriptEngine::register_function("string variable_name(const ?& variable, bool include_namespace = true)",
 		                                variable_name_generic, ScriptCallConv::Generic);
 		ScriptEngine::default_namespace("");
 	}
-
-	static ReflectionInitializeController on_reflection_init(reflection_init, "Trinex::ScriptEngine");
 }// namespace Trinex

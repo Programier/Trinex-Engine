@@ -1,6 +1,5 @@
 #include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/math/math.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/reflection/struct.hpp>
@@ -153,7 +152,7 @@ namespace Trinex
 		return *_this;
 	}
 
-	static void on_init()
+	trinex_on_reflection_init()
 	{
 		ScriptClassRegistrar::ValueInfo info = ScriptClassRegistrar::ValueInfo::from<Transform>();
 		info.pod                             = true;
@@ -179,6 +178,4 @@ namespace Trinex
 
 		Transform::static_reflection()->script_type_info = registrar.type_info();
 	}
-
-	static ReflectionInitializeController init(on_init);
 }// namespace Trinex

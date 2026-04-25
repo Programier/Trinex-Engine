@@ -1,6 +1,5 @@
 #include <Core/archive.hpp>
 #include <Core/constants.hpp>
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/etl/vector.hpp>
@@ -274,9 +273,8 @@ namespace Trinex
 		return ar;
 	}
 
-	static void on_init()
+	trinex_on_pre_init({.name = "Trinex::Name", .after = {"Trinex::StringView"}})
 	{
-		ReflectionInitializeController().require("Trinex::StringView");
 		ScriptClassRegistrar::ValueInfo info;
 		info.all_ints          = true;
 		info.more_constructors = true;
@@ -308,6 +306,4 @@ namespace Trinex
 		registrar.method("const string& opConv() const", &Name::operator const std::basic_string<char>&);
 		registrar.method("const string& opImplConv() const", &Name::operator const std::basic_string<char>&);
 	}
-
-	static ReflectionInitializeController controller(on_init, "Trinex::Name");
 }// namespace Trinex

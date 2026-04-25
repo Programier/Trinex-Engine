@@ -1,10 +1,11 @@
 #include <Core/logger.hpp>
 #include <Core/reflection/script_enum.hpp>
+#include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script.hpp>
 
 namespace Trinex::Refl
 {
-	trinex_implement_reflect_type(ScriptEnum);
+	trinex_implement_reflect_type(Trinex::Refl::ScriptEnum) {}
 
 	ScriptEnum::ScriptEnum(Script* script, const ScriptTypeInfo& info) : m_script(script)
 	{
