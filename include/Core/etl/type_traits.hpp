@@ -5,6 +5,11 @@
 
 namespace Trinex
 {
+	namespace etl
+	{
+		using namespace std;
+	}
+
 	class Archive;
 	class Object;
 	class SingletoneBase;

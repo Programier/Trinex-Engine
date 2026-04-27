@@ -104,6 +104,12 @@ namespace Trinex::Refl
 		return 0;
 	}
 
+	usize Struct::alignment() const
+	{
+		trinex_unreachable();
+		return 0;
+	}
+
 	Struct* Struct::parent() const
 	{
 		return m_parent;

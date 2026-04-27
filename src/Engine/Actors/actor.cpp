@@ -286,7 +286,7 @@ namespace Trinex
 		});
 
 		auto flags      = Refl::Property::IsReadOnly | Refl::Property::IsTransient;
-		auto components = trinex_refl_prop_ext(ActorComponentsExt, m_components, flags);
+		auto components = trinex_refl_prop(m_components, flags);
 
 		if (auto element = Refl::Object::instance_cast<Refl::ObjectProperty>(components->element_property()))
 		{

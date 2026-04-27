@@ -64,6 +64,42 @@ namespace Trinex::Refl
 		return *this;
 	}
 
+	bool Property::render(PropertyRenderer& renderer, void* context)
+	{
+		if (m_render_function)
+		{
+			return m_render_function(renderer, *this, context);
+		}
+
+		return renderer.render_default(*this, context);
+	}
+
+	Property& Property::item_flags(BitMask flags)
+	{
+		if (auto* array = Refl::Object::instance_cast<ArrayProperty>(this))
+		{
+			return array->element_flags(flags);
+		}
+
+		if (auto* vector = Refl::Object::instance_cast<VectorProperty>(this))
+		{
+			return vector->element_flags(flags);
+		}
+
+		if (auto* matrix = Refl::Object::instance_cast<MatrixProperty>(this))
+		{
+			return matrix->row_flags(flags);
+		}
+
+		return *this;
+	}
+
+	Property& Property::render_function(RenderFunction function)
+	{
+		m_render_function = std::move(function);
+		return *this;
+	}
+
 	void Property::register_layout(ScriptClassRegistrar& r, ClassInfo* info, DownCast downcast)
 	{
 		Super::register_layout(r, info, downcast);
@@ -78,9 +114,26 @@ namespace Trinex::Refl
 		return ar;
 	}
 
+	VectorProperty& VectorProperty::element_flags(BitMask flags)
+	{
+		m_element_property_flags = flags;
+		return *this;
+	}
+
+	MatrixProperty& MatrixProperty::row_flags(BitMask flags)
+	{
+		m_row_property_flags = flags;
+		return *this;
+	}
+
 	usize BooleanProperty::size() const
 	{
 		return sizeof(bool);
+	}
+
+	usize BooleanProperty::alignment() const
+	{
+		return alignof(bool);
 	}
 
 	bool IntegerProperty::is_unsigned() const
@@ -112,6 +165,11 @@ namespace Trinex::Refl
 		return sizeof(String);
 	}
 
+	usize StringProperty::alignment() const
+	{
+		return alignof(String);
+	}
+
 	bool NameProperty::serialize(void* object, Archive& ar)
 	{
 		Name& value = *address_as<Name>(object);
@@ -127,6 +185,11 @@ namespace Trinex::Refl
 	usize ObjectProperty::size() const
 	{
 		return sizeof(Trinex::Object*);
+	}
+
+	usize ObjectProperty::alignment() const
+	{
+		return alignof(Trinex::Object*);
 	}
 
 	bool ObjectProperty::serialize(void* object, Archive& ar)
@@ -200,6 +263,12 @@ namespace Trinex::Refl
 		return ar;
 	}
 
+	ArrayProperty& ArrayProperty::element_flags(BitMask flags)
+	{
+		m_element_property_flags = flags;
+		return *this;
+	}
+
 	const String& ArrayProperty::index_name(const void* object, usize index) const
 	{
 		static Vector<String> index_names;
@@ -215,6 +284,11 @@ namespace Trinex::Refl
 	usize ReflObjectProperty::size() const
 	{
 		return sizeof(Refl::Object*);
+	}
+
+	usize ReflObjectProperty::alignment() const
+	{
+		return alignof(Refl::Object*);
 	}
 
 	bool ReflObjectProperty::serialize(void* context, Archive& ar)

@@ -9,6 +9,11 @@ namespace Trinex::Refl
 		return sizeof(int);
 	}
 
+	usize ScriptEnumProperty::alignment() const
+	{
+		return alignof(int);
+	}
+
 	ScriptObjectProperty::ScriptObjectProperty(u32 offset, Class* instance) : ScriptProperty(offset), m_instance(instance) {}
 
 	Class* ScriptObjectProperty::class_instance() const
@@ -26,5 +31,10 @@ namespace Trinex::Refl
 	usize ScriptStructProperty::size() const
 	{
 		return m_instance->size();
+	}
+
+	usize ScriptStructProperty::alignment() const
+	{
+		return m_instance->alignment();
 	}
 }// namespace Trinex::Refl

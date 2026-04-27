@@ -42,6 +42,7 @@ namespace Trinex::Refl
 		using ScriptProperty::ScriptProperty;
 
 		usize size() const override { return sizeof(T); }
+		usize alignment() const override { return alignof(T); }
 
 		bool is_signed() const override { return std::is_signed_v<T>; }
 	};
@@ -53,6 +54,7 @@ namespace Trinex::Refl
 		using ScriptProperty::ScriptProperty;
 
 		usize size() const override { return sizeof(T); }
+		usize alignment() const override { return alignof(T); }
 	};
 
 	class ScriptEnumProperty : public ScriptProperty<EnumProperty>
@@ -66,6 +68,7 @@ namespace Trinex::Refl
 
 		inline Enum* enum_instance() const override { return m_enum_instance; }
 		usize size() const override;
+		usize alignment() const override;
 	};
 
 	class ScriptObjectProperty : public ScriptProperty<ObjectProperty, false>
@@ -86,6 +89,7 @@ namespace Trinex::Refl
 
 		Struct* struct_instance() const override;
 		usize size() const override;
+		usize alignment() const override;
 	};
 
 	using ScriptStringProperty = ScriptProperty<StringProperty, true>;

@@ -27,29 +27,29 @@ namespace Trinex
 {
 	using Parameter = MaterialInterface::Parameter;
 
-	template<typename T>
-	class MaterialParametersExt : public T
-	{
-	public:
-		using T::T;
+	// template<typename T>
+	// class MaterialParametersExt : public T
+	// {
+	// public:
+	// 	using T::T;
 
-		Refl::Property* element_property() const override
-		{
-			constexpr Parameter* T::* null_prop = nullptr;
-			const auto flags                    = Refl::Property::InlineSingleField;
-			using Element                       = Refl::NativeProperty<null_prop>;
+	// 	Refl::Property* element_property() const override
+	// 	{
+	// 		constexpr Parameter* T::* null_prop = nullptr;
+	// 		const auto flags                    = Refl::Property::InlineSingleField;
+	// 		using Element                       = Refl::NativeProperty<null_prop>;
 
-			static Refl::Property* prop = Refl::Object::new_instance<Element>(nullptr, StringView("Element"), flags);
-			return prop;
-		}
+	// 		static Refl::Property* prop = Refl::Object::new_instance<Element>(nullptr, StringView("Element"), flags);
+	// 		return prop;
+	// 	}
 
-		const String& index_name(const void* context, usize index) const override
-		{
-			const Refl::ArrayProperty* prop = this;
-			const Parameter* parameter      = *prop->at_as<const Parameter*>(context, index);
-			return parameter->name().to_string();
-		}
-	};
+	// 	const String& index_name(const void* context, usize index) const override
+	// 	{
+	// 		const Refl::ArrayProperty* prop = this;
+	// 		const Parameter* parameter      = *prop->at_as<const Parameter*>(context, index);
+	// 		return parameter->name().to_string();
+	// 	}
+	// };
 
 	struct MaterialBindingsVisitor {
 	private:
@@ -120,12 +120,10 @@ namespace Trinex
 		}
 	};
 
-
 	trinex_implement_engine_class(MaterialInterface, 0)
 	{
 #define m_parameters m_child_objects
-		auto params = trinex_refl_prop_ext(MaterialParametersExt, m_parameters,
-		                                   Refl::Property::IsTransient | Refl::Property::IsReadOnly);
+		auto params = trinex_refl_prop(m_parameters, Refl::Property::IsTransient | Refl::Property::IsReadOnly);
 #undef m_parameters
 
 		Refl::Object::instance_cast<Refl::ObjectProperty>(params->element_property())->is_composite(true);

@@ -94,6 +94,7 @@ namespace Trinex::Refl
 		virtual void* create_struct();
 		virtual Struct& destroy_struct(void* obj);
 		virtual usize size() const;
+		virtual usize alignment() const;
 		virtual bool serialize(void* object, Archive& ar);
 
 		Struct* parent() const;
@@ -196,6 +197,7 @@ namespace Trinex::Refl
 		}
 
 		usize size() const override { return sizeof(T); }
+		usize alignment() const override { return alignof(T); }
 
 		bool serialize(void* object, Archive& ar) override
 		{
