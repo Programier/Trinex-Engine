@@ -6,7 +6,9 @@
 namespace Trinex
 {
 	class Window;
-}
+	class RHITexture;
+	class RHISampler;
+}// namespace Trinex
 
 namespace Trinex::UI
 {
@@ -391,6 +393,7 @@ namespace Trinex::UI
 		float padding         = 10.0f;
 		float spacing         = 8.0f;
 		float alpha           = 1.0f;
+		Vec2 hover_scale      = Vec2(0.02f, 0.02f);
 		ColorTheme colors;
 	};
 
@@ -400,6 +403,20 @@ namespace Trinex::UI
 		bool background       = true;
 		float rounding        = -1.0f;
 		Vec4 background_color = Vec4(0, 0, 0, 0);
+	};
+
+	struct ImageOptions {
+		RHISampler* sampler   = nullptr;
+		Vec2 uv0              = Vec2(0.0f, 0.0f);
+		Vec2 uv1              = Vec2(1.0f, 1.0f);
+		Vec4 tint             = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		bool background       = true;
+		bool border           = true;
+		float padding         = 6.0f;
+		float rounding        = -1.0f;
+		Vec4 background_color = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
+		Vec4 border_color     = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
+		Vec4 accent           = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
 	};
 
 	struct ButtonOptions {
@@ -553,6 +570,9 @@ namespace Trinex::UI
 	void tooltip_delayed(const char* text, float delay = 0.45f);
 	void tooltip_if_hovered(const char* text, float delay = 0.0f);
 	void help_tooltip(const char* description);
+
+	void image(RHITexture* texture, const Vec2& size, const ImageOptions& options = {});
+	bool image_button(const char* id_text, RHITexture* texture, const Vec2& size, const ImageOptions& options = {});
 
 	bool button(const char* label, const ButtonOptions& options = {});
 	bool icon_button(const char* icon, const char* label, const ButtonOptions& options = {});
