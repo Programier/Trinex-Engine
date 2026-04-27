@@ -181,6 +181,20 @@ namespace Trinex::UI
 		trinex_enum_struct(Key);
 	};
 
+	struct MouseButton {
+		enum Enum : u8
+		{
+			Left   = 0,
+			Right  = 1,
+			Middle = 2,
+			left   = Left,
+			right  = Right,
+			middle = Middle
+		};
+
+		trinex_enum_struct(MouseButton);
+	};
+
 	struct WindowFlags {
 		enum Enum : u16
 		{
@@ -472,6 +486,7 @@ namespace Trinex::UI
 
 	using ease                 = Ease;
 	using key                  = Key;
+	using mouse_button         = MouseButton;
 	using style                = Style;
 	using color_theme          = ColorTheme;
 	using panel_options        = PanelOptions;
@@ -559,6 +574,38 @@ namespace Trinex::UI
 	void end_scroll_area();
 	void scroll_to_top();
 	void scroll_to_bottom();
+	float delta_time();
+	float frame_rate();
+	double time_seconds();
+	int frame_count();
+	Vec2 display_size();
+	Vec2 framebuffer_scale();
+	bool wants_keyboard_capture();
+	bool wants_mouse_capture();
+	bool wants_text_input();
+	bool key_ctrl();
+	bool key_shift();
+	bool key_alt();
+	bool key_super();
+	bool is_key_down(Key key_code);
+	bool is_key_pressed(Key key_code, bool repeat = true);
+	bool is_key_released(Key key_code);
+	bool is_mouse_pos_valid();
+	bool is_mouse_down(MouseButton button = MouseButton::Left);
+	bool is_mouse_clicked(MouseButton button = MouseButton::Left);
+	bool is_mouse_released(MouseButton button = MouseButton::Left);
+	bool is_mouse_double_clicked(MouseButton button = MouseButton::Left);
+	bool is_mouse_dragging(MouseButton button = MouseButton::Left, float lock_threshold = -1.0f);
+	Vec2 mouse_position();
+	Vec2 mouse_delta();
+	float mouse_wheel();
+	float mouse_wheel_h();
+	Vec2 mouse_drag_delta(MouseButton button = MouseButton::Left, float lock_threshold = -1.0f);
+	void reset_mouse_drag_delta(MouseButton button = MouseButton::Left);
+	bool is_mouse_hovering_rect(const Vec2& min, const Vec2& max, bool clip = true);
+	bool is_any_item_hovered();
+	bool is_any_item_active();
+	bool is_any_item_focused();
 	bool is_item_hovered();
 	bool is_item_active();
 	bool is_item_clicked();

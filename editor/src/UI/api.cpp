@@ -313,6 +313,11 @@ namespace Trinex::UI
 			return static_cast<ImGuiKey>(value.value);
 		}
 
+		int to_imgui_mouse_button(mouse_button value)
+		{
+			return static_cast<int>(value.value);
+		}
+
 		ImU32 col_u32(const Vec4& color, float alpha_mul = 1.0f)
 		{
 			ImVec4 c = to_imvec(color);
@@ -1297,6 +1302,166 @@ namespace Trinex::UI
 	void scroll_to_bottom()
 	{
 		ImGui::SetScrollHereY(1.0f);
+	}
+
+	float delta_time()
+	{
+		return ImGui::GetIO().DeltaTime;
+	}
+
+	float frame_rate()
+	{
+		return ImGui::GetIO().Framerate;
+	}
+
+	double time_seconds()
+	{
+		return ImGui::GetTime();
+	}
+
+	int frame_count()
+	{
+		return ImGui::GetFrameCount();
+	}
+
+	Vec2 display_size()
+	{
+		return to_vec(ImGui::GetIO().DisplaySize);
+	}
+
+	Vec2 framebuffer_scale()
+	{
+		return to_vec(ImGui::GetIO().DisplayFramebufferScale);
+	}
+
+	bool wants_keyboard_capture()
+	{
+		return ImGui::GetIO().WantCaptureKeyboard;
+	}
+
+	bool wants_mouse_capture()
+	{
+		return ImGui::GetIO().WantCaptureMouse;
+	}
+
+	bool wants_text_input()
+	{
+		return ImGui::GetIO().WantTextInput;
+	}
+
+	bool key_ctrl()
+	{
+		return ImGui::GetIO().KeyCtrl;
+	}
+
+	bool key_shift()
+	{
+		return ImGui::GetIO().KeyShift;
+	}
+
+	bool key_alt()
+	{
+		return ImGui::GetIO().KeyAlt;
+	}
+
+	bool key_super()
+	{
+		return ImGui::GetIO().KeySuper;
+	}
+
+	bool is_key_down(Key key_code)
+	{
+		return ImGui::IsKeyDown(to_imgui_key(key_code));
+	}
+
+	bool is_key_pressed(Key key_code, bool repeat)
+	{
+		return ImGui::IsKeyPressed(to_imgui_key(key_code), repeat);
+	}
+
+	bool is_key_released(Key key_code)
+	{
+		return ImGui::IsKeyReleased(to_imgui_key(key_code));
+	}
+
+	bool is_mouse_pos_valid()
+	{
+		return ImGui::IsMousePosValid();
+	}
+
+	bool is_mouse_down(MouseButton button)
+	{
+		return ImGui::IsMouseDown(to_imgui_mouse_button(button));
+	}
+
+	bool is_mouse_clicked(MouseButton button)
+	{
+		return ImGui::IsMouseClicked(to_imgui_mouse_button(button));
+	}
+
+	bool is_mouse_released(MouseButton button)
+	{
+		return ImGui::IsMouseReleased(to_imgui_mouse_button(button));
+	}
+
+	bool is_mouse_double_clicked(MouseButton button)
+	{
+		return ImGui::IsMouseDoubleClicked(to_imgui_mouse_button(button));
+	}
+
+	bool is_mouse_dragging(MouseButton button, float lock_threshold)
+	{
+		return ImGui::IsMouseDragging(to_imgui_mouse_button(button), lock_threshold);
+	}
+
+	Vec2 mouse_position()
+	{
+		return to_vec(ImGui::GetMousePos());
+	}
+
+	Vec2 mouse_delta()
+	{
+		return to_vec(ImGui::GetIO().MouseDelta);
+	}
+
+	float mouse_wheel()
+	{
+		return ImGui::GetIO().MouseWheel;
+	}
+
+	float mouse_wheel_h()
+	{
+		return ImGui::GetIO().MouseWheelH;
+	}
+
+	Vec2 mouse_drag_delta(MouseButton button, float lock_threshold)
+	{
+		return to_vec(ImGui::GetMouseDragDelta(to_imgui_mouse_button(button), lock_threshold));
+	}
+
+	void reset_mouse_drag_delta(MouseButton button)
+	{
+		ImGui::ResetMouseDragDelta(to_imgui_mouse_button(button));
+	}
+
+	bool is_mouse_hovering_rect(const Vec2& min, const Vec2& max, bool clip)
+	{
+		return ImGui::IsMouseHoveringRect(to_imvec(min), to_imvec(max), clip);
+	}
+
+	bool is_any_item_hovered()
+	{
+		return ImGui::IsAnyItemHovered();
+	}
+
+	bool is_any_item_active()
+	{
+		return ImGui::IsAnyItemActive();
+	}
+
+	bool is_any_item_focused()
+	{
+		return ImGui::IsAnyItemFocused();
 	}
 
 	bool is_item_hovered()
