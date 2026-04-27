@@ -14,6 +14,7 @@
 #include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 #include <RHI/static_sampler.hpp>
+#include <UI/backend.hpp>
 #include <UI/imgui.hpp>
 #include <Widgets/property_renderer.hpp>
 #include <imgui_internal.h>
@@ -42,7 +43,7 @@ namespace Trinex
 
 		inline TextureView& update_texture(RHITexture* texture)
 		{
-			auto ctx = ImGui::GetCurrentRHI();
+			auto ctx = UI::Backend::rhi();
 			ctx->bind_srv(texture->as_srv(), m_texture->binding);
 			ctx->bind_sampler(RHIPointSampler::static_sampler(), m_texture->binding);
 			return *this;
@@ -50,20 +51,20 @@ namespace Trinex
 
 		inline TextureView& update_transform(const Matrix4f& transform)
 		{
-			ImGui::GetCurrentRHI()->update_scalar(&transform, m_transform);
+			UI::Backend::rhi()->update_scalar(&transform, m_transform);
 			return *this;
 		}
 
 		inline TextureView& update_mask(const Vector4f& mask)
 		{
-			ImGui::GetCurrentRHI()->update_scalar(&mask, m_mask);
+			UI::Backend::rhi()->update_scalar(&mask, m_mask);
 			return *this;
 		}
 
 		inline TextureView& update_range(Vector2f range)
 		{
 			range = {range.x, 1.f / (range.y - range.x)};
-			ImGui::GetCurrentRHI()->update_scalar(&range, m_range);
+			UI::Backend::rhi()->update_scalar(&range, m_range);
 			return *this;
 		}
 	};
@@ -79,7 +80,7 @@ namespace Trinex
 		TextureView2D& update_mip(u32 mip)
 		{
 			float scalar = static_cast<float>(mip);
-			ImGui::GetCurrentRHI()->update_scalar(&scalar, m_mip);
+			UI::Backend::rhi()->update_scalar(&scalar, m_mip);
 			return *this;
 		}
 
@@ -112,13 +113,13 @@ namespace Trinex
 		TextureView3D& update_mip(u32 mip)
 		{
 			float scalar = static_cast<float>(mip);
-			ImGui::GetCurrentRHI()->update_scalar(&scalar, m_mip);
+			UI::Backend::rhi()->update_scalar(&scalar, m_mip);
 			return *this;
 		}
 
 		TextureView3D& update_depth(float depth)
 		{
-			ImGui::GetCurrentRHI()->update_scalar(&depth, m_depth);
+			UI::Backend::rhi()->update_scalar(&depth, m_depth);
 			return *this;
 		}
 
@@ -149,13 +150,13 @@ namespace Trinex
 		TextureViewCube& update_mip(u32 mip)
 		{
 			float scalar = static_cast<float>(mip);
-			ImGui::GetCurrentRHI()->update_scalar(&scalar, m_mip);
+			UI::Backend::rhi()->update_scalar(&scalar, m_mip);
 			return *this;
 		}
 
 		TextureViewCube& update_face(u32 face)
 		{
-			ImGui::GetCurrentRHI()->update_scalar(&face, m_face);
+			UI::Backend::rhi()->update_scalar(&face, m_face);
 			return *this;
 		}
 
@@ -179,7 +180,7 @@ namespace Trinex
 	{
 		auto pipeline = TextureView2D::instance();
 
-		auto ctx = ImGui::GetCurrentRHI();
+		auto ctx = UI::Backend::rhi();
 
 		ctx->bind_pipeline(pipeline->rhi_pipeline());
 		pipeline->update_mip(level).update_texture(src).update_transform(transform).update_mask(mask).update_range(range);
@@ -193,7 +194,7 @@ namespace Trinex
 
 		const Matrix4f scale = Math::scale(Matrix4f(1.f), Vector3f(1.f / grid, 1.f / grid, 1.f));
 
-		auto ctx = ImGui::GetCurrentRHI();
+		auto ctx = UI::Backend::rhi();
 
 		ctx->bind_pipeline(pipeline->rhi_pipeline());
 
@@ -238,7 +239,7 @@ namespace Trinex
 		};
 
 
-		auto ctx = ImGui::GetCurrentRHI();
+		auto ctx = UI::Backend::rhi();
 
 		for (u32 face = 0; face < 6; ++face)
 		{

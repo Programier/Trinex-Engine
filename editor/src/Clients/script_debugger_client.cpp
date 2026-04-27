@@ -14,6 +14,7 @@
 #include <ScriptEngine/script_type_info.hpp>
 #include <ScriptEngine/script_variable.hpp>
 #include <Systems/event_system.hpp>
+#include <UI/backend.hpp>
 #include <UI/imgui.hpp>
 #include <UI/theme.hpp>
 #include <Window/window.hpp>
@@ -864,7 +865,7 @@ namespace Trinex
 		}
 
 		bool push_to_recieved_events = true;
-		ImGuiBackend_Window::on_event_recieved(event);
+		UI::Backend::imgui_event_recieved(event);
 
 		if (event.type == EventType::KeyUp)
 		{
@@ -932,7 +933,7 @@ namespace Trinex
 
 			if (!m_recieved_events.empty())
 			{
-				ImGuiBackend_Window::disable_events();
+				UI::Backend::imgui_disable_events();
 			}
 
 			for (auto& event : m_recieved_events)
@@ -942,7 +943,7 @@ namespace Trinex
 
 			if (!m_recieved_events.empty())
 			{
-				ImGuiBackend_Window::enable_events();
+				UI::Backend::imgui_enable_events();
 			}
 
 			m_recieved_events.clear();

@@ -17,11 +17,6 @@ namespace Trinex
 
 namespace Trinex
 {
-	namespace ImGuiBackend_RHI
-	{
-		extern float rendering_scale_factor;
-	}
-
 	namespace ImGuiBackend_Window
 	{
 		void on_event_recieved(const Event& event);
@@ -142,8 +137,6 @@ struct ImGuiWindow;
 
 namespace ImGui
 {
-	Trinex::RHIContext* GetCurrentRHI();
-
 	FORCE_INLINE ImVec4 MakeHoveredColor(ImVec4 color)
 	{
 		const float factor = 0.2f;
