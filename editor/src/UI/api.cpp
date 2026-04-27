@@ -1299,9 +1299,81 @@ namespace Trinex::UI
 		ImGui::SetScrollHereY(1.0f);
 	}
 
+	bool is_item_hovered()
+	{
+		return ImGui::IsItemHovered();
+	}
+
+	bool is_item_active()
+	{
+		return ImGui::IsItemActive();
+	}
+
+	bool is_item_clicked()
+	{
+		return ImGui::IsItemClicked();
+	}
+
+	bool is_item_focused()
+	{
+		return ImGui::IsItemFocused();
+	}
+
+	bool is_item_edited()
+	{
+		return ImGui::IsItemEdited();
+	}
+
+	bool is_item_activated()
+	{
+		return ImGui::IsItemActivated();
+	}
+
+	bool is_item_deactivated()
+	{
+		return ImGui::IsItemDeactivated();
+	}
+
+	bool is_item_deactivated_after_edit()
+	{
+		return ImGui::IsItemDeactivatedAfterEdit();
+	}
+
+	bool is_item_toggled_open()
+	{
+		return ImGui::IsItemToggledOpen();
+	}
+
 	bool is_item_visible()
 	{
 		return ImGui::IsItemVisible();
+	}
+
+	bool is_mouse_hovering_item_rect()
+	{
+		return ImGui::IsMouseHoveringRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+	}
+
+	Vec2 item_rect_min()
+	{
+		return to_vec(ImGui::GetItemRectMin());
+	}
+
+	Vec2 item_rect_max()
+	{
+		return to_vec(ImGui::GetItemRectMax());
+	}
+
+	Vec2 item_rect_size()
+	{
+		return to_vec(ImGui::GetItemRectSize());
+	}
+
+	Vec2 item_rect_center()
+	{
+		const ImVec2 min = ImGui::GetItemRectMin();
+		const ImVec2 max = ImGui::GetItemRectMax();
+		return Vec2((min.x + max.x) * 0.5f, (min.y + max.y) * 0.5f);
 	}
 
 	void text(const char* fmt, ...)

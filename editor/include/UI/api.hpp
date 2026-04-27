@@ -559,7 +559,21 @@ namespace Trinex::UI
 	void end_scroll_area();
 	void scroll_to_top();
 	void scroll_to_bottom();
+	bool is_item_hovered();
+	bool is_item_active();
+	bool is_item_clicked();
+	bool is_item_focused();
+	bool is_item_edited();
+	bool is_item_activated();
+	bool is_item_deactivated();
+	bool is_item_deactivated_after_edit();
+	bool is_item_toggled_open();
 	bool is_item_visible();
+	bool is_mouse_hovering_item_rect();
+	Vec2 item_rect_min();
+	Vec2 item_rect_max();
+	Vec2 item_rect_size();
+	Vec2 item_rect_center();
 
 	void text(const char* fmt, ...);
 	void text_muted(const char* fmt, ...);
