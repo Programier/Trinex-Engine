@@ -564,6 +564,31 @@ namespace Trinex::UI
 		IdScope& operator=(const IdScope&) = delete;
 	};
 
+	struct HorizontalScope {
+		explicit HorizontalScope(const char* id, const Vec2& size = Vec2(0, 0), float align = -1.0f);
+		explicit HorizontalScope(const void* id, const Vec2& size = Vec2(0, 0), float align = -1.0f);
+		explicit HorizontalScope(int id, const Vec2& size = Vec2(0, 0), float align = -1.0f);
+		~HorizontalScope();
+		HorizontalScope(const HorizontalScope&)            = delete;
+		HorizontalScope& operator=(const HorizontalScope&) = delete;
+	};
+
+	struct VerticalScope {
+		explicit VerticalScope(const char* id, const Vec2& size = Vec2(0, 0), float align = -1.0f);
+		explicit VerticalScope(const void* id, const Vec2& size = Vec2(0, 0), float align = -1.0f);
+		explicit VerticalScope(int id, const Vec2& size = Vec2(0, 0), float align = -1.0f);
+		~VerticalScope();
+		VerticalScope(const VerticalScope&)            = delete;
+		VerticalScope& operator=(const VerticalScope&) = delete;
+	};
+
+	struct LayoutSuspendScope {
+		LayoutSuspendScope();
+		~LayoutSuspendScope();
+		LayoutSuspendScope(const LayoutSuspendScope&)            = delete;
+		LayoutSuspendScope& operator=(const LayoutSuspendScope&) = delete;
+	};
+
 	struct Context;
 
 	void initialize();
@@ -615,6 +640,17 @@ namespace Trinex::UI
 	void end_card();
 	void card(const char* title, const CardOptions& options, const Function<void()>& content);
 	bool card_button(const char* title, const CardOptions& options = {});
+	void begin_horizontal(const char* id_text, const Vec2& size = Vec2(0, 0), float align = -1.0f);
+	void begin_horizontal(const void* id, const Vec2& size = Vec2(0, 0), float align = -1.0f);
+	void begin_horizontal(int id, const Vec2& size = Vec2(0, 0), float align = -1.0f);
+	void end_horizontal();
+	void begin_vertical(const char* id_text, const Vec2& size = Vec2(0, 0), float align = -1.0f);
+	void begin_vertical(const void* id, const Vec2& size = Vec2(0, 0), float align = -1.0f);
+	void begin_vertical(int id, const Vec2& size = Vec2(0, 0), float align = -1.0f);
+	void end_vertical();
+	void spring(float weight = 1.0f, float spacing = -1.0f);
+	void suspend_layout();
+	void resume_layout();
 	void separator();
 	void spacing(float amount = -1.0f);
 	void same_line(float offset_from_start_x = 0.0f, float spacing = -1.0f);

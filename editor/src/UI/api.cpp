@@ -22,6 +22,7 @@
 #include <cstdio>
 #include <cstring>
 #include <imgui.h>
+#include <imgui_stacklayout.h>
 #include <unordered_map>
 #include <utility>
 
@@ -1124,6 +1125,56 @@ namespace Trinex::UI
 		pop_id();
 	}
 
+	HorizontalScope::HorizontalScope(const char* id, const Vec2& size, float align)
+	{
+		begin_horizontal(id, size, align);
+	}
+
+	HorizontalScope::HorizontalScope(const void* id, const Vec2& size, float align)
+	{
+		begin_horizontal(id, size, align);
+	}
+
+	HorizontalScope::HorizontalScope(int id, const Vec2& size, float align)
+	{
+		begin_horizontal(id, size, align);
+	}
+
+	HorizontalScope::~HorizontalScope()
+	{
+		end_horizontal();
+	}
+
+	VerticalScope::VerticalScope(const char* id, const Vec2& size, float align)
+	{
+		begin_vertical(id, size, align);
+	}
+
+	VerticalScope::VerticalScope(const void* id, const Vec2& size, float align)
+	{
+		begin_vertical(id, size, align);
+	}
+
+	VerticalScope::VerticalScope(int id, const Vec2& size, float align)
+	{
+		begin_vertical(id, size, align);
+	}
+
+	VerticalScope::~VerticalScope()
+	{
+		end_vertical();
+	}
+
+	LayoutSuspendScope::LayoutSuspendScope()
+	{
+		suspend_layout();
+	}
+
+	LayoutSuspendScope::~LayoutSuspendScope()
+	{
+		resume_layout();
+	}
+
 	float apply_ease(float t, ease mode)
 	{
 		t = Math::clamp(t, 0.f, 1.f);
@@ -1719,6 +1770,61 @@ namespace Trinex::UI
 
 		ImGui::PopID();
 		return clicked;
+	}
+
+	void begin_horizontal(const char* id_text, const Vec2& size, float align)
+	{
+		ImGui::BeginHorizontal(id_text, to_imvec(size), align);
+	}
+
+	void begin_horizontal(const void* id, const Vec2& size, float align)
+	{
+		ImGui::BeginHorizontal(id, to_imvec(size), align);
+	}
+
+	void begin_horizontal(int id, const Vec2& size, float align)
+	{
+		ImGui::BeginHorizontal(id, to_imvec(size), align);
+	}
+
+	void end_horizontal()
+	{
+		ImGui::EndHorizontal();
+	}
+
+	void begin_vertical(const char* id_text, const Vec2& size, float align)
+	{
+		ImGui::BeginVertical(id_text, to_imvec(size), align);
+	}
+
+	void begin_vertical(const void* id, const Vec2& size, float align)
+	{
+		ImGui::BeginVertical(id, to_imvec(size), align);
+	}
+
+	void begin_vertical(int id, const Vec2& size, float align)
+	{
+		ImGui::BeginVertical(id, to_imvec(size), align);
+	}
+
+	void end_vertical()
+	{
+		ImGui::EndVertical();
+	}
+
+	void spring(float weight, float spacing)
+	{
+		ImGui::Spring(weight, spacing);
+	}
+
+	void suspend_layout()
+	{
+		ImGui::SuspendLayout();
+	}
+
+	void resume_layout()
+	{
+		ImGui::ResumeLayout();
 	}
 
 	void separator()
