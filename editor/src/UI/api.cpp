@@ -1944,11 +1944,11 @@ namespace Trinex::UI
 		return clicked;
 	}
 
-	bool slider_float(const char* label, float* value, float min, float max, const char* format)
+	bool slider(const char* label, float* value, float min, float max, const char* format)
 	{
 		cleanup_states();
 		ImGui::PushID(label);
-		const ImGuiID id        = ImGui::GetID("slider_float");
+		const ImGuiID id        = ImGui::GetID("slider");
 		AnimState& anim         = state_for(id);
 		const float width       = ImGui::CalcItemWidth();
 		const ImVec2 label_size = ImGui::CalcTextSize(visible_label(label));
@@ -1997,11 +1997,11 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	bool slider_int(const char* label, int* value, int min, int max, const char* format)
+	bool slider(const char* label, int* value, int min, int max, const char* format)
 	{
 		float v = value != nullptr ? static_cast<float>(*value) : 0.0f;
 		(void) format;
-		const bool changed = slider_float(label, &v, static_cast<float>(min), static_cast<float>(max), "%.0f");
+		const bool changed = slider(label, &v, static_cast<float>(min), static_cast<float>(max), "%.0f");
 		if (changed && value != nullptr)
 		{
 			*value = static_cast<int>(std::round(v));
@@ -2009,11 +2009,11 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	bool drag_float(const char* label, float* value, float speed, float min, float max, const char* format)
+	bool drag(const char* label, float* value, float speed, float min, float max, const char* format)
 	{
 		cleanup_states();
 		ImGui::PushID(label);
-		AnimState& anim = state_for(ImGui::GetID("drag_float"));
+		AnimState& anim = state_for(ImGui::GetID("drag"));
 		push_input_frame_styles(anim.focus);
 		const bool changed = ImGui::DragFloat(label, value, speed, min, max, format);
 		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
@@ -2023,11 +2023,11 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	bool drag_int(const char* label, int* value, float speed, int min, int max, const char* format)
+	bool drag(const char* label, int* value, float speed, int min, int max, const char* format)
 	{
 		cleanup_states();
 		ImGui::PushID(label);
-		AnimState& anim = state_for(ImGui::GetID("drag_int"));
+		AnimState& anim = state_for(ImGui::GetID("drag"));
 		push_input_frame_styles(anim.focus);
 		const bool changed = ImGui::DragInt(label, value, speed, min, max, format);
 		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
@@ -2037,7 +2037,7 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	bool drag_vec2(const char* label, Vec2* value, float speed, float min, float max, const char* format)
+	bool drag(const char* label, Vec2* value, float speed, float min, float max, const char* format)
 	{
 		if (value == nullptr)
 		{
@@ -2046,7 +2046,7 @@ namespace Trinex::UI
 
 		cleanup_states();
 		ImGui::PushID(label);
-		AnimState& anim = state_for(ImGui::GetID("drag_vec2"));
+		AnimState& anim = state_for(ImGui::GetID("drag"));
 		push_input_frame_styles(anim.focus);
 		const bool changed = ImGui::DragFloat2(label, &value->x, speed, min, max, format);
 		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
@@ -2056,7 +2056,7 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	bool drag_vec3(const char* label, Vec3* value, float speed, float min, float max, const char* format)
+	bool drag(const char* label, Vec3* value, float speed, float min, float max, const char* format)
 	{
 		if (value == nullptr)
 		{
@@ -2065,7 +2065,7 @@ namespace Trinex::UI
 
 		cleanup_states();
 		ImGui::PushID(label);
-		AnimState& anim = state_for(ImGui::GetID("drag_vec3"));
+		AnimState& anim = state_for(ImGui::GetID("drag"));
 		push_input_frame_styles(anim.focus);
 		const bool changed = ImGui::DragFloat3(label, &value->x, speed, min, max, format);
 		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
@@ -2075,7 +2075,7 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	bool drag_vec4(const char* label, Vec4* value, float speed, float min, float max, const char* format)
+	bool drag(const char* label, Vec4* value, float speed, float min, float max, const char* format)
 	{
 		if (value == nullptr)
 		{
@@ -2084,7 +2084,7 @@ namespace Trinex::UI
 
 		cleanup_states();
 		ImGui::PushID(label);
-		AnimState& anim = state_for(ImGui::GetID("drag_vec4"));
+		AnimState& anim = state_for(ImGui::GetID("drag"));
 		push_input_frame_styles(anim.focus);
 		const bool changed = ImGui::DragFloat4(label, &value->x, speed, min, max, format);
 		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
@@ -2094,11 +2094,11 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	bool input_double(const char* label, double* value, const char* format)
+	bool input(const char* label, double* value, const char* format)
 	{
 		cleanup_states();
 		ImGui::PushID(label);
-		AnimState& anim = state_for(ImGui::GetID("input_double"));
+		AnimState& anim = state_for(ImGui::GetID("input"));
 		push_input_frame_styles(anim.focus);
 		const bool changed = ImGui::InputDouble(label, value, 0.0, 0.0, format);
 		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
@@ -2108,11 +2108,11 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	bool input_float(const char* label, float* value, const char* format)
+	bool input(const char* label, float* value, const char* format)
 	{
 		cleanup_states();
 		ImGui::PushID(label);
-		AnimState& anim = state_for(ImGui::GetID("input_float"));
+		AnimState& anim = state_for(ImGui::GetID("input"));
 		push_input_frame_styles(anim.focus);
 		const bool changed = ImGui::InputFloat(label, value, 0.0f, 0.0f, format);
 		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
@@ -2122,11 +2122,11 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	bool input_int(const char* label, int* value)
+	bool input(const char* label, int* value)
 	{
 		cleanup_states();
 		ImGui::PushID(label);
-		AnimState& anim = state_for(ImGui::GetID("input_int"));
+		AnimState& anim = state_for(ImGui::GetID("input"));
 		push_input_frame_styles(anim.focus);
 		const bool changed = ImGui::InputInt(label, value);
 		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
@@ -2136,7 +2136,7 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	bool input_vec2(const char* label, Vec2* value, const char* format)
+	bool input(const char* label, Vec2* value, const char* format)
 	{
 		if (value == nullptr)
 		{
@@ -2145,7 +2145,7 @@ namespace Trinex::UI
 
 		cleanup_states();
 		ImGui::PushID(label);
-		AnimState& anim = state_for(ImGui::GetID("input_vec2"));
+		AnimState& anim = state_for(ImGui::GetID("input"));
 		push_input_frame_styles(anim.focus);
 		const bool changed = ImGui::InputFloat2(label, &value->x, format);
 		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
@@ -2155,7 +2155,7 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	bool input_vec3(const char* label, Vec3* value, const char* format)
+	bool input(const char* label, Vec3* value, const char* format)
 	{
 		if (value == nullptr)
 		{
@@ -2164,7 +2164,7 @@ namespace Trinex::UI
 
 		cleanup_states();
 		ImGui::PushID(label);
-		AnimState& anim = state_for(ImGui::GetID("input_vec3"));
+		AnimState& anim = state_for(ImGui::GetID("input"));
 		push_input_frame_styles(anim.focus);
 		const bool changed = ImGui::InputFloat3(label, &value->x, format);
 		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
@@ -2174,7 +2174,7 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	bool input_vec4(const char* label, Vec4* value, const char* format)
+	bool input(const char* label, Vec4* value, const char* format)
 	{
 		if (value == nullptr)
 		{
@@ -2183,7 +2183,7 @@ namespace Trinex::UI
 
 		cleanup_states();
 		ImGui::PushID(label);
-		AnimState& anim = state_for(ImGui::GetID("input_vec4"));
+		AnimState& anim = state_for(ImGui::GetID("input"));
 		push_input_frame_styles(anim.focus);
 		const bool changed = ImGui::InputFloat4(label, &value->x, format);
 		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
@@ -2193,7 +2193,7 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	bool input_text(const char* label, char* buffer, size_t buffer_size, InputTextFlags flags)
+	bool input(const char* label, char* buffer, size_t buffer_size, InputTextFlags flags)
 	{
 		cleanup_states();
 		ImGui::PushID(label);
@@ -2207,11 +2207,11 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	bool input_text_with_hint(const char* label, const char* hint, char* buffer, size_t buffer_size, InputTextFlags flags)
+	bool input(const char* label, const char* hint, char* buffer, size_t buffer_size, InputTextFlags flags)
 	{
 		cleanup_states();
 		ImGui::PushID(label);
-		AnimState& anim = state_for(ImGui::GetID("input_text_with_hint"));
+		AnimState& anim = state_for(ImGui::GetID("input"));
 		push_input_frame_styles(anim.focus);
 		const bool changed = ImGui::InputTextWithHint(label, hint, buffer, buffer_size, to_imgui_input_text_flags(flags));
 		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
@@ -2221,11 +2221,11 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	bool input_text_multiline(const char* label, char* buffer, size_t buffer_size, const Vec2& size, InputTextFlags flags)
+	bool input(const char* label, char* buffer, size_t buffer_size, const Vec2& size, InputTextFlags flags)
 	{
 		cleanup_states();
 		ImGui::PushID(label);
-		AnimState& anim = state_for(ImGui::GetID("input_text_multiline"));
+		AnimState& anim = state_for(ImGui::GetID("input"));
 		push_input_frame_styles(anim.focus);
 		const bool changed =
 		        ImGui::InputTextMultiline(label, buffer, buffer_size, to_imvec(size), to_imgui_input_text_flags(flags));
@@ -2238,7 +2238,7 @@ namespace Trinex::UI
 
 	bool search_input(const char* label, char* buffer, size_t buffer_size)
 	{
-		return input_text(label, buffer, buffer_size);
+		return input(label, buffer, buffer_size);
 	}
 
 	bool begin_combo(const char* label, const char* preview_value, ComboFlags flags)
@@ -2554,7 +2554,7 @@ namespace Trinex::UI
 		ImGui::PopID();
 	}
 
-	bool color_edit3(const char* label, Vec4* color, ColorEditFlags flags)
+	bool color_edit(const char* label, Vec4* color, bool alpha, ColorEditFlags flags)
 	{
 		if (color == nullptr)
 		{
@@ -2564,23 +2564,9 @@ namespace Trinex::UI
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, to_imvec(active_context()->style.colors.background));
 		ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, to_imvec(active_context()->style.colors.background_hovered));
 		ImGui::PushStyleColor(ImGuiCol_FrameBgActive, to_imvec(active_context()->style.colors.background_active));
-		const bool changed = ImGui::ColorEdit3(label, &color->x, to_imgui_color_edit_flags(flags));
-		ImGui::PopStyleColor(3);
-		ImGui::PopStyleVar();
-		return changed;
-	}
-
-	bool color_edit4(const char* label, Vec4* color, ColorEditFlags flags)
-	{
-		if (color == nullptr)
-		{
-			return false;
-		}
-		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, active_context()->style.rounding);
-		ImGui::PushStyleColor(ImGuiCol_FrameBg, to_imvec(active_context()->style.colors.background));
-		ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, to_imvec(active_context()->style.colors.background_hovered));
-		ImGui::PushStyleColor(ImGuiCol_FrameBgActive, to_imvec(active_context()->style.colors.background_active));
-		const bool changed = ImGui::ColorEdit4(label, &color->x, to_imgui_color_edit_flags(flags));
+		const bool changed =
+		        alpha ? ImGui::ColorEdit4(label, &color->x, to_imgui_color_edit_flags(flags))
+		              : ImGui::ColorEdit3(label, &color->x, to_imgui_color_edit_flags(flags));
 		ImGui::PopStyleColor(3);
 		ImGui::PopStyleVar();
 		return changed;
@@ -3256,29 +3242,28 @@ namespace Trinex::UI
 	bool property_float(const char* label, float* value, float min, float max, const char* format, float label_width)
 	{
 		bool changed = false;
-		property_row(label, [&] { changed = slider_float("##value", value, min, max, format); }, label_width);
+		property_row(label, [&] { changed = slider("##value", value, min, max, format); }, label_width);
 		return changed;
 	}
 
 	bool property_int(const char* label, int* value, int min, int max, const char* format, float label_width)
 	{
 		bool changed = false;
-		property_row(label, [&] { changed = slider_int("##value", value, min, max, format); }, label_width);
+		property_row(label, [&] { changed = slider("##value", value, min, max, format); }, label_width);
 		return changed;
 	}
 
 	bool property_text(const char* label, char* buffer, size_t buffer_size, float label_width)
 	{
 		bool changed = false;
-		property_row(label, [&] { changed = input_text("##value", buffer, buffer_size); }, label_width);
+		property_row(label, [&] { changed = input("##value", buffer, buffer_size); }, label_width);
 		return changed;
 	}
 
 	bool property_color(const char* label, Vec4* color, bool alpha, float label_width)
 	{
 		bool changed = false;
-		property_row(
-		        label, [&] { changed = alpha ? color_edit4("##value", color) : color_edit3("##value", color); }, label_width);
+		property_row(label, [&] { changed = color_edit("##value", color, alpha); }, label_width);
 		return changed;
 	}
 
@@ -3827,12 +3812,12 @@ namespace Trinex
 							UI::toggle("Enabled", &enabled);
 							UI::toggle("Visible", &visible);
 
-							UI::slider_float("Opacity", &opacity, 0.0f, 1.0f);
-							UI::slider_float("Bloom", &bloom, 0.0f, 1.0f);
-							UI::slider_int("Quality", &quality, 0, 3);
-							UI::slider_float("Progress", &progress, 0.0f, 1.0f);
+							UI::slider("Opacity", &opacity, 0.0f, 1.0f);
+							UI::slider("Bloom", &bloom, 0.0f, 1.0f);
+							UI::slider("Quality", &quality, 0, 3);
+							UI::slider("Progress", &progress, 0.0f, 1.0f);
 
-							UI::input_text("Name", name_buffer, sizeof(name_buffer));
+							UI::input("Name", name_buffer, sizeof(name_buffer));
 							UI::search_input("Search", search_buffer, sizeof(search_buffer));
 
 							UI::combo("Preset helper", &combo_index, combo_items, 4);
@@ -3925,8 +3910,7 @@ namespace Trinex
 									UI::text(selected_entity == 0 ? "Camera" : selected_entity == 1 ? "Player" : "Light");
 								});
 								UI::property_row("Visible", [&] { UI::toggle("##inspector_visible", &visible); });
-								UI::property_row("Opacity",
-								                 [&] { UI::slider_float("##inspector_opacity", &opacity, 0.0f, 1.0f); });
+								UI::property_row("Opacity", [&] { UI::slider("##inspector_opacity", &opacity, 0.0f, 1.0f); });
 								UI::property_bool("Grid", &show_grid);
 								UI::property_float("Exposure", &exposure, 0.0f, 4.0f);
 								UI::property_int("Quality", &quality, 0, 3);
@@ -4001,8 +3985,8 @@ namespace Trinex
 							UI::section_header(
 							        "Rendering",
 							        [&] {
-								        UI::slider_int("Quality preset", &quality, 0, 3);
-								        UI::slider_float("Bloom intensity", &bloom, 0.0f, 1.0f);
+								        UI::slider("Quality preset", &quality, 0, 3);
+								        UI::slider("Bloom intensity", &bloom, 0.0f, 1.0f);
 							        },
 							        rendering_header);
 
@@ -4059,7 +4043,7 @@ namespace Trinex
 
 							UI::toggle("Enable disabled-scope contents", &enabled);
 							UI::begin_disabled(!enabled);
-							UI::slider_float("Disabled-scope opacity", &opacity, 0.0f, 1.0f);
+							UI::slider("Disabled-scope opacity", &opacity, 0.0f, 1.0f);
 							UI::button("Disabled-scope button");
 							UI::end_disabled();
 
@@ -4072,8 +4056,8 @@ namespace Trinex
 							UI::toggle("Show advanced animated_area", &advanced_visible);
 							if (UI::begin_animated_area("advanced_area", advanced_visible))
 							{
-								UI::slider_float("Exposure", &exposure, 0.0f, 4.0f);
-								UI::slider_float("Bloom advanced", &bloom, 0.0f, 1.0f);
+								UI::slider("Exposure", &exposure, 0.0f, 4.0f);
+								UI::slider("Bloom advanced", &bloom, 0.0f, 1.0f);
 								UI::end_animated_area();
 							}
 
@@ -4090,8 +4074,8 @@ namespace Trinex
 							UI::radio_button("Radio Scale", &radio_mode, 2);
 							UI::segmented_control("Transform mode", &segmented_mode, mode_items, 3);
 
-							UI::color_edit3("Tint RGB", &tint_color);
-							UI::color_edit4("Tint RGBA", &tint_color);
+							UI::color_edit("Tint RGB", &tint_color, false);
+							UI::color_edit("Tint RGBA", &tint_color, true);
 
 							UI::separator();
 							{
@@ -4200,24 +4184,23 @@ namespace Trinex
 							UI::text("Extended inputs");
 							UI::text_muted("Drag/input widgets added on top of the core wrapper.");
 
-							UI::drag_float("Drag speed", &drag_speed, 0.05f, 0.0f, 10.0f);
-							UI::drag_int("Drag steps", &drag_steps, 1.0f, 0, 64);
-							UI::drag_vec2("Range", &drag_range, 0.01f, 0.0f, 1.0f);
-							UI::drag_vec3("Transform position", &transform_pos, 0.25f, -1000.0f, 1000.0f);
-							UI::drag_vec4("Clip rect", &clip_rect, 1.0f, -2048.0f, 2048.0f);
+							UI::drag("Drag speed", &drag_speed, 0.05f, 0.0f, 10.0f);
+							UI::drag("Drag steps", &drag_steps, 1.0f, 0, 64);
+							UI::drag("Range", &drag_range, 0.01f, 0.0f, 1.0f);
+							UI::drag("Transform position", &transform_pos, 0.25f, -1000.0f, 1000.0f);
+							UI::drag("Clip rect", &clip_rect, 1.0f, -2048.0f, 2048.0f);
 
 							UI::separator();
-							UI::input_double("Precision value", &precision_value);
-							UI::input_float("Exposure input", &exposure);
-							UI::input_int("Quality input", &quality);
-							UI::input_vec2("Range input", &drag_range);
-							UI::input_vec3("Position input", &transform_pos);
-							UI::input_vec4("Tint input", &tint_color);
+							UI::input("Precision value", &precision_value);
+							UI::input("Exposure input", &exposure);
+							UI::input("Quality input", &quality);
+							UI::input("Range input", &drag_range);
+							UI::input("Position input", &transform_pos);
+							UI::input("Tint input", &tint_color);
 
 							UI::separator();
-							UI::input_text_with_hint("Asset name", "Enter asset name...", hint_buffer, sizeof(hint_buffer));
-							UI::input_text_multiline("Description", multiline_buffer, sizeof(multiline_buffer),
-							                         UI::Vec2(0.0f, 120.0f));
+							UI::input("Asset name", "Enter asset name...", hint_buffer, sizeof(hint_buffer));
+							UI::input("Description", multiline_buffer, sizeof(multiline_buffer), UI::Vec2(0.0f, 120.0f));
 
 							UI::spacing();
 							char precision_text[64];
@@ -4240,7 +4223,7 @@ namespace Trinex
 							               UI::item_rect_size().y, UI::item_rect_center().x, UI::item_rect_center().y);
 
 							UI::separator();
-							UI::input_text("Runtime text field", name_buffer, sizeof(name_buffer));
+							UI::input("Runtime text field", name_buffer, sizeof(name_buffer));
 							UI::text_muted("Edited: %s | Activated: %s | Deactivated: %s | After edit: %s",
 							               UI::is_item_edited() ? "yes" : "no", UI::is_item_activated() ? "yes" : "no",
 							               UI::is_item_deactivated() ? "yes" : "no",
