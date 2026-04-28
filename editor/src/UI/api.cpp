@@ -442,6 +442,23 @@ namespace Trinex::UI
 			ImGui::PopStyleColor();
 		}
 
+		void push_input_frame_styles(float focus)
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, active_context()->style.rounding);
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(active_context()->style.padding, 6.0f));
+			ImGui::PushStyleColor(ImGuiCol_FrameBg, to_imvec(active_context()->style.colors.background));
+			ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, to_imvec(active_context()->style.colors.background_hovered));
+			ImGui::PushStyleColor(ImGuiCol_FrameBgActive, to_imvec(active_context()->style.colors.background_active));
+			ImGui::PushStyleColor(ImGuiCol_Border, to_imvec(Math::lerp(active_context()->style.colors.border,
+			                                                           active_context()->style.colors.accent, focus)));
+		}
+
+		void pop_input_frame_styles()
+		{
+			ImGui::PopStyleColor(4);
+			ImGui::PopStyleVar(2);
+		}
+
 		ImVec2 default_item_size(const char* label, ImVec2 requested, float min_width = 0.0f)
 		{
 			ImVec2 text_size = ImGui::CalcTextSize(label, nullptr, true);
@@ -485,19 +502,21 @@ namespace Trinex::UI
 
 			ImVec2 pos = ImGui::GetCursorScreenPos();
 			ImGui::InvisibleButton("##row_button", size);
-			const bool hovered = !disabled && ImGui::IsItemHovered();
-			const bool active  = !disabled && ImGui::IsItemActive();
-			const bool clicked = !disabled && ImGui::IsItemClicked();
+			const bool hovered         = !disabled && ImGui::IsItemHovered();
+			const bool active          = !disabled && ImGui::IsItemActive();
+			const bool clicked         = !disabled && ImGui::IsItemClicked();
+			const bool visual_selected = selected || clicked;
+			const float visual_arrow_t = clicked ? (selected ? 0.0f : 1.0f) : arrow_t;
 
 			anim.hover    = approach(anim.hover, hovered ? 1.0f : 0.0f, active_context()->style.animation_speed);
 			anim.active   = approach(anim.active, active ? 1.0f : 0.0f, active_context()->style.animation_speed * 1.6f);
-			anim.selected = approach(anim.selected, selected ? 1.0f : 0.0f, active_context()->style.animation_speed);
+			anim.selected = approach(anim.selected, visual_selected ? 1.0f : 0.0f, active_context()->style.animation_speed);
 
 			const Vec4 base = Math::lerp(active_context()->style.colors.panel, active_context()->style.colors.background_hovered,
 			                             anim.hover);
 			const Vec4 sel  = has_color(accent) ? accent : active_context()->style.colors.accent;
 			Vec4 bg         = Math::lerp(base, with_alpha(sel, 0.22f), anim.selected);
-			bg              = Math::lerp(bg, active_context()->style.colors.background_active, anim.active);
+			bg              = Math::lerp(bg, with_alpha(sel, 0.18f), anim.active * 0.45f);
 
 			ImDrawList* draw = ImGui::GetWindowDrawList();
 			const ImVec2 max = add(pos, size);
@@ -515,7 +534,7 @@ namespace Trinex::UI
 			const float cy = pos.y + size.y * 0.5f;
 			if (draw_arrow)
 			{
-				draw_chevron(draw, ImVec2(x + 5.0f, cy), 10.0f, arrow_t,
+				draw_chevron(draw, ImVec2(x + 5.0f, cy), 10.0f, visual_arrow_t,
 				             col_u32(Math::lerp(active_context()->style.colors.text_muted, sel, anim.hover + anim.selected)));
 				x += 18.0f;
 			}
@@ -651,7 +670,8 @@ namespace Trinex::UI
 		void render_notifications()
 		{
 			ImGuiViewport* viewport = ImGui::GetMainViewport();
-			const ImVec2 origin(viewport->WorkPos.x + viewport->WorkSize.x - 16.0f, viewport->WorkPos.y + 16.0f);
+			const ImVec2 origin(viewport->WorkPos.x + viewport->WorkSize.x - 16.0f,
+			                    viewport->WorkPos.y + viewport->WorkSize.y - 16.0f);
 			float target_y   = origin.y;
 			ImDrawList* draw = ImGui::GetForegroundDrawList(viewport);
 
@@ -670,8 +690,8 @@ namespace Trinex::UI
 					animated_y = target_y;
 				}
 				animated_y = approach(animated_y, target_y, active_context()->style.animation_speed);
-				const ImVec2 max(origin.x - slide, animated_y + height);
-				const ImVec2 min(max.x - width, animated_y);
+				const ImVec2 max(origin.x - slide, animated_y);
+				const ImVec2 min(max.x - width, animated_y - height);
 				const Vec4 accent = notification_color(it->kind);
 				draw->AddRectFilled(min, max, col_u32(active_context()->style.colors.panel, alpha * 0.96f),
 				                    active_context()->style.rounding);
@@ -711,7 +731,7 @@ namespace Trinex::UI
 						continue;
 					}
 				}
-				target_y += height + 10.0f;
+				target_y += -(height + 10.0f);
 				if (it->age > it->duration)
 				{
 					g_notification_y.erase(it->id);
@@ -1989,23 +2009,229 @@ namespace Trinex::UI
 		return changed;
 	}
 
+	bool drag_float(const char* label, float* value, float speed, float min, float max, const char* format)
+	{
+		cleanup_states();
+		ImGui::PushID(label);
+		AnimState& anim = state_for(ImGui::GetID("drag_float"));
+		push_input_frame_styles(anim.focus);
+		const bool changed = ImGui::DragFloat(label, value, speed, min, max, format);
+		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		pop_input_frame_styles();
+		ImGui::PopID();
+		return changed;
+	}
+
+	bool drag_int(const char* label, int* value, float speed, int min, int max, const char* format)
+	{
+		cleanup_states();
+		ImGui::PushID(label);
+		AnimState& anim = state_for(ImGui::GetID("drag_int"));
+		push_input_frame_styles(anim.focus);
+		const bool changed = ImGui::DragInt(label, value, speed, min, max, format);
+		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		pop_input_frame_styles();
+		ImGui::PopID();
+		return changed;
+	}
+
+	bool drag_vec2(const char* label, Vec2* value, float speed, float min, float max, const char* format)
+	{
+		if (value == nullptr)
+		{
+			return false;
+		}
+
+		cleanup_states();
+		ImGui::PushID(label);
+		AnimState& anim = state_for(ImGui::GetID("drag_vec2"));
+		push_input_frame_styles(anim.focus);
+		const bool changed = ImGui::DragFloat2(label, &value->x, speed, min, max, format);
+		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		pop_input_frame_styles();
+		ImGui::PopID();
+		return changed;
+	}
+
+	bool drag_vec3(const char* label, Vec3* value, float speed, float min, float max, const char* format)
+	{
+		if (value == nullptr)
+		{
+			return false;
+		}
+
+		cleanup_states();
+		ImGui::PushID(label);
+		AnimState& anim = state_for(ImGui::GetID("drag_vec3"));
+		push_input_frame_styles(anim.focus);
+		const bool changed = ImGui::DragFloat3(label, &value->x, speed, min, max, format);
+		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		pop_input_frame_styles();
+		ImGui::PopID();
+		return changed;
+	}
+
+	bool drag_vec4(const char* label, Vec4* value, float speed, float min, float max, const char* format)
+	{
+		if (value == nullptr)
+		{
+			return false;
+		}
+
+		cleanup_states();
+		ImGui::PushID(label);
+		AnimState& anim = state_for(ImGui::GetID("drag_vec4"));
+		push_input_frame_styles(anim.focus);
+		const bool changed = ImGui::DragFloat4(label, &value->x, speed, min, max, format);
+		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		pop_input_frame_styles();
+		ImGui::PopID();
+		return changed;
+	}
+
+	bool input_double(const char* label, double* value, const char* format)
+	{
+		cleanup_states();
+		ImGui::PushID(label);
+		AnimState& anim = state_for(ImGui::GetID("input_double"));
+		push_input_frame_styles(anim.focus);
+		const bool changed = ImGui::InputDouble(label, value, 0.0, 0.0, format);
+		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		pop_input_frame_styles();
+		ImGui::PopID();
+		return changed;
+	}
+
+	bool input_float(const char* label, float* value, const char* format)
+	{
+		cleanup_states();
+		ImGui::PushID(label);
+		AnimState& anim = state_for(ImGui::GetID("input_float"));
+		push_input_frame_styles(anim.focus);
+		const bool changed = ImGui::InputFloat(label, value, 0.0f, 0.0f, format);
+		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		pop_input_frame_styles();
+		ImGui::PopID();
+		return changed;
+	}
+
+	bool input_int(const char* label, int* value)
+	{
+		cleanup_states();
+		ImGui::PushID(label);
+		AnimState& anim = state_for(ImGui::GetID("input_int"));
+		push_input_frame_styles(anim.focus);
+		const bool changed = ImGui::InputInt(label, value);
+		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		pop_input_frame_styles();
+		ImGui::PopID();
+		return changed;
+	}
+
+	bool input_vec2(const char* label, Vec2* value, const char* format)
+	{
+		if (value == nullptr)
+		{
+			return false;
+		}
+
+		cleanup_states();
+		ImGui::PushID(label);
+		AnimState& anim = state_for(ImGui::GetID("input_vec2"));
+		push_input_frame_styles(anim.focus);
+		const bool changed = ImGui::InputFloat2(label, &value->x, format);
+		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		pop_input_frame_styles();
+		ImGui::PopID();
+		return changed;
+	}
+
+	bool input_vec3(const char* label, Vec3* value, const char* format)
+	{
+		if (value == nullptr)
+		{
+			return false;
+		}
+
+		cleanup_states();
+		ImGui::PushID(label);
+		AnimState& anim = state_for(ImGui::GetID("input_vec3"));
+		push_input_frame_styles(anim.focus);
+		const bool changed = ImGui::InputFloat3(label, &value->x, format);
+		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		pop_input_frame_styles();
+		ImGui::PopID();
+		return changed;
+	}
+
+	bool input_vec4(const char* label, Vec4* value, const char* format)
+	{
+		if (value == nullptr)
+		{
+			return false;
+		}
+
+		cleanup_states();
+		ImGui::PushID(label);
+		AnimState& anim = state_for(ImGui::GetID("input_vec4"));
+		push_input_frame_styles(anim.focus);
+		const bool changed = ImGui::InputFloat4(label, &value->x, format);
+		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		pop_input_frame_styles();
+		ImGui::PopID();
+		return changed;
+	}
+
 	bool input_text(const char* label, char* buffer, size_t buffer_size, InputTextFlags flags)
 	{
 		cleanup_states();
 		ImGui::PushID(label);
 		AnimState& anim = state_for(ImGui::GetID("input"));
-		anim.hover      = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
-		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, active_context()->style.rounding);
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(active_context()->style.padding, 6.0f));
-		ImGui::PushStyleColor(ImGuiCol_FrameBg, to_imvec(active_context()->style.colors.background));
-		ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, to_imvec(active_context()->style.colors.background_hovered));
-		ImGui::PushStyleColor(ImGuiCol_FrameBgActive, to_imvec(active_context()->style.colors.background_active));
-		ImGui::PushStyleColor(ImGuiCol_Border, to_imvec(Math::lerp(active_context()->style.colors.border,
-		                                                           active_context()->style.colors.accent, anim.focus)));
+		push_input_frame_styles(anim.focus);
 		const bool changed = ImGui::InputText(label, buffer, buffer_size, to_imgui_input_text_flags(flags));
+		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
 		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f, active_context()->style.animation_speed);
-		ImGui::PopStyleColor(4);
-		ImGui::PopStyleVar(2);
+		pop_input_frame_styles();
+		ImGui::PopID();
+		return changed;
+	}
+
+	bool input_text_with_hint(const char* label, const char* hint, char* buffer, size_t buffer_size, InputTextFlags flags)
+	{
+		cleanup_states();
+		ImGui::PushID(label);
+		AnimState& anim = state_for(ImGui::GetID("input_text_with_hint"));
+		push_input_frame_styles(anim.focus);
+		const bool changed = ImGui::InputTextWithHint(label, hint, buffer, buffer_size, to_imgui_input_text_flags(flags));
+		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		pop_input_frame_styles();
+		ImGui::PopID();
+		return changed;
+	}
+
+	bool input_text_multiline(const char* label, char* buffer, size_t buffer_size, const Vec2& size, InputTextFlags flags)
+	{
+		cleanup_states();
+		ImGui::PushID(label);
+		AnimState& anim = state_for(ImGui::GetID("input_text_multiline"));
+		push_input_frame_styles(anim.focus);
+		const bool changed =
+		        ImGui::InputTextMultiline(label, buffer, buffer_size, to_imvec(size), to_imgui_input_text_flags(flags));
+		anim.hover = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.focus = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		pop_input_frame_styles();
 		ImGui::PopID();
 		return changed;
 	}
@@ -2465,6 +2691,57 @@ namespace Trinex::UI
 		return changed;
 	}
 
+	bool begin_collapsing_header(const char* label, const header_options& options)
+	{
+		cleanup_states();
+		ImGui::PushID(label);
+		const ImGuiID id = ImGui::GetID("header_open");
+		bool& stored     = g_open[id];
+		static std::unordered_map<ImGuiID, bool> initialized;
+		if (!initialized[id])
+		{
+			stored          = options.open != nullptr ? *options.open : options.default_open;
+			initialized[id] = true;
+		}
+		bool open       = options.open != nullptr ? *options.open : stored;
+		AnimState& anim = state_for(id);
+		if (animated_row(label, options.icon, options.right_text, open, options.disabled,
+		                 ImVec2(0, active_context()->style.frame_height), options.accent, true, anim.open))
+		{
+			open = !open;
+			if (options.open != nullptr)
+			{
+				*options.open = open;
+			}
+			else
+			{
+				stored = open;
+			}
+		}
+
+		anim.open = approach(anim.open, open ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		if (open && anim.open > 0.995f)
+		{
+			anim.open = 1.0f;
+		}
+		else if (!open && anim.open < 0.005f)
+		{
+			anim.open = 0.0f;
+		}
+
+		ImGui::PopID();
+		if (begin_animated_area(label, open))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	void end_collapsing_header()
+	{
+		end_animated_area();
+	}
+
 	bool collapsing_header(const char* label, const header_options& options)
 	{
 		ImGui::PushID(label);
@@ -2496,10 +2773,45 @@ namespace Trinex::UI
 		return open;
 	}
 
+	void collapsing_header(const char* label, const Function<void()>& content, const header_options& options)
+	{
+		if (begin_collapsing_header(label, options))
+		{
+			if (content)
+			{
+				content();
+			}
+			end_collapsing_header();
+		}
+	}
+
+	bool begin_section_header(const char* label, const header_options& options)
+	{
+		spacing(2.0f);
+		return begin_collapsing_header(label, options);
+	}
+
+	void end_section_header()
+	{
+		end_collapsing_header();
+	}
+
 	bool section_header(const char* label, const header_options& options)
 	{
 		spacing(2.0f);
 		return collapsing_header(label, options);
+	}
+
+	void section_header(const char* label, const Function<void()>& content, const header_options& options)
+	{
+		if (begin_section_header(label, options))
+		{
+			if (content)
+			{
+				content();
+			}
+			end_section_header();
+		}
 	}
 
 	bool tree_node(const char* label, const tree_node_options& options)
@@ -3201,31 +3513,40 @@ namespace Trinex
 		trinex_class(UITest, ViewportClient);
 		UI::Context* m_ctx;
 
-		bool enabled               = true;
-		bool fullscreen            = false;
-		bool show_grid             = true;
-		bool visible               = true;
-		bool modal_open            = true;
-		bool advanced_visible      = true;
-		bool menu_grid             = true;
-		float opacity              = 0.82f;
-		float bloom                = 0.35f;
-		float exposure             = 1.25f;
-		float progress             = 0.62f;
-		float left_size            = 260.0f;
-		float right_size           = 1020.0f;
-		int quality                = 2;
-		int radio_mode             = 0;
-		int segmented_mode         = 1;
-		int selected_tab           = 0;
-		int selected_sidebar       = 0;
-		int selected_entity        = 0;
-		int selected_list_item     = 0;
-		int combo_index            = 1;
-		char name_buffer[128]      = "Player";
-		char search_buffer[128]    = "";
-		char filter_buffer[128]    = "";
-		char dropped_payload[128]  = "Drop an item here";
+		bool enabled              = true;
+		bool fullscreen           = false;
+		bool show_grid            = true;
+		bool visible              = true;
+		bool modal_open           = true;
+		bool advanced_visible     = true;
+		bool menu_grid            = true;
+		float opacity             = 0.82f;
+		float bloom               = 0.35f;
+		float exposure            = 1.25f;
+		float progress            = 0.62f;
+		float drag_speed          = 4.5f;
+		double precision_value    = 0.125;
+		float left_size           = 260.0f;
+		float right_size          = 1020.0f;
+		int quality               = 2;
+		int drag_steps            = 16;
+		int radio_mode            = 0;
+		int segmented_mode        = 1;
+		int selected_tab          = 0;
+		int selected_sidebar      = 0;
+		int selected_entity       = 0;
+		int selected_list_item    = 0;
+		int combo_index           = 1;
+		char name_buffer[128]     = "Player";
+		char search_buffer[128]   = "";
+		char filter_buffer[128]   = "";
+		char dropped_payload[128] = "Drop an item here";
+		char hint_buffer[128]     = "TrinexAsset";
+		char multiline_buffer[512] =
+		        "Multiline input example.\nYou can type several lines here.\nUseful for notes, scripts, or descriptions.";
+		UI::Vec2 drag_range        = UI::Vec2(0.15f, 0.85f);
+		UI::Vec3 transform_pos     = UI::Vec3(125.0f, 64.0f, -18.0f);
+		UI::Vec4 clip_rect         = UI::Vec4(12.0f, 24.0f, 320.0f, 180.0f);
 		UI::Vec4 tint_color        = UI::Vec4(0.28f, 0.62f, 0.95f, 1.0f);
 		const char* combo_items[4] = {"Low", "Medium", "High", "Ultra"};
 		const char* mode_items[3]  = {"Move", "Rotate", "Scale"};
@@ -3460,6 +3781,16 @@ namespace Trinex
 							{
 								selected_tab = 5;
 							}
+							UI::same_line();
+							if (UI::tab("Inputs+", selected_tab == 6))
+							{
+								selected_tab = 6;
+							}
+							UI::same_line();
+							if (UI::tab("Runtime", selected_tab == 7))
+							{
+								selected_tab = 7;
+							}
 							UI::end_tab_bar();
 						}
 
@@ -3589,18 +3920,20 @@ namespace Trinex
 							}
 
 							UI::separator();
-							UI::section_header("Inspector");
-							UI::property_row("Selected", [&] {
-								UI::text(selected_entity == 0 ? "Camera" : selected_entity == 1 ? "Player" : "Light");
+							UI::section_header("Inspector", [&] {
+								UI::property_row("Selected", [&] {
+									UI::text(selected_entity == 0 ? "Camera" : selected_entity == 1 ? "Player" : "Light");
+								});
+								UI::property_row("Visible", [&] { UI::toggle("##inspector_visible", &visible); });
+								UI::property_row("Opacity",
+								                 [&] { UI::slider_float("##inspector_opacity", &opacity, 0.0f, 1.0f); });
+								UI::property_bool("Grid", &show_grid);
+								UI::property_float("Exposure", &exposure, 0.0f, 4.0f);
+								UI::property_int("Quality", &quality, 0, 3);
+								UI::property_text("Name", name_buffer, sizeof(name_buffer));
+								UI::property_color("Tint", &tint_color);
+								UI::key_value_row("Renderer", combo_items[combo_index]);
 							});
-							UI::property_row("Visible", [&] { UI::toggle("##inspector_visible", &visible); });
-							UI::property_row("Opacity", [&] { UI::slider_float("##inspector_opacity", &opacity, 0.0f, 1.0f); });
-							UI::property_bool("Grid", &show_grid);
-							UI::property_float("Exposure", &exposure, 0.0f, 4.0f);
-							UI::property_int("Quality", &quality, 0, 3);
-							UI::property_text("Name", name_buffer, sizeof(name_buffer));
-							UI::property_color("Tint", &tint_color);
-							UI::key_value_row("Renderer", combo_items[combo_index]);
 						}
 						else if (selected_tab == 2)
 						{
@@ -3648,26 +3981,30 @@ namespace Trinex
 							UI::text("Style and settings");
 							UI::text_muted("Style access, pushed temporary style, headers, and notification variants.");
 
-							if (UI::collapsing_header("Window", [] {
-								    UI::header_options options;
-								    options.right_text   = "State";
-								    options.default_open = true;
-								    return options;
-							    }()))
-							{
-								UI::toggle("Fullscreen", &fullscreen);
-								UI::toggle("VSync / Enabled", &enabled);
-							}
+							UI::collapsing_header(
+							        "Window",
+							        [&] {
+								        UI::toggle("Fullscreen", &fullscreen);
+								        UI::toggle("VSync / Enabled", &enabled);
+							        },
+							        [] {
+								        UI::header_options options;
+								        options.right_text   = "State";
+								        options.default_open = true;
+								        return options;
+							        }());
 
 							UI::header_options rendering_header;
 							rendering_header.icon         = "R";
 							rendering_header.right_text   = combo_items[combo_index];
 							rendering_header.default_open = true;
-							if (UI::section_header("Rendering", rendering_header))
-							{
-								UI::slider_int("Quality preset", &quality, 0, 3);
-								UI::slider_float("Bloom intensity", &bloom, 0.0f, 1.0f);
-							}
+							UI::section_header(
+							        "Rendering",
+							        [&] {
+								        UI::slider_int("Quality preset", &quality, 0, 3);
+								        UI::slider_float("Bloom intensity", &bloom, 0.0f, 1.0f);
+							        },
+							        rendering_header);
 
 							UI::separator();
 							UI::text("Temporary pushed style");
@@ -3781,7 +4118,7 @@ namespace Trinex
 							UI::loading_state("Loading state");
 							UI::error_state("Something went wrong while loading data.");
 						}
-						else
+						else if (selected_tab == 5)
 						{
 							UI::text("Data views");
 							UI::text_muted("Tables, list boxes, filtered lists, drag/drop, and scroll helpers.");
@@ -3857,6 +4194,113 @@ namespace Trinex
 							}
 							UI::end_scroll_area();
 							UI::text_muted("Last submitted item visible: %s", UI::is_item_visible() ? "yes" : "no");
+						}
+						else if (selected_tab == 6)
+						{
+							UI::text("Extended inputs");
+							UI::text_muted("Drag/input widgets added on top of the core wrapper.");
+
+							UI::drag_float("Drag speed", &drag_speed, 0.05f, 0.0f, 10.0f);
+							UI::drag_int("Drag steps", &drag_steps, 1.0f, 0, 64);
+							UI::drag_vec2("Range", &drag_range, 0.01f, 0.0f, 1.0f);
+							UI::drag_vec3("Transform position", &transform_pos, 0.25f, -1000.0f, 1000.0f);
+							UI::drag_vec4("Clip rect", &clip_rect, 1.0f, -2048.0f, 2048.0f);
+
+							UI::separator();
+							UI::input_double("Precision value", &precision_value);
+							UI::input_float("Exposure input", &exposure);
+							UI::input_int("Quality input", &quality);
+							UI::input_vec2("Range input", &drag_range);
+							UI::input_vec3("Position input", &transform_pos);
+							UI::input_vec4("Tint input", &tint_color);
+
+							UI::separator();
+							UI::input_text_with_hint("Asset name", "Enter asset name...", hint_buffer, sizeof(hint_buffer));
+							UI::input_text_multiline("Description", multiline_buffer, sizeof(multiline_buffer),
+							                         UI::Vec2(0.0f, 120.0f));
+
+							UI::spacing();
+							char precision_text[64];
+							std::snprintf(precision_text, sizeof(precision_text), "%.6f", precision_value);
+							UI::key_value_row("Current asset", hint_buffer);
+							UI::key_value_row("Precision", precision_text);
+						}
+						else
+						{
+							UI::text("Runtime and item state");
+							UI::text_muted("Frame info, IO capture state, mouse/keyboard helpers, and last-item queries.");
+
+							UI::button("State probe button");
+							UI::text_muted("Hovered: %s | Active: %s | Clicked: %s | Focused: %s",
+							               UI::is_item_hovered() ? "yes" : "no", UI::is_item_active() ? "yes" : "no",
+							               UI::is_item_clicked() ? "yes" : "no", UI::is_item_focused() ? "yes" : "no");
+							UI::text_muted("Rect min: %.1f, %.1f | max: %.1f, %.1f", UI::item_rect_min().x, UI::item_rect_min().y,
+							               UI::item_rect_max().x, UI::item_rect_max().y);
+							UI::text_muted("Rect size: %.1f x %.1f | center: %.1f, %.1f", UI::item_rect_size().x,
+							               UI::item_rect_size().y, UI::item_rect_center().x, UI::item_rect_center().y);
+
+							UI::separator();
+							UI::input_text("Runtime text field", name_buffer, sizeof(name_buffer));
+							UI::text_muted("Edited: %s | Activated: %s | Deactivated: %s | After edit: %s",
+							               UI::is_item_edited() ? "yes" : "no", UI::is_item_activated() ? "yes" : "no",
+							               UI::is_item_deactivated() ? "yes" : "no",
+							               UI::is_item_deactivated_after_edit() ? "yes" : "no");
+
+							UI::separator();
+							char delta_text[64];
+							char fps_text[64];
+							char time_text[64];
+							char frame_text[64];
+							std::snprintf(delta_text, sizeof(delta_text), "%.4f", UI::delta_time());
+							std::snprintf(fps_text, sizeof(fps_text), "%.1f", UI::frame_rate());
+							std::snprintf(time_text, sizeof(time_text), "%.3f", UI::time_seconds());
+							std::snprintf(frame_text, sizeof(frame_text), "%d", UI::frame_count());
+							UI::text("Frame");
+							UI::key_value_row("Delta time", delta_text);
+							UI::key_value_row("Frame rate", fps_text);
+							UI::key_value_row("Time", time_text);
+							UI::key_value_row("Frame count", frame_text);
+
+							UI::separator();
+							UI::text("Input capture");
+							UI::text_muted("Want keyboard: %s | Want mouse: %s | Want text: %s",
+							               UI::wants_keyboard_capture() ? "yes" : "no", UI::wants_mouse_capture() ? "yes" : "no",
+							               UI::wants_text_input() ? "yes" : "no");
+							UI::text_muted("Ctrl: %s | Shift: %s | Alt: %s | Super: %s", UI::key_ctrl() ? "yes" : "no",
+							               UI::key_shift() ? "yes" : "no", UI::key_alt() ? "yes" : "no",
+							               UI::key_super() ? "yes" : "no");
+							UI::text_muted("Key A down: %s | Space pressed: %s | Escape released: %s",
+							               UI::is_key_down(UI::Key::A) ? "yes" : "no",
+							               UI::is_key_pressed(UI::Key::Space, false) ? "yes" : "no",
+							               UI::is_key_released(UI::Key::Escape) ? "yes" : "no");
+
+							UI::separator();
+							const UI::Vec2 mouse_pos   = UI::mouse_position();
+							const UI::Vec2 mouse_delta = UI::mouse_delta();
+							const UI::Vec2 drag_delta  = UI::mouse_drag_delta();
+							UI::text("Mouse");
+							UI::text_muted("Pos valid: %s | Left down: %s | Left dragging: %s | Left double-click: %s",
+							               UI::is_mouse_pos_valid() ? "yes" : "no",
+							               UI::is_mouse_down(UI::MouseButton::Left) ? "yes" : "no",
+							               UI::is_mouse_dragging(UI::MouseButton::Left) ? "yes" : "no",
+							               UI::is_mouse_double_clicked(UI::MouseButton::Left) ? "yes" : "no");
+							UI::text_muted("Mouse pos: %.1f, %.1f | delta: %.1f, %.1f", mouse_pos.x, mouse_pos.y, mouse_delta.x,
+							               mouse_delta.y);
+							UI::text_muted("Wheel: %.2f | Wheel H: %.2f | Drag delta: %.1f, %.1f", UI::mouse_wheel(),
+							               UI::mouse_wheel_h(), drag_delta.x, drag_delta.y);
+							if (UI::button("Reset drag delta"))
+							{
+								UI::reset_mouse_drag_delta();
+							}
+
+							UI::separator();
+							UI::text_muted("Any item hovered: %s | active: %s | focused: %s",
+							               UI::is_any_item_hovered() ? "yes" : "no", UI::is_any_item_active() ? "yes" : "no",
+							               UI::is_any_item_focused() ? "yes" : "no");
+							UI::text_muted("Mouse hovering item rect: %s", UI::is_mouse_hovering_item_rect() ? "yes" : "no");
+							UI::text_muted("Mouse in demo rect (20,20)-(220,120): %s",
+							               UI::is_mouse_hovering_rect(UI::Vec2(20.0f, 20.0f), UI::Vec2(220.0f, 120.0f)) ? "yes"
+							                                                                                            : "no");
 						}
 
 						UI::end_child_panel();

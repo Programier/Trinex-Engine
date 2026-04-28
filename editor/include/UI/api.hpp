@@ -13,6 +13,7 @@ namespace Trinex
 namespace Trinex::UI
 {
 	using Vec2 = Vector2f;
+	using Vec3 = Vector3f;
 	using Vec4 = Vector4f;
 
 	class ID
@@ -642,9 +643,28 @@ namespace Trinex::UI
 	bool danger_button(const char* label, const Vec2& size = Vec2(0, 0));
 	bool checkbox(const char* label, bool* value);
 	bool toggle(const char* label, bool* value);
+	bool drag_float(const char* label, float* value, float speed = 1.0f, float min = 0.0f, float max = 0.0f,
+	                const char* format = "%.3f");
+	bool drag_int(const char* label, int* value, float speed = 1.0f, int min = 0, int max = 0, const char* format = "%d");
+	bool drag_vec2(const char* label, Vec2* value, float speed = 1.0f, float min = 0.0f, float max = 0.0f,
+	               const char* format = "%.3f");
+	bool drag_vec3(const char* label, Vec3* value, float speed = 1.0f, float min = 0.0f, float max = 0.0f,
+	               const char* format = "%.3f");
+	bool drag_vec4(const char* label, Vec4* value, float speed = 1.0f, float min = 0.0f, float max = 0.0f,
+	               const char* format = "%.3f");
 	bool slider_float(const char* label, float* value, float min, float max, const char* format = "%.3f");
 	bool slider_int(const char* label, int* value, int min, int max, const char* format = "%d");
+	bool input_double(const char* label, double* value, const char* format = "%.6f");
+	bool input_float(const char* label, float* value, const char* format = "%.3f");
+	bool input_int(const char* label, int* value);
+	bool input_vec2(const char* label, Vec2* value, const char* format = "%.3f");
+	bool input_vec3(const char* label, Vec3* value, const char* format = "%.3f");
+	bool input_vec4(const char* label, Vec4* value, const char* format = "%.3f");
 	bool input_text(const char* label, char* buffer, size_t buffer_size, InputTextFlags flags = InputTextFlags::Undefined);
+	bool input_text_with_hint(const char* label, const char* hint, char* buffer, size_t buffer_size,
+	                          InputTextFlags flags = InputTextFlags::Undefined);
+	bool input_text_multiline(const char* label, char* buffer, size_t buffer_size, const Vec2& size = Vec2(0, 0),
+	                          InputTextFlags flags = InputTextFlags::Undefined);
 	bool search_input(const char* label, char* buffer, size_t buffer_size);
 	bool begin_combo(const char* label, const char* preview_value, ComboFlags flags = ComboFlags::Undefined);
 	void end_combo();
@@ -663,8 +683,14 @@ namespace Trinex::UI
 	String keybind_to_string(const Keybind& binding);
 	bool is_keybind_pressed(const Keybind& binding, bool repeat = false);
 
+	bool begin_collapsing_header(const char* label, const HeaderOptions& options = {});
+	void end_collapsing_header();
 	bool collapsing_header(const char* label, const HeaderOptions& options = {});
+	void collapsing_header(const char* label, const Function<void()>& content, const HeaderOptions& options = {});
+	bool begin_section_header(const char* label, const HeaderOptions& options = {});
+	void end_section_header();
 	bool section_header(const char* label, const HeaderOptions& options = {});
+	void section_header(const char* label, const Function<void()>& content, const HeaderOptions& options = {});
 	bool tree_node(const char* label, const TreeNodeOptions& options = {});
 	void tree_pop();
 	bool tree_leaf(const char* label, const TreeNodeOptions& options = {});
