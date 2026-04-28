@@ -362,6 +362,40 @@ namespace Trinex::UI
 			return c.x != 0.0f || c.y != 0.0f || c.z != 0.0f || c.w != 0.0f;
 		}
 
+		bool has_text(const char* text)
+		{
+			return text != nullptr && text[0] != '\0';
+		}
+
+		Vec4 mix_color(const Vec4& a, const Vec4& b, float t)
+		{
+			return Math::lerp(a, b, Math::clamp(t, 0.0f, 1.0f));
+		}
+
+		Vec4 color_for_notification_kind(NotificationKind kind)
+		{
+			switch (kind.value)
+			{
+				case NotificationKind::Success: return active_context()->style.colors.success;
+				case NotificationKind::Warning: return active_context()->style.colors.warning;
+				case NotificationKind::Error: return active_context()->style.colors.error;
+				case NotificationKind::Info:
+				default: return active_context()->style.colors.accent;
+			}
+		}
+
+		const char* icon_for_notification_kind(NotificationKind kind)
+		{
+			switch (kind.value)
+			{
+				case NotificationKind::Success: return ICON_LC_CIRCLE_CHECK;
+				case NotificationKind::Warning: return ICON_LC_TRIANGLE_ALERT;
+				case NotificationKind::Error: return ICON_LC_CIRCLE_X;
+				case NotificationKind::Info:
+				default: return ICON_LC_INFO;
+			}
+		}
+
 		const Shadow& current_shadow()
 		{
 			return g_shadow_stack.empty() ? active_context()->style.shadow : g_shadow_stack.back();
@@ -4082,6 +4116,254 @@ namespace Trinex::UI
 		ImGui::EndDragDropTarget();
 	}
 
+	void callout(const char* title, const char* message, NotificationKind kind)
+	{
+		const char* title_text   = has_text(title) ? visible_label(title) : nullptr;
+		const char* message_text = has_text(message) ? message : nullptr;
+		if (!has_text(title_text) && !has_text(message_text))
+		{
+			return;
+		}
+
+		const float rounding   = active_context()->style.rounding;
+		const float padding    = active_context()->style.padding;
+		const float spacing    = active_context()->style.spacing;
+		const float strip_size = 4.0f;
+		const Vec4 accent      = color_for_notification_kind(kind);
+		const Vec4 background  = mix_color(active_context()->style.colors.panel, accent, 0.08f);
+		const Vec4 border      = mix_color(active_context()->style.colors.border, accent, 0.35f);
+		const char* icon       = icon_for_notification_kind(kind);
+
+		const ImVec2 pos      = ImGui::GetCursorScreenPos();
+		const float width     = std::max(1.0f, ImGui::GetContentRegionAvail().x);
+		const ImVec2 icon_sz  = has_text(icon) ? ImGui::CalcTextSize(icon) : ImVec2(0.0f, 0.0f);
+		const float icon_gap  = icon_sz.x > 0.0f ? spacing * 0.75f : 0.0f;
+		const float content_x = pos.x + padding + strip_size + 8.0f;
+		const float text_x    = content_x + icon_sz.x + icon_gap;
+		const float wrap_w    = std::max(1.0f, width - (text_x - pos.x) - padding);
+		const ImVec2 title_sz =
+		        has_text(title_text) ? ImGui::CalcTextSize(title_text, nullptr, false, wrap_w) : ImVec2(0.0f, 0.0f);
+		const ImVec2 msg_sz =
+		        has_text(message_text) ? ImGui::CalcTextSize(message_text, nullptr, false, wrap_w) : ImVec2(0.0f, 0.0f);
+		const float title_h = std::max(title_sz.y, icon_sz.y);
+		const float gap_y   = has_text(title_text) && has_text(message_text) ? spacing * 0.35f : 0.0f;
+		const float body_h  = has_text(title_text) ? title_h + gap_y + msg_sz.y : std::max(msg_sz.y, icon_sz.y);
+		const ImVec2 size(width, padding * 2.0f + body_h);
+
+		ImGui::Dummy(size);
+
+		ImDrawList* draw = ImGui::GetWindowDrawList();
+		const ImVec2 max = add(pos, size);
+		draw->AddRectFilled(pos, max, col_u32(background), rounding);
+		draw->AddRect(pos, max, col_u32(border), rounding, 0, active_context()->style.border_size);
+		draw->AddRectFilled(pos, ImVec2(pos.x + strip_size, max.y), col_u32(accent), rounding, ImDrawFlags_RoundCornersLeft);
+
+		if (icon_sz.x > 0.0f)
+		{
+			draw->AddText(ImVec2(content_x, pos.y + padding), col_u32(accent), icon);
+		}
+		if (has_text(title_text))
+		{
+			draw->AddText(ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(text_x, pos.y + padding),
+			              col_u32(active_context()->style.colors.text), title_text, nullptr, wrap_w);
+		}
+		if (has_text(message_text))
+		{
+			const float message_y = pos.y + padding + (has_text(title_text) ? title_h + gap_y : 0.0f);
+			draw->AddText(ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(text_x, message_y),
+			              col_u32(active_context()->style.colors.text_muted), message_text, nullptr, wrap_w);
+		}
+	}
+
+	void banner(const char* title, const char* message, const Vec4& accent_color)
+	{
+		const char* title_text   = has_text(title) ? visible_label(title) : nullptr;
+		const char* message_text = has_text(message) ? message : nullptr;
+		if (!has_text(title_text) && !has_text(message_text))
+		{
+			return;
+		}
+
+		const float rounding   = active_context()->style.rounding;
+		const float padding    = active_context()->style.padding * 1.35f;
+		const float spacing    = active_context()->style.spacing;
+		const float strip_size = 5.0f;
+		const Vec4 accent      = has_color(accent_color) ? accent_color : active_context()->style.colors.accent;
+		const Vec4 background  = mix_color(active_context()->style.colors.panel, accent, 0.10f);
+		const Vec4 border      = mix_color(active_context()->style.colors.border, accent, 0.45f);
+
+		const ImVec2 pos   = ImGui::GetCursorScreenPos();
+		const float width  = std::max(1.0f, ImGui::GetContentRegionAvail().x);
+		const float text_x = pos.x + padding + strip_size + 10.0f;
+		const float wrap_w = std::max(1.0f, width - (text_x - pos.x) - padding);
+		const ImVec2 title_sz =
+		        has_text(title_text) ? ImGui::CalcTextSize(title_text, nullptr, false, wrap_w) : ImVec2(0.0f, 0.0f);
+		const ImVec2 msg_sz =
+		        has_text(message_text) ? ImGui::CalcTextSize(message_text, nullptr, false, wrap_w) : ImVec2(0.0f, 0.0f);
+		const float gap_y = has_text(title_text) && has_text(message_text) ? spacing * 0.45f : 0.0f;
+		const ImVec2 size(width, padding * 2.0f + title_sz.y + gap_y + msg_sz.y);
+
+		ImGui::Dummy(size);
+
+		ImDrawList* draw = ImGui::GetWindowDrawList();
+		const ImVec2 max = add(pos, size);
+		draw->AddRectFilled(pos, max, col_u32(background), rounding);
+		draw->AddRect(pos, max, col_u32(border), rounding, 0, active_context()->style.border_size);
+		draw->AddRectFilled(pos, ImVec2(pos.x + strip_size, max.y), col_u32(accent), rounding, ImDrawFlags_RoundCornersLeft);
+
+		if (has_text(title_text))
+		{
+			draw->AddText(ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(text_x, pos.y + padding),
+			              col_u32(active_context()->style.colors.text), title_text, nullptr, wrap_w);
+		}
+		if (has_text(message_text))
+		{
+			draw->AddText(ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(text_x, pos.y + padding + title_sz.y + gap_y),
+			              col_u32(active_context()->style.colors.text_muted), message_text, nullptr, wrap_w);
+		}
+	}
+
+	bool hero(const HeroOptions& options)
+	{
+		const char* icon_text        = has_text(options.icon) ? options.icon : nullptr;
+		const char* title_text       = has_text(options.title) ? visible_label(options.title) : nullptr;
+		const char* description_text = has_text(options.description) ? options.description : nullptr;
+		const char* action_text      = has_text(options.action_label) ? visible_label(options.action_label) : nullptr;
+		if (!has_text(icon_text) && !has_text(title_text) && !has_text(description_text) && !has_text(action_text))
+		{
+			return false;
+		}
+
+		const float rounding      = options.rounding >= 0.0f ? options.rounding : active_context()->style.rounding;
+		const float padding       = options.padding >= 0.0f ? options.padding : active_context()->style.padding * 2.0f;
+		const float spacing       = options.spacing >= 0.0f ? options.spacing : active_context()->style.spacing;
+		const Vec4 accent         = has_color(options.accent) ? options.accent : active_context()->style.colors.accent;
+		const Vec4 background     = mix_color(active_context()->style.colors.panel, accent, 0.04f);
+		const Vec4 border         = mix_color(active_context()->style.colors.border, accent, 0.25f);
+		const float alpha_mul     = options.disabled ? 0.55f : 1.0f;
+		const ImVec2 pos          = ImGui::GetCursorScreenPos();
+		const float width         = options.size.x > 0.0f ? options.size.x : std::max(1.0f, ImGui::GetContentRegionAvail().x);
+		const float content_width = std::max(1.0f, width - padding * 2.0f);
+		const float desc_wrap     = std::max(140.0f, std::min(content_width, options.centered ? 520.0f : content_width));
+
+		const ImVec2 icon_sz = has_text(icon_text) ? ImGui::CalcTextSize(icon_text) : ImVec2(0.0f, 0.0f);
+		const ImVec2 title_sz =
+		        has_text(title_text) ? ImGui::CalcTextSize(title_text, nullptr, false, content_width) : ImVec2(0.0f, 0.0f);
+		const ImVec2 desc_sz = has_text(description_text) ? ImGui::CalcTextSize(description_text, nullptr, false, desc_wrap)
+		                                                  : ImVec2(0.0f, 0.0f);
+
+		float button_h = 0.0f;
+		float button_w = 0.0f;
+		char action_id[512];
+		action_id[0] = '\0';
+		if (has_text(action_text))
+		{
+			const ImVec2 action_sz = ImGui::CalcTextSize(action_text, nullptr, true);
+			button_w               = std::max(96.0f, action_sz.x + active_context()->style.padding * 2.0f);
+			button_h               = active_context()->style.frame_height;
+			std::snprintf(action_id, sizeof(action_id), "%s##hero_action", action_text);
+		}
+
+		float content_h = 0.0f;
+		auto add_block  = [&](bool present, float height) {
+            if (!present)
+            {
+                return;
+            }
+            if (content_h > 0.0f)
+            {
+                content_h += spacing;
+            }
+            content_h += height;
+		};
+		add_block(has_text(icon_text), icon_sz.y);
+		add_block(has_text(title_text), title_sz.y);
+		add_block(has_text(description_text), desc_sz.y);
+		add_block(has_text(action_text), button_h);
+
+		const float auto_height = std::max(content_h + padding * 2.0f, 120.0f);
+		const float height      = options.size.y > 0.0f ? options.size.y : auto_height;
+		const ImVec2 size(width, height);
+
+		ImGui::Dummy(size);
+
+		ImDrawList* draw = ImGui::GetWindowDrawList();
+		const ImVec2 max = add(pos, size);
+		if (options.elevation > 0.0f)
+		{
+			Shadow shadow = scaled_shadow(current_shadow(), options.elevation);
+			if (options.disabled)
+			{
+				shadow.color.w *= 0.55f;
+			}
+			draw_shadow_rect(draw, pos, max, rounding, shadow);
+		}
+		if (options.background)
+		{
+			draw->AddRectFilled(pos, max, col_u32(background, alpha_mul), rounding);
+		}
+		if (options.border)
+		{
+			draw->AddRect(pos, max, col_u32(border, alpha_mul), rounding, 0, active_context()->style.border_size);
+		}
+
+		const float content_top =
+		        options.size.y > 0.0f ? pos.y + std::max(padding, (height - content_h) * 0.5f) : pos.y + padding;
+		float y              = content_top;
+		const float left_x   = pos.x + padding;
+		const float center_x = pos.x + width * 0.5f;
+
+		auto block_x = [&](float block_width) { return options.centered ? center_x - block_width * 0.5f : left_x; };
+
+		if (has_text(icon_text))
+		{
+			draw->AddText(ImVec2(block_x(icon_sz.x), y), col_u32(accent, alpha_mul), icon_text);
+			y += icon_sz.y + spacing;
+		}
+		if (has_text(title_text))
+		{
+			draw->AddText(ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(block_x(title_sz.x), y),
+			              col_u32(active_context()->style.colors.text, alpha_mul), title_text, nullptr, content_width);
+			y += title_sz.y + spacing;
+		}
+		if (has_text(description_text))
+		{
+			draw->AddText(ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(block_x(desc_sz.x), y),
+			              col_u32(active_context()->style.colors.text_muted, alpha_mul), description_text, nullptr, desc_wrap);
+			y += desc_sz.y + spacing;
+		}
+
+		bool clicked = false;
+		if (has_text(action_text))
+		{
+			ButtonOptions button_options;
+			button_options.size     = Vec2(button_w, button_h);
+			button_options.accent   = accent;
+			button_options.disabled = options.disabled;
+
+			const ImVec2 button_pos(block_x(button_w), y);
+			ImGui::SetCursorScreenPos(button_pos);
+			if (has_text(title_text))
+			{
+				ImGui::PushID(title_text);
+			}
+			else if (has_text(description_text))
+			{
+				ImGui::PushID(description_text);
+			}
+			else
+			{
+				ImGui::PushID("hero");
+			}
+			clicked = button(action_id, button_options);
+			ImGui::PopID();
+		}
+
+		ImGui::SetCursorScreenPos(ImVec2(pos.x, pos.y + size.y));
+		ImGui::Dummy(ImVec2(0.0f, 0.0f));
+		return clicked;
+	}
+
 	void empty_state(const StateOptions& options)
 	{
 		const char* icon        = options.icon != nullptr ? options.icon : "-";
@@ -4805,6 +5087,35 @@ namespace Trinex
 							UI::empty_state({"-", "Empty state", "Use this in panels with no content."});
 							UI::loading_state("Loading state");
 							UI::error_state("Something went wrong while loading data.");
+
+							UI::separator();
+							UI::text("Presentation widgets");
+							UI::text_muted(
+							        "Inline message blocks for tips, page-level status, and polished empty-state actions.");
+
+							UI::callout("Unsaved changes", "Your scene has local modifications. Save before closing the editor.",
+							            UI::notification_kind::warning);
+							UI::callout("Build succeeded", "Shaders were compiled successfully.", UI::notification_kind::success);
+
+							UI::spacing();
+							UI::banner("Vulkan SDK not found", "Install Vulkan SDK to enable shader compilation.",
+							           UI::get_style().colors.warning);
+
+							UI::spacing();
+							UI::hero_options hero_demo;
+							hero_demo.icon         = ICON_LC_FOLDER_OPEN;
+							hero_demo.title        = "No project opened";
+							hero_demo.description  = "Create a new project or open an existing one to start working.";
+							hero_demo.action_label = "Open Project";
+							hero_demo.accent       = UI::Vec4(0.28f, 0.62f, 0.95f, 1.0f);
+							hero_demo.elevation    = 0.8f;
+							hero_demo.size         = UI::Vec2(0.0f, 220.0f);
+
+							if (UI::hero(hero_demo))
+							{
+								UI::notification("Hero action clicked.",
+								                 {.kind = UI::notification_kind::info, .title = "Open Project"});
+							}
 						}
 						else if (selected_tab == 5)
 						{

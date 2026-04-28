@@ -518,6 +518,26 @@ namespace Trinex::UI
 		const char* description = nullptr;
 	};
 
+	struct HeroOptions {
+		const char* icon         = nullptr;
+		const char* title        = nullptr;
+		const char* description  = nullptr;
+		const char* action_label = nullptr;
+
+		Vec2 size   = Vec2(0.0f, 0.0f);
+		Vec4 accent = Vec4(0, 0, 0, 0);
+
+		bool border     = true;
+		bool background = true;
+		bool centered   = true;
+		bool disabled   = false;
+
+		float rounding  = -1.0f;
+		float padding   = -1.0f;
+		float spacing   = -1.0f;
+		float elevation = 0.0f;
+	};
+
 	using ease                 = Ease;
 	using key                  = Key;
 	using mouse_button         = MouseButton;
@@ -534,6 +554,7 @@ namespace Trinex::UI
 	using keybind              = Keybind;
 	using confirm_result       = ConfirmResult;
 	using state_options        = StateOptions;
+	using hero_options         = HeroOptions;
 
 	struct DisabledScope {
 		explicit DisabledScope(bool disabled = true);
@@ -845,6 +866,14 @@ namespace Trinex::UI
 	bool begin_drop_target();
 	const DragDropPayload* accept_drop_payload(const char* type, DragDropFlags drag_drop = DragDropFlags::Undefined);
 	void end_drop_target();
+	// Draws a compact semantic inline message block.
+	// Used for tips, warnings, errors, and success messages inside panels.
+	void callout(const char* title, const char* message, NotificationKind kind = NotificationKind::Info);
+	// Draws a prominent full-width message block for page/panel-level status.
+	void banner(const char* title, const char* message, const Vec4& accent = Vec4(0, 0, 0, 0));
+	// Draws a large empty-state/welcome/header block.
+	// Returns true when the optional action button is clicked.
+	bool hero(const HeroOptions& options);
 	void empty_state(const StateOptions& options);
 	void loading_state(const char* text = "Loading...");
 	void error_state(const char* message, const char* title = "Error");
