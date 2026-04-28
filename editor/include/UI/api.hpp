@@ -400,6 +400,16 @@ namespace Trinex::UI
 		Vec4 error              = Vec4(0.95f, 0.32f, 0.32f, 1.00f);
 	};
 
+	struct Shadow {
+		// Moves the shadow relative to the widget rectangle.
+		Vec2 offset = Vec2(0.0f, 4.0f);
+		// Approximate blur radius used to spread and soften the shadow.
+		float blur = 16.0f;
+		// Expands or contracts the shadow rectangle before blur is applied.
+		float spread = 0.0f;
+		Vec4 color   = Vec4(0.0f, 0.0f, 0.0f, 0.22f);
+	};
+
 	struct Style {
 		float animation_speed = 12.0f;
 		float rounding        = 8.0f;
@@ -409,6 +419,7 @@ namespace Trinex::UI
 		float spacing         = 8.0f;
 		float alpha           = 1.0f;
 		Vec2 hover_padding    = Vec2(2.0f, 2.0f);
+		Shadow shadow;
 		ColorTheme colors;
 	};
 
@@ -510,6 +521,7 @@ namespace Trinex::UI
 	using ease                 = Ease;
 	using key                  = Key;
 	using mouse_button         = MouseButton;
+	using shadow               = Shadow;
 	using style                = Style;
 	using color_theme          = ColorTheme;
 	using panel_options        = PanelOptions;
@@ -537,6 +549,13 @@ namespace Trinex::UI
 		StyleScope& operator=(const StyleScope&) = delete;
 	};
 
+	struct ShadowScope {
+		explicit ShadowScope(const Shadow& shadow);
+		~ShadowScope();
+		ShadowScope(const ShadowScope&)            = delete;
+		ShadowScope& operator=(const ShadowScope&) = delete;
+	};
+
 	struct IdScope {
 		explicit IdScope(const char* id);
 		explicit IdScope(int id);
@@ -559,6 +578,12 @@ namespace Trinex::UI
 	void set_style(const Style& value);
 	void push_style(const Style& value);
 	void pop_style();
+	// Pushes a shadow style used by elevated widgets rendered after this call.
+	// The shadow is visual-only: it does not affect layout, item size, or hit testing.
+	// Must be balanced with pop_shadow().
+	void push_shadow(const Shadow& shadow);
+	// Restores the previous shadow style. Must match a previous push_shadow() call.
+	void pop_shadow();
 
 	float apply_ease(float t, Ease mode = Ease::OutCubic);
 	float animate_float(ID id, float target, float speed = -1.0f);

@@ -77,6 +77,16 @@ namespace Trinex::UI
 		float previous_draw_alpha = 1.0f;
 	};
 
+	struct PanelContext {
+		bool border           = true;
+		bool background       = true;
+		bool draw_shadow      = false;
+		float rounding        = 0.0f;
+		Vec4 background_color = Vec4(0, 0, 0, 0);
+		Vec4 border_color     = Vec4(0, 0, 0, 0);
+		Shadow shadow;
+	};
+
 	struct CardContext {
 		ImGuiID id            = 0;
 		bool disabled         = false;
@@ -89,6 +99,7 @@ namespace Trinex::UI
 		Vec4 accent           = Vec4(0, 0, 0, 0);
 		Vec4 background_color = Vec4(0, 0, 0, 0);
 		Vec4 border_color     = Vec4(0, 0, 0, 0);
+		Shadow shadow;
 	};
 
 	struct PersistentWindow {
@@ -124,7 +135,9 @@ namespace Trinex::UI
 		Vector<float> tree_indent_stack;
 		Vector<TreeContext> tree_stack;
 		Vector<AreaContext> area_stack;
+		Vector<PanelContext> panel_stack;
 		Vector<CardContext> card_stack;
+		Vector<Shadow> shadow_stack;
 		Vector<float> disabled_alpha_stack;
 		Vector<String> pending_modals;
 		Vector<String> pending_popups;
@@ -169,7 +182,9 @@ namespace Trinex::UI
 #define g_tree_indent_stack active_context()->tree_indent_stack
 #define g_tree_stack active_context()->tree_stack
 #define g_area_stack active_context()->area_stack
+#define g_panel_stack active_context()->panel_stack
 #define g_card_stack active_context()->card_stack
+#define g_shadow_stack active_context()->shadow_stack
 #define g_disabled_alpha_stack active_context()->disabled_alpha_stack
 #define g_pending_modals active_context()->pending_modals
 #define g_pending_popups active_context()->pending_popups
@@ -346,6 +361,33 @@ namespace Trinex::UI
 			return c.x != 0.0f || c.y != 0.0f || c.z != 0.0f || c.w != 0.0f;
 		}
 
+		const Shadow& current_shadow()
+		{
+			return g_shadow_stack.empty() ? active_context()->style.shadow : g_shadow_stack.back();
+		}
+
+		bool has_shadow_override()
+		{
+			return !g_shadow_stack.empty();
+		}
+
+		bool shadow_visible(const Shadow& shadow)
+		{
+			return shadow.color.w > 0.0f;
+		}
+
+		Shadow scaled_shadow(const Shadow& shadow, float elevation)
+		{
+			Shadow result     = shadow;
+			const float scale = std::max(0.0f, elevation);
+			const float alpha = Math::clamp(elevation, 0.0f, 1.5f);
+			result.offset     = Vec2(result.offset.x * scale, result.offset.y * scale);
+			result.blur *= scale;
+			result.spread *= scale;
+			result.color.w *= alpha;
+			return result;
+		}
+
 		Vec4 with_alpha(Vec4 c, float alpha)
 		{
 			c.w *= alpha;
@@ -389,6 +431,41 @@ namespace Trinex::UI
 			rect.rounding_scale =
 			        std::min(rect.visual_size.x / std::max(1.0f, base_size.x), rect.visual_size.y / std::max(1.0f, base_size.y));
 			return rect;
+		}
+
+		void draw_shadow_rect(ImDrawList* draw, const ImVec2& min, const ImVec2& max, float rounding, const Shadow& shadow)
+		{
+			if (draw == nullptr || !shadow_visible(shadow))
+			{
+				return;
+			}
+
+			const ImVec2 offset = to_imvec(shadow.offset);
+			const ImVec2 base_min(min.x + offset.x - shadow.spread, min.y + offset.y - shadow.spread);
+			const ImVec2 base_max(max.x + offset.x + shadow.spread, max.y + offset.y + shadow.spread);
+			const float base_rounding = std::max(0.0f, rounding + shadow.spread);
+			draw->PushClipRectFullScreen();
+
+			if (shadow.blur <= 0.0f)
+			{
+				draw->AddRectFilled(base_min, base_max, col_u32(shadow.color), base_rounding);
+				draw->PopClipRect();
+				return;
+			}
+
+			const float blur = Math::clamp(shadow.blur, 0.0f, 48.0f);
+			const int layers = Math::clamp(static_cast<int>(std::ceil(blur / 4.0f)), 2, 10);
+			for (int i = layers - 1; i >= 0; --i)
+			{
+				const float t     = static_cast<float>(i + 1) / static_cast<float>(layers);
+				const float grow  = blur * t * 0.55f;
+				const float alpha = (1.0f - t) * (1.0f - t) * 0.95f / static_cast<float>(layers);
+				Vec4 layer_color  = shadow.color;
+				layer_color.w *= alpha * static_cast<float>(layers);
+				draw->AddRectFilled(ImVec2(base_min.x - grow, base_min.y - grow), ImVec2(base_max.x + grow, base_max.y + grow),
+				                    col_u32(layer_color), base_rounding + grow);
+			}
+			draw->PopClipRect();
 		}
 
 		bool contains_case_insensitive(const char* text, const char* filter)
@@ -831,7 +908,9 @@ namespace Trinex::UI
 		g_tree_indent_stack.clear();
 		g_tree_stack.clear();
 		g_area_stack.clear();
+		g_panel_stack.clear();
 		g_card_stack.clear();
+		g_shadow_stack.clear();
 		g_disabled_alpha_stack.clear();
 		g_pending_modals.clear();
 		g_pending_popups.clear();
@@ -945,6 +1024,12 @@ namespace Trinex::UI
 			RHI::instance()->present(swapchain);
 		}
 
+		trinex_assert(g_shadow_stack.empty() && "UI::push_shadow()/pop_shadow() imbalance detected at end_frame()");
+		if (!g_shadow_stack.empty())
+		{
+			g_shadow_stack.clear();
+		}
+
 		ImGui::SetCurrentContext(nullptr);
 	}
 
@@ -980,6 +1065,20 @@ namespace Trinex::UI
 		}
 	}
 
+	void push_shadow(const Shadow& shadow)
+	{
+		g_shadow_stack.push_back(shadow);
+	}
+
+	void pop_shadow()
+	{
+		trinex_assert(!g_shadow_stack.empty() && "UI::pop_shadow() called without matching push_shadow()");
+		if (!g_shadow_stack.empty())
+		{
+			g_shadow_stack.pop_back();
+		}
+	}
+
 	DisabledScope::DisabledScope(bool disabled)
 	{
 		begin_disabled(disabled);
@@ -998,6 +1097,16 @@ namespace Trinex::UI
 	StyleScope::~StyleScope()
 	{
 		pop_style();
+	}
+
+	ShadowScope::ShadowScope(const Shadow& shadow)
+	{
+		push_shadow(shadow);
+	}
+
+	ShadowScope::~ShadowScope()
+	{
+		pop_shadow();
 	}
 
 	IdScope::IdScope(const char* id)
@@ -1186,18 +1295,68 @@ namespace Trinex::UI
 	bool begin_panel(const char* id, const panel_options& options)
 	{
 		const Vec4 bg = has_color(options.background_color) ? options.background_color : active_context()->style.colors.panel;
-		ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding,
-		                    options.rounding >= 0.0f ? options.rounding : active_context()->style.rounding);
-		ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, options.border ? active_context()->style.border_size : 0.0f);
+		const float rounding = options.rounding >= 0.0f ? options.rounding : active_context()->style.rounding;
+		ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, rounding);
+		ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,
 		                    ImVec2(active_context()->style.padding, active_context()->style.padding));
-		ImGui::PushStyleColor(ImGuiCol_ChildBg, options.background ? to_imvec(bg) : ImVec4(0, 0, 0, 0));
-		ImGui::PushStyleColor(ImGuiCol_Border, to_imvec(active_context()->style.colors.border));
-		return ImGui::BeginChild(id, to_imvec(options.size), options.border, ImGuiWindowFlags_None);
+		ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
+		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
+		const bool visible =
+		        ImGui::BeginChild(id, to_imvec(options.size), ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_None);
+		if (!visible)
+		{
+			ImGui::EndChild();
+			ImGui::PopStyleColor(2);
+			ImGui::PopStyleVar(3);
+			return false;
+		}
+
+		PanelContext context;
+		context.border           = options.border;
+		context.background       = options.background;
+		context.rounding         = rounding;
+		context.background_color = bg;
+		context.border_color     = active_context()->style.colors.border;
+		context.draw_shadow      = options.background && has_shadow_override() && shadow_visible(current_shadow());
+		context.shadow           = current_shadow();
+		g_panel_stack.push_back(context);
+
+		ImGui::GetWindowDrawList()->ChannelsSplit(2);
+		ImGui::GetWindowDrawList()->ChannelsSetCurrent(1);
+		return true;
 	}
 
 	void end_panel()
 	{
+		trinex_assert(!g_panel_stack.empty() && "UI::end_panel() called without matching begin_panel()");
+		if (g_panel_stack.empty())
+		{
+			return;
+		}
+
+		const PanelContext context = g_panel_stack.back();
+		g_panel_stack.pop_back();
+
+		ImDrawList* draw = ImGui::GetWindowDrawList();
+		draw->ChannelsSetCurrent(0);
+		const ImVec2 min = ImGui::GetWindowPos();
+		const ImVec2 max = add(min, ImGui::GetWindowSize());
+		if (context.draw_shadow)
+		{
+			draw_shadow_rect(draw, min, max, context.rounding, context.shadow);
+		}
+		if (context.background)
+		{
+			draw->AddRectFilled(min, max, col_u32(context.background_color), context.rounding);
+		}
+		if (context.border)
+		{
+			draw->AddRect(min, max, col_u32(context.border_color), context.rounding, 0, active_context()->style.border_size);
+		}
+		draw->ChannelsSetCurrent(1);
+		draw->ChannelsMerge();
+
 		ImGui::EndChild();
 		ImGui::PopStyleColor(2);
 		ImGui::PopStyleVar(3);
@@ -1222,7 +1381,14 @@ namespace Trinex::UI
 		{
 			text_muted("%s", label);
 		}
-		return begin_child_panel(label, size, options);
+
+		if (!begin_child_panel(label, size, options))
+		{
+			ImGui::EndGroup();
+			return false;
+		}
+
+		return true;
 	}
 
 	void end_group_panel()
@@ -1290,6 +1456,7 @@ namespace Trinex::UI
 		context.accent           = accent;
 		context.background_color = bg;
 		context.border_color     = border;
+		context.shadow           = current_shadow();
 		g_card_stack.push_back(context);
 
 		ImGui::GetWindowDrawList()->ChannelsSplit(2);
@@ -1382,12 +1549,7 @@ namespace Trinex::UI
 
 		if (context.elevation > 0.0f)
 		{
-			const float shadow = Math::clamp(context.elevation, 0.0f, 3.0f);
-			draw->AddRectFilled(ImVec2(min.x + shadow * 0.5f, min.y + 2.0f + shadow),
-			                    ImVec2(max.x - shadow * 0.5f, max.y + shadow), col_u32(Vec4(0, 0, 0, 0.14f), 0.45f),
-			                    context.rounding + shadow);
-			draw->AddRectFilled(ImVec2(min.x + shadow, min.y + 1.0f + shadow * 0.5f), ImVec2(max.x, max.y + shadow * 0.5f),
-			                    col_u32(Vec4(0, 0, 0, 0.10f), 0.30f), context.rounding + shadow);
+			draw_shadow_rect(draw, min, max, context.rounding, scaled_shadow(context.shadow, context.elevation));
 		}
 		if (context.background)
 		{
@@ -1503,10 +1665,12 @@ namespace Trinex::UI
 		ImDrawList* draw = ImGui::GetWindowDrawList();
 		if (options.elevation > 0.0f)
 		{
-			const float shadow = Math::clamp(options.elevation, 0.0f, 3.0f);
-			draw->AddRectFilled(ImVec2(rect.min.x + shadow * 0.5f, rect.min.y + 2.0f + shadow),
-			                    ImVec2(rect.max.x - shadow * 0.5f, rect.max.y + shadow), col_u32(Vec4(0, 0, 0, 0.14f), 0.45f),
-			                    rounding * rect.rounding_scale + shadow);
+			Shadow shadow = scaled_shadow(current_shadow(), options.elevation);
+			if (options.disabled)
+			{
+				shadow.color.w *= 0.55f;
+			}
+			draw_shadow_rect(draw, rect.min, rect.max, rounding * rect.rounding_scale, shadow);
 		}
 		if (options.background)
 		{
@@ -1656,6 +1820,7 @@ namespace Trinex::UI
 		ImGui::PopStyleVar();
 		ImGui::PopClipRect();
 		ImGui::SetCursorScreenPos(ImVec2(context.content_start.x, context.content_start.y + visible_height));
+		ImGui::Dummy(ImVec2(0.0f, 0.0f));
 		ImGui::PopID();
 	}
 
@@ -2043,6 +2208,11 @@ namespace Trinex::UI
 		Vec4 frame_bg     = has_color(options.background_color) ? options.background_color : active_context()->style.colors.panel;
 		Vec4 frame_border = has_color(options.border_color) ? options.border_color : active_context()->style.colors.border;
 
+		if ((options.background || options.border) && has_shadow_override())
+		{
+			draw_shadow_rect(draw, pos, max, rounding, current_shadow());
+		}
+
 		if (options.background)
 		{
 			draw->AddRectFilled(pos, max, col_u32(frame_bg), rounding);
@@ -2106,6 +2276,11 @@ namespace Trinex::UI
 		        make_interactive_rect(ImVec2(pos.x + padding, pos.y + padding), image_size, anim.hover, anim.active);
 		const float image_rounding = std::max(0.0f, (rounding - padding * 0.5f) * image_rect.rounding_scale);
 
+		if (has_shadow_override())
+		{
+			draw_shadow_rect(draw, frame_rect.min, frame_rect.max, rounding * frame_rect.rounding_scale, current_shadow());
+		}
+
 		if (options.background)
 		{
 			draw->AddRectFilled(frame_rect.min, frame_rect.max, col_u32(frame_bg), rounding * frame_rect.rounding_scale);
@@ -2155,6 +2330,15 @@ namespace Trinex::UI
 		bg                         = Math::lerp(bg, accent, anim.active * 0.65f);
 		ImDrawList* draw           = ImGui::GetWindowDrawList();
 		const InteractiveRect rect = make_interactive_rect(pos, size, anim.hover, anim.active);
+		if (has_shadow_override())
+		{
+			Shadow shadow = current_shadow();
+			if (options.disabled)
+			{
+				shadow.color.w *= 0.55f;
+			}
+			draw_shadow_rect(draw, rect.min, rect.max, active_context()->style.rounding * rect.rounding_scale, shadow);
+		}
 		if (!options.ghost || anim.hover > 0.01f || anim.active > 0.01f)
 		{
 			draw->AddRectFilled(rect.min, rect.max, col_u32(bg, options.disabled ? 0.45f : 1.0f),
@@ -3255,6 +3439,7 @@ namespace Trinex::UI
 		ImGui::PopClipRect();
 
 		ImGui::SetCursorScreenPos(ImVec2(context.content_start.x, context.content_start.y + visible_height));
+		ImGui::Dummy(ImVec2(0.0f, 0.0f));
 		ImGui::PopID();
 	}
 
@@ -3965,26 +4150,37 @@ namespace Trinex
 
 					if (UI::begin_toolbar("top_toolbar"))
 					{
+						UI::ShadowScope shadow_scope(UI::Shadow{
+						        .offset = UI::Vec2(2.0f, 6.0f),
+						        .blur   = 0.0f,
+						        .spread = 1.0f,
+						        .color  = UI::Vec4(0.0f, 0.0f, 0.0f, 0.18f),
+						});
+
 						if (UI::button("Save"))
 						{
 							UI::notification("Scene saved successfully.", {UI::notification_kind::success, 3.0f, "Save"});
 						}
 						UI::same_line();
+
 						if (UI::icon_button("+", "Create"))
 						{
 							UI::notification("Created a new object.", {UI::notification_kind::info, 2.5f, "Create"});
 						}
 						UI::same_line();
+
 						if (UI::ghost_button("Open popup"))
 						{
 							UI::open_popup("demo_popup");
 						}
 						UI::same_line();
+
 						if (UI::danger_button("Open modal"))
 						{
 							modal_open = true;
 							UI::open_modal("Confirm reset");
 						}
+
 						UI::end_toolbar();
 					}
 
@@ -4074,8 +4270,8 @@ namespace Trinex
 						UI::pill("BETA", UI::get_style().colors.warning);
 						UI::same_line();
 						UI::status_dot(enabled ? UI::get_style().colors.success : UI::get_style().colors.error);
+						UI::end_child_panel();
 					}
-					UI::end_child_panel();
 
 					UI::same_line();
 					UI::splitter("main_splitter", &left_size, &right_size, 180.0f, 360.0f);
@@ -4122,9 +4318,14 @@ namespace Trinex
 								selected_tab = 6;
 							}
 							UI::same_line();
-							if (UI::tab("Runtime", selected_tab == 7))
+							if (UI::tab("Shadow", selected_tab == 7))
 							{
 								selected_tab = 7;
+							}
+							UI::same_line();
+							if (UI::tab("Runtime", selected_tab == 8))
+							{
+								selected_tab = 8;
 							}
 							UI::end_tab_bar();
 						}
@@ -4289,13 +4490,14 @@ namespace Trinex
 							UI::panel_options nested_panel;
 							nested_panel.size             = UI::Vec2(0.0f, 110.0f);
 							nested_panel.background_color = UI::Vec4(0.08f, 0.13f, 0.12f, 1.0f);
+
 							if (UI::begin_panel("nested_panel", nested_panel))
 							{
 								UI::text("begin_panel() / end_panel()");
 								UI::text_muted("This panel uses a custom background color.");
 								UI::button("Panel button");
+								UI::end_panel();
 							}
-							UI::end_panel();
 
 							UI::spacing();
 
@@ -4304,8 +4506,8 @@ namespace Trinex
 								UI::text("begin_group_panel() / end_group_panel()");
 								UI::checkbox("Grouped checkbox", &show_grid);
 								UI::toggle("Grouped toggle", &enabled);
+								UI::end_group_panel();
 							}
-							UI::end_group_panel();
 
 							UI::spacing();
 							UI::text("Cards");
@@ -4347,7 +4549,7 @@ namespace Trinex
 							tile_card.right_text = "Select";
 							tile_card.size       = UI::Vec2(0.0f, 84.0f);
 							tile_card.elevation  = 1.0f;
-							
+
 							if (UI::card_button("Asset Tile", tile_card))
 							{
 								selected_entity = 1;
@@ -4603,6 +4805,80 @@ namespace Trinex
 							std::snprintf(precision_text, sizeof(precision_text), "%.6f", precision_value);
 							UI::key_value_row("Current asset", hint_buffer);
 							UI::key_value_row("Precision", precision_text);
+						}
+						else if (selected_tab == 7)
+						{
+							UI::text("Shadows");
+							UI::text_muted("Dedicated examples for default elevation, pushed shadow styles, and ShadowScope.");
+
+							UI::card_options default_shadow_card;
+							default_shadow_card.icon       = "D";
+							default_shadow_card.subtitle   = "Uses Style::shadow";
+							default_shadow_card.right_text = "Default";
+							default_shadow_card.elevation  = 0.8f;
+							UI::card("Default Card Shadow", default_shadow_card, [&] {
+								UI::text("Baseline card elevation.");
+								UI::text_muted("If this is invisible, shadow rendering is broken.");
+							});
+							UI::spacing(12.0f);
+
+							UI::Shadow soft_shadow;
+							soft_shadow.offset = UI::Vec2(2.0f, 6.0f);
+							soft_shadow.blur   = 18.0f;
+							soft_shadow.spread = 1.0f;
+							soft_shadow.color  = UI::Vec4(0.0f, 0.0f, 0.0f, 0.24f);
+
+							UI::push_shadow(soft_shadow);
+							UI::card_options soft_shadow_card;
+							soft_shadow_card.icon       = "S";
+							soft_shadow_card.subtitle   = "push_shadow() demo";
+							soft_shadow_card.right_text = "Soft";
+							soft_shadow_card.elevation  = 0.85f;
+							UI::card("Soft Shadow Card", soft_shadow_card, [&] {
+								UI::text("Uses the pushed shadow stack value.");
+								UI::text_muted("Should be visibly softer and larger.");
+							});
+							UI::pop_shadow();
+							UI::spacing(14.0f);
+
+							{
+								UI::ShadowScope shadow_scope(UI::Shadow{
+								        .offset = UI::Vec2(2.0f, 6.0f),
+								        .blur   = 0.0f,
+								        .spread = 1.0f,
+								        .color  = UI::Vec4(0.0f, 0.0f, 0.0f, 0.18f),
+								});
+
+								UI::panel_options shadow_panel;
+								shadow_panel.size = UI::Vec2(0.0f, 84.0f);
+								if (UI::begin_panel("shadow_scope_panel", shadow_panel))
+								{
+									UI::text("Panel with hard directional shadow");
+									UI::text_muted("ShadowScope also affects panels.");
+									UI::end_panel();
+								}
+							}
+
+							UI::spacing(14.0f);
+							{
+								UI::ShadowScope shadow_scope(UI::Shadow{
+								        .offset = UI::Vec2(2.0f, 6.0f),
+								        .blur   = 0.0f,
+								        .spread = 1.0f,
+								        .color  = UI::Vec4(0.0f, 0.0f, 0.0f, 0.18f),
+								});
+
+								UI::card_options shadow_tile;
+								shadow_tile.icon       = "T";
+								shadow_tile.subtitle   = "Clickable elevated surface";
+								shadow_tile.right_text = "Button";
+								shadow_tile.elevation  = 0.9f;
+								shadow_tile.selected   = selected_entity == 2;
+								if (UI::card_button("Shadow Tile", shadow_tile))
+								{
+									selected_entity = 2;
+								}
+							}
 						}
 						else
 						{
