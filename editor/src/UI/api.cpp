@@ -110,6 +110,24 @@ namespace Trinex::UI
 		Function<void()> content;
 	};
 
+	struct RegisteredCommand {
+		String id;
+		String name;
+		String description;
+		String shortcut;
+		String icon;
+		Function<void()> action;
+	};
+
+	struct CommandPaletteState {
+		bool open                    = false;
+		bool focus_search_next_frame = false;
+		char search[256]             = {};
+		int selected_index           = 0;
+		Vector<RegisteredCommand> commands;
+		Vector<int> filtered_indices;
+	};
+
 	struct ActiveWindowScope {
 		bool* external_open          = nullptr;
 		PersistentWindow* persistent = nullptr;
@@ -144,6 +162,7 @@ namespace Trinex::UI
 		Vector<String> pending_popups;
 		Vector<Notification> notifications;
 		Vector<PersistentWindow> windows;
+		CommandPaletteState command_palette;
 		Vector<ActiveWindowScope> active_window_stack;
 		PersistentWindow* rendering_window = nullptr;
 		ImGuiID next_notification_id       = 1;
@@ -189,6 +208,7 @@ namespace Trinex::UI
 #define g_disabled_alpha_stack active_context()->disabled_alpha_stack
 #define g_pending_modals active_context()->pending_modals
 #define g_pending_popups active_context()->pending_popups
+#define g_command_palette active_context()->command_palette
 #define g_notifications active_context()->notifications
 
 		float dt()
@@ -393,6 +413,138 @@ namespace Trinex::UI
 				case NotificationKind::Error: return ICON_LC_CIRCLE_X;
 				case NotificationKind::Info:
 				default: return ICON_LC_INFO;
+			}
+		}
+
+		bool equals_case_insensitive(const char* a, const char* b)
+		{
+			if (a == nullptr || b == nullptr)
+			{
+				return a == b;
+			}
+			while (*a != '\0' && *b != '\0')
+			{
+				if (std::tolower(static_cast<unsigned char>(*a)) != std::tolower(static_cast<unsigned char>(*b)))
+				{
+					return false;
+				}
+				++a;
+				++b;
+			}
+			return *a == '\0' && *b == '\0';
+		}
+
+		bool starts_with_case_insensitive(const char* text, const char* prefix)
+		{
+			if (!has_text(text) || !has_text(prefix))
+			{
+				return false;
+			}
+			while (*prefix != '\0')
+			{
+				if (*text == '\0' ||
+				    std::tolower(static_cast<unsigned char>(*text)) != std::tolower(static_cast<unsigned char>(*prefix)))
+				{
+					return false;
+				}
+				++text;
+				++prefix;
+			}
+			return true;
+		}
+
+		bool contains_case_insensitive_text(const char* text, const char* query)
+		{
+			if (!has_text(query))
+			{
+				return true;
+			}
+			if (!has_text(text))
+			{
+				return false;
+			}
+
+			for (const char* it = text; *it != '\0'; ++it)
+			{
+				const char* a = it;
+				const char* b = query;
+				while (*a != '\0' && *b != '\0' &&
+				       std::tolower(static_cast<unsigned char>(*a)) == std::tolower(static_cast<unsigned char>(*b)))
+				{
+					++a;
+					++b;
+				}
+				if (*b == '\0')
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
+		int command_match_score(const RegisteredCommand& command, const char* query)
+		{
+			if (!has_text(query))
+			{
+				return 0;
+			}
+			if (equals_case_insensitive(command.name.c_str(), query))
+			{
+				return 700;
+			}
+			if (starts_with_case_insensitive(command.name.c_str(), query))
+			{
+				return 600;
+			}
+			if (contains_case_insensitive_text(command.name.c_str(), query))
+			{
+				return 500;
+			}
+			if (contains_case_insensitive_text(command.description.c_str(), query))
+			{
+				return 300;
+			}
+			if (contains_case_insensitive_text(command.id.c_str(), query))
+			{
+				return 200;
+			}
+			if (contains_case_insensitive_text(command.shortcut.c_str(), query))
+			{
+				return 100;
+			}
+			return -1;
+		}
+
+		void refresh_command_palette_results()
+		{
+			g_command_palette.filtered_indices.clear();
+			const bool has_query = has_text(g_command_palette.search);
+
+			for (int i = 0; i < static_cast<int>(g_command_palette.commands.size()); ++i)
+			{
+				if (command_match_score(g_command_palette.commands[i], g_command_palette.search) >= 0)
+				{
+					g_command_palette.filtered_indices.push_back(i);
+				}
+			}
+
+			if (has_query)
+			{
+				std::stable_sort(g_command_palette.filtered_indices.begin(), g_command_palette.filtered_indices.end(),
+				                 [](int a, int b) {
+					                 return command_match_score(g_command_palette.commands[a], g_command_palette.search) >
+					                        command_match_score(g_command_palette.commands[b], g_command_palette.search);
+				                 });
+			}
+
+			if (g_command_palette.filtered_indices.empty())
+			{
+				g_command_palette.selected_index = 0;
+			}
+			else
+			{
+				g_command_palette.selected_index = Math::clamp(g_command_palette.selected_index, 0,
+				                                               static_cast<int>(g_command_palette.filtered_indices.size()) - 1);
 			}
 		}
 
@@ -949,6 +1101,12 @@ namespace Trinex::UI
 		g_disabled_alpha_stack.clear();
 		g_pending_modals.clear();
 		g_pending_popups.clear();
+		g_command_palette.commands.clear();
+		g_command_palette.filtered_indices.clear();
+		g_command_palette.open                    = false;
+		g_command_palette.focus_search_next_frame = false;
+		g_command_palette.search[0]               = '\0';
+		g_command_palette.selected_index          = 0;
 		g_notifications.clear();
 		active_context()->windows.clear();
 		active_context()->keybind_capture = 0;
@@ -3820,6 +3978,299 @@ namespace Trinex::UI
 		return clicked;
 	}
 
+	void register_command(const Command& command)
+	{
+		trinex_assert(has_text(command.id) && "UI::register_command() requires a non-empty command id");
+		trinex_assert(has_text(command.name) && "UI::register_command() requires a non-empty command name");
+		if (!has_text(command.id) || !has_text(command.name))
+		{
+			return;
+		}
+
+		for (RegisteredCommand& existing : g_command_palette.commands)
+		{
+			if (existing.id == command.id)
+			{
+				existing.name        = command.name;
+				existing.description = command.description != nullptr ? command.description : "";
+				existing.shortcut    = command.shortcut != nullptr ? command.shortcut : "";
+				existing.icon        = command.icon != nullptr ? command.icon : "";
+				existing.action      = command.action;
+				return;
+			}
+		}
+
+		RegisteredCommand entry;
+		entry.id          = command.id;
+		entry.name        = command.name;
+		entry.description = command.description != nullptr ? command.description : "";
+		entry.shortcut    = command.shortcut != nullptr ? command.shortcut : "";
+		entry.icon        = command.icon != nullptr ? command.icon : "";
+		entry.action      = command.action;
+		g_command_palette.commands.push_back(std::move(entry));
+	}
+
+	void open_command_palette()
+	{
+		g_command_palette.open                    = true;
+		g_command_palette.focus_search_next_frame = true;
+		g_command_palette.search[0]               = '\0';
+		g_command_palette.selected_index          = 0;
+		refresh_command_palette_results();
+	}
+
+	bool command_palette()
+	{
+		trinex_assert(active_context() && "UI::command_palette() requires an active UI context");
+		if (!g_command_palette.open)
+		{
+			return false;
+		}
+
+		refresh_command_palette_results();
+
+		bool execute_requested       = false;
+		int execute_registry_index   = -1;
+		bool ensure_selected_visible = g_command_palette.focus_search_next_frame;
+		const bool has_results       = !g_command_palette.filtered_indices.empty();
+		const int page_step          = 8;
+
+		if (ImGui::IsKeyPressed(ImGuiKey_Escape))
+		{
+			g_command_palette.open = false;
+			return false;
+		}
+		if (has_results && ImGui::IsKeyPressed(ImGuiKey_DownArrow))
+		{
+			g_command_palette.selected_index = Math::clamp(g_command_palette.selected_index + 1, 0,
+			                                               static_cast<int>(g_command_palette.filtered_indices.size()) - 1);
+			ensure_selected_visible          = true;
+		}
+		if (has_results && ImGui::IsKeyPressed(ImGuiKey_UpArrow))
+		{
+			g_command_palette.selected_index = Math::clamp(g_command_palette.selected_index - 1, 0,
+			                                               static_cast<int>(g_command_palette.filtered_indices.size()) - 1);
+			ensure_selected_visible          = true;
+		}
+		if (has_results && ImGui::IsKeyPressed(ImGuiKey_PageDown))
+		{
+			g_command_palette.selected_index = Math::clamp(g_command_palette.selected_index + page_step, 0,
+			                                               static_cast<int>(g_command_palette.filtered_indices.size()) - 1);
+			ensure_selected_visible          = true;
+		}
+		if (has_results && ImGui::IsKeyPressed(ImGuiKey_PageUp))
+		{
+			g_command_palette.selected_index = Math::clamp(g_command_palette.selected_index - page_step, 0,
+			                                               static_cast<int>(g_command_palette.filtered_indices.size()) - 1);
+			ensure_selected_visible          = true;
+		}
+		if (has_results && ImGui::IsKeyPressed(ImGuiKey_Enter))
+		{
+			execute_requested      = true;
+			execute_registry_index = g_command_palette.filtered_indices[g_command_palette.selected_index];
+		}
+
+		ImGuiViewport* viewport        = ImGui::GetMainViewport();
+		const float palette_max_width  = std::max(260.0f, viewport->WorkSize.x - 24.0f);
+		const float palette_max_height = std::max(220.0f, viewport->WorkSize.y - 24.0f);
+		const float width              = Math::clamp(viewport->WorkSize.x * 0.52f, std::min(360.0f, palette_max_width),
+		                                             std::min(720.0f, palette_max_width));
+		const float max_height         = Math::clamp(viewport->WorkSize.y * 0.65f, std::min(260.0f, palette_max_height),
+		                                             std::min(520.0f, palette_max_height));
+		const ImVec2 size(width, max_height);
+		const ImVec2 pos(viewport->WorkPos.x + (viewport->WorkSize.x - size.x) * 0.5f,
+		                 viewport->WorkPos.y + std::max(24.0f, (viewport->WorkSize.y - size.y) * 0.22f));
+		const float rounding = active_context()->style.rounding + 2.0f;
+		const float padding  = active_context()->style.padding;
+		const float spacing  = active_context()->style.spacing;
+
+		ImGui::SetNextWindowViewport(viewport->ID);
+		ImGui::SetNextWindowPos(pos);
+		ImGui::SetNextWindowSize(size);
+		ImGui::SetNextWindowBgAlpha(active_context()->style.colors.panel.w * active_context()->style.alpha);
+		ImGui::OpenPopup("##command_palette_popup");
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, rounding);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, active_context()->style.border_size);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(padding, padding));
+		ImGui::PushStyleColor(ImGuiCol_PopupBg, to_imvec(active_context()->style.colors.panel));
+		ImGui::PushStyleColor(ImGuiCol_Border, to_imvec(active_context()->style.colors.border));
+		ImGui::PushStyleColor(ImGuiCol_ModalWindowDimBg,
+		                      to_imvec(with_alpha(active_context()->style.colors.background, 0.72f)));
+
+		const ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove |
+		                               ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDocking |
+		                               ImGuiWindowFlags_NoNavFocus;
+		const bool visible = ImGui::BeginPopupModal("##command_palette_popup", nullptr, flags);
+		ImGui::PopStyleColor(3);
+		ImGui::PopStyleVar(3);
+
+		if (!visible)
+		{
+			g_command_palette.open = false;
+			return false;
+		}
+
+		const ImVec2 window_min = ImGui::GetWindowPos();
+		const ImVec2 window_max = add(window_min, ImGui::GetWindowSize());
+		draw_shadow_rect(ImGui::GetWindowDrawList(), window_min, window_max, rounding, scaled_shadow(current_shadow(), 1.25f));
+		ImGui::GetWindowDrawList()->AddRectFilled(window_min, window_max, col_u32(active_context()->style.colors.panel),
+		                                          rounding);
+		ImGui::GetWindowDrawList()->AddRect(window_min, window_max, col_u32(active_context()->style.colors.border), rounding, 0,
+		                                    active_context()->style.border_size);
+
+		push_input_frame_styles(1.0f);
+		if (g_command_palette.focus_search_next_frame)
+		{
+			ImGui::SetKeyboardFocusHere();
+			g_command_palette.focus_search_next_frame = false;
+		}
+		const bool search_submitted =
+		        ImGui::InputTextWithHint("##command_palette_search", "Search commands...", g_command_palette.search,
+		                                 sizeof(g_command_palette.search), ImGuiInputTextFlags_EnterReturnsTrue);
+		pop_input_frame_styles();
+		if (ImGui::IsItemEdited())
+		{
+			g_command_palette.selected_index = 0;
+			refresh_command_palette_results();
+		}
+
+		if (!execute_requested && search_submitted && has_results)
+		{
+			execute_requested      = true;
+			execute_registry_index = g_command_palette.filtered_indices[g_command_palette.selected_index];
+		}
+
+		ImGui::Spacing();
+		ImGui::Separator();
+		ImGui::Spacing();
+
+		const float list_height = std::max(120.0f, size.y - active_context()->style.frame_height - padding * 3.0f - 10.0f);
+		ImGui::BeginChild("##command_palette_results", ImVec2(0.0f, list_height), false, ImGuiWindowFlags_NoBackground);
+
+		if (!has_results)
+		{
+			const ImVec2 avail = ImGui::GetContentRegionAvail();
+			const ImVec2 start = ImGui::GetCursorScreenPos();
+			const ImVec2 center(start.x + avail.x * 0.5f, start.y + std::max(72.0f, avail.y * 0.38f));
+			const char* empty_title = "No commands found";
+			const char* empty_desc  = "Try a different search query.";
+			const ImVec2 title_size = ImGui::CalcTextSize(empty_title);
+			const ImVec2 desc_size  = ImGui::CalcTextSize(empty_desc);
+			ImDrawList* draw        = ImGui::GetWindowDrawList();
+			draw->AddText(ImVec2(center.x - title_size.x * 0.5f, center.y - 12.0f), col_u32(active_context()->style.colors.text),
+			              empty_title);
+			draw->AddText(ImVec2(center.x - desc_size.x * 0.5f, center.y + 10.0f),
+			              col_u32(active_context()->style.colors.text_muted), empty_desc);
+			ImGui::Dummy(ImVec2(avail.x, std::max(140.0f, avail.y)));
+		}
+		else
+		{
+			for (int visible_index = 0; visible_index < static_cast<int>(g_command_palette.filtered_indices.size());
+			     ++visible_index)
+			{
+				const RegisteredCommand& command = g_command_palette.commands[g_command_palette.filtered_indices[visible_index]];
+				const bool selected              = visible_index == g_command_palette.selected_index;
+				const bool enabled               = static_cast<bool>(command.action);
+				const bool has_icon              = !command.icon.empty();
+				const bool has_desc              = !command.description.empty();
+				const bool has_shortcut          = !command.shortcut.empty();
+				const float row_height           = has_desc ? 52.0f : 34.0f;
+				const ImVec2 row_pos             = ImGui::GetCursorScreenPos();
+				const float row_width            = ImGui::GetContentRegionAvail().x;
+
+				ImGui::PushID(command.id.c_str());
+				ImGui::InvisibleButton("##command_row", ImVec2(row_width, row_height));
+				const bool hovered = ImGui::IsItemHovered();
+				if (hovered)
+				{
+					g_command_palette.selected_index = visible_index;
+				}
+				if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && enabled)
+				{
+					execute_requested      = true;
+					execute_registry_index = g_command_palette.filtered_indices[visible_index];
+				}
+				if (selected && ensure_selected_visible)
+				{
+					ImGui::SetScrollHereY(0.5f);
+				}
+
+				ImDrawList* draw = ImGui::GetWindowDrawList();
+				const ImVec2 min = row_pos;
+				const ImVec2 max = add(row_pos, ImVec2(row_width, row_height));
+				Vec4 row_bg      = active_context()->style.colors.panel;
+				if (selected)
+				{
+					row_bg = mix_color(active_context()->style.colors.background_active, active_context()->style.colors.accent,
+					                   0.18f);
+				}
+				else if (hovered)
+				{
+					row_bg = active_context()->style.colors.background_hovered;
+				}
+				if (selected || hovered)
+				{
+					draw->AddRectFilled(min, max, col_u32(row_bg), active_context()->style.rounding);
+				}
+
+				const float icon_x       = min.x + padding * 0.75f;
+				const float text_x       = icon_x + (has_icon ? 28.0f : 0.0f);
+				const float shortcut_pad = has_shortcut ? ImGui::CalcTextSize(command.shortcut.c_str()).x + padding : 0.0f;
+				const float wrap_w       = std::max(80.0f, row_width - (text_x - min.x) - shortcut_pad - padding);
+				const float text_y       = min.y + 8.0f;
+				const float alpha_mul    = enabled ? 1.0f : 0.48f;
+
+				if (has_icon)
+				{
+					draw->AddText(
+					        ImVec2(icon_x, min.y + (row_height - ImGui::GetTextLineHeight()) * 0.5f),
+					        col_u32(selected ? active_context()->style.colors.accent : active_context()->style.colors.text_muted,
+					                alpha_mul),
+					        command.icon.c_str());
+				}
+				draw->AddText(ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(text_x, text_y),
+				              col_u32(active_context()->style.colors.text, alpha_mul), command.name.c_str(), nullptr, wrap_w);
+				if (has_desc)
+				{
+					draw->AddText(ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(text_x, text_y + 18.0f),
+					              col_u32(active_context()->style.colors.text_muted, alpha_mul), command.description.c_str(),
+					              nullptr, wrap_w);
+				}
+				if (has_shortcut)
+				{
+					const ImVec2 shortcut_size = ImGui::CalcTextSize(command.shortcut.c_str());
+					draw->AddText(ImVec2(max.x - shortcut_size.x - padding, min.y + 8.0f),
+					              col_u32(active_context()->style.colors.text_muted, alpha_mul), command.shortcut.c_str());
+				}
+				ImGui::PopID();
+
+				if (visible_index + 1 < static_cast<int>(g_command_palette.filtered_indices.size()))
+				{
+					ImGui::Dummy(ImVec2(0.0f, spacing * 0.35f));
+				}
+			}
+		}
+
+		ImGui::EndChild();
+
+		ImGui::EndPopup();
+
+		if (execute_requested && execute_registry_index >= 0 &&
+		    execute_registry_index < static_cast<int>(g_command_palette.commands.size()))
+		{
+			Function<void()> action = g_command_palette.commands[execute_registry_index].action;
+			if (action)
+			{
+				g_command_palette.open                    = false;
+				g_command_palette.focus_search_next_frame = false;
+				ImGui::CloseCurrentPopup();
+				action();
+				return true;
+			}
+		}
+		return false;
+	}
+
 	void notification(const char* message, const NotificationOptions& options)
 	{
 		Notification n;
@@ -4485,12 +4936,62 @@ namespace Trinex
 				UI::style accent_style     = UI::get_style();
 				accent_style.colors.accent = UI::Vec4(0.95f, 0.54f, 0.25f, 1.0f);
 
+				UI::register_command({
+				        .id          = "palette.open",
+				        .name        = "Open Command Palette",
+				        .description = "Open the searchable command palette overlay.",
+				        .shortcut    = "Ctrl+Shift+P",
+				        .icon        = ICON_LC_SEARCH,
+				        .action      = [] { UI::open_command_palette(); },
+				});
+				UI::register_command({
+				        .id          = "scene.save",
+				        .name        = "Save Scene",
+				        .description = "Emit a demo notification for scene save.",
+				        .shortcut    = "Ctrl+S",
+				        .icon        = ICON_LC_SAVE,
+				        .action =
+				                [] {
+					                UI::notification("Scene saved successfully.", {UI::notification_kind::success, 3.0f, "Save"});
+				                },
+				});
+				UI::register_command({
+				        .id          = "view.shadow",
+				        .name        = "Open Shadow Examples",
+				        .description = "Switch the showcase to the Shadow tab.",
+				        .icon        = ICON_LC_PANEL_TOP_OPEN,
+				        .action      = [&] { selected_tab = 7; },
+				});
+				UI::register_command({
+				        .id          = "view.runtime",
+				        .name        = "Open Runtime Diagnostics",
+				        .description = "Switch the showcase to the Runtime tab.",
+				        .icon        = ICON_LC_ACTIVITY,
+				        .action      = [&] { selected_tab = 8; },
+				});
+				UI::register_command({
+				        .id          = "view.toggle_grid",
+				        .name        = show_grid ? "Disable Grid" : "Enable Grid",
+				        .description = "Toggle the showcase grid flag.",
+				        .icon        = ICON_LC_GRID_2X2,
+				        .action      = [&] { show_grid = !show_grid; },
+				});
+
+				if (UI::key_ctrl() && UI::key_shift() && UI::is_key_pressed(UI::Key::P, false))
+				{
+					UI::open_command_palette();
+				}
+
 				if (UI::begin_window("Animated UI Framework Showcase", nullptr, ImGuiWindowFlags_MenuBar))
 				{
 					if (UI::begin_menu_bar())
 					{
 						if (UI::begin_menu("File"))
 						{
+							if (UI::menu_item("Command Palette", "Ctrl+Shift+P"))
+							{
+								UI::open_command_palette();
+							}
 							if (UI::menu_item("Confirm reset", nullptr))
 							{
 								UI::open_modal("High-level confirm");
@@ -5381,6 +5882,8 @@ namespace Trinex
 
 					UI::end_window();
 				}
+
+				UI::command_palette();
 			}
 			UI::end_frame();
 

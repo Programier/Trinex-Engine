@@ -538,6 +538,21 @@ namespace Trinex::UI
 		float elevation = 0.0f;
 	};
 
+	struct Command {
+		// Unique stable command identifier. Duplicate ids replace the existing command.
+		const char* id = nullptr;
+		// Visible command name shown in the command palette.
+		const char* name = nullptr;
+		// Optional secondary text shown below the command name.
+		const char* description = nullptr;
+		// Optional display-only shortcut text, e.g. "Ctrl+Shift+P".
+		const char* shortcut = nullptr;
+		// Optional icon shown on the left side of the command row.
+		const char* icon = nullptr;
+		// Executed when the command is selected.
+		Function<void()> action;
+	};
+
 	using ease                 = Ease;
 	using key                  = Key;
 	using mouse_button         = MouseButton;
@@ -555,6 +570,7 @@ namespace Trinex::UI
 	using confirm_result       = ConfirmResult;
 	using state_options        = StateOptions;
 	using hero_options         = HeroOptions;
+	using command              = Command;
 
 	struct DisabledScope {
 		explicit DisabledScope(bool disabled = true);
@@ -827,6 +843,14 @@ namespace Trinex::UI
 	void end_menu();
 	bool menu_item(const char* label, const char* shortcut = nullptr, bool selected = false, bool enabled = true);
 	bool menu_item(const char* label, const char* shortcut, bool* selected, bool enabled = true);
+	// Registers or updates a command in the current UI context.
+	// `id` must be unique and stable. Duplicate ids replace the existing command.
+	void register_command(const Command& command);
+	// Opens the command palette overlay and focuses the search field on the next frame.
+	void open_command_palette();
+	// Draws the command palette if it is open.
+	// Returns true when a command was executed this frame.
+	bool command_palette();
 
 	void notification(const char* message, const NotificationOptions& options = {});
 	ConfirmResult confirmation(const char* title, const char* message, const char* confirm_text = "Confirm",
