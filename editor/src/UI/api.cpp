@@ -77,6 +77,20 @@ namespace Trinex::UI
 		float previous_draw_alpha = 1.0f;
 	};
 
+	struct CardContext {
+		ImGuiID id            = 0;
+		bool disabled         = false;
+		bool hoverable        = true;
+		bool selected         = false;
+		bool border           = true;
+		bool background       = true;
+		float rounding        = 0.0f;
+		float elevation       = 0.0f;
+		Vec4 accent           = Vec4(0, 0, 0, 0);
+		Vec4 background_color = Vec4(0, 0, 0, 0);
+		Vec4 border_color     = Vec4(0, 0, 0, 0);
+	};
+
 	struct PersistentWindow {
 		String name;
 		WindowFlags flags = WindowFlags::Undefined;
@@ -110,6 +124,7 @@ namespace Trinex::UI
 		Vector<float> tree_indent_stack;
 		Vector<TreeContext> tree_stack;
 		Vector<AreaContext> area_stack;
+		Vector<CardContext> card_stack;
 		Vector<float> disabled_alpha_stack;
 		Vector<String> pending_modals;
 		Vector<String> pending_popups;
@@ -154,6 +169,7 @@ namespace Trinex::UI
 #define g_tree_indent_stack active_context()->tree_indent_stack
 #define g_tree_stack active_context()->tree_stack
 #define g_area_stack active_context()->area_stack
+#define g_card_stack active_context()->card_stack
 #define g_disabled_alpha_stack active_context()->disabled_alpha_stack
 #define g_pending_modals active_context()->pending_modals
 #define g_pending_popups active_context()->pending_popups
@@ -349,6 +365,30 @@ namespace Trinex::UI
 		ImVec2 mul(ImVec2 a, float v)
 		{
 			return ImVec2(a.x * v, a.y * v);
+		}
+
+		struct InteractiveRect {
+			ImVec2 center        = ImVec2(0.0f, 0.0f);
+			ImVec2 visual_size   = ImVec2(0.0f, 0.0f);
+			ImVec2 min           = ImVec2(0.0f, 0.0f);
+			ImVec2 max           = ImVec2(0.0f, 0.0f);
+			float rounding_scale = 1.0f;
+		};
+
+		InteractiveRect make_interactive_rect(const ImVec2& pos, const ImVec2& base_size, float hover_t, float active_t)
+		{
+			const Vec2 hover_padding = active_context()->style.hover_padding;
+			const Vec2 press_padding(3.0f, 3.0f);
+
+			InteractiveRect rect;
+			rect.center      = ImVec2(pos.x + base_size.x * 0.5f, pos.y + base_size.y * 0.5f);
+			rect.visual_size = ImVec2(std::max(1.0f, base_size.x + hover_t * hover_padding.x - active_t * press_padding.x),
+			                          std::max(1.0f, base_size.y + hover_t * hover_padding.y - active_t * press_padding.y));
+			rect.min         = ImVec2(rect.center.x - rect.visual_size.x * 0.5f, rect.center.y - rect.visual_size.y * 0.5f);
+			rect.max         = ImVec2(rect.center.x + rect.visual_size.x * 0.5f, rect.center.y + rect.visual_size.y * 0.5f);
+			rect.rounding_scale =
+			        std::min(rect.visual_size.x / std::max(1.0f, base_size.x), rect.visual_size.y / std::max(1.0f, base_size.y));
+			return rect;
 		}
 
 		bool contains_case_insensitive(const char* text, const char* filter)
@@ -791,6 +831,7 @@ namespace Trinex::UI
 		g_tree_indent_stack.clear();
 		g_tree_stack.clear();
 		g_area_stack.clear();
+		g_card_stack.clear();
 		g_disabled_alpha_stack.clear();
 		g_pending_modals.clear();
 		g_pending_popups.clear();
@@ -1188,6 +1229,332 @@ namespace Trinex::UI
 	{
 		end_child_panel();
 		ImGui::EndGroup();
+	}
+
+	bool begin_card(const char* title, const card_options& options)
+	{
+		cleanup_states();
+		if (title != nullptr && title[0] != '\0')
+		{
+			ImGui::PushID(title);
+		}
+		else
+		{
+			ImGui::PushID(ImGui::GetID("card_scope"));
+		}
+
+		const float rounding = options.rounding >= 0.0f ? options.rounding : active_context()->style.rounding;
+		const float padding  = options.padding >= 0.0f ? options.padding : active_context()->style.padding;
+		const float spacing  = options.spacing >= 0.0f ? options.spacing : active_context()->style.spacing;
+		const Vec4 accent    = has_color(options.accent) ? options.accent : active_context()->style.colors.accent;
+		const Vec4 bg     = has_color(options.background_color) ? options.background_color : active_context()->style.colors.panel;
+		const Vec4 border = has_color(options.border_color) ? options.border_color : active_context()->style.colors.border;
+
+		Vec2 size = options.size;
+		if (size.x <= 0.0f)
+		{
+			size.x = ImGui::GetContentRegionAvail().x;
+		}
+
+		ImGuiChildFlags child_flags = ImGuiChildFlags_AlwaysUseWindowPadding;
+		if (size.y <= 0.0f)
+		{
+			child_flags |= ImGuiChildFlags_AutoResizeY;
+		}
+
+		ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, rounding);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(padding, padding));
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(spacing, spacing));
+		ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
+		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
+
+		const bool visible = ImGui::BeginChild("##card", to_imvec(size), child_flags, ImGuiWindowFlags_None);
+		if (!visible)
+		{
+			ImGui::EndChild();
+			ImGui::PopStyleColor(2);
+			ImGui::PopStyleVar(3);
+			ImGui::PopID();
+			return false;
+		}
+
+		CardContext context;
+		context.id               = ImGui::GetID("card_anim");
+		context.disabled         = options.disabled;
+		context.hoverable        = options.hoverable;
+		context.selected         = options.selected;
+		context.border           = options.border;
+		context.background       = options.background;
+		context.rounding         = rounding;
+		context.elevation        = std::max(0.0f, options.elevation);
+		context.accent           = accent;
+		context.background_color = bg;
+		context.border_color     = border;
+		g_card_stack.push_back(context);
+
+		ImGui::GetWindowDrawList()->ChannelsSplit(2);
+		ImGui::GetWindowDrawList()->ChannelsSetCurrent(1);
+
+		if (options.disabled)
+		{
+			begin_disabled(true);
+		}
+
+		const bool has_title    = title != nullptr && visible_label(title)[0] != '\0';
+		const bool has_subtitle = options.subtitle != nullptr && options.subtitle[0] != '\0';
+		const bool has_icon     = options.icon != nullptr && options.icon[0] != '\0';
+		const bool has_right    = options.right_text != nullptr && options.right_text[0] != '\0';
+		if (has_title || has_subtitle || has_icon || has_right)
+		{
+			const ImVec2 start     = ImGui::GetCursorScreenPos();
+			const float content_w  = ImGui::GetContentRegionAvail().x;
+			const float icon_w     = has_icon ? ImGui::CalcTextSize(options.icon).x : 0.0f;
+			const float right_w    = has_right ? ImGui::CalcTextSize(options.right_text).x : 0.0f;
+			const float title_h    = has_title ? ImGui::GetTextLineHeight() : 0.0f;
+			const float subtitle_h = has_subtitle ? ImGui::GetTextLineHeight() : 0.0f;
+			const float header_h   = std::max(
+                    std::max(title_h + (has_subtitle ? subtitle_h + 2.0f : 0.0f), has_icon ? ImGui::GetTextLineHeight() : 0.0f),
+                    has_right ? ImGui::GetTextLineHeight() : 0.0f);
+			const float icon_gap   = has_icon ? spacing * 0.75f : 0.0f;
+			const float right_gap  = has_right ? spacing : 0.0f;
+			const float title_x    = start.x + icon_w + icon_gap;
+			const float right_x    = start.x + content_w - right_w;
+			ImDrawList* draw       = ImGui::GetWindowDrawList();
+			const Vec4 title_color = options.selected ? Math::lerp(active_context()->style.colors.text, accent, 0.22f)
+			                                          : active_context()->style.colors.text;
+			const Vec4 right_color = options.selected ? accent : active_context()->style.colors.text_muted;
+			if (has_icon)
+			{
+				draw->AddText(ImVec2(start.x, start.y + (header_h - ImGui::GetTextLineHeight()) * 0.5f),
+				              col_u32(options.selected ? accent : active_context()->style.colors.text_muted), options.icon);
+			}
+			if (has_title)
+			{
+				draw->AddText(ImVec2(title_x, start.y), col_u32(title_color), visible_label(title));
+			}
+			if (has_subtitle)
+			{
+				draw->AddText(ImVec2(title_x, start.y + title_h + 2.0f), col_u32(active_context()->style.colors.text_muted),
+				              options.subtitle);
+			}
+			if (has_right)
+			{
+				draw->AddText(ImVec2(right_x, start.y + (header_h - ImGui::GetTextLineHeight()) * 0.5f), col_u32(right_color),
+				              options.right_text);
+			}
+			ImGui::Dummy(ImVec2(std::max(1.0f, content_w - (has_right ? right_w + right_gap : 0.0f)), header_h));
+			ImGui::Dummy(ImVec2(0.0f, spacing * 0.35f));
+		}
+		return true;
+	}
+
+	void end_card()
+	{
+		trinex_assert(!g_card_stack.empty() && "UI::end_card() called without matching begin_card()");
+		if (g_card_stack.empty())
+		{
+			return;
+		}
+
+		const CardContext context = g_card_stack.back();
+		g_card_stack.pop_back();
+
+		const ImVec2 min   = ImGui::GetWindowPos();
+		const ImVec2 size  = ImGui::GetWindowSize();
+		const ImVec2 max   = add(min, size);
+		const bool hovered = context.hoverable && !context.disabled && ImGui::IsMouseHoveringRect(min, max, true);
+		AnimState& anim    = state_for(context.id);
+		anim.hover         = approach(anim.hover, hovered ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.selected      = approach(anim.selected, context.selected ? 1.0f : 0.0f, active_context()->style.animation_speed);
+
+		const Vec4 accent  = context.accent;
+		Vec4 border_target = context.selected ? Math::lerp(context.border_color, accent, 0.7f) : context.border_color;
+		Vec4 background    = context.background ? context.background_color : Vec4(0, 0, 0, 0);
+		if (context.background)
+		{
+			background = Math::lerp(background, active_context()->style.colors.background_hovered, anim.hover * 0.40f);
+			background = Math::lerp(background, with_alpha(accent, 1.0f), anim.selected * 0.12f);
+		}
+		border_target = Math::lerp(border_target, accent, anim.hover * 0.30f);
+
+		ImDrawList* draw = ImGui::GetWindowDrawList();
+		draw->ChannelsSetCurrent(0);
+
+		if (context.elevation > 0.0f)
+		{
+			const float shadow = Math::clamp(context.elevation, 0.0f, 3.0f);
+			draw->AddRectFilled(ImVec2(min.x + shadow * 0.5f, min.y + 2.0f + shadow),
+			                    ImVec2(max.x - shadow * 0.5f, max.y + shadow), col_u32(Vec4(0, 0, 0, 0.14f), 0.45f),
+			                    context.rounding + shadow);
+			draw->AddRectFilled(ImVec2(min.x + shadow, min.y + 1.0f + shadow * 0.5f), ImVec2(max.x, max.y + shadow * 0.5f),
+			                    col_u32(Vec4(0, 0, 0, 0.10f), 0.30f), context.rounding + shadow);
+		}
+		if (context.background)
+		{
+			draw->AddRectFilled(min, max, col_u32(background), context.rounding);
+		}
+		if (anim.selected > 0.01f)
+		{
+			draw->AddRectFilled(min, ImVec2(min.x + 3.0f, max.y), col_u32(accent, 0.95f * anim.selected), context.rounding,
+			                    ImDrawFlags_RoundCornersLeft);
+		}
+		if (context.border)
+		{
+			const float alpha = context.selected ? 1.0f : Math::lerp(0.85f, 1.0f, anim.hover * 0.65f);
+			draw->AddRect(min, max, col_u32(border_target, alpha), context.rounding, 0, active_context()->style.border_size);
+		}
+
+		draw->ChannelsSetCurrent(1);
+		draw->ChannelsMerge();
+
+		if (context.disabled)
+		{
+			end_disabled();
+		}
+
+		ImGui::EndChild();
+		ImGui::PopStyleColor(2);
+		ImGui::PopStyleVar(3);
+		ImGui::PopID();
+	}
+
+	void card(const char* title, const card_options& options, const Function<void()>& content)
+	{
+		if (begin_card(title, options))
+		{
+			if (content)
+			{
+				content();
+			}
+			end_card();
+		}
+	}
+
+	bool card_button(const char* title, const card_options& options)
+	{
+		cleanup_states();
+		if (title != nullptr && title[0] != '\0')
+		{
+			ImGui::PushID(title);
+		}
+		else
+		{
+			ImGui::PushID("card_button");
+		}
+
+		const ImGuiID id     = ImGui::GetID("card_button");
+		AnimState& anim      = state_for(id);
+		const float rounding = options.rounding >= 0.0f ? options.rounding : active_context()->style.rounding;
+		const float padding  = options.padding >= 0.0f ? options.padding : active_context()->style.padding;
+		const float spacing  = options.spacing >= 0.0f ? options.spacing : active_context()->style.spacing;
+		const Vec4 accent    = has_color(options.accent) ? options.accent : active_context()->style.colors.accent;
+		Vec4 bg     = has_color(options.background_color) ? options.background_color : active_context()->style.colors.panel;
+		Vec4 border = has_color(options.border_color) ? options.border_color : active_context()->style.colors.border;
+		const bool has_title    = title != nullptr && visible_label(title)[0] != '\0';
+		const bool has_subtitle = options.subtitle != nullptr && options.subtitle[0] != '\0';
+		const bool has_icon     = options.icon != nullptr && options.icon[0] != '\0';
+		const bool has_right    = options.right_text != nullptr && options.right_text[0] != '\0';
+		const float icon_w      = has_icon ? ImGui::CalcTextSize(options.icon).x : 0.0f;
+		const float right_w     = has_right ? ImGui::CalcTextSize(options.right_text).x : 0.0f;
+		const float title_h     = has_title ? ImGui::GetTextLineHeight() : 0.0f;
+		const float subtitle_h  = has_subtitle ? ImGui::GetTextLineHeight() : 0.0f;
+		const float header_h    = std::max(
+                std::max(title_h + (has_subtitle ? subtitle_h + 2.0f : 0.0f), has_icon ? ImGui::GetTextLineHeight() : 0.0f),
+                has_right ? ImGui::GetTextLineHeight() : 0.0f);
+
+		Vec2 size = options.size;
+		if (size.x <= 0.0f)
+		{
+			size.x = ImGui::GetContentRegionAvail().x;
+		}
+		if (size.y <= 0.0f)
+		{
+			size.y = padding * 2.0f + std::max(header_h, active_context()->style.frame_height);
+		}
+
+		const ImVec2 pos = ImGui::GetCursorScreenPos();
+		if (options.disabled)
+		{
+			ImGui::BeginDisabled();
+		}
+		ImGui::InvisibleButton("##card_button", to_imvec(size));
+		if (options.disabled)
+		{
+			ImGui::EndDisabled();
+		}
+
+		const bool hovered = options.hoverable && !options.disabled && ImGui::IsItemHovered();
+		const bool active  = !options.disabled && ImGui::IsItemActive();
+		const bool clicked = !options.disabled && ImGui::IsItemClicked();
+		anim.hover         = approach(anim.hover, hovered ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.active        = approach(anim.active, active ? 1.0f : 0.0f, active_context()->style.animation_speed * 1.5f);
+		anim.selected      = approach(anim.selected, options.selected ? 1.0f : 0.0f, active_context()->style.animation_speed);
+
+		const InteractiveRect rect = make_interactive_rect(pos, to_imvec(size), anim.hover, anim.active);
+
+		if (options.background)
+		{
+			bg = Math::lerp(bg, active_context()->style.colors.background_hovered, anim.hover * 0.40f);
+			bg = Math::lerp(bg, active_context()->style.colors.background_active, anim.active * 0.38f);
+			bg = Math::lerp(bg, with_alpha(accent, 1.0f), anim.selected * 0.12f);
+		}
+		border = Math::lerp(border, accent, anim.hover * 0.30f + anim.selected * 0.55f + anim.active * 0.20f);
+
+		ImDrawList* draw = ImGui::GetWindowDrawList();
+		if (options.elevation > 0.0f)
+		{
+			const float shadow = Math::clamp(options.elevation, 0.0f, 3.0f);
+			draw->AddRectFilled(ImVec2(rect.min.x + shadow * 0.5f, rect.min.y + 2.0f + shadow),
+			                    ImVec2(rect.max.x - shadow * 0.5f, rect.max.y + shadow), col_u32(Vec4(0, 0, 0, 0.14f), 0.45f),
+			                    rounding * rect.rounding_scale + shadow);
+		}
+		if (options.background)
+		{
+			draw->AddRectFilled(rect.min, rect.max, col_u32(bg, options.disabled ? 0.55f : 1.0f), rounding * rect.rounding_scale);
+		}
+		if (anim.selected > 0.01f)
+		{
+			draw->AddRectFilled(rect.min, ImVec2(rect.min.x + 3.0f, rect.max.y), col_u32(accent, 0.95f * anim.selected),
+			                    rounding * rect.rounding_scale, ImDrawFlags_RoundCornersLeft);
+		}
+		if (options.border)
+		{
+			const float alpha = options.selected ? 1.0f : Math::lerp(0.85f, 1.0f, anim.hover * 0.65f);
+			draw->AddRect(rect.min, rect.max, col_u32(border, alpha * (options.disabled ? 0.7f : 1.0f)),
+			              rounding * rect.rounding_scale, 0, active_context()->style.border_size);
+		}
+
+		const float icon_gap   = has_icon ? spacing * 0.75f : 0.0f;
+		const float title_x    = rect.min.x + padding + icon_w + icon_gap;
+		const float right_x    = rect.max.x - padding - right_w;
+		const float header_top = rect.min.y + std::max(0.0f, (rect.visual_size.y - header_h) * 0.5f);
+		const Vec4 title_color = options.selected ? Math::lerp(active_context()->style.colors.text, accent, 0.22f)
+		                                          : active_context()->style.colors.text;
+		const Vec4 right_color = options.selected ? accent : active_context()->style.colors.text_muted;
+		const float alpha_mul  = options.disabled ? 0.55f : 1.0f;
+		if (has_icon)
+		{
+			draw->AddText(ImVec2(rect.min.x + padding, header_top + (header_h - ImGui::GetTextLineHeight()) * 0.5f),
+			              col_u32(options.selected ? accent : active_context()->style.colors.text_muted, alpha_mul),
+			              options.icon);
+		}
+		if (has_title)
+		{
+			draw->AddText(ImVec2(title_x, header_top), col_u32(title_color, alpha_mul), visible_label(title));
+		}
+		if (has_subtitle)
+		{
+			draw->AddText(ImVec2(title_x, header_top + title_h + 2.0f),
+			              col_u32(active_context()->style.colors.text_muted, alpha_mul), options.subtitle);
+		}
+		if (has_right)
+		{
+			draw->AddText(ImVec2(right_x, header_top + (header_h - ImGui::GetTextLineHeight()) * 0.5f),
+			              col_u32(right_color, alpha_mul), options.right_text);
+		}
+
+		ImGui::PopID();
+		return clicked;
 	}
 
 	void separator()
@@ -1729,36 +2096,28 @@ namespace Trinex::UI
 		const Vec4 accent = has_color(options.accent) ? options.accent : active_context()->style.colors.accent;
 		Vec4 frame_bg     = has_color(options.background_color) ? options.background_color : active_context()->style.colors.panel;
 		Vec4 frame_border = has_color(options.border_color) ? options.border_color : active_context()->style.colors.border;
-		const Vec2 hover_scale = active_context()->style.hover_scale;
-		const Vec2 scale(1.0f + anim.hover * hover_scale.x - anim.active * 0.05f,
-		                 1.0f + anim.hover * hover_scale.y - anim.active * 0.05f);
+		frame_bg          = Math::lerp(frame_bg, active_context()->style.colors.background_hovered, anim.hover * 0.55f);
+		frame_bg          = Math::lerp(frame_bg, active_context()->style.colors.background_active, anim.active * 0.65f);
+		frame_border      = Math::lerp(frame_border, accent, anim.hover * 0.7f + anim.active * 0.3f);
 
-		frame_bg     = Math::lerp(frame_bg, active_context()->style.colors.background_hovered, anim.hover * 0.55f);
-		frame_bg     = Math::lerp(frame_bg, active_context()->style.colors.background_active, anim.active * 0.65f);
-		frame_border = Math::lerp(frame_border, accent, anim.hover * 0.7f + anim.active * 0.3f);
-
-		ImDrawList* draw = ImGui::GetWindowDrawList();
-		const ImVec2 center(pos.x + frame_size.x * 0.5f, pos.y + frame_size.y * 0.5f);
-		const ImVec2 visual_frame_size(frame_size.x * scale.x, frame_size.y * scale.y);
-		const ImVec2 visual_image_size(image_size.x * scale.x, image_size.y * scale.y);
-		const ImVec2 min(center.x - visual_frame_size.x * 0.5f, center.y - visual_frame_size.y * 0.5f);
-		const ImVec2 max(center.x + visual_frame_size.x * 0.5f, center.y + visual_frame_size.y * 0.5f);
-		const ImVec2 image_min(center.x - visual_image_size.x * 0.5f, center.y - visual_image_size.y * 0.5f);
-		const ImVec2 image_max(center.x + visual_image_size.x * 0.5f, center.y + visual_image_size.y * 0.5f);
-		const float scale_rounding = std::min(scale.x, scale.y);
-		const float image_rounding = std::max(0.0f, (rounding - padding * 0.5f) * scale_rounding);
+		ImDrawList* draw                 = ImGui::GetWindowDrawList();
+		const InteractiveRect frame_rect = make_interactive_rect(pos, frame_size, anim.hover, anim.active);
+		const InteractiveRect image_rect =
+		        make_interactive_rect(ImVec2(pos.x + padding, pos.y + padding), image_size, anim.hover, anim.active);
+		const float image_rounding = std::max(0.0f, (rounding - padding * 0.5f) * image_rect.rounding_scale);
 
 		if (options.background)
 		{
-			draw->AddRectFilled(min, max, col_u32(frame_bg), rounding * scale_rounding);
+			draw->AddRectFilled(frame_rect.min, frame_rect.max, col_u32(frame_bg), rounding * frame_rect.rounding_scale);
 		}
 
-		draw->AddImageRounded(ImTextureID(texture, sampler), image_min, image_max, to_imvec(options.uv0), to_imvec(options.uv1),
-		                      col_u32(options.tint), image_rounding);
+		draw->AddImageRounded(ImTextureID(texture, sampler), image_rect.min, image_rect.max, to_imvec(options.uv0),
+		                      to_imvec(options.uv1), col_u32(options.tint), image_rounding);
 
 		if (options.border)
 		{
-			draw->AddRect(min, max, col_u32(frame_border), rounding * scale_rounding, 0, active_context()->style.border_size);
+			draw->AddRect(frame_rect.min, frame_rect.max, col_u32(frame_border), rounding * frame_rect.rounding_scale, 0,
+			              active_context()->style.border_size);
 		}
 
 		ImGui::PopID();
@@ -1790,29 +2149,21 @@ namespace Trinex::UI
 		anim.hover         = approach(anim.hover, hovered ? 1.0f : 0.0f, active_context()->style.animation_speed);
 		anim.active        = approach(anim.active, active ? 1.0f : 0.0f, active_context()->style.animation_speed * 1.5f);
 
-		const Vec4 accent      = has_color(options.accent) ? options.accent : active_context()->style.colors.accent;
-		Vec4 bg                = options.ghost ? Vec4(0, 0, 0, 0) : active_context()->style.colors.background_active;
-		bg                     = Math::lerp(bg, active_context()->style.colors.background_hovered, anim.hover);
-		bg                     = Math::lerp(bg, accent, anim.active * 0.65f);
-		const Vec2 hover_scale = active_context()->style.hover_scale;
-		const Vec2 scale(1.0f + anim.hover * hover_scale.x - anim.active * 0.05f,
-		                 1.0f + anim.hover * hover_scale.y - anim.active * 0.05f);
-
-		ImDrawList* draw = ImGui::GetWindowDrawList();
-		const ImVec2 center(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f);
-		const ImVec2 visual_size(size.x * scale.x, size.y * scale.y);
-		const ImVec2 min(center.x - visual_size.x * 0.5f, center.y - visual_size.y * 0.5f);
-		const ImVec2 max(center.x + visual_size.x * 0.5f, center.y + visual_size.y * 0.5f);
-		const float scale_rounding = std::min(scale.x, scale.y);
+		const Vec4 accent          = has_color(options.accent) ? options.accent : active_context()->style.colors.accent;
+		Vec4 bg                    = options.ghost ? Vec4(0, 0, 0, 0) : active_context()->style.colors.background_active;
+		bg                         = Math::lerp(bg, active_context()->style.colors.background_hovered, anim.hover);
+		bg                         = Math::lerp(bg, accent, anim.active * 0.65f);
+		ImDrawList* draw           = ImGui::GetWindowDrawList();
+		const InteractiveRect rect = make_interactive_rect(pos, size, anim.hover, anim.active);
 		if (!options.ghost || anim.hover > 0.01f || anim.active > 0.01f)
 		{
-			draw->AddRectFilled(min, max, col_u32(bg, options.disabled ? 0.45f : 1.0f),
-			                    active_context()->style.rounding * scale_rounding);
+			draw->AddRectFilled(rect.min, rect.max, col_u32(bg, options.disabled ? 0.45f : 1.0f),
+			                    active_context()->style.rounding * rect.rounding_scale);
 		}
 		draw->AddRect(
-		        min, max,
+		        rect.min, rect.max,
 		        col_u32(Math::lerp(active_context()->style.colors.border, accent, anim.hover), options.disabled ? 0.45f : 1.0f),
-		        active_context()->style.rounding * scale_rounding, 0, active_context()->style.border_size);
+		        active_context()->style.rounding * rect.rounding_scale, 0, active_context()->style.border_size);
 
 		String full_label;
 		if (options.icon != nullptr && options.icon[0] != '\0')
@@ -1826,7 +2177,7 @@ namespace Trinex::UI
 		const ImVec2 ts = ImGui::CalcTextSize(full_label.c_str());
 		const Vec4 tc   = options.disabled ? active_context()->style.colors.text_disabled
 		                                   : Math::lerp(active_context()->style.colors.text, Vec4(1, 1, 1, 1), anim.hover * 0.35f);
-		draw->AddText(ImVec2(center.x - ts.x * 0.5f, center.y - ts.y * 0.5f), col_u32(tc), full_label.c_str());
+		draw->AddText(ImVec2(rect.center.x - ts.x * 0.5f, rect.center.y - ts.y * 0.5f), col_u32(tc), full_label.c_str());
 		ImGui::PopID();
 		return clicked;
 	}
@@ -2564,9 +2915,8 @@ namespace Trinex::UI
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, to_imvec(active_context()->style.colors.background));
 		ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, to_imvec(active_context()->style.colors.background_hovered));
 		ImGui::PushStyleColor(ImGuiCol_FrameBgActive, to_imvec(active_context()->style.colors.background_active));
-		const bool changed =
-		        alpha ? ImGui::ColorEdit4(label, &color->x, to_imgui_color_edit_flags(flags))
-		              : ImGui::ColorEdit3(label, &color->x, to_imgui_color_edit_flags(flags));
+		const bool changed = alpha ? ImGui::ColorEdit4(label, &color->x, to_imgui_color_edit_flags(flags))
+		                           : ImGui::ColorEdit3(label, &color->x, to_imgui_color_edit_flags(flags));
 		ImGui::PopStyleColor(3);
 		ImGui::PopStyleVar();
 		return changed;
@@ -3956,6 +4306,52 @@ namespace Trinex
 								UI::toggle("Grouped toggle", &enabled);
 							}
 							UI::end_group_panel();
+
+							UI::spacing();
+							UI::text("Cards");
+							UI::text_muted("Inline dashboard-style containers with header, accent, hover, selection, and "
+							               "disabled states.");
+
+							UI::card_options renderer_card;
+							renderer_card.icon       = "R";
+							renderer_card.subtitle   = "Vulkan backend";
+							renderer_card.right_text = enabled ? "Active" : "Idle";
+							renderer_card.accent     = UI::Vec4(0.28f, 0.62f, 0.95f, 1.0f);
+							renderer_card.hoverable  = true;
+							renderer_card.elevation  = 1.5f;
+
+							UI::card("Renderer", renderer_card, [&] {
+								UI::property_bool("VSync", &enabled);
+								UI::property_float("Exposure", &exposure, 0.0f, 4.0f);
+								UI::property_float("Bloom", &bloom, 0.0f, 1.0f);
+							});
+
+							UI::card_options asset_card;
+							asset_card.icon       = "T";
+							asset_card.subtitle   = "Preview card";
+							asset_card.right_text = "Disabled";
+							asset_card.disabled   = true;
+							asset_card.size       = UI::Vec2(0.0f, 150.0f);
+							asset_card.elevation  = 0.75f;
+
+							UI::card("Texture Asset", asset_card, [&] {
+								UI::image(DefaultResources::Textures::noise128x128->rhi_texture(), UI::Vec2(96.0f, 96.0f));
+								UI::text("noise128x128");
+								UI::text_muted("Fixed-height card body.");
+								UI::button("Open asset");
+							});
+
+							UI::card_options tile_card;
+							tile_card.icon       = "A";
+							tile_card.subtitle   = "Clickable asset tile";
+							tile_card.right_text = "Select";
+							tile_card.size       = UI::Vec2(0.0f, 84.0f);
+							tile_card.elevation  = 1.0f;
+							
+							if (UI::card_button("Asset Tile", tile_card))
+							{
+								selected_entity = 1;
+							}
 
 							UI::spacing();
 							UI::key_value_row("Animation speed", "12.0");

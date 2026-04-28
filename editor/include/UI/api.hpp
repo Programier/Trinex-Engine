@@ -408,7 +408,7 @@ namespace Trinex::UI
 		float padding         = 10.0f;
 		float spacing         = 8.0f;
 		float alpha           = 1.0f;
-		Vec2 hover_scale      = Vec2(0.02f, 0.02f);
+		Vec2 hover_padding    = Vec2(2.0f, 2.0f);
 		ColorTheme colors;
 	};
 
@@ -418,6 +418,28 @@ namespace Trinex::UI
 		bool background       = true;
 		float rounding        = -1.0f;
 		Vec4 background_color = Vec4(0, 0, 0, 0);
+	};
+
+	struct CardOptions {
+		Vec2 size              = Vec2(0.0f, 0.0f);
+		const char* subtitle   = nullptr;
+		const char* icon       = nullptr;
+		const char* right_text = nullptr;
+
+		bool border     = true;
+		bool background = true;
+		bool hoverable  = true;
+		bool selected   = false;
+		bool disabled   = false;
+
+		float rounding  = -1.0f;
+		float padding   = -1.0f;
+		float spacing   = -1.0f;
+		float elevation = 1.0f;
+
+		Vec4 accent           = Vec4(0, 0, 0, 0);
+		Vec4 background_color = Vec4(0, 0, 0, 0);
+		Vec4 border_color     = Vec4(0, 0, 0, 0);
 	};
 
 	struct ImageOptions {
@@ -491,6 +513,7 @@ namespace Trinex::UI
 	using style                = Style;
 	using color_theme          = ColorTheme;
 	using panel_options        = PanelOptions;
+	using card_options         = CardOptions;
 	using button_options       = ButtonOptions;
 	using header_options       = HeaderOptions;
 	using tree_node_options    = TreeNodeOptions;
@@ -562,6 +585,11 @@ namespace Trinex::UI
 	void end_child_panel();
 	bool begin_group_panel(const char* label, const Vec2& size = Vec2(0, 0), const PanelOptions& options = {});
 	void end_group_panel();
+
+	bool begin_card(const char* title, const CardOptions& options = {});
+	void end_card();
+	void card(const char* title, const CardOptions& options, const Function<void()>& content);
+	bool card_button(const char* title, const CardOptions& options = {});
 	void separator();
 	void spacing(float amount = -1.0f);
 	void same_line(float offset_from_start_x = 0.0f, float spacing = -1.0f);
