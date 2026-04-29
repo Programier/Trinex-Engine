@@ -85,6 +85,7 @@ namespace Trinex
 	class ENGINE_EXPORT RHITexture : public RHIObject
 	{
 	public:
+		virtual Vector3u size() const                                             = 0;
 		virtual RHIRenderTargetView* as_rtv(RHITextureDescRTV* desc = nullptr)    = 0;
 		virtual RHIDepthStencilView* as_dsv(RHITextureDescDSV* desc = nullptr)    = 0;
 		virtual RHIShaderResourceView* as_srv(RHITextureDescSRV* desc = nullptr)  = 0;

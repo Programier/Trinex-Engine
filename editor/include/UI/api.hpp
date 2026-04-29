@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/etl/function.hpp>
 #include <Core/etl/string.hpp>
+#include <Core/etl/type_traits.hpp>
 #include <Core/math/vector.hpp>
 
 namespace Trinex
@@ -410,6 +411,17 @@ namespace Trinex::UI
 		Vec4 color   = Vec4(0.0f, 0.0f, 0.0f, 0.22f);
 	};
 
+	struct Blur {
+		// Blur radius in pixels for the sampled backdrop region.
+		float radius = 12.0f;
+		// Extra opacity multiplier for the blur effect.
+		float opacity = 1.0f;
+		// Expands or contracts the sampled blur region around the widget rectangle.
+		float spread = 0.0f;
+		// Optional tint applied on top of the blurred content.
+		Vec4 tint = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
+	};
+
 	struct Style {
 		float animation_speed = 12.0f;
 		float rounding        = 8.0f;
@@ -419,6 +431,7 @@ namespace Trinex::UI
 		float spacing         = 8.0f;
 		float alpha           = 1.0f;
 		Vec2 hover_padding    = Vec2(2.0f, 2.0f);
+		Blur blur;
 		Shadow shadow;
 		ColorTheme colors;
 	};
@@ -553,6 +566,11 @@ namespace Trinex::UI
 		Function<void()> action;
 	};
 
+	template<typename T>
+	concept TriviallyStored = std::is_trivially_copyable_v<T> && std::is_trivially_destructible_v<T>;
+
+	using PaintFunction = void (*)(void* userdata);
+
 	using ease                 = Ease;
 	using key                  = Key;
 	using mouse_button         = MouseButton;
@@ -591,6 +609,13 @@ namespace Trinex::UI
 		~ShadowScope();
 		ShadowScope(const ShadowScope&)            = delete;
 		ShadowScope& operator=(const ShadowScope&) = delete;
+	};
+
+	struct BlurScope {
+		explicit BlurScope(const Blur& blur);
+		~BlurScope();
+		BlurScope(const BlurScope&)            = delete;
+		BlurScope& operator=(const BlurScope&) = delete;
 	};
 
 	struct IdScope {
@@ -640,12 +665,49 @@ namespace Trinex::UI
 	void set_style(const Style& value);
 	void push_style(const Style& value);
 	void pop_style();
+	// Pushes a blur style used by backdrop-aware widgets rendered after this call.
+	// Blur is visual-only: it does not affect layout, item size, or hit testing.
+	// Must be balanced with pop_blur().
+	void push_blur(const Blur& blur);
+	// Restores the previous blur style. Must match a previous push_blur() call.
+	void pop_blur();
+	// Applies blur to already rendered content inside the given screen-space rectangle.
+	// This is visual-only and does not affect layout or hit testing.
+	void blur(const Blur& blur, const Vec2& min, const Vec2& max, float rounding = -1.0f);
 	// Pushes a shadow style used by elevated widgets rendered after this call.
 	// The shadow is visual-only: it does not affect layout, item size, or hit testing.
 	// Must be balanced with pop_shadow().
 	void push_shadow(const Shadow& shadow);
 	// Restores the previous shadow style. Must match a previous push_shadow() call.
 	void pop_shadow();
+
+	void paint(Vec2 pos, Vec2 size, PaintFunction function, void* userdata = nullptr, usize userdata_size = 0);
+	void paint(Vec2 size, PaintFunction function, void* userdata = nullptr, usize userdata_size = 0);
+	void paint(PaintFunction function, void* userdata = nullptr, usize userdata_size = 0);
+
+	template<typename F>
+	    requires(TriviallyStored<F>)
+	inline void paint(Vec2 pos, Vec2 size, F&& f)
+	{
+		auto callback = +[](void* userdata) { (*static_cast<F*>(userdata))(); };
+		paint(pos, size, callback, &f, sizeof(f));
+	}
+
+	template<typename F>
+	    requires(TriviallyStored<F>)
+	inline void paint(Vec2 size, F&& f)
+	{
+		auto callback = +[](void* userdata) { (*static_cast<F*>(userdata))(); };
+		paint(size, callback, &f, sizeof(f));
+	}
+
+	template<typename F>
+	    requires(TriviallyStored<F>)
+	inline void paint(F&& f)
+	{
+		auto callback = +[](void* userdata) { (*static_cast<F*>(userdata))(); };
+		paint(callback, &f, sizeof(f));
+	}
 
 	float apply_ease(float t, Ease mode = Ease::OutCubic);
 	float animate_float(ID id, float target, float speed = -1.0f);
@@ -672,6 +734,8 @@ namespace Trinex::UI
 	void end_child_panel();
 	bool begin_group_panel(const char* label, const Vec2& size = Vec2(0, 0), const PanelOptions& options = {});
 	void end_group_panel();
+	bool begin_group();
+	void end_group();
 
 	bool begin_card(const char* title, const CardOptions& options = {});
 	void end_card();
@@ -705,6 +769,8 @@ namespace Trinex::UI
 	float frame_rate();
 	double time_seconds();
 	int frame_count();
+	Vec2 viewport_pos();
+	Vec2 viewport_size();
 	Vec2 display_size();
 	Vec2 framebuffer_scale();
 	bool wants_keyboard_capture();

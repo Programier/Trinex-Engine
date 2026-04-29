@@ -193,6 +193,11 @@ namespace Trinex
 		return *this;
 	}
 
+	Vector3u VulkanTexture::size() const
+	{
+		return {m_extent.width, m_extent.height, m_extent.depth};
+	}
+
 	RHIShaderResourceView* VulkanTexture::as_srv(RHITextureDescSRV* desc)
 	{
 		if (!(m_flags & RHITextureFlags::ShaderResource))

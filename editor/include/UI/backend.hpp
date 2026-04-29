@@ -7,15 +7,18 @@ namespace Trinex
 {
 	class Window;
 	class RHIContext;
+	class RHITexture;
 	struct Event;
 
 	namespace UI::Backend
 	{
 		RHIContext* rhi();
+		RHITexture* render_target();
+
 		void imgui_init(Window* window, ImGuiContext* context);
 		void imgui_shutdown(Window* window, ImGuiContext* context);
 		void imgui_new_frame(Window* window);
-		void imgui_render(RHIContext* ctx, ImDrawData* data);
+		void imgui_render(RHIContext* ctx, Window* window, ImDrawData* data);
 
 		void imgui_event_recieved(const Event& event);
 		void imgui_disable_events();

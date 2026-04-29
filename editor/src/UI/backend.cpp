@@ -88,9 +88,9 @@ namespace Trinex::UI::Backend
 		}
 
 		struct ImGuiTrinexData {
-			RHIContext* context            = nullptr;
-			Texture2D* font_texture        = nullptr;
-			Trinex::RenderViewport* window = nullptr;
+			RHIContext* context     = nullptr;
+			RHITexture* target      = nullptr;
+			Texture2D* font_texture = nullptr;
 		};
 
 		struct ImGuiTrinexViewportData {
@@ -191,7 +191,7 @@ namespace Trinex::UI::Backend
 			}
 		}
 
-		static void render(RHIContext* ctx, ImDrawData* draw_data)
+		static void render(RHIContext* ctx, Window* window, ImDrawData* draw_data)
 		{
 			trinex_profile_cpu_n("ImGui");
 			trinex_rhi_push_stage(ctx, "ImGui Render");
@@ -212,7 +212,12 @@ namespace Trinex::UI::Backend
 				return;
 			}
 
+			RHITexturePool* pool = RHITexturePool::global_instance();
+
+			const Vector2u view_size = {draw_data->DisplaySize.x, draw_data->DisplaySize.y};
+
 			bd->context = ctx;
+			bd->target  = pool->request_surface(RHISurfaceFormat::RGBA8, view_size, RHITextureFlags::ColorAttachment);
 
 			trinex_rhi_push_stage(ctx, "ImGui Setup state");
 
@@ -308,7 +313,11 @@ namespace Trinex::UI::Backend
 			trinex_rhi_pop_stage(ctx);
 			{
 				trinex_profile_cpu_n("Render");
-				ctx->begin_rendering(bd->window->swapchain()->as_rtv());
+
+				ctx->barrier(bd->target, RHIAccess::TransferDst);
+				ctx->clear_rtv(bd->target->as_rtv(), 0.f, 0.f, 0.f, 1.f);
+				ctx->barrier(bd->target, RHIAccess::RTV);
+				ctx->begin_rendering(bd->target->as_rtv());
 
 				auto pipeline = ImGuiPipeline::instance();
 				for (int n = 0; n < draw_data->CmdListsCount; n++)
@@ -326,7 +335,7 @@ namespace Trinex::UI::Backend
 							{
 								ctx->end_rendering();
 								setup_render_state(draw_data);
-								ctx->begin_rendering(bd->window->swapchain()->as_rtv());
+								ctx->begin_rendering(bd->target->as_rtv());
 							}
 							else
 								pcmd->UserCallback(cmd_list, pcmd);
@@ -366,9 +375,18 @@ namespace Trinex::UI::Backend
 				}
 
 				ctx->end_rendering();
+
+				RHITexture* swapchain = window->render_viewport()->swapchain()->as_texture();
+
+				ctx->barrier(bd->target, RHIAccess::TransferSrc);
+				ctx->barrier(swapchain, RHIAccess::TransferDst);
+				ctx->copy(swapchain, bd->target, RHITextureRegion(view_size));
 			}
 			trinex_rhi_pop_stage(ctx);
+			pool->return_surface(bd->target);
+
 			bd->context = nullptr;
+			bd->target  = nullptr;
 		}
 
 		static void destroy_device_objects()
@@ -429,7 +447,6 @@ namespace Trinex::UI::Backend
 			IM_ASSERT(io.BackendRendererUserData == nullptr && "Already initialized a renderer backend!");
 
 			ImGuiTrinexData* bd = IM_NEW(ImGuiTrinexData)();
-			bd->window          = window->render_viewport();
 
 			io.BackendRendererUserData = (void*) bd;
 			io.BackendRendererName     = "imgui_impl_trinex";
@@ -1160,7 +1177,12 @@ namespace Trinex::UI::Backend
 
 	RHIContext* rhi()
 	{
-		return nullptr;
+		return RenderBackend::backend_data()->context;
+	}
+
+	RHITexture* render_target()
+	{
+		return RenderBackend::backend_data()->target;
 	}
 
 	void imgui_init(Window* window, ImGuiContext* context)
@@ -1180,9 +1202,9 @@ namespace Trinex::UI::Backend
 		WindowBackend::new_frame(window);
 	}
 
-	void imgui_render(RHIContext* ctx, ImDrawData* data)
+	void imgui_render(RHIContext* ctx, Window* window, ImDrawData* data)
 	{
-		RenderBackend::render(ctx, data);
+		RenderBackend::render(ctx, window, data);
 	}
 
 	void imgui_event_recieved(const Event& event) {}

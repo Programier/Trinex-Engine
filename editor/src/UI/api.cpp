@@ -1,12 +1,11 @@
-#include <Core/default_resources.hpp>
 #include <Core/editor_config.hpp>
 #include <Core/etl/vector.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/path.hpp>
 #include <Core/math/math.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/memory.hpp>
+#include <Engine/Render/pipelines.hpp>
 #include <Graphics/render_pools.hpp>
-#include <Graphics/texture.hpp>
 #include <IconsLucide.h>
 #include <RHI/context.hpp>
 #include <RHI/handles.hpp>
@@ -22,6 +21,7 @@
 #include <cstdio>
 #include <cstring>
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <imgui_stacklayout.h>
 #include <unordered_map>
 #include <utility>
@@ -30,6 +30,103 @@
 
 namespace Trinex::UI
 {
+	class Allocator
+	{
+	private:
+		static constexpr usize block_size = 4096;
+
+		struct Block {
+			alignas(block_size) u8 data[block_size];
+			Block* next = nullptr;
+		};
+
+		Block* m_head    = nullptr;
+		Block* m_current = nullptr;
+		usize m_used     = 0;
+
+		Block* create_block()
+		{
+			Block* block = trx_new Block{};
+
+			if (!m_head)
+			{
+				m_head = block;
+			}
+
+			if (m_current)
+			{
+				m_current->next = block;
+			}
+
+			m_current = block;
+			m_used    = 0;
+			return block;
+		}
+
+	public:
+		void* allocate(usize size)
+		{
+			if (size == 0)
+			{
+				return nullptr;
+			}
+
+			size = align_up(size, 16);
+
+			if (size > block_size)
+			{
+				trinex_unreachable();
+			}
+
+			if (!m_current)
+			{
+				create_block();
+			}
+
+			if (m_used + size > block_size)
+			{
+				if (m_current->next)
+				{
+					m_current = m_current->next;
+					m_used    = 0;
+				}
+				else
+				{
+					create_block();
+				}
+			}
+
+			void* ptr = m_current->data + m_used;
+			m_used += size;
+			return ptr;
+		}
+
+		void* allocate(usize size, void* memory)
+		{
+			void* ptr = allocate(size);
+			memcpy(ptr, memory, size);
+			return ptr;
+		}
+
+		void reset()
+		{
+			m_current = m_head;
+			m_used    = 0;
+		}
+
+		~Allocator()
+		{
+			Block* block = m_head;
+
+			while (block)
+			{
+				Block* next = block->next;
+				trx_delete block;
+				block = next;
+			}
+		}
+	};
+
 	struct AnimState {
 		f32 hover        = 0.0f;
 		f32 active       = 0.0f;
@@ -136,6 +233,7 @@ namespace Trinex::UI
 	struct Context {
 		Trinex::Window* window = nullptr;
 		ImGuiContext* context  = nullptr;
+		Allocator allocator;
 		Style style;
 		Vector<Style> style_stack;
 		std::unordered_map<ImGuiID, AnimState> anim;
@@ -156,6 +254,7 @@ namespace Trinex::UI
 		Vector<AreaContext> area_stack;
 		Vector<PanelContext> panel_stack;
 		Vector<CardContext> card_stack;
+		Vector<Blur> blur_stack;
 		Vector<Shadow> shadow_stack;
 		Vector<float> disabled_alpha_stack;
 		Vector<String> pending_modals;
@@ -176,6 +275,7 @@ namespace Trinex::UI
 
 	namespace
 	{
+
 		using tree_context      = TreeContext;
 		using area_context      = AreaContext;
 		using persistent_window = PersistentWindow;
@@ -204,6 +304,7 @@ namespace Trinex::UI
 #define g_area_stack active_context()->area_stack
 #define g_panel_stack active_context()->panel_stack
 #define g_card_stack active_context()->card_stack
+#define g_blur_stack active_context()->blur_stack
 #define g_shadow_stack active_context()->shadow_stack
 #define g_disabled_alpha_stack active_context()->disabled_alpha_stack
 #define g_pending_modals active_context()->pending_modals
@@ -414,6 +515,21 @@ namespace Trinex::UI
 				case NotificationKind::Info:
 				default: return ICON_LC_INFO;
 			}
+		}
+
+		const Blur& current_blur()
+		{
+			return g_blur_stack.empty() ? active_context()->style.blur : g_blur_stack.back();
+		}
+
+		bool has_blur_override()
+		{
+			return !g_blur_stack.empty();
+		}
+
+		bool blur_visible(const Blur& blur)
+		{
+			return blur.radius > 0.0f || blur.opacity > 0.0f || blur.tint.w > 0.0f;
 		}
 
 		bool equals_case_insensitive(const char* a, const char* b)
@@ -652,6 +768,23 @@ namespace Trinex::UI
 				draw->AddRectFilled(ImVec2(base_min.x - grow, base_min.y - grow), ImVec2(base_max.x + grow, base_max.y + grow),
 				                    col_u32(layer_color), base_rounding + grow);
 			}
+			draw->PopClipRect();
+		}
+
+		void draw_blur_rect(ImDrawList* draw, const ImVec2& min, const ImVec2& max, float rounding, const Blur& blur)
+		{
+			if (draw == nullptr || !blur_visible(blur))
+			{
+				return;
+			}
+
+			if (blur.tint.w == 0.0f)
+				return;
+
+			const float spread = blur.spread;
+			draw->PushClipRectFullScreen();
+			draw->AddRectFilled(ImVec2(min.x - spread, min.y - spread), ImVec2(max.x + spread, max.y + spread),
+			                    col_u32(with_alpha(blur.tint, blur.opacity)), std::max(0.0f, rounding + spread));
 			draw->PopClipRect();
 		}
 
@@ -1097,6 +1230,7 @@ namespace Trinex::UI
 		g_area_stack.clear();
 		g_panel_stack.clear();
 		g_card_stack.clear();
+		g_blur_stack.clear();
 		g_shadow_stack.clear();
 		g_disabled_alpha_stack.clear();
 		g_pending_modals.clear();
@@ -1208,7 +1342,7 @@ namespace Trinex::UI
 				ctx->clear_rtv(rtv, 0.f, 0.f, 0.f, 1.f);
 				ctx->barrier(texture, RHIAccess::RTV);
 
-				UI::Backend::imgui_render(ctx, ImGui::GetDrawData());
+				UI::Backend::imgui_render(ctx, g_context->window, ImGui::GetDrawData());
 
 				ctx->barrier(texture, RHIAccess::PresentSrc);
 			}
@@ -1217,12 +1351,19 @@ namespace Trinex::UI
 			RHI::instance()->present(swapchain);
 		}
 
+		trinex_assert(g_blur_stack.empty() && "UI::push_blur()/pop_blur() imbalance detected at end_frame()");
+		if (!g_blur_stack.empty())
+		{
+			g_blur_stack.clear();
+		}
+
 		trinex_assert(g_shadow_stack.empty() && "UI::push_shadow()/pop_shadow() imbalance detected at end_frame()");
 		if (!g_shadow_stack.empty())
 		{
 			g_shadow_stack.clear();
 		}
 
+		active_context()->allocator.reset();
 		ImGui::SetCurrentContext(nullptr);
 	}
 
@@ -1258,6 +1399,49 @@ namespace Trinex::UI
 		}
 	}
 
+	void push_blur(const Blur& blur)
+	{
+		g_blur_stack.push_back(blur);
+	}
+
+	void pop_blur()
+	{
+		trinex_assert(!g_blur_stack.empty() && "UI::pop_blur() called without matching push_blur()");
+		if (!g_blur_stack.empty())
+		{
+			g_blur_stack.pop_back();
+		}
+	}
+
+	void blur(const Blur& blur, const Vec2& min, const Vec2& max, float rounding)
+	{
+		paint(min, max - min, [blur]() {
+			const RHITextureFlags flags = RHITextureFlags::ColorAttachment;
+			RHITexturePool* pool        = RHITexturePool::global_instance();
+
+			RHIContext* ctx       = Backend::rhi();
+			RHITexture* window    = Backend::render_target();
+			const Vector2u size   = window->size();
+			RHITexture* temporary = pool->request_surface(RHISurfaceFormat::RGBA8, size, flags);
+
+
+			ctx->end_rendering();
+			ctx->barrier(window, RHIAccess::SRVGraphics);
+			ctx->barrier(temporary, RHIAccess::RTV);
+
+			ctx->begin_rendering(temporary->as_rtv());
+			Pipelines::GaussianBlur::blur(ctx, window->as_srv(), {0.f, 1.f / static_cast<f32>(size.y)}, 8.f, 24.f);
+			ctx->end_rendering();
+
+			ctx->barrier(window, RHIAccess::RTV);
+			ctx->barrier(temporary, RHIAccess::SRVGraphics);
+			ctx->begin_rendering(window->as_rtv());
+			Pipelines::GaussianBlur::blur(ctx, temporary->as_srv(), {1.f / static_cast<f32>(size.x), 0.f}, 8.f, 24.f);
+
+			pool->return_surface(temporary);
+		});
+	}
+
 	void push_shadow(const Shadow& shadow)
 	{
 		g_shadow_stack.push_back(shadow);
@@ -1270,6 +1454,92 @@ namespace Trinex::UI
 		{
 			g_shadow_stack.pop_back();
 		}
+	}
+
+	void paint(Vec2 pos, Vec2 size, PaintFunction function, void* userdata, usize userdata_size)
+	{
+		ImGuiWindow* window = ImGui::GetCurrentWindow();
+
+		if (!window || function == nullptr)
+			return;
+
+		ImGui::Dummy(to_imvec(size));
+
+		if (!ImGui::IsItemVisible())
+			return;
+
+		ImDrawList* list  = window->DrawList;
+		ImGuiViewport* vp = window->Viewport;
+
+		struct Args {
+			Trinex::Vector2f16 pos;
+			Trinex::Vector2f16 size;
+		} args;
+
+		args.pos  = (pos - to_vec(vp->Pos)) / to_vec(vp->Size);
+		args.size = size / to_vec(vp->Size);
+
+		ImDrawCallback viewport_setup = [](const ImDrawList* parent_list, const ImDrawCmd* cmd) {
+			Args* args = reinterpret_cast<Args*>(cmd->UserCallbackData);
+
+			auto ctx = Trinex::UI::Backend::rhi();
+			ctx->viewport(Trinex::RHIViewport(args->size, args->pos));
+			ctx->scissor(Trinex::RHIScissor(args->size, args->pos));
+		};
+
+		list->AddCallback(viewport_setup, &args, sizeof(args));
+
+		if (userdata == nullptr)
+		{
+			ImDrawCallback callback = [](const ImDrawList*, const ImDrawCmd* cmd) {
+				PaintFunction* function = static_cast<PaintFunction*>(cmd->UserCallbackData);
+				(*function)(nullptr);
+			};
+
+			list->AddCallback(callback, &function, sizeof(function));
+		}
+		else
+		{
+			if (userdata_size > 0)
+			{
+				userdata = active_context()->allocator.allocate(userdata_size, userdata);
+			}
+
+			struct CallbackArgs {
+				PaintFunction function;
+				void* userdata;
+			};
+
+			CallbackArgs args = {.function = function, .userdata = userdata};
+
+			ImDrawCallback callback = [](const ImDrawList*, const ImDrawCmd* cmd) {
+				CallbackArgs* args = static_cast<CallbackArgs*>(cmd->UserCallbackData);
+				args->function(args->userdata);
+			};
+
+			list->AddCallback(callback, &function, sizeof(function));
+		}
+
+		list->AddCallback(ImDrawCallback_ResetRenderState, nullptr);
+	}
+
+	void paint(Vec2 size, PaintFunction function, void* userdata, usize userdata_size)
+	{
+		ImGuiWindow* window = ImGui::GetCurrentWindow();
+		ImGuiViewport* vp   = window->Viewport;
+
+		Vec2 pos = to_vec(ImGui::GetItemRectMin());
+		paint(pos, size, function, userdata, userdata_size);
+	}
+
+	void paint(PaintFunction function, void* userdata, usize userdata_size)
+	{
+		ImGuiWindow* window = ImGui::GetCurrentWindow();
+		ImGuiViewport* vp   = window->Viewport;
+
+		Vec2 pos  = to_vec(ImGui::GetItemRectMin());
+		Vec2 size = to_vec(vp->Size);
+		paint(pos, size, function, userdata, userdata_size);
 	}
 
 	DisabledScope::DisabledScope(bool disabled)
@@ -1300,6 +1570,16 @@ namespace Trinex::UI
 	ShadowScope::~ShadowScope()
 	{
 		pop_shadow();
+	}
+
+	BlurScope::BlurScope(const Blur& blur)
+	{
+		push_blur(blur);
+	}
+
+	BlurScope::~BlurScope()
+	{
+		pop_blur();
 	}
 
 	IdScope::IdScope(const char* id)
@@ -1637,6 +1917,17 @@ namespace Trinex::UI
 	void end_group_panel()
 	{
 		end_child_panel();
+		ImGui::EndGroup();
+	}
+
+	bool begin_group()
+	{
+		ImGui::BeginGroup();
+		return true;
+	}
+
+	void end_group()
+	{
 		ImGui::EndGroup();
 	}
 
@@ -2172,6 +2463,18 @@ namespace Trinex::UI
 	int frame_count()
 	{
 		return ImGui::GetFrameCount();
+	}
+
+	Vec2 viewport_pos()
+	{
+		ImGuiWindow* window = ImGui::GetCurrentWindow();
+		return to_vec(window->Viewport->Pos);
+	}
+
+	Vec2 viewport_size()
+	{
+		ImGuiWindow* window = ImGui::GetCurrentWindow();
+		return to_vec(window->Viewport->Size);
 	}
 
 	Vec2 display_size()
@@ -4094,8 +4397,7 @@ namespace Trinex::UI
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(padding, padding));
 		ImGui::PushStyleColor(ImGuiCol_PopupBg, to_imvec(active_context()->style.colors.panel));
 		ImGui::PushStyleColor(ImGuiCol_Border, to_imvec(active_context()->style.colors.border));
-		ImGui::PushStyleColor(ImGuiCol_ModalWindowDimBg,
-		                      to_imvec(with_alpha(active_context()->style.colors.background, 0.72f)));
+		ImGui::PushStyleColor(ImGuiCol_ModalWindowDimBg, to_imvec(with_alpha(active_context()->style.colors.background, 0.72f)));
 
 		const ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove |
 		                               ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDocking |
@@ -4859,1037 +5161,4 @@ namespace Trinex::UI
 		              message != nullptr ? message : "");
 		ImGui::Dummy(size);
 	}
-
-
-	///////////////////////////////// API VIEWPORT EXAMPLE /////////////////////////////////
 }// namespace Trinex::UI
-
-
-namespace Trinex
-{
-	class ENGINE_EXPORT UITest : public ViewportClient
-	{
-		trinex_class(UITest, ViewportClient);
-		UI::Context* m_ctx;
-
-		bool enabled              = true;
-		bool fullscreen           = false;
-		bool show_grid            = true;
-		bool visible              = true;
-		bool modal_open           = true;
-		bool advanced_visible     = true;
-		bool menu_grid            = true;
-		float opacity             = 0.82f;
-		float bloom               = 0.35f;
-		float exposure            = 1.25f;
-		float progress            = 0.62f;
-		float drag_speed          = 4.5f;
-		double precision_value    = 0.125;
-		float left_size           = 260.0f;
-		float right_size          = 1020.0f;
-		int quality               = 2;
-		int drag_steps            = 16;
-		int radio_mode            = 0;
-		int segmented_mode        = 1;
-		int selected_tab          = 0;
-		int selected_sidebar      = 0;
-		int selected_entity       = 0;
-		int selected_list_item    = 0;
-		int combo_index           = 1;
-		char name_buffer[128]     = "Player";
-		char search_buffer[128]   = "";
-		char filter_buffer[128]   = "";
-		char dropped_payload[128] = "Drop an item here";
-		char hint_buffer[128]     = "TrinexAsset";
-		char multiline_buffer[512] =
-		        "Multiline input example.\nYou can type several lines here.\nUseful for notes, scripts, or descriptions.";
-		UI::Vec2 drag_range        = UI::Vec2(0.15f, 0.85f);
-		UI::Vec3 transform_pos     = UI::Vec3(125.0f, 64.0f, -18.0f);
-		UI::Vec4 clip_rect         = UI::Vec4(12.0f, 24.0f, 320.0f, 180.0f);
-		UI::Vec4 tint_color        = UI::Vec4(0.28f, 0.62f, 0.95f, 1.0f);
-		const char* combo_items[4] = {"Low", "Medium", "High", "Ultra"};
-		const char* mode_items[3]  = {"Move", "Rotate", "Scale"};
-		const char* list_items[7]  = {"Camera",       "Player",         "Light",          "Environment",
-		                              "Post Process", "Audio Listener", "Navigation Mesh"};
-
-	public:
-		UITest& on_bind_viewport(class RenderViewport* viewport) override
-		{
-			Super::on_bind_viewport(viewport);
-			m_ctx = UI::create_context(viewport->window());
-			return *this;
-		}
-
-		UITest& on_unbind_viewport(class RenderViewport* viewport) override
-		{
-			Super::on_bind_viewport(viewport);
-			UI::destroy_context(m_ctx);
-			return *this;
-		}
-
-		UITest& update(class RenderViewport* viewport, float dt) override
-		{
-			Super::update(viewport, dt);
-
-			UI::begin_frame(m_ctx);
-			{
-				UI::style accent_style     = UI::get_style();
-				accent_style.colors.accent = UI::Vec4(0.95f, 0.54f, 0.25f, 1.0f);
-
-				UI::register_command({
-				        .id          = "palette.open",
-				        .name        = "Open Command Palette",
-				        .description = "Open the searchable command palette overlay.",
-				        .shortcut    = "Ctrl+Shift+P",
-				        .icon        = ICON_LC_SEARCH,
-				        .action      = [] { UI::open_command_palette(); },
-				});
-				UI::register_command({
-				        .id          = "scene.save",
-				        .name        = "Save Scene",
-				        .description = "Emit a demo notification for scene save.",
-				        .shortcut    = "Ctrl+S",
-				        .icon        = ICON_LC_SAVE,
-				        .action =
-				                [] {
-					                UI::notification("Scene saved successfully.", {UI::notification_kind::success, 3.0f, "Save"});
-				                },
-				});
-				UI::register_command({
-				        .id          = "view.shadow",
-				        .name        = "Open Shadow Examples",
-				        .description = "Switch the showcase to the Shadow tab.",
-				        .icon        = ICON_LC_PANEL_TOP_OPEN,
-				        .action      = [&] { selected_tab = 7; },
-				});
-				UI::register_command({
-				        .id          = "view.runtime",
-				        .name        = "Open Runtime Diagnostics",
-				        .description = "Switch the showcase to the Runtime tab.",
-				        .icon        = ICON_LC_ACTIVITY,
-				        .action      = [&] { selected_tab = 8; },
-				});
-				UI::register_command({
-				        .id          = "view.toggle_grid",
-				        .name        = show_grid ? "Disable Grid" : "Enable Grid",
-				        .description = "Toggle the showcase grid flag.",
-				        .icon        = ICON_LC_GRID_2X2,
-				        .action      = [&] { show_grid = !show_grid; },
-				});
-
-				if (UI::key_ctrl() && UI::key_shift() && UI::is_key_pressed(UI::Key::P, false))
-				{
-					UI::open_command_palette();
-				}
-
-				if (UI::begin_window("Animated UI Framework Showcase", nullptr, ImGuiWindowFlags_MenuBar))
-				{
-					if (UI::begin_menu_bar())
-					{
-						if (UI::begin_menu("File"))
-						{
-							if (UI::menu_item("Command Palette", "Ctrl+Shift+P"))
-							{
-								UI::open_command_palette();
-							}
-							if (UI::menu_item("Confirm reset", nullptr))
-							{
-								UI::open_modal("High-level confirm");
-							}
-							UI::end_menu();
-						}
-						if (UI::begin_menu("View"))
-						{
-							UI::menu_item("Show grid", nullptr, &menu_grid);
-							UI::menu_item("Disabled item", "Ctrl+D", false, false);
-
-							if (UI::begin_menu("View Mode"))
-							{
-								static bool flags[5];
-								UI::menu_item("Base Color", nullptr, &flags[0]);
-								UI::menu_item("Normal", nullptr, &flags[1]);
-								UI::menu_item("Roughness", nullptr, &flags[2]);
-								UI::menu_item("Metalic", nullptr, &flags[3]);
-								UI::menu_item("AO", nullptr, &flags[4]);
-								UI::end_menu();
-							}
-
-							UI::end_menu();
-						}
-						UI::end_menu_bar();
-					}
-
-					const UI::confirm_result confirm = UI::confirmation(
-					        "High-level confirm", "Reset demo values using confirmation_modal()?", "Reset", "Cancel", true);
-					if (confirm == UI::confirm_result::confirmed)
-					{
-						opacity  = 0.82f;
-						bloom    = 0.35f;
-						exposure = 1.25f;
-						progress = 0.62f;
-						UI::notification("High-level confirmation accepted.", {UI::notification_kind::warning, 3.0f, "Confirm"});
-					}
-
-					UI::text("Immediate-mode UI framework layer");
-					UI::text_muted("A compact showcase of the public UI::* API.");
-					UI::same_line();
-					UI::help_marker(
-					        "Every section uses custom animated widgets while preserving Dear ImGui's immediate-mode usage.");
-					UI::separator();
-
-					if (UI::begin_toolbar("top_toolbar"))
-					{
-						UI::ShadowScope shadow_scope(UI::Shadow{
-						        .offset = UI::Vec2(2.0f, 6.0f),
-						        .blur   = 0.0f,
-						        .spread = 1.0f,
-						        .color  = UI::Vec4(0.0f, 0.0f, 0.0f, 0.18f),
-						});
-
-						if (UI::button("Save"))
-						{
-							UI::notification("Scene saved successfully.", {UI::notification_kind::success, 3.0f, "Save"});
-						}
-						UI::same_line();
-
-						if (UI::icon_button("+", "Create"))
-						{
-							UI::notification("Created a new object.", {UI::notification_kind::info, 2.5f, "Create"});
-						}
-						UI::same_line();
-
-						if (UI::ghost_button("Open popup"))
-						{
-							UI::open_popup("demo_popup");
-						}
-						UI::same_line();
-
-						if (UI::danger_button("Open modal"))
-						{
-							modal_open = true;
-							UI::open_modal("Confirm reset");
-						}
-
-						UI::end_toolbar();
-					}
-
-					if (UI::begin_popup("demo_popup"))
-					{
-						UI::text("Popup menu");
-						UI::separator();
-						if (UI::selectable("Duplicate"))
-						{
-							UI::notification("Duplicate selected.");
-						}
-						if (UI::selectable("Rename"))
-						{
-							UI::notification("Rename selected.");
-						}
-						if (UI::selectable("Delete"))
-						{
-							UI::notification("Delete selected.", {UI::notification_kind::warning, 3.0f, "Popup"});
-						}
-						UI::end_popup();
-					}
-
-					if (UI::begin_modal("Confirm reset", &modal_open))
-					{
-						UI::text("Reset all demo values?");
-						UI::text_muted("This demonstrates begin_modal(), open_modal(), and end_modal().");
-						UI::spacing();
-						if (UI::danger_button("Reset"))
-						{
-							enabled    = true;
-							fullscreen = false;
-							show_grid  = true;
-							visible    = true;
-							opacity    = 0.82f;
-							bloom      = 0.35f;
-							progress   = 0.62f;
-							quality    = 2;
-							UI::notification("Values were reset.", {UI::notification_kind::warning, 3.0f, "Reset"});
-							modal_open = false;
-						}
-						UI::same_line();
-						if (UI::ghost_button("Cancel"))
-						{
-							modal_open = false;
-						}
-						UI::end_modal();
-					}
-
-					UI::panel_options sidebar_panel;
-					sidebar_panel.size = UI::Vec2(left_size, 0.0f);
-					if (UI::begin_child_panel("sidebar_panel", sidebar_panel.size, sidebar_panel))
-					{
-						UI::text_muted("Navigation");
-						if (UI::sidebar_item("Controls", selected_sidebar == 0, "01", "Core"))
-						{
-							selected_sidebar = 0;
-						}
-						if (UI::sidebar_item("Hierarchy", selected_sidebar == 1, "02", "Tree"))
-						{
-							selected_sidebar = 1;
-						}
-						if (UI::sidebar_item("Layout", selected_sidebar == 2, "03", "Panels"))
-						{
-							selected_sidebar = 2;
-						}
-						if (UI::nav_item("Utilities", selected_sidebar == 3, "04"))
-						{
-							selected_sidebar = 3;
-						}
-						if (UI::nav_item("Data Views", selected_sidebar == 4, "05"))
-						{
-							selected_sidebar = 4;
-						}
-
-						UI::separator();
-						UI::breadcrumb("Root");
-						UI::breadcrumb(selected_sidebar == 0   ? "Controls"
-						               : selected_sidebar == 1 ? "Hierarchy"
-						               : selected_sidebar == 2 ? "Layout"
-						               : selected_sidebar == 3 ? "Utilities"
-						                                       : "Data Views",
-						               true);
-
-						UI::spacing();
-						UI::badge("LIVE", UI::get_style().colors.success);
-						UI::same_line();
-						UI::pill("BETA", UI::get_style().colors.warning);
-						UI::same_line();
-						UI::status_dot(enabled ? UI::get_style().colors.success : UI::get_style().colors.error);
-						UI::end_child_panel();
-					}
-
-					UI::same_line();
-					UI::splitter("main_splitter", &left_size, &right_size, 180.0f, 360.0f);
-					UI::same_line();
-
-					UI::panel_options content_panel;
-					content_panel.size = UI::Vec2(right_size, 0.0f);
-					if (UI::begin_child_panel("content_panel", content_panel.size, content_panel))
-					{
-						if (UI::begin_tab_bar("showcase_tabs"))
-						{
-							if (UI::tab("Controls", selected_tab == 0))
-							{
-								selected_tab = 0;
-							}
-							UI::same_line();
-							if (UI::tab("Tree", selected_tab == 1))
-							{
-								selected_tab = 1;
-							}
-							UI::same_line();
-							if (UI::tab("Text/Layout", selected_tab == 2))
-							{
-								selected_tab = 2;
-							}
-							UI::same_line();
-							if (UI::tab("Style", selected_tab == 3))
-							{
-								selected_tab = 3;
-							}
-							UI::same_line();
-							if (UI::tab("Extended", selected_tab == 4))
-							{
-								selected_tab = 4;
-							}
-							UI::same_line();
-							if (UI::tab("Data", selected_tab == 5))
-							{
-								selected_tab = 5;
-							}
-							UI::same_line();
-							if (UI::tab("Inputs+", selected_tab == 6))
-							{
-								selected_tab = 6;
-							}
-							UI::same_line();
-							if (UI::tab("Shadow", selected_tab == 7))
-							{
-								selected_tab = 7;
-							}
-							UI::same_line();
-							if (UI::tab("Runtime", selected_tab == 8))
-							{
-								selected_tab = 8;
-							}
-							UI::end_tab_bar();
-						}
-
-						UI::spacing();
-
-						if (selected_tab == 0)
-						{
-							UI::text("Controls");
-							UI::text_muted("Buttons, toggles, inputs, combo boxes, sliders, progress, and spinner.");
-
-							if (UI::button("Primary button"))
-							{
-								UI::notification("Primary button clicked.");
-							}
-							UI::same_line();
-							if (UI::icon_button("*", "Icon button"))
-							{
-								UI::notification("Icon button clicked.");
-							}
-							UI::same_line();
-							UI::small_button("Small");
-
-							UI::spacing();
-							UI::ghost_button("Ghost button");
-							UI::same_line();
-							UI::danger_button("Danger button");
-							UI::same_line();
-							UI::image_button("##test", DefaultResources::Textures::noise128x128->rhi_texture(), {128, 128});
-							UI::same_line();
-							UI::image(DefaultResources::Textures::noise128x128->rhi_texture(), {128, 128});
-
-							UI::separator();
-							UI::checkbox("Show grid", &show_grid);
-							UI::toggle("Enabled", &enabled);
-							UI::toggle("Visible", &visible);
-
-							UI::slider("Opacity", &opacity, 0.0f, 1.0f);
-							UI::slider("Bloom", &bloom, 0.0f, 1.0f);
-							UI::slider("Quality", &quality, 0, 3);
-							UI::slider("Progress", &progress, 0.0f, 1.0f);
-
-							UI::input("Name", name_buffer, sizeof(name_buffer));
-							UI::search_input("Search", search_buffer, sizeof(search_buffer));
-
-							UI::combo("Preset helper", &combo_index, combo_items, 4);
-
-							if (UI::begin_combo("Preset", combo_items[combo_index]))
-							{
-								for (int i = 0; i < 4; ++i)
-								{
-									if (UI::selectable(combo_items[i], combo_index == i))
-									{
-										combo_index = i;
-									}
-								}
-								UI::end_combo();
-							}
-
-							UI::progress_bar(progress, UI::Vec2(-1.0f, 14.0f), "Animated progress");
-							UI::spacing();
-							UI::spinner("main_spinner", 10.0f, 2.5f);
-						}
-						else if (selected_tab == 1)
-						{
-							UI::text("Hierarchy");
-							UI::text_muted("Animated tree_node() content expands, fades, clips, and collapses smoothly.");
-
-							UI::tree_node_options scene_node;
-							scene_node.icon         = "S";
-							scene_node.badge        = "3";
-							scene_node.default_open = true;
-							if (UI::tree_node("Scene", scene_node))
-							{
-								UI::tree_node_options camera_node;
-								camera_node.icon     = "C";
-								camera_node.selected = selected_entity == 0;
-								if (UI::selectable_tree_item("Camera", selected_entity == 0, camera_node))
-								{
-									selected_entity = 0;
-								}
-
-								UI::tree_node_options player_node;
-								player_node.icon         = "P";
-								player_node.badge        = "Open";
-								player_node.selected     = selected_entity == 1;
-								player_node.default_open = true;
-								if (UI::tree_node("Player", player_node))
-								{
-									UI::tree_node_options transform_leaf;
-									transform_leaf.icon = "T";
-									if (UI::tree_leaf("Transform", transform_leaf))
-									{
-										selected_entity = 1;
-									}
-
-									UI::tree_node_options renderer_leaf;
-									renderer_leaf.icon  = "R";
-									renderer_leaf.badge = "Mesh";
-									if (UI::tree_item("Renderer", renderer_leaf))
-									{
-										selected_entity = 1;
-									}
-
-									UI::tree_node_options inventory_node;
-									inventory_node.icon         = "I";
-									inventory_node.default_open = true;
-									if (UI::tree_node("Inventory", inventory_node))
-									{
-										UI::tree_leaf("Weapon");
-										UI::tree_leaf("Shield");
-										UI::tree_leaf("Potion");
-										UI::tree_pop();
-									}
-
-									UI::tree_pop();
-								}
-
-								UI::tree_node_options light_node;
-								light_node.icon     = "L";
-								light_node.selected = selected_entity == 2;
-								if (UI::selectable_tree_item("Light", selected_entity == 2, light_node))
-								{
-									selected_entity = 2;
-								}
-
-								UI::tree_pop();
-							}
-
-							UI::separator();
-							UI::section_header("Inspector", [&] {
-								UI::property_row("Selected", [&] {
-									UI::text(selected_entity == 0 ? "Camera" : selected_entity == 1 ? "Player" : "Light");
-								});
-								UI::property_row("Visible", [&] { UI::toggle("##inspector_visible", &visible); });
-								UI::property_row("Opacity", [&] { UI::slider("##inspector_opacity", &opacity, 0.0f, 1.0f); });
-								UI::property_bool("Grid", &show_grid);
-								UI::property_float("Exposure", &exposure, 0.0f, 4.0f);
-								UI::property_int("Quality", &quality, 0, 3);
-								UI::property_text("Name", name_buffer, sizeof(name_buffer));
-								UI::property_color("Tint", &tint_color);
-								UI::key_value_row("Renderer", combo_items[combo_index]);
-							});
-						}
-						else if (selected_tab == 2)
-						{
-							UI::text("Text and layout");
-							UI::text_muted("Panels, child panels, group panels, rows, labels, and tooltips.");
-							UI::text_colored(UI::get_style().colors.accent, "Accent text");
-							UI::label("Current name", name_buffer);
-							UI::tooltip("This tooltip is shown explicitly from UI::tooltip().");
-							UI::button("Hover for delayed tooltip");
-							UI::tooltip_delayed("This appears after a short delay.");
-							UI::same_line();
-							UI::button("Hover for instant tooltip");
-							UI::tooltip_if_hovered("This appears immediately.");
-							UI::same_line();
-							UI::help_tooltip("help_tooltip() is a compact wrapper around the marker pattern.");
-
-							UI::separator();
-
-							UI::panel_options nested_panel;
-							nested_panel.size             = UI::Vec2(0.0f, 110.0f);
-							nested_panel.background_color = UI::Vec4(0.08f, 0.13f, 0.12f, 1.0f);
-
-							if (UI::begin_panel("nested_panel", nested_panel))
-							{
-								UI::text("begin_panel() / end_panel()");
-								UI::text_muted("This panel uses a custom background color.");
-								UI::button("Panel button");
-								UI::end_panel();
-							}
-
-							UI::spacing();
-
-							if (UI::begin_group_panel("Group panel", UI::Vec2(0.0f, 120.0f)))
-							{
-								UI::text("begin_group_panel() / end_group_panel()");
-								UI::checkbox("Grouped checkbox", &show_grid);
-								UI::toggle("Grouped toggle", &enabled);
-								UI::end_group_panel();
-							}
-
-							UI::spacing();
-							UI::text("Cards");
-							UI::text_muted("Inline dashboard-style containers with header, accent, hover, selection, and "
-							               "disabled states.");
-
-							UI::card_options renderer_card;
-							renderer_card.icon       = "R";
-							renderer_card.subtitle   = "Vulkan backend";
-							renderer_card.right_text = enabled ? "Active" : "Idle";
-							renderer_card.accent     = UI::Vec4(0.28f, 0.62f, 0.95f, 1.0f);
-							renderer_card.hoverable  = true;
-							renderer_card.elevation  = 1.5f;
-
-							UI::card("Renderer", renderer_card, [&] {
-								UI::property_bool("VSync", &enabled);
-								UI::property_float("Exposure", &exposure, 0.0f, 4.0f);
-								UI::property_float("Bloom", &bloom, 0.0f, 1.0f);
-							});
-
-							UI::card_options asset_card;
-							asset_card.icon       = "T";
-							asset_card.subtitle   = "Preview card";
-							asset_card.right_text = "Disabled";
-							asset_card.disabled   = true;
-							asset_card.size       = UI::Vec2(0.0f, 150.0f);
-							asset_card.elevation  = 0.75f;
-
-							UI::card("Texture Asset", asset_card, [&] {
-								UI::image(DefaultResources::Textures::noise128x128->rhi_texture(), UI::Vec2(96.0f, 96.0f));
-								UI::text("noise128x128");
-								UI::text_muted("Fixed-height card body.");
-								UI::button("Open asset");
-							});
-
-							UI::card_options tile_card;
-							tile_card.icon       = "A";
-							tile_card.subtitle   = "Clickable asset tile";
-							tile_card.right_text = "Select";
-							tile_card.size       = UI::Vec2(0.0f, 84.0f);
-							tile_card.elevation  = 1.0f;
-
-							if (UI::card_button("Asset Tile", tile_card))
-							{
-								selected_entity = 1;
-							}
-
-							UI::spacing();
-							UI::key_value_row("Animation speed", "12.0");
-						}
-						else if (selected_tab == 3)
-						{
-							UI::text("Style and settings");
-							UI::text_muted("Style access, pushed temporary style, headers, and notification variants.");
-
-							UI::collapsing_header(
-							        "Window",
-							        [&] {
-								        UI::toggle("Fullscreen", &fullscreen);
-								        UI::toggle("VSync / Enabled", &enabled);
-							        },
-							        [] {
-								        UI::header_options options;
-								        options.right_text   = "State";
-								        options.default_open = true;
-								        return options;
-							        }());
-
-							UI::header_options rendering_header;
-							rendering_header.icon         = "R";
-							rendering_header.right_text   = combo_items[combo_index];
-							rendering_header.default_open = true;
-							UI::section_header(
-							        "Rendering",
-							        [&] {
-								        UI::slider("Quality preset", &quality, 0, 3);
-								        UI::slider("Bloom intensity", &bloom, 0.0f, 1.0f);
-							        },
-							        rendering_header);
-
-							UI::separator();
-							UI::text("Temporary pushed style");
-							UI::push_style(accent_style);
-							if (UI::button("Orange accent via push_style()"))
-							{
-								UI::notification("Temporary style button clicked.", {UI::notification_kind::info, 3.0f, "Style"});
-							}
-							UI::pop_style();
-
-							UI::spacing();
-							if (UI::button("Info notification"))
-							{
-								UI::notification_options options;
-								options.kind         = UI::notification_kind::info;
-								options.duration     = 5.0f;
-								options.title        = "Info";
-								options.action_label = "Action";
-								options.action       = [] {
-                                    UI::notification("Notification action clicked.",
-									                       {UI::notification_kind::success, 2.0f, "Action"});
-								};
-								UI::notification("Information message with action.", options);
-							}
-							UI::same_line();
-							if (UI::button("Success notification"))
-							{
-								UI::notification("Success message.", {UI::notification_kind::success, 3.0f, "Success"});
-							}
-							UI::same_line();
-							if (UI::button("Warning notification"))
-							{
-								UI::notification("Warning message.", {UI::notification_kind::warning, 3.0f, "Warning"});
-							}
-							UI::same_line();
-							if (UI::button("Error notification"))
-							{
-								UI::notification("Error message.", {UI::notification_kind::error, 3.0f, "Error"});
-							}
-
-							char helper_text[128];
-							std::snprintf(helper_text, sizeof(helper_text), "lerp(0, 10, 0.35) = %.2f, ease(0.5) = %.2f",
-							              Math::lerp(0.0f, 10.0f, 0.35f), UI::apply_ease(0.5f, UI::ease::in_out_quad));
-							UI::text_muted("%s", helper_text);
-						}
-						else if (selected_tab == 4)
-						{
-							UI::text("Extended controls");
-							UI::text_muted("Disabled scopes, animated areas, radio controls, segmented controls, colors, "
-							               "keybinds, RAII, "
-							               "and states.");
-
-							UI::toggle("Enable disabled-scope contents", &enabled);
-							UI::begin_disabled(!enabled);
-							UI::slider("Disabled-scope opacity", &opacity, 0.0f, 1.0f);
-							UI::button("Disabled-scope button");
-							UI::end_disabled();
-
-							{
-								UI::DisabledScope scope(!enabled);
-								UI::ghost_button("RAII disabled_scope");
-							}
-
-							UI::separator();
-							UI::toggle("Show advanced animated_area", &advanced_visible);
-							if (UI::begin_animated_area("advanced_area", advanced_visible))
-							{
-								UI::slider("Exposure", &exposure, 0.0f, 4.0f);
-								UI::slider("Bloom advanced", &bloom, 0.0f, 1.0f);
-								UI::end_animated_area();
-							}
-
-							UI::animated_area("callback_area", advanced_visible, [&] {
-								UI::text_muted("Callback animated_area() content.");
-								UI::progress_bar(bloom, UI::Vec2(-1.0f, 10.0f));
-							});
-
-							UI::separator();
-							UI::radio_button("Radio Move", &radio_mode, 0);
-							UI::same_line();
-							UI::radio_button("Radio Rotate", &radio_mode, 1);
-							UI::same_line();
-							UI::radio_button("Radio Scale", &radio_mode, 2);
-							UI::segmented_control("Transform mode", &segmented_mode, mode_items, 3);
-
-							UI::color_edit("Tint RGB", &tint_color, false);
-							UI::color_edit("Tint RGBA", &tint_color, true);
-
-							UI::separator();
-							{
-								UI::StyleScope scope(accent_style);
-								UI::button("RAII style_scope");
-							}
-							{
-								UI::IdScope scope("custom_id_scope");
-								const float animated = UI::animate_float(UI::id("custom_float_anim"), progress);
-								UI::progress_bar(animated, UI::Vec2(-1.0f, 10.0f), "animate_float()");
-							}
-							if (UI::button("Reset custom animation"))
-							{
-								UI::reset_animation(UI::id("custom_float_anim"));
-							}
-							UI::same_line();
-							if (UI::button("Clear all animations"))
-							{
-								UI::clear_animations();
-							}
-
-							UI::separator();
-							UI::empty_state({"-", "Empty state", "Use this in panels with no content."});
-							UI::loading_state("Loading state");
-							UI::error_state("Something went wrong while loading data.");
-
-							UI::separator();
-							UI::text("Presentation widgets");
-							UI::text_muted(
-							        "Inline message blocks for tips, page-level status, and polished empty-state actions.");
-
-							UI::callout("Unsaved changes", "Your scene has local modifications. Save before closing the editor.",
-							            UI::notification_kind::warning);
-							UI::callout("Build succeeded", "Shaders were compiled successfully.", UI::notification_kind::success);
-
-							UI::spacing();
-							UI::banner("Vulkan SDK not found", "Install Vulkan SDK to enable shader compilation.",
-							           UI::get_style().colors.warning);
-
-							UI::spacing();
-							UI::hero_options hero_demo;
-							hero_demo.icon         = ICON_LC_FOLDER_OPEN;
-							hero_demo.title        = "No project opened";
-							hero_demo.description  = "Create a new project or open an existing one to start working.";
-							hero_demo.action_label = "Open Project";
-							hero_demo.accent       = UI::Vec4(0.28f, 0.62f, 0.95f, 1.0f);
-							hero_demo.elevation    = 0.8f;
-							hero_demo.size         = UI::Vec2(0.0f, 220.0f);
-
-							if (UI::hero(hero_demo))
-							{
-								UI::notification("Hero action clicked.",
-								                 {.kind = UI::notification_kind::info, .title = "Open Project"});
-							}
-						}
-						else if (selected_tab == 5)
-						{
-							UI::text("Data views");
-							UI::text_muted("Tables, list boxes, filtered lists, drag/drop, and scroll helpers.");
-
-							if (UI::begin_table("entity_table", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
-							{
-								UI::table_column("Name");
-								UI::table_column("Type");
-								UI::table_column("Visible");
-								UI::table_headers();
-								for (int i = 0; i < 4; ++i)
-								{
-									UI::table_next_row();
-									UI::table_next_column();
-									UI::text("%s", list_items[i]);
-									UI::table_next_column();
-									UI::text_muted("%s", i == 0 ? "Camera" : i == 1 ? "Entity" : i == 2 ? "Light" : "World");
-									UI::table_next_column();
-									UI::status_dot(i % 2 == 0 ? UI::get_style().colors.success : UI::get_style().colors.warning);
-								}
-								UI::end_table();
-							}
-
-							UI::separator();
-							UI::search_input("Filter list", filter_buffer, sizeof(filter_buffer));
-							if (UI::begin_list_box("Entities", UI::Vec2(0.0f, 150.0f)))
-							{
-								for (int i = 0; i < 7; ++i)
-								{
-									if (UI::list_item(list_items[i], selected_list_item == i, "E",
-									                  i == selected_list_item ? "Selected" : nullptr))
-									{
-										selected_list_item = i;
-									}
-									if (UI::begin_drag_source())
-									{
-										UI::drag_payload_text("ENTITY_NAME", list_items[i]);
-										UI::text("Dragging %s", list_items[i]);
-										UI::end_drag_source();
-									}
-								}
-								UI::end_list_box();
-							}
-							UI::filtered_list("filtered_entities", filter_buffer, list_items, 7, &selected_list_item);
-
-							UI::button(dropped_payload, {.size = UI::Vec2(-1.0f, 36.0f)});
-							if (UI::begin_drop_target())
-							{
-								// if (const ImGuiPayload* payload = UI::accept_drop_payload("ENTITY_NAME"))
-								// {
-								// 	std::snprintf(dropped_payload, sizeof(dropped_payload), "Dropped: %s",
-								// 	              static_cast<const char*>(payload->Data));
-								// }
-								UI::end_drop_target();
-							}
-
-							UI::separator();
-							if (UI::begin_scroll_area("scroll_area", UI::Vec2(0.0f, 120.0f), true))
-							{
-								for (int i = 0; i < 20; ++i)
-								{
-									UI::text("Scrollable row %d", i);
-								}
-								if (UI::button("Scroll to top"))
-								{
-									UI::scroll_to_top();
-								}
-								UI::same_line();
-								if (UI::button("Scroll to bottom"))
-								{
-									UI::scroll_to_bottom();
-								}
-							}
-							UI::end_scroll_area();
-							UI::text_muted("Last submitted item visible: %s", UI::is_item_visible() ? "yes" : "no");
-						}
-						else if (selected_tab == 6)
-						{
-							UI::text("Extended inputs");
-							UI::text_muted("Drag/input widgets added on top of the core wrapper.");
-
-							UI::drag("Drag speed", &drag_speed, 0.05f, 0.0f, 10.0f);
-							UI::drag("Drag steps", &drag_steps, 1.0f, 0, 64);
-							UI::drag("Range", &drag_range, 0.01f, 0.0f, 1.0f);
-							UI::drag("Transform position", &transform_pos, 0.25f, -1000.0f, 1000.0f);
-							UI::drag("Clip rect", &clip_rect, 1.0f, -2048.0f, 2048.0f);
-
-							UI::separator();
-							UI::input("Precision value", &precision_value);
-							UI::input("Exposure input", &exposure);
-							UI::input("Quality input", &quality);
-							UI::input("Range input", &drag_range);
-							UI::input("Position input", &transform_pos);
-							UI::input("Tint input", &tint_color);
-
-							UI::separator();
-							UI::input("Asset name", "Enter asset name...", hint_buffer, sizeof(hint_buffer));
-							UI::input("Description", multiline_buffer, sizeof(multiline_buffer), UI::Vec2(0.0f, 120.0f));
-
-							UI::spacing();
-							char precision_text[64];
-							std::snprintf(precision_text, sizeof(precision_text), "%.6f", precision_value);
-							UI::key_value_row("Current asset", hint_buffer);
-							UI::key_value_row("Precision", precision_text);
-						}
-						else if (selected_tab == 7)
-						{
-							UI::text("Shadows");
-							UI::text_muted("Dedicated examples for default elevation, pushed shadow styles, and ShadowScope.");
-
-							UI::card_options default_shadow_card;
-							default_shadow_card.icon       = "D";
-							default_shadow_card.subtitle   = "Uses Style::shadow";
-							default_shadow_card.right_text = "Default";
-							default_shadow_card.elevation  = 0.8f;
-							UI::card("Default Card Shadow", default_shadow_card, [&] {
-								UI::text("Baseline card elevation.");
-								UI::text_muted("If this is invisible, shadow rendering is broken.");
-							});
-							UI::spacing(12.0f);
-
-							UI::Shadow soft_shadow;
-							soft_shadow.offset = UI::Vec2(2.0f, 6.0f);
-							soft_shadow.blur   = 18.0f;
-							soft_shadow.spread = 1.0f;
-							soft_shadow.color  = UI::Vec4(0.0f, 0.0f, 0.0f, 0.24f);
-
-							UI::push_shadow(soft_shadow);
-							UI::card_options soft_shadow_card;
-							soft_shadow_card.icon       = "S";
-							soft_shadow_card.subtitle   = "push_shadow() demo";
-							soft_shadow_card.right_text = "Soft";
-							soft_shadow_card.elevation  = 0.85f;
-							UI::card("Soft Shadow Card", soft_shadow_card, [&] {
-								UI::text("Uses the pushed shadow stack value.");
-								UI::text_muted("Should be visibly softer and larger.");
-							});
-							UI::pop_shadow();
-							UI::spacing(14.0f);
-
-							{
-								UI::ShadowScope shadow_scope(UI::Shadow{
-								        .offset = UI::Vec2(2.0f, 6.0f),
-								        .blur   = 0.0f,
-								        .spread = 1.0f,
-								        .color  = UI::Vec4(0.0f, 0.0f, 0.0f, 0.18f),
-								});
-
-								UI::panel_options shadow_panel;
-								shadow_panel.size = UI::Vec2(0.0f, 84.0f);
-								if (UI::begin_panel("shadow_scope_panel", shadow_panel))
-								{
-									UI::text("Panel with hard directional shadow");
-									UI::text_muted("ShadowScope also affects panels.");
-									UI::end_panel();
-								}
-							}
-
-							UI::spacing(14.0f);
-							{
-								UI::ShadowScope shadow_scope(UI::Shadow{
-								        .offset = UI::Vec2(2.0f, 6.0f),
-								        .blur   = 0.0f,
-								        .spread = 1.0f,
-								        .color  = UI::Vec4(0.0f, 0.0f, 0.0f, 0.18f),
-								});
-
-								UI::card_options shadow_tile;
-								shadow_tile.icon       = "T";
-								shadow_tile.subtitle   = "Clickable elevated surface";
-								shadow_tile.right_text = "Button";
-								shadow_tile.elevation  = 0.9f;
-								shadow_tile.selected   = selected_entity == 2;
-								if (UI::card_button("Shadow Tile", shadow_tile))
-								{
-									selected_entity = 2;
-								}
-							}
-						}
-						else
-						{
-							UI::text("Runtime and item state");
-							UI::text_muted("Frame info, IO capture state, mouse/keyboard helpers, and last-item queries.");
-
-							UI::button("State probe button");
-							UI::text_muted("Hovered: %s | Active: %s | Clicked: %s | Focused: %s",
-							               UI::is_item_hovered() ? "yes" : "no", UI::is_item_active() ? "yes" : "no",
-							               UI::is_item_clicked() ? "yes" : "no", UI::is_item_focused() ? "yes" : "no");
-							UI::text_muted("Rect min: %.1f, %.1f | max: %.1f, %.1f", UI::item_rect_min().x, UI::item_rect_min().y,
-							               UI::item_rect_max().x, UI::item_rect_max().y);
-							UI::text_muted("Rect size: %.1f x %.1f | center: %.1f, %.1f", UI::item_rect_size().x,
-							               UI::item_rect_size().y, UI::item_rect_center().x, UI::item_rect_center().y);
-
-							UI::separator();
-							UI::input("Runtime text field", name_buffer, sizeof(name_buffer));
-							UI::text_muted("Edited: %s | Activated: %s | Deactivated: %s | After edit: %s",
-							               UI::is_item_edited() ? "yes" : "no", UI::is_item_activated() ? "yes" : "no",
-							               UI::is_item_deactivated() ? "yes" : "no",
-							               UI::is_item_deactivated_after_edit() ? "yes" : "no");
-
-							UI::separator();
-							char delta_text[64];
-							char fps_text[64];
-							char time_text[64];
-							char frame_text[64];
-							std::snprintf(delta_text, sizeof(delta_text), "%.4f", UI::delta_time());
-							std::snprintf(fps_text, sizeof(fps_text), "%.1f", UI::frame_rate());
-							std::snprintf(time_text, sizeof(time_text), "%.3f", UI::time_seconds());
-							std::snprintf(frame_text, sizeof(frame_text), "%d", UI::frame_count());
-							UI::text("Frame");
-							UI::key_value_row("Delta time", delta_text);
-							UI::key_value_row("Frame rate", fps_text);
-							UI::key_value_row("Time", time_text);
-							UI::key_value_row("Frame count", frame_text);
-
-							UI::separator();
-							UI::text("Input capture");
-							UI::text_muted("Want keyboard: %s | Want mouse: %s | Want text: %s",
-							               UI::wants_keyboard_capture() ? "yes" : "no", UI::wants_mouse_capture() ? "yes" : "no",
-							               UI::wants_text_input() ? "yes" : "no");
-							UI::text_muted("Ctrl: %s | Shift: %s | Alt: %s | Super: %s", UI::key_ctrl() ? "yes" : "no",
-							               UI::key_shift() ? "yes" : "no", UI::key_alt() ? "yes" : "no",
-							               UI::key_super() ? "yes" : "no");
-							UI::text_muted("Key A down: %s | Space pressed: %s | Escape released: %s",
-							               UI::is_key_down(UI::Key::A) ? "yes" : "no",
-							               UI::is_key_pressed(UI::Key::Space, false) ? "yes" : "no",
-							               UI::is_key_released(UI::Key::Escape) ? "yes" : "no");
-
-							UI::separator();
-							const UI::Vec2 mouse_pos   = UI::mouse_position();
-							const UI::Vec2 mouse_delta = UI::mouse_delta();
-							const UI::Vec2 drag_delta  = UI::mouse_drag_delta();
-							UI::text("Mouse");
-							UI::text_muted("Pos valid: %s | Left down: %s | Left dragging: %s | Left double-click: %s",
-							               UI::is_mouse_pos_valid() ? "yes" : "no",
-							               UI::is_mouse_down(UI::MouseButton::Left) ? "yes" : "no",
-							               UI::is_mouse_dragging(UI::MouseButton::Left) ? "yes" : "no",
-							               UI::is_mouse_double_clicked(UI::MouseButton::Left) ? "yes" : "no");
-							UI::text_muted("Mouse pos: %.1f, %.1f | delta: %.1f, %.1f", mouse_pos.x, mouse_pos.y, mouse_delta.x,
-							               mouse_delta.y);
-							UI::text_muted("Wheel: %.2f | Wheel H: %.2f | Drag delta: %.1f, %.1f", UI::mouse_wheel(),
-							               UI::mouse_wheel_h(), drag_delta.x, drag_delta.y);
-							if (UI::button("Reset drag delta"))
-							{
-								UI::reset_mouse_drag_delta();
-							}
-
-							UI::separator();
-							UI::text_muted("Any item hovered: %s | active: %s | focused: %s",
-							               UI::is_any_item_hovered() ? "yes" : "no", UI::is_any_item_active() ? "yes" : "no",
-							               UI::is_any_item_focused() ? "yes" : "no");
-							UI::text_muted("Mouse hovering item rect: %s", UI::is_mouse_hovering_item_rect() ? "yes" : "no");
-							UI::text_muted("Mouse in demo rect (20,20)-(220,120): %s",
-							               UI::is_mouse_hovering_rect(UI::Vec2(20.0f, 20.0f), UI::Vec2(220.0f, 120.0f)) ? "yes"
-							                                                                                            : "no");
-						}
-
-						UI::end_child_panel();
-					}
-
-
-					UI::end_window();
-				}
-
-				UI::command_palette();
-			}
-			UI::end_frame();
-
-			return *this;
-		}
-	};
-
-	trinex_implement_class(UITest, 0) {}
-}// namespace Trinex

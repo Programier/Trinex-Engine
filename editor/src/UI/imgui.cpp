@@ -248,7 +248,7 @@ namespace Trinex
 				ImGuiContextLock lock(m_context);
 
 
-				UI::Backend::imgui_render(ctx, ImGui::GetDrawData());
+				UI::Backend::imgui_render(ctx, window(), ImGui::GetDrawData());
 
 				ctx->barrier(texture, RHIAccess::PresentSrc);
 			}

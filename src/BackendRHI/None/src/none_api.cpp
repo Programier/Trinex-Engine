@@ -83,6 +83,7 @@ namespace Trinex
 	};
 
 	struct NoneTexture : public NoneApiDestroyable<RHITexture> {
+		Vector3u size() const override { return {0, 0, 0}; }
 		RHIRenderTargetView* as_rtv(RHITextureDescRTV* desc) override { return rhi_default<NoneRTV>(); }
 		RHIDepthStencilView* as_dsv(RHITextureDescDSV* desc) override { return rhi_default<NoneDSV>(); }
 		RHIShaderResourceView* as_srv(RHITextureDescSRV* desc) override { return rhi_default<NoneSRV>(); }
