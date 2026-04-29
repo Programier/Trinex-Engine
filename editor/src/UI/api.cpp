@@ -185,6 +185,20 @@ namespace Trinex::UI
 		Shadow shadow;
 	};
 
+	struct GlassPanelContext {
+		ImGuiID id         = 0;
+		bool border        = true;
+		bool background    = true;
+		bool draw_shadow   = true;
+		bool highlight_top = true;
+		float rounding     = 0.0f;
+		Vec4 tint          = Vec4(0, 0, 0, 0);
+		Vec4 border_color  = Vec4(0, 0, 0, 0);
+		Vec4 highlight     = Vec4(0, 0, 0, 0);
+		BlurOptions blur;
+		Shadow shadow;
+	};
+
 	struct CardContext {
 		ImGuiID id            = 0;
 		bool disabled         = false;
@@ -253,8 +267,10 @@ namespace Trinex::UI
 		Vector<TreeContext> tree_stack;
 		Vector<AreaContext> area_stack;
 		Vector<PanelContext> panel_stack;
+		Vector<GlassPanelContext> glass_panel_stack;
 		Vector<CardContext> card_stack;
 		Vector<Shadow> shadow_stack;
+		Vector<BlurOptions> blur_stack;
 		Vector<float> disabled_alpha_stack;
 		Vector<String> pending_modals;
 		Vector<String> pending_popups;
@@ -302,8 +318,10 @@ namespace Trinex::UI
 #define g_tree_stack active_context()->tree_stack
 #define g_area_stack active_context()->area_stack
 #define g_panel_stack active_context()->panel_stack
+#define g_glass_panel_stack active_context()->glass_panel_stack
 #define g_card_stack active_context()->card_stack
 #define g_shadow_stack active_context()->shadow_stack
+#define g_blur_stack active_context()->blur_stack
 #define g_disabled_alpha_stack active_context()->disabled_alpha_stack
 #define g_pending_modals active_context()->pending_modals
 #define g_pending_popups active_context()->pending_popups
@@ -381,8 +399,6 @@ namespace Trinex::UI
 
 			list->AddCallback(ImDrawCallback_ResetRenderState, nullptr);
 		}
-
-		void execute_blur_pass(const BlurOptions& options) {}
 
 		ImDrawList* resolve_draw_list(DrawList draw_list, ImGuiWindow* window, ImGuiViewport*& viewport)
 		{
@@ -739,6 +755,11 @@ namespace Trinex::UI
 			return g_shadow_stack.empty() ? active_context()->style.shadow : g_shadow_stack.back();
 		}
 
+		const BlurOptions& current_blur()
+		{
+			return g_blur_stack.empty() ? active_context()->style.blur : g_blur_stack.back();
+		}
+
 		bool has_shadow_override()
 		{
 			return !g_shadow_stack.empty();
@@ -765,6 +786,11 @@ namespace Trinex::UI
 		{
 			c.w *= alpha;
 			return c;
+		}
+
+		Vec4 default_glass_border()
+		{
+			return Vec4(1.0f, 1.0f, 1.0f, 0.10f);
 		}
 
 		ImVec2 add(ImVec2 a, ImVec2 b)
@@ -1282,6 +1308,7 @@ namespace Trinex::UI
 		g_tree_stack.clear();
 		g_area_stack.clear();
 		g_panel_stack.clear();
+		g_glass_panel_stack.clear();
 		g_card_stack.clear();
 		g_shadow_stack.clear();
 		g_disabled_alpha_stack.clear();
@@ -1409,6 +1436,13 @@ namespace Trinex::UI
 			g_shadow_stack.clear();
 		}
 
+		trinex_assert(g_glass_panel_stack.empty() &&
+		              "UI::begin_glass_panel()/end_glass_panel() imbalance detected at end_frame()");
+		if (!g_glass_panel_stack.empty())
+		{
+			g_glass_panel_stack.clear();
+		}
+
 		active_context()->allocator.reset();
 		ImGui::SetCurrentContext(nullptr);
 	}
@@ -1459,6 +1493,20 @@ namespace Trinex::UI
 		}
 	}
 
+	void push_blur(const BlurOptions& options)
+	{
+		g_blur_stack.push_back(options);
+	}
+
+	void pop_blur()
+	{
+		trinex_assert(!g_blur_stack.empty() && "UI::pop_blur() called without matching push_blur()");
+		if (!g_blur_stack.empty())
+		{
+			g_blur_stack.pop_back();
+		}
+	}
+
 	void blur(const Vec2& min, const Vec2& max, DrawList draw_list, const BlurOptions& options)
 	{
 		const float spread = std::max(0.0f, options.spread);
@@ -1469,7 +1517,7 @@ namespace Trinex::UI
 
 		if (options.radius > 0.0f)
 		{
-			paint(area_min, area_size, draw_list, [options]() {
+			paint(area_min, area_size, draw_list, [options, area_min, area_max]() {
 				const float radius = Math::clamp(options.radius, 0.0f, 64.0f);
 
 				if (radius <= 0.0f)
@@ -1481,24 +1529,32 @@ namespace Trinex::UI
 				const RHITextureFlags flags = RHITextureFlags::ColorAttachment;
 				RHITexturePool* pool        = RHITexturePool::global_instance();
 
-				RHIContext* ctx       = Backend::rhi();
-				RHITexture* window    = Backend::render_target();
-				const Vector2u size   = window->size();
-				RHITexture* temporary = pool->request_surface(RHISurfaceFormat::RGBA8, size, flags);
+				RHIContext* ctx              = Backend::rhi();
+				RHITexture* window           = Backend::render_target();
+				const Vector2u viewport_size = window->size();
+				RHITexture* temporary        = pool->request_surface(RHISurfaceFormat::RGBA8, viewport_size, flags);
+
+				const Vector2f blur_offset = area_min / Vector2f(viewport_size);
+				const Vector2f blur_size   = (area_max - area_min) / Vector2f(viewport_size);
+
+				ctx->push_debug_stage("Bloor");
 
 				ctx->end_rendering();
 				ctx->barrier(window, RHIAccess::SRVGraphics);
 				ctx->barrier(temporary, RHIAccess::RTV);
 
 				ctx->begin_rendering(temporary->as_rtv());
-				Pipelines::GaussianBlur::blur(ctx, window->as_srv(), {0.f, 1.f / static_cast<f32>(size.y)}, sigma, radius);
+				Pipelines::GaussianBlur::blur(ctx, window->as_srv(), {0.f, 1.f / static_cast<f32>(viewport_size.y)}, sigma,
+				                              radius, {}, nullptr, blur_offset, blur_size);
 				ctx->end_rendering();
 
 				ctx->barrier(window, RHIAccess::RTV);
 				ctx->barrier(temporary, RHIAccess::SRVGraphics);
 				ctx->begin_rendering(window->as_rtv());
-				Pipelines::GaussianBlur::blur(ctx, temporary->as_srv(), {1.f / static_cast<f32>(size.x), 0.f}, sigma, radius);
+				Pipelines::GaussianBlur::blur(ctx, temporary->as_srv(), {1.f / static_cast<f32>(viewport_size.x), 0.f}, sigma,
+				                              radius, {}, nullptr, blur_offset, blur_size);
 
+				ctx->pop_debug_stage();
 				pool->return_surface(temporary);
 			});
 		}
@@ -1576,6 +1632,24 @@ namespace Trinex::UI
 	ShadowScope::~ShadowScope()
 	{
 		pop_shadow();
+	}
+
+	GlassPanelScope::GlassPanelScope(const char* id, const Vec2& size, const GlassOptions& options)
+	{
+		m_open = begin_glass_panel(id, size, options);
+	}
+
+	GlassPanelScope::~GlassPanelScope()
+	{
+		if (m_open)
+		{
+			end_glass_panel();
+		}
+	}
+
+	GlassPanelScope::operator bool() const
+	{
+		return m_open;
 	}
 
 	IdScope::IdScope(const char* id)
@@ -1876,6 +1950,122 @@ namespace Trinex::UI
 		draw->ChannelsSetCurrent(1);
 		draw->ChannelsMerge();
 
+		ImGui::EndChild();
+		ImGui::PopStyleColor(2);
+		ImGui::PopStyleVar(3);
+	}
+
+	bool begin_glass_panel(const char* id, const Vec2& size, const GlassOptions& options)
+	{
+		trinex_assert(has_text(id) && "UI::begin_glass_panel() requires a non-empty id");
+		if (!has_text(id))
+		{
+			return false;
+		}
+
+		const float rounding = options.rounding >= 0.0f ? options.rounding : active_context()->style.rounding;
+		const float padding  = options.padding >= 0.0f ? options.padding : active_context()->style.padding;
+		const float opacity  = Math::clamp(options.opacity, 0.0f, 1.0f);
+
+		Vec2 resolved_size = size;
+		if (resolved_size.x <= 0.0f)
+		{
+			resolved_size.x = ImGui::GetContentRegionAvail().x;
+		}
+
+		ImGuiChildFlags child_flags = ImGuiChildFlags_AlwaysUseWindowPadding;
+		if (resolved_size.y <= 0.0f)
+		{
+			child_flags |= ImGuiChildFlags_AutoResizeY;
+		}
+
+		ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, rounding);
+		ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(padding, padding));
+		ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
+		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
+
+		const bool visible = ImGui::BeginChild(id, to_imvec(resolved_size), child_flags, ImGuiWindowFlags_None);
+		if (!visible)
+		{
+			ImGui::EndChild();
+			ImGui::PopStyleColor(2);
+			ImGui::PopStyleVar(3);
+			return false;
+		}
+
+		GlassPanelContext context;
+		context.id            = ImGui::GetID("glass_panel_anim");
+		context.border        = options.border;
+		context.background    = options.background;
+		context.draw_shadow   = shadow_visible(current_shadow()) && opacity > 0.0f;
+		context.highlight_top = options.highlight_top;
+		context.rounding      = rounding;
+		context.tint          = options.tint;
+		context.tint.w *= opacity;
+		context.border_color = has_color(options.border_color) ? options.border_color : default_glass_border();
+		context.border_color.w *= opacity;
+		context.highlight = options.highlight;
+		context.highlight.w *= opacity;
+		context.blur = current_blur();
+		context.blur.radius *= opacity;
+		context.blur.sigma *= opacity;
+		context.blur.spread *= opacity;
+		context.blur.rounding = rounding;
+		context.shadow        = current_shadow();
+		context.shadow.color.w *= opacity;
+		g_glass_panel_stack.push_back(context);
+		ImGui::GetWindowDrawList()->ChannelsSplit(2);
+		ImGui::GetWindowDrawList()->ChannelsSetCurrent(1);
+		return true;
+	}
+
+	void end_glass_panel()
+	{
+		trinex_assert(!g_glass_panel_stack.empty() && "UI::end_glass_panel() called without matching begin_glass_panel()");
+		if (g_glass_panel_stack.empty())
+		{
+			return;
+		}
+
+		const GlassPanelContext context = g_glass_panel_stack.back();
+		g_glass_panel_stack.pop_back();
+
+		const ImVec2 min = ImGui::GetWindowPos();
+		const ImVec2 max = add(min, ImGui::GetWindowSize());
+		ImDrawList* draw = ImGui::GetWindowDrawList();
+		draw->ChannelsSetCurrent(0);
+
+		if (context.draw_shadow)
+		{
+			draw_shadow_rect(draw, min, max, context.rounding, context.shadow);
+		}
+
+		if (context.blur.radius > 0.0f)
+		{
+			blur(to_vec(min), to_vec(max), context.blur);
+		}
+
+		if (context.background && context.tint.w > 0.0f)
+		{
+			draw->AddRectFilled(min, max, col_u32(context.tint), context.rounding);
+		}
+
+		if (context.border)
+		{
+			draw->AddRect(min, max, col_u32(context.border_color), context.rounding, 0, active_context()->style.border_size);
+		}
+
+		if (context.highlight_top && context.highlight.w > 0.0f)
+		{
+			const float inset = std::max(1.0f, active_context()->style.border_size);
+			const ImVec2 line_min(min.x + context.rounding * 0.35f, min.y + inset);
+			const ImVec2 line_max(max.x - context.rounding * 0.35f, min.y + inset);
+			draw->AddLine(line_min, line_max, col_u32(context.highlight), 1.0f);
+		}
+
+		draw->ChannelsSetCurrent(1);
+		draw->ChannelsMerge();
 		ImGui::EndChild();
 		ImGui::PopStyleColor(2);
 		ImGui::PopStyleVar(3);
@@ -4421,18 +4611,18 @@ namespace Trinex::UI
 		ImGui::SetNextWindowViewport(viewport->ID);
 		ImGui::SetNextWindowPos(animated_pos);
 		ImGui::SetNextWindowSize(animated_size);
-		ImGui::SetNextWindowBgAlpha(active_context()->style.colors.panel.w * active_context()->style.alpha * popup_visual_alpha);
+		ImGui::SetNextWindowBgAlpha(0.0f);
 		if (!ImGui::IsPopupOpen("##command_palette_popup"))
 		{
 			ImGui::OpenPopup("##command_palette_popup");
 		}
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, rounding);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(padding, padding));
-		ImGui::PushStyleColor(ImGuiCol_PopupBg, to_imvec(with_alpha(active_context()->style.colors.panel, popup_visual_alpha)));
-		ImGui::PushStyleColor(ImGuiCol_Border, to_imvec(with_alpha(active_context()->style.colors.border, popup_visual_alpha)));
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+		ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0, 0, 0, 0));
+		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
 		ImGui::PushStyleColor(ImGuiCol_ModalWindowDimBg,
-		                      to_imvec(with_alpha(active_context()->style.colors.background, 0.72f * popup_visual_alpha)));
+		                      to_imvec(with_alpha(active_context()->style.colors.background, 0.28f * popup_visual_alpha)));
 
 		const ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove |
 		                               ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDocking |
@@ -4447,24 +4637,54 @@ namespace Trinex::UI
 			return false;
 		}
 
-		const ImVec2 window_min = ImGui::GetWindowPos();
-		const ImVec2 window_max = add(window_min, ImGui::GetWindowSize());
-		BlurOptions palette_blur;
-		palette_blur.radius = 18.0f * eased_blur;
-		palette_blur.sigma  = 6.0f;
-		palette_blur.tint   = Vec4(0.04f, 0.05f, 0.08f, 0.36f * eased_blur);
+		{
+			BlurOptions options;
+			options.radius = 12.0f * eased_blur;
+			options.sigma  = 4.0f * eased_blur;
+			options.tint   = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
 
-		blur(to_vec(viewport->Pos), to_vec(viewport->Pos + viewport->Size), DrawList::Default, palette_blur);
+			blur(to_vec(viewport->Pos), to_vec(viewport->Pos + viewport->Size), DrawList::Default, options);
+		}
 
 		const float previous_draw_alpha = active_context()->draw_alpha;
 		active_context()->draw_alpha *= popup_visual_alpha;
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * popup_visual_alpha);
 
-		draw_shadow_rect(ImGui::GetWindowDrawList(), window_min, window_max, rounding, scaled_shadow(current_shadow(), 1.25f));
-		ImGui::GetWindowDrawList()->AddRectFilled(window_min, window_max, col_u32(active_context()->style.colors.panel),
-		                                          rounding);
-		ImGui::GetWindowDrawList()->AddRect(window_min, window_max, col_u32(active_context()->style.colors.border), rounding, 0,
-		                                    active_context()->style.border_size);
+		BlurOptions palette_blur;
+		palette_blur.radius   = 12.0f * eased_blur;
+		palette_blur.sigma    = 6.0f;
+		palette_blur.spread   = 0.0f;
+		palette_blur.rounding = rounding;
+		palette_blur.tint     = Vec4(0, 0, 0, 0);
+		push_blur(palette_blur);
+
+		Shadow palette_shadow;
+		palette_shadow.offset = Vec2(0.0f, 10.0f);
+		palette_shadow.blur   = 28.0f;
+		palette_shadow.spread = 0.0f;
+		palette_shadow.color  = Vec4(0.0f, 0.0f, 0.0f, 0.22f * popup_visual_alpha);
+		push_shadow(palette_shadow);
+
+		GlassOptions palette_glass;
+		palette_glass.opacity       = 0.8f;
+		palette_glass.tint          = Vec4(0.10f, 0.12f, 0.16f, 0.58f * popup_visual_alpha);
+		palette_glass.border_color  = Vec4(1.0f, 1.0f, 1.0f, 0.10f * popup_visual_alpha);
+		palette_glass.highlight     = Vec4(1.0f, 1.0f, 1.0f, 0.08f * popup_visual_alpha);
+		palette_glass.border        = true;
+		palette_glass.background    = true;
+		palette_glass.highlight_top = true;
+		palette_glass.rounding      = rounding;
+		palette_glass.padding       = padding;
+
+		if (!begin_glass_panel("##command_palette_glass", Vec2(animated_size.x, animated_size.y), palette_glass))
+		{
+			pop_shadow();
+			pop_blur();
+			ImGui::PopStyleVar();
+			active_context()->draw_alpha = previous_draw_alpha;
+			ImGui::EndPopup();
+			return false;
+		}
 
 		push_input_frame_styles(1.0f);
 		if (g_command_palette.focus_search_next_frame)
@@ -4611,6 +4831,9 @@ namespace Trinex::UI
 			ImGui::CloseCurrentPopup();
 		}
 
+		end_glass_panel();
+		pop_shadow();
+		pop_blur();
 		ImGui::PopStyleVar();
 		active_context()->draw_alpha = previous_draw_alpha;
 		ImGui::EndPopup();

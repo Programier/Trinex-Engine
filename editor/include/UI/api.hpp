@@ -449,6 +449,21 @@ namespace Trinex::UI
 		Vec4 background_color = Vec4(0, 0, 0, 0);
 	};
 
+	struct GlassOptions {
+		float opacity = 0.72f;
+
+		Vec4 tint         = Vec4(0.10f, 0.12f, 0.16f, 0.65f);
+		Vec4 border_color = Vec4(0, 0, 0, 0);
+		Vec4 highlight    = Vec4(1, 1, 1, 0.08f);
+
+		bool border        = true;
+		bool background    = true;
+		bool highlight_top = true;
+
+		float rounding = -1.0f;
+		float padding  = -1.0f;
+	};
+
 	struct CardOptions {
 		Vec2 size              = Vec2(0.0f, 0.0f);
 		const char* subtitle   = nullptr;
@@ -557,17 +572,11 @@ namespace Trinex::UI
 	};
 
 	struct Command {
-		// Unique stable command identifier. Duplicate ids replace the existing command.
-		const char* id = nullptr;
-		// Visible command name shown in the command palette.
-		const char* name = nullptr;
-		// Optional secondary text shown below the command name.
+		const char* id          = nullptr;
+		const char* name        = nullptr;
 		const char* description = nullptr;
-		// Optional display-only shortcut text, e.g. "Ctrl+Shift+P".
-		const char* shortcut = nullptr;
-		// Optional icon shown on the left side of the command row.
-		const char* icon = nullptr;
-		// Executed when the command is selected.
+		const char* shortcut    = nullptr;
+		const char* icon        = nullptr;
 		Function<void()> action;
 	};
 
@@ -584,6 +593,7 @@ namespace Trinex::UI
 	using style                = Style;
 	using color_theme          = ColorTheme;
 	using panel_options        = PanelOptions;
+	using glass_options        = GlassOptions;
 	using card_options         = CardOptions;
 	using button_options       = ButtonOptions;
 	using header_options       = HeaderOptions;
@@ -615,6 +625,19 @@ namespace Trinex::UI
 		~ShadowScope();
 		ShadowScope(const ShadowScope&)            = delete;
 		ShadowScope& operator=(const ShadowScope&) = delete;
+	};
+
+	struct GlassPanelScope {
+		GlassPanelScope(const char* id, const Vec2& size = Vec2(0, 0), const GlassOptions& options = {});
+		~GlassPanelScope();
+
+		explicit operator bool() const;
+
+		GlassPanelScope(const GlassPanelScope&)            = delete;
+		GlassPanelScope& operator=(const GlassPanelScope&) = delete;
+
+	private:
+		bool m_open = false;
 	};
 
 	struct IdScope {
@@ -674,6 +697,8 @@ namespace Trinex::UI
 	void push_shadow(const Shadow& shadow);
 	void pop_shadow();
 
+	void push_blur(const BlurOptions& options);
+	void pop_blur();
 	void blur(const Vec2& min, const Vec2& max, DrawList draw_list, const BlurOptions& options);
 
 	float apply_ease(float t, Ease mode = Ease::OutCubic);
@@ -697,6 +722,8 @@ namespace Trinex::UI
 	void close_window(const char* name);
 	bool begin_panel(const char* id_text, const PanelOptions& options = {});
 	void end_panel();
+	bool begin_glass_panel(const char* id, const Vec2& size = Vec2(0, 0), const GlassOptions& options = {});
+	void end_glass_panel();
 	bool begin_child_panel(const char* id_text, const Vec2& size = Vec2(0, 0), const PanelOptions& options = {});
 	void end_child_panel();
 	bool begin_group_panel(const char* label, const Vec2& size = Vec2(0, 0), const PanelOptions& options = {});
@@ -923,13 +950,8 @@ namespace Trinex::UI
 	bool begin_drop_target();
 	const DragDropPayload* accept_drop_payload(const char* type, DragDropFlags drag_drop = DragDropFlags::Undefined);
 	void end_drop_target();
-	// Draws a compact semantic inline message block.
-	// Used for tips, warnings, errors, and success messages inside panels.
 	void callout(const char* title, const char* message, NotificationKind kind = NotificationKind::Info);
-	// Draws a prominent full-width message block for page/panel-level status.
 	void banner(const char* title, const char* message, const Vec4& accent = Vec4(0, 0, 0, 0));
-	// Draws a large empty-state/welcome/header block.
-	// Returns true when the optional action button is clicked.
 	bool hero(const HeroOptions& options);
 	void empty_state(const StateOptions& options);
 	void loading_state(const char* text = "Loading...");
@@ -940,7 +962,7 @@ namespace Trinex::UI
 
 	inline void blur(const Vec2& min, const Vec2& max, const BlurOptions& options)
 	{
-		blur(min, max, DrawList::Foreground, options);
+		blur(min, max, DrawList::Default, options);
 	}
 
 	template<typename F>
