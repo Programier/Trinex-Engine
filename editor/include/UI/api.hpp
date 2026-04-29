@@ -377,6 +377,17 @@ namespace Trinex::UI
 		trinex_enum_struct(ConfirmResult);
 	};
 
+	struct DrawList {
+		enum Enum : u8
+		{
+			Default,
+			Background,
+			Foreground,
+		};
+
+		trinex_enum_struct(DrawList);
+	};
+
 	struct DragDropPayload {
 		const void* data = nullptr;
 		int data_size    = 0;
@@ -402,24 +413,18 @@ namespace Trinex::UI
 	};
 
 	struct Shadow {
-		// Moves the shadow relative to the widget rectangle.
-		Vec2 offset = Vec2(0.0f, 4.0f);
-		// Approximate blur radius used to spread and soften the shadow.
-		float blur = 16.0f;
-		// Expands or contracts the shadow rectangle before blur is applied.
+		Vec2 offset  = Vec2(0.0f, 4.0f);
+		float blur   = 16.0f;
 		float spread = 0.0f;
 		Vec4 color   = Vec4(0.0f, 0.0f, 0.0f, 0.22f);
 	};
 
-	struct Blur {
-		// Blur radius in pixels for the sampled backdrop region.
-		float radius = 12.0f;
-		// Extra opacity multiplier for the blur effect.
-		float opacity = 1.0f;
-		// Expands or contracts the sampled blur region around the widget rectangle.
-		float spread = 0.0f;
-		// Optional tint applied on top of the blurred content.
-		Vec4 tint = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
+	struct BlurOptions {
+		float radius   = 12.0f;
+		float sigma    = 5.0f;
+		float spread   = 0.0f;
+		float rounding = -1.0f;
+		Vec4 tint      = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
 	};
 
 	struct Style {
@@ -431,7 +436,7 @@ namespace Trinex::UI
 		float spacing         = 8.0f;
 		float alpha           = 1.0f;
 		Vec2 hover_padding    = Vec2(2.0f, 2.0f);
-		Blur blur;
+		BlurOptions blur;
 		Shadow shadow;
 		ColorTheme colors;
 	};
@@ -574,6 +579,7 @@ namespace Trinex::UI
 	using ease                 = Ease;
 	using key                  = Key;
 	using mouse_button         = MouseButton;
+	using draw_list            = DrawList;
 	using shadow               = Shadow;
 	using style                = Style;
 	using color_theme          = ColorTheme;
@@ -609,13 +615,6 @@ namespace Trinex::UI
 		~ShadowScope();
 		ShadowScope(const ShadowScope&)            = delete;
 		ShadowScope& operator=(const ShadowScope&) = delete;
-	};
-
-	struct BlurScope {
-		explicit BlurScope(const Blur& blur);
-		~BlurScope();
-		BlurScope(const BlurScope&)            = delete;
-		BlurScope& operator=(const BlurScope&) = delete;
 	};
 
 	struct IdScope {
@@ -665,49 +664,17 @@ namespace Trinex::UI
 	void set_style(const Style& value);
 	void push_style(const Style& value);
 	void pop_style();
-	// Pushes a blur style used by backdrop-aware widgets rendered after this call.
-	// Blur is visual-only: it does not affect layout, item size, or hit testing.
-	// Must be balanced with pop_blur().
-	void push_blur(const Blur& blur);
-	// Restores the previous blur style. Must match a previous push_blur() call.
-	void pop_blur();
-	// Applies blur to already rendered content inside the given screen-space rectangle.
-	// This is visual-only and does not affect layout or hit testing.
-	void blur(const Blur& blur, const Vec2& min, const Vec2& max, float rounding = -1.0f);
-	// Pushes a shadow style used by elevated widgets rendered after this call.
-	// The shadow is visual-only: it does not affect layout, item size, or hit testing.
-	// Must be balanced with pop_shadow().
+
+	void paint(Vec2 pos, Vec2 size, PaintFunction function, void* userdata = nullptr, usize userdata_size = 0,
+	           DrawList draw_list = DrawList::Default);
+	void paint(Vec2 size, PaintFunction function, void* userdata = nullptr, usize userdata_size = 0,
+	           DrawList draw_list = DrawList::Default);
+	void paint(PaintFunction function, void* userdata = nullptr, usize userdata_size = 0, DrawList draw_list = DrawList::Default);
+
 	void push_shadow(const Shadow& shadow);
-	// Restores the previous shadow style. Must match a previous push_shadow() call.
 	void pop_shadow();
 
-	void paint(Vec2 pos, Vec2 size, PaintFunction function, void* userdata = nullptr, usize userdata_size = 0);
-	void paint(Vec2 size, PaintFunction function, void* userdata = nullptr, usize userdata_size = 0);
-	void paint(PaintFunction function, void* userdata = nullptr, usize userdata_size = 0);
-
-	template<typename F>
-	    requires(TriviallyStored<F>)
-	inline void paint(Vec2 pos, Vec2 size, F&& f)
-	{
-		auto callback = +[](void* userdata) { (*static_cast<F*>(userdata))(); };
-		paint(pos, size, callback, &f, sizeof(f));
-	}
-
-	template<typename F>
-	    requires(TriviallyStored<F>)
-	inline void paint(Vec2 size, F&& f)
-	{
-		auto callback = +[](void* userdata) { (*static_cast<F*>(userdata))(); };
-		paint(size, callback, &f, sizeof(f));
-	}
-
-	template<typename F>
-	    requires(TriviallyStored<F>)
-	inline void paint(F&& f)
-	{
-		auto callback = +[](void* userdata) { (*static_cast<F*>(userdata))(); };
-		paint(callback, &f, sizeof(f));
-	}
+	void blur(const Vec2& min, const Vec2& max, DrawList draw_list, const BlurOptions& options);
 
 	float apply_ease(float t, Ease mode = Ease::OutCubic);
 	float animate_float(ID id, float target, float speed = -1.0f);
@@ -967,4 +934,60 @@ namespace Trinex::UI
 	void empty_state(const StateOptions& options);
 	void loading_state(const char* text = "Loading...");
 	void error_state(const char* message, const char* title = "Error");
+
+
+	//////////////////////// INLINE HELPERS ////////////////////////
+
+	inline void blur(const Vec2& min, const Vec2& max, const BlurOptions& options)
+	{
+		blur(min, max, DrawList::Foreground, options);
+	}
+
+	template<typename F>
+	    requires(TriviallyStored<F>)
+	inline void paint(Vec2 pos, Vec2 size, F&& f)
+	{
+		auto callback = +[](void* userdata) { (*static_cast<F*>(userdata))(); };
+		paint(pos, size, callback, &f, sizeof(f));
+	}
+
+	template<typename F>
+	    requires(TriviallyStored<F>)
+	inline void paint(Vec2 pos, Vec2 size, DrawList draw_list, F&& f)
+	{
+		auto callback = +[](void* userdata) { (*static_cast<F*>(userdata))(); };
+		paint(pos, size, callback, &f, sizeof(f), draw_list);
+	}
+
+	template<typename F>
+	    requires(TriviallyStored<F>)
+	inline void paint(Vec2 size, F&& f)
+	{
+		auto callback = +[](void* userdata) { (*static_cast<F*>(userdata))(); };
+		paint(size, callback, &f, sizeof(f));
+	}
+
+	template<typename F>
+	    requires(TriviallyStored<F>)
+	inline void paint(Vec2 size, DrawList draw_list, F&& f)
+	{
+		auto callback = +[](void* userdata) { (*static_cast<F*>(userdata))(); };
+		paint(size, callback, &f, sizeof(f), draw_list);
+	}
+
+	template<typename F>
+	    requires(TriviallyStored<F>)
+	inline void paint(F&& f)
+	{
+		auto callback = +[](void* userdata) { (*static_cast<F*>(userdata))(); };
+		paint(callback, &f, sizeof(f));
+	}
+
+	template<typename F>
+	    requires(TriviallyStored<F>)
+	inline void paint(DrawList draw_list, F&& f)
+	{
+		auto callback = +[](void* userdata) { (*static_cast<F*>(userdata))(); };
+		paint(callback, &f, sizeof(f), draw_list);
+	}
 }// namespace Trinex::UI

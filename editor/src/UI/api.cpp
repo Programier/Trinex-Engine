@@ -254,7 +254,6 @@ namespace Trinex::UI
 		Vector<AreaContext> area_stack;
 		Vector<PanelContext> panel_stack;
 		Vector<CardContext> card_stack;
-		Vector<Blur> blur_stack;
 		Vector<Shadow> shadow_stack;
 		Vector<float> disabled_alpha_stack;
 		Vector<String> pending_modals;
@@ -304,7 +303,6 @@ namespace Trinex::UI
 #define g_area_stack active_context()->area_stack
 #define g_panel_stack active_context()->panel_stack
 #define g_card_stack active_context()->card_stack
-#define g_blur_stack active_context()->blur_stack
 #define g_shadow_stack active_context()->shadow_stack
 #define g_disabled_alpha_stack active_context()->disabled_alpha_stack
 #define g_pending_modals active_context()->pending_modals
@@ -315,6 +313,88 @@ namespace Trinex::UI
 		float dt()
 		{
 			return std::max(0.0f, ImGui::GetIO().DeltaTime);
+		}
+
+		void* memory_copy(void* userdata, usize userdata_size)
+		{
+			if (userdata == nullptr || userdata_size == 0)
+			{
+				return userdata;
+			}
+
+			return active_context()->allocator.allocate(userdata_size, userdata);
+		}
+
+		void add_paint_callback(ImDrawList* list, ImGuiViewport* vp, Vec2 pos, Vec2 size, PaintFunction function, void* userdata,
+		                        usize userdata_size)
+		{
+			if (list == nullptr || vp == nullptr || function == nullptr)
+			{
+				return;
+			}
+
+			struct ViewportArgs {
+				Trinex::Vector2f16 pos;
+				Trinex::Vector2f16 size;
+			} viewport_args;
+
+			const Vec2 viewport_pos(vp->Pos.x, vp->Pos.y);
+			const Vec2 viewport_size(vp->Size.x, vp->Size.y);
+			viewport_args.pos  = (pos - viewport_pos) / viewport_size;
+			viewport_args.size = size / viewport_size;
+
+			ImDrawCallback viewport_setup = [](const ImDrawList*, const ImDrawCmd* cmd) {
+				ViewportArgs* args = reinterpret_cast<ViewportArgs*>(cmd->UserCallbackData);
+
+				auto ctx = Trinex::UI::Backend::rhi();
+				ctx->viewport(Trinex::RHIViewport(args->size, args->pos));
+				ctx->scissor(Trinex::RHIScissor(args->size, args->pos));
+			};
+
+			list->AddCallback(viewport_setup, &viewport_args, sizeof(viewport_args));
+
+			if (userdata == nullptr)
+			{
+				ImDrawCallback callback = [](const ImDrawList*, const ImDrawCmd* cmd) {
+					PaintFunction* function = static_cast<PaintFunction*>(cmd->UserCallbackData);
+					(*function)(nullptr);
+				};
+
+				list->AddCallback(callback, &function, sizeof(function));
+			}
+			else
+			{
+				struct CallbackArgs {
+					PaintFunction function;
+					void* userdata;
+				};
+
+				CallbackArgs callback_args = {.function = function, .userdata = memory_copy(userdata, userdata_size)};
+
+				ImDrawCallback callback = [](const ImDrawList*, const ImDrawCmd* cmd) {
+					CallbackArgs* args = static_cast<CallbackArgs*>(cmd->UserCallbackData);
+					args->function(args->userdata);
+				};
+
+				list->AddCallback(callback, &callback_args, sizeof(callback_args));
+			}
+
+			list->AddCallback(ImDrawCallback_ResetRenderState, nullptr);
+		}
+
+		void execute_blur_pass(const BlurOptions& options) {}
+
+		ImDrawList* resolve_draw_list(DrawList draw_list, ImGuiWindow* window, ImGuiViewport*& viewport)
+		{
+			viewport = window ? window->Viewport : ImGui::GetMainViewport();
+
+			switch (draw_list)
+			{
+				case DrawList::Background: return ImGui::GetBackgroundDrawList(viewport);
+				case DrawList::Foreground: return ImGui::GetForegroundDrawList(viewport);
+				case DrawList::Default:
+				default: return window ? window->DrawList : ImGui::GetForegroundDrawList(viewport);
+			}
 		}
 
 		float approach(float current, float target, float speed)
@@ -517,19 +597,9 @@ namespace Trinex::UI
 			}
 		}
 
-		const Blur& current_blur()
+		bool blur_visible(const BlurOptions& options)
 		{
-			return g_blur_stack.empty() ? active_context()->style.blur : g_blur_stack.back();
-		}
-
-		bool has_blur_override()
-		{
-			return !g_blur_stack.empty();
-		}
-
-		bool blur_visible(const Blur& blur)
-		{
-			return blur.radius > 0.0f || blur.opacity > 0.0f || blur.tint.w > 0.0f;
+			return options.radius > 0.0f || options.tint.w > 0.0f;
 		}
 
 		bool equals_case_insensitive(const char* a, const char* b)
@@ -768,23 +838,6 @@ namespace Trinex::UI
 				draw->AddRectFilled(ImVec2(base_min.x - grow, base_min.y - grow), ImVec2(base_max.x + grow, base_max.y + grow),
 				                    col_u32(layer_color), base_rounding + grow);
 			}
-			draw->PopClipRect();
-		}
-
-		void draw_blur_rect(ImDrawList* draw, const ImVec2& min, const ImVec2& max, float rounding, const Blur& blur)
-		{
-			if (draw == nullptr || !blur_visible(blur))
-			{
-				return;
-			}
-
-			if (blur.tint.w == 0.0f)
-				return;
-
-			const float spread = blur.spread;
-			draw->PushClipRectFullScreen();
-			draw->AddRectFilled(ImVec2(min.x - spread, min.y - spread), ImVec2(max.x + spread, max.y + spread),
-			                    col_u32(with_alpha(blur.tint, blur.opacity)), std::max(0.0f, rounding + spread));
 			draw->PopClipRect();
 		}
 
@@ -1230,7 +1283,6 @@ namespace Trinex::UI
 		g_area_stack.clear();
 		g_panel_stack.clear();
 		g_card_stack.clear();
-		g_blur_stack.clear();
 		g_shadow_stack.clear();
 		g_disabled_alpha_stack.clear();
 		g_pending_modals.clear();
@@ -1351,12 +1403,6 @@ namespace Trinex::UI
 			RHI::instance()->present(swapchain);
 		}
 
-		trinex_assert(g_blur_stack.empty() && "UI::push_blur()/pop_blur() imbalance detected at end_frame()");
-		if (!g_blur_stack.empty())
-		{
-			g_blur_stack.clear();
-		}
-
 		trinex_assert(g_shadow_stack.empty() && "UI::push_shadow()/pop_shadow() imbalance detected at end_frame()");
 		if (!g_shadow_stack.empty())
 		{
@@ -1399,49 +1445,6 @@ namespace Trinex::UI
 		}
 	}
 
-	void push_blur(const Blur& blur)
-	{
-		g_blur_stack.push_back(blur);
-	}
-
-	void pop_blur()
-	{
-		trinex_assert(!g_blur_stack.empty() && "UI::pop_blur() called without matching push_blur()");
-		if (!g_blur_stack.empty())
-		{
-			g_blur_stack.pop_back();
-		}
-	}
-
-	void blur(const Blur& blur, const Vec2& min, const Vec2& max, float rounding)
-	{
-		paint(min, max - min, [blur]() {
-			const RHITextureFlags flags = RHITextureFlags::ColorAttachment;
-			RHITexturePool* pool        = RHITexturePool::global_instance();
-
-			RHIContext* ctx       = Backend::rhi();
-			RHITexture* window    = Backend::render_target();
-			const Vector2u size   = window->size();
-			RHITexture* temporary = pool->request_surface(RHISurfaceFormat::RGBA8, size, flags);
-
-
-			ctx->end_rendering();
-			ctx->barrier(window, RHIAccess::SRVGraphics);
-			ctx->barrier(temporary, RHIAccess::RTV);
-
-			ctx->begin_rendering(temporary->as_rtv());
-			Pipelines::GaussianBlur::blur(ctx, window->as_srv(), {0.f, 1.f / static_cast<f32>(size.y)}, 8.f, 24.f);
-			ctx->end_rendering();
-
-			ctx->barrier(window, RHIAccess::RTV);
-			ctx->barrier(temporary, RHIAccess::SRVGraphics);
-			ctx->begin_rendering(window->as_rtv());
-			Pipelines::GaussianBlur::blur(ctx, temporary->as_srv(), {1.f / static_cast<f32>(size.x), 0.f}, 8.f, 24.f);
-
-			pool->return_surface(temporary);
-		});
-	}
-
 	void push_shadow(const Shadow& shadow)
 	{
 		g_shadow_stack.push_back(shadow);
@@ -1456,90 +1459,93 @@ namespace Trinex::UI
 		}
 	}
 
-	void paint(Vec2 pos, Vec2 size, PaintFunction function, void* userdata, usize userdata_size)
+	void blur(const Vec2& min, const Vec2& max, DrawList draw_list, const BlurOptions& options)
+	{
+		const float spread = std::max(0.0f, options.spread);
+		const Vec2 pad(spread, spread);
+		const Vec2 area_min  = min - pad;
+		const Vec2 area_max  = max + pad;
+		const Vec2 area_size = area_max - area_min;
+
+		if (options.radius > 0.0f)
+		{
+			paint(area_min, area_size, draw_list, [options]() {
+				const float radius = Math::clamp(options.radius, 0.0f, 64.0f);
+
+				if (radius <= 0.0f)
+				{
+					return;
+				}
+
+				const float sigma           = options.sigma > 0.0f ? options.sigma : std::max(1.0f, radius * 0.45f);
+				const RHITextureFlags flags = RHITextureFlags::ColorAttachment;
+				RHITexturePool* pool        = RHITexturePool::global_instance();
+
+				RHIContext* ctx       = Backend::rhi();
+				RHITexture* window    = Backend::render_target();
+				const Vector2u size   = window->size();
+				RHITexture* temporary = pool->request_surface(RHISurfaceFormat::RGBA8, size, flags);
+
+				ctx->end_rendering();
+				ctx->barrier(window, RHIAccess::SRVGraphics);
+				ctx->barrier(temporary, RHIAccess::RTV);
+
+				ctx->begin_rendering(temporary->as_rtv());
+				Pipelines::GaussianBlur::blur(ctx, window->as_srv(), {0.f, 1.f / static_cast<f32>(size.y)}, sigma, radius);
+				ctx->end_rendering();
+
+				ctx->barrier(window, RHIAccess::RTV);
+				ctx->barrier(temporary, RHIAccess::SRVGraphics);
+				ctx->begin_rendering(window->as_rtv());
+				Pipelines::GaussianBlur::blur(ctx, temporary->as_srv(), {1.f / static_cast<f32>(size.x), 0.f}, sigma, radius);
+
+				pool->return_surface(temporary);
+			});
+		}
+
+		if (options.tint.w > 0.0f)
+		{
+			ImGuiWindow* window     = ImGui::GetCurrentWindow();
+			ImGuiViewport* viewport = nullptr;
+			ImDrawList* list        = resolve_draw_list(draw_list, window, viewport);
+			if (list != nullptr)
+			{
+				const float base_rounding = options.rounding >= 0.0f ? options.rounding : active_context()->style.rounding;
+				list->AddRectFilled(to_imvec(area_min), to_imvec(area_max), col_u32(options.tint),
+				                    std::max(0.0f, base_rounding + spread));
+			}
+		}
+	}
+
+	void paint(Vec2 pos, Vec2 size, PaintFunction function, void* userdata, usize userdata_size, DrawList draw_list)
 	{
 		ImGuiWindow* window = ImGui::GetCurrentWindow();
 
-		if (!window || function == nullptr)
+		if (function == nullptr)
 			return;
 
-		ImGui::Dummy(to_imvec(size));
-
-		if (!ImGui::IsItemVisible())
-			return;
-
-		ImDrawList* list  = window->DrawList;
-		ImGuiViewport* vp = window->Viewport;
-
-		struct Args {
-			Trinex::Vector2f16 pos;
-			Trinex::Vector2f16 size;
-		} args;
-
-		args.pos  = (pos - to_vec(vp->Pos)) / to_vec(vp->Size);
-		args.size = size / to_vec(vp->Size);
-
-		ImDrawCallback viewport_setup = [](const ImDrawList* parent_list, const ImDrawCmd* cmd) {
-			Args* args = reinterpret_cast<Args*>(cmd->UserCallbackData);
-
-			auto ctx = Trinex::UI::Backend::rhi();
-			ctx->viewport(Trinex::RHIViewport(args->size, args->pos));
-			ctx->scissor(Trinex::RHIScissor(args->size, args->pos));
-		};
-
-		list->AddCallback(viewport_setup, &args, sizeof(args));
-
-		if (userdata == nullptr)
-		{
-			ImDrawCallback callback = [](const ImDrawList*, const ImDrawCmd* cmd) {
-				PaintFunction* function = static_cast<PaintFunction*>(cmd->UserCallbackData);
-				(*function)(nullptr);
-			};
-
-			list->AddCallback(callback, &function, sizeof(function));
-		}
-		else
-		{
-			if (userdata_size > 0)
-			{
-				userdata = active_context()->allocator.allocate(userdata_size, userdata);
-			}
-
-			struct CallbackArgs {
-				PaintFunction function;
-				void* userdata;
-			};
-
-			CallbackArgs args = {.function = function, .userdata = userdata};
-
-			ImDrawCallback callback = [](const ImDrawList*, const ImDrawCmd* cmd) {
-				CallbackArgs* args = static_cast<CallbackArgs*>(cmd->UserCallbackData);
-				args->function(args->userdata);
-			};
-
-			list->AddCallback(callback, &function, sizeof(function));
-		}
-
-		list->AddCallback(ImDrawCallback_ResetRenderState, nullptr);
+		ImGuiViewport* viewport = nullptr;
+		ImDrawList* list        = resolve_draw_list(draw_list, window, viewport);
+		add_paint_callback(list, viewport, pos, size, function, userdata, userdata_size);
 	}
 
-	void paint(Vec2 size, PaintFunction function, void* userdata, usize userdata_size)
+	void paint(Vec2 size, PaintFunction function, void* userdata, usize userdata_size, DrawList draw_list)
 	{
 		ImGuiWindow* window = ImGui::GetCurrentWindow();
 		ImGuiViewport* vp   = window->Viewport;
 
 		Vec2 pos = to_vec(ImGui::GetItemRectMin());
-		paint(pos, size, function, userdata, userdata_size);
+		paint(pos, size, function, userdata, userdata_size, draw_list);
 	}
 
-	void paint(PaintFunction function, void* userdata, usize userdata_size)
+	void paint(PaintFunction function, void* userdata, usize userdata_size, DrawList draw_list)
 	{
 		ImGuiWindow* window = ImGui::GetCurrentWindow();
-		ImGuiViewport* vp   = window->Viewport;
+		ImGuiViewport* vp   = window ? window->Viewport : ImGui::GetMainViewport();
 
 		Vec2 pos  = to_vec(ImGui::GetItemRectMin());
 		Vec2 size = to_vec(vp->Size);
-		paint(pos, size, function, userdata, userdata_size);
+		paint(pos, size, function, userdata, userdata_size, draw_list);
 	}
 
 	DisabledScope::DisabledScope(bool disabled)
@@ -1570,16 +1576,6 @@ namespace Trinex::UI
 	ShadowScope::~ShadowScope()
 	{
 		pop_shadow();
-	}
-
-	BlurScope::BlurScope(const Blur& blur)
-	{
-		push_blur(blur);
-	}
-
-	BlurScope::~BlurScope()
-	{
-		pop_blur();
 	}
 
 	IdScope::IdScope(const char* id)
@@ -4325,10 +4321,36 @@ namespace Trinex::UI
 	bool command_palette()
 	{
 		trinex_assert(active_context() && "UI::command_palette() requires an active UI context");
-		if (!g_command_palette.open)
+		AnimState& palette_anim      = state_for(ImGui::GetID("##command_palette_popup_anim"));
+		AnimState& palette_blur_anim = state_for(ImGui::GetID("##command_palette_blur_anim"));
+		palette_anim.open =
+		        approach(palette_anim.open, g_command_palette.open ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		palette_blur_anim.open = approach(palette_blur_anim.open, g_command_palette.open ? 1.0f : 0.0f,
+		                                  active_context()->style.animation_speed * 0.45f);
+		if (g_command_palette.open && palette_anim.open > 0.995f)
+		{
+			palette_anim.open = 1.0f;
+		}
+		else if (!g_command_palette.open && palette_anim.open < 0.005f)
+		{
+			palette_anim.open = 0.0f;
+		}
+		if (g_command_palette.open && palette_blur_anim.open > 0.995f)
+		{
+			palette_blur_anim.open = 1.0f;
+		}
+		else if (!g_command_palette.open && palette_blur_anim.open < 0.005f)
+		{
+			palette_blur_anim.open = 0.0f;
+		}
+
+		if (!g_command_palette.open && palette_anim.open <= 0.0f && palette_blur_anim.open <= 0.0f)
 		{
 			return false;
 		}
+		const float eased_open         = apply_ease(palette_anim.open, ease::in_out_quad);
+		const float eased_blur         = apply_ease(palette_blur_anim.open, ease::in_out_quad);
+		const float popup_visual_alpha = g_command_palette.open ? eased_open : std::min(eased_open, eased_blur);
 
 		refresh_command_palette_results();
 
@@ -4341,7 +4363,6 @@ namespace Trinex::UI
 		if (ImGui::IsKeyPressed(ImGuiKey_Escape))
 		{
 			g_command_palette.open = false;
-			return false;
 		}
 		if (has_results && ImGui::IsKeyPressed(ImGuiKey_DownArrow))
 		{
@@ -4380,24 +4401,32 @@ namespace Trinex::UI
 		                                             std::min(720.0f, palette_max_width));
 		const float max_height         = Math::clamp(viewport->WorkSize.y * 0.65f, std::min(260.0f, palette_max_height),
 		                                             std::min(520.0f, palette_max_height));
-		const ImVec2 size(width, max_height);
-		const ImVec2 pos(viewport->WorkPos.x + (viewport->WorkSize.x - size.x) * 0.5f,
-		                 viewport->WorkPos.y + std::max(24.0f, (viewport->WorkSize.y - size.y) * 0.22f));
+		const ImVec2 target_size(width, max_height);
+		const ImVec2 target_pos(viewport->WorkPos.x + (viewport->WorkSize.x - target_size.x) * 0.5f,
+		                        viewport->WorkPos.y + std::max(24.0f, (viewport->WorkSize.y - target_size.y) * 0.22f));
+		const float popup_scale = Math::lerp(0.965f, 1.0f, eased_open);
+		const ImVec2 animated_size(target_size.x * popup_scale, target_size.y * Math::lerp(0.90f, 1.0f, eased_open));
+		const ImVec2 animated_pos(target_pos.x + (target_size.x - animated_size.x) * 0.5f,
+		                          target_pos.y + (target_size.y - animated_size.y) * 0.5f - (1.0f - eased_open) * 18.0f);
 		const float rounding = active_context()->style.rounding + 2.0f;
 		const float padding  = active_context()->style.padding;
 		const float spacing  = active_context()->style.spacing;
 
 		ImGui::SetNextWindowViewport(viewport->ID);
-		ImGui::SetNextWindowPos(pos);
-		ImGui::SetNextWindowSize(size);
-		ImGui::SetNextWindowBgAlpha(active_context()->style.colors.panel.w * active_context()->style.alpha);
-		ImGui::OpenPopup("##command_palette_popup");
+		ImGui::SetNextWindowPos(animated_pos);
+		ImGui::SetNextWindowSize(animated_size);
+		ImGui::SetNextWindowBgAlpha(active_context()->style.colors.panel.w * active_context()->style.alpha * popup_visual_alpha);
+		if (!ImGui::IsPopupOpen("##command_palette_popup"))
+		{
+			ImGui::OpenPopup("##command_palette_popup");
+		}
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, rounding);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, active_context()->style.border_size);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(padding, padding));
-		ImGui::PushStyleColor(ImGuiCol_PopupBg, to_imvec(active_context()->style.colors.panel));
-		ImGui::PushStyleColor(ImGuiCol_Border, to_imvec(active_context()->style.colors.border));
-		ImGui::PushStyleColor(ImGuiCol_ModalWindowDimBg, to_imvec(with_alpha(active_context()->style.colors.background, 0.72f)));
+		ImGui::PushStyleColor(ImGuiCol_PopupBg, to_imvec(with_alpha(active_context()->style.colors.panel, popup_visual_alpha)));
+		ImGui::PushStyleColor(ImGuiCol_Border, to_imvec(with_alpha(active_context()->style.colors.border, popup_visual_alpha)));
+		ImGui::PushStyleColor(ImGuiCol_ModalWindowDimBg,
+		                      to_imvec(with_alpha(active_context()->style.colors.background, 0.72f * popup_visual_alpha)));
 
 		const ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove |
 		                               ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDocking |
@@ -4414,6 +4443,17 @@ namespace Trinex::UI
 
 		const ImVec2 window_min = ImGui::GetWindowPos();
 		const ImVec2 window_max = add(window_min, ImGui::GetWindowSize());
+		BlurOptions palette_blur;
+		palette_blur.radius = 18.0f * eased_blur;
+		palette_blur.sigma  = 6.0f;
+		palette_blur.tint   = Vec4(0.04f, 0.05f, 0.08f, 0.36f * eased_blur);
+
+		blur(to_vec(viewport->Pos), to_vec(viewport->Pos + viewport->Size), DrawList::Default, palette_blur);
+
+		const float previous_draw_alpha = active_context()->draw_alpha;
+		active_context()->draw_alpha *= popup_visual_alpha;
+		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * popup_visual_alpha);
+
 		draw_shadow_rect(ImGui::GetWindowDrawList(), window_min, window_max, rounding, scaled_shadow(current_shadow(), 1.25f));
 		ImGui::GetWindowDrawList()->AddRectFilled(window_min, window_max, col_u32(active_context()->style.colors.panel),
 		                                          rounding);
@@ -4446,7 +4486,8 @@ namespace Trinex::UI
 		ImGui::Separator();
 		ImGui::Spacing();
 
-		const float list_height = std::max(120.0f, size.y - active_context()->style.frame_height - padding * 3.0f - 10.0f);
+		const float list_height =
+		        std::max(120.0f, animated_size.y - active_context()->style.frame_height - padding * 3.0f - 10.0f);
 		ImGui::BeginChild("##command_palette_results", ImVec2(0.0f, list_height), false, ImGuiWindowFlags_NoBackground);
 
 		if (!has_results)
@@ -4555,6 +4596,13 @@ namespace Trinex::UI
 
 		ImGui::EndChild();
 
+		if (!g_command_palette.open && palette_anim.open <= 0.0f && palette_blur_anim.open <= 0.0f)
+		{
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::PopStyleVar();
+		active_context()->draw_alpha = previous_draw_alpha;
 		ImGui::EndPopup();
 
 		if (execute_requested && execute_registry_index >= 0 &&
