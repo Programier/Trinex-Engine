@@ -560,32 +560,31 @@ namespace Trinex::UI
 
 	struct Context;
 
+	/////////////////////// LIFECYCLE AND FRAME ///////////////////////
 	void initialize();
 	void shutdown();
 	Context* create_context(Trinex::Window* window);
 	void destroy_context(Context* context);
-
 	void begin_frame(Context* context);
 	void end_frame();
 
+	/////////////////////// STYLE AND EFFECTS ///////////////////////
 	Style& get_style();
 	void set_style(const Style& value);
 	void push_style(const Style& value);
 	void pop_style();
-
 	void paint(Vec2 pos, Vec2 size, PaintFunction function, void* userdata = nullptr, usize userdata_size = 0,
 	           DrawList draw_list = DrawList::Default);
 	void paint(Vec2 size, PaintFunction function, void* userdata = nullptr, usize userdata_size = 0,
 	           DrawList draw_list = DrawList::Default);
 	void paint(PaintFunction function, void* userdata = nullptr, usize userdata_size = 0, DrawList draw_list = DrawList::Default);
-
 	void push_shadow(const Shadow& shadow);
 	void pop_shadow();
-
 	void push_blur(const BlurOptions& options);
 	void pop_blur();
 	void blur(const Vec2& min, const Vec2& max, DrawList draw_list, const BlurOptions& options);
 
+	/////////////////////// ANIMATION AND IDENTITY ///////////////////////
 	float apply_ease(float t, Ease mode = Ease::OutCubic);
 	float animate_float(ID id, float target, float speed = -1.0f);
 	Vec2 animate_vec2(ID id, const Vec2& target, float speed = -1.0f);
@@ -597,6 +596,7 @@ namespace Trinex::UI
 	void pop_id();
 	ID id(const char* id_text);
 
+	/////////////////////// WINDOWS AND CONTAINERS ///////////////////////
 	bool begin_window(const char* name, bool* open = nullptr, WindowFlags flags = WindowFlags::Undefined);
 	void end_window();
 	void create_window(const char* name, const Function<void()>& content, WindowFlags flags = WindowFlags::Undefined);
@@ -615,11 +615,12 @@ namespace Trinex::UI
 	void end_group_panel();
 	bool begin_group();
 	void end_group();
-
 	bool begin_card(const char* title, const CardOptions& options = {});
 	void end_card();
 	void card(const char* title, const CardOptions& options, const Function<void()>& content);
 	bool card_button(const char* title, const CardOptions& options = {});
+
+	/////////////////////// LAYOUT AND SCROLLING ///////////////////////
 	void begin_horizontal(const char* id_text, const Vec2& size = Vec2(0, 0), float align = -1.0f);
 	void begin_horizontal(const void* id, const Vec2& size = Vec2(0, 0), float align = -1.0f);
 	void begin_horizontal(int id, const Vec2& size = Vec2(0, 0), float align = -1.0f);
@@ -644,6 +645,8 @@ namespace Trinex::UI
 	void end_scroll_area();
 	void scroll_to_top();
 	void scroll_to_bottom();
+
+	/////////////////////// FRAME METRICS AND INPUT STATE ///////////////////////
 	float delta_time();
 	float frame_rate();
 	double time_seconds();
@@ -694,6 +697,7 @@ namespace Trinex::UI
 	Vec2 item_rect_size();
 	Vec2 item_rect_center();
 
+	/////////////////////// TEXT AND TOOLTIPS ///////////////////////
 	void text(const char* fmt, ...);
 	void text_muted(const char* fmt, ...);
 	void text_colored(const Vec4& color, const char* fmt, ...);
@@ -704,9 +708,9 @@ namespace Trinex::UI
 	void tooltip_if_hovered(const char* text, float delay = 0.0f);
 	void help_tooltip(const char* description);
 
+	/////////////////////// IMAGES AND CONTROLS ///////////////////////
 	void image(RHITexture* texture, const Vec2& size, const ImageOptions& options = {});
 	bool image_button(const char* id_text, RHITexture* texture, const Vec2& size, const ImageOptions& options = {});
-
 	bool button(const char* label, const ButtonOptions& options = {});
 	bool icon_button(const char* icon, const char* label, const ButtonOptions& options = {});
 	bool small_button(const char* label);
@@ -753,6 +757,7 @@ namespace Trinex::UI
 	String keybind_to_string(const Keybind& binding);
 	bool is_keybind_pressed(const Keybind& binding, bool repeat = false);
 
+	/////////////////////// HEADERS, TREES AND NAVIGATION ///////////////////////
 	bool begin_collapsing_header(const char* label, const HeaderOptions& options = {});
 	void end_collapsing_header();
 	bool collapsing_header(const char* label, const HeaderOptions& options = {});
@@ -774,6 +779,7 @@ namespace Trinex::UI
 	bool nav_item(const char* label, bool selected = false, const char* icon = nullptr);
 	bool breadcrumb(const char* label, bool current = false);
 
+	/////////////////////// POPUPS, MENUS AND COMMANDS ///////////////////////
 	bool begin_modal(const char* name, bool* open = nullptr, WindowFlags flags = WindowFlags::AlwaysAutoResize);
 	void open_modal(const char* name);
 	void end_modal();
@@ -797,10 +803,10 @@ namespace Trinex::UI
 	// Returns true when a command was executed this frame.
 	bool command_palette();
 
+	/////////////////////// FEEDBACK AND DATA VIEWS ///////////////////////
 	void notification(const char* message, const NotificationOptions& options = {});
 	ConfirmResult confirmation(const char* title, const char* message, const char* confirm_text = "Confirm",
 	                           const char* cancel_text = "Cancel", bool danger = true);
-
 	void badge(const char* text, const Vec4& color = Vec4(0, 0, 0, 0));
 	void pill(const char* text, const Vec4& color = Vec4(0, 0, 0, 0));
 	void status_dot(const Vec4& color, float radius = 4.0f);
@@ -843,13 +849,14 @@ namespace Trinex::UI
 	void error_state(const char* message, const char* title = "Error");
 
 
-	//////////////////////// INLINE HELPERS ////////////////////////
+	/////////////////////// INLINE STYLE AND EFFECTS HELPERS ///////////////////////
 
 	inline void blur(const Vec2& min, const Vec2& max, const BlurOptions& options)
 	{
 		blur(min, max, DrawList::Default, options);
 	}
 
+	/////////////////////// INLINE PAINT HELPERS ///////////////////////
 	template<typename F>
 	    requires(TriviallyStored<F>)
 	inline void paint(Vec2 pos, Vec2 size, F&& f)

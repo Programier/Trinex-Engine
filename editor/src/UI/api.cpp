@@ -1283,6 +1283,8 @@ namespace Trinex::UI
 		}
 	}// namespace
 
+	/////////////////////// LIFECYCLE AND FRAME ///////////////////////
+
 	void initialize()
 	{
 		active_context()->style = Style{};
@@ -1454,6 +1456,8 @@ namespace Trinex::UI
 
 	void context(Context* value) {}
 
+	/////////////////////// STYLE AND EFFECTS ///////////////////////
+
 	Style& get_style()
 	{
 		return active_context()->style;
@@ -1604,6 +1608,8 @@ namespace Trinex::UI
 		paint(pos, size, function, userdata, userdata_size, draw_list);
 	}
 
+	/////////////////////// ANIMATION AND IDENTITY ///////////////////////
+
 	float apply_ease(float t, Ease mode)
 	{
 		t = Math::clamp(t, 0.f, 1.f);
@@ -1680,6 +1686,8 @@ namespace Trinex::UI
 	{
 		return to_ui_id(ImGui::GetID(id));
 	}
+
+	/////////////////////// WINDOWS AND CONTAINERS ///////////////////////
 
 	bool begin_window(const char* name, bool* open, WindowFlags flags)
 	{
@@ -2328,6 +2336,8 @@ namespace Trinex::UI
 		return clicked;
 	}
 
+	/////////////////////// LAYOUT AND SCROLLING ///////////////////////
+
 	void begin_horizontal(const char* id_text, const Vec2& size, float align)
 	{
 		ImGui::BeginHorizontal(id_text, to_imvec(size), align);
@@ -2517,6 +2527,8 @@ namespace Trinex::UI
 	{
 		ImGui::SetScrollHereY(1.0f);
 	}
+
+	/////////////////////// FRAME METRICS AND INPUT STATE ///////////////////////
 
 	float delta_time()
 	{
@@ -2767,6 +2779,8 @@ namespace Trinex::UI
 		return Vec2((min.x + max.x) * 0.5f, (min.y + max.y) * 0.5f);
 	}
 
+	/////////////////////// TEXT AND TOOLTIPS ///////////////////////
+
 	void text(const char* fmt, ...)
 	{
 		va_list args;
@@ -2855,6 +2869,8 @@ namespace Trinex::UI
 	{
 		help_marker(description);
 	}
+
+	/////////////////////// IMAGES AND CONTROLS ///////////////////////
 
 	void image(RHITexture* texture, const Vec2& size, const ImageOptions& options)
 	{
@@ -3780,31 +3796,6 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	String keybind_to_string(const Keybind& binding)
-	{
-		if (binding.key_code == ui::Key::Undefined)
-		{
-			return "Undefined";
-		}
-		String result;
-		if (binding.ctrl)
-			result += "Ctrl+";
-		if (binding.shift)
-			result += "Shift+";
-		if (binding.alt)
-			result += "Alt+";
-		if (binding.super)
-			result += "Super+";
-		result += ImGui::GetKeyName(to_imgui_key(binding.key_code));
-		return result;
-	}
-
-	bool is_keybind_pressed(const Keybind& binding, bool repeat)
-	{
-		return binding.key_code != ui::Key::Undefined && keybind_mods_match(binding) &&
-		       ImGui::IsKeyPressed(to_imgui_key(binding.key_code), repeat);
-	}
-
 	bool keybind_input(const char* label, Keybind* binding)
 	{
 		if (binding == nullptr)
@@ -3884,6 +3875,33 @@ namespace Trinex::UI
 		ImGui::PopID();
 		return changed;
 	}
+
+	String keybind_to_string(const Keybind& binding)
+	{
+		if (binding.key_code == ui::Key::Undefined)
+		{
+			return "Undefined";
+		}
+		String result;
+		if (binding.ctrl)
+			result += "Ctrl+";
+		if (binding.shift)
+			result += "Shift+";
+		if (binding.alt)
+			result += "Alt+";
+		if (binding.super)
+			result += "Super+";
+		result += ImGui::GetKeyName(to_imgui_key(binding.key_code));
+		return result;
+	}
+
+	bool is_keybind_pressed(const Keybind& binding, bool repeat)
+	{
+		return binding.key_code != ui::Key::Undefined && keybind_mods_match(binding) &&
+		       ImGui::IsKeyPressed(to_imgui_key(binding.key_code), repeat);
+	}
+
+	/////////////////////// HEADERS, TREES AND NAVIGATION ///////////////////////
 
 	bool begin_collapsing_header(const char* label, const HeaderOptions& options)
 	{
@@ -4193,6 +4211,8 @@ namespace Trinex::UI
 		}
 		return clicked;
 	}
+
+	/////////////////////// POPUPS, MENUS AND COMMANDS ///////////////////////
 
 	bool begin_modal(const char* name, bool* open, WindowFlags flags)
 	{
@@ -4740,6 +4760,8 @@ namespace Trinex::UI
 		}
 		return false;
 	}
+
+	/////////////////////// FEEDBACK AND DATA VIEWS ///////////////////////
 
 	void notification(const char* message, const NotificationOptions& options)
 	{
