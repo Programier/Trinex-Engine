@@ -4359,6 +4359,7 @@ namespace Trinex::UI
 		bool ensure_selected_visible = g_command_palette.focus_search_next_frame;
 		const bool has_results       = !g_command_palette.filtered_indices.empty();
 		const int page_step          = 8;
+		bool keyboard_navigation     = false;
 
 		if (ImGui::IsKeyPressed(ImGuiKey_Escape))
 		{
@@ -4369,29 +4370,34 @@ namespace Trinex::UI
 			g_command_palette.selected_index = Math::clamp(g_command_palette.selected_index + 1, 0,
 			                                               static_cast<int>(g_command_palette.filtered_indices.size()) - 1);
 			ensure_selected_visible          = true;
+			keyboard_navigation              = true;
 		}
 		if (has_results && ImGui::IsKeyPressed(ImGuiKey_UpArrow))
 		{
 			g_command_palette.selected_index = Math::clamp(g_command_palette.selected_index - 1, 0,
 			                                               static_cast<int>(g_command_palette.filtered_indices.size()) - 1);
 			ensure_selected_visible          = true;
+			keyboard_navigation              = true;
 		}
 		if (has_results && ImGui::IsKeyPressed(ImGuiKey_PageDown))
 		{
 			g_command_palette.selected_index = Math::clamp(g_command_palette.selected_index + page_step, 0,
 			                                               static_cast<int>(g_command_palette.filtered_indices.size()) - 1);
 			ensure_selected_visible          = true;
+			keyboard_navigation              = true;
 		}
 		if (has_results && ImGui::IsKeyPressed(ImGuiKey_PageUp))
 		{
 			g_command_palette.selected_index = Math::clamp(g_command_palette.selected_index - page_step, 0,
 			                                               static_cast<int>(g_command_palette.filtered_indices.size()) - 1);
 			ensure_selected_visible          = true;
+			keyboard_navigation              = true;
 		}
 		if (has_results && ImGui::IsKeyPressed(ImGuiKey_Enter))
 		{
 			execute_requested      = true;
 			execute_registry_index = g_command_palette.filtered_indices[g_command_palette.selected_index];
+			keyboard_navigation    = true;
 		}
 
 		ImGuiViewport* viewport        = ImGui::GetMainViewport();
@@ -4523,8 +4529,12 @@ namespace Trinex::UI
 
 				ImGui::PushID(command.id.c_str());
 				ImGui::InvisibleButton("##command_row", ImVec2(row_width, row_height));
-				const bool hovered = ImGui::IsItemHovered();
-				if (hovered)
+				const bool hovered       = ImGui::IsItemHovered();
+				const ImVec2 mouse_delta = ImGui::GetIO().MouseDelta;
+				const bool mouse_selects_row =
+				        hovered && !keyboard_navigation &&
+				        ((mouse_delta.x != 0.0f || mouse_delta.y != 0.0f) || ImGui::IsMouseClicked(ImGuiMouseButton_Left));
+				if (mouse_selects_row)
 				{
 					g_command_palette.selected_index = visible_index;
 				}
