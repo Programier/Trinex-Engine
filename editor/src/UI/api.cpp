@@ -562,7 +562,7 @@ namespace Trinex::UI
 			return static_cast<ImGuiKey>(value.value);
 		}
 
-		int to_imgui_mouse_button(mouse_button value)
+		int to_imgui_MouseButton(MouseButton value)
 		{
 			return static_cast<int>(value.value);
 		}
@@ -884,14 +884,14 @@ namespace Trinex::UI
 			return a.find(b) != String::npos;
 		}
 
-		bool is_modifier_key(ui::key key)
+		bool is_modifier_key(ui::Key key)
 		{
-			return key == ui::key::left_ctrl || key == ui::key::right_ctrl || key == ui::key::left_shift ||
-			       key == ui::key::right_shift || key == ui::key::left_alt || key == ui::key::right_alt ||
-			       key == ui::key::left_super || key == ui::key::right_super;
+			return key == ui::Key::LeftCtrl || key == ui::Key::RightCtrl || key == ui::Key::LeftShift ||
+			       key == ui::Key::RightShift || key == ui::Key::LeftAlt || key == ui::Key::RightAlt ||
+			       key == ui::Key::LeftSuper || key == ui::Key::RightSuper;
 		}
 
-		bool keybind_mods_match(const ui::keybind& binding)
+		bool keybind_mods_match(const ui::Keybind& binding)
 		{
 			ImGuiIO& io = ImGui::GetIO();
 			return (!binding.ctrl || io.KeyCtrl) && (!binding.shift || io.KeyShift) && (!binding.alt || io.KeyAlt) &&
@@ -1076,14 +1076,14 @@ namespace Trinex::UI
 			return clicked;
 		}
 
-		Vec4 notification_color(ui::notification_kind kind)
+		Vec4 notification_color(ui::NotificationKind kind)
 		{
 			switch (kind)
 			{
-				case ui::notification_kind::success: return active_context()->style.colors.success;
-				case ui::notification_kind::warning: return active_context()->style.colors.warning;
-				case ui::notification_kind::error: return active_context()->style.colors.error;
-				case ui::notification_kind::info:
+				case ui::NotificationKind::Success: return active_context()->style.colors.success;
+				case ui::NotificationKind::Warning: return active_context()->style.colors.warning;
+				case ui::NotificationKind::Error: return active_context()->style.colors.error;
+				case ui::NotificationKind::Info:
 				default: return active_context()->style.colors.accent;
 			}
 		}
@@ -1285,7 +1285,7 @@ namespace Trinex::UI
 
 	void initialize()
 	{
-		active_context()->style = style{};
+		active_context()->style = Style{};
 	}
 
 	void shutdown()
@@ -1454,17 +1454,17 @@ namespace Trinex::UI
 
 	void context(Context* value) {}
 
-	style& get_style()
+	Style& get_style()
 	{
 		return active_context()->style;
 	}
 
-	void set_style(const style& value)
+	void set_style(const Style& value)
 	{
 		active_context()->style = value;
 	}
 
-	void push_style(const style& value)
+	void push_style(const Style& value)
 	{
 		active_context()->style_stack.push_back(active_context()->style);
 		active_context()->style = value;
@@ -1604,135 +1604,22 @@ namespace Trinex::UI
 		paint(pos, size, function, userdata, userdata_size, draw_list);
 	}
 
-	DisabledScope::DisabledScope(bool disabled)
-	{
-		begin_disabled(disabled);
-	}
-
-	DisabledScope::~DisabledScope()
-	{
-		end_disabled();
-	}
-
-	StyleScope::StyleScope(const style& value)
-	{
-		push_style(value);
-	}
-
-	StyleScope::~StyleScope()
-	{
-		pop_style();
-	}
-
-	ShadowScope::ShadowScope(const Shadow& shadow)
-	{
-		push_shadow(shadow);
-	}
-
-	ShadowScope::~ShadowScope()
-	{
-		pop_shadow();
-	}
-
-	GlassPanelScope::GlassPanelScope(const char* id, const Vec2& size, const GlassOptions& options)
-	{
-		m_open = begin_glass_panel(id, size, options);
-	}
-
-	GlassPanelScope::~GlassPanelScope()
-	{
-		if (m_open)
-		{
-			end_glass_panel();
-		}
-	}
-
-	GlassPanelScope::operator bool() const
-	{
-		return m_open;
-	}
-
-	IdScope::IdScope(const char* id)
-	{
-		push_id(id);
-	}
-
-	IdScope::IdScope(int id)
-	{
-		push_id(id);
-	}
-
-	IdScope::~IdScope()
-	{
-		pop_id();
-	}
-
-	HorizontalScope::HorizontalScope(const char* id, const Vec2& size, float align)
-	{
-		begin_horizontal(id, size, align);
-	}
-
-	HorizontalScope::HorizontalScope(const void* id, const Vec2& size, float align)
-	{
-		begin_horizontal(id, size, align);
-	}
-
-	HorizontalScope::HorizontalScope(int id, const Vec2& size, float align)
-	{
-		begin_horizontal(id, size, align);
-	}
-
-	HorizontalScope::~HorizontalScope()
-	{
-		end_horizontal();
-	}
-
-	VerticalScope::VerticalScope(const char* id, const Vec2& size, float align)
-	{
-		begin_vertical(id, size, align);
-	}
-
-	VerticalScope::VerticalScope(const void* id, const Vec2& size, float align)
-	{
-		begin_vertical(id, size, align);
-	}
-
-	VerticalScope::VerticalScope(int id, const Vec2& size, float align)
-	{
-		begin_vertical(id, size, align);
-	}
-
-	VerticalScope::~VerticalScope()
-	{
-		end_vertical();
-	}
-
-	LayoutSuspendScope::LayoutSuspendScope()
-	{
-		suspend_layout();
-	}
-
-	LayoutSuspendScope::~LayoutSuspendScope()
-	{
-		resume_layout();
-	}
-
-	float apply_ease(float t, ease mode)
+	float apply_ease(float t, Ease mode)
 	{
 		t = Math::clamp(t, 0.f, 1.f);
 		switch (mode)
 		{
-			case ease::linear: return t;
-			case ease::in_quad: return t * t;
-			case ease::out_quad: return 1.0f - (1.0f - t) * (1.0f - t);
-			case ease::in_out_quad: return t < 0.5f ? 2.0f * t * t : 1.0f - std::pow(-2.0f * t + 2.0f, 2.0f) * 0.5f;
-			case ease::out_back:
+			case Ease::Linear: return t;
+			case Ease::InQuad: return t * t;
+			case Ease::OutQuad: return 1.0f - (1.0f - t) * (1.0f - t);
+			case Ease::InOutQuad: return t < 0.5f ? 2.0f * t * t : 1.0f - std::pow(-2.0f * t + 2.0f, 2.0f) * 0.5f;
+			case Ease::OutBack:
 			{
 				const float c1 = 1.70158f;
 				const float c3 = c1 + 1.0f;
 				return 1.0f + c3 * std::pow(t - 1.0f, 3.0f) + c1 * std::pow(t - 1.0f, 2.0f);
 			}
-			case ease::out_cubic:
+			case Ease::OutCubic:
 			default: return 1.0f - std::pow(1.0f - t, 3.0f);
 		}
 	}
@@ -1885,7 +1772,7 @@ namespace Trinex::UI
 		}
 	}
 
-	bool begin_panel(const char* id, const panel_options& options)
+	bool begin_panel(const char* id, const PanelOptions& options)
 	{
 		const Vec4 bg = has_color(options.background_color) ? options.background_color : active_context()->style.colors.panel;
 		const float rounding = options.rounding >= 0.0f ? options.rounding : active_context()->style.rounding;
@@ -2071,10 +1958,10 @@ namespace Trinex::UI
 		ImGui::PopStyleVar(3);
 	}
 
-	bool begin_child_panel(const char* id, const Vec2& size, const panel_options& options)
+	bool begin_child_panel(const char* id, const Vec2& size, const PanelOptions& options)
 	{
-		panel_options copy = options;
-		copy.size          = size;
+		PanelOptions copy = options;
+		copy.size         = size;
 		return begin_panel(id, copy);
 	}
 
@@ -2083,7 +1970,7 @@ namespace Trinex::UI
 		end_panel();
 	}
 
-	bool begin_group_panel(const char* label, const Vec2& size, const panel_options& options)
+	bool begin_group_panel(const char* label, const Vec2& size, const PanelOptions& options)
 	{
 		ImGui::BeginGroup();
 		if (label != nullptr && label[0] != '\0')
@@ -2117,7 +2004,7 @@ namespace Trinex::UI
 		ImGui::EndGroup();
 	}
 
-	bool begin_card(const char* title, const card_options& options)
+	bool begin_card(const char* title, const CardOptions& options)
 	{
 		cleanup_states();
 		if (title != nullptr && title[0] != '\0')
@@ -2300,7 +2187,7 @@ namespace Trinex::UI
 		ImGui::PopID();
 	}
 
-	void card(const char* title, const card_options& options, const Function<void()>& content)
+	void card(const char* title, const CardOptions& options, const Function<void()>& content)
 	{
 		if (begin_card(title, options))
 		{
@@ -2312,7 +2199,7 @@ namespace Trinex::UI
 		}
 	}
 
-	bool card_button(const char* title, const card_options& options)
+	bool card_button(const char* title, const CardOptions& options)
 	{
 		cleanup_states();
 		if (title != nullptr && title[0] != '\0')
@@ -2555,7 +2442,7 @@ namespace Trinex::UI
 			return false;
 		}
 
-		const float eased          = apply_ease(anim.open, ease::in_out_quad);
+		const float eased          = apply_ease(anim.open, Ease::InOutQuad);
 		const ImVec2 start         = ImGui::GetCursorScreenPos();
 		const float visible_height = std::max(0.0f, anim.extra) * eased;
 		const ImVec2 clip_min(start.x - 2.0f, start.y);
@@ -2590,7 +2477,7 @@ namespace Trinex::UI
 			anim.extra = measured_height;
 		}
 
-		const float visible_height   = std::max(anim.extra, measured_height) * apply_ease(anim.open, ease::in_out_quad);
+		const float visible_height   = std::max(anim.extra, measured_height) * apply_ease(anim.open, Ease::InOutQuad);
 		active_context()->draw_alpha = context.previous_draw_alpha;
 		ImGui::PopStyleVar();
 		ImGui::PopClipRect();
@@ -2730,27 +2617,27 @@ namespace Trinex::UI
 
 	bool is_mouse_down(MouseButton button)
 	{
-		return ImGui::IsMouseDown(to_imgui_mouse_button(button));
+		return ImGui::IsMouseDown(to_imgui_MouseButton(button));
 	}
 
 	bool is_mouse_clicked(MouseButton button)
 	{
-		return ImGui::IsMouseClicked(to_imgui_mouse_button(button));
+		return ImGui::IsMouseClicked(to_imgui_MouseButton(button));
 	}
 
 	bool is_mouse_released(MouseButton button)
 	{
-		return ImGui::IsMouseReleased(to_imgui_mouse_button(button));
+		return ImGui::IsMouseReleased(to_imgui_MouseButton(button));
 	}
 
 	bool is_mouse_double_clicked(MouseButton button)
 	{
-		return ImGui::IsMouseDoubleClicked(to_imgui_mouse_button(button));
+		return ImGui::IsMouseDoubleClicked(to_imgui_MouseButton(button));
 	}
 
 	bool is_mouse_dragging(MouseButton button, float lock_threshold)
 	{
-		return ImGui::IsMouseDragging(to_imgui_mouse_button(button), lock_threshold);
+		return ImGui::IsMouseDragging(to_imgui_MouseButton(button), lock_threshold);
 	}
 
 	Vec2 mouse_position()
@@ -2775,12 +2662,12 @@ namespace Trinex::UI
 
 	Vec2 mouse_drag_delta(MouseButton button, float lock_threshold)
 	{
-		return to_vec(ImGui::GetMouseDragDelta(to_imgui_mouse_button(button), lock_threshold));
+		return to_vec(ImGui::GetMouseDragDelta(to_imgui_MouseButton(button), lock_threshold));
 	}
 
 	void reset_mouse_drag_delta(MouseButton button)
 	{
-		ImGui::ResetMouseDragDelta(to_imgui_mouse_button(button));
+		ImGui::ResetMouseDragDelta(to_imgui_MouseButton(button));
 	}
 
 	bool is_mouse_hovering_rect(const Vec2& min, const Vec2& max, bool clip)
@@ -3086,7 +2973,7 @@ namespace Trinex::UI
 		return clicked;
 	}
 
-	bool button(const char* label, const button_options& options)
+	bool button(const char* label, const ButtonOptions& options)
 	{
 		cleanup_states();
 		ImGui::PushID(label);
@@ -3153,23 +3040,23 @@ namespace Trinex::UI
 		return clicked;
 	}
 
-	bool icon_button(const char* icon, const char* label, const button_options& options)
+	bool icon_button(const char* icon, const char* label, const ButtonOptions& options)
 	{
-		button_options copy = options;
-		copy.icon           = icon;
+		ButtonOptions copy = options;
+		copy.icon          = icon;
 		return button(label, copy);
 	}
 
 	bool small_button(const char* label)
 	{
-		button_options options;
+		ButtonOptions options;
 		options.size = Vec2(0.0f, 24.0f);
 		return button(label, options);
 	}
 
 	bool ghost_button(const char* label, const Vec2& size)
 	{
-		button_options options;
+		ButtonOptions options;
 		options.size  = size;
 		options.ghost = true;
 		return button(label, options);
@@ -3177,7 +3064,7 @@ namespace Trinex::UI
 
 	bool danger_button(const char* label, const Vec2& size)
 	{
-		button_options options;
+		ButtonOptions options;
 		options.size   = size;
 		options.accent = active_context()->style.colors.error;
 		return button(label, options);
@@ -3217,7 +3104,7 @@ namespace Trinex::UI
 		              active_context()->style.rounding * 0.55f, 0, active_context()->style.border_size);
 		if (anim.value > 0.02f)
 		{
-			const float s  = apply_ease(anim.value, ease::out_back);
+			const float s  = apply_ease(anim.value, Ease::OutBack);
 			const ImVec2 c = add(box_pos, ImVec2(box * 0.5f, box * 0.5f));
 			draw->AddLine(ImVec2(c.x - 5.0f * s, c.y), ImVec2(c.x - 1.0f * s, c.y + 4.0f * s),
 			              col_u32(active_context()->style.colors.text, anim.value), 2.0f);
@@ -3252,7 +3139,7 @@ namespace Trinex::UI
 
 		ImDrawList* draw = ImGui::GetWindowDrawList();
 		const ImVec2 p(pos.x, pos.y + (size.y - track.y) * 0.5f);
-		const float toggle_t = apply_ease(anim.value, ease::in_out_quad);
+		const float toggle_t = apply_ease(anim.value, Ease::InOutQuad);
 		const Vec4 track_col = Math::lerp(Math::lerp(active_context()->style.colors.background_active,
 		                                             active_context()->style.colors.background_hovered, anim.hover),
 		                                  active_context()->style.colors.accent, toggle_t);
@@ -3622,7 +3509,7 @@ namespace Trinex::UI
 		{
 			anim.open = 0.0f;
 		}
-		const float open_t = apply_ease(anim.open, ease::in_out_quad);
+		const float open_t = apply_ease(anim.open, Ease::InOutQuad);
 
 		ImDrawList* draw = ImGui::GetWindowDrawList();
 		const Vec4 bg    = Math::lerp(Math::lerp(active_context()->style.colors.background,
@@ -3705,7 +3592,7 @@ namespace Trinex::UI
 
 	bool selectable(const char* label, bool selected, SelectableFlags flags, const Vec2& size)
 	{
-		tree_node_options options;
+		TreeNodeOptions options;
 		options.selected = selected;
 		options.leaf     = true;
 		(void) flags;
@@ -3741,7 +3628,7 @@ namespace Trinex::UI
 		                col_u32(Math::lerp(active_context()->style.colors.border, active_context()->style.colors.accent,
 		                                   anim.hover + anim.selected)),
 		                24, 2.0f);
-		draw->AddCircleFilled(center, diameter * 0.31f * apply_ease(anim.selected, ease::out_back),
+		draw->AddCircleFilled(center, diameter * 0.31f * apply_ease(anim.selected, Ease::OutBack),
 		                      col_u32(active_context()->style.colors.accent, anim.selected));
 		draw->AddText(ImVec2(pos.x + diameter + active_context()->style.spacing, pos.y + (size.y - text_size.y) * 0.5f),
 		              col_u32(active_context()->style.colors.text), visible_label(label));
@@ -3893,11 +3780,11 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	String keybind_to_string(const keybind& binding)
+	String keybind_to_string(const Keybind& binding)
 	{
-		if (binding.key_code == ui::key::none)
+		if (binding.key_code == ui::Key::Undefined)
 		{
-			return "None";
+			return "Undefined";
 		}
 		String result;
 		if (binding.ctrl)
@@ -3912,13 +3799,13 @@ namespace Trinex::UI
 		return result;
 	}
 
-	bool is_keybind_pressed(const keybind& binding, bool repeat)
+	bool is_keybind_pressed(const Keybind& binding, bool repeat)
 	{
-		return binding.key_code != ui::key::none && keybind_mods_match(binding) &&
+		return binding.key_code != ui::Key::Undefined && keybind_mods_match(binding) &&
 		       ImGui::IsKeyPressed(to_imgui_key(binding.key_code), repeat);
 	}
 
-	bool keybind_input(const char* label, keybind* binding)
+	bool keybind_input(const char* label, Keybind* binding)
 	{
 		if (binding == nullptr)
 		{
@@ -3969,16 +3856,16 @@ namespace Trinex::UI
 			}
 			else if (ImGui::IsKeyPressed(ImGuiKey_Backspace) || ImGui::IsKeyPressed(ImGuiKey_Delete))
 			{
-				*binding                          = keybind{};
+				*binding                          = Keybind{};
 				active_context()->keybind_capture = 0;
 				changed                           = true;
 			}
 			else
 			{
-				for (int key_i = static_cast<int>(ui::key::named_key_begin); key_i < static_cast<int>(ui::key::named_key_end);
+				for (int key_i = static_cast<int>(ui::Key::NamedKeyBegin); key_i < static_cast<int>(ui::Key::NamedKeyEnd);
 				     ++key_i)
 				{
-					const ui::key key = Key(static_cast<Key::Enum>(key_i));
+					const ui::Key key = Key(static_cast<Key::Enum>(key_i));
 					if (!is_modifier_key(key) && ImGui::IsKeyPressed(to_imgui_key(key), false))
 					{
 						ImGuiIO& io                       = ImGui::GetIO();
@@ -3998,7 +3885,7 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	bool begin_collapsing_header(const char* label, const header_options& options)
+	bool begin_collapsing_header(const char* label, const HeaderOptions& options)
 	{
 		cleanup_states();
 		ImGui::PushID(label);
@@ -4049,7 +3936,7 @@ namespace Trinex::UI
 		end_animated_area();
 	}
 
-	bool collapsing_header(const char* label, const header_options& options)
+	bool collapsing_header(const char* label, const HeaderOptions& options)
 	{
 		ImGui::PushID(label);
 		const ImGuiID id = ImGui::GetID("header_open");
@@ -4080,7 +3967,7 @@ namespace Trinex::UI
 		return open;
 	}
 
-	void collapsing_header(const char* label, const Function<void()>& content, const header_options& options)
+	void collapsing_header(const char* label, const Function<void()>& content, const HeaderOptions& options)
 	{
 		if (begin_collapsing_header(label, options))
 		{
@@ -4092,7 +3979,7 @@ namespace Trinex::UI
 		}
 	}
 
-	bool begin_section_header(const char* label, const header_options& options)
+	bool begin_section_header(const char* label, const HeaderOptions& options)
 	{
 		spacing(2.0f);
 		return begin_collapsing_header(label, options);
@@ -4103,13 +3990,13 @@ namespace Trinex::UI
 		end_collapsing_header();
 	}
 
-	bool section_header(const char* label, const header_options& options)
+	bool section_header(const char* label, const HeaderOptions& options)
 	{
 		spacing(2.0f);
 		return collapsing_header(label, options);
 	}
 
-	void section_header(const char* label, const Function<void()>& content, const header_options& options)
+	void section_header(const char* label, const Function<void()>& content, const HeaderOptions& options)
 	{
 		if (begin_section_header(label, options))
 		{
@@ -4121,7 +4008,7 @@ namespace Trinex::UI
 		}
 	}
 
-	bool tree_node(const char* label, const tree_node_options& options)
+	bool tree_node(const char* label, const TreeNodeOptions& options)
 	{
 		ImGui::PushID(label);
 		const ImGuiID id = ImGui::GetID("tree_open");
@@ -4162,7 +4049,7 @@ namespace Trinex::UI
 			anim.open = 0.0f;
 		}
 		// Symmetric easing keeps perceived expand/collapse duration matched.
-		const float eased_open    = apply_ease(anim.open, ease::in_out_quad);
+		const float eased_open    = apply_ease(anim.open, Ease::InOutQuad);
 		const bool render_content = !options.leaf && (open || anim.open > 0.001f);
 		if (render_content)
 		{
@@ -4217,7 +4104,7 @@ namespace Trinex::UI
 			anim.extra = measured_height;
 		}
 
-		const float eased_open     = apply_ease(anim.open, ease::in_out_quad);
+		const float eased_open     = apply_ease(anim.open, Ease::InOutQuad);
 		const float cached_height  = std::max(anim.extra, measured_height);
 		const float visible_height = cached_height * eased_open;
 
@@ -4230,26 +4117,26 @@ namespace Trinex::UI
 		ImGui::PopID();
 	}
 
-	bool tree_leaf(const char* label, const tree_node_options& options)
+	bool tree_leaf(const char* label, const TreeNodeOptions& options)
 	{
-		tree_node_options copy = options;
-		copy.leaf              = true;
-		const float indent     = g_tree_indent_stack.empty() ? 0.0f : g_tree_indent_stack.back();
+		TreeNodeOptions copy = options;
+		copy.leaf            = true;
+		const float indent   = g_tree_indent_stack.empty() ? 0.0f : g_tree_indent_stack.back();
 		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + indent);
 		return animated_row(label, copy.icon, copy.badge, copy.selected, false,
 		                    ImVec2(ImGui::GetContentRegionAvail().x, active_context()->style.frame_height), copy.accent, false,
 		                    0.0f);
 	}
 
-	bool tree_item(const char* label, const tree_node_options& options)
+	bool tree_item(const char* label, const TreeNodeOptions& options)
 	{
 		return tree_leaf(label, options);
 	}
 
-	bool selectable_tree_item(const char* label, bool selected, const tree_node_options& options)
+	bool selectable_tree_item(const char* label, bool selected, const TreeNodeOptions& options)
 	{
-		tree_node_options copy = options;
-		copy.selected          = selected;
+		TreeNodeOptions copy = options;
+		copy.selected        = selected;
 		return tree_leaf(label, copy);
 	}
 
@@ -4268,7 +4155,7 @@ namespace Trinex::UI
 
 	bool tab(const char* label, bool selected, const Vec2& size)
 	{
-		button_options options;
+		ButtonOptions options;
 		options.size       = size.x > 0.0f || size.y > 0.0f ? size : Vec2(0.0f, 30.0f);
 		options.ghost      = !selected;
 		options.accent     = active_context()->style.colors.accent;
@@ -4410,7 +4297,7 @@ namespace Trinex::UI
 	{
 		const ImGuiID id  = ImGui::GetID(label);
 		AnimState& anim   = state_for(id);
-		const float alpha = std::max(0.001f, apply_ease(anim.open, ease::in_out_quad));
+		const float alpha = std::max(0.001f, apply_ease(anim.open, Ease::InOutQuad));
 		ImGui::SetNextWindowBgAlpha(active_context()->style.colors.panel.w * active_context()->style.alpha * alpha);
 		push_menu_popup_colors();
 		const bool open = ImGui::BeginMenu(label, enabled);
@@ -4425,7 +4312,7 @@ namespace Trinex::UI
 		}
 		if (open)
 		{
-			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * apply_ease(anim.open, ease::in_out_quad));
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * apply_ease(anim.open, Ease::InOutQuad));
 			++g_menu_alpha_depth;
 			++g_menu_popup_style_depth;
 		}
@@ -4538,8 +4425,8 @@ namespace Trinex::UI
 		{
 			return false;
 		}
-		const float eased_open         = apply_ease(palette_anim.open, ease::in_out_quad);
-		const float eased_blur         = apply_ease(palette_blur_anim.open, ease::in_out_quad);
+		const float eased_open         = apply_ease(palette_anim.open, Ease::InOutQuad);
+		const float eased_blur         = apply_ease(palette_blur_anim.open, Ease::InOutQuad);
 		const float popup_visual_alpha = g_command_palette.open ? eased_open : std::min(eased_open, eased_blur);
 
 		refresh_command_palette_results();
@@ -4870,28 +4757,28 @@ namespace Trinex::UI
 	ConfirmResult confirmation(const char* title, const char* message, const char* confirm_text, const char* cancel_text,
 	                           bool danger)
 	{
-		confirm_result result = confirm_result::none;
-		bool open             = true;
+		ConfirmResult result = ConfirmResult::Undefined;
+		bool open            = true;
 		if (begin_modal(title, &open))
 		{
 			text("%s", message != nullptr ? message : "");
 			spacing();
 			if ((danger ? danger_button(confirm_text) : button(confirm_text)))
 			{
-				result = confirm_result::confirmed;
+				result = ConfirmResult::Confirmed;
 				ImGui::CloseCurrentPopup();
 			}
 			same_line();
 			if (ghost_button(cancel_text))
 			{
-				result = confirm_result::cancelled;
+				result = ConfirmResult::Canceled;
 				ImGui::CloseCurrentPopup();
 			}
 			end_modal();
 		}
-		if (!open && result == confirm_result::none)
+		if (!open && result == ConfirmResult::Undefined)
 		{
-			result = confirm_result::cancelled;
+			result = ConfirmResult::Canceled;
 		}
 		return result;
 	}
@@ -5001,7 +4888,7 @@ namespace Trinex::UI
 
 	bool begin_toolbar(const char* id)
 	{
-		panel_options options;
+		PanelOptions options;
 		options.size = Vec2(0.0f, active_context()->style.frame_height + active_context()->style.padding * 2.0f);
 		return begin_panel(id, options);
 	}
@@ -5370,10 +5257,10 @@ namespace Trinex::UI
 		bool clicked = false;
 		if (has_text(action_text))
 		{
-			ButtonOptions button_options;
-			button_options.size     = Vec2(button_w, button_h);
-			button_options.accent   = accent;
-			button_options.disabled = options.disabled;
+			ButtonOptions ButtonOptions;
+			ButtonOptions.size     = Vec2(button_w, button_h);
+			ButtonOptions.accent   = accent;
+			ButtonOptions.disabled = options.disabled;
 
 			const ImVec2 button_pos(block_x(button_w), y);
 			ImGui::SetCursorScreenPos(button_pos);
@@ -5389,7 +5276,7 @@ namespace Trinex::UI
 			{
 				ImGui::PushID("hero");
 			}
-			clicked = button(action_id, button_options);
+			clicked = button(action_id, ButtonOptions);
 			ImGui::PopID();
 		}
 

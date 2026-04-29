@@ -44,18 +44,12 @@ namespace Trinex::UI
 	struct Ease {
 		enum Enum : u8
 		{
-			Linear      = 0,
-			InQuad      = 1,
-			OutQuad     = 2,
-			InOutQuad   = 3,
-			OutCubic    = 4,
-			OutBack     = 5,
-			linear      = Linear,
-			in_quad     = InQuad,
-			out_quad    = OutQuad,
-			in_out_quad = InOutQuad,
-			out_cubic   = OutCubic,
-			out_back    = OutBack
+			Linear    = 0,
+			InQuad    = 1,
+			OutQuad   = 2,
+			InOutQuad = 3,
+			OutCubic  = 4,
+			OutBack   = 5,
 		};
 
 		trinex_enum_struct(Ease);
@@ -68,10 +62,6 @@ namespace Trinex::UI
 			Success,
 			Warning,
 			Error,
-			info    = Info,
-			success = Success,
-			warning = Warning,
-			error   = Error
 		};
 
 		trinex_enum_struct(NotificationKind);
@@ -167,17 +157,6 @@ namespace Trinex::UI
 			F23,
 			F24,
 			NamedKeyEnd,
-			none            = Undefined,
-			named_key_begin = NamedKeyBegin,
-			left_ctrl       = LeftCtrl,
-			left_shift      = LeftShift,
-			left_alt        = LeftAlt,
-			left_super      = LeftSuper,
-			right_ctrl      = RightCtrl,
-			right_shift     = RightShift,
-			right_alt       = RightAlt,
-			right_super     = RightSuper,
-			named_key_end   = NamedKeyEnd
 		};
 
 		trinex_enum_struct(Key);
@@ -189,9 +168,6 @@ namespace Trinex::UI
 			Left   = 0,
 			Right  = 1,
 			Middle = 2,
-			left   = Left,
-			right  = Right,
-			middle = Middle
 		};
 
 		trinex_enum_struct(MouseButton);
@@ -369,9 +345,6 @@ namespace Trinex::UI
 			Undefined = 0,
 			Confirmed = 1,
 			Canceled  = 2,
-			none      = Undefined,
-			confirmed = Confirmed,
-			cancelled = Canceled
 		};
 
 		trinex_enum_struct(ConfirmResult);
@@ -584,94 +557,6 @@ namespace Trinex::UI
 	concept TriviallyStored = std::is_trivially_copyable_v<T> && std::is_trivially_destructible_v<T>;
 
 	using PaintFunction = void (*)(void* userdata);
-
-	using ease                 = Ease;
-	using key                  = Key;
-	using mouse_button         = MouseButton;
-	using draw_list            = DrawList;
-	using shadow               = Shadow;
-	using style                = Style;
-	using color_theme          = ColorTheme;
-	using panel_options        = PanelOptions;
-	using glass_options        = GlassOptions;
-	using card_options         = CardOptions;
-	using button_options       = ButtonOptions;
-	using header_options       = HeaderOptions;
-	using tree_node_options    = TreeNodeOptions;
-	using notification_kind    = NotificationKind;
-	using notification_options = NotificationOptions;
-	using keybind              = Keybind;
-	using confirm_result       = ConfirmResult;
-	using state_options        = StateOptions;
-	using hero_options         = HeroOptions;
-	using command              = Command;
-
-	struct DisabledScope {
-		explicit DisabledScope(bool disabled = true);
-		~DisabledScope();
-		DisabledScope(const DisabledScope&)            = delete;
-		DisabledScope& operator=(const DisabledScope&) = delete;
-	};
-
-	struct StyleScope {
-		explicit StyleScope(const Style& value);
-		~StyleScope();
-		StyleScope(const StyleScope&)            = delete;
-		StyleScope& operator=(const StyleScope&) = delete;
-	};
-
-	struct ShadowScope {
-		explicit ShadowScope(const Shadow& shadow);
-		~ShadowScope();
-		ShadowScope(const ShadowScope&)            = delete;
-		ShadowScope& operator=(const ShadowScope&) = delete;
-	};
-
-	struct GlassPanelScope {
-		GlassPanelScope(const char* id, const Vec2& size = Vec2(0, 0), const GlassOptions& options = {});
-		~GlassPanelScope();
-
-		explicit operator bool() const;
-
-		GlassPanelScope(const GlassPanelScope&)            = delete;
-		GlassPanelScope& operator=(const GlassPanelScope&) = delete;
-
-	private:
-		bool m_open = false;
-	};
-
-	struct IdScope {
-		explicit IdScope(const char* id);
-		explicit IdScope(int id);
-		~IdScope();
-		IdScope(const IdScope&)            = delete;
-		IdScope& operator=(const IdScope&) = delete;
-	};
-
-	struct HorizontalScope {
-		explicit HorizontalScope(const char* id, const Vec2& size = Vec2(0, 0), float align = -1.0f);
-		explicit HorizontalScope(const void* id, const Vec2& size = Vec2(0, 0), float align = -1.0f);
-		explicit HorizontalScope(int id, const Vec2& size = Vec2(0, 0), float align = -1.0f);
-		~HorizontalScope();
-		HorizontalScope(const HorizontalScope&)            = delete;
-		HorizontalScope& operator=(const HorizontalScope&) = delete;
-	};
-
-	struct VerticalScope {
-		explicit VerticalScope(const char* id, const Vec2& size = Vec2(0, 0), float align = -1.0f);
-		explicit VerticalScope(const void* id, const Vec2& size = Vec2(0, 0), float align = -1.0f);
-		explicit VerticalScope(int id, const Vec2& size = Vec2(0, 0), float align = -1.0f);
-		~VerticalScope();
-		VerticalScope(const VerticalScope&)            = delete;
-		VerticalScope& operator=(const VerticalScope&) = delete;
-	};
-
-	struct LayoutSuspendScope {
-		LayoutSuspendScope();
-		~LayoutSuspendScope();
-		LayoutSuspendScope(const LayoutSuspendScope&)            = delete;
-		LayoutSuspendScope& operator=(const LayoutSuspendScope&) = delete;
-	};
 
 	struct Context;
 
