@@ -617,7 +617,6 @@ namespace Trinex::UI
 	void end_group();
 	bool begin_card(const char* title, const CardOptions& options = {});
 	void end_card();
-	void card(const char* title, const CardOptions& options, const Function<void()>& content);
 	bool card_button(const char* title, const CardOptions& options = {});
 
 	/////////////////////// LAYOUT AND SCROLLING ///////////////////////
@@ -639,7 +638,6 @@ namespace Trinex::UI
 	void end_disabled();
 	bool begin_animated_area(const char* id_text, bool visible);
 	void end_animated_area();
-	void animated_area(const char* id_text, bool visible, const Function<void()>& content);
 	bool begin_scroll_area(const char* id_text, const Vec2& size = Vec2(0, 0), bool border = false,
 	                       WindowFlags flags = WindowFlags::Undefined);
 	void end_scroll_area();
@@ -760,12 +758,9 @@ namespace Trinex::UI
 	/////////////////////// HEADERS, TREES AND NAVIGATION ///////////////////////
 	bool begin_collapsing_header(const char* label, const HeaderOptions& options = {});
 	void end_collapsing_header();
-	bool collapsing_header(const char* label, const HeaderOptions& options = {});
-	void collapsing_header(const char* label, const Function<void()>& content, const HeaderOptions& options = {});
 	bool begin_section_header(const char* label, const HeaderOptions& options = {});
 	void end_section_header();
 	bool section_header(const char* label, const HeaderOptions& options = {});
-	void section_header(const char* label, const Function<void()>& content, const HeaderOptions& options = {});
 	bool tree_node(const char* label, const TreeNodeOptions& options = {});
 	void tree_pop();
 	bool tree_leaf(const char* label, const TreeNodeOptions& options = {});
@@ -851,9 +846,544 @@ namespace Trinex::UI
 
 	/////////////////////// INLINE STYLE AND EFFECTS HELPERS ///////////////////////
 
+	inline void style(const Style& value, const FunctionRef<void()>& func)
+	{
+		push_style(value);
+		func();
+		pop_style();
+	}
+
+	inline void shadow(const Shadow& value, const FunctionRef<void()>& func)
+	{
+		push_shadow(value);
+		func();
+		pop_shadow();
+	}
+
+	inline void blur(const BlurOptions& value, const FunctionRef<void()>& func)
+	{
+		push_blur(value);
+		func();
+		pop_blur();
+	}
+
 	inline void blur(const Vec2& min, const Vec2& max, const BlurOptions& options)
 	{
 		blur(min, max, DrawList::Default, options);
+	}
+
+	/////////////////////// INLINE ANIMATION AND IDENTITY HELPERS ///////////////////////
+
+	inline void id(const char* id_text, const FunctionRef<void()>& func)
+	{
+		push_id(id_text);
+		func();
+		pop_id();
+	}
+
+	inline void id(int id_value, const FunctionRef<void()>& func)
+	{
+		push_id(id_value);
+		func();
+		pop_id();
+	}
+
+	/////////////////////// INLINE WINDOWS AND CONTAINERS HELPERS ///////////////////////
+
+	inline bool window(const char* name, bool* open, WindowFlags flags, const FunctionRef<void()>& func)
+	{
+		const bool visible = begin_window(name, open, flags);
+		if (visible)
+		{
+			func();
+		}
+		end_window();
+		return visible;
+	}
+
+	inline bool window(const char* name, bool* open, const FunctionRef<void()>& func)
+	{
+		return window(name, open, WindowFlags::Undefined, func);
+	}
+
+	inline bool window(const char* name, const FunctionRef<void()>& func)
+	{
+		return window(name, nullptr, WindowFlags::Undefined, func);
+	}
+
+	inline bool panel(const char* id_text, const PanelOptions& options, const FunctionRef<void()>& func)
+	{
+		const bool visible = begin_panel(id_text, options);
+		if (visible)
+		{
+			func();
+		}
+		end_panel();
+		return visible;
+	}
+
+	inline bool panel(const char* id_text, const FunctionRef<void()>& func)
+	{
+		return panel(id_text, {}, func);
+	}
+
+	inline bool glass_panel(const char* id, const Vec2& size, const GlassOptions& options, const FunctionRef<void()>& func)
+	{
+		const bool visible = begin_glass_panel(id, size, options);
+		if (visible)
+		{
+			func();
+		}
+		end_glass_panel();
+		return visible;
+	}
+
+	inline bool glass_panel(const char* id, const Vec2& size, const FunctionRef<void()>& func)
+	{
+		return glass_panel(id, size, {}, func);
+	}
+
+	inline bool glass_panel(const char* id, const FunctionRef<void()>& func)
+	{
+		return glass_panel(id, Vec2(0, 0), {}, func);
+	}
+
+	inline bool child_panel(const char* id_text, const Vec2& size, const PanelOptions& options, const FunctionRef<void()>& func)
+	{
+		const bool visible = begin_child_panel(id_text, size, options);
+		if (visible)
+		{
+			func();
+		}
+		end_child_panel();
+		return visible;
+	}
+
+	inline bool child_panel(const char* id_text, const Vec2& size, const FunctionRef<void()>& func)
+	{
+		return child_panel(id_text, size, {}, func);
+	}
+
+	inline bool child_panel(const char* id_text, const FunctionRef<void()>& func)
+	{
+		return child_panel(id_text, Vec2(0, 0), {}, func);
+	}
+
+	inline bool group_panel(const char* label, const Vec2& size, const PanelOptions& options, const FunctionRef<void()>& func)
+	{
+		const bool visible = begin_group_panel(label, size, options);
+		if (visible)
+		{
+			func();
+		}
+		end_group_panel();
+		return visible;
+	}
+
+	inline bool group_panel(const char* label, const Vec2& size, const FunctionRef<void()>& func)
+	{
+		return group_panel(label, size, {}, func);
+	}
+
+	inline bool group_panel(const char* label, const FunctionRef<void()>& func)
+	{
+		return group_panel(label, Vec2(0, 0), {}, func);
+	}
+
+	inline bool group(const FunctionRef<void()>& func)
+	{
+		const bool visible = begin_group();
+		if (visible)
+		{
+			func();
+		}
+		end_group();
+		return visible;
+	}
+
+	inline void card(const char* title, const CardOptions& options, const FunctionRef<void()>& content)
+	{
+		if (begin_card(title, options))
+		{
+			content();
+			end_card();
+		}
+	}
+
+	/////////////////////// INLINE LAYOUT AND SCROLLING HELPERS ///////////////////////
+
+	inline void horizontal(const char* id_text, const Vec2& size, float align, const FunctionRef<void()>& func)
+	{
+		begin_horizontal(id_text, size, align);
+		func();
+		end_horizontal();
+	}
+
+	inline void horizontal(const char* id_text, const Vec2& size, const FunctionRef<void()>& func)
+	{
+		horizontal(id_text, size, -1.0f, func);
+	}
+
+	inline void horizontal(const char* id_text, const FunctionRef<void()>& func)
+	{
+		horizontal(id_text, Vec2(0, 0), -1.0f, func);
+	}
+
+	inline void horizontal(const void* id, const Vec2& size, float align, const FunctionRef<void()>& func)
+	{
+		begin_horizontal(id, size, align);
+		func();
+		end_horizontal();
+	}
+
+	inline void horizontal(const void* id, const Vec2& size, const FunctionRef<void()>& func)
+	{
+		horizontal(id, size, -1.0f, func);
+	}
+
+	inline void horizontal(const void* id, const FunctionRef<void()>& func)
+	{
+		horizontal(id, Vec2(0, 0), -1.0f, func);
+	}
+
+	inline void horizontal(int id, const Vec2& size, float align, const FunctionRef<void()>& func)
+	{
+		begin_horizontal(id, size, align);
+		func();
+		end_horizontal();
+	}
+
+	inline void horizontal(int id, const Vec2& size, const FunctionRef<void()>& func)
+	{
+		horizontal(id, size, -1.0f, func);
+	}
+
+	inline void horizontal(int id, const FunctionRef<void()>& func)
+	{
+		horizontal(id, Vec2(0, 0), -1.0f, func);
+	}
+
+	inline void vertical(const char* id_text, const Vec2& size, float align, const FunctionRef<void()>& func)
+	{
+		begin_vertical(id_text, size, align);
+		func();
+		end_vertical();
+	}
+
+	inline void vertical(const char* id_text, const Vec2& size, const FunctionRef<void()>& func)
+	{
+		vertical(id_text, size, -1.0f, func);
+	}
+
+	inline void vertical(const char* id_text, const FunctionRef<void()>& func)
+	{
+		vertical(id_text, Vec2(0, 0), -1.0f, func);
+	}
+
+	inline void vertical(const void* id, const Vec2& size, float align, const FunctionRef<void()>& func)
+	{
+		begin_vertical(id, size, align);
+		func();
+		end_vertical();
+	}
+
+	inline void vertical(const void* id, const Vec2& size, const FunctionRef<void()>& func)
+	{
+		vertical(id, size, -1.0f, func);
+	}
+
+	inline void vertical(const void* id, const FunctionRef<void()>& func)
+	{
+		vertical(id, Vec2(0, 0), -1.0f, func);
+	}
+
+	inline void vertical(int id, const Vec2& size, float align, const FunctionRef<void()>& func)
+	{
+		begin_vertical(id, size, align);
+		func();
+		end_vertical();
+	}
+
+	inline void vertical(int id, const Vec2& size, const FunctionRef<void()>& func)
+	{
+		vertical(id, size, -1.0f, func);
+	}
+
+	inline void vertical(int id, const FunctionRef<void()>& func)
+	{
+		vertical(id, Vec2(0, 0), -1.0f, func);
+	}
+
+	inline void disabled(bool value, const FunctionRef<void()>& func)
+	{
+		begin_disabled(value);
+		func();
+		end_disabled();
+	}
+
+	inline void disabled(const FunctionRef<void()>& func)
+	{
+		disabled(true, func);
+	}
+
+	inline bool scroll_area(const char* id_text, const Vec2& size, bool border, WindowFlags flags,
+	                        const FunctionRef<void()>& func)
+	{
+		const bool visible = begin_scroll_area(id_text, size, border, flags);
+		if (visible)
+		{
+			func();
+		}
+		end_scroll_area();
+		return visible;
+	}
+
+	inline bool scroll_area(const char* id_text, const Vec2& size, bool border, const FunctionRef<void()>& func)
+	{
+		return scroll_area(id_text, size, border, WindowFlags::Undefined, func);
+	}
+
+	inline bool scroll_area(const char* id_text, const Vec2& size, const FunctionRef<void()>& func)
+	{
+		return scroll_area(id_text, size, false, WindowFlags::Undefined, func);
+	}
+
+	inline bool scroll_area(const char* id_text, const FunctionRef<void()>& func)
+	{
+		return scroll_area(id_text, Vec2(0, 0), false, WindowFlags::Undefined, func);
+	}
+
+	inline void animated_area(const char* id_text, bool visible, const FunctionRef<void()>& content)
+	{
+		if (begin_animated_area(id_text, visible))
+		{
+			content();
+			end_animated_area();
+		}
+	}
+
+	/////////////////////// INLINE IMAGES AND CONTROLS HELPERS ///////////////////////
+
+	inline bool combo(const char* label, const char* preview_value, ComboFlags flags, const FunctionRef<void()>& func)
+	{
+		const bool visible = begin_combo(label, preview_value, flags);
+		if (visible)
+		{
+			func();
+			end_combo();
+		}
+		return visible;
+	}
+
+	inline bool combo(const char* label, const char* preview_value, const FunctionRef<void()>& func)
+	{
+		return combo(label, preview_value, ComboFlags::Undefined, func);
+	}
+
+	/////////////////////// INLINE HEADERS, TREES AND NAVIGATION HELPERS ///////////////////////
+
+	inline bool tab_bar(const char* id_text, const FunctionRef<void()>& func)
+	{
+		const bool visible = begin_tab_bar(id_text);
+		if (visible)
+		{
+			func();
+			end_tab_bar();
+		}
+		return visible;
+	}
+
+	inline void collapsing_header(const char* label, const HeaderOptions& options, const FunctionRef<void()>& content)
+	{
+		if (begin_collapsing_header(label, options))
+		{
+			content();
+			end_collapsing_header();
+		}
+	}
+
+	inline void collapsing_header(const char* label, const FunctionRef<void()>& content)
+	{
+		collapsing_header(label, {}, content);
+	}
+
+	inline void section_header(const char* label, const HeaderOptions& options, const FunctionRef<void()>& content)
+	{
+		if (begin_section_header(label, options))
+		{
+			content();
+			end_section_header();
+		}
+	}
+
+	inline void section_header(const char* label, const FunctionRef<void()>& content)
+	{
+		section_header(label, {}, content);
+	}
+
+	/////////////////////// INLINE POPUPS, MENUS AND COMMANDS HELPERS ///////////////////////
+
+	inline bool modal(const char* name, bool* open, WindowFlags flags, const FunctionRef<void()>& func)
+	{
+		const bool visible = begin_modal(name, open, flags);
+		if (visible)
+		{
+			func();
+			end_modal();
+		}
+		return visible;
+	}
+
+	inline bool modal(const char* name, bool* open, const FunctionRef<void()>& func)
+	{
+		return modal(name, open, WindowFlags::AlwaysAutoResize, func);
+	}
+
+	inline bool modal(const char* name, const FunctionRef<void()>& func)
+	{
+		return modal(name, nullptr, WindowFlags::AlwaysAutoResize, func);
+	}
+
+	inline bool popup(const char* id_text, WindowFlags flags, const FunctionRef<void()>& func)
+	{
+		const bool visible = begin_popup(id_text, flags);
+		if (visible)
+		{
+			func();
+			end_popup();
+		}
+		return visible;
+	}
+
+	inline bool popup(const char* id_text, const FunctionRef<void()>& func)
+	{
+		return popup(id_text, WindowFlags::Undefined, func);
+	}
+
+	inline bool context_menu(const char* id_text, const FunctionRef<void()>& func)
+	{
+		const bool visible = begin_context_menu(id_text);
+		if (visible)
+		{
+			func();
+			end_context_menu();
+		}
+		return visible;
+	}
+
+	inline bool context_menu(const FunctionRef<void()>& func)
+	{
+		return context_menu(nullptr, func);
+	}
+
+	inline bool menu_bar(const FunctionRef<void()>& func)
+	{
+		const bool visible = begin_menu_bar();
+		if (visible)
+		{
+			func();
+			end_menu_bar();
+		}
+		return visible;
+	}
+
+	inline bool menu(const char* label, bool enabled, const FunctionRef<void()>& func)
+	{
+		const bool visible = begin_menu(label, enabled);
+		if (visible)
+		{
+			func();
+			end_menu();
+		}
+		return visible;
+	}
+
+	inline bool menu(const char* label, const FunctionRef<void()>& func)
+	{
+		return menu(label, true, func);
+	}
+
+	/////////////////////// INLINE FEEDBACK AND DATA VIEWS HELPERS ///////////////////////
+
+	inline bool toolbar(const char* id_text, const FunctionRef<void()>& func)
+	{
+		const bool visible = begin_toolbar(id_text);
+		if (visible)
+		{
+			func();
+			end_toolbar();
+		}
+		return visible;
+	}
+
+	inline bool table(const char* id_text, int columns, TableFlags flags, const Vec2& outer_size, float inner_width,
+	                  const FunctionRef<void()>& func)
+	{
+		const bool visible = begin_table(id_text, columns, flags, outer_size, inner_width);
+		if (visible)
+		{
+			func();
+			end_table();
+		}
+		return visible;
+	}
+
+	inline bool table(const char* id_text, int columns, TableFlags flags, const Vec2& outer_size, const FunctionRef<void()>& func)
+	{
+		return table(id_text, columns, flags, outer_size, 0.0f, func);
+	}
+
+	inline bool table(const char* id_text, int columns, TableFlags flags, const FunctionRef<void()>& func)
+	{
+		return table(id_text, columns, flags, Vec2(0, 0), 0.0f, func);
+	}
+
+	inline bool table(const char* id_text, int columns, const FunctionRef<void()>& func)
+	{
+		return table(id_text, columns, TableFlags::Undefined, Vec2(0, 0), 0.0f, func);
+	}
+
+	inline bool list_box(const char* label, const Vec2& size, const FunctionRef<void()>& func)
+	{
+		const bool visible = begin_list_box(label, size);
+		if (visible)
+		{
+			func();
+			end_list_box();
+		}
+		return visible;
+	}
+
+	inline bool list_box(const char* label, const FunctionRef<void()>& func)
+	{
+		return list_box(label, Vec2(0, 0), func);
+	}
+
+	inline bool drag_source(DragDropFlags drag_drop, const FunctionRef<void()>& func)
+	{
+		const bool visible = begin_drag_source(drag_drop);
+		if (visible)
+		{
+			func();
+			end_drag_source();
+		}
+		return visible;
+	}
+
+	inline bool drag_source(const FunctionRef<void()>& func)
+	{
+		return drag_source(DragDropFlags::Undefined, func);
+	}
+
+	inline bool drop_target(const FunctionRef<void()>& func)
+	{
+		const bool visible = begin_drop_target();
+		if (visible)
+		{
+			func();
+			end_drop_target();
+		}
+		return visible;
 	}
 
 	/////////////////////// INLINE PAINT HELPERS ///////////////////////

@@ -2195,18 +2195,6 @@ namespace Trinex::UI
 		ImGui::PopID();
 	}
 
-	void card(const char* title, const CardOptions& options, const Function<void()>& content)
-	{
-		if (begin_card(title, options))
-		{
-			if (content)
-			{
-				content();
-			}
-			end_card();
-		}
-	}
-
 	bool card_button(const char* title, const CardOptions& options)
 	{
 		cleanup_states();
@@ -2494,18 +2482,6 @@ namespace Trinex::UI
 		ImGui::SetCursorScreenPos(ImVec2(context.content_start.x, context.content_start.y + visible_height));
 		ImGui::Dummy(ImVec2(0.0f, 0.0f));
 		ImGui::PopID();
-	}
-
-	void animated_area(const char* id, bool visible, const Function<void()>& content)
-	{
-		if (begin_animated_area(id, visible))
-		{
-			if (content)
-			{
-				content();
-			}
-			end_animated_area();
-		}
 	}
 
 	bool begin_scroll_area(const char* id, const Vec2& size, bool border, WindowFlags flags)
@@ -3954,49 +3930,6 @@ namespace Trinex::UI
 		end_animated_area();
 	}
 
-	bool collapsing_header(const char* label, const HeaderOptions& options)
-	{
-		ImGui::PushID(label);
-		const ImGuiID id = ImGui::GetID("header_open");
-		bool& stored     = g_open[id];
-		static std::unordered_map<ImGuiID, bool> initialized;
-		if (!initialized[id])
-		{
-			stored          = options.open != nullptr ? *options.open : options.default_open;
-			initialized[id] = true;
-		}
-		bool open       = options.open != nullptr ? *options.open : stored;
-		AnimState& anim = state_for(id);
-		anim.open       = approach(anim.open, open ? 1.0f : 0.0f, active_context()->style.animation_speed);
-		if (animated_row(label, options.icon, options.right_text, open, options.disabled,
-		                 ImVec2(0, active_context()->style.frame_height), options.accent, true, anim.open))
-		{
-			open = !open;
-			if (options.open != nullptr)
-			{
-				*options.open = open;
-			}
-			else
-			{
-				stored = open;
-			}
-		}
-		ImGui::PopID();
-		return open;
-	}
-
-	void collapsing_header(const char* label, const Function<void()>& content, const HeaderOptions& options)
-	{
-		if (begin_collapsing_header(label, options))
-		{
-			if (content)
-			{
-				content();
-			}
-			end_collapsing_header();
-		}
-	}
-
 	bool begin_section_header(const char* label, const HeaderOptions& options)
 	{
 		spacing(2.0f);
@@ -4006,24 +3939,6 @@ namespace Trinex::UI
 	void end_section_header()
 	{
 		end_collapsing_header();
-	}
-
-	bool section_header(const char* label, const HeaderOptions& options)
-	{
-		spacing(2.0f);
-		return collapsing_header(label, options);
-	}
-
-	void section_header(const char* label, const Function<void()>& content, const HeaderOptions& options)
-	{
-		if (begin_section_header(label, options))
-		{
-			if (content)
-			{
-				content();
-			}
-			end_section_header();
-		}
 	}
 
 	bool tree_node(const char* label, const TreeNodeOptions& options)
