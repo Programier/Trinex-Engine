@@ -290,10 +290,8 @@ namespace Trinex::UI
 
 	namespace
 	{
-
-		using tree_context      = TreeContext;
-		using area_context      = AreaContext;
-		using persistent_window = PersistentWindow;
+		using tree_context = TreeContext;
+		using area_context = AreaContext;
 
 		static inline Context* active_context()
 		{
@@ -461,13 +459,14 @@ namespace Trinex::UI
 			return ImGui::GetColorU32(c);
 		}
 
-		persistent_window* find_window(const char* name)
+		PersistentWindow* find_window(const char* name)
 		{
 			if (name == nullptr)
 			{
 				return nullptr;
 			}
-			for (persistent_window& window : active_context()->windows)
+
+			for (PersistentWindow& window : active_context()->windows)
 			{
 				if (window.name == name)
 				{
@@ -555,6 +554,23 @@ namespace Trinex::UI
 		ImGuiCond to_imgui_cond(Condition value)
 		{
 			return static_cast<ImGuiCond>(value);
+		}
+
+		ImGuiDockNodeFlags to_imgui_dock_node_flags(DockNodeFlags value)
+		{
+			return static_cast<ImGuiDockNodeFlags>(value);
+		}
+
+		ImGuiDir to_imgui_dock_dir(DockSplitDir value)
+		{
+			switch (value.value)
+			{
+				case DockSplitDir::Left: return ImGuiDir_Left;
+				case DockSplitDir::Right: return ImGuiDir_Right;
+				case DockSplitDir::Up: return ImGuiDir_Up;
+				case DockSplitDir::Down:
+				default: return ImGuiDir_Down;
+			}
 		}
 
 		ImGuiKey to_imgui_key(Key value)
@@ -1263,7 +1279,7 @@ namespace Trinex::UI
 
 		void render_windows()
 		{
-			for (persistent_window& window : active_context()->windows)
+			for (PersistentWindow& window : active_context()->windows)
 			{
 				if (!window.open)
 				{
@@ -1376,6 +1392,7 @@ namespace Trinex::UI
 
 		io.Fonts->Build();
 		io.FontDefault = io.Fonts->Fonts[0];
+		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 		io.IniFilename = nullptr;
 		io.LogFilename = nullptr;
 		return ctx;
@@ -1683,6 +1700,157 @@ namespace Trinex::UI
 		return to_ui_id(ImGui::GetID(id));
 	}
 
+	/////////////////////// DOCKING ///////////////////////
+
+	bool begin_dockspace(const char* id_text, const DockspaceOptions& options)
+	{
+		trinex_assert(id_text != nullptr && "UI::begin_dockspace() requires a valid id");
+
+		ImGuiViewport* viewport = ImGui::GetMainViewport();
+		ImGuiWindowFlags window_flags =
+		        ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
+		        ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus |
+		        ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoSavedSettings;
+
+		ImGuiDockNodeFlags dock_flags = to_imgui_dock_node_flags(options.flags);
+		if ((dock_flags & ImGuiDockNodeFlags_PassthruCentralNode) != 0 || !options.background)
+		{
+			window_flags |= ImGuiWindowFlags_NoBackground;
+		}
+
+		const ImVec2 dockspace_size(options.size.x > 0.0f ? options.size.x : viewport->WorkSize.x,
+		                            options.size.y > 0.0f ? options.size.y : viewport->WorkSize.y);
+
+		ImGui::SetNextWindowPos(viewport->WorkPos);
+		ImGui::SetNextWindowSize(dockspace_size);
+		ImGui::SetNextWindowViewport(viewport->ID);
+
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, options.border ? active_context()->style.border_size : 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+
+		char host_name[256];
+		std::snprintf(host_name, sizeof(host_name), "##dockspace_host_%s", id_text);
+
+		const bool visible = ImGui::Begin(host_name, nullptr, window_flags);
+		if (!visible)
+		{
+			ImGui::End();
+			ImGui::PopStyleVar(3);
+			return false;
+		}
+
+		ImGui::DockSpace(to_imgui_id(dockspace_id(id_text)), ImVec2(0.0f, 0.0f), dock_flags);
+		return true;
+	}
+
+	void end_dockspace()
+	{
+		ImGui::End();
+		ImGui::PopStyleVar(3);
+	}
+
+	ID dockspace_id(const char* id_text)
+	{
+		if (id_text == nullptr)
+		{
+			return ID(0);
+		}
+
+		return to_ui_id(ImHashStr(id_text));
+	}
+
+	void set_next_window_dock(ID dock_id, Condition condition)
+	{
+		ImGui::SetNextWindowDockID(to_imgui_id(dock_id), to_imgui_cond(condition));
+	}
+
+	void set_next_window_dock(const char* dockspace_id_text, Condition condition)
+	{
+		set_next_window_dock(dockspace_id(dockspace_id_text), condition);
+	}
+
+	bool is_window_docked()
+	{
+		return ImGui::IsWindowDocked();
+	}
+
+	ID window_dock_id()
+	{
+		return to_ui_id(ImGui::GetWindowDockID());
+	}
+
+	void undock_window()
+	{
+		ImGuiWindow* window = ImGui::GetCurrentWindowRead();
+		if (window != nullptr && window->DockNode != nullptr)
+		{
+			ImGui::DockContextQueueUndockWindow(ImGui::GetCurrentContext(), window);
+		}
+	}
+
+	void dock_builder_begin(ID dockspace_id, const Vec2& size, DockNodeFlags flags)
+	{
+		const ImGuiID root_id   = to_imgui_id(dockspace_id);
+		ImGuiViewport* viewport = ImGui::GetMainViewport();
+		const ImVec2 fallback_size = viewport != nullptr ? viewport->WorkSize : ImVec2(0.0f, 0.0f);
+		const ImVec2 resolved_size(size.x > 0.0f ? size.x : fallback_size.x, size.y > 0.0f ? size.y : fallback_size.y);
+
+		ImGui::DockBuilderRemoveNode(root_id);
+		ImGui::DockBuilderAddNode(root_id, to_imgui_dock_node_flags(flags) | ImGuiDockNodeFlags_DockSpace);
+		ImGui::DockBuilderSetNodeSize(root_id, resolved_size);
+	}
+
+	void dock_builder_end()
+	{
+	}
+
+	void dock_builder_clear(ID dockspace_id)
+	{
+		ImGui::DockBuilderRemoveNode(to_imgui_id(dockspace_id));
+	}
+
+	void dock_builder_set_flags(ID dock_id, DockNodeFlags flags)
+	{
+		if (ImGuiDockNode* node = ImGui::DockBuilderGetNode(to_imgui_id(dock_id)))
+		{
+			node->SetLocalFlags(to_imgui_dock_node_flags(flags));
+		}
+	}
+
+	DockBuilderSplitResult dock_builder_split(ID dock_id, DockSplitDir dir, float ratio)
+	{
+		DockBuilderSplitResult result;
+		ImGuiID parent_id = 0;
+		ImGuiID child_id  = 0;
+
+		ImGui::DockBuilderSplitNode(to_imgui_id(dock_id), to_imgui_dock_dir(dir), Math::clamp(ratio, 0.0f, 1.0f), &child_id,
+		                            &parent_id);
+
+		result.parent = to_ui_id(parent_id);
+		result.child  = to_ui_id(child_id);
+		return result;
+	}
+
+	void dock_builder_dock_window(const char* window_name, ID dock_id)
+	{
+		ImGui::DockBuilderDockWindow(window_name, to_imgui_id(dock_id));
+	}
+
+	void dock_builder_finish(ID dockspace_id)
+	{
+		ImGui::DockBuilderFinish(to_imgui_id(dockspace_id));
+	}
+
+	void build_dockspace_once(const char* id_text, const FunctionRef<void(ID root_dock)>& builder)
+	{
+		const ID root = dockspace_id(id_text);
+		if (ImGui::DockBuilderGetNode(to_imgui_id(root)) == nullptr)
+		{
+			builder(root);
+		}
+	}
+
 	/////////////////////// WINDOWS AND CONTAINERS ///////////////////////
 
 	bool begin_window(const char* name, bool* open, WindowFlags flags)
@@ -1723,7 +1891,8 @@ namespace Trinex::UI
 		{
 			return;
 		}
-		if (persistent_window* window = find_window(name))
+
+		if (PersistentWindow* window = find_window(name))
 		{
 			window->flags   = flags;
 			window->open    = open;
@@ -1731,17 +1900,16 @@ namespace Trinex::UI
 			return;
 		}
 
-		persistent_window window;
-		window.name    = name;
-		window.flags   = flags;
-		window.open    = open;
-		window.content = content;
-		active_context()->windows.push_back(std::move(window));
+		PersistentWindow& window = active_context()->windows.emplace_back();
+		window.name              = name;
+		window.flags             = flags;
+		window.open              = open;
+		window.content           = content;
 	}
 
 	bool is_window_open(const char* name)
 	{
-		if (persistent_window* window = find_window(name))
+		if (PersistentWindow* window = find_window(name))
 		{
 			return window->open;
 		}
@@ -1750,7 +1918,7 @@ namespace Trinex::UI
 
 	void open_window(const char* name)
 	{
-		if (persistent_window* window = find_window(name))
+		if (PersistentWindow* window = find_window(name))
 		{
 			window->open = true;
 		}
@@ -1776,7 +1944,7 @@ namespace Trinex::UI
 
 	void close_window(const char* name)
 	{
-		if (persistent_window* window = find_window(name))
+		if (PersistentWindow* window = find_window(name))
 		{
 			window->open = false;
 		}
@@ -4331,7 +4499,7 @@ namespace Trinex::UI
 		entry.description        = command.description != nullptr ? command.description : "";
 		entry.shortcut           = command.shortcut != nullptr ? command.shortcut : "";
 		entry.icon               = command.icon != nullptr ? command.icon : "";
-		entry.action             = command.action;	
+		entry.action             = command.action;
 	}
 
 	void register_command(const Command& command)

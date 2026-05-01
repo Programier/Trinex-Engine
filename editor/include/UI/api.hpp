@@ -273,6 +273,42 @@ namespace Trinex::UI
 		trinex_bitfield_enum_struct(Condition, u8);
 	};
 
+	struct DockNodeFlags {
+		enum Enum : u32
+		{
+			Undefined                 = 0,
+			KeepAliveOnly             = 1u << 0,
+			NoDockingOverCentralNode  = 1u << 2,
+			PassthruCentralNode       = 1u << 3,
+			NoSplit                   = 1u << 4,
+			NoResize                  = 1u << 5,
+			AutoHideTabBar            = 1u << 6,
+			NoUndocking               = 1u << 7,
+			NoTabBar                  = 1u << 12,
+			HiddenTabBar              = 1u << 13,
+			NoWindowMenuButton        = 1u << 14,
+			NoCloseButton             = 1u << 15,
+			NoDockingOverMe           = 1u << 20,
+			NoDockingOverOther        = 1u << 21,
+			NoDockingOverEmpty        = 1u << 22,
+			NoDocking = NoDockingOverMe | NoDockingOverOther | NoDockingOverEmpty | NoSplit
+		};
+
+		trinex_bitfield_enum_struct(DockNodeFlags, u32);
+	};
+
+	struct DockSplitDir {
+		enum Enum : u8
+		{
+			Left,
+			Right,
+			Up,
+			Down,
+		};
+
+		trinex_enum_struct(DockSplitDir);
+	};
+
 	struct TableFlags {
 		enum Enum : u16
 		{
@@ -366,6 +402,18 @@ namespace Trinex::UI
 		int data_size    = 0;
 		bool preview     = false;
 		bool delivery    = false;
+	};
+
+	struct DockspaceOptions {
+		Vec2 size           = Vec2(0.0f, 0.0f);
+		DockNodeFlags flags = DockNodeFlags::Undefined;
+		bool border         = false;
+		bool background     = false;
+	};
+
+	struct DockBuilderSplitResult {
+		ID parent = ID(0);
+		ID child  = ID(0);
 	};
 
 	struct ColorTheme {
@@ -595,6 +643,25 @@ namespace Trinex::UI
 	void push_id(int id_value);
 	void pop_id();
 	ID id(const char* id_text);
+
+	/////////////////////// DOCKING ///////////////////////
+	bool begin_dockspace(const char* id_text, const DockspaceOptions& options = {});
+	void end_dockspace();
+	ID dockspace_id(const char* id_text);
+	void set_next_window_dock(ID dock_id, Condition condition = Condition::Once);
+	void set_next_window_dock(const char* dockspace_id_text, Condition condition = Condition::Once);
+	bool is_window_docked();
+	ID window_dock_id();
+	void undock_window();
+	void dock_builder_begin(ID dockspace_id, const Vec2& size = Vec2(0.0f, 0.0f),
+	                        DockNodeFlags flags = DockNodeFlags::Undefined);
+	void dock_builder_end();
+	void dock_builder_clear(ID dockspace_id);
+	void dock_builder_set_flags(ID dock_id, DockNodeFlags flags);
+	DockBuilderSplitResult dock_builder_split(ID dock_id, DockSplitDir dir, float ratio);
+	void dock_builder_dock_window(const char* window_name, ID dock_id);
+	void dock_builder_finish(ID dockspace_id);
+	void build_dockspace_once(const char* id_text, const FunctionRef<void(ID root_dock)>& builder);
 
 	/////////////////////// WINDOWS AND CONTAINERS ///////////////////////
 	bool begin_window(const char* name, bool* open = nullptr, WindowFlags flags = WindowFlags::Undefined);
@@ -891,6 +958,24 @@ namespace Trinex::UI
 		push_id(id_value);
 		func();
 		pop_id();
+	}
+
+	/////////////////////// INLINE DOCKING HELPERS ///////////////////////
+
+	inline bool dockspace(const char* id_text, const DockspaceOptions& options, const FunctionRef<void()>& func)
+	{
+		const bool visible = begin_dockspace(id_text, options);
+		if (visible)
+		{
+			func();
+			end_dockspace();
+		}
+		return visible;
+	}
+
+	inline bool dockspace(const char* id_text, const FunctionRef<void()>& func)
+	{
+		return dockspace(id_text, {}, func);
 	}
 
 	/////////////////////// INLINE WINDOWS AND CONTAINERS HELPERS ///////////////////////
