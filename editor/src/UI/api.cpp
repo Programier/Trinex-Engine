@@ -1209,6 +1209,7 @@ namespace Trinex::UI
 				const ImVec2 max(origin.x - slide, animated_y);
 				const ImVec2 min(max.x - width, animated_y - height);
 				const Vec4 accent = notification_color(it->kind);
+
 				draw->AddRectFilled(min, max, col_u32(active_context()->style.colors.panel, alpha * 0.96f),
 				                    active_context()->style.rounding);
 				draw->AddRect(min, max, col_u32(active_context()->style.colors.border, alpha), active_context()->style.rounding);
@@ -1277,8 +1278,8 @@ namespace Trinex::UI
 				if (visible && window.content)
 				{
 					window.content();
+					end_window();
 				}
-				end_window();
 			}
 		}
 	}// namespace
@@ -1387,7 +1388,7 @@ namespace Trinex::UI
 		trx_delete context;
 	}
 
-	void begin_frame(Context* context)
+	bool begin_frame(Context* context)
 	{
 		trinex_assert(context);
 		g_context = context;
@@ -1395,6 +1396,8 @@ namespace Trinex::UI
 		ImGui::SetCurrentContext(context->context);
 		UI::Backend::imgui_new_frame(context->window);
 		ImGui::NewFrame();
+
+		return true;
 	}
 
 	void end_frame()
@@ -1448,13 +1451,6 @@ namespace Trinex::UI
 		active_context()->allocator.reset();
 		ImGui::SetCurrentContext(nullptr);
 	}
-
-	Context* context()
-	{
-		return g_context;
-	}
-
-	void context(Context* value) {}
 
 	/////////////////////// STYLE AND EFFECTS ///////////////////////
 
@@ -1697,6 +1693,12 @@ namespace Trinex::UI
 		scope.persistent    = active_context()->rendering_window;
 		active_context()->active_window_stack.push_back(scope);
 		const bool visible = ImGui::Begin(name, open, to_imgui_window_flags(flags));
+		if (!visible)
+		{
+			ImGui::End();
+			active_context()->active_window_stack.pop_back();
+			pop_window_styles();
+		}
 		return visible;
 	}
 
@@ -1809,7 +1811,6 @@ namespace Trinex::UI
 		context.draw_shadow      = options.background && has_shadow_override() && shadow_visible(current_shadow());
 		context.shadow           = current_shadow();
 		g_panel_stack.push_back(context);
-
 		ImGui::GetWindowDrawList()->ChannelsSplit(2);
 		ImGui::GetWindowDrawList()->ChannelsSetCurrent(1);
 		return true;
@@ -1958,7 +1959,6 @@ namespace Trinex::UI
 			const ImVec2 line_max(max.x - context.rounding * 0.35f, min.y + inset);
 			draw->AddLine(line_min, line_max, col_u32(context.highlight), 1.0f);
 		}
-
 		draw->ChannelsSetCurrent(1);
 		draw->ChannelsMerge();
 		ImGui::EndChild();
@@ -2073,7 +2073,6 @@ namespace Trinex::UI
 		context.border_color     = border;
 		context.shadow           = current_shadow();
 		g_card_stack.push_back(context);
-
 		ImGui::GetWindowDrawList()->ChannelsSplit(2);
 		ImGui::GetWindowDrawList()->ChannelsSetCurrent(1);
 
@@ -2180,7 +2179,6 @@ namespace Trinex::UI
 			const float alpha = context.selected ? 1.0f : Math::lerp(0.85f, 1.0f, anim.hover * 0.65f);
 			draw->AddRect(min, max, col_u32(border_target, alpha), context.rounding, 0, active_context()->style.border_size);
 		}
-
 		draw->ChannelsSetCurrent(1);
 		draw->ChannelsMerge();
 
@@ -2326,19 +2324,22 @@ namespace Trinex::UI
 
 	/////////////////////// LAYOUT AND SCROLLING ///////////////////////
 
-	void begin_horizontal(const char* id_text, const Vec2& size, float align)
+	bool begin_horizontal(const char* id_text, const Vec2& size, float align)
 	{
 		ImGui::BeginHorizontal(id_text, to_imvec(size), align);
+		return true;
 	}
 
-	void begin_horizontal(const void* id, const Vec2& size, float align)
+	bool begin_horizontal(const void* id, const Vec2& size, float align)
 	{
 		ImGui::BeginHorizontal(id, to_imvec(size), align);
+		return true;
 	}
 
-	void begin_horizontal(int id, const Vec2& size, float align)
+	bool begin_horizontal(int id, const Vec2& size, float align)
 	{
 		ImGui::BeginHorizontal(id, to_imvec(size), align);
+		return true;
 	}
 
 	void end_horizontal()
@@ -2346,19 +2347,22 @@ namespace Trinex::UI
 		ImGui::EndHorizontal();
 	}
 
-	void begin_vertical(const char* id_text, const Vec2& size, float align)
+	bool begin_vertical(const char* id_text, const Vec2& size, float align)
 	{
 		ImGui::BeginVertical(id_text, to_imvec(size), align);
+		return true;
 	}
 
-	void begin_vertical(const void* id, const Vec2& size, float align)
+	bool begin_vertical(const void* id, const Vec2& size, float align)
 	{
 		ImGui::BeginVertical(id, to_imvec(size), align);
+		return true;
 	}
 
-	void begin_vertical(int id, const Vec2& size, float align)
+	bool begin_vertical(int id, const Vec2& size, float align)
 	{
 		ImGui::BeginVertical(id, to_imvec(size), align);
+		return true;
 	}
 
 	void end_vertical()
@@ -2405,7 +2409,7 @@ namespace Trinex::UI
 		ImGui::SameLine(offset_from_start_x, spacing_value);
 	}
 
-	void begin_disabled(bool disabled)
+	bool begin_disabled(bool disabled)
 	{
 		ImGui::BeginDisabled(disabled);
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * (disabled ? 0.55f : 1.0f));
@@ -2414,6 +2418,7 @@ namespace Trinex::UI
 		{
 			active_context()->draw_alpha *= 0.55f;
 		}
+		return true;
 	}
 
 	void end_disabled()
@@ -2486,7 +2491,14 @@ namespace Trinex::UI
 
 	bool begin_scroll_area(const char* id, const Vec2& size, bool border, WindowFlags flags)
 	{
-		return ImGui::BeginChild(id, to_imvec(size), border, to_imgui_window_flags(flags));
+		bool visible = ImGui::BeginChild(id, to_imvec(size), border, to_imgui_window_flags(flags));
+
+		if (!visible)
+		{
+			ImGui::EndChild();
+		}
+
+		return visible;
 	}
 
 	void end_scroll_area()
@@ -4289,16 +4301,18 @@ namespace Trinex::UI
 		return clicked;
 	}
 
-	void register_command(const Command& command)
+	void register_command(Context* context, const Command& command)
 	{
-		trinex_assert(has_text(command.id) && "UI::register_command() requires a non-empty command id");
-		trinex_assert(has_text(command.name) && "UI::register_command() requires a non-empty command name");
+		trinex_assert_msg(context, "UI::register_command() requires a non-empty context");
+		trinex_assert_msg(has_text(command.id), "UI::register_command() requires a non-empty command id");
+		trinex_assert_msg(has_text(command.name), "UI::register_command() requires a non-empty command name");
+
 		if (!has_text(command.id) || !has_text(command.name))
 		{
 			return;
 		}
 
-		for (RegisteredCommand& existing : g_command_palette.commands)
+		for (RegisteredCommand& existing : context->command_palette.commands)
 		{
 			if (existing.id == command.id)
 			{
@@ -4311,14 +4325,23 @@ namespace Trinex::UI
 			}
 		}
 
-		RegisteredCommand entry;
-		entry.id          = command.id;
-		entry.name        = command.name;
-		entry.description = command.description != nullptr ? command.description : "";
-		entry.shortcut    = command.shortcut != nullptr ? command.shortcut : "";
-		entry.icon        = command.icon != nullptr ? command.icon : "";
-		entry.action      = command.action;
-		g_command_palette.commands.push_back(std::move(entry));
+		RegisteredCommand& entry = context->command_palette.commands.emplace_back();
+		entry.id                 = command.id;
+		entry.name               = command.name;
+		entry.description        = command.description != nullptr ? command.description : "";
+		entry.shortcut           = command.shortcut != nullptr ? command.shortcut : "";
+		entry.icon               = command.icon != nullptr ? command.icon : "";
+		entry.action             = command.action;	
+	}
+
+	void register_command(const Command& command)
+	{
+		trinex_assert(has_text(command.id) && "UI::register_command() requires a non-empty command id");
+		trinex_assert(has_text(command.name) && "UI::register_command() requires a non-empty command name");
+		if (!has_text(command.id) || !has_text(command.name))
+		{
+			return;
+		}
 	}
 
 	void open_command_palette()
@@ -4362,7 +4385,7 @@ namespace Trinex::UI
 		}
 		const float eased_open         = apply_ease(palette_anim.open, Ease::InOutQuad);
 		const float eased_blur         = apply_ease(palette_blur_anim.open, Ease::InOutQuad);
-		const float popup_visual_alpha = g_command_palette.open ? eased_open : std::min(eased_open, eased_blur);
+		const float popup_visual_alpha = g_command_palette.open ? eased_open : eased_blur;
 
 		refresh_command_palette_results();
 

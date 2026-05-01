@@ -565,7 +565,7 @@ namespace Trinex::UI
 	void shutdown();
 	Context* create_context(Trinex::Window* window);
 	void destroy_context(Context* context);
-	void begin_frame(Context* context);
+	bool begin_frame(Context* context);
 	void end_frame();
 
 	/////////////////////// STYLE AND EFFECTS ///////////////////////
@@ -620,13 +620,13 @@ namespace Trinex::UI
 	bool card_button(const char* title, const CardOptions& options = {});
 
 	/////////////////////// LAYOUT AND SCROLLING ///////////////////////
-	void begin_horizontal(const char* id_text, const Vec2& size = Vec2(0, 0), float align = -1.0f);
-	void begin_horizontal(const void* id, const Vec2& size = Vec2(0, 0), float align = -1.0f);
-	void begin_horizontal(int id, const Vec2& size = Vec2(0, 0), float align = -1.0f);
+	bool begin_horizontal(const char* id_text, const Vec2& size = Vec2(0, 0), float align = -1.0f);
+	bool begin_horizontal(const void* id, const Vec2& size = Vec2(0, 0), float align = -1.0f);
+	bool begin_horizontal(int id, const Vec2& size = Vec2(0, 0), float align = -1.0f);
 	void end_horizontal();
-	void begin_vertical(const char* id_text, const Vec2& size = Vec2(0, 0), float align = -1.0f);
-	void begin_vertical(const void* id, const Vec2& size = Vec2(0, 0), float align = -1.0f);
-	void begin_vertical(int id, const Vec2& size = Vec2(0, 0), float align = -1.0f);
+	bool begin_vertical(const char* id_text, const Vec2& size = Vec2(0, 0), float align = -1.0f);
+	bool begin_vertical(const void* id, const Vec2& size = Vec2(0, 0), float align = -1.0f);
+	bool begin_vertical(int id, const Vec2& size = Vec2(0, 0), float align = -1.0f);
 	void end_vertical();
 	void spring(float weight = 1.0f, float spacing = -1.0f);
 	void suspend_layout();
@@ -634,7 +634,7 @@ namespace Trinex::UI
 	void separator();
 	void spacing(float amount = -1.0f);
 	void same_line(float offset_from_start_x = 0.0f, float spacing = -1.0f);
-	void begin_disabled(bool disabled = true);
+	bool begin_disabled(bool disabled = true);
 	void end_disabled();
 	bool begin_animated_area(const char* id_text, bool visible);
 	void end_animated_area();
@@ -789,13 +789,9 @@ namespace Trinex::UI
 	void end_menu();
 	bool menu_item(const char* label, const char* shortcut = nullptr, bool selected = false, bool enabled = true);
 	bool menu_item(const char* label, const char* shortcut, bool* selected, bool enabled = true);
-	// Registers or updates a command in the current UI context.
-	// `id` must be unique and stable. Duplicate ids replace the existing command.
+	void register_command(Context* context, const Command& command);
 	void register_command(const Command& command);
-	// Opens the command palette overlay and focuses the search field on the next frame.
 	void open_command_palette();
-	// Draws the command palette if it is open.
-	// Returns true when a command was executed this frame.
 	bool command_palette();
 
 	/////////////////////// FEEDBACK AND DATA VIEWS ///////////////////////
@@ -845,6 +841,15 @@ namespace Trinex::UI
 
 
 	/////////////////////// INLINE STYLE AND EFFECTS HELPERS ///////////////////////
+
+	inline void frame(Context* context, const FunctionRef<void()>& func)
+	{
+		if (begin_frame(context))
+		{
+			func();
+			end_frame();
+		}
+	}
 
 	inline void style(const Style& value, const FunctionRef<void()>& func)
 	{
@@ -896,8 +901,8 @@ namespace Trinex::UI
 		if (visible)
 		{
 			func();
+			end_window();
 		}
-		end_window();
 		return visible;
 	}
 
@@ -917,8 +922,8 @@ namespace Trinex::UI
 		if (visible)
 		{
 			func();
+			end_panel();
 		}
-		end_panel();
 		return visible;
 	}
 
@@ -933,8 +938,8 @@ namespace Trinex::UI
 		if (visible)
 		{
 			func();
+			end_glass_panel();
 		}
-		end_glass_panel();
 		return visible;
 	}
 
@@ -954,8 +959,8 @@ namespace Trinex::UI
 		if (visible)
 		{
 			func();
+			end_child_panel();
 		}
-		end_child_panel();
 		return visible;
 	}
 
@@ -975,8 +980,8 @@ namespace Trinex::UI
 		if (visible)
 		{
 			func();
+			end_group_panel();
 		}
-		end_group_panel();
 		return visible;
 	}
 
@@ -996,8 +1001,8 @@ namespace Trinex::UI
 		if (visible)
 		{
 			func();
+			end_group();
 		}
-		end_group();
 		return visible;
 	}
 
@@ -1014,9 +1019,11 @@ namespace Trinex::UI
 
 	inline void horizontal(const char* id_text, const Vec2& size, float align, const FunctionRef<void()>& func)
 	{
-		begin_horizontal(id_text, size, align);
-		func();
-		end_horizontal();
+		if (begin_horizontal(id_text, size, align))
+		{
+			func();
+			end_horizontal();
+		}
 	}
 
 	inline void horizontal(const char* id_text, const Vec2& size, const FunctionRef<void()>& func)
@@ -1031,9 +1038,11 @@ namespace Trinex::UI
 
 	inline void horizontal(const void* id, const Vec2& size, float align, const FunctionRef<void()>& func)
 	{
-		begin_horizontal(id, size, align);
-		func();
-		end_horizontal();
+		if (begin_horizontal(id, size, align))
+		{
+			func();
+			end_horizontal();
+		}
 	}
 
 	inline void horizontal(const void* id, const Vec2& size, const FunctionRef<void()>& func)
@@ -1048,9 +1057,11 @@ namespace Trinex::UI
 
 	inline void horizontal(int id, const Vec2& size, float align, const FunctionRef<void()>& func)
 	{
-		begin_horizontal(id, size, align);
-		func();
-		end_horizontal();
+		if (begin_horizontal(id, size, align))
+		{
+			func();
+			end_horizontal();
+		}
 	}
 
 	inline void horizontal(int id, const Vec2& size, const FunctionRef<void()>& func)
@@ -1065,9 +1076,11 @@ namespace Trinex::UI
 
 	inline void vertical(const char* id_text, const Vec2& size, float align, const FunctionRef<void()>& func)
 	{
-		begin_vertical(id_text, size, align);
-		func();
-		end_vertical();
+		if (begin_vertical(id_text, size, align))
+		{
+			func();
+			end_vertical();
+		}
 	}
 
 	inline void vertical(const char* id_text, const Vec2& size, const FunctionRef<void()>& func)
@@ -1082,9 +1095,11 @@ namespace Trinex::UI
 
 	inline void vertical(const void* id, const Vec2& size, float align, const FunctionRef<void()>& func)
 	{
-		begin_vertical(id, size, align);
-		func();
-		end_vertical();
+		if (begin_vertical(id, size, align))
+		{
+			func();
+			end_vertical();
+		}
 	}
 
 	inline void vertical(const void* id, const Vec2& size, const FunctionRef<void()>& func)
@@ -1099,9 +1114,11 @@ namespace Trinex::UI
 
 	inline void vertical(int id, const Vec2& size, float align, const FunctionRef<void()>& func)
 	{
-		begin_vertical(id, size, align);
-		func();
-		end_vertical();
+		if (begin_vertical(id, size, align))
+		{
+			func();
+			end_vertical();
+		}
 	}
 
 	inline void vertical(int id, const Vec2& size, const FunctionRef<void()>& func)
@@ -1116,9 +1133,11 @@ namespace Trinex::UI
 
 	inline void disabled(bool value, const FunctionRef<void()>& func)
 	{
-		begin_disabled(value);
-		func();
-		end_disabled();
+		if (begin_disabled(value))
+		{
+			func();
+			end_disabled();
+		}
 	}
 
 	inline void disabled(const FunctionRef<void()>& func)
@@ -1133,8 +1152,8 @@ namespace Trinex::UI
 		if (visible)
 		{
 			func();
+			end_scroll_area();
 		}
-		end_scroll_area();
 		return visible;
 	}
 
