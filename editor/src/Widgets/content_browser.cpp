@@ -18,10 +18,7 @@
 
 namespace Trinex
 {
-	void ContentBrowser::init(RenderViewport* viewport)
-	{
-		m_selected_package = Object::root_package();
-	}
+	ContentBrowser::ContentBrowser() : m_selected_package(Object::root_package()) {}
 
 	void ContentBrowser::selecte_new_object(Object* object)
 	{

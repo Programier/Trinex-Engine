@@ -45,8 +45,6 @@ namespace Trinex
 
 	ImGuiWidget::ImGuiWidget() {}
 
-	void ImGuiWidget::init(class RenderViewport* viewport) {}
-
 	ImGuiWidgetsList::Node* ImGuiWidgetsList::close_window_internal(Node* node)
 	{
 		node->widget->on_close();
@@ -128,7 +126,6 @@ namespace Trinex
 
 	ImGuiWidgetsList& ImGuiWidgetsList::push(ImGuiWidget* widget, const void* id)
 	{
-		widget->init(ImGuiWindow::current()->window()->render_viewport());
 		Node* parent_node = m_root;
 		while (parent_node && parent_node->next) parent_node = parent_node->next;
 

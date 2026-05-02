@@ -23,6 +23,7 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <imgui_stacklayout.h>
+#include <limits>
 #include <unordered_map>
 #include <utility>
 
@@ -217,7 +218,8 @@ namespace Trinex::UI
 	struct PersistentWindow {
 		String name;
 		WindowFlags flags = WindowFlags::Undefined;
-		bool open         = true;
+		WindowOptions options;
+		bool open = true;
 		Function<void()> content;
 	};
 
@@ -476,6 +478,27 @@ namespace Trinex::UI
 			return nullptr;
 		}
 
+		PersistentWindow& ensure_window(const char* name)
+		{
+			if (PersistentWindow* window = find_window(name))
+			{
+				return *window;
+			}
+
+			PersistentWindow& window = active_context()->windows.emplace_back();
+			window.name              = name;
+			return window;
+		}
+
+		void setup_window(PersistentWindow& window, WindowFlags flags, const WindowOptions& options, bool open,
+		                  const Function<void()>& content)
+		{
+			window.flags   = flags;
+			window.options = options;
+			window.open    = open;
+			window.content = content;
+		}
+
 		ImVec2 to_imvec(const Vec2& v)
 		{
 			return ImVec2(v.x, v.y);
@@ -509,6 +532,56 @@ namespace Trinex::UI
 		ImGuiWindowFlags to_imgui_window_flags(WindowFlags value)
 		{
 			return static_cast<ImGuiWindowFlags>(value);
+		}
+
+		ImGuiDockNodeFlags to_imgui_dock_window_flags(DockWindowFlags value)
+		{
+			ImGuiDockNodeFlags flags = 0;
+			if ((value & DockWindowFlags::NoSplit) != DockWindowFlags::Undefined)
+				flags |= ImGuiDockNodeFlags_NoSplit;
+			if ((value & DockWindowFlags::NoResize) != DockWindowFlags::Undefined)
+				flags |= ImGuiDockNodeFlags_NoResize;
+			if ((value & DockWindowFlags::AutoHideTabBar) != DockWindowFlags::Undefined)
+				flags |= ImGuiDockNodeFlags_AutoHideTabBar;
+			if ((value & DockWindowFlags::NoUndocking) != DockWindowFlags::Undefined)
+				flags |= ImGuiDockNodeFlags_NoUndocking;
+			if ((value & DockWindowFlags::NoTabBar) != DockWindowFlags::Undefined)
+				flags |= ImGuiDockNodeFlags_NoTabBar;
+			if ((value & DockWindowFlags::HiddenTabBar) != DockWindowFlags::Undefined)
+				flags |= ImGuiDockNodeFlags_HiddenTabBar;
+			if ((value & DockWindowFlags::NoWindowMenuButton) != DockWindowFlags::Undefined)
+				flags |= ImGuiDockNodeFlags_NoWindowMenuButton;
+			if ((value & DockWindowFlags::NoCloseButton) != DockWindowFlags::Undefined)
+				flags |= ImGuiDockNodeFlags_NoCloseButton;
+			if ((value & DockWindowFlags::NoDockingOverMe) != DockWindowFlags::Undefined)
+				flags |= ImGuiDockNodeFlags_NoDockingOverMe;
+			if ((value & DockWindowFlags::NoDockingOverOther) != DockWindowFlags::Undefined)
+				flags |= ImGuiDockNodeFlags_NoDockingOverOther;
+			if ((value & DockWindowFlags::NoDockingOverEmpty) != DockWindowFlags::Undefined)
+				flags |= ImGuiDockNodeFlags_NoDockingOverEmpty;
+			return flags;
+		}
+
+		ImGuiTabItemFlags to_imgui_dock_tab_flags(DockTabFlags value)
+		{
+			ImGuiTabItemFlags flags = 0;
+			if ((value & DockTabFlags::Unsaved) != DockTabFlags::Undefined)
+				flags |= ImGuiTabItemFlags_UnsavedDocument;
+			if ((value & DockTabFlags::SetSelected) != DockTabFlags::Undefined)
+				flags |= ImGuiTabItemFlags_SetSelected;
+			if ((value & DockTabFlags::NoCloseWithMiddleMouseButton) != DockTabFlags::Undefined)
+				flags |= ImGuiTabItemFlags_NoCloseWithMiddleMouseButton;
+			if ((value & DockTabFlags::NoTooltip) != DockTabFlags::Undefined)
+				flags |= ImGuiTabItemFlags_NoTooltip;
+			if ((value & DockTabFlags::NoReorder) != DockTabFlags::Undefined)
+				flags |= ImGuiTabItemFlags_NoReorder;
+			if ((value & DockTabFlags::Leading) != DockTabFlags::Undefined)
+				flags |= ImGuiTabItemFlags_Leading;
+			if ((value & DockTabFlags::Trailing) != DockTabFlags::Undefined)
+				flags |= ImGuiTabItemFlags_Trailing;
+			if ((value & DockTabFlags::NoAssumedClosure) != DockTabFlags::Undefined)
+				flags |= ImGuiTabItemFlags_NoAssumedClosure;
+			return flags;
 		}
 
 		ImGuiInputTextFlags to_imgui_input_text_flags(InputTextFlags value)
@@ -598,6 +671,101 @@ namespace Trinex::UI
 		bool has_text(const char* text)
 		{
 			return text != nullptr && text[0] != '\0';
+		}
+
+		bool has_any_bound(const Vec2& min, const Vec2& max)
+		{
+			return min.x > 0.0f || min.y > 0.0f || max.x > 0.0f || max.y > 0.0f;
+		}
+
+		bool has_window_class_overrides(const WindowOptions& options)
+		{
+			return options.dock_flags != DockWindowFlags::Undefined || options.tab_flags != DockTabFlags::Undefined;
+		}
+
+		void apply_window_options_pre_begin(const WindowOptions& options)
+		{
+			if (options.position_condition != Condition::Undefined)
+			{
+				ImGui::SetNextWindowPos(to_imvec(options.position), to_imgui_cond(options.position_condition));
+			}
+
+			if (options.size_condition != Condition::Undefined)
+			{
+				ImGui::SetNextWindowSize(to_imvec(options.size), to_imgui_cond(options.size_condition));
+			}
+
+			if (has_any_bound(options.min_size, options.max_size))
+			{
+				const ImVec2 min_size(options.min_size.x > 0.0f ? options.min_size.x : 0.0f,
+				                      options.min_size.y > 0.0f ? options.min_size.y : 0.0f);
+				const float max_value = std::numeric_limits<float>::max();
+				const ImVec2 max_size(options.max_size.x > 0.0f ? options.max_size.x : max_value,
+				                      options.max_size.y > 0.0f ? options.max_size.y : max_value);
+				ImGui::SetNextWindowSizeConstraints(min_size, max_size);
+			}
+
+			if (options.collapsed_condition != Condition::Undefined)
+			{
+				ImGui::SetNextWindowCollapsed(options.collapsed, to_imgui_cond(options.collapsed_condition));
+			}
+
+			if (options.focus)
+			{
+				ImGui::SetNextWindowFocus();
+			}
+
+			if (options.dock_id && options.dock_condition != Condition::Undefined)
+			{
+				ImGui::SetNextWindowDockID(to_imgui_id(options.dock_id), to_imgui_cond(options.dock_condition));
+			}
+
+			if (has_window_class_overrides(options))
+			{
+				ImGuiWindowClass window_class;
+				window_class.DockNodeFlagsOverrideSet = to_imgui_dock_window_flags(options.dock_flags);
+				window_class.TabItemFlagsOverrideSet  = to_imgui_dock_tab_flags(options.tab_flags);
+				window_class.DockingAlwaysTabBar =
+				        (options.dock_flags & DockWindowFlags::AlwaysTabBar) != DockWindowFlags::Undefined;
+				if ((options.dock_flags & DockWindowFlags::AllowUnclassed) != DockWindowFlags::Undefined)
+				{
+					window_class.DockingAllowUnclassed = true;
+				}
+				ImGui::SetNextWindowClass(&window_class);
+			}
+		}
+
+		void apply_window_options_post_begin(const WindowOptions& options)
+		{
+			ImGuiWindow* window = ImGui::GetCurrentWindowRead();
+			if (window == nullptr || window->DockNode == nullptr || !window->DockTabIsVisible)
+			{
+				return;
+			}
+
+			const ImRect tab_rect = window->DC.DockTabItemRect;
+			if (!tab_rect.IsInverted() && has_color(options.tab_color))
+			{
+				ImDrawList* draw =
+				        window->DockNode->HostWindow != nullptr ? window->DockNode->HostWindow->DrawList : window->DrawList;
+				if (draw != nullptr)
+				{
+					const float inset  = 5.0f;
+					const float height = 4.0f;
+					const float y      = tab_rect.Min.y + 2.0f;
+					const float x1     = tab_rect.Min.x + inset;
+					const float x2     = tab_rect.Max.x - inset;
+					if (x2 > x1)
+					{
+						draw->AddRectFilled(ImVec2(x1, y), ImVec2(x2, y + height), col_u32(options.tab_color), height * 0.5f);
+					}
+				}
+			}
+
+			if (has_text(options.tab_tooltip) && ImGui::IsMouseHoveringRect(tab_rect.Min, tab_rect.Max))
+			{
+				ImGui::SetTooltip("%s", options.tab_tooltip);
+			}
 		}
 
 		Vec4 mix_color(const Vec4& a, const Vec4& b, float t)
@@ -1286,11 +1454,10 @@ namespace Trinex::UI
 					continue;
 				}
 
-				bool open                          = true;
 				active_context()->rendering_window = &window;
-				const bool visible                 = begin_window(window.name.c_str(), &open, window.flags);
+				const bool visible = begin_window(window.name.c_str(), &window.open, window.flags, window.options);
 				active_context()->rendering_window = nullptr;
-				window.open                        = open;
+
 				if (visible && window.content)
 				{
 					window.content();
@@ -1706,11 +1873,11 @@ namespace Trinex::UI
 	{
 		trinex_assert(id_text != nullptr && "UI::begin_dockspace() requires a valid id");
 
-		ImGuiViewport* viewport = ImGui::GetMainViewport();
-		ImGuiWindowFlags window_flags =
-		        ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
-		        ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus |
-		        ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoSavedSettings;
+		ImGuiViewport* viewport       = ImGui::GetMainViewport();
+		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
+		                                ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+		                                ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus |
+		                                ImGuiWindowFlags_NoSavedSettings;
 
 		ImGuiDockNodeFlags dock_flags = to_imgui_dock_node_flags(options.flags);
 		if ((dock_flags & ImGuiDockNodeFlags_PassthruCentralNode) != 0 || !options.background)
@@ -1791,8 +1958,8 @@ namespace Trinex::UI
 
 	void dock_builder_begin(ID dockspace_id, const Vec2& size, DockNodeFlags flags)
 	{
-		const ImGuiID root_id   = to_imgui_id(dockspace_id);
-		ImGuiViewport* viewport = ImGui::GetMainViewport();
+		const ImGuiID root_id      = to_imgui_id(dockspace_id);
+		ImGuiViewport* viewport    = ImGui::GetMainViewport();
 		const ImVec2 fallback_size = viewport != nullptr ? viewport->WorkSize : ImVec2(0.0f, 0.0f);
 		const ImVec2 resolved_size(size.x > 0.0f ? size.x : fallback_size.x, size.y > 0.0f ? size.y : fallback_size.y);
 
@@ -1801,9 +1968,7 @@ namespace Trinex::UI
 		ImGui::DockBuilderSetNodeSize(root_id, resolved_size);
 	}
 
-	void dock_builder_end()
-	{
-	}
+	void dock_builder_end() {}
 
 	void dock_builder_clear(ID dockspace_id)
 	{
@@ -1853,14 +2018,30 @@ namespace Trinex::UI
 
 	/////////////////////// WINDOWS AND CONTAINERS ///////////////////////
 
-	bool begin_window(const char* name, bool* open, WindowFlags flags)
+	bool begin_window(const char* name, bool* open, WindowFlags flags, const WindowOptions& options)
 	{
+		trinex_assert(has_text(name) && "UI::begin_window() requires a non-empty name");
+		if (!has_text(name))
+		{
+			return false;
+		}
+
+		if (open != nullptr && *open == false)
+		{
+			return false;
+		}
+
+		apply_window_options_pre_begin(options);
 		push_window_styles(false);
 		ActiveWindowScope scope;
 		scope.external_open = open;
 		scope.persistent    = active_context()->rendering_window;
 		active_context()->active_window_stack.push_back(scope);
 		const bool visible = ImGui::Begin(name, open, to_imgui_window_flags(flags));
+		if (visible)
+		{
+			apply_window_options_post_begin(options);
+		}
 		if (!visible)
 		{
 			ImGui::End();
@@ -1880,31 +2061,14 @@ namespace Trinex::UI
 		pop_window_styles();
 	}
 
-	void create_window(const char* name, const Function<void()>& content, WindowFlags flags)
-	{
-		create_window(name, true, content, flags);
-	}
-
-	void create_window(const char* name, bool open, const Function<void()>& content, WindowFlags flags)
+	void create_window(const char* name, WindowFlags flags, const WindowOptions& options, const Function<void()>& content)
 	{
 		if (name == nullptr || content == nullptr)
 		{
 			return;
 		}
 
-		if (PersistentWindow* window = find_window(name))
-		{
-			window->flags   = flags;
-			window->open    = open;
-			window->content = content;
-			return;
-		}
-
-		PersistentWindow& window = active_context()->windows.emplace_back();
-		window.name              = name;
-		window.flags             = flags;
-		window.open              = open;
-		window.content           = content;
+		setup_window(ensure_window(name), flags, options, true, content);
 	}
 
 	bool is_window_open(const char* name)
@@ -4504,12 +4668,7 @@ namespace Trinex::UI
 
 	void register_command(const Command& command)
 	{
-		trinex_assert(has_text(command.id) && "UI::register_command() requires a non-empty command id");
-		trinex_assert(has_text(command.name) && "UI::register_command() requires a non-empty command name");
-		if (!has_text(command.id) || !has_text(command.name))
-		{
-			return;
-		}
+		register_command(active_context(), command);
 	}
 
 	void open_command_palette()

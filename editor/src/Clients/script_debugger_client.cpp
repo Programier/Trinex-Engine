@@ -37,8 +37,6 @@ namespace Trinex
 			m_window_pos = vp->WorkPos + vp->WorkSize * 0.5f;
 		}
 
-		void init(RenderViewport* viewport) override {}
-
 		void render_script_combo_box(ScriptFolder* folder)
 		{
 			for (auto& [name, subfolder] : folder->sub_folders())

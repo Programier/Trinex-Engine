@@ -34,7 +34,7 @@ namespace Trinex
 
 		class Object* selected_object = nullptr;
 
-		void init(RenderViewport* viewport) override;
+		ContentBrowser();
 		bool render(RenderViewport* viewport) override;
 		Package* selected_package() const;
 

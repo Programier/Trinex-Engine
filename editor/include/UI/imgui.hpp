@@ -44,7 +44,6 @@ namespace Trinex
 		ImGuiWidget();
 		delete_copy_constructors(ImGuiWidget);
 
-		virtual void init(RenderViewport* viewport);
 		virtual bool render(RenderViewport* viewport) = 0;
 		FORCE_INLINE virtual ~ImGuiWidget(){};
 	};

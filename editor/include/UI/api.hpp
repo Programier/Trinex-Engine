@@ -273,25 +273,67 @@ namespace Trinex::UI
 		trinex_bitfield_enum_struct(Condition, u8);
 	};
 
+	using DockID = ID;
+
+	struct DockWindowFlags {
+		enum Enum : u32
+		{
+			Undefined          = 0,
+			NoSplit            = 1u << 0,
+			NoResize           = 1u << 1,
+			AutoHideTabBar     = 1u << 2,
+			NoUndocking        = 1u << 3,
+			NoTabBar           = 1u << 4,
+			HiddenTabBar       = 1u << 5,
+			NoWindowMenuButton = 1u << 6,
+			NoCloseButton      = 1u << 7,
+			NoDockingOverMe    = 1u << 8,
+			NoDockingOverOther = 1u << 9,
+			NoDockingOverEmpty = 1u << 10,
+			AlwaysTabBar       = 1u << 11,
+			AllowUnclassed     = 1u << 12,
+			NoDocking          = NoDockingOverMe | NoDockingOverOther | NoDockingOverEmpty | NoSplit
+		};
+
+		trinex_bitfield_enum_struct(DockWindowFlags, u32);
+	};
+
+	struct DockTabFlags {
+		enum Enum : u16
+		{
+			Undefined                    = 0,
+			Unsaved                      = 1u << 0,
+			SetSelected                  = 1u << 1,
+			NoCloseWithMiddleMouseButton = 1u << 2,
+			NoTooltip                    = 1u << 3,
+			NoReorder                    = 1u << 4,
+			Leading                      = 1u << 5,
+			Trailing                     = 1u << 6,
+			NoAssumedClosure             = 1u << 7
+		};
+
+		trinex_bitfield_enum_struct(DockTabFlags, u16);
+	};
+
 	struct DockNodeFlags {
 		enum Enum : u32
 		{
-			Undefined                 = 0,
-			KeepAliveOnly             = 1u << 0,
-			NoDockingOverCentralNode  = 1u << 2,
-			PassthruCentralNode       = 1u << 3,
-			NoSplit                   = 1u << 4,
-			NoResize                  = 1u << 5,
-			AutoHideTabBar            = 1u << 6,
-			NoUndocking               = 1u << 7,
-			NoTabBar                  = 1u << 12,
-			HiddenTabBar              = 1u << 13,
-			NoWindowMenuButton        = 1u << 14,
-			NoCloseButton             = 1u << 15,
-			NoDockingOverMe           = 1u << 20,
-			NoDockingOverOther        = 1u << 21,
-			NoDockingOverEmpty        = 1u << 22,
-			NoDocking = NoDockingOverMe | NoDockingOverOther | NoDockingOverEmpty | NoSplit
+			Undefined                = 0,
+			KeepAliveOnly            = 1u << 0,
+			NoDockingOverCentralNode = 1u << 2,
+			PassthruCentralNode      = 1u << 3,
+			NoSplit                  = 1u << 4,
+			NoResize                 = 1u << 5,
+			AutoHideTabBar           = 1u << 6,
+			NoUndocking              = 1u << 7,
+			NoTabBar                 = 1u << 12,
+			HiddenTabBar             = 1u << 13,
+			NoWindowMenuButton       = 1u << 14,
+			NoCloseButton            = 1u << 15,
+			NoDockingOverMe          = 1u << 20,
+			NoDockingOverOther       = 1u << 21,
+			NoDockingOverEmpty       = 1u << 22,
+			NoDocking                = NoDockingOverMe | NoDockingOverOther | NoDockingOverEmpty | NoSplit
 		};
 
 		trinex_bitfield_enum_struct(DockNodeFlags, u32);
@@ -414,6 +456,29 @@ namespace Trinex::UI
 	struct DockBuilderSplitResult {
 		ID parent = ID(0);
 		ID child  = ID(0);
+	};
+
+	struct WindowOptions {
+		Vec2 position = Vec2(0.0f, 0.0f);
+		Vec2 size     = Vec2(0.0f, 0.0f);
+		Vec2 min_size = Vec2(0.0f, 0.0f);
+		Vec2 max_size = Vec2(0.0f, 0.0f);
+
+		Condition position_condition = Condition::Undefined;
+		Condition size_condition     = Condition::Undefined;
+
+		DockID dock_id             = DockID();
+		Condition dock_condition   = Condition::Undefined;
+		DockWindowFlags dock_flags = DockWindowFlags::Undefined;
+
+		DockTabFlags tab_flags  = DockTabFlags::Undefined;
+		Vec4 tab_color          = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
+		const char* tab_tooltip = nullptr;
+
+		bool focus = false;
+
+		bool collapsed                = false;
+		Condition collapsed_condition = Condition::Undefined;
 	};
 
 	struct ColorTheme {
@@ -653,8 +718,7 @@ namespace Trinex::UI
 	bool is_window_docked();
 	ID window_dock_id();
 	void undock_window();
-	void dock_builder_begin(ID dockspace_id, const Vec2& size = Vec2(0.0f, 0.0f),
-	                        DockNodeFlags flags = DockNodeFlags::Undefined);
+	void dock_builder_begin(ID dockspace_id, const Vec2& size = Vec2(0.0f, 0.0f), DockNodeFlags flags = DockNodeFlags::Undefined);
 	void dock_builder_end();
 	void dock_builder_clear(ID dockspace_id);
 	void dock_builder_set_flags(ID dock_id, DockNodeFlags flags);
@@ -664,10 +728,10 @@ namespace Trinex::UI
 	void build_dockspace_once(const char* id_text, const FunctionRef<void(ID root_dock)>& builder);
 
 	/////////////////////// WINDOWS AND CONTAINERS ///////////////////////
-	bool begin_window(const char* name, bool* open = nullptr, WindowFlags flags = WindowFlags::Undefined);
+	bool begin_window(const char* name, bool* open = nullptr, WindowFlags flags = WindowFlags::Undefined,
+	                  const WindowOptions& options = {});
 	void end_window();
-	void create_window(const char* name, const Function<void()>& content, WindowFlags flags = WindowFlags::Undefined);
-	void create_window(const char* name, bool open, const Function<void()>& content, WindowFlags flags = WindowFlags::Undefined);
+	void create_window(const char* name, WindowFlags flags, const WindowOptions& options, const Function<void()>& content);
 	bool is_window_open(const char* name);
 	void open_window(const char* name);
 	void close_window();
@@ -980,15 +1044,31 @@ namespace Trinex::UI
 
 	/////////////////////// INLINE WINDOWS AND CONTAINERS HELPERS ///////////////////////
 
-	inline bool window(const char* name, bool* open, WindowFlags flags, const FunctionRef<void()>& func)
+	inline bool window(const char* name, bool* open, WindowFlags flags, const WindowOptions& options,
+	                   const FunctionRef<void()>& func)
 	{
-		const bool visible = begin_window(name, open, flags);
+		const bool visible = begin_window(name, open, flags, options);
 		if (visible)
 		{
 			func();
 			end_window();
 		}
 		return visible;
+	}
+
+	inline bool window(const char* name, bool* open, WindowFlags flags, const FunctionRef<void()>& func)
+	{
+		return window(name, open, flags, {}, func);
+	}
+
+	inline bool window(const char* name, bool* open, const WindowOptions& options, const FunctionRef<void()>& func)
+	{
+		return window(name, open, WindowFlags::Undefined, options, func);
+	}
+
+	inline bool window(const char* name, const WindowOptions& options, const FunctionRef<void()>& func)
+	{
+		return window(name, nullptr, WindowFlags::Undefined, options, func);
 	}
 
 	inline bool window(const char* name, bool* open, const FunctionRef<void()>& func)
@@ -999,6 +1079,21 @@ namespace Trinex::UI
 	inline bool window(const char* name, const FunctionRef<void()>& func)
 	{
 		return window(name, nullptr, WindowFlags::Undefined, func);
+	}
+
+	inline void create_window(const char* name, const Function<void()>& content)
+	{
+		create_window(name, WindowFlags::Undefined, {}, content);
+	}
+
+	inline void create_window(const char* name, WindowFlags flags, const Function<void()>& content)
+	{
+		create_window(name, flags, {}, content);
+	}
+
+	inline void create_window(const char* name, const WindowOptions& options, const Function<void()>& content)
+	{
+		create_window(name, WindowFlags::Undefined, options, content);
 	}
 
 	inline bool panel(const char* id_text, const PanelOptions& options, const FunctionRef<void()>& func)
