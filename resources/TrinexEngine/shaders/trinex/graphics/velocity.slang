@@ -5,8 +5,9 @@ import "trinex/trinex.slang";
 [shader("vertex")]
 float4 vertex_main(in uint index: SV_VertexID, out float2 ndc : TEXCOORD0) : SV_Position
 {
-	ndc = FullScreenQuad::uv_by_index(index) * 2.f - 1.f;
-	return FullScreenQuad::vertex_by_index(index);
+	float2 uv = FullScreenQuad::uv(index);
+	ndc       = uv * 2.f - 1.f;
+	return float4(ndc, 0.f, 1.f);
 }
 
 [shader("fragment")]

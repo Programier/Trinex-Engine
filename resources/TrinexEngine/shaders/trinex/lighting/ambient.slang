@@ -8,7 +8,7 @@ uniform float3 ambient_color;
 [shader("vertex")] 
 float4 vertex_main(in uint index: SV_VertexID) : SV_Position
 {
-    return FullScreenQuad::vertex_by_index(index);
+    return FullScreenQuad::vertex(index);
 }
  
 [shader("fragment")]

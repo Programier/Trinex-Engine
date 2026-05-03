@@ -24,6 +24,14 @@ namespace Trinex::Pipelines
 		ctx->bind_pipeline(pipeline->rhi_pipeline());
 	}
 
+	static inline void push_context_state(Pipeline* pipeline, RHIContext* ctx, const RHIBlendingState& state)
+	{
+		ctx->depth_stencil_state(RHIDepthStencilState());
+		ctx->blending_state(state);
+		ctx->rasterizer_state(RHIRasterizerState());
+		ctx->bind_pipeline(pipeline->rhi_pipeline());
+	}
+
 	trinex_implement_pipeline(GaussianBlur, "[shaders]:/TrinexEngine/trinex/graphics/gaussian_blur.slang")
 	{
 		m_source = find_parameter("source");
@@ -58,6 +66,47 @@ namespace Trinex::Pipelines
 
 		ctx->bind_srv(src, self->m_source->binding);
 		ctx->bind_sampler(sampler, self->m_source->binding);
+		ctx->update_scalar(&args, sizeof(args), self->m_args);
+
+		ctx->draw(RHITopology::TriangleList, 6, 0);
+	}
+
+	trinex_implement_pipeline(NoiseApplication, "[shaders]:/TrinexEngine/trinex/graphics/noise.slang")
+	{
+		m_noise = find_parameter("noise");
+		m_args  = find_parameter("args");
+	}
+
+	void NoiseApplication::noise(RHIContext* ctx, RHITexture* noise, f32 opacity, f32 scale, RHISampler* sampler, Vector2f offset,
+	                             Vector2f size)
+	{
+		struct Args {
+			alignas(8) Vector2f offset;
+			alignas(8) Vector2f size;
+			alignas(8) Vector2f inv_size;
+			alignas(4) float opacity;
+			alignas(4) float scale;
+		};
+
+		if (noise == nullptr)
+			noise = DefaultResources::Textures::noise128x128->rhi_texture();
+
+		if (sampler == nullptr)
+			sampler = RHIBilinearWrapSampler::static_sampler();
+
+		const Args args = {
+		        .offset   = offset,
+		        .size     = size,
+		        .inv_size = 1.f / Vector2f(noise->size()),
+		        .opacity  = opacity,
+		        .scale    = scale,
+		};
+
+		auto self = instance();
+		push_context_state(self, ctx, RHIBlendingState::add(RHIColorComponent::RGB));
+
+		ctx->bind_srv(noise->as_srv(), self->m_noise->binding);
+		ctx->bind_sampler(sampler, self->m_noise->binding);
 		ctx->update_scalar(&args, sizeof(args), self->m_args);
 
 		ctx->draw(RHITopology::TriangleList, 6, 0);

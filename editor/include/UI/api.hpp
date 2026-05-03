@@ -506,11 +506,13 @@ namespace Trinex::UI
 	};
 
 	struct BlurOptions {
-		float radius   = 12.0f;
-		float sigma    = 5.0f;
-		float spread   = 0.0f;
-		float rounding = -1.0f;
-		Vec4 tint      = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
+		float radius        = 12.0f;
+		float sigma         = 5.0f;
+		float spread        = 0.0f;
+		float rounding      = -1.0f;
+		float noise_opacity = 0.f;
+		float noise_scale   = 1.0f;
+		Vec4 tint           = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
 	};
 
 	struct Style {

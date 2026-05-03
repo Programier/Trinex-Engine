@@ -10,7 +10,7 @@ uniform SamplerState sampler;
 [shader("vertex")] 
 float4 vertex_main(in uint index : SV_VertexID) : SV_Position
 {
-	return FullScreenQuad::vertex_by_index(index);
+	return FullScreenQuad::vertex(index);
 }
 
 [ForceInline] bool is_out_of_screen(float2 ray) { return ray.x > 1 || ray.y > 1 || ray.x < 0 || ray.y < 0; }

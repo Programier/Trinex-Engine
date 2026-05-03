@@ -16,8 +16,8 @@ uniform float2 range;
 [shader("vertex")]
 void vertex_main(in uint vertex : SV_VertexID, out VertexOutput out)
 {
-	out.position = transform * FullScreenQuad::vertex_by_index(vertex);
-	out.uv = FullScreenQuad::uv_by_index(vertex);
+	out.position = transform * FullScreenQuad::vertex(vertex);
+	out.uv = FullScreenQuad::uv(vertex);
 }
 
 [shader("fragment")]

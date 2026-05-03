@@ -1,23 +1,36 @@
 namespace FullScreenQuad
 {
-	static const float2 full_screen_quad_vertices[] = {
-		float2(-1.0, -1.0), 
-        float2(-1.0,  1.0), 
-        float2( 1.0, -1.0), 
-
-        float2(-1.0,  1.0), 
-        float2( 1.0,  1.0), 
-        float2( 1.0, -1.0)  
+	static const float2 quad_uvs[] = {
+    	float2(0.0, 0.0),
+    	float2(0.0, 1.0),
+    	float2(1.0, 0.0),
+		float2(0.0, 1.0),
+    	float2(1.0, 1.0),
+    	float2(1.0, 0.0)
 	};
 
-	float4 vertex_by_index(uint index)
+	inline float4 vertex_from_uv(float2 value)
 	{
-		return float4(full_screen_quad_vertices[index], 0.0, 1.0);
+		return float4(value * 2.0 - 1.0, 0.0, 1.0);
 	}
 
-	float2 uv_by_index(uint index)
+	inline float4 vertex(uint index)
 	{
-		float2 vertex = full_screen_quad_vertices[index];
-		return (vertex + float2(1.0, 1.0)) / float2(2.0, 2.0);
+		return vertex_from_uv(uv(index));
+	}
+
+	inline float4 vertex(uint index, float2 offset, float2 size)
+	{
+		return vertex_from_uv(uv(index, offset, size));
+	}
+
+	inline float2 uv(uint index)
+	{
+		return quad_uvs[index];
+	}
+
+	inline float2 uv(uint index, float2 offset, float2 size)
+	{
+		return offset + size * uv(index);
 	}
 }

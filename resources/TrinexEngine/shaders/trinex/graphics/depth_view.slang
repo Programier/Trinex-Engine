@@ -7,7 +7,7 @@ uniform Texture2D<float> scene_depth;
 [shader("vertex")]
 float4 vertex_main(in uint vertex: SV_VertexID) : SV_Position
 {
-    return FullScreenQuad::vertex_by_index(vertex);
+    return FullScreenQuad::vertex(vertex);
 }
 
 [shader("fragment")]

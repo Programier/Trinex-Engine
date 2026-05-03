@@ -1701,7 +1701,7 @@ namespace Trinex::UI
 
 		if (options.radius > 0.0f)
 		{
-			paint(area_min, area_size, draw_list, [options, area_min, area_max]() {
+			paint(draw_list, [options, area_min, area_max]() {
 				const float radius = Math::clamp(options.radius, 0.0f, 64.0f);
 
 				if (radius <= 0.0f)
@@ -1738,7 +1738,16 @@ namespace Trinex::UI
 				Pipelines::GaussianBlur::blur(ctx, temporary->as_srv(), {1.f / static_cast<f32>(viewport_size.x), 0.f}, sigma,
 				                              radius, {}, nullptr, blur_offset, blur_size);
 
+				if (options.noise_opacity > 0.f)
+				{
+					ctx->push_debug_stage("Noise");
+					Pipelines::NoiseApplication::noise(ctx, options.noise_opacity, options.noise_scale, blur_offset, blur_size);
+					ctx->pop_debug_stage();
+				}
+
 				ctx->pop_debug_stage();
+
+
 				pool->return_surface(temporary);
 			});
 		}
@@ -1783,7 +1792,7 @@ namespace Trinex::UI
 		ImGuiWindow* window = ImGui::GetCurrentWindow();
 		ImGuiViewport* vp   = window ? window->Viewport : ImGui::GetMainViewport();
 
-		Vec2 pos  = to_vec(ImGui::GetItemRectMin());
+		Vec2 pos  = to_vec(vp->Pos);
 		Vec2 size = to_vec(vp->Size);
 		paint(pos, size, function, userdata, userdata_size, draw_list);
 	}

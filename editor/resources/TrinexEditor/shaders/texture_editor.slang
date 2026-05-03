@@ -14,8 +14,8 @@ uniform float power;
 [shader("vertex")]
 void vertex_main(in uint vertex : SV_VertexID, out VertexOutput out)
 {
-	out.position = FullScreenQuad::vertex_by_index(vertex);
-	out.uv = FullScreenQuad::uv_by_index(vertex);
+	out.position = FullScreenQuad::vertex(vertex);
+	out.uv = FullScreenQuad::uv(vertex);
 }
 
 [shader("fragment")]

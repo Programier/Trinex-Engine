@@ -231,6 +231,12 @@ namespace Math
 		return depth < 1.f;
     }
 
+	[ForceInline]
+	float grayscale(float3 color)
+	{
+		return dot(color, float3(0.299f, 0.587f, 0.114f));
+	}
+
     [ForceInline]
     float luminance(float3 color)
 	{

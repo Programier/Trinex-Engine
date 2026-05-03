@@ -6,6 +6,7 @@ namespace Trinex
 	class RHIShaderResourceView;
 	class RHISampler;
 	class RHIBuffer;
+	class RHITexture;
 	class RHIContext;
 	class Renderer;
 	struct LightRenderRanges;
@@ -39,6 +40,24 @@ namespace Trinex
 			static void blur(RHIContext* ctx, RHIShaderResourceView* src, Vector2f direction, float sigma, float radius,
 			                 Swizzle swizzle = {}, RHISampler* sampler = nullptr, Vector2f offset = {0.f, 0.f},
 			                 Vector2f size = {1.f, 1.f});
+		};
+
+		class ENGINE_EXPORT NoiseApplication : public GlobalGraphicsPipeline
+		{
+			trinex_declare_pipeline(NoiseApplication, GlobalGraphicsPipeline);
+
+			const RHIShaderParameterInfo* m_noise;
+			const RHIShaderParameterInfo* m_args;
+
+		public:
+			static void noise(RHIContext* ctx, RHITexture* noise, f32 opacity, f32 scale, RHISampler* sampler = nullptr,
+			                  Vector2f offset = {0.f, 0.f}, Vector2f size = {1.f, 1.f});
+
+			static inline void noise(RHIContext* ctx, f32 opacity, f32 scale, Vector2f offset = {0.f, 0.f},
+			                         Vector2f size = {1.f, 1.f})
+			{
+				noise(ctx, nullptr, opacity, scale, nullptr, offset, size);
+			}
 		};
 
 		class ENGINE_EXPORT Blit2D : public GlobalGraphicsPipeline

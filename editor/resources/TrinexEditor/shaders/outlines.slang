@@ -30,8 +30,8 @@ uniform Arguments args;
 [shader("vertex")]
 float4 vertex_main(out float2 uv: TEXCOORD0, in uint vertex: SV_VertexID) : SV_Position
 {
-    uv = FullScreenQuad::uv_by_index(vertex);
-    return FullScreenQuad::vertex_by_index(vertex);
+    uv = FullScreenQuad::uv(vertex);
+    return FullScreenQuad::vertex(vertex);
 }
 
 [shader("fragment")]
