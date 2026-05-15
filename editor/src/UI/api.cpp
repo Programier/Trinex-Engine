@@ -216,11 +216,12 @@ namespace Trinex::UI
 	};
 
 	struct PersistentWindow {
+		PersistentWindow* next = nullptr;
 		String name;
 		WindowFlags flags = WindowFlags::Undefined;
 		WindowOptions options;
-		bool open = true;
-		Function<void()> content;
+		bool open      = true;
+		Widget* widget = nullptr;
 	};
 
 	struct RegisteredCommand {
@@ -239,11 +240,6 @@ namespace Trinex::UI
 		int selected_index           = 0;
 		Vector<RegisteredCommand> commands;
 		Vector<int> filtered_indices;
-	};
-
-	struct ActiveWindowScope {
-		bool* external_open          = nullptr;
-		PersistentWindow* persistent = nullptr;
 	};
 
 	struct Context {
@@ -277,14 +273,12 @@ namespace Trinex::UI
 		Vector<String> pending_modals;
 		Vector<String> pending_popups;
 		Vector<Notification> notifications;
-		Vector<PersistentWindow> windows;
+		PersistentWindow* window_list = nullptr;
 		CommandPaletteState command_palette;
-		Vector<ActiveWindowScope> active_window_stack;
-		PersistentWindow* rendering_window = nullptr;
-		ImGuiID next_notification_id       = 1;
-		ImGuiID keybind_capture            = 0;
-		float draw_alpha                   = 1.0f;
-		int last_cleanup_frame             = 0;
+		ImGuiID next_notification_id = 1;
+		ImGuiID keybind_capture      = 0;
+		float draw_alpha             = 1.0f;
+		int last_cleanup_frame       = 0;
 	};
 
 	Context* g_context = nullptr;
@@ -341,6 +335,17 @@ namespace Trinex::UI
 			}
 
 			return active_context()->allocator.allocate(userdata_size, userdata);
+		}
+
+		template<typename T>
+		void destroy_list(T* list)
+		{
+			while (list)
+			{
+				T* next = list->next;
+				trx_delete list;
+				list = next;
+			}
 		}
 
 		void add_paint_callback(ImDrawList* list, ImGuiViewport* vp, Vec2 pos, Vec2 size, PaintFunction function, void* userdata,
@@ -468,35 +473,40 @@ namespace Trinex::UI
 				return nullptr;
 			}
 
-			for (PersistentWindow& window : active_context()->windows)
+			PersistentWindow* window = active_context()->window_list;
+
+			while (window)
 			{
-				if (window.name == name)
+				if (window->name == name)
 				{
-					return &window;
+					return window;
 				}
 			}
+
 			return nullptr;
 		}
 
-		PersistentWindow& ensure_window(const char* name)
+		PersistentWindow* ensure_window(const char* name)
 		{
 			if (PersistentWindow* window = find_window(name))
 			{
-				return *window;
+				return window;
 			}
 
-			PersistentWindow& window = active_context()->windows.emplace_back();
-			window.name              = name;
+			PersistentWindow* window      = trx_new PersistentWindow();
+			window->next                  = active_context()->window_list;
+			window->name                  = name;
+			active_context()->window_list = window;
+
 			return window;
 		}
 
-		void setup_window(PersistentWindow& window, WindowFlags flags, const WindowOptions& options, bool open,
-		                  const Function<void()>& content)
+		void setup_window(PersistentWindow* window, WindowFlags flags, const WindowOptions& options, Widget* widget)
 		{
-			window.flags   = flags;
-			window.options = options;
-			window.open    = open;
-			window.content = content;
+			window->flags   = flags;
+			window->options = options;
+			window->open    = true;
+			window->widget  = widget;
 		}
 
 		ImVec2 to_imvec(const Vec2& v)
@@ -678,56 +688,68 @@ namespace Trinex::UI
 			return min.x > 0.0f || min.y > 0.0f || max.x > 0.0f || max.y > 0.0f;
 		}
 
-		bool has_window_class_overrides(const WindowOptions& options)
+		bool has_window_class_overrides(DockWindowFlags dock_flags, DockTabFlags tab_flags)
 		{
-			return options.dock_flags != DockWindowFlags::Undefined || options.tab_flags != DockTabFlags::Undefined;
+			return dock_flags != DockWindowFlags::Undefined || tab_flags != DockTabFlags::Undefined;
+		}
+
+		DockPlacement resolve_dock_placement(const WindowOptions& options)
+		{
+			DockPlacement placement = options.dock;
+			if (!placement.id && has_text(placement.id_text))
+			{
+				placement.id = to_ui_id(ImHashStr(placement.id_text));
+			}
+			return placement;
 		}
 
 		void apply_window_options_pre_begin(const WindowOptions& options)
 		{
-			if (options.position_condition != Condition::Undefined)
+			if (options.placement.position_condition != Condition::Undefined)
 			{
-				ImGui::SetNextWindowPos(to_imvec(options.position), to_imgui_cond(options.position_condition));
+				ImGui::SetNextWindowPos(to_imvec(options.placement.position),
+				                        to_imgui_cond(options.placement.position_condition));
 			}
 
-			if (options.size_condition != Condition::Undefined)
+			if (options.placement.size_condition != Condition::Undefined)
 			{
-				ImGui::SetNextWindowSize(to_imvec(options.size), to_imgui_cond(options.size_condition));
+				ImGui::SetNextWindowSize(to_imvec(options.placement.size), to_imgui_cond(options.placement.size_condition));
 			}
 
-			if (has_any_bound(options.min_size, options.max_size))
+			if (has_any_bound(options.placement.min_size, options.placement.max_size))
 			{
-				const ImVec2 min_size(options.min_size.x > 0.0f ? options.min_size.x : 0.0f,
-				                      options.min_size.y > 0.0f ? options.min_size.y : 0.0f);
+				const ImVec2 min_size(options.placement.min_size.x > 0.0f ? options.placement.min_size.x : 0.0f,
+				                      options.placement.min_size.y > 0.0f ? options.placement.min_size.y : 0.0f);
 				const float max_value = std::numeric_limits<float>::max();
-				const ImVec2 max_size(options.max_size.x > 0.0f ? options.max_size.x : max_value,
-				                      options.max_size.y > 0.0f ? options.max_size.y : max_value);
+				const ImVec2 max_size(options.placement.max_size.x > 0.0f ? options.placement.max_size.x : max_value,
+				                      options.placement.max_size.y > 0.0f ? options.placement.max_size.y : max_value);
 				ImGui::SetNextWindowSizeConstraints(min_size, max_size);
 			}
 
-			if (options.collapsed_condition != Condition::Undefined)
+			if (options.state.collapsed_condition != Condition::Undefined)
 			{
-				ImGui::SetNextWindowCollapsed(options.collapsed, to_imgui_cond(options.collapsed_condition));
+				ImGui::SetNextWindowCollapsed(options.state.collapsed, to_imgui_cond(options.state.collapsed_condition));
 			}
 
-			if (options.focus)
+			if (options.state.focus)
 			{
 				ImGui::SetNextWindowFocus();
 			}
 
-			if (options.dock_id && options.dock_condition != Condition::Undefined)
+			const DockPlacement dock_placement = resolve_dock_placement(options);
+			if (dock_placement.id && dock_placement.condition != Condition::Undefined)
 			{
-				ImGui::SetNextWindowDockID(to_imgui_id(options.dock_id), to_imgui_cond(options.dock_condition));
+				ImGui::SetNextWindowDockID(to_imgui_id(dock_placement.id), to_imgui_cond(dock_placement.condition));
 			}
 
-			if (has_window_class_overrides(options))
+			if (has_window_class_overrides(dock_placement.flags, options.tab.flags))
 			{
 				ImGuiWindowClass window_class;
-				window_class.DockNodeFlagsOverrideSet = to_imgui_dock_window_flags(options.dock_flags);
-				window_class.TabItemFlagsOverrideSet  = to_imgui_dock_tab_flags(options.tab_flags);
+				window_class.DockNodeFlagsOverrideSet = to_imgui_dock_window_flags(dock_placement.flags);
+				window_class.TabItemFlagsOverrideSet  = to_imgui_dock_tab_flags(options.tab.flags);
 				window_class.DockingAlwaysTabBar =
-				        (options.dock_flags & DockWindowFlags::AlwaysTabBar) != DockWindowFlags::Undefined;
-				if ((options.dock_flags & DockWindowFlags::AllowUnclassed) != DockWindowFlags::Undefined)
+				        (dock_placement.flags & DockWindowFlags::AlwaysTabBar) != DockWindowFlags::Undefined;
+				if ((dock_placement.flags & DockWindowFlags::AllowUnclassed) != DockWindowFlags::Undefined)
 				{
 					window_class.DockingAllowUnclassed = true;
 				}
@@ -744,7 +766,7 @@ namespace Trinex::UI
 			}
 
 			const ImRect tab_rect = window->DC.DockTabItemRect;
-			if (!tab_rect.IsInverted() && has_color(options.tab_color))
+			if (!tab_rect.IsInverted() && has_color(options.tab.color))
 			{
 				ImDrawList* draw =
 				        window->DockNode->HostWindow != nullptr ? window->DockNode->HostWindow->DrawList : window->DrawList;
@@ -757,14 +779,14 @@ namespace Trinex::UI
 					const float x2     = tab_rect.Max.x - inset;
 					if (x2 > x1)
 					{
-						draw->AddRectFilled(ImVec2(x1, y), ImVec2(x2, y + height), col_u32(options.tab_color), height * 0.5f);
+						draw->AddRectFilled(ImVec2(x1, y), ImVec2(x2, y + height), col_u32(options.tab.color), height * 0.5f);
 					}
 				}
 			}
 
-			if (has_text(options.tab_tooltip) && ImGui::IsMouseHoveringRect(tab_rect.Min, tab_rect.Max))
+			if (has_text(options.tab.tooltip) && ImGui::IsMouseHoveringRect(tab_rect.Min, tab_rect.Max))
 			{
-				ImGui::SetTooltip("%s", options.tab_tooltip);
+				ImGui::SetTooltip("%s", options.tab.tooltip);
 			}
 		}
 
@@ -1447,25 +1469,53 @@ namespace Trinex::UI
 
 		void render_windows()
 		{
-			for (PersistentWindow& window : active_context()->windows)
+			PersistentWindow** list = &active_context()->window_list;
+
+			while (*list)
 			{
-				if (!window.open)
+				PersistentWindow* window = *list;
+
+				const bool visible = begin_window(window->name.c_str(), &window->open, window->flags, window->options);
+
+				if (ImGui::IsWindowAppearing())
 				{
-					continue;
+					window->widget->on_init();
 				}
 
-				active_context()->rendering_window = &window;
-				const bool visible = begin_window(window.name.c_str(), &window.open, window.flags, window.options);
-				active_context()->rendering_window = nullptr;
-
-				if (visible && window.content)
+				if (visible)
 				{
-					window.content();
+					window->widget->on_render();
 					end_window();
+				}
+
+				if (window->open)
+				{
+					list = &window->next;
+				}
+				else
+				{
+					(*list) = window->next;
+
+					window->widget->on_close();
+					trx_delete window;
 				}
 			}
 		}
 	}// namespace
+
+	/////////////////////// WIDGETS ///////////////////////
+
+	class FunctionWidget : public Widget
+	{
+	private:
+		Function<void()> m_on_render;
+
+	public:
+		FunctionWidget(const Function<void()>& render) : m_on_render(render) {}
+
+		void on_render() override { m_on_render(); }
+		void on_close() override { trx_delete this; }
+	};
 
 	/////////////////////// LIFECYCLE AND FRAME ///////////////////////
 
@@ -1507,9 +1557,10 @@ namespace Trinex::UI
 		g_command_palette.search[0]               = '\0';
 		g_command_palette.selected_index          = 0;
 		g_notifications.clear();
-		active_context()->windows.clear();
 		active_context()->keybind_capture = 0;
 		active_context()->draw_alpha      = 1.0f;
+
+		destroy_list(active_context()->window_list);
 	}
 
 	static void register_font(Buffer& buffer, const ImFontConfig& config, const ImWchar* range, f32 size)
@@ -1878,74 +1929,6 @@ namespace Trinex::UI
 
 	/////////////////////// DOCKING ///////////////////////
 
-	bool begin_dockspace(const char* id_text, const DockspaceOptions& options)
-	{
-		trinex_assert(id_text != nullptr && "UI::begin_dockspace() requires a valid id");
-
-		ImGuiViewport* viewport       = ImGui::GetMainViewport();
-		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
-		                                ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-		                                ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus |
-		                                ImGuiWindowFlags_NoSavedSettings;
-
-		ImGuiDockNodeFlags dock_flags = to_imgui_dock_node_flags(options.flags);
-		if ((dock_flags & ImGuiDockNodeFlags_PassthruCentralNode) != 0 || !options.background)
-		{
-			window_flags |= ImGuiWindowFlags_NoBackground;
-		}
-
-		const ImVec2 dockspace_size(options.size.x > 0.0f ? options.size.x : viewport->WorkSize.x,
-		                            options.size.y > 0.0f ? options.size.y : viewport->WorkSize.y);
-
-		ImGui::SetNextWindowPos(viewport->WorkPos);
-		ImGui::SetNextWindowSize(dockspace_size);
-		ImGui::SetNextWindowViewport(viewport->ID);
-
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, options.border ? active_context()->style.border_size : 0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-
-		char host_name[256];
-		std::snprintf(host_name, sizeof(host_name), "##dockspace_host_%s", id_text);
-
-		const bool visible = ImGui::Begin(host_name, nullptr, window_flags);
-		if (!visible)
-		{
-			ImGui::End();
-			ImGui::PopStyleVar(3);
-			return false;
-		}
-
-		ImGui::DockSpace(to_imgui_id(dockspace_id(id_text)), ImVec2(0.0f, 0.0f), dock_flags);
-		return true;
-	}
-
-	void end_dockspace()
-	{
-		ImGui::End();
-		ImGui::PopStyleVar(3);
-	}
-
-	ID dockspace_id(const char* id_text)
-	{
-		if (id_text == nullptr)
-		{
-			return ID(0);
-		}
-
-		return to_ui_id(ImHashStr(id_text));
-	}
-
-	void set_next_window_dock(ID dock_id, Condition condition)
-	{
-		ImGui::SetNextWindowDockID(to_imgui_id(dock_id), to_imgui_cond(condition));
-	}
-
-	void set_next_window_dock(const char* dockspace_id_text, Condition condition)
-	{
-		set_next_window_dock(dockspace_id(dockspace_id_text), condition);
-	}
-
 	bool is_window_docked()
 	{
 		return ImGui::IsWindowDocked();
@@ -1965,7 +1948,7 @@ namespace Trinex::UI
 		}
 	}
 
-	void dock_builder_begin(ID dockspace_id, const Vec2& size, DockNodeFlags flags)
+	static void dock_builder_begin(ID dockspace_id, const Vec2& size, DockNodeFlags flags)
 	{
 		const ImGuiID root_id      = to_imgui_id(dockspace_id);
 		ImGuiViewport* viewport    = ImGui::GetMainViewport();
@@ -1977,14 +1960,7 @@ namespace Trinex::UI
 		ImGui::DockBuilderSetNodeSize(root_id, resolved_size);
 	}
 
-	void dock_builder_end() {}
-
-	void dock_builder_clear(ID dockspace_id)
-	{
-		ImGui::DockBuilderRemoveNode(to_imgui_id(dockspace_id));
-	}
-
-	void dock_builder_set_flags(ID dock_id, DockNodeFlags flags)
+	static void dock_builder_set_flags(ID dock_id, DockNodeFlags flags)
 	{
 		if (ImGuiDockNode* node = ImGui::DockBuilderGetNode(to_imgui_id(dock_id)))
 		{
@@ -1992,37 +1968,182 @@ namespace Trinex::UI
 		}
 	}
 
-	DockBuilderSplitResult dock_builder_split(ID dock_id, DockSplitDir dir, float ratio)
+	static DockBuilderSplitResult dock_builder_split(ID dock, DockSplitDir dir, float ratio)
 	{
 		DockBuilderSplitResult result;
-		ImGuiID parent_id = 0;
-		ImGuiID child_id  = 0;
+		ImGuiID remainder = 0;
+		ImGuiID child     = 0;
 
-		ImGui::DockBuilderSplitNode(to_imgui_id(dock_id), to_imgui_dock_dir(dir), Math::clamp(ratio, 0.0f, 1.0f), &child_id,
-		                            &parent_id);
+		ImGui::DockBuilderSplitNode(to_imgui_id(dock), to_imgui_dock_dir(dir), Math::clamp(ratio, 0.0f, 1.0f), &child,
+		                            &remainder);
 
-		result.parent = to_ui_id(parent_id);
-		result.child  = to_ui_id(child_id);
+		result.remainder = to_ui_id(remainder);
+		result.child     = to_ui_id(child);
 		return result;
 	}
 
-	void dock_builder_dock_window(const char* window_name, ID dock_id)
+	static void dock_builder_dock_window(const char* window_name, ID dock_id)
 	{
 		ImGui::DockBuilderDockWindow(window_name, to_imgui_id(dock_id));
 	}
 
-	void dock_builder_finish(ID dockspace_id)
+	bool DockLayoutBuilder::exists() const
 	{
-		ImGui::DockBuilderFinish(to_imgui_id(dockspace_id));
+		return ImGui::DockBuilderGetNode(to_imgui_id(m_root)) != nullptr;
 	}
 
-	void build_dockspace_once(const char* id_text, const FunctionRef<void(ID root_dock)>& builder)
+	DockLayoutBuilder& DockLayoutBuilder::bind(const char* id, DockID dock)
 	{
-		const ID root = dockspace_id(id_text);
-		if (ImGui::DockBuilderGetNode(to_imgui_id(root)) == nullptr)
+		if (!has_text(id))
 		{
-			builder(root);
+			return *this;
 		}
+
+		for (NamedDock& named : m_named)
+		{
+			if (named.id == id)
+			{
+				trinex_assert(!named.dock || named.dock == dock);
+				named.dock = dock;
+				return *this;
+			}
+		}
+
+		NamedDock& named = m_named.emplace_back();
+		named.id         = id;
+		named.dock       = dock;
+		return *this;
+	}
+
+	DockID DockLayoutBuilder::find(const char* id) const
+	{
+		if (!has_text(id))
+		{
+			return DockID();
+		}
+
+		for (const NamedDock& named : m_named)
+		{
+			if (named.id == id)
+			{
+				return named.dock;
+			}
+		}
+
+		return DockID();
+	}
+
+	DockID DockLayoutBuilder::require(const char* id) const
+	{
+		const DockID dock = find(id);
+		trinex_assert(dock && "UI::DockLayoutBuilder::require() cannot find named dock");
+		return dock;
+	}
+
+	bool DockLayoutBuilder::has(const char* id) const
+	{
+		return static_cast<bool>(find(id));
+	}
+
+	DockLayoutBuilder& DockLayoutBuilder::flags(DockID dock_id, DockNodeFlags flags)
+	{
+		dock_builder_set_flags(dock_id, flags);
+		return *this;
+	}
+
+	DockLayoutBuilder& DockLayoutBuilder::flags(const char* id, DockNodeFlags flags)
+	{
+		return this->flags(require(id), flags);
+	}
+
+	DockBuilderSplitResult DockLayoutBuilder::split(DockID dock, DockSplitDir dir, float ratio, const char* id)
+	{
+		DockBuilderSplitResult result = dock_builder_split(dock, dir, ratio);
+		bind(id, result.child);
+		return result;
+	}
+
+	DockBuilderSplitResult DockLayoutBuilder::split(DockID dock, DockSplitDir dir, float ratio, const char* remainder_id,
+	                                                const char* child_id)
+	{
+		DockBuilderSplitResult result = dock_builder_split(dock, dir, ratio);
+
+		if (dock == m_main)
+		{
+			m_main = result.remainder;
+		}
+
+		bind(remainder_id, result.remainder);
+		bind(child_id, result.child);
+		return result;
+	}
+
+	DockID DockLayoutBuilder::dock(const char* window_name, DockID dock_id)
+	{
+		dock_builder_dock_window(window_name, dock_id);
+		return dock_id;
+	}
+
+	DockID DockLayoutBuilder::dock(const char* window_name, const char* dock_id)
+	{
+		return dock(window_name, require(dock_id));
+	}
+
+	bool DockLayoutBuilder::begin(Vec2 size, DockNodeFlags flags)
+	{
+		const ImGuiID root = ImGui::GetID("##dockspace");
+
+		m_root = ID(root);
+		m_main = ID(root);
+		m_named.clear();
+
+		const ImVec2 fallback_size = ImGui::GetWindowSize();
+		const ImVec2 resolved_size(size.x > 0.0f ? size.x : fallback_size.x, size.y > 0.0f ? size.y : fallback_size.y);
+
+		ImGui::DockBuilderRemoveNode(root);
+		ImGui::DockBuilderAddNode(root, to_imgui_dock_node_flags(flags) | ImGuiDockNodeFlags_DockSpace);
+		ImGui::DockBuilderSetNodeSize(root, resolved_size);
+		return true;
+	}
+
+	DockLayoutBuilder& DockLayoutBuilder::end()
+	{
+		ImGui::DockBuilderFinish(to_imgui_id(m_root));
+		return *this;
+	}
+
+	bool begin_dockspace(const DockLayoutOptions& options)
+	{
+		ImGuiID id = ImGui::GetID("##dockspace");
+
+		if (!(id = ImGui::DockSpace(id, to_imvec(options.size), to_imgui_dock_node_flags(options.flags))))
+			return false;
+
+		return ImGui::IsWindowAppearing() || options.reset;
+	}
+
+	void end_docspace()
+	{
+		// Dummy function. Do nothing
+	}
+
+	void dockspace(const DockLayoutOptions& options, const FunctionRef<void(DockLayoutBuilder&)>& function)
+	{
+		if (begin_dockspace(options))
+		{
+			DockLayoutBuilder builder;
+			if (builder.begin(options.size, options.flags))
+			{
+				function(builder);
+				builder.end();
+			}
+			end_docspace();
+		}
+	}
+
+	void dockspace(const FunctionRef<void(DockLayoutBuilder&)>& builder)
+	{
+		dockspace({}, builder);
 	}
 
 	/////////////////////// WINDOWS AND CONTAINERS ///////////////////////
@@ -2042,20 +2163,15 @@ namespace Trinex::UI
 
 		apply_window_options_pre_begin(options);
 		push_window_styles(false);
-		ActiveWindowScope scope;
-		scope.external_open = open;
-		scope.persistent    = active_context()->rendering_window;
-		active_context()->active_window_stack.push_back(scope);
+
 		const bool visible = ImGui::Begin(name, open, to_imgui_window_flags(flags));
 		if (visible)
 		{
 			apply_window_options_post_begin(options);
 		}
-		if (!visible)
+		else
 		{
-			ImGui::End();
-			active_context()->active_window_stack.pop_back();
-			pop_window_styles();
+			end_window();
 		}
 		return visible;
 	}
@@ -2063,64 +2179,27 @@ namespace Trinex::UI
 	void end_window()
 	{
 		ImGui::End();
-		if (!active_context()->active_window_stack.empty())
-		{
-			active_context()->active_window_stack.pop_back();
-		}
 		pop_window_styles();
 	}
 
-	void create_window(const char* name, WindowFlags flags, const WindowOptions& options, const Function<void()>& content)
+	void create_widget(const char* name, WindowFlags flags, const WindowOptions& options, Widget* widget)
 	{
-		if (name == nullptr || content == nullptr)
+		if (name == nullptr || widget == nullptr)
 		{
 			return;
 		}
 
-		setup_window(ensure_window(name), flags, options, true, content);
+		setup_window(ensure_window(name), flags, options, widget);
 	}
 
-	bool is_window_open(const char* name)
+	void create_widget(const char* name, WindowFlags flags, const WindowOptions& options, const Function<void()>& content)
 	{
-		if (PersistentWindow* window = find_window(name))
-		{
-			return window->open;
-		}
-		return false;
-	}
-
-	void open_window(const char* name)
-	{
-		if (PersistentWindow* window = find_window(name))
-		{
-			window->open = true;
-		}
-	}
-
-	void close_window()
-	{
-		if (active_context()->active_window_stack.empty())
+		if (content == nullptr)
 		{
 			return;
 		}
 
-		ActiveWindowScope& scope = active_context()->active_window_stack.back();
-		if (scope.external_open != nullptr)
-		{
-			*scope.external_open = false;
-		}
-		if (scope.persistent != nullptr)
-		{
-			scope.persistent->open = false;
-		}
-	}
-
-	void close_window(const char* name)
-	{
-		if (PersistentWindow* window = find_window(name))
-		{
-			window->open = false;
-		}
+		create_widget(name, flags, options, trx_new FunctionWidget(content));
 	}
 
 	bool begin_panel(const char* id, const PanelOptions& options)

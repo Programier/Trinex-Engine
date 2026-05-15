@@ -2,7 +2,9 @@
 #include <Core/etl/function.hpp>
 #include <Core/etl/string.hpp>
 #include <Core/etl/type_traits.hpp>
+#include <Core/etl/vector.hpp>
 #include <Core/math/vector.hpp>
+#include <UI/widget.hpp>
 
 namespace Trinex
 {
@@ -446,39 +448,94 @@ namespace Trinex::UI
 		bool delivery    = false;
 	};
 
-	struct DockspaceOptions {
-		Vec2 size           = Vec2(0.0f, 0.0f);
-		DockNodeFlags flags = DockNodeFlags::Undefined;
-		bool border         = false;
-		bool background     = false;
+	struct DockBuilderSplitResult {
+		ID remainder = ID(0);
+		ID child     = ID(0);
 	};
 
-	struct DockBuilderSplitResult {
-		ID parent = ID(0);
-		ID child  = ID(0);
+	struct DockLayoutOptions {
+		Vec2 size           = Vec2(0.0f, 0.0f);
+		DockNodeFlags flags = DockNodeFlags::Undefined;
+		bool reset          = false;
+	};
+
+	struct DockPlacement {
+		DockID id             = DockID();
+		const char* id_text   = nullptr;
+		Condition condition   = Condition::Undefined;
+		DockWindowFlags flags = DockWindowFlags::Undefined;
+	};
+
+	struct WindowPlacement {
+		Vec2 position                = Vec2(0.0f, 0.0f);
+		Vec2 size                    = Vec2(0.0f, 0.0f);
+		Vec2 min_size                = Vec2(0.0f, 0.0f);
+		Vec2 max_size                = Vec2(0.0f, 0.0f);
+		Condition position_condition = Condition::Undefined;
+		Condition size_condition     = Condition::Undefined;
+	};
+
+	struct WindowState {
+		bool focus                    = false;
+		bool collapsed                = false;
+		Condition collapsed_condition = Condition::Undefined;
+	};
+
+	struct WindowTabOptions {
+		DockTabFlags flags  = DockTabFlags::Undefined;
+		Vec4 color          = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
+		const char* tooltip = nullptr;
+	};
+
+	class DockLayoutBuilder
+	{
+	public:
+		using Dir    = DockSplitDir;
+		using Result = DockBuilderSplitResult;
+
+	private:
+		struct NamedDock {
+			String id;
+			DockID dock = DockID();
+		};
+
+		DockID m_root = DockID();
+		DockID m_main = DockID();
+		Vector<NamedDock> m_named;
+
+	public:
+		bool exists() const;
+		DockLayoutBuilder& bind(const char* id, DockID dock);
+		DockLayoutBuilder& flags(DockID dock, DockNodeFlags flags);
+		DockLayoutBuilder& flags(const char* id, DockNodeFlags flags);
+		DockID find(const char* id) const;
+		DockID require(const char* id) const;
+		bool has(const char* id) const;
+		Result split(DockID dock, DockSplitDir dir, float ratio, const char* id = nullptr);
+		Result split(DockID dock, DockSplitDir dir, float ratio, const char* remainder_id, const char* child_id);
+		DockID dock(const char* window_name, DockID dock_id);
+		DockID dock(const char* window_name, const char* dock_id);
+
+		bool begin(Vec2 size = {}, DockNodeFlags flags = DockNodeFlags::Undefined);
+		DockLayoutBuilder& end();
+
+		inline DockID root() const { return m_root; }
+		inline DockID main() const { return m_main; }
+		inline DockLayoutBuilder& main(DockID id) { trinex_this_return(m_main = id ? id : m_root); }
+
+		inline DockID dock(const char* window_name) { return dock(window_name, m_main); }
+		inline Result split(DockSplitDir dir, float ratio, const char* id = nullptr) { return split(m_main, dir, ratio, id); }
+		inline Result split(DockSplitDir dir, float ratio, const char* remainder_id, const char* child_id)
+		{
+			return split(m_main, dir, ratio, remainder_id, child_id);
+		}
 	};
 
 	struct WindowOptions {
-		Vec2 position = Vec2(0.0f, 0.0f);
-		Vec2 size     = Vec2(0.0f, 0.0f);
-		Vec2 min_size = Vec2(0.0f, 0.0f);
-		Vec2 max_size = Vec2(0.0f, 0.0f);
-
-		Condition position_condition = Condition::Undefined;
-		Condition size_condition     = Condition::Undefined;
-
-		DockID dock_id             = DockID();
-		Condition dock_condition   = Condition::Undefined;
-		DockWindowFlags dock_flags = DockWindowFlags::Undefined;
-
-		DockTabFlags tab_flags  = DockTabFlags::Undefined;
-		Vec4 tab_color          = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
-		const char* tab_tooltip = nullptr;
-
-		bool focus = false;
-
-		bool collapsed                = false;
-		Condition collapsed_condition = Condition::Undefined;
+		WindowPlacement placement;
+		WindowState state;
+		DockPlacement dock;
+		WindowTabOptions tab;
 	};
 
 	struct ColorTheme {
@@ -712,32 +769,22 @@ namespace Trinex::UI
 	ID id(const char* id_text);
 
 	/////////////////////// DOCKING ///////////////////////
-	bool begin_dockspace(const char* id_text, const DockspaceOptions& options = {});
-	void end_dockspace();
-	ID dockspace_id(const char* id_text);
-	void set_next_window_dock(ID dock_id, Condition condition = Condition::Once);
-	void set_next_window_dock(const char* dockspace_id_text, Condition condition = Condition::Once);
 	bool is_window_docked();
 	ID window_dock_id();
 	void undock_window();
-	void dock_builder_begin(ID dockspace_id, const Vec2& size = Vec2(0.0f, 0.0f), DockNodeFlags flags = DockNodeFlags::Undefined);
-	void dock_builder_end();
-	void dock_builder_clear(ID dockspace_id);
-	void dock_builder_set_flags(ID dock_id, DockNodeFlags flags);
-	DockBuilderSplitResult dock_builder_split(ID dock_id, DockSplitDir dir, float ratio);
-	void dock_builder_dock_window(const char* window_name, ID dock_id);
-	void dock_builder_finish(ID dockspace_id);
-	void build_dockspace_once(const char* id_text, const FunctionRef<void(ID root_dock)>& builder);
+
+	bool begin_dockspace(const DockLayoutOptions& options);
+	void end_docspace();
+
+	void dockspace(const DockLayoutOptions& options, const FunctionRef<void(DockLayoutBuilder&)>& builder);
+	void dockspace(const FunctionRef<void(DockLayoutBuilder&)>& builder);
 
 	/////////////////////// WINDOWS AND CONTAINERS ///////////////////////
 	bool begin_window(const char* name, bool* open = nullptr, WindowFlags flags = WindowFlags::Undefined,
 	                  const WindowOptions& options = {});
 	void end_window();
-	void create_window(const char* name, WindowFlags flags, const WindowOptions& options, const Function<void()>& content);
-	bool is_window_open(const char* name);
-	void open_window(const char* name);
-	void close_window();
-	void close_window(const char* name);
+	void create_widget(const char* name, WindowFlags flags, const WindowOptions& options, Widget* widget);
+	void create_widget(const char* name, WindowFlags flags, const WindowOptions& options, const Function<void()>& content);
 	bool begin_panel(const char* id_text, const PanelOptions& options = {});
 	void end_panel();
 	bool begin_glass_panel(const char* id, const Vec2& size = Vec2(0, 0), const GlassOptions& options = {});
@@ -1028,21 +1075,6 @@ namespace Trinex::UI
 
 	/////////////////////// INLINE DOCKING HELPERS ///////////////////////
 
-	inline bool dockspace(const char* id_text, const DockspaceOptions& options, const FunctionRef<void()>& func)
-	{
-		const bool visible = begin_dockspace(id_text, options);
-		if (visible)
-		{
-			func();
-			end_dockspace();
-		}
-		return visible;
-	}
-
-	inline bool dockspace(const char* id_text, const FunctionRef<void()>& func)
-	{
-		return dockspace(id_text, {}, func);
-	}
 
 	/////////////////////// INLINE WINDOWS AND CONTAINERS HELPERS ///////////////////////
 
@@ -1083,20 +1115,54 @@ namespace Trinex::UI
 		return window(name, nullptr, WindowFlags::Undefined, func);
 	}
 
-	inline void create_window(const char* name, const Function<void()>& content)
+	inline void create_widget(const char* name, Widget* widget)
 	{
-		create_window(name, WindowFlags::Undefined, {}, content);
+		create_widget(name, WindowFlags::Undefined, {}, widget);
 	}
 
-	inline void create_window(const char* name, WindowFlags flags, const Function<void()>& content)
+	inline void create_widget(const char* name, WindowFlags flags, Widget* widget)
 	{
-		create_window(name, flags, {}, content);
+		create_widget(name, flags, {}, widget);
 	}
 
-	inline void create_window(const char* name, const WindowOptions& options, const Function<void()>& content)
+	inline void create_widget(const char* name, const WindowOptions& options, Widget* widget)
 	{
-		create_window(name, WindowFlags::Undefined, options, content);
+		create_widget(name, WindowFlags::Undefined, options, widget);
 	}
+
+	template<typename WidgetType, typename... Args>
+	inline void create_widget(const char* name, Args&&... args)
+	{
+		create_widget(name, WindowFlags::Undefined, {}, trx_new UniqueWidget<WidgetType>(etl::forward<Args>(args)...));
+	}
+
+	template<typename WidgetType, typename... Args>
+	inline void create_widget(const char* name, WindowFlags flags, Args&&... args)
+	{
+		create_widget(name, flags, {}, trx_new UniqueWidget<WidgetType>(etl::forward<Args>(args)...));
+	}
+
+	template<typename WidgetType, typename... Args>
+	inline void create_widget(const char* name, const WindowOptions& options, Args&&... args)
+	{
+		create_widget(name, WindowFlags::Undefined, options, trx_new UniqueWidget<WidgetType>(etl::forward<Args>(args)...));
+	}
+
+	inline void create_widget(const char* name, const Function<void()>& content)
+	{
+		create_widget(name, WindowFlags::Undefined, {}, content);
+	}
+
+	inline void create_widget(const char* name, WindowFlags flags, const Function<void()>& content)
+	{
+		create_widget(name, flags, {}, content);
+	}
+
+	inline void create_widget(const char* name, const WindowOptions& options, const Function<void()>& content)
+	{
+		create_widget(name, WindowFlags::Undefined, options, content);
+	}
+
 
 	inline bool panel(const char* id_text, const PanelOptions& options, const FunctionRef<void()>& func)
 	{

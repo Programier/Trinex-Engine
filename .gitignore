@@ -5,3 +5,6 @@ android/.idea/
 android/app/.cxx/
 android/app/build/
 TODO.md
+AGENTS.md
+.idea
+.qtcreator
