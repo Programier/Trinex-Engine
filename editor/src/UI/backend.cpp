@@ -512,7 +512,7 @@ namespace Trinex::UI::Backend
 
 			inline ImGuiContext* context() const { return m_context; }
 
-			ViewportClient& on_bind_viewport(class RenderViewport* viewport) override
+			ViewportClient& attach(class RenderViewport* viewport) override
 			{
 				// m_window = ImGuiWindow::current();
 				return *this;

@@ -661,7 +661,7 @@ namespace Trinex::UI
 			return static_cast<ImGuiKey>(value.value);
 		}
 
-		int to_imgui_MouseButton(MouseButton value)
+		int to_imgui_mouse_button(MouseButton value)
 		{
 			return static_cast<int>(value.value);
 		}
@@ -1689,12 +1689,12 @@ namespace Trinex::UI
 
 	/////////////////////// STYLE AND EFFECTS ///////////////////////
 
-	Style& get_style()
+	Style& style()
 	{
 		return active_context()->style;
 	}
 
-	void set_style(const Style& value)
+	void style(const Style& value)
 	{
 		active_context()->style = value;
 	}
@@ -2106,6 +2106,29 @@ namespace Trinex::UI
 		return true;
 	}
 
+	bool DockLayoutBuilder::begin(DockID root_id, Vec2 size, DockNodeFlags flags)
+	{
+		if (!root_id)
+		{
+			return begin(size, flags);
+		}
+
+		const ImGuiID root = to_imgui_id(root_id);
+
+		m_root = root_id;
+		m_main = root_id;
+		m_named.clear();
+
+		const ImVec2 fallback_size =
+		        ImGui::GetMainViewport() != nullptr ? ImGui::GetMainViewport()->WorkSize : ImVec2(0.0f, 0.0f);
+		const ImVec2 resolved_size(size.x > 0.0f ? size.x : fallback_size.x, size.y > 0.0f ? size.y : fallback_size.y);
+
+		ImGui::DockBuilderRemoveNode(root);
+		ImGui::DockBuilderAddNode(root, to_imgui_dock_node_flags(flags) | ImGuiDockNodeFlags_DockSpace);
+		ImGui::DockBuilderSetNodeSize(root, resolved_size);
+		return true;
+	}
+
 	DockLayoutBuilder& DockLayoutBuilder::end()
 	{
 		ImGui::DockBuilderFinish(to_imgui_id(m_root));
@@ -2114,7 +2137,7 @@ namespace Trinex::UI
 
 	bool begin_dockspace(const DockLayoutOptions& options)
 	{
-		ImGuiID id = ImGui::GetID("##dockspace");
+		ImGuiID id = options.id ? to_imgui_id(options.id) : ImGui::GetID("##dockspace");
 
 		if (!(id = ImGui::DockSpace(id, to_imvec(options.size), to_imgui_dock_node_flags(options.flags))))
 			return false;
@@ -2127,12 +2150,31 @@ namespace Trinex::UI
 		// Dummy function. Do nothing
 	}
 
+	bool begin_viewport_dockspace(const DockLayoutOptions& options)
+	{
+		ImGuiViewport* viewport = ImGui::GetMainViewport();
+
+		if (viewport == nullptr)
+		{
+			return false;
+		}
+
+		ImGuiID id = options.id ? to_imgui_id(options.id) : ImGui::GetID("##dockspace");
+		ImGui::DockSpaceOverViewport(id, viewport, to_imgui_dock_node_flags(options.flags));
+		return ImGui::IsWindowAppearing() || options.reset;
+	}
+
+	void end_viewport_dockspace()
+	{
+		// Dummy function. Do nothing
+	}
+
 	void dockspace(const DockLayoutOptions& options, const FunctionRef<void(DockLayoutBuilder&)>& function)
 	{
 		if (begin_dockspace(options))
 		{
 			DockLayoutBuilder builder;
-			if (builder.begin(options.size, options.flags))
+			if (builder.begin(options.id, options.size, options.flags))
 			{
 				function(builder);
 				builder.end();
@@ -2144,6 +2186,25 @@ namespace Trinex::UI
 	void dockspace(const FunctionRef<void(DockLayoutBuilder&)>& builder)
 	{
 		dockspace({}, builder);
+	}
+
+	void viewport_dockspace(const DockLayoutOptions& options, const FunctionRef<void(DockLayoutBuilder&)>& function)
+	{
+		if (begin_viewport_dockspace(options))
+		{
+			DockLayoutBuilder builder;
+			if (builder.begin(options.id, options.size, options.flags))
+			{
+				function(builder);
+				builder.end();
+			}
+			end_viewport_dockspace();
+		}
+	}
+
+	void viewport_dockspace(const FunctionRef<void(DockLayoutBuilder&)>& builder)
+	{
+		viewport_dockspace({}, builder);
 	}
 
 	/////////////////////// WINDOWS AND CONTAINERS ///////////////////////
@@ -2970,6 +3031,66 @@ namespace Trinex::UI
 		return to_vec(window->Viewport->Size);
 	}
 
+	Vec2 window_position()
+	{
+		return to_vec(ImGui::GetWindowPos());
+	}
+
+	Vec2 window_size()
+	{
+		return to_vec(ImGui::GetWindowSize());
+	}
+
+	float window_width()
+	{
+		return ImGui::GetWindowWidth();
+	}
+
+	float window_height()
+	{
+		return ImGui::GetWindowHeight();
+	}
+
+	Vec2 content_region_available()
+	{
+		return to_vec(ImGui::GetContentRegionAvail());
+	}
+
+	Vec2 cursor_position()
+	{
+		return to_vec(ImGui::GetCursorPos());
+	}
+
+	void cursor_position(const Vec2& position)
+	{
+		ImGui::SetCursorPos(to_imvec(position));
+	}
+
+	Vec2 cursor_screen_position()
+	{
+		return to_vec(ImGui::GetCursorScreenPos());
+	}
+
+	void cursor_screen_position(const Vec2& position)
+	{
+		ImGui::SetCursorScreenPos(to_imvec(position));
+	}
+
+	bool is_window_hovered()
+	{
+		return ImGui::IsWindowHovered();
+	}
+
+	bool is_window_focused()
+	{
+		return ImGui::IsWindowFocused();
+	}
+
+	bool is_window_appearing()
+	{
+		return ImGui::IsWindowAppearing();
+	}
+
 	Vec2 display_size()
 	{
 		return to_vec(ImGui::GetIO().DisplaySize);
@@ -3037,27 +3158,27 @@ namespace Trinex::UI
 
 	bool is_mouse_down(MouseButton button)
 	{
-		return ImGui::IsMouseDown(to_imgui_MouseButton(button));
+		return ImGui::IsMouseDown(to_imgui_mouse_button(button));
 	}
 
 	bool is_mouse_clicked(MouseButton button)
 	{
-		return ImGui::IsMouseClicked(to_imgui_MouseButton(button));
+		return ImGui::IsMouseClicked(to_imgui_mouse_button(button));
 	}
 
 	bool is_mouse_released(MouseButton button)
 	{
-		return ImGui::IsMouseReleased(to_imgui_MouseButton(button));
+		return ImGui::IsMouseReleased(to_imgui_mouse_button(button));
 	}
 
 	bool is_mouse_double_clicked(MouseButton button)
 	{
-		return ImGui::IsMouseDoubleClicked(to_imgui_MouseButton(button));
+		return ImGui::IsMouseDoubleClicked(to_imgui_mouse_button(button));
 	}
 
 	bool is_mouse_dragging(MouseButton button, float lock_threshold)
 	{
-		return ImGui::IsMouseDragging(to_imgui_MouseButton(button), lock_threshold);
+		return ImGui::IsMouseDragging(to_imgui_mouse_button(button), lock_threshold);
 	}
 
 	Vec2 mouse_position()
@@ -3082,12 +3203,12 @@ namespace Trinex::UI
 
 	Vec2 mouse_drag_delta(MouseButton button, float lock_threshold)
 	{
-		return to_vec(ImGui::GetMouseDragDelta(to_imgui_MouseButton(button), lock_threshold));
+		return to_vec(ImGui::GetMouseDragDelta(to_imgui_mouse_button(button), lock_threshold));
 	}
 
 	void reset_mouse_drag_delta(MouseButton button)
 	{
-		ImGui::ResetMouseDragDelta(to_imgui_MouseButton(button));
+		ImGui::ResetMouseDragDelta(to_imgui_mouse_button(button));
 	}
 
 	bool is_mouse_hovering_rect(const Vec2& min, const Vec2& max, bool clip)
@@ -4660,6 +4781,32 @@ namespace Trinex::UI
 		}
 	}
 
+	bool begin_main_menu_bar()
+	{
+		push_menu_bar_colors();
+		const bool open = ImGui::BeginMainMenuBar();
+		if (open)
+		{
+			draw_menu_bar_background();
+			++g_menu_bar_style_depth;
+		}
+		else
+		{
+			pop_menu_bar_colors();
+		}
+		return open;
+	}
+
+	void end_main_menu_bar()
+	{
+		ImGui::EndMainMenuBar();
+		if (g_menu_bar_style_depth > 0)
+		{
+			--g_menu_bar_style_depth;
+			pop_menu_bar_colors();
+		}
+	}
+
 	bool begin_menu(const char* label, bool enabled)
 	{
 		const ImGuiID id  = ImGui::GetID(label);
@@ -4771,12 +4918,19 @@ namespace Trinex::UI
 	bool command_palette()
 	{
 		trinex_assert(active_context() && "UI::command_palette() requires an active UI context");
+		
 		AnimState& palette_anim      = state_for(ImGui::GetID("##command_palette_popup_anim"));
 		AnimState& palette_blur_anim = state_for(ImGui::GetID("##command_palette_blur_anim"));
 		palette_anim.open =
 		        approach(palette_anim.open, g_command_palette.open ? 1.0f : 0.0f, active_context()->style.animation_speed);
 		palette_blur_anim.open = approach(palette_blur_anim.open, g_command_palette.open ? 1.0f : 0.0f,
 		                                  active_context()->style.animation_speed * 0.45f);
+		
+		if (!g_command_palette.open && palette_anim.open <= 0.0f && palette_blur_anim.open <= 0.0f)
+		{
+			return false;
+		}
+		
 		if (g_command_palette.open && palette_anim.open > 0.995f)
 		{
 			palette_anim.open = 1.0f;
@@ -4794,10 +4948,6 @@ namespace Trinex::UI
 			palette_blur_anim.open = 0.0f;
 		}
 
-		if (!g_command_palette.open && palette_anim.open <= 0.0f && palette_blur_anim.open <= 0.0f)
-		{
-			return false;
-		}
 		const float eased_open         = apply_ease(palette_anim.open, Ease::InOutQuad);
 		const float eased_blur         = apply_ease(palette_blur_anim.open, Ease::InOutQuad);
 		const float popup_visual_alpha = g_command_palette.open ? eased_open : eased_blur;

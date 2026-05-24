@@ -37,8 +37,8 @@ namespace Trinex
 		StaticMeshClient();
 		~StaticMeshClient();
 
-		StaticMeshClient& on_bind_viewport(RenderViewport* vp) override;
-		StaticMeshClient& on_unbind_viewport(RenderViewport* vp) override;
+		StaticMeshClient& attach(RenderViewport* vp) override;
+		StaticMeshClient& deattach(RenderViewport* vp) override;
 		StaticMeshClient& update(float dt) override;
 		StaticMeshClient& select(Object* object) override;
 		u32 build_dock(u32 dock) override;

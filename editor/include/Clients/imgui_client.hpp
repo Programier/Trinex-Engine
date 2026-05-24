@@ -56,8 +56,8 @@ namespace Trinex
 		ImGuiViewportClient();
 		~ImGuiViewportClient();
 
-		ImGuiViewportClient& on_bind_viewport(class RenderViewport* viewport) override;
-		ImGuiViewportClient& on_unbind_viewport(class RenderViewport* viewport) override;
+		ImGuiViewportClient& attach(class RenderViewport* viewport) override;
+		ImGuiViewportClient& deattach(class RenderViewport* viewport) override;
 
 		inline ImGuiWindow* window() const { return m_window; }
 		inline RenderViewport* viewport() const { return m_viewport; }

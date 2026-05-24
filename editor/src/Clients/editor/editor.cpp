@@ -272,9 +272,9 @@ namespace Trinex
 		return *this;
 	}
 
-	EditorClient& EditorClient::on_bind_viewport(class RenderViewport* viewport)
+	EditorClient& EditorClient::attach(class RenderViewport* viewport)
 	{
-		Super::on_bind_viewport(viewport);
+		Super::attach(viewport);
 
 		auto wd          = window()->window();
 		String new_title = Strings::format("Trinex Editor [{} RHI]", RHI::instance()->info.name.c_str());
@@ -324,9 +324,9 @@ namespace Trinex
 		return *this;
 	}
 
-	EditorClient& EditorClient::on_unbind_viewport(class RenderViewport* viewport)
+	EditorClient& EditorClient::deattach(class RenderViewport* viewport)
 	{
-		Super::on_unbind_viewport(viewport);
+		Super::deattach(viewport);
 
 		EditorEngine::instance()->on_actor_select.remove(m_on_actor_select_callback_id);
 		EditorEngine::instance()->on_actor_unselect.remove(m_on_actor_unselect_callback_id);

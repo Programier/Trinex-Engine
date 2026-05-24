@@ -317,9 +317,9 @@ namespace Trinex
 		});
 	}
 
-	TextureEditorClient& TextureEditorClient::on_bind_viewport(RenderViewport* vp)
+	TextureEditorClient& TextureEditorClient::attach(RenderViewport* vp)
 	{
-		Super::on_bind_viewport(vp);
+		Super::attach(vp);
 		auto current = ImGuiWindow::current();
 		ImGuiWindow::make_current(window());
 		m_properties           = window()->widgets.create<PropertyRenderer>();

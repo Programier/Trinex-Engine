@@ -149,8 +149,8 @@ namespace Trinex
 		EditorClient& create_properties_window();
 		EditorClient& create_level_explorer();
 
-		EditorClient& on_bind_viewport(class RenderViewport* viewport) override;
-		EditorClient& on_unbind_viewport(class RenderViewport* viewport) override;
+		EditorClient& attach(class RenderViewport* viewport) override;
+		EditorClient& deattach(class RenderViewport* viewport) override;
 		EditorClient& update(float dt) override;
 
 		u32 build_dock(u32 dock_id) override;

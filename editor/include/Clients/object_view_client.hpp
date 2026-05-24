@@ -17,7 +17,7 @@ namespace Trinex
 	public:
 		ObjectViewClient();
 		ObjectViewClient& create_properties_window();
-		ObjectViewClient& on_bind_viewport(RenderViewport* vp) override;
+		ObjectViewClient& attach(RenderViewport* vp) override;
 		u32 build_dock(u32 dock) override;
 		ObjectViewClient& update(float dt) override;
 		ObjectViewClient& select(Object* object) override;

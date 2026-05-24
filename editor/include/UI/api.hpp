@@ -454,6 +454,7 @@ namespace Trinex::UI
 	};
 
 	struct DockLayoutOptions {
+		DockID id           = DockID();
 		Vec2 size           = Vec2(0.0f, 0.0f);
 		DockNodeFlags flags = DockNodeFlags::Undefined;
 		bool reset          = false;
@@ -517,6 +518,7 @@ namespace Trinex::UI
 		DockID dock(const char* window_name, const char* dock_id);
 
 		bool begin(Vec2 size = {}, DockNodeFlags flags = DockNodeFlags::Undefined);
+		bool begin(DockID root, Vec2 size = {}, DockNodeFlags flags = DockNodeFlags::Undefined);
 		DockLayoutBuilder& end();
 
 		inline DockID root() const { return m_root; }
@@ -741,8 +743,8 @@ namespace Trinex::UI
 	void end_frame();
 
 	/////////////////////// STYLE AND EFFECTS ///////////////////////
-	Style& get_style();
-	void set_style(const Style& value);
+	Style& style();
+	void style(const Style& value);
 	void push_style(const Style& value);
 	void pop_style();
 	void paint(Vec2 pos, Vec2 size, PaintFunction function, void* userdata = nullptr, usize userdata_size = 0,
@@ -775,9 +777,13 @@ namespace Trinex::UI
 
 	bool begin_dockspace(const DockLayoutOptions& options);
 	void end_docspace();
+	bool begin_viewport_dockspace(const DockLayoutOptions& options = {});
+	void end_viewport_dockspace();
 
 	void dockspace(const DockLayoutOptions& options, const FunctionRef<void(DockLayoutBuilder&)>& builder);
 	void dockspace(const FunctionRef<void(DockLayoutBuilder&)>& builder);
+	void viewport_dockspace(const DockLayoutOptions& options, const FunctionRef<void(DockLayoutBuilder&)>& builder);
+	void viewport_dockspace(const FunctionRef<void(DockLayoutBuilder&)>& builder);
 
 	/////////////////////// WINDOWS AND CONTAINERS ///////////////////////
 	bool begin_window(const char* name, bool* open = nullptr, WindowFlags flags = WindowFlags::Undefined,
@@ -831,6 +837,18 @@ namespace Trinex::UI
 	int frame_count();
 	Vec2 viewport_pos();
 	Vec2 viewport_size();
+	Vec2 window_position();
+	Vec2 window_size();
+	float window_width();
+	float window_height();
+	Vec2 content_region_available();
+	Vec2 cursor_position();
+	void cursor_position(const Vec2& position);
+	Vec2 cursor_screen_position();
+	void cursor_screen_position(const Vec2& position);
+	bool is_window_hovered();
+	bool is_window_focused();
+	bool is_window_appearing();
 	Vec2 display_size();
 	Vec2 framebuffer_scale();
 	bool wants_keyboard_capture();
@@ -965,6 +983,8 @@ namespace Trinex::UI
 	void end_context_menu();
 	bool begin_menu_bar();
 	void end_menu_bar();
+	bool begin_main_menu_bar();
+	void end_main_menu_bar();
 	bool begin_menu(const char* label, bool enabled = true);
 	void end_menu();
 	bool menu_item(const char* label, const char* shortcut = nullptr, bool selected = false, bool enabled = true);
@@ -1550,6 +1570,17 @@ namespace Trinex::UI
 		{
 			func();
 			end_menu_bar();
+		}
+		return visible;
+	}
+
+	inline bool main_menu_bar(const FunctionRef<void()>& func)
+	{
+		const bool visible = begin_main_menu_bar();
+		if (visible)
+		{
+			func();
+			end_main_menu_bar();
 		}
 		return visible;
 	}

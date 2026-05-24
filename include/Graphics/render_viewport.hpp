@@ -20,9 +20,9 @@ namespace Trinex
 		trinex_class(ViewportClient, Object);
 
 	public:
-		virtual ViewportClient& on_bind_viewport(class RenderViewport* viewport);
-		virtual ViewportClient& on_unbind_viewport(class RenderViewport* viewport);
-		virtual ViewportClient& render(class RenderViewport* viewport);
+		virtual ViewportClient& attach(class RenderViewport* viewport);
+		virtual ViewportClient& deattach(class RenderViewport* viewport);
+
 		virtual ViewportClient& update(class RenderViewport* viewport, float dt);
 		static ViewportClient* create(const StringView& name);
 	};

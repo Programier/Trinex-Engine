@@ -139,9 +139,9 @@ namespace Trinex
 		return *this;
 	}
 
-	MaterialEditorClient& MaterialEditorClient::on_bind_viewport(class RenderViewport* viewport)
+	MaterialEditorClient& MaterialEditorClient::attach(class RenderViewport* viewport)
 	{
-		Super::on_bind_viewport(viewport);
+		Super::attach(viewport);
 
 		auto wd = window()->window();
 		wd->title(Strings::format("Trinex Material Editor [{} RHI]", RHI::instance()->info.name.c_str()));

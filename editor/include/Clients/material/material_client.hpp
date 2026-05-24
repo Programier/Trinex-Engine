@@ -21,7 +21,7 @@ namespace Trinex
 		virtual MaterialEditorClient& create_preview_window();
 		virtual MaterialEditorClient& create_properties_window();
 
-		MaterialEditorClient& on_bind_viewport(class RenderViewport* viewport) override;
+		MaterialEditorClient& attach(class RenderViewport* viewport) override;
 		MaterialEditorClient& update(float dt) override;
 		u32 build_dock(u32 dock) override;
 		MaterialEditorClient& select(Object* object) override;

@@ -40,7 +40,7 @@ namespace Trinex
 	public:
 		DefaultClient();
 		~DefaultClient();
-		DefaultClient& on_bind_viewport(class RenderViewport* viewport) override;
+		DefaultClient& attach(class RenderViewport* viewport) override;
 		DefaultClient& update(class RenderViewport* viewport, float dt) override;
 	};
 }// namespace Trinex

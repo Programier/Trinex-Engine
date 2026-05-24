@@ -46,9 +46,9 @@ namespace Trinex
 		trx_delete m_viewport;
 	}
 
-	StaticMeshClient& StaticMeshClient::on_bind_viewport(RenderViewport* vp)
+	StaticMeshClient& StaticMeshClient::attach(RenderViewport* vp)
 	{
-		Super::on_bind_viewport(vp);
+		Super::attach(vp);
 
 		m_world       = new_instance<World>("World");
 		m_static_mesh = new_instance<StaticMeshActor>("Static Mesh", m_world);
@@ -65,9 +65,9 @@ namespace Trinex
 		return *this;
 	}
 
-	StaticMeshClient& StaticMeshClient::on_unbind_viewport(RenderViewport* vp)
+	StaticMeshClient& StaticMeshClient::deattach(RenderViewport* vp)
 	{
-		Super::on_unbind_viewport(vp);
+		Super::deattach(vp);
 
 		m_browser = nullptr;
 		for (auto& listener : m_listeners)

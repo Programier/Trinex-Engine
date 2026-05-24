@@ -64,8 +64,8 @@ namespace Trinex
 	public:
 		ScriptDebuggerClient();
 		~ScriptDebuggerClient();
-		ScriptDebuggerClient& on_bind_viewport(class RenderViewport* viewport) override;
-		ScriptDebuggerClient& on_unbind_viewport(class RenderViewport* viewport) override;
+		ScriptDebuggerClient& attach(class RenderViewport* viewport) override;
+		ScriptDebuggerClient& deattach(class RenderViewport* viewport) override;
 		ScriptDebuggerClient& update(float dt) override;
 
 		ScriptDebuggerClient& open_script(Script* script);

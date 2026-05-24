@@ -14,8 +14,8 @@
 namespace Trinex
 {
 	static ScriptFunction vc_update;
-	static ScriptFunction vc_on_bind_viewport;
-	static ScriptFunction vc_on_unbind_viewport;
+	static ScriptFunction vc_attach;
+	static ScriptFunction vc_deattach;
 	static ScriptFunction vc_render;
 
 	trinex_implement_engine_class(RenderViewport, Refl::Class::IsScriptable)
@@ -31,35 +31,29 @@ namespace Trinex
 	{
 		auto r = ScriptClassRegistrar::existing_class(static_reflection());
 
-		vc_update           = r.method("void update(RenderViewport viewport, float dt)", trinex_scoped_method(This, update));
-		vc_on_bind_viewport = r.method("void on_bind_viewport(RenderViewport)", trinex_scoped_method(This, on_bind_viewport));
-		vc_on_unbind_viewport =
-		        r.method("void on_unbind_viewport(RenderViewport)", trinex_scoped_method(This, on_unbind_viewport));
+		vc_update   = r.method("void update(RenderViewport viewport, float dt)", trinex_scoped_method(This, update));
+		vc_attach   = r.method("void attach(RenderViewport)", trinex_scoped_method(This, attach));
+		vc_deattach = r.method("void deattach(RenderViewport)", trinex_scoped_method(This, deattach));
 
 		// Need to check, can we use script engine in multi-thread mode?
 		//vc_render = r.method("void render(RenderViewport viewport)", trinex_scoped_method(This, render));
 
 		ScriptEngine::on_terminate.push([]() {
 			vc_update.release();
-			vc_on_bind_viewport.release();
-			vc_on_unbind_viewport.release();
+			vc_attach.release();
+			vc_deattach.release();
 			vc_render.release();
 		});
 	}
 
 	static RenderViewport* m_current_render_viewport = nullptr;
 
-	ViewportClient& ViewportClient::on_bind_viewport(class RenderViewport* viewport)
+	ViewportClient& ViewportClient::attach(class RenderViewport* viewport)
 	{
 		return *this;
 	}
 
-	ViewportClient& ViewportClient::on_unbind_viewport(class RenderViewport* viewport)
-	{
-		return *this;
-	}
-
-	ViewportClient& ViewportClient::render(RenderViewport* viewport)
+	ViewportClient& ViewportClient::deattach(class RenderViewport* viewport)
 	{
 		return *this;
 	}
@@ -116,12 +110,12 @@ namespace Trinex
 
 			if (tmp->class_instance()->is_native())
 			{
-				tmp->on_unbind_viewport(this);
+				tmp->deattach(this);
 			}
 			else
 			{
 				ScriptObject obj(tmp);
-				obj.execute(vc_on_unbind_viewport, this);
+				obj.execute(vc_deattach, this);
 			}
 		}
 
@@ -131,12 +125,12 @@ namespace Trinex
 		{
 			if (new_client->class_instance()->is_native())
 			{
-				new_client->on_bind_viewport(this);
+				new_client->attach(this);
 			}
 			else
 			{
 				ScriptObject obj(new_client);
-				obj.execute(vc_on_bind_viewport, this);
+				obj.execute(vc_attach, this);
 			}
 		}
 		return *this;

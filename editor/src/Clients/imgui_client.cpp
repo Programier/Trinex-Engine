@@ -31,8 +31,8 @@ namespace Trinex
 
 		r.method("void update(RenderViewport viewport, float dt)",
 		         trinex_scoped_method(This, update, ImGuiViewportClient & (RenderViewport*, float) ));
-		r.method("void on_bind_viewport(RenderViewport)", trinex_scoped_method(This, on_bind_viewport));
-		r.method("void on_unbind_viewport(RenderViewport)", trinex_scoped_method(This, on_unbind_viewport));
+		r.method("void attach(RenderViewport)", trinex_scoped_method(This, attach));
+		r.method("void deattach(RenderViewport)", trinex_scoped_method(This, deattach));
 		r.method("RenderViewport viewport() const final", &This::viewport);
 
 		ScriptEngine::on_terminate += []() {
@@ -156,13 +156,13 @@ namespace Trinex
 		ImGui::DestroyContext(m_context);
 	}
 
-	ImGuiViewportClient& ImGuiViewportClient::on_bind_viewport(class RenderViewport* viewport)
+	ImGuiViewportClient& ImGuiViewportClient::attach(class RenderViewport* viewport)
 	{
 		m_viewport = viewport;
 		trinex_verify_msg(m_viewport, "Viewport is invalid");
 
 		m_opened_clients.insert({class_instance(), this});
-		Super::on_bind_viewport(viewport);
+		Super::attach(viewport);
 		auto window = m_viewport->window();
 
 		trinex_verify_msg(window, "ImGuiViewportClient requires valid window object!");
@@ -170,11 +170,11 @@ namespace Trinex
 		return *this;
 	}
 
-	ImGuiViewportClient& ImGuiViewportClient::on_unbind_viewport(class RenderViewport* viewport)
+	ImGuiViewportClient& ImGuiViewportClient::deattach(class RenderViewport* viewport)
 	{
 		m_opened_clients.erase(class_instance());
 
-		Super::on_unbind_viewport(viewport);
+		Super::deattach(viewport);
 		trx_delete_inline(m_window);
 		m_window   = nullptr;
 		m_viewport = nullptr;

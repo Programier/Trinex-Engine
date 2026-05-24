@@ -31,7 +31,7 @@ namespace Trinex
 
 	public:
 		TextureEditorClient();
-		TextureEditorClient& on_bind_viewport(RenderViewport* vp) override;
+		TextureEditorClient& attach(RenderViewport* vp) override;
 		TextureEditorClient& update(float dt) override;
 		TextureEditorClient& select(Object* object) override;
 		u32 build_dock(u32 dock_id) override;

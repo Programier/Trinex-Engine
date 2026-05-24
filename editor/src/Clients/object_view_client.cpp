@@ -37,9 +37,9 @@ namespace Trinex
 		return *this;
 	}
 
-	ObjectViewClient& ObjectViewClient::on_bind_viewport(RenderViewport* vp)
+	ObjectViewClient& ObjectViewClient::attach(RenderViewport* vp)
 	{
-		Super::on_bind_viewport(vp);
+		Super::attach(vp);
 		create_properties_window();
 		return *this;
 	}

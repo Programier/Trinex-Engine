@@ -188,17 +188,17 @@ namespace Trinex
 		return *this;
 	}
 
-	ScriptDebuggerClient& ScriptDebuggerClient::on_bind_viewport(class RenderViewport* viewport)
+	ScriptDebuggerClient& ScriptDebuggerClient::attach(class RenderViewport* viewport)
 	{
-		Super::on_bind_viewport(viewport);
+		Super::attach(viewport);
 		window()->window()->title("Script Debugger");
 		ScriptContext::line_callback([this](void*) { on_line_callback(); });
 		return *this;
 	}
 
-	ScriptDebuggerClient& ScriptDebuggerClient::on_unbind_viewport(class RenderViewport* viewport)
+	ScriptDebuggerClient& ScriptDebuggerClient::deattach(class RenderViewport* viewport)
 	{
-		Super::on_unbind_viewport(viewport);
+		Super::deattach(viewport);
 		ScriptContext::clear_line_callback();
 		return *this;
 	}

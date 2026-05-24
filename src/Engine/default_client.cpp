@@ -94,7 +94,7 @@ namespace Trinex
 		return create_buffer(ctx, data, size)->as_uav(RHIBufferViewType::Structured)->descriptor();
 	}
 
-	DefaultClient& DefaultClient::on_bind_viewport(class RenderViewport* viewport)
+	DefaultClient& DefaultClient::attach(class RenderViewport* viewport)
 	{
 		m_world       = new_instance<World>("World", this);
 		Vector2u size = viewport->size();
