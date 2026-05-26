@@ -4,6 +4,8 @@
 #include <Core/etl/type_traits.hpp>
 #include <Core/etl/vector.hpp>
 #include <Core/math/vector.hpp>
+#include <IconsLucide.h>
+#include <UI/theme.hpp>
 #include <UI/widget.hpp>
 
 namespace Trinex
@@ -734,6 +736,13 @@ namespace Trinex::UI
 
 	struct Context;
 
+	enum class FontFamily : u8
+	{
+		Default = 0,
+		Text,
+		Icons,
+	};
+
 	/////////////////////// LIFECYCLE AND FRAME ///////////////////////
 	void initialize();
 	void shutdown();
@@ -742,6 +751,12 @@ namespace Trinex::UI
 	bool begin_frame(Context* context);
 	void end_frame();
 
+	/////////////////////// FONTS ///////////////////////
+	void push_font(FontFamily family = FontFamily::Default, FontSize size = FontSize::Normal);
+	void pop_font();
+	void push_text_font(FontSize size = FontSize::Normal);
+	void push_icons_font(FontSize size = FontSize::Normal);
+	
 	/////////////////////// STYLE AND EFFECTS ///////////////////////
 	Style& style();
 	void style(const Style& value);
@@ -993,6 +1008,10 @@ namespace Trinex::UI
 	void register_command(const Command& command);
 	void open_command_palette();
 	bool command_palette();
+	
+	/////////////////////// ICONS ///////////////////////
+	void icon(const char* value, FontSize size = FontSize::Normal);
+	void icon_colored(const Vec4& color, const char* value, FontSize size = FontSize::Normal);
 
 	/////////////////////// FEEDBACK AND DATA VIEWS ///////////////////////
 	void notification(const char* message, const NotificationOptions& options = {});

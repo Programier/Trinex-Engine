@@ -243,8 +243,12 @@ namespace Trinex::UI
 	};
 
 	struct Context {
-		Trinex::Window* window = nullptr;
-		ImGuiContext* context  = nullptr;
+		static constexpr usize font_family_count = 3;
+		static constexpr usize font_size_count   = 3;
+
+		Trinex::Window* window                            = nullptr;
+		ImGuiContext* context                             = nullptr;
+		ImFont* fonts[font_family_count][font_size_count] = {};
 		Allocator allocator;
 		Style style;
 		Vector<Style> style_stack;
@@ -293,6 +297,113 @@ namespace Trinex::UI
 		{
 			trinex_assert(g_context);
 			return g_context;
+		}
+
+		static constexpr usize font_size_index(ui::FontSize size)
+		{
+			return static_cast<usize>(size);
+		}
+
+		static constexpr usize font_family_index(ui::FontFamily family)
+		{
+			return static_cast<usize>(family);
+		}
+
+		static constexpr f32 font_size_value(ui::FontSize size)
+		{
+			switch (size)
+			{
+				case ui::FontSize::Small: return Settings::Editor::small_font_size;
+				case ui::FontSize::Large: return Settings::Editor::large_font_size;
+				case ui::FontSize::Normal:
+				default: return Settings::Editor::normal_font_size;
+			}
+		}
+
+		static ui::FontSize closest_font_size(f32 pixel_size)
+		{
+			ui::FontSize result = ui::FontSize::Normal;
+			f32 best_delta      = std::abs(pixel_size - font_size_value(result));
+
+			for (usize i = 0; i < Context::font_size_count; ++i)
+			{
+				const ui::FontSize candidate = static_cast<ui::FontSize>(i);
+				const f32 delta              = std::abs(pixel_size - font_size_value(candidate));
+
+				if (delta < best_delta)
+				{
+					best_delta = delta;
+					result     = candidate;
+				}
+			}
+
+			return result;
+		}
+
+		static Buffer load_font_data(const Path& path)
+		{
+			FileReader reader(path);
+			trinex_verify(reader.is_open());
+			return reader.read_buffer();
+		}
+
+		static ImFont* register_font(const Buffer& buffer, const ImFontConfig& config, const ImWchar* range, f32 size)
+		{
+			auto& io     = ImGui::GetIO();
+			void* memory = ImGui::MemAlloc(buffer.size());
+			memcpy(memory, buffer.data(), buffer.size());
+			return io.Fonts->AddFontFromMemoryTTF(memory, static_cast<int>(buffer.size()), size, &config, range);
+		}
+
+		static void initialize_fonts(Context* ctx)
+		{
+			auto& io = ImGui::GetIO();
+
+			const ImWchar icons_ranges[] = {
+			        0x0020,      0x00FF,// ASCII + Latin
+			        0x2000,      0x206F,// punctuation
+			        0x2190,      0x21FF,// arrows
+			        0x2700,      0x27BF,// dingbats
+			        ICON_MIN_LC, ICON_MAX_LC, 0,
+			};
+
+			const Buffer text_font_data  = load_font_data(Settings::Editor::font_path);
+			const Buffer icons_font_data = load_font_data("[content]:/TrinexEditor/fonts/Lucide/lucide.ttf");
+			const ImWchar* text_ranges   = io.Fonts->GetGlyphRangesCyrillic();
+
+			for (usize i = 0; i < Context::font_size_count; ++i)
+			{
+				const ui::FontSize size = static_cast<ui::FontSize>(i);
+				const f32 pixel_size    = font_size_value(size);
+
+				ImFontConfig text_cfg;
+				text_cfg.FontDataOwnedByAtlas = true;
+				ctx->fonts[font_family_index(ui::FontFamily::Text)][i] =
+				        register_font(text_font_data, text_cfg, text_ranges, pixel_size);
+
+				ImFontConfig icons_cfg;
+				icons_cfg.FontDataOwnedByAtlas = true;
+				icons_cfg.PixelSnapH           = true;
+				ctx->fonts[font_family_index(ui::FontFamily::Icons)][i] =
+				        register_font(icons_font_data, icons_cfg, icons_ranges, pixel_size);
+
+				ImFontConfig default_cfg;
+				default_cfg.FontDataOwnedByAtlas = true;
+				ImFont* merged_font              = register_font(text_font_data, default_cfg, text_ranges, pixel_size);
+				ctx->fonts[font_family_index(ui::FontFamily::Default)][i] = merged_font;
+
+				ImFontConfig merged_icons_cfg;
+				merged_icons_cfg.FontDataOwnedByAtlas = true;
+				merged_icons_cfg.MergeMode            = true;
+				merged_icons_cfg.DstFont              = merged_font;
+				merged_icons_cfg.PixelSnapH           = true;
+				register_font(icons_font_data, merged_icons_cfg, icons_ranges, pixel_size);
+			}
+		}
+
+		static ImFont* resolve_font(Context* ctx, ui::FontFamily family, ui::FontSize size)
+		{
+			return ctx->fonts[font_family_index(family)][font_size_index(size)];
 		}
 
 #define g_anim active_context()->anim
@@ -1563,24 +1674,6 @@ namespace Trinex::UI
 		destroy_list(active_context()->window_list);
 	}
 
-	static void register_font(Buffer& buffer, const ImFontConfig& config, const ImWchar* range, f32 size)
-	{
-		auto& io = ImGui::GetIO();
-
-		void* memory = ImGui::MemAlloc(buffer.size());
-		memcpy(memory, buffer.data(), buffer.size());
-		io.Fonts->AddFontFromMemoryTTF(memory, buffer.size(), size, &config, range);
-	}
-
-	static void register_font(const Path& path, const ImFontConfig& config, const ImWchar* range)
-	{
-		FileReader reader(path);
-		trinex_verify(reader.is_open());
-
-		Buffer buffer = reader.read_buffer();
-		register_font(buffer, config, range, Settings::Editor::normal_font_size);
-	}
-
 	Context* create_context(Trinex::Window* window)
 	{
 		Context* ctx = trx_new Context();
@@ -1589,27 +1682,11 @@ namespace Trinex::UI
 
 		UI::Backend::imgui_init(window, ctx->context);
 
-		// Load fonts
-
 		auto& io = ImGui::GetIO();
-		{
-			const ImWchar icons_ranges[] = {
-			        0x0020,      0x00FF,// ASCII + Latin
-			        0x2000,      0x206F,// punctuation
-			        0x2190,      0x21FF,// arrows
-			        0x2700,      0x27BF,// dingbats
-			        ICON_MIN_LC, ICON_MAX_LC, 0,
-			};
-
-			ImFontConfig cfg;
-			cfg.FontDataOwnedByAtlas = true;
-
-			register_font(Settings::Editor::font_path, cfg, io.Fonts->GetGlyphRangesCyrillic());
-			register_font("[content]:/TrinexEditor/fonts/Lucide/lucide.ttf", cfg, icons_ranges);
-		}
+		initialize_fonts(ctx);
 
 		io.Fonts->Build();
-		io.FontDefault = io.Fonts->Fonts[0];
+		io.FontDefault = ctx->fonts[font_family_index(FontFamily::Default)][font_size_index(FontSize::Normal)];
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 		io.IniFilename = nullptr;
 		io.LogFilename = nullptr;
@@ -1685,6 +1762,29 @@ namespace Trinex::UI
 
 		active_context()->allocator.reset();
 		ImGui::SetCurrentContext(nullptr);
+	}
+
+	void push_font(FontFamily family, FontSize size)
+	{
+		if (ImFont* value = resolve_font(active_context(), family, size))
+		{
+			ImGui::PushFont(value);
+		}
+	}
+
+	void pop_font()
+	{
+		ImGui::PopFont();
+	}
+
+	void push_text_font(FontSize size)
+	{
+		push_font(FontFamily::Text, size);
+	}
+
+	void push_icons_font(FontSize size)
+	{
+		push_font(FontFamily::Icons, size);
 	}
 
 	/////////////////////// STYLE AND EFFECTS ///////////////////////
@@ -3522,10 +3622,40 @@ namespace Trinex::UI
 	{
 		cleanup_states();
 		ImGui::PushID(label);
-		const ImGuiID id  = ImGui::GetID("button");
-		AnimState& anim   = state_for(id);
-		const ImVec2 size = default_item_size(label, to_imvec(options.size), 72.0f);
-		const ImVec2 pos  = ImGui::GetCursorScreenPos();
+		const ImGuiID id              = ImGui::GetID("button");
+		AnimState& anim               = state_for(id);
+		const StringView text_label   = visible_label(label);
+		const StringView icon_label   = options.icon != nullptr ? StringView(options.icon) : StringView();
+		const bool has_text           = !text_label.empty();
+		const bool has_icon           = !icon_label.empty();
+		const float icon_gap          = has_icon && has_text ? active_context()->style.spacing * 0.5f : 0.0f;
+		const float current_font_size = ImGui::GetFontSize();
+		ImFont* icon_font             = nullptr;
+		ImVec2 icon_size(0.0f, 0.0f);
+		if (has_icon)
+		{
+			const FontSize font_size = closest_font_size(current_font_size);
+			icon_font                = resolve_font(active_context(), FontFamily::Icons, font_size);
+			if (icon_font != nullptr)
+			{
+				icon_size = icon_font->CalcTextSizeA(current_font_size, std::numeric_limits<float>::max(), 0.0f,
+				                                     icon_label.data(), icon_label.data() + icon_label.size());
+			}
+		}
+
+		const ImVec2 text_size = has_text ? ImGui::CalcTextSize(text_label.data(), text_label.data() + text_label.size(), true)
+		                                  : ImVec2(0.0f, 0.0f);
+		const ImVec2 content_size(icon_size.x + icon_gap + text_size.x, std::max(icon_size.y, text_size.y));
+		ImVec2 size = to_imvec(options.size);
+		if (size.x <= 0.0f)
+		{
+			size.x = std::max(72.0f, content_size.x + active_context()->style.padding * 2.0f);
+		}
+		if (size.y <= 0.0f)
+		{
+			size.y = active_context()->style.frame_height;
+		}
+		const ImVec2 pos = ImGui::GetCursorScreenPos();
 
 		if (options.disabled)
 		{
@@ -3568,19 +3698,20 @@ namespace Trinex::UI
 		        col_u32(Math::lerp(active_context()->style.colors.border, accent, anim.hover), options.disabled ? 0.45f : 1.0f),
 		        active_context()->style.rounding * rect.rounding_scale, 0, active_context()->style.border_size);
 
-		String full_label;
-		if (options.icon != nullptr && options.icon[0] != '\0')
+		const Vec4 tc = options.disabled ? active_context()->style.colors.text_disabled
+		                                 : Math::lerp(active_context()->style.colors.text, Vec4(1, 1, 1, 1), anim.hover * 0.35f);
+		float x       = rect.center.x - content_size.x * 0.5f;
+		if (has_icon && icon_font != nullptr)
 		{
-			full_label = String(options.icon) + "  " + visible_label(label);
+			draw->AddText(icon_font, current_font_size, ImVec2(x, rect.center.y - icon_size.y * 0.5f), col_u32(tc),
+			              icon_label.data(), icon_label.data() + icon_label.size());
+			x += icon_size.x + icon_gap;
 		}
-		else
+		if (has_text)
 		{
-			full_label = visible_label(label);
+			draw->AddText(ImVec2(x, rect.center.y - text_size.y * 0.5f), col_u32(tc), text_label.data(),
+			              text_label.data() + text_label.size());
 		}
-		const ImVec2 ts = ImGui::CalcTextSize(full_label.c_str());
-		const Vec4 tc   = options.disabled ? active_context()->style.colors.text_disabled
-		                                   : Math::lerp(active_context()->style.colors.text, Vec4(1, 1, 1, 1), anim.hover * 0.35f);
-		draw->AddText(ImVec2(rect.center.x - ts.x * 0.5f, rect.center.y - ts.y * 0.5f), col_u32(tc), full_label.c_str());
 		ImGui::PopID();
 		return clicked;
 	}
@@ -4918,19 +5049,19 @@ namespace Trinex::UI
 	bool command_palette()
 	{
 		trinex_assert(active_context() && "UI::command_palette() requires an active UI context");
-		
+
 		AnimState& palette_anim      = state_for(ImGui::GetID("##command_palette_popup_anim"));
 		AnimState& palette_blur_anim = state_for(ImGui::GetID("##command_palette_blur_anim"));
 		palette_anim.open =
 		        approach(palette_anim.open, g_command_palette.open ? 1.0f : 0.0f, active_context()->style.animation_speed);
 		palette_blur_anim.open = approach(palette_blur_anim.open, g_command_palette.open ? 1.0f : 0.0f,
 		                                  active_context()->style.animation_speed * 0.45f);
-		
+
 		if (!g_command_palette.open && palette_anim.open <= 0.0f && palette_blur_anim.open <= 0.0f)
 		{
 			return false;
 		}
-		
+
 		if (g_command_palette.open && palette_anim.open > 0.995f)
 		{
 			palette_anim.open = 1.0f;
@@ -5262,6 +5393,32 @@ namespace Trinex::UI
 			}
 		}
 		return false;
+	}
+
+	/////////////////////// ICONS ///////////////////////
+
+	void icon(const char* value, FontSize size)
+	{
+		if (value == nullptr)
+		{
+			return;
+		}
+
+		push_icons_font(size);
+		ImGui::TextUnformatted(value);
+		pop_font();
+	}
+
+	void icon_colored(const Vec4& color, const char* value, FontSize size)
+	{
+		if (value == nullptr)
+		{
+			return;
+		}
+
+		push_icons_font(size);
+		ImGui::TextColored(to_imvec(color), "%s", value);
+		pop_font();
 	}
 
 	/////////////////////// FEEDBACK AND DATA VIEWS ///////////////////////
