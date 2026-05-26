@@ -312,12 +312,13 @@ namespace Trinex
 
 		Key key;
 
-		key.type   = type;
-		key.format = format;
-		key.flags  = flags;
-		key.width  = size.x;
-		key.height = size.y;
-		key.depth  = size.z;
+		key.width   = size.x;
+		key.height  = size.y;
+		key.depth   = size.z;
+		key.type    = type;
+		key.format  = format;
+		key.flags   = flags;
+		key.padding = 0;
 
 		auto& pool = m_pools[key];
 

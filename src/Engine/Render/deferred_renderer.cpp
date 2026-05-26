@@ -649,9 +649,9 @@ namespace Trinex
 			Vector2u size;
 		};
 
-		Chain chain[6];
+		Chain chain[6]   = {};
 		chain[0].size    = size / 2u;
-		chain[0].texture = pool->request_surface(RHISurfaceFormat::RGBA16F, chain[0].size, RHITextureFlags::ColorAttachment);
+		chain[0].texture = pool->request_surface(RHISurfaceFormat::RGBA16F, chain[0].size);
 
 		RHITexture* const hdr = scene_color_hdr_target();
 
@@ -679,9 +679,8 @@ namespace Trinex
 		{
 			for (int i = 1; i < 6; ++i)
 			{
-				chain[i].size = chain[i - 1].size / 2u;
-				chain[i].texture =
-				        pool->request_surface(RHISurfaceFormat::RGBA16F, chain[i].size, RHITextureFlags::ColorAttachment);
+				chain[i].size    = chain[i - 1].size / 2u;
+				chain[i].texture = pool->request_surface(RHISurfaceFormat::RGBA16F, chain[i].size);
 
 				ctx->barrier(chain[i - 1].texture, RHIAccess::SRVGraphics);
 				ctx->barrier(chain[i].texture, RHIAccess::RTV);
@@ -730,7 +729,10 @@ namespace Trinex
 			trinex_rhi_pop_stage(ctx);
 		}
 
-		for (int i = 0; i < 6; ++i) pool->return_surface(chain[i].texture);
+		for (auto& block : chain)
+		{
+			pool->return_surface(block.texture);
+		}
 		return *this;
 	}
 

@@ -212,8 +212,7 @@ namespace Trinex::UI::Backend
 				return;
 			}
 
-			RHITexturePool* pool = RHITexturePool::global_instance();
-
+			RHITexturePool* pool     = RHITexturePool::global_instance();
 			const Vector2u view_size = {draw_data->DisplaySize.x, draw_data->DisplaySize.y};
 
 			bd->context = ctx;
@@ -380,7 +379,7 @@ namespace Trinex::UI::Backend
 
 				ctx->barrier(bd->target, RHIAccess::TransferSrc);
 				ctx->barrier(swapchain, RHIAccess::TransferDst);
-				ctx->copy(swapchain, bd->target, RHITextureRegion(view_size));
+				ctx->copy(swapchain, RHITextureRegion(swapchain->size()), bd->target, RHITextureRegion(view_size));
 			}
 			trinex_rhi_pop_stage(ctx);
 			pool->return_surface(bd->target);

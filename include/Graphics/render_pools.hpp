@@ -70,13 +70,13 @@ namespace Trinex
 	{
 	private:
 		struct Key {
-			RHISurfaceFormat format;
-			RHITextureType type;
-			RHITextureFlags flags;
-
 			u16 width;
 			u16 height;
 			u16 depth;
+			RHISurfaceFormat format;
+			RHITextureType type;
+			RHITextureFlags flags;
+			u8 padding;
 
 			inline bool operator==(const Key& key) const = default;
 		};
@@ -101,8 +101,10 @@ namespace Trinex
 		static RHITexturePool* global_instance();
 
 		RHITexturePool& update();
-		RHITexture* request_surface(RHISurfaceFormat format, Vector2u size, RHITextureFlags flags = {});
-		RHITexture* request_surface(RHITextureType type, RHISurfaceFormat format, Vector3u size, RHITextureFlags flags = {});
+		RHITexture* request_surface(RHISurfaceFormat format, Vector2u size,
+		                            RHITextureFlags flags = RHITextureFlags::ColorAttachment);
+		RHITexture* request_surface(RHITextureType type, RHISurfaceFormat format, Vector3u size,
+		                            RHITextureFlags flags = RHITextureFlags::ColorAttachment);
 		RHITexture* request_transient_surface(RHISurfaceFormat format, Vector2u size, RHITextureFlags flags = {});
 		RHITexture* request_transient_surface(RHITextureType type, RHISurfaceFormat format, Vector3u size,
 		                                      RHITextureFlags flags = {});
