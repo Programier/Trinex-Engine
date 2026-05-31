@@ -12,7 +12,8 @@ namespace Trinex::UI
 		trinex_class(Client, ViewportClient);
 
 	private:
-		Context* m_ctx = nullptr;
+		Context* m_ctx             = nullptr;
+		RenderViewport* m_viewport = nullptr;
 
 	public:
 		MenuBar menu_bar;
@@ -27,7 +28,9 @@ namespace Trinex::UI
 
 		virtual Client& setup_dockspace(DockLayoutBuilder& builder);
 		virtual Client& select(Object* object);
+		virtual Client& update(float dt);
 
 		inline Context* context() const { return m_ctx; }
+		inline RenderViewport* viewport() const { return m_viewport; }
 	};
 }// namespace Trinex::UI

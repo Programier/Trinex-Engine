@@ -19,7 +19,8 @@ namespace Trinex::UI
 	Client& Client::attach(class RenderViewport* viewport)
 	{
 		Super::attach(viewport);
-		m_ctx = UI::create_context(viewport->window());
+		m_ctx      = UI::create_context(viewport->window());
+		m_viewport = viewport;
 		return *this;
 	}
 
@@ -27,7 +28,8 @@ namespace Trinex::UI
 	{
 		Super::attach(viewport);
 		UI::destroy_context(m_ctx);
-		m_ctx = nullptr;
+		m_ctx      = nullptr;
+		m_viewport = viewport;
 		return *this;
 	}
 
@@ -60,9 +62,15 @@ namespace Trinex::UI
 				}
 			}
 
+			update(dt);
 			UI::end_frame();
 		}
 
+		return *this;
+	}
+
+	Client& Client::update(float dt)
+	{
 		return *this;
 	}
 

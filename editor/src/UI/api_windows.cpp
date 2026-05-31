@@ -1,0 +1,1198 @@
+#include "api_internal.hpp"
+
+namespace Trinex::UI
+{
+	/////////////////////// WINDOWS AND CONTAINERS ///////////////////////
+
+	bool begin_window(const char* name, bool* open, WindowFlags flags, const WindowOptions& options)
+	{
+		trinex_assert(has_text(name) && "UI::begin_window() requires a non-empty name");
+		if (!has_text(name))
+		{
+			return false;
+		}
+
+		if (open != nullptr && *open == false)
+		{
+			return false;
+		}
+
+		apply_window_options_pre_begin(options);
+		push_window_styles(false);
+
+		const bool visible = ImGui::Begin(name, open, to_imgui_window_flags(flags));
+		if (visible)
+		{
+			apply_window_options_post_begin(options);
+		}
+		else
+		{
+			end_window();
+		}
+		return visible;
+	}
+
+	void end_window()
+	{
+		ImGui::End();
+		pop_window_styles();
+	}
+
+	void create_widget(Context* context, const char* name, WindowFlags flags, const WindowOptions& options, Widget* widget)
+	{
+		if (context == nullptr || name == nullptr || widget == nullptr)
+		{
+			return;
+		}
+
+		setup_window(ensure_window(context, name), flags, options, widget);
+	}
+
+	void create_widget(Context* context, const char* name, WindowFlags flags, const WindowOptions& options,
+	                   const Function<void()>& content)
+	{
+		if (context == nullptr || content == nullptr)
+		{
+			return;
+		}
+
+		create_widget(context, name, flags, options, trx_new FunctionWidget(content));
+	}
+
+	bool begin_panel(const char* id, const PanelOptions& options)
+	{
+		const Vec4 bg = has_color(options.background_color) ? options.background_color : active_context()->style.colors.panel;
+		const float rounding = options.rounding >= 0.0f ? options.rounding : active_context()->style.rounding;
+		ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, rounding);
+		ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,
+		                    ImVec2(active_context()->style.padding, active_context()->style.padding));
+		ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
+		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
+		const bool visible =
+		        ImGui::BeginChild(id, to_imvec(options.size), ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_None);
+		if (!visible)
+		{
+			ImGui::EndChild();
+			ImGui::PopStyleColor(2);
+			ImGui::PopStyleVar(3);
+			return false;
+		}
+
+		PanelContext context;
+		context.border           = options.border;
+		context.background       = options.background;
+		context.rounding         = rounding;
+		context.background_color = bg;
+		context.border_color     = active_context()->style.colors.border;
+		context.draw_shadow      = options.background && has_shadow_override() && shadow_visible(current_shadow());
+		context.shadow           = current_shadow();
+		g_panel_stack.push_back(context);
+		ImGui::GetWindowDrawList()->ChannelsSplit(2);
+		ImGui::GetWindowDrawList()->ChannelsSetCurrent(1);
+		return true;
+	}
+
+	void end_panel()
+	{
+		trinex_assert(!g_panel_stack.empty() && "UI::end_panel() called without matching begin_panel()");
+		if (g_panel_stack.empty())
+		{
+			return;
+		}
+
+		const PanelContext context = g_panel_stack.back();
+		g_panel_stack.pop_back();
+
+		ImDrawList* draw = ImGui::GetWindowDrawList();
+		draw->ChannelsSetCurrent(0);
+		const ImVec2 min = ImGui::GetWindowPos();
+		const ImVec2 max = add(min, ImGui::GetWindowSize());
+		if (context.draw_shadow)
+		{
+			draw_shadow_rect(draw, min, max, context.rounding, context.shadow);
+		}
+		if (context.background)
+		{
+			draw->AddRectFilled(min, max, col_u32(context.background_color), context.rounding);
+		}
+		if (context.border)
+		{
+			draw->AddRect(min, max, col_u32(context.border_color), context.rounding, 0, active_context()->style.border_size);
+		}
+		draw->ChannelsSetCurrent(1);
+		draw->ChannelsMerge();
+
+		ImGui::EndChild();
+		ImGui::PopStyleColor(2);
+		ImGui::PopStyleVar(3);
+	}
+
+	bool begin_glass_panel(const char* id, const Vec2& size, const GlassOptions& options)
+	{
+		trinex_assert(has_text(id) && "UI::begin_glass_panel() requires a non-empty id");
+		if (!has_text(id))
+		{
+			return false;
+		}
+
+		const float rounding = options.rounding >= 0.0f ? options.rounding : active_context()->style.rounding;
+		const float padding  = options.padding >= 0.0f ? options.padding : active_context()->style.padding;
+		const float opacity  = Math::clamp(options.opacity, 0.0f, 1.0f);
+
+		Vec2 resolved_size = size;
+		if (resolved_size.x <= 0.0f)
+		{
+			resolved_size.x = ImGui::GetContentRegionAvail().x;
+		}
+
+		ImGuiChildFlags child_flags = ImGuiChildFlags_AlwaysUseWindowPadding;
+		if (resolved_size.y <= 0.0f)
+		{
+			child_flags |= ImGuiChildFlags_AutoResizeY;
+		}
+
+		ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, rounding);
+		ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(padding, padding));
+		ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
+		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
+
+		const bool visible = ImGui::BeginChild(id, to_imvec(resolved_size), child_flags, ImGuiWindowFlags_None);
+		if (!visible)
+		{
+			ImGui::EndChild();
+			ImGui::PopStyleColor(2);
+			ImGui::PopStyleVar(3);
+			return false;
+		}
+
+		GlassPanelContext context;
+		context.id            = ImGui::GetID("glass_panel_anim");
+		context.border        = options.border;
+		context.background    = options.background;
+		context.draw_shadow   = shadow_visible(current_shadow()) && opacity > 0.0f;
+		context.highlight_top = options.highlight_top;
+		context.rounding      = rounding;
+		context.tint          = options.tint;
+		context.tint.w *= opacity;
+		context.border_color = has_color(options.border_color) ? options.border_color : default_glass_border();
+		context.border_color.w *= opacity;
+		context.highlight = options.highlight;
+		context.highlight.w *= opacity;
+		context.blur = current_blur();
+		context.blur.radius *= opacity;
+		context.blur.sigma *= opacity;
+		context.blur.spread *= opacity;
+		context.blur.rounding = rounding;
+		context.shadow        = current_shadow();
+		context.shadow.color.w *= opacity;
+		g_glass_panel_stack.push_back(context);
+		ImGui::GetWindowDrawList()->ChannelsSplit(2);
+		ImGui::GetWindowDrawList()->ChannelsSetCurrent(1);
+		return true;
+	}
+
+	void end_glass_panel()
+	{
+		trinex_assert(!g_glass_panel_stack.empty() && "UI::end_glass_panel() called without matching begin_glass_panel()");
+		if (g_glass_panel_stack.empty())
+		{
+			return;
+		}
+
+		const GlassPanelContext context = g_glass_panel_stack.back();
+		g_glass_panel_stack.pop_back();
+
+		const ImVec2 min = ImGui::GetWindowPos();
+		const ImVec2 max = add(min, ImGui::GetWindowSize());
+		ImDrawList* draw = ImGui::GetWindowDrawList();
+		draw->ChannelsSetCurrent(0);
+
+		if (context.draw_shadow)
+		{
+			draw_shadow_rect(draw, min, max, context.rounding, context.shadow);
+		}
+
+		if (context.blur.radius > 0.0f)
+		{
+			blur(to_vec(min), to_vec(max), context.blur);
+		}
+
+		if (context.background && context.tint.w > 0.0f)
+		{
+			draw->AddRectFilled(min, max, col_u32(context.tint), context.rounding);
+		}
+
+		if (context.border)
+		{
+			draw->AddRect(min, max, col_u32(context.border_color), context.rounding, 0, active_context()->style.border_size);
+		}
+
+		if (context.highlight_top && context.highlight.w > 0.0f)
+		{
+			const float inset = std::max(1.0f, active_context()->style.border_size);
+			const ImVec2 line_min(min.x + context.rounding * 0.35f, min.y + inset);
+			const ImVec2 line_max(max.x - context.rounding * 0.35f, min.y + inset);
+			draw->AddLine(line_min, line_max, col_u32(context.highlight), 1.0f);
+		}
+		draw->ChannelsSetCurrent(1);
+		draw->ChannelsMerge();
+		ImGui::EndChild();
+		ImGui::PopStyleColor(2);
+		ImGui::PopStyleVar(3);
+	}
+
+	bool begin_child_panel(const char* id, const Vec2& size, const PanelOptions& options)
+	{
+		PanelOptions copy = options;
+		copy.size         = size;
+		return begin_panel(id, copy);
+	}
+
+	void end_child_panel()
+	{
+		end_panel();
+	}
+
+	bool begin_group_panel(const char* label, const Vec2& size, const PanelOptions& options)
+	{
+		ImGui::BeginGroup();
+		if (label != nullptr && label[0] != '\0')
+		{
+			text_muted("%s", label);
+		}
+
+		if (!begin_child_panel(label, size, options))
+		{
+			ImGui::EndGroup();
+			return false;
+		}
+
+		return true;
+	}
+
+	void end_group_panel()
+	{
+		end_child_panel();
+		ImGui::EndGroup();
+	}
+
+	bool begin_group()
+	{
+		ImGui::BeginGroup();
+		return true;
+	}
+
+	void end_group()
+	{
+		ImGui::EndGroup();
+	}
+
+	bool begin_card(const char* title, const CardOptions& options)
+	{
+		cleanup_states();
+		if (title != nullptr && title[0] != '\0')
+		{
+			ImGui::PushID(title);
+		}
+		else
+		{
+			ImGui::PushID(ImGui::GetID("card_scope"));
+		}
+
+		const float rounding = options.rounding >= 0.0f ? options.rounding : active_context()->style.rounding;
+		const float padding  = options.padding >= 0.0f ? options.padding : active_context()->style.padding;
+		const float spacing  = options.spacing >= 0.0f ? options.spacing : active_context()->style.spacing;
+		const Vec4 accent    = has_color(options.accent) ? options.accent : active_context()->style.colors.accent;
+		const Vec4 bg     = has_color(options.background_color) ? options.background_color : active_context()->style.colors.panel;
+		const Vec4 border = has_color(options.border_color) ? options.border_color : active_context()->style.colors.border;
+
+		Vec2 size = options.size;
+		if (size.x <= 0.0f)
+		{
+			size.x = ImGui::GetContentRegionAvail().x;
+		}
+
+		ImGuiChildFlags child_flags = ImGuiChildFlags_AlwaysUseWindowPadding;
+		if (size.y <= 0.0f)
+		{
+			child_flags |= ImGuiChildFlags_AutoResizeY;
+		}
+
+		ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, rounding);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(padding, padding));
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(spacing, spacing));
+		ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
+		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
+
+		const bool visible = ImGui::BeginChild("##card", to_imvec(size), child_flags, ImGuiWindowFlags_None);
+		if (!visible)
+		{
+			ImGui::EndChild();
+			ImGui::PopStyleColor(2);
+			ImGui::PopStyleVar(3);
+			ImGui::PopID();
+			return false;
+		}
+
+		CardContext context;
+		context.id               = ImGui::GetID("card_anim");
+		context.disabled         = options.disabled;
+		context.hoverable        = options.hoverable;
+		context.selected         = options.selected;
+		context.border           = options.border;
+		context.background       = options.background;
+		context.rounding         = rounding;
+		context.elevation        = std::max(0.0f, options.elevation);
+		context.accent           = accent;
+		context.background_color = bg;
+		context.border_color     = border;
+		context.shadow           = current_shadow();
+		g_card_stack.push_back(context);
+		ImGui::GetWindowDrawList()->ChannelsSplit(2);
+		ImGui::GetWindowDrawList()->ChannelsSetCurrent(1);
+
+		if (options.disabled)
+		{
+			begin_disabled(true);
+		}
+
+		const bool has_title    = title != nullptr && visible_label(title)[0] != '\0';
+		const bool has_subtitle = options.subtitle != nullptr && options.subtitle[0] != '\0';
+		const bool has_icon     = options.icon != nullptr && options.icon[0] != '\0';
+		const bool has_right    = options.right_text != nullptr && options.right_text[0] != '\0';
+		if (has_title || has_subtitle || has_icon || has_right)
+		{
+			const ImVec2 start     = ImGui::GetCursorScreenPos();
+			const float content_w  = ImGui::GetContentRegionAvail().x;
+			const float icon_w     = has_icon ? ImGui::CalcTextSize(options.icon).x : 0.0f;
+			const float right_w    = has_right ? ImGui::CalcTextSize(options.right_text).x : 0.0f;
+			const float title_h    = has_title ? ImGui::GetTextLineHeight() : 0.0f;
+			const float subtitle_h = has_subtitle ? ImGui::GetTextLineHeight() : 0.0f;
+			const float header_h   = std::max(
+                    std::max(title_h + (has_subtitle ? subtitle_h + 2.0f : 0.0f), has_icon ? ImGui::GetTextLineHeight() : 0.0f),
+                    has_right ? ImGui::GetTextLineHeight() : 0.0f);
+			const float icon_gap   = has_icon ? spacing * 0.75f : 0.0f;
+			const float right_gap  = has_right ? spacing : 0.0f;
+			const float title_x    = start.x + icon_w + icon_gap;
+			const float right_x    = start.x + content_w - right_w;
+			ImDrawList* draw       = ImGui::GetWindowDrawList();
+			const Vec4 title_color = options.selected ? Math::lerp(active_context()->style.colors.text, accent, 0.22f)
+			                                          : active_context()->style.colors.text;
+			const Vec4 right_color = options.selected ? accent : active_context()->style.colors.text_muted;
+			if (has_icon)
+			{
+				draw->AddText(ImVec2(start.x, start.y + (header_h - ImGui::GetTextLineHeight()) * 0.5f),
+				              col_u32(options.selected ? accent : active_context()->style.colors.text_muted), options.icon);
+			}
+			if (has_title)
+			{
+				draw->AddText(ImVec2(title_x, start.y), col_u32(title_color), visible_label(title));
+			}
+			if (has_subtitle)
+			{
+				draw->AddText(ImVec2(title_x, start.y + title_h + 2.0f), col_u32(active_context()->style.colors.text_muted),
+				              options.subtitle);
+			}
+			if (has_right)
+			{
+				draw->AddText(ImVec2(right_x, start.y + (header_h - ImGui::GetTextLineHeight()) * 0.5f), col_u32(right_color),
+				              options.right_text);
+			}
+			ImGui::Dummy(ImVec2(std::max(1.0f, content_w - (has_right ? right_w + right_gap : 0.0f)), header_h));
+			ImGui::Dummy(ImVec2(0.0f, spacing * 0.35f));
+		}
+		return true;
+	}
+
+	void end_card()
+	{
+		trinex_assert(!g_card_stack.empty() && "UI::end_card() called without matching begin_card()");
+		if (g_card_stack.empty())
+		{
+			return;
+		}
+
+		const CardContext context = g_card_stack.back();
+		g_card_stack.pop_back();
+
+		const ImVec2 min   = ImGui::GetWindowPos();
+		const ImVec2 size  = ImGui::GetWindowSize();
+		const ImVec2 max   = add(min, size);
+		const bool hovered = context.hoverable && !context.disabled && ImGui::IsMouseHoveringRect(min, max, true);
+		AnimState& anim    = state_for(context.id);
+		anim.hover         = approach(anim.hover, hovered ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.selected      = approach(anim.selected, context.selected ? 1.0f : 0.0f, active_context()->style.animation_speed);
+
+		const Vec4 accent  = context.accent;
+		Vec4 border_target = context.selected ? Math::lerp(context.border_color, accent, 0.7f) : context.border_color;
+		Vec4 background    = context.background ? context.background_color : Vec4(0, 0, 0, 0);
+		if (context.background)
+		{
+			background = Math::lerp(background, active_context()->style.colors.background_hovered, anim.hover * 0.40f);
+			background = Math::lerp(background, with_alpha(accent, 1.0f), anim.selected * 0.12f);
+		}
+		border_target = Math::lerp(border_target, accent, anim.hover * 0.30f);
+
+		ImDrawList* draw = ImGui::GetWindowDrawList();
+		draw->ChannelsSetCurrent(0);
+
+		if (context.elevation > 0.0f)
+		{
+			draw_shadow_rect(draw, min, max, context.rounding, scaled_shadow(context.shadow, context.elevation));
+		}
+		if (context.background)
+		{
+			draw->AddRectFilled(min, max, col_u32(background), context.rounding);
+		}
+		if (anim.selected > 0.01f)
+		{
+			draw->AddRectFilled(min, ImVec2(min.x + 3.0f, max.y), col_u32(accent, 0.95f * anim.selected), context.rounding,
+			                    ImDrawFlags_RoundCornersLeft);
+		}
+		if (context.border)
+		{
+			const float alpha = context.selected ? 1.0f : Math::lerp(0.85f, 1.0f, anim.hover * 0.65f);
+			draw->AddRect(min, max, col_u32(border_target, alpha), context.rounding, 0, active_context()->style.border_size);
+		}
+		draw->ChannelsSetCurrent(1);
+		draw->ChannelsMerge();
+
+		if (context.disabled)
+		{
+			end_disabled();
+		}
+
+		ImGui::EndChild();
+		ImGui::PopStyleColor(2);
+		ImGui::PopStyleVar(3);
+		ImGui::PopID();
+	}
+
+	bool card_button(const char* title, const CardOptions& options)
+	{
+		cleanup_states();
+		if (title != nullptr && title[0] != '\0')
+		{
+			ImGui::PushID(title);
+		}
+		else
+		{
+			ImGui::PushID("card_button");
+		}
+
+		const ImGuiID id     = ImGui::GetID("card_button");
+		AnimState& anim      = state_for(id);
+		const float rounding = options.rounding >= 0.0f ? options.rounding : active_context()->style.rounding;
+		const float padding  = options.padding >= 0.0f ? options.padding : active_context()->style.padding;
+		const float spacing  = options.spacing >= 0.0f ? options.spacing : active_context()->style.spacing;
+		const Vec4 accent    = has_color(options.accent) ? options.accent : active_context()->style.colors.accent;
+		Vec4 bg     = has_color(options.background_color) ? options.background_color : active_context()->style.colors.panel;
+		Vec4 border = has_color(options.border_color) ? options.border_color : active_context()->style.colors.border;
+		const bool has_title    = title != nullptr && visible_label(title)[0] != '\0';
+		const bool has_subtitle = options.subtitle != nullptr && options.subtitle[0] != '\0';
+		const bool has_icon     = options.icon != nullptr && options.icon[0] != '\0';
+		const bool has_right    = options.right_text != nullptr && options.right_text[0] != '\0';
+		const float icon_w      = has_icon ? ImGui::CalcTextSize(options.icon).x : 0.0f;
+		const float right_w     = has_right ? ImGui::CalcTextSize(options.right_text).x : 0.0f;
+		const float title_h     = has_title ? ImGui::GetTextLineHeight() : 0.0f;
+		const float subtitle_h  = has_subtitle ? ImGui::GetTextLineHeight() : 0.0f;
+		const float header_h    = std::max(
+                std::max(title_h + (has_subtitle ? subtitle_h + 2.0f : 0.0f), has_icon ? ImGui::GetTextLineHeight() : 0.0f),
+                has_right ? ImGui::GetTextLineHeight() : 0.0f);
+
+		Vec2 size = options.size;
+		if (size.x <= 0.0f)
+		{
+			size.x = ImGui::GetContentRegionAvail().x;
+		}
+		if (size.y <= 0.0f)
+		{
+			size.y = padding * 2.0f + std::max(header_h, active_context()->style.frame_height);
+		}
+
+		const ImVec2 pos = ImGui::GetCursorScreenPos();
+		if (options.disabled)
+		{
+			ImGui::BeginDisabled();
+		}
+		ImGui::InvisibleButton("##card_button", to_imvec(size));
+		if (options.disabled)
+		{
+			ImGui::EndDisabled();
+		}
+
+		const bool hovered = options.hoverable && !options.disabled && ImGui::IsItemHovered();
+		const bool active  = !options.disabled && ImGui::IsItemActive();
+		const bool clicked = !options.disabled && ImGui::IsItemClicked();
+		anim.hover         = approach(anim.hover, hovered ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.active        = approach(anim.active, active ? 1.0f : 0.0f, active_context()->style.animation_speed * 1.5f);
+		anim.selected      = approach(anim.selected, options.selected ? 1.0f : 0.0f, active_context()->style.animation_speed);
+
+		const InteractiveRect rect = make_interactive_rect(pos, to_imvec(size), anim.hover, anim.active);
+
+		if (options.background)
+		{
+			bg = Math::lerp(bg, active_context()->style.colors.background_hovered, anim.hover * 0.40f);
+			bg = Math::lerp(bg, active_context()->style.colors.background_active, anim.active * 0.38f);
+			bg = Math::lerp(bg, with_alpha(accent, 1.0f), anim.selected * 0.12f);
+		}
+		border = Math::lerp(border, accent, anim.hover * 0.30f + anim.selected * 0.55f + anim.active * 0.20f);
+
+		ImDrawList* draw = ImGui::GetWindowDrawList();
+		if (options.elevation > 0.0f)
+		{
+			Shadow shadow = scaled_shadow(current_shadow(), options.elevation);
+			if (options.disabled)
+			{
+				shadow.color.w *= 0.55f;
+			}
+			draw_shadow_rect(draw, rect.min, rect.max, rounding * rect.rounding_scale, shadow);
+		}
+		if (options.background)
+		{
+			draw->AddRectFilled(rect.min, rect.max, col_u32(bg, options.disabled ? 0.55f : 1.0f), rounding * rect.rounding_scale);
+		}
+		if (anim.selected > 0.01f)
+		{
+			draw->AddRectFilled(rect.min, ImVec2(rect.min.x + 3.0f, rect.max.y), col_u32(accent, 0.95f * anim.selected),
+			                    rounding * rect.rounding_scale, ImDrawFlags_RoundCornersLeft);
+		}
+		if (options.border)
+		{
+			const float alpha = options.selected ? 1.0f : Math::lerp(0.85f, 1.0f, anim.hover * 0.65f);
+			draw->AddRect(rect.min, rect.max, col_u32(border, alpha * (options.disabled ? 0.7f : 1.0f)),
+			              rounding * rect.rounding_scale, 0, active_context()->style.border_size);
+		}
+
+		const float icon_gap   = has_icon ? spacing * 0.75f : 0.0f;
+		const float title_x    = rect.min.x + padding + icon_w + icon_gap;
+		const float right_x    = rect.max.x - padding - right_w;
+		const float header_top = rect.min.y + std::max(0.0f, (rect.visual_size.y - header_h) * 0.5f);
+		const Vec4 title_color = options.selected ? Math::lerp(active_context()->style.colors.text, accent, 0.22f)
+		                                          : active_context()->style.colors.text;
+		const Vec4 right_color = options.selected ? accent : active_context()->style.colors.text_muted;
+		const float alpha_mul  = options.disabled ? 0.55f : 1.0f;
+		if (has_icon)
+		{
+			draw->AddText(ImVec2(rect.min.x + padding, header_top + (header_h - ImGui::GetTextLineHeight()) * 0.5f),
+			              col_u32(options.selected ? accent : active_context()->style.colors.text_muted, alpha_mul),
+			              options.icon);
+		}
+		if (has_title)
+		{
+			draw->AddText(ImVec2(title_x, header_top), col_u32(title_color, alpha_mul), visible_label(title));
+		}
+		if (has_subtitle)
+		{
+			draw->AddText(ImVec2(title_x, header_top + title_h + 2.0f),
+			              col_u32(active_context()->style.colors.text_muted, alpha_mul), options.subtitle);
+		}
+		if (has_right)
+		{
+			draw->AddText(ImVec2(right_x, header_top + (header_h - ImGui::GetTextLineHeight()) * 0.5f),
+			              col_u32(right_color, alpha_mul), options.right_text);
+		}
+
+		ImGui::PopID();
+		return clicked;
+	}
+
+	/////////////////////// LAYOUT AND SCROLLING ///////////////////////
+
+	bool begin_horizontal(const char* id_text, const Vec2& size, float align)
+	{
+		ImGui::BeginHorizontal(id_text, to_imvec(size), align);
+		return true;
+	}
+
+	bool begin_horizontal(const void* id, const Vec2& size, float align)
+	{
+		ImGui::BeginHorizontal(id, to_imvec(size), align);
+		return true;
+	}
+
+	bool begin_horizontal(int id, const Vec2& size, float align)
+	{
+		ImGui::BeginHorizontal(id, to_imvec(size), align);
+		return true;
+	}
+
+	void end_horizontal()
+	{
+		ImGui::EndHorizontal();
+	}
+
+	bool begin_vertical(const char* id_text, const Vec2& size, float align)
+	{
+		ImGui::BeginVertical(id_text, to_imvec(size), align);
+		return true;
+	}
+
+	bool begin_vertical(const void* id, const Vec2& size, float align)
+	{
+		ImGui::BeginVertical(id, to_imvec(size), align);
+		return true;
+	}
+
+	bool begin_vertical(int id, const Vec2& size, float align)
+	{
+		ImGui::BeginVertical(id, to_imvec(size), align);
+		return true;
+	}
+
+	void end_vertical()
+	{
+		ImGui::EndVertical();
+	}
+
+	void spring(float weight, float spacing)
+	{
+		ImGui::Spring(weight, spacing);
+	}
+
+	void suspend_layout()
+	{
+		ImGui::SuspendLayout();
+	}
+
+	void resume_layout()
+	{
+		ImGui::ResumeLayout();
+	}
+
+	void separator()
+	{
+		ImGui::Spacing();
+		ImGui::PushStyleColor(ImGuiCol_Separator, to_imvec(active_context()->style.colors.border));
+		ImGui::Separator();
+		ImGui::PopStyleColor();
+		ImGui::Spacing();
+	}
+
+	void spacing(float amount)
+	{
+		if (amount < 0.0f)
+		{
+			ImGui::Spacing();
+			return;
+		}
+		ImGui::Dummy(ImVec2(0.0f, amount));
+	}
+
+	void same_line(float offset_from_start_x, float spacing_value)
+	{
+		ImGui::SameLine(offset_from_start_x, spacing_value);
+	}
+
+	bool begin_disabled(bool disabled)
+	{
+		ImGui::BeginDisabled(disabled);
+		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * (disabled ? 0.55f : 1.0f));
+		g_disabled_alpha_stack.push_back(active_context()->draw_alpha);
+		if (disabled)
+		{
+			active_context()->draw_alpha *= 0.55f;
+		}
+		return true;
+	}
+
+	void end_disabled()
+	{
+		if (!g_disabled_alpha_stack.empty())
+		{
+			active_context()->draw_alpha = g_disabled_alpha_stack.back();
+			g_disabled_alpha_stack.pop_back();
+		}
+		ImGui::PopStyleVar();
+		ImGui::EndDisabled();
+	}
+
+	bool begin_animated_area(const char* id_label, bool visible)
+	{
+		ImGui::PushID(id_label);
+		const ImGuiID id  = ImGui::GetID("animated_area");
+		AnimState& anim   = state_for(id);
+		anim.open         = approach(anim.open, visible ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		const bool render = visible || anim.open > 0.001f;
+		if (!render)
+		{
+			ImGui::PopID();
+			return false;
+		}
+
+		const float eased          = apply_ease(anim.open, Ease::InOutQuad);
+		const ImVec2 start         = ImGui::GetCursorScreenPos();
+		const float visible_height = std::max(0.0f, anim.extra) * eased;
+		const ImVec2 clip_min(start.x - 2.0f, start.y);
+		const ImVec2 clip_max(start.x + ImGui::GetContentRegionAvail().x + 2.0f, start.y + visible_height);
+
+		ImGui::PushClipRect(clip_min, clip_max, true);
+		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * eased);
+
+		area_context context;
+		context.id                  = id;
+		context.content_start       = start;
+		context.previous_draw_alpha = active_context()->draw_alpha;
+		g_area_stack.push_back(context);
+		active_context()->draw_alpha *= eased;
+		return true;
+	}
+
+	void end_animated_area()
+	{
+		if (g_area_stack.empty())
+		{
+			return;
+		}
+
+		area_context context = g_area_stack.back();
+		g_area_stack.pop_back();
+		const ImVec2 end            = ImGui::GetCursorScreenPos();
+		const float measured_height = std::max(0.0f, end.y - context.content_start.y);
+		AnimState& anim             = state_for(context.id);
+		if (measured_height > 0.0f)
+		{
+			anim.extra = measured_height;
+		}
+
+		const float visible_height   = std::max(anim.extra, measured_height) * apply_ease(anim.open, Ease::InOutQuad);
+		active_context()->draw_alpha = context.previous_draw_alpha;
+		ImGui::PopStyleVar();
+		ImGui::PopClipRect();
+		ImGui::SetCursorScreenPos(ImVec2(context.content_start.x, context.content_start.y + visible_height));
+		ImGui::Dummy(ImVec2(0.0f, 0.0f));
+		ImGui::PopID();
+	}
+
+	bool begin_scroll_area(const char* id, const Vec2& size, bool border, WindowFlags flags)
+	{
+		bool visible = ImGui::BeginChild(id, to_imvec(size), border, to_imgui_window_flags(flags));
+
+		if (!visible)
+		{
+			ImGui::EndChild();
+		}
+
+		return visible;
+	}
+
+	void end_scroll_area()
+	{
+		ImGui::EndChild();
+	}
+
+	void scroll_to_top()
+	{
+		ImGui::SetScrollY(0.0f);
+	}
+
+	void scroll_to_bottom()
+	{
+		ImGui::SetScrollHereY(1.0f);
+	}
+
+	/////////////////////// FRAME METRICS AND INPUT STATE ///////////////////////
+
+	float delta_time()
+	{
+		return ImGui::GetIO().DeltaTime;
+	}
+
+	float frame_rate()
+	{
+		return ImGui::GetIO().Framerate;
+	}
+
+	double time_seconds()
+	{
+		return ImGui::GetTime();
+	}
+
+	int frame_count()
+	{
+		return ImGui::GetFrameCount();
+	}
+
+	Vec2 viewport_pos()
+	{
+		ImGuiWindow* window = ImGui::GetCurrentWindow();
+		return to_vec(window->Viewport->Pos);
+	}
+
+	Vec2 viewport_size()
+	{
+		ImGuiWindow* window = ImGui::GetCurrentWindow();
+		return to_vec(window->Viewport->Size);
+	}
+
+	Vec2 window_position()
+	{
+		return to_vec(ImGui::GetWindowPos());
+	}
+
+	Vec2 window_size()
+	{
+		return to_vec(ImGui::GetWindowSize());
+	}
+
+	float window_width()
+	{
+		return ImGui::GetWindowWidth();
+	}
+
+	float window_height()
+	{
+		return ImGui::GetWindowHeight();
+	}
+
+	Vec2 content_region_available()
+	{
+		return to_vec(ImGui::GetContentRegionAvail());
+	}
+
+	Vec2 cursor_position()
+	{
+		return to_vec(ImGui::GetCursorPos());
+	}
+
+	void cursor_position(const Vec2& position)
+	{
+		ImGui::SetCursorPos(to_imvec(position));
+	}
+
+	Vec2 cursor_screen_position()
+	{
+		return to_vec(ImGui::GetCursorScreenPos());
+	}
+
+	void cursor_screen_position(const Vec2& position)
+	{
+		ImGui::SetCursorScreenPos(to_imvec(position));
+	}
+
+	bool is_window_hovered()
+	{
+		return ImGui::IsWindowHovered();
+	}
+
+	bool is_window_focused()
+	{
+		return ImGui::IsWindowFocused();
+	}
+
+	bool is_window_appearing()
+	{
+		return ImGui::IsWindowAppearing();
+	}
+
+	Vec2 display_size()
+	{
+		return to_vec(ImGui::GetIO().DisplaySize);
+	}
+
+	Vec2 framebuffer_scale()
+	{
+		return to_vec(ImGui::GetIO().DisplayFramebufferScale);
+	}
+
+	bool wants_keyboard_capture()
+	{
+		return ImGui::GetIO().WantCaptureKeyboard;
+	}
+
+	bool wants_mouse_capture()
+	{
+		return ImGui::GetIO().WantCaptureMouse;
+	}
+
+	bool wants_text_input()
+	{
+		return ImGui::GetIO().WantTextInput;
+	}
+
+	bool key_ctrl()
+	{
+		return ImGui::GetIO().KeyCtrl;
+	}
+
+	bool key_shift()
+	{
+		return ImGui::GetIO().KeyShift;
+	}
+
+	bool key_alt()
+	{
+		return ImGui::GetIO().KeyAlt;
+	}
+
+	bool key_super()
+	{
+		return ImGui::GetIO().KeySuper;
+	}
+
+	bool is_key_down(Key key_code)
+	{
+		return ImGui::IsKeyDown(to_imgui_key(key_code));
+	}
+
+	bool is_key_pressed(Key key_code, bool repeat)
+	{
+		return ImGui::IsKeyPressed(to_imgui_key(key_code), repeat);
+	}
+
+	bool is_key_released(Key key_code)
+	{
+		return ImGui::IsKeyReleased(to_imgui_key(key_code));
+	}
+
+	bool is_mouse_pos_valid()
+	{
+		return ImGui::IsMousePosValid();
+	}
+
+	bool is_mouse_down(MouseButton button)
+	{
+		return ImGui::IsMouseDown(to_imgui_mouse_button(button));
+	}
+
+	bool is_mouse_clicked(MouseButton button)
+	{
+		return ImGui::IsMouseClicked(to_imgui_mouse_button(button));
+	}
+
+	bool is_mouse_released(MouseButton button)
+	{
+		return ImGui::IsMouseReleased(to_imgui_mouse_button(button));
+	}
+
+	bool is_mouse_double_clicked(MouseButton button)
+	{
+		return ImGui::IsMouseDoubleClicked(to_imgui_mouse_button(button));
+	}
+
+	bool is_mouse_dragging(MouseButton button, float lock_threshold)
+	{
+		return ImGui::IsMouseDragging(to_imgui_mouse_button(button), lock_threshold);
+	}
+
+	Vec2 mouse_position()
+	{
+		return to_vec(ImGui::GetMousePos());
+	}
+
+	Vec2 mouse_delta()
+	{
+		return to_vec(ImGui::GetIO().MouseDelta);
+	}
+
+	float mouse_wheel()
+	{
+		return ImGui::GetIO().MouseWheel;
+	}
+
+	float mouse_wheel_h()
+	{
+		return ImGui::GetIO().MouseWheelH;
+	}
+
+	Vec2 mouse_drag_delta(MouseButton button, float lock_threshold)
+	{
+		return to_vec(ImGui::GetMouseDragDelta(to_imgui_mouse_button(button), lock_threshold));
+	}
+
+	void reset_mouse_drag_delta(MouseButton button)
+	{
+		ImGui::ResetMouseDragDelta(to_imgui_mouse_button(button));
+	}
+
+	bool is_mouse_hovering_rect(const Vec2& min, const Vec2& max, bool clip)
+	{
+		return ImGui::IsMouseHoveringRect(to_imvec(min), to_imvec(max), clip);
+	}
+
+	bool is_any_item_hovered()
+	{
+		return ImGui::IsAnyItemHovered();
+	}
+
+	bool is_any_item_active()
+	{
+		return ImGui::IsAnyItemActive();
+	}
+
+	bool is_any_item_focused()
+	{
+		return ImGui::IsAnyItemFocused();
+	}
+
+	bool is_item_hovered()
+	{
+		return ImGui::IsItemHovered();
+	}
+
+	bool is_item_active()
+	{
+		return ImGui::IsItemActive();
+	}
+
+	bool is_item_clicked()
+	{
+		return ImGui::IsItemClicked();
+	}
+
+	bool is_item_focused()
+	{
+		return ImGui::IsItemFocused();
+	}
+
+	bool is_item_edited()
+	{
+		return ImGui::IsItemEdited();
+	}
+
+	bool is_item_activated()
+	{
+		return ImGui::IsItemActivated();
+	}
+
+	bool is_item_deactivated()
+	{
+		return ImGui::IsItemDeactivated();
+	}
+
+	bool is_item_deactivated_after_edit()
+	{
+		return ImGui::IsItemDeactivatedAfterEdit();
+	}
+
+	bool is_item_toggled_open()
+	{
+		return ImGui::IsItemToggledOpen();
+	}
+
+	bool is_item_visible()
+	{
+		return ImGui::IsItemVisible();
+	}
+
+	bool is_mouse_hovering_item_rect()
+	{
+		return ImGui::IsMouseHoveringRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+	}
+
+	Vec2 item_rect_min()
+	{
+		return to_vec(ImGui::GetItemRectMin());
+	}
+
+	Vec2 item_rect_max()
+	{
+		return to_vec(ImGui::GetItemRectMax());
+	}
+
+	Vec2 item_rect_size()
+	{
+		return to_vec(ImGui::GetItemRectSize());
+	}
+
+	Vec2 item_rect_center()
+	{
+		const ImVec2 min = ImGui::GetItemRectMin();
+		const ImVec2 max = ImGui::GetItemRectMax();
+		return Vec2((min.x + max.x) * 0.5f, (min.y + max.y) * 0.5f);
+	}
+
+	/////////////////////// TEXT AND TOOLTIPS ///////////////////////
+
+	void text(const char* fmt, ...)
+	{
+		va_list args;
+		va_start(args, fmt);
+		text_v(active_context()->style.colors.text, fmt, args);
+		va_end(args);
+	}
+
+	void text_muted(const char* fmt, ...)
+	{
+		va_list args;
+		va_start(args, fmt);
+		text_v(active_context()->style.colors.text_muted, fmt, args);
+		va_end(args);
+	}
+
+	void text_colored(const Vec4& color, const char* fmt, ...)
+	{
+		va_list args;
+		va_start(args, fmt);
+		text_v(color, fmt, args);
+		va_end(args);
+	}
+
+	void label(const char* label_text, const char* value)
+	{
+		text_muted("%s", label_text);
+		if (value != nullptr)
+		{
+			ImGui::SameLine();
+			text("%s", value);
+		}
+	}
+
+	void help_marker(const char* description)
+	{
+		ImGui::TextDisabled("(?)");
+		if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort))
+		{
+			tooltip(description);
+		}
+	}
+
+	void tooltip(const char* value)
+	{
+		ImGui::BeginTooltip();
+		ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+		ImGui::TextUnformatted(value);
+		ImGui::PopTextWrapPos();
+		ImGui::EndTooltip();
+	}
+
+	void tooltip_delayed(const char* value, float delay)
+	{
+		const ImGuiID id = ImGui::GetItemID();
+		float& time      = g_hover_time[id];
+		if (ImGui::IsItemHovered())
+		{
+			time += dt();
+		}
+		else
+		{
+			time = 0.0f;
+		}
+		if (time >= delay)
+		{
+			tooltip(value);
+		}
+	}
+
+	void tooltip_if_hovered(const char* value, float delay)
+	{
+		if (!ImGui::IsItemHovered())
+		{
+			return;
+		}
+		if (delay <= 0.0f)
+		{
+			tooltip(value);
+			return;
+		}
+		tooltip_delayed(value, delay);
+	}
+
+	void help_tooltip(const char* description)
+	{
+		help_marker(description);
+	}
+
+}// namespace Trinex::UI

@@ -31,7 +31,12 @@ namespace Trinex::UI
 
 	public:
 		constexpr ID() : m_id(0) {}
-		constexpr explicit ID(ValueType id) : m_id(id) {}
+		constexpr ID(ValueType id) : m_id(id) {}
+
+		static ID from(StringView id);
+		static ID from(const char* id);
+		static ID from(const void* id);
+		static ID from(ValueType id);
 
 		constexpr ValueType value() const { return m_id; }
 
@@ -264,6 +269,76 @@ namespace Trinex::UI
 		trinex_bitfield_enum_struct(ColorEditFlags, u8);
 	};
 
+	struct StyleColor {
+		enum Enum : u8
+		{
+			Text,
+			TextDisabled,
+			WindowBg,
+			ChildBg,
+			PopupBg,
+			Border,
+			BorderShadow,
+			FrameBg,
+			FrameBgHovered,
+			FrameBgActive,
+			TitleBg,
+			TitleBgActive,
+			TitleBgCollapsed,
+			MenuBarBg,
+			ScrollbarBg,
+			ScrollbarGrab,
+			ScrollbarGrabHovered,
+			ScrollbarGrabActive,
+			CheckMark,
+			SliderGrab,
+			SliderGrabActive,
+			Button,
+			ButtonHovered,
+			ButtonActive,
+			Header,
+			HeaderHovered,
+			HeaderActive,
+			Separator,
+			SeparatorHovered,
+			SeparatorActive,
+			ResizeGrip,
+			ResizeGripHovered,
+			ResizeGripActive,
+			InputTextCursor,
+			TabHovered,
+			Tab,
+			TabSelected,
+			TabSelectedOverline,
+			TabDimmed,
+			TabDimmedSelected,
+			TabDimmedSelectedOverline,
+			DockingPreview,
+			DockingEmptyBg,
+			PlotLines,
+			PlotLinesHovered,
+			PlotHistogram,
+			PlotHistogramHovered,
+			TableHeaderBg,
+			TableBorderStrong,
+			TableBorderLight,
+			TableRowBg,
+			TableRowBgAlt,
+			TextLink,
+			TextSelectedBg,
+			TreeLines,
+			DragDropTarget,
+			DragDropTargetBg,
+			UnsavedMarker,
+			NavCursor,
+			NavWindowingHighlight,
+			NavWindowingDimBg,
+			ModalWindowDimBg,
+		};
+
+		trinex_enum_struct(StyleColor);
+	};
+
 	struct Condition {
 		enum Enum : u8
 		{
@@ -453,6 +528,15 @@ namespace Trinex::UI
 	struct DockBuilderSplitResult {
 		ID remainder = ID(0);
 		ID child     = ID(0);
+
+		inline operator ID() const { return child; }
+		inline ID value() const { return child; }
+		inline ID value(ID* out_remainder) const
+		{
+			if (out_remainder)
+				(*out_remainder) = remainder;
+			return child;
+		}
 	};
 
 	struct DockLayoutOptions {
@@ -516,6 +600,8 @@ namespace Trinex::UI
 		bool has(const char* id) const;
 		Result split(DockID dock, DockSplitDir dir, float ratio, const char* id = nullptr);
 		Result split(DockID dock, DockSplitDir dir, float ratio, const char* remainder_id, const char* child_id);
+		DockID crop(DockID& dock, DockSplitDir dir, float ratio, const char* id = nullptr);
+		DockID crop(DockID& dock, DockSplitDir dir, float ratio, const char* remainder_id, const char* child_id);
 		DockID dock(const char* window_name, DockID dock_id);
 		DockID dock(const char* window_name, const char* dock_id);
 
@@ -676,6 +762,7 @@ namespace Trinex::UI
 		bool full_row_click = true;
 		bool* open          = nullptr;
 		Vec4 accent         = Vec4(0, 0, 0, 0);
+		ID id               = ID(0);
 	};
 
 	struct NotificationOptions {
@@ -756,12 +843,14 @@ namespace Trinex::UI
 	void pop_font();
 	void push_text_font(FontSize size = FontSize::Normal);
 	void push_icons_font(FontSize size = FontSize::Normal);
-	
+
 	/////////////////////// STYLE AND EFFECTS ///////////////////////
 	Style& style();
 	void style(const Style& value);
 	void push_style(const Style& value);
 	void pop_style();
+	void push_color(StyleColor color, const Vec4& value);
+	void pop_color(int count = 1);
 	void paint(Vec2 pos, Vec2 size, PaintFunction function, void* userdata = nullptr, usize userdata_size = 0,
 	           DrawList draw_list = DrawList::Default);
 	void paint(Vec2 size, PaintFunction function, void* userdata = nullptr, usize userdata_size = 0,
@@ -804,8 +893,9 @@ namespace Trinex::UI
 	bool begin_window(const char* name, bool* open = nullptr, WindowFlags flags = WindowFlags::Undefined,
 	                  const WindowOptions& options = {});
 	void end_window();
-	void create_widget(const char* name, WindowFlags flags, const WindowOptions& options, Widget* widget);
-	void create_widget(const char* name, WindowFlags flags, const WindowOptions& options, const Function<void()>& content);
+	void create_widget(Context* context, const char* name, WindowFlags flags, const WindowOptions& options, Widget* widget);
+	void create_widget(Context* context, const char* name, WindowFlags flags, const WindowOptions& options,
+	                   const Function<void()>& content);
 	bool begin_panel(const char* id_text, const PanelOptions& options = {});
 	void end_panel();
 	bool begin_glass_panel(const char* id, const Vec2& size = Vec2(0, 0), const GlassOptions& options = {});
@@ -1008,7 +1098,7 @@ namespace Trinex::UI
 	void register_command(const Command& command);
 	void open_command_palette();
 	bool command_palette();
-	
+
 	/////////////////////// ICONS ///////////////////////
 	void icon(const char* value, FontSize size = FontSize::Normal);
 	void icon_colored(const Vec4& color, const char* value, FontSize size = FontSize::Normal);
@@ -1154,54 +1244,54 @@ namespace Trinex::UI
 		return window(name, nullptr, WindowFlags::Undefined, func);
 	}
 
-	inline void create_widget(const char* name, Widget* widget)
+	inline void create_widget(Context* context, const char* name, Widget* widget)
 	{
-		create_widget(name, WindowFlags::Undefined, {}, widget);
+		create_widget(context, name, WindowFlags::Undefined, {}, widget);
 	}
 
-	inline void create_widget(const char* name, WindowFlags flags, Widget* widget)
+	inline void create_widget(Context* context, const char* name, WindowFlags flags, Widget* widget)
 	{
-		create_widget(name, flags, {}, widget);
+		create_widget(context, name, flags, {}, widget);
 	}
 
-	inline void create_widget(const char* name, const WindowOptions& options, Widget* widget)
+	inline void create_widget(Context* context, const char* name, const WindowOptions& options, Widget* widget)
 	{
-		create_widget(name, WindowFlags::Undefined, options, widget);
-	}
-
-	template<typename WidgetType, typename... Args>
-	inline void create_widget(const char* name, Args&&... args)
-	{
-		create_widget(name, WindowFlags::Undefined, {}, trx_new UniqueWidget<WidgetType>(etl::forward<Args>(args)...));
+		create_widget(context, name, WindowFlags::Undefined, options, widget);
 	}
 
 	template<typename WidgetType, typename... Args>
-	inline void create_widget(const char* name, WindowFlags flags, Args&&... args)
+	inline void create_widget(Context* context, const char* name, Args&&... args)
 	{
-		create_widget(name, flags, {}, trx_new UniqueWidget<WidgetType>(etl::forward<Args>(args)...));
+		create_widget(context, name, WindowFlags::Undefined, {}, trx_new UniqueWidget<WidgetType>(etl::forward<Args>(args)...));
 	}
 
 	template<typename WidgetType, typename... Args>
-	inline void create_widget(const char* name, const WindowOptions& options, Args&&... args)
+	inline void create_widget(Context* context, const char* name, WindowFlags flags, Args&&... args)
 	{
-		create_widget(name, WindowFlags::Undefined, options, trx_new UniqueWidget<WidgetType>(etl::forward<Args>(args)...));
+		create_widget(context, name, flags, {}, trx_new UniqueWidget<WidgetType>(etl::forward<Args>(args)...));
 	}
 
-	inline void create_widget(const char* name, const Function<void()>& content)
+	template<typename WidgetType, typename... Args>
+	inline void create_widget(Context* context, const char* name, const WindowOptions& options, Args&&... args)
 	{
-		create_widget(name, WindowFlags::Undefined, {}, content);
+		create_widget(context, name, WindowFlags::Undefined, options,
+		              trx_new UniqueWidget<WidgetType>(etl::forward<Args>(args)...));
 	}
 
-	inline void create_widget(const char* name, WindowFlags flags, const Function<void()>& content)
+	inline void create_widget(Context* context, const char* name, const Function<void()>& content)
 	{
-		create_widget(name, flags, {}, content);
+		create_widget(context, name, WindowFlags::Undefined, {}, content);
 	}
 
-	inline void create_widget(const char* name, const WindowOptions& options, const Function<void()>& content)
+	inline void create_widget(Context* context, const char* name, WindowFlags flags, const Function<void()>& content)
 	{
-		create_widget(name, WindowFlags::Undefined, options, content);
+		create_widget(context, name, flags, {}, content);
 	}
 
+	inline void create_widget(Context* context, const char* name, const WindowOptions& options, const Function<void()>& content)
+	{
+		create_widget(context, name, WindowFlags::Undefined, options, content);
+	}
 
 	inline bool panel(const char* id_text, const PanelOptions& options, const FunctionRef<void()>& func)
 	{
