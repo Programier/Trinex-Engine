@@ -55,9 +55,9 @@ namespace Trinex::VFS
 		return m_stream.tellg();
 	}
 
-	usize CommonFile::read(u8* buffer, usize size)
+	usize CommonFile::read(void* buffer, usize size)
 	{
-		m_stream.read(reinterpret_cast<char*>(buffer), static_cast<std::streamsize>(size));
+		m_stream.read(static_cast<char*>(buffer), static_cast<std::streamsize>(size));
 
 		if (m_stream)
 		{
@@ -67,9 +67,9 @@ namespace Trinex::VFS
 		return static_cast<usize>(m_stream.gcount());
 	}
 
-	usize CommonFile::write(const u8* buffer, usize size)
+	usize CommonFile::write(const void* buffer, usize size)
 	{
-		m_stream.write(reinterpret_cast<const char*>(buffer), static_cast<std::streamsize>(size));
+		m_stream.write(static_cast<const char*>(buffer), static_cast<std::streamsize>(size));
 		if (m_stream)
 		{
 			return size;
@@ -92,7 +92,7 @@ namespace Trinex::VFS
 		return 0;
 	}
 
-	usize ReadOnlyCommonFile::write(const u8* buffer, usize size)
+	usize ReadOnlyCommonFile::write(const void* buffer, usize size)
 	{
 		return 0;
 	}
@@ -111,7 +111,7 @@ namespace Trinex::VFS
 		return 0;
 	}
 
-	usize WriteOnlyCommonFile::read(u8* buffer, usize size)
+	usize WriteOnlyCommonFile::read(void* buffer, usize size)
 	{
 		return 0;
 	}

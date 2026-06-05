@@ -19,8 +19,8 @@ namespace Trinex::VFS
 		virtual FilePosition rpos()                                    = 0;
 		virtual FilePosition wseek(FileOffset offset, FileSeekDir dir) = 0;
 		virtual FilePosition wpos()                                    = 0;
-		virtual usize read(u8* buffer, usize size)                     = 0;
-		virtual usize write(const u8* buffer, usize size)              = 0;
+		virtual usize read(void* buffer, usize size)                   = 0;
+		virtual usize write(const void* buffer, usize size)            = 0;
 
 		template<typename T>
 		bool read(T& value)

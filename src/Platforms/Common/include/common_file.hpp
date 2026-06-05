@@ -27,8 +27,8 @@ namespace Trinex::VFS
 		FilePosition wpos() override;
 		FilePosition rseek(FileOffset offset, FileSeekDir dir) override;
 		FilePosition rpos() override;
-		usize read(u8* buffer, usize size) override;
-		usize write(const u8* buffer, usize size) override;
+		usize read(void* buffer, usize size) override;
+		usize write(const void* buffer, usize size) override;
 
 		friend class CommonFileSystem;
 	};
@@ -43,7 +43,7 @@ namespace Trinex::VFS
 
 		FilePosition wseek(FileOffset offset, FileSeekDir dir) override;
 		FilePosition wpos() override;
-		usize write(const u8* buffer, usize size) override;
+		usize write(const void* buffer, usize size) override;
 	};
 
 	class ENGINE_EXPORT WriteOnlyCommonFile : public CommonFile
@@ -56,6 +56,6 @@ namespace Trinex::VFS
 
 		FilePosition rseek(FileOffset offset, FileSeekDir dir) override;
 		FilePosition rpos() override;
-		usize read(u8* buffer, usize size) override;
+		usize read(void* buffer, usize size) override;
 	};
 }// namespace Trinex::VFS
