@@ -98,7 +98,7 @@ namespace Trinex::Platform
 					case SDL_BUTTON_MIDDLE: return Migration::MouseButton::Middle;
 					case SDL_BUTTON_X1: return Migration::MouseButton::X1;
 					case SDL_BUTTON_X2: return Migration::MouseButton::X2;
-					default: return Migration::MouseButton::None;
+					default: return Migration::MouseButton::Undefined;
 				}
 			}
 
@@ -112,7 +112,7 @@ namespace Trinex::Platform
 					case SDL_CONTROLLER_AXIS_RIGHTY: return Migration::GamepadAxis::RightY;
 					case SDL_CONTROLLER_AXIS_TRIGGERLEFT: return Migration::GamepadAxis::LeftTrigger;
 					case SDL_CONTROLLER_AXIS_TRIGGERRIGHT: return Migration::GamepadAxis::RightTrigger;
-					default: return Migration::GamepadAxis::None;
+					default: return Migration::GamepadAxis::Undefined;
 				}
 			}
 
@@ -147,7 +147,7 @@ namespace Trinex::Platform
 #ifdef SDL_CONTROLLER_BUTTON_TOUCHPAD
 					case SDL_CONTROLLER_BUTTON_TOUCHPAD: return Migration::GamepadButton::Touchpad;
 #endif
-					default: return Migration::GamepadButton::None;
+					default: return Migration::GamepadButton::Undefined;
 				}
 			}
 
@@ -423,8 +423,8 @@ namespace Trinex::Platform
 							event.device_id   = make_gamepad_device_id(joystick_id);
 							event.user_id     = 0;
 							event.device_type = Migration::InputDeviceType::Gamepad;
-							event.header      = make_header(Migration::EventTypeIds::DeviceChange, Migration::EventFlags::None, 0,
-							                                event.device_id);
+							event.header = make_header(Migration::EventTypeIds::DeviceChange, Migration::EventFlags::Undefined, 0,
+							                           event.device_id);
 							event.device_change.header      = event.header;
 							event.device_change.kind        = Migration::DeviceChangeKind::Added;
 							event.device_change.device_id   = event.device_id;
@@ -445,8 +445,8 @@ namespace Trinex::Platform
 							event.device_id   = make_gamepad_device_id(m_event.cdevice.which);
 							event.user_id     = 0;
 							event.device_type = Migration::InputDeviceType::Gamepad;
-							event.header      = make_header(Migration::EventTypeIds::DeviceChange, Migration::EventFlags::None, 0,
-							                                event.device_id);
+							event.header = make_header(Migration::EventTypeIds::DeviceChange, Migration::EventFlags::Undefined, 0,
+							                           event.device_id);
 							event.device_change.header      = event.header;
 							event.device_change.kind        = Migration::DeviceChangeKind::Removed;
 							event.device_change.device_id   = event.device_id;
@@ -467,8 +467,8 @@ namespace Trinex::Platform
 						event.device_id   = make_gamepad_device_id(m_event.cdevice.which);
 						event.user_id     = 0;
 						event.device_type = Migration::InputDeviceType::Gamepad;
-						event.header      = make_header(Migration::EventTypeIds::DeviceChange, Migration::EventFlags::None, 0,
-						                                event.device_id);
+						event.header = make_header(Migration::EventTypeIds::DeviceChange, Migration::EventFlags::Undefined, 0,
+						                           event.device_id);
 						event.device_change.header      = event.header;
 						event.device_change.kind        = Migration::DeviceChangeKind::Remapped;
 						event.device_change.device_id   = event.device_id;
@@ -483,12 +483,12 @@ namespace Trinex::Platform
 						if (m_game_controllers.find(m_event.caxis.which) != m_game_controllers.end())
 						{
 							Migration::RawInputEvent event;
-							event.type           = Migration::RawInputEventType::Gamepad;
-							event.device_id      = make_gamepad_device_id(m_event.caxis.which);
-							event.user_id        = 0;
-							event.device_type    = Migration::InputDeviceType::Gamepad;
-							event.header         = make_header(Migration::EventTypeIds::Gamepad, Migration::EventFlags::None, 0,
-							                                   event.device_id);
+							event.type        = Migration::RawInputEventType::Gamepad;
+							event.device_id   = make_gamepad_device_id(m_event.caxis.which);
+							event.user_id     = 0;
+							event.device_type = Migration::InputDeviceType::Gamepad;
+							event.header      = make_header(Migration::EventTypeIds::Gamepad, Migration::EventFlags::Undefined, 0,
+							                                event.device_id);
 							event.gamepad.header = event.header;
 							event.gamepad.kind   = Migration::GamepadEventKind::AxisMotion;
 							event.gamepad.axis   = map_gamepad_axis(m_event.caxis.axis);
@@ -505,12 +505,12 @@ namespace Trinex::Platform
 						if (m_game_controllers.find(m_event.cbutton.which) != m_game_controllers.end())
 						{
 							Migration::RawInputEvent event;
-							event.type           = Migration::RawInputEventType::Gamepad;
-							event.device_id      = make_gamepad_device_id(m_event.cbutton.which);
-							event.user_id        = 0;
-							event.device_type    = Migration::InputDeviceType::Gamepad;
-							event.header         = make_header(Migration::EventTypeIds::Gamepad, Migration::EventFlags::None, 0,
-							                                   event.device_id);
+							event.type        = Migration::RawInputEventType::Gamepad;
+							event.device_id   = make_gamepad_device_id(m_event.cbutton.which);
+							event.user_id     = 0;
+							event.device_type = Migration::InputDeviceType::Gamepad;
+							event.header      = make_header(Migration::EventTypeIds::Gamepad, Migration::EventFlags::Undefined, 0,
+							                                event.device_id);
 							event.gamepad.header = event.header;
 							event.gamepad.kind   = m_event.type == SDL_CONTROLLERBUTTONDOWN
 							                               ? Migration::GamepadEventKind::ButtonPressed

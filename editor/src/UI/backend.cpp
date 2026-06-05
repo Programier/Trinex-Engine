@@ -631,7 +631,7 @@ namespace Trinex::UI::Backend
 				case Migration::ScanCode::U: return ImGuiKey_U;
 				case Migration::ScanCode::V: return ImGuiKey_V;
 				case Migration::ScanCode::W: return ImGuiKey_W;
-				case static_cast<Migration::ScanCode>(27): return ImGuiKey_X;
+				case Migration::ScanCode::X: return ImGuiKey_X;
 				case Migration::ScanCode::Y: return ImGuiKey_Y;
 				case Migration::ScanCode::Z: return ImGuiKey_Z;
 				case Migration::ScanCode::LeftBracket: return ImGuiKey_LeftBracket;
@@ -747,7 +747,7 @@ namespace Trinex::UI::Backend
 		static void on_mouse_move(Identifier window_id, const Migration::PointerEvent& data)
 		{
 			for_each_context(window_id, [&data](Trinex::Window* window) {
-				auto& io   = ImGui::GetIO();
+				auto& io = ImGui::GetIO();
 				io.AddMouseSourceEvent(ImGuiMouseSource_Mouse);
 				imgui_sent_mouse_position(window, data.screen_position.x, data.screen_position.y);
 			});
@@ -770,7 +770,7 @@ namespace Trinex::UI::Backend
 		static void on_mouse_wheel(Identifier window_id, const Migration::PointerEvent& data)
 		{
 			for_each_context(window_id, [&data](Trinex::Window*) {
-				auto& io   = ImGui::GetIO();
+				auto& io = ImGui::GetIO();
 				io.AddMouseSourceEvent(ImGuiMouseSource_Mouse);
 				io.AddMouseWheelEvent(data.wheel_delta.x, data.wheel_delta.y);
 			});
@@ -801,7 +801,7 @@ namespace Trinex::UI::Backend
 		static void on_text_input(Identifier window_id, const Migration::TextInputEvent& data)
 		{
 			for_each_context(window_id, [&data](Trinex::Window*) {
-				auto& io   = ImGui::GetIO();
+				auto& io = ImGui::GetIO();
 				io.AddInputCharacter(static_cast<unsigned int>(data.codepoint));
 			});
 		}
@@ -853,10 +853,12 @@ namespace Trinex::UI::Backend
 						{
 							case Migration::PointerEventKind::Moved: on_mouse_move(event.header.window_id, *data); break;
 							case Migration::PointerEventKind::ButtonPressed:
-								on_mouse_button(event.header.window_id, static_cast<Migration::MouseButton>(data->button), true);
+								on_mouse_button(event.header.window_id, static_cast<Migration::MouseButton::Enum>(data->button),
+								                true);
 								break;
 							case Migration::PointerEventKind::ButtonReleased:
-								on_mouse_button(event.header.window_id, static_cast<Migration::MouseButton>(data->button), false);
+								on_mouse_button(event.header.window_id, static_cast<Migration::MouseButton::Enum>(data->button),
+								                false);
 								break;
 							case Migration::PointerEventKind::Wheel: on_mouse_wheel(event.header.window_id, *data); break;
 							default: break;
@@ -869,7 +871,7 @@ namespace Trinex::UI::Backend
 						auto* data = reinterpret_cast<const Migration::KeyEvent*>(event.payload);
 						if (data)
 						{
-							on_keyboard_button(event.header.window_id, static_cast<Migration::ScanCode>(data->scan_code),
+							on_keyboard_button(event.header.window_id, static_cast<Migration::ScanCode::Enum>(data->scan_code),
 							                   data->kind != Migration::KeyEventKind::Released);
 						}
 						break;

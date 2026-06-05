@@ -57,7 +57,7 @@ namespace Trinex
 				case Migration::ScanCode::U: return Keyboard::U;
 				case Migration::ScanCode::V: return Keyboard::V;
 				case Migration::ScanCode::W: return Keyboard::W;
-				case static_cast<Migration::ScanCode>(27): return Keyboard::X;
+				case Migration::ScanCode::X: return Keyboard::X;
 				case Migration::ScanCode::Y: return Keyboard::Y;
 				case Migration::ScanCode::Z: return Keyboard::Z;
 				case Migration::ScanCode::LeftBracket: return Keyboard::LeftBracket;
@@ -225,7 +225,7 @@ namespace Trinex
 							return {};
 
 						event.type = payload->kind == Migration::KeyEventKind::Released ? EventType::KeyUp : EventType::KeyDown;
-						event.keyboard.key = legacy_key_of(static_cast<Migration::ScanCode>(payload->scan_code));
+						event.keyboard.key = legacy_key_of(static_cast<Migration::ScanCode::Enum>(payload->scan_code));
 						break;
 					}
 

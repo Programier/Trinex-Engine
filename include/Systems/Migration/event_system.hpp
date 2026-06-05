@@ -30,91 +30,91 @@ namespace Trinex::Migration
 	struct RawInputEvent;
 	struct RawInputEventBatch;
 
-	enum class EventPhase : u8
-	{
-		None,
-		Preview,
-		Capture,
-		Target,
-		Bubble,
-		Unhandled,
-		Post,
+	struct EventPhase {
+		enum Enum : u8
+		{
+			Undefined,
+			Preview,
+			Capture,
+			Target,
+			Bubble,
+			Unhandled,
+			Post,
+		};
+
+		trinex_enum_struct(EventPhase);
 	};
 
-	enum class EventFlags : u32
-	{
-		None                = 0,
-		Routed              = BIT(0),
-		Deferred            = BIT(1),
-		Handled             = BIT(2),
-		Consumed            = BIT(3),
-		AllowPreview        = BIT(4),
-		AllowCapture        = BIT(5),
-		AllowBubble         = BIT(6),
-		PointerEvent        = BIT(7),
-		KeyboardEvent       = BIT(8),
-		TextInputEvent      = BIT(9),
-		WindowEvent         = BIT(10),
-		AllowGameplayOutput = BIT(11),
+	struct EventFlags {
+		enum Enum : u32
+		{
+			Undefined           = 0,
+			Routed              = BIT(0),
+			Deferred            = BIT(1),
+			Handled             = BIT(2),
+			Consumed            = BIT(3),
+			AllowPreview        = BIT(4),
+			AllowCapture        = BIT(5),
+			AllowBubble         = BIT(6),
+			PointerEvent        = BIT(7),
+			KeyboardEvent       = BIT(8),
+			TextInputEvent      = BIT(9),
+			WindowEvent         = BIT(10),
+			AllowGameplayOutput = BIT(11),
+		};
+
+		trinex_bitfield_enum_struct(EventFlags, u32);
 	};
 
-	inline constexpr EventFlags operator|(EventFlags lhs, EventFlags rhs)
-	{
-		return static_cast<EventFlags>(static_cast<u32>(lhs) | static_cast<u32>(rhs));
-	}
+	struct WindowEventKind {
+		enum Enum : u8
+		{
+			Undefined,
+			Shown,
+			Hidden,
+			Moved,
+			Resized,
+			FocusGained,
+			FocusLost,
+			CloseRequested,
+		};
 
-	inline constexpr EventFlags operator&(EventFlags lhs, EventFlags rhs)
-	{
-		return static_cast<EventFlags>(static_cast<u32>(lhs) & static_cast<u32>(rhs));
-	}
-
-	inline constexpr EventFlags& operator|=(EventFlags& lhs, EventFlags rhs)
-	{
-		lhs = lhs | rhs;
-		return lhs;
-	}
-
-	inline constexpr bool has_event_flags(EventFlags value, EventFlags flags)
-	{
-		return static_cast<u32>(value & flags) == static_cast<u32>(flags);
-	}
-
-	enum class WindowEventKind : u8
-	{
-		None,
-		Shown,
-		Hidden,
-		Moved,
-		Resized,
-		FocusGained,
-		FocusLost,
-		CloseRequested,
+		trinex_enum_struct(WindowEventKind);
 	};
 
-	enum class KeyEventKind : u8
-	{
-		None,
-		Pressed,
-		Released,
-		Repeated,
+	struct KeyEventKind {
+		enum Enum : u8
+		{
+			Undefined,
+			Pressed,
+			Released,
+			Repeated,
+		};
+
+		trinex_enum_struct(KeyEventKind);
 	};
 
-	enum class PointerEventKind : u8
-	{
-		None,
-		Moved,
-		ButtonPressed,
-		ButtonReleased,
-		Wheel,
-		Entered,
-		Left,
+
+	struct PointerEventKind {
+		enum Enum : u8
+		{
+			Undefined,
+			Moved,
+			ButtonPressed,
+			ButtonReleased,
+			Wheel,
+			Entered,
+			Left,
+		};
+
+		trinex_enum_struct(PointerEventKind);
 	};
 
 	struct EventHeader {
 		EventTypeId type_id      = 0;
 		EventSequence sequence   = 0;
 		EventTimestamp timestamp = 0;
-		EventFlags flags         = EventFlags::None;
+		EventFlags flags         = EventFlags::Undefined;
 		Identifier source_id     = 0;
 		Identifier window_id     = 0;
 	};
@@ -128,14 +128,14 @@ namespace Trinex::Migration
 
 	struct WindowEvent {
 		EventHeader header;
-		WindowEventKind kind = WindowEventKind::None;
+		WindowEventKind kind = WindowEventKind::Undefined;
 		Vector2i position    = {0, 0};
 		Vector2u size        = {0, 0};
 	};
 
 	struct KeyEvent {
 		EventHeader header;
-		KeyEventKind kind = KeyEventKind::None;
+		KeyEventKind kind = KeyEventKind::Undefined;
 		u32 key_code      = 0;
 		u32 scan_code     = 0;
 		bool is_repeat    = false;
@@ -149,7 +149,7 @@ namespace Trinex::Migration
 
 	struct PointerEvent {
 		EventHeader header;
-		PointerEventKind kind    = PointerEventKind::None;
+		PointerEventKind kind    = PointerEventKind::Undefined;
 		Identifier pointer_id    = 0;
 		u32 button               = 0;
 		Vector2f screen_position = {0.f, 0.f};
@@ -162,7 +162,7 @@ namespace Trinex::Migration
 		bool consumed              = false;
 		bool continue_propagation  = true;
 		bool emit_gameplay_actions = true;
-		EventPhase terminal_phase  = EventPhase::None;
+		EventPhase terminal_phase  = EventPhase::Undefined;
 
 		inline void mark_handled() { handled = true; }
 
@@ -175,7 +175,7 @@ namespace Trinex::Migration
 	};
 
 	struct RoutedEvent : public Event {
-		EventPhase phase            = EventPhase::None;
+		EventPhase phase            = EventPhase::Undefined;
 		EventTarget* routing_root   = nullptr;
 		EventTarget* target         = nullptr;
 		EventTarget* current_target = nullptr;
@@ -309,7 +309,7 @@ namespace Trinex::Migration
 		DeferredEventQueue& deferred_messages();
 		EventQueue& event_queue();
 
-		EventHeader make_header(EventTypeId type_id, EventFlags flags = EventFlags::None);
+		EventHeader make_header(EventTypeId type_id, EventFlags flags = EventFlags::Undefined);
 		EventDispatchResult route(RoutedEvent& event);
 		EventSystem& submit_raw_event(const RawInputEvent& event);
 		EventSystem& submit_raw_event_batch(const RawInputEventBatch& batch);

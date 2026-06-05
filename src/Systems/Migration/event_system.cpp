@@ -52,7 +52,7 @@ namespace Trinex::Migration
 					routed.payload_size = sizeof(raw_event.device_change);
 					break;
 
-				case RawInputEventType::None:
+				case RawInputEventType::Undefined:
 				default:
 					routed.payload      = nullptr;
 					routed.payload_size = 0;
@@ -90,7 +90,7 @@ namespace Trinex::Migration
 			case EventPhase::Bubble: return m_bubble_listeners;
 			case EventPhase::Unhandled: return m_unhandled_listeners;
 			case EventPhase::Post:
-			case EventPhase::None:
+			case EventPhase::Undefined:
 			default: return m_post_listeners;
 		}
 	}
@@ -105,7 +105,7 @@ namespace Trinex::Migration
 			case EventPhase::Bubble: return m_bubble_listeners;
 			case EventPhase::Unhandled: return m_unhandled_listeners;
 			case EventPhase::Post:
-			case EventPhase::None:
+			case EventPhase::Undefined:
 			default: return m_post_listeners;
 		}
 	}
@@ -373,7 +373,7 @@ namespace Trinex::Migration
 			destination.continue_propagation = false;
 		}
 
-		if (source.terminal_phase != EventPhase::None)
+		if (source.terminal_phase != EventPhase::Undefined)
 		{
 			destination.terminal_phase = source.terminal_phase;
 		}
@@ -394,7 +394,7 @@ namespace Trinex::Migration
 			event.result.continue_propagation = false;
 		}
 
-		if (event.result.terminal_phase == EventPhase::None)
+		if (event.result.terminal_phase == EventPhase::Undefined)
 		{
 			event.result.terminal_phase = event.phase;
 		}
@@ -404,13 +404,13 @@ namespace Trinex::Migration
 	{
 		switch (phase)
 		{
-			case EventPhase::Preview: return has_event_flags(event.header.flags, EventFlags::AllowPreview);
-			case EventPhase::Capture: return has_event_flags(event.header.flags, EventFlags::AllowCapture);
-			case EventPhase::Bubble: return has_event_flags(event.header.flags, EventFlags::AllowBubble);
+			case EventPhase::Preview: return event.header.flags.all(EventFlags::AllowPreview);
+			case EventPhase::Capture: return event.header.flags.all(EventFlags::AllowCapture);
+			case EventPhase::Bubble: return event.header.flags.all(EventFlags::AllowBubble);
 			case EventPhase::Target:
 			case EventPhase::Unhandled:
 			case EventPhase::Post: return true;
-			case EventPhase::None:
+			case EventPhase::Undefined:
 			default: return false;
 		}
 	}
@@ -486,7 +486,7 @@ namespace Trinex::Migration
 			case EventPhase::Bubble: return target->on_bubble_event(event);
 			case EventPhase::Unhandled: return target->on_unhandled_event(event);
 			case EventPhase::Post: return target->on_post_event(event);
-			case EventPhase::None:
+			case EventPhase::Undefined:
 			default: return {};
 		}
 	}
@@ -524,7 +524,7 @@ namespace Trinex::Migration
 	EventDispatchResult EventDispatcher::dispatch_to_target(RoutedEvent& event, EventTarget* target)
 	{
 		event.target = target;
-		event.phase  = EventPhase::None;
+		event.phase  = EventPhase::Undefined;
 		event.route  = build_route(target, event.routing_root);
 		event.result = notify_listeners(event);
 		finalize_event_result(event);

@@ -37,7 +37,7 @@ namespace Trinex::Migration
 
 				case InputDeviceType::Gamepad: device.supports_gamepad = true; break;
 
-				case InputDeviceType::Unknown:
+				case InputDeviceType::Undefined:
 				case InputDeviceType::Virtual:
 				default: break;
 			}
@@ -290,8 +290,8 @@ namespace Trinex::Migration
 			{
 				case RawInputEventType::Key:
 				{
-					const KeyCode key_code   = static_cast<KeyCode>(event.key.key_code);
-					const ScanCode scan_code = static_cast<ScanCode>(event.key.scan_code);
+					const KeyCode key_code   = static_cast<KeyCode::Enum>(event.key.key_code);
+					const ScanCode scan_code = static_cast<ScanCode::Enum>(event.key.scan_code);
 					const bool is_pressed    = event.key.kind != KeyEventKind::Released;
 
 					if (enum_in_range(key_code, key_capacity()))
@@ -314,7 +314,7 @@ namespace Trinex::Migration
 
 					if (event.pointer.button != 0)
 					{
-						const MouseButton button = static_cast<MouseButton>(event.pointer.button);
+						const MouseButton button = static_cast<MouseButton::Enum>(event.pointer.button);
 
 						if (enum_in_range(button, mouse_button_capacity()))
 						{
@@ -378,7 +378,7 @@ namespace Trinex::Migration
 
 				case RawInputEventType::Window:
 				case RawInputEventType::TextInput:
-				case RawInputEventType::None:
+				case RawInputEventType::Undefined:
 				default: break;
 			}
 		}

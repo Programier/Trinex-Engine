@@ -924,7 +924,8 @@ namespace Trinex
 	// Inputs
 	void EditorClient::on_mouse_press(const Migration::PointerEvent& event)
 	{
-		if (m_state.viewport.is_hovered && static_cast<Migration::MouseButton>(event.button) == Migration::MouseButton::Right)
+		if (m_state.viewport.is_hovered &&
+		    static_cast<Migration::MouseButton::Enum>(event.button) == Migration::MouseButton::Right)
 		{
 			m_camera_relative_mode = true;
 			WindowManager::instance()->mouse_relative_mode(true);
@@ -933,7 +934,7 @@ namespace Trinex
 
 	void EditorClient::on_mouse_release(const Migration::PointerEvent& event)
 	{
-		if (static_cast<Migration::MouseButton>(event.button) == Migration::MouseButton::Right)
+		if (static_cast<Migration::MouseButton::Enum>(event.button) == Migration::MouseButton::Right)
 		{
 			m_camera_relative_mode = false;
 			WindowManager::instance()->mouse_relative_mode(false);

@@ -16,40 +16,53 @@ namespace Trinex::Migration
 
 	using InputActionId = u64;
 
-	enum class InputActionValueType : u8
-	{
-		None,
-		Boolean,
-		Axis1D,
-		Axis2D,
-		Axis3D,
+	struct InputActionValueType {
+		enum Enum : u8
+		{
+			Undefined,
+			Boolean,
+			Axis1D,
+			Axis2D,
+			Axis3D,
+		};
+
+		trinex_enum_struct(InputActionValueType);
 	};
 
-	enum class InputActionPhase : u8
-	{
-		Waiting,
-		Started,
-		Ongoing,
-		Performed,
-		Canceled,
+
+	struct InputActionPhase {
+		enum Enum : u8
+		{
+			Waiting,
+			Started,
+			Ongoing,
+			Performed,
+			Canceled,
+		};
+
+		trinex_enum_struct(InputActionPhase);
 	};
 
-	enum class InputControlKind : u8
-	{
-		None,
-		Key,
-		ScanCode,
-		MouseButton,
-		PointerDelta,
-		PointerPosition,
-		MouseWheel,
-		GamepadButton,
-		GamepadAxis,
-		TextInput,
+	struct InputControlKind {
+		enum Enum : u8
+		{
+			Undefined,
+			Key,
+			ScanCode,
+			MouseButton,
+			PointerDelta,
+			PointerPosition,
+			MouseWheel,
+			GamepadButton,
+			GamepadAxis,
+			TextInput,
+		};
+
+		trinex_enum_struct(InputControlKind);
 	};
 
 	struct InputActionValue {
-		InputActionValueType type = InputActionValueType::None;
+		InputActionValueType type = InputActionValueType::Undefined;
 		Vector4f value            = {0.f, 0.f, 0.f, 0.f};
 
 		static InputActionValue boolean(bool value);
@@ -60,19 +73,19 @@ namespace Trinex::Migration
 	struct InputAction {
 		InputActionId id                = 0;
 		const char* debug_name          = nullptr;
-		InputActionValueType value_type = InputActionValueType::None;
+		InputActionValueType value_type = InputActionValueType::Undefined;
 		bool trigger_while_paused       = false;
 		bool allow_replay_recording     = true;
 		bool allow_network_prediction   = true;
 	};
 
 	struct InputControlPath {
-		InputControlKind kind        = InputControlKind::None;
-		KeyCode key_code             = KeyCode::Unknown;
-		ScanCode scan_code           = ScanCode::Unknown;
-		MouseButton mouse_button     = MouseButton::None;
-		GamepadButton gamepad_button = GamepadButton::None;
-		GamepadAxis gamepad_axis     = GamepadAxis::None;
+		InputControlKind kind        = InputControlKind::Undefined;
+		KeyCode key_code             = KeyCode::Undefined;
+		ScanCode scan_code           = ScanCode::Undefined;
+		MouseButton mouse_button     = MouseButton::Undefined;
+		GamepadButton gamepad_button = GamepadButton::Undefined;
+		GamepadAxis gamepad_axis     = GamepadAxis::Undefined;
 		i32 axis_sign                = 0;
 	};
 

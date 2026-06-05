@@ -7,36 +7,40 @@
 
 namespace Trinex::Migration
 {
-	enum class RawInputEventType : u8
-	{
-		None,
-		Window,
-		Key,
-		TextInput,
-		Pointer,
-		Gamepad,
-		DeviceChange,
+	struct RawInputEventType {
+		enum Enum : u8
+		{
+			Undefined,
+			Window,
+			Key,
+			TextInput,
+			Pointer,
+			Gamepad,
+			DeviceChange,
+		};
+
+		trinex_enum_struct(RawInputEventType);
 	};
 
 	struct DeviceChangeEvent {
 		EventHeader header;
-		DeviceChangeKind kind       = DeviceChangeKind::None;
+		DeviceChangeKind kind       = DeviceChangeKind::Undefined;
 		DeviceId device_id          = 0;
-		InputDeviceType device_type = InputDeviceType::Unknown;
+		InputDeviceType device_type = InputDeviceType::Undefined;
 		InputUserId user_id         = 0;
 	};
 
 	struct GamepadEvent {
 		EventHeader header;
-		GamepadEventKind kind = GamepadEventKind::None;
-		GamepadButton button  = GamepadButton::None;
-		GamepadAxis axis      = GamepadAxis::None;
+		GamepadEventKind kind = GamepadEventKind::Undefined;
+		GamepadButton button  = GamepadButton::Undefined;
+		GamepadAxis axis      = GamepadAxis::Undefined;
 		f32 value             = 0.f;
 	};
 
 	struct InputDevice {
 		DeviceId device_id       = 0;
-		InputDeviceType type     = InputDeviceType::Unknown;
+		InputDeviceType type     = InputDeviceType::Undefined;
 		InputUserId user_id      = 0;
 		bool is_connected        = true;
 		bool supports_text_input = false;
@@ -64,7 +68,7 @@ namespace Trinex::Migration
 
 	struct InputDeviceState {
 		DeviceId device_id   = 0;
-		InputDeviceType type = InputDeviceType::Unknown;
+		InputDeviceType type = InputDeviceType::Undefined;
 		InputUserId user_id  = 0;
 		KeyboardDeviceState keyboard;
 		PointerDeviceState pointer;
@@ -72,10 +76,10 @@ namespace Trinex::Migration
 	};
 
 	struct RawInputEvent {
-		RawInputEventType type      = RawInputEventType::None;
+		RawInputEventType type      = RawInputEventType::Undefined;
 		DeviceId device_id          = 0;
 		InputUserId user_id         = 0;
-		InputDeviceType device_type = InputDeviceType::Unknown;
+		InputDeviceType device_type = InputDeviceType::Undefined;
 		EventHeader header;
 		WindowEvent window;
 		KeyEvent key;
