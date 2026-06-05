@@ -5,6 +5,7 @@
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/threading.hpp>
+#include <Graphics/render_viewport.hpp>
 #include <Platform/platform.hpp>
 #include <RHI/rhi.hpp>
 #include <ScriptEngine/script.hpp>

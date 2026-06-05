@@ -4,6 +4,7 @@
 #include <Engine/default_client.hpp>
 #include <Engine/world.hpp>
 #include <Graphics/render_pools.hpp>
+#include <Graphics/render_viewport.hpp>
 #include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 
@@ -103,7 +104,7 @@ namespace Trinex
 		auto view = SceneView(m_world->scene(), camera(size), size);
 		uniform.update(&view);
 
-		auto ctx   = RHIContextPool::global_instance()->begin_context();
+		auto ctx   = RHIContextPool::global_instance()->begin();
 		m_scene    = create_buffer(ctx, uniform);
 		m_indirect = create_buffer(ctx, objects * sizeof(RHIDrawIndirectCommand) + sizeof(u32));
 
@@ -158,7 +159,7 @@ namespace Trinex
 			}
 		}
 
-		RHIContextPool::global_instance()->end_context(ctx);
+		RHIContextPool::global_instance()->end(ctx);
 		return *this;
 	}
 
@@ -202,9 +203,9 @@ namespace Trinex
 		auto swapchain      = viewport->swapchain();
 		const Vector2u size = viewport->size();
 
-		auto ctx   = RHIContextPool::global_instance()->begin_context();
-		auto depth = RHITexturePool::global_instance()->request_surface(RHISurfaceFormat::D32F, size,
-		                                                                RHITextureFlags::DepthStencilAttachment);
+		auto ctx = RHIContextPool::global_instance()->begin();
+		auto depth =
+		        RHITexturePool::global_instance()->acquire(RHISurfaceFormat::D32F, size, RHITextureFlags::DepthStencilAttachment);
 
 		m_world->scene()->flush(ctx);
 
@@ -231,8 +232,8 @@ namespace Trinex
 
 
 		ctx->barrier(swapchain->as_texture(), RHIAccess::PresentSrc);
-		RHITexturePool::global_instance()->return_surface(depth);
-		RHIContextPool::global_instance()->end_context(ctx, swapchain->acquire_semaphore(), swapchain->present_semaphore());
+		RHITexturePool::global_instance()->release(depth);
+		RHIContextPool::global_instance()->end(ctx, swapchain->acquire_semaphore(), swapchain->present_semaphore());
 		RHI::instance()->present(swapchain);
 		return *this;
 	}

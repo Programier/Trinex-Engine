@@ -35,7 +35,7 @@ namespace Trinex
 			FrameVector<PrimitiveComponent*> primitives /*= scene()->collect_visible_primitives(projview)*/;
 
 			auto pool    = RHITexturePool::global_instance();
-			auto surface = pool->request_transient_surface(RHISurfaceFormat::RG32UI, size, RHITextureFlags::RenderTarget);
+			auto surface = pool->acquire_transient(RHISurfaceFormat::RG32UI, size, RHITextureFlags::RenderTarget);
 			auto depth   = scene_depth_target();
 
 			auto surface_rtv = surface->as_rtv();
@@ -98,9 +98,9 @@ namespace Trinex
 
 		static constexpr RHIBufferFlags buffer_flags = RHIBufferFlags::TransferDst | RHIBufferFlags::CPURead;
 
-		auto buffer = buffer_pool->request_buffer(8, buffer_flags);
-		auto fence  = fence_pool->request_fence();
-		auto ctx    = context_pool->begin_context();
+		auto buffer = buffer_pool->acquire(8, buffer_flags);
+		auto fence  = fence_pool->acquire();
+		auto ctx    = context_pool->begin();
 
 		RHITexture* hitproxy = renderer.render_hitproxies(ctx);
 
@@ -112,7 +112,7 @@ namespace Trinex
 
 		ctx->copy(buffer, {.size = 8}, hitproxy, RHITextureRegion({1, 1, 1}, offset));
 
-		context_pool->end_context(ctx);
+		context_pool->end(ctx);
 
 		RHI::instance()->submit(fence);
 
@@ -122,8 +122,8 @@ namespace Trinex
 		Actor* actor = *reinterpret_cast<Actor**>(data);
 		buffer->unmap();
 
-		RHIFencePool::global_instance()->return_fence(fence);
-		RHIBufferPool::global_instance()->return_buffer(buffer);
+		RHIFencePool::global_instance()->release(fence);
+		RHIBufferPool::global_instance()->release(buffer);
 		return actor;
 	}
 
@@ -156,8 +156,8 @@ namespace Trinex
 		{
 			auto view_size = scene_view().view_size();
 			auto pool      = RHITexturePool::global_instance();
-			auto depth     = pool->request_surface(RHISurfaceFormat::D32F, view_size, RHITextureFlags::DepthStencilAttachment);
-			auto color     = pool->request_surface(surface_format_of(BaseColor), view_size, RHITextureFlags::ColorAttachment);
+			auto depth     = pool->acquire(RHISurfaceFormat::D32F, view_size, RHITextureFlags::DepthStencilAttachment);
+			auto color     = pool->acquire(surface_format_of(BaseColor), view_size, RHITextureFlags::ColorAttachment);
 
 			auto dsv = depth->as_dsv();
 
@@ -206,8 +206,8 @@ namespace Trinex
 			        .add_func([this, color, depth](RHIContext* ctx) {
 				        EditorPipelines::Outline::instance()->render(ctx, this, color->as_srv(), depth->as_srv(),
 				                                                     {1.f, 0.f, 0.f});
-				        RHITexturePool::global_instance()->return_surface(color);
-				        RHITexturePool::global_instance()->return_surface(depth);
+				        RHITexturePool::global_instance()->release(color);
+				        RHITexturePool::global_instance()->release(depth);
 			        });
 		}
 

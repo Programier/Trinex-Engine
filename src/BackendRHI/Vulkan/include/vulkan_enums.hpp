@@ -21,6 +21,22 @@ namespace Trinex::VulkanEnums
 		}
 	}
 
+	constexpr inline vk::ImageAspectFlags aspect_of(RHIAspect aspect)
+	{
+		vk::ImageAspectFlags flags = {};
+
+		if (aspect & RHIAspect::Color)
+			flags |= vk::ImageAspectFlagBits::eColor;
+
+		if (aspect & RHIAspect::Depth)
+			flags |= vk::ImageAspectFlagBits::eDepth;
+
+		if (aspect & RHIAspect::Stencil)
+			flags |= vk::ImageAspectFlagBits::eStencil;
+
+		return flags;
+	}
+
 	constexpr inline vk::Format format_of(RHIColorFormat format)
 	{
 		switch (format)

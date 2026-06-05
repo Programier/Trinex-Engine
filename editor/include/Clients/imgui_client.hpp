@@ -2,7 +2,7 @@
 #include <Core/callback.hpp>
 #include <Core/etl/vector.hpp>
 #include <Core/pointer.hpp>
-#include <Graphics/render_viewport.hpp>
+#include <Core/viewport_client.hpp>
 #include <Widgets/imgui_menu_bar.hpp>
 
 struct ImGuiContext;

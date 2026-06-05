@@ -153,7 +153,7 @@ namespace Trinex
 			return *this;
 
 		auto pool             = RHIBufferPool::global_instance();
-		RHIBuffer* vtx_buffer = pool->request_buffer(s_line_vtx_per_node * sizeof(Vertex), s_vtx_buffer_flags);
+		RHIBuffer* vtx_buffer = pool->acquire(s_line_vtx_per_node * sizeof(Vertex), s_vtx_buffer_flags);
 
 #if TRINEX_DEBUG_BUILD
 		ctx->push_debug_stage("Lines Rendering");
@@ -197,7 +197,7 @@ namespace Trinex
 		ctx->pop_debug_stage();
 #endif
 
-		pool->return_buffer(vtx_buffer);
+		pool->release(vtx_buffer);
 		return *this;
 	}
 

@@ -272,6 +272,12 @@ namespace Trinex
 			                        RHIBlendFunc::DstAlpha, RHIBlendFunc::Zero, RHIBlendOp::Add);
 		}
 
+		static constexpr RHIBlendingState alpha_composite(RHIColorComponent write_mask = RHIColorComponent::RGBA)
+		{
+			return RHIBlendingState(write_mask, RHIBlendFunc::One, RHIBlendFunc::OneMinusSrcAlpha, RHIBlendOp::Add,
+			                        RHIBlendFunc::One, RHIBlendFunc::OneMinusSrcAlpha, RHIBlendOp::Add);
+		}
+
 		RHIColorComponent write_mask = RHIColorComponent::RGBA;
 		RHIBlendFunc::Enum src_color_func : 4;
 		RHIBlendFunc::Enum dst_color_func : 4;

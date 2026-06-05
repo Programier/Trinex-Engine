@@ -61,11 +61,11 @@ namespace Trinex
 		while (!m_pool.empty() && m_pool.front().fence->is_signaled())
 		{
 			if (m_last)
-				stats_pool->return_statistics(m_last);
+				stats_pool->release(m_last);
 
 			auto& front = m_pool.front();
 			m_last      = front.stats;
-			fence_pool->return_fence(front.fence);
+			fence_pool->release(front.fence);
 
 			m_pool.pop_front();
 		}
@@ -81,7 +81,7 @@ namespace Trinex
 		if (!m_pool.empty())
 		{
 			auto& last = m_pool.back();
-			last.fence = RHIFencePool::global_instance()->request_fence();
+			last.fence = RHIFencePool::global_instance()->acquire();
 			RHI::instance()->submit(last.fence);
 		}
 	}
@@ -89,7 +89,7 @@ namespace Trinex
 	RHIPipelineStatistics* EditorClient::Stats::Pipeline::new_frame()
 	{
 		auto& frame = m_pool.emplace_back();
-		frame.stats = RHIPipelineStatisticsPool::global_instance()->request_statistics();
+		frame.stats = RHIPipelineStatisticsPool::global_instance()->acquire();
 		return frame.stats;
 	}
 
@@ -97,7 +97,7 @@ namespace Trinex
 	{
 		if (m_last)
 		{
-			RHIPipelineStatisticsPool::global_instance()->return_statistics(m_last);
+			RHIPipelineStatisticsPool::global_instance()->release(m_last);
 		}
 	}
 
@@ -106,7 +106,7 @@ namespace Trinex
 	{
 		if (fence)
 		{
-			RHIFencePool::global_instance()->return_fence(fence);
+			RHIFencePool::global_instance()->release(fence);
 			fence = nullptr;
 		}
 
@@ -116,7 +116,7 @@ namespace Trinex
 		{
 			if (entry.timestamp)
 			{
-				pool->return_timestamp(entry.timestamp);
+				pool->release(entry.timestamp);
 			}
 		}
 
@@ -152,7 +152,7 @@ namespace Trinex
 
 			if (!last.queries.empty())
 			{
-				last.fence = RHIFencePool::global_instance()->request_fence();
+				last.fence = RHIFencePool::global_instance()->acquire();
 				RHI::instance()->submit(last.fence);
 			}
 		}
@@ -433,7 +433,7 @@ namespace Trinex
 				{
 					Stats::TimingQuery entry;
 					entry.pass      = pass->name();
-					entry.timestamp = RHITimestampPool::global_instance()->request_timestamp();
+					entry.timestamp = RHITimestampPool::global_instance()->acquire();
 					ctx->begin_timestamp(entry.timestamp);
 
 					m_frame.push_back(entry);

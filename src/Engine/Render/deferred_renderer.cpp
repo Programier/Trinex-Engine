@@ -417,7 +417,7 @@ namespace Trinex
 
 	DeferredRenderer& DeferredRenderer::wireframe_pass(RHIContext* ctx)
 	{
-		// RHITexture* depth = request_surface(RHISurfaceFormat::D16);
+		// RHITexture* depth = acquire(RHISurfaceFormat::D16);
 
 		// // Clear depth
 		// ctx->barrier(depth, RHIAccess::TransferDst);
@@ -439,7 +439,7 @@ namespace Trinex
 		// }
 		// ctx->end_rendering();
 
-		// return_surface(depth);
+		// release(depth);
 		return *this;
 	}
 
@@ -521,8 +521,8 @@ namespace Trinex
 		Vector2u half_size     = scene_view().view_size() / 2u;
 		Vector2f inv_half_size = 1.f / Vector2f(half_size);
 
-		RHITexture* buffer1 = pool->request_surface(RHISurfaceFormat::R8, half_size);
-		RHITexture* buffer2 = pool->request_surface(RHISurfaceFormat::R8, half_size);
+		RHITexture* buffer1 = pool->acquire(RHISurfaceFormat::R8, half_size);
+		RHITexture* buffer2 = pool->acquire(RHISurfaceFormat::R8, half_size);
 
 		ctx->barrier(buffer1, RHIAccess::RTV);
 
@@ -563,8 +563,8 @@ namespace Trinex
 
 		ctx->pop_debug_stage();
 
-		pool->return_surface(buffer1);
-		pool->return_surface(buffer2);
+		pool->release(buffer1);
+		pool->release(buffer2);
 
 		return *this;
 	}
@@ -651,7 +651,7 @@ namespace Trinex
 
 		Chain chain[6]   = {};
 		chain[0].size    = size / 2u;
-		chain[0].texture = pool->request_surface(RHISurfaceFormat::RGBA16F, chain[0].size);
+		chain[0].texture = pool->acquire(RHISurfaceFormat::RGBA16F, chain[0].size);
 
 		RHITexture* const hdr = scene_color_hdr_target();
 
@@ -680,7 +680,7 @@ namespace Trinex
 			for (int i = 1; i < 6; ++i)
 			{
 				chain[i].size    = chain[i - 1].size / 2u;
-				chain[i].texture = pool->request_surface(RHISurfaceFormat::RGBA16F, chain[i].size);
+				chain[i].texture = pool->acquire(RHISurfaceFormat::RGBA16F, chain[i].size);
 
 				ctx->barrier(chain[i - 1].texture, RHIAccess::SRVGraphics);
 				ctx->barrier(chain[i].texture, RHIAccess::RTV);
@@ -731,7 +731,7 @@ namespace Trinex
 
 		for (auto& block : chain)
 		{
-			pool->return_surface(block.texture);
+			pool->release(block.texture);
 		}
 		return *this;
 	}
@@ -794,7 +794,7 @@ namespace Trinex
 			        RHIBufferFlags::StructuredBuffer | RHIBufferFlags::ShaderResource | RHIBufferFlags::TransferDst;
 
 			usize size      = sizeof(LightRenderParameters) * m_visible_lights.size();
-			m_lights_buffer = RHIBufferPool::global_instance()->request_transient_buffer(size, flags);
+			m_lights_buffer = RHIBufferPool::global_instance()->acquire_transient(size, flags);
 
 			if (!m_visible_lights.empty())
 			{
@@ -871,10 +871,10 @@ namespace Trinex
 			                    directional_lights * (sizeof(DirectionalLightShadowParameters) +
 			                                          s_cascades_per_directional_light * sizeof(DirectionalLightShadowCascade));//
 
-			auto pool       = RHIBufferPool::global_instance();
-			m_shadow_buffer = pool->request_transient_buffer(buffer_size, RHIBufferFlags::ByteAddressBuffer |
-			                                                                      RHIBufferFlags::ShaderResource |
-			                                                                      RHIBufferFlags::TransferDst);
+			auto pool = RHIBufferPool::global_instance();
+			m_shadow_buffer =
+			        pool->acquire_transient(buffer_size, RHIBufferFlags::ByteAddressBuffer | RHIBufferFlags::ShaderResource |
+			                                                     RHIBufferFlags::TransferDst);
 
 			if (buffer_size == 0)
 				return m_shadow_buffer;

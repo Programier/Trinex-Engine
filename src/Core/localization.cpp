@@ -150,7 +150,7 @@ namespace Trinex
 
 	ENGINE_EXPORT const char* operator""_localized(const char* line, usize len)
 	{
-		return Localization::instance()->localize(StringView(line, len)).c_str();
+		return Localization::create_instance()->localize(StringView(line, len)).c_str();
 	}
 
 	trinex_on_init()

@@ -1,4 +1,5 @@
 #include <Core/reflection/class.hpp>
+#include <Graphics/render_viewport.hpp>
 #include <UI/api.hpp>
 #include <UI/client.hpp>
 

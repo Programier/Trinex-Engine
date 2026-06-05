@@ -760,10 +760,11 @@ namespace Trinex
 	struct RHIColorComponent {
 		enum Enum : u8
 		{
-			R = 1,
-			G = 2,
-			B = 4,
-			A = 8,
+			Undefined = 0,
+			R         = 1,
+			G         = 2,
+			B         = 4,
+			A         = 8,
 
 			RG   = R | G,
 			RGB  = R | G | B,
@@ -847,6 +848,19 @@ namespace Trinex
 		};
 
 		trinex_bitfield_enum_struct(RHIRenderingFlags, u8);
+	};
+
+	struct RHIAspect {
+		enum Enum : u8
+		{
+			Undefined    = 0,
+			Color        = 1 << 0,
+			Depth        = 1 << 1,
+			Stencil      = 1 << 2,
+			DepthStencil = Depth | Stencil,
+		};
+
+		trinex_bitfield_enum_struct(RHIAspect, u8);
 	};
 
 	struct RHIContextInheritanceFlags {

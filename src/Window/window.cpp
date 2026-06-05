@@ -3,6 +3,7 @@
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/threading.hpp>
+#include <Core/viewport_client.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Window/config.hpp>
 #include <Window/window.hpp>

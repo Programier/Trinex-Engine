@@ -77,12 +77,12 @@ namespace Trinex
 				return false;
 			}
 
-			RHIContext* ctx = RHIContextPool::global_instance()->begin_context();
+			RHIContext* ctx = RHIContextPool::global_instance()->begin();
 			{
 				ctx->barrier(this, RHIAccess::TransferDst);
 				ctx->update(this, data, {.size = buffer_size});
 			}
-			RHIContextPool::global_instance()->end_context(ctx);
+			RHIContextPool::global_instance()->end(ctx);
 
 			return true;
 		}
@@ -96,22 +96,22 @@ namespace Trinex
 			}
 
 			const auto flags  = RHIBufferFlags::CPURead | RHIBufferFlags::TransferDst;
-			RHIBuffer* buffer = RHIBufferPool::global_instance()->request_buffer(buffer_size, flags);
+			RHIBuffer* buffer = RHIBufferPool::global_instance()->acquire(buffer_size, flags);
 
-			RHIContext* ctx = RHIContextPool::global_instance()->begin_context();
+			RHIContext* ctx = RHIContextPool::global_instance()->begin();
 			{
 				ctx->barrier(this, RHIAccess::TransferSrc);
 				ctx->barrier(buffer, RHIAccess::TransferDst);
 				ctx->copy(buffer, this, {.size = buffer_size});
 			}
-			RHIContextPool::global_instance()->end_context(ctx);
+			RHIContextPool::global_instance()->end(ctx);
 			RHI::instance()->idle();
 
 			const u8* data    = buffer->map(RHIMappingAccess::Read);
 			const bool status = ar.write_data(data, buffer_size);
 			buffer->unmap();
 
-			RHIBufferPool::global_instance()->return_buffer(buffer);
+			RHIBufferPool::global_instance()->release(buffer);
 
 			return status;
 		}

@@ -93,7 +93,7 @@ namespace Trinex
 
 		auto pool          = RenderSurfacePool::global_instance();
 		Vector2u view_size = {find_nearest_size(size.x), find_nearest_size(size.y)};
-		auto surface       = pool->request_transient_surface(RHISurfaceFormat::RGBA8, view_size);
+		auto surface       = pool->acquire_transient(RHISurfaceFormat::RGBA8, view_size);
 
 		if (surface)
 		{
@@ -117,12 +117,12 @@ namespace Trinex
 				        ctx->copy(surface->rhi_texture(), renderer.scene_color_ldr_target(), region);
 			        });
 
-			RHIContext* ctx = RHIContextPool::global_instance()->begin_context();
+			RHIContext* ctx = RHIContextPool::global_instance()->begin();
 			{
 				renderer.render(ctx);
 			}
 
-			RHIContextPool::global_instance()->end_context(ctx);
+			RHIContextPool::global_instance()->end(ctx);
 		}
 
 		return surface;

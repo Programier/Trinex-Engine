@@ -2,79 +2,18 @@
 #include <Core/etl/templates.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/threading.hpp>
+#include <Core/viewport_client.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <RHI/rhi.hpp>
-#include <ScriptEngine/registrar.hpp>
-#include <ScriptEngine/script_engine.hpp>
-#include <ScriptEngine/script_object.hpp>
 #include <Window/window.hpp>
 
 namespace Trinex
 {
-	static ScriptFunction vc_update;
-	static ScriptFunction vc_attach;
-	static ScriptFunction vc_deattach;
-	static ScriptFunction vc_render;
-
-	trinex_implement_engine_class(RenderViewport, Refl::Class::IsScriptable)
-	{
-		auto r = ScriptClassRegistrar::existing_class(static_reflection());
-		// r.method("Vector2f size() const final", &This::size);
-		// r.method("RenderViewport vsync(bool) final", method_of<RenderViewport&>(&This::vsync));
-		// r.method("ViewportClient client() const final", method_of<ViewportClient*>(&This::client));
-		// r.method("RenderViewport client(ViewportClient) final", method_of<RenderViewport&>(&This::client));
-	}
-
-	trinex_implement_engine_class(ViewportClient, Refl::Class::IsScriptable)
-	{
-		auto r = ScriptClassRegistrar::existing_class(static_reflection());
-
-		vc_update   = r.method("void update(RenderViewport viewport, float dt)", trinex_scoped_method(This, update));
-		vc_attach   = r.method("void attach(RenderViewport)", trinex_scoped_method(This, attach));
-		vc_deattach = r.method("void deattach(RenderViewport)", trinex_scoped_method(This, deattach));
-
-		// Need to check, can we use script engine in multi-thread mode?
-		//vc_render = r.method("void render(RenderViewport viewport)", trinex_scoped_method(This, render));
-
-		ScriptEngine::on_terminate.push([]() {
-			vc_update.release();
-			vc_attach.release();
-			vc_deattach.release();
-			vc_render.release();
-		});
-	}
+	trinex_implement_engine_class(RenderViewport, Refl::Class::IsScriptable) {}
 
 	static RenderViewport* m_current_render_viewport = nullptr;
-
-	ViewportClient& ViewportClient::attach(class RenderViewport* viewport)
-	{
-		return *this;
-	}
-
-	ViewportClient& ViewportClient::deattach(class RenderViewport* viewport)
-	{
-		return *this;
-	}
-
-	ViewportClient& ViewportClient::update(class RenderViewport* viewport, float dt)
-	{
-		return *this;
-	}
-
-	ViewportClient* ViewportClient::create(const StringView& name)
-	{
-		auto* client_class = Refl::Class::static_find(name);
-
-		if (client_class)
-		{
-			return Object::instance_cast<ViewportClient>(client_class->create_object());
-		}
-
-		return nullptr;
-	}
-
 	Vector<RenderViewport*> RenderViewport::m_viewports;
 
 	RenderViewport::RenderViewport(Window* window, bool vsync)
@@ -107,31 +46,14 @@ namespace Trinex
 		{
 			ViewportClient* tmp = m_client;
 			m_client            = nullptr;
-
-			if (tmp->class_instance()->is_native())
-			{
-				tmp->deattach(this);
-			}
-			else
-			{
-				ScriptObject obj(tmp);
-				obj.execute(vc_deattach, this);
-			}
+			tmp->deattach(this);
 		}
 
 		m_client = new_client;
 
 		if (new_client)
 		{
-			if (new_client->class_instance()->is_native())
-			{
-				new_client->attach(this);
-			}
-			else
-			{
-				ScriptObject obj(new_client);
-				obj.execute(vc_attach, this);
-			}
+			new_client->attach(this);
 		}
 		return *this;
 	}
@@ -141,16 +63,7 @@ namespace Trinex
 		if (m_client)
 		{
 			m_current_render_viewport = this;
-
-			if (m_client->class_instance()->is_native())
-			{
-				m_client->update(this, dt);
-			}
-			else
-			{
-				ScriptObject obj(m_client);
-				obj.execute(vc_update, this, dt);
-			}
+			m_client->update(this, dt);
 			m_current_render_viewport = nullptr;
 		}
 		return *this;

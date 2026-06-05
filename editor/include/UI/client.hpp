@@ -1,5 +1,5 @@
 #pragma once
-#include <Graphics/render_viewport.hpp>
+#include <Core/viewport_client.hpp>
 #include <UI/menu_bar.hpp>
 
 namespace Trinex::UI

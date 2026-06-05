@@ -388,12 +388,12 @@ namespace Trinex::Pipelines
 		constexpr auto flags = RHIBufferFlags::StructuredBuffer | RHIBufferFlags::ShaderResource;
 		m_samples_buffer     = RHI::instance()->create_buffer(count * sizeof(Vector3f), flags);
 
-		RHIContext* ctx = RHIContextPool::global_instance()->begin_context();
+		RHIContext* ctx = RHIContextPool::global_instance()->begin();
 		{
 			ctx->barrier(m_samples_buffer, RHIAccess::TransferDst);
 			ctx->update(m_samples_buffer, kernel, {.size = count * sizeof(Vector3f)});
 		}
-		RHIContextPool::global_instance()->end_context(ctx);
+		RHIContextPool::global_instance()->end(ctx);
 		return *this;
 	}
 
@@ -450,7 +450,7 @@ namespace Trinex::Pipelines
 		        RHIBufferFlags::UnorderedAccess | RHIBufferFlags::ShaderResource | RHIBufferFlags::StructuredBuffer;
 
 		usize buffer_size = 16 * 9 * 24 * cluster_size;
-		return RHIBufferPool::global_instance()->request_transient_buffer(buffer_size, flags);
+		return RHIBufferPool::global_instance()->acquire_transient(buffer_size, flags);
 	}
 
 	ClusterInitialize& ClusterInitialize::build(RHIContext* ctx, RHIBuffer* clusters, Renderer* renderer)

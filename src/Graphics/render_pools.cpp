@@ -76,7 +76,7 @@ namespace Trinex
 	{
 		for (RHIFence* fence : m_transient_fences)
 		{
-			return_fence(fence);
+			release(fence);
 		}
 		m_transient_fences.clear();
 		return *this;
@@ -105,7 +105,7 @@ namespace Trinex
 		return *this;
 	}
 
-	RHIFence* RHIFencePool::request_fence()
+	RHIFence* RHIFencePool::acquire()
 	{
 		if (!m_pool.empty())
 		{
@@ -117,9 +117,9 @@ namespace Trinex
 		return RHI::instance()->create_fence();
 	}
 
-	RHIFence* RHIFencePool::request_transient_fence()
+	RHIFence* RHIFencePool::acquire_transient()
 	{
-		if (auto fence = request_fence())
+		if (auto fence = acquire())
 		{
 			m_transient_fences.push_back(fence);
 			return fence;
@@ -139,7 +139,7 @@ namespace Trinex
 		return *this;
 	}
 
-	RHIFencePool& RHIFencePool::return_fence(RHIFence* fence)
+	RHIFencePool& RHIFencePool::release(RHIFence* fence)
 	{
 		auto& entry = m_pool.emplace_back();
 		entry.fence = fence;
@@ -157,7 +157,7 @@ namespace Trinex
 	{
 		for (RHIBuffer* buffer : m_transient_buffers)
 		{
-			return_buffer(buffer);
+			release(buffer);
 		}
 
 		m_transient_buffers.clear();
@@ -190,7 +190,7 @@ namespace Trinex
 		return *this;
 	}
 
-	RHIBuffer* RHIBufferPool::request_buffer(u32 size, RHIBufferFlags flags)
+	RHIBuffer* RHIBufferPool::acquire(u32 size, RHIBufferFlags flags)
 	{
 		size = next_power_of_two(size);
 
@@ -209,9 +209,9 @@ namespace Trinex
 		return buffer;
 	}
 
-	RHIBuffer* RHIBufferPool::request_transient_buffer(u32 size, RHIBufferFlags flags)
+	RHIBuffer* RHIBufferPool::acquire_transient(u32 size, RHIBufferFlags flags)
 	{
-		if (auto buffer = request_buffer(size, flags))
+		if (auto buffer = acquire(size, flags))
 		{
 			m_transient_buffers.push_back(buffer);
 			return buffer;
@@ -235,7 +235,7 @@ namespace Trinex
 		return *this;
 	}
 
-	RHIBufferPool& RHIBufferPool::return_buffer(RHIBuffer* buffer)
+	RHIBufferPool& RHIBufferPool::release(RHIBuffer* buffer)
 	{
 		auto it = m_buffer_id.find(buffer);
 
@@ -264,7 +264,7 @@ namespace Trinex
 	{
 		for (RHITexture* texture : m_transient_textures)
 		{
-			return_surface(texture);
+			release(texture);
 		}
 		m_transient_textures.clear();
 		return *this;
@@ -297,13 +297,12 @@ namespace Trinex
 		return *this;
 	}
 
-	RHITexture* RHITexturePool::request_surface(RHISurfaceFormat format, Vector2u size, RHITextureFlags flags)
+	RHITexture* RHITexturePool::acquire(RHISurfaceFormat format, Vector2u size, RHITextureFlags flags)
 	{
-		return request_surface(RHITextureType::Texture2D, format, {size, 1}, flags);
+		return acquire(RHITextureType::Texture2D, format, {size, 1}, flags);
 	}
 
-	RHITexture* RHITexturePool::request_surface(RHITextureType type, RHISurfaceFormat format, Vector3u size,
-	                                            RHITextureFlags flags)
+	RHITexture* RHITexturePool::acquire(RHITextureType type, RHISurfaceFormat format, Vector3u size, RHITextureFlags flags)
 	{
 		trinex_assert(flags != RHITextureFlags::Undefined);
 
@@ -342,9 +341,9 @@ namespace Trinex
 		return surface;
 	}
 
-	RHITexture* RHITexturePool::request_transient_surface(RHISurfaceFormat format, Vector2u size, RHITextureFlags flags)
+	RHITexture* RHITexturePool::acquire_transient(RHISurfaceFormat format, Vector2u size, RHITextureFlags flags)
 	{
-		if (auto surface = request_surface(format, size, flags))
+		if (auto surface = acquire(format, size, flags))
 		{
 			m_transient_textures.push_back(surface);
 			return surface;
@@ -352,10 +351,10 @@ namespace Trinex
 		return nullptr;
 	}
 
-	RHITexture* RHITexturePool::request_transient_surface(RHITextureType type, RHISurfaceFormat format, Vector3u size,
-	                                                      RHITextureFlags flags)
+	RHITexture* RHITexturePool::acquire_transient(RHITextureType type, RHISurfaceFormat format, Vector3u size,
+	                                              RHITextureFlags flags)
 	{
-		if (auto surface = request_surface(type, format, size, flags))
+		if (auto surface = acquire(type, format, size, flags))
 		{
 			m_transient_textures.push_back(surface);
 			return surface;
@@ -379,7 +378,7 @@ namespace Trinex
 		return *this;
 	}
 
-	RHITexturePool& RHITexturePool::return_surface(RHITexture* surface)
+	RHITexturePool& RHITexturePool::release(RHITexture* surface)
 	{
 		auto it = m_surface_id.find(surface);
 
@@ -403,7 +402,7 @@ namespace Trinex
 	{
 		for (RenderSurface* surface : m_transient_surfaces)
 		{
-			return_surface(surface);
+			release(surface);
 		}
 		m_transient_surfaces.clear();
 		return *this;
@@ -440,7 +439,7 @@ namespace Trinex
 		return *this;
 	}
 
-	RenderSurface* RenderSurfacePool::request_surface(RHISurfaceFormat format, Vector2u size)
+	RenderSurface* RenderSurfacePool::acquire(RHISurfaceFormat format, Vector2u size)
 	{
 		if (size.x == 0 || size.y == 0)
 			return nullptr;
@@ -465,9 +464,9 @@ namespace Trinex
 		return surface;
 	}
 
-	RenderSurface* RenderSurfacePool::request_transient_surface(RHISurfaceFormat format, Vector2u size)
+	RenderSurface* RenderSurfacePool::acquire_transient(RHISurfaceFormat format, Vector2u size)
 	{
-		if (auto surface = request_surface(format, size))
+		if (auto surface = acquire(format, size))
 		{
 			m_transient_surfaces.push_back(surface);
 			return surface;
@@ -475,7 +474,7 @@ namespace Trinex
 		return nullptr;
 	}
 
-	RenderSurfacePool& RenderSurfacePool::return_surface(RenderSurface* surface)
+	RenderSurfacePool& RenderSurfacePool::release(RenderSurface* surface)
 	{
 		auto& pool    = m_pools[static_calculate_surface_id(surface->format(), surface->size(), {})];
 		auto& entry   = pool.emplace_back();
@@ -511,7 +510,7 @@ namespace Trinex
 		return *this;
 	}
 
-	RHITimestamp* RHITimestampPool::request_timestamp()
+	RHITimestamp* RHITimestampPool::acquire()
 	{
 		if (!m_pool.empty())
 		{
@@ -532,7 +531,7 @@ namespace Trinex
 		return *this;
 	}
 
-	RHITimestampPool& RHITimestampPool::return_timestamp(RHITimestamp* timestamp)
+	RHITimestampPool& RHITimestampPool::release(RHITimestamp* timestamp)
 	{
 		auto& entry     = m_pool.emplace_back();
 		entry.timestamp = timestamp;
@@ -567,7 +566,7 @@ namespace Trinex
 		return *this;
 	}
 
-	RHIPipelineStatistics* RHIPipelineStatisticsPool::request_statistics()
+	RHIPipelineStatistics* RHIPipelineStatisticsPool::acquire()
 	{
 		if (!m_pool.empty())
 		{
@@ -588,7 +587,7 @@ namespace Trinex
 		return *this;
 	}
 
-	RHIPipelineStatisticsPool& RHIPipelineStatisticsPool::return_statistics(RHIPipelineStatistics* stats)
+	RHIPipelineStatisticsPool& RHIPipelineStatisticsPool::release(RHIPipelineStatistics* stats)
 	{
 		auto& entry = m_pool.emplace_back();
 		entry.stats = stats;
@@ -628,7 +627,7 @@ namespace Trinex
 		return *this;
 	}
 
-	RHIContext* RHIContextPool::request_context(RHIContextFlags flags)
+	RHIContext* RHIContextPool::acquire(RHIContextFlags flags)
 	{
 		auto& pool = m_pools[flags.value];
 
@@ -648,7 +647,7 @@ namespace Trinex
 	{
 		for (RHIContext* ctx : m_transient)
 		{
-			return_context(ctx);
+			release(ctx);
 		}
 
 		m_transient.clear();
@@ -674,7 +673,7 @@ namespace Trinex
 		return *this;
 	}
 
-	RHIContextPool& RHIContextPool::return_context(RHIContext* ctx)
+	RHIContextPool& RHIContextPool::release(RHIContext* ctx)
 	{
 		auto it = m_context_id.find(ctx);
 
@@ -688,12 +687,12 @@ namespace Trinex
 		return *this;
 	}
 
-	RHIContext* RHIContextPool::begin_context(RHIContextFlags flags)
+	RHIContext* RHIContextPool::begin(RHIContextFlags flags)
 	{
-		return &request_context(flags)->begin();
+		return &acquire(flags)->begin();
 	}
 
-	RHIContextPool& RHIContextPool::end_context(RHIContext* context, RHISemaphore* wait, RHISemaphore* signal, RHIFence* fence)
+	RHIContextPool& RHIContextPool::end(RHIContext* context, RHISemaphore* wait, RHISemaphore* signal, RHIFence* fence)
 	{
 		if (auto handle = context->end())
 		{
@@ -701,7 +700,7 @@ namespace Trinex
 			handle->release();
 		}
 
-		return return_context(context);
+		return release(context);
 	}
 
 	static class : public TickableObject

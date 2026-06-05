@@ -5,6 +5,7 @@
 #include <Core/string_functions.hpp>
 #include <Core/threading.hpp>
 #include <Core/types/color.hpp>
+#include <Graphics/render_viewport.hpp>
 #include <RHI/rhi.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_context.hpp>

@@ -152,7 +152,7 @@ namespace Trinex
 		return clear_rtv(rtv, std::array<i32, 4>({r, g, b, a}));
 	}
 
-	VulkanContext& VulkanContext::clear_dsv(RHIDepthStencilView* dsv, f32 depth, u8 stencil)
+	VulkanContext& VulkanContext::clear_dsv(RHIDepthStencilView* dsv, RHIAspect aspect, f32 depth, u8 stencil)
 	{
 		VulkanTextureDSV* view = static_cast<VulkanTextureDSV*>(dsv);
 		VulkanTexture* texture = view->texture();
@@ -160,7 +160,7 @@ namespace Trinex
 		vk::ClearDepthStencilValue value;
 		value.setDepth(depth).setStencil(stencil);
 		vk::ImageSubresourceRange range;
-		range.setAspectMask(texture->aspect())
+		range.setAspectMask(VulkanEnums::aspect_of(aspect) & texture->aspect())
 		        .setBaseArrayLayer(view->base_layer())
 		        .setLayerCount(view->layer_count())
 		        .setBaseMipLevel(view->mip())

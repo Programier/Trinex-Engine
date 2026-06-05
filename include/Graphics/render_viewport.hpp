@@ -9,23 +9,12 @@
 namespace Trinex
 {
 	class Window;
+	class ViewportClient;
 	class RenderTarget;
 	class RenderSurface;
 	class RHIRenderTargetView;
 	class RHITexture;
 	struct Color;
-
-	class ENGINE_EXPORT ViewportClient : public Object
-	{
-		trinex_class(ViewportClient, Object);
-
-	public:
-		virtual ViewportClient& attach(class RenderViewport* viewport);
-		virtual ViewportClient& deattach(class RenderViewport* viewport);
-
-		virtual ViewportClient& update(class RenderViewport* viewport, float dt);
-		static ViewportClient* create(const StringView& name);
-	};
 
 	class ENGINE_EXPORT RenderViewport : public Object
 	{

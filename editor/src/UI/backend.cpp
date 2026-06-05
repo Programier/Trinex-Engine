@@ -7,6 +7,7 @@
 #include <Core/math/math.hpp>
 #include <Core/profiler.hpp>
 #include <Core/reflection/class.hpp>
+#include <Core/viewport_client.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/render_viewport.hpp>
@@ -216,7 +217,7 @@ namespace Trinex::UI::Backend
 			const Vector2u view_size = {draw_data->DisplaySize.x, draw_data->DisplaySize.y};
 
 			bd->context = ctx;
-			bd->target  = pool->request_surface(RHISurfaceFormat::RGBA8, view_size, RHITextureFlags::ColorAttachment);
+			bd->target  = pool->acquire(RHISurfaceFormat::RGBA8, view_size, RHITextureFlags::ColorAttachment);
 
 			trinex_rhi_push_stage(ctx, "ImGui Setup state");
 
@@ -382,7 +383,7 @@ namespace Trinex::UI::Backend
 				ctx->copy(swapchain, RHITextureRegion(swapchain->size()), bd->target, RHITextureRegion(view_size));
 			}
 			trinex_rhi_pop_stage(ctx);
-			pool->return_surface(bd->target);
+			pool->release(bd->target);
 
 			bd->context = nullptr;
 			bd->target  = nullptr;

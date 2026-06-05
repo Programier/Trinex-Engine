@@ -35,10 +35,10 @@ namespace Trinex
 		static RHIFencePool* global_instance();
 
 		RHIFencePool& update();
-		RHIFence* request_fence();
-		RHIFence* request_transient_fence();
+		RHIFence* acquire();
+		RHIFence* acquire_transient();
 		RHIFencePool& release_all();
-		RHIFencePool& return_fence(RHIFence* fence);
+		RHIFencePool& release(RHIFence* fence);
 	};
 
 	class ENGINE_EXPORT RHIBufferPool final
@@ -60,10 +60,10 @@ namespace Trinex
 		static RHIBufferPool* global_instance();
 
 		RHIBufferPool& update();
-		RHIBuffer* request_buffer(u32 size, RHIBufferFlags flags);
-		RHIBuffer* request_transient_buffer(u32 size, RHIBufferFlags flags);
+		RHIBuffer* acquire(u32 size, RHIBufferFlags flags);
+		RHIBuffer* acquire_transient(u32 size, RHIBufferFlags flags);
 		RHIBufferPool& release_all();
-		RHIBufferPool& return_buffer(RHIBuffer* buffer);
+		RHIBufferPool& release(RHIBuffer* buffer);
 	};
 
 	class ENGINE_EXPORT RHITexturePool final
@@ -101,15 +101,13 @@ namespace Trinex
 		static RHITexturePool* global_instance();
 
 		RHITexturePool& update();
-		RHITexture* request_surface(RHISurfaceFormat format, Vector2u size,
-		                            RHITextureFlags flags = RHITextureFlags::ColorAttachment);
-		RHITexture* request_surface(RHITextureType type, RHISurfaceFormat format, Vector3u size,
-		                            RHITextureFlags flags = RHITextureFlags::ColorAttachment);
-		RHITexture* request_transient_surface(RHISurfaceFormat format, Vector2u size, RHITextureFlags flags = {});
-		RHITexture* request_transient_surface(RHITextureType type, RHISurfaceFormat format, Vector3u size,
-		                                      RHITextureFlags flags = {});
+		RHITexture* acquire(RHISurfaceFormat format, Vector2u size, RHITextureFlags flags = RHITextureFlags::ColorAttachment);
+		RHITexture* acquire(RHITextureType type, RHISurfaceFormat format, Vector3u size,
+		                    RHITextureFlags flags = RHITextureFlags::ColorAttachment);
+		RHITexture* acquire_transient(RHISurfaceFormat format, Vector2u size, RHITextureFlags flags = {});
+		RHITexture* acquire_transient(RHITextureType type, RHISurfaceFormat format, Vector3u size, RHITextureFlags flags = {});
 		RHITexturePool& release_all();
-		RHITexturePool& return_surface(RHITexture* surface);
+		RHITexturePool& release(RHITexture* surface);
 	};
 
 	class ENGINE_EXPORT RenderSurfacePool final
@@ -130,9 +128,9 @@ namespace Trinex
 		static RenderSurfacePool* global_instance();
 
 		RenderSurfacePool& update();
-		RenderSurface* request_surface(struct RHISurfaceFormat format, Vector2u size);
-		RenderSurface* request_transient_surface(struct RHISurfaceFormat format, Vector2u size);
-		RenderSurfacePool& return_surface(RenderSurface* surface);
+		RenderSurface* acquire(struct RHISurfaceFormat format, Vector2u size);
+		RenderSurface* acquire_transient(struct RHISurfaceFormat format, Vector2u size);
+		RenderSurfacePool& release(RenderSurface* surface);
 	};
 
 	class ENGINE_EXPORT RHITimestampPool final
@@ -149,9 +147,9 @@ namespace Trinex
 		static RHITimestampPool* global_instance();
 
 		RHITimestampPool& update();
-		RHITimestamp* request_timestamp();
+		RHITimestamp* acquire();
 		RHITimestampPool& release_all();
-		RHITimestampPool& return_timestamp(RHITimestamp* timestamp);
+		RHITimestampPool& release(RHITimestamp* timestamp);
 	};
 
 	class ENGINE_EXPORT RHIPipelineStatisticsPool final
@@ -168,9 +166,9 @@ namespace Trinex
 		static RHIPipelineStatisticsPool* global_instance();
 
 		RHIPipelineStatisticsPool& update();
-		RHIPipelineStatistics* request_statistics();
+		RHIPipelineStatistics* acquire();
 		RHIPipelineStatisticsPool& release_all();
-		RHIPipelineStatisticsPool& return_statistics(RHIPipelineStatistics* stats);
+		RHIPipelineStatisticsPool& release(RHIPipelineStatistics* stats);
 	};
 
 	class ENGINE_EXPORT RHIContextPool final
@@ -192,22 +190,22 @@ namespace Trinex
 		static RHIContextPool* global_instance();
 
 		RHIContextPool& update();
-		RHIContext* request_context(RHIContextFlags flags = RHIContextFlags::Undefined);
+		RHIContext* acquire(RHIContextFlags flags = RHIContextFlags::Undefined);
 		RHIContextPool& release_all();
-		RHIContextPool& return_context(RHIContext* context);
+		RHIContextPool& release(RHIContext* context);
 
-		RHIContext* begin_context(RHIContextFlags flags = RHIContextFlags::Undefined);
-		RHIContextPool& end_context(RHIContext* context, RHISemaphore* wait = nullptr, RHISemaphore* signal = nullptr,
-		                            RHIFence* fence = nullptr);
+		RHIContext* begin(RHIContextFlags flags = RHIContextFlags::Undefined);
+		RHIContextPool& end(RHIContext* context, RHISemaphore* wait = nullptr, RHISemaphore* signal = nullptr,
+		                    RHIFence* fence = nullptr);
 
 		template<typename Func>
 		inline RHIContextPool& execute(const Func& func)
 		{
-			auto ctx = begin_context();
+			auto ctx = begin();
 			{
 				func(ctx);
 			}
-			end_context(ctx);
+			end(ctx);
 			return *this;
 		}
 	};

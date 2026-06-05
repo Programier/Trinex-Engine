@@ -67,7 +67,8 @@ namespace Trinex
 		virtual RHIContext& clear_urtv(RHIRenderTargetView* rtv, u32 r = 0u, u32 g = 0u, u32 b = 0u, u32 a = 0u)    = 0;
 		virtual RHIContext& clear_irtv(RHIRenderTargetView* rtv, i32 r = 0, i32 g = 0, i32 b = 0, i32 a = 0)        = 0;
 
-		virtual RHIContext& clear_dsv(RHIDepthStencilView* dsv, f32 depth = 0.f, u8 stencil = 0) = 0;
+		virtual RHIContext& clear_dsv(RHIDepthStencilView* dsv, RHIAspect aspect = RHIAspect::DepthStencil, f32 depth = 0.f,
+		                              u8 stencil = 0) = 0;
 
 		virtual RHIContext& memset(RHIBuffer* dst, usize size, usize offset, u32 value = 0)      = 0;
 		virtual RHIContext& update(RHIBuffer* dst, const void* src, const RHIBufferCopy& region) = 0;

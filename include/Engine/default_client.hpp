@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/etl/vector.hpp>
-#include <Graphics/render_viewport.hpp>
+#include <Core/viewport_client.hpp>
+#include <RHI/types.hpp>
 
 namespace Trinex
 {

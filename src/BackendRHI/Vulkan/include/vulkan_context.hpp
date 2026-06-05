@@ -368,7 +368,7 @@ namespace Trinex
 		VulkanContext& clear_rtv(RHIRenderTargetView* rtv, f32 r, f32 g, f32 b, f32 a) override;
 		VulkanContext& clear_urtv(RHIRenderTargetView* rtv, u32 r, u32 g, u32 b, u32 a) override;
 		VulkanContext& clear_irtv(RHIRenderTargetView* rtv, i32 r, i32 g, i32 b, i32 a) override;
-		VulkanContext& clear_dsv(RHIDepthStencilView* dsv, f32 depth, u8 stencil) override;
+		VulkanContext& clear_dsv(RHIDepthStencilView* dsv, RHIAspect aspect, f32 depth, u8 stencil) override;
 
 		VulkanContext& update_scalar(const void* data, usize size, usize offset, u8 buffer_index) override;
 

@@ -44,7 +44,7 @@ namespace Trinex
 	DepthCubeRenderer::DepthCubeRenderer(const SceneView& view, ViewMode mode) : Renderer(view, mode)
 	{
 		auto pool = RHITexturePool::global_instance();
-		m_cubemap = pool->request_transient_surface(RHITextureType::TextureCube, RHISurfaceFormat::D32F, {view.view_size(), 1});
+		m_cubemap = pool->acquire_transient(RHITextureType::TextureCube, RHISurfaceFormat::D32F, {view.view_size(), 1});
 
 		auto graph = render_graph();
 

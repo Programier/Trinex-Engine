@@ -115,7 +115,7 @@ namespace Trinex
 
 		for (u32 i = 0; i < worker_count; ++i)
 		{
-			RHIContext* secondary = context_pool->request_context(RHIContextFlags::Secondary);
+			RHIContext* secondary = context_pool->acquire(RHIContextFlags::Secondary);
 			workers[i]            = {secondary, 0};
 		}
 
@@ -148,7 +148,7 @@ namespace Trinex
 					handle->release();
 				}
 
-				context_pool->return_context(worker.context);
+				context_pool->release(worker.context);
 			}
 		}
 		pass->end(this, ctx);
@@ -220,7 +220,7 @@ namespace Trinex
 			auto pool               = RHITexturePool::global_instance();
 			RHISurfaceFormat format = surface_format_of(type);
 			RHITextureFlags flags   = surface_flags_of(type);
-			RHITexture* target      = pool->request_transient_surface(format, m_view.view_size(), flags);
+			RHITexture* target      = pool->acquire_transient(format, m_view.view_size(), flags);
 
 			RenderGraph::Pass* pass = &m_graph->add_pass(clear_pass_names[type]).add_resource(target, RHIAccess::TransferDst);
 			m_surface_clears[type]  = pass;
@@ -238,8 +238,8 @@ namespace Trinex
 	{
 		if (m_globals == nullptr)
 		{
-			m_globals = RHIBufferPool::global_instance()->request_transient_buffer(sizeof(GlobalShaderParameters),
-			                                                                       RHIBufferFlags::UniformBuffer);
+			m_globals = RHIBufferPool::global_instance()->acquire_transient(sizeof(GlobalShaderParameters),
+			                                                                RHIBufferFlags::UniformBuffer);
 		}
 		return m_globals;
 	}
@@ -247,18 +247,18 @@ namespace Trinex
 	RHITexture* Renderer::request_surface(RHISurfaceFormat format, float scale)
 	{
 		Vector2u size = Vector2u(Vector2f(m_view.view_size()) * scale);
-		return RHITexturePool::global_instance()->request_surface(format, size);
+		return RHITexturePool::global_instance()->acquire(format, size);
 	}
 
 	RHITexture* Renderer::request_transient_surface(RHISurfaceFormat format, float scale)
 	{
 		Vector2u size = Vector2u(Vector2f(m_view.view_size()) * scale);
-		return RHITexturePool::global_instance()->request_transient_surface(format, size);
+		return RHITexturePool::global_instance()->acquire_transient(format, size);
 	}
 
 	Renderer& Renderer::return_surface(RHITexture* surface)
 	{
-		RHITexturePool::global_instance()->return_surface(surface);
+		RHITexturePool::global_instance()->release(surface);
 		return *this;
 	}
 }// namespace Trinex

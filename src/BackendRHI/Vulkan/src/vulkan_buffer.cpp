@@ -131,7 +131,7 @@ namespace Trinex
 
 			if (is_transient)
 			{
-				ctx = static_cast<VulkanContext*>(RHIContextPool::global_instance()->begin_context());
+				ctx = static_cast<VulkanContext*>(RHIContextPool::global_instance()->begin());
 			}
 
 			auto buffer = VulkanAPI::instance()->stagging_manager()->allocate(size, RHIBufferFlags::TransferSrc);
@@ -146,7 +146,7 @@ namespace Trinex
 
 			if (is_transient)
 			{
-				RHIContextPool::global_instance()->end_context(ctx);
+				RHIContextPool::global_instance()->end(ctx);
 			}
 		}
 		return *this;

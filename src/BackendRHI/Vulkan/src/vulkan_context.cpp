@@ -102,6 +102,14 @@ namespace Trinex
 			remove_dirty(Scissor);
 		}
 
+		if (is_dirty(DepthStencilState))
+		{
+			auto& stencil = m_pipeline_state->depth_stencil.stencil;
+			m_cmd->setStencilCompareMask(vk::StencilFaceFlagBits::eFrontAndBack, stencil.compare_mask);
+			m_cmd->setStencilWriteMask(vk::StencilFaceFlagBits::eFrontAndBack, stencil.write_mask);
+			m_cmd->setStencilReference(vk::StencilFaceFlagBits::eFrontAndBack, stencil.reference);
+		}
+
 		if (is_dirty(DepthBias))
 		{
 			m_cmd->setDepthBias(m_depth_bias.constant, m_depth_bias.clamp, m_depth_bias.slope);

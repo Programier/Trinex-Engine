@@ -105,7 +105,7 @@ namespace Trinex::UI
 			auto viewport           = g_context->window->render_viewport();
 			RHISwapchain* swapchain = viewport->swapchain();
 
-			RHIContext* ctx = RHIContextPool::global_instance()->begin_context();
+			RHIContext* ctx = RHIContextPool::global_instance()->begin();
 			{
 				auto texture = swapchain->as_texture();
 				auto rtv     = texture->as_rtv();
@@ -119,7 +119,7 @@ namespace Trinex::UI
 				ctx->barrier(texture, RHIAccess::PresentSrc);
 			}
 
-			RHIContextPool::global_instance()->end_context(ctx, swapchain->acquire_semaphore(), swapchain->present_semaphore());
+			RHIContextPool::global_instance()->end(ctx, swapchain->acquire_semaphore(), swapchain->present_semaphore());
 			RHI::instance()->present(swapchain);
 		}
 
@@ -243,7 +243,7 @@ namespace Trinex::UI
 				RHIContext* ctx              = Backend::rhi();
 				RHITexture* window           = Backend::render_target();
 				const Vector2u viewport_size = window->size();
-				RHITexture* temporary        = pool->request_surface(RHISurfaceFormat::RGBA8, viewport_size, flags);
+				RHITexture* temporary        = pool->acquire(RHISurfaceFormat::RGBA8, viewport_size, flags);
 
 				const Vector2f blur_offset = area_min / Vector2f(viewport_size);
 				const Vector2f blur_size   = (area_max - area_min) / Vector2f(viewport_size);
@@ -273,9 +273,7 @@ namespace Trinex::UI
 				}
 
 				ctx->pop_debug_stage();
-
-
-				pool->return_surface(temporary);
+				pool->release(temporary);
 			});
 		}
 

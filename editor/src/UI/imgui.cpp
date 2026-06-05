@@ -233,7 +233,7 @@ namespace Trinex
 			auto viewport           = window()->render_viewport();
 			RHISwapchain* swapchain = viewport->swapchain();
 
-			RHIContext* ctx = RHIContextPool::global_instance()->begin_context();
+			RHIContext* ctx = RHIContextPool::global_instance()->begin();
 			{
 				auto texture = swapchain->as_texture();
 				auto rtv     = texture->as_rtv();
@@ -249,7 +249,7 @@ namespace Trinex
 
 				ctx->barrier(texture, RHIAccess::PresentSrc);
 			}
-			RHIContextPool::global_instance()->end_context(ctx, swapchain->acquire_semaphore(), swapchain->present_semaphore());
+			RHIContextPool::global_instance()->end(ctx, swapchain->acquire_semaphore(), swapchain->present_semaphore());
 			RHI::instance()->present(swapchain);
 		}
 
