@@ -2,7 +2,6 @@
 #include <Core/editor_resources.hpp>
 #include <Core/etl/engine_resource.hpp>
 #include <Core/etl/templates.hpp>
-#include <Core/event.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/keyboard.hpp>
 #include <Core/logger.hpp>

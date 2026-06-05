@@ -22,11 +22,8 @@ namespace ImGuizmo
 
 namespace Trinex
 {
-	namespace Migration
-	{
-		class EventListener;
-		struct PointerEvent;
-	}
+	class EventListener;
+	struct PointerEvent;
 
 	struct EditorState {
 		struct {
@@ -118,7 +115,7 @@ namespace Trinex
 	private:
 		Pointer<World> m_world;
 
-		Migration::EventListener* m_pointer_event_listener = nullptr;
+		EventListener* m_pointer_event_listener = nullptr;
 
 		Identifier m_on_actor_select_callback_id   = 0;
 		Identifier m_on_actor_unselect_callback_id = 0;
@@ -133,8 +130,8 @@ namespace Trinex
 		ImGuiLevelExplorer* m_level_explorer    = nullptr;
 
 		Pointer<CameraComponent> camera;
-		float m_camera_speed   = 10.f;
-		Vector3f m_camera_move = {0, 0, 0};
+		float m_camera_speed        = 10.f;
+		Vector3f m_camera_move      = {0, 0, 0};
 		bool m_camera_relative_mode = false;
 		bool m_delete_was_pressed   = false;
 
@@ -174,9 +171,9 @@ namespace Trinex
 		EditorClient& select_actors(const Vector2f& uv);
 
 		// Inputs
-		void on_mouse_press(const Migration::PointerEvent& event);
-		void on_mouse_release(const Migration::PointerEvent& event);
-		void on_mouse_move(const Migration::PointerEvent& event);
+		void on_mouse_press(const PointerEvent& event);
+		void on_mouse_release(const PointerEvent& event);
+		void on_mouse_move(const PointerEvent& event);
 
 		EditorClient& select(Object* object) override;
 	};

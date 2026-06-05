@@ -1,9 +1,9 @@
 #include <Core/math/math.hpp>
-#include <Systems/Migration/input_system.hpp>
+#include <Input/input_system.hpp>
 #include <algorithm>
 
 
-namespace Trinex::Migration
+namespace Trinex
 {
 	InputSystem* InputSystem::s_instance = nullptr;
 
@@ -757,4 +757,4 @@ namespace Trinex::Migration
 	{
 		return m_pending_raw_events;
 	}
-}// namespace Trinex::Migration
+}// namespace Trinex

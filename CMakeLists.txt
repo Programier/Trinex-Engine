@@ -46,7 +46,7 @@ set(TRINEX_SOURCE_DIRECTORIES
     "${TRINEX_ENGINE_SRC}/Sensors/"
     "${TRINEX_ENGINE_SRC}/CommandLets/"
     "${TRINEX_ENGINE_SRC}/ScriptEngine/"
-    "${TRINEX_ENGINE_SRC}/Systems/"
+    "${TRINEX_ENGINE_SRC}/Input/"
     "${TRINEX_ENGINE_SRC}/Engine/"
     "${TRINEX_ENGINE_SRC}/RHI/"
     "${TRINEX_ENGINE_SRC}/EntryPoints/"

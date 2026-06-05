@@ -8,9 +8,9 @@
 #include <Core/tickable.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/render_viewport.hpp>
+#include <Input/event_system.hpp>
 #include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
-#include <Systems/Migration/event_system.hpp>
 #include <Window/window_manager.hpp>
 #include <chrono>
 
@@ -18,12 +18,12 @@ namespace Trinex
 {
 	namespace
 	{
-		class EngineQuitListener final : public Migration::EventListener
+		class EngineQuitListener final : public EventListener
 		{
 		public:
-			Migration::EventDispatchResult on_event(Migration::RoutedEvent& event) override
+			EventDispatchResult on_event(RoutedEvent& event) override
 			{
-				if (event.header.type_id == Migration::EventTypeIds::Quit && engine_instance)
+				if (event.header.type_id == EventTypeIds::Quit && engine_instance)
 				{
 					engine_instance->request_exit();
 					event.mark_handled();
@@ -54,9 +54,9 @@ namespace Trinex
 		flags.set(Flags::StandAlone);
 		flags.remove(Flags::IsAvailableForGC);
 
-		if (Migration::EventSystem* system = Migration::EventSystem::instance())
+		if (EventSystem* system = EventSystem::instance())
 		{
-			system->dispatcher().add_listener(Migration::EventTypeIds::Quit, &quit_listener);
+			system->dispatcher().add_listener(EventTypeIds::Quit, &quit_listener);
 		}
 	}
 

@@ -8,7 +8,7 @@
 #include <Core/math/vector.hpp>
 #include <Core/tickable.hpp>
 
-namespace Trinex::Migration
+namespace Trinex
 {
 	using EventTypeId    = u64;
 	using EventSequence  = u64;
@@ -319,4 +319,4 @@ namespace Trinex::Migration
 		EventSystem& update(float dt) override;
 		EventSystem& end_frame() override;
 	};
-}// namespace Trinex::Migration
+}// namespace Trinex

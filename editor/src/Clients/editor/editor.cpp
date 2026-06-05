@@ -20,11 +20,11 @@
 #include <Graphics/texture.hpp>
 #include <ImGuizmo.h>
 #include <ImViewGuizmo.h>
+#include <Input/input_system.hpp>
 #include <Platform/platform.hpp>
 #include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 #include <RHI/static_sampler.hpp>
-#include <Systems/Migration/input_system.hpp>
 #include <UI/imgui.hpp>
 #include <UI/theme.hpp>
 #include <Widgets/content_browser.hpp>
@@ -40,7 +40,7 @@ namespace Trinex
 {
 	namespace
 	{
-		class EditorPointerListener final : public Migration::EventListener
+		class EditorPointerListener final : public EventListener
 		{
 		private:
 			EditorClient* m_owner = nullptr;
@@ -48,7 +48,7 @@ namespace Trinex
 		public:
 			explicit EditorPointerListener(EditorClient* owner) : m_owner(owner) {}
 
-			Migration::EventDispatchResult on_event(Migration::RoutedEvent& event) override
+			EventDispatchResult on_event(RoutedEvent& event) override
 			{
 				if (m_owner == nullptr || m_owner->window() == nullptr || m_owner->window()->window() == nullptr)
 					return {};
@@ -56,15 +56,15 @@ namespace Trinex
 				if (event.header.window_id != m_owner->window()->window()->id())
 					return {};
 
-				auto* payload = reinterpret_cast<const Migration::PointerEvent*>(event.payload);
+				auto* payload = reinterpret_cast<const PointerEvent*>(event.payload);
 				if (payload == nullptr)
 					return {};
 
 				switch (payload->kind)
 				{
-					case Migration::PointerEventKind::Moved: m_owner->on_mouse_move(*payload); break;
-					case Migration::PointerEventKind::ButtonPressed: m_owner->on_mouse_press(*payload); break;
-					case Migration::PointerEventKind::ButtonReleased: m_owner->on_mouse_release(*payload); break;
+					case PointerEventKind::Moved: m_owner->on_mouse_move(*payload); break;
+					case PointerEventKind::ButtonPressed: m_owner->on_mouse_press(*payload); break;
+					case PointerEventKind::ButtonReleased: m_owner->on_mouse_release(*payload); break;
 					default: break;
 				}
 
@@ -346,8 +346,7 @@ namespace Trinex
 		if (m_pointer_event_listener == nullptr)
 		{
 			m_pointer_event_listener = trx_new EditorPointerListener(this);
-			Migration::EventSystem::instance()->dispatcher().add_listener(Migration::EventTypeIds::Pointer,
-			                                                              m_pointer_event_listener);
+			EventSystem::instance()->dispatcher().add_listener(EventTypeIds::Pointer, m_pointer_event_listener);
 		}
 		return *this;
 	}
@@ -363,9 +362,9 @@ namespace Trinex
 
 		if (m_pointer_event_listener)
 		{
-			if (Migration::EventSystem* event_system = Migration::EventSystem::instance())
+			if (EventSystem* event_system = EventSystem::instance())
 			{
-				event_system->dispatcher().remove_listener(Migration::EventTypeIds::Pointer, m_pointer_event_listener);
+				event_system->dispatcher().remove_listener(EventTypeIds::Pointer, m_pointer_event_listener);
 			}
 
 			trx_delete m_pointer_event_listener;
@@ -548,8 +547,8 @@ namespace Trinex
 		update_camera();
 		render_viewport_window();
 
-		Migration::InputSystem* input = Migration::InputSystem::instance();
-		const bool delete_pressed     = input->is_scan_code_pressed_for_user(Migration::ScanCode::Delete);
+		InputSystem* input        = InputSystem::instance();
+		const bool delete_pressed = input->is_scan_code_pressed_for_user(ScanCode::Delete);
 
 		if (m_delete_was_pressed && !delete_pressed)
 		{
@@ -879,11 +878,11 @@ namespace Trinex
 		if (!relative_mode)
 			return;
 
-		Migration::InputSystem* input = Migration::InputSystem::instance();
-		move.z += input->is_scan_code_pressed_for_user(Migration::ScanCode::W) ? 1.f : 0.f;
-		move.x += input->is_scan_code_pressed_for_user(Migration::ScanCode::D) ? 1.f : 0.f;
-		move.z += input->is_scan_code_pressed_for_user(Migration::ScanCode::S) ? -1.f : 0.f;
-		move.x += input->is_scan_code_pressed_for_user(Migration::ScanCode::A) ? -1.f : 0.f;
+		InputSystem* input = InputSystem::instance();
+		move.z += input->is_scan_code_pressed_for_user(ScanCode::W) ? 1.f : 0.f;
+		move.x += input->is_scan_code_pressed_for_user(ScanCode::D) ? 1.f : 0.f;
+		move.z += input->is_scan_code_pressed_for_user(ScanCode::S) ? -1.f : 0.f;
+		move.x += input->is_scan_code_pressed_for_user(ScanCode::A) ? -1.f : 0.f;
 	}
 
 	EditorClient& EditorClient::update_camera()
@@ -919,19 +918,18 @@ namespace Trinex
 	}
 
 	// Inputs
-	void EditorClient::on_mouse_press(const Migration::PointerEvent& event)
+	void EditorClient::on_mouse_press(const PointerEvent& event)
 	{
-		if (m_state.viewport.is_hovered &&
-		    static_cast<Migration::MouseButton::Enum>(event.button) == Migration::MouseButton::Right)
+		if (m_state.viewport.is_hovered && static_cast<MouseButton::Enum>(event.button) == MouseButton::Right)
 		{
 			m_camera_relative_mode = true;
 			WindowManager::instance()->mouse_relative_mode(true);
 		}
 	}
 
-	void EditorClient::on_mouse_release(const Migration::PointerEvent& event)
+	void EditorClient::on_mouse_release(const PointerEvent& event)
 	{
-		if (static_cast<Migration::MouseButton::Enum>(event.button) == Migration::MouseButton::Right)
+		if (static_cast<MouseButton::Enum>(event.button) == MouseButton::Right)
 		{
 			m_camera_relative_mode = false;
 			WindowManager::instance()->mouse_relative_mode(false);
@@ -951,7 +949,7 @@ namespace Trinex
 		out                = q_yaw * out * q_pitch;
 	}
 
-	void EditorClient::on_mouse_move(const Migration::PointerEvent& event)
+	void EditorClient::on_mouse_move(const PointerEvent& event)
 	{
 		if (m_camera_relative_mode)
 		{

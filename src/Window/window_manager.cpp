@@ -9,9 +9,9 @@
 #include <Core/threading.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Image/image.hpp>
+#include <Input/event_system.hpp>
 #include <Platform/platform.hpp>
 #include <RHI/rhi.hpp>
-#include <Systems/Migration/event_system.hpp>
 #include <Window/config.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
@@ -26,10 +26,10 @@ namespace Trinex
 
 	namespace
 	{
-		struct WindowEventListener final : Migration::EventListener {
-			Migration::EventDispatchResult on_event(Migration::RoutedEvent& event) override
+		struct WindowEventListener final : EventListener {
+			EventDispatchResult on_event(RoutedEvent& event) override
 			{
-				auto* payload = reinterpret_cast<const Migration::WindowEvent*>(event.payload);
+				auto* payload = reinterpret_cast<const WindowEvent*>(event.payload);
 				if (payload == nullptr)
 					return {};
 
@@ -43,7 +43,7 @@ namespace Trinex
 
 				switch (payload->kind)
 				{
-					case Migration::WindowEventKind::Resized:
+					case WindowEventKind::Resized:
 					{
 						if (RenderViewport* viewport = window->render_viewport())
 						{
@@ -52,7 +52,7 @@ namespace Trinex
 						break;
 					}
 
-					case Migration::WindowEventKind::CloseRequested:
+					case WindowEventKind::CloseRequested:
 					{
 						if (manager->main_window() == window)
 						{
@@ -78,7 +78,7 @@ namespace Trinex
 			}
 		};
 
-		static WindowEventListener g_window_event_listener;
+		static WindowEventListener s_window_event_listener;
 	}// namespace
 
 	WindowManager* WindowManager::s_instance = nullptr;
@@ -86,9 +86,9 @@ namespace Trinex
 	WindowManager::WindowManager()
 	{
 		Platform::WindowManager::initialize();
-		if (Migration::EventSystem* event_system = Migration::EventSystem::instance())
+		if (EventSystem* event_system = EventSystem::instance())
 		{
-			event_system->dispatcher().add_listener(Migration::EventTypeIds::Window, &g_window_event_listener);
+			event_system->dispatcher().add_listener(EventTypeIds::Window, &s_window_event_listener);
 		}
 	}
 

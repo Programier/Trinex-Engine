@@ -17,12 +17,12 @@
 #include <Engine/settings.hpp>
 #include <Engine/splash_screen.hpp>
 #include <Graphics/render_viewport.hpp>
+#include <Input/event_system.hpp>
+#include <Input/input_system.hpp>
 #include <Platform/platform.hpp>
 #include <RHI/rhi.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_module.hpp>
-#include <Systems/Migration/event_system.hpp>
-#include <Systems/Migration/input_system.hpp>
 #include <Window/config.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>

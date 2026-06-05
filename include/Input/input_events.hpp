@@ -2,10 +2,10 @@
 
 #include <Core/etl/vector.hpp>
 #include <Core/math/vector.hpp>
-#include <Systems/Migration/event_system.hpp>
-#include <Systems/Migration/input_codes.hpp>
+#include <Input/event_system.hpp>
+#include <Input/input_codes.hpp>
 
-namespace Trinex::Migration
+namespace Trinex
 {
 	struct RawInputEventType {
 		enum Enum : u8
@@ -94,4 +94,4 @@ namespace Trinex::Migration
 		EventSequence last_sequence  = 0;
 		Vector<RawInputEvent> events;
 	};
-}// namespace Trinex::Migration
+}// namespace Trinex

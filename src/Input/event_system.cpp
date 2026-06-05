@@ -1,9 +1,9 @@
+#include <Input/event_system.hpp>
+#include <Input/input_system.hpp>
 #include <Platform/platform.hpp>
-#include <Systems/Migration/event_system.hpp>
-#include <Systems/Migration/input_system.hpp>
 
 
-namespace Trinex::Migration
+namespace Trinex
 {
 	EventSystem* EventSystem::s_instance = nullptr;
 
@@ -711,4 +711,4 @@ namespace Trinex::Migration
 	{
 		return *this;
 	}
-}// namespace Trinex::Migration
+}// namespace Trinex

@@ -6,11 +6,11 @@
 #include <Core/etl/vector.hpp>
 #include <Core/math/vector.hpp>
 #include <Core/tickable.hpp>
-#include <Systems/Migration/event_system.hpp>
-#include <Systems/Migration/input_codes.hpp>
-#include <Systems/Migration/input_events.hpp>
+#include <Input/event_system.hpp>
+#include <Input/input_codes.hpp>
+#include <Input/input_events.hpp>
 
-namespace Trinex::Migration
+namespace Trinex
 {
 	struct InputRoutingResult;
 
@@ -254,4 +254,4 @@ namespace Trinex::Migration
 		static constexpr usize gamepad_button_capacity() { return static_cast<usize>(GamepadButton::Count); }
 		static constexpr usize gamepad_axis_capacity() { return static_cast<usize>(GamepadAxis::Count); }
 	};
-}// namespace Trinex::Migration
+}// namespace Trinex

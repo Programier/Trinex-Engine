@@ -1,9 +1,9 @@
 #pragma once
 
 #include <Core/engine_types.hpp>
-#include <Systems/Migration/input_codes.def>
+#include <Input/input_codes.def>
 
-namespace Trinex::Migration
+namespace Trinex
 {
 	using DeviceId    = u64;
 	using InputUserId = u32;
@@ -137,4 +137,4 @@ namespace Trinex::Migration
 
 		trinex_enum_struct(InputDeviceType);
 	};
-}// namespace Trinex::Migration
+}// namespace Trinex
