@@ -24,7 +24,6 @@ namespace Trinex
 		Editor* m_current_editor = nullptr;
 		CriticalSection m_render_finished;
 
-		Vector<struct Event> m_recieved_events;
 		Thread* m_debugging_thread;
 
 		class Script* m_selected_script  = nullptr;
@@ -50,7 +49,6 @@ namespace Trinex
 		void on_ctrl_alt_click(ImGui::TextEditor* editor, const String&, ImGui::TextEditor::Coordinates coords);
 		void on_request_open(ImGui::TextEditor* editor, const std::string&, const std::string&);
 		void on_content_update(ImGui::TextEditor* editor);
-		static void on_event_recieved(const struct Event& event, void* userdata);
 
 		ScriptDebuggerClient& build_language_definition();
 		ScriptDebuggerClient& on_line_callback();

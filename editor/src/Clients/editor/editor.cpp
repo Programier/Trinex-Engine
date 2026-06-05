@@ -25,7 +25,6 @@
 #include <RHI/rhi.hpp>
 #include <RHI/static_sampler.hpp>
 #include <Systems/Migration/input_system.hpp>
-#include <Systems/event_system.hpp>
 #include <UI/imgui.hpp>
 #include <UI/theme.hpp>
 #include <Widgets/content_browser.hpp>
@@ -316,8 +315,6 @@ namespace Trinex
 
 		auto monitor_info = Platform::monitor_info(wd->monitor_index());
 		wd->size(monitor_info.size);
-
-		EventSystem::instance()->process_event_method(EventSystem::PoolEvents);
 		m_world = Object::new_instance<World>("World");
 
 		m_scene_view.state(&m_scene_view_state);
@@ -960,21 +957,6 @@ namespace Trinex
 		{
 			float pitch = calculate_y_rotation(event.delta.y, m_state.viewport.size.y);
 			float yaw   = -calculate_y_rotation(event.delta.x, m_state.viewport.size.x);
-
-			Quaternion rotation = camera->local_transform().rotation;
-			make_rotation_quat(yaw, pitch, rotation);
-			camera->rotation(rotation);
-		}
-	}
-
-	void EditorClient::on_finger_move(const Event& event)
-	{
-		const auto& motion = event.touchscreen.finger_motion;
-
-		if (motion.index == 0 && m_state.viewport.is_hovered)
-		{
-			float pitch = calculate_y_rotation(static_cast<float>(motion.yrel), m_state.viewport.size.y);
-			float yaw   = -calculate_y_rotation(static_cast<float>(motion.xrel), m_state.viewport.size.x);
 
 			Quaternion rotation = camera->local_transform().rotation;
 			make_rotation_quat(yaw, pitch, rotation);

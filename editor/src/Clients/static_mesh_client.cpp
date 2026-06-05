@@ -10,7 +10,6 @@
 #include <Graphics/mesh.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/render_surface.hpp>
-#include <Systems/event_system.hpp>
 #include <UI/imgui.hpp>
 #include <Widgets/content_browser.hpp>
 #include <Widgets/mesh_preview.hpp>
@@ -68,10 +67,6 @@ namespace Trinex
 		Super::deattach(vp);
 
 		m_browser = nullptr;
-		for (auto& listener : m_listeners)
-		{
-			EventSystem::instance()->remove_listener(listener);
-		}
 
 		return *this;
 	}

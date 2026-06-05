@@ -4,7 +4,7 @@
 #include <Core/math/math.hpp>
 #include <Core/reflection/struct.hpp>
 #include <EGL/egl.h>
-#include <Systems/event_system.hpp>
+#include <Core/event.hpp>
 #include <Systems/touchscreen_system.hpp>
 #include <Window/config.hpp>
 #include <Window/window.hpp>

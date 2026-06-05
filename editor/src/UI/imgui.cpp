@@ -27,7 +27,6 @@
 #include <RHI/resource_ptr.hpp>
 #include <RHI/rhi.hpp>
 #include <RHI/static_sampler.hpp>
-#include <Systems/event_system.hpp>
 #include <UI/imgui.hpp>
 #include <UI/theme.hpp>
 #include <Window/config.hpp>

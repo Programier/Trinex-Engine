@@ -22,7 +22,6 @@ namespace Trinex
 		class Viewport;
 
 		Vector3f m_camera_move;
-		Vector<Identifier> m_listeners;
 		Pointer<CameraComponent> m_camera;
 		Pointer<World> m_world;
 		Viewport* m_viewport = nullptr;

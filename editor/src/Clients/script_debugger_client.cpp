@@ -1,7 +1,6 @@
 #include <Clients/script_debuger_client.hpp>
 #include <Core/base_engine.hpp>
 #include <Core/editor_config.hpp>
-#include <Core/event.hpp>
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/threading.hpp>
@@ -14,7 +13,6 @@
 #include <ScriptEngine/script_module.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 #include <ScriptEngine/script_variable.hpp>
-#include <Systems/event_system.hpp>
 #include <UI/backend.hpp>
 #include <UI/imgui.hpp>
 #include <UI/theme.hpp>
@@ -847,56 +845,6 @@ namespace Trinex
 		return *this;
 	}
 
-	void ScriptDebuggerClient::on_event_recieved(const Event& event, void* userdata)
-	{
-		ScriptDebuggerClient* self = reinterpret_cast<ScriptDebuggerClient*>(userdata);
-
-		if (event.type == EventType::Quit ||
-		    (event.type == EventType::WindowClose && event.window_id == self->window()->window()->id()))
-		{
-			self->m_is_in_debug_loop = false;
-		}
-
-		if (!self->m_is_in_debug_loop)
-		{
-			self->m_recieved_events.push_back(event);
-			return;
-		}
-
-		bool push_to_recieved_events = true;
-		UI::Backend::imgui_event_recieved(event);
-
-		if (event.type == EventType::KeyUp)
-		{
-			auto& data = event.keyboard;
-
-			switch (data.key)
-			{
-				case Trinex::Keyboard::Key::F5:
-					self->on_debugger_action(nullptr, ImGui::TextEditor::DebugAction::Continue);
-					break;
-				case Trinex::Keyboard::Key::F10: self->on_debugger_action(nullptr, ImGui::TextEditor::DebugAction::Step); break;
-				case Trinex::Keyboard::Key::F11:
-					self->on_debugger_action(nullptr, ImGui::TextEditor::DebugAction::StepInto);
-					break;
-
-				default: break;
-			}
-		}
-		else if (event.type == EventType::WindowResized && self->window()->window()->id() == event.window_id)
-		{
-			const auto& window_event = event.window;
-			auto x                   = window_event.x;
-			auto y                   = window_event.y;
-			self->viewport()->on_resize({x, y});
-
-			push_to_recieved_events = false;
-		}
-
-		if (push_to_recieved_events)
-			self->m_recieved_events.push_back(event);
-	}
-
 	ScriptDebuggerClient& ScriptDebuggerClient::debugger_thread_loop()
 	{
 		m_is_in_debug_loop    = true;
@@ -909,9 +857,6 @@ namespace Trinex
 			float current_time = engine_instance->time_seconds();
 			float dt           = current_time - prev_time;
 			prev_time          = current_time;
-
-
-			//Platform::EventSystem::pool_events(on_event_recieved, this);
 
 			if (m_is_in_debug_loop)
 			{
@@ -929,23 +874,6 @@ namespace Trinex
 		{
 			m_debugging_thread->add_task(Task(Task::High, [this]() { debugger_thread_loop(); }));
 			//m_debugging_thread->wait();
-
-			if (!m_recieved_events.empty())
-			{
-				UI::Backend::imgui_disable_events();
-			}
-
-			for (auto& event : m_recieved_events)
-			{
-				EventSystem::instance()->push_event(event);
-			}
-
-			if (!m_recieved_events.empty())
-			{
-				UI::Backend::imgui_enable_events();
-			}
-
-			m_recieved_events.clear();
 		}
 
 		return *this;

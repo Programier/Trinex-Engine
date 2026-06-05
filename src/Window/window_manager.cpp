@@ -3,6 +3,7 @@
 #include <Core/config_manager.hpp>
 #include <Core/constants.hpp>
 #include <Core/library.hpp>
+#include <Core/math/math.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/threading.hpp>
@@ -10,7 +11,7 @@
 #include <Image/image.hpp>
 #include <Platform/platform.hpp>
 #include <RHI/rhi.hpp>
-#include <Systems/event_system.hpp>
+#include <Systems/Migration/event_system.hpp>
 #include <Window/config.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
@@ -23,79 +24,72 @@ namespace Trinex
 		return image;
 	}
 
-	static void on_window_close(const Event& event)
+	namespace
 	{
-		WindowManager* manager = WindowManager::instance();
-
-		if (manager == nullptr)
-			return;
-
-		Window* window = manager->find(event.window_id);
-
-		if (manager->main_window() == window)
-		{
-			engine_instance->request_exit();
-		}
-		else if (window)
-		{
-			// Maybe the EventSystem will still send information about closing the window to other listeners.
-			// Therefore, we will postpone the deletion of the window until the beginning of the next frame
-
-			logic_thread()->add_task(Task(Task::High, [id = window->id()]() {
-				// Let's check if the manager and the window still exist before deleting the window
-				if (auto manager = WindowManager::instance())
-				{
-					if (auto window = manager->find(id))
-					{
-						manager->destroy_window(window);
-					}
-				}
-			}));
-		}
-	}
-
-	static void on_resize(const Event& event)
-	{
-		WindowManager* manager = WindowManager::instance();
-		Window* window         = manager->find(event.window_id);
-		if (!window)
-			return;
-
-		{
-			auto x = event.window.x;
-			auto y = event.window.y;
-
-			if (RenderViewport* viewport = window->render_viewport())
+		struct WindowEventListener final : Migration::EventListener {
+			Migration::EventDispatchResult on_event(Migration::RoutedEvent& event) override
 			{
-				viewport->on_resize({x, y});
+				auto* payload = reinterpret_cast<const Migration::WindowEvent*>(event.payload);
+				if (payload == nullptr)
+					return {};
+
+				WindowManager* manager = WindowManager::instance();
+				if (manager == nullptr)
+					return {};
+
+				Window* window = manager->find(event.header.window_id);
+				if (window == nullptr)
+					return {};
+
+				switch (payload->kind)
+				{
+					case Migration::WindowEventKind::Resized:
+					{
+						if (RenderViewport* viewport = window->render_viewport())
+						{
+							viewport->on_resize({payload->size.x, payload->size.y});
+						}
+						break;
+					}
+
+					case Migration::WindowEventKind::CloseRequested:
+					{
+						if (manager->main_window() == window)
+						{
+							engine_instance->request_exit();
+						}
+
+						logic_thread()->add_task(Task(Task::High, [id = window->id()]() {
+							if (auto* manager = WindowManager::instance())
+							{
+								if (auto* window = manager->find(id))
+								{
+									manager->destroy_window(window);
+								}
+							}
+						}));
+						break;
+					}
+
+					default: break;
+				}
+
+				return {};
 			}
-		}
-	}
+		};
 
-	static void on_orientation_changed(const Event& event)
-	{
-		WindowManager* manager = WindowManager::instance();
-		Window* window         = manager->find(event.window_id);
-		if (!window)
-			return;
-
-		if (RenderViewport* viewport = window->render_viewport())
-		{
-			viewport->on_orientation_changed(event.display.orientation);
-		}
-	}
-
+		static WindowEventListener g_window_event_listener;
+	}// namespace
 
 	WindowManager* WindowManager::s_instance = nullptr;
 
 	WindowManager::WindowManager()
 	{
 		Platform::WindowManager::initialize();
-		EventSystem* event_system = EventSystem::instance();
-
-		event_system->add_listener(EventType::WindowClose, &on_window_close);
-		event_system->add_listener(EventType::WindowResized, on_resize);
-		event_system->add_listener(EventType::DisplayOrientationChanged, on_orientation_changed);
+		if (Migration::EventSystem* event_system = Migration::EventSystem::instance())
+		{
+			event_system->dispatcher().add_listener(Migration::EventTypeIds::Window, &g_window_event_listener);
+		}
 	}
 
 	WindowManager& WindowManager::destroy_window(Window* window)

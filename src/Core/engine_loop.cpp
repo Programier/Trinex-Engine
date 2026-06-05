@@ -23,8 +23,6 @@
 #include <ScriptEngine/script_module.hpp>
 #include <Systems/Migration/event_system.hpp>
 #include <Systems/Migration/input_system.hpp>
-#include <Systems/event_system.hpp>
-#include <Systems/keyboard_system.hpp>
 #include <Window/config.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
@@ -172,7 +170,6 @@ namespace Trinex
 
 	void EngineLoop::update()
 	{
-		KeyboardSystem::instance()->begin_frame();
 		engine_instance->update();
 		Thread::static_self()->execute();
 	}

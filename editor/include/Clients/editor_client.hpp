@@ -177,7 +177,6 @@ namespace Trinex
 		void on_mouse_press(const Migration::PointerEvent& event);
 		void on_mouse_release(const Migration::PointerEvent& event);
 		void on_mouse_move(const Migration::PointerEvent& event);
-		void on_finger_move(const Event& event);
 
 		EditorClient& select(Object* object) override;
 	};
