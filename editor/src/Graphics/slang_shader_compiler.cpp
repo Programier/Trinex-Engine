@@ -678,10 +678,10 @@ namespace Trinex
 		ReflectionParser::type_detectors.push_back(T::matrix<MP::Float4x4, Scalar::Float32, 4, 4>);
 	}
 
-	trinex_implement_class_default_init(Trinex::SLANG_ShaderCompiler, Refl::Class::IsSingletone);
-	trinex_implement_class_default_init(Trinex::VULKAN_ShaderCompiler, Refl::Class::IsSingletone);
-	trinex_implement_class_default_init(Trinex::NONE_ShaderCompiler, Refl::Class::IsSingletone);
-	trinex_implement_class_default_init(Trinex::D3D12_ShaderCompiler, Refl::Class::IsSingletone);
+	trinex_implement_class_default_init(Trinex::SLANG_ShaderCompiler, 0);
+	trinex_implement_class_default_init(Trinex::VULKAN_ShaderCompiler, 0);
+	trinex_implement_class_default_init(Trinex::NONE_ShaderCompiler, 0);
+	trinex_implement_class_default_init(Trinex::D3D12_ShaderCompiler, 0);
 
 	SLANG_ShaderCompiler::SLANG_ShaderCompiler()
 	{

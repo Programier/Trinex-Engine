@@ -21,8 +21,10 @@
 #include <RHI/rhi.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_module.hpp>
-#include <Systems/engine_system.hpp>
+#include <Systems/Migration/event_system.hpp>
+#include <Systems/Migration/input_system.hpp>
 #include <Systems/event_system.hpp>
+#include <Systems/keyboard_system.hpp>
 #include <Window/config.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
@@ -46,7 +48,7 @@ namespace Trinex
 
 	static void initialize_filesystem()
 	{
-		auto vfs      = VFS::RootFS::create_instance();
+		auto vfs      = VFS::RootFS::instance();
 		auto exec_dir = Platform::find_exec_directory();
 
 		vfs->mount("[exec]:", exec_dir, VFS::FileSystem::Native);
@@ -114,14 +116,12 @@ namespace Trinex
 			return execute_entry(entry_param->get<const String&>());
 		}
 
-		System::system_of<EngineSystem>();
-
 		initialize_graphics_api();
 
 		// Setup main window
 		WindowConfig config;
 		config.attributes.insert(WindowAttribute::Hidden);
-		WindowManager::create_instance()->create_window(config, nullptr)->hide();
+		WindowManager::instance()->create_window(config, nullptr)->hide();
 		return 0;
 	}
 
@@ -172,6 +172,15 @@ namespace Trinex
 
 	void EngineLoop::update()
 	{
+		KeyboardSystem::instance()->begin_frame();
+
+		if (Migration::EventSystem* event_system = Migration::EventSystem::instance())
+		{
+			event_system->begin_frame();
+			Platform::EventSystem::pool_events();
+			event_system->end_frame();
+		}
+
 		engine_instance->update();
 		Thread::static_self()->execute();
 	}

@@ -5,25 +5,45 @@
 #include <Core/profiler.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/threading.hpp>
+#include <Core/tickable.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
-#include <Systems/engine_system.hpp>
-#include <Systems/event_system.hpp>
+#include <Systems/Migration/event_system.hpp>
 #include <Window/window_manager.hpp>
 #include <chrono>
 
 namespace Trinex
 {
+	namespace
+	{
+		class EngineQuitListener final : public Migration::EventListener
+		{
+		public:
+			Migration::EventDispatchResult on_event(Migration::RoutedEvent& event) override
+			{
+				if (event.header.type_id == Migration::EventTypeIds::Quit && engine_instance)
+				{
+					engine_instance->request_exit();
+					event.mark_handled();
+				}
+
+				return event.result;
+			}
+		};
+
+		FORCE_INLINE std::chrono::high_resolution_clock::time_point current_time_point()
+		{
+			return std::chrono::high_resolution_clock::now();
+		}
+
+		static EngineQuitListener quit_listener;
+		std::chrono::high_resolution_clock::time_point start_time;
+	}// namespace
+
 	trinex_implement_engine_class_default_init(BaseEngine, 0);
 
-	FORCE_INLINE std::chrono::high_resolution_clock::time_point current_time_point()
-	{
-		return std::chrono::high_resolution_clock::now();
-	}
-
-	std::chrono::high_resolution_clock::time_point start_time;
 
 	BaseEngine::BaseEngine()
 	{
@@ -34,17 +54,14 @@ namespace Trinex
 		flags.set(Flags::StandAlone);
 		flags.remove(Flags::IsAvailableForGC);
 
-		System::system_of<EventSystem>()->add_listener(EventType::Quit, [](const Event&) {
-			if (engine_instance)
-			{
-				engine_instance->request_exit();
-			}
-		});
+		if (Migration::EventSystem* system = Migration::EventSystem::instance())
+		{
+			system->dispatcher().add_listener(Migration::EventTypeIds::Quit, &quit_listener);
+		}
 	}
 
 	i32 BaseEngine::init()
 	{
-		EngineSystem::system_of<EngineSystem>();
 		return 0;
 	}
 
@@ -64,12 +81,8 @@ namespace Trinex
 		StackByteAllocator::reset();
 		FrameByteAllocator::reset();
 
-		if (auto instance = EngineSystem::instance())
-		{
-			trinex_profile_cpu_n("Systems::update");
-			instance->update(m_delta_time);
-			instance->wait();
-		}
+		TickableObject::for_each([](TickableObject* object) { object->begin_frame(); });
+		TickableObject::for_each([dt = m_delta_time](TickableObject* object) { object->update(dt); });
 
 		if (RHI* rhi = RHI::instance())
 		{
@@ -87,6 +100,8 @@ namespace Trinex
 				viewport->update(m_delta_time);
 			}
 		}
+
+		TickableObject::for_each([](TickableObject* object) { object->end_frame(); });
 		return 0;
 	}
 

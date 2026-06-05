@@ -1,47 +1,26 @@
 #pragma once
+
 #include <Core/etl/map.hpp>
 #include <Core/etl/singletone.hpp>
-#include <Systems/system.hpp>
-
+#include <Core/math/vector.hpp>
 
 namespace Trinex
 {
 	class Window;
-	struct Event;
 
-	class ENGINE_EXPORT TouchScreenSystem : public Singletone<TouchScreenSystem, System>
+	class ENGINE_EXPORT TouchScreenSystem : public Singletone<TouchScreenSystem, EmptySingletoneParent>
 	{
-		trinex_class(TouchScreenSystem, System);
-
 	public:
-		struct ENGINE_EXPORT Finger {
-			bool is_down   = false;
-			float x        = -1.f;
-			float y        = -1.f;
-			float x_offset = 0.f;
-			float y_offset = 0.f;
-		};
+		static TouchScreenSystem* s_instance;
 
 	private:
-		mutable TreeMap<Window*, Vector<Finger>> m_fingers;
-		Vector<Finger>& find_fingers_data(Window* window) const;
-		Identifier m_listeners[3];
+		friend class Singletone<TouchScreenSystem, EmptySingletoneParent>;
 
-		void on_finger_up(const Event& event);
-		void on_finger_down(const Event& event);
-		void on_finger_motion(const Event& event);
-
-	protected:
-		TouchScreenSystem& create() override;
+		Map<usize, Vector2u> m_finger_locations;
+		TouchScreenSystem() = default;
 
 	public:
-		TouchScreenSystem& update(float dt) override;
-		TouchScreenSystem& shutdown() override;
-
-		usize finger_count(Window* window = nullptr) const;
-		bool is_finger_down(usize finger_index, Window* window = nullptr) const;
-		Vector2f finger_location(usize finger_index, Window* window = nullptr) const;
-		Vector2f finger_offset(usize finger_index, Window* window = nullptr) const;
-		const Finger& finger_info(usize finger_index, Window* window = nullptr) const;
+		Vector2u finger_location(usize index, Window* window = nullptr) const;
+		void update_finger(usize index, Vector2u value);
 	};
 }// namespace Trinex

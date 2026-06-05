@@ -16,6 +16,62 @@ namespace Trinex::Migration
 			batch.events.push_back(event);
 			return batch;
 		}
+
+		static void attach_raw_payload(RoutedEvent& routed, const RawInputEvent& raw_event)
+		{
+			switch (raw_event.type)
+			{
+				case RawInputEventType::Window:
+					routed.payload      = const_cast<WindowEvent*>(&raw_event.window);
+					routed.payload_size = sizeof(raw_event.window);
+					break;
+
+				case RawInputEventType::Key:
+					routed.payload      = const_cast<KeyEvent*>(&raw_event.key);
+					routed.payload_size = sizeof(raw_event.key);
+					break;
+
+				case RawInputEventType::TextInput:
+					routed.payload      = const_cast<TextInputEvent*>(&raw_event.text_input);
+					routed.payload_size = sizeof(raw_event.text_input);
+					break;
+
+				case RawInputEventType::Pointer:
+					routed.payload      = const_cast<PointerEvent*>(&raw_event.pointer);
+					routed.payload_size = sizeof(raw_event.pointer);
+					break;
+
+				case RawInputEventType::Gamepad:
+					routed.payload      = const_cast<GamepadEvent*>(&raw_event.gamepad);
+					routed.payload_size = sizeof(raw_event.gamepad);
+					break;
+
+				case RawInputEventType::DeviceChange:
+					routed.payload      = const_cast<DeviceChangeEvent*>(&raw_event.device_change);
+					routed.payload_size = sizeof(raw_event.device_change);
+					break;
+
+				case RawInputEventType::None:
+				default:
+					routed.payload      = nullptr;
+					routed.payload_size = 0;
+					break;
+			}
+		}
+
+		static EventDispatchResult dispatch_raw_event(EventDispatcher& dispatcher, const RawInputEvent& raw_event)
+		{
+			if (raw_event.header.type_id == 0)
+			{
+				return {};
+			}
+
+			RoutedEvent routed(raw_event.header);
+			attach_raw_payload(routed, raw_event);
+			EventDispatchResult result = dispatcher.dispatch(routed);
+			routed.result              = result;
+			return result;
+		}
 	}// namespace
 
 	EventTarget* EventTarget::event_parent() const
@@ -569,12 +625,6 @@ namespace Trinex::Migration
 		return m_dispatcher;
 	}
 
-	EventSystem& EventSystem::bind_input_system(InputSystem* input_system)
-	{
-		m_input_system = input_system;
-		return *this;
-	}
-
 	DeferredEventQueue& EventSystem::deferred_messages()
 	{
 		return m_deferred_messages;
@@ -583,11 +633,6 @@ namespace Trinex::Migration
 	EventQueue& EventSystem::event_queue()
 	{
 		return m_event_queue;
-	}
-
-	InputSystem* EventSystem::input_system() const
-	{
-		return m_input_system;
 	}
 
 	EventHeader EventSystem::make_header(EventTypeId type_id, EventFlags flags)
@@ -611,17 +656,13 @@ namespace Trinex::Migration
 	{
 		m_event_queue.push(Event(event.header));
 
-		if (m_input_system == nullptr)
-		{
-			m_input_system = InputSystem::instance();
-		}
+		auto input_system = InputSystem::instance();
 
-		if (m_input_system)
-		{
-			RawInputEventBatch batch = single_event_batch(event);
-			m_input_system->submit_raw_event(event);
-			m_input_system->update_device_state(batch);
-		}
+		RawInputEventBatch batch = single_event_batch(event);
+		input_system->submit_raw_event(event);
+		input_system->update_device_state(batch);
+
+		dispatch_raw_event(m_dispatcher, event);
 
 		return *this;
 	}
@@ -633,15 +674,14 @@ namespace Trinex::Migration
 			m_event_queue.push(Event(event.header));
 		}
 
-		if (m_input_system == nullptr)
-		{
-			m_input_system = InputSystem::instance();
-		}
+		auto input_system = InputSystem::instance();
 
-		if (m_input_system)
+		input_system->submit_raw_event_batch(batch);
+		input_system->update_device_state(batch);
+
+		for (const RawInputEvent& event : batch.events)
 		{
-			m_input_system->submit_raw_event_batch(batch);
-			m_input_system->update_device_state(batch);
+			dispatch_raw_event(m_dispatcher, event);
 		}
 
 		return *this;
@@ -657,33 +697,11 @@ namespace Trinex::Migration
 	{
 		// TODO(Migration): Move queued deferred messages into a deterministic gameplay tick buffer.
 		m_event_queue.clear();
-
-		if (m_input_system == nullptr)
-		{
-			m_input_system = InputSystem::instance();
-		}
-
-		if (m_input_system)
-		{
-			m_input_system->begin_frame();
-		}
-
 		return *this;
 	}
 
 	EventSystem& EventSystem::end_frame()
 	{
-		if (m_input_system == nullptr)
-		{
-			m_input_system = InputSystem::instance();
-		}
-
-		if (m_input_system)
-		{
-			m_input_system->build_command_buffer();
-			m_input_system->end_frame();
-		}
-
 		return *this;
 	}
 }// namespace Trinex::Migration

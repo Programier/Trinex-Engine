@@ -20,6 +20,36 @@ namespace Trinex::Migration
 		{
 			return enum_index(value) < capacity;
 		}
+
+		static InputDevice default_device(DeviceId device_id, InputDeviceType type, InputUserId user_id)
+		{
+			InputDevice device;
+			device.device_id = device_id;
+			device.type      = type;
+			device.user_id   = user_id;
+
+			switch (type)
+			{
+				case InputDeviceType::Keyboard:
+					device.supports_text_input = true;
+					break;
+
+				case InputDeviceType::Mouse:
+				case InputDeviceType::Touch:
+					device.supports_pointer = true;
+					break;
+
+				case InputDeviceType::Gamepad:
+					device.supports_gamepad = true;
+					break;
+
+				case InputDeviceType::Unknown:
+				case InputDeviceType::Virtual:
+				default: break;
+			}
+
+			return device;
+		}
 	}// namespace
 
 	const InputDevice* InputSystem::find_device_by_type(InputDeviceType type, InputUserId user_id) const
@@ -167,6 +197,11 @@ namespace Trinex::Migration
 
 	InputDeviceState& InputSystem::find_or_create_state(DeviceId device_id, InputDeviceType type, InputUserId user_id)
 	{
+		if (m_devices.find(device_id) == m_devices.end())
+		{
+			m_devices[device_id] = default_device(device_id, type, user_id);
+		}
+
 		InputDeviceState& state = m_device_states[device_id];
 		state.device_id         = device_id;
 		state.type              = type;
@@ -311,12 +346,33 @@ namespace Trinex::Migration
 
 				case RawInputEventType::DeviceChange:
 				{
+					InputDevice& device = m_devices[event.device_id];
+					device.device_id    = event.device_id;
+					device.type         = event.device_type;
+					device.user_id      = event.user_id;
+
+					if (event.device_change.kind == DeviceChangeKind::Added)
+					{
+						device = default_device(event.device_id, event.device_type, event.user_id);
+					}
+					else if (event.device_change.kind == DeviceChangeKind::Remapped)
+					{
+						InputDevice updated = default_device(event.device_id, event.device_type, event.user_id);
+						updated.is_connected = device.is_connected;
+						device               = updated;
+					}
+
 					if (event.device_change.kind == DeviceChangeKind::Removed)
 					{
+						device.is_connected = false;
 						state           = InputDeviceState();
 						state.device_id = event.device_id;
 						state.type      = event.device_type;
 						state.user_id   = event.user_id;
+					}
+					else
+					{
+						device.is_connected = true;
 					}
 					break;
 				}

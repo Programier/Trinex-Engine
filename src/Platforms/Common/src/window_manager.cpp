@@ -4,7 +4,8 @@
 #include <Core/memory.hpp>
 #include <Core/threading.hpp>
 #include <Platform/platform.hpp>
-#include <Systems/event_system.hpp>
+#include <Systems/Migration/event_system.hpp>
+#include <Systems/Migration/input_system.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
 #include <sdl_window.hpp>
@@ -73,405 +74,476 @@ namespace Trinex::Platform
 
 	namespace EventSystem
 	{
-		template<typename Type>
-		using ValueMap = const Map<Uint8, Type>;
-
-		static ValueMap<GameController::Axis> axis_type = {
-		        {SDL_CONTROLLER_AXIS_INVALID, GameController::Axis::Unknown},
-		        {SDL_CONTROLLER_AXIS_LEFTX, GameController::Axis::LeftX},
-		        {SDL_CONTROLLER_AXIS_LEFTY, GameController::Axis::LeftY},
-		        {SDL_CONTROLLER_AXIS_TRIGGERLEFT, GameController::Axis::TriggerLeft},
-		        {SDL_CONTROLLER_AXIS_RIGHTX, GameController::Axis::RightX},
-		        {SDL_CONTROLLER_AXIS_RIGHTY, GameController::Axis::RightY},
-		        {SDL_CONTROLLER_AXIS_TRIGGERLEFT, GameController::Axis::TriggerRight},
-		};
-
-		static ValueMap<Mouse::Button> mouse_buttons = {{SDL_BUTTON_LEFT, Mouse::Button::Left},
-		                                                {SDL_BUTTON_MIDDLE, Mouse::Button::Middle},
-		                                                {SDL_BUTTON_RIGHT, Mouse::Button::Right},
-		                                                {SDL_BUTTON_X1, Mouse::Button::Back},
-		                                                {SDL_BUTTON_X2, Mouse::Button::Forward}};
-
-		static ValueMap<Keyboard::Key> keys = {
-		        {SDL_SCANCODE_UNKNOWN, Keyboard::Key::Unknown},
-		        {SDL_SCANCODE_SPACE, Keyboard::Key::Space},
-		        {SDL_SCANCODE_APOSTROPHE, Keyboard::Key::Apostrophe},
-		        {SDL_SCANCODE_COMMA, Keyboard::Key::Comma},
-		        {SDL_SCANCODE_MINUS, Keyboard::Key::Minus},
-		        {SDL_SCANCODE_PERIOD, Keyboard::Key::Period},
-		        {SDL_SCANCODE_SLASH, Keyboard::Key::Slash},
-		        {SDL_SCANCODE_0, Keyboard::Key::Num0},
-		        {SDL_SCANCODE_1, Keyboard::Key::Num1},
-		        {SDL_SCANCODE_2, Keyboard::Key::Num2},
-		        {SDL_SCANCODE_3, Keyboard::Key::Num3},
-		        {SDL_SCANCODE_4, Keyboard::Key::Num4},
-		        {SDL_SCANCODE_5, Keyboard::Key::Num5},
-		        {SDL_SCANCODE_6, Keyboard::Key::Num6},
-		        {SDL_SCANCODE_7, Keyboard::Key::Num7},
-		        {SDL_SCANCODE_8, Keyboard::Key::Num8},
-		        {SDL_SCANCODE_9, Keyboard::Key::Num9},
-		        {SDL_SCANCODE_SEMICOLON, Keyboard::Key::Semicolon},
-		        {SDL_SCANCODE_EQUALS, Keyboard::Key::Equal},
-		        {SDL_SCANCODE_A, Keyboard::Key::A},
-		        {SDL_SCANCODE_B, Keyboard::Key::B},
-		        {SDL_SCANCODE_C, Keyboard::Key::C},
-		        {SDL_SCANCODE_D, Keyboard::Key::D},
-		        {SDL_SCANCODE_E, Keyboard::Key::E},
-		        {SDL_SCANCODE_F, Keyboard::Key::F},
-		        {SDL_SCANCODE_G, Keyboard::Key::G},
-		        {SDL_SCANCODE_H, Keyboard::Key::H},
-		        {SDL_SCANCODE_I, Keyboard::Key::I},
-		        {SDL_SCANCODE_J, Keyboard::Key::J},
-		        {SDL_SCANCODE_K, Keyboard::Key::K},
-		        {SDL_SCANCODE_L, Keyboard::Key::L},
-		        {SDL_SCANCODE_M, Keyboard::Key::M},
-		        {SDL_SCANCODE_N, Keyboard::Key::N},
-		        {SDL_SCANCODE_O, Keyboard::Key::O},
-		        {SDL_SCANCODE_P, Keyboard::Key::P},
-		        {SDL_SCANCODE_Q, Keyboard::Key::Q},
-		        {SDL_SCANCODE_R, Keyboard::Key::R},
-		        {SDL_SCANCODE_S, Keyboard::Key::S},
-		        {SDL_SCANCODE_T, Keyboard::Key::T},
-		        {SDL_SCANCODE_U, Keyboard::Key::U},
-		        {SDL_SCANCODE_V, Keyboard::Key::V},
-		        {SDL_SCANCODE_W, Keyboard::Key::W},
-		        {SDL_SCANCODE_X, Keyboard::Key::X},
-		        {SDL_SCANCODE_Y, Keyboard::Key::Y},
-		        {SDL_SCANCODE_Z, Keyboard::Key::Z},
-		        {SDL_SCANCODE_LEFTBRACKET, Keyboard::Key::LeftBracket},
-		        {SDL_SCANCODE_BACKSLASH, Keyboard::Key::Backslash},
-		        {SDL_SCANCODE_RIGHTBRACKET, Keyboard::Key::RightBracket},
-		        {SDL_SCANCODE_GRAVE, Keyboard::Key::GraveAccent},
-		        {SDL_SCANCODE_WWW, Keyboard::Key::Explorer},
-		        {SDL_SCANCODE_ESCAPE, Keyboard::Key::Escape},
-		        {SDL_SCANCODE_RETURN, Keyboard::Key::Enter},
-		        {SDL_SCANCODE_TAB, Keyboard::Key::Tab},
-		        {SDL_SCANCODE_BACKSPACE, Keyboard::Key::Backspace},
-		        {SDL_SCANCODE_INSERT, Keyboard::Key::Insert},
-		        {SDL_SCANCODE_DELETE, Keyboard::Key::Delete},
-		        {SDL_SCANCODE_RIGHT, Keyboard::Key::Right},
-		        {SDL_SCANCODE_LEFT, Keyboard::Key::Left},
-		        {SDL_SCANCODE_DOWN, Keyboard::Key::Down},
-		        {SDL_SCANCODE_UP, Keyboard::Key::Up},
-		        {SDL_SCANCODE_PAGEUP, Keyboard::Key::PageUp},
-		        {SDL_SCANCODE_PAGEDOWN, Keyboard::Key::PageDown},
-		        {SDL_SCANCODE_HOME, Keyboard::Key::Home},
-		        {SDL_SCANCODE_END, Keyboard::Key::End},
-		        {SDL_SCANCODE_CAPSLOCK, Keyboard::Key::CapsLock},
-		        {SDL_SCANCODE_SCROLLLOCK, Keyboard::Key::ScrollLock},
-		        {SDL_SCANCODE_NUMLOCKCLEAR, Keyboard::Key::NumLock},
-		        {SDL_SCANCODE_PRINTSCREEN, Keyboard::Key::PrintScreen},
-		        {SDL_SCANCODE_PAUSE, Keyboard::Key::Pause},
-		        {SDL_SCANCODE_F1, Keyboard::Key::F1},
-		        {SDL_SCANCODE_F2, Keyboard::Key::F2},
-		        {SDL_SCANCODE_F3, Keyboard::Key::F3},
-		        {SDL_SCANCODE_F4, Keyboard::Key::F4},
-		        {SDL_SCANCODE_F5, Keyboard::Key::F5},
-		        {SDL_SCANCODE_F6, Keyboard::Key::F6},
-		        {SDL_SCANCODE_F7, Keyboard::Key::F7},
-		        {SDL_SCANCODE_F8, Keyboard::Key::F8},
-		        {SDL_SCANCODE_F9, Keyboard::Key::F9},
-		        {SDL_SCANCODE_F10, Keyboard::Key::F10},
-		        {SDL_SCANCODE_F11, Keyboard::Key::F11},
-		        {SDL_SCANCODE_F12, Keyboard::Key::F12},
-		        {SDL_SCANCODE_F13, Keyboard::Key::F13},
-		        {SDL_SCANCODE_F14, Keyboard::Key::F14},
-		        {SDL_SCANCODE_F15, Keyboard::Key::F15},
-		        {SDL_SCANCODE_F16, Keyboard::Key::F16},
-		        {SDL_SCANCODE_F17, Keyboard::Key::F17},
-		        {SDL_SCANCODE_F18, Keyboard::Key::F18},
-		        {SDL_SCANCODE_F19, Keyboard::Key::F19},
-		        {SDL_SCANCODE_F20, Keyboard::Key::F20},
-		        {SDL_SCANCODE_F21, Keyboard::Key::F21},
-		        {SDL_SCANCODE_F22, Keyboard::Key::F22},
-		        {SDL_SCANCODE_F23, Keyboard::Key::F23},
-		        {SDL_SCANCODE_F24, Keyboard::Key::F24},
-		        {SDL_SCANCODE_KP_0, Keyboard::Key::Kp0},
-		        {SDL_SCANCODE_KP_1, Keyboard::Key::Kp1},
-		        {SDL_SCANCODE_KP_2, Keyboard::Key::Kp2},
-		        {SDL_SCANCODE_KP_3, Keyboard::Key::Kp3},
-		        {SDL_SCANCODE_KP_4, Keyboard::Key::Kp4},
-		        {SDL_SCANCODE_KP_5, Keyboard::Key::Kp5},
-		        {SDL_SCANCODE_KP_6, Keyboard::Key::Kp6},
-		        {SDL_SCANCODE_KP_7, Keyboard::Key::Kp7},
-		        {SDL_SCANCODE_KP_8, Keyboard::Key::Kp8},
-		        {SDL_SCANCODE_KP_9, Keyboard::Key::Kp9},
-		        {SDL_SCANCODE_KP_DECIMAL, Keyboard::Key::KpDot},
-		        {SDL_SCANCODE_KP_DIVIDE, Keyboard::Key::KpDivide},
-		        {SDL_SCANCODE_KP_MULTIPLY, Keyboard::Key::KpMultiply},
-		        {SDL_SCANCODE_KP_MINUS, Keyboard::Key::KpSubtract},
-		        {SDL_SCANCODE_KP_PLUS, Keyboard::Key::KpAdd},
-		        {SDL_SCANCODE_KP_ENTER, Keyboard::Key::KpEnter},
-		        {SDL_SCANCODE_KP_EQUALS, Keyboard::Key::KpEqual},
-		        {SDL_SCANCODE_LSHIFT, Keyboard::Key::LeftShift},
-		        {SDL_SCANCODE_LCTRL, Keyboard::Key::LeftControl},
-		        {SDL_SCANCODE_LALT, Keyboard::Key::LeftAlt},
-		        {SDL_SCANCODE_LGUI, Keyboard::Key::LeftSuper},
-		        {SDL_SCANCODE_RSHIFT, Keyboard::Key::RightShift},
-		        {SDL_SCANCODE_RCTRL, Keyboard::Key::RightControl},
-		        {SDL_SCANCODE_RALT, Keyboard::Key::RightAlt},
-		        {SDL_SCANCODE_RGUI, Keyboard::Key::RightSuper},
-		        {SDL_SCANCODE_MENU, Keyboard::Key::Menu},
-		};
-
-		static Event m_engine_event;
 		static SDL_Event m_event;
 
-#define new_event(t)                                                                                                             \
-	m_engine_event.type = EventType::t;                                                                                          \
-	callback(m_engine_event, userdata);                                                                                          \
-	return
-
-		static void process_window_event(void (*callback)(const Event& event, void* userdata), void* userdata)
+		namespace
 		{
-			i32 x = m_event.window.data1;
-			i32 y = m_event.window.data2;
-
-			switch (m_event.window.event)
+			static Migration::DeviceId make_window_device_id(Uint32 window_id, Migration::InputDeviceType type)
 			{
-				case SDL_WINDOWEVENT_SHOWN: new_event(WindowShown);
+				return (static_cast<Migration::DeviceId>(type) << 56) | static_cast<Migration::DeviceId>(window_id);
+			}
 
-				case SDL_WINDOWEVENT_HIDDEN: new_event(WindowHidden);
+			static Migration::DeviceId make_gamepad_device_id(SDL_JoystickID joystick_id)
+			{
+				return (static_cast<Migration::DeviceId>(Migration::InputDeviceType::Gamepad) << 56) |
+				       static_cast<Migration::DeviceId>(static_cast<u32>(joystick_id));
+			}
 
-
-				case SDL_WINDOWEVENT_MOVED:
+			static Migration::MouseButton map_mouse_button(Uint8 button)
+			{
+				switch (button)
 				{
-					m_engine_event.window.x = x;
-					Window* window          = Trinex::WindowManager::instance()->find(m_event.window.windowID);
-					if (window)
+					case SDL_BUTTON_LEFT: return Migration::MouseButton::Left;
+					case SDL_BUTTON_RIGHT: return Migration::MouseButton::Right;
+					case SDL_BUTTON_MIDDLE: return Migration::MouseButton::Middle;
+					case SDL_BUTTON_X1: return Migration::MouseButton::X1;
+					case SDL_BUTTON_X2: return Migration::MouseButton::X2;
+					default: return Migration::MouseButton::None;
+				}
+			}
+
+			static Migration::GamepadAxis map_gamepad_axis(Uint8 axis)
+			{
+				switch (axis)
+				{
+					case SDL_CONTROLLER_AXIS_LEFTX: return Migration::GamepadAxis::LeftX;
+					case SDL_CONTROLLER_AXIS_LEFTY: return Migration::GamepadAxis::LeftY;
+					case SDL_CONTROLLER_AXIS_RIGHTX: return Migration::GamepadAxis::RightX;
+					case SDL_CONTROLLER_AXIS_RIGHTY: return Migration::GamepadAxis::RightY;
+					case SDL_CONTROLLER_AXIS_TRIGGERLEFT: return Migration::GamepadAxis::LeftTrigger;
+					case SDL_CONTROLLER_AXIS_TRIGGERRIGHT: return Migration::GamepadAxis::RightTrigger;
+					default: return Migration::GamepadAxis::None;
+				}
+			}
+
+			static Migration::GamepadButton map_gamepad_button(Uint8 button)
+			{
+				switch (button)
+				{
+					case SDL_CONTROLLER_BUTTON_A: return Migration::GamepadButton::FaceBottom;
+					case SDL_CONTROLLER_BUTTON_B: return Migration::GamepadButton::FaceRight;
+					case SDL_CONTROLLER_BUTTON_X: return Migration::GamepadButton::FaceLeft;
+					case SDL_CONTROLLER_BUTTON_Y: return Migration::GamepadButton::FaceTop;
+					case SDL_CONTROLLER_BUTTON_BACK: return Migration::GamepadButton::Select;
+					case SDL_CONTROLLER_BUTTON_GUIDE: return Migration::GamepadButton::Guide;
+					case SDL_CONTROLLER_BUTTON_START: return Migration::GamepadButton::Start;
+					case SDL_CONTROLLER_BUTTON_LEFTSTICK: return Migration::GamepadButton::LeftStick;
+					case SDL_CONTROLLER_BUTTON_RIGHTSTICK: return Migration::GamepadButton::RightStick;
+					case SDL_CONTROLLER_BUTTON_LEFTSHOULDER: return Migration::GamepadButton::LeftShoulder;
+					case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER: return Migration::GamepadButton::RightShoulder;
+					case SDL_CONTROLLER_BUTTON_DPAD_UP: return Migration::GamepadButton::DPadUp;
+					case SDL_CONTROLLER_BUTTON_DPAD_DOWN: return Migration::GamepadButton::DPadDown;
+					case SDL_CONTROLLER_BUTTON_DPAD_LEFT: return Migration::GamepadButton::DPadLeft;
+					case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: return Migration::GamepadButton::DPadRight;
+#ifdef SDL_CONTROLLER_BUTTON_MISC1
+					case SDL_CONTROLLER_BUTTON_MISC1: return Migration::GamepadButton::Misc1;
+#endif
+#ifdef SDL_CONTROLLER_BUTTON_PADDLE1
+					case SDL_CONTROLLER_BUTTON_PADDLE1: return Migration::GamepadButton::Paddle1;
+					case SDL_CONTROLLER_BUTTON_PADDLE2: return Migration::GamepadButton::Paddle2;
+					case SDL_CONTROLLER_BUTTON_PADDLE3: return Migration::GamepadButton::Paddle3;
+					case SDL_CONTROLLER_BUTTON_PADDLE4: return Migration::GamepadButton::Paddle4;
+#endif
+#ifdef SDL_CONTROLLER_BUTTON_TOUCHPAD
+					case SDL_CONTROLLER_BUTTON_TOUCHPAD: return Migration::GamepadButton::Touchpad;
+#endif
+					default: return Migration::GamepadButton::None;
+				}
+			}
+
+			static i32 window_height(Uint32 window_id)
+			{
+				if (SDL_Window* window = SDL_GetWindowFromID(window_id))
+				{
+					int width  = 0;
+					int height = 0;
+					SDL_GetWindowSize(window, &width, &height);
+					return height;
+				}
+
+				return 0;
+			}
+
+			static char32_t decode_utf8_codepoint(const char*& text)
+			{
+				const u8 first = static_cast<u8>(*text++);
+
+				if ((first & 0x80u) == 0)
+				{
+					return static_cast<char32_t>(first);
+				}
+
+				if ((first & 0xE0u) == 0xC0u)
+				{
+					const u8 second = static_cast<u8>(*text++);
+					return static_cast<char32_t>(((first & 0x1Fu) << 6) | (second & 0x3Fu));
+				}
+
+				if ((first & 0xF0u) == 0xE0u)
+				{
+					const u8 second = static_cast<u8>(*text++);
+					const u8 third  = static_cast<u8>(*text++);
+					return static_cast<char32_t>(((first & 0x0Fu) << 12) | ((second & 0x3Fu) << 6) | (third & 0x3Fu));
+				}
+
+				if ((first & 0xF8u) == 0xF0u)
+				{
+					const u8 second = static_cast<u8>(*text++);
+					const u8 third  = static_cast<u8>(*text++);
+					const u8 fourth = static_cast<u8>(*text++);
+					return static_cast<char32_t>(((first & 0x07u) << 18) | ((second & 0x3Fu) << 12) | ((third & 0x3Fu) << 6) |
+					                             (fourth & 0x3Fu));
+				}
+
+				return U'\0';
+			}
+
+			static Migration::EventHeader make_header(Migration::EventTypeId type_id, Migration::EventFlags flags,
+			                                          Uint32 window_id = 0, Identifier source_id = 0)
+			{
+				Migration::EventHeader header = Migration::EventSystem::instance()->make_header(type_id, flags);
+				header.timestamp              = SDL_GetTicks64();
+				header.window_id              = static_cast<Identifier>(window_id);
+				header.source_id              = source_id;
+				return header;
+			}
+
+			static void submit_window_event(Uint32 window_id, Migration::WindowEventKind kind, i32 x = 0, i32 y = 0)
+			{
+				Migration::RawInputEvent event;
+				event.type          = Migration::RawInputEventType::Window;
+				event.device_type   = Migration::InputDeviceType::Virtual;
+				event.header        = make_header(Migration::EventTypeIds::Window, Migration::EventFlags::WindowEvent, window_id);
+				event.window.header = event.header;
+				event.window.kind   = kind;
+				event.window.position = {x, y};
+				Migration::EventSystem::instance()->submit_raw_event(event);
+			}
+
+			static void process_window_event()
+			{
+				const Uint32 window_id = m_event.window.windowID;
+				const i32 x            = m_event.window.data1;
+				const i32 y            = m_event.window.data2;
+
+				switch (m_event.window.event)
+				{
+					case SDL_WINDOWEVENT_SHOWN: submit_window_event(window_id, Migration::WindowEventKind::Shown); break;
+					case SDL_WINDOWEVENT_HIDDEN: submit_window_event(window_id, Migration::WindowEventKind::Hidden); break;
+
+					case SDL_WINDOWEVENT_MOVED:
 					{
-						usize index             = window->monitor_index();
-						auto info               = Platform::monitor_info(index);
-						m_engine_event.window.y = info.size.y - (y + window->size().y);
-						new_event(WindowMoved);
-					}
-					break;
-				}
-
-				case SDL_WINDOWEVENT_RESIZED:
-				case SDL_WINDOWEVENT_SIZE_CHANGED:
-				{
-					WindowSDL* window =
-					        reinterpret_cast<WindowSDL*>(Trinex::WindowManager::instance()->find(m_event.window.windowID));
-
-					m_engine_event.window.x = x;
-					m_engine_event.window.y = y;
-
-					window->m_size.store({x, y});
-					new_event(WindowResized);
-				}
-
-				case SDL_WINDOWEVENT_MINIMIZED: new_event(WindowMinimized);
-
-				case SDL_WINDOWEVENT_MAXIMIZED: new_event(WindowMaximized);
-
-				case SDL_WINDOWEVENT_RESTORED: new_event(WindowRestored);
-
-				case SDL_WINDOWEVENT_TAKE_FOCUS:
-				case SDL_WINDOWEVENT_FOCUS_GAINED: new_event(WindowFocusGained);
-
-				case SDL_WINDOWEVENT_FOCUS_LOST: new_event(WindowFocusLost);
-
-				case SDL_WINDOWEVENT_CLOSE: new_event(WindowClose);
-			}
-		}
-
-		static void process_mouse_button(void (*callback)(const Event& event, void* userdata), void* userdata)
-		{
-			auto& button_event = m_engine_event.mouse.button;
-			button_event.x     = m_event.button.x;
-			button_event.y     = m_event.button.y;
-
-			auto it = mouse_buttons.find(m_event.button.button);
-			if (it != mouse_buttons.end())
-			{
-				button_event.button = it->second;
-			}
-
-			if (m_event.type == SDL_MOUSEBUTTONDOWN)
-			{
-				new_event(MouseButtonDown);
-			}
-			else
-			{
-				new_event(MouseButtonUp);
-			}
-		}
-
-		static void process_event(void (*callback)(const Event& event, void* userdata), void* userdata)
-		{
-			new (&m_engine_event) Event();
-			m_engine_event.window_id = m_event.window.windowID;
-
-			switch (m_event.type)
-			{
-				case SDL_QUIT: new_event(Quit);
-
-				case SDL_APP_TERMINATING: new_event(AppTerminating);
-
-				case SDL_APP_LOWMEMORY: new_event(Quit);
-
-				case SDL_APP_WILLENTERBACKGROUND: new_event(AppPause);
-
-				case SDL_APP_DIDENTERFOREGROUND: new_event(AppResume);
-
-				case SDL_DISPLAYEVENT:
-				{
-					break;
-				}
-
-				case SDL_WINDOWEVENT:
-				{
-					process_window_event(callback, userdata);
-					break;
-				}
-
-				case SDL_KEYDOWN:
-				{
-					if (m_event.key.repeat == 0)
-					{
-						auto& key_event = m_engine_event.keyboard;
-
-						auto it = keys.find(m_event.key.keysym.scancode);
-						if (it != keys.end())
+						if (Window* window = Trinex::WindowManager::instance()->find(window_id))
 						{
-							key_event.key = it->second;
-							new_event(KeyDown);
+							auto info = Platform::monitor_info(window->monitor_index());
+							submit_window_event(window_id, Migration::WindowEventKind::Moved, x,
+							                    static_cast<i32>(info.size.y) - (y + static_cast<i32>(window->size().y)));
 						}
 						else
 						{
-							error_log("SDL Window System", "Cannot find scancode '%d'", m_event.key.keysym.scancode);
+							submit_window_event(window_id, Migration::WindowEventKind::Moved, x, y);
 						}
+						break;
 					}
-					break;
-				}
 
-				case SDL_KEYUP:
-				{
-					if (m_event.key.repeat == 0)
+					case SDL_WINDOWEVENT_RESIZED:
+					case SDL_WINDOWEVENT_SIZE_CHANGED:
 					{
-						auto& key_event = m_engine_event.keyboard;
+						Migration::RawInputEvent event;
+						event.type        = Migration::RawInputEventType::Window;
+						event.device_type = Migration::InputDeviceType::Virtual;
+						event.header =
+						        make_header(Migration::EventTypeIds::Window, Migration::EventFlags::WindowEvent, window_id);
+						event.window.header = event.header;
+						event.window.kind   = Migration::WindowEventKind::Resized;
+						event.window.size   = {static_cast<u32>(x), static_cast<u32>(y)};
 
-						auto it = keys.find(m_event.key.keysym.scancode);
-						if (it != keys.end())
+						if (WindowSDL* window = reinterpret_cast<WindowSDL*>(Trinex::WindowManager::instance()->find(window_id)))
 						{
-							key_event.key = it->second;
-							new_event(KeyUp);
-						}
-						else
-						{
-							error_log("SDL Window System", "Cannot find scancode '%d'", m_event.key.keysym.scancode);
-						}
-					}
-					break;
-				}
-
-
-				case SDL_MOUSEMOTION:
-				{
-					int w, h;
-					SDL_GetWindowSize(SDL_GetWindowFromID(m_event.window.windowID), &w, &h);
-
-					auto& mouse_motion = m_engine_event.mouse.motion;
-					mouse_motion.x     = m_event.motion.x;
-					mouse_motion.y     = h - m_event.motion.y;
-					mouse_motion.xrel  = m_event.motion.xrel;
-					mouse_motion.yrel  = -m_event.motion.yrel;
-
-					new_event(MouseMotion);
-				}
-
-				case SDL_MOUSEBUTTONDOWN:
-				case SDL_MOUSEBUTTONUP:
-				{
-					process_mouse_button(callback, userdata);
-					break;
-				}
-
-				case SDL_MOUSEWHEEL:
-				{
-					auto& wheel_event = m_engine_event.mouse.wheel;
-					wheel_event.x     = m_event.wheel.preciseX;
-					wheel_event.y     = m_event.wheel.preciseY;
-					new_event(MouseWheel);
-				}
-
-				case SDL_TEXTINPUT:
-				{
-					static_assert(SDL_TEXTINPUTEVENT_TEXT_SIZE == Event::TextInput::max_tex_len + 1);
-					std::memcpy(m_engine_event.text_input.text, m_event.text.text, SDL_TEXTINPUTEVENT_TEXT_SIZE);
-					new_event(TextInput);
-				}
-
-				case SDL_CONTROLLERDEVICEADDED:
-				{
-					auto controller           = SDL_GameControllerOpen(m_event.cdevice.which);
-					auto joystick             = SDL_GameControllerGetJoystick(controller);
-					SDL_JoystickID id         = SDL_JoystickInstanceID(joystick);
-					m_game_controllers[id]    = controller;
-					m_engine_event.gamepad.id = reinterpret_cast<Identifier>(controller);
-					new_event(ControllerDeviceAdded);
-				}
-
-				case SDL_CONTROLLERDEVICEREMOVED:
-				{
-					auto controller = m_game_controllers.find(m_event.cdevice.which);
-					if (controller != m_game_controllers.end())
-					{
-						m_game_controllers.erase(m_event.cdevice.which);
-						m_engine_event.gamepad.id = reinterpret_cast<Identifier>(controller->second);
-						SDL_GameControllerClose(controller->second);
-						new_event(ControllerDeviceRemoved);
-					}
-					break;
-				}
-
-				case SDL_CONTROLLERAXISMOTION:
-				{
-					auto controller = m_game_controllers.find(m_event.caxis.which);
-					if (controller != m_game_controllers.end())
-					{
-						auto& gamepad = m_engine_event.gamepad;
-						gamepad.id    = reinterpret_cast<Identifier>(controller->second);
-
-						auto axis_it = axis_type.find(m_event.caxis.axis);
-
-						if (axis_it != axis_type.end())
-						{
-							gamepad.axis_motion.axis = axis_it->second;
+							window->m_size.store({x, y});
 						}
 
-						gamepad.axis_motion.value =
-						        static_cast<float>(m_event.caxis.value) / static_cast<float>(std::numeric_limits<i16>::max());
-						new_event(ControllerAxisMotion);
+						Migration::EventSystem::instance()->submit_raw_event(event);
+						break;
 					}
-					break;
-				}
-				case SDL_CONTROLLERDEVICEREMAPPED:
-				{
-					break;
+
+					case SDL_WINDOWEVENT_TAKE_FOCUS:
+					case SDL_WINDOWEVENT_FOCUS_GAINED:
+						submit_window_event(window_id, Migration::WindowEventKind::FocusGained);
+						break;
+
+					case SDL_WINDOWEVENT_FOCUS_LOST: submit_window_event(window_id, Migration::WindowEventKind::FocusLost); break;
+					case SDL_WINDOWEVENT_CLOSE: submit_window_event(window_id, Migration::WindowEventKind::CloseRequested); break;
+
+					default: break;
 				}
 			}
-		}
 
-		static void pool_events_loop(void (*callback)(const Event& event, void* userdata), void* userdata)
-		{
-			while (SDL_PollEvent(&m_event))
+			static void process_event()
 			{
-				process_event(callback, userdata);
+				switch (m_event.type)
+				{
+					case SDL_QUIT:
+					{
+						Migration::RawInputEvent event;
+						event.type          = Migration::RawInputEventType::Window;
+						event.device_type   = Migration::InputDeviceType::Virtual;
+						event.header        = make_header(Migration::EventTypeIds::Quit, Migration::EventFlags::WindowEvent);
+						event.window.header = event.header;
+						event.window.kind   = Migration::WindowEventKind::CloseRequested;
+						Migration::EventSystem::instance()->submit_raw_event(event);
+						break;
+					}
+
+					case SDL_WINDOWEVENT: process_window_event(); break;
+
+					case SDL_KEYDOWN:
+					case SDL_KEYUP:
+					{
+						const Uint32 window_id           = m_event.key.windowID;
+						const Migration::DeviceId device = make_window_device_id(window_id, Migration::InputDeviceType::Keyboard);
+						const bool is_pressed            = m_event.type == SDL_KEYDOWN;
+						const bool is_repeat             = m_event.key.repeat != 0;
+						Migration::RawInputEvent event;
+						event.type        = Migration::RawInputEventType::Key;
+						event.device_id   = device;
+						event.user_id     = 0;
+						event.device_type = Migration::InputDeviceType::Keyboard;
+						event.header = make_header(Migration::EventTypeIds::Key, Migration::EventFlags::KeyboardEvent, window_id,
+						                           device);
+						event.key.header = event.header;
+						event.key.kind =
+						        is_pressed ? (is_repeat ? Migration::KeyEventKind::Repeated : Migration::KeyEventKind::Pressed)
+						                   : Migration::KeyEventKind::Released;
+						event.key.is_repeat = is_repeat;
+						event.key.scan_code = static_cast<u32>(m_event.key.keysym.scancode);
+						event.key.key_code  = static_cast<u32>(m_event.key.keysym.scancode);
+						Migration::EventSystem::instance()->submit_raw_event(event);
+						break;
+					}
+
+					case SDL_MOUSEMOTION:
+					{
+						const Uint32 window_id           = m_event.motion.windowID;
+						const Migration::DeviceId device = make_window_device_id(window_id, Migration::InputDeviceType::Mouse);
+						const i32 height                 = window_height(window_id);
+						Migration::RawInputEvent event;
+						event.type           = Migration::RawInputEventType::Pointer;
+						event.device_id      = device;
+						event.user_id        = 0;
+						event.device_type    = Migration::InputDeviceType::Mouse;
+						event.header         = make_header(Migration::EventTypeIds::Pointer, Migration::EventFlags::PointerEvent,
+						                                   window_id, device);
+						event.pointer.header = event.header;
+						event.pointer.kind   = Migration::PointerEventKind::Moved;
+						event.pointer.pointer_id      = 0;
+						event.pointer.screen_position = {static_cast<f32>(m_event.motion.x),
+						                                 static_cast<f32>(height - m_event.motion.y)};
+						event.pointer.delta = {static_cast<f32>(m_event.motion.xrel), static_cast<f32>(-m_event.motion.yrel)};
+						Migration::EventSystem::instance()->submit_raw_event(event);
+						break;
+					}
+
+					case SDL_MOUSEBUTTONDOWN:
+					case SDL_MOUSEBUTTONUP:
+					{
+						const Uint32 window_id           = m_event.button.windowID;
+						const Migration::DeviceId device = make_window_device_id(window_id, Migration::InputDeviceType::Mouse);
+						const i32 height                 = window_height(window_id);
+						Migration::RawInputEvent event;
+						event.type           = Migration::RawInputEventType::Pointer;
+						event.device_id      = device;
+						event.user_id        = 0;
+						event.device_type    = Migration::InputDeviceType::Mouse;
+						event.header         = make_header(Migration::EventTypeIds::Pointer, Migration::EventFlags::PointerEvent,
+						                                   window_id, device);
+						event.pointer.header = event.header;
+						event.pointer.kind   = m_event.type == SDL_MOUSEBUTTONDOWN ? Migration::PointerEventKind::ButtonPressed
+						                                                           : Migration::PointerEventKind::ButtonReleased;
+						event.pointer.pointer_id      = 0;
+						event.pointer.button          = static_cast<u32>(map_mouse_button(m_event.button.button));
+						event.pointer.screen_position = {static_cast<f32>(m_event.button.x),
+						                                 static_cast<f32>(height - m_event.button.y)};
+						Migration::EventSystem::instance()->submit_raw_event(event);
+						break;
+					}
+
+					case SDL_MOUSEWHEEL:
+					{
+						const Uint32 window_id           = m_event.wheel.windowID;
+						const Migration::DeviceId device = make_window_device_id(window_id, Migration::InputDeviceType::Mouse);
+						Migration::RawInputEvent event;
+						event.type           = Migration::RawInputEventType::Pointer;
+						event.device_id      = device;
+						event.user_id        = 0;
+						event.device_type    = Migration::InputDeviceType::Mouse;
+						event.header         = make_header(Migration::EventTypeIds::Pointer, Migration::EventFlags::PointerEvent,
+						                                   window_id, device);
+						event.pointer.header = event.header;
+						event.pointer.kind   = Migration::PointerEventKind::Wheel;
+						event.pointer.pointer_id  = 0;
+						event.pointer.wheel_delta = {m_event.wheel.preciseX, m_event.wheel.preciseY};
+						Migration::EventSystem::instance()->submit_raw_event(event);
+						break;
+					}
+
+					case SDL_TEXTINPUT:
+					{
+						const Uint32 window_id           = m_event.text.windowID;
+						const Migration::DeviceId device = make_window_device_id(window_id, Migration::InputDeviceType::Keyboard);
+						const char* text                 = m_event.text.text;
+
+						while (*text)
+						{
+							Migration::RawInputEvent event;
+							event.type        = Migration::RawInputEventType::TextInput;
+							event.device_id   = device;
+							event.user_id     = 0;
+							event.device_type = Migration::InputDeviceType::Keyboard;
+							event.header = make_header(Migration::EventTypeIds::TextInput, Migration::EventFlags::TextInputEvent,
+							                           window_id, device);
+							event.text_input.header       = event.header;
+							event.text_input.codepoint    = decode_utf8_codepoint(text);
+							event.text_input.is_composing = false;
+							Migration::EventSystem::instance()->submit_raw_event(event);
+						}
+						break;
+					}
+
+					case SDL_CONTROLLERDEVICEADDED:
+					{
+						if (SDL_GameController* controller = SDL_GameControllerOpen(m_event.cdevice.which))
+						{
+							SDL_Joystick* joystick          = SDL_GameControllerGetJoystick(controller);
+							SDL_JoystickID joystick_id      = SDL_JoystickInstanceID(joystick);
+							m_game_controllers[joystick_id] = controller;
+
+							Migration::RawInputEvent event;
+							event.type        = Migration::RawInputEventType::DeviceChange;
+							event.device_id   = make_gamepad_device_id(joystick_id);
+							event.user_id     = 0;
+							event.device_type = Migration::InputDeviceType::Gamepad;
+							event.header      = make_header(Migration::EventTypeIds::DeviceChange, Migration::EventFlags::None, 0,
+							                                event.device_id);
+							event.device_change.header      = event.header;
+							event.device_change.kind        = Migration::DeviceChangeKind::Added;
+							event.device_change.device_id   = event.device_id;
+							event.device_change.device_type = event.device_type;
+							event.device_change.user_id     = event.user_id;
+							Migration::EventSystem::instance()->submit_raw_event(event);
+						}
+						break;
+					}
+
+					case SDL_CONTROLLERDEVICEREMOVED:
+					{
+						if (auto controller = m_game_controllers.find(m_event.cdevice.which);
+						    controller != m_game_controllers.end())
+						{
+							Migration::RawInputEvent event;
+							event.type        = Migration::RawInputEventType::DeviceChange;
+							event.device_id   = make_gamepad_device_id(m_event.cdevice.which);
+							event.user_id     = 0;
+							event.device_type = Migration::InputDeviceType::Gamepad;
+							event.header      = make_header(Migration::EventTypeIds::DeviceChange, Migration::EventFlags::None, 0,
+							                                event.device_id);
+							event.device_change.header      = event.header;
+							event.device_change.kind        = Migration::DeviceChangeKind::Removed;
+							event.device_change.device_id   = event.device_id;
+							event.device_change.device_type = event.device_type;
+							event.device_change.user_id     = event.user_id;
+							Migration::EventSystem::instance()->submit_raw_event(event);
+
+							SDL_GameControllerClose(controller->second);
+							m_game_controllers.erase(m_event.cdevice.which);
+						}
+						break;
+					}
+
+					case SDL_CONTROLLERDEVICEREMAPPED:
+					{
+						Migration::RawInputEvent event;
+						event.type        = Migration::RawInputEventType::DeviceChange;
+						event.device_id   = make_gamepad_device_id(m_event.cdevice.which);
+						event.user_id     = 0;
+						event.device_type = Migration::InputDeviceType::Gamepad;
+						event.header      = make_header(Migration::EventTypeIds::DeviceChange, Migration::EventFlags::None, 0,
+						                                event.device_id);
+						event.device_change.header      = event.header;
+						event.device_change.kind        = Migration::DeviceChangeKind::Remapped;
+						event.device_change.device_id   = event.device_id;
+						event.device_change.device_type = event.device_type;
+						event.device_change.user_id     = event.user_id;
+						Migration::EventSystem::instance()->submit_raw_event(event);
+						break;
+					}
+
+					case SDL_CONTROLLERAXISMOTION:
+					{
+						if (m_game_controllers.find(m_event.caxis.which) != m_game_controllers.end())
+						{
+							Migration::RawInputEvent event;
+							event.type           = Migration::RawInputEventType::Gamepad;
+							event.device_id      = make_gamepad_device_id(m_event.caxis.which);
+							event.user_id        = 0;
+							event.device_type    = Migration::InputDeviceType::Gamepad;
+							event.header         = make_header(Migration::EventTypeIds::Gamepad, Migration::EventFlags::None, 0,
+							                                   event.device_id);
+							event.gamepad.header = event.header;
+							event.gamepad.kind   = Migration::GamepadEventKind::AxisMotion;
+							event.gamepad.axis   = map_gamepad_axis(m_event.caxis.axis);
+							event.gamepad.value =
+							        static_cast<f32>(m_event.caxis.value) / static_cast<f32>(std::numeric_limits<i16>::max());
+							Migration::EventSystem::instance()->submit_raw_event(event);
+						}
+						break;
+					}
+
+					case SDL_CONTROLLERBUTTONDOWN:
+					case SDL_CONTROLLERBUTTONUP:
+					{
+						if (m_game_controllers.find(m_event.cbutton.which) != m_game_controllers.end())
+						{
+							Migration::RawInputEvent event;
+							event.type           = Migration::RawInputEventType::Gamepad;
+							event.device_id      = make_gamepad_device_id(m_event.cbutton.which);
+							event.user_id        = 0;
+							event.device_type    = Migration::InputDeviceType::Gamepad;
+							event.header         = make_header(Migration::EventTypeIds::Gamepad, Migration::EventFlags::None, 0,
+							                                   event.device_id);
+							event.gamepad.header = event.header;
+							event.gamepad.kind   = m_event.type == SDL_CONTROLLERBUTTONDOWN
+							                               ? Migration::GamepadEventKind::ButtonPressed
+							                               : Migration::GamepadEventKind::ButtonReleased;
+							event.gamepad.button = map_gamepad_button(m_event.cbutton.button);
+							Migration::EventSystem::instance()->submit_raw_event(event);
+						}
+						break;
+					}
+
+					default: break;
+				}
 			}
-		}
 
-		ENGINE_EXPORT void pool_events(void (*callback)(const Event& event, void* userdata), void* userdata)
+			static void pool_events_loop()
+			{
+				while (SDL_PollEvent(&m_event))
+				{
+					process_event();
+				}
+			}
+		}// namespace
+
+		ENGINE_EXPORT void pool_events()
 		{
-			pool_events_loop(callback, userdata);
+			pool_events_loop();
 		}
 
-		ENGINE_EXPORT void wait_for_events(void (*callback)(const Event& event, void* userdata), void* userdata)
+		ENGINE_EXPORT void wait_for_events()
 		{
 			SDL_WaitEvent(&m_event);
-			process_event(callback, userdata);
-			pool_events_loop(callback, userdata);
+			process_event();
+			pool_events_loop();
 		}
 	}// namespace EventSystem
 }// namespace Trinex::Platform

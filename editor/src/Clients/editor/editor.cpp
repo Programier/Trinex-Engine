@@ -283,7 +283,7 @@ namespace Trinex
 		auto monitor_info = Platform::monitor_info(wd->monitor_index());
 		wd->size(monitor_info.size);
 
-		EventSystem::system_of<EventSystem>()->process_event_method(EventSystem::PoolEvents);
+		EventSystem::instance()->process_event_method(EventSystem::PoolEvents);
 		m_world = Object::new_instance<World>("World");
 
 		m_scene_view.state(&m_scene_view_state);
@@ -312,7 +312,7 @@ namespace Trinex
 		camera->location({0, 3.f, -3.f});
 		camera->look_at({0.f, 0.f, 0.f});
 
-		EventSystem* event_system = EventSystem::system_of<EventSystem>();
+		EventSystem* event_system = EventSystem::instance();
 		m_event_system_listeners.push_back(event_system->add_listener(
 		        EventType::MouseMotion, std::bind(&EditorClient::on_mouse_move, this, std::placeholders::_1)));
 		m_event_system_listeners.push_back(event_system->add_listener(

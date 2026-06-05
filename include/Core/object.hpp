@@ -206,8 +206,7 @@ namespace Trinex
 		static Type* new_instance(StringView name = "", Object* owner = nullptr, Args&&... args)
 		{
 			constexpr bool invalid =
-			        check_constructible &&
-			        (std::is_abstract_v<Type> || (!std::is_constructible_v<Type, Args...> && !Trinex::is_singletone_v<Type>) );
+			        check_constructible && (std::is_abstract_v<Type> || (!std::is_constructible_v<Type, Args...>) );
 
 			if constexpr (invalid)
 			{
@@ -215,23 +214,9 @@ namespace Trinex
 			}
 			else
 			{
-				if constexpr (is_singletone_v<Type>)
-				{
-					if (Type::instance() != nullptr)
-					{
-						return Type::instance();
-					}
-
-					if constexpr (std::is_base_of_v<Object, Type>)
-						static_setup_next_object_info(Type::static_reflection());
-					return initialize_new_object_checked(Type::create_instance(std::forward<Args>(args)...), name, owner);
-				}
-				else
-				{
-					if constexpr (std::is_base_of_v<Object, Type>)
-						static_setup_next_object_info(Type::static_reflection());
-					return initialize_new_object_checked(trx_new Type(std::forward<Args>(args)...), name, owner);
-				}
+				if constexpr (std::is_base_of_v<Object, Type>)
+					static_setup_next_object_info(Type::static_reflection());
+				return initialize_new_object_checked(trx_new Type(std::forward<Args>(args)...), name, owner);
 			}
 		}
 
@@ -239,8 +224,7 @@ namespace Trinex
 		static Type* new_placement_instance(void* place, StringView name = "", Object* owner = nullptr, Args&&... args)
 		{
 			constexpr bool invalid =
-			        check_constructible &&
-			        (std::is_abstract_v<Type> || (!std::is_constructible_v<Type, Args...> && !Trinex::is_singletone_v<Type>) );
+			        check_constructible && (std::is_abstract_v<Type> || (!std::is_constructible_v<Type, Args...>) );
 
 			if constexpr (invalid)
 			{
@@ -248,26 +232,9 @@ namespace Trinex
 			}
 			else
 			{
-				if constexpr (is_singletone_v<Type>)
-				{
-					auto current = Type::instance();
-
-					if (current)
-					{
-						return current == place ? current : nullptr;
-					}
-
-					if constexpr (std::is_base_of_v<Object, Type>)
-						static_setup_next_object_info(Type::static_reflection());
-					return initialize_new_object_checked(Type::create_placement_instance(place, std::forward<Args>(args)...),
-					                                     name, owner);
-				}
-				else
-				{
-					if constexpr (std::is_base_of_v<Object, Type>)
-						static_setup_next_object_info(Type::static_reflection());
-					return initialize_new_object_checked(new (place) Type(std::forward<Args>(args)...), name, owner);
-				}
+				if constexpr (std::is_base_of_v<Object, Type>)
+					static_setup_next_object_info(Type::static_reflection());
+				return initialize_new_object_checked(new (place) Type(std::forward<Args>(args)...), name, owner);
 			}
 		}
 

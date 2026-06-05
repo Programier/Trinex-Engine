@@ -70,20 +70,17 @@ namespace Trinex
 
 			ObjectFactory* script_object_factory() const override
 			{
-				if constexpr (!is_singletone_v<T>)
+				if constexpr (std::is_final_v<T>)
 				{
-					if constexpr (std::is_final_v<T>)
-					{
-						return [](StringView name, Trinex::Object* owner) -> Trinex::Object* {
-							return Trinex::Object::new_instance<T, true>(name, owner);
-						};
-					}
-					else
-					{
-						return [](StringView name, Trinex::Object* owner) -> Trinex::Object* {
-							return Trinex::Object::new_instance<ScriptableType, true>(name, owner);
-						};
-					}
+					return [](StringView name, Trinex::Object* owner) -> Trinex::Object* {
+						return Trinex::Object::new_instance<T, true>(name, owner);
+					};
+				}
+				else
+				{
+					return [](StringView name, Trinex::Object* owner) -> Trinex::Object* {
+						return Trinex::Object::new_instance<ScriptableType, true>(name, owner);
+					};
 				}
 
 				return nullptr;
@@ -91,7 +88,7 @@ namespace Trinex
 
 			Trinex::Object* object_constructor(StringView name, Trinex::Object* owner, bool scriptable = false) override
 			{
-				if constexpr (!std::is_final_v<T> && !is_singletone_v<T>)
+				if constexpr (!std::is_final_v<T>)
 				{
 					if (scriptable)
 					{
@@ -104,7 +101,7 @@ namespace Trinex
 			Trinex::Object* object_placement_constructor(void* mem, StringView name, Trinex::Object* owner,
 			                                             bool scriptable = false) override
 			{
-				if constexpr (!std::is_final_v<T> && !is_singletone_v<T>)
+				if constexpr (!std::is_final_v<T>)
 				{
 					if (scriptable)
 					{

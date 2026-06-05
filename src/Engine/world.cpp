@@ -8,7 +8,6 @@
 #include <Engine/world.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_object.hpp>
-#include <Systems/logic_system.hpp>
 
 namespace Trinex
 {

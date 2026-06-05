@@ -27,13 +27,12 @@ namespace Trinex::Refl
 		struct Flags {
 			enum Enum : u8
 			{
-				IsSingletone    = BIT(0),
-				IsAbstract      = BIT(1),
-				IsConstructible = BIT(2),
-				IsFinal         = BIT(3),
-				IsNative        = BIT(4),
-				IsScriptable    = BIT(5),
-				IsAsset         = BIT(6),
+				IsAbstract      = BIT(0),
+				IsConstructible = BIT(1),
+				IsFinal         = BIT(2),
+				IsNative        = BIT(3),
+				IsScriptable    = BIT(4),
+				IsAsset         = BIT(5),
 			};
 
 			trinex_bitfield_enum_struct(Flags, u8);
@@ -69,12 +68,7 @@ namespace Trinex::Refl
 				mask |= Flags::IsAbstract;
 			}
 
-			if constexpr (is_singletone_v<T>)
-			{
-				mask |= Flags::IsSingletone;
-			}
-
-			if constexpr (!(std::is_abstract_v<T> || (!std::is_constructible_v<T> && !Trinex::is_singletone_v<T>) ))
+			if constexpr (!(std::is_abstract_v<T> || (!std::is_constructible_v<T>) ))
 			{
 				mask |= Flags::IsConstructible;
 			}

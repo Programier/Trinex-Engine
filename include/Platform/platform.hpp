@@ -35,8 +35,8 @@ namespace Trinex
 
 		namespace EventSystem
 		{
-			ENGINE_EXPORT void pool_events(void (*callback)(const Event& event, void* userdata), void* userdata = nullptr);
-			ENGINE_EXPORT void wait_for_events(void (*callback)(const Event& event, void* userdata), void* userdata = nullptr);
+			ENGINE_EXPORT void pool_events();
+			ENGINE_EXPORT void wait_for_events();
 		}// namespace EventSystem
 
 		ENGINE_EXPORT VFS::FileSystem* create_filesystem(const Path& mount, const Path& path);

@@ -911,7 +911,7 @@ namespace Trinex
 			prev_time          = current_time;
 
 
-			Platform::EventSystem::pool_events(on_event_recieved, this);
+			//Platform::EventSystem::pool_events(on_event_recieved, this);
 
 			if (m_is_in_debug_loop)
 			{

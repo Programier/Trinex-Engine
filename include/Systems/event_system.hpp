@@ -1,64 +1,48 @@
 #pragma once
+
 #include <Core/callback.hpp>
-#include <Core/etl/list.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/etl/singletone.hpp>
+#include <Core/etl/vector.hpp>
 #include <Core/event.hpp>
-#include <Systems/system.hpp>
-
 
 namespace Trinex
 {
-	class ENGINE_EXPORT EventSystem : public Singletone<EventSystem, Trinex::System>
+	class ENGINE_EXPORT EventSystem : public Singletone<EventSystem, EmptySingletoneParent>
 	{
-		trinex_class(EventSystem, System);
-
 	public:
-		using ListenerSignature = void(const Event&);
-		using Listener          = Function<ListenerSignature>;
+		using Listener = CallBack<void(const Event&)>;
 
-		enum ProcessEventMethod
+		enum ProcessEventMethod : u8
 		{
 			PoolEvents,
-			WaitingEvents,
+			WaitEvents,
 		};
 
+		static EventSystem* s_instance;
 
 	private:
-		struct ListenerNode {
+		friend class Singletone<EventSystem, EmptySingletoneParent>;
+
+		struct ListenerEntry {
+			Identifier id = 0;
+			EventType type = EventType::Undefined;
 			Listener listener;
-			EventType type;
-			ListenerNode* next = nullptr;
-			ListenerNode* prev = nullptr;
-
-			inline usize index() const { return static_cast<usize>(type); }
-
-			inline Identifier id() const { return reinterpret_cast<Identifier>(this); }
 		};
 
-		ListenerNode* m_listeners[static_cast<usize>(EventType::COUNT)];
+		Map<Identifier, EventType> m_listener_types;
+		Vector<ListenerEntry> m_listeners[static_cast<usize>(EventType::COUNT)];
+		Identifier m_next_listener_id = 1;
 
-		EventSystem& (EventSystem::*m_process_events)() = nullptr;
-
-		EventSystem& wait_events();
-		EventSystem& pool_events();
 		EventSystem();
-
-		EventSystem& execute_listeners(ListenerNode* node, const Event& event);
-
-	protected:
-		EventSystem& create() override;
+		void dispatch(const Event& event);
 
 	public:
-		Identifier add_listener(EventType event_type, const Listener& listener);
-		EventSystem& remove_listener(Identifier);
-		EventSystem& update(float dt) override;
-		EventSystem& push_event(const Event& event);
-		EventSystem& shutdown() override;
-		static Name event_name(EventType type);
-
+		EventSystem& begin_frame();
+		EventSystem& end_frame();
 		EventSystem& process_event_method(ProcessEventMethod method);
-
-		friend class Singletone<EventSystem, Trinex::System>;
+		Identifier add_listener(EventType type, const Listener& listener);
+		EventSystem& remove_listener(Identifier id);
+		EventSystem& push_event(const Event& event);
 	};
 }// namespace Trinex

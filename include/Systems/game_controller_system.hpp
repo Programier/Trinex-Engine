@@ -1,38 +1,27 @@
 #pragma once
+
 #include <Core/etl/map.hpp>
 #include <Core/etl/singletone.hpp>
-#include <Systems/system.hpp>
-
 
 namespace Trinex
 {
-	class GameController;
 	struct Event;
+	class GameController;
 
-	class GameControllerSystem : public Singletone<GameControllerSystem, System>
+	class ENGINE_EXPORT GameControllerSystem : public Singletone<GameControllerSystem, EmptySingletoneParent>
 	{
-		trinex_class(GameControllerSystem, System);
-
+	public:
+		static GameControllerSystem* s_instance;
 
 	private:
+		friend class Singletone<GameControllerSystem, EmptySingletoneParent>;
+
 		Map<Identifier, GameController*> m_controllers;
-		Identifier m_listener_ids[3];
-
-		void on_controller_added(const Event& event);
-		void on_controller_removed(const Event& event);
-
 		GameControllerSystem();
 
-		void on_axis_motion(const Event& event);
-
-	protected:
-		virtual GameControllerSystem& create() override;
-
 	public:
-		virtual GameControllerSystem& update(float dt) override;
-		virtual GameControllerSystem& shutdown() override;
 		GameController* controller(Identifier id) const;
-
-		friend class Singletone<GameControllerSystem, System>;
+		void on_event(const Event& event);
+		~GameControllerSystem();
 	};
 }// namespace Trinex

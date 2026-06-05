@@ -91,7 +91,7 @@ namespace Trinex
 	WindowManager::WindowManager()
 	{
 		Platform::WindowManager::initialize();
-		EventSystem* event_system = System::system_of<EventSystem>();
+		EventSystem* event_system = EventSystem::instance();
 
 		event_system->add_listener(EventType::WindowClose, &on_window_close);
 		event_system->add_listener(EventType::WindowResized, on_resize);

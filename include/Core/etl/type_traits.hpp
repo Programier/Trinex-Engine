@@ -64,9 +64,6 @@ namespace Trinex
 	template<typename T>
 	inline constexpr bool has_super_type_v = has_super_type<T>::value;
 
-	template<typename T>
-	inline constexpr bool is_singletone_v = std::is_base_of_v<SingletoneBase, T>;
-
 	template<template<class...> class, typename...>
 	struct is_detected : std::false_type {
 	};

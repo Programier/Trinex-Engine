@@ -13,9 +13,19 @@ namespace Trinex::Migration
 	using EventSequence  = u64;
 	using EventTimestamp = u64;
 
+	namespace EventTypeIds
+	{
+		inline constexpr EventTypeId Quit         = 1;
+		inline constexpr EventTypeId Window       = 2;
+		inline constexpr EventTypeId Key          = 3;
+		inline constexpr EventTypeId TextInput    = 4;
+		inline constexpr EventTypeId Pointer      = 5;
+		inline constexpr EventTypeId Gamepad      = 6;
+		inline constexpr EventTypeId DeviceChange = 7;
+	}// namespace EventTypeIds
+
 	class EventListener;
 	class EventTarget;
-	class InputSystem;
 	struct RawInputEvent;
 	struct RawInputEventBatch;
 
@@ -291,15 +301,12 @@ namespace Trinex::Migration
 		EventQueue m_event_queue;
 		DeferredEventQueue m_deferred_messages;
 		EventDispatcher m_dispatcher;
-		InputSystem* m_input_system = nullptr;
 		EventSystem() = default;
 
 	public:
-		EventSystem& bind_input_system(InputSystem* input_system);
 		EventDispatcher& dispatcher();
 		DeferredEventQueue& deferred_messages();
 		EventQueue& event_queue();
-		InputSystem* input_system() const;
 
 		EventHeader make_header(EventTypeId type_id, EventFlags flags = EventFlags::None);
 		EventDispatchResult route(RoutedEvent& event);

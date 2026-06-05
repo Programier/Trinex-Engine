@@ -1,93 +1,34 @@
 #include <Core/event.hpp>
-#include <Core/logger.hpp>
-#include <Core/reflection/class.hpp>
-#include <Systems/event_system.hpp>
 #include <Systems/keyboard_system.hpp>
 
 namespace Trinex
 {
-	void KeyboardSystem::on_key_pressed(const Event& event)
+	KeyboardSystem* KeyboardSystem::s_instance = nullptr;
+
+	KeyboardSystem::KeyboardSystem()
 	{
-		m_last_pressed_keys.push_back(event.keyboard.key);
-		set(event.keyboard.key, Keyboard::JustPressed);
-	}
-
-	void KeyboardSystem::on_key_released(const Event& event)
-	{
-		m_last_released_keys.push_back(event.keyboard.key);
-		set(event.keyboard.key, Keyboard::JustReleased);
-	}
-
-	KeyboardSystem& KeyboardSystem::set(Keyboard::Key key, Keyboard::Status status)
-	{
-		m_key_status[static_cast<EnumerateType>(key)] = status;
-		return *this;
-	}
-
-	KeyboardSystem& KeyboardSystem::create()
-	{
-		Super::create();
-
-		std::fill(m_key_status, m_key_status + Keyboard::__COUNT__, Keyboard::Released);
-		EventSystem* event_system = System::system_of<EventSystem>();
-		event_system->register_subsystem(this);
-
-		m_key_press_id = event_system->add_listener(EventType::KeyDown,
-		                                            std::bind(&KeyboardSystem::on_key_pressed, this, std::placeholders::_1));
-
-		m_key_release_id = event_system->add_listener(EventType::KeyUp,
-		                                              std::bind(&KeyboardSystem::on_key_released, this, std::placeholders::_1));
-		return *this;
-	}
-
-	KeyboardSystem& KeyboardSystem::wait()
-	{
-		Super::wait();
-		return *this;
-	}
-
-
-	void KeyboardSystem::process_last_keys(Vector<Keyboard::Key>& vector, Keyboard::Status status)
-	{
-		for (Keyboard::Key key : vector)
+		for (auto& state : m_states)
 		{
-			m_key_status[static_cast<EnumerateType>(key)] = status;
-		}
-
-		if (!vector.empty())
-		{
-			vector.clear();
+			state = Keyboard::Released;
 		}
 	}
 
-	KeyboardSystem& KeyboardSystem::update(float dt)
+	KeyboardSystem& KeyboardSystem::begin_frame()
 	{
-		Super::update(dt);
-		process_last_keys(m_last_pressed_keys, Keyboard::Pressed);
-		process_last_keys(m_last_released_keys, Keyboard::Released);
-		return *this;
-	}
-
-	KeyboardSystem& KeyboardSystem::shutdown()
-	{
-		Super::shutdown();
-
-		EventSystem* event_system = EventSystem::instance();
-		event_system->remove_listener(m_key_release_id);
-		event_system->remove_listener(m_key_press_id);
+		for (auto& state : m_states)
+		{
+			if (state == Keyboard::JustPressed)
+				state = Keyboard::Pressed;
+			else if (state == Keyboard::JustReleased)
+				state = Keyboard::Released;
+		}
 
 		return *this;
-	}
-
-	Keyboard::Status KeyboardSystem::status_of(Keyboard::Key key) const
-	{
-		return m_key_status[static_cast<EnumerateType>(key)];
 	}
 
 	bool KeyboardSystem::is_pressed(Keyboard::Key key) const
 	{
-		Keyboard::Status status = status_of(key);
-		return status == Keyboard::Pressed || status == Keyboard::JustPressed;
+		return m_states[key] == Keyboard::Pressed || m_states[key] == Keyboard::JustPressed;
 	}
 
 	bool KeyboardSystem::is_released(Keyboard::Key key) const
@@ -97,13 +38,23 @@ namespace Trinex
 
 	bool KeyboardSystem::is_just_pressed(Keyboard::Key key) const
 	{
-		return status_of(key) == Keyboard::JustPressed;
+		return m_states[key] == Keyboard::JustPressed;
 	}
 
 	bool KeyboardSystem::is_just_released(Keyboard::Key key) const
 	{
-		return status_of(key) == Keyboard::JustReleased;
+		return m_states[key] == Keyboard::JustReleased;
 	}
 
-	trinex_implement_engine_class_default_init(KeyboardSystem, 0);
+	void KeyboardSystem::on_event(const Event& event)
+	{
+		if (event.type != EventType::KeyDown && event.type != EventType::KeyUp)
+			return;
+
+		const Keyboard::Key key = event.keyboard.key;
+		if (key < 0 || key >= Keyboard::__COUNT__)
+			return;
+
+		m_states[key] = event.type == EventType::KeyDown ? Keyboard::JustPressed : Keyboard::JustReleased;
+	}
 }// namespace Trinex

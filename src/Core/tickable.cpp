@@ -23,9 +23,4 @@ namespace Trinex
 	{
 		return true;
 	}
-
-	bool TickableObject::is_tickable_when_paused() const
-	{
-		return true;
-	}
 }// namespace Trinex

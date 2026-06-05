@@ -1,3 +1,4 @@
+#include <Core/etl/algorithm.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
@@ -9,6 +10,8 @@
 namespace Trinex
 {
 	trinex_implement_class_default_init(Trinex::ShaderCompiler, 0);
+
+	static Vector<ShaderCompiler*> s_shader_compilers;
 
 	bool ShaderCompilationResult::initialize_pipeline(class GraphicsPipeline* pipeline)
 	{
@@ -41,6 +44,16 @@ namespace Trinex
 		return true;
 	}
 
+	ShaderCompiler::ShaderCompiler()
+	{
+		s_shader_compilers.push_back(this);
+	}
+
+	ShaderCompiler::~ShaderCompiler()
+	{
+		s_shader_compilers.erase(etl::find(s_shader_compilers.begin(), s_shader_compilers.end(), this));
+	}
+
 	ShaderCompiler* ShaderCompiler::instance(const StringView& api_name)
 	{
 		if (api_name.empty())
@@ -57,9 +70,9 @@ namespace Trinex
 		if (compiler_class == nullptr)
 			return nullptr;
 
-		if (compiler_class->flags.any(Refl::Struct::IsSingletone))
+		for (ShaderCompiler* compiler : s_shader_compilers)
 		{
-			if (ShaderCompiler* compiler = instance_cast<ShaderCompiler>(compiler_class->singletone_instance()))
+			if (compiler->class_instance() == compiler_class)
 			{
 				return compiler;
 			}
@@ -79,6 +92,7 @@ namespace Trinex
 			GarbageCollector::destroy(compiler_object);
 		}
 
+		compiler->add_reference();
 		return compiler;
 	}
 }// namespace Trinex

@@ -96,6 +96,9 @@ namespace Trinex
 		};
 
 	public:
+		ShaderCompiler();
+		~ShaderCompiler();
+		
 		static ShaderCompiler* instance(const StringView& api_name = "");
 		virtual bool compile(const ShaderCompilationEnvironment* env, ShaderCompilationResult& result) = 0;
 	};

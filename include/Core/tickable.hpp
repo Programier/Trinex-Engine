@@ -12,6 +12,53 @@ namespace Trinex
 		virtual TickableObject& update(float dt);
 		virtual TickableObject& end_frame();
 		virtual bool is_tickable() const;
-		virtual bool is_tickable_when_paused() const;
+
+		template<typename Func, typename... Args>
+		static void for_each(Func&& func, Args... args)
+		{
+			TickableObject* head = static_first();
+
+			while (head)
+			{
+				if (head->is_tickable())
+				{
+					func(head, args...);
+				}
+
+				head = head->next();
+			}
+		}
+
+		template<typename Ret, typename... Args>
+		static void for_each_invoke(Ret (TickableObject::*method)(Args...), Args... args)
+		{
+			TickableObject* head = static_first();
+
+			while (head)
+			{
+				if (head->is_tickable())
+				{
+					(head->*method)(args...);
+				}
+
+				head = head->next();
+			}
+		}
+
+		template<typename Ret, typename... Args>
+		static void for_each_invoke(Ret (TickableObject::*method)(Args...) const, Args... args)
+		{
+			TickableObject* head = static_first();
+
+			while (head)
+			{
+				if (head->is_tickable())
+				{
+					(head->*method)(args...);
+				}
+
+				head = head->next();
+			}
+		}
 	};
 }// namespace Trinex
