@@ -6,6 +6,7 @@
 #include <Engine/settings.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/render_viewport.hpp>
+#include <Input/event_system.hpp>
 #include <RHI/rhi.hpp>
 #include <Window/window.hpp>
 
@@ -16,8 +17,129 @@ namespace Trinex
 	static RenderViewport* m_current_render_viewport = nullptr;
 	Vector<RenderViewport*> RenderViewport::m_viewports;
 
+	namespace
+	{
+		static RenderViewport* find_viewport_by_window_id(Identifier window_id)
+		{
+			for (RenderViewport* viewport : RenderViewport::viewports())
+			{
+				if (viewport && viewport->window() && viewport->window()->id() == window_id)
+				{
+					return viewport;
+				}
+			}
+
+			return nullptr;
+		}
+
+		class ViewportEventBridge final : public EventListener
+		{
+		public:
+			EventDispatchResult on_event(RoutedEvent& event) override
+			{
+				EventDispatchResult result;
+
+				if (event.header.type_id == EventTypeIds::Quit)
+				{
+					for (RenderViewport* viewport : RenderViewport::viewports())
+					{
+						if (viewport && viewport->client())
+						{
+							EventDispatchResult client_result = viewport->client()->on_event(event);
+							result.handled |= client_result.handled;
+							result.consumed |= client_result.consumed;
+							result.continue_propagation &= client_result.continue_propagation;
+							result.emit_gameplay_actions &= client_result.emit_gameplay_actions;
+
+							if (!client_result.continue_propagation)
+							{
+								break;
+							}
+						}
+					}
+
+					if (result.consumed)
+					{
+						event.mark_consumed();
+					}
+					else if (result.handled)
+					{
+						event.mark_handled();
+					}
+
+					event.result = result;
+					return result;
+				}
+
+				if (event.header.window_id != 0)
+				{
+					if (RenderViewport* viewport = find_viewport_by_window_id(event.header.window_id))
+					{
+						if (ViewportClient* client = viewport->client())
+						{
+							result = client->on_event(event);
+						}
+					}
+				}
+				else
+				{
+					for (RenderViewport* viewport : RenderViewport::viewports())
+					{
+						if (viewport && viewport->client())
+						{
+							EventDispatchResult client_result = viewport->client()->on_event(event);
+							result.handled |= client_result.handled;
+							result.consumed |= client_result.consumed;
+							result.continue_propagation &= client_result.continue_propagation;
+							result.emit_gameplay_actions &= client_result.emit_gameplay_actions;
+
+							if (!client_result.continue_propagation)
+							{
+								break;
+							}
+						}
+					}
+				}
+
+				if (result.consumed)
+				{
+					event.mark_consumed();
+				}
+				else if (result.handled)
+				{
+					event.mark_handled();
+				}
+
+				event.result = result;
+				return result;
+			}
+		};
+
+		static ViewportEventBridge s_viewport_event_bridge;
+		static bool s_viewport_event_bridge_registered = false;
+
+		static void register_viewport_event_bridge()
+		{
+			if (s_viewport_event_bridge_registered)
+				return;
+
+			if (EventSystem* system = EventSystem::instance())
+			{
+				system->dispatcher().add_listener(EventTypeIds::Quit, &s_viewport_event_bridge);
+				system->dispatcher().add_listener(EventTypeIds::Window, &s_viewport_event_bridge);
+				system->dispatcher().add_listener(EventTypeIds::Key, &s_viewport_event_bridge);
+				system->dispatcher().add_listener(EventTypeIds::TextInput, &s_viewport_event_bridge);
+				system->dispatcher().add_listener(EventTypeIds::Pointer, &s_viewport_event_bridge);
+				system->dispatcher().add_listener(EventTypeIds::Gamepad, &s_viewport_event_bridge);
+				system->dispatcher().add_listener(EventTypeIds::DeviceChange, &s_viewport_event_bridge);
+				s_viewport_event_bridge_registered = true;
+			}
+		}
+	}// namespace
+
 	RenderViewport::RenderViewport(Window* window, bool vsync)
 	{
+		register_viewport_event_bridge();
 		m_viewports.push_back(this);
 		m_window    = window;
 		m_swapchain = RHI::instance()->create_swapchain(window, vsync);
