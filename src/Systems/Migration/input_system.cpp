@@ -30,18 +30,12 @@ namespace Trinex::Migration
 
 			switch (type)
 			{
-				case InputDeviceType::Keyboard:
-					device.supports_text_input = true;
-					break;
+				case InputDeviceType::Keyboard: device.supports_text_input = true; break;
 
 				case InputDeviceType::Mouse:
-				case InputDeviceType::Touch:
-					device.supports_pointer = true;
-					break;
+				case InputDeviceType::Touch: device.supports_pointer = true; break;
 
-				case InputDeviceType::Gamepad:
-					device.supports_gamepad = true;
-					break;
+				case InputDeviceType::Gamepad: device.supports_gamepad = true; break;
 
 				case InputDeviceType::Unknown:
 				case InputDeviceType::Virtual:
@@ -228,6 +222,11 @@ namespace Trinex::Migration
 		return *this;
 	}
 
+	InputSystem& InputSystem::update(float dt)
+	{
+		return *this;
+	}
+
 	InputSystem& InputSystem::end_frame()
 	{
 		return *this;
@@ -357,7 +356,7 @@ namespace Trinex::Migration
 					}
 					else if (event.device_change.kind == DeviceChangeKind::Remapped)
 					{
-						InputDevice updated = default_device(event.device_id, event.device_type, event.user_id);
+						InputDevice updated  = default_device(event.device_id, event.device_type, event.user_id);
 						updated.is_connected = device.is_connected;
 						device               = updated;
 					}
@@ -365,10 +364,10 @@ namespace Trinex::Migration
 					if (event.device_change.kind == DeviceChangeKind::Removed)
 					{
 						device.is_connected = false;
-						state           = InputDeviceState();
-						state.device_id = event.device_id;
-						state.type      = event.device_type;
-						state.user_id   = event.user_id;
+						state               = InputDeviceState();
+						state.device_id     = event.device_id;
+						state.type          = event.device_type;
+						state.user_id       = event.user_id;
 					}
 					else
 					{

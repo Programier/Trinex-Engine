@@ -7,7 +7,6 @@
 #include <Core/keyboard.hpp>
 #include <Core/logger.hpp>
 #include <Core/math/math.hpp>
-#include <Core/mouse.hpp>
 #include <Core/package.hpp>
 #include <Core/profiler.hpp>
 #include <Core/reflection/class.hpp>

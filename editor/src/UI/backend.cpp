@@ -17,7 +17,9 @@
 #include <RHI/initializers.hpp>
 #include <RHI/rhi.hpp>
 #include <RHI/static_sampler.hpp>
-#include <Systems/event_system.hpp>
+#include <Systems/Migration/event_system.hpp>
+#include <Systems/Migration/input_codes.hpp>
+#include <Systems/Migration/input_events.hpp>
 #include <Window/config.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
@@ -555,9 +557,9 @@ namespace Trinex::UI::Backend
 			                                  : nullptr;
 		}
 
-		static FORCE_INLINE Trinex::Window* window_from(const Event& event)
+		static FORCE_INLINE Trinex::Window* window_from(Identifier window_id)
 		{
-			return WindowManager::instance()->find(event.window_id);
+			return WindowManager::instance()->find(window_id);
 		}
 
 		struct ImGuiContextSaver {
@@ -571,150 +573,149 @@ namespace Trinex::UI::Backend
 			~ImGuiContextSaver() { ImGui::SetCurrentContext(ctx); }
 		};
 
-		static ImGuiMouseButton imgui_button_of(Mouse::Button button)
+		static ImGuiMouseButton imgui_mouse_button_of(Migration::MouseButton button)
 		{
 			switch (button)
 			{
-				case Mouse::Button::Left: return ImGuiMouseButton_Left;
-				case Mouse::Button::Middle: return ImGuiMouseButton_Middle;
-				case Mouse::Button::Right: return ImGuiMouseButton_Right;
-				case Mouse::Button::Forward:
-				case Mouse::Button::Back:
+				case Migration::MouseButton::Left: return ImGuiMouseButton_Left;
+				case Migration::MouseButton::Middle: return ImGuiMouseButton_Middle;
+				case Migration::MouseButton::Right: return ImGuiMouseButton_Right;
+				case Migration::MouseButton::X1:
+				case Migration::MouseButton::X2:
 				default: return -1;
 			}
 		}
 
-		static ImGuiKey imgui_button_of(Keyboard::Key button)
+		static ImGuiKey imgui_key_of(Migration::ScanCode button)
 		{
 			switch (button)
 			{
-				case Keyboard::Key::Space: return ImGuiKey_Space;
-				case Keyboard::Key::Apostrophe: return ImGuiKey_Apostrophe;
-				case Keyboard::Key::Comma: return ImGuiKey_Comma;
-				case Keyboard::Key::Minus: return ImGuiKey_Minus;
-				case Keyboard::Key::Period: return ImGuiKey_Period;
-				case Keyboard::Key::Slash: return ImGuiKey_Slash;
-				case Keyboard::Key::Num0: return ImGuiKey_0;
-				case Keyboard::Key::Num1: return ImGuiKey_1;
-				case Keyboard::Key::Num2: return ImGuiKey_2;
-				case Keyboard::Key::Num3: return ImGuiKey_3;
-				case Keyboard::Key::Num4: return ImGuiKey_4;
-				case Keyboard::Key::Num5: return ImGuiKey_5;
-				case Keyboard::Key::Num6: return ImGuiKey_6;
-				case Keyboard::Key::Num7: return ImGuiKey_7;
-				case Keyboard::Key::Num8: return ImGuiKey_8;
-				case Keyboard::Key::Num9: return ImGuiKey_9;
-				case Keyboard::Key::Semicolon: return ImGuiKey_Semicolon;
-				case Keyboard::Key::Equal: return ImGuiKey_Equal;
-				case Keyboard::Key::A: return ImGuiKey_A;
-				case Keyboard::Key::B: return ImGuiKey_B;
-				case Keyboard::Key::C: return ImGuiKey_C;
-				case Keyboard::Key::D: return ImGuiKey_D;
-				case Keyboard::Key::E: return ImGuiKey_E;
-				case Keyboard::Key::F: return ImGuiKey_F;
-				case Keyboard::Key::G: return ImGuiKey_G;
-				case Keyboard::Key::H: return ImGuiKey_H;
-				case Keyboard::Key::I: return ImGuiKey_I;
-				case Keyboard::Key::J: return ImGuiKey_J;
-				case Keyboard::Key::K: return ImGuiKey_K;
-				case Keyboard::Key::L: return ImGuiKey_L;
-				case Keyboard::Key::M: return ImGuiKey_M;
-				case Keyboard::Key::N: return ImGuiKey_N;
-				case Keyboard::Key::O: return ImGuiKey_O;
-				case Keyboard::Key::P: return ImGuiKey_P;
-				case Keyboard::Key::Q: return ImGuiKey_Q;
-				case Keyboard::Key::R: return ImGuiKey_R;
-				case Keyboard::Key::S: return ImGuiKey_S;
-				case Keyboard::Key::T: return ImGuiKey_T;
-				case Keyboard::Key::U: return ImGuiKey_U;
-				case Keyboard::Key::V: return ImGuiKey_V;
-				case Keyboard::Key::W: return ImGuiKey_W;
-				case Keyboard::Key::X: return ImGuiKey_X;
-				case Keyboard::Key::Y: return ImGuiKey_Y;
-				case Keyboard::Key::Z: return ImGuiKey_Z;
-				case Keyboard::Key::LeftBracket: return ImGuiKey_LeftBracket;
-				case Keyboard::Key::Backslash: return ImGuiKey_Backslash;
-				case Keyboard::Key::RightBracket: return ImGuiKey_RightBracket;
-				case Keyboard::Key::GraveAccent: return ImGuiKey_GraveAccent;
-				case Keyboard::Key::Explorer: return ImGuiKey_None;
-				case Keyboard::Key::Escape: return ImGuiKey_Escape;
-				case Keyboard::Key::Enter: return ImGuiKey_Enter;
-				case Keyboard::Key::Tab: return ImGuiKey_Tab;
-				case Keyboard::Key::Backspace: return ImGuiKey_Backspace;
-				case Keyboard::Key::Insert: return ImGuiKey_Insert;
-				case Keyboard::Key::Delete: return ImGuiKey_Delete;
-				case Keyboard::Key::Right: return ImGuiKey_RightArrow;
-				case Keyboard::Key::Left: return ImGuiKey_LeftArrow;
-				case Keyboard::Key::Down: return ImGuiKey_DownArrow;
-				case Keyboard::Key::Up: return ImGuiKey_UpArrow;
-				case Keyboard::Key::PageUp: return ImGuiKey_PageUp;
-				case Keyboard::Key::PageDown: return ImGuiKey_PageDown;
-				case Keyboard::Key::Home: return ImGuiKey_Home;
-				case Keyboard::Key::End: return ImGuiKey_End;
-				case Keyboard::Key::CapsLock: return ImGuiKey_CapsLock;
-				case Keyboard::Key::ScrollLock: return ImGuiKey_ScrollLock;
-				case Keyboard::Key::NumLock: return ImGuiKey_NumLock;
-				case Keyboard::Key::PrintScreen: return ImGuiKey_PrintScreen;
-				case Keyboard::Key::Pause: return ImGuiKey_Pause;
-				case Keyboard::Key::F1: return ImGuiKey_F1;
-				case Keyboard::Key::F2: return ImGuiKey_F2;
-				case Keyboard::Key::F3: return ImGuiKey_F3;
-				case Keyboard::Key::F4: return ImGuiKey_F4;
-				case Keyboard::Key::F5: return ImGuiKey_F5;
-				case Keyboard::Key::F6: return ImGuiKey_F6;
-				case Keyboard::Key::F7: return ImGuiKey_F7;
-				case Keyboard::Key::F8: return ImGuiKey_F8;
-				case Keyboard::Key::F9: return ImGuiKey_F9;
-				case Keyboard::Key::F10: return ImGuiKey_F10;
-				case Keyboard::Key::F11: return ImGuiKey_F11;
-				case Keyboard::Key::F12: return ImGuiKey_F12;
-				case Keyboard::Key::F13: return ImGuiKey_F13;
-				case Keyboard::Key::F14: return ImGuiKey_F14;
-				case Keyboard::Key::F15: return ImGuiKey_F15;
-				case Keyboard::Key::F16: return ImGuiKey_F16;
-				case Keyboard::Key::F17: return ImGuiKey_F17;
-				case Keyboard::Key::F18: return ImGuiKey_F18;
-				case Keyboard::Key::F19: return ImGuiKey_F19;
-				case Keyboard::Key::F20: return ImGuiKey_F20;
-				case Keyboard::Key::F21: return ImGuiKey_F21;
-				case Keyboard::Key::F22: return ImGuiKey_F22;
-				case Keyboard::Key::F23: return ImGuiKey_F23;
-				case Keyboard::Key::F24: return ImGuiKey_F24;
-				case Keyboard::Key::Kp0: return ImGuiKey_Keypad0;
-				case Keyboard::Key::Kp1: return ImGuiKey_Keypad1;
-				case Keyboard::Key::Kp2: return ImGuiKey_Keypad2;
-				case Keyboard::Key::Kp3: return ImGuiKey_Keypad3;
-				case Keyboard::Key::Kp4: return ImGuiKey_Keypad4;
-				case Keyboard::Key::Kp5: return ImGuiKey_Keypad5;
-				case Keyboard::Key::Kp6: return ImGuiKey_Keypad6;
-				case Keyboard::Key::Kp7: return ImGuiKey_Keypad7;
-				case Keyboard::Key::Kp8: return ImGuiKey_Keypad8;
-				case Keyboard::Key::Kp9: return ImGuiKey_Keypad9;
-				case Keyboard::Key::KpDot: return ImGuiKey_KeypadDecimal;
-				case Keyboard::Key::KpDivide: return ImGuiKey_KeypadDivide;
-				case Keyboard::Key::KpMultiply: return ImGuiKey_KeypadMultiply;
-				case Keyboard::Key::KpSubtract: return ImGuiKey_KeypadSubtract;
-				case Keyboard::Key::KpAdd: return ImGuiKey_KeypadAdd;
-				case Keyboard::Key::KpEnter: return ImGuiKey_KeypadEnter;
-				case Keyboard::Key::KpEqual: return ImGuiKey_KeypadEqual;
-				case Keyboard::Key::LeftShift: return ImGuiKey_LeftShift;
-				case Keyboard::Key::LeftControl: return ImGuiKey_LeftCtrl;
-				case Keyboard::Key::LeftAlt: return ImGuiKey_LeftAlt;
-				case Keyboard::Key::LeftSuper: return ImGuiKey_LeftSuper;
-				case Keyboard::Key::RightShift: return ImGuiKey_RightShift;
-				case Keyboard::Key::RightControl: return ImGuiKey_RightCtrl;
-				case Keyboard::Key::RightAlt: return ImGuiKey_RightAlt;
-				case Keyboard::Key::RightSuper: return ImGuiKey_RightSuper;
-				case Keyboard::Key::Menu: return ImGuiKey_Menu;
+				case Migration::ScanCode::Space: return ImGuiKey_Space;
+				case Migration::ScanCode::Apostrophe: return ImGuiKey_Apostrophe;
+				case Migration::ScanCode::Comma: return ImGuiKey_Comma;
+				case Migration::ScanCode::Minus: return ImGuiKey_Minus;
+				case Migration::ScanCode::Period: return ImGuiKey_Period;
+				case Migration::ScanCode::Slash: return ImGuiKey_Slash;
+				case Migration::ScanCode::Num0: return ImGuiKey_0;
+				case Migration::ScanCode::Num1: return ImGuiKey_1;
+				case Migration::ScanCode::Num2: return ImGuiKey_2;
+				case Migration::ScanCode::Num3: return ImGuiKey_3;
+				case Migration::ScanCode::Num4: return ImGuiKey_4;
+				case Migration::ScanCode::Num5: return ImGuiKey_5;
+				case Migration::ScanCode::Num6: return ImGuiKey_6;
+				case Migration::ScanCode::Num7: return ImGuiKey_7;
+				case Migration::ScanCode::Num8: return ImGuiKey_8;
+				case Migration::ScanCode::Num9: return ImGuiKey_9;
+				case Migration::ScanCode::Semicolon: return ImGuiKey_Semicolon;
+				case Migration::ScanCode::Equals: return ImGuiKey_Equal;
+				case Migration::ScanCode::A: return ImGuiKey_A;
+				case Migration::ScanCode::B: return ImGuiKey_B;
+				case Migration::ScanCode::C: return ImGuiKey_C;
+				case Migration::ScanCode::D: return ImGuiKey_D;
+				case Migration::ScanCode::E: return ImGuiKey_E;
+				case Migration::ScanCode::F: return ImGuiKey_F;
+				case Migration::ScanCode::G: return ImGuiKey_G;
+				case Migration::ScanCode::H: return ImGuiKey_H;
+				case Migration::ScanCode::I: return ImGuiKey_I;
+				case Migration::ScanCode::J: return ImGuiKey_J;
+				case Migration::ScanCode::K: return ImGuiKey_K;
+				case Migration::ScanCode::L: return ImGuiKey_L;
+				case Migration::ScanCode::M: return ImGuiKey_M;
+				case Migration::ScanCode::N: return ImGuiKey_N;
+				case Migration::ScanCode::O: return ImGuiKey_O;
+				case Migration::ScanCode::P: return ImGuiKey_P;
+				case Migration::ScanCode::Q: return ImGuiKey_Q;
+				case Migration::ScanCode::R: return ImGuiKey_R;
+				case Migration::ScanCode::S: return ImGuiKey_S;
+				case Migration::ScanCode::T: return ImGuiKey_T;
+				case Migration::ScanCode::U: return ImGuiKey_U;
+				case Migration::ScanCode::V: return ImGuiKey_V;
+				case Migration::ScanCode::W: return ImGuiKey_W;
+				case static_cast<Migration::ScanCode>(27): return ImGuiKey_X;
+				case Migration::ScanCode::Y: return ImGuiKey_Y;
+				case Migration::ScanCode::Z: return ImGuiKey_Z;
+				case Migration::ScanCode::LeftBracket: return ImGuiKey_LeftBracket;
+				case Migration::ScanCode::Backslash: return ImGuiKey_Backslash;
+				case Migration::ScanCode::RightBracket: return ImGuiKey_RightBracket;
+				case Migration::ScanCode::Grave: return ImGuiKey_GraveAccent;
+				case Migration::ScanCode::Www: return ImGuiKey_None;
+				case Migration::ScanCode::Escape: return ImGuiKey_Escape;
+				case Migration::ScanCode::Return: return ImGuiKey_Enter;
+				case Migration::ScanCode::Tab: return ImGuiKey_Tab;
+				case Migration::ScanCode::Backspace: return ImGuiKey_Backspace;
+				case Migration::ScanCode::Insert: return ImGuiKey_Insert;
+				case Migration::ScanCode::Delete: return ImGuiKey_Delete;
+				case Migration::ScanCode::Right: return ImGuiKey_RightArrow;
+				case Migration::ScanCode::Left: return ImGuiKey_LeftArrow;
+				case Migration::ScanCode::Down: return ImGuiKey_DownArrow;
+				case Migration::ScanCode::Up: return ImGuiKey_UpArrow;
+				case Migration::ScanCode::PageUp: return ImGuiKey_PageUp;
+				case Migration::ScanCode::PageDown: return ImGuiKey_PageDown;
+				case Migration::ScanCode::Home: return ImGuiKey_Home;
+				case Migration::ScanCode::End: return ImGuiKey_End;
+				case Migration::ScanCode::CapsLock: return ImGuiKey_CapsLock;
+				case Migration::ScanCode::ScrollLock: return ImGuiKey_ScrollLock;
+				case Migration::ScanCode::NumLockClear: return ImGuiKey_NumLock;
+				case Migration::ScanCode::PrintScreen: return ImGuiKey_PrintScreen;
+				case Migration::ScanCode::Pause: return ImGuiKey_Pause;
+				case Migration::ScanCode::F1: return ImGuiKey_F1;
+				case Migration::ScanCode::F2: return ImGuiKey_F2;
+				case Migration::ScanCode::F3: return ImGuiKey_F3;
+				case Migration::ScanCode::F4: return ImGuiKey_F4;
+				case Migration::ScanCode::F5: return ImGuiKey_F5;
+				case Migration::ScanCode::F6: return ImGuiKey_F6;
+				case Migration::ScanCode::F7: return ImGuiKey_F7;
+				case Migration::ScanCode::F8: return ImGuiKey_F8;
+				case Migration::ScanCode::F9: return ImGuiKey_F9;
+				case Migration::ScanCode::F10: return ImGuiKey_F10;
+				case Migration::ScanCode::F11: return ImGuiKey_F11;
+				case Migration::ScanCode::F12: return ImGuiKey_F12;
+				case Migration::ScanCode::F13: return ImGuiKey_F13;
+				case Migration::ScanCode::F14: return ImGuiKey_F14;
+				case Migration::ScanCode::F15: return ImGuiKey_F15;
+				case Migration::ScanCode::F16: return ImGuiKey_F16;
+				case Migration::ScanCode::F17: return ImGuiKey_F17;
+				case Migration::ScanCode::F18: return ImGuiKey_F18;
+				case Migration::ScanCode::F19: return ImGuiKey_F19;
+				case Migration::ScanCode::F20: return ImGuiKey_F20;
+				case Migration::ScanCode::F21: return ImGuiKey_F21;
+				case Migration::ScanCode::F22: return ImGuiKey_F22;
+				case Migration::ScanCode::F23: return ImGuiKey_F23;
+				case Migration::ScanCode::F24: return ImGuiKey_F24;
+				case Migration::ScanCode::Kp0: return ImGuiKey_Keypad0;
+				case Migration::ScanCode::Kp1: return ImGuiKey_Keypad1;
+				case Migration::ScanCode::Kp2: return ImGuiKey_Keypad2;
+				case Migration::ScanCode::Kp3: return ImGuiKey_Keypad3;
+				case Migration::ScanCode::Kp4: return ImGuiKey_Keypad4;
+				case Migration::ScanCode::Kp5: return ImGuiKey_Keypad5;
+				case Migration::ScanCode::Kp6: return ImGuiKey_Keypad6;
+				case Migration::ScanCode::Kp7: return ImGuiKey_Keypad7;
+				case Migration::ScanCode::Kp8: return ImGuiKey_Keypad8;
+				case Migration::ScanCode::Kp9: return ImGuiKey_Keypad9;
+				case Migration::ScanCode::KpPeriod: return ImGuiKey_KeypadDecimal;
+				case Migration::ScanCode::KpDivide: return ImGuiKey_KeypadDivide;
+				case Migration::ScanCode::KpMultiply: return ImGuiKey_KeypadMultiply;
+				case Migration::ScanCode::KpMinus: return ImGuiKey_KeypadSubtract;
+				case Migration::ScanCode::KpPlus: return ImGuiKey_KeypadAdd;
+				case Migration::ScanCode::KpEnter: return ImGuiKey_KeypadEnter;
+				case Migration::ScanCode::KpEquals: return ImGuiKey_KeypadEqual;
+				case Migration::ScanCode::LeftShift: return ImGuiKey_LeftShift;
+				case Migration::ScanCode::LeftControl: return ImGuiKey_LeftCtrl;
+				case Migration::ScanCode::LeftAlt: return ImGuiKey_LeftAlt;
+				case Migration::ScanCode::LeftGui: return ImGuiKey_LeftSuper;
+				case Migration::ScanCode::RightShift: return ImGuiKey_RightShift;
+				case Migration::ScanCode::RightControl: return ImGuiKey_RightCtrl;
+				case Migration::ScanCode::RightAlt: return ImGuiKey_RightAlt;
+				case Migration::ScanCode::RightGui: return ImGuiKey_RightSuper;
+				case Migration::ScanCode::Menu: return ImGuiKey_Menu;
 				default: return ImGuiKey_None;
 			}
 		}
 
-		template<typename F, typename... Args>
-		static void for_each_context(const Event& event, F&& f)
+		template<typename F>
+		static void for_each_context(Identifier window_id, F&& f)
 		{
-			ImGuiContext* context  = nullptr;
-			Trinex::Window* window = window_from(event);
+			Trinex::Window* window = window_from(window_id);
 
 			if (window)
 			{
@@ -723,7 +724,7 @@ namespace Trinex::UI::Backend
 				for (ImGuiContext* ctx : list)
 				{
 					ImGuiContextSaver saver(ctx);
-					f(window, event);
+					f(window);
 				}
 			}
 		}
@@ -743,25 +744,22 @@ namespace Trinex::UI::Backend
 			}
 		}
 
-		static void on_mouse_move(const Event& event)
+		static void on_mouse_move(Identifier window_id, const Migration::PointerEvent& data)
 		{
-			for_each_context(event, [](Trinex::Window* window, const Event& event) {
-				auto& data = event.mouse.motion;
+			for_each_context(window_id, [&data](Trinex::Window* window) {
 				auto& io   = ImGui::GetIO();
 				io.AddMouseSourceEvent(ImGuiMouseSource_Mouse);
-
-				imgui_sent_mouse_position(window, data.x, data.y);
+				imgui_sent_mouse_position(window, data.screen_position.x, data.screen_position.y);
 			});
 		}
 
-		static void on_mouse_button(const Event& event, bool is_pressed)
+		static void on_mouse_button(Identifier window_id, Migration::MouseButton button, bool is_pressed)
 		{
-			auto& data        = event.mouse.button;
-			auto imgui_button = imgui_button_of(data.button);
+			auto imgui_button = imgui_mouse_button_of(button);
 
 			if (imgui_button != -1)
 			{
-				for_each_context(event, [is_pressed, imgui_button](Trinex::Window* window, const Event& event) {
+				for_each_context(window_id, [is_pressed, imgui_button](Trinex::Window*) {
 					auto& io = ImGui::GetIO();
 					io.AddMouseSourceEvent(ImGuiMouseSource_Mouse);
 					io.AddMouseButtonEvent(imgui_button, is_pressed);
@@ -769,24 +767,22 @@ namespace Trinex::UI::Backend
 			}
 		}
 
-		static void on_mouse_wheel(const Event& event)
+		static void on_mouse_wheel(Identifier window_id, const Migration::PointerEvent& data)
 		{
-			for_each_context(event, [](Trinex::Window* window, const Event& event) {
-				auto& data = event.mouse.wheel;
+			for_each_context(window_id, [&data](Trinex::Window*) {
 				auto& io   = ImGui::GetIO();
 				io.AddMouseSourceEvent(ImGuiMouseSource_Mouse);
-				io.AddMouseWheelEvent(data.x, data.y);
+				io.AddMouseWheelEvent(data.wheel_delta.x, data.wheel_delta.y);
 			});
 		}
 
-		static void on_keyboard_button(const Event& event, bool is_pressed)
+		static void on_keyboard_button(Identifier window_id, Migration::ScanCode button, bool is_pressed)
 		{
-			auto& data        = event.keyboard;
-			auto imgui_button = imgui_button_of(data.key);
+			auto imgui_button = imgui_key_of(button);
 
 			if (imgui_button != ImGuiKey_None)
 			{
-				for_each_context(event, [is_pressed, imgui_button](Trinex::Window* window, const Event& event) {
+				for_each_context(window_id, [is_pressed, imgui_button](Trinex::Window*) {
 					auto& io = ImGui::GetIO();
 
 					if (is_in<ImGuiKey_LeftCtrl, ImGuiKey_RightCtrl>(imgui_button))
@@ -802,19 +798,17 @@ namespace Trinex::UI::Backend
 			}
 		}
 
-		static void on_text_input(const Event& event)
+		static void on_text_input(Identifier window_id, const Migration::TextInputEvent& data)
 		{
-			for_each_context(event, [](Trinex::Window* window, const Event& event) {
-				auto& data = event.text_input;
+			for_each_context(window_id, [&data](Trinex::Window*) {
 				auto& io   = ImGui::GetIO();
-
-				io.AddInputCharactersUTF8(data.text);
+				io.AddInputCharacter(static_cast<unsigned int>(data.codepoint));
 			});
 		}
 
-		static void on_window_close(const Event& event)
+		static void on_window_close(Identifier window_id)
 		{
-			for_each_context(event, [](Trinex::Window* window, const Event& event) {
+			for_each_context(window_id, [](Trinex::Window* window) {
 				if (auto* vp = ImGui::FindViewportByPlatformHandle(window))
 				{
 					vp->PlatformRequestClose = true;
@@ -822,9 +816,9 @@ namespace Trinex::UI::Backend
 			});
 		}
 
-		static void on_window_move(const Event& event)
+		static void on_window_move(Identifier window_id)
 		{
-			for_each_context(event, [](Trinex::Window* window, const Event& event) {
+			for_each_context(window_id, [](Trinex::Window* window) {
 				if (auto* vp = ImGui::FindViewportByPlatformHandle(window))
 				{
 					vp->PlatformRequestMove = true;
@@ -832,9 +826,9 @@ namespace Trinex::UI::Backend
 			});
 		}
 
-		static void on_window_resize(const Event& event)
+		static void on_window_resize(Identifier window_id)
 		{
-			for_each_context(event, [](Trinex::Window* window, const Event& event) {
+			for_each_context(window_id, [](Trinex::Window* window) {
 				if (auto* vp = ImGui::FindViewportByPlatformHandle(window))
 				{
 					vp->PlatformRequestResize = true;
@@ -842,105 +836,110 @@ namespace Trinex::UI::Backend
 			});
 		}
 
-		static void on_finger_down(const Event& event)
+		class ImGuiEventListener final : public Migration::EventListener
 		{
-			const auto& data = event.touchscreen.finger;
-
-			if (data.index == 0)
+		public:
+			Migration::EventDispatchResult on_event(Migration::RoutedEvent& event) override
 			{
-				for_each_context(event, [](Trinex::Window* window, const Event& event) {
-					const auto& data = event.touchscreen.finger;
+				switch (event.header.type_id)
+				{
+					case Migration::EventTypeIds::Pointer:
+					{
+						auto* data = reinterpret_cast<const Migration::PointerEvent*>(event.payload);
+						if (data == nullptr)
+							return {};
 
-					auto& io = ImGui::GetIO();
-					io.AddMouseSourceEvent(ImGuiMouseSource_TouchScreen);
-					imgui_sent_mouse_position(window, data.x, data.y);
-					io.AddMouseButtonEvent(0, true);
-				});
+						switch (data->kind)
+						{
+							case Migration::PointerEventKind::Moved: on_mouse_move(event.header.window_id, *data); break;
+							case Migration::PointerEventKind::ButtonPressed:
+								on_mouse_button(event.header.window_id, static_cast<Migration::MouseButton>(data->button), true);
+								break;
+							case Migration::PointerEventKind::ButtonReleased:
+								on_mouse_button(event.header.window_id, static_cast<Migration::MouseButton>(data->button), false);
+								break;
+							case Migration::PointerEventKind::Wheel: on_mouse_wheel(event.header.window_id, *data); break;
+							default: break;
+						}
+						break;
+					}
+
+					case Migration::EventTypeIds::Key:
+					{
+						auto* data = reinterpret_cast<const Migration::KeyEvent*>(event.payload);
+						if (data)
+						{
+							on_keyboard_button(event.header.window_id, static_cast<Migration::ScanCode>(data->scan_code),
+							                   data->kind != Migration::KeyEventKind::Released);
+						}
+						break;
+					}
+
+					case Migration::EventTypeIds::TextInput:
+					{
+						auto* data = reinterpret_cast<const Migration::TextInputEvent*>(event.payload);
+						if (data)
+						{
+							on_text_input(event.header.window_id, *data);
+						}
+						break;
+					}
+
+					case Migration::EventTypeIds::Window:
+					{
+						auto* data = reinterpret_cast<const Migration::WindowEvent*>(event.payload);
+						if (data == nullptr)
+							return {};
+
+						switch (data->kind)
+						{
+							case Migration::WindowEventKind::CloseRequested: on_window_close(event.header.window_id); break;
+							case Migration::WindowEventKind::Moved: on_window_move(event.header.window_id); break;
+							case Migration::WindowEventKind::Resized: on_window_resize(event.header.window_id); break;
+							default: break;
+						}
+						break;
+					}
+
+					default: break;
+				}
+
+				return {};
 			}
-		}
+		};
 
-		static void on_finger_up(const Event& event)
-		{
-			const auto& data = event.touchscreen.finger;
-
-			if (data.index == 0)
-			{
-				for_each_context(event, [](Trinex::Window* window, const Event& event) {
-					const auto& data = event.touchscreen.finger;
-
-					auto& io = ImGui::GetIO();
-					io.AddMouseSourceEvent(ImGuiMouseSource_TouchScreen);
-					imgui_sent_mouse_position(window, data.x, data.y);
-					io.AddMouseButtonEvent(0, false);
-				});
-			}
-		}
-
-		static void on_finger_motion(const Event& event)
-		{
-			const auto& data = event.touchscreen.finger_motion;
-
-			if (data.index == 0)
-			{
-				for_each_context(event, [](Trinex::Window* window, const Event& event) {
-					const auto& data = event.touchscreen.finger_motion;
-
-					auto& io = ImGui::GetIO();
-					io.AddMouseSourceEvent(ImGuiMouseSource_TouchScreen);
-					imgui_sent_mouse_position(window, data.x, data.y);
-				});
-			}
-		}
-
-		void on_event_recieved(const Event& event)
-		{
-			auto type = event.type;
-
-			switch (type)
-			{
-				case EventType::MouseMotion: return on_mouse_move(event);
-
-				case EventType::MouseButtonDown:
-				case EventType::MouseButtonUp: return on_mouse_button(event, type == EventType::MouseButtonDown);
-
-				case EventType::MouseWheel: return on_mouse_wheel(event);
-
-				case EventType::KeyDown:
-				case EventType::KeyUp: return on_keyboard_button(event, type == EventType::KeyDown);
-
-				case EventType::TextInput: return on_text_input(event);
-
-				case EventType::WindowClose: return on_window_close(event);
-				case EventType::WindowMoved: return on_window_move(event);
-				case EventType::WindowResized: return on_window_resize(event);
-
-				case EventType::FingerDown: return on_finger_down(event);
-				case EventType::FingerUp: return on_finger_up(event);
-				case EventType::FingerMotion: return on_finger_motion(event);
-
-				default: break;
-			}
-		}
-
-		static Identifier m_listener_id = 0;
+		static ImGuiEventListener m_listener;
+		static bool m_listener_enabled = false;
 
 		void disable_events()
 		{
-			if (m_listener_id == 0)
+			if (!m_listener_enabled)
 				return;
 
-			EventSystem* system = EventSystem::instance();
-			system->remove_listener(m_listener_id);
-			m_listener_id = 0;
+			if (Migration::EventSystem* system = Migration::EventSystem::instance())
+			{
+				system->dispatcher().remove_listener(Migration::EventTypeIds::Pointer, &m_listener);
+				system->dispatcher().remove_listener(Migration::EventTypeIds::Key, &m_listener);
+				system->dispatcher().remove_listener(Migration::EventTypeIds::TextInput, &m_listener);
+				system->dispatcher().remove_listener(Migration::EventTypeIds::Window, &m_listener);
+			}
+
+			m_listener_enabled = false;
 		}
 
 		void enable_events()
 		{
-			if (m_listener_id)
+			if (m_listener_enabled)
 				return;
 
-			EventSystem* system = EventSystem::instance();
-			m_listener_id       = system->add_listener(EventType::Undefined, on_event_recieved);
+			if (Migration::EventSystem* system = Migration::EventSystem::instance())
+			{
+				system->dispatcher().add_listener(Migration::EventTypeIds::Pointer, &m_listener);
+				system->dispatcher().add_listener(Migration::EventTypeIds::Key, &m_listener);
+				system->dispatcher().add_listener(Migration::EventTypeIds::TextInput, &m_listener);
+				system->dispatcher().add_listener(Migration::EventTypeIds::Window, &m_listener);
+				m_listener_enabled = true;
+			}
 		}
 
 		static FORCE_INLINE Trinex::Window* window_from(ImGuiViewport* vp)

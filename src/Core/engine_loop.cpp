@@ -173,14 +173,6 @@ namespace Trinex
 	void EngineLoop::update()
 	{
 		KeyboardSystem::instance()->begin_frame();
-
-		if (Migration::EventSystem* event_system = Migration::EventSystem::instance())
-		{
-			event_system->begin_frame();
-			Platform::EventSystem::pool_events();
-			event_system->end_frame();
-		}
-
 		engine_instance->update();
 		Thread::static_self()->execute();
 	}

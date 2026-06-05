@@ -1,8 +1,6 @@
 #pragma once
 #include <Core/enums.hpp>
-#include <Core/game_controller.hpp>
 #include <Core/keyboard.hpp>
-#include <Core/mouse.hpp>
 
 namespace Trinex
 {
@@ -96,41 +94,6 @@ namespace Trinex
 			Trinex::Keyboard::Key key;
 		};
 
-		union Mouse
-		{
-			struct MouseWheelEvent {
-				float x;
-				float y;
-			} wheel;
-
-			struct MouseMotionEvent {
-				float x;
-				float y;
-				float xrel;
-				float yrel;
-			} motion;
-
-			struct MouseButtonEvent {
-				Trinex::Mouse::Button button;
-				float x;
-				float y;
-			} button;
-		};
-
-		struct Gamepad {
-			Identifier id;
-
-			struct AxisMotionEvent {
-				Trinex::GameController::Axis axis;
-				float value;
-			};
-
-			union
-			{
-				AxisMotionEvent axis_motion;
-			};
-		};
-
 		union TouchScreen
 		{
 			struct FingerEvent {
@@ -158,8 +121,6 @@ namespace Trinex
 			Display display;
 			Window window;
 			Keyboard keyboard;
-			Mouse mouse;
-			Gamepad gamepad;
 			TouchScreen touchscreen;
 			TextInput text_input;
 		};

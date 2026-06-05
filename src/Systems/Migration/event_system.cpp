@@ -1,3 +1,4 @@
+#include <Platform/platform.hpp>
 #include <Systems/Migration/event_system.hpp>
 #include <Systems/Migration/input_system.hpp>
 
@@ -697,6 +698,12 @@ namespace Trinex::Migration
 	{
 		// TODO(Migration): Move queued deferred messages into a deterministic gameplay tick buffer.
 		m_event_queue.clear();
+		return *this;
+	}
+
+	EventSystem& EventSystem::update(float dt)
+	{
+		Platform::EventSystem::pool_events();
 		return *this;
 	}
 

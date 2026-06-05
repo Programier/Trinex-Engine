@@ -6,6 +6,7 @@
 #include <Core/etl/singletone.hpp>
 #include <Core/etl/vector.hpp>
 #include <Core/math/vector.hpp>
+#include <Core/tickable.hpp>
 
 namespace Trinex::Migration
 {
@@ -289,13 +290,13 @@ namespace Trinex::Migration
 		EventDispatchResult dispatch_to_target(RoutedEvent& event, EventTarget* target);
 	};
 
-	class ENGINE_EXPORT EventSystem : public Singletone<EventSystem, EmptySingletoneParent>
+	class ENGINE_EXPORT EventSystem : public Singletone<EventSystem, TickableObject>
 	{
 	public:
 		static EventSystem* s_instance;
 
 	private:
-		friend class Singletone<EventSystem, EmptySingletoneParent>;
+		friend class Singletone<EventSystem, TickableObject>;
 
 		EventSequence m_next_sequence = 1;
 		EventQueue m_event_queue;
@@ -313,7 +314,9 @@ namespace Trinex::Migration
 		EventSystem& submit_raw_event(const RawInputEvent& event);
 		EventSystem& submit_raw_event_batch(const RawInputEventBatch& batch);
 		EventSystem& queue_deferred(const Event& event);
-		EventSystem& begin_frame();
-		EventSystem& end_frame();
+
+		EventSystem& begin_frame() override;
+		EventSystem& update(float dt) override;
+		EventSystem& end_frame() override;
 	};
 }// namespace Trinex::Migration

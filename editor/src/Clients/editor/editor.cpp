@@ -24,9 +24,8 @@
 #include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 #include <RHI/static_sampler.hpp>
+#include <Systems/Migration/input_system.hpp>
 #include <Systems/event_system.hpp>
-#include <Systems/keyboard_system.hpp>
-#include <Systems/mouse_system.hpp>
 #include <UI/imgui.hpp>
 #include <UI/theme.hpp>
 #include <Widgets/content_browser.hpp>
@@ -40,6 +39,41 @@
 
 namespace Trinex
 {
+	namespace
+	{
+		class EditorPointerListener final : public Migration::EventListener
+		{
+		private:
+			EditorClient* m_owner = nullptr;
+
+		public:
+			explicit EditorPointerListener(EditorClient* owner) : m_owner(owner) {}
+
+			Migration::EventDispatchResult on_event(Migration::RoutedEvent& event) override
+			{
+				if (m_owner == nullptr || m_owner->window() == nullptr || m_owner->window()->window() == nullptr)
+					return {};
+
+				if (event.header.window_id != m_owner->window()->window()->id())
+					return {};
+
+				auto* payload = reinterpret_cast<const Migration::PointerEvent*>(event.payload);
+				if (payload == nullptr)
+					return {};
+
+				switch (payload->kind)
+				{
+					case Migration::PointerEventKind::Moved: m_owner->on_mouse_move(*payload); break;
+					case Migration::PointerEventKind::ButtonPressed: m_owner->on_mouse_press(*payload); break;
+					case Migration::PointerEventKind::ButtonReleased: m_owner->on_mouse_release(*payload); break;
+					default: break;
+				}
+
+				return {};
+			}
+		};
+	}// namespace
+
 	EditorState::EditorState()
 	{
 		viewport.view_mode_entry = Refl::Enum::static_find("Trinex::ViewMode", Refl::FindFlags::IsRequired)
@@ -312,15 +346,12 @@ namespace Trinex
 		camera->location({0, 3.f, -3.f});
 		camera->look_at({0.f, 0.f, 0.f});
 
-		EventSystem* event_system = EventSystem::instance();
-		m_event_system_listeners.push_back(event_system->add_listener(
-		        EventType::MouseMotion, std::bind(&EditorClient::on_mouse_move, this, std::placeholders::_1)));
-		m_event_system_listeners.push_back(event_system->add_listener(
-		        EventType::FingerMotion, std::bind(&EditorClient::on_finger_move, this, std::placeholders::_1)));
-		m_event_system_listeners.push_back(event_system->add_listener(
-		        EventType::MouseButtonDown, std::bind(&EditorClient::on_mouse_press, this, std::placeholders::_1)));
-		m_event_system_listeners.push_back(event_system->add_listener(
-		        EventType::MouseButtonUp, std::bind(&EditorClient::on_mouse_release, this, std::placeholders::_1)));
+		if (m_pointer_event_listener == nullptr)
+		{
+			m_pointer_event_listener = trx_new EditorPointerListener(this);
+			Migration::EventSystem::instance()->dispatcher().add_listener(Migration::EventTypeIds::Pointer,
+			                                                              m_pointer_event_listener);
+		}
 		return *this;
 	}
 
@@ -333,15 +364,15 @@ namespace Trinex
 
 		m_world->stop_play();
 
-		EventSystem* event_system = EventSystem::instance();
-
-		if (event_system)
+		if (m_pointer_event_listener)
 		{
-			for (auto listener : m_event_system_listeners)
+			if (Migration::EventSystem* event_system = Migration::EventSystem::instance())
 			{
-				event_system->remove_listener(listener);
+				event_system->dispatcher().remove_listener(Migration::EventTypeIds::Pointer, m_pointer_event_listener);
 			}
-			m_event_system_listeners.clear();
+
+			trx_delete m_pointer_event_listener;
+			m_pointer_event_listener = nullptr;
 		}
 
 		return *this;
@@ -520,7 +551,10 @@ namespace Trinex
 		update_camera();
 		render_viewport_window();
 
-		if (KeyboardSystem::instance()->is_just_released(Keyboard::Key::Delete))
+		Migration::InputSystem* input = Migration::InputSystem::instance();
+		const bool delete_pressed     = input->is_scan_code_pressed_for_user(Migration::ScanCode::Delete);
+
+		if (m_delete_was_pressed && !delete_pressed)
 		{
 			// auto& selected = m_world->selected_actors();
 			// while (!selected.empty())
@@ -528,6 +562,8 @@ namespace Trinex
 			// 	m_world->destroy_actor(*selected.begin());
 			// }
 		}
+
+		m_delete_was_pressed = delete_pressed;
 
 		return *this;
 	}
@@ -839,23 +875,23 @@ namespace Trinex
 		return *this;
 	}
 
-	static FORCE_INLINE void move_camera(Vector3f& move, Window* window)
+	static FORCE_INLINE void move_camera(Vector3f& move, bool relative_mode)
 	{
 		move = {0, 0, 0};
 
-		if (!MouseSystem::instance()->is_relative_mode(window))
+		if (!relative_mode)
 			return;
-		KeyboardSystem* keyboard = KeyboardSystem::instance();
 
-		move.z += keyboard->is_pressed(Keyboard::W) ? 1.f : 0.f;
-		move.x += keyboard->is_pressed(Keyboard::D) ? 1.f : 0.f;
-		move.z += keyboard->is_pressed(Keyboard::S) ? -1.f : 0.f;
-		move.x += keyboard->is_pressed(Keyboard::A) ? -1.f : 0.f;
+		Migration::InputSystem* input = Migration::InputSystem::instance();
+		move.z += input->is_scan_code_pressed_for_user(Migration::ScanCode::W) ? 1.f : 0.f;
+		move.x += input->is_scan_code_pressed_for_user(Migration::ScanCode::D) ? 1.f : 0.f;
+		move.z += input->is_scan_code_pressed_for_user(Migration::ScanCode::S) ? -1.f : 0.f;
+		move.x += input->is_scan_code_pressed_for_user(Migration::ScanCode::A) ? -1.f : 0.f;
 	}
 
 	EditorClient& EditorClient::update_camera()
 	{
-		move_camera(m_camera_move, window()->window());
+		move_camera(m_camera_move, m_camera_relative_mode);
 
 		camera->add_location(Vector3f((camera->world_transform().rotation_matrix() * Vector4f(m_camera_move, 1.0))) *
 		                     m_dt.average() * m_camera_speed);
@@ -886,23 +922,21 @@ namespace Trinex
 	}
 
 	// Inputs
-	void EditorClient::on_mouse_press(const Event& event)
+	void EditorClient::on_mouse_press(const Migration::PointerEvent& event)
 	{
-		const auto& button = event.mouse.button;
-
-		if (m_state.viewport.is_hovered && button.button == Mouse::Button::Right)
+		if (m_state.viewport.is_hovered && static_cast<Migration::MouseButton>(event.button) == Migration::MouseButton::Right)
 		{
-			MouseSystem::instance()->relative_mode(true, window()->window());
+			m_camera_relative_mode = true;
+			WindowManager::instance()->mouse_relative_mode(true);
 		}
 	}
 
-	void EditorClient::on_mouse_release(const Event& event)
+	void EditorClient::on_mouse_release(const Migration::PointerEvent& event)
 	{
-		const auto& button = event.mouse.button;
-
-		if (button.button == Mouse::Button::Right)
+		if (static_cast<Migration::MouseButton>(event.button) == Migration::MouseButton::Right)
 		{
-			MouseSystem::instance()->relative_mode(false, window()->window());
+			m_camera_relative_mode = false;
+			WindowManager::instance()->mouse_relative_mode(false);
 			m_camera_move = {0, 0, 0};
 		}
 	}
@@ -919,14 +953,12 @@ namespace Trinex
 		out                = q_yaw * out * q_pitch;
 	}
 
-	void EditorClient::on_mouse_move(const Event& event)
+	void EditorClient::on_mouse_move(const Migration::PointerEvent& event)
 	{
-		const auto& motion = event.mouse.motion;
-
-		if (MouseSystem::instance()->is_relative_mode(window()->window()))
+		if (m_camera_relative_mode)
 		{
-			float pitch = calculate_y_rotation(static_cast<float>(motion.yrel), m_state.viewport.size.y);
-			float yaw   = -calculate_y_rotation(static_cast<float>(motion.xrel), m_state.viewport.size.x);
+			float pitch = calculate_y_rotation(event.delta.y, m_state.viewport.size.y);
+			float yaw   = -calculate_y_rotation(event.delta.x, m_state.viewport.size.x);
 
 			Quaternion rotation = camera->local_transform().rotation;
 			make_rotation_quat(yaw, pitch, rotation);

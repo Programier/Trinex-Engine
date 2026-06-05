@@ -5,6 +5,7 @@
 #include <Core/etl/singletone.hpp>
 #include <Core/etl/vector.hpp>
 #include <Core/math/vector.hpp>
+#include <Core/tickable.hpp>
 #include <Systems/Migration/event_system.hpp>
 #include <Systems/Migration/input_codes.hpp>
 #include <Systems/Migration/input_events.hpp>
@@ -150,13 +151,13 @@ namespace Trinex::Migration
 		const Vector<InputCommand>& commands() const;
 	};
 
-	class ENGINE_EXPORT InputSystem : public Singletone<InputSystem, EmptySingletoneParent>
+	class ENGINE_EXPORT InputSystem : public Singletone<InputSystem, TickableObject>
 	{
 	public:
 		static InputSystem* s_instance;
 
 	private:
-		friend class Singletone<InputSystem, EmptySingletoneParent>;
+		friend class Singletone<InputSystem, TickableObject>;
 
 		Map<DeviceId, InputDevice> m_devices;
 		Map<DeviceId, InputDeviceState> m_device_states;
@@ -171,8 +172,9 @@ namespace Trinex::Migration
 		InputSystem() = default;
 
 	public:
-		InputSystem& begin_frame();
-		InputSystem& end_frame();
+		InputSystem& begin_frame() override;
+		InputSystem& update(float dt) override;
+		InputSystem& end_frame() override;
 		InputSystem& register_device(const InputDevice& device);
 		InputSystem& unregister_device(DeviceId device_id);
 		InputSystem& submit_raw_event(const RawInputEvent& event);

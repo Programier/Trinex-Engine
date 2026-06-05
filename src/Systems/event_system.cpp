@@ -4,7 +4,6 @@
 #include <Systems/Migration/input_codes.hpp>
 #include <Systems/Migration/input_events.hpp>
 #include <Systems/event_system.hpp>
-#include <Systems/game_controller_system.hpp>
 #include <Systems/keyboard_system.hpp>
 
 namespace Trinex
@@ -139,33 +138,6 @@ namespace Trinex
 			}
 		}
 
-		static Mouse::Button legacy_button_of(Migration::MouseButton button)
-		{
-			switch (button)
-			{
-				case Migration::MouseButton::Left: return Mouse::Button::Left;
-				case Migration::MouseButton::Middle: return Mouse::Button::Middle;
-				case Migration::MouseButton::Right: return Mouse::Button::Right;
-				case Migration::MouseButton::X1: return Mouse::Button::Back;
-				case Migration::MouseButton::X2: return Mouse::Button::Forward;
-				default: return Mouse::Button::Unknown;
-			}
-		}
-
-		static GameController::Axis legacy_axis_of(Migration::GamepadAxis axis)
-		{
-			switch (axis)
-			{
-				case Migration::GamepadAxis::LeftX: return GameController::LeftX;
-				case Migration::GamepadAxis::LeftY: return GameController::LeftY;
-				case Migration::GamepadAxis::RightX: return GameController::RightX;
-				case Migration::GamepadAxis::RightY: return GameController::RightY;
-				case Migration::GamepadAxis::LeftTrigger: return GameController::TriggerLeft;
-				case Migration::GamepadAxis::RightTrigger: return GameController::TriggerRight;
-				default: return GameController::Unknown;
-			}
-		}
-
 		static usize encode_utf8(char* output, char32_t cp)
 		{
 			if (cp <= 0x7F)
@@ -268,70 +240,11 @@ namespace Trinex
 						break;
 					}
 
-					case Migration::EventTypeIds::Pointer:
-					{
-						auto* payload = reinterpret_cast<const Migration::PointerEvent*>(routed.payload);
-						if (payload == nullptr)
-							return {};
-
-						switch (payload->kind)
-						{
-							case Migration::PointerEventKind::Moved:
-								event.type              = EventType::MouseMotion;
-								event.mouse.motion.x    = payload->screen_position.x;
-								event.mouse.motion.y    = payload->screen_position.y;
-								event.mouse.motion.xrel = payload->delta.x;
-								event.mouse.motion.yrel = payload->delta.y;
-								break;
-							case Migration::PointerEventKind::ButtonPressed:
-							case Migration::PointerEventKind::ButtonReleased:
-								event.type = payload->kind == Migration::PointerEventKind::ButtonPressed
-								                     ? EventType::MouseButtonDown
-								                     : EventType::MouseButtonUp;
-								event.mouse.button.button =
-								        legacy_button_of(static_cast<Migration::MouseButton>(payload->button));
-								event.mouse.button.x = payload->screen_position.x;
-								event.mouse.button.y = payload->screen_position.y;
-								break;
-							case Migration::PointerEventKind::Wheel:
-								event.type          = EventType::MouseWheel;
-								event.mouse.wheel.x = payload->wheel_delta.x;
-								event.mouse.wheel.y = payload->wheel_delta.y;
-								break;
-							default: return {};
-						}
-						break;
-					}
-
-					case Migration::EventTypeIds::Gamepad:
-					{
-						auto* payload = reinterpret_cast<const Migration::GamepadEvent*>(routed.payload);
-						if (payload == nullptr)
-							return {};
-
-						event.gamepad.id = routed.header.source_id;
-
-						switch (payload->kind)
-						{
-							case Migration::GamepadEventKind::AxisMotion:
-								event.type                      = EventType::ControllerAxisMotion;
-								event.gamepad.axis_motion.axis  = legacy_axis_of(payload->axis);
-								event.gamepad.axis_motion.value = payload->value;
-								break;
-							case Migration::GamepadEventKind::ButtonPressed: event.type = EventType::ControllerButtonDown; break;
-							case Migration::GamepadEventKind::ButtonReleased: event.type = EventType::ControllerButtonUp; break;
-							default: return {};
-						}
-						break;
-					}
-
 					case Migration::EventTypeIds::DeviceChange:
 					{
 						auto* payload = reinterpret_cast<const Migration::DeviceChangeEvent*>(routed.payload);
 						if (payload == nullptr || payload->device_type != Migration::InputDeviceType::Gamepad)
 							return {};
-
-						event.gamepad.id = payload->device_id;
 
 						switch (payload->kind)
 						{
@@ -407,7 +320,6 @@ namespace Trinex
 		}
 
 		KeyboardSystem::instance()->on_event(event);
-		GameControllerSystem::instance()->on_event(event);
 	}
 
 	Identifier EventSystem::add_listener(EventType type, const Listener& listener)
