@@ -200,7 +200,25 @@ namespace Trinex::Migration
 	class ENGINE_EXPORT EventTarget
 	{
 	public:
+		using ListenerList = Vector<EventListener*>;
+
+	private:
+		ListenerList m_preview_listeners;
+		ListenerList m_capture_listeners;
+		ListenerList m_target_listeners;
+		ListenerList m_bubble_listeners;
+		ListenerList m_unhandled_listeners;
+		ListenerList m_post_listeners;
+
+		ListenerList& listeners_for_phase(EventPhase phase);
+		const ListenerList& listeners_for_phase(EventPhase phase) const;
+
+	public:
 		virtual ~EventTarget() = default;
+
+		EventTarget& add_listener(EventPhase phase, EventListener* listener);
+		EventTarget& remove_listener(EventPhase phase, EventListener* listener);
+		const ListenerList& listeners(EventPhase phase) const;
 
 		virtual EventTarget* event_parent() const;
 		virtual EventDispatchResult on_preview_event(RoutedEvent& event);
@@ -246,6 +264,11 @@ namespace Trinex::Migration
 	private:
 		Map<EventTypeId, ListenerList> m_listeners;
 
+		static EventDispatchResult merge_result(EventDispatchResult& destination, const EventDispatchResult& source);
+		static void finalize_event_result(RoutedEvent& event);
+		static bool should_dispatch_phase(const RoutedEvent& event, EventPhase phase);
+		Vector<EventTarget*> build_route(EventTarget* target, EventTarget* routing_root) const;
+		EventDispatchResult dispatch_listeners(const ListenerList& listeners, RoutedEvent& event) const;
 		EventDispatchResult notify_listeners(RoutedEvent& event);
 		EventDispatchResult dispatch_single_phase(RoutedEvent& event, EventPhase phase, EventTarget* target);
 

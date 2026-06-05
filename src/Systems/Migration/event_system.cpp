@@ -23,34 +23,221 @@ namespace Trinex::Migration
 		return nullptr;
 	}
 
-	EventDispatchResult EventTarget::on_preview_event(RoutedEvent&)
+	EventTarget::ListenerList& EventTarget::listeners_for_phase(EventPhase phase)
 	{
-		return {};
+		switch (phase)
+		{
+			case EventPhase::Preview: return m_preview_listeners;
+			case EventPhase::Capture: return m_capture_listeners;
+			case EventPhase::Target: return m_target_listeners;
+			case EventPhase::Bubble: return m_bubble_listeners;
+			case EventPhase::Unhandled: return m_unhandled_listeners;
+			case EventPhase::Post:
+			case EventPhase::None:
+			default: return m_post_listeners;
+		}
 	}
 
-	EventDispatchResult EventTarget::on_capture_event(RoutedEvent&)
+	const EventTarget::ListenerList& EventTarget::listeners_for_phase(EventPhase phase) const
 	{
-		return {};
+		switch (phase)
+		{
+			case EventPhase::Preview: return m_preview_listeners;
+			case EventPhase::Capture: return m_capture_listeners;
+			case EventPhase::Target: return m_target_listeners;
+			case EventPhase::Bubble: return m_bubble_listeners;
+			case EventPhase::Unhandled: return m_unhandled_listeners;
+			case EventPhase::Post:
+			case EventPhase::None:
+			default: return m_post_listeners;
+		}
 	}
 
-	EventDispatchResult EventTarget::on_target_event(RoutedEvent&)
+	EventTarget& EventTarget::add_listener(EventPhase phase, EventListener* listener)
 	{
-		return {};
+		if (listener)
+		{
+			listeners_for_phase(phase).push_back(listener);
+		}
+
+		return *this;
 	}
 
-	EventDispatchResult EventTarget::on_bubble_event(RoutedEvent&)
+	EventTarget& EventTarget::remove_listener(EventPhase phase, EventListener* listener)
 	{
-		return {};
+		ListenerList& items = listeners_for_phase(phase);
+
+		for (auto it = items.begin(); it != items.end(); ++it)
+		{
+			if (*it == listener)
+			{
+				items.erase(it);
+				break;
+			}
+		}
+
+		return *this;
 	}
 
-	EventDispatchResult EventTarget::on_unhandled_event(RoutedEvent&)
+	const EventTarget::ListenerList& EventTarget::listeners(EventPhase phase) const
 	{
-		return {};
+		return listeners_for_phase(phase);
 	}
 
-	EventDispatchResult EventTarget::on_post_event(RoutedEvent&)
+	EventDispatchResult EventTarget::on_preview_event(RoutedEvent& event)
 	{
-		return {};
+		EventDispatchResult result;
+
+		for (EventListener* listener : m_preview_listeners)
+		{
+			if (listener == nullptr)
+			{
+				continue;
+			}
+
+			EventDispatchResult current = listener->on_event(event);
+			result.handled |= current.handled;
+			result.consumed |= current.consumed;
+			result.emit_gameplay_actions &= current.emit_gameplay_actions;
+
+			if (!current.continue_propagation)
+			{
+				result.continue_propagation = false;
+				break;
+			}
+		}
+
+		return result;
+	}
+
+	EventDispatchResult EventTarget::on_capture_event(RoutedEvent& event)
+	{
+		EventDispatchResult result;
+
+		for (EventListener* listener : m_capture_listeners)
+		{
+			if (listener == nullptr)
+			{
+				continue;
+			}
+
+			EventDispatchResult current = listener->on_event(event);
+			result.handled |= current.handled;
+			result.consumed |= current.consumed;
+			result.emit_gameplay_actions &= current.emit_gameplay_actions;
+
+			if (!current.continue_propagation)
+			{
+				result.continue_propagation = false;
+				break;
+			}
+		}
+
+		return result;
+	}
+
+	EventDispatchResult EventTarget::on_target_event(RoutedEvent& event)
+	{
+		EventDispatchResult result;
+
+		for (EventListener* listener : m_target_listeners)
+		{
+			if (listener == nullptr)
+			{
+				continue;
+			}
+
+			EventDispatchResult current = listener->on_event(event);
+			result.handled |= current.handled;
+			result.consumed |= current.consumed;
+			result.emit_gameplay_actions &= current.emit_gameplay_actions;
+
+			if (!current.continue_propagation)
+			{
+				result.continue_propagation = false;
+				break;
+			}
+		}
+
+		return result;
+	}
+
+	EventDispatchResult EventTarget::on_bubble_event(RoutedEvent& event)
+	{
+		EventDispatchResult result;
+
+		for (EventListener* listener : m_bubble_listeners)
+		{
+			if (listener == nullptr)
+			{
+				continue;
+			}
+
+			EventDispatchResult current = listener->on_event(event);
+			result.handled |= current.handled;
+			result.consumed |= current.consumed;
+			result.emit_gameplay_actions &= current.emit_gameplay_actions;
+
+			if (!current.continue_propagation)
+			{
+				result.continue_propagation = false;
+				break;
+			}
+		}
+
+		return result;
+	}
+
+	EventDispatchResult EventTarget::on_unhandled_event(RoutedEvent& event)
+	{
+		EventDispatchResult result;
+
+		for (EventListener* listener : m_unhandled_listeners)
+		{
+			if (listener == nullptr)
+			{
+				continue;
+			}
+
+			EventDispatchResult current = listener->on_event(event);
+			result.handled |= current.handled;
+			result.consumed |= current.consumed;
+			result.emit_gameplay_actions &= current.emit_gameplay_actions;
+
+			if (!current.continue_propagation)
+			{
+				result.continue_propagation = false;
+				break;
+			}
+		}
+
+		return result;
+	}
+
+	EventDispatchResult EventTarget::on_post_event(RoutedEvent& event)
+	{
+		EventDispatchResult result;
+
+		for (EventListener* listener : m_post_listeners)
+		{
+			if (listener == nullptr)
+			{
+				continue;
+			}
+
+			EventDispatchResult current = listener->on_event(event);
+			result.handled |= current.handled;
+			result.consumed |= current.consumed;
+			result.emit_gameplay_actions &= current.emit_gameplay_actions;
+
+			if (!current.continue_propagation)
+			{
+				result.continue_propagation = false;
+				break;
+			}
+		}
+
+		return result;
 	}
 
 	EventQueue& EventQueue::push(const Event& event)
@@ -118,33 +305,110 @@ namespace Trinex::Migration
 		return m_messages;
 	}
 
-	EventDispatchResult EventDispatcher::notify_listeners(RoutedEvent& event)
+	EventDispatchResult EventDispatcher::merge_result(EventDispatchResult& destination, const EventDispatchResult& source)
 	{
-		EventDispatchResult combined;
+		destination.handled |= source.handled;
+		destination.consumed |= source.consumed;
+		destination.emit_gameplay_actions &= source.emit_gameplay_actions;
 
-		if (auto found = m_listeners.find(event.header.type_id); found != m_listeners.end())
+		if (!source.continue_propagation)
 		{
-			for (EventListener* listener : found->second)
+			destination.continue_propagation = false;
+		}
+
+		if (source.terminal_phase != EventPhase::None)
+		{
+			destination.terminal_phase = source.terminal_phase;
+		}
+
+		return destination;
+	}
+
+	void EventDispatcher::finalize_event_result(RoutedEvent& event)
+	{
+		if (event.result.handled)
+		{
+			event.header.flags |= EventFlags::Handled;
+		}
+
+		if (event.result.consumed)
+		{
+			event.header.flags |= EventFlags::Consumed;
+			event.result.continue_propagation = false;
+		}
+
+		if (event.result.terminal_phase == EventPhase::None)
+		{
+			event.result.terminal_phase = event.phase;
+		}
+	}
+
+	bool EventDispatcher::should_dispatch_phase(const RoutedEvent& event, EventPhase phase)
+	{
+		switch (phase)
+		{
+			case EventPhase::Preview: return has_event_flags(event.header.flags, EventFlags::AllowPreview);
+			case EventPhase::Capture: return has_event_flags(event.header.flags, EventFlags::AllowCapture);
+			case EventPhase::Bubble: return has_event_flags(event.header.flags, EventFlags::AllowBubble);
+			case EventPhase::Target:
+			case EventPhase::Unhandled:
+			case EventPhase::Post: return true;
+			case EventPhase::None:
+			default: return false;
+		}
+	}
+
+	Vector<EventTarget*> EventDispatcher::build_route(EventTarget* target, EventTarget* routing_root) const
+	{
+		Vector<EventTarget*> route;
+		EventTarget* current = target;
+
+		while (current)
+		{
+			route.push_back(current);
+
+			if (current == routing_root)
 			{
-				if (listener == nullptr)
-				{
-					continue;
-				}
+				break;
+			}
 
-				EventDispatchResult current = listener->on_event(event);
-				combined.handled |= current.handled;
-				combined.consumed |= current.consumed;
-				combined.emit_gameplay_actions &= current.emit_gameplay_actions;
+			current = current->event_parent();
+		}
 
-				if (!current.continue_propagation)
-				{
-					combined.continue_propagation = false;
-					break;
-				}
+		return route;
+	}
+
+	EventDispatchResult EventDispatcher::dispatch_listeners(const ListenerList& listeners, RoutedEvent& event) const
+	{
+		EventDispatchResult result;
+
+		for (EventListener* listener : listeners)
+		{
+			if (listener == nullptr)
+			{
+				continue;
+			}
+
+			EventDispatchResult current = listener->on_event(event);
+			merge_result(result, current);
+
+			if (!current.continue_propagation)
+			{
+				break;
 			}
 		}
 
-		return combined;
+		return result;
+	}
+
+	EventDispatchResult EventDispatcher::notify_listeners(RoutedEvent& event)
+	{
+		if (auto found = m_listeners.find(event.header.type_id); found != m_listeners.end())
+		{
+			return dispatch_listeners(found->second, event);
+		}
+
+		return {};
 	}
 
 	EventDispatchResult EventDispatcher::dispatch_single_phase(RoutedEvent& event, EventPhase phase, EventTarget* target)
@@ -202,48 +466,100 @@ namespace Trinex::Migration
 
 	EventDispatchResult EventDispatcher::dispatch_to_target(RoutedEvent& event, EventTarget* target)
 	{
+		event.target = target;
+		event.phase  = EventPhase::None;
+		event.route  = build_route(target, event.routing_root);
 		event.result = notify_listeners(event);
+		finalize_event_result(event);
 
 		if (!event.result.continue_propagation)
 		{
 			return event.result;
 		}
 
-		// TODO(Migration): Build a real parent path and traverse preview/capture/bubble across it.
-		static constexpr EventPhase phases[] = {
-		        EventPhase::Preview,
-		        EventPhase::Capture,
-		        EventPhase::Target,
-		        EventPhase::Bubble,
-		};
-
-		for (EventPhase phase : phases)
+		if (should_dispatch_phase(event, EventPhase::Preview))
 		{
-			EventDispatchResult current = dispatch_single_phase(event, phase, target);
-			event.result.handled |= current.handled;
-			event.result.consumed |= current.consumed;
-			event.result.emit_gameplay_actions &= current.emit_gameplay_actions;
-
-			if (!current.continue_propagation)
+			for (auto it = event.route.rbegin(); it != event.route.rend(); ++it)
 			{
-				event.result.continue_propagation = false;
-				event.result.terminal_phase       = phase;
-				break;
+				EventDispatchResult current = dispatch_single_phase(event, EventPhase::Preview, *it);
+				merge_result(event.result, current);
+				finalize_event_result(event);
+
+				if (!current.continue_propagation)
+				{
+					event.result.terminal_phase = EventPhase::Preview;
+					return event.result;
+				}
+			}
+		}
+
+		if (should_dispatch_phase(event, EventPhase::Capture))
+		{
+			for (auto it = event.route.rbegin(); it != event.route.rend(); ++it)
+			{
+				EventDispatchResult current = dispatch_single_phase(event, EventPhase::Capture, *it);
+				merge_result(event.result, current);
+				finalize_event_result(event);
+
+				if (!current.continue_propagation)
+				{
+					event.result.terminal_phase = EventPhase::Capture;
+					return event.result;
+				}
+			}
+		}
+
+		EventDispatchResult target_result = dispatch_single_phase(event, EventPhase::Target, target);
+		merge_result(event.result, target_result);
+		finalize_event_result(event);
+
+		if (!target_result.continue_propagation)
+		{
+			event.result.terminal_phase = EventPhase::Target;
+			return event.result;
+		}
+
+		if (should_dispatch_phase(event, EventPhase::Bubble))
+		{
+			for (EventTarget* route_target : event.route)
+			{
+				EventDispatchResult current = dispatch_single_phase(event, EventPhase::Bubble, route_target);
+				merge_result(event.result, current);
+				finalize_event_result(event);
+
+				if (!current.continue_propagation)
+				{
+					event.result.terminal_phase = EventPhase::Bubble;
+					return event.result;
+				}
 			}
 		}
 
 		if (!event.result.handled)
 		{
 			EventDispatchResult current = dispatch_single_phase(event, EventPhase::Unhandled, target);
-			event.result.handled |= current.handled;
-			event.result.consumed |= current.consumed;
-			event.result.emit_gameplay_actions &= current.emit_gameplay_actions;
+			merge_result(event.result, current);
+			finalize_event_result(event);
+
+			if (!current.continue_propagation)
+			{
+				event.result.terminal_phase = EventPhase::Unhandled;
+				return event.result;
+			}
 		}
 
-		EventDispatchResult post = dispatch_single_phase(event, EventPhase::Post, target);
-		event.result.handled |= post.handled;
-		event.result.consumed |= post.consumed;
-		event.result.emit_gameplay_actions &= post.emit_gameplay_actions;
+		for (EventTarget* route_target : event.route)
+		{
+			EventDispatchResult post = dispatch_single_phase(event, EventPhase::Post, route_target);
+			merge_result(event.result, post);
+			finalize_event_result(event);
+
+			if (!post.continue_propagation)
+			{
+				event.result.terminal_phase = EventPhase::Post;
+				return event.result;
+			}
+		}
 
 		return event.result;
 	}
@@ -286,7 +602,9 @@ namespace Trinex::Migration
 	EventDispatchResult EventSystem::route(RoutedEvent& event)
 	{
 		m_event_queue.push(event);
-		return m_dispatcher.dispatch(event);
+		EventDispatchResult result = m_dispatcher.dispatch(event);
+		event.result               = result;
+		return result;
 	}
 
 	EventSystem& EventSystem::submit_raw_event(const RawInputEvent& event)
