@@ -31,12 +31,13 @@ namespace Trinex::UI
 		ContentBrowserController& rebuild_breadcrumbs();
 		ContentBrowserController& rebuild_grid();
 		ContentBrowserController& expand_package_path(Package* package);
-		ContentBrowserController& append_package_tree(Package* package, usize depth);
+		ContentBrowserController& append_package_tree(RML::Element* parent, Package* package, usize depth);
 
 		RML::Element* create_element(StringView tag, StringView class_names = {}) const;
 		RML::Element* create_text(StringView text) const;
 		RML::Element* create_img(StringView src, StringView width, StringView height) const;
 		bool has_child_packages(Package* package) const;
+		usize package_item_count(Package* package) const;
 		RML::Element* action_element_from_target(RML::Element* element) const;
 		Package* package_from_element(RML::Element* element) const;
 

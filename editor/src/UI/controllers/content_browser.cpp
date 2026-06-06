@@ -91,6 +91,11 @@ namespace Trinex::UI
 		return false;
 	}
 
+	usize ContentBrowserController::package_item_count(Package* package) const
+	{
+		return package ? package->objects().size() : 0;
+	}
+
 	RML::Element* ContentBrowserController::action_element_from_target(RML::Element* element) const
 	{
 		for (RML::Element* current = element; current && current != m_element; current = current->GetParentNode())
@@ -137,63 +142,98 @@ namespace Trinex::UI
 		return *this;
 	}
 
-	ContentBrowserController& ContentBrowserController::append_package_tree(Package* package, usize depth)
+	ContentBrowserController& ContentBrowserController::append_package_tree(RML::Element* parent, Package* package, usize depth)
 	{
-		if (package == nullptr || m_tree == nullptr)
+		if (package == nullptr || parent == nullptr)
 			return *this;
 
-		RML::Element* row = create_element("div", "trx-content-browser__tree-row");
-		if (row == nullptr)
+		RML::Element* node = create_element("div", "trx-content-browser__tree-node");
+		if (node == nullptr)
 			return *this;
-
-		if (package == m_selected_package)
-		{
-			row->SetClass("trx-content-browser__tree-row--active", true);
-		}
-
-		row->SetAttribute("data-action", "select-package");
-		row->SetAttribute("data-package", package->full_name());
-		row->SetProperty("padding-left", Strings::format("{}px", 10 + depth * 16));
 
 		const bool expandable = has_child_packages(package);
 		const bool expanded   = m_expanded_packages.contains(package);
 
-		RML::Element* arrow = create_element("span", "trx-content-browser__tree-arrow");
-		if (arrow != nullptr)
+		if (depth == 0)
+		{
+			node->SetClass("trx-content-browser__tree-node--root", true);
+		}
+
+		RML::Element* entry = create_element("div", "trx-content-browser__tree-entry");
+		if (entry == nullptr)
+			return *this;
+
+		if (package == m_selected_package)
+		{
+			entry->SetClass("trx-content-browser__tree-entry--active", true);
+		}
+
+		entry->SetAttribute("data-action", "select-package");
+		entry->SetAttribute("data-package", package->full_name());
+		entry->SetProperty("padding-left", Strings::format("{}px", 4 + depth * 18));
+
+		RML::Element* expander = create_element("span", "trx-content-browser__tree-expander");
+		if (expander != nullptr)
 		{
 			if (expandable)
 			{
-				arrow->SetAttribute("data-action", "toggle-package");
-				arrow->SetAttribute("data-package", package->full_name());
-				arrow->AppendChild(RML::ElementPtr(create_text(expanded ? "-" : "+")));
+				expander->SetAttribute("data-action", "toggle-package");
+				expander->SetAttribute("data-package", package->full_name());
+				expander->AppendChild(RML::ElementPtr(create_text(expanded ? "v" : ">")));
 			}
 			else
 			{
-				arrow->AppendChild(RML::ElementPtr(create_text("*")));
+				expander->SetClass("trx-content-browser__tree-expander--empty", true);
 			}
 
-			row->AppendChild(RML::ElementPtr(arrow));
+			entry->AppendChild(RML::ElementPtr(expander));
+		}
+
+		RML::Element* icon = create_element("span", "trx-content-browser__tree-icon");
+		if (icon != nullptr)
+		{
+			icon->SetClass("trx-content-browser__tree-icon--folder", true);
+			entry->AppendChild(RML::ElementPtr(icon));
 		}
 
 		RML::Element* label = create_element("span", "trx-content-browser__tree-label");
-		if (label)
+		if (label != nullptr)
 		{
 			label->AppendChild(RML::ElementPtr(create_text(package->string_name())));
-			row->AppendChild(RML::ElementPtr(label));
+			entry->AppendChild(RML::ElementPtr(label));
 		}
 
-		m_tree->AppendChild(RML::ElementPtr(row));
+		RML::Element* meta = create_element("span", "trx-content-browser__tree-meta");
+		if (meta != nullptr)
+		{
+			meta->SetClass("trx-content-browser__tree-meta--count", true);
+			meta->AppendChild(RML::ElementPtr(create_text(Strings::format("{}", package_item_count(package)))));
+			entry->AppendChild(RML::ElementPtr(meta));
+		}
+
+		node->AppendChild(RML::ElementPtr(entry));
 
 		if (!expandable || !expanded)
-			return *this;
-
-		for (Object* object : package->objects())
 		{
-			if (Package* child = object ? object->instance_cast<Package>() : nullptr)
-			{
-				append_package_tree(child, depth + 1);
-			}
+			parent->AppendChild(RML::ElementPtr(node));
+			return *this;
 		}
+
+		RML::Element* children = create_element("div", "trx-content-browser__tree-children");
+		if (children != nullptr)
+		{
+			for (Object* object : package->objects())
+			{
+				if (Package* child = object ? object->instance_cast<Package>() : nullptr)
+				{
+					append_package_tree(children, child, depth + 1);
+				}
+			}
+
+			node->AppendChild(RML::ElementPtr(children));
+		}
+
+		parent->AppendChild(RML::ElementPtr(node));
 
 		return *this;
 	}
@@ -204,7 +244,7 @@ namespace Trinex::UI
 			return *this;
 
 		m_tree->SetInnerRML("");
-		append_package_tree(Object::root_package(), 0);
+		append_package_tree(m_tree, Object::root_package(), 0);
 		return *this;
 	}
 

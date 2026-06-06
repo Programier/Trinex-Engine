@@ -6,8 +6,11 @@
 <body>
     <div id="trx-content-browser-root" class="trx-content-browser" data-controller="ContentBrowserController">
         <div class="trx-content-browser__sidebar">
+            <div class="trx-content-browser__sidebar-header">Package Tree</div>
             <div class="trx-content-browser__toolbar">
                 <div class="trx-content-browser__toolbar-button">+</div>
+                <div class="trx-content-browser__toolbar-button">R</div>
+                <input class="trx-content-browser__toolbar-search" type="text" value="" placeholder="Search packages..." />
             </div>
             <div id="trx-content-browser-tree" class="trx-content-browser__tree"></div>
         </div>
