@@ -114,8 +114,7 @@ namespace Trinex::UI
 			const String action = current->GetAttribute<String>("data-action", "");
 			if (action == "select-package" || action == "toggle-package")
 			{
-				const String package_name = current->GetAttribute<String>("data-package", "");
-				return package_name.empty() ? nullptr : Object::static_find_package(package_name, false);
+				return static_cast<Package*>(current->GetAttribute<void*>("data-package", nullptr));
 			}
 		}
 
@@ -169,7 +168,7 @@ namespace Trinex::UI
 		}
 
 		entry->SetAttribute("data-action", "select-package");
-		entry->SetAttribute("data-package", package->full_name());
+		entry->SetAttribute<void*>("data-package", package);
 		entry->SetProperty("padding-left", Strings::format("{}px", 4 + depth * 18));
 
 		RML::Element* expander = create_element("span", "trx-content-browser__tree-expander");
@@ -178,7 +177,7 @@ namespace Trinex::UI
 			if (expandable)
 			{
 				expander->SetAttribute("data-action", "toggle-package");
-				expander->SetAttribute("data-package", package->full_name());
+				expander->SetAttribute<void*>("data-package", package);
 				expander->AppendChild(RML::ElementPtr(create_text(expanded ? "v" : ">")));
 			}
 			else
@@ -275,7 +274,7 @@ namespace Trinex::UI
 				continue;
 
 			crumb->SetAttribute("data-action", "select-package");
-			crumb->SetAttribute("data-package", package->full_name());
+			crumb->SetAttribute<void*>("data-package", package);
 
 			if (package == m_selected_package)
 			{
@@ -312,7 +311,7 @@ namespace Trinex::UI
 			{
 				card->SetClass("trx-content-browser__item--package", true);
 				card->SetAttribute("data-action", "select-package");
-				card->SetAttribute("data-package", package->full_name());
+				card->SetAttribute<void*>("data-package", package);
 			}
 
 			if (RML::Element* thumb = create_element("div", "trx-content-browser__thumb"))

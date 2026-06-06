@@ -1,0 +1,691 @@
+/* ========================================================= */
+/* Trinex Editor - trinex.rcss                                 */
+/* Base HTML-like stylesheet for RmlUi                       */
+/* ========================================================= */
+
+/* ========================================================= */
+/* Document defaults                                         */
+/* ========================================================= */
+
+body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+
+    font-family: Roboto;
+    font-size: 16px;
+
+    color: #edf2ff;
+    background-color: #0b0d14;
+}
+
+
+/* ========================================================= */
+/* Block elements                                            */
+/* ========================================================= */
+
+body,
+div,
+h1, h2, h3, h4,
+h5, h6,
+p,
+hr,
+pre,
+form,
+tabset,
+tabs,
+panel {
+    display: block;
+}
+
+
+/* ========================================================= */
+/* Inline elements                                           */
+/* ========================================================= */
+
+span,
+strong,
+em,
+label,
+small,
+code {
+    display: inline;
+}
+
+
+/* ========================================================= */
+/* Box sizing                                                */
+/* ========================================================= */
+
+body,
+div,
+span,
+form,
+input,
+select,
+textarea,
+progress,
+img,
+table,
+tr,
+td,
+col,
+colgroup,
+thead,
+tbody,
+tfoot,
+tabset,
+tabs,
+tab,
+panel,
+handle {
+    box-sizing: border-box;
+}
+
+
+/* ========================================================= */
+/* Headings                                                  */
+/* ========================================================= */
+
+h1 {
+    font-size: 2em;
+    margin: .67em 0;
+}
+
+h2 {
+    font-size: 1.5em;
+    margin: .75em 0;
+}
+
+h3 {
+    font-size: 1.17em;
+    margin: .83em 0;
+}
+
+h4,
+p {
+    margin: 1.12em 0;
+}
+
+h5 {
+    font-size: .83em;
+    margin: 1.5em 0;
+}
+
+h6 {
+    font-size: .75em;
+    margin: 1.67em 0;
+}
+
+h1, h2, h3, h4,
+h5, h6,
+strong {
+    font-weight: bold;
+}
+
+
+/* ========================================================= */
+/* Text                                                      */
+/* ========================================================= */
+
+p {
+    line-height: 1.45em;
+}
+
+em {
+    font-style: italic;
+}
+
+small {
+    font-size: .85em;
+}
+
+pre {
+    white-space: pre;
+}
+
+pre,
+code {
+    font-family: "Source Code Pro";
+}
+
+code {
+    color: #a8c7ff;
+}
+
+
+/* ========================================================= */
+/* Horizontal rule                                           */
+/* ========================================================= */
+
+hr {
+    height: 1px;
+    margin: 8px 0;
+
+    border-width: 1px;
+    border-color: #2b3446;
+
+    background-color: #2b3446;
+}
+
+
+/* ========================================================= */
+/* Images                                                    */
+/* ========================================================= */
+
+img {
+    display: inline-block;
+}
+
+
+/* ========================================================= */
+/* Tables                                                    */
+/* ========================================================= */
+
+table {
+    display: table;
+}
+
+tr {
+    display: table-row;
+}
+
+td {
+    display: table-cell;
+}
+
+col {
+    display: table-column;
+}
+
+colgroup {
+    display: table-column-group;
+}
+
+thead,
+tbody,
+tfoot {
+    display: table-row-group;
+}
+
+
+/* ========================================================= */
+/* Forms                                                     */
+/* ========================================================= */
+
+form {
+    display: block;
+}
+
+label {
+    color: #aeb7c8;
+}
+
+input,
+select,
+textarea {
+    font-family: Roboto;
+    font-size: 14px;
+
+    color: #edf2ff;
+    background-color: #111722;
+
+    border-width: 1px;
+    border-color: #30394a;
+    border-radius: 4px;
+
+    padding: 6px 8px;
+}
+
+input:hover,
+select:hover,
+textarea:hover {
+    border-color: #43516a;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: #5b8cff;
+}
+
+textarea {
+    display: block;
+    white-space: pre;
+
+    min-height: 64px;
+}
+
+
+/* ========================================================= */
+/* Button-like controls                                      */
+/* ========================================================= */
+
+input[type=button],
+input[type=submit],
+input[type=reset],
+.button {
+    display: inline-block;
+
+    height: 28px;
+    line-height: 28px;
+
+    padding: 0 12px;
+
+    font-family: Roboto;
+    font-size: 14px;
+
+    color: #e8eefc;
+    background-color: #263244;
+
+    border-width: 1px;
+    border-color: #3a4a64;
+    border-radius: 4px;
+
+    text-align: center;
+    vertical-align: center;
+}
+
+input[type=button]:hover,
+input[type=submit]:hover,
+input[type=reset]:hover,
+.button:hover {
+    color: #ffffff;
+    background-color: #34435a;
+    border-color: #526684;
+}
+
+input[type=button]:active,
+input[type=submit]:active,
+input[type=reset]:active,
+.button:active {
+    background-color: #1e2736;
+}
+
+.button-label {
+    display: block;
+}
+
+.button-danger {
+    color: #ffe8ee;
+    background-color: #503039;
+    border-color: #7a4351;
+}
+
+.button-danger:hover {
+    background-color: #693b48;
+    border-color: #9a5264;
+}
+
+.button-primary {
+    color: #ffffff;
+    background-color: #28476f;
+    border-color: #3b6ca8;
+}
+
+.button-primary:hover {
+    background-color: #345b8c;
+    border-color: #4f86c6;
+}
+
+
+/* ========================================================= */
+/* Checkbox / radio                                          */
+/* ========================================================= */
+
+input[type=checkbox],
+input[type=radio] {
+    display: inline-block;
+
+    width: 16px;
+    height: 16px;
+
+    padding: 0;
+}
+
+
+/* ========================================================= */
+/* Range                                                     */
+/* ========================================================= */
+
+input[type=range] {
+    height: 22px;
+    padding: 0;
+}
+
+
+/* ========================================================= */
+/* Select / option                                           */
+/* ========================================================= */
+
+select {
+    height: 30px;
+}
+
+option {
+    color: #edf2ff;
+    background-color: #111722;
+}
+
+
+/* ========================================================= */
+/* Handle                                                    */
+/* ========================================================= */
+
+handle {
+    display: block;
+}
+
+
+/* ========================================================= */
+/* Tabs                                                      */
+/* ========================================================= */
+
+tabset {
+    display: block;
+}
+
+tabs {
+    display: block;
+}
+
+tab {
+    display: inline-block;
+
+    padding: 8px 12px;
+
+    color: #9aa6ba;
+    background-color: #161d2a;
+
+    border-width: 1px;
+    border-color: #2a3446;
+}
+
+tab:hover {
+    color: #ffffff;
+    background-color: #202a3b;
+}
+
+tab:active {
+    color: #ffffff;
+    background-color: #101621;
+}
+
+panel {
+    display: block;
+
+    padding: 12px;
+
+    color: #d6dce8;
+    background-color: #101621;
+
+    border-width: 1px;
+    border-color: #2a3446;
+}
+
+
+/* ========================================================= */
+/* Progress                                                  */
+/* ========================================================= */
+
+progress {
+    display: block;
+
+    width: 100%;
+    height: 18px;
+
+    background-color: #0d121b;
+
+    border-width: 1px;
+    border-color: #30394a;
+    border-radius: 4px;
+}
+
+progress fill {
+    background-color: #4f8cff;
+}
+
+
+/* ========================================================= */
+/* Generic layout helpers                                    */
+/* ========================================================= */
+
+.block {
+    display: block;
+}
+
+.inline {
+    display: inline;
+}
+
+.inline-block {
+    display: inline-block;
+}
+
+.hidden {
+    display: none;
+}
+
+.row {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.separator {
+    display: block;
+
+    height: 1px;
+    margin: 8px 0;
+
+    background-color: #2a3446;
+}
+
+
+/* ========================================================= */
+/* Generic panels                                            */
+/* ========================================================= */
+
+.panel {
+    display: block;
+
+    color: #d6dce8;
+    background-color: #151b27;
+
+    border-width: 1px;
+    border-color: #2a3446;
+    border-radius: 6px;
+}
+
+.panel-header {
+    display: block;
+
+    padding: 8px 10px;
+
+    font-weight: bold;
+    color: #ffffff;
+
+    background-color: #1d2635;
+
+    border-bottom-width: 1px;
+    border-bottom-color: #2a3446;
+}
+
+.panel-body {
+    display: block;
+    padding: 10px;
+}
+
+.panel-title {
+    display: block;
+
+    margin-bottom: 8px;
+
+    font-weight: bold;
+    color: #ffffff;
+}
+
+
+/* ========================================================= */
+/* Toolbar helpers                                           */
+/* ========================================================= */
+
+.toolbar {
+    display: block;
+
+    min-height: 38px;
+    padding: 6px 8px;
+
+    background-color: #151a23;
+
+    border-bottom-width: 1px;
+    border-bottom-color: #283142;
+}
+
+.toolbar-item {
+    display: inline-block;
+    margin-right: 6px;
+}
+
+
+/* ========================================================= */
+/* TreeView helpers                                          */
+/* ========================================================= */
+
+.tree {
+    display: block;
+}
+
+.tree-node {
+    display: block;
+
+    height: 24px;
+    padding: 4px 8px;
+
+    color: #cbd5e1;
+
+    border-radius: 4px;
+}
+
+.tree-node:hover {
+    background-color: #202a3b;
+}
+
+.tree-node:active {
+    background-color: #182030;
+}
+
+.tree-node.selected {
+    color: #ffffff;
+    background-color: #28476f;
+}
+
+.tree-node.folder {
+    color: #8ec7ff;
+}
+
+.tree-children {
+    display: block;
+    margin-left: 16px;
+}
+
+.tree-children.collapsed {
+    display: none;
+}
+
+.tree-icon {
+    display: inline;
+    color: #7db7ff;
+}
+
+.tree-label {
+    display: inline;
+}
+
+
+/* ========================================================= */
+/* Console / code helpers                                    */
+/* ========================================================= */
+
+.console {
+    display: block;
+
+    font-family: "Source Code Pro";
+    font-size: 13px;
+
+    color: #cbd5e1;
+    background-color: #0d121b;
+}
+
+.console-line {
+    display: block;
+
+    margin-bottom: 4px;
+
+    font-family: "Source Code Pro";
+    font-size: 13px;
+}
+
+.console-line.info {
+    color: #8ec7ff;
+}
+
+.console-line.warn {
+    color: #ffc46b;
+}
+
+.console-line.error {
+    color: #ff8a9a;
+}
+
+.console-line.ok {
+    color: #86efac;
+}
+
+
+/* ========================================================= */
+/* Inspector helpers                                         */
+/* ========================================================= */
+
+.inspector-row {
+    display: block;
+    margin-bottom: 10px;
+}
+
+.inspector-label {
+    display: block;
+
+    margin-bottom: 4px;
+
+    font-size: 13px;
+    color: #9ca8ba;
+}
+
+.inspector-field {
+    display: block;
+    width: 100%;
+}
+
+
+/* ========================================================= */
+/* Text colors                                               */
+/* ========================================================= */
+
+.text-muted {
+    color: #8994a8;
+}
+
+.text-info {
+    color: #8ec7ff;
+}
+
+.text-warning {
+    color: #ffc46b;
+}
+
+.text-error {
+    color: #ff8a9a;
+}
+
+.text-success {
+    color: #86efac;
+}

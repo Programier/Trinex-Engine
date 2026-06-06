@@ -1,7 +1,7 @@
 <rml>
 <head>
     <title>Level Editor</title>
-    <link type="text/rcss" href="../../styles/base.rcss"/>
+    <link type="text/rcss" href="../../styles/trinex.rcss"/>
     <link type="text/rcss" href="../../styles/splitter.rcss"/>
     <link type="text/rcss" href="../../styles/editor/main.rcss"/>
     <link type="text/template" href="../../templates/panel.rml"/>
