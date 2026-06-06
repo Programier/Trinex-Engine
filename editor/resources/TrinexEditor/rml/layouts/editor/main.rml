@@ -5,6 +5,7 @@
     <link type="text/rcss" href="../../styles/splitter.rcss"/>
     <link type="text/rcss" href="../../styles/editor/main.rcss"/>
     <link type="text/template" href="../../templates/panel.rml"/>
+    <link type="text/template" href="../../templates/content_browser.rml"/>
 </head>
 
 <body>
@@ -29,8 +30,8 @@
                         <div class="trx-panel__header">
                             <div class="trx-panel__title">Content Browser</div>
                         </div>
-                        <div class="trx-panel__body">
-                            <div class="trx-editor-placeholder">HERE IS CONTENT</div>
+                        <div class="trx-panel__body trx-panel__body--flush">
+                            <template src="content-browser"></template>
                         </div>
                     </template>
                 </div>
@@ -45,7 +46,7 @@
                             <div class="trx-panel__title">Properties</div>
                         </div>
                         <div class="trx-panel__body">
-                            <div class="trx-editor-placeholder">HERE IS PROPERTIES</div>
+                            <div class="trx-editor-placeholder">HERE IS PROPERTIES</div>                
                         </div>
                     </template>
                 </div>

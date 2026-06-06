@@ -35,3 +35,7 @@
     color: #97a4c6;
     background-color: #121522;
 }
+
+.trx-panel__body--flush {
+    padding: 0;
+}

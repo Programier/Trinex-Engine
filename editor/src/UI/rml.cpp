@@ -7,11 +7,13 @@
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/logger.hpp>
 #include <Core/math/math.hpp>
+#include <Core/profiler.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/render_viewport.hpp>
+#include <Graphics/texture.hpp>
 #include <Input/input_system.hpp>
 #include <RHI/context.hpp>
 #include <RHI/initializers.hpp>
@@ -19,6 +21,7 @@
 #include <RHI/rhi.hpp>
 #include <RHI/static_sampler.hpp>
 #include <RmlUi/Core.h>
+#include <RmlUi/Debugger.h>
 #include <UI/rml.hpp>
 #include <Window/window.hpp>
 
@@ -30,6 +33,12 @@ namespace Trinex::UI
 		{
 			static Map<RML::Context*, RMLClient*> clients;
 			return clients;
+		}
+
+		static bool& rml_debugger_initialized()
+		{
+			static bool initialized = false;
+			return initialized;
 		}
 
 		static RMLClient* client_from_document(RML::ElementDocument* document)
@@ -325,7 +334,8 @@ namespace Trinex::UI
 			const RHIShaderParameterInfo* m_texture   = nullptr;
 
 		public:
-			RMLTexturePipeline& setup(RHIContext* context, const Matrix4f& transform, Vector2f translate, RHITexture* texture)
+			RMLTexturePipeline& setup(RHIContext* context, const Matrix4f& transform, Vector2f translate, RHITexture* texture,
+			                          RHISampler* sampler)
 			{
 				context->bind_pipeline(rhi_pipeline());
 				context->update_scalar(&translate, m_translate);
@@ -343,28 +353,67 @@ namespace Trinex::UI
 			m_texture   = find_parameter("texture");
 		}
 
-#define trinex_rml_handle(type, handle_type)                                                                                     \
-	static type* from(RML::handle_type handle)                                                                                   \
-	{                                                                                                                            \
-		return reinterpret_cast<type*>(handle);                                                                                  \
-	}                                                                                                                            \
-	inline RML::handle_type handle() const                                                                                       \
-	{                                                                                                                            \
-		return reinterpret_cast<RML::handle_type>(this);                                                                         \
-	}
-
-		struct RMLGeometry {
+		class RMLGeometry
+		{
+		public:
 			RHIResourcePtr<RHIBuffer> vertex;
 			RHIResourcePtr<RHIBuffer> index;
 
-			trinex_rml_handle(RMLGeometry, CompiledGeometryHandle);
+			static RMLGeometry* from(RML::CompiledGeometryHandle handle) { return reinterpret_cast<RMLGeometry*>(handle); }
+			inline RML::CompiledGeometryHandle handle() const { return reinterpret_cast<RML::CompiledGeometryHandle>(this); }
 		};
 
-		struct RMLLayer {
-			RHITexture* color = nullptr;
-			RHITexture* depth = nullptr;
+		class RMLTexture
+		{
+		public:
+			virtual RHISampler* sampler() = 0;
+			virtual RHITexture* texture() = 0;
+			virtual ~RMLTexture() {}
 
-			trinex_rml_handle(RMLLayer, LayerHandle);
+			static RMLTexture* from(RML::CompiledGeometryHandle handle) { return reinterpret_cast<RMLTexture*>(handle); }
+			inline RML::CompiledGeometryHandle handle() const { return reinterpret_cast<RML::CompiledGeometryHandle>(this); }
+		};
+
+		class RMLTextureCopy final : public RMLTexture
+		{
+		private:
+			RHITexture* m_texture;
+			RHISampler* m_sampler;
+
+		public:
+			RMLTextureCopy(Vector2u size, RHITextureFlags flags, RHISampler* sampler = nullptr)
+			{
+				auto pool = RHITexturePool::global_instance();
+				m_texture = pool->acquire(RHISurfaceFormat::RGBA8, {size.x, size.y}, flags);
+				m_sampler = sampler ? sampler : RHIBilinearWrapSampler::static_sampler();
+			}
+
+			RHISampler* sampler() override { return m_sampler; }
+			RHITexture* texture() override { return m_texture; }
+
+			~RMLTextureCopy()
+			{
+				auto pool = RHITexturePool::global_instance();
+				pool->release(reinterpret_cast<RHITexture*>(m_texture));
+			}
+		};
+
+		class RMLTextureRef final : public RMLTexture
+		{
+		private:
+			RHITexture* m_texture;
+			RHISampler* m_sampler;
+
+		public:
+			RMLTextureRef(RHITexture* texture, RHISampler* sampler = nullptr) : m_texture(texture)
+			{
+				texture->add_reference();
+				m_sampler = sampler ? sampler : RHIBilinearWrapSampler::static_sampler();
+			}
+
+			RHISampler* sampler() override { return m_sampler; }
+			RHITexture* texture() override { return m_texture; }
+			~RMLTextureRef() { m_texture->release(); }
 		};
 
 		class RMLRenderInterface final : public RML::RenderInterface
@@ -544,8 +593,9 @@ namespace Trinex::UI
 
 				if (texture)
 				{
+					auto handle = RMLTexture::from(texture);
 					RMLTexturePipeline::instance()->setup(m_context, m_transform, {translation.x, translation.y},
-					                                      reinterpret_cast<RHITexture*>(texture));
+					                                      handle->texture(), handle->sampler());
 				}
 				else
 				{
@@ -560,32 +610,67 @@ namespace Trinex::UI
 
 			void ReleaseGeometry(RML::CompiledGeometryHandle geometry) override { trx_delete RMLGeometry::from(geometry); }
 
-			RML::TextureHandle LoadTexture(RML::Vector2i& texture_dimensions, const RML::String& source) override
+			RML::TextureHandle LoadTexture(RML::Vector2i& size, const RML::String& source) override
 			{
-				(void) texture_dimensions;
-				(void) source;
-				trinex_unreachable();
+				/*
+				 	# = RHI texture
+					@ = Engine texture
+					$ = Content texture path
+					! = File texture path
+				 */
+
+				if (source.empty())
+					return 0;
+
+
+				switch (source[0])
+				{
+					case '#':
+					{
+						auto handle       = static_cast<RHITexture*>(Strings::pointer_of(source.data() + 1));
+						auto texture      = trx_new RMLTextureRef(handle);
+						auto texture_size = handle->size();
+						size              = RML::Vector2i(texture_size.x, texture_size.y);
+						return texture->handle();
+					}
+
+					case '@':
+					{
+						auto handle       = static_cast<Texture*>(Strings::pointer_of(source.data() + 1))->rhi_texture();
+						auto texture      = trx_new RMLTextureRef(handle);
+						auto texture_size = texture->texture()->size();
+						size              = RML::Vector2i(texture_size.x, texture_size.y);
+						return texture->handle();
+					}
+
+					case '$':
+					{
+						return 0;
+					}
+
+					default:
+					{
+						return 0;
+					}
+				}
+
 				return 0;
 			}
 
 			RML::TextureHandle GenerateTexture(RML::Span<const RML::byte> source, RML::Vector2i size) override
 			{
-				RHITexture* texture = RequestTexture({size.x, size.y}, RHITextureFlags::ShaderResource);
+				auto texture = trx_new RMLTextureCopy({size.x, size.y}, RHITextureFlags::ShaderResource);
 
 				RHITextureRegion dst = RHITextureRegion({size.x, size.y, 1});
 				EndRendering();
 
-				m_context->barrier(texture, RHIAccess::TransferDst);
-				m_context->update(texture, dst, source.data(), {.size = source.size()});
-				m_context->barrier(texture, RHIAccess::SRVGraphics);
-				return reinterpret_cast<RML::TextureHandle>(texture);
+				m_context->barrier(texture->texture(), RHIAccess::TransferDst);
+				m_context->update(texture->texture(), dst, source.data(), {.size = source.size()});
+				m_context->barrier(texture->texture(), RHIAccess::SRVGraphics);
+				return texture->handle();
 			}
 
-			void ReleaseTexture(RML::TextureHandle texture) override
-			{
-				auto pool = RHITexturePool::global_instance();
-				pool->release(reinterpret_cast<RHITexture*>(texture));
-			}
+			void ReleaseTexture(RML::TextureHandle texture) override { trx_delete RMLTexture::from(texture); }
 
 			void EnableScissorRegion(bool enable) override
 			{
@@ -729,17 +814,17 @@ namespace Trinex::UI
 				const Vector2u offset = Vector2u(m_scissor.pos * Vector2f(m_size) + Vector2f(0.5f, 0.5f));
 				const Vector2u size   = Vector2u(m_scissor.size * Vector2f(m_size) + Vector2f(0.5f, 0.5f));
 
-				RHITexture* texture = RequestTexture(size, RHITextureFlags::ShaderResource);
+				RMLTextureCopy* texture = trx_new RMLTextureCopy(size, RHITextureFlags::ShaderResource);
 
 				EndRendering();
-				m_context->barrier(texture, RHIAccess::TransferDst);
+				m_context->barrier(texture->texture(), RHIAccess::TransferDst);
 				m_context->barrier(m_layers[m_layer], RHIAccess::TransferSrc);
 
-				m_context->copy(texture, RHITextureRegion(size), m_layers[m_layer], RHITextureRegion(size, offset));
+				m_context->copy(texture->texture(), RHITextureRegion(size), m_layers[m_layer], RHITextureRegion(size, offset));
 
-				m_context->barrier(texture, RHIAccess::SRVGraphics);
+				m_context->barrier(texture->texture(), RHIAccess::SRVGraphics);
 				m_context->barrier(m_layers[m_layer], RHIAccess::RTV);
-				return reinterpret_cast<RML::TextureHandle>(texture);
+				return texture->handle();
 			}
 
 			RML::CompiledFilterHandle SaveLayerAsMaskImage() override
@@ -777,6 +862,18 @@ namespace Trinex::UI
 
 			void JoinPath(RML::String& translated_path, const RML::String& document_path, const RML::String& path) override
 			{
+				if (path.empty())
+					return RML::SystemInterface::JoinPath(translated_path, document_path, path);
+
+				for (char marker : {'@', '#', '$'})
+				{
+					if (marker == path[0])
+					{
+						translated_path = path;
+						return;
+					}
+				}
+
 				translated_path = (Path(Path(document_path.c_str()).base_path()) / Path(path.c_str())).str();
 			}
 		};
@@ -921,6 +1018,20 @@ namespace Trinex::UI
 		Vector2u size = viewport->size();
 		m_context     = RML::CreateContext("main", RML::Vector2i(size.x, size.y));
 		context_clients().insert({m_context, this});
+
+		if (m_context)
+		{
+			if (!rml_debugger_initialized())
+			{
+				rml_debugger_initialized() = RML::Debugger::Initialise(m_context);
+				RML::Debugger::SetVisible(false);
+			}
+			else
+			{
+				RML::Debugger::SetContext(m_context);
+			}
+		}
+
 		return *this;
 	}
 
@@ -948,23 +1059,33 @@ namespace Trinex::UI
 
 		if (m_context)
 		{
-			for (auto& [element, controller] : m_controllers)
 			{
-				if (element && controller)
+				trinex_profile_cpu_n("RML Controllers Update");
+
+				for (auto& [element, controller] : m_controllers)
 				{
-					controller->update(element);
+					if (element && controller)
+					{
+						controller->update(element);
+					}
 				}
 			}
 
 			Vector2u size = viewport->size();
 
-			m_context->SetDimensions(RML::Vector2i(size.x, size.y));
-			m_context->Update();
+			{
+				trinex_profile_cpu_n("RML Context Update");
+				m_context->SetDimensions(RML::Vector2i(size.x, size.y));
+				m_context->Update();
+			}
 
-			RMLRenderInterface* renderer = static_cast<RMLRenderInterface*>(RML::GetRenderInterface());
-			renderer->BeginFrame(viewport->swapchain());
-			m_context->Render();
-			renderer->EndFrame(viewport->swapchain());
+			{
+				trinex_profile_cpu_n("RML Context Render");
+				RMLRenderInterface* renderer = static_cast<RMLRenderInterface*>(RML::GetRenderInterface());
+				renderer->BeginFrame(viewport->swapchain());
+				m_context->Render();
+				renderer->EndFrame(viewport->swapchain());
+			}
 		}
 
 		return *this;
@@ -1027,7 +1148,17 @@ namespace Trinex::UI
 		if (key_identifier == RML::Input::KI_UNKNOWN)
 			return result;
 
-		const int modifiers     = key_modifier_state(event.header.source_id, event.header.window_id);
+		const int modifiers = key_modifier_state(event.header.source_id, event.header.window_id);
+
+		if (event.kind == KeyEventKind::Pressed && key_identifier == RML::Input::KI_F12 && rml_debugger_initialized())
+		{
+			RML::Debugger::SetContext(m_context);
+			RML::Debugger::SetVisible(!RML::Debugger::IsVisible());
+			result.mark_handled();
+			result.mark_consumed();
+			return result;
+		}
+
 		const bool not_consumed = (event.kind == KeyEventKind::Released) ? m_context->ProcessKeyUp(key_identifier, modifiers)
 		                                                                 : m_context->ProcessKeyDown(key_identifier, modifiers);
 

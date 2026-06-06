@@ -1,0 +1,23 @@
+<template name="content-browser" content="trx-content-browser-root">
+<head>
+    <link type="text/rcss" href="../styles/content-browser.rcss"/>
+</head>
+
+<body>
+    <div id="trx-content-browser-root" class="trx-content-browser" data-controller="ContentBrowserController">
+        <div class="trx-content-browser__sidebar">
+            <div class="trx-content-browser__toolbar">
+                <div class="trx-content-browser__toolbar-button">+</div>
+            </div>
+            <div id="trx-content-browser-tree" class="trx-content-browser__tree"></div>
+        </div>
+
+        <div class="trx-content-browser__main">
+            <div id="trx-content-browser-breadcrumbs" class="trx-content-browser__breadcrumbs"></div>
+            <div id="trx-content-browser-grid-scroll" class="trx-content-browser__grid-scroll">
+                <div id="trx-content-browser-grid" class="trx-content-browser__grid"></div>
+            </div>
+        </div>
+    </div>
+</body>
+</template>
