@@ -1,0 +1,9 @@
+<template name="panel" content="panel-root">
+<head>
+    <link type="text/rcss" href="../styles/panel.rcss"/>
+</head>
+
+<body>
+    <div id="panel-root" class="trx-panel"></div>
+</body>
+</template>

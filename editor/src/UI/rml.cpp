@@ -5,8 +5,10 @@
 #include <Core/filesystem/file.hpp>
 #include <Core/filesystem/path.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
+#include <Core/logger.hpp>
 #include <Core/math/math.hpp>
 #include <Core/reflection/class.hpp>
+#include <Core/string_functions.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/render_viewport.hpp>
@@ -24,7 +26,63 @@ namespace Trinex::UI
 {
 	namespace
 	{
-		Vector<Buffer> s_fonts;
+		static Map<RML::Context*, RMLClient*>& context_clients()
+		{
+			static Map<RML::Context*, RMLClient*> clients;
+			return clients;
+		}
+
+		static RMLClient* client_from_document(RML::ElementDocument* document)
+		{
+			if (document == nullptr)
+				return nullptr;
+
+			RML::Context* context = document->GetContext();
+
+			if (context == nullptr)
+				return nullptr;
+
+			auto& clients = context_clients();
+			auto found    = clients.find(context);
+			return found != clients.end() ? found->second : nullptr;
+		}
+
+		static void collect_controllers(Map<RML::Element*, RMLController*>& controllers, RML::Element* element, RMLClient* owner)
+		{
+			if (element == nullptr || owner == nullptr)
+				return;
+
+			String controller_name = element->GetAttribute<String>("data-controller", "");
+
+			if (!controller_name.empty())
+			{
+				Refl::Class* controller_class = Refl::Class::static_find<Refl::Class>(controller_name);
+
+				if (controller_class == nullptr && !controller_name.starts_with("Trinex::"))
+				{
+					controller_class = Refl::Class::static_find<Refl::Class>(Strings::format("Trinex::UI::{}", controller_name));
+				}
+
+				if (controller_class && controller_class->is_a<RMLController>())
+				{
+					if (auto controller = Object::instance_cast<RMLController>(controller_class->create_object("", owner)))
+					{
+						controller->attach(element);
+						controllers.insert({element, controller});
+					}
+				}
+				else
+				{
+					error_log("RML", "Failed to find controller '%s' for element id '%s'", controller_name.c_str(),
+					          element->GetId().c_str());
+				}
+			}
+
+			for (int i = 0, count = element->GetNumChildren(); i < count; ++i)
+			{
+				collect_controllers(controllers, element->GetChild(i), owner);
+			}
+		}
 
 		static DeviceId window_keyboard_device_id(Identifier window_id)
 		{
@@ -385,6 +443,15 @@ namespace Trinex::UI
 				m_scissor       = RHIScissor();
 
 				m_context->push_debug_stage("RML Scene");
+
+				m_context->barrier(m_layers[0], RHIAccess::TransferDst);
+				m_context->barrier(m_depth, RHIAccess::TransferDst);
+
+				m_context->clear_rtv(m_layers[0]->as_rtv());
+				m_context->clear_dsv(m_depth->as_dsv());
+
+				m_context->barrier(m_layers[0], RHIAccess::RTV);
+				m_context->barrier(m_depth, RHIAccess::DSV);
 			}
 
 			void EndFrame(RHISwapchain* swapchain)
@@ -773,6 +840,32 @@ namespace Trinex::UI
 				return 0;
 			}
 		};
+
+		class RMLClientPlugin final : public RML::Plugin
+		{
+		public:
+			void OnDocumentLoad(RML::ElementDocument* document)
+			{
+				if (auto* client = client_from_document(document))
+				{
+					client->on_document_load(document);
+				}
+			}
+
+			void OnDocumentUnload(RML::ElementDocument* document)
+			{
+				if (auto* client = client_from_document(document))
+				{
+					client->on_document_unload(document);
+				}
+			}
+
+			static RMLClientPlugin* instance()
+			{
+				static RMLClientPlugin plugin;
+				return &plugin;
+			}
+		};
 	}// namespace
 
 	trinex_on_pre_init()
@@ -781,6 +874,7 @@ namespace Trinex::UI
 		RML::SetSystemInterface(trx_new RMLSystemInterface());
 		RML::SetRenderInterface(trx_new RMLRenderInterface());
 		RML::Initialise();
+		RML::RegisterPlugin(RMLClientPlugin::instance());
 
 		for (auto& path : VFS::RecursiveDirectoryIterator("[fonts]:/TrinexEditor/"))
 		{
@@ -795,12 +889,8 @@ namespace Trinex::UI
 			{
 				if (ext == extension)
 				{
-					FileReader reader(path);
-					trinex_verify(reader.is_open());
-					auto& buffer = s_fonts.emplace_back(reader.read_buffer());
-
-					trinex_verify(RML::LoadFontFace(RML::Span<const RML::byte>(buffer.data(), buffer.size()), String(path.stem()),
-					                                RML::Style::FontStyle::Normal, RML::Style::FontWeight::Auto));
+					trinex_verify(RML::LoadFontFace(path.str()));
+					break;
 				}
 			}
 		}
@@ -808,6 +898,7 @@ namespace Trinex::UI
 
 	trinex_on_shutdown()
 	{
+		RML::UnregisterPlugin(RMLClientPlugin::instance());
 		RML::Shutdown();
 
 		trx_delete RML::GetFileInterface();
@@ -829,6 +920,7 @@ namespace Trinex::UI
 
 		Vector2u size = viewport->size();
 		m_context     = RML::CreateContext("main", RML::Vector2i(size.x, size.y));
+		context_clients().insert({m_context, this});
 		return *this;
 	}
 
@@ -838,7 +930,9 @@ namespace Trinex::UI
 
 		if (m_context)
 		{
-			RML::RemoveContext(m_context->GetName());
+			RML::Context* context = m_context;
+			RML::RemoveContext(context->GetName());
+			context_clients().erase(context);
 			m_context = nullptr;
 		}
 
@@ -854,6 +948,14 @@ namespace Trinex::UI
 
 		if (m_context)
 		{
+			for (auto& [element, controller] : m_controllers)
+			{
+				if (element && controller)
+				{
+					controller->update(element);
+				}
+			}
+
 			Vector2u size = viewport->size();
 
 			m_context->SetDimensions(RML::Vector2i(size.x, size.y));
@@ -1027,5 +1129,62 @@ namespace Trinex::UI
 		}
 
 		return result;
+	}
+
+	RMLClient& RMLClient::on_document_load(RML::ElementDocument* document)
+	{
+		if (document)
+		{
+			collect_controllers(m_controllers, document, this);
+		}
+
+		return *this;
+	}
+
+	RMLClient& RMLClient::on_document_unload(RML::ElementDocument* document)
+	{
+		if (document == nullptr)
+			return *this;
+
+		for (auto it = m_controllers.begin(); it != m_controllers.end();)
+		{
+			RML::Element* element      = it->first;
+			RMLController* controller  = it->second;
+			RML::ElementDocument* root = element ? element->GetOwnerDocument() : nullptr;
+
+			if (root == document)
+			{
+				if (controller)
+				{
+					controller->deattach(element);
+					controller->owner(nullptr);
+				}
+
+				it = m_controllers.erase(it);
+			}
+			else
+			{
+				++it;
+			}
+		}
+
+		return *this;
+	}
+
+	trinex_implement_class(Trinex::UI::RMLController, 0) {}
+
+	RMLController& RMLController::attach(RML::Element* element)
+	{
+		return *this;
+	}
+
+	RMLController& RMLController::update(RML::Element* element)
+	{
+		return *this;
+	}
+
+	RMLController& RMLController::deattach(RML::Element* element)
+	{
+		return *this;
 	}
 }// namespace Trinex::UI

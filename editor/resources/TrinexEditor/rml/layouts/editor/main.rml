@@ -1,0 +1,69 @@
+<rml>
+<head>
+    <title>Level Editor</title>
+    <link type="text/rcss" href="../../styles/base.rcss"/>
+    <link type="text/rcss" href="../../styles/splitter.rcss"/>
+    <link type="text/rcss" href="../../styles/editor/main.rcss"/>
+    <link type="text/template" href="../../templates/panel.rml"/>
+</head>
+
+<body>
+    <div class="trx-editor-root">
+        <div class="trx-editor-workbench">
+            <div class="trx-editor-column trx-editor-column--left">
+                <div class="trx-editor-panel-slot trx-editor-panel-slot--viewport">
+                    <template src="panel">
+                        <div class="trx-panel__header">
+                            <div class="trx-panel__title">Viewport</div>
+                        </div>
+                        <div class="trx-panel__body">
+                            <div class="trx-editor-placeholder">HERE IS VIEWPORT</div>
+                        </div>
+                    </template>
+                </div>
+
+                <div class="trx-splitter trx-splitter--horizontal" data-controller="SplitterController"></div>
+
+                <div class="trx-editor-panel-slot trx-editor-panel-slot--content-browser">
+                    <template src="panel">
+                        <div class="trx-panel__header">
+                            <div class="trx-panel__title">Content Browser</div>
+                        </div>
+                        <div class="trx-panel__body">
+                            <div class="trx-editor-placeholder">HERE IS CONTENT</div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <div class="trx-splitter trx-splitter--vertical" data-controller="SplitterController"></div>
+
+            <div class="trx-editor-column trx-editor-column--right">
+                <div class="trx-editor-panel-slot trx-editor-panel-slot--properties">
+                    <template src="panel">
+                        <div class="trx-panel__header">
+                            <div class="trx-panel__title">Properties</div>
+                        </div>
+                        <div class="trx-panel__body">
+                            <div class="trx-editor-placeholder">HERE IS PROPERTIES</div>
+                        </div>
+                    </template>
+                </div>
+
+                <div class="trx-splitter trx-splitter--horizontal" data-controller="SplitterController"></div>
+
+                <div class="trx-editor-panel-slot trx-editor-panel-slot--level-explorer">
+                    <template src="panel">
+                        <div class="trx-panel__header">
+                            <div class="trx-panel__title">Level Explorer</div>
+                        </div>
+                        <div class="trx-panel__body">
+                            <div class="trx-editor-placeholder">HERE IS LEVEL EXPLORER</div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</rml>
