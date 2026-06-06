@@ -1,18 +1,31 @@
 #pragma once
 #include <Core/etl/map.hpp>
 #include <Core/etl/singletone.hpp>
+#include <Core/filesystem/file_watcher.hpp>
 #include <Core/filesystem/filesystem.hpp>
+#include <Core/tickable.hpp>
 
 namespace Trinex::VFS
 {
-	class ENGINE_EXPORT RootFS : public Singletone<RootFS, FileSystem>
+	class ENGINE_EXPORT RootFS : public Singletone<RootFS, FileSystem>, public TickableObject
 	{
 	public:
 		using FileSystems = TreeMap<String, FileSystem*, std::greater<String>>;
 
+		struct WatchSubscription {
+			Identifier id = 0;
+			Path path;
+			FileWatchEventType event_mask = FileWatchEventType::Any;
+			bool recursive                = false;
+			FileWatchCallback callback;
+		};
+
 	private:
 		FileSystems m_file_systems;
 		FileSystem* m_root_native_file_system;
+		FileWatcherBackend* m_file_watcher = nullptr;
+		Vector<WatchSubscription> m_watch_subscriptions;
+		Identifier m_next_watch_id = 1;
 
 		static RootFS* s_instance;
 
@@ -44,6 +57,10 @@ namespace Trinex::VFS
 		Type type() const override;
 		Path native_path(const Path& path) const override;
 		FileSystem* filesystem_of(const Path& path) const;
+		Identifier watch(const Path& path, FileWatchCallback callback, FileWatchEventType event_mask = FileWatchEventType::Any,
+		                 bool recursive = false);
+		RootFS& unwatch(Identifier watch_id);
+		RootFS& update(float dt) override;
 		bool pack_native_folder(const Path& native, const Path& virtual_fs, const StringView& password = {}) const;
 		Vector<String> mount_points() const;
 		const FileSystems& filesystems() const;

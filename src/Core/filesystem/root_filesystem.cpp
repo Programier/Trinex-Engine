@@ -1,6 +1,7 @@
 #include "vfs_log.hpp"
 #include <Core/filesystem/directory_iterator.hpp>
 #include <Core/filesystem/file.hpp>
+#include <Core/filesystem/file_watcher.hpp>
 #include <Core/filesystem/path.hpp>
 #include <Core/filesystem/redirector.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
@@ -116,10 +117,12 @@ namespace Trinex::VFS
 	RootFS::RootFS()
 	{
 		m_root_native_file_system = Platform::create_filesystem("", "");
+		m_file_watcher            = Platform::create_file_watcher();
 	}
 
 	RootFS::~RootFS()
 	{
+		trx_delete_inline(m_file_watcher);
 		trx_delete_inline(m_root_native_file_system);
 
 		for (auto& [mount, fs] : m_file_systems)
@@ -372,6 +375,93 @@ namespace Trinex::VFS
 	FileSystem* RootFS::filesystem_of(const Path& path) const
 	{
 		return find_filesystem(path).first;
+	}
+
+	Identifier RootFS::watch(const Path& path, FileWatchCallback callback, FileWatchEventType event_mask, bool recursive)
+	{
+		if (!callback)
+			return 0;
+
+		if (m_file_watcher == nullptr)
+		{
+			vfs_warning("Platform file watcher is not available for '%s'", path.c_str());
+			return 0;
+		}
+
+		FileSystem* fs = filesystem_of(path);
+		if (fs == nullptr || fs->type() != FileSystem::Native)
+		{
+			vfs_warning("Can't watch non-native path '%s'", path.c_str());
+			return 0;
+		}
+
+		const Identifier watch_id = m_next_watch_id++;
+		const Path native         = native_path(path);
+
+		if (!m_file_watcher->watch(watch_id, path, native, recursive))
+		{
+			return 0;
+		}
+
+		WatchSubscription& watch = m_watch_subscriptions.emplace_back();
+		watch.id                 = watch_id;
+		watch.path               = path;
+		watch.event_mask         = event_mask;
+		watch.recursive          = recursive;
+		watch.callback           = std::move(callback);
+
+		return watch_id;
+	}
+
+	RootFS& RootFS::unwatch(Identifier watch_id)
+	{
+		if (m_file_watcher)
+		{
+			m_file_watcher->unwatch(watch_id);
+		}
+
+		for (auto it = m_watch_subscriptions.begin(); it != m_watch_subscriptions.end(); ++it)
+		{
+			if (it->id == watch_id)
+			{
+				m_watch_subscriptions.erase(it);
+				break;
+			}
+		}
+
+		return *this;
+	}
+
+	RootFS& RootFS::update(float dt)
+	{
+		TickableObject::update(dt);
+
+		if (m_file_watcher == nullptr || m_watch_subscriptions.empty())
+			return *this;
+
+		Vector<FileWatchNotification> events;
+		m_file_watcher->poll(events);
+
+		for (const FileWatchNotification& event : events)
+		{
+			FileWatchCallback callback;
+
+			for (const auto& watch : m_watch_subscriptions)
+			{
+				if (watch.id == event.watch_id && watch.event_mask.all(event.type))
+				{
+					callback = watch.callback;
+					break;
+				}
+			}
+
+			if (callback)
+			{
+				callback(event);
+			}
+		}
+
+		return *this;
 	}
 
 	Vector<String> RootFS::mount_points() const

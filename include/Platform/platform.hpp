@@ -17,6 +17,7 @@ namespace Trinex
 	namespace VFS
 	{
 		class FileSystem;
+		class FileWatcherBackend;
 	}
 
 	namespace Platform
@@ -40,6 +41,7 @@ namespace Trinex
 		}// namespace EventSystem
 
 		ENGINE_EXPORT VFS::FileSystem* create_filesystem(const Path& mount, const Path& path);
+		ENGINE_EXPORT VFS::FileWatcherBackend* create_file_watcher();
 
 		namespace WindowManager
 		{
