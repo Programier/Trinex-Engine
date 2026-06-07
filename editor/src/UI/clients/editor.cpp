@@ -41,6 +41,6 @@ namespace Trinex::UI
 
 	RMLCanvasFrame RMLEditor::render(RML::Element* viewport, const RMLCanvasRenderArgs& args)
 	{
-		return {.texture = DefaultResources::Textures::default_texture->rhi_texture(), .fit = RMLCanvasFit::Stretch};
+		return {.texture = DefaultResources::Textures::default_texture->rhi_texture(), .fit = RMLCanvasFit::Contain};
 	}
 }// namespace Trinex::UI

@@ -4,8 +4,10 @@ import "trinex/math.slang";
 
 struct Args
 {
-	float2 offset;
-	float2 size;
+	float2 src_offset;
+	float2 src_size;
+	float2 dst_offset;
+	float2 dst_size;
 	uint swizzle;
 }
 
@@ -17,8 +19,8 @@ uniform Args args;
 [shader("vertex")]
 float4 vertex_main(in uint index: SV_VertexID, out float2 uv: TEXCOORD0) : SV_Position
 {
-	uv = FullScreenQuad::uv(index, args.offset, args.size);
-	return FullScreenQuad::vertex_from_uv(uv);
+	uv = FullScreenQuad::uv(index, args.src_offset, args.src_size);
+	return FullScreenQuad::vertex(index, args.dst_offset, args.dst_size);
 }
 
 [shader("fragment")]

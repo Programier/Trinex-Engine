@@ -80,8 +80,11 @@ namespace Trinex
 			const RHIShaderParameterInfo* m_args;
 
 		public:
-			static void passthrow(RHIContext* ctx, RHIShaderResourceView* src, Swizzle swizzle = {}, Vector2f offset = {0.f, 0.f},
-			                      Vector2f size = {1.f, 1.f}, RHISampler* sampler = nullptr);
+			static void passthrow(RHIContext* ctx, RHIShaderResourceView* src, Swizzle swizzle = {}, RHIRegion region = {},
+			                      RHISampler* sampler = nullptr);
+
+			static void passthrow(RHIContext* ctx, RHIRegion viewport, RHIShaderResourceView* src, Swizzle swizzle = {},
+			                      RHIRegion region = {}, RHISampler* sampler = nullptr);
 		};
 
 		class ENGINE_EXPORT Downsample : public GlobalGraphicsPipeline

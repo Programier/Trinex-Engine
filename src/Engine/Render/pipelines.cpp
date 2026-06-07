@@ -152,19 +152,28 @@ namespace Trinex::Pipelines
 		m_args  = find_parameter("args");
 	}
 
-	void Passthrow::passthrow(RHIContext* ctx, RHIShaderResourceView* src, Swizzle swizzle, Vector2f offset, Vector2f size,
+	void Passthrow::passthrow(RHIContext* ctx, RHIShaderResourceView* src, Swizzle swizzle, RHIRegion region, RHISampler* sampler)
+	{
+		passthrow(ctx, region, src, swizzle, region, sampler);
+	}
+
+	void Passthrow::passthrow(RHIContext* ctx, RHIRegion viewport, RHIShaderResourceView* src, Swizzle swizzle, RHIRegion region,
 	                          RHISampler* sampler)
 	{
 		struct Args {
-			alignas(8) Vector2f offset;
-			alignas(8) Vector2f size;
+			alignas(8) Vector2f src_offset;
+			alignas(8) Vector2f src_size;
+			alignas(8) Vector2f dst_offset;
+			alignas(8) Vector2f dst_size;
 			alignas(4) Swizzle swizzle;
 		};
 
 		Args args;
-		args.offset  = offset;
-		args.size    = size;
-		args.swizzle = swizzle;
+		args.src_offset = region.pos;
+		args.src_size   = region.size;
+		args.dst_offset = viewport.pos;
+		args.dst_size   = viewport.size;
+		args.swizzle    = swizzle;
 
 		auto self = instance();
 		push_context_state(self, ctx);
