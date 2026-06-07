@@ -315,8 +315,8 @@ namespace Trinex
 		EventSystem& submit_raw_event_batch(const RawInputEventBatch& batch);
 		EventSystem& queue_deferred(const Event& event);
 
-		EventSystem& begin_frame() override;
+		EventSystem& begin_frame(u64 frame) override;
 		EventSystem& update(float dt) override;
-		EventSystem& end_frame() override;
+		EventSystem& end_frame(u64 frame) override;
 	};
 }// namespace Trinex

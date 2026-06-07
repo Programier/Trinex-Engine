@@ -10,13 +10,13 @@ namespace Trinex
 		trinex_registry(Tickable);
 
 	public:
-		static void for_each_begin_frame();
-		static void for_each_update(float dt);
-		static void for_each_end_frame();
+		static void for_each_begin_frame(u64 frame);
+		static void for_each_update(f32 dt);
+		static void for_each_end_frame(u64 frame);
 
-		virtual Tickable& begin_frame();
-		virtual Tickable& update(float dt);
-		virtual Tickable& end_frame();
+		virtual Tickable& begin_frame(u64 frame);
+		virtual Tickable& update(f32 dt);
+		virtual Tickable& end_frame(u64 frame);
 		virtual bool is_tickable() const;
 	};
 
@@ -28,15 +28,26 @@ namespace Trinex
 		Thread* m_thread = nullptr;
 
 	public:
+		class ENGINE_EXPORT CriticalSection final
+		{
+		public:
+			CriticalSection();
+			~CriticalSection();
+
+			trinex_non_copyable(CriticalSection);
+			trinex_non_moveable(CriticalSection);
+		};
+
 		ThreadLocalTickable();
 
-		static void for_each_begin_frame();
-		static void for_each_update(float dt);
-		static void for_each_end_frame();
+		static void for_each_begin_frame(u64 frame);
+		static void for_each_update(f32 dt);
+		static void for_each_end_frame(u64 frame);
+		static inline CriticalSection critical_section() { return {}; }
 
-		virtual ThreadLocalTickable& begin_frame();
-		virtual ThreadLocalTickable& update(float dt);
-		virtual ThreadLocalTickable& end_frame();
+		virtual ThreadLocalTickable& begin_frame(u64 frame);
+		virtual ThreadLocalTickable& update(f32 dt);
+		virtual ThreadLocalTickable& end_frame(u64 frame);
 		virtual bool is_tickable() const;
 
 		inline Thread* thread() const { return m_thread; }

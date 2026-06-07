@@ -1,11 +1,11 @@
 #pragma once
+#include <Core/tickable.hpp>
 
 namespace Trinex
 {
-	class VulkanThreadLocal
+	class VulkanThreadLocal : public ThreadLocalTickable
 	{
 	public:
 		VulkanThreadLocal();
-		virtual ~VulkanThreadLocal();
 	};
 }// namespace Trinex

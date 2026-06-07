@@ -81,7 +81,7 @@ namespace Trinex
 		StackByteAllocator::reset();
 		FrameByteAllocator::reset();
 
-		Tickable::for_each_begin_frame();
+		Tickable::for_each_begin_frame(m_frame_index);
 		Tickable::for_each_update(m_delta_time);
 
 		if (RHI* rhi = RHI::instance())
@@ -101,7 +101,7 @@ namespace Trinex
 			}
 		}
 
-		Tickable::for_each_end_frame();
+		Tickable::for_each_end_frame(m_frame_index);
 		return 0;
 	}
 

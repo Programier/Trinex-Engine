@@ -185,9 +185,9 @@ namespace Trinex
 		InputSystem() = default;
 
 	public:
-		InputSystem& begin_frame() override;
+		InputSystem& begin_frame(u64 frame) override;
 		InputSystem& update(float dt) override;
-		InputSystem& end_frame() override;
+		InputSystem& end_frame(u64 frame) override;
 		InputSystem& register_device(const InputDevice& device);
 		InputSystem& unregister_device(DeviceId device_id);
 		InputSystem& submit_raw_event(const RawInputEvent& event);

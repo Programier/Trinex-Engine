@@ -203,7 +203,7 @@ namespace Trinex
 		return state;
 	}
 
-	InputSystem& InputSystem::begin_frame()
+	InputSystem& InputSystem::begin_frame(u64)
 	{
 		for (auto& [device_id, state] : m_device_states)
 		{
@@ -227,7 +227,7 @@ namespace Trinex
 		return *this;
 	}
 
-	InputSystem& InputSystem::end_frame()
+	InputSystem& InputSystem::end_frame(u64)
 	{
 		return *this;
 	}

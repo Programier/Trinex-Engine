@@ -7,10 +7,7 @@ namespace Trinex
 {
 	VulkanThreadLocal::VulkanThreadLocal()
 	{
-		static CriticalSection s_section;
-		ScopeLock lock(s_section);
+		[[maybe_unused]] auto lock = critical_section();
 		VulkanAPI::instance()->m_thread_locals.push_back(this);
 	}
-
-	VulkanThreadLocal::~VulkanThreadLocal() {}
 }// namespace Trinex

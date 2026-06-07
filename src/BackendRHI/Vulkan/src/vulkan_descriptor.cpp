@@ -403,6 +403,8 @@ namespace Trinex
 		{
 			new (m_caches + i) FrameCache();
 		}
+
+		m_current_cache = &m_caches[0];
 	}
 
 	VulkanDescriptorSetAllocator::~VulkanDescriptorSetAllocator()
@@ -415,18 +417,12 @@ namespace Trinex
 		Allocator<FrameCache>::deallocate(m_caches, s_cache_lifetime);
 	}
 
-	void VulkanDescriptorSetAllocator::begin_frame()
+	VulkanDescriptorSetAllocator& VulkanDescriptorSetAllocator::begin_frame(u64 frame)
 	{
-		const u64 current_frame = VulkanAPI::instance()->frame();
-
-		if (m_frame == current_frame)
-			return;
-
-		m_frame         = current_frame;
-		m_current_cache = &m_caches[current_frame % s_cache_lifetime];
+		m_current_cache = &m_caches[frame % s_cache_lifetime];
 		m_current_cache->reset();
+		return *this;
 	}
-
 
 	vk::DescriptorSet VulkanDescriptorSetAllocator::allocate(VulkanPipelineLayout* layout, FrameCache& cache)
 	{
@@ -455,8 +451,6 @@ namespace Trinex
 
 	vk::DescriptorSet VulkanDescriptorSetAllocator::allocate(VulkanPipelineLayout* layout, VulkanContext* context)
 	{
-		begin_frame();
-
 		const usize count      = layout->descriptors_count();
 		const auto* descritors = layout->descriptors();
 		StackByteAllocator::Mark mark;

@@ -694,7 +694,7 @@ namespace Trinex
 		return *this;
 	}
 
-	EventSystem& EventSystem::begin_frame()
+	EventSystem& EventSystem::begin_frame(u64)
 	{
 		// TODO(Migration): Move queued deferred messages into a deterministic gameplay tick buffer.
 		m_event_queue.clear();
@@ -707,7 +707,7 @@ namespace Trinex
 		return *this;
 	}
 
-	EventSystem& EventSystem::end_frame()
+	EventSystem& EventSystem::end_frame(u64)
 	{
 		return *this;
 	}

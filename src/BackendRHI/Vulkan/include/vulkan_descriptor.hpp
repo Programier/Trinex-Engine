@@ -116,9 +116,8 @@ namespace Trinex
 
 		FrameCache* m_caches        = nullptr;
 		FrameCache* m_current_cache = nullptr;
-		u64 m_frame                 = ~0ull;
 
-		void begin_frame();
+		VulkanDescriptorSetAllocator& begin_frame(u64 frame) override;
 		vk::DescriptorSet allocate(VulkanPipelineLayout* layout, FrameCache& cache);
 
 	public:

@@ -12,6 +12,8 @@ namespace Trinex
 	protected:
 		Registry()
 		{
+			[[maybe_unused]] auto lock = RegistryInstance::critical_section();
+
 			RegistryInstance* self = static_cast<RegistryInstance*>(this);
 
 			if (RegistryInstance::s_last)
@@ -27,15 +29,21 @@ namespace Trinex
 		}
 
 	public:
+		struct DummyCriticalSection {
+		};
+
 		trinex_non_copyable(Registry);
 		trinex_non_moveable(Registry);
 
 		static inline RegistryInstance* static_first() { return RegistryInstance::s_first; }
 		static inline RegistryInstance* static_last() { return RegistryInstance::s_last; }
+		static inline DummyCriticalSection critical_section() { return {}; }
 
 		template<typename Func, typename... Args>
 		static void for_each(Func&& func, Args... args)
 		{
+			[[maybe_unused]] auto lock = RegistryInstance::critical_section();
+
 			RegistryInstance* head = static_first();
 
 			while (head)
@@ -48,6 +56,8 @@ namespace Trinex
 		template<typename Ret, typename... Args>
 		static void for_each_invoke(Ret (RegistryInstance::*method)(Args...), Args... args)
 		{
+			[[maybe_unused]] auto lock = RegistryInstance::critical_section();
+
 			RegistryInstance* head = static_first();
 
 			while (head)
@@ -60,6 +70,8 @@ namespace Trinex
 		template<typename Ret, typename... Args>
 		static void for_each_invoke(Ret (RegistryInstance::*method)(Args...) const, Args... args)
 		{
+			[[maybe_unused]] auto lock = RegistryInstance::critical_section();
+
 			RegistryInstance* head = static_first();
 
 			while (head)
@@ -74,6 +86,8 @@ namespace Trinex
 
 		virtual ~Registry()
 		{
+			[[maybe_unused]] auto lock = RegistryInstance::critical_section();
+
 			if (m_prev)
 			{
 				m_prev->m_next = m_next;

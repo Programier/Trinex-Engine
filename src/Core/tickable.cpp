@@ -1,56 +1,67 @@
+#include <Core/etl/critical_section.hpp>
 #include <Core/threading.hpp>
 #include <Core/tickable.hpp>
 
 namespace Trinex
 {
+	namespace
+	{
+		template<typename Callback>
+		void for_each_thread_local_tickable(Callback&& callback)
+		{
+			Thread* self = Thread::static_self();
+
+			ThreadLocalTickable::for_each([&](ThreadLocalTickable* current) {
+				if (!current->is_tickable())
+					return;
+
+				Thread* target_thread = current->thread();
+
+				if (target_thread == nullptr || target_thread == self)
+				{
+					callback(current);
+				}
+				else
+				{
+					target_thread->add_task(Task(Task::High, [current, callback]() mutable { callback(current); }));
+				}
+			});
+		}
+	}// namespace
+
 	trinex_implement_registry(Tickable);
 
-	void Tickable::for_each_begin_frame()
+	void Tickable::for_each_begin_frame(u64 frame)
 	{
-		Tickable* head = static_first();
-
-		while (head)
-		{
+		Tickable::for_each([frame](Tickable* head) {
 			if (head->is_tickable())
 			{
-				head->begin_frame();
+				head->begin_frame(frame);
 			}
-
-			head = head->next();
-		}
+		});
 	}
 
-	void Tickable::for_each_update(float dt)
+	void Tickable::for_each_update(f32 dt)
 	{
-		Tickable* head = static_first();
-
-		while (head)
-		{
+		Tickable::for_each([dt](Tickable* head) {
 			if (head->is_tickable())
 			{
 				head->update(dt);
 			}
-
-			head = head->next();
-		}
+		});
 	}
 
-	void Tickable::for_each_end_frame()
+	void Tickable::for_each_end_frame(u64 frame)
 	{
-		Tickable* head = static_first();
-
-		while (head)
-		{
+		Tickable::for_each([frame](Tickable* head) {
 			if (head->is_tickable())
 			{
-				head->end_frame();
+				head->end_frame(frame);
 			}
-
-			head = head->next();
-		}
+		});
 	}
 
-	Tickable& Tickable::begin_frame()
+	Tickable& Tickable::begin_frame(u64 frame)
 	{
 		return *this;
 	}
@@ -60,7 +71,7 @@ namespace Trinex
 		return *this;
 	}
 
-	Tickable& Tickable::end_frame()
+	Tickable& Tickable::end_frame(u64 frame)
 	{
 		return *this;
 	}
@@ -72,18 +83,40 @@ namespace Trinex
 
 	trinex_implement_registry(ThreadLocalTickable);
 
-	ThreadLocalTickable::ThreadLocalTickable() : m_thread(Thread::static_self()) {}
-
-	void ThreadLocalTickable::for_each_begin_frame()
+	static CriticalSectionRecursive* thread_local_critical_section()
 	{
-		ThreadLocalTickable* head = static_first();
+		static CriticalSectionRecursive section;
+		return &section;
 	}
 
-	void ThreadLocalTickable::for_each_update(float dt) {}
+	ThreadLocalTickable::CriticalSection::CriticalSection()
+	{
+		thread_local_critical_section()->lock();
+	}
 
-	void ThreadLocalTickable::for_each_end_frame() {}
+	ThreadLocalTickable::CriticalSection::~CriticalSection()
+	{
+		thread_local_critical_section()->unlock();
+	}
 
-	ThreadLocalTickable& ThreadLocalTickable::begin_frame()
+	ThreadLocalTickable::ThreadLocalTickable() : m_thread(Thread::static_self()) {}
+
+	void ThreadLocalTickable::for_each_begin_frame(u64 frame)
+	{
+		for_each_thread_local_tickable([frame](ThreadLocalTickable* tickable) { tickable->begin_frame(frame); });
+	}
+
+	void ThreadLocalTickable::for_each_update(float dt)
+	{
+		for_each_thread_local_tickable([dt](ThreadLocalTickable* tickable) { tickable->update(dt); });
+	}
+
+	void ThreadLocalTickable::for_each_end_frame(u64 frame)
+	{
+		for_each_thread_local_tickable([frame](ThreadLocalTickable* tickable) { tickable->end_frame(frame); });
+	}
+
+	ThreadLocalTickable& ThreadLocalTickable::begin_frame(u64 frame)
 	{
 		return *this;
 	}
@@ -93,7 +126,7 @@ namespace Trinex
 		return *this;
 	}
 
-	ThreadLocalTickable& ThreadLocalTickable::end_frame()
+	ThreadLocalTickable& ThreadLocalTickable::end_frame(u64 frame)
 	{
 		return *this;
 	}
@@ -107,9 +140,9 @@ namespace Trinex
 	static class : public Tickable
 	{
 	public:
-		Tickable& begin_frame() override
+		Tickable& begin_frame(u64 frame) override
 		{
-			ThreadLocalTickable::for_each_begin_frame();
+			ThreadLocalTickable::for_each_begin_frame(frame);
 			return *this;
 		}
 
@@ -119,9 +152,9 @@ namespace Trinex
 			return *this;
 		}
 
-		Tickable& end_frame() override
+		Tickable& end_frame(u64 frame) override
 		{
-			ThreadLocalTickable::for_each_end_frame();
+			ThreadLocalTickable::for_each_end_frame(frame);
 			return *this;
 		}
 	} s_tickable;
