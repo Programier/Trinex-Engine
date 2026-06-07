@@ -135,6 +135,7 @@ namespace Trinex
 		inline VulkanQueryPoolManager* query_pool_manager() const { return m_query_pool_manager; }
 		inline VulkanStaggingBufferManager* stagging_manager() const { return m_stagging_manager; };
 		inline VulkanPipelineLayoutManager* pipeline_layout_manager() const { return m_pipeline_layout_manager; }
+		inline u64 frame() const { return m_frame.load(etl::memory_order_relaxed); }
 		inline const vk::PhysicalDeviceRayTracingPipelinePropertiesKHR& ray_trace_properties() const
 		{
 			return m_ray_trace_properties;

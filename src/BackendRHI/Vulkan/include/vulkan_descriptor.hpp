@@ -39,9 +39,9 @@ namespace Trinex
 	private:
 		vk::DescriptorSetLayout m_set_layout;
 		vk::PipelineLayout m_layout;
-		Descriptor* m_descriptors     = nullptr;
-		u64 m_hash               = 0;
-		u16 m_descriptors_count  = 0;
+		Descriptor* m_descriptors   = nullptr;
+		u64 m_hash                  = 0;
+		u16 m_descriptors_count     = 0;
 		u8 m_textures               = 0;
 		u8 m_samplers               = 0;
 		u8 m_combined_image_sampler = 0;
@@ -109,14 +109,17 @@ namespace Trinex
 	public:
 		struct VulkanDescriptorPool;
 		struct Binding;
+		struct FrameCache;
 
 	private:
-		VulkanDescriptorPool* m_pool      = nullptr;
-		VulkanDescriptorPool** m_push_ptr = nullptr;
+		static constexpr u64 s_cache_lifetime = 6;
 
-		Map<u64, vk::DescriptorSet> m_table;
+		FrameCache* m_caches        = nullptr;
+		FrameCache* m_current_cache = nullptr;
+		u64 m_frame                 = ~0ull;
 
-		vk::DescriptorSet allocate(VulkanPipelineLayout* layout);
+		void begin_frame();
+		vk::DescriptorSet allocate(VulkanPipelineLayout* layout, FrameCache& cache);
 
 	public:
 		VulkanDescriptorSetAllocator();

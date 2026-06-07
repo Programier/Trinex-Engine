@@ -434,7 +434,7 @@ namespace Trinex::VFS
 
 	RootFS& RootFS::update(float dt)
 	{
-		TickableObject::update(dt);
+		Tickable::update(dt);
 
 		if (m_file_watcher == nullptr || m_watch_subscriptions.empty())
 			return *this;

@@ -164,13 +164,13 @@ namespace Trinex
 		const Vector<InputCommand>& commands() const;
 	};
 
-	class ENGINE_EXPORT InputSystem : public Singletone<InputSystem, TickableObject>
+	class ENGINE_EXPORT InputSystem : public Singletone<InputSystem, Tickable>
 	{
 	public:
 		static InputSystem* s_instance;
 
 	private:
-		friend class Singletone<InputSystem, TickableObject>;
+		friend class Singletone<InputSystem, Tickable>;
 
 		Map<DeviceId, InputDevice> m_devices;
 		Map<DeviceId, InputDeviceState> m_device_states;

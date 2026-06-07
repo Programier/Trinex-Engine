@@ -322,8 +322,8 @@ namespace Trinex
 
 			inline void write_sampled_image(vk::WriteDescriptorSet* write)
 			{
-				const VulkanTextureSRV* srv = as<VulkanTextureSRV*>();
-				write->pImageInfo           = trx_stack_new vk::DescriptorImageInfo({}, srv->view(), eShaderReadOnlyOptimal);
+				vk::ImageView srv = as<vk::ImageView>();
+				write->pImageInfo = trx_stack_new vk::DescriptorImageInfo({}, srv, eShaderReadOnlyOptimal);
 			}
 
 			inline void write_sampler(vk::WriteDescriptorSet* write)
@@ -368,27 +368,74 @@ namespace Trinex
 		Descriptor descriptor;
 	};
 
+	struct VulkanDescriptorSetAllocator::FrameCache {
+		VulkanDescriptorPool* pool = nullptr;
+		Map<u64, vk::DescriptorSet> table;
+
+		~FrameCache()
+		{
+			VulkanDescriptorPool* current = nullptr;
+
+			while (pool)
+			{
+				current = pool;
+				pool    = pool->next;
+				trx_delete current;
+			}
+		}
+
+		void reset()
+		{
+			table.clear();
+
+			for (VulkanDescriptorPool* current = pool; current; current = current->next)
+			{
+				current->reset();
+			}
+		}
+	};
+
 	VulkanDescriptorSetAllocator::VulkanDescriptorSetAllocator()
 	{
-		m_pool     = trx_new VulkanDescriptorPool();
-		m_push_ptr = &m_pool->next;
+		m_caches = Allocator<FrameCache>::allocate(s_cache_lifetime);
+
+		for (u64 i = 0; i < s_cache_lifetime; ++i)
+		{
+			new (m_caches + i) FrameCache();
+		}
 	}
 
 	VulkanDescriptorSetAllocator::~VulkanDescriptorSetAllocator()
 	{
-		VulkanDescriptorPool* current = nullptr;
-
-		while (m_pool)
+		for (u64 i = 0; i < s_cache_lifetime; ++i)
 		{
-			current = m_pool;
-			m_pool  = m_pool->next;
-			trx_delete current;
+			m_caches[i].~FrameCache();
 		}
+
+		Allocator<FrameCache>::deallocate(m_caches, s_cache_lifetime);
 	}
 
-	vk::DescriptorSet VulkanDescriptorSetAllocator::allocate(VulkanPipelineLayout* layout)
+	void VulkanDescriptorSetAllocator::begin_frame()
 	{
-		VulkanDescriptorPool* pool = m_pool;
+		const u64 current_frame = VulkanAPI::instance()->frame();
+
+		if (m_frame == current_frame)
+			return;
+
+		m_frame         = current_frame;
+		m_current_cache = &m_caches[current_frame % s_cache_lifetime];
+		m_current_cache->reset();
+	}
+
+
+	vk::DescriptorSet VulkanDescriptorSetAllocator::allocate(VulkanPipelineLayout* layout, FrameCache& cache)
+	{
+		if (cache.pool == nullptr)
+		{
+			cache.pool = trx_new VulkanDescriptorPool();
+		}
+
+		VulkanDescriptorPool* pool = cache.pool;
 		vk::DescriptorSet set      = pool->allocate(layout);
 
 		while (!set && pool->next)
@@ -408,6 +455,8 @@ namespace Trinex
 
 	vk::DescriptorSet VulkanDescriptorSetAllocator::allocate(VulkanPipelineLayout* layout, VulkanContext* context)
 	{
+		begin_frame();
+
 		const usize count      = layout->descriptors_count();
 		const auto* descritors = layout->descriptors();
 		StackByteAllocator::Mark mark;
@@ -453,12 +502,12 @@ namespace Trinex
 		}
 
 		u64 hash               = memory_hash(bindings, count * sizeof(Binding), reinterpret_cast<u64>(layout));
-		vk::DescriptorSet& set = m_table[hash];
+		vk::DescriptorSet& set = m_current_cache->table[hash];
 
 		if (set)
 			return set;
 
-		set = allocate(layout);
+		set = allocate(layout, *m_current_cache);
 
 		vk::WriteDescriptorSet* writes = StackAllocator<vk::WriteDescriptorSet>::allocate(count);
 

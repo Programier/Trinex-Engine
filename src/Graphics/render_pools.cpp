@@ -703,9 +703,9 @@ namespace Trinex
 		return release(context);
 	}
 
-	static class : public TickableObject
+	static class : public Tickable
 	{
-		TickableObject& update(float) override
+		Tickable& update(float) override
 		{
 			RenderSurfacePool::global_instance()->update();
 			RHITexturePool::global_instance()->update();

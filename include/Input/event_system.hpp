@@ -290,13 +290,13 @@ namespace Trinex
 		EventDispatchResult dispatch_to_target(RoutedEvent& event, EventTarget* target);
 	};
 
-	class ENGINE_EXPORT EventSystem : public Singletone<EventSystem, TickableObject>
+	class ENGINE_EXPORT EventSystem : public Singletone<EventSystem, Tickable>
 	{
 	public:
 		static EventSystem* s_instance;
 
 	private:
-		friend class Singletone<EventSystem, TickableObject>;
+		friend class Singletone<EventSystem, Tickable>;
 
 		EventSequence m_next_sequence = 1;
 		EventQueue m_event_queue;

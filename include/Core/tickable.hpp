@@ -3,62 +3,42 @@
 
 namespace Trinex
 {
-	class ENGINE_EXPORT TickableObject : public Registry<TickableObject>
+	class Thread;
+
+	class ENGINE_EXPORT Tickable : public Registry<Tickable>
 	{
-		trinex_registry(TickableObject);
+		trinex_registry(Tickable);
 
 	public:
-		virtual TickableObject& begin_frame();
-		virtual TickableObject& update(float dt);
-		virtual TickableObject& end_frame();
+		static void for_each_begin_frame();
+		static void for_each_update(float dt);
+		static void for_each_end_frame();
+
+		virtual Tickable& begin_frame();
+		virtual Tickable& update(float dt);
+		virtual Tickable& end_frame();
+		virtual bool is_tickable() const;
+	};
+
+	class ENGINE_EXPORT ThreadLocalTickable : public Registry<ThreadLocalTickable>
+	{
+		trinex_registry(ThreadLocalTickable);
+
+	private:
+		Thread* m_thread = nullptr;
+
+	public:
+		ThreadLocalTickable();
+
+		static void for_each_begin_frame();
+		static void for_each_update(float dt);
+		static void for_each_end_frame();
+
+		virtual ThreadLocalTickable& begin_frame();
+		virtual ThreadLocalTickable& update(float dt);
+		virtual ThreadLocalTickable& end_frame();
 		virtual bool is_tickable() const;
 
-		template<typename Func, typename... Args>
-		static void for_each(Func&& func, Args... args)
-		{
-			TickableObject* head = static_first();
-
-			while (head)
-			{
-				if (head->is_tickable())
-				{
-					func(head, args...);
-				}
-
-				head = head->next();
-			}
-		}
-
-		template<typename Ret, typename... Args>
-		static void for_each_invoke(Ret (TickableObject::*method)(Args...), Args... args)
-		{
-			TickableObject* head = static_first();
-
-			while (head)
-			{
-				if (head->is_tickable())
-				{
-					(head->*method)(args...);
-				}
-
-				head = head->next();
-			}
-		}
-
-		template<typename Ret, typename... Args>
-		static void for_each_invoke(Ret (TickableObject::*method)(Args...) const, Args... args)
-		{
-			TickableObject* head = static_first();
-
-			while (head)
-			{
-				if (head->is_tickable())
-				{
-					(head->*method)(args...);
-				}
-
-				head = head->next();
-			}
-		}
+		inline Thread* thread() const { return m_thread; }
 	};
 }// namespace Trinex

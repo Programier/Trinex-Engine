@@ -43,6 +43,7 @@ namespace Trinex
 
 	VulkanTextureUAV::~VulkanTextureUAV()
 	{
+		VulkanAPI::instance()->descriptor_heap()->release(m_descriptor, VulkanDescriptorHeap::StorageImage);
 		VulkanAPI::instance()->m_device.destroyImageView(m_view);
 	}
 
