@@ -7,7 +7,7 @@
 
 namespace Trinex::VFS
 {
-	class ENGINE_EXPORT RootFS : public Singletone<RootFS, FileSystem>, public TickableObject
+	class ENGINE_EXPORT RootFS : public Singletone<RootFS, FileSystem>, public Tickable
 	{
 	public:
 		using FileSystems = TreeMap<String, FileSystem*, std::greater<String>>;
@@ -58,7 +58,7 @@ namespace Trinex::VFS
 		Path native_path(const Path& path) const override;
 		FileSystem* filesystem_of(const Path& path) const;
 		Identifier watch(const Path& path, FileWatchCallback callback, FileWatchEventType event_mask = FileWatchEventType::Any,
-		                 bool recursive = false);
+		                 bool recursive = true);
 		RootFS& unwatch(Identifier watch_id);
 		RootFS& update(float dt) override;
 		bool pack_native_folder(const Path& native, const Path& virtual_fs, const StringView& password = {}) const;
