@@ -547,9 +547,8 @@ namespace Trinex::UI
 				if (texture == nullptr || size.x <= 0.f || size.y <= 0.f)
 					return;
 
-				BeginRendering();
 				m_context->barrier(texture, RHIAccess::SRVGraphics);
-
+				BeginRendering();
 				const Vector2f texel = 1.f / Vector2f(m_size);
 				Pipelines::Passthrow::passthrow(m_context, RHIRegion(size * texel, position * texel), texture->as_srv());
 				m_flags.set(Flags::IsDepthStencilDirty | Flags::IsBlendingDirty);

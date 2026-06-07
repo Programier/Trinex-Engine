@@ -75,6 +75,7 @@ namespace Trinex::UI
 		        .size     = {size.x, size.y},
 		};
 
+		RMLEngine::end_rendering();
 		RMLCanvasFrame frame = controller->render(this, args);
 
 		if (frame.texture == nullptr)
