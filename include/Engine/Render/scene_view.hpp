@@ -15,8 +15,8 @@ namespace Trinex
 		CameraView m_camera_view;
 		CameraView m_prev_camera_view;
 		Vector2u m_view_size;
-		RHIViewport m_viewport;
-		RHIScissor m_scissor;
+		RHIRegion m_viewport;
+		RHIRegion m_scissor;
 		ShowFlags m_show_flags;
 		RenderScene* m_scene;
 		SceneViewState* m_state = nullptr;
@@ -37,14 +37,14 @@ namespace Trinex
 		inline SceneView& camera_view(const CameraView& view) { trinex_this_return(m_camera_view = view); }
 		inline SceneView& prev_camera_view(const CameraView& view) { trinex_this_return(m_prev_camera_view = view); }
 		inline SceneView& view_size(Vector2u size) { trinex_this_return(m_view_size = size;); }
-		inline SceneView& viewport(const RHIViewport& viewport) { trinex_this_return(m_viewport = viewport;); }
-		inline SceneView& scissor(const RHIScissor& scissor) { trinex_this_return(m_scissor = scissor;); }
+		inline SceneView& viewport(const RHIRegion& viewport) { trinex_this_return(m_viewport = viewport;); }
+		inline SceneView& scissor(const RHIRegion& scissor) { trinex_this_return(m_scissor = scissor;); }
 		inline SceneView& show_flags(ShowFlags flags) { trinex_this_return(m_show_flags = flags;); }
 		inline SceneView& scene(RenderScene* scene) { trinex_this_return(m_scene = scene;); }
 		inline SceneView& state(SceneViewState* state) { trinex_this_return(m_state = state;); }
 
-		inline const RHIViewport& viewport() const { return m_viewport; }
-		inline const RHIScissor& scissor() const { return m_scissor; }
+		inline const RHIRegion& viewport() const { return m_viewport; }
+		inline const RHIRegion& scissor() const { return m_scissor; }
 		inline const CameraView& camera_view() const { return m_camera_view; }
 		inline const CameraView& prev_camera_view() const { return m_prev_camera_view; }
 		inline const Vector2u& view_size() const { return m_view_size; }

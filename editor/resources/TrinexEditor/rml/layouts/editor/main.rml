@@ -18,7 +18,9 @@
                             <div class="trx-panel__title">Viewport</div>
                         </div>
                         <div class="trx-panel__body">
-                            <div class="trx-editor-placeholder">HERE IS VIEWPORT</div>
+                            <canvas data-controller="EditorViewportController" style="display: block; width: 100%; height: 100%;">
+                                
+                            </canvas>
                         </div>
                     </template>
                 </div>

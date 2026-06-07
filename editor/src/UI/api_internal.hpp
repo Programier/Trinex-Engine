@@ -482,8 +482,8 @@ namespace Trinex::UI
 				ViewportArgs* args = reinterpret_cast<ViewportArgs*>(cmd->UserCallbackData);
 
 				auto ctx = Trinex::UI::Backend::rhi();
-				ctx->viewport(Trinex::RHIViewport(args->size, args->pos));
-				ctx->scissor(Trinex::RHIScissor(args->size, args->pos));
+				ctx->viewport(Trinex::RHIRegion(args->size, args->pos));
+				ctx->scissor(Trinex::RHIRegion(args->size, args->pos));
 			};
 
 			list->AddCallback(viewport_setup, &viewport_args, sizeof(viewport_args));

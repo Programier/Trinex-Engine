@@ -1,5 +1,5 @@
 #pragma once
-#include <UI/rml.hpp>
+#include <UI/controllers/canvas.hpp>
 
 namespace Trinex::UI
 {
@@ -14,5 +14,6 @@ namespace Trinex::UI
 		RMLEditor& attach(class RenderViewport* viewport) override;
 		RMLEditor& deattach(class RenderViewport* viewport) override;
 		RMLEditor& update(class RenderViewport* viewport, float dt) override;
+		RMLCanvasFrame render(RML::Element* viewport, const RMLCanvasRenderArgs& args);
 	};
 }// namespace Trinex::UI

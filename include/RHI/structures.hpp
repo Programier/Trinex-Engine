@@ -24,23 +24,13 @@ namespace Trinex
 		FORCE_INLINE bool operator!=(const RHIRect& v) const { return !((*this) == v); }
 	};
 
-	struct RHIScissor {
+	struct RHIRegion {
 		Vector2f size;
 		Vector2f pos;
 
-		FORCE_INLINE RHIScissor(Vector2f size = {1.f, 1.f}, Vector2f pos = {0.f, 0.f}) : size(size), pos(pos) {}
-		FORCE_INLINE bool operator==(const RHIScissor& v) const { return pos == v.pos && size == v.size; }
-		FORCE_INLINE bool operator!=(const RHIScissor& v) const { return !((*this) == v); }
-	};
-
-	struct RHIViewport {
-		Vector2f size;
-		Vector2f pos;
-
-		FORCE_INLINE RHIViewport(Vector2f size = {1.f, 1.f}, Vector2f pos = {0.f, 0.f}) : size(size), pos(pos) {}
-
-		FORCE_INLINE bool operator==(const RHIViewport& v) const { return pos == v.pos && size == v.size; }
-		FORCE_INLINE bool operator!=(const RHIViewport& v) const { return !((*this) == v); }
+		FORCE_INLINE RHIRegion(Vector2f size = {1.f, 1.f}, Vector2f pos = {0.f, 0.f}) : size(size), pos(pos) {}
+		FORCE_INLINE bool operator==(const RHIRegion& v) const { return pos == v.pos && size == v.size; }
+		FORCE_INLINE bool operator!=(const RHIRegion& v) const { return !((*this) == v); }
 	};
 
 	struct ENGINE_EXPORT RHIRange {

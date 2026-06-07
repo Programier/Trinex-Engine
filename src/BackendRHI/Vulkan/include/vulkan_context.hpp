@@ -244,8 +244,8 @@ namespace Trinex
 		u32 m_dirty_flags;
 
 		Framebuffer m_framebuffer;
-		RHIViewport m_viewport;
-		RHIScissor m_scissor;
+		RHIRegion m_viewport;
+		RHIRegion m_scissor;
 		RHITopology m_topology;
 
 		struct {
@@ -338,8 +338,8 @@ namespace Trinex
 
 		VulkanContext& execute(RHICommandHandle* handle) override;
 
-		VulkanContext& viewport(const RHIViewport& viewport) override;
-		VulkanContext& scissor(const RHIScissor& scissor) override;
+		VulkanContext& viewport(const RHIRegion& viewport) override;
+		VulkanContext& scissor(const RHIRegion& scissor) override;
 
 		VulkanContext& draw(RHITopology topology, usize vertex_count, usize vertices_offset, usize instances,
 		                    usize first_instance) override;

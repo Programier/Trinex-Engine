@@ -56,8 +56,8 @@ namespace Trinex
 		virtual RHIContext& trace_rays(u32 width, u32 height, u32 depth, u64 raygen = 0, const RHIRange& miss = {},
 		                               const RHIRange& hit = {}, const RHIRange& callable = {}) = 0;
 
-		virtual RHIContext& viewport(const RHIViewport& viewport) = 0;
-		virtual RHIContext& scissor(const RHIScissor& scissor)    = 0;
+		virtual RHIContext& viewport(const RHIRegion& viewport) = 0;
+		virtual RHIContext& scissor(const RHIRegion& scissor)   = 0;
 
 		virtual RHIContext& update_scalar(const void* data, usize size, usize offset, u8 buffer_index) = 0;
 		virtual RHIContext& push_debug_stage(const char* stage)                                        = 0;

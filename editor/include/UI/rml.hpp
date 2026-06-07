@@ -13,8 +13,26 @@ namespace Rml
 
 namespace RML = Rml;
 
+namespace Trinex
+{
+	class RHITexture;
+	class RHIContext;
+}// namespace Trinex
+
 namespace Trinex::UI
 {
+	class RMLEngine
+	{
+	public:
+		static void begin_rendering();
+		static bool is_rendering();
+		static Vector2u render_size();
+		static RHITexture* render_target();
+		static RHIContext* render_context();
+		static void render_texture(RHITexture* texture, const Vector2f& position, const Vector2f& size);
+		static void end_rendering();
+	};
+
 	class RMLClient : public ViewportClient
 	{
 		trinex_class(RMLClient, ViewportClient);
@@ -40,6 +58,13 @@ namespace Trinex::UI
 
 		inline RML::Context* context() const { return m_context; }
 		inline RenderViewport* viewport() const { return m_viewport; }
+		inline RMLController* controller(RML::Element* element) const
+		{
+			auto it = m_controllers.find(element);
+			return it != m_controllers.end() ? it->second : nullptr;
+		}
+
+		static RMLClient* from(RML::Element* element);
 	};
 
 	class RMLController : public Object

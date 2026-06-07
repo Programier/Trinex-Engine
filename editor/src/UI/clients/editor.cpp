@@ -1,5 +1,7 @@
+#include <Core/default_resources.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/reflection/class.hpp>
+#include <Graphics/texture.hpp>
 #include <RmlUi/Core.h>
 #include <UI/clients/editor.hpp>
 
@@ -37,4 +39,8 @@ namespace Trinex::UI
 		return *this;
 	}
 
+	RMLCanvasFrame RMLEditor::render(RML::Element* viewport, const RMLCanvasRenderArgs& args)
+	{
+		return {.texture = DefaultResources::Textures::default_texture->rhi_texture(), .fit = RMLCanvasFit::Stretch};
+	}
 }// namespace Trinex::UI

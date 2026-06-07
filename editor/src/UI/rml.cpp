@@ -10,6 +10,7 @@
 #include <Core/profiler.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
+#include <Engine/Render/pipelines.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/render_viewport.hpp>
@@ -29,31 +30,10 @@ namespace Trinex::UI
 {
 	namespace
 	{
-		static Map<RML::Context*, RMLClient*>& context_clients()
-		{
-			static Map<RML::Context*, RMLClient*> clients;
-			return clients;
-		}
-
 		static bool& rml_debugger_initialized()
 		{
 			static bool initialized = false;
 			return initialized;
-		}
-
-		static RMLClient* client_from_document(RML::ElementDocument* document)
-		{
-			if (document == nullptr)
-				return nullptr;
-
-			RML::Context* context = document->GetContext();
-
-			if (context == nullptr)
-				return nullptr;
-
-			auto& clients = context_clients();
-			auto found    = clients.find(context);
-			return found != clients.end() ? found->second : nullptr;
 		}
 
 		static void collect_controllers(Map<RML::Element*, RMLController*>& controllers, RML::Element* element, RMLClient* owner)
@@ -439,7 +419,7 @@ namespace Trinex::UI
 
 			RHIDepthStencilState m_depth_stencil;
 			RHIBlendingState m_blending;
-			RHIScissor m_scissor;
+			RHIRegion m_scissor;
 
 			Vector2u m_size;
 			Matrix4f m_projection = Matrix4f(1.f);
@@ -489,7 +469,7 @@ namespace Trinex::UI
 				// Setup state
 				m_blending      = RHIBlendingState::alpha_composite();
 				m_depth_stencil = RHIDepthStencilState();
-				m_scissor       = RHIScissor();
+				m_scissor       = RHIRegion();
 
 				m_context->push_debug_stage("RML Scene");
 
@@ -555,6 +535,23 @@ namespace Trinex::UI
 					m_context->end_rendering();
 					m_flags.remove(Flags::IsInRendering);
 				}
+			}
+
+			inline bool IsRendering() const { return m_flags.all(Flags::IsInRendering); }
+			inline Vector2u GetRenderSize() const { return m_size; }
+			inline RHITexture* GetRenderTarget() const { return m_layer < m_layers.size() ? m_layers[m_layer] : nullptr; }
+			inline RHIContext* GetContext() const { return m_context; }
+
+			void RenderTexture(RHITexture* texture, const Vector2f& position, const Vector2f& size)
+			{
+				if (texture == nullptr || size.x <= 0.f || size.y <= 0.f)
+					return;
+
+				BeginRendering();
+				m_context->barrier(texture, RHIAccess::SRVGraphics);
+				Pipelines::Passthrow::passthrow(m_context, texture->as_srv(), {}, position / Vector2f(m_size),
+				                                size / Vector2f(m_size));
+				m_flags.set(Flags::IsDepthStencilDirty | Flags::IsBlendingDirty);
 			}
 
 			RML::CompiledGeometryHandle CompileGeometry(RML::Span<const RML::Vertex> vertices,
@@ -676,8 +673,8 @@ namespace Trinex::UI
 			{
 				if (!enable)
 				{
-					m_context->scissor(RHIScissor());
-					m_scissor = RHIScissor();
+					m_context->scissor(RHIRegion());
+					m_scissor = RHIRegion();
 				}
 			}
 
@@ -943,7 +940,7 @@ namespace Trinex::UI
 		public:
 			void OnDocumentLoad(RML::ElementDocument* document)
 			{
-				if (auto* client = client_from_document(document))
+				if (auto* client = RMLClient::from(document))
 				{
 					client->on_document_load(document);
 				}
@@ -951,7 +948,7 @@ namespace Trinex::UI
 
 			void OnDocumentUnload(RML::ElementDocument* document)
 			{
-				if (auto* client = client_from_document(document))
+				if (auto* client = RMLClient::from(document))
 				{
 					client->on_document_unload(document);
 				}
@@ -965,7 +962,7 @@ namespace Trinex::UI
 		};
 	}// namespace
 
-	trinex_on_pre_init()
+	trinex_on_pre_init({.name = "RML"})
 	{
 		RML::SetFileInterface(trx_new RMLFileInterface());
 		RML::SetSystemInterface(trx_new RMLSystemInterface());
@@ -1007,8 +1004,63 @@ namespace Trinex::UI
 		RML::SetRenderInterface(nullptr);
 	}
 
+	void RMLEngine::begin_rendering()
+	{
+		static_cast<RMLRenderInterface*>(RML::GetRenderInterface())->BeginRendering();
+	}
+
+	bool RMLEngine::is_rendering()
+	{
+		return static_cast<RMLRenderInterface*>(RML::GetRenderInterface())->IsRendering();
+	}
+
+	Vector2u RMLEngine::render_size()
+	{
+		return static_cast<RMLRenderInterface*>(RML::GetRenderInterface())->GetRenderSize();
+	}
+
+	RHITexture* RMLEngine::render_target()
+	{
+		return static_cast<RMLRenderInterface*>(RML::GetRenderInterface())->GetRenderTarget();
+	}
+
+	RHIContext* RMLEngine::render_context()
+	{
+		return static_cast<RMLRenderInterface*>(RML::GetRenderInterface())->GetContext();
+	}
+
+	void RMLEngine::end_rendering()
+	{
+		static_cast<RMLRenderInterface*>(RML::GetRenderInterface())->EndRendering();
+	}
+
+	void RMLEngine::render_texture(RHITexture* texture, const Vector2f& position, const Vector2f& size)
+	{
+		if (texture == nullptr)
+			return;
+
+		static_cast<RMLRenderInterface*>(RML::GetRenderInterface())->RenderTexture(texture, position, size);
+	}
+
 	trinex_implement_class(Trinex::UI::RMLClient, 0) {}
 
+	RMLClient* RMLClient::from(RML::Element* element)
+	{
+		if (element == nullptr)
+			return nullptr;
+
+		RML::Context* context = element->GetContext();
+
+		if (context == nullptr)
+			return nullptr;
+
+		RML::Element* root = context->GetRootElement();
+
+		if (root == nullptr)
+			return nullptr;
+
+		return static_cast<RMLClient*>(root->GetAttribute<void*>("client", nullptr));
+	}
 
 	RMLClient& RMLClient::attach(class RenderViewport* viewport)
 	{
@@ -1017,7 +1069,11 @@ namespace Trinex::UI
 
 		Vector2u size = viewport->size();
 		m_context     = RML::CreateContext("main", RML::Vector2i(size.x, size.y));
-		context_clients().insert({m_context, this});
+
+		if (auto root = m_context->GetRootElement())
+		{
+			root->SetAttribute<void*>("client", this);
+		}
 
 		if (m_context)
 		{
@@ -1041,9 +1097,7 @@ namespace Trinex::UI
 
 		if (m_context)
 		{
-			RML::Context* context = m_context;
-			RML::RemoveContext(context->GetName());
-			context_clients().erase(context);
+			RML::RemoveContext(m_context->GetName());
 			m_context = nullptr;
 		}
 

@@ -115,7 +115,7 @@ namespace Trinex::UI::Backend
 			auto bd       = backend_data();
 			auto pipeline = ImGuiPipeline::instance();
 
-			bd->context->viewport(RHIViewport());
+			bd->context->viewport(RHIRegion());
 
 			float L = draw_data->DisplayPos.x;
 			float R = L + draw_data->DisplaySize.x;
@@ -353,7 +353,7 @@ namespace Trinex::UI::Backend
 							if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
 								continue;
 
-							RHIScissor scissor;
+							RHIRegion scissor;
 							scissor.pos.x  = clip_min.x / draw_data->DisplaySize.x;
 							scissor.pos.y  = clip_min.y / draw_data->DisplaySize.y;
 							scissor.size.x = (clip_max.x - clip_min.x) / draw_data->DisplaySize.x;

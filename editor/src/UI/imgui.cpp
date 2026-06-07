@@ -327,8 +327,8 @@ namespace ImGui
 			Args* args = reinterpret_cast<Args*>(cmd->UserCallbackData);
 
 			auto ctx = Trinex::UI::Backend::rhi();
-			ctx->viewport(Trinex::RHIViewport(args->size, args->pos));
-			ctx->scissor(Trinex::RHIScissor(args->size, args->pos));
+			ctx->viewport(Trinex::RHIRegion(args->size, args->pos));
+			ctx->scissor(Trinex::RHIRegion(args->size, args->pos));
 		};
 
 		list->AddCallback(viewport_setup, &args, sizeof(args));

@@ -756,7 +756,7 @@ namespace Trinex
 		return *this;
 	}
 
-	VulkanContext& VulkanContext::viewport(const RHIViewport& viewport)
+	VulkanContext& VulkanContext::viewport(const RHIRegion& viewport)
 	{
 		trinex_profile_cpu_n("VulkanContext::viewport");
 
@@ -769,7 +769,7 @@ namespace Trinex
 		return *this;
 	}
 
-	VulkanContext& VulkanContext::scissor(const RHIScissor& scissor)
+	VulkanContext& VulkanContext::scissor(const RHIRegion& scissor)
 	{
 		trinex_profile_cpu_n("VulkanContext::scissor");
 
