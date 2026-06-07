@@ -679,7 +679,7 @@ namespace Trinex
 		{
 			for (int i = 1; i < 6; ++i)
 			{
-				chain[i].size    = chain[i - 1].size / 2u;
+				chain[i].size    = Math::max(chain[i - 1].size / 2u, Vector2u(1, 1));
 				chain[i].texture = pool->acquire(RHISurfaceFormat::RGBA16F, chain[i].size);
 
 				ctx->barrier(chain[i - 1].texture, RHIAccess::SRVGraphics);

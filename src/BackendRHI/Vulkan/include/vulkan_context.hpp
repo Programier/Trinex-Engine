@@ -190,7 +190,7 @@ namespace Trinex
 		};
 
 		struct CombinedImage {
-			VulkanTextureSRV* srv;
+			vk::ImageView srv;
 			vk::Sampler sampler;
 		};
 
@@ -286,8 +286,8 @@ namespace Trinex
 		VulkanResourceState<vk::Buffer> storage_texel_buffers;
 		VulkanResourceState<vk::Sampler> samplers;
 		VulkanResourceState<vk::AccelerationStructureKHR> acceleration_structures;
-		VulkanResourceState<VulkanTextureSRV*> srv_images;
-		VulkanResourceState<VulkanTextureUAV*> uav_images;
+		VulkanResourceState<vk::ImageView> srv_images;
+		VulkanResourceState<vk::ImageView> uav_images;
 		VulkanResourceState<VertexStream> vertex_streams;
 		VulkanResourceState<VertexAttribute> vertex_attributes;
 

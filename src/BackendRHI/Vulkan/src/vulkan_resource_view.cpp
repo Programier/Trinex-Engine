@@ -32,7 +32,7 @@ namespace Trinex
 
 	VulkanSRV& VulkanTextureSRV::bind(VulkanContext* context, u8 index)
 	{
-		context->srv_images.bind(this, index);
+		context->srv_images.bind(m_view, index);
 		return *this;
 	}
 
@@ -48,7 +48,7 @@ namespace Trinex
 
 	VulkanUAV& VulkanTextureUAV::bind(VulkanContext* context, u8 index)
 	{
-		context->uav_images.bind(this, index);
+		context->uav_images.bind(m_view, index);
 		return *this;
 	}
 

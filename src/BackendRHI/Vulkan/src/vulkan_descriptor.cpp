@@ -335,13 +335,13 @@ namespace Trinex
 			inline void write_combined_image_sampler(vk::WriteDescriptorSet* write)
 			{
 				auto& [srv, sampler] = as<VulkanContext::CombinedImage>();
-				write->pImageInfo    = trx_stack_new vk::DescriptorImageInfo(sampler, srv->view(), eShaderReadOnlyOptimal);
+				write->pImageInfo    = trx_stack_new vk::DescriptorImageInfo(sampler, srv, eShaderReadOnlyOptimal);
 			}
 
 			inline void write_storage_image(vk::WriteDescriptorSet* write)
 			{
-				VulkanTextureUAV* uav = as<VulkanTextureUAV*>();
-				write->pImageInfo     = trx_stack_new vk::DescriptorImageInfo({}, uav->view(), eGeneral);
+				vk::ImageView uav = as<vk::ImageView>();
+				write->pImageInfo = trx_stack_new vk::DescriptorImageInfo({}, uav, eGeneral);
 			}
 
 			inline void write_uniform_buffer(vk::WriteDescriptorSet* write)
@@ -428,10 +428,8 @@ namespace Trinex
 				case vk::DescriptorType::eSampler: dst->descriptor = context->samplers.resource(dst->binding); break;
 				case vk::DescriptorType::eCombinedImageSampler:
 				{
-					dst->descriptor = VulkanContext::CombinedImage{
-					        context->srv_images.resource(dst->binding),
-					        context->samplers.resource(dst->binding),
-					};
+					dst->descriptor = VulkanContext::CombinedImage{context->srv_images.resource(dst->binding),
+					                                               context->samplers.resource(dst->binding)};
 					break;
 				}
 				case vk::DescriptorType::eStorageImage: dst->descriptor = context->uav_images.resource(dst->binding); break;
@@ -454,8 +452,7 @@ namespace Trinex
 			}
 		}
 
-		u64 hash = memory_hash(bindings, count * sizeof(Binding), reinterpret_cast<u64>(layout));
-
+		u64 hash               = memory_hash(bindings, count * sizeof(Binding), reinterpret_cast<u64>(layout));
 		vk::DescriptorSet& set = m_table[hash];
 
 		if (set)
