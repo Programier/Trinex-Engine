@@ -53,6 +53,11 @@ namespace Trinex
 		inline usize capacity() const { return m_capacity; }
 		inline usize used() const { return m_offset; }
 		inline usize free() const { return m_capacity - m_offset; }
+		inline usize available(usize alignment) const
+		{
+			const usize aligned_offset = align_up(m_offset, alignment);
+			return aligned_offset < m_capacity ? m_capacity - aligned_offset : 0;
+		}
 
 		~RHIUploadAllocatorPage() override
 		{
@@ -124,6 +129,30 @@ namespace Trinex
 				m_page = request_page(size);
 			}
 
+			context->track_resource(m_page);
+			return m_page->allocate(size, alignment);
+		}
+
+		RHIUploadAllocation allocate_chunk(RHIContext* context, usize max_size, usize alignment = 16)
+		{
+			trinex_assert_msg(context, "Upload allocation requires a valid RHI context");
+			ScopeLock lock(m_critical);
+
+			if (m_page == nullptr)
+			{
+				m_page = request_page(Math::min(max_size, page_size));
+			}
+
+			usize available = m_page->available(alignment);
+
+			if (available == 0)
+			{
+				m_page->release();
+				m_page    = request_page(Math::min(max_size, page_size));
+				available = m_page->available(alignment);
+			}
+
+			const usize size = Math::min(max_size, available);
 			context->track_resource(m_page);
 			return m_page->allocate(size, alignment);
 		}
@@ -212,6 +241,11 @@ namespace Trinex
 		return allocator_instance()->allocate(context, size, alignment);
 	}
 
+	RHIUploadAllocation RHIUploadAllocator::allocate_chunk(RHIContext* context, usize max_size, usize alignment)
+	{
+		return allocator_instance()->allocate_chunk(context, max_size, alignment);
+	}
+
 	RHIUploadAllocatorStats RHIUploadAllocator::statistics()
 	{
 		if (g_allocator == nullptr)
@@ -222,13 +256,24 @@ namespace Trinex
 
 	RHIContext& RHIContext::update(RHIBuffer* dst, const void* src, const RHIBufferCopy& region)
 	{
-		const u8* data = static_cast<const u8*>(src) + region.src_offset;
-		auto upload    = RHIUploadAllocator::allocate(this, region.size, 16);
-		std::memcpy(upload.data, data, region.size);
+		const u8* data   = static_cast<const u8*>(src) + region.src_offset;
+		usize remaining  = region.size;
+		usize src_offset = 0;
+		usize dst_offset = region.dst_offset;
 
-		RHIBufferCopy copy_region = region;
-		copy_region.src_offset    = upload.offset;
-		return copy(dst, upload.buffer, copy_region);
+		while (remaining > 0)
+		{
+			auto upload = RHIUploadAllocator::allocate_chunk(this, remaining, 16);
+			std::memcpy(upload.data, data + src_offset, upload.size);
+
+			copy(dst, upload.buffer, {.size = upload.size, .dst_offset = dst_offset, .src_offset = upload.offset});
+
+			remaining -= upload.size;
+			src_offset += upload.size;
+			dst_offset += upload.size;
+		}
+
+		return *this;
 	}
 
 	RHIContext& RHIContext::update(RHITexture* dst, const RHITextureRegion& dst_region, const void* src,

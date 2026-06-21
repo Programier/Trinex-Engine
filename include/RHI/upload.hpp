@@ -30,6 +30,7 @@ namespace Trinex
 	{
 	public:
 		static RHIUploadAllocation allocate(RHIContext* context, usize size, usize alignment = 16);
+		static RHIUploadAllocation allocate_chunk(RHIContext* context, usize max_size, usize alignment = 16);
 		static RHIUploadAllocatorStats statistics();
 	};
 }// namespace Trinex
