@@ -140,7 +140,7 @@ namespace Trinex
 
 			if (m_page == nullptr)
 			{
-				m_page = request_page(Math::min(max_size, page_size));
+				m_page = request_page(page_size);
 			}
 
 			usize available = m_page->available(alignment);
@@ -148,7 +148,7 @@ namespace Trinex
 			if (available == 0)
 			{
 				m_page->release();
-				m_page    = request_page(Math::min(max_size, page_size));
+				m_page    = request_page(page_size);
 				available = m_page->available(alignment);
 			}
 
