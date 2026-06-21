@@ -90,7 +90,7 @@ namespace Trinex
 	void RenderScene::init()
 	{
 		RHIBufferFlags flags = RHIBufferFlags::DeviceAddress | RHIBufferFlags::TransferDst | RHIBufferFlags::ByteAddressBuffer |
-		                       RHIBufferFlags::UnorderedAccess;
+		                       RHIBufferFlags::ShaderResource;
 		m_gpu_heap = RHI::instance()->create_buffer(m_cpu_heap.capacity() * sizeof(HeapPage), flags);
 
 		// Update buffer

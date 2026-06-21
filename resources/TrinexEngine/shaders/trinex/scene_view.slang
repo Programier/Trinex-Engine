@@ -81,7 +81,7 @@ struct SceneView
 	Camera camera;
 	Camera prev_camera;
 
-	RWByteAddressBuffer::Handle heap;
+	ByteAddressBuffer::Handle heap;
 
 	float time;
 	float delta_time;

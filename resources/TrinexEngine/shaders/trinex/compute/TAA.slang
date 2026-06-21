@@ -13,8 +13,6 @@ float3 inverse_tone_map(float3 color)
     return color / max(1.0f - color, 1e-4f);
 }
 
-#pragma once
-
 [shader("compute")]
 [numthreads(8, 8, 1)]
 void compute_main(uint3 thread : SV_DispatchThreadID)

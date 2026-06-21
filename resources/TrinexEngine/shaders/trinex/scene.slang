@@ -6,7 +6,7 @@ namespace Scene
 	struct Geometry
     {
 		struct Buffer {
-			RWByteAddressBuffer::Handle handle;
+			ByteAddressBuffer::Handle handle;
 			uint offset;
 			uint stride;
 

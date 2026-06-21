@@ -11,12 +11,12 @@ namespace Trinex
 {
 	static RHIDescriptor buffer_descriptor(const VertexBufferBase& buffer)
 	{
-		return buffer.rhi_buffer() ? buffer.rhi_buffer()->as_uav(RHIBufferViewType::ByteAddress)->descriptor() : 0;
+		return buffer.rhi_buffer() ? buffer.rhi_buffer()->as_srv(RHIBufferViewType::ByteAddress)->descriptor() : 0;
 	}
 
 	static RHIDescriptor buffer_descriptor(const IndexBuffer& buffer)
 	{
-		return buffer.rhi_buffer() ? buffer.rhi_buffer()->as_uav(RHIBufferViewType::ByteAddress)->descriptor() : 0;
+		return buffer.rhi_buffer() ? buffer.rhi_buffer()->as_srv(RHIBufferViewType::ByteAddress)->descriptor() : 0;
 	}
 
 	static u32 create_geometry(RenderScene* scene, StaticMesh* owner, StaticMesh::LOD& mesh)
