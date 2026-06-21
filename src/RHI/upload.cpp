@@ -9,7 +9,7 @@
 #include <RHI/context.hpp>
 #include <RHI/handles.hpp>
 #include <RHI/rhi.hpp>
-#include <RHI/upload_allocator.hpp>
+#include <RHI/upload.hpp>
 
 namespace Trinex
 {
@@ -218,5 +218,27 @@ namespace Trinex
 			return {};
 
 		return g_allocator->statistics();
+	}
+
+	RHIContext& RHIContext::update(RHIBuffer* dst, const void* src, const RHIBufferCopy& region)
+	{
+		const u8* data = static_cast<const u8*>(src) + region.src_offset;
+		auto upload    = RHIUploadAllocator::allocate(this, region.size, 16);
+		std::memcpy(upload.data, data, region.size);
+
+		RHIBufferCopy copy_region = region;
+		copy_region.src_offset    = upload.offset;
+		return copy(dst, upload.buffer, copy_region);
+	}
+
+	RHIContext& RHIContext::update(RHITexture* dst, const RHITextureRegion& dst_region, const void* src,
+	                               const RHIBufferTextureCopy& src_region)
+	{
+		auto upload = RHIUploadAllocator::allocate(this, src_region.size, 16);
+		std::memcpy(upload.data, static_cast<const u8*>(src) + src_region.offset, src_region.size);
+
+		RHIBufferTextureCopy copy_region = src_region;
+		copy_region.offset               = upload.offset;
+		return copy(dst, dst_region, upload.buffer, copy_region);
 	}
 }// namespace Trinex

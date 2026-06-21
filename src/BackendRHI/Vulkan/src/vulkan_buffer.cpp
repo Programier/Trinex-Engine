@@ -6,7 +6,7 @@
 #include <Core/memory.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/shader_parameters.hpp>
-#include <RHI/upload_allocator.hpp>
+#include <RHI/upload.hpp>
 #include <vk_mem_alloc.h>
 #include <vulkan_api.hpp>
 #include <vulkan_buffer.hpp>
@@ -148,27 +148,6 @@ namespace Trinex
 			{
 				RHIContextPool::global_instance()->end(ctx);
 			}
-		}
-		return *this;
-	}
-
-	VulkanBuffer& VulkanBuffer::update(VulkanContext* ctx, usize offset, usize size, const u8* data)
-	{
-		auto cmd = ctx->handle();
-		barrier(ctx, RHIAccess::TransferDst);
-
-		// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/vkCmdUpdateBuffer.html
-		if (size <= 65536 && size % 4 == 0 && offset % 4 == 0)
-		{
-			cmd->updateBuffer(m_buffer, offset, size, data);
-		}
-		else
-		{
-			auto upload = RHIUploadAllocator::allocate(ctx, size, 16);
-			std::memcpy(upload.data, data, size);
-
-			vk::BufferCopy region(upload.offset, offset, size);
-			cmd->copyBuffer(static_cast<VulkanBuffer*>(upload.buffer)->buffer(), m_buffer, region);
 		}
 		return *this;
 	}
@@ -327,13 +306,6 @@ namespace Trinex
 		trinex_assert(offset % 4 == 0);
 
 		handle()->fillBuffer(static_cast<VulkanBuffer*>(dst)->buffer(), offset, size, value);
-		return *this;
-	}
-
-	VulkanContext& VulkanContext::update(RHIBuffer* dst, const void* src, const RHIBufferCopy& region)
-	{
-		const u8* data = static_cast<const u8*>(src) + region.src_offset;
-		static_cast<VulkanBuffer*>(dst)->update(this, region.dst_offset, region.size, data);
 		return *this;
 	}
 

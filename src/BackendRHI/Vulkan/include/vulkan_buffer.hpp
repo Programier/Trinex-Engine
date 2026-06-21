@@ -34,7 +34,6 @@ namespace Trinex
 		u8* map(RHIMappingAccess access = RHIMappingAccess::Undefined) override;
 		void unmap() override;
 		usize size() const override;
-		VulkanBuffer& update(VulkanContext* ctx, usize offset, usize size, const u8* data);
 		VulkanBuffer& barrier(VulkanContext* ctx, RHIAccess access);
 
 		RHIShaderResourceView* as_srv(RHIBufferViewType view, RHIColorFormat format = RHIColorFormat::Undefined) override;
