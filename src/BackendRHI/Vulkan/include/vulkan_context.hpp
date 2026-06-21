@@ -101,7 +101,7 @@ namespace Trinex
 		class VulkanFence* m_fence = nullptr;
 		class VulkanCommandBufferManager* m_manager;
 		Vector<UniformBuffer> m_uniform_buffers;
-		Vector<RHIObject*> m_stagging;
+		Vector<RHIObject*> m_transient_resources;
 		State m_state = State::Unused;
 		const RHIContextFlags m_flags;
 
@@ -133,9 +133,13 @@ namespace Trinex
 			return m_uniform_buffers[index].request_uniform_page(size);
 		}
 
-		inline VulkanCommandHandle& add_stagging(RHIObject* object)
+		inline VulkanCommandHandle& track_resource(RHIObject* object)
 		{
-			m_stagging.push_back(object);
+			if (object)
+			{
+				object->add_reference();
+				m_transient_resources.push_back(object);
+			}
 			return *this;
 		}
 
@@ -337,6 +341,7 @@ namespace Trinex
 		VulkanContext& end_rendering() override;
 
 		VulkanContext& execute(RHICommandHandle* handle) override;
+		VulkanContext& track_resource(RHIObject* object) override;
 
 		VulkanContext& viewport(const RHIRegion& viewport) override;
 		VulkanContext& scissor(const RHIRegion& scissor) override;

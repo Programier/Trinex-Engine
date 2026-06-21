@@ -5,6 +5,7 @@
 #include <Core/memory.hpp>
 #include <Core/reflection/class.hpp>
 #include <RHI/initializers.hpp>
+#include <RHI/upload_allocator.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_barriers.hpp>
 #include <vulkan_buffer.hpp>
@@ -304,18 +305,18 @@ namespace Trinex
 	VulkanContext& VulkanContext::update(RHITexture* dst, const RHITextureRegion& dst_region, const void* src,
 	                                     const RHIBufferTextureCopy& src_region)
 	{
-		auto buffer = VulkanAPI::instance()->stagging_manager()->allocate(src_region.size, RHIBufferFlags::TransferSrc);
-		buffer->copy(this, 0, static_cast<const u8*>(src) + src_region.offset, src_region.size);
+		auto upload = RHIUploadAllocator::allocate(this, src_region.size, 16);
+		std::memcpy(upload.data, static_cast<const u8*>(src) + src_region.offset, src_region.size);
 
 		VulkanTexture* vulkan_texture = static_cast<VulkanTexture*>(dst);
 
-		vk::BufferImageCopy copy_region(0, src_region.width, src_region.height,
+		vk::BufferImageCopy copy_region(upload.offset, src_region.width, src_region.height,
 		                                vk::ImageSubresourceLayers(vulkan_texture->aspect(), dst_region.mip, dst_region.slice, 1),
 		                                vk::Offset3D(dst_region.offset.x, dst_region.offset.y, dst_region.offset.z),
 		                                vk::Extent3D(dst_region.extent.x, dst_region.extent.y, dst_region.extent.z));
 
-		m_cmd->copyBufferToImage(buffer->buffer(), vulkan_texture->image(), vk::ImageLayout::eTransferDstOptimal, copy_region);
-		m_cmd->add_stagging(buffer);
+		m_cmd->copyBufferToImage(static_cast<VulkanBuffer*>(upload.buffer)->buffer(), vulkan_texture->image(),
+		                         vk::ImageLayout::eTransferDstOptimal, copy_region);
 		return *this;
 	}
 

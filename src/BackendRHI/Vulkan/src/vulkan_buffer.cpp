@@ -6,6 +6,7 @@
 #include <Core/memory.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/shader_parameters.hpp>
+#include <RHI/upload_allocator.hpp>
 #include <vk_mem_alloc.h>
 #include <vulkan_api.hpp>
 #include <vulkan_buffer.hpp>
@@ -134,15 +135,14 @@ namespace Trinex
 				ctx = static_cast<VulkanContext*>(RHIContextPool::global_instance()->begin());
 			}
 
-			auto buffer = VulkanAPI::instance()->stagging_manager()->allocate(size, RHIBufferFlags::TransferSrc);
-			buffer->copy(ctx, offset, data, size);
+			auto upload = RHIUploadAllocator::allocate(ctx, size, 16);
+			std::memcpy(upload.data, data, size);
 
 			barrier(ctx, RHIAccess::TransferDst);
 			auto cmd = ctx->handle();
 
-			vk::BufferCopy region(0, offset, size);
-			cmd->copyBuffer(buffer->buffer(), m_buffer, region);
-			cmd->add_stagging(buffer);
+			vk::BufferCopy region(upload.offset, offset, size);
+			cmd->copyBuffer(static_cast<VulkanBuffer*>(upload.buffer)->buffer(), m_buffer, region);
 
 			if (is_transient)
 			{
@@ -164,12 +164,11 @@ namespace Trinex
 		}
 		else
 		{
-			auto staging = VulkanAPI::instance()->stagging_manager()->allocate(size, RHIBufferFlags::TransferSrc);
-			staging->copy(ctx, 0, data, size);
+			auto upload = RHIUploadAllocator::allocate(ctx, size, 16);
+			std::memcpy(upload.data, data, size);
 
-			vk::BufferCopy region(0, offset, size);
-			cmd->copyBuffer(staging->m_buffer, m_buffer, region);
-			cmd->add_stagging(staging);
+			vk::BufferCopy region(upload.offset, offset, size);
+			cmd->copyBuffer(static_cast<VulkanBuffer*>(upload.buffer)->buffer(), m_buffer, region);
 		}
 		return *this;
 	}
@@ -277,85 +276,6 @@ namespace Trinex
 		m_block_end = std::max<u8*>(m_block_end, m_block_start + offset + size);
 		m_block_end = align_up_ptr(m_block_end, VulkanAPI::instance()->m_properties.limits.minUniformBufferOffsetAlignment);
 		return *this;
-	}
-
-	VulkanStaggingBuffer::VulkanStaggingBuffer(VulkanStaggingBufferManager* manager) : m_manager(manager)
-	{
-		m_references = 0;
-	}
-
-	void VulkanStaggingBuffer::destroy()
-	{
-		if (m_manager)
-			m_manager->release(const_cast<VulkanStaggingBuffer*>(this));
-		else
-			trx_delete this;
-	}
-
-	VulkanStaggingBuffer* VulkanStaggingBufferManager::allocate(vk::DeviceSize buffer_size, RHIBufferFlags flags)
-	{
-		flags |= RHIBufferFlags::CPUWrite;
-
-		for (usize i = 0, size = m_free.size(); i < size; i++)
-		{
-			auto buffer = m_free[i].m_buffer;
-			if (buffer->size() >= buffer_size && (buffer->flags() & flags) == flags)
-			{
-				m_free.erase(m_free.begin() + i);
-				return buffer;
-			}
-		}
-
-		VulkanStaggingBuffer* buffer = trx_new VulkanStaggingBuffer(this);
-		buffer->create(buffer_size, flags, VMA_MEMORY_USAGE_CPU_ONLY);
-		m_buffers.insert(buffer);
-		return buffer;
-	}
-
-	VulkanStaggingBufferManager& VulkanStaggingBufferManager::release(VulkanStaggingBuffer* buffer)
-	{
-		if (buffer->m_manager == this)
-			m_free.emplace_back(buffer, VK_STAGGING_RESOURCE_WAIT_FRAMES);
-		return *this;
-	}
-
-	VulkanStaggingBufferManager& VulkanStaggingBufferManager::update()
-	{
-		for (usize i = 0, size = m_free.size(); i < size;)
-		{
-			auto& entry = m_free[i];
-			--entry.m_frame_number;
-
-			if (entry.m_frame_number == 0)
-			{
-				m_buffers.erase(entry.m_buffer);
-				trx_delete entry.m_buffer;
-				m_free.erase(m_free.begin() + i);
-				--size;
-			}
-			else
-			{
-				++i;
-			}
-		}
-		return *this;
-	}
-
-	VulkanStaggingBufferManager::~VulkanStaggingBufferManager()
-	{
-		for (auto buffer : m_buffers)
-		{
-			if (buffer->references() == 0)
-			{
-				trx_delete buffer;
-			}
-			else
-			{
-				buffer->m_manager = nullptr;
-			}
-		}
-
-		m_buffers.clear();
 	}
 
 	RHIBuffer* VulkanAPI::create_buffer(usize size, RHIBufferFlags flags)

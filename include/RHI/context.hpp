@@ -34,6 +34,7 @@ namespace Trinex
 		virtual RHIContext& end_rendering()                               = 0;
 
 		virtual RHIContext& execute(RHICommandHandle* handle) = 0;
+		virtual RHIContext& track_resource(RHIObject* object) = 0;
 
 		virtual RHIContext& draw(RHITopology topology, usize vertex_count, usize vertices_offset, usize instances = 1,
 		                         usize first_instance = 0)                              = 0;

@@ -261,7 +261,6 @@ namespace Trinex
 		}
 
 		m_graphics_queue          = trx_new VulkanQueue(graphics_queue.value(), graphics_queue_index.value());
-		m_stagging_manager        = trx_new VulkanStaggingBufferManager();
 		m_pipeline_layout_manager = trx_new VulkanPipelineLayoutManager();
 		m_query_pool_manager      = trx_new VulkanQueryPoolManager();
 		m_descriptor_heap         = trx_new VulkanDescriptorHeap();
@@ -295,14 +294,13 @@ namespace Trinex
 	{
 		idle();
 
-		destroy_garbage();
-
 		for (VulkanThreadLocal* local : m_thread_locals)
 		{
 			trx_delete local;
 		}
 
-		trx_delete m_stagging_manager;
+		destroy_garbage();
+
 		trx_delete m_pipeline_layout_manager;
 		trx_delete m_graphics_queue;
 		trx_delete m_query_pool_manager;
@@ -398,7 +396,6 @@ namespace Trinex
 		submit_info.pNext                = &timeline_info;
 
 		m_graphics_queue->submit(submit_info);
-		m_stagging_manager->update();
 
 		return *this;
 	}

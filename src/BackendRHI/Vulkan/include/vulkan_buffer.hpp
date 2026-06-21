@@ -70,35 +70,4 @@ namespace Trinex
 		inline usize block_offset() const { return m_block_start - m_memory; }
 		inline u8* mapped_memory() const { return m_memory; }
 	};
-
-	class VulkanStaggingBuffer : public VulkanBuffer
-	{
-	private:
-		class VulkanStaggingBufferManager* m_manager = nullptr;
-
-		VulkanStaggingBuffer(VulkanStaggingBufferManager* manager);
-		void destroy() override;
-
-		friend class VulkanStaggingBufferManager;
-	};
-
-	class VulkanStaggingBufferManager
-	{
-	private:
-		struct FreeEntry {
-			VulkanStaggingBuffer* m_buffer = nullptr;
-			usize m_frame_number           = 0;
-
-			FreeEntry(VulkanStaggingBuffer* buffer, usize frames) : m_buffer(buffer), m_frame_number(frames) {}
-		};
-
-		Set<VulkanStaggingBuffer*> m_buffers;
-		Vector<FreeEntry> m_free;
-
-	public:
-		VulkanStaggingBuffer* allocate(vk::DeviceSize size, RHIBufferFlags flags);
-		VulkanStaggingBufferManager& release(VulkanStaggingBuffer* buffer);
-		VulkanStaggingBufferManager& update();
-		~VulkanStaggingBufferManager();
-	};
 }// namespace Trinex

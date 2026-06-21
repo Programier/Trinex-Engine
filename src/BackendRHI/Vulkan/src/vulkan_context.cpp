@@ -399,12 +399,12 @@ namespace Trinex
 
 	VulkanCommandHandle& VulkanCommandHandle::release_transient_resources()
 	{
-		for (RHIObject* stagging : m_stagging)
+		for (RHIObject* resource : m_transient_resources)
 		{
-			stagging->destroy();
+			resource->release();
 		}
 
-		m_stagging.clear();
+		m_transient_resources.clear();
 
 		return *this;
 	}
@@ -751,8 +751,17 @@ namespace Trinex
 	{
 		m_cmd->executeCommands(*static_cast<VulkanCommandHandle*>(handle));
 
-		handle->add_reference();
-		m_cmd->add_stagging(handle);
+		m_cmd->track_resource(handle);
+		return *this;
+	}
+
+	VulkanContext& VulkanContext::track_resource(RHIObject* object)
+	{
+		if (object)
+		{
+			m_cmd->track_resource(object);
+		}
+
 		return *this;
 	}
 
