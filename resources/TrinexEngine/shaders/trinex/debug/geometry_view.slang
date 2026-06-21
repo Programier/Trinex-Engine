@@ -1,6 +1,5 @@
 import "trinex/trinex.slang";
 import "trinex/scene_view.slang";
-import "trinex/scene.slang";
 
 struct VertexOutput
 {
@@ -8,13 +7,13 @@ struct VertexOutput
 	float3 world : WORLD;
 }
 
-float3 load_vertex(uint vertex_id, uint primitive_id)
+float3 load_vertex(uint vertex_id, uint chunk, uint instance)
 {
-	let primitive = scene_view.scene[0].primitive(primitive_id);
+	let primitive = scene_view.primitive(scene_view.heap.Load(chunk + instance * sizeof(uint)));
+	
+	float4x4 local_to_world = scene_view.heap.Load<float4x4>(primitive.transform);
 
-	float4x4 local_to_world = scene_view.scene[0].heap.Load<float4x4>(primitive.transform);
-
-	let geometry = scene_view.scene[0].geometry(primitive.geometry);
+	let geometry = scene_view.geometry(48);
 	let index    = geometry.index_stream.load<uint>(vertex_id);
 	
 	float4 vertex = local_to_world * float4(geometry.vertex_stream.load<float3>(index), 1.f);
@@ -22,11 +21,11 @@ float3 load_vertex(uint vertex_id, uint primitive_id)
 }
 
 [shader("vertex")]
-VertexOutput vertex_main(uint index : SV_VertexID, uint instance : SV_InstanceID)
+VertexOutput vertex_main(uint index : SV_VertexID, uint chunk : SV_StartInstanceLocation, uint instance : SV_InstanceID)
 {
 	VertexOutput output;
 
-	float3 vertex = load_vertex(index, instance);
+	float3 vertex = load_vertex(index, chunk, instance);
 	output.world = vertex;
 	output.screen = scene_view.camera.world_to_clip(vertex);
 	return output;

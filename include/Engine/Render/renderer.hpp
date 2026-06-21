@@ -72,8 +72,7 @@ namespace Trinex
 		RHITexture* request_transient_surface(RHISurfaceFormat format, float scale = 1.f);
 		Renderer& return_surface(RHITexture* surface);
 
-		Renderer& render_primitives(PrimitiveComponent* const* primitives, usize count, RHIContext* ctx, RenderPass* pass,
-		                            RHIContextInheritanceInfo* inherit, MaterialBindings* bindings = nullptr);
+		Renderer& render_primitives(RHIContext* ctx, RenderPass* pass);
 
 		Renderer& render(RHIContext* ctx);
 		Renderer& reset(const SceneView& view);

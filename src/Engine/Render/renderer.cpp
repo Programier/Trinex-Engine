@@ -92,66 +92,33 @@ namespace Trinex
 		});
 	}
 
-	Renderer& Renderer::render_primitives(PrimitiveComponent* const* primitives, usize count, RHIContext* ctx, RenderPass* pass,
-	                                      RHIContextInheritanceInfo* inherit, MaterialBindings* bindings)
+	Renderer& Renderer::render_primitives(RHIContext* ctx, RenderPass* pass)
 	{
 		trinex_profile_cpu_n("Renderer::render_primitives");
 
-		static constexpr u32 chunk = 64;
+		RenderScene* render_scene = scene();
 
-		struct Worker {
-			RHIContext* context = nullptr;
-			usize objects;
-		};
-
-		TaskGraph* graph             = TaskGraph::instance();
-		RHIContextPool* context_pool = RHIContextPool::global_instance();
-
-		//const u32 worker_count     = Math::min<u32>(graph->workers() + 1, (count + chunk - 1) / chunk);
-		const u32 worker_count = 1;
-
-		StackByteAllocator::Mark mark;
-		Worker* workers = StackAllocator<Worker>::allocate(worker_count);
-
-		for (u32 i = 0; i < worker_count; ++i)
+		for (auto& chunk : render_scene->chunks())
 		{
-			RHIContext* secondary = context_pool->acquire(RHIContextFlags::Secondary);
-			workers[i]            = {secondary, 0};
-		}
+			Pipeline* pipeline = chunk.material->pipeline(pass);
 
-		auto callback = [this, primitives, pass, workers, bindings, inherit](u32 idx) {
-			Worker& worker = workers[Task::worker_index()];
+			if (pipeline == nullptr)
+				continue;
 
-			if (++worker.objects == 1)
+			// Temporary hack to render all objects
+
+			ctx->bind_pipeline(pipeline->rhi_pipeline());
+			ctx->bind_uniform_buffer(globals_uniform_buffer(), 0);
+			u32* indices = render_scene->map<u32>(chunk.address);
+
+			for (u32 i = 0; i < chunk.count; ++i)
 			{
-				worker.context->begin(inherit);
-			}
+				u32 address     = indices[i];
+				auto& primitive = render_scene->primitive(address);
 
-			PrimitiveComponent* primitive = primitives[idx];
-			Matrix4f matrix               = primitive->world_transform().matrix();
-			PrimitiveRenderingContext context(this, worker.context, pass, &matrix, bindings);
-			primitive->render(&context);
-		};
-
-		pass->begin(this, ctx);
-		{
-			graph->for_each(count, callback, chunk, worker_count);
-
-			for (u32 i = 0; i < worker_count; ++i)
-			{
-				Worker& worker = workers[i];
-
-				if (worker.objects)
-				{
-					RHICommandHandle* handle = worker.context->end();
-					ctx->execute(handle);
-					handle->release();
-				}
-
-				context_pool->release(worker.context);
+				ctx->draw(RHITopology::TriangleList, primitive.vertices_count, 0, 1, address);
 			}
 		}
-		pass->end(this, ctx);
 
 		return *this;
 	}

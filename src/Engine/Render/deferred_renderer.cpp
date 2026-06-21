@@ -240,17 +240,6 @@ namespace Trinex
 
 	DeferredRenderer& DeferredRenderer::register_debug_lines()
 	{
-		ShowFlags flags = scene_view().show_flags();
-
-		if (flags & ShowFlags::PrimitiveBounds)
-		{
-			for (PrimitiveComponent* component : m_visible_primitives)
-			{
-				auto& bounds = component->bounding_box();
-				lines.add_box(bounds.min - Vector3f(0.01f), bounds.max + Vector3f(0.01f), {255, 255, 0, 255}, 3.f);
-			}
-		}
-
 		render_graph()
 		        ->add_pass("Batched Primitives")
 		        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
@@ -447,20 +436,9 @@ namespace Trinex
 	{
 		RHIRenderingInfo info = {base_color_target()->as_rtv(), normal_target()->as_rtv(), scene_color_hdr_target()->as_rtv(),
 		                         msra_target()->as_rtv(), scene_depth_target()->as_dsv()};
-		info.flags            = RHIRenderingFlags::SecondaryBuffersOnly;
-
 		ctx->begin_rendering(info);
 		{
-			RHIContextInheritanceInfo inherit;
-			inherit.primary   = ctx;
-			inherit.colors[0] = base_color_format();
-			inherit.colors[1] = normal_format();
-			inherit.colors[2] = scene_color_hdr_format();
-			inherit.colors[3] = msra_format();
-			inherit.depth     = scene_depth_format();
-			inherit.flags     = RHIContextInheritanceFlags::RenderPassContinue;
-
-			render_visible_primitives(ctx, RenderPasses::Geometry::static_instance(), &inherit);
+			render_primitives(ctx, RenderPasses::Geometry::static_instance());
 		}
 		ctx->end_rendering();
 		return *this;
@@ -507,7 +485,7 @@ namespace Trinex
 			inherit.depth     = scene_depth_format();
 			inherit.flags     = RHIContextInheritanceFlags::RenderPassContinue;
 
-			render_visible_primitives(ctx, RenderPasses::Translucent::static_instance(), &inherit, &s_bindings);
+			// render_visible_primitives(ctx, RenderPasses::Translucent::static_instance(), &inherit, &s_bindings);
 		}
 		ctx->end_rendering();
 

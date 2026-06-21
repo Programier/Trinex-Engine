@@ -812,7 +812,7 @@ namespace Trinex
 		trinex_profile_cpu_n("VulkanContext::draw_indirect");
 		vk::Buffer buffer       = static_cast<VulkanBuffer*>(args.buffer)->buffer();
 		vk::Buffer count_buffer = static_cast<VulkanBuffer*>(count.buffer)->buffer();
-		flush_graphics(topology)->drawIndirectCount(buffer, args.offset, count_buffer, count.offset, max_count, stride);
+		flush_graphics(topology)->drawIndirectCountKHR(buffer, args.offset, count_buffer, count.offset, max_count, stride);
 		return *this;
 	}
 
@@ -831,7 +831,7 @@ namespace Trinex
 		trinex_profile_cpu_n("VulkanContext::draw_indexed_indirect");
 		vk::Buffer buffer       = static_cast<VulkanBuffer*>(args.buffer)->buffer();
 		vk::Buffer count_buffer = static_cast<VulkanBuffer*>(count.buffer)->buffer();
-		flush_graphics(topology)->drawIndexedIndirectCount(buffer, args.offset, count_buffer, count.offset, max_count, stride);
+		flush_graphics(topology)->drawIndexedIndirectCountKHR(buffer, args.offset, count_buffer, count.offset, max_count, stride);
 		return *this;
 	}
 

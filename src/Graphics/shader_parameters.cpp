@@ -43,7 +43,7 @@ namespace Trinex
 			render_target.size     = size;
 			render_target.inv_size = 1.f / size;
 
-			scene = scene_view->scene()->scene_buffer()->as_uav(RHIBufferViewType::Structured)->descriptor();
+			heap = scene_view->scene()->heap()->as_uav(RHIBufferViewType::ByteAddress)->descriptor();
 		}
 
 		time       = engine_instance->time_seconds();

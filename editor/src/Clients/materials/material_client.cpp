@@ -7,7 +7,7 @@
 #include <Core/string_functions.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/camera_component.hpp>
-#include <Engine/ActorComponents/static_mesh_component.hpp>
+#include <Engine/ActorComponents/mesh_component.hpp>
 #include <Engine/Actors/static_mesh_actor.hpp>
 #include <Engine/Render/renderer.hpp>
 #include <Engine/settings.hpp>

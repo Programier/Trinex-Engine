@@ -18,7 +18,6 @@ namespace Trinex
 	private:
 		World* m_world;
 		RHIBuffer* m_scene;
-		RHIBuffer* m_indirect;
 		Vector<RHIObject*> m_resources;
 
 	private:

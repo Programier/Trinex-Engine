@@ -17,26 +17,8 @@ namespace Trinex
 	{
 		trinex_class(PrimitiveComponent, SceneComponent);
 
-	private:
-		u32 m_scene_id = 0xFFFFFFFF;
-
-	protected:
-		Box3f m_bounding_box;
-
 	public:
 		PrimitiveComponent();
-		const Box3f& bounding_box() const;
-
-		PrimitiveComponent& start_play() override;
-		PrimitiveComponent& stop_play() override;
-		PrimitiveComponent& on_transform_changed() override;
-
-		virtual usize materials_count() const                                 = 0;
-		virtual MaterialInterface* material(usize index) const                = 0;
-		virtual PrimitiveComponent& material(MaterialInterface*, usize index) = 0;
-		virtual PrimitiveComponent& render(PrimitiveRenderingContext* context);
-
-		virtual PrimitiveComponent& update_bounding_box();
 		~PrimitiveComponent();
 	};
 }// namespace Trinex

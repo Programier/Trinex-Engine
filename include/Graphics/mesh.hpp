@@ -28,8 +28,22 @@ namespace Trinex
 		u16 material_index   = 0;
 
 		bool serialize(Archive& ar);
-
 		inline bool is_indexed() const { return first_index != ~0U; }
+	};
+
+	using MeshVertexStream = Vector3f;
+
+	struct MeshSurfaceStream {
+		Vector2f16 uv0;
+		Vector2f16 uv1;
+
+		u32 normal;
+		u32 tangent;
+	};
+
+	struct MeshAnimationStream {
+		u8 indices[4];
+		u8 weights[4];
 	};
 
 	class ENGINE_EXPORT StaticMesh : public Object
@@ -40,24 +54,13 @@ namespace Trinex
 		struct ENGINE_EXPORT LOD {
 			trinex_struct(LOD, void);
 
-			Vector<MeshSurface> surfaces;
-			FlatSet<MeshVertexAttribute> attributes;
-			Vector<VertexBufferBase> buffers;
+			VertexBuffer<MeshVertexStream> vertex_stream;
+			VertexBuffer<MeshSurfaceStream> surface_stream;
+
 			IndexBuffer indices;
+			Vector<MeshSurface> surfaces;
 
-		public:
 			bool serialize(Archive& ar);
-
-			inline const MeshVertexAttribute* find_attribute(RHISemantic semantic) const
-			{
-				MeshVertexAttribute attribute;
-				attribute.semantic = semantic;
-				auto it            = attributes.find(attribute);
-
-				if (it == attributes.end())
-					return nullptr;
-				return &(*it);
-			}
 		};
 
 		Vector<MaterialInterface*> materials;
@@ -76,31 +79,13 @@ namespace Trinex
 	public:
 		struct ENGINE_EXPORT LOD {
 			trinex_struct(LOD, void);
-
-			Vector<PositionVertexBuffer> positions;
-			Vector<TexCoordVertexBuffer> tex_coords;
-			Vector<ColorVertexBuffer> colors;
-			Vector<NormalVertexBuffer> normals;
-			Vector<TangentVertexBuffer> tangents;
-			Vector<BlendWeightVertexBuffer> blend_weights;
-			Vector<BlendIndicesVertexBuffer> blend_indices;
+			VertexBuffer<MeshVertexStream> vertex_stream;
+			VertexBuffer<MeshSurfaceStream> surface_stream;
+			VertexBuffer<MeshAnimationStream> animation_stream;
 
 			IndexBuffer indices;
 			Vector<MeshSurface> surfaces;
 
-		private:
-			VertexBufferBase* find_position_buffer(usize index);
-			VertexBufferBase* find_tex_coord_buffer(usize index);
-			VertexBufferBase* find_color_buffer(usize index);
-			VertexBufferBase* find_normal_buffer(usize index);
-			VertexBufferBase* find_tangent_buffer(usize index);
-			VertexBufferBase* find_blend_weights_buffer(usize index);
-			VertexBufferBase* find_blend_indices_buffer(usize index);
-
-		public:
-			VertexBufferBase* find_vertex_buffer(RHISemantic semantic, usize index = 0);
-			usize vertex_count() const;
-			usize indices_count() const;
 			bool serialize(Archive& ar);
 		};
 

@@ -1,15 +1,43 @@
 #include <Core/profiler.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/property.hpp>
-#include <Core/threading.hpp>
 #include <Engine/ActorComponents/static_mesh_component.hpp>
-#include <Engine/Render/primitive_context.hpp>
-#include <Engine/Render/render_pass.hpp>
+#include <Engine/Render/scene.hpp>
 #include <Graphics/mesh.hpp>
+#include <RHI/handles.hpp>
 #include <ScriptEngine/registrar.hpp>
 
 namespace Trinex
 {
+	static RHIDescriptor buffer_descriptor(const VertexBufferBase& buffer)
+	{
+		return buffer.rhi_buffer() ? buffer.rhi_buffer()->as_uav(RHIBufferViewType::ByteAddress)->descriptor() : 0;
+	}
+
+	static RHIDescriptor buffer_descriptor(const IndexBuffer& buffer)
+	{
+		return buffer.rhi_buffer() ? buffer.rhi_buffer()->as_uav(RHIBufferViewType::ByteAddress)->descriptor() : 0;
+	}
+
+	static u32 create_geometry(RenderScene* scene, StaticMesh* owner, StaticMesh::LOD& mesh)
+	{
+		RenderScene::Geometry geometry;
+
+		geometry.vertex_stream.buffer = buffer_descriptor(mesh.vertex_stream);
+		geometry.vertex_stream.stride = sizeof(MeshVertexStream);
+
+		geometry.surface_stream.buffer = buffer_descriptor(mesh.surface_stream);
+		geometry.surface_stream.stride = sizeof(MeshSurfaceStream);
+
+		geometry.index_stream.buffer = buffer_descriptor(mesh.indices);
+		geometry.index_stream.stride = mesh.indices.stride();
+
+		geometry.aabb = owner->bounds;
+
+		return scene->create_geometry(geometry);
+	}
+
+
 	trinex_implement_engine_class(StaticMeshComponent, Refl::Class::IsScriptable)
 	{
 		trinex_refl_virtual_prop(mesh, mesh, mesh)->tooltip("Mesh object of this component");
@@ -17,14 +45,6 @@ namespace Trinex
 		auto r = ScriptClassRegistrar::existing_class(static_reflection());
 		r.method("StaticMesh@ mesh() const final", overload_of<StaticMesh*()>(&This::mesh));
 		r.method("StaticMeshComponent@ mesh(StaticMesh@ mesh) final", overload_of<StaticMeshComponent&()>(&This::mesh));
-	}
-
-	usize StaticMeshComponent::materials_count() const
-	{
-		if (m_mesh)
-			return m_mesh->materials.size();
-
-		return 0;
 	}
 
 	MaterialInterface* StaticMeshComponent::material(usize index) const
@@ -38,62 +58,66 @@ namespace Trinex
 		return nullptr;
 	}
 
-	usize StaticMeshComponent::lods_count() const
+	StaticMeshComponent& StaticMeshComponent::start_play()
 	{
-		return m_mesh->lods.size();
-	}
+		Super::start_play();
 
-	usize StaticMeshComponent::surfaces_count(usize lod) const
-	{
-		return m_mesh->lods[lod].surfaces.size();
-	}
+		if (m_mesh == nullptr)
+			return *this;
 
-	const MeshSurface* StaticMeshComponent::surface(usize index, usize lod) const
-	{
-		return &m_mesh->lods[lod].surfaces[index];
-	}
+		auto& lod        = m_mesh->lods[0];
+		usize primitives = lod.surfaces.size();
+		Matrix4f matrix  = world_transform().matrix();
 
-	const MeshVertexAttribute* StaticMeshComponent::vertex_attribute(RHISemantic semantic, usize lod)
-	{
-		return m_mesh->lods[lod].find_attribute(semantic);
-	}
+		m_transform = scene()->allocate(sizeof(Matrix4f), &matrix);
+		m_geometry  = create_geometry(scene(), m_mesh, lod);
+		StackByteAllocator::Mark mark;
 
-	VertexBufferBase* StaticMeshComponent::vertex_buffer(u8 stream, usize lod)
-	{
-		return &m_mesh->lods[lod].buffers[stream];
-	}
-
-	IndexBuffer* StaticMeshComponent::index_buffer(usize lod)
-	{
-		auto& buffer = m_mesh->lods[lod].indices;
-		return buffer.size() == 0 ? nullptr : &buffer;
-	}
-
-	StaticMeshComponent& StaticMeshComponent::render(PrimitiveRenderingContext* ctx)
-	{
-		trinex_profile_cpu_n("StaticMeshComponent::render");
-
-		static Name permutation = "StaticMesh";
-
-		if ((ctx->pass = ctx->pass->find_permutation(permutation)))
+		auto descriptions = StackAllocator<RenderScene::Primitive>::allocate(primitives);
 		{
-			Super::render(ctx);
-		}
+			for (usize i = 0; i < primitives; ++i)
+			{
+				auto& surface = lod.surfaces[i];
 
+				descriptions[i] = {
+				        .material       = m_mesh->materials[surface.material_index],
+				        .first_vertex   = surface.first_vertex,
+				        .first_index    = surface.first_index,
+				        .vertices_count = surface.vertices_count,
+				        .transform      = m_transform,
+				        .data           = 0,
+				        .geometry       = m_geometry,
+				        .flags          = 0,
+				};
+			}
+		}
+		m_primitive = scene()->create_primitive(descriptions, primitives);
 		return *this;
 	}
 
-	StaticMeshComponent& StaticMeshComponent::update_bounding_box()
+	StaticMeshComponent& StaticMeshComponent::stop_play()
 	{
-		if (mesh())
+		if (RenderScene* render_scene = scene())
 		{
-			trinex_profile_cpu_n("Bounds transform");
-			m_bounding_box = mesh()->bounds.transform(world_transform().matrix());
+			render_scene->free(m_transform);
+			render_scene->release_geometry(m_geometry);
+			render_scene->release_primitive(m_primitive);
 		}
-		else
+
+		Super::despawned();
+		return *this;
+	}
+
+	StaticMeshComponent& StaticMeshComponent::on_transform_changed()
+	{
+		Super::on_transform_changed();
+
+		if (m_transform)
 		{
-			Super::update_bounding_box();
+			Matrix4f matrix = world_transform().matrix();
+			scene()->update(m_transform, &matrix, sizeof(matrix));
 		}
 		return *this;
 	}
+
 }// namespace Trinex

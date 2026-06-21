@@ -55,13 +55,6 @@ namespace Trinex
 		DeferredRenderer& copy_depth_to_scene_color(RHIContext* ctx);
 		DeferredRenderer& cull_lights(RHIContext* ctx);
 
-		inline DeferredRenderer& render_visible_primitives(RHIContext* ctx, RenderPass* pass, RHIContextInheritanceInfo* inherit,
-		                                                   MaterialBindings* bindings = nullptr)
-		{
-			render_primitives(m_visible_primitives.data(), m_visible_primitives.size(), ctx, pass, inherit, bindings);
-			return *this;
-		}
-
 	public:
 		DeferredRenderer(const SceneView& view, ViewMode mode);
 		trinex_non_copyable(DeferredRenderer);

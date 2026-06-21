@@ -11,71 +11,9 @@
 
 namespace Trinex
 {
-	trinex_implement_engine_class(PrimitiveComponent, Refl::Class::IsScriptable)
-	{
-		auto r = ScriptClassRegistrar::existing_class(static_reflection());
+	trinex_implement_engine_class(PrimitiveComponent, Refl::Class::IsScriptable) {}
 
-		r.method("void start_play()", trinex_scoped_void_method(This, start_play));
-		r.method("void stop_play()", trinex_scoped_void_method(This, stop_play));
-	}
-
-	static const Box3f default_bounds({-1.f, -1.f, -1.f}, {1.f, 1.f, 1.f});
-
-	PrimitiveComponent::PrimitiveComponent() : m_bounding_box(default_bounds) {}
-
-	const Box3f& PrimitiveComponent::bounding_box() const
-	{
-		return m_bounding_box;
-	}
-
-	PrimitiveComponent& PrimitiveComponent::start_play()
-	{
-		Super::start_play();
-
-		if (World* actor_world = world())
-		{
-			//m_scene_id = actor_world->scene()->add_primitive(this, m_bounding_box);
-		}
-
-		return *this;
-	}
-
-	PrimitiveComponent& PrimitiveComponent::stop_play()
-	{
-		Super::stop_play();
-
-		if (World* actor_world = world())
-		{
-			//actor_world->scene()->remove_primitive(m_scene_id);
-		}
-
-		m_scene_id = 0xFFFFFFFF;
-		return *this;
-	}
-
-	PrimitiveComponent& PrimitiveComponent::on_transform_changed()
-	{
-		Super::on_transform_changed();
-		update_bounding_box();
-
-		if (m_scene_id != 0xFFFFFFFF)
-		{
-			//scene()->update_primitive(m_scene_id, m_bounding_box);
-		}
-
-		return *this;
-	}
-
-	PrimitiveComponent& PrimitiveComponent::render(PrimitiveRenderingContext* context)
-	{
-		return *this;
-	}
-
-	PrimitiveComponent& PrimitiveComponent::update_bounding_box()
-	{
-		m_bounding_box = default_bounds.transform(world_transform().matrix());
-		return *this;
-	}
+	PrimitiveComponent::PrimitiveComponent() {}
 
 	PrimitiveComponent::~PrimitiveComponent() {}
 }// namespace Trinex

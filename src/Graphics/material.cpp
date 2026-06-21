@@ -566,20 +566,6 @@ namespace Trinex
 
 	bool Material::compile_pass(ShaderCompiler* compiler, RenderPass* pass, const String& source)
 	{
-		if (RenderPass* permutation = pass->permutations())
-		{
-			bool status = true;
-
-			do
-			{
-				bool current_status = compile_pass(compiler, permutation, source);
-				status              = current_status && status;
-				permutation         = permutation->next();
-			} while (permutation);
-
-			return status;
-		}
-
 		Pointer<GraphicsPipeline> pipeline = remove_pipeline(pass);
 		const bool new_pipeline            = pipeline == nullptr;
 

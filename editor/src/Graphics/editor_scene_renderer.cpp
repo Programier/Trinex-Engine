@@ -74,7 +74,7 @@ namespace Trinex
 						Matrix4f matrix  = primitive->world_transform().matrix();
 						RenderPass* pass = EditorRenderPasses::HitProxy::static_instance();
 						PrimitiveRenderingContext context(this, ctx, pass, &matrix, &bindings);
-						primitive->render(&context);
+						//primitive->render(&context);
 					}
 				}
 			}
@@ -179,10 +179,10 @@ namespace Trinex
 						{
 							if (auto primitive = Object::instance_cast<PrimitiveComponent>(component))
 							{
-								Matrix4f matrix  = primitive->world_transform().matrix();
-								RenderPass* pass = RenderPasses::Depth::static_instance();
-								PrimitiveRenderingContext context(this, ctx, pass, &matrix);
-								primitive->render(&context);
+								Matrix4f matrix = primitive->world_transform().matrix();
+								// RenderPass* pass = RenderPasses::Depth::static_instance();
+								// PrimitiveRenderingContext context(this, ctx, pass, &matrix);
+								//primitive->render(&context);
 							}
 						}
 					}

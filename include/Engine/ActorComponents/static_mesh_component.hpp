@@ -13,27 +13,23 @@ namespace Trinex
 
 	private:
 		class StaticMesh* m_mesh = nullptr;
+		u32 m_transform          = 0;
+		u32 m_geometry           = 0;
+		u32 m_primitive          = 0;
 
 	public:
 		using MeshComponent::material;
-
 		MaterialInterface* material(usize index) const override;
-		usize lods_count() const override;
-		usize materials_count() const override;
-		usize surfaces_count(usize lod = 0) const override;
-		const MeshSurface* surface(usize index, usize lod = 0) const override;
-		const MeshVertexAttribute* vertex_attribute(RHISemantic semantic, usize lod = 0) override;
-		VertexBufferBase* vertex_buffer(u8 stream, usize lod = 0) override;
-		IndexBuffer* index_buffer(usize lod = 0) override;
-		StaticMeshComponent& render(PrimitiveRenderingContext* ctx) override;
-		StaticMeshComponent& update_bounding_box() override;
+
+		StaticMeshComponent& start_play() override;
+		StaticMeshComponent& stop_play() override;
+		StaticMeshComponent& on_transform_changed() override;
 
 		inline StaticMesh* mesh() const { return m_mesh; }
 
 		inline StaticMeshComponent& mesh(StaticMesh* mesh)
 		{
 			m_mesh = mesh;
-			on_transform_changed();
 			return *this;
 		}
 	};

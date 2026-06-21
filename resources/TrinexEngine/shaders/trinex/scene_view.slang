@@ -1,6 +1,6 @@
 import "trinex/trinex.slang";
-import "trinex/scene.slang";
 import "trinex/math.slang";
+import "trinex/scene.slang";
 
 struct SceneView
 {
@@ -81,7 +81,7 @@ struct SceneView
 	Camera camera;
 	Camera prev_camera;
 
-	RWStructuredBuffer<Scene>::Handle scene;
+	RWByteAddressBuffer::Handle heap;
 
 	float time;
 	float delta_time;
@@ -91,6 +91,16 @@ struct SceneView
 	inline float2 screen_ndc(float2 coord) { return (coord * viewport.inv_size) * 2.f - 1.f; }
 	
 	inline float2 viewport_uv(float2 coord) { return coord * viewport.inv_size; }
+
+	inline Scene::Geometry geometry(uint address)
+	{
+		return heap.Load<Scene::Geometry>(address);
+	}
+
+	inline Scene::Primitive primitive(uint address)
+	{
+		return heap.Load<Scene::Primitive>(address);
+	}
 };
 
 uniform ConstantBuffer<SceneView> scene_view;

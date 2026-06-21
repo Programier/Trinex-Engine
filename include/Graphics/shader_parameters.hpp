@@ -37,7 +37,7 @@ namespace Trinex
 		Camera camera;
 		Camera prev_camera;
 
-		alignas(8) RHIDescriptor scene;
+		alignas(8) RHIDescriptor heap;
 		alignas(4) float time;
 		alignas(4) float delta_time;
 

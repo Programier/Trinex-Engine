@@ -3,11 +3,7 @@
 
 namespace Trinex::EditorRenderPasses
 {
-	trinex_implement_render_pass(HitProxy)
-	{
-		static RenderPassPermutations::StaticMesh static_mesh(this);
-		static RenderPassPermutations::SkeletalMesh skeletal_mesh(this);
-	}
+	trinex_implement_render_pass(HitProxy) {}
 
 	bool HitProxy::is_material_compatible(const Material* material)
 	{

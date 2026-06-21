@@ -26,16 +26,16 @@
 #include <Engine/Actors/static_mesh_actor.hpp>
 
 #include <Engine/ActorComponents/directional_light_component.hpp>
+#include <Engine/ActorComponents/mesh_component.hpp>
 #include <Engine/ActorComponents/point_light_component.hpp>
 #include <Engine/ActorComponents/spot_light_component.hpp>
-#include <Engine/ActorComponents/static_mesh_component.hpp>
 
 
 namespace Trinex::Importer
 {
 	struct ImporterContext {
 	private:
-		using Mesh = Variant<Pointer<StaticMesh>, Pointer<SkeletalMesh>>;
+		using ImportedMesh = Variant<Pointer<StaticMesh>, Pointer<SkeletalMesh>>;
 
 		struct BufferInfo {
 			union
@@ -101,7 +101,7 @@ namespace Trinex::Importer
 		} m_package;
 
 		struct MeshInfo {
-			Mesh mesh;
+			ImportedMesh mesh;
 			Vector3f offset;
 		};
 
@@ -226,6 +226,43 @@ namespace Trinex::Importer
 				float clamped  = Math::clamp(-1.f, 1.f, source[i]);
 				destination[i] = static_cast<i16>(Math::round(clamped * 32767.0f));
 			}
+		}
+
+		static Vector2f read_texcoord0(const u8* src, int component_type)
+		{
+			switch (component_type)
+			{
+				case TINYGLTF_COMPONENT_TYPE_BYTE:
+				case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:
+				{
+					return {
+					        static_cast<float>(src[0]) / 255.f,
+					        static_cast<float>(src[1]) / 255.f,
+					};
+				}
+
+				case TINYGLTF_COMPONENT_TYPE_SHORT:
+				case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
+				{
+					const u16* value = reinterpret_cast<const u16*>(src);
+					return {
+					        static_cast<float>(value[0]) / 65535.f,
+					        static_cast<float>(value[1]) / 65535.f,
+					};
+				}
+
+				default:
+				{
+					return *reinterpret_cast<const Vector2f*>(src);
+				}
+			}
+		}
+
+		static u32 pack_unorm4x8(const Vector4f& value)
+		{
+			return Color(Color::float_to_byte(value.x * 0.5f + 0.5f), Color::float_to_byte(value.y * 0.5f + 0.5f),
+			             Color::float_to_byte(value.z * 0.5f + 0.5f), Color::float_to_byte(value.w * 0.5f + 0.5f))
+			        .rgba;
 		}
 
 		static u16 find_material_index(Vector<MaterialInterface*>& materials, MaterialInterface* material)
@@ -454,7 +491,7 @@ namespace Trinex::Importer
 			return material;
 		}
 
-		StaticMesh* import_static_mesh(const tinygltf::Model& model, i32 index, Vector3f& offset)
+		StaticMesh* import_mesh(const tinygltf::Model& model, i32 index, Vector3f& offset)
 		{
 			if (m_meshes[index].has_value())
 			{
@@ -535,70 +572,21 @@ namespace Trinex::Importer
 				surface->material_index = find_material_index(mesh->materials, material);
 			}
 
-			BufferInfo position, uv0, normal, tangent, indices;
+			BufferInfo position, indices;
 
 			if (accessor_mask & Accessors::s_position_flag)
 			{
-				MeshVertexAttribute attribute;
-
-				attribute.semantic = RHISemantic::Position;
-				attribute.format   = RHIVertexFormat::RGB32F;
-				attribute.stream   = lod.buffers.size();
-				attribute.offset   = 0;
-
-				lod.attributes.insert(attribute);
-				auto& buffer = lod.buffers.emplace_back();
-
-				position.data   = buffer.allocate_data(RHIBufferFlags::VertexBuffer, 12, vertex_count);
-				position.stride = 12;
+				position.data =
+				        reinterpret_cast<u8*>(lod.vertex_stream.allocate_data(RHIBufferFlags::VertexBuffer, vertex_count));
+				position.stride = sizeof(MeshVertexStream);
 
 				position.zeroes(vertex_count);
 			}
 
 			if (accessor_mask & Accessors::s_texcoord0_normal_tangent_mask)
 			{
-				MeshVertexAttribute attribute;
-				attribute.stream = lod.buffers.size();
-				attribute.offset = 0;
-
-				if (accessor_mask & Accessors::s_texcoord0_flag)
-				{
-					attribute.semantic = RHISemantic::TexCoord0;
-					attribute.format   = RHIVertexFormat::RG32F;
-					lod.attributes.insert(attribute);
-					uv0.address = attribute.offset;
-					attribute.offset += 8;
-				}
-
-				if (accessor_mask & Accessors::s_normals_flag)
-				{
-					attribute.semantic = RHISemantic::Normal;
-					attribute.format   = RHIVertexFormat::RGB32F;
-					lod.attributes.insert(attribute);
-					normal.address = attribute.offset;
-					attribute.offset += 12;
-				}
-
-				if (accessor_mask & Accessors::s_tangents_flag)
-				{
-					attribute.semantic = RHISemantic::Tangent;
-					attribute.format   = RHIVertexFormat::RGBA32F;
-					lod.attributes.insert(attribute);
-					tangent.address = attribute.offset;
-					attribute.offset += 16;
-				}
-
-				auto& buffer = lod.buffers.emplace_back();
-				u8* data     = buffer.allocate_data(RHIBufferFlags::VertexBuffer, attribute.offset, vertex_count);
-				memset(data, 0, vertex_count * attribute.offset);
-
-				uv0.data     = data + uv0.address;
-				normal.data  = data + normal.address;
-				tangent.data = data + tangent.address;
-
-				uv0.stride     = attribute.offset;
-				normal.stride  = attribute.offset;
-				tangent.stride = attribute.offset;
+				auto* data = lod.surface_stream.allocate_data(RHIBufferFlags::VertexBuffer, vertex_count);
+				memset(data, 0, vertex_count * sizeof(MeshSurfaceStream));
 			}
 
 			if (index_count > 0)
@@ -629,54 +617,56 @@ namespace Trinex::Importer
 				if (accessor.texcoords0)
 				{
 					usize stride;
-
-					u8* dst       = uv0.element(vertex_count);
 					const u8* src = buffer_address(model, accessor.texcoords0, stride);
+					auto* dst     = lod.surface_stream.data() + vertex_count;
 
-					switch (accessor.texcoords0->componentType)
+					if (stride == 0)
 					{
-						case TINYGLTF_COMPONENT_TYPE_BYTE:
-						{
-							if (stride == 0)
-								stride = 2;
+						stride = accessor_element_size(accessor.texcoords0);
+					}
 
-							memcpy_transform(dst, src, accessor.texcoords0->count, uv0.stride, stride, byte2_to_float2);
-							break;
-						}
-
-						case TINYGLTF_COMPONENT_TYPE_SHORT:
-						{
-							if (stride == 0)
-								stride = 4;
-
-							memcpy_transform(dst, src, accessor.texcoords0->count, uv0.stride, stride, ushort2_to_float2);
-							break;
-						}
-
-						default:
-						{
-							memcpy_elements(dst, src, 8, accessor.texcoords0->count, uv0.stride, stride);
-							break;
-						}
+					for (usize vertex = 0; vertex < accessor.texcoords0->count; ++vertex)
+					{
+						dst[vertex].uv0 = read_texcoord0(src + stride * vertex, accessor.texcoords0->componentType);
 					}
 				}
 
 				if (accessor.normals)
 				{
 					usize stride;
-
-					u8* dst       = normal.element(vertex_count);
 					const u8* src = buffer_address(model, accessor.normals, stride);
-					memcpy_elements(dst, src, 12, accessor.normals->count, normal.stride, stride);
+					auto* dst     = lod.surface_stream.data() + vertex_count;
+
+					if (stride == 0)
+					{
+						stride = accessor_element_size(accessor.normals);
+					}
+
+					for (usize vertex = 0; vertex < accessor.normals->count; ++vertex)
+					{
+						Vector3f value;
+						memcpy(&value, src + stride * vertex, sizeof(value));
+						dst[vertex].normal = pack_unorm4x8(Vector4f(value, 0.f));
+					}
 				}
 
 				if (accessor.tangents)
 				{
 					usize stride;
-
-					u8* dst       = tangent.element(vertex_count);
 					const u8* src = buffer_address(model, accessor.tangents, stride);
-					memcpy_elements(dst, src, 16, accessor.tangents->count, tangent.stride, stride);
+					auto* dst     = lod.surface_stream.data() + vertex_count;
+
+					if (stride == 0)
+					{
+						stride = accessor_element_size(accessor.tangents);
+					}
+
+					for (usize vertex = 0; vertex < accessor.tangents->count; ++vertex)
+					{
+						Vector4f value;
+						memcpy(&value, src + stride * vertex, sizeof(value));
+						dst[vertex].tangent = pack_unorm4x8(value);
+					}
 				}
 
 				if (accessor.indices)
@@ -728,12 +718,10 @@ namespace Trinex::Importer
 
 		void spawn_mesh(const String& name, StaticMesh* mesh, const Matrix4f& transform)
 		{
-			if (m_world == nullptr)
-				return;
-
-			StaticMeshActor* actor = create_actor<StaticMeshActor>(name, transform);
-			actor->mesh_component()->mesh(mesh);
-			actor->owner(m_world);
+			(void) name;
+			(void) mesh;
+			(void) transform;
+			// StaticMeshActor spawn is temporarily disabled while importer writes Mesh assets instead of StaticMesh.
 		}
 
 		void spawn_light(const String& name, const tinygltf::Model& model, i32 index, const Matrix4f& transform)
@@ -761,8 +749,8 @@ namespace Trinex::Importer
 				else
 				{
 					Vector3f offset;
-					StaticMesh* mesh = import_static_mesh(model, node.mesh, offset);
-					spawn_mesh(node.name, mesh, Math::translate(local, offset));
+					import_mesh(model, node.mesh, offset);
+					// spawn_mesh(node.name, mesh, Math::translate(local, offset));
 				}
 			}
 

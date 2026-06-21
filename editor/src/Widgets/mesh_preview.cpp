@@ -169,12 +169,12 @@ namespace Trinex
 
 		if (m_primitive)
 		{
-			auto bounds        = m_primitive->bounding_box().size();
-			float min_distance = Math::max(bounds.x, Math::max(bounds.y, bounds.z));
-			min_distance       = Math::length(Vector2f(min_distance, min_distance)) + m_camera->near + 0.01;
+			// auto bounds        = m_primitive->bounding_box().size();
+			// float min_distance = Math::max(bounds.x, Math::max(bounds.y, bounds.z));
+			// min_distance       = Math::length(Vector2f(min_distance, min_distance)) + m_camera->near + 0.01;
 
-			m_camera->location(m_current_location * min_distance * m_current_zoom);
-			m_camera->look_at({0.f, 0.f, 0.f});
+			// m_camera->location(m_current_location * min_distance * m_current_zoom);
+			// m_camera->look_at({0.f, 0.f, 0.f});
 		}
 		return *this;
 	}

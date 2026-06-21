@@ -33,8 +33,8 @@ namespace Trinex
 			for (PrimitiveComponent* component : components)
 			{
 				Matrix4f local_to_world = component->world_transform().matrix();
-				PrimitiveRenderingContext context(this, ctx, RenderPasses::Depth::static_instance(), &local_to_world);
-				component->render(&context);
+				// PrimitiveRenderingContext context(this, ctx, RenderPasses::Depth::static_instance(), &local_to_world);
+				//component->render(&context);
 			}
 		}
 		ctx->end_rendering();
@@ -93,8 +93,8 @@ namespace Trinex
 			for (PrimitiveComponent* component : components)
 			{
 				Matrix4f local_to_world = component->world_transform().matrix();
-				PrimitiveRenderingContext context(this, ctx, RenderPasses::Depth::static_instance(), &local_to_world);
-				component->render(&context);
+				// PrimitiveRenderingContext context(this, ctx, RenderPasses::Depth::static_instance(), &local_to_world);
+				//component->render(&context);
 			}
 		}
 		ctx->end_rendering();

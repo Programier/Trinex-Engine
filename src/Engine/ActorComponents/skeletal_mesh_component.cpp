@@ -20,27 +20,6 @@ namespace Trinex
 		r.method("SkeletalMeshComponent@ mesh(SkeletalMesh@ mesh) final", overload_of<SkeletalMeshComponent&()>(&This::mesh));
 	}
 
-	SkeletalMeshComponent& SkeletalMeshComponent::update_bounding_box()
-	{
-		if (mesh())
-		{
-			m_bounding_box = mesh()->bounds.transform(world_transform().matrix());
-		}
-		else
-		{
-			Super::update_bounding_box();
-		}
-		return *this;
-	}
-
-	usize SkeletalMeshComponent::materials_count() const
-	{
-		if (m_mesh)
-			return m_mesh->materials.size();
-
-		return 0;
-	}
-
 	MaterialInterface* SkeletalMeshComponent::material(usize index) const
 	{
 		if (MaterialInterface* material = Super::material(index))
@@ -50,53 +29,5 @@ namespace Trinex
 			return mesh()->materials[index];
 
 		return nullptr;
-	}
-
-	usize SkeletalMeshComponent::lods_count() const
-	{
-		return m_mesh->lods.size();
-	}
-
-	usize SkeletalMeshComponent::surfaces_count(usize lod) const
-	{
-		return m_mesh->lods[lod].surfaces.size();
-	}
-
-	const MeshSurface* SkeletalMeshComponent::surface(usize index, usize lod) const
-	{
-		return &m_mesh->lods[lod].surfaces[index];
-	}
-
-	const MeshVertexAttribute* SkeletalMeshComponent::vertex_attribute(RHISemantic semantic, usize lod)
-	{
-		return nullptr;
-	}
-
-	VertexBufferBase* SkeletalMeshComponent::vertex_buffer(u8 stream, usize lod)
-	{
-		return nullptr;
-	}
-
-	IndexBuffer* SkeletalMeshComponent::index_buffer(usize lod)
-	{
-		auto& buffer = m_mesh->lods[lod].indices;
-		return buffer.size() == 0 ? nullptr : &buffer;
-	}
-
-	SkeletalMeshComponent& SkeletalMeshComponent::render(PrimitiveRenderingContext* ctx)
-	{
-		static MaterialBindings skeletal_bindings;
-		static Name permutation                              = "SkeletalMesh";
-		static MaterialBindings::Binding* trx_skinning_bones = skeletal_bindings.find_or_create("trx_skinning_bones");
-
-		if ((ctx->pass = ctx->pass->find_permutation(permutation)))
-		{
-			skeletal_bindings.prev = ctx->bindings;
-			ctx->bindings          = &skeletal_bindings;
-
-			(*trx_skinning_bones) = m_bones->as_srv(RHIBufferViewType::ByteAddress);
-			Super::render(ctx);
-		}
-		return *this;
 	}
 }// namespace Trinex

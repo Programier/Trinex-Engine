@@ -19,9 +19,6 @@
 
 namespace Trinex
 {
-	static constexpr u32 cube    = 20;
-	static constexpr u32 objects = cube * cube * cube;
-
 	class ENGINE_EXPORT GeometryView : public GlobalGraphicsPipeline
 	{
 		trinex_declare_pipeline(GeometryView, GlobalGraphicsPipeline);
@@ -49,7 +46,7 @@ namespace Trinex
 	{
 		float aspect = static_cast<float>(size.x) / static_cast<float>(size.y);
 
-		const float offset = 40;
+		const float offset = 5;
 
 		Vector3f up = Math::normalize(Math::cross(Vector3f{0.f, -2.f, -2.f}, Vector3f{1.f, 0.f, 0.f}));
 		return CameraView::static_perspective({0, offset, offset}, {0, -offset, -offset}, up, Math::radians(75.f), aspect, 1.f,
@@ -92,7 +89,7 @@ namespace Trinex
 
 	RHIDescriptor DefaultClient::create_descriptor(RHIContext* ctx, const void* data, usize size)
 	{
-		return create_buffer(ctx, data, size)->as_uav(RHIBufferViewType::Structured)->descriptor();
+		return create_buffer(ctx, data, size)->as_uav(RHIBufferViewType::ByteAddress)->descriptor();
 	}
 
 	DefaultClient& DefaultClient::attach(class RenderViewport* viewport)
@@ -104,20 +101,21 @@ namespace Trinex
 		auto view = SceneView(m_world->scene(), camera(size), size);
 		uniform.update(&view);
 
-		auto ctx   = RHIContextPool::global_instance()->begin();
-		m_scene    = create_buffer(ctx, uniform);
-		m_indirect = create_buffer(ctx, objects * sizeof(RHIDrawIndirectCommand) + sizeof(u32));
+		auto ctx = RHIContextPool::global_instance()->begin();
+		m_scene  = create_buffer(ctx, uniform);
 
 		auto scene = m_world->scene();
+
+		u32 geometry_id  = 0;
+		u32 transfrom_id = 0;
 
 		// Step 1: Create Geometry
 		{
 			RenderScene::Geometry geometry;
-			geometry.vertices = 36;
 
 			const Vector3f positions[8] = {
-			        Vector3f(-0.5, -0.5, -0.5), Vector3f(0.5, -0.5, -0.5), Vector3f(0.5, 0.5, -0.5), Vector3f(-0.5, 0.5, -0.5),
-			        Vector3f(-0.5, -0.5, 0.5),  Vector3f(0.5, -0.5, 0.5),  Vector3f(0.5, 0.5, 0.5),  Vector3f(-0.5, 0.5, 0.5),
+			        Vector3f(-1.f, -1.f, -1.f), Vector3f(1.f, -1.f, -1.f), Vector3f(1.f, 1.f, -1.f), Vector3f(-1.f, 1.f, -1.f),
+			        Vector3f(-1.f, -1.f, 1.f),  Vector3f(1.f, -1.f, 1.f),  Vector3f(1.f, 1.f, 1.f),  Vector3f(-1.f, 1.f, 1.f),
 			};
 
 			const u32 indices[36] = {
@@ -137,68 +135,34 @@ namespace Trinex
 			geometry.index_stream.offset = 0;
 			geometry.index_stream.stride = sizeof(u32);
 
-			geometry.vertices = 36;
-
-			scene->create_geometry(geometry);// id = 0
+			geometry_id = scene->create_geometry(geometry);// id = 0
 		}
 
-		// Step 2: Create transforms
-		u32 heap = scene->create_heap_resource(objects * sizeof(Matrix4f));
 
-		// Step 3: Create instances
+		for (int i = 0; i < 5; ++i)
 		{
-			for (u32 i = 0; i < objects; ++i)
+			// Step 2: Create transforms
 			{
-				RenderScene::Primitive primitive;
-				primitive.transform = heap + i * sizeof(Matrix4f);
-				primitive.material  = 0;
-				primitive.geometry  = 0;
-				primitive.flags     = 0;
+				Matrix4f transform = Math::translate(Vector3f(i * 3, -i * 3, 0));
+				transfrom_id       = scene->allocate(sizeof(Matrix4f), &transform);
+			}
 
-				scene->create_primitive(primitive);
+			// Step 3: Create instances
+			{
+				scene->create_primitive({
+				        .transform = transfrom_id,
+				        .geometry  = geometry_id,
+				});
 			}
 		}
+
 
 		RHIContextPool::global_instance()->end(ctx);
 		return *this;
 	}
 
-	static void transform(Matrix4f& matrix, u32 index)
-	{
-		trinex_profile_cpu_n("Generate matrix");
-		const u32 cube_size = cube;
-		const float spacing = 2.5f;
-
-		float seconds = engine_instance->time_seconds() + index;
-
-		float speed = 45.0f;
-
-		const auto rotation = Math::rotate(Math::radians(seconds * speed * 1.0f), Vector3f(1.f, 0.f, 0.f)) *
-		                      Math::rotate(Math::radians(seconds * speed * 0.7f), Vector3f(0.f, 1.f, 0.f)) *
-		                      Math::rotate(Math::radians(seconds * speed * 1.3f), Vector3f(0.f, 0.f, 1.f));
-
-
-		u32 x = index % cube_size;
-		u32 y = (index / cube_size) % cube_size;
-		u32 z = index / (cube_size * cube_size);
-
-		Vector3f offset = Vector3f((float) x - (cube_size - 1) * 0.5f, (float) y - (cube_size - 1) * 0.5f,
-		                           (float) z - (cube_size - 1) * 0.5f);
-
-		matrix = Math::translate(offset * spacing) * rotation;
-	}
-
 	DefaultClient& DefaultClient::update(class RenderViewport* viewport, float dt)
 	{
-		// Update scene
-		printf("%d\n", int(1.f / dt));
-		{
-			auto scene         = m_world->scene();
-			Matrix4f* matrices = static_cast<Matrix4f*>(scene->heap_resource(48));
-			TaskGraph::instance()->for_each(objects, [matrices](usize index) { transform(matrices[index], index); });
-			scene->update_heap_resource(48, objects * sizeof(Matrix4f));
-		}
-
 		// Render
 		auto swapchain      = viewport->swapchain();
 		const Vector2u size = viewport->size();
@@ -226,7 +190,10 @@ namespace Trinex
 
 		ctx->begin_rendering({swapchain->as_rtv(), depth->as_dsv()});
 		{
-			GeometryView::render(ctx, m_scene, objects);
+			for (auto& chunk : m_world->scene()->chunks())
+			{
+				GeometryView::render(ctx, m_scene, chunk.count, chunk.address);
+			}
 		}
 		ctx->end_rendering();
 

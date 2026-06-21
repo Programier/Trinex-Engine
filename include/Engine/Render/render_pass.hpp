@@ -5,7 +5,6 @@ namespace Trinex
 {
 	class Material;
 	class ShaderCompilationEnvironment;
-	class RenderPassPermutation;
 
 	class RHIContext;
 	class Renderer;
@@ -19,14 +18,11 @@ namespace Trinex
 		static RenderPass* s_head;
 		static RenderPass* s_tail;
 
-		RenderPassPermutation* m_permutations = nullptr;
-		RenderPass* m_next                    = nullptr;
+		RenderPass* m_next = nullptr;
 		Name m_name;
 
 	protected:
 		inline RenderPass* static_instance() { return nullptr; }
-
-		RenderPass(const char* name, RenderPass* owner);
 
 	public:
 		RenderPass(const char* name);
@@ -48,33 +44,10 @@ namespace Trinex
 		virtual RenderPass* super_pass();
 		virtual String full_name() const;
 
-		RenderPassPermutation* find_permutation(const Name& name) const;
-
 		inline const Name& name() const { return m_name; }
 		inline RenderPass* next() const { return m_next; }
-		inline RenderPassPermutation* permutations() const { return m_permutations; }
 
 		virtual ~RenderPass();
-	};
-
-	class ENGINE_EXPORT RenderPassPermutation : public RenderPass
-	{
-	private:
-		RenderPass* m_owner;
-
-	public:
-		RenderPassPermutation(const char* name, RenderPass* owner);
-
-		RenderPassPermutation& begin(Renderer* renderer, RHIContext* ctx) override;
-		bool depth_stencil_state(RHIDepthStencilState& state) override;
-		bool blending_state(RHIBlendingState& state) override;
-		bool rasterizer_state(RHIRasterizerState& state) override;
-		RenderPassPermutation& end(Renderer* renderer, RHIContext* ctx) override;
-
-		bool is_material_compatible(const Material* material) override;
-		RenderPassPermutation& modify_shader_compilation_env(ShaderCompilationEnvironment* env) override;
-		String full_name() const override;
-		inline RenderPass* owner() const { return m_owner; }
 	};
 
 #define trinex_render_pass(pass_name, parent)                                                                                    \
@@ -114,32 +87,15 @@ private:
 	}                                                                                                                            \
 	pass_name::pass_name(const char* name) : Super(name)
 
-	namespace RenderPassPermutations
-	{
-		class ENGINE_EXPORT StaticMesh : public RenderPassPermutation
-		{
-		public:
-			StaticMesh(RenderPass* owner) : RenderPassPermutation("StaticMesh", owner) {}
-			StaticMesh& modify_shader_compilation_env(ShaderCompilationEnvironment* env) override;
-		};
-
-		class ENGINE_EXPORT SkeletalMesh : public RenderPassPermutation
-		{
-		public:
-			SkeletalMesh(RenderPass* owner) : RenderPassPermutation("SkeletalMesh", owner) {}
-			SkeletalMesh& modify_shader_compilation_env(ShaderCompilationEnvironment* env) override;
-		};
-	}// namespace RenderPassPermutations
-
 	namespace RenderPasses
 	{
 		// Generic render pass with only depth buffer
-		class ENGINE_EXPORT Depth : public RenderPass
-		{
-			trinex_render_pass(Depth, RenderPass);
-			bool is_material_compatible(const Material* material) override;
-			Depth& modify_shader_compilation_env(ShaderCompilationEnvironment* env) override;
-		};
+		// class ENGINE_EXPORT Depth : public RenderPass
+		// {
+		// 	trinex_render_pass(Depth, RenderPass);
+		// 	bool is_material_compatible(const Material* material) override;
+		// 	Depth& modify_shader_compilation_env(ShaderCompilationEnvironment* env) override;
+		// };
 
 		// Generic render pass with four color attachments
 		class ENGINE_EXPORT Geometry : public RenderPass
@@ -154,15 +110,15 @@ private:
 			bool blending_state(RHIBlendingState& state) override;
 		};
 
-		class ENGINE_EXPORT Translucent : public RenderPass
-		{
-			trinex_render_pass(Translucent, RenderPass);
+		// class ENGINE_EXPORT Translucent : public RenderPass
+		// {
+		// 	trinex_render_pass(Translucent, RenderPass);
 
-		public:
-			bool is_material_compatible(const Material* material) override;
-			Translucent& modify_shader_compilation_env(ShaderCompilationEnvironment* env) override;
+		// public:
+		// 	bool is_material_compatible(const Material* material) override;
+		// 	Translucent& modify_shader_compilation_env(ShaderCompilationEnvironment* env) override;
 
-			Translucent& begin(Renderer* renderer, RHIContext* ctx) override;
-		};
+		// 	Translucent& begin(Renderer* renderer, RHIContext* ctx) override;
+		// };
 	}// namespace RenderPasses
 }// namespace Trinex
