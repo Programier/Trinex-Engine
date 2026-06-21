@@ -69,7 +69,7 @@ namespace Lighting
 		float slope_scale;
 
 		[ForceInline] 
-		float sample(SamplerComparisonState sampler, float2 uv, int2 offset, float depth)
+		float sample(SamplerComparisonState sampler, float2 uv, constexpr int2 offset, float depth)
 		{
 			return shadow_map.SampleCmpLevelZero(sampler, uv, depth, offset);
 		}
@@ -81,7 +81,7 @@ namespace Lighting
 		float4x4 projview;
 
 		[ForceInline]
-		float sample(SamplerComparisonState sampler, float2 uv, int2 offset, float depth)
+		float sample(SamplerComparisonState sampler, float2 uv, constexpr int2 offset, float depth)
 		{
 			return shadow_map.SampleCmpLevelZero(sampler, uv, depth, offset);
 		}

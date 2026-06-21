@@ -12,7 +12,7 @@ endif()
 if(SLANG_LIBRARIES_DIR)
     target_link_directories(${TRINEX_EDITOR_TARGET} PRIVATE ${SLANG_LIBRARIES_DIR})
     target_include_directories(${TRINEX_EDITOR_TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-    target_link_libraries(${TRINEX_EDITOR_TARGET} PRIVATE slang)
+    target_link_libraries(${TRINEX_EDITOR_TARGET} PRIVATE slang-compiler)
     
     install(DIRECTORY "${SLANG_LIBRARIES_DIR}/" DESTINATION "${TRINEX_LIBRARIES_INSTALL_DIR}" FILES_MATCHING PATTERN "*.*")
 endif()
