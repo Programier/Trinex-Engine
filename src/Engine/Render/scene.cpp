@@ -15,28 +15,38 @@
 
 namespace Trinex
 {
-	RenderScene::RenderScene() : m_cpu_heap(1)
+	RenderScene::RenderScene()
 	{
-		m_heap_allocator.init(scene_heap_allocator, &m_cpu_heap);
-		init();
+		static auto callback = +[](std::size_t size, void* userdata) -> void* {
+			return static_cast<RenderScene*>(userdata)->heap_allocator(size);
+		};
+
+		m_heap_allocator.init(callback, this);
 	}
 
 	RenderScene::~RenderScene()
 	{
-		m_gpu_heap->release();
+		if (m_gpu_heap)
+			m_gpu_heap->release();
 	}
 
-	void* RenderScene::scene_heap_allocator(std::size_t size, void* userdata)
+	void* RenderScene::heap_allocator(usize size)
 	{
-		Vector<HeapPage>* buffer = static_cast<Vector<HeapPage>*>(userdata);
-
-		if (buffer->storage().size() < size)
+		if (m_cpu_heap.size() < size)
 		{
-			size = align_up(size, sizeof(HeapPage)) / sizeof(HeapPage);
-			buffer->resize(size);
+			if (m_cpu_heap.size() > 0)
+			{
+				m_commands.push_back({
+				        .begin = 0,
+				        .end   = static_cast<u32>(m_cpu_heap.size()),
+				});
+			}
+
+			size = align_up(size, 4096);
+			m_cpu_heap.resize(size);
 		}
 
-		return buffer->data();
+		return m_cpu_heap.data();
 	}
 
 	void RenderScene::execute_command(RHIContext* ctx, const Command& command)
@@ -54,6 +64,13 @@ namespace Trinex
 	void RenderScene::execute_commands(RHIContext* ctx)
 	{
 		trinex_profile_cpu_n("RenderScene::execute_commands");
+
+		if (m_gpu_heap == nullptr && m_cpu_heap.size() > 0)
+		{
+			RHIBufferFlags flags = RHIBufferFlags::DeviceAddress | RHIBufferFlags::TransferDst |
+			                       RHIBufferFlags::ByteAddressBuffer | RHIBufferFlags::ShaderResource;
+			m_gpu_heap = RHI::instance()->create_buffer(m_cpu_heap.size(), flags);
+		}
 
 		if (m_commands.empty())
 			return;
@@ -85,28 +102,6 @@ namespace Trinex
 		ctx->barrier(m_gpu_heap, RHIAccess::SRVGraphics | RHIAccess::SRVCompute);
 
 		m_commands.clear();
-	}
-
-	void RenderScene::init()
-	{
-		RHIBufferFlags flags = RHIBufferFlags::DeviceAddress | RHIBufferFlags::TransferDst | RHIBufferFlags::ByteAddressBuffer |
-		                       RHIBufferFlags::ShaderResource;
-		m_gpu_heap = RHI::instance()->create_buffer(m_cpu_heap.capacity() * sizeof(HeapPage), flags);
-
-		// Update buffer
-		m_commands.push_back(Command{
-		        .begin = 0,
-		        .end   = static_cast<u32>(m_cpu_heap.capacity() * sizeof(HeapPage)),
-		});
-	}
-
-	void RenderScene::sync()
-	{
-		if (m_cpu_heap.capacity() * sizeof(HeapPage) != m_gpu_heap->size())
-		{
-			m_gpu_heap->release();
-			init();
-		}
 	}
 
 	RenderScene::Chunk* RenderScene::prepare_chunk(RenderScene::Chunk* chunk, u32 required_space)
@@ -178,7 +173,6 @@ namespace Trinex
 	RenderScene& RenderScene::flush(RHIContext* ctx)
 	{
 		trinex_profile_cpu_n("RenderScene::flush");
-		sync();
 		execute_commands(ctx);
 		return *this;
 	}
@@ -186,7 +180,7 @@ namespace Trinex
 	u32 RenderScene::allocate(u32 size, const void* data)
 	{
 		void* ptr   = m_heap_allocator.alloc(size, 16);
-		u32 address = static_cast<u8*>(ptr) - m_cpu_heap.data()->as<u8>();
+		u32 address = static_cast<u8*>(ptr) - m_cpu_heap.data();
 
 		if (data)
 		{
@@ -198,18 +192,8 @@ namespace Trinex
 
 	RenderScene& RenderScene::free(u32 address)
 	{
-		m_heap_allocator.free(m_cpu_heap.data()->as<u8>() + address);
+		m_heap_allocator.free(map(address));
 		return *this;
-	}
-
-	void* RenderScene::map(u32 address)
-	{
-		return m_cpu_heap.data()->as<u8>() + address;
-	}
-
-	const void* RenderScene::map(u32 address) const
-	{
-		return m_cpu_heap.data()->as<u8>() + address;
 	}
 
 	RenderScene& RenderScene::update(u32 address, u32 size)
@@ -225,7 +209,7 @@ namespace Trinex
 	RenderScene& RenderScene::update(u32 address, const void* data, u32 size)
 	{
 		trinex_profile_cpu_n("RenderScene::update_transform");
-		memcpy(m_cpu_heap.data()->as<u8>() + address, data, size);
+		memcpy(map(address), data, size);
 
 		m_commands.emplace_back(Command{
 		        .begin = address,

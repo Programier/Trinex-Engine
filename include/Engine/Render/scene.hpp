@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/etl/sparce_vector.hpp>
+#include <Core/etl/vector.hpp>
 #include <Core/math/box.hpp>
 #include <Core/math/matrix.hpp>
 #include <Engine/enviroment.hpp>
@@ -82,27 +82,13 @@ namespace Trinex
 		};
 
 	private:
-		struct alignas(4096) HeapPage {
-			template<typename T>
-			T* as()
-			{
-				return reinterpret_cast<T*>(this);
-			}
-
-			template<typename T>
-			const T* as() const
-			{
-				return reinterpret_cast<const T*>(this);
-			}
-		};
-
 		struct Command {
 			u32 begin;
 			u32 end;
 			inline bool operator<(const Command& other) const { return begin < other.begin; }
 		};
 
-		Vector<HeapPage> m_cpu_heap;
+		Vector<u8> m_cpu_heap;
 		RHIBuffer* m_gpu_heap = nullptr;
 
 		tlsf::Allocator m_heap_allocator;
@@ -111,12 +97,9 @@ namespace Trinex
 		Vector<Chunk> m_chunks;
 
 	private:
-		static void* scene_heap_allocator(std::size_t size, void* userdata);
+		void* heap_allocator(usize size);
 		void execute_command(RHIContext* ctx, const Command& command);
 		void execute_commands(RHIContext* ctx);
-
-		void init();
-		void sync();
 
 		Chunk* prepare_chunk(Chunk* chunk, u32 required_space = 1);
 		Chunk* find_chunk(Material* material, u32 required_space = 1);
@@ -136,9 +119,6 @@ namespace Trinex
 		u32 allocate(u32 size, const void* data = nullptr);
 		RenderScene& free(u32 address);
 
-		void* map(u32 address);
-		const void* map(u32 address) const;
-
 		RenderScene& update(u32 address, u32 size);
 		RenderScene& update(u32 address, const void* data, u32 size);
 
@@ -150,6 +130,9 @@ namespace Trinex
 		inline u32 create_primitive(const Primitive& desc) { return create_primitive(&desc, 1); }
 		const Primitive& primitive(u32 address, u32 idx = 0) const;
 		RenderScene& release_primitive(u32 address);
+
+		inline void* map(u32 address) { return m_cpu_heap.data() + address; }
+		inline const void* map(u32 address) const { return m_cpu_heap.data() + address; }
 
 		template<typename T>
 		inline T* map(u32 address)
