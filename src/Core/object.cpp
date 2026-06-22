@@ -252,12 +252,7 @@ namespace Trinex
 		Object* old_owner = m_owner;
 		Name old_name     = m_name;
 
-		bool result = true;
-
-		if (new_owner != m_owner)
-		{
-			result = owner(nullptr);
-		}
+		bool result = owner(nullptr);
 
 		if (result)
 		{
