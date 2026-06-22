@@ -1,7 +1,5 @@
 #pragma once
-#include <Core/archive.hpp>
-#include <Core/callback.hpp>
-#include <Core/etl/map.hpp>
+#include <Core/etl/function.hpp>
 #include <Core/etl/vector.hpp>
 #include <Core/object.hpp>
 #include <RHI/structures.hpp>
@@ -17,77 +15,23 @@ namespace Trinex
 	class ShaderCompilationEnvironment
 	{
 	public:
-		virtual ShaderCompilationEnvironment& add_module(const char* module) = 0;
-		virtual ShaderCompilationEnvironment& add_source(const char* source) = 0;
+		virtual ShaderCompilationEnvironment& add_module(const char* module)                 = 0;
+		virtual ShaderCompilationEnvironment& add_source(const char* source)                 = 0;
 		virtual ShaderCompilationEnvironment& add_specialization_arg(const char* expression) = 0;
 
-		virtual usize modules_count() const = 0;
-		virtual usize sources_count() const = 0;
+		virtual usize modules_count() const             = 0;
+		virtual usize sources_count() const             = 0;
 		virtual usize specialization_args_count() const = 0;
 
-		virtual const char* module(usize index) const = 0;
-		virtual const char* source(usize index) const = 0;
+		virtual const char* module(usize index) const             = 0;
+		virtual const char* source(usize index) const             = 0;
 		virtual const char* specialization_arg(usize index) const = 0;
-	};
-
-	struct ShaderSpecializationArgument {
-		String expression;
-
-		inline bool serialize(class Archive& ar)
-		{
-			return ar.serialize(expression);
-		}
-	};
-
-	struct ShaderPermutationKey {
-		Name name;
-		TreeMap<Name, String, Name::Less> options;
-
-		inline String canonical_name() const
-		{
-			if (name.is_valid())
-				return name.to_string();
-
-			String result;
-
-			for (auto& [key, value] : options)
-			{
-				if (!result.empty())
-					result += "_";
-
-				result += key.to_string();
-				result += "_";
-				result += value;
-			}
-
-			return result;
-		}
-
-		inline bool serialize(class Archive& ar)
-		{
-			return ar.serialize(name, options);
-		}
-	};
-
-	struct ShaderPermutationDescriptor {
-		ShaderPermutationKey key;
-		Vector<ShaderSpecializationArgument> specialization_args;
-
-		inline String canonical_name() const
-		{
-			return key.canonical_name();
-		}
-
-		inline bool serialize(class Archive& ar)
-		{
-			return ar.serialize(key, specialization_args);
-		}
 	};
 
 	class ShaderCompilationResult
 	{
 	public:
-		ShaderPermutationDescriptor permutation;
+		Name permutation;
 
 		struct Shaders {
 			Buffer vertex;
@@ -124,7 +68,7 @@ namespace Trinex
 		trinex_class(ShaderCompiler, Object);
 
 	public:
-		using CompileCallback = CallBack<bool(const ShaderCompilationResult&)>;
+		using CompileCallback = Function<bool(const ShaderCompilationResult&)>;
 
 	public:
 		template<template<class T> typename AllocatorType = Allocator>
@@ -172,7 +116,7 @@ namespace Trinex
 	public:
 		ShaderCompiler();
 		~ShaderCompiler();
-		
+
 		static ShaderCompiler* instance(const StringView& api_name = "");
 		bool compile(const ShaderCompilationEnvironment* env, ShaderCompilationResult& result);
 		virtual bool compile(const ShaderCompilationEnvironment* env, const CompileCallback& callback) = 0;

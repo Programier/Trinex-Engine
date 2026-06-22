@@ -685,6 +685,11 @@ namespace Trinex
 
 	namespace
 	{
+		struct SlangShaderPermutation {
+			Name name;
+			Vector<String> specialization_args;
+		};
+
 		static bool append_attribute_argument(String& out, slang::Attribute* attribute, u32 index)
 		{
 			size_t size = 0;
@@ -705,15 +710,15 @@ namespace Trinex
 			return false;
 		}
 
-		static bool parse_specialization_attribute(slang::Attribute* attribute, ShaderSpecializationArgument& out)
+		static bool parse_specialization_attribute(slang::Attribute* attribute, String& out)
 		{
 			if (attribute == nullptr || attribute->getArgumentCount() == 0)
 				return false;
 
-			return append_attribute_argument(out.expression, attribute, 0);
+			return append_attribute_argument(out, attribute, 0);
 		}
 
-		static bool collect_permutations_from_decl(slang::DeclReflection* decl, Vector<ShaderPermutationDescriptor>& out)
+		static bool collect_permutations_from_decl(slang::DeclReflection* decl, Vector<SlangShaderPermutation>& out)
 		{
 			if (decl == nullptr)
 				return true;
@@ -728,7 +733,7 @@ namespace Trinex
 						return false;
 					}
 
-					ShaderPermutationDescriptor permutation;
+					SlangShaderPermutation permutation;
 					size_t size      = 0;
 					const char* name = pipeline_attribute->getArgumentValueString(0, &size);
 
@@ -738,7 +743,7 @@ namespace Trinex
 						return false;
 					}
 
-					permutation.key.name = StringView(name, size);
+					permutation.name = StringView(name, size);
 
 					for (unsigned int i = 0, count = type->getUserAttributeCount(); i < count; ++i)
 					{
@@ -751,7 +756,7 @@ namespace Trinex
 						if (!parse_specialization_attribute(attribute, specialization_arg))
 						{
 							error_log("ShaderCompiler", "Failed to parse trinex_specialize on permutation '%s'",
-							          permutation.key.name.c_str());
+							          permutation.name.c_str());
 							return false;
 						}
 					}
@@ -848,11 +853,6 @@ namespace Trinex
 		}
 	}
 
-	bool SLANG_ShaderCompiler::submit_result(ShaderCompilationResult& result)
-	{
-		return true;
-	}
-
 	bool SLANG_ShaderCompiler::compile(const ShaderCompilationEnvironment* env, const CompileCallback& callback)
 	{
 		StackByteAllocator::Mark mark;
@@ -860,7 +860,7 @@ namespace Trinex
 		StackVector<slang::IModule*> source_modules;
 		StackVector<Slang::ComPtr<slang::IMetadata>> metadata;
 		StackVector<slang::SpecializationArg> specialization_args;
-		Vector<ShaderPermutationDescriptor> permutations;
+		Vector<SlangShaderPermutation> permutations;
 
 		components.reserve(env->sources_count() + env->modules_count() + 12);
 		source_modules.reserve(env->sources_count());
@@ -929,16 +929,16 @@ namespace Trinex
 		if (permutations.empty())
 		{
 			permutations.push_back({});
-			permutations.back().key.name = "Default";
+			permutations.back().name = "Default";
 		}
 
-		for (const ShaderPermutationDescriptor& permutation : permutations)
+		for (const SlangShaderPermutation& permutation : permutations)
 		{
 			metadata.clear();
 			specialization_args.clear();
 
 			ShaderCompilationResult result;
-			result.permutation = permutation;
+			result.permutation = permutation.name;
 
 			ShaderInfo shader_infos[] = {
 			        {&result.shaders.vertex, "vertex_main"},                            //
@@ -1001,7 +1001,7 @@ namespace Trinex
 			Slang::ComPtr<slang::IComponentType> program;
 
 			for (const auto& specialization_arg : permutation.specialization_args)
-				specialization_args.push_back(slang::SpecializationArg::fromExpr(specialization_arg.expression.c_str()));
+				specialization_args.push_back(slang::SpecializationArg::fromExpr(specialization_arg.c_str()));
 
 			for (usize i = 0, count = env->specialization_args_count(); i < count; ++i)
 				specialization_args.push_back(slang::SpecializationArg::fromExpr(env->specialization_arg(i)));
@@ -1071,9 +1071,6 @@ namespace Trinex
 					return false;
 			}
 
-			if (!submit_result(result))
-				return false;
-
 			if (!callback(result))
 				return false;
 		}
@@ -1086,95 +1083,6 @@ namespace Trinex
 		trinex_unreachable_msg("Something is wrong! Cannot compile shaders for None API!");
 	}
 
-	bool VULKAN_ShaderCompiler::strip_vertex_inputs(const u32* spirv, const u32 words, Vector<RHIInputAttribute>& attributes)
-	{
-		if (words < 5)
-			return false;
-
-		StackByteAllocator::Mark mark;
-
-		FlatSet<u32, Less<u32>, StackAllocator<u32>> inputs;
-		FlatSet<u32, Less<u32>, StackAllocator<u32>> locations;
-		inputs.reserve(attributes.size());
-		locations.reserve(attributes.size());
-
-		// Collect all vertex inputs
-		{
-			usize i = 5;
-			while (i < words)
-			{
-				u16 wc = SPIRV::wordcount(spirv[i]);
-				u16 op = SPIRV::opcode(spirv[i]);
-
-				if (wc == 0 || i + wc > words)
-					return false;
-
-				if (op == SPIRV::OpVariable && wc >= 4)
-				{
-					u32 target  = spirv[i + 2];
-					u32 storage = spirv[i + 3];
-
-					if (storage == SPIRV::StorageClass_Input)
-						inputs.insert(target);
-				}
-
-				i += wc;
-			}
-		}
-
-		if (inputs.empty())
-		{
-			attributes.clear();
-			attributes.shrink_to_fit();
-			return true;
-		}
-
-		// Collect all vertex locations
-		{
-			usize i = 5;
-			while (i < words && inputs.size() != locations.size())
-			{
-				u32 first = spirv[i];
-				u16 wc    = SPIRV::wordcount(first);
-				u16 op    = SPIRV::opcode(first);
-
-				if (wc == 0 || i + wc > words)
-					return false;
-
-				if (op == SPIRV::OpDecorate)
-				{
-					u32 target     = spirv[i + 1];
-					u32 decoration = spirv[i + 2];
-
-					if (decoration == SPIRV::Decoration_Location && inputs.contains(target))
-						locations.insert(spirv[i + 3]);
-				}
-
-				i += wc;
-			}
-		}
-
-		{
-			usize index = 0;
-			usize count = attributes.size();
-
-			while (index < count)
-			{
-				if (locations.contains(attributes[index].binding))
-				{
-					++index;
-				}
-				else
-				{
-					attributes.erase(attributes.begin() + index);
-					--count;
-				}
-			}
-		}
-
-		return true;
-	}
-
 	void VULKAN_ShaderCompiler::initialize_context(SessionInitializer* session)
 	{
 		Super::initialize_context(session);
@@ -1182,21 +1090,6 @@ namespace Trinex
 		session->target_desc.format  = SLANG_SPIRV;
 		session->target_desc.profile = g_slang_global_session->findProfile("spirv_1_3");
 		session->add_definition("TRINEX_VULKAN_RHI", "1");
-	}
-
-	bool VULKAN_ShaderCompiler::submit_result(ShaderCompilationResult& result)
-	{
-		bool status = Super::submit_result(result);
-
-		if (status && !result.reflection.vertex_attributes.empty())
-		{
-			const u32* spirv = reinterpret_cast<u32*>(result.shaders.vertex.data());
-			const u32 words  = result.shaders.vertex.size() / 4;
-
-			status = strip_vertex_inputs(spirv, words, result.reflection.vertex_attributes);
-		}
-
-		return status;
 	}
 
 	void D3D12_ShaderCompiler::initialize_context(SessionInitializer* session)

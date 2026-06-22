@@ -12,8 +12,7 @@ namespace Trinex
 {
 	trinex_implement_engine_class_default_init(PipelineLibrary, 0);
 
-	PipelineLibrary::PipelineLibrary()
-	{}
+	PipelineLibrary::PipelineLibrary() {}
 
 	PipelineLibrary::~PipelineLibrary()
 	{
@@ -44,11 +43,6 @@ namespace Trinex
 		return m_shader_path;
 	}
 
-	const Vector<ShaderPermutationDescriptor>& PipelineLibrary::permutations() const
-	{
-		return m_permutations;
-	}
-
 	const PipelineLibrary::Pipelines& PipelineLibrary::pipelines() const
 	{
 		return m_pipelines;
@@ -59,10 +53,9 @@ namespace Trinex
 		return *this;
 	}
 
-	Pipeline* PipelineLibrary::create_pipeline_instance(u8 type, const ShaderPermutationDescriptor& permutation)
+	Pipeline* PipelineLibrary::create_pipeline_instance(u8 type, Name name)
 	{
 		Pipeline* pipeline = nullptr;
-		const String name  = permutation.canonical_name();
 
 		switch (type)
 		{
@@ -74,21 +67,20 @@ namespace Trinex
 		return pipeline;
 	}
 
-	PipelineLibrary& PipelineLibrary::initialize_pipeline(Pipeline* pipeline, const ShaderPermutationDescriptor& permutation)
+	PipelineLibrary& PipelineLibrary::initialize_pipeline(Pipeline* pipeline, Name name)
 	{
 		return *this;
 	}
 
-	String PipelineLibrary::permutation_cache_name(const ShaderPermutationDescriptor& permutation) const
+	String PipelineLibrary::permutation_cache_name(Name name) const
 	{
-		return Strings::format("{}::{}", full_name(), permutation.canonical_name());
+		return Strings::format("{}::{}", full_name(), name.to_string());
 	}
 
 	bool PipelineLibrary::compile_permutation(const ShaderCompilationResult& result)
 	{
-		const ShaderPermutationDescriptor& permutation = result.permutation;
 		PipelineLibraryCache cache;
-		const String cache_name = permutation_cache_name(permutation);
+		const String cache_name = permutation_cache_name(result.permutation);
 		Pipeline* pipeline      = nullptr;
 
 		if (!cache.load(cache_name))
@@ -101,19 +93,18 @@ namespace Trinex
 			}
 		}
 
-		pipeline = create_pipeline_instance(cache.type, permutation);
+		pipeline = create_pipeline_instance(cache.type, result.permutation);
 
 		if (pipeline == nullptr)
 		{
-			error_log("PipelineLibrary", "Failed to create pipeline instance for permutation '%s'",
-			          permutation.canonical_name().c_str());
+			error_log("PipelineLibrary", "Failed to create pipeline instance for permutation '%s'", result.permutation.c_str());
 			return false;
 		}
 
 		cache.apply_to(pipeline);
-		initialize_pipeline(pipeline, permutation);
+		initialize_pipeline(pipeline, result.permutation);
 		pipeline->init_render_resources();
-		m_pipelines[permutation.canonical_name()] = pipeline;
+		m_pipelines[result.permutation] = pipeline;
 		return true;
 	}
 
@@ -147,31 +138,26 @@ namespace Trinex
 		}
 
 		clear_pipelines();
-		m_permutations.clear();
 
 		ShaderCompiler::StackEnvironment env;
 		env.add_source(source.c_str());
 		modify_compilation_env(&env);
 
-		return compiler->compile(&env, [&](const ShaderCompilationResult& result) {
-			m_permutations.push_back(result.permutation);
-			return compile_permutation(result);
-		});
+		return compiler->compile(&env, [this](const ShaderCompilationResult& result) { return compile_permutation(result); });
 	}
 
-	Pipeline* PipelineLibrary::find_pipeline(const ShaderPermutationKey& key) const
+	Pipeline* PipelineLibrary::find_pipeline(const Name& key) const
 	{
-		const String name = key.canonical_name();
-		auto it           = m_pipelines.find(name);
+		auto it = m_pipelines.find(key);
 		return it == m_pipelines.end() ? nullptr : it->second;
 	}
 
-	GraphicsPipeline* PipelineLibrary::find_graphics_pipeline(const ShaderPermutationKey& key) const
+	GraphicsPipeline* PipelineLibrary::find_graphics_pipeline(const Name& key) const
 	{
 		return Object::instance_cast<GraphicsPipeline>(find_pipeline(key));
 	}
 
-	ComputePipeline* PipelineLibrary::find_compute_pipeline(const ShaderPermutationKey& key) const
+	ComputePipeline* PipelineLibrary::find_compute_pipeline(const Name& key) const
 	{
 		return Object::instance_cast<ComputePipeline>(find_pipeline(key));
 	}

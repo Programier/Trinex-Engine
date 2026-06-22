@@ -122,7 +122,6 @@ namespace Trinex
 		~SLANG_ShaderCompiler();
 		SLANG_ShaderCompiler& on_create() override;
 		virtual void initialize_context(SessionInitializer* session);
-		virtual bool submit_result(ShaderCompilationResult& result);
 		bool compile(const ShaderCompilationEnvironment* env, const CompileCallback& callback) override;
 	};
 
@@ -138,26 +137,8 @@ namespace Trinex
 	{
 		trinex_class(VULKAN_ShaderCompiler, SLANG_ShaderCompiler);
 
-	private:
-		struct SPIRV {
-			enum Opcodes
-			{
-				OpDecorate = 71,
-				OpVariable = 59,
-			};
-
-			static constexpr u32 Decoration_Location = 30;
-			static constexpr u32 StorageClass_Input  = 1;
-
-			static inline u16 wordcount(u32 w) { return static_cast<u16>(w >> 16); }
-			static inline u16 opcode(u32 w) { return static_cast<u16>(w & 0xFFFF); }
-		};
-
-		static bool strip_vertex_inputs(const u32* spirv, const u32 words, Vector<RHIInputAttribute>& attributes);
-
 	public:
 		void initialize_context(SessionInitializer* session) override;
-		bool submit_result(ShaderCompilationResult& result) override;
 	};
 
 	class D3D12_ShaderCompiler : public SLANG_ShaderCompiler

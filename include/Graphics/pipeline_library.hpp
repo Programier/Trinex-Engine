@@ -3,7 +3,6 @@
 #include <Core/filesystem/path.hpp>
 #include <Core/pointer.hpp>
 #include <Graphics/render_resource.hpp>
-#include <Graphics/shader_compiler.hpp>
 
 namespace Trinex
 {
@@ -11,6 +10,8 @@ namespace Trinex
 	class GraphicsPipeline;
 	class ComputePipeline;
 	class ShaderCompiler;
+	class ShaderCompilationEnvironment;
+	class ShaderCompilationResult;
 	struct PipelineLibraryCache;
 
 	class ENGINE_EXPORT PipelineLibrary : public RenderResource
@@ -18,11 +19,10 @@ namespace Trinex
 		trinex_class(PipelineLibrary, RenderResource);
 
 	public:
-		using Pipelines = TreeMap<String, Pointer<Pipeline>>;
+		using Pipelines = TreeMap<Name, Pointer<Pipeline>>;
 
 	private:
 		Path m_shader_path;
-		Vector<ShaderPermutationDescriptor> m_permutations;
 		Pipelines m_pipelines;
 
 		bool compile_permutation(const ShaderCompilationResult& result);
@@ -30,9 +30,9 @@ namespace Trinex
 
 	protected:
 		virtual PipelineLibrary& modify_compilation_env(ShaderCompilationEnvironment* env);
-		virtual Pipeline* create_pipeline_instance(u8 type, const ShaderPermutationDescriptor& permutation);
-		virtual PipelineLibrary& initialize_pipeline(Pipeline* pipeline, const ShaderPermutationDescriptor& permutation);
-		virtual String permutation_cache_name(const ShaderPermutationDescriptor& permutation) const;
+		virtual Pipeline* create_pipeline_instance(u8 type, Name name);
+		virtual PipelineLibrary& initialize_pipeline(Pipeline* pipeline, Name name);
+		virtual String permutation_cache_name(Name name) const;
 
 	public:
 		PipelineLibrary();
@@ -40,16 +40,12 @@ namespace Trinex
 
 		PipelineLibrary& shader_path(const Path& path);
 		const Path& shader_path() const;
-		const Vector<ShaderPermutationDescriptor>& permutations() const;
 		const Pipelines& pipelines() const;
 
-		// Permutations are discovered from the source module via:
-		// [TrinexPipeline("VariantName")]
-		// [TrinexSpecialize("Expression")]
 		bool compile(ShaderCompiler* compiler = nullptr);
-		Pipeline* find_pipeline(const ShaderPermutationKey& key) const;
-		GraphicsPipeline* find_graphics_pipeline(const ShaderPermutationKey& key) const;
-		ComputePipeline* find_compute_pipeline(const ShaderPermutationKey& key) const;
+		Pipeline* find_pipeline(const Name& key) const;
+		GraphicsPipeline* find_graphics_pipeline(const Name& key) const;
+		ComputePipeline* find_compute_pipeline(const Name& key) const;
 
 		PipelineLibrary& release_render_resources() override;
 	};
