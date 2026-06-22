@@ -27,6 +27,19 @@ struct nameAttribute
 	string name;
 }
 
+[__AttributeUsage(_AttributeTargets.Struct)]
+struct trinex_pipelineAttribute
+{
+	string name;
+}
+
+[__AttributeUsage(_AttributeTargets.Struct)]
+struct trinex_specializeAttribute
+{
+	string expr;
+}
+
+
 // OPERATORS SECTION
 
 [ForceInline]

@@ -683,6 +683,94 @@ namespace Trinex
 	trinex_implement_class_default_init(Trinex::NONE_ShaderCompiler, 0);
 	trinex_implement_class_default_init(Trinex::D3D12_ShaderCompiler, 0);
 
+	namespace
+	{
+		static bool append_attribute_argument(String& out, slang::Attribute* attribute, u32 index)
+		{
+			size_t size = 0;
+
+			if (const char* string_value = attribute->getArgumentValueString(index, &size))
+			{
+				out.append(string_value, size);
+				return true;
+			}
+
+			int int_value = 0;
+			if (attribute->getArgumentValueInt(index, &int_value) == SLANG_OK)
+			{
+				out += Strings::format("{}", int_value);
+				return true;
+			}
+
+			return false;
+		}
+
+		static bool parse_specialization_attribute(slang::Attribute* attribute, ShaderSpecializationArgument& out)
+		{
+			if (attribute == nullptr || attribute->getArgumentCount() == 0)
+				return false;
+
+			return append_attribute_argument(out.expression, attribute, 0);
+		}
+
+		static bool collect_permutations_from_decl(slang::DeclReflection* decl, Vector<ShaderPermutationDescriptor>& out)
+		{
+			if (decl == nullptr)
+				return true;
+
+			if (auto* type = decl->getType())
+			{
+				if (auto* pipeline_attribute = type->findUserAttributeByName("trinex_pipeline"))
+				{
+					if (pipeline_attribute->getArgumentCount() != 1)
+					{
+						error_log("ShaderCompiler", "trinex_pipeline attribute must have exactly one argument");
+						return false;
+					}
+
+					ShaderPermutationDescriptor permutation;
+					size_t size      = 0;
+					const char* name = pipeline_attribute->getArgumentValueString(0, &size);
+
+					if (name == nullptr)
+					{
+						error_log("ShaderCompiler", "Failed to parse trinex_pipeline attribute");
+						return false;
+					}
+
+					permutation.key.name = StringView(name, size);
+
+					for (unsigned int i = 0, count = type->getUserAttributeCount(); i < count; ++i)
+					{
+						auto* attribute = type->getUserAttributeByIndex(i);
+
+						if (std::strcmp(attribute->getName(), "trinex_specialize") != 0)
+							continue;
+
+						auto& specialization_arg = permutation.specialization_args.emplace_back();
+						if (!parse_specialization_attribute(attribute, specialization_arg))
+						{
+							error_log("ShaderCompiler", "Failed to parse trinex_specialize on permutation '%s'",
+							          permutation.key.name.c_str());
+							return false;
+						}
+					}
+
+					out.push_back(std::move(permutation));
+				}
+			}
+
+			for (auto* child : decl->getChildren())
+			{
+				if (!collect_permutations_from_decl(child, out))
+					return false;
+			}
+
+			return true;
+		}
+
+	}// namespace
+
 	SLANG_ShaderCompiler::SLANG_ShaderCompiler()
 	{
 		flags.set(Flags::StandAlone);
@@ -765,30 +853,17 @@ namespace Trinex
 		return true;
 	}
 
-	bool SLANG_ShaderCompiler::compile(const ShaderCompilationEnvironment* env, ShaderCompilationResult& result)
+	bool SLANG_ShaderCompiler::compile(const ShaderCompilationEnvironment* env, const CompileCallback& callback)
 	{
 		StackByteAllocator::Mark mark;
 		StackVector<slang::IComponentType*> components;
+		StackVector<slang::IModule*> source_modules;
 		StackVector<Slang::ComPtr<slang::IMetadata>> metadata;
-		Slang::ComPtr<slang::IComponentType> program;
-
-		ShaderInfo shader_infos[] = {
-		        {&result.shaders.vertex, "vertex_main"},                            // vertex shader
-		        {&result.shaders.tessellation_control, "tessellation_control_main"},// tess control shader
-		        {&result.shaders.tessellation, "tessellation_main"},                // tess evaluation shader
-		        {&result.shaders.geometry, "geometry_main"},                        // geometry shader
-		        {&result.shaders.fragment, "fragment_main"},                        // fragment shader
-		        {&result.shaders.compute, "compute_main"},                          // compute shader
-		        {&result.shaders.mesh, "mesh_main"},                                // mesh shader
-		        {&result.shaders.task, "task_main"},                                // task shader
-		        {&result.shaders.raygen, "raygen_main"},                            // ray generation shader
-		        {&result.shaders.closest_hit, "closest_hit_main"},                  // closest hit shader
-		        {&result.shaders.any_hit, "any_hit_main"},                          // any hit shader
-		        {&result.shaders.miss, "miss_main"},                                // miss shader
-		};
+		StackVector<slang::SpecializationArg> specialization_args;
+		Vector<ShaderPermutationDescriptor> permutations;
 
 		components.reserve(env->sources_count() + env->modules_count() + 12);
-		metadata.reserve(12);
+		source_modules.reserve(env->sources_count());
 
 		///////// STEP ONE: COLLECT COMPONENTS /////////
 		{
@@ -817,6 +892,7 @@ namespace Trinex
 				}
 
 				components.push_back(module);
+				source_modules.push_back(module);
 			}
 
 			// Process modules
@@ -841,115 +917,168 @@ namespace Trinex
 				components.push_back(module);
 			}
 
-			components.push_back(load_module("trinex/trinex.slang"));
+			components.push_back(m_session->loadModule("trinex/trinex.slang"));
 		}
 
-		///////// STEP TWO: COLLECT ENTRY POINTS  /////////
+		for (slang::IModule* module : source_modules)
 		{
-			const usize module_count = components.size();
+			if (!collect_permutations_from_decl(module->getModuleReflection(), permutations))
+				return false;
+		}
+
+		if (permutations.empty())
+		{
+			permutations.push_back({});
+			permutations.back().key.name = "Default";
+		}
+
+		for (const ShaderPermutationDescriptor& permutation : permutations)
+		{
+			metadata.clear();
+			specialization_args.clear();
+
+			ShaderCompilationResult result;
+			result.permutation = permutation;
+
+			ShaderInfo shader_infos[] = {
+			        {&result.shaders.vertex, "vertex_main"},                            //
+			        {&result.shaders.tessellation_control, "tessellation_control_main"},//
+			        {&result.shaders.tessellation, "tessellation_main"},                //
+			        {&result.shaders.geometry, "geometry_main"},                        //
+			        {&result.shaders.fragment, "fragment_main"},                        //
+			        {&result.shaders.compute, "compute_main"},                          //
+			        {&result.shaders.mesh, "mesh_main"},                                //
+			        {&result.shaders.task, "task_main"},                                //
+			        {&result.shaders.raygen, "raygen_main"},                            //
+			        {&result.shaders.closest_hit, "closest_hit_main"},                  //
+			        {&result.shaders.any_hit, "any_hit_main"},                          //
+			        {&result.shaders.miss, "miss_main"},                                //
+			};
+
+			StackVector<slang::IComponentType*> permutation_components = components;
+			const usize module_count                                   = permutation_components.size();
+
 			for (auto& info : shader_infos)
 			{
 				for (usize module_index = 0; module_index < module_count; ++module_index)
 				{
-					auto module = static_cast<slang::IModule*>(components[module_index]);
+					auto module = static_cast<slang::IModule*>(permutation_components[module_index]);
 
 					slang::IEntryPoint* entry = nullptr;
 					module->findEntryPointByName(info.entry_name, &entry);
 
-					if (entry)
-					{
-						if (info.entry)
-						{
-							error_log("ShaderCompiler", "Detected multiple entry points with name '%s'", info.entry_name);
-							return false;
-						}
+					if (!entry)
+						continue;
 
-						info.index = components.size() - module_count;
-						info.entry = entry;
-						components.push_back(entry);
+					if (info.entry)
+					{
+						error_log("ShaderCompiler", "Detected multiple entry points with name '%s'", info.entry_name);
+						return false;
 					}
+
+					info.index = permutation_components.size() - module_count;
+					info.entry = entry;
+					permutation_components.push_back(entry);
 				}
 			}
-		}
 
-		///////// STEP THREE: COMPILE COMPONENTS TO COMPOSITE PROGRAM  /////////
-		{
 			Slang::ComPtr<slang::IComponentType> composite;
 			{
 				Slang::ComPtr<slang::IBlob> diagnostics_blob;
-				SlangResult result = m_session->createCompositeComponentType(components.data(), components.size(),
-				                                                             composite.writeRef(), diagnostics_blob.writeRef());
+				SlangResult slang_result =
+				        m_session->createCompositeComponentType(permutation_components.data(), permutation_components.size(),
+				                                                composite.writeRef(), diagnostics_blob.writeRef());
 
 				if (diagnostics_blob != nullptr)
-				{
 					error_log("ShaderCompiler", "%s", (const char*) diagnostics_blob->getBufferPointer());
-				}
 
-				if (SLANG_FAILED(result))
+				if (SLANG_FAILED(slang_result))
 					return false;
+			}
+
+			slang::IComponentType* linked_component = composite;
+			Slang::ComPtr<slang::IComponentType> specialized_program;
+			Slang::ComPtr<slang::IComponentType> program;
+
+			for (const auto& specialization_arg : permutation.specialization_args)
+				specialization_args.push_back(slang::SpecializationArg::fromExpr(specialization_arg.expression.c_str()));
+
+			for (usize i = 0, count = env->specialization_args_count(); i < count; ++i)
+				specialization_args.push_back(slang::SpecializationArg::fromExpr(env->specialization_arg(i)));
+
+			if (!specialization_args.empty())
+			{
+				Slang::ComPtr<slang::IBlob> diagnostics_blob;
+				SlangResult slang_result = composite->specialize(specialization_args.data(), specialization_args.size(),
+				                                                 specialized_program.writeRef(), diagnostics_blob.writeRef());
+
+				if (diagnostics_blob != nullptr)
+					error_log("ShaderCompiler", "%s", (const char*) diagnostics_blob->getBufferPointer());
+
+				if (SLANG_FAILED(slang_result))
+					return false;
+
+				linked_component = specialized_program;
 			}
 
 			{
 				Slang::ComPtr<slang::IBlob> diagnostics_blob;
-				SlangResult result = composite->link(program.writeRef(), diagnostics_blob.writeRef());
+				SlangResult slang_result = linked_component->link(program.writeRef(), diagnostics_blob.writeRef());
 
 				if (diagnostics_blob != nullptr)
-				{
 					error_log("ShaderCompiler", "%s", (const char*) diagnostics_blob->getBufferPointer());
-				}
 
-				if (SLANG_FAILED(result))
+				if (SLANG_FAILED(slang_result))
 					return false;
 			}
-		}
 
-		///////// STEP FOUR: COLLECT COMPILED SHADER SOURCE  /////////
-		for (auto& info : shader_infos)
-		{
-			if (info.index != -1)
+			for (auto& info : shader_infos)
 			{
+				if (info.index == -1)
+					continue;
+
 				Slang::ComPtr<slang::IBlob> code;
 				Slang::ComPtr<slang::IBlob> diagnostics_blob;
-
-				SlangResult result = program->getEntryPointCode(info.index, 0, code.writeRef(), diagnostics_blob.writeRef());
+				SlangResult slang_result =
+				        program->getEntryPointCode(info.index, 0, code.writeRef(), diagnostics_blob.writeRef());
 
 				if (diagnostics_blob != nullptr)
-				{
 					error_log("ShaderCompiler", "%s", (const char*) diagnostics_blob->getBufferPointer());
-				}
 
-				if (SLANG_FAILED(result))
+				if (SLANG_FAILED(slang_result))
 					return false;
 
 				info.source->resize(code->getBufferSize());
 				std::memcpy(info.source->data(), code->getBufferPointer(), info.source->size());
 				program->getEntryPointMetadata(info.index, 0, metadata.emplace_back().writeRef(), nullptr);
 			}
-		}
 
-		///////// STEP FIVE: GENERATE REFLECTION  /////////
-		{
-			Slang::ComPtr<slang::IBlob> diagnostics_blob;
-			slang::ProgramLayout* reflection = program->getLayout(0, diagnostics_blob.writeRef());
-
-			if (diagnostics_blob != nullptr)
 			{
-				error_log("ShaderCompiler", "%s", (const char*) diagnostics_blob->getBufferPointer());
+				Slang::ComPtr<slang::IBlob> diagnostics_blob;
+				slang::ProgramLayout* reflection = program->getLayout(0, diagnostics_blob.writeRef());
+
+				if (diagnostics_blob != nullptr)
+					error_log("ShaderCompiler", "%s", (const char*) diagnostics_blob->getBufferPointer());
+
+				if (!reflection)
+				{
+					error_log("ShaderCompiler", "Failed to get shader reflection!");
+					return false;
+				}
+
+				ReflectionParser parser;
+				if (!parser.create_reflection(reflection, &result.reflection, metadata))
+					return false;
 			}
 
-			if (!reflection)
-			{
-				error_log("ShaderCompiler", "Failed to get shader reflection!");
+			if (!submit_result(result))
 				return false;
-			}
 
-			ReflectionParser parser;
-
-			if (!parser.create_reflection(reflection, &result.reflection, metadata))
+			if (!callback(result))
 				return false;
 		}
 
-		return submit_result(result);
+		return true;
 	}
 
 	void NONE_ShaderCompiler::initialize_context(SessionInitializer* session)

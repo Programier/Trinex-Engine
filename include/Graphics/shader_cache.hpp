@@ -37,4 +37,23 @@ namespace Trinex
 		bool store(const StringView& object_path, StringView rhi_name = {}) const;
 		bool serialize(Archive& ar);
 	};
+
+	struct ENGINE_EXPORT PipelineLibraryCache {
+		enum Type : u8
+		{
+			Unknown  = 0,
+			Graphics = 1,
+			Compute  = 2,
+		};
+
+		Type type = Unknown;
+		GraphicsShaderCache graphics;
+		ComputeShaderCache compute;
+
+		void init_from(const ShaderCompilationResult& compilation_result);
+		void apply_to(class Pipeline* pipeline);
+		bool load(const StringView& object_path, StringView rhi_name = {});
+		bool store(const StringView& object_path, StringView rhi_name = {}) const;
+		bool serialize(Archive& ar);
+	};
 }// namespace Trinex

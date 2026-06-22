@@ -123,9 +123,7 @@ namespace Trinex
 		SLANG_ShaderCompiler& on_create() override;
 		virtual void initialize_context(SessionInitializer* session);
 		virtual bool submit_result(ShaderCompilationResult& result);
-		bool compile(const ShaderCompilationEnvironment* env, ShaderCompilationResult& result) override;
-
-		inline slang::IModule* load_module(const char* module) { return m_session->loadModule(module); }
+		bool compile(const ShaderCompilationEnvironment* env, const CompileCallback& callback) override;
 	};
 
 	class NONE_ShaderCompiler : public SLANG_ShaderCompiler

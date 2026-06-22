@@ -177,4 +177,53 @@ namespace Trinex
 	{
 		return ar.serialize(parameters, compute);
 	}
+
+	void PipelineLibraryCache::init_from(const ShaderCompilationResult& compilation_result)
+	{
+		type = compilation_result.shaders.compute.empty() ? Graphics : Compute;
+
+		switch (type)
+		{
+			case Graphics: graphics.init_from(compilation_result); break;
+			case Compute: compute.init_from(compilation_result); break;
+			default: break;
+		}
+	}
+
+	void PipelineLibraryCache::apply_to(class Pipeline* pipeline)
+	{
+		switch (type)
+		{
+			case Graphics: graphics.apply_to(Object::instance_cast<GraphicsPipeline>(pipeline)); break;
+			case Compute: compute.apply_to(Object::instance_cast<ComputePipeline>(pipeline)); break;
+			default: break;
+		}
+	}
+
+	bool PipelineLibraryCache::load(const StringView& object_path, StringView rhi_name)
+	{
+		return load_shader_cache(this, object_path, rhi_name, "PipelineLibraryCache");
+	}
+
+	bool PipelineLibraryCache::store(const StringView& object_path, StringView rhi_name) const
+	{
+		return store_shader_cache(this, object_path, rhi_name, "PipelineLibraryCache");
+	}
+
+	bool PipelineLibraryCache::serialize(Archive& ar)
+	{
+		u8 cache_type = static_cast<u8>(type);
+
+		if (!ar.serialize(cache_type))
+			return false;
+
+		type = static_cast<Type>(cache_type);
+
+		switch (type)
+		{
+			case Graphics: return graphics.serialize(ar);
+			case Compute: return compute.serialize(ar);
+			default: return false;
+		}
+	}
 }// namespace Trinex
