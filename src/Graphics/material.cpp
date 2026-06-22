@@ -122,10 +122,7 @@ namespace Trinex
 
 	trinex_implement_engine_class(MaterialInterface, 0)
 	{
-#define m_parameters m_child_objects
-		auto params = trinex_refl_prop(m_parameters, Refl::Property::IsTransient | Refl::Property::IsReadOnly);
-#undef m_parameters
-
+		auto params = trinex_refl_prop(m_childs, Refl::Property::IsTransient | Refl::Property::IsReadOnly);
 		Refl::Object::instance_cast<Refl::ObjectProperty>(params->element_property())->is_composite(true);
 		params->tooltip("Array of parammeters of this material");
 	}
@@ -140,11 +137,6 @@ namespace Trinex
 	trinex_implement_engine_class(MaterialInstance, Refl::Class::IsAsset)
 	{
 		trinex_refl_virtual_prop(Material, parent, parent)->tooltip("Parent Material of this instance");
-	}
-
-	Refl::Class* MaterialInterface::object_tree_child_class() const
-	{
-		return MaterialParameters::Parameter::static_reflection();
 	}
 
 	bool MaterialInterface::unregister_child(Object* child)
@@ -191,7 +183,7 @@ namespace Trinex
 
 	const Vector<Parameter*>& MaterialInterface::parameters() const
 	{
-		return m_child_objects;
+		return m_childs;
 	}
 
 	MaterialInterface* MaterialInterface::parent() const
@@ -214,7 +206,7 @@ namespace Trinex
 		if (!Super::serialize(archive))
 			return false;
 
-		usize size = m_child_objects.size();
+		usize size = m_childs.size();
 		archive.serialize(size);
 
 		if (archive.is_reading())
@@ -233,7 +225,7 @@ namespace Trinex
 		}
 		else
 		{
-			for (auto param : m_child_objects)
+			for (auto param : m_childs)
 			{
 				String name = param->name().to_string();
 				archive.serialize(name);
@@ -507,9 +499,9 @@ namespace Trinex
 		}
 		else
 		{
-			for (isize i = static_cast<isize>(m_child_objects.size()) - 1; i >= 0; --i)
+			for (isize i = static_cast<isize>(m_childs.size()) - 1; i >= 0; --i)
 			{
-				Parameter* parameter = m_child_objects[i];
+				Parameter* parameter = m_childs[i];
 				parameter->owner(nullptr);
 			}
 			// while (pipelines_count > 0)
@@ -532,9 +524,9 @@ namespace Trinex
 
 	Material& Material::remove_unreferenced_parameters()
 	{
-		for (isize i = static_cast<isize>(m_child_objects.size()) - 1; i >= 0; --i)
+		for (isize i = static_cast<isize>(m_childs.size()) - 1; i >= 0; --i)
 		{
-			Parameter* parameter = m_child_objects[i];
+			Parameter* parameter = m_childs[i];
 
 			if (parameter->m_pipeline_refs == 0)
 			{

@@ -1,14 +1,9 @@
 #pragma once
-#include <Core/etl/map.hpp>
-#include <Core/filesystem/path.hpp>
-#include <Core/name.hpp>
-#include <Core/pointer.hpp>
-#include <Graphics/render_resource.hpp>
-#include <RHI/structures.hpp>
+#include <Core/etl/object_tree_node.hpp>
+#include <Graphics/pipeline.hpp>
 
 namespace Trinex
 {
-	class Object;
 	class Pipeline;
 	class GraphicsPipeline;
 	class ComputePipeline;
@@ -16,41 +11,26 @@ namespace Trinex
 	class ShaderCompilationEnvironment;
 	class ShaderCompilationResult;
 	class RHIPipeline;
-	struct PipelineLibraryCache;
 
-	class ENGINE_EXPORT PipelineLibrary : public RenderResource
+	struct PipelineLibraryCache;
+	struct RHIShaderParameterInfo;
+
+	class ENGINE_EXPORT PipelineLibrary : public ObjectTreeNode<RenderResource, Pipeline>
 	{
 		trinex_class(PipelineLibrary, RenderResource);
 
-	public:
-		using Pipelines = TreeMap<Name, Pointer<Pipeline>>;
-
 	protected:
-		Path m_shader_path;
-		Pipelines m_pipelines;
-
 		bool compile_permutation(const ShaderCompilationResult& result);
-		void clear_pipelines();
 
 		virtual PipelineLibrary& modify_compilation_env(ShaderCompilationEnvironment* env);
-		virtual Pipeline* create_pipeline_instance(u8 type, Name name);
-		virtual PipelineLibrary& initialize_pipeline(Pipeline* pipeline, Name name);
-		virtual String permutation_cache_name(Name name) const;
+		Pipeline* create_pipeline_instance(u8 type, Name name);
+		String permutation_cache_name(Name name) const;
 
 	public:
-		PipelineLibrary();
-		~PipelineLibrary();
-
-		PipelineLibrary& shader_path(const Path& path);
-		const Path& shader_path() const;
-		const Pipelines& pipelines() const;
-
-		bool compile(ShaderCompiler* compiler = nullptr);
+		PipelineLibrary& clear();
 		Pipeline* find_pipeline(const Name& key) const;
 		GraphicsPipeline* find_graphics_pipeline(const Name& key) const;
 		ComputePipeline* find_compute_pipeline(const Name& key) const;
-
-		PipelineLibrary& release_render_resources() override;
 	};
 
 	class ENGINE_EXPORT GlobalPipelineLibrary : public PipelineLibrary
@@ -59,13 +39,13 @@ namespace Trinex
 
 	private:
 		bool load_default_pipeline_cache();
+		bool compile(ShaderCompiler* compiler = nullptr);
 
 	protected:
 		static StringView pipeline_name_of(StringView name);
 		static Object* package_of(StringView name);
 
 		GlobalPipelineLibrary& load_pipeline();
-		String permutation_cache_name(Name name) const override;
 
 	public:
 		GlobalPipelineLibrary(StringView name = "");
@@ -76,7 +56,7 @@ namespace Trinex
 		RHIPipeline* handle(Name permutation = {}) const;
 		const RHIShaderParameterInfo* find_parameter(const Name& key, Name permutation = {}) const;
 
-		virtual Path shader_source_path() const = 0;
+		virtual const char* source_path() const = 0;
 		virtual void initialize()               = 0;
 	};
 
@@ -95,7 +75,7 @@ public:                                                                         
 	{                                                                                                                            \
 		return s_instance;                                                                                                       \
 	}                                                                                                                            \
-	Path shader_source_path() const override;                                                                                    \
+	const char* source_path() const override;                                                                                    \
 	void initialize() override;                                                                                                  \
 	~class_name();                                                                                                               \
 	friend class Trinex::Object;                                                                                                 \
@@ -127,7 +107,7 @@ private:
 		}                                                                                                                        \
 		return s_instance;                                                                                                       \
 	}                                                                                                                            \
-	Path class_name::shader_source_path() const                                                                                  \
+	const char* class_name::source_path() const                                                                                  \
 	{                                                                                                                            \
 		return path;                                                                                                             \
 	}                                                                                                                            \

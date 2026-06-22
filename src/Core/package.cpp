@@ -37,11 +37,6 @@ namespace Trinex
 		return true;
 	}
 
-	Refl::Class* Package::object_tree_child_class() const
-	{
-		return Object::static_reflection();
-	}
-
 	Object* Package::register_child(Object* object, u32& index)
 	{
 		if (can_add_object(object))
@@ -68,7 +63,7 @@ namespace Trinex
 
 	const Vector<Object*>& Package::objects() const
 	{
-		return child_objects();
+		return childs();
 	}
 
 	bool Package::contains_object(const Object* object) const
@@ -91,7 +86,7 @@ namespace Trinex
 
 		bool result = true;
 
-		for (Object* object : m_child_objects)
+		for (Object* object : m_childs)
 		{
 			if (Package* sub_package = object->instance_cast<Package>())
 			{

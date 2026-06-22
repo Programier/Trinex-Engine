@@ -13,7 +13,6 @@ namespace Trinex
 		bool can_add_object(Object* object) const;
 
 	protected:
-		Refl::Class* object_tree_child_class() const override;
 		Object* register_child(Object* object, u32& index) override;
 
 	public:

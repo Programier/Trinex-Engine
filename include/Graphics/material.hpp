@@ -28,7 +28,6 @@ namespace Trinex
 		using Parameter = MaterialParameters::Parameter;
 
 	protected:
-		Refl::Class* object_tree_child_class() const override;
 		bool unregister_child(Object* child) override;
 
 		Parameter* create_parameter(const Name& name, RHIShaderParameterType type);

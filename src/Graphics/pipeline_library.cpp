@@ -14,42 +14,6 @@ namespace Trinex
 	trinex_implement_engine_class_default_init(PipelineLibrary, 0);
 	trinex_implement_engine_class_default_init(GlobalPipelineLibrary, 0);
 
-	PipelineLibrary::PipelineLibrary() {}
-
-	PipelineLibrary::~PipelineLibrary()
-	{
-		clear_pipelines();
-	}
-
-	void PipelineLibrary::clear_pipelines()
-	{
-		for (auto& [name, pipeline] : m_pipelines)
-		{
-			if (pipeline)
-			{
-				pipeline->owner(nullptr);
-			}
-		}
-
-		m_pipelines.clear();
-	}
-
-	PipelineLibrary& PipelineLibrary::shader_path(const Path& path)
-	{
-		m_shader_path = path;
-		return *this;
-	}
-
-	const Path& PipelineLibrary::shader_path() const
-	{
-		return m_shader_path;
-	}
-
-	const PipelineLibrary::Pipelines& PipelineLibrary::pipelines() const
-	{
-		return m_pipelines;
-	}
-
 	PipelineLibrary& PipelineLibrary::modify_compilation_env(ShaderCompilationEnvironment* env)
 	{
 		return *this;
@@ -69,13 +33,13 @@ namespace Trinex
 		return pipeline;
 	}
 
-	PipelineLibrary& PipelineLibrary::initialize_pipeline(Pipeline* pipeline, Name name)
-	{
-		return *this;
-	}
-
 	String PipelineLibrary::permutation_cache_name(Name name) const
 	{
+		if (name == Name::none || !name.is_valid())
+		{
+			return full_name();
+		}
+
 		return Strings::format("{}::{}", full_name(), name.to_string());
 	}
 
@@ -104,77 +68,28 @@ namespace Trinex
 		}
 
 		cache.apply_to(pipeline);
-		initialize_pipeline(pipeline, result.permutation);
 		pipeline->init_render_resources();
-		m_pipelines[result.permutation] = pipeline;
 		return true;
 	}
 
-	bool PipelineLibrary::compile(ShaderCompiler* compiler)
+	PipelineLibrary& PipelineLibrary::clear()
 	{
-		if (compiler == nullptr)
-		{
-			compiler = ShaderCompiler::instance();
-
-			if (compiler == nullptr)
-			{
-				error_log("PipelineLibrary", "Failed to find shader compiler");
-				return false;
-			}
-		}
-
-		FileReader reader(m_shader_path);
-
-		if (!reader.is_open())
-		{
-			error_log("PipelineLibrary", "Failed to open shader module '%s'", m_shader_path.c_str());
-			return false;
-		}
-
-		const String source = reader.read_string();
-
-		if (source.empty())
-		{
-			error_log("PipelineLibrary", "Shader module '%s' is empty", m_shader_path.c_str());
-			return false;
-		}
-
-		clear_pipelines();
-
-		ShaderCompiler::StackEnvironment env;
-		env.add_source(source.c_str());
-		modify_compilation_env(&env);
-
-		return compiler->compile(&env, [this](const ShaderCompilationResult& result) { return compile_permutation(result); });
+		return *this;
 	}
 
 	Pipeline* PipelineLibrary::find_pipeline(const Name& key) const
 	{
-		auto it = m_pipelines.find(key);
-		return it == m_pipelines.end() ? nullptr : it->second;
+		return instance_cast<Pipeline>(ObjectTreeNode::find_child_object(key));
 	}
 
 	GraphicsPipeline* PipelineLibrary::find_graphics_pipeline(const Name& key) const
 	{
-		return Object::instance_cast<GraphicsPipeline>(find_pipeline(key));
+		return instance_cast<GraphicsPipeline>(ObjectTreeNode::find_child_object(key));
 	}
 
 	ComputePipeline* PipelineLibrary::find_compute_pipeline(const Name& key) const
 	{
-		return Object::instance_cast<ComputePipeline>(find_pipeline(key));
-	}
-
-	PipelineLibrary& PipelineLibrary::release_render_resources()
-	{
-		Super::release_render_resources();
-
-		for (auto& [name, pipeline] : m_pipelines)
-		{
-			if (pipeline)
-				pipeline->release_render_resources();
-		}
-
-		return *this;
+		return instance_cast<ComputePipeline>(ObjectTreeNode::find_child_object(key));
 	}
 
 	StringView GlobalPipelineLibrary::pipeline_name_of(StringView name)
@@ -197,16 +112,6 @@ namespace Trinex
 
 	GlobalPipelineLibrary::GlobalPipelineLibrary(StringView name) {}
 
-	String GlobalPipelineLibrary::permutation_cache_name(Name name) const
-	{
-		if (name == Name::none || !name.is_valid())
-		{
-			return full_name();
-		}
-
-		return Super::permutation_cache_name(name);
-	}
-
 	bool GlobalPipelineLibrary::load_default_pipeline_cache()
 	{
 		PipelineLibraryCache cache;
@@ -217,7 +122,7 @@ namespace Trinex
 			return false;
 		}
 
-		clear_pipelines();
+		clear();
 
 		Pipeline* default_pipeline = create_pipeline_instance(cache.type, permutation);
 
@@ -228,16 +133,12 @@ namespace Trinex
 		}
 
 		cache.apply_to(default_pipeline);
-		initialize_pipeline(default_pipeline, permutation);
 		default_pipeline->init_render_resources();
-		m_pipelines[permutation] = default_pipeline;
 		return true;
 	}
 
 	GlobalPipelineLibrary& GlobalPipelineLibrary::load_pipeline()
 	{
-		shader_path(shader_source_path());
-
 		ShaderCompiler* compiler = ShaderCompiler::instance();
 		const bool loaded        = compiler ? compile(compiler) : load_default_pipeline_cache();
 
@@ -245,6 +146,46 @@ namespace Trinex
 
 		initialize();
 		return *this;
+	}
+
+	bool GlobalPipelineLibrary::compile(ShaderCompiler* compiler)
+	{
+		if (compiler == nullptr)
+		{
+			compiler = ShaderCompiler::instance();
+
+			if (compiler == nullptr)
+			{
+				error_log("PipelineLibrary", "Failed to find shader compiler");
+				return false;
+			}
+		}
+
+		const char* path = source_path();
+
+		FileReader reader(path);
+
+		if (!reader.is_open())
+		{
+			error_log("PipelineLibrary", "Failed to open shader module '%s'", path);
+			return false;
+		}
+
+		const String source = reader.read_string();
+
+		if (source.empty())
+		{
+			error_log("PipelineLibrary", "Shader module '%s' is empty", path);
+			return false;
+		}
+
+		clear();
+
+		ShaderCompiler::StackEnvironment env;
+		env.add_source(source.c_str());
+		modify_compilation_env(&env);
+
+		return compiler->compile(&env, [this](const ShaderCompilationResult& result) { return compile_permutation(result); });
 	}
 
 	Pipeline* GlobalPipelineLibrary::pipeline(Name permutation) const
