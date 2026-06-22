@@ -46,7 +46,7 @@ namespace Trinex
 
 		bool serialize(Archive& ar);
 
-		inline RHIBuffer* rhi_buffer() const { return m_buffer; }
+		inline RHIBuffer* handle() const { return m_buffer; }
 		inline u8* data() { return m_data; }
 		inline const u8* data() const { return m_data; }
 		inline RHIBufferFlags flags() const { return m_flags; }
@@ -142,7 +142,7 @@ namespace Trinex
 
 		bool serialize(Archive& ar);
 
-		inline RHIBuffer* rhi_buffer() const { return m_buffer; }
+		inline RHIBuffer* handle() const { return m_buffer; }
 		inline u8* data() { return m_data; }
 		inline const u8* data() const { return m_data; }
 		inline RHIBufferFlags flags() const { return m_flags; }

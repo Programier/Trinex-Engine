@@ -25,12 +25,12 @@ namespace Trinex
 		RenderSurface();
 		RenderSurface& init(RHISurfaceFormat format, Vector2i size);
 		RenderSurface& release_render_resources() override;
-		RHIRenderTargetView* rhi_rtv() const;
-		RHIDepthStencilView* rhi_dsv() const;
-		RHIUnorderedAccessView* rhi_uav() const;
-		RHIShaderResourceView* rhi_srv() const;
+		RHIRenderTargetView* rtv() const;
+		RHIDepthStencilView* dsv() const;
+		RHIUnorderedAccessView* uav() const;
+		RHIShaderResourceView* srv() const;
 
-		inline RHITexture* rhi_texture() const { return m_texture; }
+		inline RHITexture* handle() const { return m_texture; }
 		inline Vector2u size() const { return m_size; }
 		inline RHISurfaceFormat format() const { return m_format; }
 	};

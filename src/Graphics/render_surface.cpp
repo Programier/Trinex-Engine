@@ -52,22 +52,22 @@ namespace Trinex
 		return *this;
 	}
 
-	RHIRenderTargetView* RenderSurface::rhi_rtv() const
+	RHIRenderTargetView* RenderSurface::rtv() const
 	{
 		return m_texture ? m_texture->as_rtv() : nullptr;
 	}
 
-	RHIDepthStencilView* RenderSurface::rhi_dsv() const
+	RHIDepthStencilView* RenderSurface::dsv() const
 	{
 		return m_texture ? m_texture->as_dsv() : nullptr;
 	}
 
-	RHIUnorderedAccessView* RenderSurface::rhi_uav() const
+	RHIUnorderedAccessView* RenderSurface::uav() const
 	{
 		return m_texture ? m_texture->as_uav() : nullptr;
 	}
 
-	RHIShaderResourceView* RenderSurface::rhi_srv() const
+	RHIShaderResourceView* RenderSurface::srv() const
 	{
 		return m_texture ? m_texture->as_srv() : nullptr;
 	}

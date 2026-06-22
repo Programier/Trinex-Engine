@@ -18,6 +18,6 @@ namespace Trinex
 
 		Shader& init_render_resources() override;
 		Shader& release_render_resources() override;
-		inline RHIShader* rhi_shader() const { return m_shader; }
+		inline RHIShader* handle() const { return m_shader; }
 	};
 }// namespace Trinex

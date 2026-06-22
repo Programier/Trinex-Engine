@@ -22,7 +22,7 @@
 
 namespace Trinex
 {
-	class TextureView : public GlobalGraphicsPipeline
+	class TextureView : public GlobalPipelineLibrary
 	{
 	private:
 		const RHIShaderParameterInfo* m_texture   = nullptr;
@@ -31,7 +31,7 @@ namespace Trinex
 		const RHIShaderParameterInfo* m_range     = nullptr;
 
 	public:
-		using GlobalGraphicsPipeline::GlobalGraphicsPipeline;
+		using GlobalPipelineLibrary::GlobalPipelineLibrary;
 
 		void initialize() override
 		{
@@ -182,7 +182,7 @@ namespace Trinex
 
 		auto ctx = UI::Backend::rhi();
 
-		ctx->bind_pipeline(pipeline->rhi_pipeline());
+		ctx->bind_pipeline(pipeline->handle());
 		pipeline->update_mip(level).update_texture(src).update_transform(transform).update_mask(mask).update_range(range);
 		ctx->draw(RHITopology::TriangleList, 6, 0);
 	}
@@ -196,7 +196,7 @@ namespace Trinex
 
 		auto ctx = UI::Backend::rhi();
 
-		ctx->bind_pipeline(pipeline->rhi_pipeline());
+		ctx->bind_pipeline(pipeline->handle());
 
 		const float step  = 2.f / grid;
 		const float start = -1.f + (0.5f * step);
@@ -243,7 +243,7 @@ namespace Trinex
 
 		for (u32 face = 0; face < 6; ++face)
 		{
-			ctx->bind_pipeline(pipeline->rhi_pipeline());
+			ctx->bind_pipeline(pipeline->handle());
 			const Matrix4f face_translate = Math::translate(Matrix4f(1.f), Vector3f(face_offsets[face], 0.f));
 
 			pipeline->update_face(face)
@@ -452,7 +452,7 @@ namespace Trinex
 			return *this;
 
 		Matrix4f projection = build_projection(texture->size(0), size);
-		render_texture_2d(texture->rhi_texture(), projection, range(), mip(), mask());
+		render_texture_2d(texture->handle(), projection, range(), mip(), mask());
 		return *this;
 	}
 
@@ -465,7 +465,7 @@ namespace Trinex
 		const u32 grid            = TextureView3D::static_grid_size(z);
 		const Matrix4f projection = build_projection(texture->size(0), size);
 
-		render_texture_3d(texture->rhi_texture(), grid, z, projection, range(), mip(), mask());
+		render_texture_3d(texture->handle(), grid, z, projection, range(), mip(), mask());
 		return *this;
 	}
 
@@ -475,7 +475,7 @@ namespace Trinex
 			return *this;
 
 		Matrix4f projection = build_projection(texture->size(0) * Vector2u(4, 3), size);
-		render_texture_cube(texture->rhi_texture(), projection, range(), 0, mask());
+		render_texture_cube(texture->handle(), projection, range(), 0, mask());
 		return *this;
 	}
 
@@ -485,7 +485,7 @@ namespace Trinex
 			return *this;
 
 		Matrix4f projection = build_projection(texture->size(), size);
-		render_texture_2d(texture->rhi_texture(), projection, range(), 0, mask());
+		render_texture_2d(texture->handle(), projection, range(), 0, mask());
 		return *this;
 	}
 }// namespace Trinex

@@ -107,14 +107,14 @@ namespace Trinex
 			RenderGraph::Graph* graph = renderer.render_graph();
 
 			renderer.render_grid();
-			graph->add_output(surface->rhi_texture());
+			graph->add_output(surface->handle());
 
 			graph->add_pass("Copy to Target Surface")
-			        .add_resource(surface->rhi_texture(), RHIAccess::TransferDst)
+			        .add_resource(surface->handle(), RHIAccess::TransferDst)
 			        .add_resource(renderer.scene_color_ldr_target(), RHIAccess::TransferSrc)
 			        .add_func([&](RHIContext* ctx) {
 				        RHITextureRegion region(view_size);
-				        ctx->copy(surface->rhi_texture(), renderer.scene_color_ldr_target(), region);
+				        ctx->copy(surface->handle(), renderer.scene_color_ldr_target(), region);
 			        });
 
 			RHIContext* ctx = RHIContextPool::global_instance()->begin();
@@ -196,7 +196,7 @@ namespace Trinex
 
 		if (auto surface = render_preview(content_size))
 		{
-			ImGui::Image(ImTextureID(surface->rhi_texture()), content_size);
+			ImGui::Image(ImTextureID(surface->handle()), content_size);
 		}
 
 		ImGui::End();

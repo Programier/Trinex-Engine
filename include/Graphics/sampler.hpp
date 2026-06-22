@@ -27,7 +27,7 @@ namespace Trinex
 		Sampler& init(RHISamplerFilter filter);
 		Sampler& release();
 		const RHISamplerDesc& initializer() const;
-		RHISampler* rhi_sampler() const;
+		RHISampler* handle() const;
 		bool serialize(class Archive& ar);
 
 		Sampler& filter(RHISamplerFilter filter);

@@ -12,7 +12,7 @@ namespace Trinex::Icons
 {
 	ImGuiTrinexTextureId default_texture()
 	{
-		return ImGuiTrinexTextureId(EditorResources::default_icon->rhi_texture());
+		return ImGuiTrinexTextureId(EditorResources::default_icon->handle());
 	}
 
 	ImGuiTrinexTextureId find_icon(Object* object)
@@ -21,11 +21,11 @@ namespace Trinex::Icons
 		{
 			if (Texture2D* texture = object->instance_cast<Texture2D>())
 			{
-				return texture->rhi_texture();
+				return texture->handle();
 			}
 
 			if (RenderSurface* surface = object->instance_cast<RenderSurface>())
-				return surface->rhi_texture();
+				return surface->handle();
 
 			return find_icon(object->class_instance());
 		}
@@ -39,7 +39,7 @@ namespace Trinex::Icons
 		auto& data       = class_instance->metadata(meta);
 
 		if (data.has_value())
-			return data.cast<const Pointer<Texture2D>&>().ptr()->rhi_texture();
+			return data.cast<const Pointer<Texture2D>&>().ptr()->handle();
 
 		return default_texture();
 	}

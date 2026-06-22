@@ -1,18 +1,14 @@
 #include <Core/archive.hpp>
-#include <Core/file_manager.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/logger.hpp>
-#include <Core/package.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/property.hpp>
-#include <Core/string_functions.hpp>
 #include <Core/threading.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/shader.hpp>
 #include <Graphics/shader_cache.hpp>
-#include <Graphics/shader_compiler.hpp>
 #include <RHI/context.hpp>
 #include <RHI/initializers.hpp>
 #include <RHI/rhi.hpp>
@@ -48,25 +44,7 @@ namespace Trinex
 
 	static RHIShader* extract_shader(Shader* shader)
 	{
-		return shader ? shader->rhi_shader() : nullptr;
-	}
-
-	StringView Pipeline::pipeline_name_of(StringView name)
-	{
-		return Strings::class_name_sv_of(name);
-	}
-
-	Object* Pipeline::package_of(StringView name)
-	{
-		Package* package         = Package::static_find_package("TrinexEngine::GlobalPipelines", true);
-		StringView child_package = Strings::namespace_sv_of(name);
-
-		if (!child_package.empty())
-		{
-			package = package->find_package(child_package, true);
-		}
-
-		return package;
+		return shader ? shader->handle() : nullptr;
 	}
 
 	Shader* Pipeline::create_new_shader()
@@ -422,70 +400,12 @@ namespace Trinex
 		init_shader(m_shader);
 
 		RHIComputePipelineDesc desc;
-		desc.compute_shader   = compute_shader()->rhi_shader();
+		desc.compute_shader   = compute_shader()->handle();
 		desc.parameters       = parameters().data();
 		desc.parameters_count = parameters().size();
 
 		m_pipeline = RHI::instance()->create_compute_pipeline(desc);
 		return *this;
-	}
-
-	GlobalGraphicsPipeline::GlobalGraphicsPipeline(StringView name) {}
-
-	template<typename ShaderCacheType, typename Type>
-	static Type& load_global_pipeline(Type* self)
-	{
-		ShaderCacheType cache;
-		String cache_path = self->full_name();
-
-		if (!cache.load(cache_path))
-		{
-			String source_code;
-			FileReader reader(self->shader_path());
-
-			trinex_verify_msg(reader.is_open(), "Failed to read global shader");
-			source_code = reader.read_string();
-			trinex_verify_msg(!source_code.empty(), "Failed to read global shader");
-
-			ShaderCompiler::StackEnvironment env;
-			ShaderCompilationResult result;
-
-			env.add_source(source_code.c_str());
-			self->modify_compilation_env(&env);
-
-			trinex_verify_msg(ShaderCompiler::instance()->compile(&env, result), "Failed to compile global shader");
-
-			cache.init_from(result);
-			cache.store(cache_path);
-		}
-
-		cache.apply_to(self);
-
-		self->initialize();
-		self->init_render_resources();
-		return *self;
-	}
-
-	GlobalGraphicsPipeline& GlobalGraphicsPipeline::load_pipeline()
-	{
-		return load_global_pipeline<GraphicsShaderCache>(this);
-	}
-
-	bool GlobalGraphicsPipeline::serialize(Archive& ar, Material* material)
-	{
-		return ar;
-	}
-
-	GlobalComputePipeline::GlobalComputePipeline(StringView name) {}
-
-	GlobalComputePipeline& GlobalComputePipeline::load_pipeline()
-	{
-		return load_global_pipeline<ComputeShaderCache>(this);
-	}
-
-	bool GlobalComputePipeline::serialize(Archive& ar, Material* material)
-	{
-		return ar;
 	}
 
 	trinex_implement_engine_class_default_init(Pipeline, 0);

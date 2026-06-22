@@ -79,7 +79,7 @@ namespace Trinex::MaterialParameters
 
 	Sampler& Sampler::apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info)
 	{
-		ctx->context->bind_sampler(sampler.rhi_sampler(), info->binding);
+		ctx->context->bind_sampler(sampler.handle(), info->binding);
 		return *this;
 	}
 
@@ -94,12 +94,12 @@ namespace Trinex::MaterialParameters
 
 	Sampler2D& Sampler2D::apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info)
 	{
-		auto rhi_sampler = sampler.rhi_sampler();
+		auto handle = sampler.handle();
 
-		if (texture && rhi_sampler)
+		if (texture && handle)
 		{
-			ctx->context->bind_srv(texture->rhi_srv(), info->binding);
-			ctx->context->bind_sampler(rhi_sampler, info->binding);
+			ctx->context->bind_srv(texture->srv(), info->binding);
+			ctx->context->bind_sampler(handle, info->binding);
 		}
 		return *this;
 	}
@@ -120,7 +120,7 @@ namespace Trinex::MaterialParameters
 	{
 		if (texture)
 		{
-			ctx->context->bind_srv(texture->rhi_srv(), info->binding);
+			ctx->context->bind_srv(texture->srv(), info->binding);
 		}
 		return *this;
 	}
@@ -144,7 +144,7 @@ namespace Trinex::MaterialParameters
 
 	Surface& Surface::apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info)
 	{
-		auto srv = surface ? surface->rhi_srv() : DefaultResources::Textures::default_texture->rhi_srv();
+		auto srv = surface ? surface->srv() : DefaultResources::Textures::default_texture->srv();
 		ctx->context->bind_srv(srv, info->binding);
 		return *this;
 	}
@@ -160,13 +160,13 @@ namespace Trinex::MaterialParameters
 
 	CombinedSurface& CombinedSurface::apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info)
 	{
-		RHIShaderResourceView* srv = surface ? surface->rhi_srv() : nullptr;
-		RHISampler* rhi_sampler    = sampler.rhi_sampler();
+		RHIShaderResourceView* srv = surface ? surface->srv() : nullptr;
+		RHISampler* handle         = sampler.handle();
 
-		if (srv && rhi_sampler)
+		if (srv && handle)
 		{
 			ctx->context->bind_srv(srv, info->binding);
-			ctx->context->bind_sampler(rhi_sampler, info->binding);
+			ctx->context->bind_sampler(handle, info->binding);
 		}
 		return *this;
 	}

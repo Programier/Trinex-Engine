@@ -44,8 +44,8 @@ namespace Trinex
 		RHIResourcePtr<RHITexture> m_texture;
 
 	public:
-		RHIShaderResourceView* rhi_srv() const;
-		RHITexture* rhi_texture() const;
+		RHIShaderResourceView* srv() const;
+		RHITexture* handle() const;
 	};
 
 	class ENGINE_EXPORT Texture2D : public Texture

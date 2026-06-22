@@ -447,7 +447,7 @@ namespace Trinex
 				ctx->context->blending_state(state);
 		}
 
-		ctx->context->bind_pipeline(pipeline_object->rhi_pipeline());
+		ctx->context->bind_pipeline(pipeline_object->handle());
 
 		if (ctx->bindings)
 		{

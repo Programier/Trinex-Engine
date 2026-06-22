@@ -1,6 +1,7 @@
 #include <Core/file_manager.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/logger.hpp>
+#include <Core/package.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
 #include <Graphics/pipeline.hpp>
@@ -11,6 +12,7 @@
 namespace Trinex
 {
 	trinex_implement_engine_class_default_init(PipelineLibrary, 0);
+	trinex_implement_engine_class_default_init(GlobalPipelineLibrary, 0);
 
 	PipelineLibrary::PipelineLibrary() {}
 
@@ -173,5 +175,102 @@ namespace Trinex
 		}
 
 		return *this;
+	}
+
+	StringView GlobalPipelineLibrary::pipeline_name_of(StringView name)
+	{
+		return Strings::class_name_sv_of(name);
+	}
+
+	Object* GlobalPipelineLibrary::package_of(StringView name)
+	{
+		Package* package         = Package::static_find_package("TrinexEngine::GlobalPipelines", true);
+		StringView child_package = Strings::namespace_sv_of(name);
+
+		if (!child_package.empty())
+		{
+			package = package->find_package(child_package, true);
+		}
+
+		return package;
+	}
+
+	GlobalPipelineLibrary::GlobalPipelineLibrary(StringView name) {}
+
+	String GlobalPipelineLibrary::permutation_cache_name(Name name) const
+	{
+		if (name == Name::none || !name.is_valid())
+		{
+			return full_name();
+		}
+
+		return Super::permutation_cache_name(name);
+	}
+
+	bool GlobalPipelineLibrary::load_default_pipeline_cache()
+	{
+		PipelineLibraryCache cache;
+		const Name permutation;
+
+		if (!cache.load(permutation_cache_name(permutation)))
+		{
+			return false;
+		}
+
+		clear_pipelines();
+
+		Pipeline* default_pipeline = create_pipeline_instance(cache.type, permutation);
+
+		if (default_pipeline == nullptr)
+		{
+			error_log("GlobalPipelineLibrary", "Failed to create default pipeline instance for '%s'", full_name().c_str());
+			return false;
+		}
+
+		cache.apply_to(default_pipeline);
+		initialize_pipeline(default_pipeline, permutation);
+		default_pipeline->init_render_resources();
+		m_pipelines[permutation] = default_pipeline;
+		return true;
+	}
+
+	GlobalPipelineLibrary& GlobalPipelineLibrary::load_pipeline()
+	{
+		shader_path(shader_source_path());
+
+		ShaderCompiler* compiler = ShaderCompiler::instance();
+		const bool loaded        = compiler ? compile(compiler) : load_default_pipeline_cache();
+
+		trinex_verify_msg(loaded, "Failed to load global pipeline library");
+
+		initialize();
+		return *this;
+	}
+
+	Pipeline* GlobalPipelineLibrary::pipeline(Name permutation) const
+	{
+		return find_pipeline(permutation);
+	}
+
+	GraphicsPipeline* GlobalPipelineLibrary::graphics_pipeline(Name permutation) const
+	{
+		return find_graphics_pipeline(permutation);
+	}
+
+	ComputePipeline* GlobalPipelineLibrary::compute_pipeline(Name permutation) const
+	{
+		return find_compute_pipeline(permutation);
+	}
+
+	RHIPipeline* GlobalPipelineLibrary::handle(Name permutation) const
+	{
+		Pipeline* result = pipeline(permutation);
+		return result ? result->handle() : nullptr;
+	}
+
+	const RHIShaderParameterInfo* GlobalPipelineLibrary::find_parameter(const Name& key, Name permutation) const
+	{
+		Pipeline* result = pipeline(permutation);
+		return result ? result->find_parameter(key) : nullptr;
 	}
 }// namespace Trinex

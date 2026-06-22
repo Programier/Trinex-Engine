@@ -928,8 +928,7 @@ namespace Trinex
 
 		if (permutations.empty())
 		{
-			permutations.push_back({});
-			permutations.back().name = "Default";
+			permutations.emplace_back();
 		}
 
 		for (const SlangShaderPermutation& permutation : permutations)

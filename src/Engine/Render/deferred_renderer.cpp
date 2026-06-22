@@ -549,7 +549,7 @@ namespace Trinex
 
 	DeferredRenderer& DeferredRenderer::global_illumination_pass(RHIContext* ctx)
 	{
-		RHISampler* sampler = Sampler(RHISamplerFilter::Point).rhi_sampler();
+		RHISampler* sampler = Sampler(RHISamplerFilter::Point).handle();
 
 		auto pipeline = Pipelines::AmbientLight::instance();
 
@@ -558,7 +558,7 @@ namespace Trinex
 			ctx->depth_stencil_state(RHIDepthStencilState());
 			ctx->blending_state(RHIBlendingState::additive());
 
-			ctx->bind_pipeline(pipeline->rhi_pipeline());
+			ctx->bind_pipeline(pipeline->handle());
 			ctx->bind_uniform_buffer(globals_uniform_buffer(), pipeline->scene_view->binding);
 			ctx->update_scalar(&scene()->environment.ambient_color, pipeline->ambient_color);
 			ctx->bind_srv(base_color_target()->as_srv(), pipeline->base_color->binding);
@@ -580,14 +580,14 @@ namespace Trinex
 
 		ctx->begin_rendering(scene_color_hdr_target()->as_rtv());
 		{
-			RHISampler* sampler = Sampler(RHISamplerFilter::Point).rhi_sampler();
+			RHISampler* sampler = Sampler(RHISamplerFilter::Point).handle();
 			auto pipeline       = Pipelines::DeferredLighting::instance();
 
 			ctx->depth_stencil_state(RHIDepthStencilState());
 			ctx->blending_state(RHIBlendingState::additive());
 			ctx->rasterizer_state(RHIRasterizerState());
 
-			ctx->bind_pipeline(pipeline->rhi_pipeline());
+			ctx->bind_pipeline(pipeline->handle());
 			ctx->bind_srv(base_color_target()->as_srv(), pipeline->base_color_texture->binding);
 			ctx->bind_srv(normal_target()->as_srv(), pipeline->normal_texture->binding);
 			ctx->bind_srv(msra_target()->as_srv(), pipeline->msra_texture->binding);

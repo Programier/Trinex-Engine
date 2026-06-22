@@ -282,9 +282,9 @@ namespace Trinex::UI
 			}
 		}
 
-		class RMLColorPipeline : public GlobalGraphicsPipeline
+		class RMLColorPipeline : public GlobalPipelineLibrary
 		{
-			trinex_declare_pipeline(RMLColorPipeline, GlobalGraphicsPipeline);
+			trinex_declare_pipeline(RMLColorPipeline, GlobalPipelineLibrary);
 
 			const RHIShaderParameterInfo* m_translate = nullptr;
 			const RHIShaderParameterInfo* m_transform = nullptr;
@@ -292,7 +292,7 @@ namespace Trinex::UI
 		public:
 			RMLColorPipeline& setup(RHIContext* context, const Matrix4f& transform, Vector2f translate)
 			{
-				context->bind_pipeline(rhi_pipeline());
+				context->bind_pipeline(handle());
 				context->update_scalar(&translate, m_translate);
 				context->update_scalar(&transform, m_transform);
 				return *this;
@@ -305,9 +305,9 @@ namespace Trinex::UI
 			m_transform = find_parameter("transform");
 		}
 
-		class RMLTexturePipeline : public GlobalGraphicsPipeline
+		class RMLTexturePipeline : public GlobalPipelineLibrary
 		{
-			trinex_declare_pipeline(RMLTexturePipeline, GlobalGraphicsPipeline);
+			trinex_declare_pipeline(RMLTexturePipeline, GlobalPipelineLibrary);
 
 			const RHIShaderParameterInfo* m_translate = nullptr;
 			const RHIShaderParameterInfo* m_transform = nullptr;
@@ -317,7 +317,7 @@ namespace Trinex::UI
 			RMLTexturePipeline& setup(RHIContext* context, const Matrix4f& transform, Vector2f translate, RHITexture* texture,
 			                          RHISampler* sampler)
 			{
-				context->bind_pipeline(rhi_pipeline());
+				context->bind_pipeline(handle());
 				context->update_scalar(&translate, m_translate);
 				context->update_scalar(&transform, m_transform);
 				context->bind_srv(texture->as_srv(), m_texture->binding);
@@ -633,7 +633,7 @@ namespace Trinex::UI
 
 					case '@':
 					{
-						auto handle       = static_cast<Texture*>(Strings::pointer_of(source.data() + 1))->rhi_texture();
+						auto handle       = static_cast<Texture*>(Strings::pointer_of(source.data() + 1))->handle();
 						auto texture      = trx_new RMLTextureRef(handle);
 						auto texture_size = texture->texture()->size();
 						size              = RML::Vector2i(texture_size.x, texture_size.y);

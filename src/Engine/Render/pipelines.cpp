@@ -16,20 +16,20 @@
 
 namespace Trinex::Pipelines
 {
-	static inline void push_context_state(Pipeline* pipeline, RHIContext* ctx)
+	static inline void push_context_state(GlobalPipelineLibrary* pipeline, RHIContext* ctx)
 	{
 		ctx->depth_stencil_state(RHIDepthStencilState());
 		ctx->blending_state(RHIBlendingState());
 		ctx->rasterizer_state(RHIRasterizerState());
-		ctx->bind_pipeline(pipeline->rhi_pipeline());
+		ctx->bind_pipeline(pipeline->handle());
 	}
 
-	static inline void push_context_state(Pipeline* pipeline, RHIContext* ctx, const RHIBlendingState& state)
+	static inline void push_context_state(GlobalPipelineLibrary* pipeline, RHIContext* ctx, const RHIBlendingState& state)
 	{
 		ctx->depth_stencil_state(RHIDepthStencilState());
 		ctx->blending_state(state);
 		ctx->rasterizer_state(RHIRasterizerState());
-		ctx->bind_pipeline(pipeline->rhi_pipeline());
+		ctx->bind_pipeline(pipeline->handle());
 	}
 
 	trinex_implement_pipeline(GaussianBlur, "[shaders]:/TrinexEngine/trinex/graphics/gaussian_blur.slang")
@@ -89,7 +89,7 @@ namespace Trinex::Pipelines
 		};
 
 		if (noise == nullptr)
-			noise = DefaultResources::Textures::noise128x128->rhi_texture();
+			noise = DefaultResources::Textures::noise128x128->handle();
 
 		if (sampler == nullptr)
 			sampler = RHIBilinearWrapSampler::static_sampler();
@@ -236,7 +236,7 @@ namespace Trinex::Pipelines
 		args.knee      = threshold * knee;
 		args.clamp     = clamp;
 
-		ctx->bind_pipeline(rhi_pipeline());
+		ctx->bind_pipeline(handle());
 		ctx->bind_srv(src, m_scene->binding);
 		ctx->bind_sampler(RHIBilinearSampler::static_sampler(), m_scene->binding);
 		ctx->update_scalar(&args, sizeof(args), m_args);
@@ -250,7 +250,7 @@ namespace Trinex::Pipelines
 
 	void BloomDownsample::downsample(RHIContext* ctx, RHIShaderResourceView* src)
 	{
-		ctx->bind_pipeline(rhi_pipeline());
+		ctx->bind_pipeline(handle());
 		ctx->bind_srv(src, m_scene->binding);
 		ctx->bind_sampler(RHIBilinearSampler::static_sampler(), m_scene->binding);
 		ctx->draw(RHITopology::TriangleList, 6, 0);
@@ -275,7 +275,7 @@ namespace Trinex::Pipelines
 		args.size   = size;
 		args.weight = weight;
 
-		ctx->bind_pipeline(rhi_pipeline());
+		ctx->bind_pipeline(handle());
 		ctx->bind_srv(src, m_scene->binding);
 		ctx->bind_sampler(RHIBilinearSampler::static_sampler(), m_scene->binding);
 		ctx->update_scalar(&args, m_args);
@@ -422,7 +422,7 @@ namespace Trinex::Pipelines
 	{
 		create_samples_buffer(samples);
 
-		ctx->bind_pipeline(rhi_pipeline());
+		ctx->bind_pipeline(handle());
 
 		SSAOArguments args;
 		args.noise_scale       = renderer->scene_view().view_size() / Vector2u(4, 4);
@@ -438,7 +438,7 @@ namespace Trinex::Pipelines
 		ctx->update_scalar(&args, sizeof(args), 0, m_args->binding);
 		ctx->bind_srv(renderer->scene_depth_target()->as_srv(), m_scene_depth->binding);
 		ctx->bind_srv(renderer->normal_target()->as_srv(), m_scene_normal->binding);
-		ctx->bind_srv(DefaultResources::Textures::noise4x4->rhi_srv(), m_noise->binding);
+		ctx->bind_srv(DefaultResources::Textures::noise4x4->srv(), m_noise->binding);
 		ctx->bind_srv(m_samples_buffer->as_srv(RHIBufferViewType::Structured), m_samples->binding);
 		ctx->bind_sampler(RHIBilinearWrapSampler::static_sampler(), m_sampler->binding);
 
@@ -464,7 +464,7 @@ namespace Trinex::Pipelines
 
 	ClusterInitialize& ClusterInitialize::build(RHIContext* ctx, RHIBuffer* clusters, Renderer* renderer)
 	{
-		ctx->bind_pipeline(rhi_pipeline());
+		ctx->bind_pipeline(handle());
 		ctx->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
 		ctx->bind_uav(clusters->as_uav(RHIBufferViewType::Structured), m_clusters->binding);
 		ctx->dispatch({16, 9, 24});
@@ -482,7 +482,7 @@ namespace Trinex::Pipelines
 	ClusterLightCulling& ClusterLightCulling::cull(RHIContext* ctx, Renderer* renderer, RHIBuffer* clusters, RHIBuffer* lights,
 	                                               const LightRenderRanges& ranges)
 	{
-		ctx->bind_pipeline(rhi_pipeline());
+		ctx->bind_pipeline(handle());
 		ctx->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
 		ctx->bind_uav(clusters->as_uav(RHIBufferViewType::Structured), m_clusters->binding);
 		ctx->bind_srv(lights->as_srv(RHIBufferViewType::Structured), m_lights->binding);
@@ -513,7 +513,7 @@ namespace Trinex::Pipelines
 
 	DepthView& DepthView::render(RHIContext* ctx, Renderer* renderer)
 	{
-		ctx->bind_pipeline(rhi_pipeline());
+		ctx->bind_pipeline(handle());
 		ctx->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
 		ctx->bind_srv(renderer->scene_depth_target()->as_srv(), m_scene_depth->binding);
 		ctx->draw(RHITopology::TriangleList, 6, 0);
@@ -534,7 +534,7 @@ namespace Trinex::Pipelines
 			RHITexture* prev    = renderer->scene_view().state()->scene_color();
 
 			ctx->barrier(prev, RHIAccess::UAVCompute);
-			ctx->bind_pipeline(rhi_pipeline());
+			ctx->bind_pipeline(handle());
 			ctx->bind_uav(current->as_uav(), m_scene_color->binding);
 			ctx->bind_uav(prev->as_uav(), m_prev_scene_color->binding);
 			ctx->dispatch(Math::dispatch_groups({renderer->scene_view().view_size(), 1u}, {8u, 8u, 1u}));

@@ -34,14 +34,14 @@ namespace Trinex
 
 	trinex_implement_engine_class(Texture, Refl::Class::IsAsset) {}
 
-	RHIShaderResourceView* Texture::rhi_srv() const
+	RHIShaderResourceView* Texture::srv() const
 	{
 		if (m_texture)
 			return m_texture->as_srv();
 		return nullptr;
 	}
 
-	RHITexture* Texture::rhi_texture() const
+	RHITexture* Texture::handle() const
 	{
 		return m_texture.get();
 	}

@@ -81,7 +81,7 @@ namespace Trinex
 
 		inline u64 references() const { return m_references; }
 		inline const RHISamplerDesc& initializer() const { return m_initializer; }
-		inline RHISampler* rhi_sampler() const { return m_sampler; }
+		inline RHISampler* handle() const { return m_sampler; }
 		inline SamplerImpl* prev() const { return m_prev; }
 		inline SamplerImpl* next() const { return m_next; }
 
@@ -162,11 +162,11 @@ namespace Trinex
 		return m_sampler->initializer();
 	}
 
-	RHISampler* Sampler::rhi_sampler() const
+	RHISampler* Sampler::handle() const
 	{
 		if (m_sampler == nullptr)
 			return nullptr;
-		return m_sampler->rhi_sampler();
+		return m_sampler->handle();
 	}
 
 	bool Sampler::serialize(Archive& ar)

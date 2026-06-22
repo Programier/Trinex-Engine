@@ -1,5 +1,5 @@
 #pragma once
-#include <Graphics/pipeline.hpp>
+#include <Graphics/pipeline_library.hpp>
 
 namespace Trinex
 {
@@ -29,9 +29,9 @@ namespace Trinex
 	namespace Pipelines
 	{
 
-		class ENGINE_EXPORT GaussianBlur : public GlobalGraphicsPipeline
+		class ENGINE_EXPORT GaussianBlur : public GlobalPipelineLibrary
 		{
-			trinex_declare_pipeline(GaussianBlur, GlobalGraphicsPipeline);
+			trinex_declare_pipeline(GaussianBlur, GlobalPipelineLibrary);
 
 			const RHIShaderParameterInfo* m_source;
 			const RHIShaderParameterInfo* m_args;
@@ -42,9 +42,9 @@ namespace Trinex
 			                 Vector2f size = {1.f, 1.f});
 		};
 
-		class ENGINE_EXPORT NoiseApplication : public GlobalGraphicsPipeline
+		class ENGINE_EXPORT NoiseApplication : public GlobalPipelineLibrary
 		{
-			trinex_declare_pipeline(NoiseApplication, GlobalGraphicsPipeline);
+			trinex_declare_pipeline(NoiseApplication, GlobalPipelineLibrary);
 
 			const RHIShaderParameterInfo* m_noise;
 			const RHIShaderParameterInfo* m_args;
@@ -60,9 +60,9 @@ namespace Trinex
 			}
 		};
 
-		class ENGINE_EXPORT Blit2D : public GlobalGraphicsPipeline
+		class ENGINE_EXPORT Blit2D : public GlobalPipelineLibrary
 		{
-			trinex_declare_pipeline(Blit2D, GlobalGraphicsPipeline);
+			trinex_declare_pipeline(Blit2D, GlobalPipelineLibrary);
 
 			const RHIShaderParameterInfo* m_source;
 			const RHIShaderParameterInfo* m_args;
@@ -72,9 +72,9 @@ namespace Trinex
 			                 Swizzle swizzle = {}, RHISampler* sampler = nullptr);
 		};
 
-		class ENGINE_EXPORT Passthrow : public GlobalGraphicsPipeline
+		class ENGINE_EXPORT Passthrow : public GlobalPipelineLibrary
 		{
-			trinex_declare_pipeline(Passthrow, GlobalGraphicsPipeline);
+			trinex_declare_pipeline(Passthrow, GlobalPipelineLibrary);
 
 			const RHIShaderParameterInfo* m_scene;
 			const RHIShaderParameterInfo* m_args;
@@ -87,9 +87,9 @@ namespace Trinex
 			                      RHIRegion region = {}, RHISampler* sampler = nullptr);
 		};
 
-		class ENGINE_EXPORT Downsample : public GlobalGraphicsPipeline
+		class ENGINE_EXPORT Downsample : public GlobalPipelineLibrary
 		{
-			trinex_declare_pipeline(Downsample, GlobalGraphicsPipeline);
+			trinex_declare_pipeline(Downsample, GlobalPipelineLibrary);
 
 			const RHIShaderParameterInfo* m_scene;
 			const RHIShaderParameterInfo* m_args;
@@ -99,9 +99,9 @@ namespace Trinex
 			                Vector2f size = {1.f, 1.f});
 		};
 
-		class ENGINE_EXPORT BloomExtract : public GlobalGraphicsPipeline
+		class ENGINE_EXPORT BloomExtract : public GlobalPipelineLibrary
 		{
-			trinex_declare_pipeline(BloomExtract, GlobalGraphicsPipeline);
+			trinex_declare_pipeline(BloomExtract, GlobalPipelineLibrary);
 
 			const RHIShaderParameterInfo* m_scene;
 			const RHIShaderParameterInfo* m_args;
@@ -111,9 +111,9 @@ namespace Trinex
 			             Vector2f offset = {0.f, 0.f}, Vector2f size = {1.f, 1.f});
 		};
 
-		class ENGINE_EXPORT BloomDownsample : public GlobalGraphicsPipeline
+		class ENGINE_EXPORT BloomDownsample : public GlobalPipelineLibrary
 		{
-			trinex_declare_pipeline(BloomDownsample, GlobalGraphicsPipeline);
+			trinex_declare_pipeline(BloomDownsample, GlobalPipelineLibrary);
 
 			const RHIShaderParameterInfo* m_scene;
 			const RHIShaderParameterInfo* m_args;
@@ -122,9 +122,9 @@ namespace Trinex
 			void downsample(RHIContext* ctx, RHIShaderResourceView* src);
 		};
 
-		class ENGINE_EXPORT BloomUpsample : public GlobalGraphicsPipeline
+		class ENGINE_EXPORT BloomUpsample : public GlobalPipelineLibrary
 		{
-			trinex_declare_pipeline(BloomUpsample, GlobalGraphicsPipeline);
+			trinex_declare_pipeline(BloomUpsample, GlobalPipelineLibrary);
 
 			const RHIShaderParameterInfo* m_scene;
 			const RHIShaderParameterInfo* m_args;
@@ -135,9 +135,9 @@ namespace Trinex
 		};
 
 
-		class ENGINE_EXPORT BatchedLines : public GlobalGraphicsPipeline
+		class ENGINE_EXPORT BatchedLines : public GlobalPipelineLibrary
 		{
-			trinex_declare_pipeline(BatchedLines, GlobalGraphicsPipeline);
+			trinex_declare_pipeline(BatchedLines, GlobalPipelineLibrary);
 
 		private:
 			const RHIShaderParameterInfo* m_projview;
@@ -148,14 +148,14 @@ namespace Trinex
 			inline const RHIShaderParameterInfo* viewport() const { return m_viewport; }
 		};
 
-		class ENGINE_EXPORT BatchedTriangles : public GlobalGraphicsPipeline
+		class ENGINE_EXPORT BatchedTriangles : public GlobalPipelineLibrary
 		{
-			trinex_declare_pipeline(BatchedTriangles, GlobalGraphicsPipeline);
+			trinex_declare_pipeline(BatchedTriangles, GlobalPipelineLibrary);
 		};
 
-		class ENGINE_EXPORT DeferredLighting : public GlobalGraphicsPipeline
+		class ENGINE_EXPORT DeferredLighting : public GlobalPipelineLibrary
 		{
-			trinex_declare_pipeline(DeferredLighting, GlobalGraphicsPipeline);
+			trinex_declare_pipeline(DeferredLighting, GlobalPipelineLibrary);
 
 		public:
 			const RHIShaderParameterInfo* scene_view         = nullptr;
@@ -173,9 +173,9 @@ namespace Trinex
 			const RHIShaderParameterInfo* shadows  = nullptr;
 		};
 
-		class ENGINE_EXPORT AmbientLight : public GlobalGraphicsPipeline
+		class ENGINE_EXPORT AmbientLight : public GlobalPipelineLibrary
 		{
-			trinex_declare_pipeline(AmbientLight, GlobalGraphicsPipeline);
+			trinex_declare_pipeline(AmbientLight, GlobalPipelineLibrary);
 
 		public:
 			const RHIShaderParameterInfo* scene_view    = nullptr;
@@ -184,9 +184,9 @@ namespace Trinex
 			const RHIShaderParameterInfo* ambient_color = nullptr;
 		};
 
-		class TonemappingACES : public GlobalGraphicsPipeline
+		class TonemappingACES : public GlobalPipelineLibrary
 		{
-			trinex_declare_pipeline(TonemappingACES, GlobalGraphicsPipeline);
+			trinex_declare_pipeline(TonemappingACES, GlobalPipelineLibrary);
 
 		private:
 			const RHIShaderParameterInfo* m_hdr_target = nullptr;
@@ -196,9 +196,9 @@ namespace Trinex
 			TonemappingACES& apply(RHIContext* ctx, Renderer* renderer);
 		};
 
-		class SSR : public GlobalGraphicsPipeline
+		class SSR : public GlobalPipelineLibrary
 		{
-			trinex_declare_pipeline(SSR, GlobalGraphicsPipeline);
+			trinex_declare_pipeline(SSR, GlobalPipelineLibrary);
 
 		public:
 			const RHIShaderParameterInfo* scene_view   = nullptr;
@@ -208,9 +208,9 @@ namespace Trinex
 			const RHIShaderParameterInfo* sampler      = nullptr;
 		};
 
-		class SSAO : public GlobalGraphicsPipeline
+		class SSAO : public GlobalPipelineLibrary
 		{
-			trinex_declare_pipeline(SSAO, GlobalGraphicsPipeline);
+			trinex_declare_pipeline(SSAO, GlobalPipelineLibrary);
 
 		private:
 			const RHIShaderParameterInfo* m_scene_view   = nullptr;
@@ -231,9 +231,9 @@ namespace Trinex
 			             float fade_out_distance, float fade_out_radius, u32 samples);
 		};
 
-		class ClusterInitialize : public GlobalComputePipeline
+		class ClusterInitialize : public GlobalPipelineLibrary
 		{
-			trinex_declare_pipeline(ClusterInitialize, GlobalComputePipeline);
+			trinex_declare_pipeline(ClusterInitialize, GlobalPipelineLibrary);
 
 		private:
 			const RHIShaderParameterInfo* m_scene_view;
@@ -244,9 +244,9 @@ namespace Trinex
 			ClusterInitialize& build(RHIContext* ctx, RHIBuffer* clusters, Renderer* renderer);
 		};
 
-		class ClusterLightCulling : public GlobalComputePipeline
+		class ClusterLightCulling : public GlobalPipelineLibrary
 		{
-			trinex_declare_pipeline(ClusterLightCulling, GlobalComputePipeline);
+			trinex_declare_pipeline(ClusterLightCulling, GlobalPipelineLibrary);
 
 		private:
 			const RHIShaderParameterInfo* m_scene_view;
@@ -259,9 +259,9 @@ namespace Trinex
 			                          const LightRenderRanges& ranges);
 		};
 
-		class CameraVelocity : public GlobalGraphicsPipeline
+		class CameraVelocity : public GlobalPipelineLibrary
 		{
-			trinex_declare_pipeline(CameraVelocity, GlobalGraphicsPipeline);
+			trinex_declare_pipeline(CameraVelocity, GlobalPipelineLibrary);
 
 		private:
 			const RHIShaderParameterInfo* m_scene_view;
@@ -270,9 +270,9 @@ namespace Trinex
 			CameraVelocity& render(RHIContext* ctx, Renderer* renderer);
 		};
 
-		class DepthView : public GlobalGraphicsPipeline
+		class DepthView : public GlobalPipelineLibrary
 		{
-			trinex_declare_pipeline(DepthView, GlobalGraphicsPipeline);
+			trinex_declare_pipeline(DepthView, GlobalPipelineLibrary);
 
 		private:
 			const RHIShaderParameterInfo* m_scene_view;
@@ -282,9 +282,9 @@ namespace Trinex
 			DepthView& render(RHIContext* ctx, Renderer* renderer);
 		};
 
-		class TAA : public GlobalComputePipeline
+		class TAA : public GlobalPipelineLibrary
 		{
-			trinex_declare_pipeline(TAA, GlobalComputePipeline);
+			trinex_declare_pipeline(TAA, GlobalPipelineLibrary);
 
 		private:
 			const RHIShaderParameterInfo* m_scene_color;

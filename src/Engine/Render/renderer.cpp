@@ -106,7 +106,7 @@ namespace Trinex
 				continue;
 
 			// Temporary hack to render all objects
-			ctx->bind_pipeline(pipeline->rhi_pipeline());
+			ctx->bind_pipeline(pipeline->handle());
 			ctx->bind_uniform_buffer(globals_uniform_buffer(), 0);
 			u32* indices = render_scene->map<u32>(chunk.address);
 

@@ -8,7 +8,7 @@
 #include <Core/profiler.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/viewport_client.hpp>
-#include <Graphics/pipeline.hpp>
+#include <Graphics/pipeline_library.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/texture.hpp>
@@ -30,9 +30,9 @@ namespace Trinex::UI::Backend
 {
 	namespace RenderBackend
 	{
-		class ImGuiPipeline : public GlobalGraphicsPipeline
+		class ImGuiPipeline : public GlobalPipelineLibrary
 		{
-			trinex_declare_pipeline(ImGuiPipeline, GlobalGraphicsPipeline);
+			trinex_declare_pipeline(ImGuiPipeline, GlobalPipelineLibrary);
 
 			const RHIShaderParameterInfo* m_texture_parameter    = nullptr;
 			const RHIShaderParameterInfo* m_projection_parameter = nullptr;
@@ -74,7 +74,7 @@ namespace Trinex::UI::Backend
 				m_texture = nullptr;
 				m_sampler = nullptr;
 
-				ctx->bind_pipeline(rhi_pipeline());
+				ctx->bind_pipeline(handle());
 				ctx->depth_stencil_state(RHIDepthStencilState());
 				ctx->blending_state(RHIBlendingState::translucent());
 				ctx->rasterizer_state(RHIRasterizerState());
@@ -363,7 +363,7 @@ namespace Trinex::UI::Backend
 
 							ImTextureID texture = pcmd->GetTexID();
 
-							pipeline->bind(ctx, texture.texture ? texture.texture : bd->font_texture->rhi_texture());
+							pipeline->bind(ctx, texture.texture ? texture.texture : bd->font_texture->handle());
 							pipeline->bind(ctx, texture.sampler ? texture.sampler : RHIBilinearSampler::static_sampler());
 
 							ctx->draw_indexed(RHITopology::TriangleList, pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset,

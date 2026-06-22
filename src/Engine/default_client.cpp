@@ -12,16 +12,16 @@
 #include <Engine/Render/scene.hpp>
 #include <Engine/Render/scene_view.hpp>
 #include <Engine/camera_view.hpp>
-#include <Graphics/pipeline.hpp>
+#include <Graphics/pipeline_library.hpp>
 #include <Graphics/shader_parameters.hpp>
 #include <RHI/structures.hpp>
 
 
 namespace Trinex
 {
-	class ENGINE_EXPORT GeometryView : public GlobalGraphicsPipeline
+	class ENGINE_EXPORT GeometryView : public GlobalPipelineLibrary
 	{
-		trinex_declare_pipeline(GeometryView, GlobalGraphicsPipeline);
+		trinex_declare_pipeline(GeometryView, GlobalPipelineLibrary);
 
 	private:
 		const RHIShaderParameterInfo* m_scene_view;
@@ -32,7 +32,7 @@ namespace Trinex
 			auto pipeline = instance();
 
 			ctx->bind_uniform_buffer(uniforms, pipeline->m_scene_view->binding);
-			ctx->bind_pipeline(pipeline->rhi_pipeline());
+			ctx->bind_pipeline(pipeline->handle());
 			ctx->draw(RHITopology::TriangleList, 36, 0, instances, base);
 		}
 	};

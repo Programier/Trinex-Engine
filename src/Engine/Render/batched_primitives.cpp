@@ -164,7 +164,7 @@ namespace Trinex
 		const Matrix4f& projview = renderer->scene_view().camera_view().projview;
 		Vector2f size            = renderer->scene_view().view_size();
 
-		ctx->bind_pipeline(pipeline->rhi_pipeline());
+		ctx->bind_pipeline(pipeline->handle());
 		ctx->update_scalar(&projview, pipeline->projview());
 		ctx->update_scalar(&size, pipeline->viewport());
 
@@ -248,13 +248,13 @@ namespace Trinex
 
 		trinex_rhi_push_stage(ctx, "Triangles Rendering");
 
-		ctx->bind_pipeline(Pipelines::BatchedTriangles::instance()->rhi_pipeline());
-		ctx->bind_pipeline(Pipelines::BatchedTriangles::instance()->rhi_pipeline());
+		ctx->bind_pipeline(Pipelines::BatchedTriangles::instance()->handle());
+		ctx->bind_pipeline(Pipelines::BatchedTriangles::instance()->handle());
 		ctx->bind_vertex_attribute(RHISemantic::Position, RHIVertexFormat::RGB32F, 0);
 		ctx->bind_vertex_attribute(RHISemantic::Color, RHIVertexFormat::RGBA8, 1);
 
-		ctx->bind_vertex_buffer(m_position_buffer.rhi_buffer(), 0, m_position_buffer.stride(), 0);
-		ctx->bind_vertex_buffer(m_color_buffer.rhi_buffer(), 0, m_color_buffer.stride(), 1);
+		ctx->bind_vertex_buffer(m_position_buffer.handle(), 0, m_position_buffer.stride(), 0);
+		ctx->bind_vertex_buffer(m_color_buffer.handle(), 0, m_color_buffer.stride(), 1);
 
 		ctx->draw(RHITopology::TriangleList, m_vtx_count, 0);
 

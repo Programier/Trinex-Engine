@@ -1,5 +1,5 @@
 #pragma once
-#include <Graphics/pipeline.hpp>
+#include <Graphics/pipeline_library.hpp>
 #include <Graphics/sampler.hpp>
 
 namespace Trinex
@@ -11,9 +11,9 @@ namespace Trinex
 
 namespace Trinex::EditorPipelines
 {
-	class Outline : public GlobalGraphicsPipeline
+	class Outline : public GlobalPipelineLibrary
 	{
-		trinex_declare_pipeline(Outline, GlobalGraphicsPipeline);
+		trinex_declare_pipeline(Outline, GlobalPipelineLibrary);
 
 		const RHIShaderParameterInfo* m_scene_color;
 		const RHIShaderParameterInfo* m_scene_depth;
@@ -31,9 +31,9 @@ namespace Trinex::EditorPipelines
 		            Vector2f sample_offset);
 	};
 
-	class Grid : public GlobalGraphicsPipeline
+	class Grid : public GlobalPipelineLibrary
 	{
-		trinex_declare_pipeline(Grid, GlobalGraphicsPipeline);
+		trinex_declare_pipeline(Grid, GlobalPipelineLibrary);
 
 	private:
 		const RHIShaderParameterInfo* m_scene_view;

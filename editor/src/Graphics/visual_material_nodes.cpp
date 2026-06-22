@@ -95,7 +95,7 @@ namespace Trinex::VisualMaterialGraph
 		if (texture)
 		{
 			float size = 4.f * ImGui::GetFrameHeight();
-			ImGui::Image(ImTextureID(texture->rhi_texture()), {size, size});
+			ImGui::Image(ImTextureID(texture->handle()), {size, size});
 		}
 		return *this;
 	}
@@ -307,7 +307,7 @@ namespace Trinex::VisualMaterialGraph
 
 	SampleTexture& SampleTexture::render()
 	{
-		RHITexture* icon = find_texture()->rhi_texture();
+		RHITexture* icon = find_texture()->handle();
 
 		if (icon)
 		{

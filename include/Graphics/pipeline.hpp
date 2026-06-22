@@ -18,8 +18,6 @@ namespace Trinex
 		trinex_class(Pipeline, RenderResource);
 
 	protected:
-		static StringView pipeline_name_of(StringView name);
-		static Object* package_of(StringView name);
 		Shader* create_new_shader();
 
 	protected:
@@ -42,7 +40,7 @@ namespace Trinex
 		virtual Pipeline& clear();
 		virtual Pipeline& modify_compilation_env(ShaderCompilationEnvironment* env);
 
-		inline RHIPipeline* rhi_pipeline() const { return m_pipeline; }
+		inline RHIPipeline* handle() const { return m_pipeline; }
 	};
 
 	class ENGINE_EXPORT GraphicsPipeline : public Pipeline
@@ -97,83 +95,4 @@ namespace Trinex
 		ComputePipeline& init_render_resources() override;
 		inline Shader* compute_shader() const { return m_shader; }
 	};
-
-	class ENGINE_EXPORT GlobalGraphicsPipeline : public GraphicsPipeline
-	{
-	protected:
-		GlobalGraphicsPipeline& load_pipeline();
-
-	public:
-		GlobalGraphicsPipeline(StringView name = "");
-
-		bool serialize(Archive& ar, Material* material) override;
-		virtual Path shader_path() const = 0;
-		virtual void initialize()        = 0;
-	};
-
-	class ENGINE_EXPORT GlobalComputePipeline : public ComputePipeline
-	{
-	protected:
-		GlobalComputePipeline& load_pipeline();
-
-	public:
-		GlobalComputePipeline(StringView name = "");
-
-		bool serialize(Archive& ar, Material* material) override;
-		virtual Path shader_path() const = 0;
-		virtual void initialize()        = 0;
-	};
-
-#define trinex_declare_pipeline(class_name, base_class)                                                                          \
-private:                                                                                                                         \
-	static class_name* s_instance;                                                                                               \
-                                                                                                                                 \
-	class_name();                                                                                                                \
-                                                                                                                                 \
-public:                                                                                                                          \
-	using Super = base_class;                                                                                                    \
-	using This  = class_name;                                                                                                    \
-                                                                                                                                 \
-	static class_name* create();                                                                                                 \
-	static inline class_name* instance()                                                                                         \
-	{                                                                                                                            \
-		return s_instance;                                                                                                       \
-	}                                                                                                                            \
-	Path shader_path() const override;                                                                                           \
-	void initialize() override;                                                                                                  \
-	~class_name();                                                                                                               \
-	friend class Trinex::Object;                                                                                                 \
-                                                                                                                                 \
-private:
-
-#define trinex_implement_pipeline(class_name, path)                                                                              \
-	trinex_on_init({.name = #class_name})                                                                                        \
-	{                                                                                                                            \
-		class_name::create();                                                                                                    \
-	}                                                                                                                            \
-                                                                                                                                 \
-	class_name* class_name::s_instance = nullptr;                                                                                \
-	class_name::class_name() : Super(#class_name)                                                                                \
-	{                                                                                                                            \
-		s_instance = this;                                                                                                       \
-	}                                                                                                                            \
-	class_name::~class_name()                                                                                                    \
-	{                                                                                                                            \
-		s_instance = nullptr;                                                                                                    \
-	}                                                                                                                            \
-	class_name* class_name::create()                                                                                             \
-	{                                                                                                                            \
-		if (!s_instance)                                                                                                         \
-		{                                                                                                                        \
-			Object::new_instance<class_name>(pipeline_name_of(#class_name), package_of(#class_name));                            \
-			s_instance->add_reference();                                                                                         \
-			s_instance->load_pipeline();                                                                                         \
-		}                                                                                                                        \
-		return s_instance;                                                                                                       \
-	}                                                                                                                            \
-	Path class_name::shader_path() const                                                                                         \
-	{                                                                                                                            \
-		return path;                                                                                                             \
-	}                                                                                                                            \
-	void class_name::initialize()
 }// namespace Trinex

@@ -125,10 +125,10 @@ namespace Trinex::UI
 	{
 		if (Texture2D* texture = object->instance_cast<Texture2D>())
 		{
-			return texture->rhi_texture();
+			return texture->handle();
 		}
 
-		return EditorResources::default_icon->rhi_texture();
+		return EditorResources::default_icon->handle();
 	}
 
 	ContentBrowserController& ContentBrowserController::expand_package_path(Package* package)
