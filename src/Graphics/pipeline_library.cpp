@@ -97,7 +97,7 @@ namespace Trinex
 		}
 
 		cache.apply_to(default_pipeline);
-		default_pipeline->init_render_resources();
+		default_pipeline->rebuild();
 		return true;
 	}
 
@@ -125,8 +125,8 @@ namespace Trinex
 	bool GlobalPipelineLibrary::compile_permutation(const ShaderCompilationResult& result)
 	{
 		PipelineLibraryCache cache;
-		auto& manifest = PipelineLibraryCacheManifest::instance();
-		Pipeline* pipeline      = nullptr;
+		auto& manifest     = PipelineLibraryCacheManifest::instance();
+		Pipeline* pipeline = nullptr;
 
 		if (!cache.load_by_hash(result.shader_hash))
 		{
@@ -155,7 +155,7 @@ namespace Trinex
 		}
 
 		cache.apply_to(pipeline);
-		pipeline->init_render_resources();
+		pipeline->rebuild();
 		return true;
 	}
 

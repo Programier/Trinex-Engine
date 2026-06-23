@@ -53,7 +53,7 @@ namespace Trinex
 #undef m_format
 	}
 
-	Texture2D& Texture2D::init_render_resources()
+	Texture2D& Texture2D::rebuild()
 	{
 		RHITextureDesc desc = {
 		        .type   = RHITextureType::Texture2D,
@@ -107,7 +107,7 @@ namespace Trinex
 		trinex_refl_prop(format, Refl::Property::IsReadOnly)->tooltip("Color format of this texture");
 	}
 
-	Texture3D& Texture3D::init_render_resources()
+	Texture3D& Texture3D::rebuild()
 	{
 		RHITextureDesc desc = {
 		        .type   = RHITextureType::Texture3D,
@@ -166,7 +166,7 @@ namespace Trinex
 		trinex_refl_prop(format, Refl::Property::IsReadOnly)->tooltip("Color format of this texture");
 	}
 
-	TextureCube& TextureCube::init_render_resources()
+	TextureCube& TextureCube::rebuild()
 	{
 		RHITextureDesc desc = {
 		        .type   = RHITextureType::TextureCube,

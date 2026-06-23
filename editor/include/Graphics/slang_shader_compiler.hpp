@@ -122,7 +122,7 @@ namespace Trinex
 
 		SLANG_ShaderCompiler();
 		~SLANG_ShaderCompiler();
-		SLANG_ShaderCompiler& on_create() override;
+
 		virtual void initialize_context(SessionInitializer* session);
 		bool compile(const ShaderCompilationEnvironment* env, const CompileCallback& callback) override;
 	};

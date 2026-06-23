@@ -48,7 +48,7 @@ namespace Trinex
 		return ar.serialize(topology, first_vertex, first_index, vertices_count, material_index);
 	}
 
-	StaticMesh& StaticMesh::init_render_resources()
+	StaticMesh& StaticMesh::rebuild()
 	{
 		for (auto& lod : lods)
 		{
@@ -58,12 +58,6 @@ namespace Trinex
 		}
 
 		return *this;
-	}
-
-	StaticMesh& StaticMesh::postload()
-	{
-		Super::postload();
-		return init_render_resources();
 	}
 
 	template<typename Type>
@@ -125,7 +119,7 @@ namespace Trinex
 		return true;
 	}
 
-	SkeletalMesh& SkeletalMesh::init_render_resources()
+	SkeletalMesh& SkeletalMesh::rebuild()
 	{
 		for (auto& lod : lods)
 		{
@@ -161,9 +155,4 @@ namespace Trinex
 		return ar.serialize(bones);
 	}
 
-	SkeletalMesh& SkeletalMesh::postload()
-	{
-		Super::postload();
-		return init_render_resources();
-	}
 }// namespace Trinex

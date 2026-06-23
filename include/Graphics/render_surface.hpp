@@ -1,6 +1,6 @@
 #pragma once
+#include <Core/asset.hpp>
 #include <Core/math/vector.hpp>
-#include <Graphics/render_resource.hpp>
 #include <RHI/enums.hpp>
 #include <RHI/resource_ptr.hpp>
 
@@ -12,9 +12,9 @@ namespace Trinex
 	class RHIDepthStencilView;
 	class RHITexture;
 
-	class ENGINE_EXPORT RenderSurface : public RenderResource
+	class ENGINE_EXPORT RenderSurface : public Asset
 	{
-		trinex_class(RenderSurface, RenderResource);
+		trinex_class(RenderSurface, Asset);
 
 		RHIResourcePtr<RHITexture> m_texture;
 
@@ -24,7 +24,7 @@ namespace Trinex
 	public:
 		RenderSurface();
 		RenderSurface& init(RHISurfaceFormat format, Vector2i size);
-		RenderSurface& release_render_resources() override;
+		RenderSurface& rebuild() override;
 		RHIRenderTargetView* rtv() const;
 		RHIDepthStencilView* dsv() const;
 		RHIUnorderedAccessView* uav() const;

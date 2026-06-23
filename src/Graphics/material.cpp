@@ -583,7 +583,7 @@ namespace Trinex
 			result.initialize_pipeline(pipeline);
 			if (add_pipeline(pass, pipeline))
 			{
-				pipeline->init_render_resources();
+				pipeline->rebuild();
 			}
 			return true;
 		}

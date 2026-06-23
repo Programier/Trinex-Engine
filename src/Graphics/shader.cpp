@@ -8,16 +8,9 @@ namespace Trinex
 {
 	trinex_implement_engine_class_default_init(Shader, 0);
 
-	Shader& Shader::init_render_resources()
+	Shader& Shader::rebuild()
 	{
 		m_shader = RHI::instance()->create_shader(source, {});
-		return *this;
-	}
-
-	Shader& Shader::release_render_resources()
-	{
-		Super::release_render_resources();
-		m_shader = nullptr;
 		return *this;
 	}
 }// namespace Trinex

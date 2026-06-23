@@ -42,14 +42,12 @@ namespace Trinex
 		return *this;
 	}
 
-	RenderSurface& RenderSurface::release_render_resources()
+	RenderSurface& RenderSurface::rebuild()
 	{
-		Super::release_render_resources();
-		m_texture = nullptr;
+		if (m_format == RHISurfaceFormat::Undefined || m_size == Vector2u(0, 0))
+			return *this;
 
-		m_format = RHISurfaceFormat::Undefined;
-		m_size   = {0, 0};
-		return *this;
+		return init(m_format, Vector2i(m_size));
 	}
 
 	RHIRenderTargetView* RenderSurface::rtv() const

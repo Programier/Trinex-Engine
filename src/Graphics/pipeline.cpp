@@ -15,11 +15,11 @@
 
 namespace Trinex
 {
-	static FORCE_INLINE bool init_shader(Shader* shader)
+	static FORCE_INLINE bool build_shader(Shader* shader)
 	{
 		if (shader && !shader->source.empty())
 		{
-			shader->init_render_resources();
+			shader->rebuild();
 			return true;
 		}
 		return false;
@@ -52,13 +52,6 @@ namespace Trinex
 		Shader* shader = Object::new_instance<Shader>();
 		shader->owner(this);
 		return shader;
-	}
-
-	Pipeline& Pipeline::release_render_resources()
-	{
-		Super::release_render_resources();
-		m_pipeline = nullptr;
-		return *this;
 	}
 
 	bool Pipeline::serialize(Archive& ar)
@@ -147,13 +140,13 @@ namespace Trinex
 		return *this;
 	}
 
-	GraphicsPipeline& GraphicsPipeline::init_render_resources()
+	GraphicsPipeline& GraphicsPipeline::rebuild()
 	{
-		const bool vs_inited = init_shader(m_vertex_shader);
-		init_shader(m_tessellation_control_shader);
-		init_shader(m_tessellation_shader);
-		init_shader(m_geometry_shader);
-		init_shader(m_fragment_shader);
+		const bool vs_inited = build_shader(m_vertex_shader);
+		build_shader(m_tessellation_control_shader);
+		build_shader(m_tessellation_shader);
+		build_shader(m_geometry_shader);
+		build_shader(m_fragment_shader);
 
 		if (vs_inited)
 		{
@@ -395,9 +388,9 @@ namespace Trinex
 		destroy_shader(m_shader);
 	}
 
-	ComputePipeline& ComputePipeline::init_render_resources()
+	ComputePipeline& ComputePipeline::rebuild()
 	{
-		init_shader(m_shader);
+		build_shader(m_shader);
 
 		RHIComputePipelineDesc desc;
 		desc.compute_shader   = compute_shader()->handle();

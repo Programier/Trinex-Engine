@@ -1,7 +1,7 @@
 #pragma once
+#include <Core/asset.hpp>
 #include <Core/etl/flat_set.hpp>
 #include <Core/math/box.hpp>
-#include <Core/object.hpp>
 #include <Core/pointer.hpp>
 #include <Graphics/gpu_buffers.hpp>
 
@@ -46,9 +46,9 @@ namespace Trinex
 		u8 weights[4];
 	};
 
-	class ENGINE_EXPORT StaticMesh : public Object
+	class ENGINE_EXPORT StaticMesh : public Asset
 	{
-		trinex_class(StaticMesh, Object);
+		trinex_class(StaticMesh, Asset);
 
 	public:
 		struct ENGINE_EXPORT LOD {
@@ -67,14 +67,13 @@ namespace Trinex
 		Box3f bounds;
 		Vector<LOD> lods;
 
-		StaticMesh& init_render_resources();
+		StaticMesh& rebuild() override;
 		bool serialize(Archive& ar) override;
-		StaticMesh& postload() override;
 	};
 
-	class ENGINE_EXPORT SkeletalMesh : public Object
+	class ENGINE_EXPORT SkeletalMesh : public Asset
 	{
-		trinex_class(SkeletalMesh, Object);
+		trinex_class(SkeletalMesh, Asset);
 
 	public:
 		struct ENGINE_EXPORT LOD {
@@ -94,8 +93,7 @@ namespace Trinex
 		Vector<LOD> lods;
 		u32 bones = 0;
 
-		SkeletalMesh& init_render_resources();
+		SkeletalMesh& rebuild() override;
 		bool serialize(Archive& ar) override;
-		SkeletalMesh& postload() override;
 	};
 }// namespace Trinex

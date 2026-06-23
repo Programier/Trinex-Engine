@@ -7,7 +7,7 @@ namespace Trinex
 {
 	namespace
 	{
-		static constexpr char hex_digits[] = "0123456789abcdef";
+		static constexpr char hex_digits[] = "0123456789ABCDEF";
 
 		static FORCE_INLINE bool is_uuid_separator(char ch)
 		{

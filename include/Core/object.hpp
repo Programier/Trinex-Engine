@@ -186,12 +186,14 @@ namespace Trinex
 		bool is_dirty() const;
 
 		virtual bool save(class BufferWriter* writer = nullptr, SerializationFlags flags = {});
+
 		virtual Object& on_create();
 		virtual Object& on_destroy();
+		virtual Object& on_property_changed(const Refl::PropertyChangedEvent& event);
 
 		virtual Object& preload();
 		virtual Object& postload();
-		virtual Object& on_property_changed(const Refl::PropertyChangedEvent& event);
+		virtual Object& rebuild();
 
 		Object* owner() const;
 		bool owner(Object* new_owner);

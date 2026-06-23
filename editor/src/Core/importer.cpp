@@ -690,7 +690,7 @@ namespace Trinex::Importer
 			offset_vertices(reinterpret_cast<Vector3f*>(position.data), vertex_count, -offset);
 			mesh->bounds.center({0.f, 0.f, 0.f});
 
-			mesh->init_render_resources();
+			mesh->rebuild();
 			m_meshes[index] = MeshInfo{.mesh = mesh, .offset = offset};
 			return mesh;
 		}

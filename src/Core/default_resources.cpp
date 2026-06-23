@@ -98,7 +98,7 @@ namespace Trinex
 			value = dist(gen);
 		}
 
-		texture->init_render_resources();
+		texture->rebuild();
 	}
 
 
@@ -151,7 +151,7 @@ namespace Trinex
 		mip.data.resize(mip.size.x * mip.size.y * 4);
 
 		(*reinterpret_cast<Color*>(mip.data.data())) = color;
-		texture->init_render_resources();
+		texture->rebuild();
 	}
 
 	static void generate_default_textures(Package* package)
@@ -174,7 +174,7 @@ namespace Trinex
 
 			Color* pixels = reinterpret_cast<Color*>(mip.data.data());
 			generate_checker_texture({128, 128}, 8, pixels);
-			texture->init_render_resources();
+			texture->rebuild();
 		}
 
 		{
@@ -193,7 +193,7 @@ namespace Trinex
 				pixels += mip.size.x * mip.size.y;
 			}
 
-			texture->init_render_resources();
+			texture->rebuild();
 		}
 
 		{
@@ -206,7 +206,7 @@ namespace Trinex
 
 			Color* pixels = reinterpret_cast<Color*>(mip.data.data());
 			generate_lut_texture(mip.size, pixels);
-			texture->init_render_resources();
+			texture->rebuild();
 		}
 	}
 
@@ -293,7 +293,7 @@ namespace Trinex
 		lod.vertex_stream.init(RHIBufferFlags::VertexBuffer, positions.size(), positions.data());
 		lod.surface_stream.init(RHIBufferFlags::VertexBuffer, surface_stream.size(), surface_stream.data());
 
-		mesh->init_render_resources();
+		mesh->rebuild();
 		return mesh;
 	}
 

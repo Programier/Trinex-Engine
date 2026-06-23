@@ -386,6 +386,11 @@ namespace Trinex
 
 	Object& Object::postload()
 	{
+		return rebuild();
+	}
+
+	Object& Object::rebuild()
+	{
 		return *this;
 	}
 

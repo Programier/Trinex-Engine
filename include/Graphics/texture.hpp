@@ -1,6 +1,6 @@
 #pragma once
+#include <Core/asset.hpp>
 #include <Core/math/vector.hpp>
-#include <Graphics/render_resource.hpp>
 #include <RHI/enums.hpp>
 #include <RHI/resource_ptr.hpp>
 
@@ -36,9 +36,9 @@ namespace Trinex
 	};
 
 
-	class ENGINE_EXPORT Texture : public RenderResource
+	class ENGINE_EXPORT Texture : public Asset
 	{
-		trinex_class(Texture, RenderResource);
+		trinex_class(Texture, Asset);
 
 	protected:
 		RHIResourcePtr<RHITexture> m_texture;
@@ -56,7 +56,7 @@ namespace Trinex
 		Vector<Texture2DMip> mips;
 		RHIColorFormat format;
 
-		Texture2D& init_render_resources() override;
+		Texture2D& rebuild() override;
 		u32 width(u8 mip = 0) const;
 		u32 height(u8 mip = 0) const;
 		Vector2u size(u8 mip = 0) const;
@@ -71,7 +71,7 @@ namespace Trinex
 		Vector<Texture3DMip> mips;
 		RHIColorFormat format;
 
-		Texture3D& init_render_resources() override;
+		Texture3D& rebuild() override;
 		u32 width(u8 mip = 0) const;
 		u32 height(u8 mip = 0) const;
 		u32 depth(u8 mip = 0) const;
@@ -87,7 +87,7 @@ namespace Trinex
 		Vector<TextureCubeMip> mips;
 		RHIColorFormat format;
 
-		TextureCube& init_render_resources() override;
+		TextureCube& rebuild() override;
 		u32 width(u8 mip = 0) const;
 		u32 height(u8 mip = 0) const;
 		Vector2u size(u8 mip = 0) const;

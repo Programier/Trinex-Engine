@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/asset.hpp>
 #include <Core/etl/object_tree_node.hpp>
 #include <Graphics/pipeline.hpp>
 
@@ -15,9 +16,9 @@ namespace Trinex
 	struct PipelineLibraryCache;
 	struct RHIShaderParameterInfo;
 
-	class ENGINE_EXPORT PipelineLibrary : public ObjectTreeNode<RenderResource, Pipeline>
+	class ENGINE_EXPORT PipelineLibrary : public ObjectTreeNode<Asset, Pipeline>
 	{
-		trinex_class(PipelineLibrary, RenderResource);
+		trinex_class(PipelineLibrary, Asset);
 
 	protected:
 		Pipeline* create_pipeline_instance(u8 type, Name name);

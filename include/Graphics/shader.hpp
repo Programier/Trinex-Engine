@@ -1,14 +1,15 @@
 #pragma once
+#include <Core/asset.hpp>
 #include <Core/enums.hpp>
-#include <Graphics/render_resource.hpp>
 #include <Graphics/shader_parameters.hpp>
+#include <RHI/resource_ptr.hpp>
 
 namespace Trinex
 {
 	class RHIShader;
-	class ENGINE_EXPORT Shader : public RenderResource
+	class ENGINE_EXPORT Shader : public Asset
 	{
-		trinex_class(Shader, RenderResource);
+		trinex_class(Shader, Asset);
 
 	protected:
 		RHIResourcePtr<RHIShader> m_shader;
@@ -16,8 +17,7 @@ namespace Trinex
 	public:
 		Buffer source;
 
-		Shader& init_render_resources() override;
-		Shader& release_render_resources() override;
+		Shader& rebuild() override;
 		inline RHIShader* handle() const { return m_shader; }
 	};
 }// namespace Trinex

@@ -1,6 +1,6 @@
 #pragma once
+#include <Core/asset.hpp>
 #include <Core/types/path.hpp>
-#include <Graphics/render_resource.hpp>
 #include <RHI/resource_ptr.hpp>
 #include <RHI/structures.hpp>
 
@@ -13,9 +13,9 @@ namespace Trinex
 	class RHIPipeline;
 	class ShaderCompilationResult;
 
-	class ENGINE_EXPORT Pipeline : public RenderResource
+	class ENGINE_EXPORT Pipeline : public Asset
 	{
-		trinex_class(Pipeline, RenderResource);
+		trinex_class(Pipeline, Asset);
 
 	protected:
 		Shader* create_new_shader();
@@ -34,7 +34,6 @@ namespace Trinex
 		inline const Vector<RHIShaderParameterInfo>& parameters() const { return m_parameters; }
 
 		class Material* material() const;
-		Pipeline& release_render_resources() override;
 		virtual bool serialize(Archive& ar) final override;
 		virtual bool serialize(Archive& ar, Material* material);
 		virtual Pipeline& clear();
@@ -59,7 +58,7 @@ namespace Trinex
 
 	public:
 		~GraphicsPipeline();
-		GraphicsPipeline& init_render_resources() override;
+		GraphicsPipeline& rebuild() override;
 		GraphicsPipeline& postload() override;
 
 		Shader* vertex_shader() const;
@@ -92,7 +91,7 @@ namespace Trinex
 	public:
 		ComputePipeline();
 		~ComputePipeline();
-		ComputePipeline& init_render_resources() override;
+		ComputePipeline& rebuild() override;
 		inline Shader* compute_shader() const { return m_shader; }
 	};
 }// namespace Trinex
