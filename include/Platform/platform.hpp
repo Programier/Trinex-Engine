@@ -13,6 +13,7 @@ namespace Trinex
 	struct Rect2D;
 	struct Event;
 	class Path;
+	class UUID;
 
 	namespace VFS
 	{
@@ -31,6 +32,7 @@ namespace Trinex
 		ENGINE_EXPORT OperationSystemType system_type();
 		ENGINE_EXPORT const char* system_name();
 		ENGINE_EXPORT Path find_exec_directory();
+		ENGINE_EXPORT bool create_uuid(UUID& uuid);
 		ENGINE_EXPORT usize monitors_count();
 		ENGINE_EXPORT MonitorInfo monitor_info(usize monitor_index = 0);
 
