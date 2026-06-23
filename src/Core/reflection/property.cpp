@@ -1,11 +1,11 @@
 #include <Core/archive.hpp>
 #include <Core/etl/templates.hpp>
-#include <Core/filesystem/path.hpp>
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/string_functions.hpp>
+#include <Core/types/path.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 

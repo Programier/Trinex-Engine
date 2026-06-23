@@ -1,7 +1,7 @@
 #include <Core/editor_config.hpp>
 #include <Core/file_manager.hpp>
-#include <Core/filesystem/path.hpp>
 #include <Core/memory.hpp>
+#include <Core/types/path.hpp>
 #include <UI/imgui.hpp>
 #include <UI/theme.hpp>
 

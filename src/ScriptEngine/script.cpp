@@ -88,31 +88,27 @@ namespace Trinex
 		return m_folders;
 	}
 
-	ScriptFolder* ScriptFolder::find(const Path& path, bool create_if_not_exists)
-	{
-		auto splited_path = path.split();
-		return find(splited_path, create_if_not_exists);
-	}
-
-	ScriptFolder* ScriptFolder::find(const Span<String>& path, bool create_if_not_exists)
+	ScriptFolder* ScriptFolder::find(PathView path, bool create_if_not_exists)
 	{
 		ScriptFolder* folder = this;
 
-		for (auto& name : path)
+		while (!path.empty())
 		{
-			if (name.empty())
+			PathView chunk = path.split(path);
+
+			if (chunk.empty())
 				continue;
 
-			if (name == "[scripts]:" && m_name == "[scripts]:")
+			if (chunk == "[scripts]:" && m_name == "[scripts]:")
 				continue;
 
-			auto it = folder->m_folders.find(name);
+			auto it = folder->m_folders.find(String(chunk));
 
 			if (it == folder->m_folders.end())
 			{
 				if (create_if_not_exists)
 				{
-					folder = trx_new ScriptFolder(name, folder);
+					folder = trx_new ScriptFolder(String(chunk), folder);
 				}
 				else
 				{
@@ -128,27 +124,22 @@ namespace Trinex
 		return folder;
 	}
 
-	Script* ScriptFolder::find_script(const Path& script_path, bool create_if_not_exists)
+	Script* ScriptFolder::find_script(PathView path, bool create_if_not_exists)
 	{
-		auto splited_path = script_path.split();
-		return find_script(splited_path, create_if_not_exists);
-	}
-
-	Script* ScriptFolder::find_script(const Span<String>& path, bool create_if_not_exists)
-	{
-		if (path.empty() || !path.back().ends_with(Constants::script_extension))
+		if (path.empty() || path.extension() != Constants::script_extension)
 			return nullptr;
 
-		if (ScriptFolder* folder = find(path.subspan(0, path.size() - 1), create_if_not_exists))
+		if (ScriptFolder* folder = find(path.split(path, -1), create_if_not_exists))
 		{
-			auto it = folder->m_scripts.find(path.back());
+			String name = String(path);
+			auto it     = folder->m_scripts.find(name);
 
 			if (it == folder->m_scripts.end())
 			{
 				if (create_if_not_exists)
 				{
-					Script* new_script = trx_new Script(folder, path.back());
-					folder->m_scripts.insert_or_assign(path.back(), new_script);
+					Script* new_script = trx_new Script(folder, name);
+					folder->m_scripts.insert_or_assign(name, new_script);
 					return new_script;
 				}
 				else

@@ -3,7 +3,6 @@
 #include <Core/editor_resources.hpp>
 #include <Core/etl/algorithm.hpp>
 #include <Core/etl/templates.hpp>
-#include <Core/filesystem/path.hpp>
 #include <Core/icons.hpp>
 #include <Core/logger.hpp>
 #include <Core/object.hpp>
@@ -12,6 +11,7 @@
 #include <Core/reflection/object.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/string_functions.hpp>
+#include <Core/types/path.hpp>
 #include <UI/imgui.hpp>
 #include <UI/property_renderer.hpp>
 #include <UI/theme.hpp>

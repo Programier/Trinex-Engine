@@ -4,8 +4,8 @@
 #include <Core/etl/map.hpp>
 #include <Core/etl/set.hpp>
 #include <Core/etl/span.hpp>
-#include <Core/filesystem/path.hpp>
-#include <Core/name.hpp>
+#include <Core/types/name.hpp>
+#include <Core/types/path.hpp>
 #include <ScriptEngine/script_module.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 
@@ -38,10 +38,8 @@ namespace Trinex
 	public:
 		const TreeMap<String, Script*>& scripts() const;
 		const TreeMap<String, ScriptFolder*>& sub_folders() const;
-		ScriptFolder* find(const Path& path, bool create_if_not_exists = false);
-		ScriptFolder* find(const Span<String>& path, bool create_if_not_exists = false);
-		Script* find_script(const Path& script_path, bool create_if_not_exists = false);
-		Script* find_script(const Span<String>& path, bool create_if_not_exists = false);
+		ScriptFolder* find(PathView path, bool create_if_not_exists = false);
+		Script* find_script(PathView path, bool create_if_not_exists = false);
 		ScriptFolder& load_scripts();
 		ScriptFolder& unload_scripts();
 

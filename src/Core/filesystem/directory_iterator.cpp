@@ -1,6 +1,6 @@
 #include <Core/filesystem/directory_iterator.hpp>
-#include <Core/filesystem/path.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
+#include <Core/types/path.hpp>
 
 
 namespace Trinex::VFS

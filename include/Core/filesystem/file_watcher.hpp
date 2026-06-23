@@ -2,7 +2,7 @@
 #include <Core/callback.hpp>
 #include <Core/enums.hpp>
 #include <Core/etl/vector.hpp>
-#include <Core/filesystem/path.hpp>
+#include <Core/types/path.hpp>
 
 namespace Trinex::VFS
 {

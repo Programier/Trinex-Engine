@@ -4,7 +4,7 @@
 #include <Core/etl/atomic.hpp>
 #include <Core/etl/type_traits.hpp>
 #include <Core/etl/vector.hpp>
-#include <Core/name.hpp>
+#include <Core/types/name.hpp>
 #include <angelscript_object.h>
 
 namespace Trinex

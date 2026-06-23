@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/engine_types.hpp>
 #include <Core/etl/vector.hpp>
-#include <Core/name.hpp>
+#include <Core/types/name.hpp>
 
 namespace Trinex
 {

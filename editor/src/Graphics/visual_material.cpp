@@ -1,10 +1,10 @@
 #include <Core/file_manager.hpp>
-#include <Core/filesystem/path.hpp>
 #include <Core/group.hpp>
 #include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Core/reflection/property.hpp>
+#include <Core/types/path.hpp>
 #include <Engine/project.hpp>
 #include <Graphics/visual_material.hpp>
 #include <Graphics/visual_material_nodes.hpp>

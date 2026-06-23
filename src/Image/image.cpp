@@ -1,8 +1,8 @@
 #include <Core/archive.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/file.hpp>
-#include <Core/filesystem/path.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
+#include <Core/types/path.hpp>
 #include <Image/image.hpp>
 #include <RHI/enums.hpp>
 #include <cstring>

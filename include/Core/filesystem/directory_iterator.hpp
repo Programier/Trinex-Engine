@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/export.hpp>
-#include <Core/filesystem/path.hpp>
+#include <Core/types/path.hpp>
 
 namespace Trinex
 {

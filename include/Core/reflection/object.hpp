@@ -3,7 +3,7 @@
 #include <Core/engine_types.hpp>
 #include <Core/etl/any.hpp>
 #include <Core/etl/map.hpp>
-#include <Core/name.hpp>
+#include <Core/types/name.hpp>
 
 namespace Trinex
 {

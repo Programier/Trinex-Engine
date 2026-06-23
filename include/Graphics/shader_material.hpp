@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/filesystem/path.hpp>
+#include <Core/types/path.hpp>
 #include <Graphics/material.hpp>
 
 namespace Trinex

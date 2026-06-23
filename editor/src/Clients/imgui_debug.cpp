@@ -1,6 +1,6 @@
 #include <Clients/imgui_client.hpp>
-#include <Core/filesystem/path.hpp>
 #include <Core/reflection/class.hpp>
+#include <Core/types/path.hpp>
 #include <UI/imgui.hpp>
 
 namespace Trinex

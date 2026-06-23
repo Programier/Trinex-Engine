@@ -3,7 +3,7 @@
 #include <Core/etl/map.hpp>
 #include <Core/etl/variant.hpp>
 #include <Core/math/vector.hpp>
-#include <Core/name.hpp>
+#include <Core/types/name.hpp>
 
 namespace Trinex
 {

@@ -2,11 +2,11 @@
 #include <Core/filesystem/directory_iterator.hpp>
 #include <Core/filesystem/file.hpp>
 #include <Core/filesystem/file_watcher.hpp>
-#include <Core/filesystem/path.hpp>
 #include <Core/filesystem/redirector.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/logger.hpp>
 #include <Core/memory.hpp>
+#include <Core/types/path.hpp>
 #include <Platform/platform.hpp>
 
 namespace Trinex

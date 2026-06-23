@@ -1,8 +1,8 @@
 #include <Core/config_manager.hpp>
 #include <Core/etl/set.hpp>
 #include <Core/file_manager.hpp>
-#include <Core/filesystem/path.hpp>
 #include <Core/logger.hpp>
+#include <Core/types/path.hpp>
 #include <Engine/project.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>

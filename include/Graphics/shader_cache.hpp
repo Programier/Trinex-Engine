@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/etl/map.hpp>
 #include <Core/etl/vector.hpp>
-#include <Core/name.hpp>
+#include <Core/types/name.hpp>
 #include <RHI/structures.hpp>
 
 namespace Trinex

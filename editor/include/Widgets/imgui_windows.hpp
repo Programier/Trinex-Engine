@@ -1,8 +1,8 @@
 #pragma once
 #include <Core/callback.hpp>
 #include <Core/etl/set.hpp>
-#include <Core/filesystem/path.hpp>
 #include <Core/pointer.hpp>
+#include <Core/types/path.hpp>
 #include <UI/imgui.hpp>
 
 namespace ImGui

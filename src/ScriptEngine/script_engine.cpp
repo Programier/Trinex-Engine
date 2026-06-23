@@ -794,7 +794,7 @@ namespace Trinex
 			if (!info.is_native())
 			{
 				auto module = info.module();
-				if (Script* script = ScriptEngine::scripts_folder()->find_script(module.name()))
+				if (Script* script = ScriptEngine::scripts_folder()->find_script(Path(module.name())))
 					script->on_discard.push([id = info.type_id()](Script*) { func_map.erase(id); });
 			}
 

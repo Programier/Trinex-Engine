@@ -2,7 +2,7 @@
 #include <Core/engine_types.hpp>
 #include <Core/math/matrix.hpp>
 #include <Core/math/vector.hpp>
-#include <Core/name.hpp>
+#include <Core/types/name.hpp>
 #include <RHI/enums.hpp>
 
 namespace Trinex

@@ -3,13 +3,13 @@
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/directory_iterator.hpp>
 #include <Core/filesystem/file.hpp>
-#include <Core/filesystem/path.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/logger.hpp>
 #include <Core/math/math.hpp>
 #include <Core/profiler.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
+#include <Core/types/path.hpp>
 #include <Engine/Render/pipelines.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/render_pools.hpp>

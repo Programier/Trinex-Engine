@@ -4,7 +4,7 @@
 #include <Core/etl/templates.hpp>
 #include <Core/etl/vector.hpp>
 #include <Core/memory.hpp>
-#include <Core/name.hpp>
+#include <Core/types/name.hpp>
 #include <ScriptEngine/registrar.hpp>
 
 namespace Trinex

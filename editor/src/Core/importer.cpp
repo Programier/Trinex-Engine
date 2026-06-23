@@ -2,7 +2,6 @@
 #include <Core/etl/optional.hpp>
 #include <Core/etl/variant.hpp>
 #include <Core/etl/vector.hpp>
-#include <Core/filesystem/path.hpp>
 #include <Core/importer.hpp>
 #include <Core/logger.hpp>
 #include <Core/math/math.hpp>
@@ -10,6 +9,7 @@
 #include <Core/package.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
+#include <Core/types/path.hpp>
 #include <Engine/world.hpp>
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/material.hpp>
@@ -302,12 +302,9 @@ namespace Trinex::Importer
 					{
 						switch (component)
 						{
-							switch (component)
-							{
-								case 1: return RHIColorFormat::R16;
-								case 2: return RHIColorFormat::R16G16;
-								case 4: return RHIColorFormat::R16G16B16A16;
-							}
+							case 1: return RHIColorFormat::R16;
+							case 2: return RHIColorFormat::R16G16;
+							case 4: return RHIColorFormat::R16G16B16A16;
 						}
 					}
 					break;

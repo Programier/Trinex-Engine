@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/filesystem/path.hpp>
+#include <Core/types/path.hpp>
 #include <Graphics/render_resource.hpp>
 #include <RHI/resource_ptr.hpp>
 #include <RHI/structures.hpp>

@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/name.hpp>
+#include <Core/types/name.hpp>
 
 namespace Trinex
 {

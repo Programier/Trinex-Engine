@@ -1,5 +1,5 @@
 #include <Core/engine_types.hpp>
-#include <Core/filesystem/path.hpp>
+#include <Core/types/path.hpp>
 
 namespace Trinex
 {
