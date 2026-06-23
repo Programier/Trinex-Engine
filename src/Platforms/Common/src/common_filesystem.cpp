@@ -189,7 +189,7 @@ namespace Trinex::VFS
 		return true;
 	}
 
-	bool CommonFileSystem::is_file_exist(const Path& path) const
+	bool CommonFileSystem::is_exist(const Path& path) const
 	{
 		return fs::exists((m_directory / path).str());
 	}

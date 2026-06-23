@@ -2,6 +2,7 @@
 #include <Core/constants.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
+#include <Core/lifecycle.hpp>
 #include <Core/logger.hpp>
 #include <Core/reflection/struct.hpp>
 #include <Core/string_functions.hpp>
@@ -14,6 +15,16 @@
 
 namespace Trinex
 {
+	namespace
+	{
+		static String manifest_key(StringView object_path, Name permutation)
+		{
+			if (permutation == Name::none || !permutation.is_valid())
+				return String(object_path);
+
+			return Strings::format("{}::{}", object_path, permutation.to_string());
+		}
+	}// namespace
 
 	static inline StringView find_rhi_name(const StringView& rhi_name)
 	{
@@ -28,6 +39,20 @@ namespace Trinex
 	{
 		return Strings::format("{}{}{}{}{}{}", Project::shader_cache_dir, Path::separator, rhi_name, Path::separator,
 		                       Strings::replace_all(object_path, Constants::name_separator, Path::sv_separator),
+		                       Constants::shader_extention);
+	}
+
+	static inline Path find_hash_path(u128 hash, StringView rhi_name)
+	{
+		const u64 high = static_cast<u64>(hash >> 64);
+		const u64 low  = static_cast<u64>(hash);
+
+		return Strings::format("[shader_cache]:/{}/{:016x}{:016x}{}", rhi_name, high, low, Constants::shader_extention);
+	}
+
+	static inline Path find_manifest_path(const StringView&, const StringView& rhi_name)
+	{
+		return Strings::format("{}{}{}{}Manifest{}", Project::shader_cache_dir, Path::separator, rhi_name, Path::separator,
 		                       Constants::shader_extention);
 	}
 
@@ -200,14 +225,34 @@ namespace Trinex
 		}
 	}
 
-	bool PipelineLibraryCache::load(const StringView& object_path, StringView rhi_name)
+	bool PipelineLibraryCache::load_by_hash(u128 hash, StringView rhi_name)
 	{
-		return load_shader_cache(this, object_path, rhi_name, "PipelineLibraryCache");
+		rhi_name  = find_rhi_name(rhi_name);
+		Path path = find_hash_path(hash, rhi_name);
+		FileReader reader(path);
+
+		if (!reader.is_open())
+			return false;
+
+		Archive ar(&reader);
+		return serialize(ar);
 	}
 
-	bool PipelineLibraryCache::store(const StringView& object_path, StringView rhi_name) const
+	bool PipelineLibraryCache::store_by_hash(u128 hash, StringView rhi_name) const
 	{
-		return store_shader_cache(this, object_path, rhi_name, "PipelineLibraryCache");
+		rhi_name  = find_rhi_name(rhi_name);
+		Path path = find_hash_path(hash, rhi_name);
+		rootfs()->create_dir(path.base_path());
+		FileWriter writer(path);
+
+		if (!writer.is_open())
+		{
+			error_log("PipelineLibraryCache", "Failed to open file '%s'", path.c_str());
+			return false;
+		}
+
+		Archive ar(&writer);
+		return const_cast<PipelineLibraryCache*>(this)->serialize(ar);
 	}
 
 	bool PipelineLibraryCache::serialize(Archive& ar)
@@ -224,6 +269,102 @@ namespace Trinex
 			case Graphics: return graphics.serialize(ar);
 			case Compute: return compute.serialize(ar);
 			default: return false;
+		}
+	}
+
+	const PipelineLibraryCacheIndexEntry* PipelineLibraryCacheManifest::find(StringView object_path, Name permutation) const
+	{
+		auto it = entries.find(manifest_key(object_path, permutation));
+		return it == entries.end() ? nullptr : &it->second;
+	}
+
+	PipelineLibraryCacheIndexEntry& PipelineLibraryCacheManifest::entry(StringView object_path, Name permutation)
+	{
+		is_dirty = true;
+		return entries[manifest_key(object_path, permutation)];
+	}
+
+	PipelineLibraryCacheManifest& PipelineLibraryCacheManifest::instance(StringView rhi)
+	{
+		static PipelineLibraryCacheManifest s_instance;
+
+		if (!s_instance.is_loaded)
+		{
+			s_instance.load(rhi);
+		}
+
+		return s_instance;
+	}
+
+	bool PipelineLibraryCacheManifest::load(StringView new_rhi_name)
+	{
+		if (is_loaded)
+			return true;
+
+		rhi_name  = find_rhi_name(new_rhi_name);
+		Path path = find_manifest_path("", rhi_name);
+		entries.clear();
+		FileReader reader(path);
+
+		if (!reader.is_open())
+		{
+			is_loaded = true;
+			return false;
+		}
+
+		Archive ar(&reader);
+		is_loaded = serialize(ar);
+		is_dirty  = false;
+		return is_loaded;
+	}
+
+	bool PipelineLibraryCacheManifest::store() const
+	{
+		if (!is_loaded || !is_dirty)
+			return true;
+
+		Path path = find_manifest_path("", rhi_name);
+		rootfs()->create_dir(path.base_path());
+		FileWriter writer(path);
+
+		if (!writer.is_open())
+		{
+			error_log("PipelineLibraryCacheManifest", "Failed to open file '%s'", path.c_str());
+			return false;
+		}
+
+		Archive ar(&writer);
+		const bool result = const_cast<PipelineLibraryCacheManifest*>(this)->serialize(ar);
+
+		if (result)
+		{
+			const_cast<PipelineLibraryCacheManifest*>(this)->is_dirty = false;
+		}
+
+		return result;
+	}
+
+	bool PipelineLibraryCacheIndexEntry::serialize(Archive& ar)
+	{
+		u8 cache_type = static_cast<u8>(type);
+
+		if (!ar.serialize(cache_type, shader_hash))
+			return false;
+
+		type = static_cast<PipelineLibraryCache::Type>(cache_type);
+		return true;
+	}
+
+	bool PipelineLibraryCacheManifest::serialize(Archive& ar)
+	{
+		return ar.serialize(entries);
+	}
+
+	trinex_on_shutdown({.name = "PipelineLibraryCacheManifest"})
+	{
+		if (!PipelineLibraryCacheManifest::instance().store())
+		{
+			error_log("PipelineLibraryCacheManifest", "Failed to store pipeline library cache manifest");
 		}
 	}
 }// namespace Trinex

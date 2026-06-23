@@ -70,10 +70,10 @@ namespace Trinex::VFS
 		return false;
 	}
 
-	bool Redirector::is_file_exist(const Path& path) const
+	bool Redirector::is_exist(const Path& path) const
 	{
 		FileSystem* fs = rootfs()->filesystem_of(m_redirect);
-		return fs->is_file_exist(m_redirect.relative(fs->mount_point()) / path);
+		return fs->is_exist(m_redirect.relative(fs->mount_point()) / path);
 	}
 
 	bool Redirector::is_file(const Path& file) const

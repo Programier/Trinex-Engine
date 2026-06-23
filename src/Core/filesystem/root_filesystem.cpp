@@ -327,12 +327,12 @@ namespace Trinex::VFS
 		return false;
 	}
 
-	bool RootFS::is_file_exist(const Path& path) const
+	bool RootFS::is_exist(const Path& path) const
 	{
 		auto entry = find_filesystem(path);
 		if (entry.first)
 		{
-			return entry.first->is_file_exist(entry.second);
+			return entry.first->is_exist(entry.second);
 		}
 		return false;
 	}

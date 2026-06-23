@@ -40,7 +40,7 @@ namespace Trinex::VFS
 		virtual bool remove(const Path& path)                                                     = 0;
 		virtual bool copy(const Path& src, const Path& dest)                                      = 0;
 		virtual bool rename(const Path& src, const Path& dest)                                    = 0;
-		virtual bool is_file_exist(const Path& path) const                                        = 0;
+		virtual bool is_exist(const Path& path) const                                             = 0;
 		virtual bool is_file(const Path& file) const                                              = 0;
 		virtual bool is_dir(const Path& dir) const                                                = 0;
 		virtual Type type() const                                                                 = 0;

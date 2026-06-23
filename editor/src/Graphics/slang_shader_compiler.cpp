@@ -8,6 +8,7 @@
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/logger.hpp>
+#include <Core/memory.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
 #include <Engine/Render/render_pass.hpp>
@@ -579,14 +580,15 @@ namespace Trinex
 		}
 
 		bool create_reflection(slang::ShaderReflection* reflection, ShaderCompilationResult::Reflection* out,
-		                       const Span<Slang::ComPtr<slang::IMetadata>>& metadatas)
+		                       const Span<Slang::ComPtr<slang::IMetadata>>& metadatas, const char* vertex_entry_name)
 		{
 			CompileLogHandler log_handler;
 			m_reflection = out;
 			m_metadatas  = metadatas;
 
 			// Parse vertex attributes
-			if (auto entry_point = reflection->findEntryPointByName("vertex_main"))
+			auto entry_point = vertex_entry_name ? reflection->findEntryPointByName(vertex_entry_name) : nullptr;
+			if (entry_point)
 			{
 				u32 parameter_count = entry_point->getParameterCount();
 				for (u32 i = 0; i < parameter_count; i++)
@@ -685,10 +687,47 @@ namespace Trinex
 
 	namespace
 	{
+		struct SlangShaderStageEntry {
+			String stage;
+			String entry_name;
+		};
+
 		struct SlangShaderPermutation {
 			Name name;
 			Vector<String> specialization_args;
+			Vector<SlangShaderStageEntry> stage_entries;
 		};
+
+		static inline void hash_string(HashBuilder& builder, StringView value)
+		{
+			if (!value.empty())
+				builder.hash = memory_hash(value.data(), value.size(), builder.hash);
+		}
+
+		static inline void hash_buffer(HashBuilder& builder, const Buffer& buffer)
+		{
+			if (!buffer.empty())
+				builder.hash = memory_hash(buffer.data(), buffer.size(), builder.hash);
+		}
+
+		static u128 build_shader_hash(const ShaderCompilationResult& result, const SLANG_ShaderCompiler::ShaderInfo* infos,
+		                              usize count)
+		{
+			HashBuilder builder;
+			hash_string(builder, result.permutation.to_string());
+
+			for (usize i = 0; i < count; ++i)
+			{
+				const auto& info = infos[i];
+				hash_string(builder, info.stage_name ? info.stage_name : "");
+				hash_string(builder, info.selected_entry_name ? info.selected_entry_name : "");
+
+				if (info.source)
+					hash_buffer(builder, *info.source);
+			}
+
+			return builder.hash;
+		}
 
 		static bool append_attribute_argument(String& out, slang::Attribute* attribute, u32 index)
 		{
@@ -716,6 +755,36 @@ namespace Trinex
 				return false;
 
 			return append_attribute_argument(out, attribute, 0);
+		}
+
+		static bool parse_stage_attribute(slang::Attribute* attribute, SlangShaderStageEntry& out)
+		{
+			if (attribute == nullptr || attribute->getArgumentCount() != 2)
+				return false;
+
+			size_t stage_size      = 0;
+			size_t entry_name_size = 0;
+			const char* stage      = attribute->getArgumentValueString(0, &stage_size);
+			const char* entry_name = attribute->getArgumentValueString(1, &entry_name_size);
+
+			if (stage == nullptr || entry_name == nullptr)
+				return false;
+
+			out.stage      = StringView(stage, stage_size);
+			out.entry_name = StringView(entry_name, entry_name_size);
+			return true;
+		}
+
+		static SLANG_ShaderCompiler::ShaderInfo* find_shader_info_by_stage(SLANG_ShaderCompiler::ShaderInfo* infos, usize count,
+		                                                                   StringView stage)
+		{
+			for (usize i = 0; i < count; ++i)
+			{
+				if (StringView(infos[i].stage_name) == stage)
+					return infos + i;
+			}
+
+			return nullptr;
 		}
 
 		static bool collect_permutations_from_decl(slang::DeclReflection* decl, Vector<SlangShaderPermutation>& out)
@@ -750,7 +819,31 @@ namespace Trinex
 						auto* attribute = type->getUserAttributeByIndex(i);
 
 						if (std::strcmp(attribute->getName(), "trinex_specialize") != 0)
+						{
+							if (std::strcmp(attribute->getName(), "trinex_stage") != 0)
+								continue;
+
+							auto& stage_entry = permutation.stage_entries.emplace_back();
+							if (!parse_stage_attribute(attribute, stage_entry))
+							{
+								error_log("ShaderCompiler", "Failed to parse trinex_stage on permutation '%s'",
+								          permutation.name.c_str());
+								return false;
+							}
+
+							for (usize stage_index = 0, stage_count = permutation.stage_entries.size() - 1;
+							     stage_index < stage_count; ++stage_index)
+							{
+								if (permutation.stage_entries[stage_index].stage == stage_entry.stage)
+								{
+									error_log("ShaderCompiler", "Duplicate stage '%s' on permutation '%s'",
+									          stage_entry.stage.c_str(), permutation.name.c_str());
+									return false;
+								}
+							}
+
 							continue;
+						}
 
 						auto& specialization_arg = permutation.specialization_args.emplace_back();
 						if (!parse_specialization_attribute(attribute, specialization_arg))
@@ -940,19 +1033,39 @@ namespace Trinex
 			result.permutation = permutation.name;
 
 			ShaderInfo shader_infos[] = {
-			        {&result.shaders.vertex, "vertex_main"},                            //
-			        {&result.shaders.tessellation_control, "tessellation_control_main"},//
-			        {&result.shaders.tessellation, "tessellation_main"},                //
-			        {&result.shaders.geometry, "geometry_main"},                        //
-			        {&result.shaders.fragment, "fragment_main"},                        //
-			        {&result.shaders.compute, "compute_main"},                          //
-			        {&result.shaders.mesh, "mesh_main"},                                //
-			        {&result.shaders.task, "task_main"},                                //
-			        {&result.shaders.raygen, "raygen_main"},                            //
-			        {&result.shaders.closest_hit, "closest_hit_main"},                  //
-			        {&result.shaders.any_hit, "any_hit_main"},                          //
-			        {&result.shaders.miss, "miss_main"},                                //
+			        {&result.shaders.vertex, "vertex", "vertex_main"},                                          //
+			        {&result.shaders.tessellation_control, "tessellation_control", "tessellation_control_main"},//
+			        {&result.shaders.tessellation, "tessellation", "tessellation_main"},                        //
+			        {&result.shaders.geometry, "geometry", "geometry_main"},                                    //
+			        {&result.shaders.fragment, "fragment", "fragment_main"},                                    //
+			        {&result.shaders.compute, "compute", "compute_main"},                                       //
+			        {&result.shaders.mesh, "mesh", "mesh_main"},                                                //
+			        {&result.shaders.task, "task", "task_main"},                                                //
+			        {&result.shaders.raygen, "raygen", "raygen_main"},                                          //
+			        {&result.shaders.closest_hit, "closest_hit", "closest_hit_main"},                           //
+			        {&result.shaders.any_hit, "any_hit", "any_hit_main"},                                       //
+			        {&result.shaders.miss, "miss", "miss_main"},                                                //
 			};
+
+			for (auto& info : shader_infos)
+			{
+				info.selected_entry_name = info.default_entry_name;
+			}
+
+			for (const auto& stage_entry : permutation.stage_entries)
+			{
+				ShaderInfo* info = find_shader_info_by_stage(shader_infos, sizeof(shader_infos) / sizeof(shader_infos[0]),
+				                                             stage_entry.stage);
+
+				if (info == nullptr)
+				{
+					error_log("ShaderCompiler", "Unsupported shader stage '%s' on permutation '%s'", stage_entry.stage.c_str(),
+					          permutation.name.c_str());
+					return false;
+				}
+
+				info->selected_entry_name = stage_entry.entry_name.c_str();
+			}
 
 			StackVector<slang::IComponentType*> permutation_components = components;
 			const usize module_count                                   = permutation_components.size();
@@ -964,20 +1077,27 @@ namespace Trinex
 					auto module = static_cast<slang::IModule*>(permutation_components[module_index]);
 
 					slang::IEntryPoint* entry = nullptr;
-					module->findEntryPointByName(info.entry_name, &entry);
+					module->findEntryPointByName(info.selected_entry_name, &entry);
 
 					if (!entry)
 						continue;
 
 					if (info.entry)
 					{
-						error_log("ShaderCompiler", "Detected multiple entry points with name '%s'", info.entry_name);
+						error_log("ShaderCompiler", "Detected multiple entry points with name '%s'", info.selected_entry_name);
 						return false;
 					}
 
 					info.index = permutation_components.size() - module_count;
 					info.entry = entry;
 					permutation_components.push_back(entry);
+				}
+
+				if (info.entry == nullptr && info.selected_entry_name != info.default_entry_name)
+				{
+					error_log("ShaderCompiler", "Cannot find entry point '%s' for stage '%s' on permutation '%s'",
+					          info.selected_entry_name, info.stage_name, permutation.name.c_str());
+					return false;
 				}
 			}
 
@@ -1066,9 +1186,11 @@ namespace Trinex
 				}
 
 				ReflectionParser parser;
-				if (!parser.create_reflection(reflection, &result.reflection, metadata))
+				if (!parser.create_reflection(reflection, &result.reflection, metadata, shader_infos[0].selected_entry_name))
 					return false;
 			}
+
+			result.shader_hash = build_shader_hash(result, shader_infos, sizeof(shader_infos) / sizeof(shader_infos[0]));
 
 			if (!callback(result))
 				return false;

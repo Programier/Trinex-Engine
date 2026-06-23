@@ -29,7 +29,7 @@ namespace Trinex::VFS
 		bool remove(const Path& path) override;
 		bool copy(const Path& src, const Path& dest) override;
 		bool rename(const Path& src, const Path& dest) override;
-		bool is_file_exist(const Path& path) const override;
+		bool is_exist(const Path& path) const override;
 		bool is_file(const Path& file) const override;
 		bool is_dir(const Path& dir) const override;
 		Type type() const override;

@@ -32,6 +32,7 @@ namespace Trinex
 	{
 	public:
 		Name permutation;
+		u128 shader_hash = 0;
 
 		struct Shaders {
 			Buffer vertex;

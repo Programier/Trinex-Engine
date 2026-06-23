@@ -52,8 +52,28 @@ namespace Trinex
 
 		void init_from(const ShaderCompilationResult& compilation_result);
 		void apply_to(class Pipeline* pipeline);
-		bool load(const StringView& object_path, StringView rhi_name = {});
-		bool store(const StringView& object_path, StringView rhi_name = {}) const;
+		bool load_by_hash(u128 hash, StringView rhi_name = {});
+		bool store_by_hash(u128 hash, StringView rhi_name = {}) const;
+		bool serialize(Archive& ar);
+	};
+
+	struct ENGINE_EXPORT PipelineLibraryCacheIndexEntry {
+		PipelineLibraryCache::Type type = PipelineLibraryCache::Unknown;
+		u128 shader_hash                = 0;
+		bool serialize(Archive& ar);
+	};
+
+	struct ENGINE_EXPORT PipelineLibraryCacheManifest {
+		Map<String, PipelineLibraryCacheIndexEntry> entries;
+		String rhi_name;
+		bool is_loaded = false;
+		bool is_dirty  = false;
+
+		static PipelineLibraryCacheManifest& instance(StringView rhi = {});
+		const PipelineLibraryCacheIndexEntry* find(StringView object_path, Name permutation) const;
+		PipelineLibraryCacheIndexEntry& entry(StringView object_path, Name permutation);
+		bool load(StringView rhi_name = {});
+		bool store() const;
 		bool serialize(Archive& ar);
 	};
 }// namespace Trinex

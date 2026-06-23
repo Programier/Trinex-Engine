@@ -18,9 +18,11 @@ namespace Trinex
 	public:
 		struct ShaderInfo {
 			Buffer* source;
-			const char* entry_name    = nullptr;
-			slang::IEntryPoint* entry = nullptr;
-			i32 index                 = -1;
+			const char* stage_name          = nullptr;
+			const char* default_entry_name  = nullptr;
+			const char* selected_entry_name = nullptr;
+			slang::IEntryPoint* entry       = nullptr;
+			i32 index                       = -1;
 		};
 
 		class Context

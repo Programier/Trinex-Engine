@@ -76,9 +76,12 @@ namespace Trinex
 	bool GlobalPipelineLibrary::load_default_pipeline_cache()
 	{
 		PipelineLibraryCache cache;
+		auto& manifest = PipelineLibraryCacheManifest::instance();
 		const Name permutation;
 
-		if (!cache.load(permutation_cache_name(permutation)))
+		const PipelineLibraryCacheIndexEntry* index = manifest.find(full_name(), permutation);
+
+		if (index == nullptr || !cache.load_by_hash(index->shader_hash))
 		{
 			return false;
 		}
@@ -101,7 +104,12 @@ namespace Trinex
 	GlobalPipelineLibrary& GlobalPipelineLibrary::load_pipeline()
 	{
 		ShaderCompiler* compiler = ShaderCompiler::instance();
-		const bool loaded        = compiler ? compile(compiler) : load_default_pipeline_cache();
+		bool loaded              = load_default_pipeline_cache();
+
+		if (!loaded && compiler)
+		{
+			loaded = compile(compiler);
+		}
 
 		trinex_verify_msg(loaded, "Failed to load global pipeline library");
 
@@ -117,18 +125,25 @@ namespace Trinex
 	bool GlobalPipelineLibrary::compile_permutation(const ShaderCompilationResult& result)
 	{
 		PipelineLibraryCache cache;
-		const String cache_name = permutation_cache_name(result.permutation);
+		auto& manifest = PipelineLibraryCacheManifest::instance();
 		Pipeline* pipeline      = nullptr;
 
-		if (!cache.load(cache_name))
+		if (!cache.load_by_hash(result.shader_hash))
 		{
 			cache.init_from(result);
 
-			if (!cache.store(cache_name))
+			if (!cache.store_by_hash(result.shader_hash))
 			{
-				warn_log("GlobalPipelineLibrary", "Failed to store shader cache for '%s'", cache_name.c_str());
+				warn_log("GlobalPipelineLibrary", "Failed to store shader cache for hash '%s'",
+				         Strings::format("{:016x}{:016x}", static_cast<u64>(result.shader_hash >> 64),
+				                         static_cast<u64>(result.shader_hash))
+				                 .c_str());
 			}
 		}
+
+		auto& index       = manifest.entry(full_name(), result.permutation);
+		index.type        = result.shaders.compute.empty() ? PipelineLibraryCache::Graphics : PipelineLibraryCache::Compute;
+		index.shader_hash = result.shader_hash;
 
 		pipeline = create_pipeline_instance(cache.type, result.permutation);
 
