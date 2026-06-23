@@ -28,11 +28,21 @@ namespace Trinex
 		public:
 			const Container& childs() const { return m_childs; }
 
+			DataHolder& release_childs()
+			{
+				while (!m_childs.empty())
+				{
+					m_childs.back()->owner(nullptr);
+				}
+
+				return *this;
+			}
+
 			~DataHolder()
 			{
-				for (Element* child : m_childs)
+				for (Element* element : m_childs)
 				{
-					child->owner(nullptr);
+					element->owner(nullptr);
 				}
 			}
 		};

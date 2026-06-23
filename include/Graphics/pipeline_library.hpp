@@ -20,14 +20,10 @@ namespace Trinex
 		trinex_class(PipelineLibrary, RenderResource);
 
 	protected:
-		bool compile_permutation(const ShaderCompilationResult& result);
-
-		virtual PipelineLibrary& modify_compilation_env(ShaderCompilationEnvironment* env);
 		Pipeline* create_pipeline_instance(u8 type, Name name);
 		String permutation_cache_name(Name name) const;
 
 	public:
-		PipelineLibrary& clear();
 		Pipeline* find_pipeline(const Name& key) const;
 		GraphicsPipeline* find_graphics_pipeline(const Name& key) const;
 		ComputePipeline* find_compute_pipeline(const Name& key) const;
@@ -39,6 +35,7 @@ namespace Trinex
 
 	private:
 		bool load_default_pipeline_cache();
+		bool compile_permutation(const ShaderCompilationResult& result);
 		bool compile(ShaderCompiler* compiler = nullptr);
 
 	protected:
@@ -46,6 +43,8 @@ namespace Trinex
 		static Object* package_of(StringView name);
 
 		GlobalPipelineLibrary& load_pipeline();
+
+		virtual GlobalPipelineLibrary& modify_compilation_env(ShaderCompilationEnvironment* env);
 
 	public:
 		GlobalPipelineLibrary(StringView name = "");

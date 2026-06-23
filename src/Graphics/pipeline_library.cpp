@@ -14,11 +14,6 @@ namespace Trinex
 	trinex_implement_engine_class_default_init(PipelineLibrary, 0);
 	trinex_implement_engine_class_default_init(GlobalPipelineLibrary, 0);
 
-	PipelineLibrary& PipelineLibrary::modify_compilation_env(ShaderCompilationEnvironment* env)
-	{
-		return *this;
-	}
-
 	Pipeline* PipelineLibrary::create_pipeline_instance(u8 type, Name name)
 	{
 		Pipeline* pipeline = nullptr;
@@ -41,40 +36,6 @@ namespace Trinex
 		}
 
 		return Strings::format("{}::{}", full_name(), name.to_string());
-	}
-
-	bool PipelineLibrary::compile_permutation(const ShaderCompilationResult& result)
-	{
-		PipelineLibraryCache cache;
-		const String cache_name = permutation_cache_name(result.permutation);
-		Pipeline* pipeline      = nullptr;
-
-		if (!cache.load(cache_name))
-		{
-			cache.init_from(result);
-
-			if (!cache.store(cache_name))
-			{
-				warn_log("PipelineLibrary", "Failed to store shader cache for '%s'", cache_name.c_str());
-			}
-		}
-
-		pipeline = create_pipeline_instance(cache.type, result.permutation);
-
-		if (pipeline == nullptr)
-		{
-			error_log("PipelineLibrary", "Failed to create pipeline instance for permutation '%s'", result.permutation.c_str());
-			return false;
-		}
-
-		cache.apply_to(pipeline);
-		pipeline->init_render_resources();
-		return true;
-	}
-
-	PipelineLibrary& PipelineLibrary::clear()
-	{
-		return *this;
 	}
 
 	Pipeline* PipelineLibrary::find_pipeline(const Name& key) const
@@ -122,7 +83,7 @@ namespace Trinex
 			return false;
 		}
 
-		clear();
+		release_childs();
 
 		Pipeline* default_pipeline = create_pipeline_instance(cache.type, permutation);
 
@@ -146,6 +107,41 @@ namespace Trinex
 
 		initialize();
 		return *this;
+	}
+
+	GlobalPipelineLibrary& GlobalPipelineLibrary::modify_compilation_env(ShaderCompilationEnvironment* env)
+	{
+		return *this;
+	}
+
+	bool GlobalPipelineLibrary::compile_permutation(const ShaderCompilationResult& result)
+	{
+		PipelineLibraryCache cache;
+		const String cache_name = permutation_cache_name(result.permutation);
+		Pipeline* pipeline      = nullptr;
+
+		if (!cache.load(cache_name))
+		{
+			cache.init_from(result);
+
+			if (!cache.store(cache_name))
+			{
+				warn_log("GlobalPipelineLibrary", "Failed to store shader cache for '%s'", cache_name.c_str());
+			}
+		}
+
+		pipeline = create_pipeline_instance(cache.type, result.permutation);
+
+		if (pipeline == nullptr)
+		{
+			error_log("GlobalPipelineLibrary", "Failed to create pipeline instance for permutation '%s'",
+			          result.permutation.c_str());
+			return false;
+		}
+
+		cache.apply_to(pipeline);
+		pipeline->init_render_resources();
+		return true;
 	}
 
 	bool GlobalPipelineLibrary::compile(ShaderCompiler* compiler)
@@ -179,7 +175,7 @@ namespace Trinex
 			return false;
 		}
 
-		clear();
+		release_childs();
 
 		ShaderCompiler::StackEnvironment env;
 		env.add_source(source.c_str());
