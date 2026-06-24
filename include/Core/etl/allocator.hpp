@@ -36,7 +36,7 @@ namespace Trinex
 		class ENGINE_EXPORT Mark final
 		{
 		private:
-			void* m_datas[2];
+			u128 m_location;
 
 		public:
 			Mark();
@@ -52,6 +52,9 @@ namespace Trinex
 		static inline void deallocate(unsigned char*) noexcept {}
 		static unsigned char* allocate_aligned(size_type size, size_type align);
 		static void reset();
+
+		static u128 location();
+		static void location(u128 value);
 	};
 
 	struct ENGINE_EXPORT FrameByteAllocator : AllocatorBase {

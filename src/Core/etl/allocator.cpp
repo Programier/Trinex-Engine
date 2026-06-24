@@ -158,17 +158,11 @@ namespace Trinex
 #endif
 	}
 
-	StackByteAllocator::Mark::Mark()
-	{
-		auto node  = s_stack_allocator.m_current;
-		m_datas[0] = node;
-		m_datas[1] = node->m_stack;
-	}
+	StackByteAllocator::Mark::Mark() : m_location(StackByteAllocator::location()) {}
 
 	StackByteAllocator::Mark& StackByteAllocator::Mark::reset()
 	{
-		s_stack_allocator.m_current          = static_cast<TempAllocatorData::Node*>(m_datas[0]);
-		s_stack_allocator.m_current->m_stack = static_cast<u8*>(m_datas[1]);
+		StackByteAllocator::location(m_location);
 		return *this;
 	}
 
@@ -192,6 +186,25 @@ namespace Trinex
 	void StackByteAllocator::reset()
 	{
 		reset_stack_allocator(&s_stack_sync);
+	}
+
+	u128 StackByteAllocator::location()
+	{
+		u128 value     = 0;
+		void** handles = reinterpret_cast<void**>(&value);
+
+		auto node  = s_stack_allocator.m_current;
+		handles[0] = node;
+		handles[1] = node->m_stack;
+
+		return value;
+	}
+
+	void StackByteAllocator::location(u128 value)
+	{
+		void** handles                       = reinterpret_cast<void**>(&value);
+		s_stack_allocator.m_current          = static_cast<TempAllocatorData::Node*>(handles[0]);
+		s_stack_allocator.m_current->m_stack = static_cast<u8*>(handles[1]);
 	}
 
 	unsigned char* FrameByteAllocator::allocate_aligned(size_type size, size_type align)

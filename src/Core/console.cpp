@@ -13,61 +13,57 @@ namespace Trinex::Console
 {
 	static const StringView s_default_config_path = "[configs]:/trinex.cfg";
 
-	StringView type_name(ValueType type)
-	{
-		switch (type)
-		{
-			case ValueType::Boolean: return "bool";
-			case ValueType::U8: return "u8";
-			case ValueType::U16: return "u16";
-			case ValueType::U32: return "u32";
-			case ValueType::U64: return "u64";
-			case ValueType::I8: return "i8";
-			case ValueType::I16: return "i16";
-			case ValueType::I32: return "i32";
-			case ValueType::I64: return "i64";
-			case ValueType::F16: return "f16";
-			case ValueType::F32: return "f32";
-			case ValueType::F64: return "f64";
-			case ValueType::String: return "String";
-			case ValueType::ReflectedEnum: return "Enum";
-			case ValueType::ReflectedFlags: return "Flags";
-		}
-
-		return "Unknown";
-	}
-
 	namespace
 	{
-		struct Registry {
+		using ExecutionReport = ExecuteResult;
+
+		struct NestedExecuteError {
+			bool active          = false;
+			ExecuteStatus status = ExecuteStatus::Success;
+			String message;
+		};
+
+		struct ConsoleState {
 			Map<String, Entry*> entries;
-		};
-
-		struct AliasRegistry {
 			Map<String, String> aliases;
-		};
-
-		struct ObserverRegistry {
 			Vector<Observer*> observers;
+			Vector<struct StackFrame*> stack;
+			u128 stack_location;
+
+			static ConsoleState& instance()
+			{
+				static ConsoleState state;
+				return state;
+			}
+
+			inline void begin_execution(StackFrame* frame)
+			{
+				if (stack.empty())
+				{
+					stack_location = StackByteAllocator::location();
+				}
+
+				stack.push_back(frame);
+			}
+
+			inline void end_execution(StackFrame* frame)
+			{
+				trinex_assert(!stack.empty() && stack.back() == frame);
+				stack.pop_back();
+
+				if (stack.empty())
+				{
+					StackByteAllocator::location(stack_location);
+				}
+			}
 		};
 
-		static Registry& registry()
+		static NestedExecuteError& nested_execute_error()
 		{
-			static Registry value;
-			return value;
+			thread_local NestedExecuteError error;
+			return error;
 		}
 
-		static AliasRegistry& alias_registry()
-		{
-			static AliasRegistry value;
-			return value;
-		}
-
-		static ObserverRegistry& observer_registry()
-		{
-			static ObserverRegistry value;
-			return value;
-		}
 
 		static RuntimePolicy& mutable_runtime_policy()
 		{
@@ -133,33 +129,61 @@ namespace Trinex::Console
 			return {};
 		}
 
+		static ExecuteStatus execution_block_status(const Entry& entry)
+		{
+			const RuntimePolicy policy = runtime_policy();
+
+			if (entry.type() == EntryType::Variable)
+			{
+				const auto& variable = static_cast<const VariableEntry&>(entry);
+
+				if (variable.flags().all(Flags::ReadOnly))
+					return ExecuteStatus::ReadOnly;
+				if (variable.flags().all(Flags::Cheat) && !policy.allow_cheats)
+					return ExecuteStatus::CheatProtected;
+				if (variable.flags().all(Flags::DeveloperOnly) && !policy.allow_developer_only)
+					return ExecuteStatus::DeveloperOnly;
+			}
+			else
+			{
+				const auto& command = static_cast<const Command&>(entry);
+
+				if (command.flags().all(Flags::Cheat) && !policy.allow_cheats)
+					return ExecuteStatus::CheatProtected;
+				if (command.flags().all(Flags::DeveloperOnly) && !policy.allow_developer_only)
+					return ExecuteStatus::DeveloperOnly;
+			}
+
+			return ExecuteStatus::Success;
+		}
+
 		static void notify_variable_changed(const VariableEntry& variable, StringView input)
 		{
 			VariableChangedEvent event{variable, input};
 
-			for (Observer* observer : observer_registry().observers)
+			for (Observer* observer : ConsoleState::instance().observers)
 			{
 				if (observer)
 					observer->on_variable_changed(event);
 			}
 		}
 
-		static void notify_command_executed(StringView input, StringView command, const String& output, bool success)
+		static void notify_command_executed(StringView input, StringView command, const String& output, ExecuteStatus status)
 		{
-			CommandExecutedEvent event{input, command, output, success};
+			CommandExecutedEvent event{input, command, output, status};
 
-			for (Observer* observer : observer_registry().observers)
+			for (Observer* observer : ConsoleState::instance().observers)
 			{
 				if (observer)
 					observer->on_command_executed(event);
 			}
 		}
 
-		static void notify_config_loaded(StringView path, const String& output, bool success, bool persistent_only)
+		static void notify_config_loaded(StringView path, const String& output, ExecuteStatus status, bool persistent_only)
 		{
-			ConfigLoadedEvent event{String(path), output, success, persistent_only};
+			ConfigLoadedEvent event{String(path), output, status, persistent_only};
 
-			for (Observer* observer : observer_registry().observers)
+			for (Observer* observer : ConsoleState::instance().observers)
 			{
 				if (observer)
 					observer->on_config_loaded(event);
@@ -171,7 +195,7 @@ namespace Trinex::Console
 			if (entry == nullptr || entry->name().empty())
 				return;
 
-			auto& entries = registry().entries;
+			auto& entries = ConsoleState::instance().entries;
 			auto iter     = entries.find(entry->name());
 
 			if (iter != entries.end() && iter->second != entry)
@@ -187,7 +211,7 @@ namespace Trinex::Console
 			if (entry == nullptr)
 				return;
 
-			auto& entries = registry().entries;
+			auto& entries = ConsoleState::instance().entries;
 			auto iter     = entries.find(entry->name());
 
 			if (iter != entries.end() && iter->second == entry)
@@ -198,7 +222,7 @@ namespace Trinex::Console
 		{
 			Vector<String> result;
 
-			for (auto& [name, entry] : registry().entries)
+			for (auto& [name, entry] : ConsoleState::instance().entries)
 			{
 				(void) name;
 
@@ -217,7 +241,7 @@ namespace Trinex::Console
 		{
 			Vector<VariableEntry*> result;
 
-			for (auto& [name, entry] : registry().entries)
+			for (auto& [name, entry] : ConsoleState::instance().entries)
 			{
 				(void) name;
 
@@ -302,6 +326,83 @@ namespace Trinex::Console
 					input.remove_prefix(index);
 
 				return true;
+			}
+
+			if (first == '{')
+			{
+				StringView original = input;
+				input.remove_prefix(1);
+
+				const char* data  = input.data();
+				usize length      = input.length();
+				usize index       = 0;
+				usize depth       = 1;
+				bool in_string    = false;
+				char string_quote = '\0';
+
+				while (index < length)
+				{
+					const char ch = data[index];
+
+					if (in_string)
+					{
+						if (ch == '\\' && index + 1 < length)
+						{
+							index += 2;
+							continue;
+						}
+
+						if (ch == string_quote)
+							in_string = false;
+
+						++index;
+						continue;
+					}
+
+					if (ch == '"' || ch == '\'')
+					{
+						in_string    = true;
+						string_quote = ch;
+						++index;
+						continue;
+					}
+
+					if (ch == '{')
+						++depth;
+					else if (ch == '}')
+					{
+						--depth;
+						if (depth == 0)
+							break;
+					}
+
+					++index;
+				}
+
+				if (depth != 0)
+					return false;
+
+				StringView expression   = input.substr(0, index);
+				ExecuteResult execution = execute(expression);
+
+				if (!execution.success())
+				{
+					auto& nested   = nested_execute_error();
+					nested.active  = true;
+					nested.status  = execution.status;
+					nested.message = execution.output;
+					return false;
+				}
+
+				String result = execution.output;
+
+				char* copy = StackAllocator<char>::allocate(result.size() + 1);
+				strcpy(copy, result.c_str());
+
+				input = original;
+				input.remove_prefix(index + 2);
+				StringView view(copy, copy + result.size());
+				return read_literal(view, out_literal, delimiters);
 			}
 
 			usize index = 0;
@@ -423,6 +524,72 @@ namespace Trinex::Console
 			}
 		}
 
+		static StringView consume_statement_tail(StringView& input)
+		{
+			input = Strings::strip(input);
+
+			const char* data  = input.data();
+			usize length      = input.length();
+			usize index       = 0;
+			usize paren_depth = 0;
+			usize brace_depth = 0;
+			bool in_string    = false;
+			char string_quote = '\0';
+
+			while (index < length)
+			{
+				const char ch = data[index];
+
+				if (in_string)
+				{
+					if (ch == '\\' && index + 1 < length)
+					{
+						index += 2;
+						continue;
+					}
+
+					if (ch == string_quote)
+						in_string = false;
+
+					++index;
+					continue;
+				}
+
+				if (ch == '"' || ch == '\'')
+				{
+					in_string    = true;
+					string_quote = ch;
+					++index;
+					continue;
+				}
+
+				if (ch == '(')
+					++paren_depth;
+				else if (ch == ')')
+				{
+					if (paren_depth != 0)
+						--paren_depth;
+				}
+				else if (ch == '{')
+					++brace_depth;
+				else if (ch == '}')
+				{
+					if (brace_depth != 0)
+						--brace_depth;
+				}
+				else if ((ch == ';' || ch == '\n') && paren_depth == 0 && brace_depth == 0)
+				{
+					break;
+				}
+
+				++index;
+			}
+
+			StringView tail = input.substr(0, index);
+			input.remove_prefix(index);
+			return Strings::strip(tail);
+		}
+
 		static String quote_argument_if_needed(StringView argument)
 		{
 			if (argument.empty())
@@ -485,6 +652,7 @@ namespace Trinex::Console
 		{
 			return Strings::format("[alias] {} -> {}", name, expansion);
 		}
+
 	}// namespace
 
 	namespace Detail
@@ -722,6 +890,129 @@ namespace Trinex::Console
 		}
 	}// namespace Detail
 
+
+	StringView type_name(ValueType type)
+	{
+		switch (type)
+		{
+			case ValueType::Boolean: return "bool";
+			case ValueType::U8: return "u8";
+			case ValueType::U16: return "u16";
+			case ValueType::U32: return "u32";
+			case ValueType::U64: return "u64";
+			case ValueType::I8: return "i8";
+			case ValueType::I16: return "i16";
+			case ValueType::I32: return "i32";
+			case ValueType::I64: return "i64";
+			case ValueType::F16: return "f16";
+			case ValueType::F32: return "f32";
+			case ValueType::F64: return "f64";
+			case ValueType::String: return "String";
+			case ValueType::ReflectedEnum: return "Enum";
+			case ValueType::ReflectedFlags: return "Flags";
+		}
+
+		return "Unknown";
+	}
+
+	StackFrame::StackFrame(Entry* entry, StringView stream, StringView input, ExecuteFlags flags)
+	{
+		ConsoleState::instance().begin_execution(this);
+		reset(entry, stream, input, flags);
+	}
+
+	StackFrame::~StackFrame()
+	{
+		ConsoleState::instance().end_execution(this);
+	}
+
+	void StackFrame::reset(Entry* new_entry, StringView new_stream, StringView new_input, ExecuteFlags new_flags)
+	{
+		entry  = new_entry;
+		stream = new_stream;
+		input  = new_input;
+		result.clear();
+		error.clear();
+		status = ExecuteStatus::Success;
+		flags  = new_flags;
+		parameters.clear();
+	}
+
+	String StackFrame::fail(ExecuteStatus new_status, StringView message)
+	{
+		status = new_status;
+		error  = String(message);
+		result.clear();
+		return error;
+	}
+
+	String StackFrame::succeed(StringView message)
+	{
+		status = ExecuteStatus::Success;
+		error.clear();
+		result = String(message);
+		return result;
+	}
+
+	bool StackFrame::read_argument(StringView& out_argument)
+	{
+		auto& nested   = nested_execute_error();
+		nested.active  = false;
+		nested.status  = ExecuteStatus::Success;
+		nested.message = {};
+
+		stream = Strings::strip(stream);
+
+		if (!stream.empty() && stream.front() == ',')
+		{
+			stream.remove_prefix(1);
+			stream = Strings::strip(stream);
+		}
+
+		if (read_literal(stream, out_argument, ",;\n"))
+			return true;
+
+		if (nested.active)
+		{
+			status = nested.status;
+			error  = nested.message;
+		}
+
+		return false;
+	}
+
+	bool StackFrame::has_more_args()
+	{
+		StringView copy = Strings::strip(stream);
+
+		if (!copy.empty() && copy.front() == ',')
+		{
+			copy.remove_prefix(1);
+			copy = Strings::strip(copy);
+		}
+
+		return !copy.empty();
+	}
+
+	StringView StackFrame::read_command_tail()
+	{
+		stream = Strings::strip(stream);
+
+		if (stream.empty())
+			return {};
+
+		if (stream.front() == ',')
+		{
+			stream.remove_prefix(1);
+			stream = Strings::strip(stream);
+		}
+
+		StringView tail = stream;
+		stream.remove_prefix(stream.length());
+		return Strings::strip(tail);
+	}
+
+
 	Entry::Entry(StringView name, StringView description, StringView category)
 	    : m_name(name), m_description(description), m_category(category)
 	{
@@ -735,7 +1026,12 @@ namespace Trinex::Console
 
 	Entry& Entry::name(StringView value)
 	{
+		if (m_name == value)
+			return *this;
+
+		unregister_entry(this);
 		m_name = String(value);
+		register_entry(this);
 		return *this;
 	}
 
@@ -760,7 +1056,7 @@ namespace Trinex::Console
 		return EntryType::Variable;
 	}
 
-	Command::Command(StringView name, String (*callback)(CommandContext&), const CommandOptionalArgs& args)
+	Command::Command(StringView name, String (*callback)(StackFrame* frame), const CommandOptionalArgs& args)
 	    : Entry(resolve_name(name, args.name), args.description, args.category), m_usage(args.usage), m_example(args.example),
 	      m_flags(args.flags), m_parameters(args.parameters), m_callback(callback)
 	{
@@ -788,7 +1084,7 @@ namespace Trinex::Console
 
 	Entry* find(StringView name)
 	{
-		auto& entries = registry().entries;
+		auto& entries = ConsoleState::instance().entries;
 		auto iter     = entries.find(String(name));
 
 		if (iter == entries.end())
@@ -817,16 +1113,16 @@ namespace Trinex::Console
 		if (observer == nullptr)
 			return;
 
-		if (etl::find(observer_registry().observers.begin(), observer_registry().observers.end(), observer) ==
-		    observer_registry().observers.end())
+		if (etl::find(ConsoleState::instance().observers.begin(), ConsoleState::instance().observers.end(), observer) ==
+		    ConsoleState::instance().observers.end())
 		{
-			observer_registry().observers.push_back(observer);
+			ConsoleState::instance().observers.push_back(observer);
 		}
 	}
 
 	void remove_observer(Observer* observer)
 	{
-		auto& observers = observer_registry().observers;
+		auto& observers = ConsoleState::instance().observers;
 		auto iter       = etl::find(observers.begin(), observers.end(), observer);
 		if (iter != observers.end())
 			observers.erase(iter);
@@ -836,12 +1132,12 @@ namespace Trinex::Console
 	{
 		if (name.empty() || expansion.empty())
 			return;
-		alias_registry().aliases[String(name)] = String(expansion);
+		ConsoleState::instance().aliases[String(name)] = String(expansion);
 	}
 
 	bool remove_alias(StringView name)
 	{
-		auto& map = alias_registry().aliases;
+		auto& map = ConsoleState::instance().aliases;
 		auto iter = map.find(String(name));
 		if (iter == map.end())
 			return false;
@@ -851,7 +1147,7 @@ namespace Trinex::Console
 
 	String find_alias(StringView name)
 	{
-		auto& map = alias_registry().aliases;
+		auto& map = ConsoleState::instance().aliases;
 		auto iter = map.find(String(name));
 		return iter == map.end() ? String() : iter->second;
 	}
@@ -859,9 +1155,9 @@ namespace Trinex::Console
 	Vector<String> aliases()
 	{
 		Vector<String> result;
-		result.reserve(alias_registry().aliases.size());
+		result.reserve(ConsoleState::instance().aliases.size());
 
-		for (auto& [name, expansion] : alias_registry().aliases)
+		for (auto& [name, expansion] : ConsoleState::instance().aliases)
 		{
 			(void) expansion;
 			result.push_back(name);
@@ -874,7 +1170,7 @@ namespace Trinex::Console
 	Vector<String> entries()
 	{
 		Vector<String> result = collect_entries([](const Entry&) { return true; });
-		for (auto& [name, expansion] : alias_registry().aliases)
+		for (auto& [name, expansion] : ConsoleState::instance().aliases)
 		{
 			(void) expansion;
 			result.push_back(name);
@@ -887,7 +1183,7 @@ namespace Trinex::Console
 	{
 		Vector<String> result =
 		        collect_entries([prefix](const Entry& entry) { return prefix.empty() || entry.name().starts_with(prefix); });
-		for (auto& [name, expansion] : alias_registry().aliases)
+		for (auto& [name, expansion] : ConsoleState::instance().aliases)
 		{
 			(void) expansion;
 			if (prefix.empty() || StringView(name).starts_with(prefix))
@@ -897,121 +1193,80 @@ namespace Trinex::Console
 		return result;
 	}
 
-	bool read_argument(StringView& command_line, StringView& out_argument)
+	String Command::execute(StackFrame* frame)
 	{
-		command_line = Strings::strip(command_line);
+		if (!m_callback)
+			return frame->fail(ExecuteStatus::CommandHasNoCallback,
+			                   Strings::format("Command '{}' has no callback", frame->entry->name()));
 
-		if (!command_line.empty() && command_line.front() == ',')
-		{
-			command_line.remove_prefix(1);
-			command_line = Strings::strip(command_line);
-		}
-
-		return read_literal(command_line, out_argument, ",;\n");
-	}
-
-	bool has_more_arguments(StringView command_line)
-	{
-		command_line = Strings::strip(command_line);
-		if (!command_line.empty() && command_line.front() == ',')
-		{
-			command_line.remove_prefix(1);
-			command_line = Strings::strip(command_line);
-		}
-
-		return !command_line.empty();
-	}
-
-	StringView peek_command_tail(StringView command_line)
-	{
-		return read_command_tail(command_line);
-	}
-
-	StringView read_command_tail(StringView& command_line)
-	{
-		command_line = Strings::strip(command_line);
-
-		if (command_line.empty())
-			return {};
-
-		if (command_line.front() == ',')
-		{
-			command_line.remove_prefix(1);
-			command_line = Strings::strip(command_line);
-		}
-
-		StringView tail = command_line;
-		command_line.remove_prefix(command_line.length());
-		return Strings::strip(tail);
-	}
-
-	String Command::execute(StringView& command_line, StringView input, ExecuteFlags flags)
-	{
-		CommandContext context{*this, input, command_line, "", flags};
-		context.values.reserve(m_parameters.size());
+		frame->result.clear();
+		frame->error.clear();
+		frame->status = ExecuteStatus::Success;
+		frame->parameters.clear();
+		frame->parameters.reserve(m_parameters.size());
 
 		for (const auto& parameter : m_parameters)
 		{
 			StringView raw_value;
 
-			if (!read_argument(command_line, raw_value))
+			if (!frame->read_argument(raw_value))
 			{
 				if (parameter.has_default_value)
 				{
-					context.values.push_back(parameter.default_value);
+					frame->parameters.push_back(parameter.default_value);
 					continue;
 				}
 
-				context.error = Strings::format("Expected parameter '{}: {}'", parameter.name, parameter.type);
-				return context.error;
+				return frame->fail(ExecuteStatus::MissingRequiredParameter,
+				                   Strings::format("Expected parameter '{}: {}'", parameter.name, parameter.type));
 			}
 
 			Any parsed_value;
 			if (parameter.parse == nullptr || !parameter.parse(raw_value, parsed_value))
 			{
-				context.error = Strings::format("Failed to parse parameter '{}: {}' from '{}'", parameter.name, parameter.type,
-				                                raw_value);
-				return context.error;
+				return frame->fail(ExecuteStatus::ParameterParseFailed,
+				                   Strings::format("Failed to parse parameter '{}: {}' from '{}'", parameter.name, parameter.type,
+				                                   raw_value));
 			}
 
 			if (parameter.validate)
 			{
 				if (String validation = parameter.validate(parsed_value); !validation.empty())
 				{
-					context.error = Strings::format("Parameter '{}': {}", parameter.name, validation);
-					return context.error;
+					return frame->fail(ExecuteStatus::ParameterValidationFailed,
+					                   Strings::format("Parameter '{}': {}", parameter.name, validation));
 				}
 			}
 
-			context.values.push_back(std::move(parsed_value));
+			frame->parameters.push_back(std::move(parsed_value));
 		}
 
-		String result = execute(context);
+		String result = m_callback(frame);
 
-		if (!context.failed() && has_more_arguments(command_line))
-			return Strings::format("Too many arguments for command '{}'", name());
+		if (frame->flags.all(ExecuteFlags::StrictParameters) && frame->has_more_args())
+			return frame->fail(ExecuteStatus::TooManyParameters, Strings::format("Too many arguments for command '{}'", name()));
 
+		if (frame->failed() && frame->status == ExecuteStatus::Success)
+			frame->status = ExecuteStatus::CommandFailed;
+
+		frame->result = result;
 		return result;
 	}
 
-	String Command::execute(CommandContext& ctx)
+	static ExecutionReport execute_stream(StringView command_line, ExecuteFlags flags)
 	{
-		if (!m_callback)
-			return Strings::format("Command '{}' has no callback", ctx.command.name());
-
-		String result = m_callback(ctx);
-
-		if (result.empty() && ctx.failed())
-			return ctx.error;
-
-		return result;
-	}
-
-	String execute(StringView command_line, ExecuteFlags flags)
-	{
+		ExecutionReport report;
 		Vector<String> results;
 
+		auto fail_report = [&](ExecuteStatus status) {
+			if (report.status == ExecuteStatus::Success)
+				report.status = status;
+		};
+
 		skip_ignored_lines(command_line);
+
+		if (command_line.empty())
+			report.status = ExecuteStatus::EmptyInput;
 
 		while (!command_line.empty())
 		{
@@ -1024,8 +1279,9 @@ namespace Trinex::Console
 				String error = Strings::format("Unexpected token near '{}'",
 				                               command_line.substr(0, etl::min<usize>(command_line.length(), 32)));
 				results.push_back(error);
-				notify_command_executed(command_line, {}, error, false);
-				read_command_tail(command_line);
+				fail_report(ExecuteStatus::UnexpectedToken);
+				notify_command_executed(command_line, {}, error, ExecuteStatus::UnexpectedToken);
+				consume_statement_tail(command_line);
 				skip_ignored_lines(command_line);
 				continue;
 			}
@@ -1042,12 +1298,14 @@ namespace Trinex::Console
 				finalize_input(cursor);
 				command_line = cursor;
 
-				String result = execute(alias, flags);
-				if (!result.empty())
-					results.push_back(std::move(result));
+				ExecutionReport alias_report = execute_stream(alias, flags);
+				if (!alias_report.output.empty())
+					results.push_back(alias_report.output);
 
-				const bool success = result.find("Unknown console entry") == String::npos;
-				notify_command_executed(exact_input, command, result, success);
+				if (!alias_report.success())
+					fail_report(alias_report.status);
+
+				notify_command_executed(exact_input, command, alias_report.output, alias_report.status);
 				skip_ignored_lines(command_line);
 				continue;
 			}
@@ -1060,7 +1318,8 @@ namespace Trinex::Console
 				command_line = cursor;
 
 				String error = Strings::format("Unknown console entry '{}'", command);
-				notify_command_executed(exact_input, command, error, false);
+				notify_command_executed(exact_input, command, error, ExecuteStatus::UnknownEntry);
+				fail_report(ExecuteStatus::UnknownEntry);
 
 				if (!flags.all(ExecuteFlags::IgnoreUnknown))
 					results.push_back(std::move(error));
@@ -1076,12 +1335,15 @@ namespace Trinex::Console
 
 				String error = Strings::format("Console entry '{}' is not available in current runtime policy", command);
 				results.push_back(error);
-				notify_command_executed(exact_input, command, error, false);
+				const ExecuteStatus status = execution_block_status(*entry);
+				fail_report(status);
+				notify_command_executed(exact_input, command, error, status);
 				skip_ignored_lines(command_line);
 				continue;
 			}
 
 			String result;
+			ExecuteStatus status = ExecuteStatus::Success;
 
 			if (entry->type() == EntryType::Variable)
 			{
@@ -1090,6 +1352,7 @@ namespace Trinex::Console
 					finalize_input(cursor);
 					command_line = cursor;
 					result = Strings::format("'{}' is a console variable. Use '{}' or '{} = <value>'", command, command, command);
+					status = ExecuteStatus::VariableCallSyntax;
 				}
 				else
 				{
@@ -1098,7 +1361,9 @@ namespace Trinex::Console
 						finalize_input(cursor);
 						command_line = cursor;
 						results.push_back(error);
-						notify_command_executed(exact_input, command, error, false);
+						status = execution_block_status(*entry);
+						fail_report(status);
+						notify_command_executed(exact_input, command, error, status);
 						skip_ignored_lines(command_line);
 						continue;
 					}
@@ -1114,13 +1379,15 @@ namespace Trinex::Console
 
 					StringView probe = value_stream;
 					StringView ignored_argument;
-					if (read_argument(probe, ignored_argument))
+					if (read_literal(probe, ignored_argument, ",;\n"))
 						finalize_input(probe);
 					else
 						finalize_input(value_stream);
 
-					result       = entry->execute(value_stream, exact_input, flags);
-					command_line = value_stream;
+					StackFrame frame(entry, value_stream, exact_input, flags);
+					result       = entry->execute(&frame);
+					command_line = frame.stream;
+					status       = frame.status;
 
 					if (previous_value != static_cast<VariableEntry*>(entry)->value_to_string())
 						notify_variable_changed(*static_cast<VariableEntry*>(entry), exact_input);
@@ -1133,16 +1400,32 @@ namespace Trinex::Console
 					finalize_input(cursor);
 					command_line = cursor;
 					results.push_back(error);
-					notify_command_executed(exact_input, command, error, false);
+					status = execution_block_status(*entry);
+					fail_report(status);
+					notify_command_executed(exact_input, command, error, status);
 					skip_ignored_lines(command_line);
 					continue;
 				}
 
 				if (statement.empty() || statement.front() != '(')
 				{
-					finalize_input(cursor);
-					command_line = cursor;
-					result       = Strings::format("Command '{}' must be called as {}(...)", command, command);
+					auto* typed_command = static_cast<Command*>(entry);
+
+					if (!typed_command->can_invoke_without_parentheses())
+					{
+						finalize_input(cursor);
+						command_line = cursor;
+						result       = Strings::format("Command '{}' must be called as {}(...)", command, command);
+						status       = ExecuteStatus::CommandCallSyntax;
+					}
+					else
+					{
+						finalize_input(cursor);
+						StackFrame frame(typed_command, {}, exact_input, flags);
+						result       = typed_command->execute(&frame);
+						command_line = cursor;
+						status       = frame.status;
+					}
 				}
 				else
 				{
@@ -1152,20 +1435,21 @@ namespace Trinex::Console
 					if (!read_parenthesized_contents(cursor, arguments))
 					{
 						result = Strings::format("Missing closing ')' for command '{}'", command);
+						status = ExecuteStatus::MissingClosingParenthesis;
 					}
 					else
 					{
-						StringView argument_stream = arguments;
 						finalize_input(cursor);
-						result       = entry->execute(argument_stream, exact_input, flags);
+						StackFrame frame(entry, arguments, exact_input, flags);
+						result       = entry->execute(&frame);
 						command_line = cursor;
+						status       = frame.status;
 					}
 
 					if (exact_input.empty())
-					{
 						finalize_input(cursor);
-						command_line = cursor;
-					}
+
+					command_line = cursor;
 				}
 			}
 
@@ -1175,23 +1459,27 @@ namespace Trinex::Console
 			if (!result.empty())
 				results.push_back(std::move(result));
 
-			const bool success = result.find("Unknown console entry") == String::npos &&
-			                     result.find("Failed to ") == String::npos && result.find("Validation failed") == String::npos &&
-			                     result.find("read-only") == String::npos && result.find("developer-only") == String::npos &&
-			                     result.find("cheat-protected") == String::npos &&
-			                     result.find("Too many arguments") == String::npos;
-			notify_command_executed(exact_input, command, result, success);
+			if (status != ExecuteStatus::Success)
+				fail_report(status);
+
+			notify_command_executed(exact_input, command, result, status);
 
 			skip_ignored_lines(command_line);
 		}
 
-		return Strings::join(results, "\n");
+		report.output = Strings::join(results, "\n");
+		return report;
 	}
 
-	String execute(int argc, char** argv, ExecuteFlags flags)
+	ExecuteResult execute(StringView command_line, ExecuteFlags flags)
+	{
+		return execute_stream(command_line, flags);
+	}
+
+	ExecuteResult execute(int argc, char** argv, ExecuteFlags flags)
 	{
 		if (argc <= 0 || argv == nullptr)
-			return {};
+			return {.status = ExecuteStatus::EmptyInput};
 
 		StringView name = argv[0] ? StringView(argv[0]) : StringView();
 
@@ -1225,7 +1513,7 @@ namespace Trinex::Console
 	{
 		StringView name;
 
-		if (read_argument(ctx.stream, name))
+		if (frame->read_argument(name))
 		{
 			if (Entry* entry = find(name))
 			{
@@ -1281,7 +1569,7 @@ namespace Trinex::Console
 			if (String expansion = find_alias(name); !expansion.empty())
 				return format_alias_line(name, expansion);
 
-			return Strings::format("Unknown console entry '{}'", name);
+			return frame->fail(ExecuteStatus::UnknownEntry, Strings::format("Unknown console entry '{}'", name));
 		}
 
 		Vector<String> lines = collect_entries([](const Entry&) { return true; });
@@ -1292,7 +1580,7 @@ namespace Trinex::Console
 	trinex_static_console_command(console_list, .name = "list", .description = "List console entries", .usage = "list([prefix])")
 	{
 		StringView prefix;
-		read_argument(ctx.stream, prefix);
+		frame->read_argument(prefix);
 		Vector<String> result = complete(prefix);
 
 		if (result.empty())
@@ -1306,8 +1594,8 @@ namespace Trinex::Console
 	{
 		StringView pattern_view;
 
-		if (!read_argument(ctx.stream, pattern_view))
-			return "Usage: find(<text>)";
+		if (!frame->read_argument(pattern_view))
+			return frame->fail(ExecuteStatus::MissingRequiredParameter, "Usage: find(<text>)");
 
 		const String pattern  = Strings::to_lower(pattern_view);
 		Vector<String> result = collect_entries([&pattern](const Entry& entry) {
@@ -1326,21 +1614,21 @@ namespace Trinex::Console
 	{
 		StringView name;
 
-		if (!read_argument(ctx.stream, name))
-			return "Usage: reset(<variable>)";
+		if (!frame->read_argument(name))
+			return frame->fail(ExecuteStatus::MissingRequiredParameter, "Usage: reset(<variable>)");
 
 		Entry* entry = find(name);
 
 		if (entry == nullptr)
-			return Strings::format("Unknown console entry '{}'", name);
+			return frame->fail(ExecuteStatus::UnknownEntry, Strings::format("Unknown console entry '{}'", name));
 
 		if (entry->type() != EntryType::Variable)
-			return Strings::format("'{}' is not a console variable", name);
+			return frame->fail(ExecuteStatus::CommandFailed, Strings::format("'{}' is not a console variable", name));
 
 		auto* variable = static_cast<VariableEntry*>(entry);
 		if (variable->flags().all(Flags::ReadOnly))
-			return Strings::format("'{}' is read-only", name);
-		variable->reset(ctx.input);
+			return frame->fail(ExecuteStatus::ReadOnly, Strings::format("'{}' is read-only", name));
+		variable->reset(frame->input);
 		return format_variable_state(*variable);
 	}
 
@@ -1404,13 +1692,13 @@ namespace Trinex::Console
 	{
 		StringView path;
 
-		if (!read_argument(ctx.stream, path))
+		if (!frame->read_argument(path))
 			path = s_default_config_path;
 
 		FileWriter writer(path, true);
 
 		if (!writer.is_open())
-			return Strings::format("Failed to open '{}' for writing", path);
+			return frame->fail(ExecuteStatus::FileOpenFailed, Strings::format("Failed to open '{}' for writing", path));
 
 		Vector<VariableEntry*> variables =
 		        collect_variables([](const VariableEntry& variable) { return variable.flags().all(Flags::Persistent); });
@@ -1434,10 +1722,10 @@ namespace Trinex::Console
 		StringView path;
 		bool ignore_unknown = false;
 
-		if (read_argument(ctx.stream, path))
+		if (frame->read_argument(path))
 		{
 			StringView flag;
-			if (read_argument(ctx.stream, flag))
+			if (frame->read_argument(flag))
 				Detail::parse_boolean(flag, ignore_unknown);
 		}
 		else
@@ -1450,20 +1738,22 @@ namespace Trinex::Console
 		if (!reader.is_open())
 		{
 			String result = Strings::format("Failed to open '{}' for reading", path);
-			notify_config_loaded(path, result, false, true);
-			return result;
+			notify_config_loaded(path, result, ExecuteStatus::FileOpenFailed, true);
+			return frame->fail(ExecuteStatus::FileOpenFailed, result);
 		}
 
-		ExecuteFlags flags = ctx.flags;
+		ExecuteFlags flags = frame->flags;
 
 		if (ignore_unknown)
 		{
 			flags = ExecuteFlags::IgnoreUnknown;
 		}
 
-		String result = execute(reader.read_string(), flags);
-		notify_config_loaded(path, result, true, true);
-		return result;
+		ExecuteResult result = execute(reader.read_string(), flags);
+		notify_config_loaded(path, result.output, result.status, true);
+		if (!result.success())
+			frame->status = result.status;
+		return result.output;
 	}
 
 	trinex_static_console_command(console_exec, .name = "exec", .description = "Execute console commands from file",
@@ -1472,11 +1762,11 @@ namespace Trinex::Console
 		StringView path;
 		bool ignore_unknown = false;
 
-		if (!read_argument(ctx.stream, path))
-			return "Usage: exec(<path>)";
+		if (!frame->read_argument(path))
+			return frame->fail(ExecuteStatus::MissingRequiredParameter, "Usage: exec(<path>)");
 
 		StringView flag;
-		if (read_argument(ctx.stream, flag))
+		if (frame->read_argument(flag))
 			Detail::parse_boolean(flag, ignore_unknown);
 
 		FileReader reader(path);
@@ -1484,32 +1774,34 @@ namespace Trinex::Console
 		if (!reader.is_open())
 		{
 			String result = Strings::format("Failed to open '{}' for reading", path);
-			notify_config_loaded(path, result, false, false);
-			return result;
+			notify_config_loaded(path, result, ExecuteStatus::FileOpenFailed, false);
+			return frame->fail(ExecuteStatus::FileOpenFailed, result);
 		}
 
-		ExecuteFlags flags = ctx.flags;
+		ExecuteFlags flags = frame->flags;
 
 		if (ignore_unknown)
 		{
 			flags = ExecuteFlags::IgnoreUnknown;
 		}
 
-		String result = Console::execute(reader.read_string(), flags);
-		notify_config_loaded(path, result, true, false);
-		return result;
+		ExecuteResult result = Console::execute(reader.read_string(), flags);
+		notify_config_loaded(path, result.output, result.status, false);
+		if (!result.success())
+			frame->status = result.status;
+		return result.output;
 	}
 
 	trinex_static_console_command(console_alias, .name = "alias", .description = "Register or replace alias",
 	                              .usage = "alias(<name>, <expansion>)")
 	{
 		StringView name;
-		if (!read_argument(ctx.stream, name))
-			return "Usage: alias(<name>, <expansion>)";
+		if (!frame->read_argument(name))
+			return frame->fail(ExecuteStatus::MissingRequiredParameter, "Usage: alias(<name>, <expansion>)");
 
-		String expansion = String(read_command_tail(ctx.stream));
+		String expansion = String(frame->read_command_tail());
 		if (expansion.empty())
-			return "Usage: alias(<name>, <expansion>)";
+			return frame->fail(ExecuteStatus::MissingRequiredParameter, "Usage: alias(<name>, <expansion>)");
 
 		add_alias(name, expansion);
 		return format_alias_line(name, expansion);
@@ -1518,24 +1810,27 @@ namespace Trinex::Console
 	trinex_static_console_command(console_unalias, .name = "unalias", .description = "Remove alias", .usage = "unalias(<name>)")
 	{
 		StringView name;
-		if (!read_argument(ctx.stream, name))
-			return "Usage: unalias(<name>)";
+		if (!frame->read_argument(name))
+			return frame->fail(ExecuteStatus::MissingRequiredParameter, "Usage: unalias(<name>)");
 
 		if (!remove_alias(name))
-			return Strings::format("Alias '{}' was not found", name);
+			return frame->fail(ExecuteStatus::UnknownEntry, Strings::format("Alias '{}' was not found", name));
 
 		return Strings::format("Removed alias '{}'", name);
 	}
 
 	trinex_static_console_command(console_aliases, .name = "aliases", .description = "List aliases", .usage = "aliases()")
 	{
-		if (alias_registry().aliases.empty())
+		if (ConsoleState::instance().aliases.empty())
 			return "No aliases registered";
 
 		Vector<String> lines;
-		lines.reserve(alias_registry().aliases.size());
+		lines.reserve(ConsoleState::instance().aliases.size());
 
-		for (auto& [name, expansion] : alias_registry().aliases) lines.push_back(format_alias_line(name, expansion));
+		for (auto& [name, expansion] : ConsoleState::instance().aliases)
+		{
+			lines.push_back(format_alias_line(name, expansion));
+		}
 
 		etl::sort(lines.begin(), lines.end());
 		return Strings::join(lines, "\n");
