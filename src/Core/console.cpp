@@ -157,17 +157,6 @@ namespace Trinex::Console
 			return ExecuteStatus::Success;
 		}
 
-		static void notify_variable_changed(const VariableEntry& variable, StringView input)
-		{
-			VariableChangedEvent event{variable, input};
-
-			for (Observer* observer : ConsoleState::instance().observers)
-			{
-				if (observer)
-					observer->on_variable_changed(event);
-			}
-		}
-
 		static void notify_command_executed(StringView input, StringView command, const String& output, ExecuteStatus status)
 		{
 			CommandExecutedEvent event{input, command, output, status};
@@ -995,6 +984,17 @@ namespace Trinex::Console
 	    : Entry(name, description, category), m_value_type(value_type), m_flags(flags)
 	{}
 
+	void VariableEntry::notify_variable_changed(StringView input)
+	{
+		VariableChangedEvent event{*this, input};
+
+		for (Observer* observer : ConsoleState::instance().observers)
+		{
+			if (observer)
+				observer->on_variable_changed(event);
+		}
+	}
+
 	EntryType VariableEntry::type() const
 	{
 		return EntryType::Variable;
@@ -1312,29 +1312,11 @@ namespace Trinex::Console
 						continue;
 					}
 
-					String previous_value = static_cast<VariableEntry*>(entry)->value_to_string();
-					StringView value_stream;
-
-					if (!statement.empty() && statement.front() == '=')
-					{
-						value_stream = statement;
-						value_stream.remove_prefix(1);
-					}
-
-					StringView probe = value_stream;
-					StringView ignored_argument;
-					if (read_literal(probe, ignored_argument, ",;\n"))
-						finalize_input(probe);
-					else
-						finalize_input(value_stream);
-
-					StackFrame frame(entry, value_stream, exact_input, flags);
+					StackFrame frame(entry, statement, exact_input, flags);
 					result = entry->execute(&frame);
+					finalize_input(frame.stream);
 					stream = frame.stream;
 					status = frame.status;
-
-					if (previous_value != static_cast<VariableEntry*>(entry)->value_to_string())
-						notify_variable_changed(*static_cast<VariableEntry*>(entry), exact_input);
 				}
 			}
 			else

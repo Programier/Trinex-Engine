@@ -776,6 +776,8 @@ namespace Trinex::Console
 	protected:
 		VariableEntry(StringView name, StringView description, StringView category, ValueType value_type, Flags flags);
 
+		void notify_variable_changed(StringView input);
+
 	public:
 		EntryType type() const override;
 		inline ValueType value_type() const { return m_value_type; }
@@ -842,10 +844,17 @@ namespace Trinex::Console
 			Type old_value = m_value;
 			m_value        = value;
 
+			const bool changed = old_value != m_value;
+
 			if (m_on_change)
 			{
 				VariableChangeContext<Type> context{*this, old_value, m_value, input};
 				m_on_change(context);
+			}
+
+			if (changed)
+			{
+				notify_variable_changed(input);
 			}
 			return *this;
 		}
@@ -877,11 +886,19 @@ namespace Trinex::Console
 			frame->error.clear();
 			frame->status = ExecuteStatus::Success;
 
+			if (frame->stream.empty())
+				return frame->succeed(value_to_string());
+
+			if (frame->stream.front() != '=')
+				return frame->succeed(value_to_string());
+
+			frame->stream.remove_prefix(1);
+
 			StringView raw_value;
 
 			if (!frame->read_argument(raw_value))
 			{
-				return frame->succeed(value_to_string());
+				return frame->fail(ExecuteStatus::MissingRequiredParameter, String("Expected value for '") + name() + "'");
 			}
 
 			Type value = {};
@@ -897,7 +914,7 @@ namespace Trinex::Console
 			}
 
 			set(value, frame->input);
-			return frame->succeed(Detail::format_assignment(name(), value_to_string()));
+			return frame->succeed(value_to_string());
 		}
 	};
 
