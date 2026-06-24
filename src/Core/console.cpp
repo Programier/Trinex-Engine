@@ -762,8 +762,24 @@ namespace Trinex::Console
 
 	Command::Command(StringView name, String (*callback)(CommandContext&), const CommandOptionalArgs& args)
 	    : Entry(resolve_name(name, args.name), args.description, args.category), m_usage(args.usage), m_example(args.example),
-	      m_flags(args.flags), m_callback(callback)
-	{}
+	      m_flags(args.flags), m_parameters(args.parameters), m_callback(callback)
+	{
+		if (m_usage.empty() && !m_parameters.empty())
+		{
+			Vector<String> parts;
+			parts.reserve(m_parameters.size());
+
+			for (const auto& parameter : m_parameters)
+			{
+				String part = Strings::format("{}: {}", parameter.name, parameter.type);
+				if (parameter.has_default_value)
+					part += Strings::format(" = {}", parameter.default_value_text);
+				parts.push_back(std::move(part));
+			}
+
+			m_usage = Strings::format("{}({})", this->name(), Strings::join(parts, ", "));
+		}
+	}
 
 	EntryType Command::type() const
 	{
@@ -932,6 +948,44 @@ namespace Trinex::Console
 	String Command::execute(StringView& command_line, StringView input, ExecuteFlags flags)
 	{
 		CommandContext context{*this, input, command_line, "", flags};
+		context.values.reserve(m_parameters.size());
+
+		for (const auto& parameter : m_parameters)
+		{
+			StringView raw_value;
+
+			if (!read_argument(command_line, raw_value))
+			{
+				if (parameter.has_default_value)
+				{
+					context.values.push_back(parameter.default_value);
+					continue;
+				}
+
+				context.error = Strings::format("Expected parameter '{}: {}'", parameter.name, parameter.type);
+				return context.error;
+			}
+
+			Any parsed_value;
+			if (parameter.parse == nullptr || !parameter.parse(raw_value, parsed_value))
+			{
+				context.error = Strings::format("Failed to parse parameter '{}: {}' from '{}'", parameter.name, parameter.type,
+				                                raw_value);
+				return context.error;
+			}
+
+			if (parameter.validate)
+			{
+				if (String validation = parameter.validate(parsed_value); !validation.empty())
+				{
+					context.error = Strings::format("Parameter '{}': {}", parameter.name, validation);
+					return context.error;
+				}
+			}
+
+			context.values.push_back(std::move(parsed_value));
+		}
+
 		String result = execute(context);
 
 		if (!context.failed() && has_more_arguments(command_line))
@@ -1202,6 +1256,23 @@ namespace Trinex::Console
 						result += Strings::format("\nUsage: {}", command->usage());
 					if (!command->example().empty())
 						result += Strings::format("\nExample: {}", command->example());
+					if (!command->parameters().empty())
+					{
+						Vector<String> parameter_lines;
+						parameter_lines.reserve(command->parameters().size());
+
+						for (const auto& parameter : command->parameters())
+						{
+							String line = Strings::format("{}: {}", parameter.name, parameter.type);
+							if (parameter.has_default_value)
+								line += Strings::format(" = {}", parameter.default_value_text);
+							if (!parameter.description.empty())
+								line += Strings::format(" - {}", parameter.description);
+							parameter_lines.push_back(std::move(line));
+						}
+
+						result += Strings::format("\nParameters:\n{}", Strings::join(parameter_lines, "\n"));
+					}
 				}
 
 				return result;

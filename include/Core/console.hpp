@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/etl/any.hpp>
 #include <Core/etl/function.hpp>
 #include <Core/etl/string.hpp>
 #include <Core/etl/vector.hpp>
@@ -76,6 +77,17 @@ namespace Trinex::Console
 	struct VariableChangedEvent {
 		const VariableEntry& variable;
 		StringView input;
+	};
+
+	struct CommandParameter {
+		String name;
+		String type;
+		String description;
+		bool (*parse)(StringView raw_value, Any& out_value) = nullptr;
+		Function<String(const Any&)> validate               = nullptr;
+		Any default_value;
+		String default_value_text;
+		bool has_default_value = false;
 	};
 
 	struct CommandExecutedEvent {
@@ -357,6 +369,51 @@ namespace Trinex::Console
 		}
 
 		template<typename Type>
+		static bool parse_any(StringView raw_value, Any& out_value)
+		{
+			Type value{};
+
+			if (!parse_value(raw_value, value))
+				return false;
+
+			out_value = std::move(value);
+			return true;
+		}
+
+		template<typename Type>
+		static String format_type_name()
+		{
+			if constexpr (std::is_same_v<Type, bool>)
+				return "bool";
+			else if constexpr (std::is_same_v<Type, u8>)
+				return "u8";
+			else if constexpr (std::is_same_v<Type, u16>)
+				return "u16";
+			else if constexpr (std::is_same_v<Type, u32>)
+				return "u32";
+			else if constexpr (std::is_same_v<Type, u64>)
+				return "u64";
+			else if constexpr (std::is_same_v<Type, i8>)
+				return "i8";
+			else if constexpr (std::is_same_v<Type, i16>)
+				return "i16";
+			else if constexpr (std::is_same_v<Type, i32>)
+				return "i32";
+			else if constexpr (std::is_same_v<Type, i64>)
+				return "i64";
+			else if constexpr (std::is_same_v<Type, f16>)
+				return "f16";
+			else if constexpr (std::is_same_v<Type, f32>)
+				return "f32";
+			else if constexpr (std::is_same_v<Type, f64>)
+				return "f64";
+			else if constexpr (std::is_same_v<Type, String>)
+				return "String";
+			else
+				return String(type_info<Type>::name());
+		}
+
+		template<typename Type>
 		static String format_value(const Type& value)
 		{
 			if constexpr (std::is_same_v<Type, bool>)
@@ -408,6 +465,66 @@ namespace Trinex::Console
 			}
 		}
 	}// namespace Detail
+
+	template<typename Type>
+	class CommandParameterBuilder
+	{
+	private:
+		CommandParameter m_parameter;
+
+	public:
+		explicit CommandParameterBuilder(StringView name)
+		{
+			m_parameter.name  = String(name);
+			m_parameter.type  = Detail::format_type_name<Type>();
+			m_parameter.parse = &Detail::parse_any<Type>;
+		}
+
+		CommandParameterBuilder& description(StringView value)
+		{
+			m_parameter.description = String(value);
+			return *this;
+		}
+
+		CommandParameterBuilder& default_value(const Type& value)
+		{
+			m_parameter.default_value      = value;
+			m_parameter.default_value_text = Detail::format_value(value);
+			m_parameter.has_default_value  = true;
+			return *this;
+		}
+
+		template<typename Callback>
+		CommandParameterBuilder& validate(Callback&& callback)
+		{
+			if constexpr (std::is_invocable_r_v<String, Callback&, const Type&>)
+			{
+				auto wrapper         = std::forward<Callback>(callback);
+				m_parameter.validate = [wrapper](const Any& value) mutable -> String { return wrapper(value.cast<Type>()); };
+			}
+			else if constexpr (std::is_invocable_r_v<bool, Callback&, const Type&>)
+			{
+				auto wrapper         = std::forward<Callback>(callback);
+				m_parameter.validate = [wrapper](const Any& value) mutable -> String {
+					return wrapper(value.cast<Type>()) ? String() : String("Validation failed");
+				};
+			}
+			else
+			{
+				static_assert(Detail::always_false_v<Callback>, "Command parameter validator signature is not supported");
+			}
+
+			return *this;
+		}
+
+		operator CommandParameter() const { return m_parameter; }
+	};
+
+	template<typename Type>
+	CommandParameterBuilder<Type> parameter(StringView name)
+	{
+		return CommandParameterBuilder<Type>(name);
+	}
 
 	template<typename Type>
 	class Variable;
@@ -653,6 +770,7 @@ namespace Trinex::Console
 		StringView& stream;
 		mutable String error;
 		ExecuteFlags flags;
+		Vector<Any> values;
 
 		template<typename Type>
 		bool parse_arg(Type& out_value) const
@@ -696,6 +814,24 @@ namespace Trinex::Console
 		bool has_more_args() const { return has_more_arguments(stream); }
 		StringView remaining_tail() const { return peek_command_tail(stream); }
 		bool failed() const { return !error.empty(); }
+
+		template<typename Type>
+		Type& get(usize index)
+		{
+			return *values[index].address_as<Type>();
+		}
+
+		template<typename Type>
+		const Type& get(usize index) const
+		{
+			return *values[index].address_as<Type>();
+		}
+
+		template<typename Type>
+		Type& get(StringView name);
+
+		template<typename Type>
+		const Type& get(StringView name) const;
 	};
 
 	struct CommandOptionalArgs {
@@ -705,6 +841,7 @@ namespace Trinex::Console
 		StringView usage;
 		StringView example;
 		Flags flags;
+		Vector<CommandParameter> parameters;
 	};
 
 	class ENGINE_EXPORT Command : public Entry
@@ -713,6 +850,7 @@ namespace Trinex::Console
 		String m_usage;
 		String m_example;
 		Flags m_flags;
+		Vector<CommandParameter> m_parameters;
 
 		String (*m_callback)(CommandContext&);
 
@@ -726,6 +864,7 @@ namespace Trinex::Console
 		inline const String& usage() const { return m_usage; }
 		inline const String& example() const { return m_example; }
 		inline Flags flags() const { return m_flags; }
+		inline const Vector<CommandParameter>& parameters() const { return m_parameters; }
 
 		inline Command& flags(u32 value) { trinex_this_return(m_flags = value); }
 		inline Command& usage(StringView value) { trinex_this_return(m_usage = String(value)); }
@@ -737,6 +876,32 @@ namespace Trinex::Console
 			return execute(stream, input, flags);
 		}
 	};
+
+	template<typename Type>
+	inline Type& CommandContext::get(StringView name)
+	{
+		const auto& parameters = command.parameters();
+		for (usize index = 0; index < parameters.size(); ++index)
+		{
+			if (parameters[index].name == name)
+				return get<Type>(index);
+		}
+
+		trinex_unreachable();
+	}
+
+	template<typename Type>
+	inline const Type& CommandContext::get(StringView name) const
+	{
+		const auto& parameters = command.parameters();
+		for (usize index = 0; index < parameters.size(); ++index)
+		{
+			if (parameters[index].name == name)
+				return get<Type>(index);
+		}
+
+		trinex_unreachable();
+	}
 }// namespace Trinex::Console
 
 #define trinex_console_variable(variable_type, variable_name)                                                                    \
