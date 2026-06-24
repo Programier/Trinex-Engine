@@ -114,13 +114,35 @@ namespace Trinex::Console
 		u32 offset = 0;
 	};
 
+	enum class TokenKind : u8
+	{
+		Identifier,
+		BareLiteral,
+		StringLiteral,
+		LParen,
+		RParen,
+		Assign,
+		Comma,
+		Semicolon,
+		NestedExecute,
+	};
+
 	struct Token {
-		Token* next = nullptr;
-		Token* prev = nullptr;
+		Token* next    = nullptr;
+		Token* prev    = nullptr;
+		TokenKind kind = TokenKind::BareLiteral;
 		StringView identifier;
 
 		SourceLocation begin;
 		SourceLocation end;
+	};
+
+	struct TokenRange {
+		Token* begin = nullptr;
+		Token* end   = nullptr;
+
+		bool empty() const { return begin == end; }
+		bool single() const { return begin != nullptr && begin->next == end; }
 	};
 
 	class Entry;
@@ -222,6 +244,12 @@ namespace Trinex::Console
 			static constexpr ValueType value = ValueType::ReflectedFlags;
 		};
 
+		ENGINE_EXPORT bool parse_boolean(TokenRange raw_value, bool& out_value);
+		ENGINE_EXPORT bool parse_signed(TokenRange raw_value, i64& out_value);
+		ENGINE_EXPORT bool parse_unsigned(TokenRange raw_value, u64& out_value);
+		ENGINE_EXPORT bool parse_floating(TokenRange raw_value, f64& out_value);
+		ENGINE_EXPORT bool parse_string(TokenRange raw_value, String& out_value);
+		ENGINE_EXPORT bool parse_reflected_enum(TokenRange raw_value, Refl::Enum* reflection, bool is_bitfield, u64& out_value);
 		ENGINE_EXPORT bool parse_boolean(StringView raw_value, bool& out_value);
 		ENGINE_EXPORT bool parse_signed(StringView raw_value, i64& out_value);
 		ENGINE_EXPORT bool parse_unsigned(StringView raw_value, u64& out_value);
@@ -235,11 +263,11 @@ namespace Trinex::Console
 		ENGINE_EXPORT String format_floating(f64 value);
 		ENGINE_EXPORT String format_string(StringView value);
 		ENGINE_EXPORT String format_reflected_enum(Refl::Enum* reflection, u64 value, bool is_bitfield);
-		ENGINE_EXPORT String format_parse_error(StringView name, StringView raw_value);
+		ENGINE_EXPORT String format_parse_error(StringView name, TokenRange raw_value);
 		ENGINE_EXPORT String format_assignment(StringView name, StringView value);
 
 		template<typename Type>
-		static bool parse_value(StringView raw_value, Type& out_value)
+		static bool parse_value(TokenRange raw_value, Type& out_value)
 		{
 			if constexpr (std::is_same_v<Type, bool>)
 			{
@@ -334,7 +362,7 @@ namespace Trinex::Console
 		}
 
 		template<typename Type>
-		static bool parse_any(StringView raw_value, Any& out_value)
+		static bool parse_any(TokenRange raw_value, Any& out_value)
 		{
 			Type value{};
 
@@ -440,7 +468,7 @@ namespace Trinex::Console
 		String name;
 		String type;
 		String description;
-		bool (*parse)(StringView raw_value, Any& out_value) = nullptr;
+		bool (*parse)(TokenRange raw_value, Any& out_value) = nullptr;
 		Function<String(const Any&)> validate               = nullptr;
 		Any default_value;
 		String default_value_text;
@@ -491,8 +519,9 @@ namespace Trinex::Console
 
 		StackFrame& reset(Entry* entry = nullptr, Token* stream = nullptr, Token* input = nullptr, Token* end = nullptr,
 		                  ExecuteFlags flags = ExecuteFlags::Undefined);
+		bool read_argument(TokenRange& out);
 		bool read_argument(StringView& out);
-		StringView read_command_tail();
+		TokenRange read_command_tail();
 		bool has_more_args();
 		String input_view() const;
 		bool failed() const { return status != ExecuteStatus::Success || !error.empty(); }
@@ -520,7 +549,7 @@ namespace Trinex::Console
 		template<typename Type>
 		bool parse_arg(Type& out_value)
 		{
-			StringView argument;
+			TokenRange argument;
 
 			if (!read_argument(argument))
 				return false;
@@ -891,8 +920,14 @@ namespace Trinex::Console
 		{
 			Type value = {};
 
-			if (!Detail::parse_value(raw, value))
-				return Detail::format_parse_error(name(), raw);
+			Token token;
+			token.identifier = raw;
+			token.kind       = TokenKind::BareLiteral;
+
+			TokenRange range{&token, nullptr};
+
+			if (!Detail::parse_value(range, value))
+				return Detail::format_parse_error(name(), range);
 
 			return validate_value(value, input);
 		}
@@ -903,15 +938,15 @@ namespace Trinex::Console
 			frame->error.clear();
 			frame->status = ExecuteStatus::Success;
 
-			if (frame->stream == nullptr)
+			if (frame->stream == nullptr || frame->stream == frame->end)
 				return frame->succeed(value_to_string());
 
-			if (frame->stream->identifier != "=")
+			if (frame->stream->kind != TokenKind::Assign)
 				return frame->succeed(value_to_string());
 
 			frame->stream = frame->stream->next;
 
-			StringView raw_value;
+			TokenRange raw_value;
 
 			if (!frame->read_argument(raw_value))
 			{
