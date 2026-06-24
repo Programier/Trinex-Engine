@@ -1,8 +1,9 @@
 #include <Core/constants.hpp>
+#include <Core/etl/algorithm.hpp>
+#include <Core/etl/charconv.hpp>
 #include <Core/math/math.hpp>
 #include <Core/memory.hpp>
 #include <Core/string_functions.hpp>
-#include <algorithm>
 #include <regex>
 #include <stdarg.h>
 #include <string>
@@ -157,7 +158,7 @@ namespace Trinex::Strings
 	{
 		String result;
 		result.resize(line.size());
-		std::transform(line.begin(), line.end(), result.begin(), [](char ch) -> char { return std::tolower(ch); });
+		etl::transform(line.begin(), line.end(), result.begin(), [](char ch) -> char { return std::tolower(ch); });
 		return result;
 	}
 
@@ -165,7 +166,7 @@ namespace Trinex::Strings
 	{
 		String result;
 		result.resize(line.size());
-		std::transform(line.begin(), line.end(), result.begin(), [](char ch) -> char { return std::toupper(ch); });
+		etl::transform(line.begin(), line.end(), result.begin(), [](char ch) -> char { return std::toupper(ch); });
 		return result;
 	}
 
@@ -273,48 +274,146 @@ namespace Trinex::Strings
 		return name;
 	}
 
-	ENGINE_EXPORT bool boolean_of(const char* line, usize len)
+	bool iequals(StringView first, StringView second)
 	{
-		if (len == 0)
-		{
-			len = std::strlen(line);
-		}
-
-		if (len == 0)
+		if (first.size() != second.size())
 			return false;
 
-		if (len == 4)// 4 is lenght of "true"
+		return etl::equal(first.begin(), first.end(), second.begin(),
+		                  [](char ca, char cb) { return std::tolower(ca) == std::tolower(cb); });
+	}
+
+	ENGINE_EXPORT bool boolean_of(StringView text)
+	{
+		bool result = false;
+		boolean_of(text, result);
+		return result;
+	}
+
+	ENGINE_EXPORT i64 signed_of(StringView text)
+	{
+		i64 result = 0;
+		signed_of(text, result);
+		return result;
+	}
+
+	ENGINE_EXPORT u64 unsigned_of(StringView text)
+	{
+		u64 result = 0;
+		unsigned_of(text, result);
+		return result;
+	}
+
+	ENGINE_EXPORT f64 floating_of(StringView text)
+	{
+		f64 result = 0.0;
+		floating_of(text, result);
+		return result;
+	}
+
+	ENGINE_EXPORT void* pointer_of(StringView text)
+	{
+		void* result = nullptr;
+		pointer_of(text, result);
+		return result;
+	}
+
+	ENGINE_EXPORT bool boolean_of(StringView text, bool& out)
+	{
+		if (iequals(text, "true"))
 		{
-			bool is_true = true;
-
-			for (usize i = 0; is_true && i < 4; i++)
-			{
-				is_true = std::tolower(line[i]) == "true"[i];
-			}
-
-			if (is_true)
-			{
-				return true;
-			}
+			out = true;
+			return true;
 		}
 
-		float float_value = ::strtof(line, nullptr);
-		return Math::abs(float_value) >= 0.5f;
+		if (iequals(text, "false"))
+		{
+			out = false;
+			return true;
+		}
+
+		i64 value = 0;
+
+		if (!signed_of(text, value))
+			return false;
+
+		out = static_cast<bool>(value);
+		return true;
 	}
 
-	ENGINE_EXPORT i32 integer_of(const char* text)
+	ENGINE_EXPORT bool signed_of(StringView text, i64& out)
 	{
-		return static_cast<i32>(::strtol(text, nullptr, 10));
+		const char* begin = text.data();
+		const char* end   = begin + text.size();
+
+		i64 result = 0;
+
+		auto [ptr, ec] = etl::from_chars(begin, end, result, 10);
+
+		if (ec != std::errc{} || ptr != end)
+			return false;
+
+		out = result;
+		return true;
 	}
 
-	ENGINE_EXPORT float float_of(const char* text)
+	ENGINE_EXPORT bool unsigned_of(StringView text, u64& out)
 	{
-		return static_cast<i32>(::strtof(text, nullptr));
+		const char* begin = text.data();
+		const char* end   = begin + text.size();
+
+		u64 result = 0;
+
+		auto [ptr, ec] = etl::from_chars(begin, end, result, 10);
+
+		if (ec != std::errc{} || ptr != end)
+			return false;
+
+		out = result;
+		return true;
 	}
 
-	ENGINE_EXPORT void* pointer_of(const char* text)
+	ENGINE_EXPORT bool floating_of(StringView text, f64& out)
 	{
-		return reinterpret_cast<void*>(std::stoul(text, nullptr, 16));
+		const char* begin = text.data();
+		const char* end   = begin + text.size();
+
+		f64 result = 0.0;
+
+		auto [ptr, ec] = etl::from_chars(begin, end, result);
+
+		if (ec != std::errc{} || ptr != end)
+			return false;
+
+		out = result;
+		return true;
+	}
+
+	ENGINE_EXPORT bool pointer_of(StringView text, void*& out)
+	{
+		const char* begin = text.data();
+		const char* end   = begin + text.size();
+
+		if (begin == end)
+			return false;
+
+		if (end - begin >= 2 && begin[0] == '0' && (begin[1] == 'x' || begin[1] == 'X'))
+		{
+			begin += 2;
+
+			if (begin == end)
+				return false;
+		}
+
+		usize address = 0;
+
+		auto [ptr, ec] = etl::from_chars(begin, end, address, 16);
+
+		if (ec != std::errc{} || ptr != end)
+			return false;
+
+		out = reinterpret_cast<void*>(address);
+		return true;
 	}
 
 	ENGINE_EXPORT bool read_line(StringView& stream, StringView& out)

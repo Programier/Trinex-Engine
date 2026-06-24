@@ -48,6 +48,23 @@ namespace Trinex::Strings
 	ENGINE_EXPORT StringView parse_name_identifier(StringView sentence, StringView* out = nullptr);
 	ENGINE_EXPORT StringView parse_token(StringView expression, StringView separator, StringView* out = nullptr);
 
+	ENGINE_EXPORT bool iequals(StringView first, StringView second);
+
+	ENGINE_EXPORT bool boolean_of(StringView text);
+	ENGINE_EXPORT i64 signed_of(StringView text);
+	ENGINE_EXPORT u64 unsigned_of(StringView text);
+	ENGINE_EXPORT f64 floating_of(StringView text);
+	ENGINE_EXPORT void* pointer_of(StringView text);
+
+	ENGINE_EXPORT bool boolean_of(StringView text, bool& out);
+	ENGINE_EXPORT bool signed_of(StringView text, i64& out);
+	ENGINE_EXPORT bool unsigned_of(StringView text, u64& out);
+	ENGINE_EXPORT bool floating_of(StringView text, f64& out);
+	ENGINE_EXPORT bool pointer_of(StringView text, void*& out);
+
+	ENGINE_EXPORT bool read_line(StringView& stream, StringView& out);
+	ENGINE_EXPORT bool read_line(StringView& stream, StringView& out, char separator);
+
 
 	template<typename Range, typename Value = typename Range::value_type, typename FormatFunction>
 	inline String join(const Range& elements, const String& delimiter, const FormatFunction& function)
@@ -79,13 +96,6 @@ namespace Trinex::Strings
 
 		return join(elements, delimiter, callback);
 	}
-
-	ENGINE_EXPORT bool boolean_of(const char* text, usize len = 0);
-	ENGINE_EXPORT i32 integer_of(const char* text);
-	ENGINE_EXPORT float float_of(const char* text);
-	ENGINE_EXPORT void* pointer_of(const char* text);
-	ENGINE_EXPORT bool read_line(StringView& stream, StringView& out);
-	ENGINE_EXPORT bool read_line(StringView& stream, StringView& out, char separator);
 
 	static FORCE_INLINE String make_string(const StringView& view)
 	{

@@ -1,5 +1,6 @@
 #include <Core/console.hpp>
 #include <Core/etl/algorithm.hpp>
+#include <Core/etl/charconv.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/logger.hpp>
@@ -7,7 +8,6 @@
 #include <Core/string_functions.hpp>
 #include <Core/types/path.hpp>
 #include <cctype>
-#include <charconv>
 #include <cstdlib>
 
 namespace Trinex::Console
@@ -28,8 +28,8 @@ namespace Trinex::Console
 			Map<String, Entry*> entries;
 			Map<String, String> aliases;
 			Vector<Observer*> observers;
-			Vector<struct StackFrame*> stack;
 			u128 stack_location;
+			u64 execution_depth = 0;
 
 			static ConsoleState& instance()
 			{
@@ -37,26 +37,26 @@ namespace Trinex::Console
 				return state;
 			}
 
-			inline void begin_execution(StackFrame* frame)
+			inline void begin_execution()
 			{
-				if (stack.empty())
+				if (execution_depth++ == 0)
 				{
 					stack_location = StackByteAllocator::location();
 				}
-
-				stack.push_back(frame);
 			}
 
-			inline void end_execution(StackFrame* frame)
+			inline void end_execution()
 			{
-				trinex_assert(!stack.empty() && stack.back() == frame);
-				stack.pop_back();
-
-				if (stack.empty())
+				if (--execution_depth == 0)
 				{
 					StackByteAllocator::location(stack_location);
 				}
 			}
+		};
+
+		struct ConsoleExecutionScope {
+			ConsoleExecutionScope() { ConsoleState::instance().begin_execution(); }
+			~ConsoleExecutionScope() { ConsoleState::instance().end_execution(); }
 		};
 
 		static NestedExecuteError& nested_execute_error()
@@ -158,9 +158,9 @@ namespace Trinex::Console
 			return ExecuteStatus::Success;
 		}
 
-		static void notify_command_executed(StringView input, StringView command, const String& output, ExecuteStatus status)
+		static void notify_command_executed(StringView command, const String& output, ExecuteStatus status)
 		{
-			CommandExecutedEvent event{input, command, output, status};
+			CommandExecutedEvent event{command, output, status};
 
 			for (Observer* observer : ConsoleState::instance().observers)
 			{
@@ -322,11 +322,8 @@ namespace Trinex::Console
 			}
 		}
 
-		static Token* tokenize(StringView source)
+		static Token* tokenize(StringView source, Token*& head, Token*& tail)
 		{
-			Token* head = nullptr;
-			Token* tail = nullptr;
-
 			const u32 n = source.size();
 			u32 i       = 0;
 
@@ -489,6 +486,26 @@ namespace Trinex::Console
 			return head;
 		}
 
+		static Token* tokenize(StringView source)
+		{
+			Token* head = nullptr;
+			Token* tail = nullptr;
+			return tokenize(source, head, tail);
+		}
+
+		static Token* tokenize(u32 argc, char** argv)
+		{
+			Token* head = nullptr;
+			Token* tail = nullptr;
+
+			for (u32 i = 0; i < argc; ++i)
+			{
+				tokenize(argv[i], head, tail);
+			}
+
+			return head;
+		}
+
 		static bool is_identifier_token(StringView input)
 		{
 			if (input.empty())
@@ -507,19 +524,6 @@ namespace Trinex::Console
 			}
 
 			return true;
-		}
-
-		static StringView token_value_view(const Token& token)
-		{
-			StringView value = token.identifier;
-
-			if (token.kind == TokenKind::StringLiteral && value.length() >= 2)
-			{
-				value.remove_prefix(1);
-				value.remove_suffix(1);
-			}
-
-			return value;
 		}
 
 		static Token* skip_statement_separators(Token* token)
@@ -621,7 +625,7 @@ namespace Trinex::Console
 			return true;
 		}
 
-		static String tokens_to_string(Token* begin, Token* end)
+		static String tokens_to_string(Token* begin, Token* end = nullptr)
 		{
 			String result;
 			Token* previous = nullptr;
@@ -645,21 +649,6 @@ namespace Trinex::Console
 			}
 
 			return result;
-		}
-
-		static String render(TokenRange range)
-		{
-			return tokens_to_string(range.begin, range.end);
-		}
-
-		static StringView slice_source(StringView source, Token* begin, Token* end)
-		{
-			if (begin == nullptr)
-				return {};
-
-			const usize begin_offset = begin->begin.offset;
-			const usize end_offset   = end == nullptr ? source.length() : end->begin.offset;
-			return Strings::strip(source.substr(begin_offset, end_offset - begin_offset));
 		}
 
 		static String quote_argument_if_needed(StringView argument)
@@ -729,175 +718,58 @@ namespace Trinex::Console
 
 	namespace Detail
 	{
-		static bool range_is_single(TokenRange range)
+		bool parse_boolean(StringView value, bool& out)
 		{
-			return range.begin != nullptr && range.begin->next == range.end;
+			return Strings::boolean_of(value, out);
 		}
 
-		static StringView single_range_view(TokenRange range)
+		bool parse_signed(StringView value, i64& out)
 		{
-			return range_is_single(range) ? token_value_view(*range.begin) : StringView();
+			return Strings::signed_of(value, out);
 		}
 
-		static String render_range(TokenRange range)
+		bool parse_unsigned(StringView value, u64& out)
 		{
-			return render(range);
+			return Strings::unsigned_of(value, out);
 		}
 
-		static TokenRange wrap_view(StringView value)
+		bool parse_floating(StringView value, f64& out)
 		{
-			Token* token      = trx_stack_new Token;
-			token->kind       = TokenKind::BareLiteral;
-			token->identifier = value;
-			return {token, nullptr};
+			return Strings::floating_of(value, out);
 		}
 
-		bool parse_boolean(TokenRange raw_value, bool& out_value)
+		bool parse_string(StringView value, StringView& out)
 		{
-			StringView value_view = single_range_view(raw_value);
-
-			if (value_view.empty())
+			if (value.empty())
 			{
-				String text = render_range(raw_value);
-				value_view  = Strings::strip(text);
+				out = "";
+				return false;
 			}
 
-			value_view = Strings::strip(value_view);
-			if (value_view.empty())
-				return false;
-
-			if (value_view == "true" || value_view == "TRUE" || value_view == "True")
+			if (value.starts_with("\"'"))
 			{
-				out_value = true;
-				return true;
-			}
-
-			if (value_view == "false" || value_view == "FALSE" || value_view == "False")
-			{
-				out_value = false;
-				return true;
-			}
-
-			String temp      = String(value_view);
-			char* end        = nullptr;
-			const long value = std::strtol(temp.c_str(), &end, 0);
-			if (end == nullptr || *end != '\0')
-				return false;
-
-			out_value = value != 0;
-			return true;
-		}
-
-		bool parse_signed(TokenRange raw_value, i64& out_value)
-		{
-			StringView value_view = Strings::strip(single_range_view(raw_value));
-			if (value_view.empty())
-			{
-				String text = render_range(raw_value);
-				value_view  = Strings::strip(text);
-			}
-
-			String temp           = String(value_view);
-			char* end             = nullptr;
-			const long long value = std::strtoll(temp.c_str(), &end, 0);
-			if (end == nullptr || *end != '\0')
-				return false;
-
-			out_value = value;
-			return true;
-		}
-
-		bool parse_unsigned(TokenRange raw_value, u64& out_value)
-		{
-			StringView value_view = Strings::strip(single_range_view(raw_value));
-			if (value_view.empty())
-			{
-				String text = render_range(raw_value);
-				value_view  = Strings::strip(text);
-			}
-
-			String temp                    = String(value_view);
-			char* end                      = nullptr;
-			const unsigned long long value = std::strtoull(temp.c_str(), &end, 0);
-			if (end == nullptr || *end != '\0')
-				return false;
-
-			out_value = value;
-			return true;
-		}
-
-		bool parse_floating(TokenRange raw_value, f64& out_value)
-		{
-			StringView value_view   = Strings::strip(single_range_view(raw_value));
-			String temp             = value_view.empty() ? render_range(raw_value) : String(value_view);
-			char* end               = nullptr;
-			const long double value = std::strtold(temp.c_str(), &end);
-
-			if (end == nullptr || *end != '\0')
-				return false;
-
-			out_value = static_cast<f64>(value);
-			return true;
-		}
-
-		bool parse_string(TokenRange raw_value, String& out_value)
-		{
-			if (range_is_single(raw_value))
-			{
-				StringView value = token_value_view(*raw_value.begin);
-				out_value.clear();
-				out_value.reserve(value.length());
-
-				for (usize index = 0; index < value.length(); ++index)
+				if (value.size() == 1 || value.front() != value.back())
 				{
-					if (value[index] == '\\' && index + 1 < value.length() &&
-					    (value[index + 1] == '\\' || value[index + 1] == '"' || value[index + 1] == '\''))
-					{
-						out_value.push_back(value[index + 1]);
-						++index;
-						continue;
-					}
-
-					out_value.push_back(value[index]);
-				}
-				return true;
-			}
-
-			String raw_text  = render_range(raw_value);
-			StringView value = Strings::strip(raw_text);
-			out_value.clear();
-			out_value.reserve(value.length());
-
-			for (usize index = 0; index < value.length(); ++index)
-			{
-				if (value[index] == '\\' && index + 1 < value.length() &&
-				    (value[index + 1] == '\\' || value[index + 1] == '"' || value[index + 1] == '\''))
-				{
-					out_value.push_back(value[index + 1]);
-					++index;
-					continue;
+					out = "";
+					return false;
 				}
 
-				out_value.push_back(value[index]);
+				value.remove_prefix(1);
+				value.remove_suffix(1);
+				out = value;
+				return true;
 			}
+
+			out = value;
 			return true;
 		}
 
-		bool parse_reflected_enum(TokenRange raw_value, Refl::Enum* reflection, bool is_bitfield, u64& out_value)
+		bool parse_reflected_enum(StringView value, Refl::Enum* reflection, u64& out)
 		{
 			if (reflection == nullptr)
 				return false;
 
-			String text_storage;
-			StringView value_view = Strings::strip(single_range_view(raw_value));
-
-			if (value_view.empty())
-			{
-				text_storage = render_range(raw_value);
-				value_view   = Strings::strip(text_storage);
-			}
-
-			if (value_view.empty())
+			if (value.empty())
 				return false;
 
 			auto find_entry = [reflection](StringView token) -> const Refl::Enum::Entry* {
@@ -910,83 +782,13 @@ namespace Trinex::Console
 				return nullptr;
 			};
 
-			if (!is_bitfield)
+			if (const auto* entry = find_entry(value))
 			{
-				if (const auto* entry = find_entry(value_view))
-				{
-					out_value = static_cast<u64>(entry->value);
-					return true;
-				}
-
-				return false;
-			}
-
-			if (const auto* entry = find_entry(value_view))
-			{
-				out_value = static_cast<u64>(entry->value);
+				out = static_cast<u64>(entry->value);
 				return true;
 			}
 
-			u64 value = 0;
-			while (!value_view.empty())
-			{
-				usize separator  = value_view.find('|');
-				StringView token = separator == StringView::npos ? value_view : value_view.substr(0, separator);
-				token            = Strings::strip(token);
-
-				if (token.empty())
-					return false;
-
-				if (const auto* entry = find_entry(token))
-				{
-					value |= static_cast<u64>(entry->value);
-				}
-				else
-				{
-					u64 numeric = 0;
-					if (!parse_unsigned(token, numeric))
-						return false;
-					value |= numeric;
-				}
-
-				if (separator == StringView::npos)
-					break;
-
-				value_view.remove_prefix(separator + 1);
-			}
-
-			out_value = value;
-			return true;
-		}
-
-		bool parse_boolean(StringView raw_value, bool& out_value)
-		{
-			return parse_boolean(wrap_view(raw_value), out_value);
-		}
-
-		bool parse_signed(StringView raw_value, i64& out_value)
-		{
-			return parse_signed(wrap_view(raw_value), out_value);
-		}
-
-		bool parse_unsigned(StringView raw_value, u64& out_value)
-		{
-			return parse_unsigned(wrap_view(raw_value), out_value);
-		}
-
-		bool parse_floating(StringView raw_value, f64& out_value)
-		{
-			return parse_floating(wrap_view(raw_value), out_value);
-		}
-
-		bool parse_string(StringView raw_value, String& out_value)
-		{
-			return parse_string(wrap_view(raw_value), out_value);
-		}
-
-		bool parse_reflected_enum(StringView raw_value, Refl::Enum* reflection, bool is_bitfield, u64& out_value)
-		{
-			return parse_reflected_enum(wrap_view(raw_value), reflection, is_bitfield, out_value);
+			return false;
 		}
 
 		String format_boolean(bool value)
@@ -1014,7 +816,7 @@ namespace Trinex::Console
 			return String(value);
 		}
 
-		String format_reflected_enum(Refl::Enum* reflection, u64 value, bool is_bitfield)
+		String format_reflected_enum(Refl::Enum* reflection, u64 value)
 		{
 			if (reflection == nullptr)
 				return {};
@@ -1022,7 +824,7 @@ namespace Trinex::Console
 			if (const auto* entry = reflection->entry(static_cast<EnumerateType>(value)))
 				return entry->name.to_string();
 
-			if (!is_bitfield)
+			if (!reflection->is_bit_flags())
 				return {};
 
 			if (value == 0)
@@ -1054,9 +856,9 @@ namespace Trinex::Console
 			return Strings::join(parts, "|");
 		}
 
-		String format_parse_error(StringView name, TokenRange raw_value)
+		String format_parse_error(StringView name, StringView value)
 		{
-			return Strings::format("Failed to parse value '{}' for '{}'", render_range(raw_value), name);
+			return Strings::format("Failed to parse value '{}' for '{}'", value, name);
 		}
 
 		String format_assignment(StringView name, StringView value)
@@ -1090,17 +892,11 @@ namespace Trinex::Console
 		return "Unknown";
 	}
 
-	static ExecuteResult execute_tokens(Token*& stream, Token* limit, ExecuteFlags flags, StringView source = {});
+	static ExecuteResult execute_tokens(Token*& stream, Token* limit, ExecuteFlags flags);
 
 	StackFrame::StackFrame(Entry* entry, Token* stream, Token* input, Token* end, ExecuteFlags flags)
 	{
-		ConsoleState::instance().begin_execution(this);
 		reset(entry, stream, input, end, flags);
-	}
-
-	StackFrame::~StackFrame()
-	{
-		ConsoleState::instance().end_execution(this);
 	}
 
 	StackFrame& StackFrame::reset(Entry* new_entry, Token* new_stream, Token* new_input, Token* new_end, ExecuteFlags new_flags)
@@ -1116,11 +912,6 @@ namespace Trinex::Console
 		parameters.clear();
 
 		return *this;
-	}
-
-	String StackFrame::input_view() const
-	{
-		return tokens_to_string(input, stream);
 	}
 
 	String StackFrame::fail(ExecuteStatus new_status, StringView message)
@@ -1139,7 +930,7 @@ namespace Trinex::Console
 		return result;
 	}
 
-	bool StackFrame::read_argument(TokenRange& out_argument)
+	bool StackFrame::read_argument(Token*& out)
 	{
 		auto& nested   = nested_execute_error();
 		nested.active  = false;
@@ -1170,14 +961,14 @@ namespace Trinex::Console
 			Token* token      = trx_stack_new Token;
 			token->kind       = TokenKind::BareLiteral;
 			token->identifier = StringView(copy, copy + execution.output.size());
-			out_argument      = {token, nullptr};
+			out               = token;
 			return true;
 		}
 
 		if (stream != nullptr && stream != end)
 		{
-			out_argument = {stream, stream->next};
-			stream       = stream->next;
+			out    = stream;
+			stream = stream->next;
 			return true;
 		}
 
@@ -1190,23 +981,14 @@ namespace Trinex::Console
 		return false;
 	}
 
-	bool StackFrame::read_argument(StringView& out_argument)
+	bool StackFrame::read_argument(StringView& out)
 	{
-		TokenRange range;
+		Token* token = nullptr;
 
-		if (!read_argument(range))
+		if (!read_argument(token))
 			return false;
 
-		if (range.single())
-		{
-			out_argument = token_value_view(*range.begin);
-			return true;
-		}
-
-		String value = render(range);
-		char* copy   = StackAllocator<char>::allocate(value.size() + 1);
-		strcpy(copy, value.c_str());
-		out_argument = StringView(copy, copy + value.size());
+		out = token->identifier;
 		return true;
 	}
 
@@ -1222,7 +1004,7 @@ namespace Trinex::Console
 		return cursor != nullptr && cursor != end;
 	}
 
-	TokenRange StackFrame::read_command_tail()
+	Token* StackFrame::read_command_tail()
 	{
 		while (stream != nullptr && stream != end && stream->kind == TokenKind::Comma)
 		{
@@ -1232,9 +1014,9 @@ namespace Trinex::Console
 		if (stream == nullptr || stream == end)
 			return {};
 
-		TokenRange tail{stream, end};
-		stream = end;
-		return tail;
+		Token* result = stream;
+		stream        = end;
+		return result;
 	}
 
 
@@ -1276,9 +1058,9 @@ namespace Trinex::Console
 	    : Entry(name, description, category), m_value_type(value_type), m_flags(flags)
 	{}
 
-	void VariableEntry::notify_variable_changed(StringView input)
+	void VariableEntry::notify_variable_changed()
 	{
-		VariableChangedEvent event{*this, input};
+		VariableChangedEvent event{*this, ""};
 
 		for (Observer* observer : ConsoleState::instance().observers)
 		{
@@ -1443,9 +1225,9 @@ namespace Trinex::Console
 
 		for (const auto& parameter : m_parameters)
 		{
-			TokenRange raw_value;
+			Token* token = nullptr;
 
-			if (!frame->read_argument(raw_value))
+			if (!frame->read_argument(token))
 			{
 				if (parameter.has_default_value)
 				{
@@ -1458,11 +1240,11 @@ namespace Trinex::Console
 			}
 
 			Any parsed_value;
-			if (parameter.parse == nullptr || !parameter.parse(raw_value, parsed_value))
+			if (parameter.parse == nullptr || !parameter.parse(token->identifier, parsed_value))
 			{
 				return frame->fail(ExecuteStatus::ParameterParseFailed,
 				                   Strings::format("Failed to parse parameter '{}: {}' from '{}'", parameter.name, parameter.type,
-				                                   render(raw_value)));
+				                                   token->identifier));
 			}
 
 			if (parameter.validate)
@@ -1489,7 +1271,7 @@ namespace Trinex::Console
 		return result;
 	}
 
-	static ExecuteResult execute_tokens(Token*& stream, Token* limit, ExecuteFlags flags, StringView source)
+	static ExecuteResult execute_tokens(Token*& stream, Token* limit, ExecuteFlags flags)
 	{
 		ExecutionReport report;
 		Vector<String> results;
@@ -1512,21 +1294,13 @@ namespace Trinex::Console
 			if (statement_begin == nullptr || statement_begin == limit)
 				break;
 
-			auto format_input = [&](Token* end) -> String {
-				if (!source.empty())
-					return String(slice_source(source, statement_begin, end));
-
-				return tokens_to_string(statement_begin, end);
-			};
-
 			if (!is_identifier_token(statement_begin->identifier))
 			{
 				Token* statement_end = find_statement_end(statement_begin, limit);
-				String input_text    = format_input(statement_end);
 				String error         = Strings::format("Unexpected token near '{}'", statement_begin->identifier);
 				results.push_back(error);
 				fail_report(ExecuteStatus::UnexpectedToken);
-				notify_command_executed(input_text, {}, error, ExecuteStatus::UnexpectedToken);
+				notify_command_executed({}, error, ExecuteStatus::UnexpectedToken);
 				stream = statement_end;
 				continue;
 			}
@@ -1549,8 +1323,7 @@ namespace Trinex::Console
 
 			if (String alias = find_alias(command); !alias.empty() && !has_parens && !has_assign)
 			{
-				String input_text = format_input(after_name);
-				stream            = after_name;
+				stream = after_name;
 
 				ExecutionReport alias_report = execute(alias, flags);
 				if (!alias_report.output.empty())
@@ -1559,7 +1332,7 @@ namespace Trinex::Console
 				if (!alias_report.success())
 					fail_report(alias_report.status);
 
-				notify_command_executed(input_text, command, alias_report.output, alias_report.status);
+				notify_command_executed(command, alias_report.output, alias_report.status);
 				continue;
 			}
 
@@ -1568,9 +1341,8 @@ namespace Trinex::Console
 			if (entry == nullptr)
 			{
 				Token* statement_end = plain_statement_end();
-				String input_text    = format_input(statement_end);
 				String error         = Strings::format("Unknown console entry '{}'", command);
-				notify_command_executed(input_text, command, error, ExecuteStatus::UnknownEntry);
+				notify_command_executed(command, error, ExecuteStatus::UnknownEntry);
 				fail_report(ExecuteStatus::UnknownEntry);
 
 				if (!flags.all(ExecuteFlags::IgnoreUnknown))
@@ -1585,19 +1357,17 @@ namespace Trinex::Console
 				Token* statement_end = has_parens ? find_matching_paren(after_name, limit) : plain_statement_end();
 				statement_end        = statement_end == nullptr ? find_statement_end(statement_begin, limit)
 				                                                : (has_parens ? statement_end->next : statement_end);
-				String input_text    = format_input(statement_end);
 				String error         = Strings::format("Console entry '{}' is not available in current runtime policy", command);
 				results.push_back(error);
 				const ExecuteStatus status = execution_block_status(*entry);
 				fail_report(status);
-				notify_command_executed(input_text, command, error, status);
+				notify_command_executed(command, error, status);
 				stream = statement_end;
 				continue;
 			}
 
 			String result;
 			ExecuteStatus status = ExecuteStatus::Success;
-			String input_text;
 
 			if (entry->type() == EntryType::Variable)
 			{
@@ -1607,7 +1377,6 @@ namespace Trinex::Console
 				{
 					Token* close = find_matching_paren(after_name, limit);
 					stream       = close == nullptr ? statement_end : close->next;
-					input_text   = format_input(stream);
 					result = Strings::format("'{}' is a console variable. Use '{}' or '{} = <value>'", command, command, command);
 					status = ExecuteStatus::VariableCallSyntax;
 				}
@@ -1615,20 +1384,18 @@ namespace Trinex::Console
 				{
 					if (String error = execution_block_reason(*entry); !error.empty())
 					{
-						stream     = statement_end;
-						input_text = format_input(stream);
+						stream = statement_end;
 						results.push_back(error);
 						status = execution_block_status(*entry);
 						fail_report(status);
-						notify_command_executed(input_text, command, error, status);
+						notify_command_executed(command, error, status);
 						continue;
 					}
 
 					StackFrame frame(entry, after_name, statement_begin, statement_end, flags);
-					result     = entry->execute(&frame);
-					stream     = frame.stream;
-					status     = frame.status;
-					input_text = format_input(stream);
+					result = entry->execute(&frame);
+					stream = frame.stream;
+					status = frame.status;
 				}
 			}
 			else
@@ -1639,11 +1406,10 @@ namespace Trinex::Console
 					statement_end        = statement_end == nullptr ? find_statement_end(statement_begin, limit)
 					                                                : (has_parens ? statement_end->next : statement_end);
 					stream               = statement_end;
-					input_text           = format_input(stream);
 					results.push_back(error);
 					status = execution_block_status(*entry);
 					fail_report(status);
-					notify_command_executed(input_text, command, error, status);
+					notify_command_executed(command, error, status);
 					continue;
 				}
 
@@ -1653,18 +1419,16 @@ namespace Trinex::Console
 
 					if (!typed_command->can_invoke_without_parentheses())
 					{
-						stream     = after_name;
-						input_text = format_input(stream);
-						result     = Strings::format("Command '{}' must be called as {}(...)", command, command);
-						status     = ExecuteStatus::CommandCallSyntax;
+						stream = after_name;
+						result = Strings::format("Command '{}' must be called as {}(...)", command, command);
+						status = ExecuteStatus::CommandCallSyntax;
 					}
 					else
 					{
 						StackFrame frame(typed_command, after_name, statement_begin, after_name, flags);
-						result     = typed_command->execute(&frame);
-						stream     = after_name;
-						status     = frame.status;
-						input_text = format_input(stream);
+						result = typed_command->execute(&frame);
+						stream = after_name;
+						status = frame.status;
 					}
 				}
 				else
@@ -1673,18 +1437,16 @@ namespace Trinex::Console
 
 					if (close == nullptr)
 					{
-						stream     = find_statement_end(statement_begin, limit);
-						input_text = format_input(stream);
-						result     = Strings::format("Missing closing ')' for command '{}'", command);
-						status     = ExecuteStatus::MissingClosingParenthesis;
+						stream = find_statement_end(statement_begin, limit);
+						result = Strings::format("Missing closing ')' for command '{}'", command);
+						status = ExecuteStatus::MissingClosingParenthesis;
 					}
 					else
 					{
 						StackFrame frame(entry, after_name->next, statement_begin, close, flags);
-						result     = entry->execute(&frame);
-						stream     = close->next;
-						status     = frame.status;
-						input_text = format_input(stream);
+						result = entry->execute(&frame);
+						stream = close->next;
+						status = frame.status;
 					}
 				}
 			}
@@ -1695,7 +1457,7 @@ namespace Trinex::Console
 			if (status != ExecuteStatus::Success)
 				fail_report(status);
 
-			notify_command_executed(input_text, command, result, status);
+			notify_command_executed(command, result, status);
 
 			if (flags.all(ExecuteFlags::SingleCommand))
 				break;
@@ -1707,9 +1469,11 @@ namespace Trinex::Console
 
 	ExecuteResult execute_view(StringView& stream, ExecuteFlags flags)
 	{
+		ConsoleExecutionScope scope;
+
 		Token* head          = tokenize(stream);
 		Token* cursor        = head;
-		ExecuteResult result = execute_tokens(cursor, nullptr, flags, stream);
+		ExecuteResult result = execute_tokens(cursor, nullptr, flags);
 
 		if (cursor == nullptr)
 		{
@@ -1730,34 +1494,12 @@ namespace Trinex::Console
 
 	ExecuteResult execute(int argc, char** argv, ExecuteFlags flags)
 	{
-		if (argc <= 0 || argv == nullptr)
-			return {.status = ExecuteStatus::EmptyInput};
+		ConsoleExecutionScope scope;
 
-		StringView name = argv[0] ? StringView(argv[0]) : StringView();
-
-		if (argc == 1)
-			return execute(name, flags);
-
-		if (argc >= 2 && argv[1] != nullptr && StringView(argv[1]) == "=")
-		{
-			Vector<String> value_parts;
-			value_parts.reserve(argc - 2);
-
-			for (int index = 2; index < argc; ++index) value_parts.push_back(argv[index] ? String(argv[index]) : String());
-
-			String value = Strings::join(value_parts, " ");
-			return execute(Strings::format("{} = {}", name, quote_argument_if_needed(value)), flags);
-		}
-
-		Vector<String> arguments;
-		arguments.reserve(argc - 1);
-
-		for (int index = 1; index < argc; ++index)
-			arguments.push_back(quote_argument_if_needed(argv[index] ? StringView(argv[index]) : StringView()));
-
-		return execute(Strings::format("{}({})", name, Strings::join(arguments, ", ")), flags);
+		Token* head   = tokenize(argc, argv);
+		Token* cursor = head;
+		return execute_tokens(cursor, nullptr, flags);
 	}
-
 
 	//////////////////////////////// BUILDIN COMMANDS AND VARIABLES ////////////////////////////////
 
@@ -1880,7 +1622,7 @@ namespace Trinex::Console
 		auto* variable = static_cast<VariableEntry*>(entry);
 		if (variable->flags().all(Flags::ReadOnly))
 			return frame->fail(ExecuteStatus::ReadOnly, Strings::format("'{}' is read-only", name));
-		variable->reset(frame->input_view());
+		variable->reset();
 		return format_variable_state(*variable);
 	}
 
@@ -1894,7 +1636,7 @@ namespace Trinex::Console
 		{
 			if (variable->flags().all(Flags::ReadOnly))
 				continue;
-			variable->reset("reset_all");
+			variable->reset();
 			++reset_count;
 		}
 
@@ -2051,7 +1793,8 @@ namespace Trinex::Console
 		if (!frame->read_argument(name))
 			return frame->fail(ExecuteStatus::MissingRequiredParameter, "Usage: alias(<name>, <expansion>)");
 
-		String expansion = render(frame->read_command_tail());
+		String expansion = tokens_to_string(frame->read_command_tail(), frame->end);
+
 		if (expansion.empty())
 			return frame->fail(ExecuteStatus::MissingRequiredParameter, "Usage: alias(<name>, <expansion>)");
 

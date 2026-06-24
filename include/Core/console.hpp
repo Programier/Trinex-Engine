@@ -137,14 +137,6 @@ namespace Trinex::Console
 		SourceLocation end;
 	};
 
-	struct TokenRange {
-		Token* begin = nullptr;
-		Token* end   = nullptr;
-
-		bool empty() const { return begin == end; }
-		bool single() const { return begin != nullptr && begin->next == end; }
-	};
-
 	class Entry;
 	class Command;
 	class VariableEntry;
@@ -244,69 +236,63 @@ namespace Trinex::Console
 			static constexpr ValueType value = ValueType::ReflectedFlags;
 		};
 
-		ENGINE_EXPORT bool parse_boolean(TokenRange raw_value, bool& out_value);
-		ENGINE_EXPORT bool parse_signed(TokenRange raw_value, i64& out_value);
-		ENGINE_EXPORT bool parse_unsigned(TokenRange raw_value, u64& out_value);
-		ENGINE_EXPORT bool parse_floating(TokenRange raw_value, f64& out_value);
-		ENGINE_EXPORT bool parse_string(TokenRange raw_value, String& out_value);
-		ENGINE_EXPORT bool parse_reflected_enum(TokenRange raw_value, Refl::Enum* reflection, bool is_bitfield, u64& out_value);
-		ENGINE_EXPORT bool parse_boolean(StringView raw_value, bool& out_value);
-		ENGINE_EXPORT bool parse_signed(StringView raw_value, i64& out_value);
-		ENGINE_EXPORT bool parse_unsigned(StringView raw_value, u64& out_value);
-		ENGINE_EXPORT bool parse_floating(StringView raw_value, f64& out_value);
-		ENGINE_EXPORT bool parse_string(StringView raw_value, String& out_value);
-		ENGINE_EXPORT bool parse_reflected_enum(StringView raw_value, Refl::Enum* reflection, bool is_bitfield, u64& out_value);
+		ENGINE_EXPORT bool parse_boolean(StringView value, bool& out);
+		ENGINE_EXPORT bool parse_signed(StringView value, i64& out);
+		ENGINE_EXPORT bool parse_unsigned(StringView value, u64& out);
+		ENGINE_EXPORT bool parse_floating(StringView value, f64& out);
+		ENGINE_EXPORT bool parse_string(StringView value, StringView& out);
+		ENGINE_EXPORT bool parse_reflected_enum(StringView value, Refl::Enum* reflection, u64& out_value);
 
 		ENGINE_EXPORT String format_boolean(bool value);
 		ENGINE_EXPORT String format_signed(i64 value);
 		ENGINE_EXPORT String format_unsigned(u64 value);
 		ENGINE_EXPORT String format_floating(f64 value);
 		ENGINE_EXPORT String format_string(StringView value);
-		ENGINE_EXPORT String format_reflected_enum(Refl::Enum* reflection, u64 value, bool is_bitfield);
-		ENGINE_EXPORT String format_parse_error(StringView name, TokenRange raw_value);
+		ENGINE_EXPORT String format_reflected_enum(Refl::Enum* reflection, u64 value);
+		ENGINE_EXPORT String format_parse_error(StringView name, StringView value);
 		ENGINE_EXPORT String format_assignment(StringView name, StringView value);
 
 		template<typename Type>
-		static bool parse_value(TokenRange raw_value, Type& out_value)
+		static bool parse_value(StringView value, Type& out)
 		{
 			if constexpr (std::is_same_v<Type, bool>)
 			{
-				return parse_boolean(raw_value, out_value);
+				return parse_boolean(value, out);
 			}
 			else if constexpr (std::is_same_v<Type, String>)
 			{
-				return parse_string(raw_value, out_value);
+				return parse_string(value, out);
 			}
 			else if constexpr (std::is_same_v<Type, i8> || std::is_same_v<Type, i16> || std::is_same_v<Type, i32> ||
 			                   std::is_same_v<Type, i64>)
 			{
-				i64 value = 0;
+				i64 tmp = 0;
 
-				if (!parse_signed(raw_value, value))
+				if (!parse_signed(value, tmp))
 					return false;
 
-				out_value = static_cast<Type>(value);
+				out = static_cast<Type>(tmp);
 				return true;
 			}
 			else if constexpr (std::is_same_v<Type, u8> || std::is_same_v<Type, u16> || std::is_same_v<Type, u32> ||
 			                   std::is_same_v<Type, u64>)
 			{
-				u64 value = 0;
+				u64 tmp = 0;
 
-				if (!parse_unsigned(raw_value, value))
+				if (!parse_unsigned(value, tmp))
 					return false;
 
-				out_value = static_cast<Type>(value);
+				out = static_cast<Type>(tmp);
 				return true;
 			}
 			else if constexpr (std::is_same_v<Type, f16> || std::is_same_v<Type, f32> || std::is_same_v<Type, f64>)
 			{
-				f64 value = 0.0;
+				f64 tmp = 0.0;
 
-				if (!parse_floating(raw_value, value))
+				if (!parse_floating(value, tmp))
 					return false;
 
-				out_value = static_cast<Type>(value);
+				out = static_cast<Type>(tmp);
 				return true;
 			}
 			else if constexpr (requires {
@@ -319,38 +305,38 @@ namespace Trinex::Console
 
 				if constexpr (requires { Type::is_enum_reflected; } && Type::is_enum_reflected)
 				{
-					u64 value = 0;
-					if (parse_reflected_enum(raw_value, Type::static_reflection(), Type::is_bitfield_enum, value))
+					u64 tmp = 0;
+					if (parse_reflected_enum(value, Type::static_reflection(), Type::is_bitfield_enum, tmp))
 					{
 						if constexpr (Type::is_bitfield_enum)
-							out_value = Type(static_cast<Underlying>(value));
+							out = Type(static_cast<Underlying>(tmp));
 						else
-							out_value = Type(static_cast<typename Type::Enum>(value));
+							out = Type(static_cast<typename Type::Enum>(tmp));
 						return true;
 					}
 				}
 
 				if constexpr (std::is_signed_v<Underlying>)
 				{
-					i64 value = 0;
-					if (!parse_signed(raw_value, value))
+					i64 tmp = 0;
+					if (!parse_signed(value, tmp))
 						return false;
 
 					if constexpr (Type::is_bitfield_enum)
-						out_value = Type(static_cast<Underlying>(value));
+						out = Type(static_cast<Underlying>(tmp));
 					else
-						out_value = Type(static_cast<typename Type::Enum>(value));
+						out = Type(static_cast<typename Type::Enum>(tmp));
 				}
 				else
 				{
-					u64 value = 0;
-					if (!parse_unsigned(raw_value, value))
+					u64 tmp = 0;
+					if (!parse_unsigned(value, tmp))
 						return false;
 
 					if constexpr (Type::is_bitfield_enum)
-						out_value = Type(static_cast<Underlying>(value));
+						out = Type(static_cast<Underlying>(tmp));
 					else
-						out_value = Type(static_cast<typename Type::Enum>(value));
+						out = Type(static_cast<typename Type::Enum>(tmp));
 				}
 
 				return true;
@@ -362,14 +348,14 @@ namespace Trinex::Console
 		}
 
 		template<typename Type>
-		static bool parse_any(TokenRange raw_value, Any& out_value)
+		static bool parse_any(StringView value, Any& out)
 		{
-			Type value{};
+			Type result{};
 
-			if (!parse_value(raw_value, value))
+			if (!parse_value(value, result))
 				return false;
 
-			out_value = std::move(value);
+			out = std::move(result);
 			return true;
 		}
 
@@ -468,15 +454,14 @@ namespace Trinex::Console
 		String name;
 		String type;
 		String description;
-		bool (*parse)(TokenRange raw_value, Any& out_value) = nullptr;
-		Function<String(const Any&)> validate               = nullptr;
+		bool (*parse)(StringView value, Any& out) = nullptr;
+		Function<String(const Any&)> validate     = nullptr;
 		Any default_value;
 		String default_value_text;
 		bool has_default_value = false;
 	};
 
 	struct CommandExecutedEvent {
-		StringView input;
 		StringView command;
 		String output;
 		ExecuteStatus status = ExecuteStatus::Success;
@@ -515,15 +500,13 @@ namespace Trinex::Console
 
 		StackFrame(Entry* entry = nullptr, Token* stream = nullptr, Token* input = nullptr, Token* end = nullptr,
 		           ExecuteFlags flags = ExecuteFlags::Undefined);
-		~StackFrame();
 
 		StackFrame& reset(Entry* entry = nullptr, Token* stream = nullptr, Token* input = nullptr, Token* end = nullptr,
 		                  ExecuteFlags flags = ExecuteFlags::Undefined);
-		bool read_argument(TokenRange& out);
+		bool read_argument(Token*& out);
 		bool read_argument(StringView& out);
-		TokenRange read_command_tail();
+		Token* read_command_tail();
 		bool has_more_args();
-		String input_view() const;
 		bool failed() const { return status != ExecuteStatus::Success || !error.empty(); }
 		String fail(ExecuteStatus status, StringView message);
 		String succeed(StringView message = {});
@@ -549,7 +532,7 @@ namespace Trinex::Console
 		template<typename Type>
 		bool parse_arg(Type& out_value)
 		{
-			TokenRange argument;
+			Token* argument = nullptr;
 
 			if (!read_argument(argument))
 				return false;
@@ -822,7 +805,7 @@ namespace Trinex::Console
 	protected:
 		VariableEntry(StringView name, StringView description, StringView category, ValueType value_type, Flags flags);
 
-		void notify_variable_changed(StringView input);
+		void notify_variable_changed();
 
 	public:
 		EntryType type() const override;
@@ -830,11 +813,11 @@ namespace Trinex::Console
 		inline Flags flags() const { return m_flags; }
 		inline VariableEntry& flags(Flags value) { trinex_this_return(m_flags = value); }
 
-		virtual String value_to_string() const                                = 0;
-		virtual String default_value_to_string() const                        = 0;
-		virtual bool is_default_value() const                                 = 0;
-		virtual void reset(StringView input = {})                             = 0;
-		virtual String validate(StringView raw_value, StringView input) const = 0;
+		virtual String value_to_string() const         = 0;
+		virtual String default_value_to_string() const = 0;
+		virtual bool is_default_value() const          = 0;
+		virtual void reset()                           = 0;
+		virtual String validate(Token* token) const    = 0;
 	};
 
 
@@ -847,7 +830,7 @@ namespace Trinex::Console
 		Flags flags;
 
 		Function<void(VariableChangeContext<Type>&)> on_change;
-		Function<String(const Type&, StringView)> validator;
+		Function<String(const Type&)> validator;
 	};
 
 	template<typename Type>
@@ -866,12 +849,12 @@ namespace Trinex::Console
 		Type m_default_value;
 
 		Function<void(VariableChangeContext<Type>&)> m_on_change;
-		Function<String(const Type&, StringView)> m_validator;
+		Function<String(const Type&)> m_validator;
 
-		inline String validate_value(const Type& value, StringView input) const
+		inline String validate_value(const Type& value) const
 		{
 			if (m_validator)
-				return m_validator(value, input);
+				return m_validator(value);
 			return {};
 		}
 
@@ -885,7 +868,7 @@ namespace Trinex::Console
 		const Type& default_value() const { return m_default_value; }
 		Type& value() { return m_value; }
 
-		Variable& set(const Type& value, StringView input = {})
+		Variable& set(const Type& value)
 		{
 			Type old_value = m_value;
 			m_value        = value;
@@ -894,13 +877,13 @@ namespace Trinex::Console
 
 			if (m_on_change)
 			{
-				VariableChangeContext<Type> context{*this, old_value, m_value, input};
+				VariableChangeContext<Type> context{*this, old_value, m_value};
 				m_on_change(context);
 			}
 
 			if (changed)
 			{
-				notify_variable_changed(input);
+				notify_variable_changed();
 			}
 			return *this;
 		}
@@ -914,22 +897,16 @@ namespace Trinex::Console
 
 		bool is_default_value() const override { return m_value == m_default_value; }
 
-		void reset(StringView input = {}) override { set(m_default_value, input); }
+		void reset() override { set(m_default_value); }
 
-		String validate(StringView raw, StringView input) const override
+		String validate(Token* token) const override
 		{
 			Type value = {};
 
-			Token token;
-			token.identifier = raw;
-			token.kind       = TokenKind::BareLiteral;
+			if (!Detail::parse_value(token->identifier, value))
+				return Detail::format_parse_error(name(), token->identifier);
 
-			TokenRange range{&token, nullptr};
-
-			if (!Detail::parse_value(range, value))
-				return Detail::format_parse_error(name(), range);
-
-			return validate_value(value, input);
+			return validate_value(value);
 		}
 
 		String execute(StackFrame* frame) override
@@ -946,26 +923,26 @@ namespace Trinex::Console
 
 			frame->stream = frame->stream->next;
 
-			TokenRange raw_value;
+			Token* token = nullptr;
 
-			if (!frame->read_argument(raw_value))
+			if (!frame->read_argument(token))
 			{
 				return frame->fail(ExecuteStatus::MissingRequiredParameter, String("Expected value for '") + name() + "'");
 			}
 
 			Type value = {};
 
-			if (!Detail::parse_value(raw_value, value))
+			if (!Detail::parse_value(token->identifier, value))
 			{
-				return frame->fail(ExecuteStatus::ValueParseFailed, Detail::format_parse_error(name(), raw_value));
+				return frame->fail(ExecuteStatus::ValueParseFailed, Detail::format_parse_error(name(), token->identifier));
 			}
 
-			if (String validation = validate_value(value, frame->input_view()); !validation.empty())
+			if (String validation = validate_value(value); !validation.empty())
 			{
 				return frame->fail(ExecuteStatus::ValueValidationFailed, validation);
 			}
 
-			set(value, frame->input_view());
+			set(value);
 			return frame->succeed(value_to_string());
 		}
 	};
