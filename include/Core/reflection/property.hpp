@@ -175,8 +175,7 @@ private:
 		return property->address(context) == field;
 	}
 
-	struct PropertyLayout
-	{
+	struct PropertyLayout {
 		bool draw_label      = true;
 		bool inline_value    = false;
 		bool inline_children = false;
@@ -186,19 +185,18 @@ private:
 	class ENGINE_EXPORT PropertyRenderer
 	{
 	public:
-		virtual String label(Property& property, const void* context)                              = 0;
-		virtual String item_label(ArrayProperty& property, const void* context, usize index)       = 0;
-		virtual PropertyLayout layout(Property& property, const void* context)                      = 0;
-		virtual bool begin_property(Property& property, void* context, StringView label,
-		                            const PropertyLayout& layout)                                   = 0;
-		virtual void end_property(Property& property, void* context, const PropertyLayout& layout) = 0;
-		virtual bool begin_children(Property& property, void* context, const PropertyLayout& layout) = 0;
-		virtual void end_children(Property& property, void* context, const PropertyLayout& layout) = 0;
-		virtual bool render_default(Property& property, void* context)                              = 0;
-		virtual bool render_children(Property& property, void* context)                             = 0;
-		virtual bool edit_value(StringView label, Any& value)                                       = 0;
-		virtual void property_changed(Property& property, void* context)                            = 0;
-		virtual ~PropertyRenderer()                                                                 = default;
+		virtual String label(Property& property, const void* context)                                                  = 0;
+		virtual String item_label(ArrayProperty& property, const void* context, usize index)                           = 0;
+		virtual PropertyLayout layout(Property& property, const void* context)                                         = 0;
+		virtual bool begin_property(Property& property, void* context, StringView label, const PropertyLayout& layout) = 0;
+		virtual void end_property(Property& property, void* context, const PropertyLayout& layout)                     = 0;
+		virtual bool begin_children(Property& property, void* context, const PropertyLayout& layout)                   = 0;
+		virtual void end_children(Property& property, void* context, const PropertyLayout& layout)                     = 0;
+		virtual bool render_default(Property& property, void* context)                                                 = 0;
+		virtual bool render_children(Property& property, void* context)                                                = 0;
+		virtual bool edit_value(StringView label, Any& value)                                                          = 0;
+		virtual void property_changed(Property& property, void* context)                                               = 0;
+		virtual ~PropertyRenderer()                                                                                    = default;
 	};
 
 	class ENGINE_EXPORT RedirectorProperty : public Property
@@ -881,7 +879,10 @@ private:
 			using Super::Super;
 			using Value = typename T::value_type;
 
-			Property* element_property() const override { return Property::create_element<Value>(this->m_element_property_flags); }
+			Property* element_property() const override
+			{
+				return Property::create_element<Value>(this->m_element_property_flags);
+			}
 			usize element_size() const override { return sizeof(Value); }
 
 			T& array_of(void* context, bool is_vector_context)

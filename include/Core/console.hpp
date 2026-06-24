@@ -1,0 +1,669 @@
+#pragma once
+#include <Core/etl/function.hpp>
+#include <Core/etl/string.hpp>
+#include <Core/etl/vector.hpp>
+#include <type_traits>
+
+namespace Trinex::Console
+{
+	struct EntryType {
+		enum Enum : u8
+		{
+			Variable = 0,
+			Command  = 1,
+		};
+
+		trinex_enum_struct(EntryType);
+	};
+
+	struct ValueType {
+		enum Enum : u8
+		{
+			Boolean = 0,
+			U8      = 1,
+			U16     = 2,
+			U32     = 3,
+			U64     = 4,
+			I8      = 5,
+			I16     = 6,
+			I32     = 7,
+			I64     = 8,
+			F16     = 9,
+			F32     = 10,
+			F64     = 11,
+			String  = 12,
+		};
+
+		trinex_enum_struct(ValueType);
+	};
+
+	struct Flags {
+		enum Enum : u32
+		{
+			Undefined     = 0,
+			Persistent    = 1 << 0,
+			ReadOnly      = 1 << 1,
+			Hidden        = 1 << 2,
+			Cheat         = 1 << 3,
+			DeveloperOnly = 1 << 4,
+		};
+
+		trinex_bitfield_enum_struct(Flags, u32);
+	};
+
+	struct ExecuteFlags {
+		enum Enum : u32
+		{
+			Undefined     = 0,
+			IgnoreUnknown = 1 << 0,
+		};
+
+		trinex_bitfield_enum_struct(ExecuteFlags, u32);
+	};
+
+	struct RuntimePolicy {
+		bool allow_cheats         = false;
+		bool allow_developer_only = true;
+		bool show_hidden          = false;
+	};
+
+	class Entry;
+	class Command;
+	class VariableEntry;
+
+	struct VariableChangedEvent {
+		const VariableEntry& variable;
+		StringView input;
+	};
+
+	struct CommandExecutedEvent {
+		StringView input;
+		StringView command;
+		String output;
+		bool success;
+	};
+
+	struct ConfigLoadedEvent {
+		String path;
+		String output;
+		bool success;
+		bool persistent_only;
+	};
+
+	class ENGINE_EXPORT Observer
+	{
+	public:
+		virtual ~Observer() = default;
+		virtual void on_variable_changed(const VariableChangedEvent&) {}
+		virtual void on_command_executed(const CommandExecutedEvent&) {}
+		virtual void on_config_loaded(const ConfigLoadedEvent&) {}
+	};
+
+	ENGINE_EXPORT StringView type_name(ValueType type);
+	ENGINE_EXPORT Entry* find(StringView name);
+	ENGINE_EXPORT bool exists(StringView name);
+	ENGINE_EXPORT Vector<String> entries();
+	ENGINE_EXPORT Vector<String> complete(StringView prefix);
+	ENGINE_EXPORT String execute(StringView stream, ExecuteFlags flags = ExecuteFlags::Undefined);
+	ENGINE_EXPORT String execute(int argc, char** argv, ExecuteFlags flags = ExecuteFlags::Undefined);
+	ENGINE_EXPORT RuntimePolicy runtime_policy();
+	ENGINE_EXPORT void runtime_policy(const RuntimePolicy& policy);
+	ENGINE_EXPORT void add_observer(Observer* observer);
+	ENGINE_EXPORT void remove_observer(Observer* observer);
+	ENGINE_EXPORT void add_alias(StringView name, StringView expansion);
+	ENGINE_EXPORT bool remove_alias(StringView name);
+	ENGINE_EXPORT String find_alias(StringView name);
+	ENGINE_EXPORT Vector<String> aliases();
+	ENGINE_EXPORT bool read_argument(StringView& stream, StringView& out_argument);
+	ENGINE_EXPORT StringView read_command_tail(StringView& stream);
+	ENGINE_EXPORT bool has_more_arguments(StringView stream);
+	ENGINE_EXPORT StringView peek_command_tail(StringView stream);
+
+	class ENGINE_EXPORT Entry
+	{
+	private:
+		String m_name;
+		String m_description;
+		String m_category;
+
+	protected:
+		Entry(StringView name, StringView description, StringView category);
+
+		static inline StringView resolve_name(StringView name, StringView override_name)
+		{
+			return override_name.empty() ? name : override_name;
+		}
+
+	public:
+		virtual ~Entry();
+
+		inline const String& name() const { return m_name; }
+		inline const String& description() const { return m_description; }
+		inline const String& category() const { return m_category; }
+		Entry& name(StringView value);
+		Entry& description(StringView value);
+		Entry& category(StringView value);
+
+		virtual EntryType type() const                                                   = 0;
+		virtual String execute(StringView& stream, StringView input, ExecuteFlags flags) = 0;
+	};
+
+	namespace Detail
+	{
+		template<typename Type>
+		inline constexpr bool always_false_v = false;
+
+		template<typename Type>
+		struct VariableTypeTag {
+			static_assert(always_false_v<Type>, "Console variable type is not supported");
+		};
+
+		template<>
+		struct VariableTypeTag<bool> {
+			static constexpr ValueType value = ValueType::Boolean;
+		};
+
+		template<>
+		struct VariableTypeTag<u8> {
+			static constexpr ValueType value = ValueType::U8;
+		};
+
+		template<>
+		struct VariableTypeTag<u16> {
+			static constexpr ValueType value = ValueType::U16;
+		};
+
+		template<>
+		struct VariableTypeTag<u32> {
+			static constexpr ValueType value = ValueType::U32;
+		};
+
+		template<>
+		struct VariableTypeTag<u64> {
+			static constexpr ValueType value = ValueType::U64;
+		};
+
+		template<>
+		struct VariableTypeTag<i8> {
+			static constexpr ValueType value = ValueType::I8;
+		};
+
+		template<>
+		struct VariableTypeTag<i16> {
+			static constexpr ValueType value = ValueType::I16;
+		};
+
+		template<>
+		struct VariableTypeTag<i32> {
+			static constexpr ValueType value = ValueType::I32;
+		};
+
+		template<>
+		struct VariableTypeTag<i64> {
+			static constexpr ValueType value = ValueType::I64;
+		};
+
+		template<>
+		struct VariableTypeTag<f16> {
+			static constexpr ValueType value = ValueType::F16;
+		};
+
+		template<>
+		struct VariableTypeTag<f32> {
+			static constexpr ValueType value = ValueType::F32;
+		};
+
+		template<>
+		struct VariableTypeTag<f64> {
+			static constexpr ValueType value = ValueType::F64;
+		};
+
+		template<>
+		struct VariableTypeTag<String> {
+			static constexpr ValueType value = ValueType::String;
+		};
+
+		ENGINE_EXPORT bool parse_boolean(StringView raw_value, bool& out_value);
+		ENGINE_EXPORT bool parse_signed(StringView raw_value, i64& out_value);
+		ENGINE_EXPORT bool parse_unsigned(StringView raw_value, u64& out_value);
+		ENGINE_EXPORT bool parse_floating(StringView raw_value, f64& out_value);
+		ENGINE_EXPORT bool parse_string(StringView raw_value, String& out_value);
+
+		ENGINE_EXPORT String format_boolean(bool value);
+		ENGINE_EXPORT String format_signed(i64 value);
+		ENGINE_EXPORT String format_unsigned(u64 value);
+		ENGINE_EXPORT String format_floating(f64 value);
+		ENGINE_EXPORT String format_string(StringView value);
+		ENGINE_EXPORT String format_parse_error(StringView name, StringView raw_value);
+		ENGINE_EXPORT String format_assignment(StringView name, StringView value);
+
+		template<typename Type>
+		static bool parse_value(StringView raw_value, Type& out_value)
+		{
+			if constexpr (std::is_same_v<Type, bool>)
+			{
+				return parse_boolean(raw_value, out_value);
+			}
+			else if constexpr (std::is_same_v<Type, String>)
+			{
+				return parse_string(raw_value, out_value);
+			}
+			else if constexpr (std::is_same_v<Type, i8> || std::is_same_v<Type, i16> || std::is_same_v<Type, i32> ||
+			                   std::is_same_v<Type, i64>)
+			{
+				i64 value = 0;
+
+				if (!parse_signed(raw_value, value))
+					return false;
+
+				out_value = static_cast<Type>(value);
+				return true;
+			}
+			else if constexpr (std::is_same_v<Type, u8> || std::is_same_v<Type, u16> || std::is_same_v<Type, u32> ||
+			                   std::is_same_v<Type, u64>)
+			{
+				u64 value = 0;
+
+				if (!parse_unsigned(raw_value, value))
+					return false;
+
+				out_value = static_cast<Type>(value);
+				return true;
+			}
+			else if constexpr (std::is_same_v<Type, f16> || std::is_same_v<Type, f32> || std::is_same_v<Type, f64>)
+			{
+				f64 value = 0.0;
+
+				if (!parse_floating(raw_value, value))
+					return false;
+
+				out_value = static_cast<Type>(value);
+				return true;
+			}
+			else
+			{
+				static_assert(always_false_v<Type>, "Console variable type is not supported");
+			}
+		}
+
+		template<typename Type>
+		static String format_value(const Type& value)
+		{
+			if constexpr (std::is_same_v<Type, bool>)
+			{
+				return format_boolean(value);
+			}
+			else if constexpr (std::is_same_v<Type, String>)
+			{
+				return format_string(value);
+			}
+			else if constexpr (std::is_same_v<Type, i8> || std::is_same_v<Type, i16> || std::is_same_v<Type, i32> ||
+			                   std::is_same_v<Type, i64>)
+			{
+				return format_signed(static_cast<i64>(value));
+			}
+			else if constexpr (std::is_same_v<Type, u8> || std::is_same_v<Type, u16> || std::is_same_v<Type, u32> ||
+			                   std::is_same_v<Type, u64>)
+			{
+				return format_unsigned(static_cast<u64>(value));
+			}
+			else if constexpr (std::is_same_v<Type, f16> || std::is_same_v<Type, f32> || std::is_same_v<Type, f64>)
+			{
+				return format_floating(static_cast<f64>(value));
+			}
+			else
+			{
+				static_assert(always_false_v<Type>, "Console variable type is not supported");
+			}
+		}
+	}// namespace Detail
+
+	template<typename Type>
+	class Variable;
+
+	template<typename Type>
+	struct VariableChangeContext {
+		Variable<Type>& variable;
+		const Type& old_value;
+		const Type& new_value;
+		StringView input;
+	};
+
+	template<typename Type>
+	class VariableOptions
+	{
+	private:
+		Variable<Type>* m_variable                               = nullptr;
+		Function<void(VariableChangeContext<Type>&)> m_on_change = nullptr;
+		Function<String(const Type&, StringView)> m_validator    = nullptr;
+		Flags m_flags                                            = Flags::Undefined;
+
+	public:
+		VariableOptions() = default;
+		explicit VariableOptions(Variable<Type>* variable) : m_variable(variable) {}
+
+		VariableOptions& name(StringView value)
+		{
+			m_variable->Entry::name(value);
+			return *this;
+		}
+
+		VariableOptions& description(StringView value)
+		{
+			m_variable->Entry::description(value);
+			return *this;
+		}
+
+		VariableOptions& category(StringView value)
+		{
+			m_variable->Entry::category(value);
+			return *this;
+		}
+
+		template<typename Callback>
+		VariableOptions& on_change(Callback&& callback)
+		{
+			m_on_change = std::forward<Callback>(callback);
+			return *this;
+		}
+
+		template<typename Callback>
+		VariableOptions& validate(Callback&& callback)
+		{
+			if constexpr (std::is_invocable_r_v<String, Callback&, const Type&, StringView>)
+			{
+				m_validator = std::forward<Callback>(callback);
+			}
+			else if constexpr (std::is_invocable_r_v<bool, Callback&, const Type&, StringView>)
+			{
+				auto wrapper = std::forward<Callback>(callback);
+				m_validator  = [wrapper](const Type& value, StringView input) mutable -> String {
+                    return wrapper(value, input) ? String() : String("Validation failed");
+				};
+			}
+			else
+			{
+				static_assert(Detail::always_false_v<Callback>, "Console validator signature is not supported");
+			}
+
+			return *this;
+		}
+
+		VariableOptions& flags(Flags flags)
+		{
+			m_flags = flags;
+			m_variable->flags(m_flags);
+			return *this;
+		}
+
+		VariableOptions& add_flags(Flags flags)
+		{
+			m_flags |= flags;
+			m_variable->flags(m_flags);
+			return *this;
+		}
+
+		VariableOptions& persistent(bool enabled = true)
+		{
+			if (enabled)
+				m_flags.set(Flags::Persistent);
+			else
+				m_flags.remove(Flags::Persistent);
+
+			m_variable->flags(m_flags);
+			return *this;
+		}
+
+		Flags flags() const { return m_flags; }
+
+		String validate_value(const Type& value, StringView input) const
+		{
+			if (m_validator)
+				return m_validator(value, input);
+			return {};
+		}
+
+		void invoke(VariableChangeContext<Type>& context) const
+		{
+			if (m_on_change)
+				m_on_change(context);
+		}
+	};
+
+	class ENGINE_EXPORT VariableEntry : public Entry
+	{
+	private:
+		ValueType m_value_type;
+		Flags m_flags = Flags::Undefined;
+
+	protected:
+		VariableEntry(StringView name, StringView description, StringView category, ValueType value_type, Flags flags);
+
+	public:
+		EntryType type() const override;
+		inline ValueType value_type() const { return m_value_type; }
+		inline Flags flags() const { return m_flags; }
+		inline VariableEntry& flags(Flags value) { trinex_this_return(m_flags = value); }
+
+		virtual String value_to_string() const                                = 0;
+		virtual String default_value_to_string() const                        = 0;
+		virtual bool is_default_value() const                                 = 0;
+		virtual void reset(StringView input = {})                             = 0;
+		virtual String validate(StringView raw_value, StringView input) const = 0;
+	};
+
+
+	template<typename Type>
+	struct VariableOptionalArgs {
+		Type value = {};
+		StringView name;
+		StringView description;
+		StringView category;
+		Flags flags;
+
+		Function<void(VariableChangeContext<Type>&)> on_change;
+		Function<String(const Type&, StringView)> validator;
+	};
+
+	template<typename Type>
+	class Variable final : public VariableEntry
+	{
+	public:
+		static constexpr inline ValueType value_type() { return Detail::VariableTypeTag<Type>::value; }
+
+		struct Builder {
+			StringView name;
+			Variable operator=(const VariableOptionalArgs<Type>& args) const { return Variable<Type>(name, args); }
+		};
+
+	private:
+		Type m_value;
+		Type m_default_value;
+
+		Function<void(VariableChangeContext<Type>&)> m_on_change;
+		Function<String(const Type&, StringView)> m_validator;
+
+		inline String validate_value(const Type& value, StringView input) const
+		{
+			if (m_validator)
+				return m_validator(value, input);
+			return {};
+		}
+
+	public:
+		inline Variable(StringView name, const VariableOptionalArgs<Type>& args = {})
+		    : VariableEntry(resolve_name(name, args.name), args.description, args.category, value_type(), args.flags),
+		      m_value(args.value), m_default_value(args.value), m_on_change(args.on_change), m_validator(args.validator)
+		{}
+
+		const Type& value() const { return m_value; }
+		const Type& default_value() const { return m_default_value; }
+		Type& value() { return m_value; }
+
+		Variable& set(const Type& value, StringView input = {})
+		{
+			Type old_value = m_value;
+			m_value        = value;
+
+			if (m_on_change)
+			{
+				VariableChangeContext<Type> context{*this, old_value, m_value, input};
+				m_on_change(context);
+			}
+			return *this;
+		}
+
+		Variable& operator=(const Type& value) { return set(value); }
+		operator const Type&() const { return m_value; }
+
+		String value_to_string() const override { return Detail::format_value(m_value); }
+
+		String default_value_to_string() const override { return Detail::format_value(m_default_value); }
+
+		bool is_default_value() const override { return m_value == m_default_value; }
+
+		void reset(StringView input = {}) override { set(m_default_value, input); }
+
+		String validate(StringView raw, StringView input) const override
+		{
+			Type value = {};
+
+			if (!Detail::parse_value(raw, value))
+				return Detail::format_parse_error(name(), raw);
+
+			return validate_value(value, input);
+		}
+
+		String execute(StringView& stream, StringView input, ExecuteFlags flags) override
+		{
+			StringView raw_value;
+
+			if (!read_argument(stream, raw_value))
+				return Detail::format_assignment(name(), value_to_string());
+
+			Type value = {};
+
+			if (!Detail::parse_value(raw_value, value))
+			{
+				return Detail::format_parse_error(name(), raw_value);
+			}
+
+			if (String validation = validate_value(value, input); !validation.empty())
+				return validation;
+
+			set(value, input);
+			return Detail::format_assignment(name(), value_to_string());
+		}
+	};
+
+	struct ENGINE_EXPORT CommandContext {
+		const Command& command;
+		StringView input;
+		StringView& stream;
+		mutable String error;
+		ExecuteFlags flags;
+
+		template<typename Type>
+		bool parse_arg(Type& out_value) const
+		{
+			StringView argument;
+
+			if (!read_argument(stream, argument))
+				return false;
+
+			return Detail::parse_value(argument, out_value);
+		}
+
+		template<typename Type>
+		bool require_arg(Type& out_value, StringView label = "argument") const
+		{
+			if (!parse_arg(out_value))
+			{
+				error = String("Expected ") + String(label);
+				return false;
+			}
+
+			return true;
+		}
+
+		template<typename Type>
+		Type optional_arg(const Type& default_value) const
+		{
+			Type value = default_value;
+
+			if (has_more_args())
+			{
+				if (!parse_arg(value))
+					error = "Failed to parse optional argument";
+			}
+
+			return value;
+		}
+
+		bool read_arg(StringView& out_argument) const { return read_argument(stream, out_argument); }
+		StringView tail() const { return read_command_tail(stream); }
+		bool has_more_args() const { return has_more_arguments(stream); }
+		StringView remaining_tail() const { return peek_command_tail(stream); }
+		bool failed() const { return !error.empty(); }
+	};
+
+	struct CommandOptionalArgs {
+		StringView name;
+		StringView description;
+		StringView category;
+		StringView usage;
+		StringView example;
+		Flags flags;
+	};
+
+	class ENGINE_EXPORT Command : public Entry
+	{
+	private:
+		String m_usage;
+		String m_example;
+		Flags m_flags;
+
+		String (*m_callback)(CommandContext&);
+
+	public:
+		explicit Command(StringView name, String (*callback)(CommandContext&), const CommandOptionalArgs& args = {});
+
+		EntryType type() const override;
+		String execute(StringView& stream, StringView input, ExecuteFlags flags) override;
+		String execute(CommandContext& ctx);
+
+		inline const String& usage() const { return m_usage; }
+		inline const String& example() const { return m_example; }
+		inline Flags flags() const { return m_flags; }
+
+		inline Command& flags(u32 value) { trinex_this_return(m_flags = value); }
+		inline Command& usage(StringView value) { trinex_this_return(m_usage = String(value)); }
+		inline Command& example(StringView value) { trinex_this_return(m_example = String(value)); }
+
+		inline String operator()(CommandContext& ctx) { return execute(ctx); }
+		inline String operator()(StringView& stream, StringView input, ExecuteFlags flags)
+		{
+			return execute(stream, input, flags);
+		}
+	};
+}// namespace Trinex::Console
+
+#define trinex_console_variable(variable_type, variable_name)                                                                    \
+	::Trinex::Console::Variable<variable_type> variable_name =                                                                   \
+	        ::Trinex::Console::Variable<variable_type>::Builder({.name = #variable_name}) =                                      \
+	                ::Trinex::Console::VariableOptionalArgs<variable_type>
+
+#define trinex_extern_console_variable(Type, Name) extern ::Trinex::Console::Variable<Type> Name
+
+#define trinex_console_command(command_name, ...)                                                                                \
+	static ::Trinex::String TRINEX_CONCAT(trinex_console_command_, __LINE__)(::Trinex::Console::CommandContext & ctx);           \
+	::Trinex::Console::Command command_name(#command_name, TRINEX_CONCAT(trinex_console_command_, __LINE__), {__VA_ARGS__});     \
+	static ::Trinex::String TRINEX_CONCAT(trinex_console_command_, __LINE__)(::Trinex::Console::CommandContext & ctx)
+
+#define trinex_static_console_command(command_name, ...)                                                                         \
+	static ::Trinex::String TRINEX_CONCAT(trinex_console_command_, __LINE__)(::Trinex::Console::CommandContext & ctx);           \
+	static ::Trinex::Console::Command command_name(#command_name, TRINEX_CONCAT(trinex_console_command_, __LINE__),              \
+	                                               {__VA_ARGS__});                                                               \
+	static ::Trinex::String TRINEX_CONCAT(trinex_console_command_, __LINE__)(::Trinex::Console::CommandContext & ctx)
+
+#define trinex_extern_console_command(command_name) extern ::Trinex::Console::Command command_name

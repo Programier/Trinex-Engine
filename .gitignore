@@ -1,4 +1,7 @@
-/build*/
+build*
+.codanna*
+.cbmignore
+.fastembed_cache
 CMakeLists.txt.user
 android/.gradle/
 android/.idea/
