@@ -1253,7 +1253,7 @@ namespace Trinex::Console
 		return result;
 	}
 
-	static ExecutionReport execute_stream(StringView command_line, ExecuteFlags flags)
+	ExecuteResult execute(StringView command_line, ExecuteFlags flags)
 	{
 		ExecutionReport report;
 		Vector<String> results;
@@ -1298,7 +1298,7 @@ namespace Trinex::Console
 				finalize_input(cursor);
 				command_line = cursor;
 
-				ExecutionReport alias_report = execute_stream(alias, flags);
+				ExecutionReport alias_report = execute(alias, flags);
 				if (!alias_report.output.empty())
 					results.push_back(alias_report.output);
 
@@ -1469,11 +1469,6 @@ namespace Trinex::Console
 
 		report.output = Strings::join(results, "\n");
 		return report;
-	}
-
-	ExecuteResult execute(StringView command_line, ExecuteFlags flags)
-	{
-		return execute_stream(command_line, flags);
 	}
 
 	ExecuteResult execute(int argc, char** argv, ExecuteFlags flags)
