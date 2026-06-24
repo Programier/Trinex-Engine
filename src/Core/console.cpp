@@ -493,64 +493,6 @@ namespace Trinex::Console
 			return true;
 		}
 
-		static bool read_literal(StringView& input, StringView& out_literal, const char* delimiters = ",);\n;")
-		{
-			input = Strings::strip(input);
-
-			if (input.empty())
-				return false;
-
-			const char first = input.front();
-			if (first == ',' || first == ')' || first == ';' || first == '\n')
-				return false;
-
-			if (first == '"' || first == '\'')
-			{
-				const char quote = first;
-				input.remove_prefix(1);
-
-				usize index = 0;
-				while (index < input.length())
-				{
-					if (input[index] == '\\' && index + 1 < input.length())
-					{
-						index += 2;
-						continue;
-					}
-
-					if (input[index] == quote)
-						break;
-
-					++index;
-				}
-
-				out_literal = input.substr(0, index);
-
-				if (index < input.length())
-					input.remove_prefix(index + 1);
-				else
-					input.remove_prefix(index);
-
-				return true;
-			}
-
-			usize index = 0;
-			while (index < input.length())
-			{
-				const char ch = input[index];
-				if (std::isspace(static_cast<unsigned char>(ch)) || StringView(delimiters).find(ch) != StringView::npos)
-					break;
-				++index;
-			}
-
-			if (index == 0)
-				return false;
-
-			out_literal = input.substr(0, index);
-			input.remove_prefix(index);
-			return true;
-		}
-
 		static bool read_parenthesized_contents(StringView& input, StringView& out_contents)
 		{
 			input = Strings::strip(input);
@@ -1057,14 +999,33 @@ namespace Trinex::Console
 
 	void StackFrame::reset(Entry* new_entry, StringView new_stream, StringView new_input, ExecuteFlags new_flags)
 	{
-		entry  = new_entry;
-		stream = new_stream;
-		input  = new_input;
+		entry       = new_entry;
+		source      = new_stream;
+		exact_input = new_input;
+		input       = tokenize(source);
+		stream      = input;
 		result.clear();
 		error.clear();
 		status = ExecuteStatus::Success;
 		flags  = new_flags;
 		parameters.clear();
+	}
+
+	StringView StackFrame::input_view() const
+	{
+		if (!exact_input.empty())
+			return exact_input;
+
+		StringView tail = remaining_view();
+		return Strings::strip(source.substr(0, source.length() - tail.length()));
+	}
+
+	StringView StackFrame::remaining_view() const
+	{
+		if (stream == nullptr)
+			return {};
+
+		return source.substr(stream->begin.offset);
 	}
 
 	String StackFrame::fail(ExecuteStatus new_status, StringView message)
@@ -1090,19 +1051,18 @@ namespace Trinex::Console
 		nested.status  = ExecuteStatus::Success;
 		nested.message = {};
 
-		stream = Strings::strip(stream);
-
-		if (!stream.empty() && stream.front() == ',')
+		while (stream != nullptr && stream->identifier == ",")
 		{
-			stream.remove_prefix(1);
-			stream = Strings::strip(stream);
+			stream = stream->next;
 		}
 
-		if (!stream.empty() && stream.front() == '%')
+		if (stream != nullptr && stream->identifier == "%")
 		{
-			stream.remove_prefix(1);
+			Token* marker          = stream;
+			StringView nested_line = source.substr(marker->end.offset);
+			stream                 = marker->next;
 
-			ExecuteResult execution = execute_view(stream, flags | ExecuteFlags::SingleCommand);
+			ExecuteResult execution = execute_view(nested_line, flags | ExecuteFlags::SingleCommand);
 			if (!execution.success())
 			{
 				status         = execution.status;
@@ -1113,14 +1073,34 @@ namespace Trinex::Console
 				return false;
 			}
 
+			const usize consumed = source.substr(marker->end.offset).length() - nested_line.length();
+			const usize end      = marker->end.offset + consumed;
+
+			while (stream != nullptr && stream->begin.offset < end)
+			{
+				stream = stream->next;
+			}
+
 			char* copy = StackAllocator<char>::allocate(execution.output.size() + 1);
 			strcpy(copy, execution.output.c_str());
 			out_argument = StringView(copy, copy + execution.output.size());
 			return true;
 		}
 
-		if (read_literal(stream, out_argument, ",;\n"))
+		if (stream != nullptr)
+		{
+			out_argument = stream->identifier;
+
+			if (out_argument.length() >= 2 && ((out_argument.front() == '"' && out_argument.back() == '"') ||
+			                                   (out_argument.front() == '\'' && out_argument.back() == '\'')))
+			{
+				out_argument.remove_prefix(1);
+				out_argument.remove_suffix(1);
+			}
+
+			stream = stream->next;
 			return true;
+		}
 
 		if (nested.active)
 		{
@@ -1133,32 +1113,28 @@ namespace Trinex::Console
 
 	bool StackFrame::has_more_args()
 	{
-		StringView copy = Strings::strip(stream);
+		Token* cursor = stream;
 
-		if (!copy.empty() && copy.front() == ',')
+		while (cursor != nullptr && cursor->identifier == ",")
 		{
-			copy.remove_prefix(1);
-			copy = Strings::strip(copy);
+			cursor = cursor->next;
 		}
 
-		return !copy.empty();
+		return cursor != nullptr;
 	}
 
 	StringView StackFrame::read_command_tail()
 	{
-		stream = Strings::strip(stream);
-
-		if (stream.empty())
-			return {};
-
-		if (stream.front() == ',')
+		while (stream != nullptr && stream->identifier == ",")
 		{
-			stream.remove_prefix(1);
-			stream = Strings::strip(stream);
+			stream = stream->next;
 		}
 
-		StringView tail = stream;
-		stream.remove_prefix(stream.length());
+		if (stream == nullptr)
+			return {};
+
+		StringView tail = Strings::strip(source.substr(stream->begin.offset));
+		stream          = nullptr;
 		return Strings::strip(tail);
 	}
 
@@ -1530,9 +1506,10 @@ namespace Trinex::Console
 					}
 
 					StackFrame frame(entry, statement, exact_input, flags);
-					result = entry->execute(&frame);
-					finalize_input(frame.stream);
-					stream = frame.stream;
+					result               = entry->execute(&frame);
+					StringView remaining = frame.remaining_view();
+					finalize_input(remaining);
+					stream = remaining;
 					status = frame.status;
 				}
 			}
@@ -1773,7 +1750,7 @@ namespace Trinex::Console
 		auto* variable = static_cast<VariableEntry*>(entry);
 		if (variable->flags().all(Flags::ReadOnly))
 			return frame->fail(ExecuteStatus::ReadOnly, Strings::format("'{}' is read-only", name));
-		variable->reset(frame->input);
+		variable->reset(frame->input_view());
 		return format_variable_state(*variable);
 	}
 

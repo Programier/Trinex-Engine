@@ -476,8 +476,10 @@ namespace Trinex::Console
 
 	struct ENGINE_EXPORT StackFrame {
 		Entry* entry = nullptr;
-		StringView stream;
-		StringView input;
+		Token* input = nullptr;
+		Token* stream = nullptr;
+		StringView source;
+		StringView exact_input;
 		String result;
 		String error;
 		ExecuteStatus status = ExecuteStatus::Success;
@@ -493,6 +495,8 @@ namespace Trinex::Console
 		bool read_argument(StringView& out);
 		StringView read_command_tail();
 		bool has_more_args();
+		StringView input_view() const;
+		StringView remaining_view() const;
 		bool failed() const { return status != ExecuteStatus::Success || !error.empty(); }
 		String fail(ExecuteStatus status, StringView message);
 		String succeed(StringView message = {});
@@ -901,13 +905,13 @@ namespace Trinex::Console
 			frame->error.clear();
 			frame->status = ExecuteStatus::Success;
 
-			if (frame->stream.empty())
+			if (frame->stream == nullptr)
 				return frame->succeed(value_to_string());
 
-			if (frame->stream.front() != '=')
+			if (frame->stream->identifier != "=")
 				return frame->succeed(value_to_string());
 
-			frame->stream.remove_prefix(1);
+			frame->stream = frame->stream->next;
 
 			StringView raw_value;
 
@@ -923,12 +927,12 @@ namespace Trinex::Console
 				return frame->fail(ExecuteStatus::ValueParseFailed, Detail::format_parse_error(name(), raw_value));
 			}
 
-			if (String validation = validate_value(value, frame->input); !validation.empty())
+			if (String validation = validate_value(value, frame->input_view()); !validation.empty())
 			{
 				return frame->fail(ExecuteStatus::ValueValidationFailed, validation);
 			}
 
-			set(value, frame->input);
+			set(value, frame->input_view());
 			return frame->succeed(value_to_string());
 		}
 	};
