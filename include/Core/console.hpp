@@ -475,28 +475,26 @@ namespace Trinex::Console
 	};
 
 	struct ENGINE_EXPORT StackFrame {
-		Entry* entry = nullptr;
-		Token* input = nullptr;
+		Entry* entry  = nullptr;
+		Token* input  = nullptr;
 		Token* stream = nullptr;
-		StringView source;
-		StringView exact_input;
+		Token* end    = nullptr;
 		String result;
 		String error;
 		ExecuteStatus status = ExecuteStatus::Success;
 		ExecuteFlags flags   = ExecuteFlags::Undefined;
 		Vector<Any> parameters;
 
-		StackFrame(Entry* entry = nullptr, StringView stream = {}, StringView input = {},
+		StackFrame(Entry* entry = nullptr, Token* stream = nullptr, Token* input = nullptr, Token* end = nullptr,
 		           ExecuteFlags flags = ExecuteFlags::Undefined);
 		~StackFrame();
 
-		void reset(Entry* entry = nullptr, StringView stream = {}, StringView input = {},
-		           ExecuteFlags flags = ExecuteFlags::Undefined);
+		StackFrame& reset(Entry* entry = nullptr, Token* stream = nullptr, Token* input = nullptr, Token* end = nullptr,
+		                  ExecuteFlags flags = ExecuteFlags::Undefined);
 		bool read_argument(StringView& out);
 		StringView read_command_tail();
 		bool has_more_args();
-		StringView input_view() const;
-		StringView remaining_view() const;
+		String input_view() const;
 		bool failed() const { return status != ExecuteStatus::Success || !error.empty(); }
 		String fail(ExecuteStatus status, StringView message);
 		String succeed(StringView message = {});

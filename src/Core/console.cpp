@@ -467,10 +467,8 @@ namespace Trinex::Console
 			return head;
 		}
 
-		static bool read_identifier(StringView& input, StringView& out_identifier)
+		static bool is_identifier_token(StringView input)
 		{
-			input = Strings::strip(input);
-
 			if (input.empty())
 				return false;
 
@@ -479,186 +477,149 @@ namespace Trinex::Console
 			if (!(std::isalpha(static_cast<unsigned char>(first)) || first == '_'))
 				return false;
 
-			usize index = 1;
-			while (index < input.length())
+			for (usize index = 1; index < input.length(); ++index)
 			{
 				const char ch = input[index];
 				if (!(std::isalnum(static_cast<unsigned char>(ch)) || ch == '_'))
-					break;
-				++index;
+					return false;
 			}
 
-			out_identifier = input.substr(0, index);
-			input.remove_prefix(index);
 			return true;
 		}
 
-		static bool read_parenthesized_contents(StringView& input, StringView& out_contents)
+		static Token* skip_statement_separators(Token* token)
 		{
-			input = Strings::strip(input);
-
-			if (input.empty() || input.front() != '(')
-				return false;
-
-			input.remove_prefix(1);
-
-			const char* data  = input.data();
-			usize length      = input.length();
-			usize index       = 0;
-			usize depth       = 1;
-			bool in_string    = false;
-			char string_quote = '\0';
-
-			while (index < length)
+			while (token != nullptr && token->identifier == ";")
 			{
-				const char ch = data[index];
+				token = token->next;
+			}
 
-				if (in_string)
+			return token;
+		}
+
+		static bool separated_by_newline(const Token* left, const Token* right)
+		{
+			return left != nullptr && right != nullptr && left->end.line < right->begin.line;
+		}
+
+		static Token* find_statement_end(Token* begin, Token* limit)
+		{
+			if (begin == nullptr)
+				return limit;
+
+			Token* previous   = begin;
+			Token* cursor     = begin;
+			usize paren_depth = 0;
+
+			while (cursor != limit)
+			{
+				if (cursor->identifier == "(")
 				{
-					if (ch == '\\' && index + 1 < length)
-					{
-						index += 2;
-						continue;
-					}
+					++paren_depth;
+				}
+				else if (cursor->identifier == ")")
+				{
+					if (paren_depth == 0)
+						break;
 
-					if (ch == string_quote)
-						in_string = false;
-
-					++index;
-					continue;
+					--paren_depth;
 				}
 
-				if (ch == '"' || ch == '\'')
+				if (paren_depth == 0)
 				{
-					in_string    = true;
-					string_quote = ch;
-					++index;
-					continue;
-				}
+					if (cursor->identifier == ";")
+						break;
 
-				if (ch == '(')
-					++depth;
-				else if (ch == ')')
-				{
-					--depth;
-					if (depth == 0)
+					if (cursor != begin && separated_by_newline(previous, cursor))
 						break;
 				}
 
-				++index;
+				previous = cursor;
+				cursor   = cursor->next;
 			}
 
-			if (depth != 0)
+			return cursor;
+		}
+
+		static Token* find_matching_paren(Token* open_token, Token* limit)
+		{
+			if (open_token == nullptr || open_token->identifier != "(")
+				return nullptr;
+
+			usize depth = 1;
+
+			for (Token* cursor = open_token->next; cursor != limit; cursor = cursor->next)
+			{
+				if (cursor->identifier == "(")
+				{
+					++depth;
+				}
+				else if (cursor->identifier == ")")
+				{
+					--depth;
+
+					if (depth == 0)
+						return cursor;
+				}
+			}
+
+			return nullptr;
+		}
+
+		static bool should_insert_space(StringView left, StringView right)
+		{
+			if (left.empty() || right.empty())
 				return false;
 
-			out_contents = input.substr(0, index);
-			input.remove_prefix(index + 1);
+			if (right == ")" || right == "," || right == ";")
+				return false;
+
+			if (left == "(" || left == "%" || left == ",")
+				return false;
+
+			if (right == "(")
+				return false;
+
+			if (left == "=" || right == "=")
+				return true;
+
 			return true;
 		}
 
-		static void skip_command_separators(StringView& input)
+		static String tokens_to_string(Token* begin, Token* end)
 		{
-			input = Strings::strip(input);
+			String result;
+			Token* previous = nullptr;
 
-			while (!input.empty() && (input.front() == ';' || input.front() == '\n'))
+			for (Token* cursor = begin; cursor != end; cursor = cursor->next)
 			{
-				input.remove_prefix(1);
-				input = Strings::strip(input);
-			}
-		}
-
-		static void skip_ignored_lines(StringView& input)
-		{
-			while (true)
-			{
-				skip_command_separators(input);
-				input = Strings::strip(input);
-
-				if (input.empty())
-					return;
-
-				if (input.starts_with("#") || input.starts_with("//"))
+				if (previous != nullptr)
 				{
-					usize newline = input.find('\n');
-					input.remove_prefix(newline == StringView::npos ? input.length() : newline + 1);
-					continue;
-				}
-
-				if (input.front() == '[')
-				{
-					usize newline = input.find('\n');
-					input.remove_prefix(newline == StringView::npos ? input.length() : newline + 1);
-					continue;
-				}
-
-				return;
-			}
-		}
-
-		static StringView consume_statement_tail(StringView& input)
-		{
-			input = Strings::strip(input);
-
-			const char* data  = input.data();
-			usize length      = input.length();
-			usize index       = 0;
-			usize paren_depth = 0;
-			usize brace_depth = 0;
-			bool in_string    = false;
-			char string_quote = '\0';
-
-			while (index < length)
-			{
-				const char ch = data[index];
-
-				if (in_string)
-				{
-					if (ch == '\\' && index + 1 < length)
+					if (separated_by_newline(previous, cursor))
 					{
-						index += 2;
-						continue;
+						result.push_back('\n');
 					}
-
-					if (ch == string_quote)
-						in_string = false;
-
-					++index;
-					continue;
+					else if (should_insert_space(previous->identifier, cursor->identifier))
+					{
+						result.push_back(' ');
+					}
 				}
 
-				if (ch == '"' || ch == '\'')
-				{
-					in_string    = true;
-					string_quote = ch;
-					++index;
-					continue;
-				}
-
-				if (ch == '(')
-					++paren_depth;
-				else if (ch == ')')
-				{
-					if (paren_depth != 0)
-						--paren_depth;
-				}
-				else if (ch == '{')
-					++brace_depth;
-				else if (ch == '}')
-				{
-					if (brace_depth != 0)
-						--brace_depth;
-				}
-				else if ((ch == ';' || ch == '\n') && paren_depth == 0 && brace_depth == 0)
-				{
-					break;
-				}
-
-				++index;
+				result += cursor->identifier;
+				previous = cursor;
 			}
 
-			StringView tail = input.substr(0, index);
-			input.remove_prefix(index);
-			return Strings::strip(tail);
+			return result;
+		}
+
+		static StringView slice_source(StringView source, Token* begin, Token* end)
+		{
+			if (begin == nullptr)
+				return {};
+
+			const usize begin_offset = begin->begin.offset;
+			const usize end_offset   = end == nullptr ? source.length() : end->begin.offset;
+			return Strings::strip(source.substr(begin_offset, end_offset - begin_offset));
 		}
 
 		static String quote_argument_if_needed(StringView argument)
@@ -986,10 +947,12 @@ namespace Trinex::Console
 		return "Unknown";
 	}
 
-	StackFrame::StackFrame(Entry* entry, StringView stream, StringView input, ExecuteFlags flags)
+	static ExecuteResult execute_tokens(Token*& stream, Token* limit, ExecuteFlags flags, StringView source = {});
+
+	StackFrame::StackFrame(Entry* entry, Token* stream, Token* input, Token* end, ExecuteFlags flags)
 	{
 		ConsoleState::instance().begin_execution(this);
-		reset(entry, stream, input, flags);
+		reset(entry, stream, input, end, flags);
 	}
 
 	StackFrame::~StackFrame()
@@ -997,35 +960,24 @@ namespace Trinex::Console
 		ConsoleState::instance().end_execution(this);
 	}
 
-	void StackFrame::reset(Entry* new_entry, StringView new_stream, StringView new_input, ExecuteFlags new_flags)
+	StackFrame& StackFrame::reset(Entry* new_entry, Token* new_stream, Token* new_input, Token* new_end, ExecuteFlags new_flags)
 	{
-		entry       = new_entry;
-		source      = new_stream;
-		exact_input = new_input;
-		input       = tokenize(source);
-		stream      = input;
+		entry  = new_entry;
+		input  = new_input;
+		stream = new_stream;
+		end    = new_end;
 		result.clear();
 		error.clear();
 		status = ExecuteStatus::Success;
 		flags  = new_flags;
 		parameters.clear();
+
+		return *this;
 	}
 
-	StringView StackFrame::input_view() const
+	String StackFrame::input_view() const
 	{
-		if (!exact_input.empty())
-			return exact_input;
-
-		StringView tail = remaining_view();
-		return Strings::strip(source.substr(0, source.length() - tail.length()));
-	}
-
-	StringView StackFrame::remaining_view() const
-	{
-		if (stream == nullptr)
-			return {};
-
-		return source.substr(stream->begin.offset);
+		return tokens_to_string(input, stream);
 	}
 
 	String StackFrame::fail(ExecuteStatus new_status, StringView message)
@@ -1051,18 +1003,15 @@ namespace Trinex::Console
 		nested.status  = ExecuteStatus::Success;
 		nested.message = {};
 
-		while (stream != nullptr && stream->identifier == ",")
+		while (stream != nullptr && stream != end && stream->identifier == ",")
 		{
 			stream = stream->next;
 		}
 
-		if (stream != nullptr && stream->identifier == "%")
+		if (stream != nullptr && stream != end && stream->identifier == "%")
 		{
-			Token* marker          = stream;
-			StringView nested_line = source.substr(marker->end.offset);
-			stream                 = marker->next;
-
-			ExecuteResult execution = execute_view(nested_line, flags | ExecuteFlags::SingleCommand);
+			stream                  = stream->next;
+			ExecuteResult execution = execute_tokens(stream, end, flags | ExecuteFlags::SingleCommand);
 			if (!execution.success())
 			{
 				status         = execution.status;
@@ -1073,21 +1022,13 @@ namespace Trinex::Console
 				return false;
 			}
 
-			const usize consumed = source.substr(marker->end.offset).length() - nested_line.length();
-			const usize end      = marker->end.offset + consumed;
-
-			while (stream != nullptr && stream->begin.offset < end)
-			{
-				stream = stream->next;
-			}
-
 			char* copy = StackAllocator<char>::allocate(execution.output.size() + 1);
 			strcpy(copy, execution.output.c_str());
 			out_argument = StringView(copy, copy + execution.output.size());
 			return true;
 		}
 
-		if (stream != nullptr)
+		if (stream != nullptr && stream != end)
 		{
 			out_argument = stream->identifier;
 
@@ -1115,27 +1056,30 @@ namespace Trinex::Console
 	{
 		Token* cursor = stream;
 
-		while (cursor != nullptr && cursor->identifier == ",")
+		while (cursor != nullptr && cursor != end && cursor->identifier == ",")
 		{
 			cursor = cursor->next;
 		}
 
-		return cursor != nullptr;
+		return cursor != nullptr && cursor != end;
 	}
 
 	StringView StackFrame::read_command_tail()
 	{
-		while (stream != nullptr && stream->identifier == ",")
+		while (stream != nullptr && stream != end && stream->identifier == ",")
 		{
 			stream = stream->next;
 		}
 
-		if (stream == nullptr)
+		if (stream == nullptr || stream == end)
 			return {};
 
-		StringView tail = Strings::strip(source.substr(stream->begin.offset));
-		stream          = nullptr;
-		return Strings::strip(tail);
+		String tail = tokens_to_string(stream, end);
+		stream      = end;
+
+		char* copy = StackAllocator<char>::allocate(tail.size() + 1);
+		strcpy(copy, tail.c_str());
+		return StringView(copy, copy + tail.size());
 	}
 
 
@@ -1390,7 +1334,7 @@ namespace Trinex::Console
 		return result;
 	}
 
-	ExecuteResult execute_view(StringView& stream, ExecuteFlags flags)
+	static ExecuteResult execute_tokens(Token*& stream, Token* limit, ExecuteFlags flags, StringView source)
 	{
 		ExecutionReport report;
 		Vector<String> results;
@@ -1400,40 +1344,58 @@ namespace Trinex::Console
 				report.status = status;
 		};
 
-		skip_ignored_lines(stream);
+		stream = skip_statement_separators(stream);
 
-		if (stream.empty())
+		if (stream == nullptr || stream == limit)
 			report.status = ExecuteStatus::EmptyInput;
 
-		while (!stream.empty())
+		while (stream != nullptr && stream != limit)
 		{
-			StringView statement_begin = stream;
-			StringView cursor          = stream;
-			StringView command;
+			stream                 = skip_statement_separators(stream);
+			Token* statement_begin = stream;
 
-			if (!read_identifier(cursor, command))
+			if (statement_begin == nullptr || statement_begin == limit)
+				break;
+
+			auto format_input = [&](Token* end) -> String {
+				if (!source.empty())
+					return String(slice_source(source, statement_begin, end));
+
+				return tokens_to_string(statement_begin, end);
+			};
+
+			if (!is_identifier_token(statement_begin->identifier))
 			{
-				String error =
-				        Strings::format("Unexpected token near '{}'", stream.substr(0, etl::min<usize>(stream.length(), 32)));
+				Token* statement_end = find_statement_end(statement_begin, limit);
+				String input_text    = format_input(statement_end);
+				String error         = Strings::format("Unexpected token near '{}'", statement_begin->identifier);
 				results.push_back(error);
 				fail_report(ExecuteStatus::UnexpectedToken);
-				notify_command_executed(stream, {}, error, ExecuteStatus::UnexpectedToken);
-				consume_statement_tail(stream);
-				skip_ignored_lines(stream);
+				notify_command_executed(input_text, {}, error, ExecuteStatus::UnexpectedToken);
+				stream = statement_end;
 				continue;
 			}
 
-			StringView statement = Strings::strip(cursor);
-			StringView exact_input;
-			auto finalize_input = [&](StringView tail) {
-				exact_input = Strings::strip(statement_begin.substr(0, statement_begin.length() - tail.length()));
+			StringView command = statement_begin->identifier;
+			Token* after_name  = statement_begin->next;
+			const bool same_line =
+			        after_name != nullptr && after_name != limit && !separated_by_newline(statement_begin, after_name);
+			const bool has_parens    = same_line && after_name->identifier == "(";
+			const bool has_assign    = same_line && after_name->identifier == "=";
+			auto plain_statement_end = [&]() -> Token* {
+				if (after_name == nullptr || after_name == limit)
+					return after_name;
+
+				if (separated_by_newline(statement_begin, after_name))
+					return after_name;
+
+				return find_statement_end(after_name, limit);
 			};
 
-			if (String alias = find_alias(command);
-			    !alias.empty() && (statement.empty() || (statement.front() != '(' && statement.front() != '=')))
+			if (String alias = find_alias(command); !alias.empty() && !has_parens && !has_assign)
 			{
-				finalize_input(cursor);
-				stream = cursor;
+				String input_text = format_input(after_name);
+				stream            = after_name;
 
 				ExecutionReport alias_report = execute(alias, flags);
 				if (!alias_report.output.empty())
@@ -1442,8 +1404,7 @@ namespace Trinex::Console
 				if (!alias_report.success())
 					fail_report(alias_report.status);
 
-				notify_command_executed(exact_input, command, alias_report.output, alias_report.status);
-				skip_ignored_lines(stream);
+				notify_command_executed(input_text, command, alias_report.output, alias_report.status);
 				continue;
 			}
 
@@ -1451,43 +1412,47 @@ namespace Trinex::Console
 
 			if (entry == nullptr)
 			{
-				finalize_input(cursor);
-				stream = cursor;
-
-				String error = Strings::format("Unknown console entry '{}'", command);
-				notify_command_executed(exact_input, command, error, ExecuteStatus::UnknownEntry);
+				Token* statement_end = plain_statement_end();
+				String input_text    = format_input(statement_end);
+				String error         = Strings::format("Unknown console entry '{}'", command);
+				notify_command_executed(input_text, command, error, ExecuteStatus::UnknownEntry);
 				fail_report(ExecuteStatus::UnknownEntry);
 
 				if (!flags.all(ExecuteFlags::IgnoreUnknown))
 					results.push_back(std::move(error));
 
-				skip_ignored_lines(stream);
+				stream = statement_end;
 				continue;
 			}
 
 			if (!entry_visible(*entry))
 			{
-				finalize_input(cursor);
-				stream = cursor;
-
-				String error = Strings::format("Console entry '{}' is not available in current runtime policy", command);
+				Token* statement_end = has_parens ? find_matching_paren(after_name, limit) : plain_statement_end();
+				statement_end        = statement_end == nullptr ? find_statement_end(statement_begin, limit)
+				                                                : (has_parens ? statement_end->next : statement_end);
+				String input_text    = format_input(statement_end);
+				String error         = Strings::format("Console entry '{}' is not available in current runtime policy", command);
 				results.push_back(error);
 				const ExecuteStatus status = execution_block_status(*entry);
 				fail_report(status);
-				notify_command_executed(exact_input, command, error, status);
-				skip_ignored_lines(stream);
+				notify_command_executed(input_text, command, error, status);
+				stream = statement_end;
 				continue;
 			}
 
 			String result;
 			ExecuteStatus status = ExecuteStatus::Success;
+			String input_text;
 
 			if (entry->type() == EntryType::Variable)
 			{
-				if (!statement.empty() && statement.front() == '(')
+				Token* statement_end = plain_statement_end();
+
+				if (has_parens)
 				{
-					finalize_input(cursor);
-					stream = cursor;
+					Token* close = find_matching_paren(after_name, limit);
+					stream       = close == nullptr ? statement_end : close->next;
+					input_text   = format_input(stream);
 					result = Strings::format("'{}' is a console variable. Use '{}' or '{} = <value>'", command, command, command);
 					status = ExecuteStatus::VariableCallSyntax;
 				}
@@ -1495,86 +1460,79 @@ namespace Trinex::Console
 				{
 					if (String error = execution_block_reason(*entry); !error.empty())
 					{
-						finalize_input(cursor);
-						stream = cursor;
+						stream     = statement_end;
+						input_text = format_input(stream);
 						results.push_back(error);
 						status = execution_block_status(*entry);
 						fail_report(status);
-						notify_command_executed(exact_input, command, error, status);
-						skip_ignored_lines(stream);
+						notify_command_executed(input_text, command, error, status);
 						continue;
 					}
 
-					StackFrame frame(entry, statement, exact_input, flags);
-					result               = entry->execute(&frame);
-					StringView remaining = frame.remaining_view();
-					finalize_input(remaining);
-					stream = remaining;
-					status = frame.status;
+					StackFrame frame(entry, after_name, statement_begin, statement_end, flags);
+					result     = entry->execute(&frame);
+					stream     = frame.stream;
+					status     = frame.status;
+					input_text = format_input(stream);
 				}
 			}
 			else
 			{
 				if (String error = execution_block_reason(*entry); !error.empty())
 				{
-					finalize_input(cursor);
-					stream = cursor;
+					Token* statement_end = has_parens ? find_matching_paren(after_name, limit) : plain_statement_end();
+					statement_end        = statement_end == nullptr ? find_statement_end(statement_begin, limit)
+					                                                : (has_parens ? statement_end->next : statement_end);
+					stream               = statement_end;
+					input_text           = format_input(stream);
 					results.push_back(error);
 					status = execution_block_status(*entry);
 					fail_report(status);
-					notify_command_executed(exact_input, command, error, status);
-					skip_ignored_lines(stream);
+					notify_command_executed(input_text, command, error, status);
 					continue;
 				}
 
-				if (statement.empty() || statement.front() != '(')
+				if (!has_parens)
 				{
 					auto* typed_command = static_cast<Command*>(entry);
 
 					if (!typed_command->can_invoke_without_parentheses())
 					{
-						finalize_input(cursor);
-						stream = cursor;
-						result = Strings::format("Command '{}' must be called as {}(...)", command, command);
-						status = ExecuteStatus::CommandCallSyntax;
+						stream     = after_name;
+						input_text = format_input(stream);
+						result     = Strings::format("Command '{}' must be called as {}(...)", command, command);
+						status     = ExecuteStatus::CommandCallSyntax;
 					}
 					else
 					{
-						finalize_input(cursor);
-						StackFrame frame(typed_command, {}, exact_input, flags);
-						result = typed_command->execute(&frame);
-						stream = cursor;
-						status = frame.status;
+						StackFrame frame(typed_command, after_name, statement_begin, after_name, flags);
+						result     = typed_command->execute(&frame);
+						stream     = after_name;
+						status     = frame.status;
+						input_text = format_input(stream);
 					}
 				}
 				else
 				{
-					StringView arguments;
-					cursor = statement;
+					Token* close = find_matching_paren(after_name, limit);
 
-					if (!read_parenthesized_contents(cursor, arguments))
+					if (close == nullptr)
 					{
-						result = Strings::format("Missing closing ')' for command '{}'", command);
-						status = ExecuteStatus::MissingClosingParenthesis;
+						stream     = find_statement_end(statement_begin, limit);
+						input_text = format_input(stream);
+						result     = Strings::format("Missing closing ')' for command '{}'", command);
+						status     = ExecuteStatus::MissingClosingParenthesis;
 					}
 					else
 					{
-						finalize_input(cursor);
-						StackFrame frame(entry, arguments, exact_input, flags);
-						result = entry->execute(&frame);
-						stream = cursor;
-						status = frame.status;
+						StackFrame frame(entry, after_name->next, statement_begin, close, flags);
+						result     = entry->execute(&frame);
+						stream     = close->next;
+						status     = frame.status;
+						input_text = format_input(stream);
 					}
-
-					if (exact_input.empty())
-						finalize_input(cursor);
-
-					stream = cursor;
 				}
 			}
-
-			if (exact_input.empty())
-				finalize_input(stream);
 
 			if (!result.empty())
 				results.push_back(std::move(result));
@@ -1582,8 +1540,7 @@ namespace Trinex::Console
 			if (status != ExecuteStatus::Success)
 				fail_report(status);
 
-			notify_command_executed(exact_input, command, result, status);
-			skip_ignored_lines(stream);
+			notify_command_executed(input_text, command, result, status);
 
 			if (flags.all(ExecuteFlags::SingleCommand))
 				break;
@@ -1591,6 +1548,24 @@ namespace Trinex::Console
 
 		report.output = Strings::join(results, "\n");
 		return report;
+	}
+
+	ExecuteResult execute_view(StringView& stream, ExecuteFlags flags)
+	{
+		Token* head          = tokenize(stream);
+		Token* cursor        = head;
+		ExecuteResult result = execute_tokens(cursor, nullptr, flags, stream);
+
+		if (cursor == nullptr)
+		{
+			stream = {};
+		}
+		else
+		{
+			stream.remove_prefix(cursor->begin.offset);
+		}
+
+		return result;
 	}
 
 	ExecuteResult execute(StringView stream, ExecuteFlags flags)
