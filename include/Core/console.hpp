@@ -60,6 +60,7 @@ namespace Trinex::Console
 			Undefined        = 0,
 			IgnoreUnknown    = 1 << 0,
 			StrictParameters = 1 << 1,
+			SingleCommand    = 1 << 2,
 		};
 
 		trinex_bitfield_enum_struct(ExecuteFlags, u32);
@@ -553,6 +554,7 @@ namespace Trinex::Console
 	ENGINE_EXPORT bool exists(StringView name);
 	ENGINE_EXPORT Vector<String> entries();
 	ENGINE_EXPORT Vector<String> complete(StringView prefix);
+	ENGINE_EXPORT ExecuteResult execute_view(StringView& stream, ExecuteFlags flags = ExecuteFlags::Undefined);
 	ENGINE_EXPORT ExecuteResult execute(StringView stream, ExecuteFlags flags = ExecuteFlags::Undefined);
 	ENGINE_EXPORT ExecuteResult execute(int argc, char** argv, ExecuteFlags flags = ExecuteFlags::Undefined);
 	ENGINE_EXPORT RuntimePolicy runtime_policy();
@@ -879,7 +881,7 @@ namespace Trinex::Console
 
 			if (!frame->read_argument(raw_value))
 			{
-				return frame->succeed(Detail::format_assignment(name(), value_to_string()));
+				return frame->succeed(value_to_string());
 			}
 
 			Type value = {};

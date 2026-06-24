@@ -328,83 +328,6 @@ namespace Trinex::Console
 				return true;
 			}
 
-			if (first == '{')
-			{
-				StringView original = input;
-				input.remove_prefix(1);
-
-				const char* data  = input.data();
-				usize length      = input.length();
-				usize index       = 0;
-				usize depth       = 1;
-				bool in_string    = false;
-				char string_quote = '\0';
-
-				while (index < length)
-				{
-					const char ch = data[index];
-
-					if (in_string)
-					{
-						if (ch == '\\' && index + 1 < length)
-						{
-							index += 2;
-							continue;
-						}
-
-						if (ch == string_quote)
-							in_string = false;
-
-						++index;
-						continue;
-					}
-
-					if (ch == '"' || ch == '\'')
-					{
-						in_string    = true;
-						string_quote = ch;
-						++index;
-						continue;
-					}
-
-					if (ch == '{')
-						++depth;
-					else if (ch == '}')
-					{
-						--depth;
-						if (depth == 0)
-							break;
-					}
-
-					++index;
-				}
-
-				if (depth != 0)
-					return false;
-
-				StringView expression   = input.substr(0, index);
-				ExecuteResult execution = execute(expression);
-
-				if (!execution.success())
-				{
-					auto& nested   = nested_execute_error();
-					nested.active  = true;
-					nested.status  = execution.status;
-					nested.message = execution.output;
-					return false;
-				}
-
-				String result = execution.output;
-
-				char* copy = StackAllocator<char>::allocate(result.size() + 1);
-				strcpy(copy, result.c_str());
-
-				input = original;
-				input.remove_prefix(index + 2);
-				StringView view(copy, copy + result.size());
-				return read_literal(view, out_literal, delimiters);
-			}
-
 			usize index = 0;
 			while (index < input.length())
 			{
@@ -969,6 +892,27 @@ namespace Trinex::Console
 			stream = Strings::strip(stream);
 		}
 
+		if (!stream.empty() && stream.front() == '%')
+		{
+			stream.remove_prefix(1);
+
+			ExecuteResult execution = execute_view(stream, flags | ExecuteFlags::SingleCommand);
+			if (!execution.success())
+			{
+				status         = execution.status;
+				error          = execution.output;
+				nested.active  = true;
+				nested.status  = execution.status;
+				nested.message = execution.output;
+				return false;
+			}
+
+			char* copy = StackAllocator<char>::allocate(execution.output.size() + 1);
+			strcpy(copy, execution.output.c_str());
+			out_argument = StringView(copy, copy + execution.output.size());
+			return true;
+		}
+
 		if (read_literal(stream, out_argument, ",;\n"))
 			return true;
 
@@ -1253,7 +1197,7 @@ namespace Trinex::Console
 		return result;
 	}
 
-	ExecuteResult execute(StringView command_line, ExecuteFlags flags)
+	ExecuteResult execute_view(StringView& stream, ExecuteFlags flags)
 	{
 		ExecutionReport report;
 		Vector<String> results;
@@ -1263,26 +1207,26 @@ namespace Trinex::Console
 				report.status = status;
 		};
 
-		skip_ignored_lines(command_line);
+		skip_ignored_lines(stream);
 
-		if (command_line.empty())
+		if (stream.empty())
 			report.status = ExecuteStatus::EmptyInput;
 
-		while (!command_line.empty())
+		while (!stream.empty())
 		{
-			StringView statement_begin = command_line;
-			StringView cursor          = command_line;
+			StringView statement_begin = stream;
+			StringView cursor          = stream;
 			StringView command;
 
 			if (!read_identifier(cursor, command))
 			{
-				String error = Strings::format("Unexpected token near '{}'",
-				                               command_line.substr(0, etl::min<usize>(command_line.length(), 32)));
+				String error =
+				        Strings::format("Unexpected token near '{}'", stream.substr(0, etl::min<usize>(stream.length(), 32)));
 				results.push_back(error);
 				fail_report(ExecuteStatus::UnexpectedToken);
-				notify_command_executed(command_line, {}, error, ExecuteStatus::UnexpectedToken);
-				consume_statement_tail(command_line);
-				skip_ignored_lines(command_line);
+				notify_command_executed(stream, {}, error, ExecuteStatus::UnexpectedToken);
+				consume_statement_tail(stream);
+				skip_ignored_lines(stream);
 				continue;
 			}
 
@@ -1296,7 +1240,7 @@ namespace Trinex::Console
 			    !alias.empty() && (statement.empty() || (statement.front() != '(' && statement.front() != '=')))
 			{
 				finalize_input(cursor);
-				command_line = cursor;
+				stream = cursor;
 
 				ExecutionReport alias_report = execute(alias, flags);
 				if (!alias_report.output.empty())
@@ -1306,7 +1250,7 @@ namespace Trinex::Console
 					fail_report(alias_report.status);
 
 				notify_command_executed(exact_input, command, alias_report.output, alias_report.status);
-				skip_ignored_lines(command_line);
+				skip_ignored_lines(stream);
 				continue;
 			}
 
@@ -1315,7 +1259,7 @@ namespace Trinex::Console
 			if (entry == nullptr)
 			{
 				finalize_input(cursor);
-				command_line = cursor;
+				stream = cursor;
 
 				String error = Strings::format("Unknown console entry '{}'", command);
 				notify_command_executed(exact_input, command, error, ExecuteStatus::UnknownEntry);
@@ -1324,21 +1268,21 @@ namespace Trinex::Console
 				if (!flags.all(ExecuteFlags::IgnoreUnknown))
 					results.push_back(std::move(error));
 
-				skip_ignored_lines(command_line);
+				skip_ignored_lines(stream);
 				continue;
 			}
 
 			if (!entry_visible(*entry))
 			{
 				finalize_input(cursor);
-				command_line = cursor;
+				stream = cursor;
 
 				String error = Strings::format("Console entry '{}' is not available in current runtime policy", command);
 				results.push_back(error);
 				const ExecuteStatus status = execution_block_status(*entry);
 				fail_report(status);
 				notify_command_executed(exact_input, command, error, status);
-				skip_ignored_lines(command_line);
+				skip_ignored_lines(stream);
 				continue;
 			}
 
@@ -1350,7 +1294,7 @@ namespace Trinex::Console
 				if (!statement.empty() && statement.front() == '(')
 				{
 					finalize_input(cursor);
-					command_line = cursor;
+					stream = cursor;
 					result = Strings::format("'{}' is a console variable. Use '{}' or '{} = <value>'", command, command, command);
 					status = ExecuteStatus::VariableCallSyntax;
 				}
@@ -1359,12 +1303,12 @@ namespace Trinex::Console
 					if (String error = execution_block_reason(*entry); !error.empty())
 					{
 						finalize_input(cursor);
-						command_line = cursor;
+						stream = cursor;
 						results.push_back(error);
 						status = execution_block_status(*entry);
 						fail_report(status);
 						notify_command_executed(exact_input, command, error, status);
-						skip_ignored_lines(command_line);
+						skip_ignored_lines(stream);
 						continue;
 					}
 
@@ -1385,9 +1329,9 @@ namespace Trinex::Console
 						finalize_input(value_stream);
 
 					StackFrame frame(entry, value_stream, exact_input, flags);
-					result       = entry->execute(&frame);
-					command_line = frame.stream;
-					status       = frame.status;
+					result = entry->execute(&frame);
+					stream = frame.stream;
+					status = frame.status;
 
 					if (previous_value != static_cast<VariableEntry*>(entry)->value_to_string())
 						notify_variable_changed(*static_cast<VariableEntry*>(entry), exact_input);
@@ -1398,12 +1342,12 @@ namespace Trinex::Console
 				if (String error = execution_block_reason(*entry); !error.empty())
 				{
 					finalize_input(cursor);
-					command_line = cursor;
+					stream = cursor;
 					results.push_back(error);
 					status = execution_block_status(*entry);
 					fail_report(status);
 					notify_command_executed(exact_input, command, error, status);
-					skip_ignored_lines(command_line);
+					skip_ignored_lines(stream);
 					continue;
 				}
 
@@ -1414,17 +1358,17 @@ namespace Trinex::Console
 					if (!typed_command->can_invoke_without_parentheses())
 					{
 						finalize_input(cursor);
-						command_line = cursor;
-						result       = Strings::format("Command '{}' must be called as {}(...)", command, command);
-						status       = ExecuteStatus::CommandCallSyntax;
+						stream = cursor;
+						result = Strings::format("Command '{}' must be called as {}(...)", command, command);
+						status = ExecuteStatus::CommandCallSyntax;
 					}
 					else
 					{
 						finalize_input(cursor);
 						StackFrame frame(typed_command, {}, exact_input, flags);
-						result       = typed_command->execute(&frame);
-						command_line = cursor;
-						status       = frame.status;
+						result = typed_command->execute(&frame);
+						stream = cursor;
+						status = frame.status;
 					}
 				}
 				else
@@ -1441,20 +1385,20 @@ namespace Trinex::Console
 					{
 						finalize_input(cursor);
 						StackFrame frame(entry, arguments, exact_input, flags);
-						result       = entry->execute(&frame);
-						command_line = cursor;
-						status       = frame.status;
+						result = entry->execute(&frame);
+						stream = cursor;
+						status = frame.status;
 					}
 
 					if (exact_input.empty())
 						finalize_input(cursor);
 
-					command_line = cursor;
+					stream = cursor;
 				}
 			}
 
 			if (exact_input.empty())
-				finalize_input(command_line);
+				finalize_input(stream);
 
 			if (!result.empty())
 				results.push_back(std::move(result));
@@ -1463,12 +1407,19 @@ namespace Trinex::Console
 				fail_report(status);
 
 			notify_command_executed(exact_input, command, result, status);
+			skip_ignored_lines(stream);
 
-			skip_ignored_lines(command_line);
+			if (flags.all(ExecuteFlags::SingleCommand))
+				break;
 		}
 
 		report.output = Strings::join(results, "\n");
 		return report;
+	}
+
+	ExecuteResult execute(StringView stream, ExecuteFlags flags)
+	{
+		return execute_view(stream, flags);
 	}
 
 	ExecuteResult execute(int argc, char** argv, ExecuteFlags flags)
@@ -1830,4 +1781,5 @@ namespace Trinex::Console
 		etl::sort(lines.begin(), lines.end());
 		return Strings::join(lines, "\n");
 	}
+
 }// namespace Trinex::Console
