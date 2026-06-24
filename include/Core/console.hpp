@@ -19,19 +19,21 @@ namespace Trinex::Console
 	struct ValueType {
 		enum Enum : u8
 		{
-			Boolean = 0,
-			U8      = 1,
-			U16     = 2,
-			U32     = 3,
-			U64     = 4,
-			I8      = 5,
-			I16     = 6,
-			I32     = 7,
-			I64     = 8,
-			F16     = 9,
-			F32     = 10,
-			F64     = 11,
-			String  = 12,
+			Boolean        = 0,
+			U8             = 1,
+			U16            = 2,
+			U32            = 3,
+			U64            = 4,
+			I8             = 5,
+			I16            = 6,
+			I32            = 7,
+			I64            = 8,
+			F16            = 9,
+			F32            = 10,
+			F64            = 11,
+			String         = 12,
+			ReflectedEnum  = 13,
+			ReflectedFlags = 14,
 		};
 
 		trinex_enum_struct(ValueType);
@@ -223,17 +225,39 @@ namespace Trinex::Console
 			static constexpr ValueType value = ValueType::String;
 		};
 
+		template<typename Type>
+		    requires(requires {
+			    Type::is_enum;
+			    Type::is_bitfield_enum;
+			    typename Type::Enum;
+		    } && Type::is_enum && !Type::is_bitfield_enum)
+		struct VariableTypeTag<Type> {
+			static constexpr ValueType value = ValueType::ReflectedEnum;
+		};
+
+		template<typename Type>
+		    requires(requires {
+			    Type::is_enum;
+			    Type::is_bitfield_enum;
+			    typename Type::Enum;
+		    } && Type::is_enum && Type::is_bitfield_enum)
+		struct VariableTypeTag<Type> {
+			static constexpr ValueType value = ValueType::ReflectedFlags;
+		};
+
 		ENGINE_EXPORT bool parse_boolean(StringView raw_value, bool& out_value);
 		ENGINE_EXPORT bool parse_signed(StringView raw_value, i64& out_value);
 		ENGINE_EXPORT bool parse_unsigned(StringView raw_value, u64& out_value);
 		ENGINE_EXPORT bool parse_floating(StringView raw_value, f64& out_value);
 		ENGINE_EXPORT bool parse_string(StringView raw_value, String& out_value);
+		ENGINE_EXPORT bool parse_reflected_enum(StringView raw_value, Refl::Enum* reflection, bool is_bitfield, u64& out_value);
 
 		ENGINE_EXPORT String format_boolean(bool value);
 		ENGINE_EXPORT String format_signed(i64 value);
 		ENGINE_EXPORT String format_unsigned(u64 value);
 		ENGINE_EXPORT String format_floating(f64 value);
 		ENGINE_EXPORT String format_string(StringView value);
+		ENGINE_EXPORT String format_reflected_enum(Refl::Enum* reflection, u64 value, bool is_bitfield);
 		ENGINE_EXPORT String format_parse_error(StringView name, StringView raw_value);
 		ENGINE_EXPORT String format_assignment(StringView name, StringView value);
 
@@ -280,6 +304,52 @@ namespace Trinex::Console
 				out_value = static_cast<Type>(value);
 				return true;
 			}
+			else if constexpr (requires {
+				                   Type::is_enum;
+				                   Type::is_bitfield_enum;
+				                   typename Type::Enum;
+			                   } && Type::is_enum)
+			{
+				using Underlying = std::underlying_type_t<typename Type::Enum>;
+
+				if constexpr (requires { Type::is_enum_reflected; } && Type::is_enum_reflected)
+				{
+					u64 value = 0;
+					if (parse_reflected_enum(raw_value, Type::static_reflection(), Type::is_bitfield_enum, value))
+					{
+						if constexpr (Type::is_bitfield_enum)
+							out_value = Type(static_cast<Underlying>(value));
+						else
+							out_value = Type(static_cast<typename Type::Enum>(value));
+						return true;
+					}
+				}
+
+				if constexpr (std::is_signed_v<Underlying>)
+				{
+					i64 value = 0;
+					if (!parse_signed(raw_value, value))
+						return false;
+
+					if constexpr (Type::is_bitfield_enum)
+						out_value = Type(static_cast<Underlying>(value));
+					else
+						out_value = Type(static_cast<typename Type::Enum>(value));
+				}
+				else
+				{
+					u64 value = 0;
+					if (!parse_unsigned(raw_value, value))
+						return false;
+
+					if constexpr (Type::is_bitfield_enum)
+						out_value = Type(static_cast<Underlying>(value));
+					else
+						out_value = Type(static_cast<typename Type::Enum>(value));
+				}
+
+				return true;
+			}
 			else
 			{
 				static_assert(always_false_v<Type>, "Console variable type is not supported");
@@ -310,6 +380,27 @@ namespace Trinex::Console
 			else if constexpr (std::is_same_v<Type, f16> || std::is_same_v<Type, f32> || std::is_same_v<Type, f64>)
 			{
 				return format_floating(static_cast<f64>(value));
+			}
+			else if constexpr (requires {
+				                   Type::is_enum;
+				                   Type::is_bitfield_enum;
+				                   typename Type::Enum;
+			                   } && Type::is_enum)
+			{
+				using Underlying = std::underlying_type_t<typename Type::Enum>;
+
+				if constexpr (requires { Type::is_enum_reflected; } && Type::is_enum_reflected)
+				{
+					String reflected = format_reflected_enum(
+					        Type::static_reflection(), static_cast<u64>(static_cast<Underlying>(value)), Type::is_bitfield_enum);
+					if (!reflected.empty())
+						return reflected;
+				}
+
+				if constexpr (std::is_signed_v<Underlying>)
+					return format_signed(static_cast<i64>(static_cast<Underlying>(value)));
+				else
+					return format_unsigned(static_cast<u64>(static_cast<Underlying>(value)));
 			}
 			else
 			{

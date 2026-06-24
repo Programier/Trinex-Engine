@@ -3,6 +3,7 @@
 #include <Core/etl/map.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/logger.hpp>
+#include <Core/reflection/enum.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/types/path.hpp>
 #include <cctype>
@@ -29,6 +30,8 @@ namespace Trinex::Console
 			case ValueType::F32: return "f32";
 			case ValueType::F64: return "f64";
 			case ValueType::String: return "String";
+			case ValueType::ReflectedEnum: return "Enum";
+			case ValueType::ReflectedFlags: return "Flags";
 		}
 
 		return "Unknown";
@@ -575,6 +578,74 @@ namespace Trinex::Console
 			return true;
 		}
 
+		bool parse_reflected_enum(StringView raw_value, Refl::Enum* reflection, bool is_bitfield, u64& out_value)
+		{
+			if (reflection == nullptr)
+				return false;
+
+			raw_value = Strings::strip(raw_value);
+			if (raw_value.empty())
+				return false;
+
+			auto find_entry = [reflection](StringView token) -> const Refl::Enum::Entry* {
+				token = Strings::strip(token);
+				for (const auto& entry : reflection->entries())
+				{
+					if (StringView(entry.name.to_string()) == token)
+						return &entry;
+				}
+				return nullptr;
+			};
+
+			if (!is_bitfield)
+			{
+				if (const auto* entry = find_entry(raw_value))
+				{
+					out_value = static_cast<u64>(entry->value);
+					return true;
+				}
+
+				return false;
+			}
+
+			if (const auto* entry = find_entry(raw_value))
+			{
+				out_value = static_cast<u64>(entry->value);
+				return true;
+			}
+
+			u64 value = 0;
+			while (!raw_value.empty())
+			{
+				usize separator  = raw_value.find('|');
+				StringView token = separator == StringView::npos ? raw_value : raw_value.substr(0, separator);
+				token            = Strings::strip(token);
+
+				if (token.empty())
+					return false;
+
+				if (const auto* entry = find_entry(token))
+				{
+					value |= static_cast<u64>(entry->value);
+				}
+				else
+				{
+					u64 numeric = 0;
+					if (!parse_unsigned(token, numeric))
+						return false;
+					value |= numeric;
+				}
+
+				if (separator == StringView::npos)
+					break;
+
+				raw_value.remove_prefix(separator + 1);
+			}
+
+			out_value = value;
+			return true;
+		}
+
 		String format_boolean(bool value)
 		{
 			return value ? "true" : "false";
@@ -598,6 +669,46 @@ namespace Trinex::Console
 		String format_string(StringView value)
 		{
 			return String(value);
+		}
+
+		String format_reflected_enum(Refl::Enum* reflection, u64 value, bool is_bitfield)
+		{
+			if (reflection == nullptr)
+				return {};
+
+			if (const auto* entry = reflection->entry(static_cast<EnumerateType>(value)))
+				return entry->name.to_string();
+
+			if (!is_bitfield)
+				return {};
+
+			if (value == 0)
+				return {};
+
+			Vector<String> parts;
+			u64 remaining = value;
+
+			for (const auto& entry : reflection->entries())
+			{
+				const u64 entry_value = static_cast<u64>(entry.value);
+
+				if (entry_value == 0 || (entry_value & (entry_value - 1)) != 0)
+					continue;
+
+				if ((remaining & entry_value) == entry_value)
+				{
+					parts.push_back(entry.name.to_string());
+					remaining &= ~entry_value;
+				}
+			}
+
+			if (parts.empty())
+				return {};
+
+			if (remaining != 0)
+				parts.push_back(Strings::format("{}", remaining));
+
+			return Strings::join(parts, "|");
 		}
 
 		String format_parse_error(StringView name, StringView raw_value)
