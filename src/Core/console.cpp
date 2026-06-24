@@ -250,6 +250,223 @@ namespace Trinex::Console
 			return result;
 		}
 
+		static bool is_horizontal_ws(char c)
+		{
+			return c == ' ' || c == '\t' || c == '\r';
+		}
+
+		static bool is_newline(char c)
+		{
+			return c == '\n';
+		}
+
+		static bool is_symbol(char c)
+		{
+			switch (c)
+			{
+				case '(':
+				case ')':
+				case '=':
+				case ',':
+				case ';':
+				case '%': return true;
+
+				default: return false;
+			}
+		}
+
+		static StringView view_of(StringView source, std::size_t from, std::size_t to)
+		{
+			return StringView{source.data() + from, to - from};
+		}
+
+		static void advance_location(SourceLocation& location, char c)
+		{
+			++location.offset;
+
+			if (is_newline(c))
+			{
+				++location.line;
+				location.column = 1;
+			}
+			else
+			{
+				++location.column;
+			}
+		}
+
+		static void append_token(Token*& head, Token*& tail, StringView text, SourceLocation begin, SourceLocation end)
+		{
+			if (text.size() == 0)
+			{
+				return;
+			}
+
+			Token* node      = trx_stack_new Token;
+			node->identifier = text;
+			node->begin      = begin;
+			node->end        = end;
+
+			if (tail)
+			{
+				node->prev = tail;
+				tail->next = node;
+				tail       = node;
+			}
+			else
+			{
+				head = tail = node;
+			}
+		}
+
+		static Token* tokenize(StringView source)
+		{
+			Token* head = nullptr;
+			Token* tail = nullptr;
+
+			const u32 n = source.size();
+			u32 i       = 0;
+
+			SourceLocation location;
+
+			bool at_line_start = true;
+
+			auto consume = [&]() -> char {
+				char c = source[i];
+				++i;
+				advance_location(location, c);
+				return c;
+			};
+
+			while (i < n)
+			{
+				char c = source[i];
+
+				// Ignore full-line comments and section-like lines.
+				if (at_line_start)
+				{
+					u32 j = i;
+
+					while (j < n && is_horizontal_ws(source[j]))
+					{
+						++j;
+					}
+
+					if (j < n)
+					{
+						const bool ignored_line =
+						        source[j] == '#' || source[j] == '[' || (source[j] == '/' && j + 1 < n && source[j + 1] == '/');
+
+						if (ignored_line)
+						{
+							while (i < n && !is_newline(source[i]))
+							{
+								consume();
+							}
+
+							if (i < n && is_newline(source[i]))
+							{
+								consume();
+							}
+
+							at_line_start = true;
+							continue;
+						}
+					}
+				}
+
+				// Skip spaces/tabs/CR. Do not create tokens for them.
+				if (is_horizontal_ws(c))
+				{
+					consume();
+					continue;
+				}
+
+				// Skip newline. Do not create token for it.
+				if (is_newline(c))
+				{
+					consume();
+					at_line_start = true;
+					continue;
+				}
+
+				// Quoted literal.
+				if (c == '"' || c == '\'')
+				{
+					const u32 start_index               = i;
+					const SourceLocation start_location = location;
+
+					const char quote = consume();// opening quote
+
+					while (i < n)
+					{
+						char x = source[i];
+
+						if (x == '\\')
+						{
+							consume();
+
+							if (i < n)
+							{
+								consume();
+							}
+
+							continue;
+						}
+
+						if (x == quote)
+						{
+							consume();// closing quote
+							break;
+						}
+
+						consume();
+					}
+
+					append_token(head, tail, view_of(source, start_index, i), start_location, location);
+
+					at_line_start = false;
+					continue;
+				}
+
+				// One-character symbols.
+				if (is_symbol(c))
+				{
+					const u32 start_index               = i;
+					const SourceLocation start_location = location;
+
+					consume();
+
+					append_token(head, tail, view_of(source, start_index, i), start_location, location);
+
+					at_line_start = false;
+					continue;
+				}
+
+				// Regular token: identifier or bare literal chunk.
+				const u32 start_index               = i;
+				const SourceLocation start_location = location;
+
+				while (i < n)
+				{
+					char x = source[i];
+
+					if (is_horizontal_ws(x) || is_newline(x) || is_symbol(x) || x == '"' || x == '\'')
+					{
+						break;
+					}
+
+					consume();
+				}
+
+				append_token(head, tail, view_of(source, start_index, i), start_location, location);
+
+				at_line_start = false;
+			}
+
+			return head;
+		}
+
 		static bool read_identifier(StringView& input, StringView& out_identifier)
 		{
 			input = Strings::strip(input);

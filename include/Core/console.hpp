@@ -108,6 +108,21 @@ namespace Trinex::Console
 		bool show_hidden          = false;
 	};
 
+	struct SourceLocation {
+		u32 line   = 1;
+		u32 column = 1;
+		u32 offset = 0;
+	};
+
+	struct Token {
+		Token* next = nullptr;
+		Token* prev = nullptr;
+		StringView identifier;
+
+		SourceLocation begin;
+		SourceLocation end;
+	};
+
 	class Entry;
 	class Command;
 	class VariableEntry;
