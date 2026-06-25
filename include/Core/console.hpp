@@ -241,6 +241,7 @@ namespace Trinex::Console
 		ENGINE_EXPORT bool parse_unsigned(StringView value, u64& out);
 		ENGINE_EXPORT bool parse_floating(StringView value, f64& out);
 		ENGINE_EXPORT bool parse_string(StringView value, StringView& out);
+		ENGINE_EXPORT bool parse_string(StringView value, String& out);
 		ENGINE_EXPORT bool parse_reflected_enum(StringView value, Refl::Enum* reflection, u64& out_value);
 
 		ENGINE_EXPORT String format_boolean(bool value);
@@ -530,14 +531,14 @@ namespace Trinex::Console
 		const Type& get(StringView name) const;
 
 		template<typename Type>
-		bool parse_arg(Type& out_value)
+		bool parse_arg(Type& out)
 		{
 			Token* argument = nullptr;
 
 			if (!read_argument(argument))
 				return false;
 
-			return Detail::parse_value(argument, out_value);
+			return Detail::parse_value(argument, out);
 		}
 
 		template<typename Type>

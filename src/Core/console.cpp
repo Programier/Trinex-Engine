@@ -764,6 +764,17 @@ namespace Trinex::Console
 			return true;
 		}
 
+		ENGINE_EXPORT bool parse_string(StringView value, String& out)
+		{
+			StringView tmp;
+			if (parse_string(value, tmp))
+			{
+				out = tmp;
+				return true;
+			}
+			return false;
+		}
+
 		bool parse_reflected_enum(StringView value, Refl::Enum* reflection, u64& out)
 		{
 			if (reflection == nullptr)
