@@ -79,7 +79,6 @@ namespace Trinex::UI
 
 			*current = window->next;
 			widget->on_deattach(context);
-			trx_delete widget;
 			trx_delete window;
 			return;
 		}
@@ -113,7 +112,7 @@ namespace Trinex::UI
 		context.border_color     = active_context()->style.colors.border;
 		context.draw_shadow      = options.background && has_shadow_override() && shadow_visible(current_shadow());
 		context.shadow           = current_shadow();
-		g_panel_stack.push_back(context);
+		active_context()->panel_stack.push_back(context);
 		ImGui::GetWindowDrawList()->ChannelsSplit(2);
 		ImGui::GetWindowDrawList()->ChannelsSetCurrent(1);
 		return true;
@@ -121,14 +120,16 @@ namespace Trinex::UI
 
 	void end_panel()
 	{
-		trinex_assert(!g_panel_stack.empty() && "UI::end_panel() called without matching begin_panel()");
-		if (g_panel_stack.empty())
+		auto& stack = active_context()->panel_stack;
+
+		trinex_assert(!stack.empty() && "UI::end_panel() called without matching begin_panel()");
+		if (stack.empty())
 		{
 			return;
 		}
 
-		const PanelContext context = g_panel_stack.back();
-		g_panel_stack.pop_back();
+		const PanelContext context = stack.back();
+		stack.pop_back();
 
 		ImDrawList* draw = ImGui::GetWindowDrawList();
 		draw->ChannelsSetCurrent(0);
@@ -213,7 +214,8 @@ namespace Trinex::UI
 		context.blur.rounding = rounding;
 		context.shadow        = current_shadow();
 		context.shadow.color.w *= opacity;
-		g_glass_panel_stack.push_back(context);
+
+		active_context()->glass_panel_stack.push_back(context);
 		ImGui::GetWindowDrawList()->ChannelsSplit(2);
 		ImGui::GetWindowDrawList()->ChannelsSetCurrent(1);
 		return true;
@@ -221,14 +223,16 @@ namespace Trinex::UI
 
 	void end_glass_panel()
 	{
-		trinex_assert(!g_glass_panel_stack.empty() && "UI::end_glass_panel() called without matching begin_glass_panel()");
-		if (g_glass_panel_stack.empty())
+		auto& stack = active_context()->glass_panel_stack;
+		trinex_assert(!stack.empty() && "UI::end_glass_panel() called without matching begin_glass_panel()");
+
+		if (stack.empty())
 		{
 			return;
 		}
 
-		const GlassPanelContext context = g_glass_panel_stack.back();
-		g_glass_panel_stack.pop_back();
+		const GlassPanelContext context = stack.back();
+		stack.pop_back();
 
 		const ImVec2 min = ImGui::GetWindowPos();
 		const ImVec2 max = add(min, ImGui::GetWindowSize());
@@ -375,7 +379,7 @@ namespace Trinex::UI
 		context.background_color = bg;
 		context.border_color     = border;
 		context.shadow           = current_shadow();
-		g_card_stack.push_back(context);
+		active_context()->card_stack.push_back(context);
 		ImGui::GetWindowDrawList()->ChannelsSplit(2);
 		ImGui::GetWindowDrawList()->ChannelsSetCurrent(1);
 
@@ -434,14 +438,16 @@ namespace Trinex::UI
 
 	void end_card()
 	{
-		trinex_assert(!g_card_stack.empty() && "UI::end_card() called without matching begin_card()");
-		if (g_card_stack.empty())
+		auto& stack = active_context()->card_stack;
+		trinex_assert(!stack.empty() && "UI::end_card() called without matching begin_card()");
+
+		if (stack.empty())
 		{
 			return;
 		}
 
-		const CardContext context = g_card_stack.back();
-		g_card_stack.pop_back();
+		const CardContext context = stack.back();
+		stack.pop_back();
 
 		const ImVec2 min   = ImGui::GetWindowPos();
 		const ImVec2 size  = ImGui::GetWindowSize();
@@ -716,7 +722,8 @@ namespace Trinex::UI
 	{
 		ImGui::BeginDisabled(disabled);
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * (disabled ? 0.55f : 1.0f));
-		g_disabled_alpha_stack.push_back(active_context()->draw_alpha);
+		active_context()->disabled_alpha_stack.push_back(active_context()->draw_alpha);
+
 		if (disabled)
 		{
 			active_context()->draw_alpha *= 0.55f;
@@ -726,10 +733,12 @@ namespace Trinex::UI
 
 	void end_disabled()
 	{
-		if (!g_disabled_alpha_stack.empty())
+		auto& stack = active_context()->disabled_alpha_stack;
+
+		if (!stack.empty())
 		{
-			active_context()->draw_alpha = g_disabled_alpha_stack.back();
-			g_disabled_alpha_stack.pop_back();
+			active_context()->draw_alpha = stack.back();
+			stack.pop_back();
 		}
 		ImGui::PopStyleVar();
 		ImGui::EndDisabled();
@@ -761,20 +770,23 @@ namespace Trinex::UI
 		context.id                  = id;
 		context.content_start       = start;
 		context.previous_draw_alpha = active_context()->draw_alpha;
-		g_area_stack.push_back(context);
+		active_context()->area_stack.push_back(context);
 		active_context()->draw_alpha *= eased;
 		return true;
 	}
 
 	void end_animated_area()
 	{
-		if (g_area_stack.empty())
+		auto& stack = active_context()->area_stack;
+
+		if (stack.empty())
 		{
 			return;
 		}
 
-		area_context context = g_area_stack.back();
-		g_area_stack.pop_back();
+		area_context context = stack.back();
+		stack.pop_back();
+
 		const ImVec2 end            = ImGui::GetCursorScreenPos();
 		const float measured_height = std::max(0.0f, end.y - context.content_start.y);
 		AnimState& anim             = state_for(context.id);
@@ -1187,7 +1199,7 @@ namespace Trinex::UI
 	void tooltip_delayed(const char* value, float delay)
 	{
 		const ImGuiID id = ImGui::GetItemID();
-		float& time      = g_hover_time[id];
+		float& time      = active_context()->hover_time[id];
 		if (ImGui::IsItemHovered())
 		{
 			time += dt();

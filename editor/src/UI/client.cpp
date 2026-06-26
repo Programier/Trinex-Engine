@@ -110,11 +110,11 @@ namespace Trinex::UI
 
 			if (UI::begin_viewport_dockspace(options))
 			{
-				DockLayoutBuilder builder;
-				if (builder.begin(options.id, options.size, options.flags))
+				DockLayout layout;
+				if (layout.begin(options.id, options.size, options.flags))
 				{
-					setup_dockspace(builder);
-					builder.end();
+					setup_dockspace(layout);
+					layout.end();
 				}
 
 				UI::end_viewport_dockspace();
@@ -141,7 +141,7 @@ namespace Trinex::UI
 		return *this;
 	}
 
-	Client& Client::setup_dockspace(DockLayoutBuilder& builder)
+	Client& Client::setup_dockspace(DockLayout& layout)
 	{
 		return *this;
 	}

@@ -11,7 +11,6 @@
 #include <Graphics/render_pools.hpp>
 #include <Graphics/render_surface.hpp>
 #include <UI/imgui.hpp>
-#include <Widgets/content_browser.hpp>
 #include <Widgets/mesh_preview.hpp>
 #include <Widgets/property_renderer.hpp>
 #include <Window/window.hpp>
@@ -57,8 +56,8 @@ namespace Trinex
 		//m_camera->rotation({-30, 0, 0});
 		m_view.camera_view(m_camera->camera_view());
 
-		m_browser           = window()->widgets.create<ContentBrowser>();
-		m_browser->closable = false;
+		// m_browser           = window()->widgets.create<ContentBrowser>();
+		// m_browser->closable = false;
 		return *this;
 	}
 
@@ -98,7 +97,7 @@ namespace Trinex
 
 		ImGui::DockBuilderDockWindow(m_viewport->name(), dock);
 		ImGui::DockBuilderDockWindow(m_property_renderer->name(), dock_right);
-		ImGui::DockBuilderDockWindow(ContentBrowser::static_name(), dock_botton);
+		// ImGui::DockBuilderDockWindow(ContentBrowser::static_name(), dock_botton);
 		return dock;
 	}
 

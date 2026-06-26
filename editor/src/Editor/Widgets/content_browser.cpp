@@ -1,4 +1,3 @@
-#include <Clients/imgui_client.hpp>
 #include <Core/constants.hpp>
 #include <Core/filesystem/directory_iterator.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
@@ -7,18 +6,20 @@
 #include <Core/package.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
+#include <Editor/Widgets/content_browser.hpp>
 #include <Engine/project.hpp>
 #include <Graphics/texture.hpp>
 #include <RHI/static_sampler.hpp>
-#include <UI/theme.hpp>
-#include <Widgets/content_browser.hpp>
+#include <UI/api.hpp>
 #include <Widgets/imgui_windows.hpp>
+
+#include <imgui.h>
 #include <imgui_internal.h>
 #include <imgui_stacklayout.h>
 
 namespace Trinex
 {
-	ContentBrowser::ContentBrowser() : m_selected_package(Object::root_package()) {}
+	ContentBrowser::ContentBrowser() : UI::Widget(ContentBrowser::static_name()), m_selected_package(Object::root_package()) {}
 
 	void ContentBrowser::selecte_new_object(Object* object)
 	{
@@ -46,20 +47,19 @@ namespace Trinex
 	{
 		bool is_editable = (m_show_popup_for && m_show_popup_for->is_editable() && m_show_popup_for->is_serializable());
 
-
-		if (ImGui::Button("editor/Create Package"_localized))
+		if (UI::button("editor/Create Package"_localized))
 		{
-			ImGuiWindow::current()->widgets.create_identified<ImGuiCreateNewPackage>(this, m_show_popup_for);
+			//ImGuiWindow::current()->widgets.create_identified<ImGuiCreateNewPackage>(this, m_show_popup_for);
 			return false;
 		}
 
-		if (is_editable && ImGui::Button("editor/Rename"_localized))
+		if (is_editable && UI::button("editor/Rename"_localized))
 		{
-			ImGuiWindow::current()->widgets.create_identified<ImGuiRenameObject>("RenameObject", m_selected_package);
+			//ImGuiWindow::current()->widgets.create_identified<ImGuiRenameObject>("RenameObject", m_selected_package);
 			return false;
 		}
 
-		if (is_editable && ImGui::Button("editor/Save"_localized))
+		if (is_editable && UI::button("editor/Save"_localized))
 		{
 			m_show_popup_for->save();
 			return false;
@@ -167,7 +167,7 @@ namespace Trinex
 		ImGui::End();
 	}
 
-	bool ContentBrowser::render_content_item(Object* object, const ImVec2& item_size)
+	bool ContentBrowser::render_content_item(Object* object, const UI::Vec2& size)
 	{
 		bool in_filter  = filters.empty();
 		StringView name = object->name();
@@ -188,12 +188,12 @@ namespace Trinex
 		ImTextureID imgui_texture = Icons::find_icon(object);
 		imgui_texture.sampler     = RHIPointWrapSampler::static_sampler();
 
-		const float image_side_length = item_size.x * 0.93f;
+		const float image_side_length = size.x * 0.93f;
 		const ImVec2 image_size       = ImVec2(image_side_length, image_side_length);
 
 		const auto start_pos = ImGui::GetCursorScreenPos();
 
-		bool is_pressed        = ImGui::InvisibleButton("##Button", item_size, ImGuiButtonFlags_AllowOverlap);
+		bool is_pressed        = ImGui::InvisibleButton("##Button", {size.x, size.y}, ImGuiButtonFlags_AllowOverlap);
 		bool is_hovered        = ImGui::IsItemHovered();
 		bool is_double_pressed = is_hovered && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left);
 
@@ -209,10 +209,10 @@ namespace Trinex
 			}
 			else
 			{
-				if (auto client = ImGuiViewportClient::client_of(object->class_instance(), true))
-				{
-					client->select(object);
-				}
+				// if (auto client = ImGuiViewportClient::client_of(object->class_instance(), true))
+				// {
+				// 	client->select(object);
+				// }
 			}
 
 			on_object_double_click(object);
@@ -245,17 +245,18 @@ namespace Trinex
 		}
 
 		ImGui::SetCursorScreenPos(start_pos);
-		ImGui::GetWindowDrawList()->AddRectFilled(start_pos, start_pos + item_size, color, ImGui::GetStyle().FrameRounding);
+		ImGui::GetWindowDrawList()->AddRectFilled(start_pos, start_pos + ImVec2{size.x, size.y}, color,
+		                                          ImGui::GetStyle().FrameRounding);
 		{
-			float border   = (item_size.x - image_size.x) / 2.f;
+			float border   = (size.x - image_size.x) / 2.f;
 			auto image_min = start_pos + ImVec2(border, border);
 			ImGui::GetWindowDrawList()->AddImageRounded(ImTextureID(imgui_texture), image_min, image_min + image_size, {0, 0},
 			                                            {1, 1}, 0xFFFFFFFF, ImGui::GetStyle().FrameRounding);
 		}
 
-		ImGui::BeginVertical(object, item_size, 0.5);
+		ImGui::BeginVertical(object, ImVec2{size.x, size.y}, 0.5);
 		ImGui::Spring(0.f);
-		ImGui::Dummy({item_size.x, item_size.x});
+		ImGui::Dummy({size.x, size.x});
 
 		ImGui::Spring(0.f);
 
@@ -382,7 +383,7 @@ namespace Trinex
 				{
 					auto object = objects[idx];
 					ImGui::PushID(object);
-					render_content_item(object, item_size);
+					render_content_item(object, {item_size.x, item_size.y});
 					ImGui::PopID();
 				}
 				ImGui::EndHorizontal();
@@ -430,32 +431,38 @@ namespace Trinex
 		ImGui::End();
 	}
 
-	void ContentBrowser::create_dock_space()
+	void ContentBrowser::on_open()
 	{
-		m_dock_window_id = ImGui::GetID("##ContentBrowserDockSpace");
 
-		ImGui::DockSpace(m_dock_window_id, {0, 0},
-		                 ImGuiDockNodeFlags_PassthruCentralNode | ImGuiDockNodeFlags_NoUndocking | ImGuiDockNodeFlags_NoTabBar);
+		UI::DockLayout layout;
 
-		if (frame_number == 1)
+		if (layout.begin())
 		{
-			ImGui::DockBuilderRemoveNode(m_dock_window_id);
-			ImGui::DockBuilderAddNode(m_dock_window_id, ImGuiDockNodeFlags_DockSpace);
-			ImGui::DockBuilderSetNodeSize(m_dock_window_id, ImGui::GetWindowSize());
-
-			auto dock_id_left = ImGui::DockBuilderSplitNode(m_dock_window_id, ImGuiDir_Left, 0.2f, nullptr, &m_dock_window_id);
-
-			ImGui::DockBuilderDockWindow("##ContentBrowserPackages", dock_id_left);
-			ImGui::DockBuilderDockWindow("##ContentBrowserItems", m_dock_window_id);
-			ImGui::DockBuilderFinish(m_dock_window_id);
+			layout.end();
 		}
+
+		// m_dock_window_id = ImGui::GetID("##ContentBrowserDockSpace");
+
+		// ImGui::DockSpace(m_dock_window_id, {0, 0},
+		//                  ImGuiDockNodeFlags_PassthruCentralNode | ImGuiDockNodeFlags_NoUndocking | ImGuiDockNodeFlags_NoTabBar);
+
+		// if (frame_number == 1)
+		// {
+		// 	ImGui::DockBuilderRemoveNode(m_dock_window_id);
+		// 	ImGui::DockBuilderAddNode(m_dock_window_id, ImGuiDockNodeFlags_DockSpace);
+		// 	ImGui::DockBuilderSetNodeSize(m_dock_window_id, ImGui::GetWindowSize());
+
+		// 	auto dock_id_left = ImGui::DockBuilderSplitNode(m_dock_window_id, ImGuiDir_Left, 0.2f, nullptr, &m_dock_window_id);
+
+		// 	ImGui::DockBuilderDockWindow("##ContentBrowserPackages", dock_id_left);
+		// 	ImGui::DockBuilderDockWindow("##ContentBrowserItems", m_dock_window_id);
+		// 	ImGui::DockBuilderFinish(m_dock_window_id);
+		// }
 	}
 
-	bool ContentBrowser::render(RenderViewport* viewport)
+	void ContentBrowser::on_render()
 	{
 		bool open = true;
-		ImGui::Begin(name(), closable ? &open : nullptr);
-		create_dock_space();
 
 		if (ImGui::IsKeyPressed(ImGuiKey_F2, false))
 		{
@@ -467,9 +474,6 @@ namespace Trinex
 
 		render_packages();
 		render_content_window();
-
-		ImGui::End();
-		return open;
 	}
 
 	Package* ContentBrowser::selected_package() const

@@ -572,7 +572,7 @@ namespace Trinex::UI
 		const char* tooltip = nullptr;
 	};
 
-	class DockLayoutBuilder
+	class DockLayout
 	{
 	public:
 		using Dir    = DockSplitDir;
@@ -590,9 +590,9 @@ namespace Trinex::UI
 
 	public:
 		bool exists() const;
-		DockLayoutBuilder& bind(const char* id, DockID dock);
-		DockLayoutBuilder& flags(DockID dock, DockNodeFlags flags);
-		DockLayoutBuilder& flags(const char* id, DockNodeFlags flags);
+		DockLayout& bind(const char* id, DockID dock);
+		DockLayout& flags(DockID dock, DockNodeFlags flags);
+		DockLayout& flags(const char* id, DockNodeFlags flags);
 		DockID find(const char* id) const;
 		DockID require(const char* id) const;
 		bool has(const char* id) const;
@@ -605,11 +605,11 @@ namespace Trinex::UI
 
 		bool begin(Vec2 size = {}, DockNodeFlags flags = DockNodeFlags::Undefined);
 		bool begin(DockID root, Vec2 size = {}, DockNodeFlags flags = DockNodeFlags::Undefined);
-		DockLayoutBuilder& end();
+		DockLayout& end();
 
 		inline DockID root() const { return m_root; }
 		inline DockID main() const { return m_main; }
-		inline DockLayoutBuilder& main(DockID id) { trinex_this_return(m_main = id ? id : m_root); }
+		inline DockLayout& main(DockID id) { trinex_this_return(m_main = id ? id : m_root); }
 
 		inline DockID dock(const char* window_name) { return dock(window_name, m_main); }
 		inline Result split(DockSplitDir dir, float ratio, const char* id = nullptr) { return split(m_main, dir, ratio, id); }

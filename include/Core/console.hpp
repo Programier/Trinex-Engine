@@ -49,6 +49,7 @@ namespace Trinex::Console
 			Hidden        = 1 << 2,
 			Cheat         = 1 << 3,
 			DeveloperOnly = 1 << 4,
+			UI            = 1 << 5,
 		};
 
 		trinex_bitfield_enum_struct(Flags, u32);

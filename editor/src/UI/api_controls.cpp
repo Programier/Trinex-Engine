@@ -631,11 +631,13 @@ namespace Trinex::UI
 
 	bool begin_combo(const char* label, const char* preview_value, ComboFlags flags)
 	{
-		(void) flags;
+
+		auto& combo = active_context()->active_combo;
+
 		cleanup_states();
 		ImGui::PushID(label);
 		const ImGuiID id = ImGui::GetID("combo_open");
-		bool& open       = g_open[id];
+		bool& open       = active_context()->open[id];
 		AnimState& anim  = state_for(id);
 
 		const ImVec2 label_size = ImGui::CalcTextSize(visible_label(label));
@@ -647,32 +649,32 @@ namespace Trinex::UI
 		const bool active               = ImGui::IsItemActive();
 		const ImVec2 mouse              = ImGui::GetIO().MousePos;
 		const bool clicked_inside_field = point_in_rect(mouse, pos, add(pos, frame_size));
-		const bool clicked_inside_popup =
-		        g_active_combo == id && point_in_rect(mouse, g_active_combo_popup_min, g_active_combo_popup_max);
+		const bool clicked_inside_popup = combo == id && point_in_rect(mouse, active_context()->active_combo_popup_min,
+		                                                               active_context()->active_combo_popup_max);
 		if (ImGui::IsItemClicked())
 		{
 			const bool next_open = !open;
-			if (next_open && g_active_combo != 0 && g_active_combo != id)
+			if (next_open && combo != 0 && combo != id)
 			{
-				g_open[g_active_combo] = false;
+				active_context()->open[combo] = false;
 			}
-			open           = next_open;
-			g_active_combo = open ? id : 0;
+			open  = next_open;
+			combo = open ? id : 0;
 			if (open)
 			{
-				g_active_combo_field_min = pos;
-				g_active_combo_field_max = add(pos, frame_size);
+				active_context()->active_combo_field_min = pos;
+				active_context()->active_combo_field_max = add(pos, frame_size);
 			}
 		}
 		else if (open && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !clicked_inside_field && !clicked_inside_popup)
 		{
 			open = false;
-			if (g_active_combo == id)
+			if (combo == id)
 			{
-				g_active_combo = 0;
+				combo = 0;
 			}
 		}
-		else if (g_active_combo != 0 && g_active_combo != id)
+		else if (combo != 0 && combo != id)
 		{
 			open = false;
 		}
@@ -719,12 +721,13 @@ namespace Trinex::UI
 			ImGui::PushStyleColor(ImGuiCol_ChildBg, to_imvec(active_context()->style.colors.panel));
 			ImGui::PushStyleColor(ImGuiCol_Border, to_imvec(active_context()->style.colors.border));
 			ImGui::BeginChild("##combo_panel", ImVec2(width, 160.0f), true);
-			if (g_active_combo == id)
+
+			if (active_context()->active_combo == id)
 			{
-				g_active_combo_field_min = pos;
-				g_active_combo_field_max = add(pos, frame_size);
-				g_active_combo_popup_min = ImGui::GetWindowPos();
-				g_active_combo_popup_max = add(g_active_combo_popup_min, ImGui::GetWindowSize());
+				active_context()->active_combo_field_min = pos;
+				active_context()->active_combo_field_max = add(pos, frame_size);
+				active_context()->active_combo_popup_min = ImGui::GetWindowPos();
+				active_context()->active_combo_popup_max = add(active_context()->active_combo_popup_min, ImGui::GetWindowSize());
 			}
 			return true;
 		}
@@ -757,10 +760,13 @@ namespace Trinex::UI
 				{
 					*current_item = i;
 					changed       = true;
-					if (g_active_combo != 0)
+
+					auto& combo = active_context()->active_combo;
+
+					if (combo != 0)
 					{
-						g_open[g_active_combo] = false;
-						g_active_combo         = 0;
+						active_context()->open[combo] = false;
+						combo                         = 0;
 					}
 				}
 			}
@@ -776,10 +782,12 @@ namespace Trinex::UI
 		options.leaf     = true;
 		(void) flags;
 		const bool clicked = tree_leaf(label, options);
-		if (clicked && g_active_combo != 0)
+		auto& combo        = active_context()->active_combo;
+
+		if (clicked && combo != 0)
 		{
-			g_open[g_active_combo] = false;
-			g_active_combo         = 0;
+			active_context()->open[combo] = false;
+			combo                         = 0;
 		}
 		return clicked;
 	}

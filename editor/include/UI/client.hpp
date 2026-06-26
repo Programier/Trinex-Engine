@@ -5,7 +5,7 @@
 namespace Trinex::UI
 {
 	class Context;
-	class DockLayoutBuilder;
+	class DockLayout;
 
 	class Client : public ViewportClient
 	{
@@ -26,7 +26,7 @@ namespace Trinex::UI
 		Client& deattach(class RenderViewport* viewport) override;
 		Client& update(class RenderViewport* viewport, float dt) final override;
 
-		virtual Client& setup_dockspace(DockLayoutBuilder& builder);
+		virtual Client& setup_dockspace(DockLayout& layout);
 		virtual Client& select(Object* object);
 		virtual Client& update(float dt);
 

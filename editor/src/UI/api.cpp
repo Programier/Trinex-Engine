@@ -13,39 +13,36 @@ namespace Trinex::UI
 
 	void shutdown()
 	{
-		active_context()->style_stack.clear();
-		g_anim.clear();
-		g_open.clear();
-		g_hover_time.clear();
-		g_notification_y.clear();
-		g_active_combo           = 0;
-		g_active_combo_field_min = ImVec2(0.0f, 0.0f);
-		g_active_combo_field_max = ImVec2(0.0f, 0.0f);
-		g_active_combo_popup_min = ImVec2(0.0f, 0.0f);
-		g_active_combo_popup_max = ImVec2(0.0f, 0.0f);
-		g_menu_bar_style_depth   = 0;
-		g_menu_popup_style_depth = 0;
-		g_menu_alpha_depth       = 0;
-		g_table_style_depth      = 0;
-		g_tree_indent_stack.clear();
-		g_tree_stack.clear();
-		g_area_stack.clear();
-		g_panel_stack.clear();
-		g_glass_panel_stack.clear();
-		g_card_stack.clear();
-		g_shadow_stack.clear();
-		g_disabled_alpha_stack.clear();
-		g_pending_modals.clear();
-		g_pending_popups.clear();
-		g_command_palette.commands.clear();
-		g_command_palette.filtered_indices.clear();
-		g_command_palette.open                    = false;
-		g_command_palette.focus_search_next_frame = false;
-		g_command_palette.search[0]               = '\0';
-		g_command_palette.selected_index          = 0;
-		g_notifications.clear();
-		active_context()->keybind_capture = 0;
-		active_context()->draw_alpha      = 1.0f;
+		Context* context = active_context();
+
+		context->style_stack.clear();
+		context->anim.clear();
+		context->open.clear();
+		context->hover_time.clear();
+		context->notification_y.clear();
+		context->active_combo           = 0;
+		context->active_combo_field_min = ImVec2(0.0f, 0.0f);
+		context->active_combo_field_max = ImVec2(0.0f, 0.0f);
+		context->active_combo_popup_min = ImVec2(0.0f, 0.0f);
+		context->active_combo_popup_max = ImVec2(0.0f, 0.0f);
+		context->menu_bar_style_depth   = 0;
+		context->menu_popup_style_depth = 0;
+		context->menu_alpha_depth       = 0;
+		context->table_style_depth      = 0;
+		context->tree_indent_stack.clear();
+		context->tree_stack.clear();
+		context->area_stack.clear();
+		context->panel_stack.clear();
+		context->glass_panel_stack.clear();
+		context->card_stack.clear();
+		context->shadow_stack.clear();
+		context->disabled_alpha_stack.clear();
+		context->pending_modals.clear();
+		context->pending_popups.clear();
+		context->command_palette.reset();
+		context->notifications.clear();
+		context->keybind_capture = 0;
+		context->draw_alpha      = 1.0f;
 
 		destroy_list(active_context()->window_list);
 	}
@@ -92,8 +89,119 @@ namespace Trinex::UI
 	{
 		trinex_assert(g_context);
 
-		render_windows();
-		render_notifications();
+		// Render widgets
+		{
+			PersistentWindow** list = &active_context()->window_list;
+
+			while (*list)
+			{
+				PersistentWindow* window = *list;
+				Widget* widget           = window->widget;
+
+				bool open = widget->is_open();
+
+				if (open)
+				{
+					const bool visible = begin_window(widget->name().c_str(), &open, widget->options());
+
+					if (ImGui::IsWindowAppearing())
+					{
+						widget->on_open();
+					}
+
+					if (visible)
+					{
+						window->widget->on_render();
+						open = open && widget->is_open();
+						end_window();
+					}
+
+					widget->is_open(open);
+				}
+
+				list = &window->next;
+			}
+		}
+
+		// Render notifications
+
+		{
+			ImGuiViewport* viewport = ImGui::GetMainViewport();
+			const ImVec2 origin(viewport->WorkPos.x + viewport->WorkSize.x - 16.0f,
+			                    viewport->WorkPos.y + viewport->WorkSize.y - 16.0f);
+			float target_y   = origin.y;
+			ImDrawList* draw = ImGui::GetForegroundDrawList(viewport);
+
+			for (auto it = active_context()->notifications.begin(); it != active_context()->notifications.end();)
+			{
+				it->age += dt();
+				const float in_t   = Math::clamp(it->age / 0.25f, 0.f, 1.f);
+				const float out_t  = Math::clamp((it->duration - it->age) / 0.35f, 0.f, 1.f);
+				const float alpha  = Math::clamp(Math::min(in_t, out_t), 0.f, 1.f);
+				const float slide  = (1.0f - apply_ease(in_t)) * 24.0f;
+				const float width  = 320.0f;
+				const float height = (it->title.empty() ? 52.0f : 70.0f) + (it->action_label.empty() ? 0.0f : 28.0f);
+				float& animated_y  = active_context()->notification_y[it->id];
+				if (animated_y == 0.0f)
+				{
+					animated_y = target_y;
+				}
+				animated_y = approach(animated_y, target_y, active_context()->style.animation_speed);
+				const ImVec2 max(origin.x - slide, animated_y);
+				const ImVec2 min(max.x - width, animated_y - height);
+				const Vec4 accent = notification_color(it->kind);
+
+				draw->AddRectFilled(min, max, col_u32(active_context()->style.colors.panel, alpha * 0.96f),
+				                    active_context()->style.rounding);
+				draw->AddRect(min, max, col_u32(active_context()->style.colors.border, alpha), active_context()->style.rounding);
+				draw->AddRectFilled(min, ImVec2(min.x + 4.0f, max.y), col_u32(accent, alpha), active_context()->style.rounding,
+				                    ImDrawFlags_RoundCornersLeft);
+				float tx = min.x + 16.0f;
+				float ty = min.y + 12.0f;
+				if (!it->title.empty())
+				{
+					draw->AddText(ImVec2(tx, ty), col_u32(active_context()->style.colors.text, alpha), it->title.c_str());
+					ty += ImGui::GetTextLineHeight() + 5.0f;
+				}
+				draw->AddText(ImVec2(tx, ty), col_u32(active_context()->style.colors.text_muted, alpha), it->message.c_str());
+				if (!it->action_label.empty())
+				{
+					const ImVec2 button_size(ImGui::CalcTextSize(it->action_label.c_str()).x + 18.0f, 22.0f);
+					const ImVec2 button_min(max.x - button_size.x - 12.0f, max.y - button_size.y - 10.0f);
+					const ImVec2 button_max = add(button_min, button_size);
+					const bool hovered      = ImGui::IsMouseHoveringRect(button_min, button_max);
+					draw->AddRectFilled(button_min, button_max,
+					                    col_u32(hovered ? active_context()->style.colors.accent_hovered
+					                                    : active_context()->style.colors.accent,
+					                            alpha),
+					                    5.0f);
+					draw->AddText(ImVec2(button_min.x + 9.0f, button_min.y + 3.0f),
+					              col_u32(active_context()->style.colors.text, alpha), it->action_label.c_str());
+
+					if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+					{
+						if (it->action)
+						{
+							it->action();
+						}
+						active_context()->notification_y.erase(it->id);
+						it = active_context()->notifications.erase(it);
+						continue;
+					}
+				}
+				target_y += -(height + 10.0f);
+				if (it->age > it->duration)
+				{
+					active_context()->notification_y.erase(it->id);
+					it = active_context()->notifications.erase(it);
+				}
+				else
+				{
+					++it;
+				}
+			}
+		}
+
 		ImGui::Render();
 
 		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -123,17 +231,23 @@ namespace Trinex::UI
 			RHI::instance()->present(swapchain);
 		}
 
-		trinex_assert(g_shadow_stack.empty() && "UI::push_shadow()/pop_shadow() imbalance detected at end_frame()");
-		if (!g_shadow_stack.empty())
 		{
-			g_shadow_stack.clear();
+			auto& stack = active_context()->shadow_stack;
+			trinex_assert(stack.empty() && "UI::push_shadow()/pop_shadow() imbalance detected at end_frame()");
+			if (!stack.empty())
+			{
+				stack.clear();
+			}
 		}
 
-		trinex_assert(g_glass_panel_stack.empty() &&
-		              "UI::begin_glass_panel()/end_glass_panel() imbalance detected at end_frame()");
-		if (!g_glass_panel_stack.empty())
 		{
-			g_glass_panel_stack.clear();
+			auto& stack = active_context()->glass_panel_stack;
+
+			trinex_assert(stack.empty() && "UI::begin_glass_panel()/end_glass_panel() imbalance detected at end_frame()");
+			if (!stack.empty())
+			{
+				stack.clear();
+			}
 		}
 
 		active_context()->allocator.reset();
@@ -192,29 +306,34 @@ namespace Trinex::UI
 
 	void push_shadow(const Shadow& shadow)
 	{
-		g_shadow_stack.push_back(shadow);
+		active_context()->shadow_stack.push_back(shadow);
 	}
 
 	void pop_shadow()
 	{
-		trinex_assert(!g_shadow_stack.empty() && "UI::pop_shadow() called without matching push_shadow()");
-		if (!g_shadow_stack.empty())
+		auto& stack = active_context()->shadow_stack;
+
+		trinex_assert(!stack.empty() && "UI::pop_shadow() called without matching push_shadow()");
+
+		if (!stack.empty())
 		{
-			g_shadow_stack.pop_back();
+			stack.pop_back();
 		}
 	}
 
 	void push_blur(const BlurOptions& options)
 	{
-		g_blur_stack.push_back(options);
+		active_context()->blur_stack.push_back(options);
 	}
 
 	void pop_blur()
 	{
-		trinex_assert(!g_blur_stack.empty() && "UI::pop_blur() called without matching push_blur()");
-		if (!g_blur_stack.empty())
+		auto& stack = active_context()->blur_stack;
+
+		trinex_assert(!stack.empty() && "UI::pop_blur() called without matching push_blur()");
+		if (!stack.empty())
 		{
-			g_blur_stack.pop_back();
+			stack.pop_back();
 		}
 	}
 
@@ -373,12 +492,12 @@ namespace Trinex::UI
 
 	void reset_animation(ID id)
 	{
-		g_anim.erase(to_imgui_id(id));
+		active_context()->anim.erase(to_imgui_id(id));
 	}
 
 	void clear_animations()
 	{
-		g_anim.clear();
+		active_context()->anim.clear();
 	}
 
 	void push_id(const char* id)
@@ -461,12 +580,12 @@ namespace Trinex::UI
 		ImGui::DockBuilderDockWindow(window_name, to_imgui_id(dock_id));
 	}
 
-	bool DockLayoutBuilder::exists() const
+	bool DockLayout::exists() const
 	{
 		return ImGui::DockBuilderGetNode(to_imgui_id(m_root)) != nullptr;
 	}
 
-	DockLayoutBuilder& DockLayoutBuilder::bind(const char* id, DockID dock)
+	DockLayout& DockLayout::bind(const char* id, DockID dock)
 	{
 		if (!has_text(id))
 		{
@@ -489,7 +608,7 @@ namespace Trinex::UI
 		return *this;
 	}
 
-	DockID DockLayoutBuilder::find(const char* id) const
+	DockID DockLayout::find(const char* id) const
 	{
 		if (!has_text(id))
 		{
@@ -507,38 +626,38 @@ namespace Trinex::UI
 		return DockID();
 	}
 
-	DockID DockLayoutBuilder::require(const char* id) const
+	DockID DockLayout::require(const char* id) const
 	{
 		const DockID dock = find(id);
-		trinex_assert(dock && "UI::DockLayoutBuilder::require() cannot find named dock");
+		trinex_assert(dock && "UI::DockLayout::require() cannot find named dock");
 		return dock;
 	}
 
-	bool DockLayoutBuilder::has(const char* id) const
+	bool DockLayout::has(const char* id) const
 	{
 		return static_cast<bool>(find(id));
 	}
 
-	DockLayoutBuilder& DockLayoutBuilder::flags(DockID dock_id, DockNodeFlags flags)
+	DockLayout& DockLayout::flags(DockID dock_id, DockNodeFlags flags)
 	{
 		dock_builder_set_flags(dock_id, flags);
 		return *this;
 	}
 
-	DockLayoutBuilder& DockLayoutBuilder::flags(const char* id, DockNodeFlags flags)
+	DockLayout& DockLayout::flags(const char* id, DockNodeFlags flags)
 	{
 		return this->flags(require(id), flags);
 	}
 
-	DockBuilderSplitResult DockLayoutBuilder::split(DockID dock, DockSplitDir dir, float ratio, const char* id)
+	DockBuilderSplitResult DockLayout::split(DockID dock, DockSplitDir dir, float ratio, const char* id)
 	{
 		DockBuilderSplitResult result = dock_builder_split(dock, dir, ratio);
 		bind(id, result.child);
 		return result;
 	}
 
-	DockBuilderSplitResult DockLayoutBuilder::split(DockID dock, DockSplitDir dir, float ratio, const char* remainder_id,
-	                                                const char* child_id)
+	DockBuilderSplitResult DockLayout::split(DockID dock, DockSplitDir dir, float ratio, const char* remainder_id,
+	                                         const char* child_id)
 	{
 		DockBuilderSplitResult result = dock_builder_split(dock, dir, ratio);
 
@@ -552,32 +671,32 @@ namespace Trinex::UI
 		return result;
 	}
 
-	DockID DockLayoutBuilder::crop(DockID& dock, DockSplitDir dir, float ratio, const char* id)
+	DockID DockLayout::crop(DockID& dock, DockSplitDir dir, float ratio, const char* id)
 	{
 		auto result = split(dock, dir, ratio, id);
 		dock        = result.remainder;
 		return result.child;
 	}
 
-	DockID DockLayoutBuilder::crop(DockID& dock, DockSplitDir dir, float ratio, const char* remainder_id, const char* child_id)
+	DockID DockLayout::crop(DockID& dock, DockSplitDir dir, float ratio, const char* remainder_id, const char* child_id)
 	{
 		auto result = split(dock, dir, ratio, remainder_id, child_id);
 		dock        = result.remainder;
 		return result.child;
 	}
 
-	DockID DockLayoutBuilder::dock(const char* window_name, DockID dock_id)
+	DockID DockLayout::dock(const char* window_name, DockID dock_id)
 	{
 		dock_builder_dock_window(window_name, dock_id);
 		return dock_id;
 	}
 
-	DockID DockLayoutBuilder::dock(const char* window_name, const char* dock_id)
+	DockID DockLayout::dock(const char* window_name, const char* dock_id)
 	{
 		return dock(window_name, require(dock_id));
 	}
 
-	bool DockLayoutBuilder::begin(Vec2 size, DockNodeFlags flags)
+	bool DockLayout::begin(Vec2 size, DockNodeFlags flags)
 	{
 		const ImGuiID root = ImGui::GetID("##dockspace");
 
@@ -594,7 +713,7 @@ namespace Trinex::UI
 		return true;
 	}
 
-	bool DockLayoutBuilder::begin(DockID root_id, Vec2 size, DockNodeFlags flags)
+	bool DockLayout::begin(DockID root_id, Vec2 size, DockNodeFlags flags)
 	{
 		if (!root_id)
 		{
@@ -617,7 +736,7 @@ namespace Trinex::UI
 		return true;
 	}
 
-	DockLayoutBuilder& DockLayoutBuilder::end()
+	DockLayout& DockLayout::end()
 	{
 		ImGui::DockBuilderFinish(to_imgui_id(m_root));
 		return *this;
@@ -657,11 +776,11 @@ namespace Trinex::UI
 		// Dummy function. Do nothing
 	}
 
-	void dockspace(const DockLayoutOptions& options, const FunctionRef<void(DockLayoutBuilder&)>& function)
+	void dockspace(const DockLayoutOptions& options, const FunctionRef<void(DockLayout&)>& function)
 	{
 		if (begin_dockspace(options))
 		{
-			DockLayoutBuilder builder;
+			DockLayout builder;
 			if (builder.begin(options.id, options.size, options.flags))
 			{
 				function(builder);
@@ -671,16 +790,16 @@ namespace Trinex::UI
 		}
 	}
 
-	void dockspace(const FunctionRef<void(DockLayoutBuilder&)>& builder)
+	void dockspace(const FunctionRef<void(DockLayout&)>& builder)
 	{
 		dockspace({}, builder);
 	}
 
-	void viewport_dockspace(const DockLayoutOptions& options, const FunctionRef<void(DockLayoutBuilder&)>& function)
+	void viewport_dockspace(const DockLayoutOptions& options, const FunctionRef<void(DockLayout&)>& function)
 	{
 		if (begin_viewport_dockspace(options))
 		{
-			DockLayoutBuilder builder;
+			DockLayout builder;
 			if (builder.begin(options.id, options.size, options.flags))
 			{
 				function(builder);
@@ -690,7 +809,7 @@ namespace Trinex::UI
 		}
 	}
 
-	void viewport_dockspace(const FunctionRef<void(DockLayoutBuilder&)>& builder)
+	void viewport_dockspace(const FunctionRef<void(DockLayout&)>& builder)
 	{
 		viewport_dockspace({}, builder);
 	}

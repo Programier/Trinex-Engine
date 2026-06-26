@@ -9,7 +9,7 @@ namespace Trinex::UI
 		cleanup_states();
 		ImGui::PushID(label);
 		const ImGuiID id = ImGui::GetID("header_open");
-		bool& stored     = g_open[id];
+		bool& stored     = active_context()->open[id];
 		static std::unordered_map<ImGuiID, bool> initialized;
 		if (!initialized[id])
 		{
@@ -70,7 +70,7 @@ namespace Trinex::UI
 	{
 		ImGui::PushID(label);
 		const ImGuiID id = ImGui::GetID("tree_open");
-		bool& stored     = g_open[id];
+		bool& stored     = active_context()->open[id];
 		static std::unordered_map<ImGuiID, bool> initialized;
 		if (!initialized[id])
 		{
@@ -79,7 +79,8 @@ namespace Trinex::UI
 		}
 		bool open          = options.leaf ? false : (options.open != nullptr ? *options.open : stored);
 		AnimState& anim    = state_for(id);
-		const float indent = g_tree_indent_stack.empty() ? 0.0f : g_tree_indent_stack.back();
+		auto& stack        = active_context()->tree_indent_stack;
+		const float indent = stack.empty() ? 0.0f : stack.back();
 		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + indent);
 		const bool clicked = animated_row(label, options.icon, options.badge, options.selected, false,
 		                                  ImVec2(ImGui::GetContentRegionAvail().x, active_context()->style.frame_height),
@@ -130,9 +131,9 @@ namespace Trinex::UI
 			context.visible_height      = visible_height;
 			context.content_start       = content_start;
 			context.previous_draw_alpha = active_context()->draw_alpha;
-			g_tree_stack.push_back(context);
+			active_context()->tree_stack.push_back(context);
 			active_context()->draw_alpha *= eased_open;
-			g_tree_indent_stack.push_back(indent + 18.0f);
+			active_context()->tree_indent_stack.push_back(indent + 18.0f);
 			return true;
 		}
 		ImGui::PopID();
@@ -141,17 +142,20 @@ namespace Trinex::UI
 
 	void tree_pop()
 	{
-		if (g_tree_stack.empty())
+		auto& tree_stack   = active_context()->tree_stack;
+		auto& indent_stack = active_context()->tree_indent_stack;
+
+		if (tree_stack.empty())
 		{
 			return;
 		}
 
-		tree_context context = g_tree_stack.back();
-		g_tree_stack.pop_back();
+		tree_context context = tree_stack.back();
+		tree_stack.pop_back();
 
-		if (!g_tree_indent_stack.empty())
+		if (!indent_stack.empty())
 		{
-			g_tree_indent_stack.pop_back();
+			indent_stack.pop_back();
 		}
 
 		ImVec2 content_end          = ImGui::GetCursorScreenPos();
@@ -179,7 +183,8 @@ namespace Trinex::UI
 	{
 		TreeNodeOptions copy = options;
 		copy.leaf            = true;
-		const float indent   = g_tree_indent_stack.empty() ? 0.0f : g_tree_indent_stack.back();
+		auto& stack          = active_context()->tree_indent_stack;
+		const float indent   = stack.empty() ? 0.0f : stack.back();
 		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + indent);
 		return animated_row(label, copy.icon, copy.badge, copy.selected, false,
 		                    ImVec2(ImGui::GetContentRegionAvail().x, active_context()->style.frame_height), copy.accent, false,
@@ -275,7 +280,7 @@ namespace Trinex::UI
 	{
 		if (name != nullptr)
 		{
-			g_pending_modals.emplace_back(name);
+			active_context()->pending_modals.emplace_back(name);
 		}
 	}
 
@@ -306,7 +311,7 @@ namespace Trinex::UI
 	{
 		if (id != nullptr)
 		{
-			g_pending_popups.emplace_back(id);
+			active_context()->pending_popups.emplace_back(id);
 		}
 	}
 
@@ -334,7 +339,7 @@ namespace Trinex::UI
 		if (open)
 		{
 			draw_menu_bar_background();
-			++g_menu_bar_style_depth;
+			++active_context()->menu_bar_style_depth;
 		}
 		else
 		{
@@ -346,9 +351,11 @@ namespace Trinex::UI
 	void end_menu_bar()
 	{
 		ImGui::EndMenuBar();
-		if (g_menu_bar_style_depth > 0)
+		auto& depth = active_context()->menu_bar_style_depth;
+
+		if (depth > 0)
 		{
-			--g_menu_bar_style_depth;
+			--depth;
 			pop_menu_bar_colors();
 		}
 	}
@@ -360,7 +367,7 @@ namespace Trinex::UI
 		if (open)
 		{
 			draw_menu_bar_background();
-			++g_menu_bar_style_depth;
+			++active_context()->menu_bar_style_depth;
 		}
 		else
 		{
@@ -372,9 +379,11 @@ namespace Trinex::UI
 	void end_main_menu_bar()
 	{
 		ImGui::EndMainMenuBar();
-		if (g_menu_bar_style_depth > 0)
+		auto& depth = active_context()->menu_bar_style_depth;
+
+		if (depth > 0)
 		{
-			--g_menu_bar_style_depth;
+			--depth;
 			pop_menu_bar_colors();
 		}
 	}
@@ -399,8 +408,8 @@ namespace Trinex::UI
 		if (open)
 		{
 			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * apply_ease(anim.open, Ease::InOutQuad));
-			++g_menu_alpha_depth;
-			++g_menu_popup_style_depth;
+			++active_context()->menu_alpha_depth;
+			++active_context()->menu_popup_style_depth;
 		}
 		else
 		{
@@ -411,15 +420,16 @@ namespace Trinex::UI
 
 	void end_menu()
 	{
-		if (g_menu_alpha_depth > 0)
+		if (auto& depth = active_context()->menu_alpha_depth; depth > 0)
 		{
-			--g_menu_alpha_depth;
+			--depth;
 			ImGui::PopStyleVar();
 		}
+
 		ImGui::EndMenu();
-		if (g_menu_popup_style_depth > 0)
+		if (auto& depth = active_context()->menu_popup_style_depth; depth > 0)
 		{
-			--g_menu_popup_style_depth;
+			--depth;
 			pop_menu_popup_colors();
 		}
 	}
@@ -478,12 +488,26 @@ namespace Trinex::UI
 		register_command(active_context(), command);
 	}
 
+	void execute_command(StringView cmd)
+	{
+		for (RegisteredCommand& existing : active_context()->command_palette.commands)
+		{
+			if (existing.id == cmd)
+			{
+				existing.action();
+				return;
+			}
+		}
+	}
+
 	void open_command_palette()
 	{
-		g_command_palette.open                    = true;
-		g_command_palette.focus_search_next_frame = true;
-		g_command_palette.search[0]               = '\0';
-		g_command_palette.selected_index          = 0;
+		auto& palette = active_context()->command_palette;
+
+		palette.open                    = true;
+		palette.focus_search_next_frame = true;
+		palette.search[0]               = '\0';
+		palette.selected_index          = 0;
 		refresh_command_palette_results();
 	}
 
@@ -491,84 +515,81 @@ namespace Trinex::UI
 	{
 		trinex_assert(active_context() && "UI::command_palette() requires an active UI context");
 
+		auto& style   = active_context()->style;
+		auto& palette = active_context()->command_palette;
+
 		AnimState& palette_anim      = state_for(ImGui::GetID("##command_palette_popup_anim"));
 		AnimState& palette_blur_anim = state_for(ImGui::GetID("##command_palette_blur_anim"));
-		palette_anim.open =
-		        approach(palette_anim.open, g_command_palette.open ? 1.0f : 0.0f, active_context()->style.animation_speed);
-		palette_blur_anim.open = approach(palette_blur_anim.open, g_command_palette.open ? 1.0f : 0.0f,
-		                                  active_context()->style.animation_speed * 0.45f);
+		palette_anim.open            = approach(palette_anim.open, palette.open ? 1.0f : 0.0f, style.animation_speed);
+		palette_blur_anim.open = approach(palette_blur_anim.open, palette.open ? 1.0f : 0.0f, style.animation_speed * 0.45f);
 
-		if (!g_command_palette.open && palette_anim.open <= 0.0f && palette_blur_anim.open <= 0.0f)
+		if (!palette.open && palette_anim.open <= 0.0f && palette_blur_anim.open <= 0.0f)
 		{
 			return false;
 		}
 
-		if (g_command_palette.open && palette_anim.open > 0.995f)
+		if (palette.open && palette_anim.open > 0.995f)
 		{
 			palette_anim.open = 1.0f;
 		}
-		else if (!g_command_palette.open && palette_anim.open < 0.005f)
+		else if (!palette.open && palette_anim.open < 0.005f)
 		{
 			palette_anim.open = 0.0f;
 		}
-		if (g_command_palette.open && palette_blur_anim.open > 0.995f)
+		if (palette.open && palette_blur_anim.open > 0.995f)
 		{
 			palette_blur_anim.open = 1.0f;
 		}
-		else if (!g_command_palette.open && palette_blur_anim.open < 0.005f)
+		else if (!palette.open && palette_blur_anim.open < 0.005f)
 		{
 			palette_blur_anim.open = 0.0f;
 		}
 
 		const float eased_open         = apply_ease(palette_anim.open, Ease::InOutQuad);
 		const float eased_blur         = apply_ease(palette_blur_anim.open, Ease::InOutQuad);
-		const float popup_visual_alpha = g_command_palette.open ? eased_open : eased_blur;
+		const float popup_visual_alpha = palette.open ? eased_open : eased_blur;
 
 		refresh_command_palette_results();
 
 		bool execute_requested       = false;
 		int execute_registry_index   = -1;
-		bool ensure_selected_visible = g_command_palette.focus_search_next_frame;
-		const bool has_results       = !g_command_palette.filtered_indices.empty();
+		bool ensure_selected_visible = palette.focus_search_next_frame;
+		const bool has_results       = !palette.filtered_indices.empty();
 		const int page_step          = 8;
 		bool keyboard_navigation     = false;
 
 		if (ImGui::IsKeyPressed(ImGuiKey_Escape))
 		{
-			g_command_palette.open = false;
+			palette.open = false;
 		}
 		if (has_results && ImGui::IsKeyPressed(ImGuiKey_DownArrow))
 		{
-			g_command_palette.selected_index = Math::clamp(g_command_palette.selected_index + 1, 0,
-			                                               static_cast<int>(g_command_palette.filtered_indices.size()) - 1);
-			ensure_selected_visible          = true;
-			keyboard_navigation              = true;
+			palette.selected_index  = Math::clamp<u32>(palette.selected_index + 1, 0, palette.filtered_indices.size() - 1);
+			ensure_selected_visible = true;
+			keyboard_navigation     = true;
 		}
 		if (has_results && ImGui::IsKeyPressed(ImGuiKey_UpArrow))
 		{
-			g_command_palette.selected_index = Math::clamp(g_command_palette.selected_index - 1, 0,
-			                                               static_cast<int>(g_command_palette.filtered_indices.size()) - 1);
-			ensure_selected_visible          = true;
-			keyboard_navigation              = true;
+			palette.selected_index  = Math::clamp<u32>(palette.selected_index - 1, 0, palette.filtered_indices.size() - 1);
+			ensure_selected_visible = true;
+			keyboard_navigation     = true;
 		}
 		if (has_results && ImGui::IsKeyPressed(ImGuiKey_PageDown))
 		{
-			g_command_palette.selected_index = Math::clamp(g_command_palette.selected_index + page_step, 0,
-			                                               static_cast<int>(g_command_palette.filtered_indices.size()) - 1);
-			ensure_selected_visible          = true;
-			keyboard_navigation              = true;
+			palette.selected_index = Math::clamp<u32>(palette.selected_index + page_step, 0, palette.filtered_indices.size() - 1);
+			ensure_selected_visible = true;
+			keyboard_navigation     = true;
 		}
 		if (has_results && ImGui::IsKeyPressed(ImGuiKey_PageUp))
 		{
-			g_command_palette.selected_index = Math::clamp(g_command_palette.selected_index - page_step, 0,
-			                                               static_cast<int>(g_command_palette.filtered_indices.size()) - 1);
-			ensure_selected_visible          = true;
-			keyboard_navigation              = true;
+			palette.selected_index = Math::clamp<u32>(palette.selected_index - page_step, 0, palette.filtered_indices.size() - 1);
+			ensure_selected_visible = true;
+			keyboard_navigation     = true;
 		}
 		if (has_results && ImGui::IsKeyPressed(ImGuiKey_Enter))
 		{
 			execute_requested      = true;
-			execute_registry_index = g_command_palette.filtered_indices[g_command_palette.selected_index];
+			execute_registry_index = palette.filtered_indices[palette.selected_index];
 			keyboard_navigation    = true;
 		}
 
@@ -615,7 +636,7 @@ namespace Trinex::UI
 
 		if (!visible)
 		{
-			g_command_palette.open = false;
+			palette.open = false;
 			return false;
 		}
 
@@ -669,25 +690,24 @@ namespace Trinex::UI
 		}
 
 		push_input_frame_styles(1.0f);
-		if (g_command_palette.focus_search_next_frame)
+		if (palette.focus_search_next_frame)
 		{
 			ImGui::SetKeyboardFocusHere();
-			g_command_palette.focus_search_next_frame = false;
+			palette.focus_search_next_frame = false;
 		}
-		const bool search_submitted =
-		        ImGui::InputTextWithHint("##command_palette_search", "Search commands...", g_command_palette.search,
-		                                 sizeof(g_command_palette.search), ImGuiInputTextFlags_EnterReturnsTrue);
+		const bool search_submitted = ImGui::InputTextWithHint("##command_palette_search", "Search commands...", palette.search,
+		                                                       sizeof(palette.search), ImGuiInputTextFlags_EnterReturnsTrue);
 		pop_input_frame_styles();
 		if (ImGui::IsItemEdited())
 		{
-			g_command_palette.selected_index = 0;
+			palette.selected_index = 0;
 			refresh_command_palette_results();
 		}
 
 		if (!execute_requested && search_submitted && has_results)
 		{
 			execute_requested      = true;
-			execute_registry_index = g_command_palette.filtered_indices[g_command_palette.selected_index];
+			execute_registry_index = palette.filtered_indices[palette.selected_index];
 		}
 
 		ImGui::Spacing();
@@ -716,11 +736,10 @@ namespace Trinex::UI
 		}
 		else
 		{
-			for (int visible_index = 0; visible_index < static_cast<int>(g_command_palette.filtered_indices.size());
-			     ++visible_index)
+			for (int visible_index = 0; visible_index < static_cast<int>(palette.filtered_indices.size()); ++visible_index)
 			{
-				const RegisteredCommand& command = g_command_palette.commands[g_command_palette.filtered_indices[visible_index]];
-				const bool selected              = visible_index == g_command_palette.selected_index;
+				const RegisteredCommand& command = palette.commands[palette.filtered_indices[visible_index]];
+				const bool selected              = visible_index == palette.selected_index;
 				const bool enabled               = static_cast<bool>(command.action);
 				const bool has_icon              = !command.icon.empty();
 				const bool has_desc              = !command.description.empty();
@@ -738,12 +757,12 @@ namespace Trinex::UI
 				        ((mouse_delta.x != 0.0f || mouse_delta.y != 0.0f) || ImGui::IsMouseClicked(ImGuiMouseButton_Left));
 				if (mouse_selects_row)
 				{
-					g_command_palette.selected_index = visible_index;
+					palette.selected_index = visible_index;
 				}
 				if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && enabled)
 				{
 					execute_requested      = true;
-					execute_registry_index = g_command_palette.filtered_indices[visible_index];
+					execute_registry_index = palette.filtered_indices[visible_index];
 				}
 				if (selected && ensure_selected_visible)
 				{
@@ -799,7 +818,7 @@ namespace Trinex::UI
 				}
 				ImGui::PopID();
 
-				if (visible_index + 1 < static_cast<int>(g_command_palette.filtered_indices.size()))
+				if (visible_index + 1 < palette.filtered_indices.size())
 				{
 					ImGui::Dummy(ImVec2(0.0f, spacing * 0.35f));
 				}
@@ -808,7 +827,7 @@ namespace Trinex::UI
 
 		ImGui::EndChild();
 
-		if (!g_command_palette.open && palette_anim.open <= 0.0f && palette_blur_anim.open <= 0.0f)
+		if (!palette.open && palette_anim.open <= 0.0f && palette_blur_anim.open <= 0.0f)
 		{
 			ImGui::CloseCurrentPopup();
 		}
@@ -820,14 +839,14 @@ namespace Trinex::UI
 		active_context()->draw_alpha = previous_draw_alpha;
 		ImGui::EndPopup();
 
-		if (execute_requested && execute_registry_index >= 0 &&
-		    execute_registry_index < static_cast<int>(g_command_palette.commands.size()))
+		if (execute_requested && execute_registry_index >= 0 && execute_registry_index < palette.commands.size())
 		{
-			Function<void()> action = g_command_palette.commands[execute_registry_index].action;
+			Action& action = palette.commands[execute_registry_index].action;
+
 			if (action)
 			{
-				g_command_palette.open                    = false;
-				g_command_palette.focus_search_next_frame = false;
+				palette.open                    = false;
+				palette.focus_search_next_frame = false;
 				ImGui::CloseCurrentPopup();
 				action();
 				return true;
@@ -874,7 +893,7 @@ namespace Trinex::UI
 		n.duration     = std::max(0.1f, options.duration);
 		n.action_label = options.action_label != nullptr ? options.action_label : "";
 		n.action       = options.action;
-		g_notifications.push_back(std::move(n));
+		active_context()->notifications.push_back(std::move(n));
 	}
 
 	ConfirmResult confirmation(const char* title, const char* message, const char* confirm_text, const char* cancel_text,
@@ -1034,7 +1053,7 @@ namespace Trinex::UI
 		const bool open = ImGui::BeginTable(id, columns, to_imgui_table_flags(flags), to_imvec(outer_size), inner_width);
 		if (open)
 		{
-			++g_table_style_depth;
+			++active_context()->table_style_depth;
 		}
 		else
 		{
@@ -1047,9 +1066,9 @@ namespace Trinex::UI
 	void end_table()
 	{
 		ImGui::EndTable();
-		if (g_table_style_depth > 0)
+		if (auto& depth = active_context()->table_style_depth; depth > 0)
 		{
-			--g_table_style_depth;
+			--depth;
 			ImGui::PopStyleColor(5);
 			ImGui::PopStyleVar(2);
 		}

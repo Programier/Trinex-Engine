@@ -1,10 +1,12 @@
 #pragma once
 #include <Core/callback.hpp>
-#include <UI/imgui.hpp>
+#include <UI/types.hpp>
 
 namespace Trinex
 {
-	class ContentBrowser : public ImGuiWidget
+	class Package;
+
+	class ContentBrowser : public UI::Widget
 	{
 	private:
 		void selecte_new_object(Object* object);
@@ -15,15 +17,13 @@ namespace Trinex
 		void render_package_popup();
 		void render_packages();
 
-		bool render_content_item(Object* object, const ImVec2& item_size);
+		bool render_content_item(Object* object, const UI::Vec2& size);
 		void render_content_window();
-
-		void create_dock_space();
 
 		String m_new_object_name;
 		Package* m_show_popup_for   = nullptr;
 		Package* m_selected_package = nullptr;
-		ImGuiID m_dock_window_id;
+		UI::ID m_dock_window_id;
 		bool m_is_renaming : 1 = false;
 
 
@@ -35,7 +35,8 @@ namespace Trinex
 		class Object* selected_object = nullptr;
 
 		ContentBrowser();
-		bool render(RenderViewport* viewport) override;
+		void on_open() override;
+		void on_render() override;
 		Package* selected_package() const;
 
 		virtual const char* name() const;

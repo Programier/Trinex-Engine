@@ -18,7 +18,6 @@
 #include <Graphics/render_surface.hpp>
 #include <Graphics/shader_compiler.hpp>
 #include <RHI/rhi.hpp>
-#include <Widgets/content_browser.hpp>
 #include <Widgets/mesh_preview.hpp>
 #include <Widgets/property_renderer.hpp>
 #include <Window/window.hpp>
@@ -114,8 +113,8 @@ namespace Trinex
 
 	MaterialEditorClient& MaterialEditorClient::create_content_browser()
 	{
-		m_content_browser = window()->widgets.create<ContentBrowser>();
-		m_content_browser->on_close.push([this]() { m_content_browser = nullptr; });
+		// m_content_browser = window()->widgets.create<ContentBrowser>();
+		// m_content_browser->on_close.push([this]() { m_content_browser = nullptr; });
 		return *this;
 	}
 
@@ -191,7 +190,7 @@ namespace Trinex
 		auto preview    = ImGui::DockBuilderSplitNode(properties, ImGuiDir_Up, 0.3f, nullptr, &properties);
 		auto content    = ImGui::DockBuilderSplitNode(dock, ImGuiDir_Down, 0.3f, nullptr, &dock);
 
-		ImGui::DockBuilderDockWindow(ContentBrowser::static_name(), content);
+		// ImGui::DockBuilderDockWindow(ContentBrowser::static_name(), content);
 		ImGui::DockBuilderDockWindow(ImGuiMaterialPreview::static_name(), preview);
 		ImGui::DockBuilderDockWindow(PropertyRenderer::static_name(), properties);
 		ImGui::DockBuilderDockWindow("###Material Source", dock);

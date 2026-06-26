@@ -7,6 +7,7 @@
 #include <Core/types/path.hpp>
 #include <Engine/Render/pipelines.hpp>
 #include <Graphics/render_pools.hpp>
+#include <Graphics/render_viewport.hpp>
 #include <IconsLucide.h>
 #include <RHI/context.hpp>
 #include <RHI/handles.hpp>
@@ -26,9 +27,6 @@
 #include <imgui_stacklayout.h>
 #include <limits>
 #include <unordered_map>
-#include <utility>
-
-#include <Graphics/render_viewport.hpp>
 
 namespace Trinex::UI
 {
@@ -234,9 +232,19 @@ namespace Trinex::UI
 		bool open                    = false;
 		bool focus_search_next_frame = false;
 		char search[256]             = {};
-		int selected_index           = 0;
+		u32 selected_index           = 0;
 		Vector<RegisteredCommand> commands;
 		Vector<int> filtered_indices;
+
+		inline void reset()
+		{
+			commands.clear();
+			filtered_indices.clear();
+			open                    = false;
+			focus_search_next_frame = false;
+			search[0]               = '\0';
+			selected_index          = 0;
+		}
 	};
 
 	struct Context {
@@ -403,33 +411,6 @@ namespace Trinex::UI
 			return ctx->fonts[font_family_index(family)][font_size_index(size)];
 		}
 
-#define g_anim active_context()->anim
-#define g_open active_context()->open
-#define g_hover_time active_context()->hover_time
-#define g_notification_y active_context()->notification_y
-#define g_active_combo active_context()->active_combo
-#define g_active_combo_field_min active_context()->active_combo_field_min
-#define g_active_combo_field_max active_context()->active_combo_field_max
-#define g_active_combo_popup_min active_context()->active_combo_popup_min
-#define g_active_combo_popup_max active_context()->active_combo_popup_max
-#define g_menu_bar_style_depth active_context()->menu_bar_style_depth
-#define g_menu_popup_style_depth active_context()->menu_popup_style_depth
-#define g_menu_alpha_depth active_context()->menu_alpha_depth
-#define g_table_style_depth active_context()->table_style_depth
-#define g_tree_indent_stack active_context()->tree_indent_stack
-#define g_tree_stack active_context()->tree_stack
-#define g_area_stack active_context()->area_stack
-#define g_panel_stack active_context()->panel_stack
-#define g_glass_panel_stack active_context()->glass_panel_stack
-#define g_card_stack active_context()->card_stack
-#define g_shadow_stack active_context()->shadow_stack
-#define g_blur_stack active_context()->blur_stack
-#define g_disabled_alpha_stack active_context()->disabled_alpha_stack
-#define g_pending_modals active_context()->pending_modals
-#define g_pending_popups active_context()->pending_popups
-#define g_command_palette active_context()->command_palette
-#define g_notifications active_context()->notifications
-
 		float dt()
 		{
 			return std::max(0.0f, ImGui::GetIO().DeltaTime);
@@ -534,7 +515,7 @@ namespace Trinex::UI
 
 		AnimState& state_for(ImGuiID id)
 		{
-			AnimState& state = g_anim[id];
+			AnimState& state = active_context()->anim[id];
 
 			usize last       = state.last_frame;
 			state.last_frame = ImGui::GetFrameCount();
@@ -554,11 +535,13 @@ namespace Trinex::UI
 			}
 
 			active_context()->last_cleanup_frame = frame;
-			for (auto it = g_anim.begin(); it != g_anim.end();)
+
+			auto& anim = active_context()->anim;
+			for (auto it = anim.begin(); it != anim.end();)
 			{
 				if (frame - it->second.last_frame > 1200)
 				{
-					it = g_anim.erase(it);
+					it = anim.erase(it);
 				}
 				else
 				{
@@ -1012,50 +995,52 @@ namespace Trinex::UI
 
 		void refresh_command_palette_results()
 		{
-			g_command_palette.filtered_indices.clear();
-			const bool has_query = has_text(g_command_palette.search);
+			auto& palette = active_context()->command_palette;
 
-			for (int i = 0; i < static_cast<int>(g_command_palette.commands.size()); ++i)
+			palette.filtered_indices.clear();
+			const bool has_query = has_text(palette.search);
+
+			for (usize i = 0, count = palette.commands.size(); i < count; ++i)
 			{
-				if (command_match_score(g_command_palette.commands[i], g_command_palette.search) >= 0)
+				if (command_match_score(palette.commands[i], palette.search) >= 0)
 				{
-					g_command_palette.filtered_indices.push_back(i);
+					palette.filtered_indices.push_back(i);
 				}
 			}
 
 			if (has_query)
 			{
-				std::stable_sort(g_command_palette.filtered_indices.begin(), g_command_palette.filtered_indices.end(),
-				                 [](int a, int b) {
-					                 return command_match_score(g_command_palette.commands[a], g_command_palette.search) >
-					                        command_match_score(g_command_palette.commands[b], g_command_palette.search);
-				                 });
+				std::stable_sort(palette.filtered_indices.begin(), palette.filtered_indices.end(), [&palette](int a, int b) {
+					return command_match_score(palette.commands[a], palette.search) >
+					       command_match_score(palette.commands[b], palette.search);
+				});
 			}
 
-			if (g_command_palette.filtered_indices.empty())
+			if (palette.filtered_indices.empty())
 			{
-				g_command_palette.selected_index = 0;
+				palette.selected_index = 0;
 			}
 			else
 			{
-				g_command_palette.selected_index = Math::clamp(g_command_palette.selected_index, 0,
-				                                               static_cast<int>(g_command_palette.filtered_indices.size()) - 1);
+				palette.selected_index = Math::clamp<u32>(palette.selected_index, 0, palette.filtered_indices.size() - 1);
 			}
 		}
 
 		const Shadow& current_shadow()
 		{
-			return g_shadow_stack.empty() ? active_context()->style.shadow : g_shadow_stack.back();
+			auto& stack = active_context()->shadow_stack;
+			return stack.empty() ? active_context()->style.shadow : stack.back();
 		}
 
 		const BlurOptions& current_blur()
 		{
-			return g_blur_stack.empty() ? active_context()->style.blur : g_blur_stack.back();
+			auto& stack = active_context()->blur_stack;
+			return stack.empty() ? active_context()->style.blur : stack.back();
 		}
 
 		bool has_shadow_override()
 		{
-			return !g_shadow_stack.empty();
+			return !active_context()->shadow_stack.empty();
 		}
 
 		bool shadow_visible(const Shadow& shadow)
@@ -1203,11 +1188,13 @@ namespace Trinex::UI
 				return false;
 			}
 
-			for (auto it = g_pending_modals.begin(); it != g_pending_modals.end(); ++it)
+			auto& modals = active_context()->pending_modals;
+
+			for (auto it = modals.begin(); it != modals.end(); ++it)
 			{
 				if (*it == name)
 				{
-					g_pending_modals.erase(it);
+					modals.erase(it);
 					return true;
 				}
 			}
@@ -1221,11 +1208,13 @@ namespace Trinex::UI
 				return false;
 			}
 
-			for (auto it = g_pending_popups.begin(); it != g_pending_popups.end(); ++it)
+			auto& popups = active_context()->pending_popups;
+
+			for (auto it = popups.begin(); it != popups.end(); ++it)
 			{
 				if (*it == name)
 				{
-					g_pending_popups.erase(it);
+					popups.erase(it);
 					return true;
 				}
 			}
@@ -1474,117 +1463,6 @@ namespace Trinex::UI
 		{
 			ImGui::PopStyleColor(10);
 			ImGui::PopStyleVar(5);
-		}
-
-		void render_notifications()
-		{
-			ImGuiViewport* viewport = ImGui::GetMainViewport();
-			const ImVec2 origin(viewport->WorkPos.x + viewport->WorkSize.x - 16.0f,
-			                    viewport->WorkPos.y + viewport->WorkSize.y - 16.0f);
-			float target_y   = origin.y;
-			ImDrawList* draw = ImGui::GetForegroundDrawList(viewport);
-
-			for (auto it = g_notifications.begin(); it != g_notifications.end();)
-			{
-				it->age += dt();
-				const float in_t   = Math::clamp(it->age / 0.25f, 0.f, 1.f);
-				const float out_t  = Math::clamp((it->duration - it->age) / 0.35f, 0.f, 1.f);
-				const float alpha  = Math::clamp(Math::min(in_t, out_t), 0.f, 1.f);
-				const float slide  = (1.0f - apply_ease(in_t)) * 24.0f;
-				const float width  = 320.0f;
-				const float height = (it->title.empty() ? 52.0f : 70.0f) + (it->action_label.empty() ? 0.0f : 28.0f);
-				float& animated_y  = g_notification_y[it->id];
-				if (animated_y == 0.0f)
-				{
-					animated_y = target_y;
-				}
-				animated_y = approach(animated_y, target_y, active_context()->style.animation_speed);
-				const ImVec2 max(origin.x - slide, animated_y);
-				const ImVec2 min(max.x - width, animated_y - height);
-				const Vec4 accent = notification_color(it->kind);
-
-				draw->AddRectFilled(min, max, col_u32(active_context()->style.colors.panel, alpha * 0.96f),
-				                    active_context()->style.rounding);
-				draw->AddRect(min, max, col_u32(active_context()->style.colors.border, alpha), active_context()->style.rounding);
-				draw->AddRectFilled(min, ImVec2(min.x + 4.0f, max.y), col_u32(accent, alpha), active_context()->style.rounding,
-				                    ImDrawFlags_RoundCornersLeft);
-				float tx = min.x + 16.0f;
-				float ty = min.y + 12.0f;
-				if (!it->title.empty())
-				{
-					draw->AddText(ImVec2(tx, ty), col_u32(active_context()->style.colors.text, alpha), it->title.c_str());
-					ty += ImGui::GetTextLineHeight() + 5.0f;
-				}
-				draw->AddText(ImVec2(tx, ty), col_u32(active_context()->style.colors.text_muted, alpha), it->message.c_str());
-				if (!it->action_label.empty())
-				{
-					const ImVec2 button_size(ImGui::CalcTextSize(it->action_label.c_str()).x + 18.0f, 22.0f);
-					const ImVec2 button_min(max.x - button_size.x - 12.0f, max.y - button_size.y - 10.0f);
-					const ImVec2 button_max = add(button_min, button_size);
-					const bool hovered      = ImGui::IsMouseHoveringRect(button_min, button_max);
-					draw->AddRectFilled(button_min, button_max,
-					                    col_u32(hovered ? active_context()->style.colors.accent_hovered
-					                                    : active_context()->style.colors.accent,
-					                            alpha),
-					                    5.0f);
-					draw->AddText(ImVec2(button_min.x + 9.0f, button_min.y + 3.0f),
-					              col_u32(active_context()->style.colors.text, alpha), it->action_label.c_str());
-
-					if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-					{
-						if (it->action)
-						{
-							it->action();
-						}
-						g_notification_y.erase(it->id);
-						it = g_notifications.erase(it);
-						continue;
-					}
-				}
-				target_y += -(height + 10.0f);
-				if (it->age > it->duration)
-				{
-					g_notification_y.erase(it->id);
-					it = g_notifications.erase(it);
-				}
-				else
-				{
-					++it;
-				}
-			}
-		}
-
-		void render_windows()
-		{
-			PersistentWindow** list = &active_context()->window_list;
-
-			while (*list)
-			{
-				PersistentWindow* window = *list;
-				Widget* widget           = window->widget;
-
-				bool open = widget->is_open();
-
-				if (open)
-				{
-					const bool visible = begin_window(widget->name().c_str(), &open, widget->options());
-
-					if (ImGui::IsWindowAppearing())
-					{
-						widget->on_open();
-					}
-
-					if (visible)
-					{
-						window->widget->on_render();
-						end_window();
-					}
-
-					widget->is_open(open);
-				}
-
-				list = &window->next;
-			}
 		}
 	}// namespace
 }// namespace Trinex::UI

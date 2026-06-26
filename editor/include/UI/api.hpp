@@ -59,10 +59,10 @@ namespace Trinex::UI
 	bool begin_viewport_dockspace(const DockLayoutOptions& options = {});
 	void end_viewport_dockspace();
 
-	void dockspace(const DockLayoutOptions& options, const FunctionRef<void(DockLayoutBuilder&)>& builder);
-	void dockspace(const FunctionRef<void(DockLayoutBuilder&)>& builder);
-	void viewport_dockspace(const DockLayoutOptions& options, const FunctionRef<void(DockLayoutBuilder&)>& builder);
-	void viewport_dockspace(const FunctionRef<void(DockLayoutBuilder&)>& builder);
+	void dockspace(const DockLayoutOptions& options, const FunctionRef<void(DockLayout&)>& builder);
+	void dockspace(const FunctionRef<void(DockLayout&)>& builder);
+	void viewport_dockspace(const DockLayoutOptions& options, const FunctionRef<void(DockLayout&)>& builder);
+	void viewport_dockspace(const FunctionRef<void(DockLayout&)>& builder);
 
 	/////////////////////// WINDOWS AND CONTAINERS ///////////////////////
 	bool begin_window(const char* name, bool* open = nullptr, const WindowOptions& options = {});
@@ -269,6 +269,7 @@ namespace Trinex::UI
 	bool menu_item(const char* label, const char* shortcut, bool* selected, bool enabled = true);
 	void register_command(Context* context, const Command& command);
 	void register_command(const Command& command);
+	void execute_command(StringView cmd);
 	void open_command_palette();
 	bool command_palette();
 

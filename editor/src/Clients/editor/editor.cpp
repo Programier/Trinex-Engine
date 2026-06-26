@@ -27,7 +27,6 @@
 #include <RHI/static_sampler.hpp>
 #include <UI/imgui.hpp>
 #include <UI/theme.hpp>
-#include <Widgets/content_browser.hpp>
 #include <Widgets/imgui_windows.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
@@ -256,24 +255,24 @@ namespace Trinex
 			ImGui::SliderFloat("Screen Percentage", &Settings::screen_percentage, 0.f, 2.f);
 		});
 
-		menu_bar.create("editor/Import")->actions.push([this]() {
-			bool enable_import = m_content_browser && m_content_browser->selected_package() != nullptr;
-			if (ImGui::MenuItem("editor/Import resource"_localized,
-			                    "editor/Import resource from file to selected package"_localized, false, enable_import))
-			{
-				Package* package = m_content_browser->selected_package();
-				window()->widgets.create<ImGuiOpenFile>()->on_select.push(
-				        [package](const Path& path) { Importer::import_scene(package, path); });
-			}
+		// menu_bar.create("editor/Import")->actions.push([this]() {
+		// 	bool enable_import = m_content_browser && m_content_browser->selected_package() != nullptr;
+		// 	if (ImGui::MenuItem("editor/Import resource"_localized,
+		// 	                    "editor/Import resource from file to selected package"_localized, false, enable_import))
+		// 	{
+		// 		Package* package = m_content_browser->selected_package();
+		// 		window()->widgets.create<ImGuiOpenFile>()->on_select.push(
+		// 		        [package](const Path& path) { Importer::import_scene(package, path); });
+		// 	}
 
-			if (ImGui::MenuItem("editor/Import scene"_localized, "editor/Import scene from file to world"_localized, false,
-			                    enable_import))
-			{
-				Package* package = m_content_browser->selected_package();
-				window()->widgets.create<ImGuiOpenFile>()->on_select.push(
-				        [package, world = m_world](const Path& path) { Importer::import_scene(package, path, world); });
-			}
-		});
+		// 	if (ImGui::MenuItem("editor/Import scene"_localized, "editor/Import scene from file to world"_localized, false,
+		// 	                    enable_import))
+		// 	{
+		// 		Package* package = m_content_browser->selected_package();
+		// 		window()->widgets.create<ImGuiOpenFile>()->on_select.push(
+		// 		        [package, world = m_world](const Path& path) { Importer::import_scene(package, path, world); });
+		// 	}
+		// });
 
 		menu_bar.create("")->actions.push([this]() {
 			ImGui::Text("FPS: %.2f\n", 1.f / m_dt.average());
@@ -286,8 +285,8 @@ namespace Trinex
 
 	EditorClientOLD& EditorClientOLD::create_content_browser()
 	{
-		m_content_browser = window()->widgets.create<ContentBrowser>();
-		m_content_browser->on_close.push([this]() { m_content_browser = nullptr; });
+		// m_content_browser = window()->widgets.create<ContentBrowser>();
+		// m_content_browser->on_close.push([this]() { m_content_browser = nullptr; });
 		return *this;
 	}
 
@@ -812,7 +811,7 @@ namespace Trinex
 		auto dock_id_right_down = ImGui::DockBuilderSplitNode(dock_id_right, ImGuiDir_Down, 0.5f, nullptr, &dock_id_right);
 		auto dock_id_down       = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Down, 0.25f, nullptr, &dock_id);
 
-		ImGui::DockBuilderDockWindow(ContentBrowser::static_name(), dock_id_down);
+		// ImGui::DockBuilderDockWindow(ContentBrowser::static_name(), dock_id_down);
 		ImGui::DockBuilderDockWindow(PropertyRenderer::static_name(), dock_id_right_up);
 		ImGui::DockBuilderDockWindow(ImGuiLevelExplorer::static_name(), dock_id_right_down);
 		ImGui::DockBuilderDockWindow(Object::localize("editor/Viewport").c_str(), dock_id);
