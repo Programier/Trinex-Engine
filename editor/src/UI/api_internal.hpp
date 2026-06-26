@@ -1134,7 +1134,13 @@ namespace Trinex::UI
 			const ImVec2 base_min(min.x + offset.x - shadow.spread, min.y + offset.y - shadow.spread);
 			const ImVec2 base_max(max.x + offset.x + shadow.spread, max.y + offset.y + shadow.spread);
 			const float base_rounding = std::max(0.0f, rounding + shadow.spread);
-			draw->PushClipRectFullScreen();
+			const float blur          = Math::clamp(shadow.blur, 0.0f, 48.0f);
+			const float blur_extent   = blur * 0.55f;
+			const ImVec2 clip_min(Math::max(draw->GetClipRectMin().x, base_min.x - blur_extent),
+			                      Math::max(draw->GetClipRectMin().y, base_min.y - blur_extent));
+			const ImVec2 clip_max(Math::min(draw->GetClipRectMax().x, base_max.x + blur_extent),
+			                      Math::min(draw->GetClipRectMax().y, base_max.y + blur_extent));
+			draw->PushClipRect(clip_min, clip_max, false);
 
 			if (shadow.blur <= 0.0f)
 			{
@@ -1143,8 +1149,7 @@ namespace Trinex::UI
 				return;
 			}
 
-			const float blur = Math::clamp(shadow.blur, 0.0f, 48.0f);
-			const int layers = Math::clamp(static_cast<int>(std::ceil(blur / 4.0f)), 2, 10);
+			const int layers = Math::clamp(static_cast<i32>(std::ceil(blur / 4.0f)), 2, 10);
 			for (int i = layers - 1; i >= 0; --i)
 			{
 				const float t     = static_cast<float>(i + 1) / static_cast<float>(layers);
