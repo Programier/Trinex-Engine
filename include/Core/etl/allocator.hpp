@@ -102,7 +102,6 @@ namespace Trinex
 		}
 	};
 
-
 	template<typename T, typename U, typename Type>
 	inline bool operator==(const TypedAllocator<T, Type>&, const TypedAllocator<U, Type>&)
 	{

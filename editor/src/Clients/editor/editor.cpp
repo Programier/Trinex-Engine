@@ -43,10 +43,10 @@ namespace Trinex
 		class EditorPointerListener final : public EventListener
 		{
 		private:
-			EditorClient* m_owner = nullptr;
+			EditorClientOLD* m_owner = nullptr;
 
 		public:
-			explicit EditorPointerListener(EditorClient* owner) : m_owner(owner) {}
+			explicit EditorPointerListener(EditorClientOLD* owner) : m_owner(owner) {}
 
 			EventDispatchResult on_event(RoutedEvent& event) override
 			{
@@ -79,13 +79,13 @@ namespace Trinex
 		                                   ->entry(static_cast<EnumerateType>(ViewMode::Lit));
 	}
 
-	trinex_implement_engine_class(EditorClient, 0)
+	trinex_implement_engine_class(EditorClientOLD, 0)
 	{
 		register_client(Actor::static_reflection(), static_reflection());
 		register_client(Level::static_reflection(), static_reflection());
 	}
 
-	void EditorClient::Stats::Pipeline::update()
+	void EditorClientOLD::Stats::Pipeline::update()
 	{
 		RHIPipelineStatistics* last = m_last;
 		auto stats_pool             = RHIPipelineStatisticsPool::global_instance();
@@ -109,7 +109,7 @@ namespace Trinex
 		}
 	}
 
-	void EditorClient::Stats::Pipeline::submit()
+	void EditorClientOLD::Stats::Pipeline::submit()
 	{
 		if (!m_pool.empty())
 		{
@@ -119,14 +119,14 @@ namespace Trinex
 		}
 	}
 
-	RHIPipelineStatistics* EditorClient::Stats::Pipeline::new_frame()
+	RHIPipelineStatistics* EditorClientOLD::Stats::Pipeline::new_frame()
 	{
 		auto& frame = m_pool.emplace_back();
 		frame.stats = RHIPipelineStatisticsPool::global_instance()->acquire();
 		return frame.stats;
 	}
 
-	EditorClient::Stats::Pipeline::~Pipeline()
+	EditorClientOLD::Stats::Pipeline::~Pipeline()
 	{
 		if (m_last)
 		{
@@ -135,7 +135,7 @@ namespace Trinex
 	}
 
 
-	void EditorClient::Stats::Timings::Frame::clear()
+	void EditorClientOLD::Stats::Timings::Frame::clear()
 	{
 		if (fence)
 		{
@@ -156,12 +156,12 @@ namespace Trinex
 		queries.clear();
 	}
 
-	EditorClient::Stats::Timings::Frame::~Frame()
+	EditorClientOLD::Stats::Timings::Frame::~Frame()
 	{
 		clear();
 	}
 
-	void EditorClient::Stats::Timings::update()
+	void EditorClientOLD::Stats::Timings::update()
 	{
 		while (!m_frames.empty() && m_frames.front().fence->is_signaled())
 		{
@@ -177,7 +177,7 @@ namespace Trinex
 		}
 	}
 
-	void EditorClient::Stats::Timings::submit()
+	void EditorClientOLD::Stats::Timings::submit()
 	{
 		if (!m_frames.empty())
 		{
@@ -191,7 +191,7 @@ namespace Trinex
 		}
 	}
 
-	Vector<EditorClient::Stats::TimingQuery>& EditorClient::Stats::Timings::new_frame()
+	Vector<EditorClientOLD::Stats::TimingQuery>& EditorClientOLD::Stats::Timings::new_frame()
 	{
 		if (!m_frames.empty())
 		{
@@ -204,7 +204,7 @@ namespace Trinex
 		return frame.queries;
 	}
 
-	EditorClient::EditorClient()
+	EditorClientOLD::EditorClientOLD()
 	{
 		m_guizmo_operation = ImGuizmo::OPERATION::UNIVERSAL;
 		m_guizmo_mode      = ImGuizmo::MODE::WORLD;
@@ -284,28 +284,28 @@ namespace Trinex
 		});
 	}
 
-	EditorClient& EditorClient::create_content_browser()
+	EditorClientOLD& EditorClientOLD::create_content_browser()
 	{
 		m_content_browser = window()->widgets.create<ContentBrowser>();
 		m_content_browser->on_close.push([this]() { m_content_browser = nullptr; });
 		return *this;
 	}
 
-	EditorClient& EditorClient::create_properties_window()
+	EditorClientOLD& EditorClientOLD::create_properties_window()
 	{
 		m_properties = window()->widgets.create<PropertyRenderer>();
 		m_properties->on_close.push([this]() { m_properties = nullptr; });
 		return *this;
 	}
 
-	EditorClient& EditorClient::create_level_explorer()
+	EditorClientOLD& EditorClientOLD::create_level_explorer()
 	{
 		m_level_explorer = window()->widgets.create<ImGuiLevelExplorer>(m_world);
 		m_level_explorer->on_close.push([this]() { m_level_explorer = nullptr; });
 		return *this;
 	}
 
-	EditorClient& EditorClient::attach(class RenderViewport* viewport)
+	EditorClientOLD& EditorClientOLD::attach(class RenderViewport* viewport)
 	{
 		Super::attach(viewport);
 
@@ -351,7 +351,7 @@ namespace Trinex
 		return *this;
 	}
 
-	EditorClient& EditorClient::deattach(class RenderViewport* viewport)
+	EditorClientOLD& EditorClientOLD::deattach(class RenderViewport* viewport)
 	{
 		Super::deattach(viewport);
 
@@ -374,7 +374,7 @@ namespace Trinex
 		return *this;
 	}
 
-	void EditorClient::on_actor_select(class Actor* actor)
+	void EditorClientOLD::on_actor_select(class Actor* actor)
 	{
 		if (m_properties && actor->world() == m_world)
 		{
@@ -382,7 +382,7 @@ namespace Trinex
 		}
 	}
 
-	void EditorClient::on_actor_unselect(class Actor* actor)
+	void EditorClientOLD::on_actor_unselect(class Actor* actor)
 	{
 		if (m_properties && actor->world() == m_world)
 		{
@@ -393,7 +393,7 @@ namespace Trinex
 		}
 	}
 
-	RHITexture* EditorClient::capture_scene()
+	RHITexture* EditorClientOLD::capture_scene()
 	{
 		Vector2i size = viewport()->size();
 
@@ -415,7 +415,7 @@ namespace Trinex
 		return renderer.scene_color_ldr_target();
 	}
 
-	EditorClient& EditorClient::update_render_stats(Renderer* renderer)
+	EditorClientOLD& EditorClientOLD::update_render_stats(Renderer* renderer)
 	{
 		if (!(m_scene_view.show_flags() & ShowFlags::Statistics))
 			return *this;
@@ -480,7 +480,7 @@ namespace Trinex
 		return *this;
 	}
 
-	EditorClient& EditorClient::update_drag_and_drop()
+	EditorClientOLD& EditorClientOLD::update_drag_and_drop()
 	{
 		if (ImGui::BeginDragDropTarget())
 		{
@@ -495,7 +495,7 @@ namespace Trinex
 		return *this;
 	}
 
-	EditorClient& EditorClient::render_statistics()
+	EditorClientOLD& EditorClientOLD::render_statistics()
 	{
 		ImGui::BeginVertical(1, ImGui::GetContentRegionAvail() - ImVec2(100, 0.f), 0.f);
 		{
@@ -537,7 +537,7 @@ namespace Trinex
 		return *this;
 	}
 
-	EditorClient& EditorClient::update(float dt)
+	EditorClientOLD& EditorClientOLD::update(float dt)
 	{
 		m_world->update(dt);
 
@@ -564,7 +564,7 @@ namespace Trinex
 		return *this;
 	}
 
-	EditorClient& EditorClient::render_guizmo()
+	EditorClientOLD& EditorClientOLD::render_guizmo()
 	{
 		const ImVec2 cursor       = ImGui::GetCursorScreenPos();
 		const ImVec2 content_size = ImGui::GetContentRegionAvail();
@@ -671,7 +671,7 @@ namespace Trinex
 		return result;
 	}
 
-	EditorClient& EditorClient::render_viewport_menu()
+	EditorClientOLD& EditorClientOLD::render_viewport_menu()
 	{
 		const float height = ImGui::GetFontSize();
 		ImVec2 screen_pos  = ImGui::GetCursorScreenPos();
@@ -805,7 +805,7 @@ namespace Trinex
 		return *this;
 	}
 
-	u32 EditorClient::build_dock(u32 dock_id)
+	u32 EditorClientOLD::build_dock(u32 dock_id)
 	{
 		auto dock_id_right      = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Right, 0.25f, nullptr, &dock_id);
 		auto dock_id_right_up   = ImGui::DockBuilderSplitNode(dock_id_right, ImGuiDir_Up, 0.5f, nullptr, &dock_id_right);
@@ -819,7 +819,7 @@ namespace Trinex
 		return dock_id;
 	}
 
-	EditorClient& EditorClient::render_viewport_window()
+	EditorClientOLD& EditorClientOLD::render_viewport_window()
 	{
 		if (!ImGui::Begin(Object::localize("editor/Viewport").c_str(), nullptr))
 		{
@@ -885,7 +885,7 @@ namespace Trinex
 		move.x += input->is_scan_code_pressed_for_user(ScanCode::A) ? -1.f : 0.f;
 	}
 
-	EditorClient& EditorClient::update_camera()
+	EditorClientOLD& EditorClientOLD::update_camera()
 	{
 		move_camera(m_camera_move, m_camera_relative_mode);
 
@@ -904,7 +904,7 @@ namespace Trinex
 		return *this;
 	}
 
-	EditorClient& EditorClient::select_actors(const Vector2f& uv)
+	EditorClientOLD& EditorClientOLD::select_actors(const Vector2f& uv)
 	{
 		Actor* actor = EditorRenderer::static_raycast(m_scene_view, uv, m_world->scene());
 
@@ -918,7 +918,7 @@ namespace Trinex
 	}
 
 	// Inputs
-	void EditorClient::on_mouse_press(const PointerEvent& event)
+	void EditorClientOLD::on_mouse_press(const PointerEvent& event)
 	{
 		if (m_state.viewport.is_hovered && static_cast<MouseButton::Enum>(event.button) == MouseButton::Right)
 		{
@@ -927,7 +927,7 @@ namespace Trinex
 		}
 	}
 
-	void EditorClient::on_mouse_release(const PointerEvent& event)
+	void EditorClientOLD::on_mouse_release(const PointerEvent& event)
 	{
 		if (static_cast<MouseButton::Enum>(event.button) == MouseButton::Right)
 		{
@@ -949,7 +949,7 @@ namespace Trinex
 		out                = q_yaw * out * q_pitch;
 	}
 
-	void EditorClient::on_mouse_move(const PointerEvent& event)
+	void EditorClientOLD::on_mouse_move(const PointerEvent& event)
 	{
 		if (m_camera_relative_mode)
 		{
@@ -962,7 +962,7 @@ namespace Trinex
 		}
 	}
 
-	EditorClient& EditorClient::select(Object* object)
+	EditorClientOLD& EditorClientOLD::select(Object* object)
 	{
 		if (Level* level = instance_cast<Level>(object))
 		{

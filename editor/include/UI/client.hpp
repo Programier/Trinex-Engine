@@ -24,7 +24,7 @@ namespace Trinex::UI
 
 		Client& attach(class RenderViewport* viewport) override;
 		Client& deattach(class RenderViewport* viewport) override;
-		Client& update(class RenderViewport* viewport, float dt) override;
+		Client& update(class RenderViewport* viewport, float dt) final override;
 
 		virtual Client& setup_dockspace(DockLayoutBuilder& builder);
 		virtual Client& select(Object* object);

@@ -6,7 +6,7 @@
 
 namespace Trinex
 {
-	EditorClient& EditorClient::on_object_dropped(Object* object)
+	EditorClientOLD& EditorClientOLD::on_object_dropped(Object* object)
 	{
 		if (StaticMesh* mesh = object->instance_cast<StaticMesh>())
 		{

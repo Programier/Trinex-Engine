@@ -159,7 +159,7 @@ namespace Trinex::UI
 		f32 duration          = 3.0f;
 		f32 age               = 0.0f;
 		String action_label;
-		Function<void()> action;
+		Action action;
 	};
 
 	struct TreeContext {
@@ -219,7 +219,6 @@ namespace Trinex::UI
 	struct PersistentWindow {
 		PersistentWindow* next = nullptr;
 		String name;
-		WindowFlags flags = WindowFlags::Undefined;
 		WindowOptions options;
 		bool open      = true;
 		Widget* widget = nullptr;
@@ -231,7 +230,7 @@ namespace Trinex::UI
 		String description;
 		String shortcut;
 		String icon;
-		Function<void()> action;
+		Action action;
 	};
 
 	struct CommandPaletteState {
@@ -650,9 +649,8 @@ namespace Trinex::UI
 			return window;
 		}
 
-		void setup_window(PersistentWindow* window, WindowFlags flags, const WindowOptions& options, Widget* widget)
+		void setup_window(PersistentWindow* window, const WindowOptions& options, Widget* widget)
 		{
-			window->flags   = flags;
 			window->options = options;
 			window->open    = true;
 			window->widget  = widget;
@@ -1624,7 +1622,7 @@ namespace Trinex::UI
 			{
 				PersistentWindow* window = *list;
 
-				const bool visible = begin_window(window->name.c_str(), &window->open, window->flags, window->options);
+				const bool visible = begin_window(window->name.c_str(), &window->open, window->options);
 
 				if (ImGui::IsWindowAppearing())
 				{
@@ -1655,10 +1653,10 @@ namespace Trinex::UI
 	class FunctionWidget : public Widget
 	{
 	private:
-		Function<void()> m_on_render;
+		Action m_on_render;
 
 	public:
-		FunctionWidget(const Function<void()>& render) : m_on_render(render) {}
+		FunctionWidget(const Action& render) : m_on_render(render) {}
 
 		void on_render() override { m_on_render(); }
 		void on_close() override { trx_delete this; }

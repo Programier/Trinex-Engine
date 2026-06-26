@@ -41,9 +41,9 @@ namespace Trinex
 	class RHIFence;
 	class CameraComponent;
 
-	class EditorClient : public ImGuiViewportClient
+	class EditorClientOLD : public ImGuiViewportClient
 	{
-		trinex_class(EditorClient, ImGuiViewportClient);
+		trinex_class(EditorClientOLD, ImGuiViewportClient);
 
 	private:
 		struct Stats {
@@ -145,36 +145,36 @@ namespace Trinex
 		void on_actor_unselect(class Actor* actor);
 		RHITexture* capture_scene();
 
-		EditorClient& update_render_stats(Renderer* renderer);
+		EditorClientOLD& update_render_stats(Renderer* renderer);
 
 	public:
-		EditorClient();
+		EditorClientOLD();
 
-		EditorClient& create_content_browser();
-		EditorClient& create_properties_window();
-		EditorClient& create_level_explorer();
+		EditorClientOLD& create_content_browser();
+		EditorClientOLD& create_properties_window();
+		EditorClientOLD& create_level_explorer();
 
-		EditorClient& attach(class RenderViewport* viewport) override;
-		EditorClient& deattach(class RenderViewport* viewport) override;
-		EditorClient& update(float dt) override;
+		EditorClientOLD& attach(class RenderViewport* viewport) override;
+		EditorClientOLD& deattach(class RenderViewport* viewport) override;
+		EditorClientOLD& update(float dt) override;
 
 		u32 build_dock(u32 dock_id) override;
-		EditorClient& render_viewport_window();
-		EditorClient& render_guizmo();
-		EditorClient& render_viewport_menu();
-		EditorClient& render_statistics();
+		EditorClientOLD& render_viewport_window();
+		EditorClientOLD& render_guizmo();
+		EditorClientOLD& render_viewport_menu();
+		EditorClientOLD& render_statistics();
 
-		EditorClient& on_object_dropped(Object* object);
-		EditorClient& update_drag_and_drop();
+		EditorClientOLD& on_object_dropped(Object* object);
+		EditorClientOLD& update_drag_and_drop();
 
-		EditorClient& update_camera();
-		EditorClient& select_actors(const Vector2f& uv);
+		EditorClientOLD& update_camera();
+		EditorClientOLD& select_actors(const Vector2f& uv);
 
 		// Inputs
 		void on_mouse_press(const PointerEvent& event);
 		void on_mouse_release(const PointerEvent& event);
 		void on_mouse_move(const PointerEvent& event);
 
-		EditorClient& select(Object* object) override;
+		EditorClientOLD& select(Object* object) override;
 	};
 }// namespace Trinex

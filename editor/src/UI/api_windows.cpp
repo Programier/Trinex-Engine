@@ -4,7 +4,7 @@ namespace Trinex::UI
 {
 	/////////////////////// WINDOWS AND CONTAINERS ///////////////////////
 
-	bool begin_window(const char* name, bool* open, WindowFlags flags, const WindowOptions& options)
+	bool begin_window(const char* name, bool* open, const WindowOptions& options)
 	{
 		trinex_assert(has_text(name) && "UI::begin_window() requires a non-empty name");
 		if (!has_text(name))
@@ -20,7 +20,7 @@ namespace Trinex::UI
 		apply_window_options_pre_begin(options);
 		push_window_styles(false);
 
-		const bool visible = ImGui::Begin(name, open, to_imgui_window_flags(flags));
+		const bool visible = ImGui::Begin(name, open, to_imgui_window_flags(options.flags));
 		if (visible)
 		{
 			apply_window_options_post_begin(options);
@@ -38,25 +38,24 @@ namespace Trinex::UI
 		pop_window_styles();
 	}
 
-	void create_widget(Context* context, const char* name, WindowFlags flags, const WindowOptions& options, Widget* widget)
+	void create_widget(Context* context, const char* name, const WindowOptions& options, Widget* widget)
 	{
 		if (context == nullptr || name == nullptr || widget == nullptr)
 		{
 			return;
 		}
 
-		setup_window(ensure_window(context, name), flags, options, widget);
+		setup_window(ensure_window(context, name), options, widget);
 	}
 
-	void create_widget(Context* context, const char* name, WindowFlags flags, const WindowOptions& options,
-	                   const Function<void()>& content)
+	void create_widget(Context* context, const char* name, const WindowOptions& options, const Action& content)
 	{
 		if (context == nullptr || content == nullptr)
 		{
 			return;
 		}
 
-		create_widget(context, name, flags, options, trx_new FunctionWidget(content));
+		create_widget(context, name, options, trx_new FunctionWidget(content));
 	}
 
 	bool begin_panel(const char* id, const PanelOptions& options)
