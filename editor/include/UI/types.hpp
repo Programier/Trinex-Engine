@@ -20,34 +20,6 @@ namespace Trinex::UI
 	using Action    = Function<void()>;
 	using ActionRef = FunctionRef<void()>;
 
-	class ID
-	{
-	public:
-		using ValueType = i32;
-
-	private:
-		ValueType m_id;
-
-	public:
-		constexpr ID() : m_id(0) {}
-		constexpr ID(ValueType id) : m_id(id) {}
-
-		static ID from(StringView id);
-		static ID from(const void* id);
-		static ID from(ValueType id);
-
-		constexpr ValueType value() const { return m_id; }
-
-		constexpr explicit operator bool() const { return m_id != 0; }
-
-		constexpr bool operator==(const ID& other) const { return m_id == other.m_id; }
-		constexpr bool operator!=(const ID& other) const { return m_id != other.m_id; }
-		constexpr bool operator<(const ID& other) const { return m_id < other.m_id; }
-		constexpr bool operator>(const ID& other) const { return m_id > other.m_id; }
-		constexpr bool operator<=(const ID& other) const { return m_id <= other.m_id; }
-		constexpr bool operator>=(const ID& other) const { return m_id >= other.m_id; }
-	};
-
 	struct Ease {
 		enum Enum : u8
 		{
@@ -350,8 +322,6 @@ namespace Trinex::UI
 		trinex_bitfield_enum_struct(Condition, u8);
 	};
 
-	using DockID = ID;
-
 	struct DockWindowFlags {
 		enum Enum : u32
 		{
@@ -453,6 +423,26 @@ namespace Trinex::UI
 		trinex_bitfield_enum_struct(TableFlags, u16);
 	};
 
+	struct DrawFlags {
+		enum Enum : u16
+		{
+			Undefined               = 0,
+			Closed                  = 1 << 0,
+			RoundCornersTopLeft     = 1 << 4,
+			RoundCornersTopRight    = 1 << 5,
+			RoundCornersBottomLeft  = 1 << 6,
+			RoundCornersBottomRight = 1 << 7,
+			RoundCornersNone        = 1 << 8,
+			RoundCornersTop         = RoundCornersTopLeft | RoundCornersTopRight,
+			RoundCornersBottom      = RoundCornersBottomLeft | RoundCornersBottomRight,
+			RoundCornersLeft        = RoundCornersBottomLeft | RoundCornersTopLeft,
+			RoundCornersRight       = RoundCornersBottomRight | RoundCornersTopRight,
+			RoundCornersAll = RoundCornersTopLeft | RoundCornersTopRight | RoundCornersBottomLeft | RoundCornersBottomRight,
+		};
+
+		trinex_bitfield_enum_struct(DrawFlags, u16);
+	};
+
 	struct TableColumnFlags {
 		enum Enum : u8
 		{
@@ -514,6 +504,117 @@ namespace Trinex::UI
 		};
 
 		trinex_enum_struct(DrawList);
+	};
+
+	struct Texture {
+		RHITexture* texture = nullptr;
+		RHISampler* sampler = nullptr;
+
+		inline Texture(RHITexture* texture = nullptr, RHISampler* sampler = nullptr) : texture(texture), sampler(sampler) {}
+
+		inline bool operator==(const Texture& rhs) const { return texture == rhs.texture && sampler == rhs.sampler; }
+		inline bool operator!=(const Texture& rhs) const { return texture != rhs.texture || sampler != rhs.sampler; }
+	};
+
+	class ID
+	{
+	public:
+		using ValueType = i32;
+
+	private:
+		ValueType m_id;
+
+	public:
+		constexpr ID() : m_id(0) {}
+		constexpr ID(ValueType id) : m_id(id) {}
+
+		static ID from(StringView id);
+		static ID from(const void* id);
+		static ID from(ValueType id);
+
+		constexpr ValueType value() const { return m_id; }
+
+		constexpr explicit operator bool() const { return m_id != 0; }
+
+		constexpr bool operator==(const ID& other) const { return m_id == other.m_id; }
+		constexpr bool operator!=(const ID& other) const { return m_id != other.m_id; }
+		constexpr bool operator<(const ID& other) const { return m_id < other.m_id; }
+		constexpr bool operator>(const ID& other) const { return m_id > other.m_id; }
+		constexpr bool operator<=(const ID& other) const { return m_id <= other.m_id; }
+		constexpr bool operator>=(const ID& other) const { return m_id >= other.m_id; }
+	};
+
+	using DockID = ID;
+
+	class DrawListHandle
+	{
+	public:
+		DrawListHandle& push_clip(Vec2 min, Vec2 max, bool intersect_with_current_clip_rect = false);
+		DrawListHandle& push_fullscreen_clip();
+		DrawListHandle& pop_clip();
+		DrawListHandle& push_texture(const Texture& texture);
+		DrawListHandle& pop_texture();
+
+		Vec2 clip_min();
+		Vec2 clip_max();
+
+		DrawListHandle& line(Vec2 p1, Vec2 p2, u32 col, f32 thickness = 1.0f);
+		DrawListHandle& rect(Vec2 min, Vec2 max, u32 col, f32 rounding = 0.0f, DrawFlags flags = 0, f32 thickness = 1.0f);
+		DrawListHandle& fill_rect(Vec2 min, Vec2 max, u32 col, f32 rounding = 0.0f, DrawFlags flags = 0);
+		DrawListHandle& fill_rect_multi_color(Vec2 min, Vec2 max, u32 col_ul, u32 col_ur, u32 col_br, u32 col_bl);
+
+		DrawListHandle& quad(Vec2 p1, Vec2 p2, Vec2 p3, Vec2 p4, u32 col, f32 thickness = 1.0f);
+		DrawListHandle& fill_quad(Vec2 p1, Vec2 p2, Vec2 p3, Vec2 p4, u32 col);
+
+		DrawListHandle& triangle(Vec2 p1, Vec2 p2, Vec2 p3, u32 col, f32 thickness = 1.0f);
+		DrawListHandle& fill_triangle(Vec2 p1, Vec2 p2, Vec2 p3, u32 col);
+
+		DrawListHandle& circle(Vec2 center, f32 radius, u32 col, u32 segments = 0, f32 thickness = 1.0f);
+		DrawListHandle& fill_circle(Vec2 center, f32 radius, u32 col, u32 segments = 0);
+
+		DrawListHandle& ngon(Vec2 center, f32 radius, u32 col, u32 segments, f32 thickness = 1.0f);
+		DrawListHandle& fill_ngon(Vec2 center, f32 radius, u32 col, u32 segments);
+
+		DrawListHandle& ellipse(Vec2 center, Vec2 radius, u32 col, f32 rot = 0.0f, u32 segments = 0, f32 thickness = 1.0f);
+		DrawListHandle& fill_ellipse(Vec2 center, Vec2 radius, u32 col, f32 rot = 0.0f, u32 segments = 0);
+
+		DrawListHandle& text(Vec2 pos, u32 col, const char* text_begin, const char* text_end = nullptr);
+
+		DrawListHandle& cubic_bezier(Vec2 p1, Vec2 p2, Vec2 p3, Vec2 p4, u32 col, f32 thickness, u32 segments = 0);
+		DrawListHandle& quadratic_bezier(Vec2 p1, Vec2 p2, Vec2 p3, u32 col, f32 thickness, u32 segments = 0);
+
+		DrawListHandle& polyline(const Vec2* points, u32 count, u32 col, DrawFlags flags, f32 thickness);
+		DrawListHandle& fill_convex_poly(const Vec2* points, u32 count, u32 col);
+		DrawListHandle& fill_concave_poly(const Vec2* points, u32 count, u32 col);
+
+		DrawListHandle& image(RHITexture* texture, Vec2 min, Vec2 max, Vec2 uv_min = {0, 0}, Vec2 uv_max = {1, 1},
+		                      u32 col = 0xFFFFFFFF);
+
+		DrawListHandle& image_quad(const Texture& texture, Vec2 p1, Vec2 p2, Vec2 p3, Vec2 p4, Vec2 uv1 = {0, 0},
+		                           Vec2 uv2 = {1, 0}, Vec2 uv3 = {1, 1}, Vec2 uv4 = {0, 1}, u32 col = 0xFFFFFFFF);
+
+		DrawListHandle& rounded_image(const Texture& texture, Vec2 min, Vec2 max, Vec2 uv_min, Vec2 uv_max, u32 col, f32 rounding,
+		                              DrawFlags flags = 0);
+
+		DrawListHandle& clear_path();
+		DrawListHandle& path_to(Vec2 pos);
+		DrawListHandle& path_to_unique(Vec2 pos);
+		DrawListHandle& fill_path_convex(u32 col);
+		DrawListHandle& fill_path_concave(u32 col);
+		DrawListHandle& stroke_path(u32 col, DrawFlags flags = 0, f32 thickness = 1.0f);
+
+		DrawListHandle& arc_to(Vec2 center, f32 radius, f32 min_angle, f32 max_angle, u32 segments = 0);
+		DrawListHandle& fast_arc_to(Vec2 center, f32 radius, u32 min_12, u32 max_12);
+		DrawListHandle& ellipse_arc_to(Vec2 center, Vec2 radius, f32 rot, f32 min_angle, f32 max_angle, u32 segments = 0);
+
+		DrawListHandle& cubic_bezier_to(Vec2 p2, Vec2 p3, Vec2 p4, int segments = 0);
+		DrawListHandle& quadratic_bezier_to(Vec2 p2, Vec2 p3, u32 segments = 0);
+
+		DrawListHandle& path_rect(Vec2 min, Vec2 max, f32 rounding = 0.0f, DrawFlags flags = 0);
+
+		DrawListHandle& split_channels(u32 count);
+		DrawListHandle& merge_channels();
+		DrawListHandle& channel(u32 value);
 	};
 
 	struct DragDropPayload {
@@ -596,10 +697,10 @@ namespace Trinex::UI
 		DockID find(const char* id) const;
 		DockID require(const char* id) const;
 		bool has(const char* id) const;
-		Result split(DockID dock, DockSplitDir dir, float ratio, const char* id = nullptr);
-		Result split(DockID dock, DockSplitDir dir, float ratio, const char* remainder_id, const char* child_id);
-		DockID crop(DockID& dock, DockSplitDir dir, float ratio, const char* id = nullptr);
-		DockID crop(DockID& dock, DockSplitDir dir, float ratio, const char* remainder_id, const char* child_id);
+		Result split(DockID dock, DockSplitDir dir, f32 ratio, const char* id = nullptr);
+		Result split(DockID dock, DockSplitDir dir, f32 ratio, const char* remainder_id, const char* child_id);
+		DockID crop(DockID& dock, DockSplitDir dir, f32 ratio, const char* id = nullptr);
+		DockID crop(DockID& dock, DockSplitDir dir, f32 ratio, const char* remainder_id, const char* child_id);
 		DockID dock(const char* window_name, DockID dock_id);
 		DockID dock(const char* window_name, const char* dock_id);
 
@@ -612,8 +713,8 @@ namespace Trinex::UI
 		inline DockLayout& main(DockID id) { trinex_this_return(m_main = id ? id : m_root); }
 
 		inline DockID dock(const char* window_name) { return dock(window_name, m_main); }
-		inline Result split(DockSplitDir dir, float ratio, const char* id = nullptr) { return split(m_main, dir, ratio, id); }
-		inline Result split(DockSplitDir dir, float ratio, const char* remainder_id, const char* child_id)
+		inline Result split(DockSplitDir dir, f32 ratio, const char* id = nullptr) { return split(m_main, dir, ratio, id); }
+		inline Result split(DockSplitDir dir, f32 ratio, const char* remainder_id, const char* child_id)
 		{
 			return split(m_main, dir, ratio, remainder_id, child_id);
 		}
@@ -645,31 +746,31 @@ namespace Trinex::UI
 	};
 
 	struct Shadow {
-		Vec2 offset  = Vec2(0.0f, 4.0f);
-		float blur   = 16.0f;
-		float spread = 0.0f;
-		Vec4 color   = Vec4(0.0f, 0.0f, 0.0f, 0.22f);
+		Vec2 offset = Vec2(0.0f, 4.0f);
+		f32 blur    = 16.0f;
+		f32 spread  = 0.0f;
+		Vec4 color  = Vec4(0.0f, 0.0f, 0.0f, 0.22f);
 	};
 
 	struct BlurOptions {
-		float radius        = 12.0f;
-		float sigma         = 5.0f;
-		float spread        = 0.0f;
-		float rounding      = -1.0f;
-		float noise_opacity = 0.f;
-		float noise_scale   = 1.0f;
-		Vec4 tint           = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
+		f32 radius        = 12.0f;
+		f32 sigma         = 5.0f;
+		f32 spread        = 0.0f;
+		f32 rounding      = -1.0f;
+		f32 noise_opacity = 0.f;
+		f32 noise_scale   = 1.0f;
+		Vec4 tint         = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
 	};
 
 	struct Style {
-		float animation_speed = 12.0f;
-		float rounding        = 8.0f;
-		float border_size     = 1.0f;
-		float frame_height    = 32.0f;
-		float padding         = 10.0f;
-		float spacing         = 8.0f;
-		float alpha           = 1.0f;
-		Vec2 hover_padding    = Vec2(2.0f, 2.0f);
+		f32 animation_speed = 12.0f;
+		f32 rounding        = 8.0f;
+		f32 border_size     = 1.0f;
+		f32 frame_height    = 32.0f;
+		f32 padding         = 10.0f;
+		f32 spacing         = 8.0f;
+		f32 alpha           = 1.0f;
+		Vec2 hover_padding  = Vec2(2.0f, 2.0f);
 		BlurOptions blur;
 		Shadow shadow;
 		ColorTheme colors;
@@ -679,12 +780,12 @@ namespace Trinex::UI
 		Vec2 size             = Vec2(0.0f, 0.0f);
 		bool border           = true;
 		bool background       = true;
-		float rounding        = -1.0f;
+		f32 rounding          = -1.0f;
 		Vec4 background_color = Vec4(0, 0, 0, 0);
 	};
 
 	struct GlassOptions {
-		float opacity = 0.72f;
+		f32 opacity = 0.72f;
 
 		Vec4 tint         = Vec4(0.10f, 0.12f, 0.16f, 0.65f);
 		Vec4 border_color = Vec4(0, 0, 0, 0);
@@ -694,8 +795,8 @@ namespace Trinex::UI
 		bool background    = true;
 		bool highlight_top = true;
 
-		float rounding = -1.0f;
-		float padding  = -1.0f;
+		f32 rounding = -1.0f;
+		f32 padding  = -1.0f;
 	};
 
 	struct CardOptions {
@@ -710,10 +811,10 @@ namespace Trinex::UI
 		bool selected   = false;
 		bool disabled   = false;
 
-		float rounding  = -1.0f;
-		float padding   = -1.0f;
-		float spacing   = -1.0f;
-		float elevation = 1.0f;
+		f32 rounding  = -1.0f;
+		f32 padding   = -1.0f;
+		f32 spacing   = -1.0f;
+		f32 elevation = 1.0f;
 
 		Vec4 accent           = Vec4(0, 0, 0, 0);
 		Vec4 background_color = Vec4(0, 0, 0, 0);
@@ -727,8 +828,8 @@ namespace Trinex::UI
 		Vec4 tint             = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
 		bool background       = true;
 		bool border           = true;
-		float padding         = 6.0f;
-		float rounding        = -1.0f;
+		f32 padding           = 6.0f;
+		f32 rounding          = -1.0f;
 		Vec4 background_color = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
 		Vec4 border_color     = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
 		Vec4 accent           = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
@@ -766,7 +867,7 @@ namespace Trinex::UI
 
 	struct NotificationOptions {
 		NotificationKind kind    = NotificationKind::Info;
-		float duration           = 3.0f;
+		f32 duration             = 3.0f;
 		const char* title        = nullptr;
 		const char* action_label = nullptr;
 		Action action;
@@ -800,10 +901,10 @@ namespace Trinex::UI
 		bool centered   = true;
 		bool disabled   = false;
 
-		float rounding  = -1.0f;
-		float padding   = -1.0f;
-		float spacing   = -1.0f;
-		float elevation = 0.0f;
+		f32 rounding  = -1.0f;
+		f32 padding   = -1.0f;
+		f32 spacing   = -1.0f;
+		f32 elevation = 0.0f;
 	};
 
 	struct Command {

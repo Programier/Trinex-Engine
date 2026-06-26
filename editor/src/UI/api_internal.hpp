@@ -494,7 +494,20 @@ namespace Trinex::UI
 			list->AddCallback(ImDrawCallback_ResetRenderState, nullptr);
 		}
 
-		ImDrawList* resolve_draw_list(DrawList draw_list, ImGuiWindow* window, ImGuiViewport*& viewport)
+		inline ImDrawList* resolve_draw_list(DrawList draw_list, ImGuiWindow* window)
+		{
+			ImGuiViewport* viewport = window ? window->Viewport : ImGui::GetMainViewport();
+
+			switch (draw_list)
+			{
+				case DrawList::Background: return ImGui::GetBackgroundDrawList(viewport);
+				case DrawList::Foreground: return ImGui::GetForegroundDrawList(viewport);
+				case DrawList::Default:
+				default: return window ? window->DrawList : ImGui::GetForegroundDrawList(viewport);
+			}
+		}
+
+		inline ImDrawList* resolve_draw_list(DrawList draw_list, ImGuiWindow* window, ImGuiViewport*& viewport)
 		{
 			viewport = window ? window->Viewport : ImGui::GetMainViewport();
 
@@ -1459,7 +1472,7 @@ namespace Trinex::UI
 			                      to_imvec(with_alpha(active_context()->style.colors.accent_active, 0.30f)));
 		}
 
-		void pop_window_styles()
+		inline void pop_window_styles()
 		{
 			ImGui::PopStyleColor(10);
 			ImGui::PopStyleVar(5);

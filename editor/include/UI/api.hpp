@@ -322,6 +322,9 @@ namespace Trinex::UI
 	void loading_state(const char* text = "Loading...");
 	void error_state(const char* message, const char* title = "Error");
 
+	/////////////////////// DRAW LISTS ///////////////////////
+	DrawListHandle* draw_list(DrawList list = DrawList::Default);
+
 
 	/////////////////////// INLINE STYLE AND EFFECTS HELPERS ///////////////////////
 
