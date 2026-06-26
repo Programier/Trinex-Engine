@@ -13,12 +13,31 @@
 #include <UI/api.hpp>
 #include <Widgets/imgui_windows.hpp>
 
+#include <cstdio>
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <imgui_stacklayout.h>
 
 namespace Trinex
 {
+	namespace
+	{
+		static void text_ellipsis(const char* text, float max_width)
+		{
+			ImGui::TextEllipsis(text, max_width);
+		}
+
+		static void sync_string_buffer(char* buffer, usize size, String& value)
+		{
+			if (buffer == nullptr || size == 0)
+			{
+				return;
+			}
+
+			std::snprintf(buffer, size, "%s", value.c_str());
+		}
+	}// namespace
+
 	ContentBrowser::ContentBrowser() : UI::Widget(ContentBrowser::static_name()), m_selected_package(Object::root_package()) {}
 
 	void ContentBrowser::selecte_new_object(Object* object)
@@ -45,8 +64,6 @@ namespace Trinex
 
 	bool ContentBrowser::render_package_popup(void* data)
 	{
-		
-		
 		bool is_editable = (m_show_popup_for && m_show_popup_for->is_editable() && m_show_popup_for->is_serializable());
 
 		if (UI::button("editor/Create Package"_localized))
@@ -72,68 +89,77 @@ namespace Trinex
 
 	void ContentBrowser::render_package_popup()
 	{
-		if (ImGui::BeginPopup("###PackagePopup"))
-		{
+		UI::popup("###PackagePopup", [&]() {
 			bool is_editable = (m_show_popup_for && m_show_popup_for->is_editable() && m_show_popup_for->is_serializable());
 
-			if (ImGui::Button("editor/Create Package"_localized))
+			if (UI::button("editor/Create Package"_localized))
 			{
 				ImGuiWindow::current()->widgets.create_identified<ImGuiCreateNewPackage>(this, m_show_popup_for);
-				ImGui::CloseCurrentPopup();
+				UI::close_popup();
 			}
 
-			if (is_editable && ImGui::Button("editor/Rename"_localized))
+			if (is_editable && UI::button("editor/Rename"_localized))
 			{
 				ImGuiWindow::current()->widgets.create_identified<ImGuiRenameObject>("RenameObject", m_selected_package);
-				ImGui::CloseCurrentPopup();
+				UI::close_popup();
 			}
 
-			if (is_editable && ImGui::Button("editor/Save"_localized))
+			if (is_editable && UI::button("editor/Save"_localized))
 			{
 				m_show_popup_for->save();
-				ImGui::CloseCurrentPopup();
+				UI::close_popup();
 			}
-
-			ImGui::EndPopup();
-		}
+		});
 	}
 
 	void ContentBrowser::render_package_tree(Package* node)
 	{
-		if (node == m_selected_package)
+		if (node == nullptr)
 		{
-			auto active_color = ImGui::GetStyleColorVec4(ImGuiCol_HeaderActive);
-			ImGui::PushStyleColor(ImGuiCol_Header, active_color);
-			ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImGui::MakeHoveredColor(active_color));
+			return;
 		}
 
-		bool opened          = false;
-		bool is_root_package = node == Object::root_package();
+		const bool is_root_package = node == Object::root_package();
+		UI::TreeNodeOptions options;
+		options.default_open = is_root_package;
+		options.selected     = node == m_selected_package;
 
-		opened = ImGui::TreeNodeEx(node, ImGuiTreeNodeFlags_CollapsingHeader, "%s", node->string_name().c_str());
-
-		if (node == m_selected_package)
-		{
-			ImGui::PopStyleColor(2);
-		}
-
-		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+		UI::push_id(node);
+		const bool opened = UI::tree_node(node->string_name().c_str(), options);
+		if (UI::is_item_clicked())
 		{
 			m_selected_package = node;
 		}
 
-		if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+		if (UI::begin_context_menu())
 		{
 			m_selected_package = node;
 			m_show_popup_for   = node;
-			ImGui::OpenPopup("###PackagePopup");
+
+			const bool is_editable = (m_show_popup_for && m_show_popup_for->is_editable() && m_show_popup_for->is_serializable());
+			if (UI::button("editor/Create Package"_localized))
+			{
+				ImGuiWindow::current()->widgets.create_identified<ImGuiCreateNewPackage>(this, m_show_popup_for);
+				UI::close_popup();
+			}
+
+			if (is_editable && UI::button("editor/Rename"_localized))
+			{
+				ImGuiWindow::current()->widgets.create_identified<ImGuiRenameObject>("RenameObject", m_selected_package);
+				UI::close_popup();
+			}
+
+			if (is_editable && UI::button("editor/Save"_localized))
+			{
+				m_show_popup_for->save();
+				UI::close_popup();
+			}
+
+			UI::end_context_menu();
 		}
 
 		if (opened)
 		{
-			if (!is_root_package)
-				ImGui::Indent(10.f);
-
 			for (auto child : node->objects())
 			{
 				if (Package* pkg = child->instance_cast<Package>())
@@ -141,17 +167,20 @@ namespace Trinex
 					render_package_tree(pkg);
 				}
 			}
-
-			if (!is_root_package)
-				ImGui::Unindent(10.f);
+			UI::tree_pop();
 		}
+
+		UI::pop_id();
 	}
 
 	void ContentBrowser::render_packages()
 	{
-		ImGui::Begin("##ContentBrowserPackages"_localized, nullptr, ImGuiWindowFlags_NoTitleBar);
+		if (!UI::begin_panel("##PGS", {}))
+		{
+			return;
+		}
 
-		if (ImGui::IconButton(ICON_LC_PLUS "###add"))
+		if (UI::icon_button(ICON_LC_PLUS, "###add"))
 		{
 			ImGuiOpenFile::Flags flags = ImGuiOpenFile::MultipleSelection;
 			auto window                = ImGuiWindow::current()->widgets.create_identified<ImGuiOpenFile>(this, flags);
@@ -163,10 +192,10 @@ namespace Trinex
 			window->pwd(Project::assets_dir);
 		}
 
-		ImGui::SameLine();
+		UI::same_line();
 		render_package_tree(Object::root_package());
-		render_package_popup();
-		ImGui::End();
+
+		UI::end_panel();
 	}
 
 	bool ContentBrowser::render_content_item(Object* object, const UI::Vec2& size)
@@ -187,16 +216,23 @@ namespace Trinex
 		if (!in_filter)
 			return false;
 
+		UI::CardOptions options;
+		options.size = size;
+
+		if (UI::card_button(object->name().c_str(), options))
+		{
+		}
+
+		return false;
 		ImTextureID imgui_texture = Icons::find_icon(object);
 		imgui_texture.sampler     = RHIPointWrapSampler::static_sampler();
 
 		const float image_side_length = size.x * 0.93f;
-		const ImVec2 image_size       = ImVec2(image_side_length, image_side_length);
+		const UI::Vec2 image_size     = {image_side_length, image_side_length};
 
-		const auto start_pos = ImGui::GetCursorScreenPos();
-
-		bool is_pressed        = ImGui::InvisibleButton("##Button", {size.x, size.y}, ImGuiButtonFlags_AllowOverlap);
-		bool is_hovered        = ImGui::IsItemHovered();
+		const auto start_pos   = UI::cursor_screen_position();
+		bool is_pressed        = UI::invisible_button("##Button", {.size = size, .flags = UI::ButtonFlags::AllowOverlap});
+		bool is_hovered        = UI::is_item_hovered();
 		bool is_double_pressed = is_hovered && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left);
 
 		if (is_pressed && !is_double_pressed)
@@ -219,11 +255,11 @@ namespace Trinex
 
 			on_object_double_click(object);
 		}
-		else if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && ImGui::BeginDragDropSource())
+		else if (UI::is_mouse_dragging() && UI::begin_drag_source())
 		{
-			ImGui::SetDragDropPayload("ContentBrowser->Object", &object, sizeof(Object**));
-			ImGui::Image(imgui_texture, image_size);
-			ImGui::EndDragDropSource();
+			UI::drag_payload("ContentBrowser->Object", &object, sizeof(Object**));
+			UI::image(imgui_texture.texture, image_size);
+			UI::end_drag_source();
 		}
 
 		ImU32 color;
@@ -246,28 +282,30 @@ namespace Trinex
 			color = ImGui::GetColorU32(ImGuiCol_FrameBg);
 		}
 
-		ImGui::SetCursorScreenPos(start_pos);
-		ImGui::GetWindowDrawList()->AddRectFilled(start_pos, start_pos + ImVec2{size.x, size.y}, color,
-		                                          ImGui::GetStyle().FrameRounding);
+		UI::cursor_screen_position(start_pos);
+		UI::draw_list()->fill_rect(start_pos, start_pos + size, ImGui::GetStyle().FrameRounding);
+
 		{
 			float border   = (size.x - image_size.x) / 2.f;
-			auto image_min = start_pos + ImVec2(border, border);
-			ImGui::GetWindowDrawList()->AddImageRounded(ImTextureID(imgui_texture), image_min, image_min + image_size, {0, 0},
-			                                            {1, 1}, 0xFFFFFFFF, ImGui::GetStyle().FrameRounding);
+			auto image_min = start_pos + UI::Vec2(border, border);
+			UI::draw_list()->rounded_image(UI::Texture(imgui_texture.texture, imgui_texture.sampler), image_min,
+			                               image_min + image_size, {0, 0}, {1, 1}, 0xFFFFFFFF, ImGui::GetStyle().FrameRounding);
 		}
 
-		ImGui::BeginVertical(object, ImVec2{size.x, size.y}, 0.5);
-		ImGui::Spring(0.f);
+		UI::begin_vertical(object, UI::Vec2{size.x, size.y}, 0.5f);
+		UI::spring(0.f);
 		ImGui::Dummy({size.x, size.x});
 
-		ImGui::Spring(0.f);
-
-		ImGui::BeginVertical(0, {image_size.x, 0}, 0.5);
+		UI::spring(0.f);
+		UI::begin_vertical(0, {image_size.x, 0}, 0.5f);
 
 		if (m_is_renaming && selected_object == object)
 		{
-			ImGui::SetNextItemWidth(image_size.x);
-			bool modify = ImGui::InputText("##ObjectName", m_new_object_name, ImGuiInputTextFlags_EnterReturnsTrue);
+			char rename_buffer[512];
+			sync_string_buffer(rename_buffer, sizeof(rename_buffer), m_new_object_name);
+			bool modify       = UI::input("##ObjectName", rename_buffer, sizeof(rename_buffer), UI::Vec2(image_size.x, 0.0f),
+			                              UI::InputTextFlags::EnterReturnsTrue);
+			m_new_object_name = rename_buffer;
 
 			String validation;
 
@@ -277,21 +315,16 @@ namespace Trinex
 			}
 			else if (m_new_object_name.empty())
 			{
-				ImGui::PushStyleColor(ImGuiCol_Text, 0xFF0000FF);
-				ImGui::SetTooltip("Please, provide a name for the asset!");
-				ImGui::PopStyleColor();
+				UI::tooltip("Please, provide a name for the asset!");
 			}
 			else if (m_selected_package->contains_object(m_new_object_name))
 			{
-				ImGui::PushStyleColor(ImGuiCol_Text, 0xFF0000FF);
-				ImGui::SetTooltip("An asset already exist at this location with the name '%s'!", m_new_object_name.c_str());
-				ImGui::PopStyleColor();
+				UI::tooltip(Strings::format("An asset already exist at this location with the name '{}'!", m_new_object_name)
+				                    .c_str());
 			}
 			else if (!Object::static_validate_object_name(m_new_object_name, &validation))
 			{
-				ImGui::PushStyleColor(ImGuiCol_Text, 0xFF0000FF);
-				ImGui::SetTooltip("%s", validation.c_str());
-				ImGui::PopStyleColor();
+				UI::tooltip(validation.c_str());
 			}
 			else if (modify)
 			{
@@ -304,21 +337,21 @@ namespace Trinex
 		}
 		else
 		{
-			ImGui::TextEllipsis(name.data(), image_size.x);
+			text_ellipsis(name.data(), image_size.x);
 		}
 
-		ImGui::EndVertical();
+		UI::end_vertical();
 
-		ImGui::Spring(1.0);
+		UI::spring(1.0f);
 
-		ImGui::BeginVertical(1, {image_size.x, 0}, 0.0);
-		ImGui::PushFont(UI::text_font(UI::FontSize::Small));
-		ImGui::TextEllipsis(object->class_instance()->name().c_str(), image_size.x);
-		ImGui::PopFont();
-		ImGui::EndVertical();
+		UI::begin_vertical(1, {image_size.x, 0}, 0.0f);
+		UI::push_text_font(UI::FontSize::Small);
+		text_ellipsis(object->class_instance()->name().c_str(), image_size.x);
+		UI::pop_font();
+		UI::end_vertical();
 
-		ImGui::Spring(0.f);
-		ImGui::EndVertical();
+		UI::spring(0.f);
+		UI::end_vertical();
 
 		return true;
 	}
@@ -328,41 +361,58 @@ namespace Trinex
 		if (package == nullptr)
 			return nullptr;
 
-		Package* result = render_package_path(package->package());
-		ImGui::Text("/");
-		bool is_pressed = ImGui::SmallButton(package->name().c_str());
-		return is_pressed ? package : result;
+		Vector<Package*> chain;
+		for (Package* current = package; current; current = current->package())
+		{
+			chain.push_back(current);
+		}
+
+		Package* result = nullptr;
+		for (auto it = chain.rbegin(); it != chain.rend(); ++it)
+		{
+			const bool current = it + 1 == chain.rend();
+			if (UI::breadcrumb((*it)->name().c_str(), current))
+			{
+				result = *it;
+			}
+		}
+		return result;
 	}
 
 	void ContentBrowser::render_content_window()
 	{
-		ImGui::Begin("##ContentBrowserItems", nullptr, ImGuiWindowFlags_MenuBar);
+		UI::WindowOptions options;
+		options.flags = UI::WindowFlags::MenuBar;
 
-		ImGui::BeginMenuBar();
-		if (Package* new_package = render_package_path(m_selected_package))
+		if (!UI::begin_panel("##ITEMS", {}))
 		{
-			m_selected_package = new_package;
+			return;
 		}
-		ImGui::EndMenuBar();
 
+		// UI::menu_bar([&]() {
+		// 	if (Package* new_package = render_package_path(m_selected_package))
+		// 	{
+		// 		m_selected_package = new_package;
+		// 	}
+		// });
 
 		Package* package = m_selected_package;
 
 		if (package == nullptr)
 		{
-			ImGui::Text("%s!", "editor/No package selected"_localized);
-			ImGui::End();
+			UI::text("%s!", "editor/No package selected"_localized);
+			UI::end_window();
 			return;
 		}
 
-		if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+		if (UI::is_window_hovered() && UI::is_mouse_clicked(UI::MouseButton::Right))
 		{
-			ImGui::OpenPopup("###ContentContextMenu");
+			UI::open_popup("###ContentContextMenu");
 		}
 
 		auto& objects = package->objects();
 
-		const ImVec2 region    = ImGui::GetContentRegionAvail();
+		const auto region      = UI::content_region_available();
 		const float font_size  = ImGui::GetFontSize();
 		const ImVec2 item_size = ImVec2(6.8, 6.8) * font_size + ImVec2(0.f, ImGui::GetTextLineHeightWithSpacing() * 3);
 		const ImVec2 spacing   = ImGui::GetStyle().ItemSpacing;
@@ -377,96 +427,63 @@ namespace Trinex
 		{
 			for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row)
 			{
-				ImGui::BeginHorizontal(row, ImVec2(region.x, item_size.y));
+				UI::begin_horizontal(row, UI::Vec2(region.x, item_size.y));
 				i32 idx     = row * columns;
 				i32 end_idx = glm::min(idx + columns, items_count);
 
 				for (; idx < end_idx; ++idx)
 				{
 					auto object = objects[idx];
-					ImGui::PushID(object);
+					UI::push_id(object);
 					render_content_item(object, {item_size.x, item_size.y});
-					ImGui::PopID();
+					UI::pop_id();
 				}
-				ImGui::EndHorizontal();
+				UI::end_horizontal();
 				ImGui::NewLine();
 			}
 		}
 
 		clipper.End();
 
-		if (ImGui::BeginPopup("###ContentContextMenu"))
-		{
+		UI::popup("###ContentContextMenu", [&]() {
 			Package* pkg = selected_package();
 
-			if (ImGui::Button("editor/Create new asset"_localized))
+			if (UI::button("editor/Create new asset"_localized))
 			{
 				ImGuiWindow::current()->widgets.create<ImGuiCreateNewAsset>(pkg, filters);
-				ImGui::CloseCurrentPopup();
+				UI::close_popup();
 			}
 
 			bool is_editable_object = selected_object && selected_object->is_editable();
 
-			if (is_editable_object && ImGui::Button("editor/Rename"_localized))
+			if (is_editable_object && UI::button("editor/Rename"_localized))
 			{
 				begin_renaming(selected_object);
-				ImGui::CloseCurrentPopup();
+				UI::close_popup();
 			}
 
-			if (is_editable_object && ImGui::Button("editor/Delete"_localized))
+			if (is_editable_object && UI::button("editor/Delete"_localized))
 			{
 				Package* package = selected_object->package();
 				package->remove_object(selected_object);
 				selected_object = nullptr;
 				on_object_select(nullptr);
-				ImGui::CloseCurrentPopup();
+				UI::close_popup();
 			}
 
-			if (is_editable_object && ImGui::Button("editor/Save"_localized))
+			if (is_editable_object && UI::button("editor/Save"_localized))
 			{
 				selected_object->save();
-				ImGui::CloseCurrentPopup();
+				UI::close_popup();
 			}
-			ImGui::EndPopup();
-		}
+		});
 
-		ImGui::End();
-	}
-
-	void ContentBrowser::on_open()
-	{
-
-		UI::DockLayout layout;
-
-		if (layout.begin())
-		{
-			layout.end();
-		}
-
-		// m_dock_window_id = ImGui::GetID("##ContentBrowserDockSpace");
-
-		// ImGui::DockSpace(m_dock_window_id, {0, 0},
-		//                  ImGuiDockNodeFlags_PassthruCentralNode | ImGuiDockNodeFlags_NoUndocking | ImGuiDockNodeFlags_NoTabBar);
-
-		// if (frame_number == 1)
-		// {
-		// 	ImGui::DockBuilderRemoveNode(m_dock_window_id);
-		// 	ImGui::DockBuilderAddNode(m_dock_window_id, ImGuiDockNodeFlags_DockSpace);
-		// 	ImGui::DockBuilderSetNodeSize(m_dock_window_id, ImGui::GetWindowSize());
-
-		// 	auto dock_id_left = ImGui::DockBuilderSplitNode(m_dock_window_id, ImGuiDir_Left, 0.2f, nullptr, &m_dock_window_id);
-
-		// 	ImGui::DockBuilderDockWindow("##ContentBrowserPackages", dock_id_left);
-		// 	ImGui::DockBuilderDockWindow("##ContentBrowserItems", m_dock_window_id);
-		// 	ImGui::DockBuilderFinish(m_dock_window_id);
-		// }
+		UI::end_panel();
 	}
 
 	void ContentBrowser::on_render()
 	{
-		bool open = true;
-
-		if (ImGui::IsKeyPressed(ImGuiKey_F2, false))
+		if (UI::is_key_pressed(UI::Key::F2, false))
 		{
 			if (!m_is_renaming && selected_object)
 			{
@@ -474,18 +491,25 @@ namespace Trinex
 			}
 		}
 
-		render_packages();
-		render_content_window();
+		UI::TableFlags flags = UI::TableFlags::Resizable | UI::TableFlags::BordersInnerV | UI::TableFlags::SizingStretchProp;
+
+		if (UI::begin_table("##dock", 2, flags, UI::content_region_available()))
+		{
+			UI::table_setup_column("###packages", UI::TableFlags::Undefined, 0.3f);
+			UI::table_setup_column("###content", UI::TableFlags::Undefined, 0.7f);
+
+			UI::table_next_row();
+			UI::table_column(0);
+			render_packages();
+			UI::table_column(1);
+			render_content_window();
+			UI::end_table();
+		}
 	}
 
 	Package* ContentBrowser::selected_package() const
 	{
 		return m_selected_package;
-	}
-
-	const char* ContentBrowser::name() const
-	{
-		return static_name();
 	}
 
 	const char* ContentBrowser::static_name()

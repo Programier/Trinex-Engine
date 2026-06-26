@@ -3,9 +3,12 @@
 #include <Editor/Widgets/content_browser.hpp>
 #include <UI/api.hpp>
 
+#include <imgui.h>
+
 namespace Trinex
 {
 	trinex_implement_class(Trinex::EditorClient, 0) {}
+
 
 	EditorClient& EditorClient::on_render_viewport()
 	{

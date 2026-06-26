@@ -500,14 +500,19 @@ namespace Trinex::UI
 		active_context()->anim.clear();
 	}
 
-	void push_id(const char* id)
+	void push_id(StringView id)
+	{
+		ImGui::PushID(id.data(), id.data() + id.size());
+	}
+
+	void push_id(i32 id)
 	{
 		ImGui::PushID(id);
 	}
 
-	void push_id(int id)
+	void push_id(const void* ptr)
 	{
-		ImGui::PushID(id);
+		ImGui::PushID(ptr);
 	}
 
 	void pop_id()

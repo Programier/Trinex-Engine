@@ -4,7 +4,7 @@ namespace Trinex::UI
 {
 	/////////////////////// IMAGES AND CONTROLS ///////////////////////
 
-	void image(RHITexture* texture, const Vec2& size, const ImageOptions& options)
+	void image(const Texture& texture, const Vec2& size, const ImageOptions& options)
 	{
 		if (texture == nullptr)
 		{
@@ -12,7 +12,6 @@ namespace Trinex::UI
 			return;
 		}
 
-		RHISampler* sampler  = options.sampler ? options.sampler : RHIPointSampler::static_sampler();
 		const float rounding = options.rounding >= 0.0f ? options.rounding : active_context()->style.rounding;
 		const float padding  = std::max(0.0f, options.padding);
 		const ImVec2 image_size(std::max(0.0f, size.x), std::max(0.0f, size.y));
@@ -40,8 +39,8 @@ namespace Trinex::UI
 			draw->AddRectFilled(pos, max, col_u32(frame_bg), rounding);
 		}
 
-		draw->AddImageRounded(ImTextureID(texture, sampler), image_min, image_max, to_imvec(options.uv0), to_imvec(options.uv1),
-		                      col_u32(options.tint), image_rounding);
+		draw->AddImageRounded(ImTextureID(texture.texture, texture.sampler), image_min, image_max, to_imvec(options.uv0),
+		                      to_imvec(options.uv1), col_u32(options.tint), image_rounding);
 
 		if (options.border)
 		{
@@ -49,7 +48,7 @@ namespace Trinex::UI
 		}
 	}
 
-	bool image_button(const char* id_text, RHITexture* texture, const Vec2& size, const ImageOptions& options)
+	bool image_button(const char* id_text, const Texture& texture, const Vec2& size, const ImageOptions& options)
 	{
 		if (texture == nullptr)
 		{
@@ -58,18 +57,19 @@ namespace Trinex::UI
 		}
 
 		cleanup_states();
+
 		if (id_text != nullptr)
 		{
 			ImGui::PushID(id_text);
 		}
 		else
 		{
-			ImGui::PushID(texture);
+			ImGui::PushID(texture.texture);
 		}
+		ImGui::PushID(texture.sampler);
 
 		const ImGuiID id     = ImGui::GetID("image_button");
 		AnimState& anim      = state_for(id);
-		RHISampler* sampler  = options.sampler ? options.sampler : RHIPointSampler::static_sampler();
 		const float rounding = options.rounding >= 0.0f ? options.rounding : active_context()->style.rounding;
 		const float padding  = std::max(0.0f, options.padding);
 		const ImVec2 image_size(std::max(0.0f, size.x), std::max(0.0f, size.y));
@@ -108,8 +108,8 @@ namespace Trinex::UI
 			draw->AddRectFilled(frame_rect.min, frame_rect.max, col_u32(frame_bg), rounding * frame_rect.rounding_scale);
 		}
 
-		draw->AddImageRounded(ImTextureID(texture, sampler), image_rect.min, image_rect.max, to_imvec(options.uv0),
-		                      to_imvec(options.uv1), col_u32(options.tint), image_rounding);
+		draw->AddImageRounded(ImTextureID(texture.texture, texture.sampler), image_rect.min, image_rect.max,
+		                      to_imvec(options.uv0), to_imvec(options.uv1), col_u32(options.tint), image_rounding);
 
 		if (options.border)
 		{
@@ -117,6 +117,7 @@ namespace Trinex::UI
 			              active_context()->style.border_size);
 		}
 
+		ImGui::PopID();
 		ImGui::PopID();
 		return clicked;
 	}
@@ -217,6 +218,11 @@ namespace Trinex::UI
 		}
 		ImGui::PopID();
 		return clicked;
+	}
+
+	bool invisible_button(const char* label, const ButtonOptions& options)
+	{
+		return ImGui::InvisibleButton(label, to_imvec(options.size), options.flags);
 	}
 
 	bool icon_button(const char* icon, const char* label, const ButtonOptions& options)

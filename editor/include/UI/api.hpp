@@ -44,10 +44,11 @@ namespace Trinex::UI
 	Vec4 animate_color(ID id, const Vec4& target, float speed = -1.0f);
 	void reset_animation(ID id);
 	void clear_animations();
-	void push_id(const char* id_text);
-	void push_id(int id_value);
+	void push_id(StringView value);
+	void push_id(i32 value);
+	void push_id(const void* value);
 	void pop_id();
-	ID id(const char* id_text);
+	ID id(StringView value);
 
 	/////////////////////// DOCKING ///////////////////////
 	bool is_window_docked();
@@ -71,11 +72,9 @@ namespace Trinex::UI
 	void unregister_widget(Context* context, Widget* widget);
 	bool begin_panel(const char* id_text, const PanelOptions& options = {});
 	void end_panel();
-	bool begin_glass_panel(const char* id, const Vec2& size = Vec2(0, 0), const GlassOptions& options = {});
+	bool begin_glass_panel(const char* id, Vec2 size, const GlassOptions& options = {});
 	void end_glass_panel();
-	bool begin_child_panel(const char* id_text, const Vec2& size = Vec2(0, 0), const PanelOptions& options = {});
-	void end_child_panel();
-	bool begin_group_panel(const char* label, const Vec2& size = Vec2(0, 0), const PanelOptions& options = {});
+	bool begin_group_panel(const char* label, const PanelOptions& options = {});
 	void end_group_panel();
 	bool begin_group();
 	void end_group();
@@ -183,9 +182,10 @@ namespace Trinex::UI
 	void help_tooltip(const char* description);
 
 	/////////////////////// IMAGES AND CONTROLS ///////////////////////
-	void image(RHITexture* texture, const Vec2& size, const ImageOptions& options = {});
-	bool image_button(const char* id_text, RHITexture* texture, const Vec2& size, const ImageOptions& options = {});
+	void image(const Texture& texture, const Vec2& size, const ImageOptions& options = {});
+	bool image_button(const char* id_text, const Texture& texture, const Vec2& size, const ImageOptions& options = {});
 	bool button(const char* label, const ButtonOptions& options = {});
+	bool invisible_button(const char* label, const ButtonOptions& options = {});
 	bool icon_button(const char* icon, const char* label, const ButtonOptions& options = {});
 	bool small_button(const char* label);
 	bool ghost_button(const char* label, const Vec2& size = Vec2(0, 0));
@@ -257,6 +257,7 @@ namespace Trinex::UI
 	bool begin_popup(const char* id_text, WindowFlags flags = WindowFlags::Undefined);
 	void open_popup(const char* id_text);
 	void end_popup();
+	void close_popup();
 	bool begin_context_menu(const char* id_text = nullptr);
 	void end_context_menu();
 	bool begin_menu_bar();
@@ -299,11 +300,12 @@ namespace Trinex::UI
 	bool begin_table(const char* id_text, int columns, TableFlags flags = TableFlags::Undefined,
 	                 const Vec2& outer_size = Vec2(0, 0), float inner_width = 0.0f);
 	void end_table();
-	void table_column(const char* label, TableColumnFlags flags = TableColumnFlags::Undefined, float width_or_weight = 0.0f,
-	                  ID id = ID(0));
+	void table_setup_column(const char* label, TableColumnFlags flags = TableColumnFlags::Undefined, float width_or_weight = 0.0f,
+	                        ID id = ID(0));
 	void table_headers();
 	void table_next_row(TableRowFlags flags = TableRowFlags::Undefined, float min_row_height = 0.0f);
 	bool table_next_column();
+	bool table_column(u32 idx);
 	bool begin_list_box(const char* label, const Vec2& size = Vec2(0, 0));
 	void end_list_box();
 	bool list_item(const char* label, bool selected = false, const char* icon = nullptr, const char* badge = nullptr);
@@ -447,30 +449,9 @@ namespace Trinex::UI
 		return glass_panel(id, Vec2(0, 0), {}, func);
 	}
 
-	inline bool child_panel(const char* id_text, const Vec2& size, const PanelOptions& options, const ActionRef& func)
+	inline bool group_panel(const char* label, const PanelOptions& options, const ActionRef& func)
 	{
-		const bool visible = begin_child_panel(id_text, size, options);
-		if (visible)
-		{
-			func();
-			end_child_panel();
-		}
-		return visible;
-	}
-
-	inline bool child_panel(const char* id_text, const Vec2& size, const ActionRef& func)
-	{
-		return child_panel(id_text, size, {}, func);
-	}
-
-	inline bool child_panel(const char* id_text, const ActionRef& func)
-	{
-		return child_panel(id_text, Vec2(0, 0), {}, func);
-	}
-
-	inline bool group_panel(const char* label, const Vec2& size, const PanelOptions& options, const ActionRef& func)
-	{
-		const bool visible = begin_group_panel(label, size, options);
+		const bool visible = begin_group_panel(label, options);
 		if (visible)
 		{
 			func();
@@ -479,14 +460,9 @@ namespace Trinex::UI
 		return visible;
 	}
 
-	inline bool group_panel(const char* label, const Vec2& size, const ActionRef& func)
-	{
-		return group_panel(label, size, {}, func);
-	}
-
 	inline bool group_panel(const char* label, const ActionRef& func)
 	{
-		return group_panel(label, Vec2(0, 0), {}, func);
+		return group_panel(label, {}, func);
 	}
 
 	inline bool group(const ActionRef& func)

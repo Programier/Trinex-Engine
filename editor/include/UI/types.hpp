@@ -399,28 +399,47 @@ namespace Trinex::UI
 	};
 
 	struct TableFlags {
-		enum Enum : u16
+		enum Enum : u32
 		{
-			Undefined         = 0,
-			Resizable         = 1u << 0,
-			Reorderable       = 1u << 1,
-			Hideable          = 1u << 2,
-			Sortable          = 1u << 3,
-			NoSavedSettings   = 1u << 4,
-			ContextMenuInBody = 1u << 5,
-			RowBg             = 1u << 6,
-			BordersInnerH     = 1u << 7,
-			BordersOuterH     = 1u << 8,
-			BordersInnerV     = 1u << 9,
-			BordersOuterV     = 1u << 10,
-			BordersH          = BordersInnerH | BordersOuterH,
-			BordersV          = BordersInnerV | BordersOuterV,
-			BordersInner      = BordersInnerV | BordersInnerH,
-			BordersOuter      = BordersOuterV | BordersOuterH,
-			Borders           = BordersInner | BordersOuter
+			Undefined                  = 0,
+			Resizable                  = 1 << 0,
+			Reorderable                = 1 << 1,
+			Hideable                   = 1 << 2,
+			Sortable                   = 1 << 3,
+			NoSavedSettings            = 1 << 4,
+			ContextMenuInBody          = 1 << 5,
+			RowBg                      = 1 << 6,
+			BordersInnerH              = 1 << 7,
+			BordersOuterH              = 1 << 8,
+			BordersInnerV              = 1 << 9,
+			BordersOuterV              = 1 << 10,
+			BordersH                   = BordersInnerH | BordersOuterH,
+			BordersV                   = BordersInnerV | BordersOuterV,
+			BordersInner               = BordersInnerV | BordersInnerH,
+			BordersOuter               = BordersOuterV | BordersOuterH,
+			Borders                    = BordersInner | BordersOuter,
+			NoBordersInBody            = 1 << 11,
+			NoBordersInBodyUntilResize = 1 << 12,
+			SizingFixedFit             = 1 << 13,
+			SizingFixedSame            = 2 << 13,
+			SizingStretchProp          = 3 << 13,
+			SizingStretchSame          = 4 << 13,
+			NoHostExtendX              = 1 << 16,
+			NoHostExtendY              = 1 << 17,
+			NoKeepColumnsVisible       = 1 << 18,
+			PreciseWidths              = 1 << 19,
+			NoClip                     = 1 << 20,
+			PadOuterX                  = 1 << 21,
+			NoPadOuterX                = 1 << 22,
+			NoPadInnerX                = 1 << 23,
+			ScrollX                    = 1 << 24,
+			ScrollY                    = 1 << 25,
+			SortMulti                  = 1 << 26,
+			SortTristate               = 1 << 27,
+			HighlightHoveredColumn     = 1 << 28,
 		};
 
-		trinex_bitfield_enum_struct(TableFlags, u16);
+		trinex_bitfield_enum_struct(TableFlags, u32);
 	};
 
 	struct DrawFlags {
@@ -504,6 +523,53 @@ namespace Trinex::UI
 		};
 
 		trinex_enum_struct(DrawList);
+	};
+
+	struct ButtonFlags {
+		enum Enum : u32
+		{
+			Undefined                     = 0,
+			MouseButtonLeft               = 1 << 0,
+			MouseButtonRight              = 1 << 1,
+			MouseButtonMiddle             = 1 << 2,
+			EnableNav                     = 1 << 3,
+			PressedOnClick                = 1 << 4,
+			PressedOnClickRelease         = 1 << 5,
+			PressedOnClickReleaseAnywhere = 1 << 6,
+			PressedOnRelease              = 1 << 7,
+			PressedOnDoubleClick          = 1 << 8,
+			PressedOnDragDropHold         = 1 << 9,
+			FlattenChildren               = 1 << 11,
+			AllowOverlap                  = 1 << 12,
+			AlignTextBaseLine             = 1 << 15,
+			NoKeyModsAllowed              = 1 << 16,
+			NoHoldingActiveId             = 1 << 17,
+			NoNavFocus                    = 1 << 18,
+			NoHoveredOnFocus              = 1 << 19,
+			NoSetKeyOwner                 = 1 << 20,
+			NoTestKeyOwner                = 1 << 21,
+			NoFocus                       = 1 << 22,
+		};
+
+		trinex_bitfield_enum_struct(ButtonFlags, u32);
+	};
+
+	struct PanelFlags {
+		enum Enum : u16
+		{
+			Undefined              = 0,
+			Borders                = 1 << 0,
+			AlwaysUseWindowPadding = 1 << 1,
+			ResizeX                = 1 << 2,
+			ResizeY                = 1 << 3,
+			AutoResizeX            = 1 << 4,
+			AutoResizeY            = 1 << 5,
+			AlwaysAutoResize       = 1 << 6,
+			FrameStyle             = 1 << 7,
+			NavFlattened           = 1 << 8,
+		};
+
+		trinex_bitfield_enum_struct(PanelFlags, u32);
 	};
 
 	struct Texture {
@@ -777,26 +843,25 @@ namespace Trinex::UI
 	};
 
 	struct PanelOptions {
-		Vec2 size             = Vec2(0.0f, 0.0f);
-		bool border           = true;
-		bool background       = true;
-		f32 rounding          = -1.0f;
-		Vec4 background_color = Vec4(0, 0, 0, 0);
+		Vec4 background_color    = Vec4(0, 0, 0, 0);
+		Vec2 size                = Vec2(0.0f, 0.0f);
+		f32 rounding             = -1.0f;
+		bool border              = true;
+		bool background          = true;
+		PanelFlags flags         = PanelFlags::Undefined;
+		WindowFlags window_flags = WindowFlags::Undefined;
 	};
 
 	struct GlassOptions {
-		f32 opacity = 0.72f;
-
-		Vec4 tint         = Vec4(0.10f, 0.12f, 0.16f, 0.65f);
-		Vec4 border_color = Vec4(0, 0, 0, 0);
-		Vec4 highlight    = Vec4(1, 1, 1, 0.08f);
-
+		Vec4 tint          = Vec4(0.10f, 0.12f, 0.16f, 0.65f);
+		Vec4 border_color  = Vec4(0, 0, 0, 0);
+		Vec4 highlight     = Vec4(1, 1, 1, 0.08f);
+		f32 opacity        = 0.72f;
+		f32 rounding       = -1.0f;
+		f32 padding        = -1.0f;
 		bool border        = true;
 		bool background    = true;
 		bool highlight_top = true;
-
-		f32 rounding = -1.0f;
-		f32 padding  = -1.0f;
 	};
 
 	struct CardOptions {
@@ -822,7 +887,6 @@ namespace Trinex::UI
 	};
 
 	struct ImageOptions {
-		RHISampler* sampler   = nullptr;
 		Vec2 uv0              = Vec2(0.0f, 0.0f);
 		Vec2 uv1              = Vec2(1.0f, 1.0f);
 		Vec4 tint             = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -836,11 +900,12 @@ namespace Trinex::UI
 	};
 
 	struct ButtonOptions {
-		Vec2 size        = Vec2(0.0f, 0.0f);
-		const char* icon = nullptr;
-		bool disabled    = false;
-		bool ghost       = false;
-		Vec4 accent      = Vec4(0, 0, 0, 0);
+		Vec2 size         = Vec2(0.0f, 0.0f);
+		const char* icon  = nullptr;
+		bool disabled     = false;
+		bool ghost        = false;
+		Vec4 accent       = Vec4(0, 0, 0, 0);
+		ButtonFlags flags = ButtonFlags::Undefined;
 	};
 
 	struct HeaderOptions {

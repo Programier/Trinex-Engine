@@ -322,6 +322,11 @@ namespace Trinex::UI
 		ImGui::PopStyleVar();
 	}
 
+	void close_popup()
+	{
+		ImGui::CloseCurrentPopup();
+	}
+
 	bool begin_context_menu(const char* id)
 	{
 		return ImGui::BeginPopupContextItem(id);
@@ -1074,7 +1079,7 @@ namespace Trinex::UI
 		}
 	}
 
-	void table_column(const char* label, TableColumnFlags flags, float width_or_weight, ID user_id)
+	void table_setup_column(const char* label, TableColumnFlags flags, float width_or_weight, ID user_id)
 	{
 		ImGui::TableSetupColumn(label, to_imgui_table_column_flags(flags), width_or_weight, to_imgui_id(user_id));
 	}
@@ -1092,6 +1097,11 @@ namespace Trinex::UI
 	bool table_next_column()
 	{
 		return ImGui::TableNextColumn();
+	}
+
+	bool table_column(u32 idx)
+	{
+		return ImGui::TableSetColumnIndex(idx);
 	}
 
 	bool begin_list_box(const char* label, const Vec2& size)

@@ -94,8 +94,8 @@ namespace Trinex::UI
 		                    ImVec2(active_context()->style.padding, active_context()->style.padding));
 		ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
 		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
-		const bool visible =
-		        ImGui::BeginChild(id, to_imvec(options.size), ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_None);
+		const bool visible = ImGui::BeginChild(id, to_imvec(options.size), options.flags | ImGuiChildFlags_AlwaysUseWindowPadding,
+		                                       options.window_flags);
 		if (!visible)
 		{
 			ImGui::EndChild();
@@ -155,7 +155,7 @@ namespace Trinex::UI
 		ImGui::PopStyleVar(3);
 	}
 
-	bool begin_glass_panel(const char* id, const Vec2& size, const GlassOptions& options)
+	bool begin_glass_panel(const char* id, Vec2 size, const GlassOptions& options)
 	{
 		trinex_assert(has_text(id) && "UI::begin_glass_panel() requires a non-empty id");
 		if (!has_text(id))
@@ -273,19 +273,7 @@ namespace Trinex::UI
 		ImGui::PopStyleVar(3);
 	}
 
-	bool begin_child_panel(const char* id, const Vec2& size, const PanelOptions& options)
-	{
-		PanelOptions copy = options;
-		copy.size         = size;
-		return begin_panel(id, copy);
-	}
-
-	void end_child_panel()
-	{
-		end_panel();
-	}
-
-	bool begin_group_panel(const char* label, const Vec2& size, const PanelOptions& options)
+	bool begin_group_panel(const char* label, const PanelOptions& options)
 	{
 		ImGui::BeginGroup();
 		if (label != nullptr && label[0] != '\0')
@@ -293,7 +281,7 @@ namespace Trinex::UI
 			text_muted("%s", label);
 		}
 
-		if (!begin_child_panel(label, size, options))
+		if (!begin_panel(label, options))
 		{
 			ImGui::EndGroup();
 			return false;
@@ -304,7 +292,7 @@ namespace Trinex::UI
 
 	void end_group_panel()
 	{
-		end_child_panel();
+		end_panel();
 		ImGui::EndGroup();
 	}
 

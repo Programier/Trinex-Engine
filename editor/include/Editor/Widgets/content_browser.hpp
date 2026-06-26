@@ -35,11 +35,8 @@ namespace Trinex
 		class Object* selected_object = nullptr;
 
 		ContentBrowser();
-		void on_open() override;
 		void on_render() override;
 		Package* selected_package() const;
-
-		virtual const char* name() const;
 		static const char* static_name();
 		~ContentBrowser();
 	};
