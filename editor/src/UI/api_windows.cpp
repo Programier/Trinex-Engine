@@ -38,24 +38,51 @@ namespace Trinex::UI
 		pop_window_styles();
 	}
 
-	void create_widget(Context* context, const char* name, const WindowOptions& options, Widget* widget)
+	void register_widget(Context* context, Widget* widget)
 	{
-		if (context == nullptr || name == nullptr || widget == nullptr)
+		if (context == nullptr || widget == nullptr)
 		{
 			return;
 		}
 
-		setup_window(ensure_window(context, name), options, widget);
+		if (PersistentWindow* window = find_window(context, widget))
+		{
+			return;
+		}
+
+		PersistentWindow* window = trx_new PersistentWindow();
+		window->next             = context->window_list;
+		window->widget           = widget;
+		context->window_list     = window;
+
+		widget->on_attach(context);
 	}
 
-	void create_widget(Context* context, const char* name, const WindowOptions& options, const Action& content)
+	void unregister_widget(Context* context, Widget* widget)
 	{
-		if (context == nullptr || content == nullptr)
+		if (context == nullptr || widget == nullptr)
 		{
 			return;
 		}
 
-		create_widget(context, name, options, trx_new FunctionWidget(content));
+		PersistentWindow** current = &context->window_list;
+
+		while (*current)
+		{
+			PersistentWindow* window = *current;
+
+			if (window->widget != widget)
+			{
+				current = &window->next;
+				continue;
+			}
+
+			*current = window->next;
+			widget->on_deattach(context);
+			trx_delete widget;
+			trx_delete window;
+			return;
+		}
 	}
 
 	bool begin_panel(const char* id, const PanelOptions& options)

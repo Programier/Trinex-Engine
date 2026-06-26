@@ -218,10 +218,7 @@ namespace Trinex::UI
 
 	struct PersistentWindow {
 		PersistentWindow* next = nullptr;
-		String name;
-		WindowOptions options;
-		bool open      = true;
-		Widget* widget = nullptr;
+		Widget* widget         = nullptr;
 	};
 
 	struct RegisteredCommand {
@@ -577,29 +574,9 @@ namespace Trinex::UI
 			return ImGui::GetColorU32(c);
 		}
 
-		PersistentWindow* find_window(const char* name)
+		PersistentWindow* find_window(Context* context, Widget* widget)
 		{
-			if (name == nullptr)
-			{
-				return nullptr;
-			}
-
-			PersistentWindow* window = active_context()->window_list;
-
-			while (window)
-			{
-				if (window->name == name)
-				{
-					return window;
-				}
-			}
-
-			return nullptr;
-		}
-
-		PersistentWindow* find_window(Context* context, const char* name)
-		{
-			if (context == nullptr || name == nullptr)
+			if (context == nullptr || widget == nullptr)
 			{
 				return nullptr;
 			}
@@ -608,7 +585,7 @@ namespace Trinex::UI
 
 			while (window)
 			{
-				if (window->name == name)
+				if (window->widget == widget)
 				{
 					return window;
 				}
@@ -617,43 +594,6 @@ namespace Trinex::UI
 			}
 
 			return nullptr;
-		}
-
-		PersistentWindow* ensure_window(const char* name)
-		{
-			if (PersistentWindow* window = find_window(name))
-			{
-				return window;
-			}
-
-			PersistentWindow* window      = trx_new PersistentWindow();
-			window->next                  = active_context()->window_list;
-			window->name                  = name;
-			active_context()->window_list = window;
-
-			return window;
-		}
-
-		PersistentWindow* ensure_window(Context* context, const char* name)
-		{
-			if (PersistentWindow* window = find_window(context, name))
-			{
-				return window;
-			}
-
-			PersistentWindow* window = trx_new PersistentWindow();
-			window->next             = context->window_list;
-			window->name             = name;
-			context->window_list     = window;
-
-			return window;
-		}
-
-		void setup_window(PersistentWindow* window, const WindowOptions& options, Widget* widget)
-		{
-			window->options = options;
-			window->open    = true;
-			window->widget  = widget;
 		}
 
 		ImVec2 to_imvec(const Vec2& v)
@@ -1621,44 +1561,30 @@ namespace Trinex::UI
 			while (*list)
 			{
 				PersistentWindow* window = *list;
+				Widget* widget           = window->widget;
 
-				const bool visible = begin_window(window->name.c_str(), &window->open, window->options);
+				bool open = widget->is_open();
 
-				if (ImGui::IsWindowAppearing())
+				if (open)
 				{
-					window->widget->on_init();
+					const bool visible = begin_window(widget->name().c_str(), &open, widget->options());
+
+					if (ImGui::IsWindowAppearing())
+					{
+						widget->on_open();
+					}
+
+					if (visible)
+					{
+						window->widget->on_render();
+						end_window();
+					}
+
+					widget->is_open(open);
 				}
 
-				if (visible)
-				{
-					window->widget->on_render();
-					end_window();
-				}
-
-				if (window->open)
-				{
-					list = &window->next;
-				}
-				else
-				{
-					(*list) = window->next;
-
-					window->widget->on_close();
-					trx_delete window;
-				}
+				list = &window->next;
 			}
 		}
 	}// namespace
-
-	class FunctionWidget : public Widget
-	{
-	private:
-		Action m_on_render;
-
-	public:
-		FunctionWidget(const Action& render) : m_on_render(render) {}
-
-		void on_render() override { m_on_render(); }
-		void on_close() override { trx_delete this; }
-	};
 }// namespace Trinex::UI

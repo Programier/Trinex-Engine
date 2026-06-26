@@ -831,12 +831,39 @@ namespace Trinex::UI
 
 	class Widget
 	{
+	private:
+		String m_name;
+		WindowOptions m_options;
+		bool m_is_open = false;
+
 	public:
+		static Widget* create(const char* name, const WindowOptions& options, bool open, const Action& action);
+		static inline Widget* create(const char* name, const WindowOptions& options, const Action& action)
+		{
+			return create(name, options, false, action);
+		}
+		static inline Widget* create(const char* name, bool open, const Action& action) { return create(name, {}, open, action); }
+		static inline Widget* create(const char* name, const Action& action) { return create(name, {}, action); }
+
+	public:
+		Widget(StringView name = "", const WindowOptions& options = {}, bool open = false);
 		virtual ~Widget();
 
-		virtual void on_init();
-		virtual void on_render();
+		virtual void on_attach(Context* context);
+		virtual void on_deattach(Context* context);
+
+		virtual void on_open();
 		virtual void on_close();
+
+		virtual void on_render();
+
+		inline const String& name() const { return m_name; }
+		inline const WindowOptions& options() const { return m_options; }
+		inline bool is_open() const { return m_is_open; }
+
+		inline Widget& name(StringView value) { trinex_this_return(m_name = value); }
+		inline Widget& options(const WindowOptions& value) { trinex_this_return(m_options = value); }
+		inline Widget& is_open(bool value) { trinex_this_return(m_is_open = value); }
 	};
 
 	template<typename T>

@@ -67,8 +67,8 @@ namespace Trinex::UI
 	/////////////////////// WINDOWS AND CONTAINERS ///////////////////////
 	bool begin_window(const char* name, bool* open = nullptr, const WindowOptions& options = {});
 	void end_window();
-	void create_widget(Context* context, const char* name, const WindowOptions& options, Widget* widget);
-	void create_widget(Context* context, const char* name, const WindowOptions& options, const Action& content);
+	void register_widget(Context* context, Widget* widget);
+	void unregister_widget(Context* context, Widget* widget);
 	bool begin_panel(const char* id_text, const PanelOptions& options = {});
 	void end_panel();
 	bool begin_glass_panel(const char* id, const Vec2& size = Vec2(0, 0), const GlassOptions& options = {});
@@ -404,28 +404,6 @@ namespace Trinex::UI
 	inline bool window(const char* name, const ActionRef& func)
 	{
 		return window(name, nullptr, {}, func);
-	}
-
-	inline void create_widget(Context* context, const char* name, Widget* widget)
-	{
-		create_widget(context, name, {}, widget);
-	}
-
-	inline void create_widget(Context* context, const char* name, const Action& content)
-	{
-		create_widget(context, name, {}, content);
-	}
-
-	template<typename WidgetType, typename... Args>
-	inline void create_widget(Context* context, const char* name, Args&&... args)
-	{
-		create_widget(context, name, {}, trx_new UniqueWidget<WidgetType>(etl::forward<Args>(args)...));
-	}
-
-	template<typename WidgetType, typename... Args>
-	inline void create_widget(Context* context, const char* name, const WindowOptions& options, Args&&... args)
-	{
-		create_widget(context, name, options, trx_new UniqueWidget<WidgetType>(etl::forward<Args>(args)...));
 	}
 
 	inline bool panel(const char* id_text, const PanelOptions& options, const ActionRef& func)
