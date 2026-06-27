@@ -1205,19 +1205,13 @@ namespace Trinex::UI
 
 		void push_input_frame_styles(float focus)
 		{
-			ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, active_context()->style.rounding);
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(active_context()->style.padding, 6.0f));
-			ImGui::PushStyleColor(ImGuiCol_FrameBg, to_imvec(active_context()->style.colors.background));
-			ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, to_imvec(active_context()->style.colors.background_hovered));
-			ImGui::PushStyleColor(ImGuiCol_FrameBgActive, to_imvec(active_context()->style.colors.background_active));
 			ImGui::PushStyleColor(ImGuiCol_Border, to_imvec(Math::lerp(active_context()->style.colors.border,
 			                                                           active_context()->style.colors.accent, focus)));
 		}
 
 		void pop_input_frame_styles()
 		{
-			ImGui::PopStyleColor(4);
-			ImGui::PopStyleVar(2);
+			ImGui::PopStyleColor();
 		}
 
 		ImVec2 default_item_size(const char* label, ImVec2 requested, float min_width = 0.0f)
@@ -1338,14 +1332,6 @@ namespace Trinex::UI
 			ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, active_context()->style.rounding * 0.55f);
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,
 			                    ImVec2(active_context()->style.spacing, active_context()->style.spacing * 0.75f));
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(active_context()->style.padding, 6.0f));
-			ImGui::PushStyleColor(ImGuiCol_Text, to_imvec(active_context()->style.colors.text));
-			ImGui::PushStyleColor(ImGuiCol_Header, to_imvec(with_alpha(active_context()->style.colors.accent, 0.16f)));
-			ImGui::PushStyleColor(ImGuiCol_HeaderHovered,
-			                      to_imvec(with_alpha(active_context()->style.colors.accent_hovered, 0.24f)));
-			ImGui::PushStyleColor(ImGuiCol_HeaderActive,
-			                      to_imvec(with_alpha(active_context()->style.colors.accent_active, 0.30f)));
-			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 			ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
 			                      to_imvec(with_alpha(active_context()->style.colors.accent_hovered, 0.18f)));
 			ImGui::PushStyleColor(ImGuiCol_ButtonActive,
@@ -1354,32 +1340,20 @@ namespace Trinex::UI
 
 		void pop_menu_bar_colors()
 		{
-			ImGui::PopStyleColor(7);
-			ImGui::PopStyleVar(3);
+			ImGui::PopStyleColor(2);
+			ImGui::PopStyleVar(2);
 		}
 
 		void push_menu_popup_colors()
 		{
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, active_context()->style.rounding);
-			ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, active_context()->style.rounding);
 			ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, active_context()->style.rounding * 0.55f);
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,
 			                    ImVec2(active_context()->style.spacing, active_context()->style.spacing * 0.6f));
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(active_context()->style.padding, 6.0f));
-			ImGui::PushStyleColor(ImGuiCol_PopupBg, to_imvec(active_context()->style.colors.panel));
-			ImGui::PushStyleColor(ImGuiCol_Border, to_imvec(active_context()->style.colors.border));
-			ImGui::PushStyleColor(ImGuiCol_Text, to_imvec(active_context()->style.colors.text));
-			ImGui::PushStyleColor(ImGuiCol_Header, to_imvec(with_alpha(active_context()->style.colors.accent, 0.16f)));
-			ImGui::PushStyleColor(ImGuiCol_HeaderHovered,
-			                      to_imvec(with_alpha(active_context()->style.colors.accent_hovered, 0.24f)));
-			ImGui::PushStyleColor(ImGuiCol_HeaderActive,
-			                      to_imvec(with_alpha(active_context()->style.colors.accent_active, 0.30f)));
 		}
 
 		void pop_menu_popup_colors()
 		{
-			ImGui::PopStyleColor(6);
-			ImGui::PopStyleVar(5);
+			ImGui::PopStyleVar(2);
 		}
 
 		void draw_menu_bar_background()
@@ -1402,30 +1376,16 @@ namespace Trinex::UI
 			                                 active_context()->style.colors.accent_active, 0.35f);
 			const Vec4 title_bg_active =
 			        Math::lerp(active_context()->style.colors.background_active, active_context()->style.colors.accent, 0.24f);
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, active_context()->style.rounding);
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, active_context()->style.border_size);
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,
-			                    ImVec2(active_context()->style.padding, active_context()->style.padding));
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(active_context()->style.padding, 7.0f));
-			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, active_context()->style.alpha);
 			ImGui::PushStyleColor(ImGuiCol_WindowBg, to_imvec(bg));
 			ImGui::PushStyleColor(ImGuiCol_PopupBg, to_imvec(bg));
-			ImGui::PushStyleColor(ImGuiCol_Border, to_imvec(active_context()->style.colors.border));
 			ImGui::PushStyleColor(ImGuiCol_TitleBg, to_imvec(title_bg));
 			ImGui::PushStyleColor(ImGuiCol_TitleBgActive, to_imvec(title_bg_active));
 			ImGui::PushStyleColor(ImGuiCol_TitleBgCollapsed, to_imvec(title_bg));
-			ImGui::PushStyleColor(ImGuiCol_Text, to_imvec(active_context()->style.colors.text));
-			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-			                      to_imvec(with_alpha(active_context()->style.colors.accent_hovered, 0.24f)));
-			ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-			                      to_imvec(with_alpha(active_context()->style.colors.accent_active, 0.30f)));
 		}
 
 		inline void pop_window_styles()
 		{
-			ImGui::PopStyleColor(10);
-			ImGui::PopStyleVar(5);
+			ImGui::PopStyleColor(5);
 		}
 	}// namespace
 }// namespace Trinex::UI

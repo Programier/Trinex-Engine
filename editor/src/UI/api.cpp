@@ -4,11 +4,71 @@ namespace Trinex::UI
 {
 	Context* g_context = nullptr;
 
+	static void apply_imgui_style(const Style& value)
+	{
+		ImGuiStyle& style = ImGui::GetStyle();
+		ColorTheme colors = value.colors;
+
+		style.Alpha             = value.alpha;
+		style.WindowPadding     = ImVec2(value.padding, value.padding);
+		style.FramePadding      = ImVec2(value.padding, 6.0f);
+		style.CellPadding       = ImVec2(value.padding, value.spacing);
+		style.ItemSpacing       = ImVec2(value.spacing, value.spacing);
+		style.WindowRounding    = value.rounding;
+		style.ChildRounding     = value.rounding;
+		style.PopupRounding     = value.rounding;
+		style.FrameRounding     = value.rounding;
+		style.ScrollbarRounding = value.rounding;
+		style.GrabRounding      = value.rounding;
+		style.TabRounding       = value.rounding;
+		style.WindowBorderSize  = value.border_size;
+		style.ChildBorderSize   = 0.0f;
+		style.PopupBorderSize   = value.border_size;
+		style.FrameBorderSize   = 0.0f;
+		style.TabBorderSize     = 0.0f;
+		style.AntiAliasedLines  = true;
+		style.AntiAliasedFill   = true;
+
+		ImVec4* imgui_colors                     = style.Colors;
+		imgui_colors[ImGuiCol_Text]              = to_imvec(colors.text);
+		imgui_colors[ImGuiCol_TextDisabled]      = to_imvec(colors.text_disabled);
+		imgui_colors[ImGuiCol_WindowBg]          = to_imvec(colors.background);
+		imgui_colors[ImGuiCol_ChildBg]           = ImVec4(0, 0, 0, 0);
+		imgui_colors[ImGuiCol_PopupBg]           = to_imvec(colors.panel);
+		imgui_colors[ImGuiCol_Border]            = to_imvec(colors.border);
+		imgui_colors[ImGuiCol_BorderShadow]      = ImVec4(0, 0, 0, 0);
+		imgui_colors[ImGuiCol_FrameBg]           = to_imvec(colors.background);
+		imgui_colors[ImGuiCol_FrameBgHovered]    = to_imvec(colors.background_hovered);
+		imgui_colors[ImGuiCol_FrameBgActive]     = to_imvec(colors.background_active);
+		imgui_colors[ImGuiCol_TitleBg]           = to_imvec(Math::lerp(colors.background_active, colors.accent_active, 0.35f));
+		imgui_colors[ImGuiCol_TitleBgActive]     = to_imvec(Math::lerp(colors.background_active, colors.accent, 0.24f));
+		imgui_colors[ImGuiCol_TitleBgCollapsed]  = imgui_colors[ImGuiCol_TitleBg];
+		imgui_colors[ImGuiCol_MenuBarBg]         = to_imvec(colors.panel);
+		imgui_colors[ImGuiCol_CheckMark]         = to_imvec(colors.accent);
+		imgui_colors[ImGuiCol_SliderGrab]        = to_imvec(colors.accent);
+		imgui_colors[ImGuiCol_SliderGrabActive]  = to_imvec(colors.accent_active);
+		imgui_colors[ImGuiCol_Button]            = ImVec4(0, 0, 0, 0);
+		imgui_colors[ImGuiCol_ButtonHovered]     = to_imvec(with_alpha(colors.accent_hovered, 0.24f));
+		imgui_colors[ImGuiCol_ButtonActive]      = to_imvec(with_alpha(colors.accent_active, 0.30f));
+		imgui_colors[ImGuiCol_Header]            = to_imvec(with_alpha(colors.accent, 0.16f));
+		imgui_colors[ImGuiCol_HeaderHovered]     = to_imvec(with_alpha(colors.accent_hovered, 0.24f));
+		imgui_colors[ImGuiCol_HeaderActive]      = to_imvec(with_alpha(colors.accent_active, 0.30f));
+		imgui_colors[ImGuiCol_Separator]         = to_imvec(colors.border);
+		imgui_colors[ImGuiCol_TableHeaderBg]     = to_imvec(colors.background_active);
+		imgui_colors[ImGuiCol_TableBorderStrong] = to_imvec(colors.border);
+		imgui_colors[ImGuiCol_TableBorderLight]  = to_imvec(with_alpha(colors.border, 0.55f));
+		imgui_colors[ImGuiCol_TableRowBg]        = to_imvec(with_alpha(colors.panel, 0.30f));
+		imgui_colors[ImGuiCol_TableRowBgAlt]     = to_imvec(with_alpha(colors.background_hovered, 0.38f));
+		imgui_colors[ImGuiCol_TextSelectedBg]    = to_imvec(with_alpha(colors.accent, 0.35f));
+		imgui_colors[ImGuiCol_NavCursor]         = to_imvec(colors.accent);
+	}
+
 	/////////////////////// LIFECYCLE AND FRAME ///////////////////////
 
 	void initialize()
 	{
 		active_context()->style = Style{};
+		apply_imgui_style(active_context()->style);
 	}
 
 	void shutdown()
@@ -54,6 +114,8 @@ namespace Trinex::UI
 		Context* ctx = trx_new Context();
 		ctx->window  = window;
 		ctx->context = ImGui::CreateContext();
+		ImGui::SetCurrentContext(ctx->context);
+		ctx->style = Style{};
 
 		UI::Backend::imgui_init(window, ctx->context);
 
@@ -65,6 +127,7 @@ namespace Trinex::UI
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 		io.IniFilename = nullptr;
 		io.LogFilename = nullptr;
+		apply_imgui_style(ctx->style);
 
 		// Begin window hook
 		{
@@ -405,12 +468,14 @@ namespace Trinex::UI
 	void style(const Style& value)
 	{
 		active_context()->style = value;
+		apply_imgui_style(value);
 	}
 
 	void push_style(const Style& value)
 	{
 		active_context()->style_stack.push_back(active_context()->style);
 		active_context()->style = value;
+		apply_imgui_style(value);
 	}
 
 	void pop_style()
@@ -419,6 +484,7 @@ namespace Trinex::UI
 		{
 			active_context()->style = active_context()->style_stack.back();
 			active_context()->style_stack.pop_back();
+			apply_imgui_style(active_context()->style);
 		}
 	}
 

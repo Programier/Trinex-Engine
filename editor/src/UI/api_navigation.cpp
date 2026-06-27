@@ -296,15 +296,7 @@ namespace Trinex::UI
 		{
 			ImGui::OpenPopup(id);
 		}
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, active_context()->style.rounding);
-		ImGui::PushStyleColor(ImGuiCol_PopupBg, to_imvec(active_context()->style.colors.panel));
-		const bool visible = ImGui::BeginPopup(id, to_imgui_window_flags(flags));
-		if (!visible)
-		{
-			ImGui::PopStyleColor();
-			ImGui::PopStyleVar();
-		}
-		return visible;
+		return ImGui::BeginPopup(id, to_imgui_window_flags(flags));
 	}
 
 	void open_popup(const char* id)
@@ -318,8 +310,6 @@ namespace Trinex::UI
 	void end_popup()
 	{
 		ImGui::EndPopup();
-		ImGui::PopStyleColor();
-		ImGui::PopStyleVar();
 	}
 
 	void close_popup()
@@ -1039,24 +1029,11 @@ namespace Trinex::UI
 
 	bool begin_table(const char* id, int columns, TableFlags flags, Size outer_size, Unit inner_width)
 	{
-		ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(active_context()->style.padding, active_context()->style.spacing));
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(active_context()->style.padding, 6.0f));
-		ImGui::PushStyleColor(ImGuiCol_TableHeaderBg, to_imvec(active_context()->style.colors.background_active));
-		ImGui::PushStyleColor(ImGuiCol_TableBorderStrong, to_imvec(active_context()->style.colors.border));
-		ImGui::PushStyleColor(ImGuiCol_TableBorderLight, to_imvec(with_alpha(active_context()->style.colors.border, 0.55f)));
-		ImGui::PushStyleColor(ImGuiCol_TableRowBg, to_imvec(with_alpha(active_context()->style.colors.panel, 0.30f)));
-		ImGui::PushStyleColor(ImGuiCol_TableRowBgAlt,
-		                      to_imvec(with_alpha(active_context()->style.colors.background_hovered, 0.38f)));
 		const bool open =
 		        ImGui::BeginTable(id, columns, to_imgui_table_flags(flags), to_imvec(resolve(outer_size)), resolve(inner_width));
 		if (open)
 		{
 			++active_context()->table_style_depth;
-		}
-		else
-		{
-			ImGui::PopStyleColor(5);
-			ImGui::PopStyleVar(2);
 		}
 		return open;
 	}
@@ -1067,8 +1044,6 @@ namespace Trinex::UI
 		if (auto& depth = active_context()->table_style_depth; depth > 0)
 		{
 			--depth;
-			ImGui::PopStyleColor(5);
-			ImGui::PopStyleVar(2);
 		}
 	}
 

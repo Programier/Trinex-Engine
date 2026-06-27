@@ -892,9 +892,9 @@ namespace Trinex::UI
 		const Vec2 resolved_size = resolve(size_arg);
 		const float width        = resolved_size.x > 0.0f ? resolved_size.x : ImGui::GetContentRegionAvail().x;
 		const float height       = resolved_size.y > 0.0f ? resolved_size.y : active_context()->style.frame_height;
-		const float segment_w = width / static_cast<float>(item_count);
-		const ImVec2 start    = ImGui::GetCursorScreenPos();
-		ImDrawList* draw      = ImGui::GetWindowDrawList();
+		const float segment_w    = width / static_cast<float>(item_count);
+		const ImVec2 start       = ImGui::GetCursorScreenPos();
+		ImDrawList* draw         = ImGui::GetWindowDrawList();
 		draw->AddRectFilled(start, add(start, ImVec2(width, height)), col_u32(active_context()->style.colors.background),
 		                    active_context()->style.rounding);
 		draw->AddRect(start, add(start, ImVec2(width, height)), col_u32(active_context()->style.colors.border),
@@ -980,9 +980,8 @@ namespace Trinex::UI
 		ImGui::PushID(id);
 		const float resolved_radius    = resolve(radius);
 		const float resolved_thickness = resolve(thickness);
-		const ImVec2 pos = ImGui::GetCursorScreenPos();
-		const ImVec2 size(resolved_radius * 2.0f + resolved_thickness * 2.0f,
-		                  resolved_radius * 2.0f + resolved_thickness * 2.0f);
+		const ImVec2 pos               = ImGui::GetCursorScreenPos();
+		const ImVec2 size(resolved_radius * 2.0f + resolved_thickness * 2.0f, resolved_radius * 2.0f + resolved_thickness * 2.0f);
 		ImGui::Dummy(size);
 		ImDrawList* draw    = ImGui::GetWindowDrawList();
 		const ImVec2 center = add(pos, mul(size, 0.5f));
@@ -995,8 +994,7 @@ namespace Trinex::UI
 			const float alpha = static_cast<float>(i + 1) / 24.0f;
 			draw->AddLine(ImVec2(center.x + std::cos(a0) * resolved_radius, center.y + std::sin(a0) * resolved_radius),
 			              ImVec2(center.x + std::cos(a1) * resolved_radius, center.y + std::sin(a1) * resolved_radius),
-			              col_u32(has_color(color) ? color : active_context()->style.colors.accent, alpha),
-			              resolved_thickness);
+			              col_u32(has_color(color) ? color : active_context()->style.colors.accent, alpha), resolved_thickness);
 			(void) c;
 		}
 		ImGui::PopID();
@@ -1008,15 +1006,8 @@ namespace Trinex::UI
 		{
 			return false;
 		}
-		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, active_context()->style.rounding);
-		ImGui::PushStyleColor(ImGuiCol_FrameBg, to_imvec(active_context()->style.colors.background));
-		ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, to_imvec(active_context()->style.colors.background_hovered));
-		ImGui::PushStyleColor(ImGuiCol_FrameBgActive, to_imvec(active_context()->style.colors.background_active));
-		const bool changed = alpha ? ImGui::ColorEdit4(label, &color->x, to_imgui_color_edit_flags(flags))
-		                           : ImGui::ColorEdit3(label, &color->x, to_imgui_color_edit_flags(flags));
-		ImGui::PopStyleColor(3);
-		ImGui::PopStyleVar();
-		return changed;
+		return alpha ? ImGui::ColorEdit4(label, &color->x, to_imgui_color_edit_flags(flags))
+		             : ImGui::ColorEdit3(label, &color->x, to_imgui_color_edit_flags(flags));
 	}
 
 	bool keybind_input(const char* label, Keybind* binding)
