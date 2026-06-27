@@ -67,7 +67,6 @@ namespace Trinex::UI
 		ImGuiID id                = 0;
 		bool logical_open         = false;
 		float open_anim           = 0.0f;
-		float visible_height      = 0.0f;
 		ImVec2 content_start      = ImVec2(0.0f, 0.0f);
 		float previous_draw_alpha = 1.0f;
 	};
@@ -1044,7 +1043,7 @@ namespace Trinex::UI
 
 		Vec2 make_press_render_scale(const ImVec2& base_size, float active_t)
 		{
-			const Vec2 press_padding(3.0f, 3.0f);
+			const Vec2 press_padding = active_context()->style.press_padding;
 
 			return Vec2(1.0f - active_t * press_padding.x / std::max(1.0f, base_size.x),
 			            1.0f - active_t * press_padding.y / std::max(1.0f, base_size.y));

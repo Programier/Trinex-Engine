@@ -836,7 +836,8 @@ namespace Trinex::UI
 		f32 padding         = 10.0f;
 		f32 spacing         = 8.0f;
 		f32 alpha           = 1.0f;
-		Vec2 hover_padding  = Vec2(2.0f, 2.0f);
+		Vec2 hover_padding  = Vec2(3.0f, 3.0f);
+		Vec2 press_padding  = Vec2(3.0f, 3.0f);
 		BlurOptions blur;
 		Shadow shadow;
 		ColorTheme colors;

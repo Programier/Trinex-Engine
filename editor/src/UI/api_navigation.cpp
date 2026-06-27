@@ -119,8 +119,7 @@ namespace Trinex::UI
 			const ImVec2 clip_max(content_start.x + ImGui::GetContentRegionAvail().x + 2.0f,
 			                      content_start.y + std::max(0.0f, visible_height));
 
-			// Children are submitted at full size so ImGui can measure them, then clipped
-			// and the cursor is rewound in tree_pop() to consume only animated height.
+			push_render_scale(Vec2(1.0f, std::max(0.0f, eased_open)), Vec2(0.0f, 0.0f));
 			ImGui::PushClipRect(clip_min, clip_max, true);
 			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * eased_open);
 
@@ -128,7 +127,6 @@ namespace Trinex::UI
 			context.id                  = id;
 			context.logical_open        = open;
 			context.open_anim           = anim.open;
-			context.visible_height      = visible_height;
 			context.content_start       = content_start;
 			context.previous_draw_alpha = active_context()->draw_alpha;
 			active_context()->tree_stack.push_back(context);
@@ -173,6 +171,7 @@ namespace Trinex::UI
 		active_context()->draw_alpha = context.previous_draw_alpha;
 		ImGui::PopStyleVar();
 		ImGui::PopClipRect();
+		pop_render_scale();
 
 		ImGui::SetCursorScreenPos(ImVec2(context.content_start.x, context.content_start.y + visible_height));
 		ImGui::Dummy(ImVec2(0.0f, 0.0f));
