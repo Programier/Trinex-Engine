@@ -19,6 +19,21 @@ namespace Trinex::UI
 	void push_text_font(FontSize size = FontSize::Normal);
 	void push_icons_font(FontSize size = FontSize::Normal);
 
+	/////////////////////// UNITS ///////////////////////
+	Unit px(float value);
+	Unit dp(float value);
+	Unit rem(float value);
+	Unit percent(float value);
+	Unit fill();
+	Size size(Unit width, Unit height);
+	Size px(float width, float height);
+	Size dp(float width, float height);
+	Size rem(float width, float height);
+	Size percent(float width, float height);
+	Size fill_size();
+	float resolve(Unit value, Axis axis = Axis::X);
+	Vec2 resolve(const Size& size);
+
 	/////////////////////// STYLE AND EFFECTS ///////////////////////
 	Style& style();
 	void style(const Style& value);
@@ -26,9 +41,9 @@ namespace Trinex::UI
 	void pop_style();
 	void push_color(StyleColor color, const Vec4& value);
 	void pop_color(int count = 1);
-	void paint(Vec2 pos, Vec2 size, PaintFunction function, void* userdata = nullptr, usize userdata_size = 0,
+	void paint(Vec2 pos, Size size, PaintFunction function, void* userdata = nullptr, usize userdata_size = 0,
 	           DrawList draw_list = DrawList::Default);
-	void paint(Vec2 size, PaintFunction function, void* userdata = nullptr, usize userdata_size = 0,
+	void paint(Size size, PaintFunction function, void* userdata = nullptr, usize userdata_size = 0,
 	           DrawList draw_list = DrawList::Default);
 	void paint(PaintFunction function, void* userdata = nullptr, usize userdata_size = 0, DrawList draw_list = DrawList::Default);
 	void push_shadow(const Shadow& shadow);
@@ -74,7 +89,7 @@ namespace Trinex::UI
 	void unregister_widget(Context* context, Widget* widget);
 	bool begin_panel(const char* id_text, const PanelOptions& options = {});
 	void end_panel();
-	bool begin_glass_panel(const char* id, Vec2 size, const GlassOptions& options = {});
+	bool begin_glass_panel(const char* id, Size size, const GlassOptions& options = {});
 	void end_glass_panel();
 	bool begin_group_panel(const char* label, const PanelOptions& options = {});
 	void end_group_panel();
@@ -85,25 +100,25 @@ namespace Trinex::UI
 	bool card_button(const char* title, const CardOptions& options, const ActionRef& action);
 
 	/////////////////////// LAYOUT AND SCROLLING ///////////////////////
-	bool begin_horizontal(const char* id_text, const Vec2& size = Vec2(0, 0), float align = -1.0f);
-	bool begin_horizontal(const void* id, const Vec2& size = Vec2(0, 0), float align = -1.0f);
-	bool begin_horizontal(int id, const Vec2& size = Vec2(0, 0), float align = -1.0f);
+	bool begin_horizontal(const char* id_text, Size size = Size(0, 0), float align = -1.0f);
+	bool begin_horizontal(const void* id, Size size = Size(0, 0), float align = -1.0f);
+	bool begin_horizontal(int id, Size size = Size(0, 0), float align = -1.0f);
 	void end_horizontal();
-	bool begin_vertical(const char* id_text, const Vec2& size = Vec2(0, 0), float align = -1.0f);
-	bool begin_vertical(const void* id, const Vec2& size = Vec2(0, 0), float align = -1.0f);
-	bool begin_vertical(int id, const Vec2& size = Vec2(0, 0), float align = -1.0f);
+	bool begin_vertical(const char* id_text, Size size = Size(0, 0), float align = -1.0f);
+	bool begin_vertical(const void* id, Size size = Size(0, 0), float align = -1.0f);
+	bool begin_vertical(int id, Size size = Size(0, 0), float align = -1.0f);
 	void end_vertical();
 	void spring(float weight = 1.0f, float spacing = -1.0f);
 	void suspend_layout();
 	void resume_layout();
 	void separator();
-	void spacing(float amount = -1.0f);
+	void spacing(Unit amount = Unit(-1.0f));
 	void same_line(float offset_from_start_x = 0.0f, float spacing = -1.0f);
 	bool begin_disabled(bool disabled = true);
 	void end_disabled();
 	bool begin_animated_area(const char* id_text, bool visible);
 	void end_animated_area();
-	bool begin_scroll_area(const char* id_text, const Vec2& size = Vec2(0, 0), bool border = false,
+	bool begin_scroll_area(const char* id_text, Size size = Size(0, 0), bool border = false,
 	                       WindowFlags flags = WindowFlags::Undefined);
 	void end_scroll_area();
 	void scroll_to_top();
@@ -184,14 +199,14 @@ namespace Trinex::UI
 	void help_tooltip(const char* description);
 
 	/////////////////////// IMAGES AND CONTROLS ///////////////////////
-	void image(const Texture& texture, const Vec2& size, const ImageOptions& options = {});
-	bool image_button(const char* id_text, const Texture& texture, const Vec2& size, const ImageOptions& options = {});
+	void image(const Texture& texture, Size size, const ImageOptions& options = {});
+	bool image_button(const char* id_text, const Texture& texture, Size size, const ImageOptions& options = {});
 	bool button(const char* label, const ButtonOptions& options = {});
 	bool invisible_button(const char* label, const ButtonOptions& options = {});
 	bool icon_button(const char* icon, const char* label, const ButtonOptions& options = {});
 	bool small_button(const char* label);
-	bool ghost_button(const char* label, const Vec2& size = Vec2(0, 0));
-	bool danger_button(const char* label, const Vec2& size = Vec2(0, 0));
+	bool ghost_button(const char* label, Size size = Size(0, 0));
+	bool danger_button(const char* label, Size size = Size(0, 0));
 	bool checkbox(const char* label, bool* value);
 	bool toggle(const char* label, bool* value);
 	bool drag(const char* label, float* value, float speed = 1.0f, float min = 0.0f, float max = 0.0f,
@@ -214,20 +229,21 @@ namespace Trinex::UI
 	bool input(const char* label, char* buffer, size_t buffer_size, InputTextFlags flags = InputTextFlags::Undefined);
 	bool input(const char* label, const char* hint, char* buffer, size_t buffer_size,
 	           InputTextFlags flags = InputTextFlags::Undefined);
-	bool input(const char* label, char* buffer, size_t buffer_size, const Vec2& size,
+	bool input(const char* label, char* buffer, size_t buffer_size, Size size,
 	           InputTextFlags flags = InputTextFlags::Undefined);
 	bool search_input(const char* label, char* buffer, size_t buffer_size);
 	bool begin_combo(const char* label, const char* preview_value, ComboFlags flags = ComboFlags::Undefined);
 	void end_combo();
 	bool combo(const char* label, int* current_item, const char* const items[], int item_count);
 	bool selectable(const char* label, bool selected = false, SelectableFlags flags = SelectableFlags::Undefined,
-	                const Vec2& size = Vec2(0, 0));
+	                Size size = Size(0, 0));
 	bool radio_button(const char* label, bool active);
 	bool radio_button(const char* label, int* value, int button_value);
 	bool segmented_control(const char* label, int* current_item, const char* const items[], int item_count,
-	                       const Vec2& size = Vec2(0, 0));
-	void progress_bar(float fraction, const Vec2& size = Vec2(-1, 0), const char* overlay = nullptr);
-	void spinner(const char* id_text, float radius = 8.0f, float thickness = 2.0f, const Vec4& color = Vec4(0, 0, 0, 0));
+	                       Size size = Size(0, 0));
+	void progress_bar(float fraction, Size size = Size(-1, 0), const char* overlay = nullptr);
+	void spinner(const char* id_text, Unit radius = Unit(8.0f), Unit thickness = Unit(2.0f),
+	             const Vec4& color = Vec4(0, 0, 0, 0));
 	bool color_edit(const char* label, Vec4* color, bool alpha = true, ColorEditFlags flags = ColorEditFlags::Undefined);
 	bool keybind_input(const char* label, Keybind* binding);
 	String keybind_to_string(const Keybind& binding);
@@ -247,7 +263,7 @@ namespace Trinex::UI
 
 	bool begin_tab_bar(const char* id_text);
 	void end_tab_bar();
-	bool tab(const char* label, bool selected = false, const Vec2& size = Vec2(0, 0));
+	bool tab(const char* label, bool selected = false, Size size = Size(0, 0));
 	bool sidebar_item(const char* label, bool selected = false, const char* icon = nullptr, const char* badge = nullptr);
 	bool nav_item(const char* label, bool selected = false, const char* icon = nullptr);
 	bool breadcrumb(const char* label, bool current = false);
@@ -286,29 +302,29 @@ namespace Trinex::UI
 	                           const char* cancel_text = "Cancel", bool danger = true);
 	void badge(const char* text, const Vec4& color = Vec4(0, 0, 0, 0));
 	void pill(const char* text, const Vec4& color = Vec4(0, 0, 0, 0));
-	void status_dot(const Vec4& color, float radius = 4.0f);
+	void status_dot(const Vec4& color, Unit radius = Unit(4.0f));
 	void key_value_row(const char* key, const char* value);
-	void property_row(const char* label, const Action& content, float label_width = 140.0f);
-	bool property_bool(const char* label, bool* value, bool use_checkbox = false, float label_width = 140.0f);
+	void property_row(const char* label, const Action& content, Unit label_width = Unit(140.0f));
+	bool property_bool(const char* label, bool* value, bool use_checkbox = false, Unit label_width = Unit(140.0f));
 	bool property_float(const char* label, float* value, float min, float max, const char* format = "%.3f",
-	                    float label_width = 140.0f);
-	bool property_int(const char* label, int* value, int min, int max, const char* format = "%d", float label_width = 140.0f);
-	bool property_text(const char* label, char* buffer, size_t buffer_size, float label_width = 140.0f);
-	bool property_color(const char* label, Vec4* color, bool alpha = true, float label_width = 140.0f);
-	bool splitter(const char* id_text, float* size_a, float* size_b, float min_a = 80.0f, float min_b = 80.0f,
-	              bool vertical = true, float thickness = 4.0f);
+	                    Unit label_width = Unit(140.0f));
+	bool property_int(const char* label, int* value, int min, int max, const char* format = "%d", Unit label_width = Unit(140.0f));
+	bool property_text(const char* label, char* buffer, size_t buffer_size, Unit label_width = Unit(140.0f));
+	bool property_color(const char* label, Vec4* color, bool alpha = true, Unit label_width = Unit(140.0f));
+	bool splitter(const char* id_text, float* size_a, float* size_b, Unit min_a = Unit(80.0f), Unit min_b = Unit(80.0f),
+	              bool vertical = true, Unit thickness = Unit(4.0f));
 	bool begin_toolbar(const char* id_text);
 	void end_toolbar();
 	bool begin_table(const char* id_text, int columns, TableFlags flags = TableFlags::Undefined,
-	                 const Vec2& outer_size = Vec2(0, 0), float inner_width = 0.0f);
+	                 Size outer_size = Size(0, 0), Unit inner_width = Unit(0.0f));
 	void end_table();
 	void table_setup_column(const char* label, TableColumnFlags flags = TableColumnFlags::Undefined, float width_or_weight = 0.0f,
 	                        ID id = ID(0));
 	void table_headers();
-	void table_next_row(TableRowFlags flags = TableRowFlags::Undefined, float min_row_height = 0.0f);
+	void table_next_row(TableRowFlags flags = TableRowFlags::Undefined, Unit min_row_height = Unit(0.0f));
 	bool table_next_column();
 	bool table_column(u32 idx);
-	bool begin_list_box(const char* label, const Vec2& size = Vec2(0, 0));
+	bool begin_list_box(const char* label, Size size = Size(0, 0));
 	void end_list_box();
 	bool list_item(const char* label, bool selected = false, const char* icon = nullptr, const char* badge = nullptr);
 	bool filtered_list(const char* id_text, const char* filter, const char* const items[], int item_count, int* selected_index);
@@ -430,7 +446,7 @@ namespace Trinex::UI
 		return panel(id_text, {}, func);
 	}
 
-	inline bool glass_panel(const char* id, const Vec2& size, const GlassOptions& options, const ActionRef& func)
+	inline bool glass_panel(const char* id, Size size, const GlassOptions& options, const ActionRef& func)
 	{
 		const bool visible = begin_glass_panel(id, size, options);
 		if (visible)
@@ -441,14 +457,14 @@ namespace Trinex::UI
 		return visible;
 	}
 
-	inline bool glass_panel(const char* id, const Vec2& size, const ActionRef& func)
+	inline bool glass_panel(const char* id, Size size, const ActionRef& func)
 	{
 		return glass_panel(id, size, {}, func);
 	}
 
 	inline bool glass_panel(const char* id, const ActionRef& func)
 	{
-		return glass_panel(id, Vec2(0, 0), {}, func);
+		return glass_panel(id, Size(0, 0), {}, func);
 	}
 
 	inline bool group_panel(const char* label, const PanelOptions& options, const ActionRef& func)
@@ -494,7 +510,7 @@ namespace Trinex::UI
 
 	/////////////////////// INLINE LAYOUT AND SCROLLING HELPERS ///////////////////////
 
-	inline void horizontal(const char* id_text, const Vec2& size, float align, const ActionRef& func)
+	inline void horizontal(const char* id_text, Size size, float align, const ActionRef& func)
 	{
 		if (begin_horizontal(id_text, size, align))
 		{
@@ -503,17 +519,17 @@ namespace Trinex::UI
 		}
 	}
 
-	inline void horizontal(const char* id_text, const Vec2& size, const ActionRef& func)
+	inline void horizontal(const char* id_text, Size size, const ActionRef& func)
 	{
 		horizontal(id_text, size, -1.0f, func);
 	}
 
 	inline void horizontal(const char* id_text, const ActionRef& func)
 	{
-		horizontal(id_text, Vec2(0, 0), -1.0f, func);
+		horizontal(id_text, Size(0, 0), -1.0f, func);
 	}
 
-	inline void horizontal(const void* id, const Vec2& size, float align, const ActionRef& func)
+	inline void horizontal(const void* id, Size size, float align, const ActionRef& func)
 	{
 		if (begin_horizontal(id, size, align))
 		{
@@ -522,17 +538,17 @@ namespace Trinex::UI
 		}
 	}
 
-	inline void horizontal(const void* id, const Vec2& size, const ActionRef& func)
+	inline void horizontal(const void* id, Size size, const ActionRef& func)
 	{
 		horizontal(id, size, -1.0f, func);
 	}
 
 	inline void horizontal(const void* id, const ActionRef& func)
 	{
-		horizontal(id, Vec2(0, 0), -1.0f, func);
+		horizontal(id, Size(0, 0), -1.0f, func);
 	}
 
-	inline void horizontal(int id, const Vec2& size, float align, const ActionRef& func)
+	inline void horizontal(int id, Size size, float align, const ActionRef& func)
 	{
 		if (begin_horizontal(id, size, align))
 		{
@@ -541,17 +557,17 @@ namespace Trinex::UI
 		}
 	}
 
-	inline void horizontal(int id, const Vec2& size, const ActionRef& func)
+	inline void horizontal(int id, Size size, const ActionRef& func)
 	{
 		horizontal(id, size, -1.0f, func);
 	}
 
 	inline void horizontal(int id, const ActionRef& func)
 	{
-		horizontal(id, Vec2(0, 0), -1.0f, func);
+		horizontal(id, Size(0, 0), -1.0f, func);
 	}
 
-	inline void vertical(const char* id_text, const Vec2& size, float align, const ActionRef& func)
+	inline void vertical(const char* id_text, Size size, float align, const ActionRef& func)
 	{
 		if (begin_vertical(id_text, size, align))
 		{
@@ -560,17 +576,17 @@ namespace Trinex::UI
 		}
 	}
 
-	inline void vertical(const char* id_text, const Vec2& size, const ActionRef& func)
+	inline void vertical(const char* id_text, Size size, const ActionRef& func)
 	{
 		vertical(id_text, size, -1.0f, func);
 	}
 
 	inline void vertical(const char* id_text, const ActionRef& func)
 	{
-		vertical(id_text, Vec2(0, 0), -1.0f, func);
+		vertical(id_text, Size(0, 0), -1.0f, func);
 	}
 
-	inline void vertical(const void* id, const Vec2& size, float align, const ActionRef& func)
+	inline void vertical(const void* id, Size size, float align, const ActionRef& func)
 	{
 		if (begin_vertical(id, size, align))
 		{
@@ -579,17 +595,17 @@ namespace Trinex::UI
 		}
 	}
 
-	inline void vertical(const void* id, const Vec2& size, const ActionRef& func)
+	inline void vertical(const void* id, Size size, const ActionRef& func)
 	{
 		vertical(id, size, -1.0f, func);
 	}
 
 	inline void vertical(const void* id, const ActionRef& func)
 	{
-		vertical(id, Vec2(0, 0), -1.0f, func);
+		vertical(id, Size(0, 0), -1.0f, func);
 	}
 
-	inline void vertical(int id, const Vec2& size, float align, const ActionRef& func)
+	inline void vertical(int id, Size size, float align, const ActionRef& func)
 	{
 		if (begin_vertical(id, size, align))
 		{
@@ -598,14 +614,14 @@ namespace Trinex::UI
 		}
 	}
 
-	inline void vertical(int id, const Vec2& size, const ActionRef& func)
+	inline void vertical(int id, Size size, const ActionRef& func)
 	{
 		vertical(id, size, -1.0f, func);
 	}
 
 	inline void vertical(int id, const ActionRef& func)
 	{
-		vertical(id, Vec2(0, 0), -1.0f, func);
+		vertical(id, Size(0, 0), -1.0f, func);
 	}
 
 	inline void disabled(bool value, const ActionRef& func)
@@ -622,7 +638,7 @@ namespace Trinex::UI
 		disabled(true, func);
 	}
 
-	inline bool scroll_area(const char* id_text, const Vec2& size, bool border, WindowFlags flags, const ActionRef& func)
+	inline bool scroll_area(const char* id_text, Size size, bool border, WindowFlags flags, const ActionRef& func)
 	{
 		const bool visible = begin_scroll_area(id_text, size, border, flags);
 		if (visible)
@@ -633,19 +649,19 @@ namespace Trinex::UI
 		return visible;
 	}
 
-	inline bool scroll_area(const char* id_text, const Vec2& size, bool border, const ActionRef& func)
+	inline bool scroll_area(const char* id_text, Size size, bool border, const ActionRef& func)
 	{
 		return scroll_area(id_text, size, border, WindowFlags::Undefined, func);
 	}
 
-	inline bool scroll_area(const char* id_text, const Vec2& size, const ActionRef& func)
+	inline bool scroll_area(const char* id_text, Size size, const ActionRef& func)
 	{
 		return scroll_area(id_text, size, false, WindowFlags::Undefined, func);
 	}
 
 	inline bool scroll_area(const char* id_text, const ActionRef& func)
 	{
-		return scroll_area(id_text, Vec2(0, 0), false, WindowFlags::Undefined, func);
+		return scroll_area(id_text, Size(0, 0), false, WindowFlags::Undefined, func);
 	}
 
 	inline void animated_area(const char* id_text, bool visible, const ActionRef& content)
@@ -822,7 +838,7 @@ namespace Trinex::UI
 		return visible;
 	}
 
-	inline bool table(const char* id_text, int columns, TableFlags flags, const Vec2& outer_size, float inner_width,
+	inline bool table(const char* id_text, int columns, TableFlags flags, Size outer_size, Unit inner_width,
 	                  const ActionRef& func)
 	{
 		const bool visible = begin_table(id_text, columns, flags, outer_size, inner_width);
@@ -834,22 +850,22 @@ namespace Trinex::UI
 		return visible;
 	}
 
-	inline bool table(const char* id_text, int columns, TableFlags flags, const Vec2& outer_size, const ActionRef& func)
+	inline bool table(const char* id_text, int columns, TableFlags flags, Size outer_size, const ActionRef& func)
 	{
 		return table(id_text, columns, flags, outer_size, 0.0f, func);
 	}
 
 	inline bool table(const char* id_text, int columns, TableFlags flags, const ActionRef& func)
 	{
-		return table(id_text, columns, flags, Vec2(0, 0), 0.0f, func);
+		return table(id_text, columns, flags, Size(0, 0), Unit(0.0f), func);
 	}
 
 	inline bool table(const char* id_text, int columns, const ActionRef& func)
 	{
-		return table(id_text, columns, TableFlags::Undefined, Vec2(0, 0), 0.0f, func);
+		return table(id_text, columns, TableFlags::Undefined, Size(0, 0), Unit(0.0f), func);
 	}
 
-	inline bool list_box(const char* label, const Vec2& size, const ActionRef& func)
+	inline bool list_box(const char* label, Size size, const ActionRef& func)
 	{
 		const bool visible = begin_list_box(label, size);
 		if (visible)
@@ -862,7 +878,7 @@ namespace Trinex::UI
 
 	inline bool list_box(const char* label, const ActionRef& func)
 	{
-		return list_box(label, Vec2(0, 0), func);
+		return list_box(label, Size(0, 0), func);
 	}
 
 	inline bool drag_source(DragDropFlags drag_drop, const ActionRef& func)
@@ -895,7 +911,7 @@ namespace Trinex::UI
 	/////////////////////// INLINE PAINT HELPERS ///////////////////////
 	template<typename F>
 	    requires(TriviallyStored<F>)
-	inline void paint(Vec2 pos, Vec2 size, F&& f)
+	inline void paint(Vec2 pos, Size size, F&& f)
 	{
 		auto callback = +[](void* userdata) { (*static_cast<F*>(userdata))(); };
 		paint(pos, size, callback, &f, sizeof(f));
@@ -903,7 +919,7 @@ namespace Trinex::UI
 
 	template<typename F>
 	    requires(TriviallyStored<F>)
-	inline void paint(Vec2 pos, Vec2 size, DrawList draw_list, F&& f)
+	inline void paint(Vec2 pos, Size size, DrawList draw_list, F&& f)
 	{
 		auto callback = +[](void* userdata) { (*static_cast<F*>(userdata))(); };
 		paint(pos, size, callback, &f, sizeof(f), draw_list);
@@ -911,7 +927,7 @@ namespace Trinex::UI
 
 	template<typename F>
 	    requires(TriviallyStored<F>)
-	inline void paint(Vec2 size, F&& f)
+	inline void paint(Size size, F&& f)
 	{
 		auto callback = +[](void* userdata) { (*static_cast<F*>(userdata))(); };
 		paint(size, callback, &f, sizeof(f));
@@ -919,7 +935,7 @@ namespace Trinex::UI
 
 	template<typename F>
 	    requires(TriviallyStored<F>)
-	inline void paint(Vec2 size, DrawList draw_list, F&& f)
+	inline void paint(Size size, DrawList draw_list, F&& f)
 	{
 		auto callback = +[](void* userdata) { (*static_cast<F*>(userdata))(); };
 		paint(size, callback, &f, sizeof(f), draw_list);

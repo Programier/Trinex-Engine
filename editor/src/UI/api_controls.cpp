@@ -4,17 +4,18 @@ namespace Trinex::UI
 {
 	/////////////////////// IMAGES AND CONTROLS ///////////////////////
 
-	void image(const Texture& texture, const Vec2& size, const ImageOptions& options)
+	void image(const Texture& texture, Size size, const ImageOptions& options)
 	{
+		const Vec2 resolved_size = resolve(size);
 		if (texture == nullptr)
 		{
-			ImGui::Dummy(to_imvec(size));
+			ImGui::Dummy(to_imvec(resolved_size));
 			return;
 		}
 
 		const float rounding = options.rounding >= 0.0f ? options.rounding : active_context()->style.rounding;
 		const float padding  = std::max(0.0f, options.padding);
-		const ImVec2 image_size(std::max(0.0f, size.x), std::max(0.0f, size.y));
+		const ImVec2 image_size(std::max(0.0f, resolved_size.x), std::max(0.0f, resolved_size.y));
 		const ImVec2 frame_size(image_size.x + padding * 2.0f, image_size.y + padding * 2.0f);
 		const ImVec2 pos = ImGui::GetCursorScreenPos();
 
@@ -48,11 +49,12 @@ namespace Trinex::UI
 		}
 	}
 
-	bool image_button(const char* id_text, const Texture& texture, const Vec2& size, const ImageOptions& options)
+	bool image_button(const char* id_text, const Texture& texture, Size size, const ImageOptions& options)
 	{
+		const Vec2 resolved_size = resolve(size);
 		if (texture == nullptr)
 		{
-			ImGui::Dummy(to_imvec(size));
+			ImGui::Dummy(to_imvec(resolved_size));
 			return false;
 		}
 
@@ -72,7 +74,7 @@ namespace Trinex::UI
 		AnimState& anim      = state_for(id);
 		const float rounding = options.rounding >= 0.0f ? options.rounding : active_context()->style.rounding;
 		const float padding  = std::max(0.0f, options.padding);
-		const ImVec2 image_size(std::max(0.0f, size.x), std::max(0.0f, size.y));
+		const ImVec2 image_size(std::max(0.0f, resolved_size.x), std::max(0.0f, resolved_size.y));
 		const ImVec2 frame_size(image_size.x + padding * 2.0f, image_size.y + padding * 2.0f);
 		const ImVec2 pos = ImGui::GetCursorScreenPos();
 
@@ -170,7 +172,7 @@ namespace Trinex::UI
 		const ImVec2 text_size = has_text ? ImGui::CalcTextSize(text_label.data(), text_label.data() + text_label.size(), true)
 		                                  : ImVec2(0.0f, 0.0f);
 		const ImVec2 content_size(icon_size.x + icon_gap + text_size.x, std::max(icon_size.y, text_size.y));
-		ImVec2 size = to_imvec(options.size);
+		ImVec2 size = to_imvec(resolve(options.size));
 		if (size.x <= 0.0f)
 		{
 			size.x = std::max(72.0f, content_size.x + active_context()->style.padding * 2.0f);
@@ -261,7 +263,7 @@ namespace Trinex::UI
 
 	bool invisible_button(const char* label, const ButtonOptions& options)
 	{
-		return ImGui::InvisibleButton(label, to_imvec(options.size), options.flags);
+		return ImGui::InvisibleButton(label, to_imvec(resolve(options.size)), options.flags);
 	}
 
 	bool icon_button(const char* icon, const char* label, const ButtonOptions& options)
@@ -274,11 +276,11 @@ namespace Trinex::UI
 	bool small_button(const char* label)
 	{
 		ButtonOptions options;
-		options.size = Vec2(0.0f, 24.0f);
+		options.size = Size(0.0f, 24.0f);
 		return button(label, options);
 	}
 
-	bool ghost_button(const char* label, const Vec2& size)
+	bool ghost_button(const char* label, Size size)
 	{
 		ButtonOptions options;
 		options.size  = size;
@@ -286,7 +288,7 @@ namespace Trinex::UI
 		return button(label, options);
 	}
 
-	bool danger_button(const char* label, const Vec2& size)
+	bool danger_button(const char* label, Size size)
 	{
 		ButtonOptions options;
 		options.size   = size;
@@ -654,14 +656,14 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	bool input(const char* label, char* buffer, size_t buffer_size, const Vec2& size, InputTextFlags flags)
+	bool input(const char* label, char* buffer, size_t buffer_size, Size size, InputTextFlags flags)
 	{
 		cleanup_states();
 		ImGui::PushID(label);
 		AnimState& anim = state_for(ImGui::GetID("input"));
 		push_input_frame_styles(anim.focus);
 		const bool changed =
-		        ImGui::InputTextMultiline(label, buffer, buffer_size, to_imvec(size), to_imgui_input_text_flags(flags));
+		        ImGui::InputTextMultiline(label, buffer, buffer_size, to_imvec(resolve(size)), to_imgui_input_text_flags(flags));
 		anim.hover = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
 		anim.focus = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f, active_context()->style.animation_speed);
 		pop_input_frame_styles();
@@ -820,7 +822,7 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	bool selectable(const char* label, bool selected, SelectableFlags flags, const Vec2& size)
+	bool selectable(const char* label, bool selected, SelectableFlags flags, Size size)
 	{
 		TreeNodeOptions options;
 		options.selected = selected;
@@ -879,7 +881,7 @@ namespace Trinex::UI
 		return false;
 	}
 
-	bool segmented_control(const char* label, int* current_item, const char* const items[], int item_count, const Vec2& size_arg)
+	bool segmented_control(const char* label, int* current_item, const char* const items[], int item_count, Size size_arg)
 	{
 		if (current_item == nullptr || items == nullptr || item_count <= 0)
 		{
@@ -887,8 +889,9 @@ namespace Trinex::UI
 		}
 		cleanup_states();
 		ImGui::PushID(label);
-		const float width     = size_arg.x > 0.0f ? size_arg.x : ImGui::GetContentRegionAvail().x;
-		const float height    = size_arg.y > 0.0f ? size_arg.y : active_context()->style.frame_height;
+		const Vec2 resolved_size = resolve(size_arg);
+		const float width        = resolved_size.x > 0.0f ? resolved_size.x : ImGui::GetContentRegionAvail().x;
+		const float height       = resolved_size.y > 0.0f ? resolved_size.y : active_context()->style.frame_height;
 		const float segment_w = width / static_cast<float>(item_count);
 		const ImVec2 start    = ImGui::GetCursorScreenPos();
 		ImDrawList* draw      = ImGui::GetWindowDrawList();
@@ -943,13 +946,13 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	void progress_bar(float fraction, const Vec2& size_arg, const char* overlay)
+	void progress_bar(float fraction, Size size_arg, const char* overlay)
 	{
 		cleanup_states();
 		const ImGuiID id = ImGui::GetID("ui_progress_bar");
 		AnimState& anim  = state_for(id);
 		anim.value       = approach(anim.value, Math::clamp(fraction, 0.f, 1.f), active_context()->style.animation_speed);
-		ImVec2 size      = to_imvec(size_arg);
+		ImVec2 size      = to_imvec(resolve(size_arg));
 		if (size.x < 0.0f)
 		{
 			size.x = ImGui::GetContentRegionAvail().x;
@@ -972,11 +975,14 @@ namespace Trinex::UI
 		}
 	}
 
-	void spinner(const char* id, float radius, float thickness, const Vec4& color)
+	void spinner(const char* id, Unit radius, Unit thickness, const Vec4& color)
 	{
 		ImGui::PushID(id);
+		const float resolved_radius    = resolve(radius);
+		const float resolved_thickness = resolve(thickness);
 		const ImVec2 pos = ImGui::GetCursorScreenPos();
-		const ImVec2 size(radius * 2.0f + thickness * 2.0f, radius * 2.0f + thickness * 2.0f);
+		const ImVec2 size(resolved_radius * 2.0f + resolved_thickness * 2.0f,
+		                  resolved_radius * 2.0f + resolved_thickness * 2.0f);
 		ImGui::Dummy(size);
 		ImDrawList* draw    = ImGui::GetWindowDrawList();
 		const ImVec2 center = add(pos, mul(size, 0.5f));
@@ -987,9 +993,10 @@ namespace Trinex::UI
 			const float a0    = start + (static_cast<float>(i) / 24.0f) * 6.2831853f;
 			const float a1    = start + (static_cast<float>(i + 1) / 24.0f) * 6.2831853f;
 			const float alpha = static_cast<float>(i + 1) / 24.0f;
-			draw->AddLine(ImVec2(center.x + std::cos(a0) * radius, center.y + std::sin(a0) * radius),
-			              ImVec2(center.x + std::cos(a1) * radius, center.y + std::sin(a1) * radius),
-			              col_u32(has_color(color) ? color : active_context()->style.colors.accent, alpha), thickness);
+			draw->AddLine(ImVec2(center.x + std::cos(a0) * resolved_radius, center.y + std::sin(a0) * resolved_radius),
+			              ImVec2(center.x + std::cos(a1) * resolved_radius, center.y + std::sin(a1) * resolved_radius),
+			              col_u32(has_color(color) ? color : active_context()->style.colors.accent, alpha),
+			              resolved_thickness);
 			(void) c;
 		}
 		ImGui::PopID();

@@ -302,6 +302,94 @@ namespace Trinex::UI
 		push_font(FontFamily::Icons, size);
 	}
 
+	/////////////////////// UNITS ///////////////////////
+
+	Unit px(float value)
+	{
+		return Unit{Unit::Px, value};
+	}
+
+	Unit dp(float value)
+	{
+		return Unit{Unit::Dp, value};
+	}
+
+	Unit rem(float value)
+	{
+		return Unit{Unit::Rem, value};
+	}
+
+	Unit percent(float value)
+	{
+		return Unit{Unit::Percent, value};
+	}
+
+	Unit fill()
+	{
+		return Unit{Unit::Fill, 1.0f};
+	}
+
+	Size size(Unit width, Unit height)
+	{
+		return Size{width, height};
+	}
+
+	Size px(float width, float height)
+	{
+		return size(px(width), px(height));
+	}
+
+	Size dp(float width, float height)
+	{
+		return size(dp(width), dp(height));
+	}
+
+	Size rem(float width, float height)
+	{
+		return size(rem(width), rem(height));
+	}
+
+	Size percent(float width, float height)
+	{
+		return size(percent(width), percent(height));
+	}
+
+	Size fill_size()
+	{
+		return size(fill(), fill());
+	}
+
+	float resolve(Unit value, Axis axis)
+	{
+		switch (value.type)
+		{
+			case Unit::Px:
+			{
+				const ImVec2 scale  = ImGui::GetIO().DisplayFramebufferScale;
+				const float divisor = axis == Axis::Y ? scale.y : scale.x;
+				return divisor > 0.0f ? value.value / divisor : value.value;
+			}
+			case Unit::Rem: return value.value * ImGui::GetFontSize();
+			case Unit::Percent:
+			{
+				const ImVec2 available = ImGui::GetContentRegionAvail();
+				return value.value * (axis == Axis::Y ? available.y : available.x);
+			}
+			case Unit::Fill:
+			{
+				const ImVec2 available = ImGui::GetContentRegionAvail();
+				return axis == Axis::Y ? available.y : available.x;
+			}
+			case Unit::Dp:
+			default: return value.value;
+		}
+	}
+
+	Vec2 resolve(const Size& value)
+	{
+		return Vec2(resolve(value.width, Axis::X), resolve(value.height, Axis::Y));
+	}
+
 	/////////////////////// STYLE AND EFFECTS ///////////////////////
 
 	Style& style()
@@ -513,7 +601,7 @@ namespace Trinex::UI
 		stack.pop_back();
 	}
 
-	void paint(Vec2 pos, Vec2 size, PaintFunction function, void* userdata, usize userdata_size, DrawList draw_list)
+	void paint(Vec2 pos, Size size, PaintFunction function, void* userdata, usize userdata_size, DrawList draw_list)
 	{
 		ImGuiWindow* window = ImGui::GetCurrentWindow();
 
@@ -522,10 +610,10 @@ namespace Trinex::UI
 
 		ImGuiViewport* viewport = nullptr;
 		ImDrawList* list        = resolve_draw_list(draw_list, window, viewport);
-		add_paint_callback(list, viewport, pos, size, function, userdata, userdata_size);
+		add_paint_callback(list, viewport, pos, resolve(size), function, userdata, userdata_size);
 	}
 
-	void paint(Vec2 size, PaintFunction function, void* userdata, usize userdata_size, DrawList draw_list)
+	void paint(Size size, PaintFunction function, void* userdata, usize userdata_size, DrawList draw_list)
 	{
 		ImGuiWindow* window = ImGui::GetCurrentWindow();
 		ImGuiViewport* vp   = window->Viewport;
@@ -649,12 +737,14 @@ namespace Trinex::UI
 		}
 	}
 
-	static void dock_builder_begin(ID dockspace_id, const Vec2& size, DockNodeFlags flags)
+	static void dock_builder_begin(ID dockspace_id, const Size& size, DockNodeFlags flags)
 	{
 		const ImGuiID root_id      = to_imgui_id(dockspace_id);
 		ImGuiViewport* viewport    = ImGui::GetMainViewport();
 		const ImVec2 fallback_size = viewport != nullptr ? viewport->WorkSize : ImVec2(0.0f, 0.0f);
-		const ImVec2 resolved_size(size.x > 0.0f ? size.x : fallback_size.x, size.y > 0.0f ? size.y : fallback_size.y);
+		const Vec2 requested       = resolve(size);
+		const ImVec2 resolved_size(requested.x > 0.0f ? requested.x : fallback_size.x,
+		                           requested.y > 0.0f ? requested.y : fallback_size.y);
 
 		ImGui::DockBuilderRemoveNode(root_id);
 		ImGui::DockBuilderAddNode(root_id, to_imgui_dock_node_flags(flags) | ImGuiDockNodeFlags_DockSpace);
@@ -804,7 +894,7 @@ namespace Trinex::UI
 		return dock(window_name, require(dock_id));
 	}
 
-	bool DockLayout::begin(Vec2 size, DockNodeFlags flags)
+	bool DockLayout::begin(Size size, DockNodeFlags flags)
 	{
 		const ImGuiID root = ImGui::GetID("##dockspace");
 
@@ -813,7 +903,9 @@ namespace Trinex::UI
 		m_named.clear();
 
 		const ImVec2 fallback_size = ImGui::GetWindowSize();
-		const ImVec2 resolved_size(size.x > 0.0f ? size.x : fallback_size.x, size.y > 0.0f ? size.y : fallback_size.y);
+		const Vec2 requested       = resolve(size);
+		const ImVec2 resolved_size(requested.x > 0.0f ? requested.x : fallback_size.x,
+		                           requested.y > 0.0f ? requested.y : fallback_size.y);
 
 		ImGui::DockBuilderRemoveNode(root);
 		ImGui::DockBuilderAddNode(root, to_imgui_dock_node_flags(flags) | ImGuiDockNodeFlags_DockSpace);
@@ -821,7 +913,7 @@ namespace Trinex::UI
 		return true;
 	}
 
-	bool DockLayout::begin(DockID root_id, Vec2 size, DockNodeFlags flags)
+	bool DockLayout::begin(DockID root_id, Size size, DockNodeFlags flags)
 	{
 		if (!root_id)
 		{
@@ -836,7 +928,9 @@ namespace Trinex::UI
 
 		const ImVec2 fallback_size =
 		        ImGui::GetMainViewport() != nullptr ? ImGui::GetMainViewport()->WorkSize : ImVec2(0.0f, 0.0f);
-		const ImVec2 resolved_size(size.x > 0.0f ? size.x : fallback_size.x, size.y > 0.0f ? size.y : fallback_size.y);
+		const Vec2 requested = resolve(size);
+		const ImVec2 resolved_size(requested.x > 0.0f ? requested.x : fallback_size.x,
+		                           requested.y > 0.0f ? requested.y : fallback_size.y);
 
 		ImGui::DockBuilderRemoveNode(root);
 		ImGui::DockBuilderAddNode(root, to_imgui_dock_node_flags(flags) | ImGuiDockNodeFlags_DockSpace);
@@ -854,7 +948,7 @@ namespace Trinex::UI
 	{
 		ImGuiID id = options.id ? to_imgui_id(options.id) : ImGui::GetID("##dockspace");
 
-		if (!(id = ImGui::DockSpace(id, to_imvec(options.size), to_imgui_dock_node_flags(options.flags))))
+		if (!(id = ImGui::DockSpace(id, to_imvec(resolve(options.size)), to_imgui_dock_node_flags(options.flags))))
 			return false;
 
 		return ImGui::IsWindowAppearing() || options.reset;

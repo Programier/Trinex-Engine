@@ -692,9 +692,11 @@ namespace Trinex::UI
 			return text != nullptr && text[0] != '\0';
 		}
 
-		bool has_any_bound(const Vec2& min, const Vec2& max)
+		bool has_any_bound(const Size& min, const Size& max)
 		{
-			return min.x > 0.0f || min.y > 0.0f || max.x > 0.0f || max.y > 0.0f;
+			const Vec2 resolved_min = resolve(min);
+			const Vec2 resolved_max = resolve(max);
+			return resolved_min.x > 0.0f || resolved_min.y > 0.0f || resolved_max.x > 0.0f || resolved_max.y > 0.0f;
 		}
 
 		bool has_window_class_overrides(DockWindowFlags dock_flags, DockTabFlags tab_flags)
@@ -722,16 +724,18 @@ namespace Trinex::UI
 
 			if (options.placement.size_condition != Condition::Undefined)
 			{
-				ImGui::SetNextWindowSize(to_imvec(options.placement.size), to_imgui_cond(options.placement.size_condition));
+				ImGui::SetNextWindowSize(to_imvec(resolve(options.placement.size)), to_imgui_cond(options.placement.size_condition));
 			}
 
 			if (has_any_bound(options.placement.min_size, options.placement.max_size))
 			{
-				const ImVec2 min_size(options.placement.min_size.x > 0.0f ? options.placement.min_size.x : 0.0f,
-				                      options.placement.min_size.y > 0.0f ? options.placement.min_size.y : 0.0f);
+				const Vec2 resolved_min = resolve(options.placement.min_size);
+				const Vec2 resolved_max = resolve(options.placement.max_size);
+				const ImVec2 min_size(resolved_min.x > 0.0f ? resolved_min.x : 0.0f,
+				                      resolved_min.y > 0.0f ? resolved_min.y : 0.0f);
 				const float max_value = std::numeric_limits<float>::max();
-				const ImVec2 max_size(options.placement.max_size.x > 0.0f ? options.placement.max_size.x : max_value,
-				                      options.placement.max_size.y > 0.0f ? options.placement.max_size.y : max_value);
+				const ImVec2 max_size(resolved_max.x > 0.0f ? resolved_max.x : max_value,
+				                      resolved_max.y > 0.0f ? resolved_max.y : max_value);
 				ImGui::SetNextWindowSizeConstraints(min_size, max_size);
 			}
 

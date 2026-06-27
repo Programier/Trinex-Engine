@@ -94,8 +94,8 @@ namespace Trinex::UI
 		                    ImVec2(active_context()->style.padding, active_context()->style.padding));
 		ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
 		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
-		const bool visible = ImGui::BeginChild(id, to_imvec(options.size), options.flags | ImGuiChildFlags_AlwaysUseWindowPadding,
-		                                       options.window_flags);
+		const bool visible = ImGui::BeginChild(id, to_imvec(resolve(options.size)),
+		                                       options.flags | ImGuiChildFlags_AlwaysUseWindowPadding, options.window_flags);
 		if (!visible)
 		{
 			ImGui::EndChild();
@@ -155,7 +155,7 @@ namespace Trinex::UI
 		ImGui::PopStyleVar(3);
 	}
 
-	bool begin_glass_panel(const char* id, Vec2 size, const GlassOptions& options)
+	bool begin_glass_panel(const char* id, Size size, const GlassOptions& options)
 	{
 		trinex_assert(has_text(id) && "UI::begin_glass_panel() requires a non-empty id");
 		if (!has_text(id))
@@ -167,7 +167,7 @@ namespace Trinex::UI
 		const float padding  = options.padding >= 0.0f ? options.padding : active_context()->style.padding;
 		const float opacity  = Math::clamp(options.opacity, 0.0f, 1.0f);
 
-		Vec2 resolved_size = size;
+		Vec2 resolved_size = resolve(size);
 		if (resolved_size.x <= 0.0f)
 		{
 			resolved_size.x = ImGui::GetContentRegionAvail().x;
@@ -326,7 +326,7 @@ namespace Trinex::UI
 		const Vec4 bg     = has_color(options.background_color) ? options.background_color : active_context()->style.colors.panel;
 		const Vec4 border = has_color(options.border_color) ? options.border_color : active_context()->style.colors.border;
 
-		Vec2 size = options.size;
+		Vec2 size = resolve(options.size);
 		if (size.x <= 0.0f)
 		{
 			size.x = ImGui::GetContentRegionAvail().x;
@@ -465,7 +465,7 @@ namespace Trinex::UI
 		Vec4 bg     = has_color(options.background_color) ? options.background_color : active_context()->style.colors.panel;
 		Vec4 border = has_color(options.border_color) ? options.border_color : active_context()->style.colors.border;
 
-		Vec2 size = options.size;
+		Vec2 size = resolve(options.size);
 		if (size.x <= 0.0f)
 		{
 			size.x = ImGui::GetContentRegionAvail().x;
@@ -494,8 +494,8 @@ namespace Trinex::UI
 		anim.active        = approach(anim.active, active ? 1.0f : 0.0f, active_context()->style.animation_speed * 1.5f);
 		anim.selected      = approach(anim.selected, options.selected ? 1.0f : 0.0f, active_context()->style.animation_speed);
 
-		const bool hover_scaled    = anim.hover > 0.0f && (active_context()->style.hover_padding.x != 0.0f ||
-		                                                 active_context()->style.hover_padding.y != 0.0f);
+		const bool hover_scaled = anim.hover > 0.0f && (active_context()->style.hover_padding.x != 0.0f ||
+		                                                active_context()->style.hover_padding.y != 0.0f);
 		if (hover_scaled)
 		{
 			push_render_scale(make_hover_render_scale(to_imvec(size), anim.hover));
@@ -564,21 +564,21 @@ namespace Trinex::UI
 
 	/////////////////////// LAYOUT AND SCROLLING ///////////////////////
 
-	bool begin_horizontal(const char* id_text, const Vec2& size, float align)
+	bool begin_horizontal(const char* id_text, Size size, float align)
 	{
-		ImGui::BeginHorizontal(id_text, to_imvec(size), align);
+		ImGui::BeginHorizontal(id_text, to_imvec(resolve(size)), align);
 		return true;
 	}
 
-	bool begin_horizontal(const void* id, const Vec2& size, float align)
+	bool begin_horizontal(const void* id, Size size, float align)
 	{
-		ImGui::BeginHorizontal(id, to_imvec(size), align);
+		ImGui::BeginHorizontal(id, to_imvec(resolve(size)), align);
 		return true;
 	}
 
-	bool begin_horizontal(int id, const Vec2& size, float align)
+	bool begin_horizontal(int id, Size size, float align)
 	{
-		ImGui::BeginHorizontal(id, to_imvec(size), align);
+		ImGui::BeginHorizontal(id, to_imvec(resolve(size)), align);
 		return true;
 	}
 
@@ -587,21 +587,21 @@ namespace Trinex::UI
 		ImGui::EndHorizontal();
 	}
 
-	bool begin_vertical(const char* id_text, const Vec2& size, float align)
+	bool begin_vertical(const char* id_text, Size size, float align)
 	{
-		ImGui::BeginVertical(id_text, to_imvec(size), align);
+		ImGui::BeginVertical(id_text, to_imvec(resolve(size)), align);
 		return true;
 	}
 
-	bool begin_vertical(const void* id, const Vec2& size, float align)
+	bool begin_vertical(const void* id, Size size, float align)
 	{
-		ImGui::BeginVertical(id, to_imvec(size), align);
+		ImGui::BeginVertical(id, to_imvec(resolve(size)), align);
 		return true;
 	}
 
-	bool begin_vertical(int id, const Vec2& size, float align)
+	bool begin_vertical(int id, Size size, float align)
 	{
-		ImGui::BeginVertical(id, to_imvec(size), align);
+		ImGui::BeginVertical(id, to_imvec(resolve(size)), align);
 		return true;
 	}
 
@@ -634,14 +634,15 @@ namespace Trinex::UI
 		ImGui::Spacing();
 	}
 
-	void spacing(float amount)
+	void spacing(Unit amount)
 	{
-		if (amount < 0.0f)
+		const float resolved_amount = resolve(amount, Axis::Y);
+		if (resolved_amount < 0.0f)
 		{
 			ImGui::Spacing();
 			return;
 		}
-		ImGui::Dummy(ImVec2(0.0f, amount));
+		ImGui::Dummy(ImVec2(0.0f, resolved_amount));
 	}
 
 	void same_line(float offset_from_start_x, float spacing_value)
@@ -735,9 +736,9 @@ namespace Trinex::UI
 		ImGui::PopID();
 	}
 
-	bool begin_scroll_area(const char* id, const Vec2& size, bool border, WindowFlags flags)
+	bool begin_scroll_area(const char* id, Size size, bool border, WindowFlags flags)
 	{
-		bool visible = ImGui::BeginChild(id, to_imvec(size), border, to_imgui_window_flags(flags));
+		bool visible = ImGui::BeginChild(id, to_imvec(resolve(size)), border, to_imgui_window_flags(flags));
 
 		if (!visible)
 		{

@@ -20,6 +20,44 @@ namespace Trinex::UI
 	using Action    = Function<void()>;
 	using ActionRef = FunctionRef<void()>;
 
+	struct Unit {
+		enum Type : u8
+		{
+			Px,
+			Dp,
+			Rem,
+			Percent,
+			Fill,
+		};
+
+		Type type = Dp;
+		f32 value = 0.0f;
+
+		constexpr Unit() = default;
+		constexpr Unit(Type type, f32 value = 0.0f) : type(type), value(value) {}
+		constexpr Unit(f32 value) : type(Dp), value(value) {}
+	};
+
+	struct Size {
+		Unit width;
+		Unit height;
+
+		constexpr Size() = default;
+		constexpr Size(Unit width, Unit height) : width(width), height(height) {}
+		constexpr Size(f32 width, f32 height) : width(width), height(height) {}
+		constexpr Size(const Vec2& size) : width(size.x), height(size.y) {}
+	};
+
+	struct Axis {
+		enum Enum : u8
+		{
+			X,
+			Y,
+		};
+
+		trinex_enum_struct(Axis);
+	};
+
 	struct Ease {
 		enum Enum : u8
 		{
@@ -706,7 +744,7 @@ namespace Trinex::UI
 
 	struct DockLayoutOptions {
 		DockID id           = DockID();
-		Vec2 size           = Vec2(0.0f, 0.0f);
+		Size size           = Size(0.0f, 0.0f);
 		DockNodeFlags flags = DockNodeFlags::Undefined;
 		bool reset          = false;
 	};
@@ -720,9 +758,9 @@ namespace Trinex::UI
 
 	struct WindowPlacement {
 		Vec2 position                = Vec2(0.0f, 0.0f);
-		Vec2 size                    = Vec2(0.0f, 0.0f);
-		Vec2 min_size                = Vec2(0.0f, 0.0f);
-		Vec2 max_size                = Vec2(0.0f, 0.0f);
+		Size size                    = Size(0.0f, 0.0f);
+		Size min_size                = Size(0.0f, 0.0f);
+		Size max_size                = Size(0.0f, 0.0f);
 		Condition position_condition = Condition::Undefined;
 		Condition size_condition     = Condition::Undefined;
 	};
@@ -770,8 +808,8 @@ namespace Trinex::UI
 		DockID dock(const char* window_name, DockID dock_id);
 		DockID dock(const char* window_name, const char* dock_id);
 
-		bool begin(Vec2 size = {}, DockNodeFlags flags = DockNodeFlags::Undefined);
-		bool begin(DockID root, Vec2 size = {}, DockNodeFlags flags = DockNodeFlags::Undefined);
+		bool begin(Size size = {}, DockNodeFlags flags = DockNodeFlags::Undefined);
+		bool begin(DockID root, Size size = {}, DockNodeFlags flags = DockNodeFlags::Undefined);
 		DockLayout& end();
 
 		inline DockID root() const { return m_root; }
@@ -845,7 +883,7 @@ namespace Trinex::UI
 
 	struct PanelOptions {
 		Vec4 background_color    = Vec4(0, 0, 0, 0);
-		Vec2 size                = Vec2(0.0f, 0.0f);
+		Size size                = Size(0.0f, 0.0f);
 		f32 rounding             = -1.0f;
 		bool border              = true;
 		bool background          = true;
@@ -866,7 +904,7 @@ namespace Trinex::UI
 	};
 
 	struct CardOptions {
-		Vec2 size = Vec2(0.0f, 0.0f);
+		Size size = Size(0.0f, 0.0f);
 
 		bool border     = true;
 		bool background = true;
@@ -898,7 +936,7 @@ namespace Trinex::UI
 	};
 
 	struct ButtonOptions {
-		Vec2 size         = Vec2(0.0f, 0.0f);
+		Size size         = Size(0.0f, 0.0f);
 		const char* icon  = nullptr;
 		bool disabled     = false;
 		bool ghost        = false;
@@ -956,7 +994,7 @@ namespace Trinex::UI
 		const char* description  = nullptr;
 		const char* action_label = nullptr;
 
-		Vec2 size   = Vec2(0.0f, 0.0f);
+		Size size   = Size(0.0f, 0.0f);
 		Vec4 accent = Vec4(0, 0, 0, 0);
 
 		bool border     = true;

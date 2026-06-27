@@ -215,10 +215,11 @@ namespace Trinex::UI
 		ImGui::PopID();
 	}
 
-	bool tab(const char* label, bool selected, const Vec2& size)
+	bool tab(const char* label, bool selected, Size size)
 	{
 		ButtonOptions options;
-		options.size       = size.x > 0.0f || size.y > 0.0f ? size : Vec2(0.0f, 30.0f);
+		Vec2 resolved_size = resolve(size);
+		options.size       = resolved_size.x > 0.0f || resolved_size.y > 0.0f ? size : Size(0.0f, 30.0f);
 		options.ghost      = !selected;
 		options.accent     = active_context()->style.colors.accent;
 		const bool clicked = button(label, options);
@@ -947,11 +948,12 @@ namespace Trinex::UI
 		badge(value, color);
 	}
 
-	void status_dot(const Vec4& color, float radius)
+	void status_dot(const Vec4& color, Unit radius)
 	{
+		const float resolved_radius = resolve(radius);
 		const ImVec2 pos = ImGui::GetCursorScreenPos();
-		ImGui::Dummy(ImVec2(radius * 2.0f, radius * 2.0f));
-		ImGui::GetWindowDrawList()->AddCircleFilled(ImVec2(pos.x + radius, pos.y + radius), radius,
+		ImGui::Dummy(ImVec2(resolved_radius * 2.0f, resolved_radius * 2.0f));
+		ImGui::GetWindowDrawList()->AddCircleFilled(ImVec2(pos.x + resolved_radius, pos.y + resolved_radius), resolved_radius,
 		                                            col_u32(has_color(color) ? color : active_context()->style.colors.success));
 	}
 
@@ -962,12 +964,12 @@ namespace Trinex::UI
 		text("%s", value);
 	}
 
-	void property_row(const char* row_label, const Function<void()>& content, float label_width)
+	void property_row(const char* row_label, const Function<void()>& content, Unit label_width)
 	{
 		ImGui::PushID(row_label);
 		ImGui::AlignTextToFramePadding();
 		text_muted("%s", row_label);
-		ImGui::SameLine(label_width);
+		ImGui::SameLine(resolve(label_width));
 		if (content)
 		{
 			content();
@@ -975,51 +977,54 @@ namespace Trinex::UI
 		ImGui::PopID();
 	}
 
-	bool property_bool(const char* label, bool* value, bool use_checkbox, float label_width)
+	bool property_bool(const char* label, bool* value, bool use_checkbox, Unit label_width)
 	{
 		bool changed = false;
 		property_row(label, [&] { changed = use_checkbox ? checkbox("##value", value) : toggle("##value", value); }, label_width);
 		return changed;
 	}
 
-	bool property_float(const char* label, float* value, float min, float max, const char* format, float label_width)
+	bool property_float(const char* label, float* value, float min, float max, const char* format, Unit label_width)
 	{
 		bool changed = false;
 		property_row(label, [&] { changed = slider("##value", value, min, max, format); }, label_width);
 		return changed;
 	}
 
-	bool property_int(const char* label, int* value, int min, int max, const char* format, float label_width)
+	bool property_int(const char* label, int* value, int min, int max, const char* format, Unit label_width)
 	{
 		bool changed = false;
 		property_row(label, [&] { changed = slider("##value", value, min, max, format); }, label_width);
 		return changed;
 	}
 
-	bool property_text(const char* label, char* buffer, size_t buffer_size, float label_width)
+	bool property_text(const char* label, char* buffer, size_t buffer_size, Unit label_width)
 	{
 		bool changed = false;
 		property_row(label, [&] { changed = input("##value", buffer, buffer_size); }, label_width);
 		return changed;
 	}
 
-	bool property_color(const char* label, Vec4* color, bool alpha, float label_width)
+	bool property_color(const char* label, Vec4* color, bool alpha, Unit label_width)
 	{
 		bool changed = false;
 		property_row(label, [&] { changed = color_edit("##value", color, alpha); }, label_width);
 		return changed;
 	}
 
-	bool splitter(const char* id, float* size_a, float* size_b, float min_a, float min_b, bool vertical, float thickness)
+	bool splitter(const char* id, float* size_a, float* size_b, Unit min_a, Unit min_b, bool vertical, Unit thickness)
 	{
 		ImGui::PushID(id);
-		ImVec2 size = vertical ? ImVec2(thickness, -1.0f) : ImVec2(-1.0f, thickness);
+		const float resolved_min_a     = resolve(min_a, vertical ? Axis::X : Axis::Y);
+		const float resolved_min_b     = resolve(min_b, vertical ? Axis::X : Axis::Y);
+		const float resolved_thickness = resolve(thickness, vertical ? Axis::X : Axis::Y);
+		ImVec2 size = vertical ? ImVec2(resolved_thickness, -1.0f) : ImVec2(-1.0f, resolved_thickness);
 		ImGui::InvisibleButton("##splitter", size);
 		const bool active = ImGui::IsItemActive();
 		if (active && size_a != nullptr && size_b != nullptr)
 		{
 			const float delta = vertical ? ImGui::GetIO().MouseDelta.x : ImGui::GetIO().MouseDelta.y;
-			if (*size_a + delta >= min_a && *size_b - delta >= min_b)
+			if (*size_a + delta >= resolved_min_a && *size_b - delta >= resolved_min_b)
 			{
 				*size_a += delta;
 				*size_b -= delta;
@@ -1036,7 +1041,7 @@ namespace Trinex::UI
 	bool begin_toolbar(const char* id)
 	{
 		PanelOptions options;
-		options.size = Vec2(0.0f, active_context()->style.frame_height + active_context()->style.padding * 2.0f);
+		options.size = Size(0.0f, active_context()->style.frame_height + active_context()->style.padding * 2.0f);
 		return begin_panel(id, options);
 	}
 
@@ -1045,7 +1050,7 @@ namespace Trinex::UI
 		end_panel();
 	}
 
-	bool begin_table(const char* id, int columns, TableFlags flags, const Vec2& outer_size, float inner_width)
+	bool begin_table(const char* id, int columns, TableFlags flags, Size outer_size, Unit inner_width)
 	{
 		ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(active_context()->style.padding, active_context()->style.spacing));
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(active_context()->style.padding, 6.0f));
@@ -1055,7 +1060,8 @@ namespace Trinex::UI
 		ImGui::PushStyleColor(ImGuiCol_TableRowBg, to_imvec(with_alpha(active_context()->style.colors.panel, 0.30f)));
 		ImGui::PushStyleColor(ImGuiCol_TableRowBgAlt,
 		                      to_imvec(with_alpha(active_context()->style.colors.background_hovered, 0.38f)));
-		const bool open = ImGui::BeginTable(id, columns, to_imgui_table_flags(flags), to_imvec(outer_size), inner_width);
+		const bool open =
+		        ImGui::BeginTable(id, columns, to_imgui_table_flags(flags), to_imvec(resolve(outer_size)), resolve(inner_width));
 		if (open)
 		{
 			++active_context()->table_style_depth;
@@ -1089,9 +1095,9 @@ namespace Trinex::UI
 		ImGui::TableHeadersRow();
 	}
 
-	void table_next_row(TableRowFlags flags, float min_row_height)
+	void table_next_row(TableRowFlags flags, Unit min_row_height)
 	{
-		ImGui::TableNextRow(to_imgui_table_row_flags(flags), min_row_height);
+		ImGui::TableNextRow(to_imgui_table_row_flags(flags), resolve(min_row_height, Axis::Y));
 	}
 
 	bool table_next_column()
@@ -1104,9 +1110,9 @@ namespace Trinex::UI
 		return ImGui::TableSetColumnIndex(idx);
 	}
 
-	bool begin_list_box(const char* label, const Vec2& size)
+	bool begin_list_box(const char* label, Size size)
 	{
-		return ImGui::BeginListBox(label, to_imvec(size));
+		return ImGui::BeginListBox(label, to_imvec(resolve(size)));
 	}
 
 	void end_list_box()
@@ -1315,7 +1321,8 @@ namespace Trinex::UI
 		const Vec4 border         = mix_color(active_context()->style.colors.border, accent, 0.25f);
 		const float alpha_mul     = options.disabled ? 0.55f : 1.0f;
 		const ImVec2 pos          = ImGui::GetCursorScreenPos();
-		const float width         = options.size.x > 0.0f ? options.size.x : std::max(1.0f, ImGui::GetContentRegionAvail().x);
+		const Vec2 resolved_size  = resolve(options.size);
+		const float width         = resolved_size.x > 0.0f ? resolved_size.x : std::max(1.0f, ImGui::GetContentRegionAvail().x);
 		const float content_width = std::max(1.0f, width - padding * 2.0f);
 		const float desc_wrap     = std::max(140.0f, std::min(content_width, options.centered ? 520.0f : content_width));
 
@@ -1355,7 +1362,7 @@ namespace Trinex::UI
 		add_block(has_text(action_text), button_h);
 
 		const float auto_height = std::max(content_h + padding * 2.0f, 120.0f);
-		const float height      = options.size.y > 0.0f ? options.size.y : auto_height;
+		const float height      = resolved_size.y > 0.0f ? resolved_size.y : auto_height;
 		const ImVec2 size(width, height);
 
 		ImGui::Dummy(size);
@@ -1381,7 +1388,7 @@ namespace Trinex::UI
 		}
 
 		const float content_top =
-		        options.size.y > 0.0f ? pos.y + std::max(padding, (height - content_h) * 0.5f) : pos.y + padding;
+		        resolved_size.y > 0.0f ? pos.y + std::max(padding, (height - content_h) * 0.5f) : pos.y + padding;
 		float y              = content_top;
 		const float left_x   = pos.x + padding;
 		const float center_x = pos.x + width * 0.5f;
@@ -1410,7 +1417,7 @@ namespace Trinex::UI
 		if (has_text(action_text))
 		{
 			ButtonOptions ButtonOptions;
-			ButtonOptions.size     = Vec2(button_w, button_h);
+			ButtonOptions.size     = Size(button_w, button_h);
 			ButtonOptions.accent   = accent;
 			ButtonOptions.disabled = options.disabled;
 
