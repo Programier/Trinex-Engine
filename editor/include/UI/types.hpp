@@ -347,6 +347,57 @@ namespace Trinex::UI
 		trinex_enum_struct(StyleColor);
 	};
 
+	struct StyleVar {
+		enum Enum : u8
+		{
+			Alpha,
+			DisabledAlpha,
+			WindowPadding,
+			WindowRounding,
+			WindowBorderSize,
+			WindowMinSize,
+			WindowTitleAlign,
+			ChildRounding,
+			ChildBorderSize,
+			PopupRounding,
+			PopupBorderSize,
+			FramePadding,
+			FrameRounding,
+			FrameBorderSize,
+			ItemSpacing,
+			ItemInnerSpacing,
+			IndentSpacing,
+			CellPadding,
+			ScrollbarSize,
+			ScrollbarRounding,
+			ScrollbarPadding,
+			GrabMinSize,
+			GrabRounding,
+			ImageRounding,
+			ImageBorderSize,
+			TabRounding,
+			TabBorderSize,
+			TabMinWidthBase,
+			TabMinWidthShrink,
+			TabBarBorderSize,
+			TabBarOverlineSize,
+			TableAngledHeadersAngle,
+			TableAngledHeadersTextAlign,
+			TreeLinesSize,
+			TreeLinesRounding,
+			ButtonTextAlign,
+			SelectableTextAlign,
+			SeparatorSize,
+			SeparatorTextBorderSize,
+			SeparatorTextAlign,
+			SeparatorTextPadding,
+			DockingSeparatorSize,
+			LayoutAlign,
+		};
+
+		trinex_enum_struct(StyleVar);
+	};
+
 	struct Condition {
 		enum Enum : u8
 		{
@@ -501,9 +552,28 @@ namespace Trinex::UI
 	};
 
 	struct TableColumnFlags {
-		enum Enum : u8
+		enum Enum : u32
 		{
-			Undefined = 0
+			Undefined            = 0,
+			Disabled             = 1 << 0,
+			DefaultHide          = 1 << 1,
+			DefaultSort          = 1 << 2,
+			WidthStretch         = 1 << 3,
+			WidthFixed           = 1 << 4,
+			NoResize             = 1 << 5,
+			NoReorder            = 1 << 6,
+			NoHide               = 1 << 7,
+			NoClip               = 1 << 8,
+			NoSort               = 1 << 9,
+			NoSortAscending      = 1 << 10,
+			NoSortDescending     = 1 << 11,
+			NoHeaderLabel        = 1 << 12,
+			NoHeaderWidth        = 1 << 13,
+			PreferSortAscending  = 1 << 14,
+			PreferSortDescending = 1 << 15,
+			IndentEnable         = 1 << 16,
+			IndentDisable        = 1 << 17,
+			AngledHeader         = 1 << 18,
 		};
 
 		trinex_bitfield_enum_struct(TableColumnFlags, u8);

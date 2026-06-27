@@ -217,16 +217,18 @@ namespace Trinex
 			return false;
 
 		return UI::card_button(object->name().c_str(), {.size = size}, [&]() {
+			const float padding       = UI::style().padding;
+			UI::Vec2 content_size     = {glm::max(size.x - padding * 2.0f, 0.0f), glm::max(size.y - padding * 2.0f, 0.0f)};
 			ImTextureID imgui_texture = Icons::find_icon(object);
 			imgui_texture.sampler     = RHIPointWrapSampler::static_sampler();
 
-			const float image_side_length = size.x * 0.93f;
+			const float image_side_length = content_size.x * 0.93f;
 			const UI::Vec2 image_size     = {image_side_length, image_side_length};
 
-			const auto start_pos   = UI::cursor_screen_position();
-			bool is_pressed        = UI::invisible_button("##Button", {.size = size, .flags = UI::ButtonFlags::AllowOverlap});
-			bool is_hovered        = UI::is_item_hovered();
-			bool is_double_pressed = is_hovered && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left);
+			const auto start_pos = UI::cursor_screen_position();
+			bool is_pressed = UI::invisible_button("##Button", {.size = content_size, .flags = UI::ButtonFlags::AllowOverlap});
+			bool is_hovered = UI::is_item_hovered();
+			bool is_double_pressed = is_hovered && UI::is_mouse_double_clicked(UI::MouseButton::Left);
 
 			if (is_pressed && !is_double_pressed)
 			{
@@ -276,19 +278,19 @@ namespace Trinex
 			}
 
 			UI::cursor_screen_position(start_pos);
-			UI::draw_list()->fill_rect(start_pos, start_pos + size, ImGui::GetStyle().FrameRounding);
+			UI::draw_list()->fill_rect(start_pos, start_pos + content_size, ImGui::GetStyle().FrameRounding);
 
 			{
-				float border   = (size.x - image_size.x) / 2.f;
+				float border   = (content_size.x - image_size.x) / 2.f;
 				auto image_min = start_pos + UI::Vec2(border, border);
 				UI::draw_list()->rounded_image(UI::Texture(imgui_texture.texture, imgui_texture.sampler), image_min,
 				                               image_min + image_size, {0, 0}, {1, 1}, 0xFFFFFFFF,
 				                               ImGui::GetStyle().FrameRounding);
 			}
 
-			UI::begin_vertical(object, UI::Vec2{size.x, size.y}, 0.5f);
+			UI::begin_vertical(object, UI::Vec2{content_size.x, content_size.y}, 0.5f);
 			UI::spring(0.f);
-			ImGui::Dummy({size.x, size.x});
+			UI::dummy({content_size.x, content_size.x});
 
 			UI::spring(0.f);
 			UI::begin_vertical(0, {image_size.x, 0}, 0.5f);
@@ -405,38 +407,83 @@ namespace Trinex
 
 		auto& objects = package->objects();
 
-		const auto region      = UI::content_region_available();
-		const float font_size  = ImGui::GetFontSize();
-		const ImVec2 item_size = ImVec2(6.8, 6.8) * font_size + ImVec2(0.f, ImGui::GetTextLineHeightWithSpacing() * 3);
-		const ImVec2 spacing   = ImGui::GetStyle().ItemSpacing;
-		const i32 columns      = glm::max(static_cast<i32>(region.x / (item_size.x + spacing.x)), 1);
-		const i32 items_count  = static_cast<i32>(objects.size());
-		const i32 rows         = (items_count + columns - 1) / columns;
-
-		ImGuiListClipper clipper;
-		clipper.Begin(rows, item_size.y + spacing.y + font_size);
-
-		while (clipper.Step())
+		Vector<Object*> visible_objects;
+		visible_objects.reserve(objects.size());
+		for (Object* object : objects)
 		{
-			for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row)
+			bool in_filter = filters.empty();
+			if (!in_filter)
 			{
-				UI::begin_horizontal(row, UI::Vec2(region.x, item_size.y));
-				i32 idx     = row * columns;
-				i32 end_idx = glm::min(idx + columns, items_count);
-
-				for (; idx < end_idx; ++idx)
+				for (auto& callback : filters)
 				{
-					auto object = objects[idx];
-					UI::push_id(object);
-					render_content_item(object, {item_size.x, item_size.y});
-					UI::pop_id();
+					in_filter = callback(object->class_instance());
+					if (in_filter)
+					{
+						break;
+					}
 				}
-				UI::end_horizontal();
-				ImGui::NewLine();
+			}
+
+			if (in_filter)
+			{
+				visible_objects.push_back(object);
 			}
 		}
 
-		clipper.End();
+		const auto region       = UI::content_region_available();
+		const float font_size   = ImGui::GetFontSize();
+		const ImVec2 item_size  = ImVec2(8.8, 10.8) * font_size + ImVec2(0.f, ImGui::GetTextLineHeightWithSpacing() * 3);
+		const ImVec2 spacing    = ImGui::GetStyle().ItemSpacing;
+		const float column_step = item_size.x + spacing.x;
+		const float row_height  = item_size.y + spacing.y;
+		const i32 columns       = glm::max(static_cast<i32>((region.x + spacing.x) / column_step), 1);
+		const i32 items_count   = static_cast<i32>(visible_objects.size());
+		const i32 rows          = (items_count + columns - 1) / columns;
+
+		UI::TableFlags table_flags = UI::TableFlags::SizingFixedSame | UI::TableFlags::NoSavedSettings |
+		                             UI::TableFlags::NoPadOuterX | UI::TableFlags::NoPadInnerX;
+
+
+		UI::push_style_var(UI::StyleVar::CellPadding, {0.f, 0.f});
+
+		if (UI::begin_table("##content_grid", columns, table_flags, region))
+		{
+			for (i32 column = 0; column < columns; ++column)
+			{
+				UI::table_setup_column(nullptr, UI::TableColumnFlags::WidthFixed, column_step);
+			}
+
+			ImGuiListClipper clipper;
+			clipper.Begin(rows, row_height);
+
+			while (clipper.Step())
+			{
+				for (i32 row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row)
+				{
+					UI::table_next_row(UI::TableRowFlags::Undefined, row_height);
+
+					for (i32 column = 0; column < columns; ++column)
+					{
+						const i32 index = row * columns + column;
+						if (index >= items_count)
+						{
+							break;
+						}
+
+						UI::table_column(column);
+						Object* object = visible_objects[index];
+						UI::push_id(object);
+						render_content_item(object, {item_size.x, item_size.y});
+						UI::pop_id();
+					}
+				}
+			}
+
+			clipper.End();
+			UI::end_table();
+		}
+
+		UI::pop_style_var();
 
 		UI::popup("###ContentContextMenu", [&]() {
 			Package* pkg = selected_package();

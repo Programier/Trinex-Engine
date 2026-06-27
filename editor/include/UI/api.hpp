@@ -39,8 +39,11 @@ namespace Trinex::UI
 	void style(const Style& value);
 	void push_style(const Style& value);
 	void pop_style();
-	void push_color(StyleColor color, const Vec4& value);
-	void pop_color(int count = 1);
+	void push_style_color(StyleColor color, const Vec4& value);
+	void pop_style_color(u32 count = 1);
+	void push_style_var(StyleVar var, f32 value);
+	void push_style_var(StyleVar var, const Vec2& value);
+	void pop_style_var(u32 count = 1);
 	void paint(Vec2 pos, Size size, PaintFunction function, void* userdata = nullptr, usize userdata_size = 0,
 	           DrawList draw_list = DrawList::Default);
 	void paint(Size size, PaintFunction function, void* userdata = nullptr, usize userdata_size = 0,
@@ -113,7 +116,12 @@ namespace Trinex::UI
 	void resume_layout();
 	void separator();
 	void spacing(Unit amount = Unit(-1.0f));
+	void new_line();
+	void dummy(const Size& size);
 	void same_line(float offset_from_start_x = 0.0f, float spacing = -1.0f);
+	void indent(Unit indent_w = Unit(0.0f));
+	void unindent(Unit indent_w = Unit(0.0f));
+	void align_text_to_frame_padding();
 	bool begin_disabled(bool disabled = true);
 	void end_disabled();
 	bool begin_animated_area(const char* id_text, bool visible);
@@ -135,6 +143,10 @@ namespace Trinex::UI
 	Vec2 window_size();
 	float window_width();
 	float window_height();
+	float text_line_height();
+	float text_line_height_with_spacing();
+	float frame_height();
+	float frame_height_with_spacing();
 	Vec2 content_region_available();
 	Vec2 cursor_position();
 	void cursor_position(const Vec2& position);

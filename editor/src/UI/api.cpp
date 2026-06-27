@@ -422,6 +422,31 @@ namespace Trinex::UI
 		}
 	}
 
+	void push_style_color(StyleColor color, const Vec4& value)
+	{
+		ImGui::PushStyleColor(static_cast<ImGuiCol>(color.value), to_imvec(value));
+	}
+
+	void pop_style_color(u32 count)
+	{
+		ImGui::PopStyleColor(count);
+	}
+
+	void push_style_var(StyleVar var, f32 value)
+	{
+		ImGui::PushStyleVar(static_cast<ImGuiStyleVar>(var.value), value);
+	}
+
+	void push_style_var(StyleVar var, const Vec2& value)
+	{
+		ImGui::PushStyleVar(static_cast<ImGuiStyleVar>(var.value), to_imvec(value));
+	}
+
+	void pop_style_var(u32 count)
+	{
+		ImGui::PopStyleVar(count);
+	}
+
 	void push_shadow(const Shadow& shadow)
 	{
 		active_context()->shadow_stack.push_back(shadow);

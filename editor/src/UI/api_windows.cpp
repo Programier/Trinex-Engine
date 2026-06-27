@@ -541,6 +541,7 @@ namespace Trinex::UI
 		action();
 
 		ImGui::SetCursorScreenPos(item_end_pos);
+		ImGui::Dummy(ImVec2(0.0f, 0.0f));
 		draw->PopClipRect();
 		if (options.border)
 		{
@@ -645,9 +646,34 @@ namespace Trinex::UI
 		ImGui::Dummy(ImVec2(0.0f, resolved_amount));
 	}
 
+	void new_line()
+	{
+		ImGui::NewLine();
+	}
+
+	void dummy(const Size& size)
+	{
+		ImGui::Dummy(to_imvec(resolve(size)));
+	}
+
 	void same_line(float offset_from_start_x, float spacing_value)
 	{
 		ImGui::SameLine(offset_from_start_x, spacing_value);
+	}
+
+	void indent(Unit indent_w)
+	{
+		ImGui::Indent(resolve(indent_w, Axis::X));
+	}
+
+	void unindent(Unit indent_w)
+	{
+		ImGui::Unindent(resolve(indent_w, Axis::X));
+	}
+
+	void align_text_to_frame_padding()
+	{
+		ImGui::AlignTextToFramePadding();
 	}
 
 	bool begin_disabled(bool disabled)
@@ -815,6 +841,26 @@ namespace Trinex::UI
 	float window_height()
 	{
 		return ImGui::GetWindowHeight();
+	}
+
+	float text_line_height()
+	{
+		return ImGui::GetTextLineHeight();
+	}
+
+	float text_line_height_with_spacing()
+	{
+		return ImGui::GetTextLineHeightWithSpacing();
+	}
+
+	float frame_height()
+	{
+		return ImGui::GetFrameHeight();
+	}
+
+	float frame_height_with_spacing()
+	{
+		return ImGui::GetFrameHeightWithSpacing();
 	}
 
 	Vec2 content_region_available()
