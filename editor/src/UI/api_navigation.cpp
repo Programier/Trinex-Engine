@@ -523,36 +523,24 @@ namespace Trinex::UI
 		auto& style   = active_context()->style;
 		auto& palette = active_context()->command_palette;
 
-		AnimState& palette_anim      = state_for(ImGui::GetID("##command_palette_popup_anim"));
-		AnimState& palette_blur_anim = state_for(ImGui::GetID("##command_palette_blur_anim"));
-		palette_anim.open            = approach(palette_anim.open, palette.open ? 1.0f : 0.0f, style.animation_speed);
-		palette_blur_anim.open = approach(palette_blur_anim.open, palette.open ? 1.0f : 0.0f, style.animation_speed * 0.45f);
+		AnimState& anim = state_for(ImGui::GetID("##command_anim"));
+		anim.open       = approach(anim.open, palette.open ? 1.0f : 0.0f, style.animation_speed);
 
-		if (!palette.open && palette_anim.open <= 0.0f && palette_blur_anim.open <= 0.0f)
+		if (!palette.open && anim.open <= 0.0f)
 		{
 			return false;
 		}
 
-		if (palette.open && palette_anim.open > 0.995f)
+		if (palette.open && anim.open > 0.995f)
 		{
-			palette_anim.open = 1.0f;
+			anim.open = 1.0f;
 		}
-		else if (!palette.open && palette_anim.open < 0.005f)
+		else if (!palette.open && anim.open < 0.005f)
 		{
-			palette_anim.open = 0.0f;
-		}
-		if (palette.open && palette_blur_anim.open > 0.995f)
-		{
-			palette_blur_anim.open = 1.0f;
-		}
-		else if (!palette.open && palette_blur_anim.open < 0.005f)
-		{
-			palette_blur_anim.open = 0.0f;
+			anim.open = 0.0f;
 		}
 
-		const float eased_open         = apply_ease(palette_anim.open, Ease::InOutQuad);
-		const float eased_blur         = apply_ease(palette_blur_anim.open, Ease::InOutQuad);
-		const float popup_visual_alpha = palette.open ? eased_open : eased_blur;
+		const float eased = apply_ease(anim.open, Ease::InOutQuad);
 
 		refresh_command_palette_results();
 
@@ -608,14 +596,14 @@ namespace Trinex::UI
 		const ImVec2 target_size(width, max_height);
 		const ImVec2 target_pos(viewport->WorkPos.x + (viewport->WorkSize.x - target_size.x) * 0.5f,
 		                        viewport->WorkPos.y + std::max(24.0f, (viewport->WorkSize.y - target_size.y) * 0.22f));
-		const Vec2 popup_scale(Math::lerp(0.965f, 1.0f, eased_open), Math::lerp(0.90f, 1.0f, eased_open));
-		const ImVec2 animated_pos(target_pos.x, target_pos.y);
+		const Vec2 popup_scale(Math::lerp(0.965f, 1.0f, eased), Math::lerp(0.90f, 1.0f, eased));
+
 		const float rounding = active_context()->style.rounding + 2.0f;
 		const float padding  = active_context()->style.padding;
 		const float spacing  = active_context()->style.spacing;
 
 		ImGui::SetNextWindowViewport(viewport->ID);
-		ImGui::SetNextWindowPos(animated_pos);
+		ImGui::SetNextWindowPos(target_pos);
 		ImGui::SetNextWindowSize(target_size);
 		ImGui::SetNextWindowBgAlpha(0.0f);
 		if (!ImGui::IsPopupOpen("##command_palette_popup"))
@@ -628,7 +616,7 @@ namespace Trinex::UI
 		ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0, 0, 0, 0));
 		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
 		ImGui::PushStyleColor(ImGuiCol_ModalWindowDimBg,
-		                      to_imvec(with_alpha(active_context()->style.colors.background, 0.28f * popup_visual_alpha)));
+		                      to_imvec(with_alpha(active_context()->style.colors.background, 0.28f * eased)));
 
 		const ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove |
 		                               ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDocking |
@@ -645,20 +633,20 @@ namespace Trinex::UI
 
 		{
 			BlurOptions options;
-			options.radius = 12.0f * eased_blur;
-			options.sigma  = 4.0f * eased_blur;
+			options.radius = 12.0f * eased;
+			options.sigma  = 4.0f * eased;
 			options.tint   = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
 
 			blur(to_vec(viewport->Pos), to_vec(viewport->Pos + viewport->Size), DrawList::Default, options);
 		}
 
 		const float previous_draw_alpha = active_context()->draw_alpha;
-		active_context()->draw_alpha *= popup_visual_alpha;
-		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * popup_visual_alpha);
+		active_context()->draw_alpha *= eased;
+		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * eased);
 		push_render_scale(popup_scale);
 
 		BlurOptions palette_blur;
-		palette_blur.radius   = 12.0f * eased_blur;
+		palette_blur.radius   = 12.0f * eased;
 		palette_blur.sigma    = 6.0f;
 		palette_blur.spread   = 0.0f;
 		palette_blur.rounding = rounding;
@@ -669,14 +657,14 @@ namespace Trinex::UI
 		palette_shadow.offset = Vec2(0.0f, 10.0f);
 		palette_shadow.blur   = 28.0f;
 		palette_shadow.spread = 0.0f;
-		palette_shadow.color  = Vec4(0.0f, 0.0f, 0.0f, 0.22f * popup_visual_alpha);
+		palette_shadow.color  = Vec4(0.0f, 0.0f, 0.0f, 0.22f * eased);
 		push_shadow(palette_shadow);
 
 		GlassOptions palette_glass;
 		palette_glass.opacity       = 0.8f;
-		palette_glass.tint          = Vec4(0.10f, 0.12f, 0.16f, 0.58f * popup_visual_alpha);
-		palette_glass.border_color  = Vec4(1.0f, 1.0f, 1.0f, 0.10f * popup_visual_alpha);
-		palette_glass.highlight     = Vec4(1.0f, 1.0f, 1.0f, 0.08f * popup_visual_alpha);
+		palette_glass.tint          = Vec4(0.10f, 0.12f, 0.16f, 0.58f * eased);
+		palette_glass.border_color  = Vec4(1.0f, 1.0f, 1.0f, 0.10f * eased);
+		palette_glass.highlight     = Vec4(1.0f, 1.0f, 1.0f, 0.08f * eased);
 		palette_glass.border        = true;
 		palette_glass.background    = true;
 		palette_glass.highlight_top = true;
@@ -719,8 +707,7 @@ namespace Trinex::UI
 		ImGui::Separator();
 		ImGui::Spacing();
 
-		const float list_height =
-		        std::max(120.0f, target_size.y - active_context()->style.frame_height - padding * 3.0f - 10.0f);
+		const float list_height = std::max(120.0f, target_size.y - active_context()->style.frame_height - padding * 3.0f - 10.0f);
 		ImGui::BeginChild("##command_palette_results", ImVec2(0.0f, list_height), false, ImGuiWindowFlags_NoBackground);
 
 		if (!has_results)
@@ -832,7 +819,7 @@ namespace Trinex::UI
 
 		ImGui::EndChild();
 
-		if (!palette.open && palette_anim.open <= 0.0f && palette_blur_anim.open <= 0.0f)
+		if (!palette.open && anim.open <= 0.0f)
 		{
 			ImGui::CloseCurrentPopup();
 		}
@@ -951,7 +938,7 @@ namespace Trinex::UI
 	void status_dot(const Vec4& color, Unit radius)
 	{
 		const float resolved_radius = resolve(radius);
-		const ImVec2 pos = ImGui::GetCursorScreenPos();
+		const ImVec2 pos            = ImGui::GetCursorScreenPos();
 		ImGui::Dummy(ImVec2(resolved_radius * 2.0f, resolved_radius * 2.0f));
 		ImGui::GetWindowDrawList()->AddCircleFilled(ImVec2(pos.x + resolved_radius, pos.y + resolved_radius), resolved_radius,
 		                                            col_u32(has_color(color) ? color : active_context()->style.colors.success));
@@ -1018,7 +1005,7 @@ namespace Trinex::UI
 		const float resolved_min_a     = resolve(min_a, vertical ? Axis::X : Axis::Y);
 		const float resolved_min_b     = resolve(min_b, vertical ? Axis::X : Axis::Y);
 		const float resolved_thickness = resolve(thickness, vertical ? Axis::X : Axis::Y);
-		ImVec2 size = vertical ? ImVec2(resolved_thickness, -1.0f) : ImVec2(-1.0f, resolved_thickness);
+		ImVec2 size                    = vertical ? ImVec2(resolved_thickness, -1.0f) : ImVec2(-1.0f, resolved_thickness);
 		ImGui::InvisibleButton("##splitter", size);
 		const bool active = ImGui::IsItemActive();
 		if (active && size_a != nullptr && size_b != nullptr)
