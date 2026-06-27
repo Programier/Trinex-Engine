@@ -92,11 +92,22 @@ namespace Trinex::UI
 		frame_bg          = Math::lerp(frame_bg, active_context()->style.colors.background_active, anim.active * 0.65f);
 		frame_border      = Math::lerp(frame_border, accent, anim.hover * 0.7f + anim.active * 0.3f);
 
+		const bool hover_scaled = anim.hover > 0.0f && (active_context()->style.hover_padding.x != 0.0f ||
+		                                                active_context()->style.hover_padding.y != 0.0f);
+		if (hover_scaled)
+		{
+			push_render_scale(make_hover_render_scale(frame_size, anim.hover));
+		}
+		const bool press_scaled = anim.active > 0.0f;
+		if (press_scaled)
+		{
+			push_render_scale(make_press_render_scale(frame_size, anim.active));
+		}
+
 		ImDrawList* draw                 = ImGui::GetWindowDrawList();
-		const InteractiveRect frame_rect = make_interactive_rect(pos, frame_size, anim.hover, anim.active);
-		const InteractiveRect image_rect =
-		        make_interactive_rect(ImVec2(pos.x + padding, pos.y + padding), image_size, anim.hover, anim.active);
-		const float image_rounding = std::max(0.0f, (rounding - padding * 0.5f) * image_rect.rounding_scale);
+		const InteractiveRect frame_rect = make_interactive_rect(pos, frame_size);
+		const InteractiveRect image_rect = make_interactive_rect(ImVec2(pos.x + padding, pos.y + padding), image_size);
+		const float image_rounding       = std::max(0.0f, (rounding - padding * 0.5f) * image_rect.rounding_scale);
 
 		if (has_shadow_override())
 		{
@@ -115,6 +126,15 @@ namespace Trinex::UI
 		{
 			draw->AddRect(frame_rect.min, frame_rect.max, col_u32(frame_border), rounding * frame_rect.rounding_scale, 0,
 			              active_context()->style.border_size);
+		}
+
+		if (press_scaled)
+		{
+			pop_render_scale();
+		}
+		if (hover_scaled)
+		{
+			pop_render_scale();
 		}
 
 		ImGui::PopID();
@@ -177,12 +197,23 @@ namespace Trinex::UI
 		anim.hover         = approach(anim.hover, hovered ? 1.0f : 0.0f, active_context()->style.animation_speed);
 		anim.active        = approach(anim.active, active ? 1.0f : 0.0f, active_context()->style.animation_speed * 1.5f);
 
-		const Vec4 accent          = has_color(options.accent) ? options.accent : active_context()->style.colors.accent;
-		Vec4 bg                    = options.ghost ? Vec4(0, 0, 0, 0) : active_context()->style.colors.background_active;
-		bg                         = Math::lerp(bg, active_context()->style.colors.background_hovered, anim.hover);
-		bg                         = Math::lerp(bg, accent, anim.active * 0.65f);
+		const Vec4 accent       = has_color(options.accent) ? options.accent : active_context()->style.colors.accent;
+		Vec4 bg                 = options.ghost ? Vec4(0, 0, 0, 0) : active_context()->style.colors.background_active;
+		bg                      = Math::lerp(bg, active_context()->style.colors.background_hovered, anim.hover);
+		bg                      = Math::lerp(bg, accent, anim.active * 0.65f);
+		const bool hover_scaled = anim.hover > 0.0f && (active_context()->style.hover_padding.x != 0.0f ||
+		                                                active_context()->style.hover_padding.y != 0.0f);
+		if (hover_scaled)
+		{
+			push_render_scale(make_hover_render_scale(size, anim.hover));
+		}
+		const bool press_scaled = anim.active > 0.0f;
+		if (press_scaled)
+		{
+			push_render_scale(make_press_render_scale(size, anim.active));
+		}
 		ImDrawList* draw           = ImGui::GetWindowDrawList();
-		const InteractiveRect rect = make_interactive_rect(pos, size, anim.hover, anim.active);
+		const InteractiveRect rect = make_interactive_rect(pos, size);
 		if (has_shadow_override())
 		{
 			Shadow shadow = current_shadow();
@@ -215,6 +246,14 @@ namespace Trinex::UI
 		{
 			draw->AddText(ImVec2(x, rect.center.y - text_size.y * 0.5f), col_u32(tc), text_label.data(),
 			              text_label.data() + text_label.size());
+		}
+		if (press_scaled)
+		{
+			pop_render_scale();
+		}
+		if (hover_scaled)
+		{
+			pop_render_scale();
 		}
 		ImGui::PopID();
 		return clicked;

@@ -494,7 +494,19 @@ namespace Trinex::UI
 		anim.active        = approach(anim.active, active ? 1.0f : 0.0f, active_context()->style.animation_speed * 1.5f);
 		anim.selected      = approach(anim.selected, options.selected ? 1.0f : 0.0f, active_context()->style.animation_speed);
 
-		const InteractiveRect rect = make_interactive_rect(pos, to_imvec(size), anim.hover, anim.active);
+		const bool hover_scaled    = anim.hover > 0.0f && (active_context()->style.hover_padding.x != 0.0f ||
+		                                                 active_context()->style.hover_padding.y != 0.0f);
+		if (hover_scaled)
+		{
+			push_render_scale(make_hover_render_scale(to_imvec(size), anim.hover));
+		}
+		const bool press_scaled = anim.active > 0.0f;
+		if (press_scaled)
+		{
+			push_render_scale(make_press_render_scale(to_imvec(size), anim.active));
+		}
+
+		const InteractiveRect rect = make_interactive_rect(pos, to_imvec(size));
 
 		if (options.background)
 		{
@@ -535,6 +547,15 @@ namespace Trinex::UI
 			const float alpha = options.selected ? 1.0f : Math::lerp(0.85f, 1.0f, anim.hover * 0.65f);
 			draw->AddRect(rect.min, rect.max, col_u32(border, alpha * (options.disabled ? 0.7f : 1.0f)),
 			              rounding * rect.rounding_scale, 0, active_context()->style.border_size);
+		}
+
+		if (press_scaled)
+		{
+			pop_render_scale();
+		}
+		if (hover_scaled)
+		{
+			pop_render_scale();
 		}
 
 		ImGui::PopID();

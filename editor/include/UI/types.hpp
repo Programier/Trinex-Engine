@@ -865,7 +865,7 @@ namespace Trinex::UI
 	};
 
 	struct CardOptions {
-		Vec2 size              = Vec2(0.0f, 0.0f);
+		Vec2 size = Vec2(0.0f, 0.0f);
 
 		bool border     = true;
 		bool background = true;

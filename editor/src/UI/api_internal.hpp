@@ -1034,15 +1034,27 @@ namespace Trinex::UI
 			float rounding_scale = 1.0f;
 		};
 
-		InteractiveRect make_interactive_rect(const ImVec2& pos, const ImVec2& base_size, float hover_t, float active_t)
+		Vec2 make_hover_render_scale(const ImVec2& base_size, float hover_t)
 		{
 			const Vec2 hover_padding = active_context()->style.hover_padding;
+
+			return Vec2(1.0f + hover_t * hover_padding.x / std::max(1.0f, base_size.x),
+			            1.0f + hover_t * hover_padding.y / std::max(1.0f, base_size.y));
+		}
+
+		Vec2 make_press_render_scale(const ImVec2& base_size, float active_t)
+		{
 			const Vec2 press_padding(3.0f, 3.0f);
 
+			return Vec2(1.0f - active_t * press_padding.x / std::max(1.0f, base_size.x),
+			            1.0f - active_t * press_padding.y / std::max(1.0f, base_size.y));
+		}
+
+		InteractiveRect make_interactive_rect(const ImVec2& pos, const ImVec2& base_size)
+		{
 			InteractiveRect rect;
 			rect.center      = ImVec2(pos.x + base_size.x * 0.5f, pos.y + base_size.y * 0.5f);
-			rect.visual_size = ImVec2(std::max(1.0f, base_size.x + hover_t * hover_padding.x - active_t * press_padding.x),
-			                          std::max(1.0f, base_size.y + hover_t * hover_padding.y - active_t * press_padding.y));
+			rect.visual_size = ImVec2(std::max(1.0f, base_size.x), std::max(1.0f, base_size.y));
 			rect.min         = ImVec2(rect.center.x - rect.visual_size.x * 0.5f, rect.center.y - rect.visual_size.y * 0.5f);
 			rect.max         = ImVec2(rect.center.x + rect.visual_size.x * 0.5f, rect.center.y + rect.visual_size.y * 0.5f);
 			rect.rounding_scale =

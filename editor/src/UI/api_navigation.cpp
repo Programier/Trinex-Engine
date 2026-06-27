@@ -608,17 +608,15 @@ namespace Trinex::UI
 		const ImVec2 target_size(width, max_height);
 		const ImVec2 target_pos(viewport->WorkPos.x + (viewport->WorkSize.x - target_size.x) * 0.5f,
 		                        viewport->WorkPos.y + std::max(24.0f, (viewport->WorkSize.y - target_size.y) * 0.22f));
-		const float popup_scale = Math::lerp(0.965f, 1.0f, eased_open);
-		const ImVec2 animated_size(target_size.x * popup_scale, target_size.y * Math::lerp(0.90f, 1.0f, eased_open));
-		const ImVec2 animated_pos(target_pos.x + (target_size.x - animated_size.x) * 0.5f,
-		                          target_pos.y + (target_size.y - animated_size.y) * 0.5f - (1.0f - eased_open) * 18.0f);
+		const Vec2 popup_scale(Math::lerp(0.965f, 1.0f, eased_open), Math::lerp(0.90f, 1.0f, eased_open));
+		const ImVec2 animated_pos(target_pos.x, target_pos.y);
 		const float rounding = active_context()->style.rounding + 2.0f;
 		const float padding  = active_context()->style.padding;
 		const float spacing  = active_context()->style.spacing;
 
 		ImGui::SetNextWindowViewport(viewport->ID);
 		ImGui::SetNextWindowPos(animated_pos);
-		ImGui::SetNextWindowSize(animated_size);
+		ImGui::SetNextWindowSize(target_size);
 		ImGui::SetNextWindowBgAlpha(0.0f);
 		if (!ImGui::IsPopupOpen("##command_palette_popup"))
 		{
@@ -657,6 +655,7 @@ namespace Trinex::UI
 		const float previous_draw_alpha = active_context()->draw_alpha;
 		active_context()->draw_alpha *= popup_visual_alpha;
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * popup_visual_alpha);
+		push_render_scale(popup_scale);
 
 		BlurOptions palette_blur;
 		palette_blur.radius   = 12.0f * eased_blur;
@@ -684,8 +683,9 @@ namespace Trinex::UI
 		palette_glass.rounding      = rounding;
 		palette_glass.padding       = padding;
 
-		if (!begin_glass_panel("##command_palette_glass", Vec2(animated_size.x, animated_size.y), palette_glass))
+		if (!begin_glass_panel("##command_palette_glass", Vec2(target_size.x, target_size.y), palette_glass))
 		{
+			pop_render_scale();
 			pop_shadow();
 			pop_blur();
 			ImGui::PopStyleVar();
@@ -720,7 +720,7 @@ namespace Trinex::UI
 		ImGui::Spacing();
 
 		const float list_height =
-		        std::max(120.0f, animated_size.y - active_context()->style.frame_height - padding * 3.0f - 10.0f);
+		        std::max(120.0f, target_size.y - active_context()->style.frame_height - padding * 3.0f - 10.0f);
 		ImGui::BeginChild("##command_palette_results", ImVec2(0.0f, list_height), false, ImGuiWindowFlags_NoBackground);
 
 		if (!has_results)
@@ -838,6 +838,7 @@ namespace Trinex::UI
 		}
 
 		end_glass_panel();
+		pop_render_scale();
 		pop_shadow();
 		pop_blur();
 		ImGui::PopStyleVar();
