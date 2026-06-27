@@ -168,6 +168,8 @@ namespace Trinex::UI
 		Scope* scope;
 		Vec2 scale;
 		Vec2 pivot;
+		Vec2 min;
+		Vec2 max;
 	};
 
 	struct Context {

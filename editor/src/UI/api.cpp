@@ -78,8 +78,13 @@ namespace Trinex::UI
 				if (!stack.empty())
 				{
 					RenderScale& render_scale = stack.back();
-					ImDrawList* draw_list     = ImGui::GetCurrentWindow()->DrawList;
-					render_scale.scope        = trx_stack_new RenderScale::Scope(draw_list, 0, 0, render_scale.scope);
+
+					ImGuiWindow* window = ImGui::GetCurrentWindow();
+					render_scale.scope  = trx_stack_new RenderScale::Scope(window->DrawList, 0, 0, render_scale.scope);
+
+					ImRect rect      = ImGui::GetCurrentWindow()->Rect();
+					render_scale.min = Math::min(render_scale.min, to_vec(rect.Min));
+					render_scale.max = Math::max(render_scale.max, to_vec(rect.Max));
 				}
 			};
 
@@ -529,39 +534,24 @@ namespace Trinex::UI
 		render_scale.scope        = trx_stack_new RenderScale::Scope(ImGui::GetWindowDrawList());
 		render_scale.scale        = scale;
 		render_scale.pivot        = pivot;
+		render_scale.min = render_scale.max = cursor_screen_position();
+
+		ImGui::BeginGroup();
 	}
 
 	void pop_render_scale()
 	{
 		auto& stack = active_context()->render_scale_stack;
-
 		trinex_assert(!stack.empty() && "UI::pop_render_scale() called without matching push_render_scale()");
 
-		const RenderScale& render_scale = stack.back();
+		ImGui::EndGroup();
+
+		RenderScale& render_scale = stack.back();
 
 		if (render_scale.scale.x != 1.f || render_scale.scale.y != 1.f)
 		{
-			ImVec2 min = {FLT_MAX, FLT_MAX};
-			ImVec2 max = {-FLT_MAX, -FLT_MAX};
-
-			// Calculate bounds
-			for (auto scope = render_scale.scope; scope; scope = scope->next)
-			{
-				ImDrawList* draw_list = scope->draw_list;
-				i32 vtx_end           = draw_list->VtxBuffer.Size;
-
-				if (vtx_end <= scope->start_vertex)
-					continue;
-
-				for (u32 i = scope->start_vertex; i < vtx_end; ++i)
-				{
-					const ImVec2& p = draw_list->VtxBuffer[i].pos;
-					min.x           = Math::min(min.x, p.x);
-					min.y           = Math::min(min.y, p.y);
-					max.x           = Math::max(max.x, p.x);
-					max.y           = Math::max(max.y, p.y);
-				}
-			}
+			render_scale.min = Math::min(render_scale.min, to_vec(ImGui::GetItemRectMin()));
+			render_scale.max = Math::max(render_scale.max, to_vec(ImGui::GetItemRectMax()));
 
 			// Scale content
 			for (auto scope = render_scale.scope; scope; scope = scope->next)
@@ -573,9 +563,7 @@ namespace Trinex::UI
 				if (vtx_end <= scope->start_vertex)
 					continue;
 
-				ImVec2 pivot;
-				pivot.x = min.x + (max.x - min.x) * render_scale.pivot.x;
-				pivot.y = min.y + (max.y - min.y) * render_scale.pivot.y;
+				const Vec2 pivot = render_scale.min + (render_scale.max - render_scale.min) * render_scale.pivot;
 
 				for (u32 i = scope->start_vertex; i < vtx_end; ++i)
 				{
