@@ -1,4 +1,5 @@
 #include "api_internal.hpp"
+#include <Core/console.hpp>
 
 namespace Trinex::UI
 {
@@ -474,13 +475,70 @@ namespace Trinex::UI
 		entry.name               = command.name;
 		entry.description        = command.description != nullptr ? command.description : "";
 		entry.shortcut           = command.shortcut != nullptr ? command.shortcut : "";
-		entry.icon               = command.icon != nullptr ? command.icon : "";
+		entry.icon               = command.icon != nullptr ? command.icon : ICON_LC_COMMAND;
 		entry.action             = command.action;
+		entry.is_console_command = false;
 	}
 
 	void register_command(const Command& command)
 	{
 		register_command(active_context(), command);
+	}
+
+	void register_console_commands(Context* context)
+	{
+		if (context == nullptr)
+			return;
+
+		auto& commands = context->command_palette.commands;
+
+		auto it = commands.begin();
+
+		while (it != commands.end())
+		{
+			if (it->is_console_command)
+			{
+				it = commands.erase_unordered(it);
+			}
+			else
+			{
+				++it;
+			}
+		}
+
+		for (const String& name : Console::entries())
+		{
+			Console::Entry* entry = Console::find(name);
+
+			if (entry == nullptr || entry->type() != Console::EntryType::Command)
+			{
+				continue;
+			}
+
+			auto* command = static_cast<Console::Command*>(entry);
+
+			if (!command->flags().all(Console::Flags::UI))
+			{
+				continue;
+			}
+
+			if (command->can_invoke_without_parentheses())
+			{
+				RegisteredCommand& ui_command = commands.emplace_back();
+				ui_command.id                 = String("console:") + command->name();
+				ui_command.name               = command->name();
+				ui_command.description        = command->description();
+				ui_command.shortcut           = command->usage();
+				ui_command.icon               = ICON_LC_TERMINAL;
+				ui_command.is_console_command = true;
+				ui_command.action             = [entry]() { Console::execute(entry, "", Console::ExecuteFlags::SingleCommand); };
+			}
+		}
+	}
+
+	void register_console_commands()
+	{
+		register_console_commands(active_context());
 	}
 
 	void execute_command(StringView cmd)
@@ -779,7 +837,7 @@ namespace Trinex::UI
 				if (has_icon)
 				{
 					draw->AddText(
-					        ImVec2(icon_x, min.y + (row_height - ImGui::GetTextLineHeight()) * 0.5f),
+					        ImVec2(icon_x, text_y),
 					        col_u32(selected ? active_context()->style.colors.accent : active_context()->style.colors.text_muted,
 					                alpha_mul),
 					        command.icon.c_str());

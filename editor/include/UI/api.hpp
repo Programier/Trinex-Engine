@@ -299,6 +299,8 @@ namespace Trinex::UI
 	bool menu_item(const char* label, const char* shortcut, bool* selected, bool enabled = true);
 	void register_command(Context* context, const Command& command);
 	void register_command(const Command& command);
+	void register_console_commands(Context* context);
+	void register_console_commands();
 	void execute_command(StringView cmd);
 	void open_command_palette();
 	bool command_palette();

@@ -128,6 +128,7 @@ namespace Trinex::UI
 		String shortcut;
 		String icon;
 		Action action;
+		bool is_console_command;
 	};
 
 	struct CommandPaletteState {

@@ -153,6 +153,8 @@ namespace Trinex::UI
 
 			ImGui::AddContextHook(ctx->context, &hook);
 		}
+
+		register_console_commands(ctx);
 		return ctx;
 	}
 

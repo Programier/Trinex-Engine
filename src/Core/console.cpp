@@ -1478,7 +1478,83 @@ namespace Trinex::Console
 		return report;
 	}
 
-	ExecuteResult execute_view(StringView& stream, ExecuteFlags flags)
+	ExecuteResult execute(Entry* entry, StringView args, ExecuteFlags flags)
+	{
+		ConsoleExecutionScope scope;
+
+		if (entry == nullptr)
+		{
+			return {.output = "Unknown console entry", .status = ExecuteStatus::UnknownEntry};
+		}
+
+		if (!entry_visible(*entry))
+		{
+			ExecuteStatus status = execution_block_status(*entry);
+			if (status == ExecuteStatus::Success)
+				status = ExecuteStatus::EntryUnavailable;
+
+			String output = Strings::format("Console entry '{}' is not available in current runtime policy", entry->name());
+			notify_command_executed(entry->name(), output, status);
+			return {.output = std::move(output), .status = status};
+		}
+
+		Token* head   = tokenize(args);
+		Token* stream = skip_statement_separators(head);
+		Token* input  = stream;
+
+		if (entry->type() == EntryType::Variable)
+		{
+			if (stream != nullptr && stream->kind != TokenKind::Assign)
+			{
+				String output = Strings::format("'{}' is a console variable. Use '{}' or '{} = <value>'", entry->name(),
+				                                entry->name(), entry->name());
+				notify_command_executed(entry->name(), output, ExecuteStatus::VariableCallSyntax);
+				return {.output = std::move(output), .status = ExecuteStatus::VariableCallSyntax};
+			}
+
+			if (String error = execution_block_reason(*entry); !error.empty())
+			{
+				const ExecuteStatus status = execution_block_status(*entry);
+				notify_command_executed(entry->name(), error, status);
+				return {.output = std::move(error), .status = status};
+			}
+
+			StackFrame frame(entry, stream, input, nullptr, flags);
+			String output        = entry->execute(&frame);
+			ExecuteStatus status = frame.status;
+			notify_command_executed(entry->name(), output, status);
+			return {.output = std::move(output), .status = status};
+		}
+
+		if (String error = execution_block_reason(*entry); !error.empty())
+		{
+			const ExecuteStatus status = execution_block_status(*entry);
+			notify_command_executed(entry->name(), error, status);
+			return {.output = std::move(error), .status = status};
+		}
+
+		Token* end = nullptr;
+		if (stream != nullptr && stream->kind == TokenKind::LParen)
+		{
+			end = find_matching_paren(stream, nullptr);
+			if (end == nullptr)
+			{
+				String output = Strings::format("Missing closing ')' for command '{}'", entry->name());
+				notify_command_executed(entry->name(), output, ExecuteStatus::MissingClosingParenthesis);
+				return {.output = std::move(output), .status = ExecuteStatus::MissingClosingParenthesis};
+			}
+
+			stream = stream->next;
+		}
+
+		StackFrame frame(entry, stream, input, end, flags);
+		String output        = entry->execute(&frame);
+		ExecuteStatus status = frame.status;
+		notify_command_executed(entry->name(), output, status);
+		return {.output = std::move(output), .status = status};
+	}
+
+	ExecuteResult execute(StringView stream, ExecuteFlags flags)
 	{
 		ConsoleExecutionScope scope;
 
@@ -1496,11 +1572,6 @@ namespace Trinex::Console
 		}
 
 		return result;
-	}
-
-	ExecuteResult execute(StringView stream, ExecuteFlags flags)
-	{
-		return execute_view(stream, flags);
 	}
 
 	ExecuteResult execute(int argc, char** argv, ExecuteFlags flags)

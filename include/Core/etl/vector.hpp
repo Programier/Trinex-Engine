@@ -741,6 +741,41 @@ namespace Trinex
 			return const_cast<iterator>(first);
 		}
 
+		constexpr iterator erase_unordered(const_iterator pos)
+		{
+			if (empty())
+				return const_cast<iterator>(pos);
+
+			iterator non_const_pos = const_cast<iterator>(pos);
+			iterator last          = end() - 1;
+
+			if (non_const_pos != last)
+				*non_const_pos = std::move(*last);
+
+			--m_finish;
+			std::destroy_at(m_finish);
+			return non_const_pos;
+		}
+
+		constexpr iterator erase_unordered(const_iterator first, const_iterator last)
+		{
+			if (first != last)
+			{
+				iterator non_const_first = const_cast<iterator>(first);
+				iterator non_const_last  = const_cast<iterator>(last);
+
+				const size_type count      = non_const_last - non_const_first;
+				const size_type tail_count = end() - non_const_last;
+				const size_type move_count = std::min(count, tail_count);
+
+				if (move_count > 0)
+					std::move(end() - move_count, end(), non_const_first);
+
+				erase_at_end(end() - count);
+			}
+			return const_cast<iterator>(first);
+		}
+
 		constexpr void shrink_to_fit()
 		{
 			if (capacity() != size())
