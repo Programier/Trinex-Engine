@@ -866,9 +866,6 @@ namespace Trinex::UI
 
 	struct CardOptions {
 		Vec2 size              = Vec2(0.0f, 0.0f);
-		const char* subtitle   = nullptr;
-		const char* icon       = nullptr;
-		const char* right_text = nullptr;
 
 		bool border     = true;
 		bool background = true;

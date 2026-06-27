@@ -36,6 +36,8 @@ namespace Trinex::UI
 	void push_blur(const BlurOptions& options);
 	void pop_blur();
 	void blur(const Vec2& min, const Vec2& max, DrawList draw_list, const BlurOptions& options);
+	void push_render_scale(Vec2 scale, Vec2 pivot = Vec2(0.5f, 0.5f));
+	void pop_render_scale();
 
 	/////////////////////// ANIMATION AND IDENTITY ///////////////////////
 	float apply_ease(float t, Ease mode = Ease::OutCubic);
@@ -80,7 +82,7 @@ namespace Trinex::UI
 	void end_group();
 	bool begin_card(const char* title, const CardOptions& options = {});
 	void end_card();
-	bool card_button(const char* title, const CardOptions& options = {});
+	bool card_button(const char* title, const CardOptions& options, const ActionRef& action);
 
 	/////////////////////// LAYOUT AND SCROLLING ///////////////////////
 	bool begin_horizontal(const char* id_text, const Vec2& size = Vec2(0, 0), float align = -1.0f);
@@ -483,6 +485,11 @@ namespace Trinex::UI
 			content();
 			end_card();
 		}
+	}
+
+	inline bool card_button(const char* title, const ActionRef& action)
+	{
+		return card_button(title, {}, action);
 	}
 
 	/////////////////////// INLINE LAYOUT AND SCROLLING HELPERS ///////////////////////

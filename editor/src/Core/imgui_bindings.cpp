@@ -1148,8 +1148,10 @@ namespace Trinex
 			new_enum_v(ImGuiContextHookType, RenderPre);
 			new_enum_v(ImGuiContextHookType, RenderPost);
 			new_enum_v(ImGuiContextHookType, Shutdown);
-			new_enum_v(ImGuiContextHookType, BeginWindow);
-			new_enum_v(ImGuiContextHookType, EndWindow);
+			new_enum_v(ImGuiContextHookType, BeginWindowPre);
+			new_enum_v(ImGuiContextHookType, BeginWindowPost);
+			new_enum_v(ImGuiContextHookType, EndWindowPre);
+			new_enum_v(ImGuiContextHookType, EndWindowPost);
 			new_enum_v(ImGuiContextHookType, PendingRemoval_);
 		}
 	}

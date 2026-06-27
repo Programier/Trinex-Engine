@@ -152,7 +152,7 @@ bool ImGuiEx::Canvas::Begin(ImGuiID id, const ImVec2& size)
 
     auto beginWindowHook = ImGuiContextHook{};
     beginWindowHook.UserData = this;
-    beginWindowHook.Type = ImGuiContextHookType_BeginWindow;
+    beginWindowHook.Type = ImGuiContextHookType_BeginWindowPre;
     beginWindowHook.Callback = []( ImGuiContext * context, ImGuiContextHook * hook )
     {
         auto canvas = reinterpret_cast< Canvas * >( hook->UserData );
@@ -206,7 +206,7 @@ bool ImGuiEx::Canvas::Begin(ImGuiID id, const ImVec2& size)
 
     auto endWindowHook = ImGuiContextHook{};
     endWindowHook.UserData = this;
-    endWindowHook.Type = ImGuiContextHookType_EndWindow;
+    endWindowHook.Type = ImGuiContextHookType_EndWindowPost;
     endWindowHook.Callback = []( ImGuiContext * ctx, ImGuiContextHook * hook )
     {
         auto canvas = reinterpret_cast< Canvas * >( hook->UserData );

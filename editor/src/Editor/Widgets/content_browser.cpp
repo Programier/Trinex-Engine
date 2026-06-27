@@ -216,144 +216,137 @@ namespace Trinex
 		if (!in_filter)
 			return false;
 
-		UI::CardOptions options;
-		options.size = size;
+		return UI::card_button(object->name().c_str(), {.size = size}, [&]() {
+			ImTextureID imgui_texture = Icons::find_icon(object);
+			imgui_texture.sampler     = RHIPointWrapSampler::static_sampler();
 
-		if (UI::card_button(object->name().c_str(), options))
-		{
-		}
+			const float image_side_length = size.x * 0.93f;
+			const UI::Vec2 image_size     = {image_side_length, image_side_length};
 
-		return false;
-		ImTextureID imgui_texture = Icons::find_icon(object);
-		imgui_texture.sampler     = RHIPointWrapSampler::static_sampler();
+			const auto start_pos   = UI::cursor_screen_position();
+			bool is_pressed        = UI::invisible_button("##Button", {.size = size, .flags = UI::ButtonFlags::AllowOverlap});
+			bool is_hovered        = UI::is_item_hovered();
+			bool is_double_pressed = is_hovered && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left);
 
-		const float image_side_length = size.x * 0.93f;
-		const UI::Vec2 image_size     = {image_side_length, image_side_length};
-
-		const auto start_pos   = UI::cursor_screen_position();
-		bool is_pressed        = UI::invisible_button("##Button", {.size = size, .flags = UI::ButtonFlags::AllowOverlap});
-		bool is_hovered        = UI::is_item_hovered();
-		bool is_double_pressed = is_hovered && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left);
-
-		if (is_pressed && !is_double_pressed)
-		{
-			selecte_new_object(object);
-		}
-		else if (is_double_pressed)
-		{
-			if (Package* new_package = object->instance_cast<Package>())
+			if (is_pressed && !is_double_pressed)
 			{
-				m_selected_package = new_package;
+				selecte_new_object(object);
+			}
+			else if (is_double_pressed)
+			{
+				if (Package* new_package = object->instance_cast<Package>())
+				{
+					m_selected_package = new_package;
+				}
+				else
+				{
+					// if (auto client = ImGuiViewportClient::client_of(object->class_instance(), true))
+					// {
+					// 	client->select(object);
+					// }
+				}
+
+				on_object_double_click(object);
+			}
+			else if (UI::is_mouse_dragging() && UI::begin_drag_source())
+			{
+				UI::drag_payload("ContentBrowser->Object", &object, sizeof(Object**));
+				UI::image(imgui_texture.texture, image_size);
+				UI::end_drag_source();
+			}
+
+			ImU32 color;
+
+			if (object == selected_object)
+			{
+				auto active = ImGui::GetStyleColorVec4(ImGuiCol_FrameBgActive);
+
+				if (is_hovered)
+					active = ImGui::MakeHoveredColor(active);
+
+				color = ImGui::GetColorU32(active);
+			}
+			else if (is_hovered)
+			{
+				color = ImGui::GetColorU32(ImGuiCol_FrameBgHovered);
 			}
 			else
 			{
-				// if (auto client = ImGuiViewportClient::client_of(object->class_instance(), true))
-				// {
-				// 	client->select(object);
-				// }
+				color = ImGui::GetColorU32(ImGuiCol_FrameBg);
 			}
 
-			on_object_double_click(object);
-		}
-		else if (UI::is_mouse_dragging() && UI::begin_drag_source())
-		{
-			UI::drag_payload("ContentBrowser->Object", &object, sizeof(Object**));
-			UI::image(imgui_texture.texture, image_size);
-			UI::end_drag_source();
-		}
+			UI::cursor_screen_position(start_pos);
+			UI::draw_list()->fill_rect(start_pos, start_pos + size, ImGui::GetStyle().FrameRounding);
 
-		ImU32 color;
-
-		if (object == selected_object)
-		{
-			auto active = ImGui::GetStyleColorVec4(ImGuiCol_FrameBgActive);
-
-			if (is_hovered)
-				active = ImGui::MakeHoveredColor(active);
-
-			color = ImGui::GetColorU32(active);
-		}
-		else if (is_hovered)
-		{
-			color = ImGui::GetColorU32(ImGuiCol_FrameBgHovered);
-		}
-		else
-		{
-			color = ImGui::GetColorU32(ImGuiCol_FrameBg);
-		}
-
-		UI::cursor_screen_position(start_pos);
-		UI::draw_list()->fill_rect(start_pos, start_pos + size, ImGui::GetStyle().FrameRounding);
-
-		{
-			float border   = (size.x - image_size.x) / 2.f;
-			auto image_min = start_pos + UI::Vec2(border, border);
-			UI::draw_list()->rounded_image(UI::Texture(imgui_texture.texture, imgui_texture.sampler), image_min,
-			                               image_min + image_size, {0, 0}, {1, 1}, 0xFFFFFFFF, ImGui::GetStyle().FrameRounding);
-		}
-
-		UI::begin_vertical(object, UI::Vec2{size.x, size.y}, 0.5f);
-		UI::spring(0.f);
-		ImGui::Dummy({size.x, size.x});
-
-		UI::spring(0.f);
-		UI::begin_vertical(0, {image_size.x, 0}, 0.5f);
-
-		if (m_is_renaming && selected_object == object)
-		{
-			char rename_buffer[512];
-			sync_string_buffer(rename_buffer, sizeof(rename_buffer), m_new_object_name);
-			bool modify       = UI::input("##ObjectName", rename_buffer, sizeof(rename_buffer), UI::Vec2(image_size.x, 0.0f),
-			                              UI::InputTextFlags::EnterReturnsTrue);
-			m_new_object_name = rename_buffer;
-
-			String validation;
-
-			if (m_new_object_name == object->name().to_string())
 			{
-				// Nothing
+				float border   = (size.x - image_size.x) / 2.f;
+				auto image_min = start_pos + UI::Vec2(border, border);
+				UI::draw_list()->rounded_image(UI::Texture(imgui_texture.texture, imgui_texture.sampler), image_min,
+				                               image_min + image_size, {0, 0}, {1, 1}, 0xFFFFFFFF,
+				                               ImGui::GetStyle().FrameRounding);
 			}
-			else if (m_new_object_name.empty())
+
+			UI::begin_vertical(object, UI::Vec2{size.x, size.y}, 0.5f);
+			UI::spring(0.f);
+			ImGui::Dummy({size.x, size.x});
+
+			UI::spring(0.f);
+			UI::begin_vertical(0, {image_size.x, 0}, 0.5f);
+
+			if (m_is_renaming && selected_object == object)
 			{
-				UI::tooltip("Please, provide a name for the asset!");
-			}
-			else if (m_selected_package->contains_object(m_new_object_name))
-			{
-				UI::tooltip(Strings::format("An asset already exist at this location with the name '{}'!", m_new_object_name)
-				                    .c_str());
-			}
-			else if (!Object::static_validate_object_name(m_new_object_name, &validation))
-			{
-				UI::tooltip(validation.c_str());
-			}
-			else if (modify)
-			{
-				bool status = selected_object->rename(m_new_object_name);
-				if (status)
+				char rename_buffer[512];
+				sync_string_buffer(rename_buffer, sizeof(rename_buffer), m_new_object_name);
+				bool modify       = UI::input("##ObjectName", rename_buffer, sizeof(rename_buffer), UI::Vec2(image_size.x, 0.0f),
+				                              UI::InputTextFlags::EnterReturnsTrue);
+				m_new_object_name = rename_buffer;
+
+				String validation;
+
+				if (m_new_object_name == object->name().to_string())
 				{
-					m_is_renaming = false;
+					// Nothing
+				}
+				else if (m_new_object_name.empty())
+				{
+					UI::tooltip("Please, provide a name for the asset!");
+				}
+				else if (m_selected_package->contains_object(m_new_object_name))
+				{
+					UI::tooltip(Strings::format("An asset already exist at this location with the name '{}'!", m_new_object_name)
+					                    .c_str());
+				}
+				else if (!Object::static_validate_object_name(m_new_object_name, &validation))
+				{
+					UI::tooltip(validation.c_str());
+				}
+				else if (modify)
+				{
+					bool status = selected_object->rename(m_new_object_name);
+					if (status)
+					{
+						m_is_renaming = false;
+					}
 				}
 			}
-		}
-		else
-		{
-			text_ellipsis(name.data(), image_size.x);
-		}
+			else
+			{
+				text_ellipsis(name.data(), image_size.x);
+			}
 
-		UI::end_vertical();
+			UI::end_vertical();
 
-		UI::spring(1.0f);
+			UI::spring(1.0f);
 
-		UI::begin_vertical(1, {image_size.x, 0}, 0.0f);
-		UI::push_text_font(UI::FontSize::Small);
-		text_ellipsis(object->class_instance()->name().c_str(), image_size.x);
-		UI::pop_font();
-		UI::end_vertical();
+			UI::begin_vertical(1, {image_size.x, 0}, 0.0f);
+			UI::push_text_font(UI::FontSize::Small);
+			text_ellipsis(object->class_instance()->name().c_str(), image_size.x);
+			UI::pop_font();
+			UI::end_vertical();
 
-		UI::spring(0.f);
-		UI::end_vertical();
-
-		return true;
+			UI::spring(0.f);
+			UI::end_vertical();
+		});
 	}
 
 	static Package* render_package_path(Package* package)

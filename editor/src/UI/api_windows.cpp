@@ -375,52 +375,6 @@ namespace Trinex::UI
 		{
 			begin_disabled(true);
 		}
-
-		const bool has_title    = title != nullptr && visible_label(title)[0] != '\0';
-		const bool has_subtitle = options.subtitle != nullptr && options.subtitle[0] != '\0';
-		const bool has_icon     = options.icon != nullptr && options.icon[0] != '\0';
-		const bool has_right    = options.right_text != nullptr && options.right_text[0] != '\0';
-		if (has_title || has_subtitle || has_icon || has_right)
-		{
-			const ImVec2 start     = ImGui::GetCursorScreenPos();
-			const float content_w  = ImGui::GetContentRegionAvail().x;
-			const float icon_w     = has_icon ? ImGui::CalcTextSize(options.icon).x : 0.0f;
-			const float right_w    = has_right ? ImGui::CalcTextSize(options.right_text).x : 0.0f;
-			const float title_h    = has_title ? ImGui::GetTextLineHeight() : 0.0f;
-			const float subtitle_h = has_subtitle ? ImGui::GetTextLineHeight() : 0.0f;
-			const float header_h   = std::max(
-                    std::max(title_h + (has_subtitle ? subtitle_h + 2.0f : 0.0f), has_icon ? ImGui::GetTextLineHeight() : 0.0f),
-                    has_right ? ImGui::GetTextLineHeight() : 0.0f);
-			const float icon_gap   = has_icon ? spacing * 0.75f : 0.0f;
-			const float right_gap  = has_right ? spacing : 0.0f;
-			const float title_x    = start.x + icon_w + icon_gap;
-			const float right_x    = start.x + content_w - right_w;
-			ImDrawList* draw       = ImGui::GetWindowDrawList();
-			const Vec4 title_color = options.selected ? Math::lerp(active_context()->style.colors.text, accent, 0.22f)
-			                                          : active_context()->style.colors.text;
-			const Vec4 right_color = options.selected ? accent : active_context()->style.colors.text_muted;
-			if (has_icon)
-			{
-				draw->AddText(ImVec2(start.x, start.y + (header_h - ImGui::GetTextLineHeight()) * 0.5f),
-				              col_u32(options.selected ? accent : active_context()->style.colors.text_muted), options.icon);
-			}
-			if (has_title)
-			{
-				draw->AddText(ImVec2(title_x, start.y), col_u32(title_color), visible_label(title));
-			}
-			if (has_subtitle)
-			{
-				draw->AddText(ImVec2(title_x, start.y + title_h + 2.0f), col_u32(active_context()->style.colors.text_muted),
-				              options.subtitle);
-			}
-			if (has_right)
-			{
-				draw->AddText(ImVec2(right_x, start.y + (header_h - ImGui::GetTextLineHeight()) * 0.5f), col_u32(right_color),
-				              options.right_text);
-			}
-			ImGui::Dummy(ImVec2(std::max(1.0f, content_w - (has_right ? right_w + right_gap : 0.0f)), header_h));
-			ImGui::Dummy(ImVec2(0.0f, spacing * 0.35f));
-		}
 		return true;
 	}
 
@@ -490,7 +444,7 @@ namespace Trinex::UI
 		ImGui::PopID();
 	}
 
-	bool card_button(const char* title, const CardOptions& options)
+	bool card_button(const char* title, const CardOptions& options, const ActionRef& action)
 	{
 		cleanup_states();
 		if (title != nullptr && title[0] != '\0')
@@ -510,17 +464,6 @@ namespace Trinex::UI
 		const Vec4 accent    = has_color(options.accent) ? options.accent : active_context()->style.colors.accent;
 		Vec4 bg     = has_color(options.background_color) ? options.background_color : active_context()->style.colors.panel;
 		Vec4 border = has_color(options.border_color) ? options.border_color : active_context()->style.colors.border;
-		const bool has_title    = title != nullptr && visible_label(title)[0] != '\0';
-		const bool has_subtitle = options.subtitle != nullptr && options.subtitle[0] != '\0';
-		const bool has_icon     = options.icon != nullptr && options.icon[0] != '\0';
-		const bool has_right    = options.right_text != nullptr && options.right_text[0] != '\0';
-		const float icon_w      = has_icon ? ImGui::CalcTextSize(options.icon).x : 0.0f;
-		const float right_w     = has_right ? ImGui::CalcTextSize(options.right_text).x : 0.0f;
-		const float title_h     = has_title ? ImGui::GetTextLineHeight() : 0.0f;
-		const float subtitle_h  = has_subtitle ? ImGui::GetTextLineHeight() : 0.0f;
-		const float header_h    = std::max(
-                std::max(title_h + (has_subtitle ? subtitle_h + 2.0f : 0.0f), has_icon ? ImGui::GetTextLineHeight() : 0.0f),
-                has_right ? ImGui::GetTextLineHeight() : 0.0f);
 
 		Vec2 size = options.size;
 		if (size.x <= 0.0f)
@@ -529,7 +472,7 @@ namespace Trinex::UI
 		}
 		if (size.y <= 0.0f)
 		{
-			size.y = padding * 2.0f + std::max(header_h, active_context()->style.frame_height);
+			size.y = padding * 2.0f + active_context()->style.frame_height;
 		}
 
 		const ImVec2 pos = ImGui::GetCursorScreenPos();
@@ -542,6 +485,7 @@ namespace Trinex::UI
 		{
 			ImGui::EndDisabled();
 		}
+		const ImVec2 item_end_pos = ImGui::GetCursorScreenPos();
 
 		const bool hovered = options.hoverable && !options.disabled && ImGui::IsItemHovered();
 		const bool active  = !options.disabled && ImGui::IsItemActive();
@@ -579,40 +523,18 @@ namespace Trinex::UI
 			draw->AddRectFilled(rect.min, ImVec2(rect.min.x + 3.0f, rect.max.y), col_u32(accent, 0.95f * anim.selected),
 			                    rounding * rect.rounding_scale, ImDrawFlags_RoundCornersLeft);
 		}
+
+		draw->PushClipRect(rect.min, rect.max, true);
+		ImGui::SetCursorScreenPos(ImVec2(rect.min.x + padding, rect.min.y + padding));
+		action();
+
+		ImGui::SetCursorScreenPos(item_end_pos);
+		draw->PopClipRect();
 		if (options.border)
 		{
 			const float alpha = options.selected ? 1.0f : Math::lerp(0.85f, 1.0f, anim.hover * 0.65f);
 			draw->AddRect(rect.min, rect.max, col_u32(border, alpha * (options.disabled ? 0.7f : 1.0f)),
 			              rounding * rect.rounding_scale, 0, active_context()->style.border_size);
-		}
-
-		const float icon_gap   = has_icon ? spacing * 0.75f : 0.0f;
-		const float title_x    = rect.min.x + padding + icon_w + icon_gap;
-		const float right_x    = rect.max.x - padding - right_w;
-		const float header_top = rect.min.y + std::max(0.0f, (rect.visual_size.y - header_h) * 0.5f);
-		const Vec4 title_color = options.selected ? Math::lerp(active_context()->style.colors.text, accent, 0.22f)
-		                                          : active_context()->style.colors.text;
-		const Vec4 right_color = options.selected ? accent : active_context()->style.colors.text_muted;
-		const float alpha_mul  = options.disabled ? 0.55f : 1.0f;
-		if (has_icon)
-		{
-			draw->AddText(ImVec2(rect.min.x + padding, header_top + (header_h - ImGui::GetTextLineHeight()) * 0.5f),
-			              col_u32(options.selected ? accent : active_context()->style.colors.text_muted, alpha_mul),
-			              options.icon);
-		}
-		if (has_title)
-		{
-			draw->AddText(ImVec2(title_x, header_top), col_u32(title_color, alpha_mul), visible_label(title));
-		}
-		if (has_subtitle)
-		{
-			draw->AddText(ImVec2(title_x, header_top + title_h + 2.0f),
-			              col_u32(active_context()->style.colors.text_muted, alpha_mul), options.subtitle);
-		}
-		if (has_right)
-		{
-			draw->AddText(ImVec2(right_x, header_top + (header_h - ImGui::GetTextLineHeight()) * 0.5f),
-			              col_u32(right_color, alpha_mul), options.right_text);
 		}
 
 		ImGui::PopID();

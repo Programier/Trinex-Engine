@@ -7801,7 +7801,7 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
     IM_ASSERT(g.WithinFrameScope);                  // Forgot to call ImGui::NewFrame()
     IM_ASSERT(g.FrameCountEnded != g.FrameCount);   // Called ImGui::Render() or ImGui::EndFrame() and haven't called ImGui::NewFrame() again yet
 
-    CallContextHooks(&g, ImGuiContextHookType_BeginWindow);
+    CallContextHooks(&g, ImGuiContextHookType_BeginWindowPre);
 
     // Find or create
     ImGuiWindow* window = FindWindowByName(name);
@@ -8759,6 +8759,8 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
         // Skip refresh mode
         window->SkipItems = true;
     }
+    
+    CallContextHooks(&g, ImGuiContextHookType_BeginWindowPost);
 
     // [DEBUG] io.ConfigDebugBeginReturnValue override return value to test Begin/End and BeginChild/EndChild behaviors.
     // (The implicit fallback window is NOT automatically ended allowing it to always be able to receive commands without crashing)
@@ -8780,6 +8782,8 @@ void ImGui::End()
     ImGuiContext& g = *GImGui;
     ImGuiWindow* window = g.CurrentWindow;
 
+    CallContextHooks(&g, ImGuiContextHookType_EndWindowPre);
+    
     // Error checking: verify that user hasn't called End() too many times!
     if (g.CurrentWindowStack.Size <= 1 && g.WithinFrameScopeWithImplicitWindow)
     {
@@ -8835,7 +8839,7 @@ void ImGui::End()
     if (g.CurrentWindow)
         SetCurrentViewport(g.CurrentWindow, g.CurrentWindow->Viewport);
 
-    CallContextHooks(&g, ImGuiContextHookType_EndWindow);
+    CallContextHooks(&g, ImGuiContextHookType_EndWindowPost);
 }
 
 void ImGui::PushItemFlag(ImGuiItemFlags option, bool enabled)

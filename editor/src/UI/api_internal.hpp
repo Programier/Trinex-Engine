@@ -30,103 +30,6 @@
 
 namespace Trinex::UI
 {
-	class Allocator
-	{
-	private:
-		static constexpr usize block_size = 4096;
-
-		struct Block {
-			alignas(block_size) u8 data[block_size];
-			Block* next = nullptr;
-		};
-
-		Block* m_head    = nullptr;
-		Block* m_current = nullptr;
-		usize m_used     = 0;
-
-		Block* create_block()
-		{
-			Block* block = trx_new Block{};
-
-			if (!m_head)
-			{
-				m_head = block;
-			}
-
-			if (m_current)
-			{
-				m_current->next = block;
-			}
-
-			m_current = block;
-			m_used    = 0;
-			return block;
-		}
-
-	public:
-		void* allocate(usize size)
-		{
-			if (size == 0)
-			{
-				return nullptr;
-			}
-
-			size = align_up(size, 16);
-
-			if (size > block_size)
-			{
-				trinex_unreachable();
-			}
-
-			if (!m_current)
-			{
-				create_block();
-			}
-
-			if (m_used + size > block_size)
-			{
-				if (m_current->next)
-				{
-					m_current = m_current->next;
-					m_used    = 0;
-				}
-				else
-				{
-					create_block();
-				}
-			}
-
-			void* ptr = m_current->data + m_used;
-			m_used += size;
-			return ptr;
-		}
-
-		void* allocate(usize size, void* memory)
-		{
-			void* ptr = allocate(size);
-			memcpy(ptr, memory, size);
-			return ptr;
-		}
-
-		void reset()
-		{
-			m_current = m_head;
-			m_used    = 0;
-		}
-
-		~Allocator()
-		{
-			Block* block = m_head;
-
-			while (block)
-			{
-				Block* next = block->next;
-				trx_delete block;
-				block = next;
-			}
-		}
-	};
-
 	struct AnimState {
 		f32 hover        = 0.0f;
 		f32 active       = 0.0f;
@@ -247,14 +150,35 @@ namespace Trinex::UI
 		}
 	};
 
+	struct RenderScale {
+		struct Scope {
+			Scope* next;
+			ImDrawList* draw_list;
+			u32 start_vertex;
+			u32 start_command;
+
+			inline Scope(ImDrawList* list, Scope* next = nullptr)
+			    : next(next), draw_list(list), start_vertex(draw_list->VtxBuffer.Size), start_command(draw_list->CmdBuffer.Size)
+			{}
+
+			inline Scope(ImDrawList* list, u32 start_vertex, u32 start_command, Scope* next = nullptr)
+			    : next(next), draw_list(list), start_vertex(start_vertex), start_command(start_command)
+			{}
+		};
+
+		Scope* scope;
+		Vec2 scale;
+		Vec2 pivot;
+	};
+
 	struct Context {
 		static constexpr usize font_family_count = 3;
 		static constexpr usize font_size_count   = 3;
 
 		Trinex::Window* window                            = nullptr;
 		ImGuiContext* context                             = nullptr;
+		u128 stack_memory_location                        = 0;
 		ImFont* fonts[font_family_count][font_size_count] = {};
-		Allocator allocator;
 		Style style;
 		Vector<Style> style_stack;
 		std::unordered_map<ImGuiID, AnimState> anim;
@@ -282,6 +206,7 @@ namespace Trinex::UI
 		Vector<String> pending_modals;
 		Vector<String> pending_popups;
 		Vector<Notification> notifications;
+		Vector<RenderScale> render_scale_stack;
 		PersistentWindow* window_list = nullptr;
 		CommandPaletteState command_palette;
 		ImGuiID next_notification_id = 1;
@@ -416,14 +341,16 @@ namespace Trinex::UI
 			return std::max(0.0f, ImGui::GetIO().DeltaTime);
 		}
 
-		void* memory_copy(void* userdata, usize userdata_size)
+		void* memory_copy(void* memory, usize size)
 		{
-			if (userdata == nullptr || userdata_size == 0)
+			if (memory == nullptr || size == 0)
 			{
-				return userdata;
+				return memory;
 			}
 
-			return active_context()->allocator.allocate(userdata_size, userdata);
+			void* dst = StackByteAllocator::allocate(size);
+			memcpy(dst, memory, size);
+			return dst;
 		}
 
 		template<typename T>

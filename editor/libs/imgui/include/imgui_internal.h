@@ -2430,7 +2430,7 @@ struct ImGuiIDStackTool
 //-----------------------------------------------------------------------------
 
 typedef void (*ImGuiContextHookCallback)(ImGuiContext* ctx, ImGuiContextHook* hook);
-enum ImGuiContextHookType { ImGuiContextHookType_NewFramePre, ImGuiContextHookType_NewFramePost, ImGuiContextHookType_EndFramePre, ImGuiContextHookType_EndFramePost, ImGuiContextHookType_RenderPre, ImGuiContextHookType_RenderPost, ImGuiContextHookType_Shutdown, ImGuiContextHookType_BeginWindow, ImGuiContextHookType_EndWindow, ImGuiContextHookType_PendingRemoval_ };
+enum ImGuiContextHookType { ImGuiContextHookType_NewFramePre, ImGuiContextHookType_NewFramePost, ImGuiContextHookType_EndFramePre, ImGuiContextHookType_EndFramePost, ImGuiContextHookType_RenderPre, ImGuiContextHookType_RenderPost, ImGuiContextHookType_Shutdown, ImGuiContextHookType_BeginWindowPre, ImGuiContextHookType_BeginWindowPost, ImGuiContextHookType_EndWindowPre, ImGuiContextHookType_EndWindowPost, ImGuiContextHookType_PendingRemoval_ };
 
 struct ImGuiContextHook
 {
