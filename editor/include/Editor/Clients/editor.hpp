@@ -8,15 +8,17 @@ namespace Trinex
 		class Widget;
 	}
 
-	class ContentBrowser;
+	class ContentBrowserWidget;
+	class ConsoleWidget;
 
 	class EditorClient : public UI::Client
 	{
 		trinex_class(EditorClient, Client);
 
 	private:
-		UI::Widget* m_viewport            = nullptr;
-		ContentBrowser* m_content_browser = nullptr;
+		UI::Widget* m_viewport                  = nullptr;
+		ContentBrowserWidget* m_content_browser = nullptr;
+		ConsoleWidget* m_console                = nullptr;
 
 
 	private:

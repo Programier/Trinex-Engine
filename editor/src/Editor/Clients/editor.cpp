@@ -1,5 +1,6 @@
 #include <Core/reflection/class.hpp>
 #include <Editor/Clients/editor.hpp>
+#include <Editor/Widgets/console.hpp>
 #include <Editor/Widgets/content_browser.hpp>
 #include <UI/api.hpp>
 
@@ -20,18 +21,25 @@ namespace Trinex
 		Super::attach(viewport);
 
 		m_viewport        = UI::Widget::create("Viewport###viewport", true, [this]() { on_render_viewport(); });
-		m_content_browser = trx_new ContentBrowser();
+		m_content_browser = trx_new ContentBrowserWidget();
+		m_console         = trx_new ConsoleWidget({}, true);
+
 		m_content_browser->is_open(true);
 
 		UI::register_widget(context(), m_viewport);
 		UI::register_widget(context(), m_content_browser);
+		UI::register_widget(context(), m_console);
 		return *this;
 	}
 
 	EditorClient& EditorClient::deattach(class RenderViewport* viewport)
 	{
+		UI::unregister_widget(context(), m_console);
 		UI::unregister_widget(context(), m_viewport);
 		UI::unregister_widget(context(), m_content_browser);
+
+		trx_delete m_console;
+		trx_delete m_content_browser;
 		trx_delete m_viewport;
 
 		Super::deattach(viewport);

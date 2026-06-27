@@ -38,16 +38,18 @@ namespace Trinex
 		}
 	}// namespace
 
-	ContentBrowser::ContentBrowser() : UI::Widget(ContentBrowser::static_name()), m_selected_package(Object::root_package()) {}
+	ContentBrowserWidget::ContentBrowserWidget()
+	    : UI::Widget(ContentBrowserWidget::static_name()), m_selected_package(Object::root_package())
+	{}
 
-	void ContentBrowser::selecte_new_object(Object* object)
+	void ContentBrowserWidget::selecte_new_object(Object* object)
 	{
 		selected_object = object;
 		on_object_select(object);
 		m_is_renaming = false;
 	}
 
-	void ContentBrowser::begin_renaming(Object* object)
+	void ContentBrowserWidget::begin_renaming(Object* object)
 	{
 		if (object == nullptr)
 		{
@@ -62,7 +64,7 @@ namespace Trinex
 		m_new_object_name = selected_object->name();
 	}
 
-	bool ContentBrowser::render_package_popup(void* data)
+	bool ContentBrowserWidget::render_package_popup(void* data)
 	{
 		bool is_editable = (m_show_popup_for && m_show_popup_for->is_editable() && m_show_popup_for->is_serializable());
 
@@ -87,7 +89,7 @@ namespace Trinex
 		return true;
 	}
 
-	void ContentBrowser::render_package_popup()
+	void ContentBrowserWidget::render_package_popup()
 	{
 		UI::popup("###PackagePopup", [&]() {
 			bool is_editable = (m_show_popup_for && m_show_popup_for->is_editable() && m_show_popup_for->is_serializable());
@@ -112,7 +114,7 @@ namespace Trinex
 		});
 	}
 
-	void ContentBrowser::render_package_tree(Package* node)
+	void ContentBrowserWidget::render_package_tree(Package* node)
 	{
 		if (node == nullptr)
 		{
@@ -173,7 +175,7 @@ namespace Trinex
 		UI::pop_id();
 	}
 
-	void ContentBrowser::render_packages()
+	void ContentBrowserWidget::render_packages()
 	{
 		if (!UI::begin_panel("##PGS", {}))
 		{
@@ -198,7 +200,7 @@ namespace Trinex
 		UI::end_panel();
 	}
 
-	bool ContentBrowser::render_content_item(Object* object, const UI::Vec2& size)
+	bool ContentBrowserWidget::render_content_item(Object* object, const UI::Vec2& size)
 	{
 		bool in_filter  = filters.empty();
 		StringView name = object->name();
@@ -252,7 +254,7 @@ namespace Trinex
 			}
 			else if (UI::is_mouse_dragging() && UI::begin_drag_source())
 			{
-				UI::drag_payload("ContentBrowser->Object", &object, sizeof(Object**));
+				UI::drag_payload("ContentBrowserWidget->Object", &object, sizeof(Object**));
 				UI::image(imgui_texture.texture, image_size);
 				UI::end_drag_source();
 			}
@@ -374,7 +376,7 @@ namespace Trinex
 		return result;
 	}
 
-	void ContentBrowser::render_content_window()
+	void ContentBrowserWidget::render_content_window()
 	{
 		UI::WindowOptions options;
 		options.flags = UI::WindowFlags::MenuBar;
@@ -521,7 +523,7 @@ namespace Trinex
 		UI::end_panel();
 	}
 
-	void ContentBrowser::on_render()
+	void ContentBrowserWidget::on_render()
 	{
 		if (UI::is_key_pressed(UI::Key::F2, false))
 		{
@@ -547,15 +549,15 @@ namespace Trinex
 		}
 	}
 
-	Package* ContentBrowser::selected_package() const
+	Package* ContentBrowserWidget::selected_package() const
 	{
 		return m_selected_package;
 	}
 
-	const char* ContentBrowser::static_name()
+	const char* ContentBrowserWidget::static_name()
 	{
 		return "editor/Content Browser"_localized;
 	}
 
-	ContentBrowser::~ContentBrowser() {}
+	ContentBrowserWidget::~ContentBrowserWidget() {}
 }// namespace Trinex

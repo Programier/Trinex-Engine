@@ -6,7 +6,7 @@ namespace Trinex
 {
 	class Package;
 
-	class ContentBrowser : public UI::Widget
+	class ContentBrowserWidget : public UI::Widget
 	{
 	private:
 		void selecte_new_object(Object* object);
@@ -34,10 +34,10 @@ namespace Trinex
 
 		class Object* selected_object = nullptr;
 
-		ContentBrowser();
+		ContentBrowserWidget();
 		void on_render() override;
 		Package* selected_package() const;
 		static const char* static_name();
-		~ContentBrowser();
+		~ContentBrowserWidget();
 	};
 }// namespace Trinex
