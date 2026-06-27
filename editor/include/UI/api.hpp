@@ -229,8 +229,7 @@ namespace Trinex::UI
 	bool input(const char* label, char* buffer, size_t buffer_size, InputTextFlags flags = InputTextFlags::Undefined);
 	bool input(const char* label, const char* hint, char* buffer, size_t buffer_size,
 	           InputTextFlags flags = InputTextFlags::Undefined);
-	bool input(const char* label, char* buffer, size_t buffer_size, Size size,
-	           InputTextFlags flags = InputTextFlags::Undefined);
+	bool input(const char* label, char* buffer, size_t buffer_size, Size size, InputTextFlags flags = InputTextFlags::Undefined);
 	bool search_input(const char* label, char* buffer, size_t buffer_size);
 	bool begin_combo(const char* label, const char* preview_value, ComboFlags flags = ComboFlags::Undefined);
 	void end_combo();
@@ -308,15 +307,16 @@ namespace Trinex::UI
 	bool property_bool(const char* label, bool* value, bool use_checkbox = false, Unit label_width = Unit(140.0f));
 	bool property_float(const char* label, float* value, float min, float max, const char* format = "%.3f",
 	                    Unit label_width = Unit(140.0f));
-	bool property_int(const char* label, int* value, int min, int max, const char* format = "%d", Unit label_width = Unit(140.0f));
+	bool property_int(const char* label, int* value, int min, int max, const char* format = "%d",
+	                  Unit label_width = Unit(140.0f));
 	bool property_text(const char* label, char* buffer, size_t buffer_size, Unit label_width = Unit(140.0f));
 	bool property_color(const char* label, Vec4* color, bool alpha = true, Unit label_width = Unit(140.0f));
 	bool splitter(const char* id_text, float* size_a, float* size_b, Unit min_a = Unit(80.0f), Unit min_b = Unit(80.0f),
 	              bool vertical = true, Unit thickness = Unit(4.0f));
 	bool begin_toolbar(const char* id_text);
 	void end_toolbar();
-	bool begin_table(const char* id_text, int columns, TableFlags flags = TableFlags::Undefined,
-	                 Size outer_size = Size(0, 0), Unit inner_width = Unit(0.0f));
+	bool begin_table(const char* id_text, int columns, TableFlags flags = TableFlags::Undefined, Size outer_size = Size(0, 0),
+	                 Unit inner_width = Unit(0.0f));
 	void end_table();
 	void table_setup_column(const char* label, TableColumnFlags flags = TableColumnFlags::Undefined, float width_or_weight = 0.0f,
 	                        ID id = ID(0));

@@ -726,7 +726,8 @@ namespace Trinex::UI
 
 			if (options.placement.size_condition != Condition::Undefined)
 			{
-				ImGui::SetNextWindowSize(to_imvec(resolve(options.placement.size)), to_imgui_cond(options.placement.size_condition));
+				ImGui::SetNextWindowSize(to_imvec(resolve(options.placement.size)),
+				                         to_imgui_cond(options.placement.size_condition));
 			}
 
 			if (has_any_bound(options.placement.min_size, options.placement.max_size))

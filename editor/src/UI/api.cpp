@@ -534,9 +534,8 @@ namespace Trinex::UI
 		render_scale.scope        = trx_stack_new RenderScale::Scope(ImGui::GetWindowDrawList());
 		render_scale.scale        = scale;
 		render_scale.pivot        = pivot;
-		render_scale.min = render_scale.max = cursor_screen_position();
-
-		ImGui::BeginGroup();
+		render_scale.min          = cursor_screen_position();
+		render_scale.max          = render_scale.min;
 	}
 
 	void pop_render_scale()
@@ -544,14 +543,16 @@ namespace Trinex::UI
 		auto& stack = active_context()->render_scale_stack;
 		trinex_assert(!stack.empty() && "UI::pop_render_scale() called without matching push_render_scale()");
 
-		ImGui::EndGroup();
-
 		RenderScale& render_scale = stack.back();
 
 		if (render_scale.scale.x != 1.f || render_scale.scale.y != 1.f)
 		{
-			render_scale.min = Math::min(render_scale.min, to_vec(ImGui::GetItemRectMin()));
-			render_scale.max = Math::max(render_scale.max, to_vec(ImGui::GetItemRectMax()));
+			// Update bounds
+			{
+				ImVec2 max         = ImGui::GetCurrentWindow()->DC.CursorMaxPos;
+				render_scale.max.x = Math::max(render_scale.max.x, max.x);
+				render_scale.max.y = Math::max(render_scale.max.y, max.y);
+			}
 
 			// Scale content
 			for (auto scope = render_scale.scope; scope; scope = scope->next)
