@@ -239,7 +239,7 @@ namespace Trinex::UI
 				{
 					animated_y = target_y;
 				}
-				animated_y = approach(animated_y, target_y, active_context()->style.animation_speed);
+				animated_y = approach(animated_y, target_y);
 				const ImVec2 max(origin.x - slide, animated_y);
 				const ImVec2 min(max.x - width, animated_y - height);
 				const Vec4 accent = notification_color(it->kind);

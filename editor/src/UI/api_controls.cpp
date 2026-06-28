@@ -84,8 +84,8 @@ namespace Trinex::UI
 		const bool active  = ImGui::IsItemActive();
 		const bool clicked = ImGui::IsItemClicked();
 
-		anim.hover  = approach(anim.hover, hovered ? 1.0f : 0.0f, active_context()->style.animation_speed);
-		anim.active = approach(anim.active, active ? 1.0f : 0.0f, active_context()->style.animation_speed * 1.5f);
+		anim.hover  = approach(anim.hover, hovered ? 1.0f : 0.0f);
+		anim.active = approach(anim.active, active ? 1.0f : 0.0f * 1.5f);
 
 		const Vec4 accent = has_color(options.accent) ? options.accent : active_context()->style.colors.accent;
 		Vec4 frame_bg     = has_color(options.background_color) ? options.background_color : active_context()->style.colors.panel;
@@ -196,8 +196,8 @@ namespace Trinex::UI
 		const bool hovered = !options.disabled && ImGui::IsItemHovered();
 		const bool active  = !options.disabled && ImGui::IsItemActive();
 		const bool clicked = !options.disabled && ImGui::IsItemClicked();
-		anim.hover         = approach(anim.hover, hovered ? 1.0f : 0.0f, active_context()->style.animation_speed);
-		anim.active        = approach(anim.active, active ? 1.0f : 0.0f, active_context()->style.animation_speed * 1.5f);
+		anim.hover         = approach(anim.hover, hovered ? 1.0f : 0.0f);
+		anim.active        = approach(anim.active, active ? 1.0f : 0.0f * 1.5f);
 
 		const Vec4 accent       = has_color(options.accent) ? options.accent : active_context()->style.colors.accent;
 		Vec4 bg                 = options.ghost ? Vec4(0, 0, 0, 0) : active_context()->style.colors.background_active;
@@ -312,9 +312,9 @@ namespace Trinex::UI
 		{
 			*value = !*value;
 		}
-		anim.hover  = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
-		anim.active = approach(anim.active, ImGui::IsItemActive() ? 1.0f : 0.0f, active_context()->style.animation_speed);
-		anim.value  = approach(anim.value, value != nullptr && *value ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.hover  = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
+		anim.active = approach(anim.active, ImGui::IsItemActive() ? 1.0f : 0.0f);
+		anim.value  = approach(anim.value, value != nullptr && *value ? 1.0f : 0.0f);
 
 		ImDrawList* draw = ImGui::GetWindowDrawList();
 		const ImVec2 box_pos(pos.x, pos.y + (size.y - box) * 0.5f);
@@ -360,8 +360,8 @@ namespace Trinex::UI
 		{
 			*value = !*value;
 		}
-		anim.hover = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
-		anim.value = approach(anim.value, value != nullptr && *value ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.hover = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
+		anim.value = approach(anim.value, value != nullptr && *value ? 1.0f : 0.0f);
 
 		ImDrawList* draw = ImGui::GetWindowDrawList();
 		const ImVec2 p(pos.x, pos.y + (size.y - track.y) * 0.5f);
@@ -402,9 +402,9 @@ namespace Trinex::UI
 			}
 		}
 		const float target = value != nullptr && max > min ? Math::clamp((*value - min) / (max - min), 0.f, 1.f) : 0.0f;
-		anim.value         = approach(anim.value, target, active_context()->style.animation_speed);
-		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
-		anim.active        = approach(anim.active, ImGui::IsItemActive() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.value         = approach(anim.value, target);
+		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
+		anim.active        = approach(anim.active, ImGui::IsItemActive() ? 1.0f : 0.0f);
 
 		ImDrawList* draw  = ImGui::GetWindowDrawList();
 		const float bar_h = 7.0f;
@@ -451,8 +451,8 @@ namespace Trinex::UI
 		AnimState& anim = state_for(ImGui::GetID("drag"));
 		push_input_frame_styles(anim.focus);
 		const bool changed = ImGui::DragFloat(label, value, speed, min, max, format);
-		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
-		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
+		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f);
 		pop_input_frame_styles();
 		ImGui::PopID();
 		return changed;
@@ -465,8 +465,8 @@ namespace Trinex::UI
 		AnimState& anim = state_for(ImGui::GetID("drag"));
 		push_input_frame_styles(anim.focus);
 		const bool changed = ImGui::DragInt(label, value, speed, min, max, format);
-		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
-		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
+		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f);
 		pop_input_frame_styles();
 		ImGui::PopID();
 		return changed;
@@ -484,8 +484,8 @@ namespace Trinex::UI
 		AnimState& anim = state_for(ImGui::GetID("drag"));
 		push_input_frame_styles(anim.focus);
 		const bool changed = ImGui::DragFloat2(label, &value->x, speed, min, max, format);
-		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
-		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
+		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f);
 		pop_input_frame_styles();
 		ImGui::PopID();
 		return changed;
@@ -503,8 +503,8 @@ namespace Trinex::UI
 		AnimState& anim = state_for(ImGui::GetID("drag"));
 		push_input_frame_styles(anim.focus);
 		const bool changed = ImGui::DragFloat3(label, &value->x, speed, min, max, format);
-		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
-		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
+		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f);
 		pop_input_frame_styles();
 		ImGui::PopID();
 		return changed;
@@ -522,8 +522,8 @@ namespace Trinex::UI
 		AnimState& anim = state_for(ImGui::GetID("drag"));
 		push_input_frame_styles(anim.focus);
 		const bool changed = ImGui::DragFloat4(label, &value->x, speed, min, max, format);
-		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
-		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
+		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f);
 		pop_input_frame_styles();
 		ImGui::PopID();
 		return changed;
@@ -536,8 +536,8 @@ namespace Trinex::UI
 		AnimState& anim = state_for(ImGui::GetID("input"));
 		push_input_frame_styles(anim.focus);
 		const bool changed = ImGui::InputDouble(label, value, 0.0, 0.0, format);
-		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
-		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
+		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f);
 		pop_input_frame_styles();
 		ImGui::PopID();
 		return changed;
@@ -550,8 +550,8 @@ namespace Trinex::UI
 		AnimState& anim = state_for(ImGui::GetID("input"));
 		push_input_frame_styles(anim.focus);
 		const bool changed = ImGui::InputFloat(label, value, 0.0f, 0.0f, format);
-		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
-		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
+		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f);
 		pop_input_frame_styles();
 		ImGui::PopID();
 		return changed;
@@ -564,8 +564,8 @@ namespace Trinex::UI
 		AnimState& anim = state_for(ImGui::GetID("input"));
 		push_input_frame_styles(anim.focus);
 		const bool changed = ImGui::InputInt(label, value);
-		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
-		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
+		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f);
 		pop_input_frame_styles();
 		ImGui::PopID();
 		return changed;
@@ -583,8 +583,8 @@ namespace Trinex::UI
 		AnimState& anim = state_for(ImGui::GetID("input"));
 		push_input_frame_styles(anim.focus);
 		const bool changed = ImGui::InputFloat2(label, &value->x, format);
-		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
-		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
+		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f);
 		pop_input_frame_styles();
 		ImGui::PopID();
 		return changed;
@@ -602,8 +602,8 @@ namespace Trinex::UI
 		AnimState& anim = state_for(ImGui::GetID("input"));
 		push_input_frame_styles(anim.focus);
 		const bool changed = ImGui::InputFloat3(label, &value->x, format);
-		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
-		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
+		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f);
 		pop_input_frame_styles();
 		ImGui::PopID();
 		return changed;
@@ -621,8 +621,8 @@ namespace Trinex::UI
 		AnimState& anim = state_for(ImGui::GetID("input"));
 		push_input_frame_styles(anim.focus);
 		const bool changed = ImGui::InputFloat4(label, &value->x, format);
-		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
-		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
+		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f);
 		pop_input_frame_styles();
 		ImGui::PopID();
 		return changed;
@@ -635,8 +635,8 @@ namespace Trinex::UI
 		AnimState& anim = state_for(ImGui::GetID("input"));
 		push_input_frame_styles(anim.focus);
 		const bool changed = ImGui::InputText(label, buffer, buffer_size, to_imgui_input_text_flags(flags));
-		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
-		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
+		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f);
 		pop_input_frame_styles();
 		ImGui::PopID();
 		return changed;
@@ -649,8 +649,8 @@ namespace Trinex::UI
 		AnimState& anim = state_for(ImGui::GetID("input"));
 		push_input_frame_styles(anim.focus);
 		const bool changed = ImGui::InputTextWithHint(label, hint, buffer, buffer_size, to_imgui_input_text_flags(flags));
-		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
-		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
+		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f);
 		pop_input_frame_styles();
 		ImGui::PopID();
 		return changed;
@@ -664,8 +664,8 @@ namespace Trinex::UI
 		push_input_frame_styles(anim.focus);
 		const bool changed =
 		        ImGui::InputTextMultiline(label, buffer, buffer_size, to_imvec(resolve(size)), to_imgui_input_text_flags(flags));
-		anim.hover = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
-		anim.focus = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.hover = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
+		anim.focus = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f);
 		pop_input_frame_styles();
 		ImGui::PopID();
 		return changed;
@@ -678,7 +678,6 @@ namespace Trinex::UI
 
 	bool begin_combo(const char* label, const char* preview_value, ComboFlags flags)
 	{
-
 		auto& combo = active_context()->active_combo;
 
 		cleanup_states();
@@ -692,33 +691,35 @@ namespace Trinex::UI
 		const ImVec2 frame_size(width, active_context()->style.frame_height);
 		const ImVec2 pos = ImGui::GetCursorScreenPos();
 		ImGui::InvisibleButton("##combo_field", frame_size);
-		const bool hovered              = ImGui::IsItemHovered();
-		const bool active               = ImGui::IsItemActive();
-		const ImVec2 mouse              = ImGui::GetIO().MousePos;
-		const bool clicked_inside_field = point_in_rect(mouse, pos, add(pos, frame_size));
-		const bool clicked_inside_popup = combo == id && point_in_rect(mouse, active_context()->active_combo_popup_min,
-		                                                               active_context()->active_combo_popup_max);
+		const bool hovered    = ImGui::IsItemHovered();
+		const bool active     = ImGui::IsItemActive();
+		const bool popup_open = ImGui::IsPopupOpen("##combo_popup", ImGuiPopupFlags_None);
+
 		if (ImGui::IsItemClicked())
 		{
-			const bool next_open = !open;
-			if (next_open && combo != 0 && combo != id)
+			ImGuiContext* imgui_context = ImGui::GetCurrentContext();
+			if (popup_open)
 			{
-				active_context()->open[combo] = false;
+				if (imgui_context != nullptr && imgui_context->BeginPopupStack.Size > 0)
+				{
+					ImGui::ClosePopupToLevel(imgui_context->BeginPopupStack.Size - 1, true);
+				}
+				combo = 0;
 			}
-			open  = next_open;
-			combo = open ? id : 0;
-			if (open)
+			else
 			{
+				if (combo != 0 && combo != id)
+				{
+					if (imgui_context != nullptr && imgui_context->BeginPopupStack.Size > 0)
+					{
+						ImGui::ClosePopupToLevel(imgui_context->BeginPopupStack.Size - 1, true);
+					}
+					active_context()->open[combo] = false;
+				}
+				ImGui::OpenPopup("##combo_popup");
+				combo                                    = id;
 				active_context()->active_combo_field_min = pos;
 				active_context()->active_combo_field_max = add(pos, frame_size);
-			}
-		}
-		else if (open && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !clicked_inside_field && !clicked_inside_popup)
-		{
-			open = false;
-			if (combo == id)
-			{
-				combo = 0;
 			}
 		}
 		else if (combo != 0 && combo != id)
@@ -726,9 +727,16 @@ namespace Trinex::UI
 			open = false;
 		}
 
-		anim.hover  = approach(anim.hover, hovered ? 1.0f : 0.0f, active_context()->style.animation_speed);
-		anim.active = approach(anim.active, active ? 1.0f : 0.0f, active_context()->style.animation_speed);
-		anim.open   = approach(anim.open, open ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		open = ImGui::IsPopupOpen("##combo_popup", ImGuiPopupFlags_None);
+		if (!open && combo == id)
+		{
+			combo = 0;
+		}
+
+		anim.hover  = approach(anim.hover, hovered ? 1.0f : 0.0f);
+		anim.active = approach(anim.active, active ? 1.0f : 0.0f);
+		anim.open   = approach(anim.open, open ? 1.0f : 0.0f);
+
 		if (open && anim.open > 0.995f)
 		{
 			anim.open = 1.0f;
@@ -760,7 +768,16 @@ namespace Trinex::UI
 			ImGui::TextUnformatted(visible_label(label));
 		}
 
-		const bool visible = begin_animated_area("##combo_area", open);
+		UI::push_render_scale(Vec2(1.f, anim.open), {0.5, 0.f});
+
+		if (open)
+		{
+			ImGui::SetNextWindowPos(ImVec2(pos.x, pos.y + frame_size.y), ImGuiCond_Always);
+		}
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+		ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+		const bool visible = ImGui::BeginPopup("##combo_popup");
 		if (visible)
 		{
 			ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, active_context()->style.rounding);
@@ -778,6 +795,8 @@ namespace Trinex::UI
 			}
 			return true;
 		}
+		ImGui::PopStyleColor(2);
+		ImGui::PopStyleVar();
 		ImGui::PopID();
 		return false;
 	}
@@ -787,7 +806,10 @@ namespace Trinex::UI
 		ImGui::EndChild();
 		ImGui::PopStyleColor(2);
 		ImGui::PopStyleVar(2);
-		end_animated_area();
+		ImGui::EndPopup();
+		ImGui::PopStyleColor(2);
+		ImGui::PopStyleVar();
+		UI::pop_render_scale();
 		ImGui::PopID();
 	}
 
@@ -814,6 +836,7 @@ namespace Trinex::UI
 					{
 						active_context()->open[combo] = false;
 						combo                         = 0;
+						ImGui::CloseCurrentPopup();
 					}
 				}
 			}
@@ -852,9 +875,9 @@ namespace Trinex::UI
 		const ImVec2 pos = ImGui::GetCursorScreenPos();
 		ImGui::InvisibleButton("##radio", size);
 		const bool clicked = ImGui::IsItemClicked();
-		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f, active_context()->style.animation_speed);
-		anim.active        = approach(anim.active, ImGui::IsItemActive() ? 1.0f : 0.0f, active_context()->style.animation_speed);
-		anim.selected      = approach(anim.selected, active ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
+		anim.active        = approach(anim.active, ImGui::IsItemActive() ? 1.0f : 0.0f);
+		anim.selected      = approach(anim.selected, active ? 1.0f : 0.0f);
 
 		ImDrawList* draw = ImGui::GetWindowDrawList();
 		const ImVec2 center(pos.x + diameter * 0.5f, pos.y + size.y * 0.5f);
@@ -909,8 +932,8 @@ namespace Trinex::UI
 			const bool hovered = ImGui::IsItemHovered();
 			const bool clicked = ImGui::IsItemClicked();
 			AnimState& anim    = state_for(ImGui::GetID("segment_anim"));
-			anim.hover         = approach(anim.hover, hovered ? 1.0f : 0.0f, active_context()->style.animation_speed);
-			anim.selected = approach(anim.selected, *current_item == i ? 1.0f : 0.0f, active_context()->style.animation_speed);
+			anim.hover         = approach(anim.hover, hovered ? 1.0f : 0.0f);
+			anim.selected      = approach(anim.selected, *current_item == i ? 1.0f : 0.0f);
 			const ImVec2 min(start.x + segment_w * i, start.y);
 			const ImVec2 max(start.x + segment_w * (i + 1), start.y + height);
 			if (anim.hover > 0.01f)
@@ -951,7 +974,7 @@ namespace Trinex::UI
 		cleanup_states();
 		const ImGuiID id = ImGui::GetID("ui_progress_bar");
 		AnimState& anim  = state_for(id);
-		anim.value       = approach(anim.value, Math::clamp(fraction, 0.f, 1.f), active_context()->style.animation_speed);
+		anim.value       = approach(anim.value, Math::clamp(fraction, 0.f, 1.f));
 		ImVec2 size      = to_imvec(resolve(size_arg));
 		if (size.x < 0.0f)
 		{
@@ -1034,9 +1057,8 @@ namespace Trinex::UI
 		{
 			active_context()->keybind_capture = id;
 		}
-		anim.hover       = approach(anim.hover, hovered ? 1.0f : 0.0f, active_context()->style.animation_speed);
-		anim.focus       = approach(anim.focus, active_context()->keybind_capture == id ? 1.0f : 0.0f,
-		                            active_context()->style.animation_speed);
+		anim.hover       = approach(anim.hover, hovered ? 1.0f : 0.0f);
+		anim.focus       = approach(anim.focus, active_context()->keybind_capture == id ? 1.0f : 0.0f);
 		ImDrawList* draw = ImGui::GetWindowDrawList();
 		draw->AddRectFilled(pos, add(pos, field_size),
 		                    col_u32(Math::lerp(active_context()->style.colors.background,

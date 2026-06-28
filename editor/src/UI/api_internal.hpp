@@ -449,10 +449,15 @@ namespace Trinex::UI
 			}
 		}
 
-		float approach(float current, float target, float speed)
+		inline float approach(float current, float target, float speed)
 		{
 			const float k = 1.0f - std::exp(-std::max(0.0f, speed) * dt());
 			return current + (target - current) * k;
+		}
+
+		inline float approach(float current, float target)
+		{
+			return approach(current, target, active_context()->style.animation_speed);
 		}
 
 		AnimState& state_for(ImGuiID id)
@@ -1264,9 +1269,9 @@ namespace Trinex::UI
 			const bool visual_selected = selected || clicked;
 			const float visual_arrow_t = clicked ? (selected ? 0.0f : 1.0f) : arrow_t;
 
-			anim.hover    = approach(anim.hover, hovered ? 1.0f : 0.0f, active_context()->style.animation_speed);
-			anim.active   = approach(anim.active, active ? 1.0f : 0.0f, active_context()->style.animation_speed * 1.6f);
-			anim.selected = approach(anim.selected, visual_selected ? 1.0f : 0.0f, active_context()->style.animation_speed);
+			anim.hover    = approach(anim.hover, hovered ? 1.0f : 0.0f);
+			anim.active   = approach(anim.active, active ? 1.0f : 0.0f * 1.6f);
+			anim.selected = approach(anim.selected, visual_selected ? 1.0f : 0.0f);
 
 			const Vec4 base = Math::lerp(active_context()->style.colors.panel, active_context()->style.colors.background_hovered,
 			                             anim.hover);

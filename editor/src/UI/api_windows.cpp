@@ -396,8 +396,8 @@ namespace Trinex::UI
 		const ImVec2 max   = add(min, size);
 		const bool hovered = context.hoverable && !context.disabled && ImGui::IsMouseHoveringRect(min, max, true);
 		AnimState& anim    = state_for(context.id);
-		anim.hover         = approach(anim.hover, hovered ? 1.0f : 0.0f, active_context()->style.animation_speed);
-		anim.selected      = approach(anim.selected, context.selected ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.hover         = approach(anim.hover, hovered ? 1.0f : 0.0f);
+		anim.selected      = approach(anim.selected, context.selected ? 1.0f : 0.0f);
 
 		const Vec4 accent  = context.accent;
 		Vec4 border_target = context.selected ? Math::lerp(context.border_color, accent, 0.7f) : context.border_color;
@@ -490,9 +490,9 @@ namespace Trinex::UI
 		const bool hovered = options.hoverable && !options.disabled && ImGui::IsItemHovered();
 		const bool active  = !options.disabled && ImGui::IsItemActive();
 		const bool clicked = !options.disabled && ImGui::IsItemClicked();
-		anim.hover         = approach(anim.hover, hovered ? 1.0f : 0.0f, active_context()->style.animation_speed);
-		anim.active        = approach(anim.active, active ? 1.0f : 0.0f, active_context()->style.animation_speed * 1.5f);
-		anim.selected      = approach(anim.selected, options.selected ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.hover         = approach(anim.hover, hovered ? 1.0f : 0.0f);
+		anim.active        = approach(anim.active, active ? 1.0f : 0.0f * 1.5f);
+		anim.selected      = approach(anim.selected, options.selected ? 1.0f : 0.0f);
 
 		const bool hover_scaled = anim.hover > 0.0f && (active_context()->style.hover_padding.x != 0.0f ||
 		                                                active_context()->style.hover_padding.y != 0.0f);
@@ -707,7 +707,7 @@ namespace Trinex::UI
 		ImGui::PushID(id_label);
 		const ImGuiID id  = ImGui::GetID("animated_area");
 		AnimState& anim   = state_for(id);
-		anim.open         = approach(anim.open, visible ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.open         = approach(anim.open, visible ? 1.0f : 0.0f);
 		const bool render = visible || anim.open > 0.001f;
 		if (!render)
 		{

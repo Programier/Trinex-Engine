@@ -33,7 +33,7 @@ namespace Trinex::UI
 			}
 		}
 
-		anim.open = approach(anim.open, open ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.open = approach(anim.open, open ? 1.0f : 0.0f);
 		if (open && anim.open > 0.995f)
 		{
 			anim.open = 1.0f;
@@ -99,7 +99,7 @@ namespace Trinex::UI
 			}
 		}
 
-		anim.open = approach(anim.open, open ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.open = approach(anim.open, open ? 1.0f : 0.0f);
 		if (open && anim.open > 0.995f)
 		{
 			anim.open = 1.0f;
@@ -227,7 +227,7 @@ namespace Trinex::UI
 		const ImVec2 min   = ImGui::GetItemRectMin();
 		const ImVec2 max   = ImGui::GetItemRectMax();
 		AnimState& anim    = state_for(ImGui::GetID(label));
-		anim.selected      = approach(anim.selected, selected ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.selected      = approach(anim.selected, selected ? 1.0f : 0.0f);
 		ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(min.x + 8.0f, max.y - 3.0f),
 		                                          ImVec2(Math::lerp(min.x + 8.0f, max.x - 8.0f, anim.selected), max.y),
 		                                          col_u32(active_context()->style.colors.accent, anim.selected), 2.0f);
@@ -392,7 +392,7 @@ namespace Trinex::UI
 		ImGui::SetNextWindowBgAlpha(active_context()->style.colors.panel.w * active_context()->style.alpha * alpha);
 		push_menu_popup_colors();
 		const bool open = ImGui::BeginMenu(label, enabled);
-		anim.open       = approach(anim.open, open ? 1.0f : 0.0f, active_context()->style.animation_speed);
+		anim.open       = approach(anim.open, open ? 1.0f : 0.0f);
 		if (open && anim.open > 0.995f)
 		{
 			anim.open = 1.0f;
@@ -572,7 +572,7 @@ namespace Trinex::UI
 		auto& palette = active_context()->command_palette;
 
 		AnimState& anim = state_for(ImGui::GetID("##command_anim"));
-		anim.open       = approach(anim.open, palette.open ? 1.0f : 0.0f, style.animation_speed);
+		anim.open       = approach(anim.open, palette.open ? 1.0f : 0.0f);
 
 		if (!palette.open && anim.open <= 0.0f)
 		{
