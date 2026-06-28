@@ -858,6 +858,7 @@ namespace Trinex::UI
 		{
 			active_context()->open[combo] = false;
 			combo                         = 0;
+			ImGui::CloseCurrentPopup();
 		}
 		return clicked;
 	}
