@@ -34,14 +34,6 @@ namespace Trinex::UI
 		}
 
 		anim.open = approach(anim.open, open ? 1.0f : 0.0f);
-		if (open && anim.open > 0.995f)
-		{
-			anim.open = 1.0f;
-		}
-		else if (!open && anim.open < 0.005f)
-		{
-			anim.open = 0.0f;
-		}
 
 		ImGui::PopID();
 		if (begin_animated_area(label, open))
@@ -100,14 +92,6 @@ namespace Trinex::UI
 		}
 
 		anim.open = approach(anim.open, open ? 1.0f : 0.0f);
-		if (open && anim.open > 0.995f)
-		{
-			anim.open = 1.0f;
-		}
-		else if (!open && anim.open < 0.005f)
-		{
-			anim.open = 0.0f;
-		}
 		// Symmetric easing keeps perceived expand/collapse duration matched.
 		const float eased_open    = apply_ease(anim.open, Ease::InOutQuad);
 		const bool render_content = !options.leaf && (open || anim.open > 0.001f);
@@ -120,7 +104,6 @@ namespace Trinex::UI
 			const ImVec2 clip_max(content_start.x + ImGui::GetContentRegionAvail().x + 2.0f,
 			                      content_start.y + std::max(0.0f, visible_height));
 
-			push_render_scale(Vec2(1.0f, std::max(0.0f, eased_open)), Vec2(0.0f, 0.0f));
 			ImGui::PushClipRect(clip_min, clip_max, true);
 			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * eased_open);
 
@@ -172,7 +155,6 @@ namespace Trinex::UI
 		active_context()->draw_alpha = context.previous_draw_alpha;
 		ImGui::PopStyleVar();
 		ImGui::PopClipRect();
-		pop_render_scale();
 
 		ImGui::SetCursorScreenPos(ImVec2(context.content_start.x, context.content_start.y + visible_height));
 		ImGui::Dummy(ImVec2(0.0f, 0.0f));
@@ -393,14 +375,6 @@ namespace Trinex::UI
 		push_menu_popup_colors();
 		const bool open = ImGui::BeginMenu(label, enabled);
 		anim.open       = approach(anim.open, open ? 1.0f : 0.0f);
-		if (open && anim.open > 0.995f)
-		{
-			anim.open = 1.0f;
-		}
-		else if (!open && anim.open < 0.005f)
-		{
-			anim.open = 0.0f;
-		}
 		if (open)
 		{
 			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * apply_ease(anim.open, Ease::InOutQuad));
@@ -577,15 +551,6 @@ namespace Trinex::UI
 		if (!palette.open && anim.open <= 0.0f)
 		{
 			return false;
-		}
-
-		if (palette.open && anim.open > 0.995f)
-		{
-			anim.open = 1.0f;
-		}
-		else if (!palette.open && anim.open < 0.005f)
-		{
-			anim.open = 0.0f;
 		}
 
 		const float eased = apply_ease(anim.open, Ease::InOutQuad);

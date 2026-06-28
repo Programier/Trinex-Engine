@@ -736,15 +736,6 @@ namespace Trinex::UI
 		anim.hover  = approach(anim.hover, hovered ? 1.0f : 0.0f);
 		anim.active = approach(anim.active, active ? 1.0f : 0.0f);
 		anim.open   = approach(anim.open, open ? 1.0f : 0.0f);
-
-		if (open && anim.open > 0.995f)
-		{
-			anim.open = 1.0f;
-		}
-		else if (!open && anim.open < 0.005f)
-		{
-			anim.open = 0.0f;
-		}
 		const float open_t = apply_ease(anim.open, Ease::InOutQuad);
 
 		ImDrawList* draw = ImGui::GetWindowDrawList();
