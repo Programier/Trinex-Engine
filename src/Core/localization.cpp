@@ -2,7 +2,6 @@
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/directory_iterator.hpp>
 #include <Core/localization.hpp>
-#include <Core/logger.hpp>
 #include <Core/memory.hpp>
 #include <Core/object.hpp>
 #include <Engine/project.hpp>
@@ -42,7 +41,7 @@ namespace Trinex
 			}
 		}
 
-		error_log("Localization", "Failed to get localized string for line '%s'", line.data());
+		trinex_error(Log::Core, "Failed to get localized string for line '%s'", line.data());
 		return Name::none.to_string();
 	}
 
@@ -86,7 +85,7 @@ namespace Trinex
 		{
 			if (entry.extension() != Constants::translation_config_extension)
 				continue;
-			info_log("Localization", "Loading localization file '%s'", entry.c_str());
+			trinex_info(Log::Core, "Loading localization file '%s'", entry.c_str());
 
 			FileReader reader(entry);
 			if (!reader.is_open())

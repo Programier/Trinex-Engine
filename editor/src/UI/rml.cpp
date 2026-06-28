@@ -4,7 +4,6 @@
 #include <Core/filesystem/directory_iterator.hpp>
 #include <Core/filesystem/file.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
-#include <Core/logger.hpp>
 #include <Core/math/math.hpp>
 #include <Core/profiler.hpp>
 #include <Core/reflection/class.hpp>
@@ -62,8 +61,8 @@ namespace Trinex::UI
 				}
 				else
 				{
-					error_log("RML", "Failed to find controller '%s' for element id '%s'", controller_name.c_str(),
-					          element->GetId().c_str());
+					trinex_error(Log::General, "Failed to find controller '%s' for element id '%s'", controller_name.c_str(),
+					             element->GetId().c_str());
 				}
 			}
 

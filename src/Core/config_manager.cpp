@@ -1,7 +1,6 @@
 #include <Core/config_manager.hpp>
 #include <Core/etl/set.hpp>
 #include <Core/file_manager.hpp>
-#include <Core/logger.hpp>
 #include <Core/types/path.hpp>
 #include <Engine/project.hpp>
 #include <ScriptEngine/script_context.hpp>
@@ -22,7 +21,7 @@ namespace Trinex::ConfigManager
 		FileReader reader(Path(Project::configs_dir) / config_file);
 		if (!reader.is_open())
 		{
-			warn_log("ConfigManager", "Failed to load config '%s'", config_file.c_str());
+			trinex_warning(Log::Core, "Failed to load config '%s'", config_file.c_str());
 			return "";
 		}
 
@@ -44,7 +43,7 @@ namespace Trinex::ConfigManager
 
 		if (config.empty())
 		{
-			warn_log("Config", "Config code is empty!");
+			trinex_warning(Log::Core, "Config code is empty!");
 			return -1;
 		}
 
@@ -56,7 +55,7 @@ namespace Trinex::ConfigManager
 	{
 		if (config.empty())
 		{
-			warn_log("Config", "Config code is empty!");
+			trinex_warning(Log::Core, "Config code is empty!");
 			return true;// It theory, this should not be a critical error
 		}
 

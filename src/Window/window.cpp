@@ -1,6 +1,5 @@
 #include <Core/base_engine.hpp>
 #include <Core/garbage_collector.hpp>
-#include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/threading.hpp>
 #include <Core/viewport_client.hpp>

@@ -1,6 +1,4 @@
 #include <Core/joystick.hpp>
-#include <Core/logger.hpp>
-
 
 namespace Trinex
 {
@@ -8,7 +6,7 @@ namespace Trinex
 
 	Joystick::Joystick(Identifier ID) : m_ID(ID)
 	{
-		info_log("Joystick", "Created new joystick instance with ID %zu", ID);
+		trinex_info(Log::Input, "Created new joystick instance with ID %zu", ID);
 		m_joysticks[ID] = this;
 
 		//   SDL_Joystick* sdl_joystick = SDL_JoystickOpen(ID);
@@ -38,7 +36,7 @@ namespace Trinex
 
 	Joystick::~Joystick()
 	{
-		info_log("Joystick", "Removed joystick instance with ID %zu", m_ID);
+		trinex_info(Log::Input, "Removed joystick instance with ID %zu", m_ID);
 		m_joysticks.erase(id());
 
 		//SDL_Joystick* joystick = reinterpret_cast<SDL_Joystick*>(m_SDL_joystick);

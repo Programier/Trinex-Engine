@@ -1,7 +1,6 @@
 #include <Core/arguments.hpp>
 #include <Core/entry_point.hpp>
 #include <Core/etl/script_array.hpp>
-#include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
@@ -26,13 +25,13 @@ namespace Trinex
 
 			if (module_argument == nullptr || module_argument->type != Arguments::Type::String)
 			{
-				error_log("ScriptExec", "Failed to get module name!");
+				trinex_error(Log::Scripting, "Failed to get module name!");
 				return -1;
 			}
 
 			if (function_argument == nullptr || function_argument->type != Arguments::Type::String)
 			{
-				error_log("ScriptExec", "Failed to get function name!");
+				trinex_error(Log::Scripting, "Failed to get function name!");
 				return -1;
 			}
 
@@ -41,7 +40,7 @@ namespace Trinex
 
 			if (!module.is_valid())
 			{
-				error_log("ScriptExec", "Failed to get script module!");
+				trinex_error(Log::Scripting, "Failed to get script module!");
 				return -1;
 			}
 
@@ -49,13 +48,13 @@ namespace Trinex
 
 			if (!function.is_valid())
 			{
-				error_log("ScriptExec", "Failed to get script function!");
+				trinex_error(Log::Scripting, "Failed to get script function!");
 				return -1;
 			}
 
 			if (function.param_count() != 0)
 			{
-				error_log("ScriptExec", "Script function must have only 0 parameters");
+				trinex_error(Log::Scripting, "Script function must have only 0 parameters");
 				return -1;
 			}
 

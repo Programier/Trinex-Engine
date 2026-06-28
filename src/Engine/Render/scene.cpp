@@ -1,5 +1,4 @@
 #include <Core/etl/algorithm.hpp>
-#include <Core/logger.hpp>
 #include <Core/math/box.hpp>
 #include <Core/math/math.hpp>
 #include <Core/memory.hpp>

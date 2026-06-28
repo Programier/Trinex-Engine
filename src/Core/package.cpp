@@ -1,5 +1,4 @@
 #include <Core/constants.hpp>
-#include <Core/logger.hpp>
 #include <Core/package.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
@@ -18,20 +17,20 @@ namespace Trinex
 
 		if (object->is_noname())
 		{
-			error_log("Package", "Cannot add no name object to package!");
+			trinex_error(Log::Core, "Cannot add no name object to package!");
 			return false;
 		}
 
 		if (!object->is_valid())
 		{
-			error_log("Package", "Cannot add invalid object to package");
+			trinex_error(Log::Core, "Cannot add invalid object to package");
 			return false;
 		}
 
 		if (contains_object(object->name()))
 		{
-			error_log("Package", "Cannot add object to package. Object with name '%s' already exist in package!",
-			          object->string_name().c_str());
+			trinex_error(Log::Core, "Cannot add object to package. Object with name '%s' already exist in package!",
+			             object->string_name().c_str());
 			return false;
 		}
 		return true;
@@ -80,7 +79,7 @@ namespace Trinex
 	{
 		if (!is_serializable())
 		{
-			error_log("Package", "Cannot save non-serializable package!");
+			trinex_error(Log::Core, "Cannot save non-serializable package!");
 			return false;
 		}
 

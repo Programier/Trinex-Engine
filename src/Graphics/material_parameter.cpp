@@ -1,7 +1,6 @@
 #include <Core/archive.hpp>
 #include <Core/default_resources.hpp>
 #include <Core/etl/flat_map.hpp>
-#include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/property.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>

@@ -1,7 +1,6 @@
 #include <Core/base_engine.hpp>
 #include <Core/entry_point.hpp>
 #include <Core/file_manager.hpp>
-#include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 
 namespace Trinex

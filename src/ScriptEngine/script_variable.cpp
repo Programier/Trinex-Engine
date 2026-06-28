@@ -1,4 +1,3 @@
-#include <Core/logger.hpp>
 #include <Core/memory.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_module.hpp>
@@ -129,7 +128,7 @@ namespace Trinex
 	{
 		if (var_address == nullptr && !is_handle())
 		{
-			error_log("ScriptVariableBase", "Cannot assing invalid object!");
+			trinex_error(Log::Scripting, "Cannot assing invalid object!");
 			return false;
 		}
 
@@ -154,7 +153,7 @@ namespace Trinex
 		{
 			if (m_address == nullptr)
 			{
-				error_log("ScriptVariableBase", "Cannot assing object: Current object is invalid!");
+				trinex_error(Log::Scripting, "Cannot assing object: Current object is invalid!");
 				return false;
 			}
 
@@ -162,7 +161,7 @@ namespace Trinex
 
 			if (engine->AssignScriptObject(m_address, var_address, type_info().info()) < 0)
 			{
-				error_log("ScriptVariableBase", "Failed to assing new object");
+				trinex_error(Log::Scripting, "Failed to assing new object");
 				return false;
 			}
 		}
@@ -233,7 +232,7 @@ namespace Trinex
 			if (m_address == nullptr)
 			{
 				release();
-				error_log("ScriptVariableBase", "Failed to create script object!");
+				trinex_error(Log::Scripting, "Failed to create script object!");
 				return false;
 			}
 		}
@@ -268,7 +267,7 @@ namespace Trinex
 			if (m_address == nullptr)
 			{
 				release();
-				error_log("ScriptVariableBase", "Failed to create script object!");
+				trinex_error(Log::Scripting, "Failed to create script object!");
 				return false;
 			}
 		}
@@ -429,7 +428,7 @@ namespace Trinex
 			if (m_address == nullptr)
 			{
 				release();
-				error_log("ScriptVariableBase", "Failed to create script object!");
+				trinex_error(Log::Scripting, "Failed to create script object!");
 				return false;
 			}
 		}
@@ -464,7 +463,7 @@ namespace Trinex
 			if (m_address == nullptr)
 			{
 				release();
-				error_log("ScriptVariableBase", "Failed to create script object!");
+				trinex_error(Log::Scripting, "Failed to create script object!");
 				return false;
 			}
 		}
@@ -487,7 +486,7 @@ namespace Trinex
 		i32 type_id = ScriptEngine::type_id_by_decl(type_declaration);
 		if (type_id < 0)
 		{
-			error_log("ScriptVariableBase", "Cannot create script variable, because type_id is invalid!");
+			trinex_error(Log::Scripting, "Cannot create script variable, because type_id is invalid!");
 			return false;
 		}
 		return create(src_address, type_id, handle_is_object, modifiers);
@@ -499,7 +498,7 @@ namespace Trinex
 		i32 type_id = find_type_id_internal(type_declaration, module);
 		if (type_id < 0)
 		{
-			error_log("ScriptVariableBase", "Cannot create script variable, because type_id is invalid!");
+			trinex_error(Log::Scripting, "Cannot create script variable, because type_id is invalid!");
 			return false;
 		}
 		return create(src_address, type_id, handle_is_object, modifiers);
@@ -515,7 +514,7 @@ namespace Trinex
 		i32 type_id = ScriptEngine::type_id_by_decl(type_declaration);
 		if (type_id < 0)
 		{
-			error_log("ScriptVariableBase", "Cannot create script variable, because type_id is invalid!");
+			trinex_error(Log::Scripting, "Cannot create script variable, because type_id is invalid!");
 			return false;
 		}
 		return create(type_id, is_uninitialized);
@@ -526,7 +525,7 @@ namespace Trinex
 		i32 type_id = find_type_id_internal(type_declaration, module);
 		if (type_id < 0)
 		{
-			error_log("ScriptVariableBase", "Cannot create script variable, because type_id is invalid!");
+			trinex_error(Log::Scripting, "Cannot create script variable, because type_id is invalid!");
 			return false;
 		}
 		return create(type_id, is_uninitialized);

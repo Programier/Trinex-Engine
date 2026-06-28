@@ -1,7 +1,6 @@
 #include <Core/base_engine.hpp>
 #include <Core/engine_loop.hpp>
 #include <Core/export.hpp>
-#include <Core/logger.hpp>
 #include <Platform/platform.hpp>
 
 FORCE_ENGINE_EXPORT int main(int argc, const char** argv)

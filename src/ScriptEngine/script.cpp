@@ -3,7 +3,6 @@
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/directory_iterator.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
-#include <Core/logger.hpp>
 #include <Core/reflection/script_class.hpp>
 #include <Core/string_functions.hpp>
 #include <Engine/project.hpp>
@@ -461,13 +460,13 @@ namespace Trinex
 
 		if (builder.StartNewModule(ScriptEngine::engine(), module_name.data()) < 0)
 		{
-			error_log("Script", "Failed to start new module!");
+			trinex_error(Log::Scripting, "Failed to start new module!");
 			return false;
 		}
 
 		if (builder.AddSectionFromMemory(path().c_str(), m_code.data(), m_code.size()) < 0)
 		{
-			error_log("Script", "Failed to add script section!");
+			trinex_error(Log::Scripting, "Failed to add script section!");
 			return false;
 		}
 

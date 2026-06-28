@@ -1,5 +1,4 @@
 #include <Core/etl/templates.hpp>
-#include <Core/logger.hpp>
 #include <Core/memory.hpp>
 #include <Core/profiler.hpp>
 #include <Core/reflection/class.hpp>
@@ -457,7 +456,7 @@ namespace Trinex
 		}
 		else
 		{
-			error_log("VulkanPipeline", "Cannot init pipeline, because 'Compute' shader is not valid");
+			trinex_error(Log::RHI, "Cannot init pipeline, because 'Compute' shader is not valid");
 		}
 
 		create_layout(desc.parameters, desc.parameters_count, vk::ShaderStageFlagBits::eCompute);
@@ -466,7 +465,7 @@ namespace Trinex
 		auto result = VulkanAPI::instance()->m_device.createComputePipeline({}, info);
 		if (result.result != vk::Result::eSuccess)
 		{
-			error_log("VulkanComputePipeline", "Failed to create pipeline");
+			trinex_error(Log::RHI, "Failed to create pipeline");
 		}
 
 		m_pipeline = result.value;

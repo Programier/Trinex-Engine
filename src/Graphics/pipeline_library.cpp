@@ -1,6 +1,5 @@
 #include <Core/file_manager.hpp>
 #include <Core/garbage_collector.hpp>
-#include <Core/logger.hpp>
 #include <Core/package.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
@@ -92,7 +91,7 @@ namespace Trinex
 
 		if (default_pipeline == nullptr)
 		{
-			error_log("GlobalPipelineLibrary", "Failed to create default pipeline instance for '%s'", full_name().c_str());
+			trinex_error(Log::Graphics, "Failed to create default pipeline instance for '%s'", full_name().c_str());
 			return false;
 		}
 
@@ -134,10 +133,9 @@ namespace Trinex
 
 			if (!cache.store_by_hash(result.shader_hash))
 			{
-				warn_log("GlobalPipelineLibrary", "Failed to store shader cache for hash '%s'",
-				         Strings::format("{:016x}{:016x}", static_cast<u64>(result.shader_hash >> 64),
-				                         static_cast<u64>(result.shader_hash))
-				                 .c_str());
+				String message = Strings::format("{:016x}{:016x}", static_cast<u64>(result.shader_hash >> 64),
+				                                 static_cast<u64>(result.shader_hash));
+				trinex_warning(Log::Graphics, "Failed to store shader cache for hash '%s'", message.c_str());
 			}
 		}
 
@@ -149,8 +147,7 @@ namespace Trinex
 
 		if (pipeline == nullptr)
 		{
-			error_log("GlobalPipelineLibrary", "Failed to create pipeline instance for permutation '%s'",
-			          result.permutation.c_str());
+			trinex_error(Log::Graphics, "Failed to create pipeline instance for permutation '%s'", result.permutation.c_str());
 			return false;
 		}
 
@@ -167,7 +164,7 @@ namespace Trinex
 
 			if (compiler == nullptr)
 			{
-				error_log("PipelineLibrary", "Failed to find shader compiler");
+				trinex_error(Log::Graphics, "Failed to find shader compiler");
 				return false;
 			}
 		}
@@ -178,7 +175,7 @@ namespace Trinex
 
 		if (!reader.is_open())
 		{
-			error_log("PipelineLibrary", "Failed to open shader module '%s'", path);
+			trinex_error(Log::Graphics, "Failed to open shader module '%s'", path);
 			return false;
 		}
 
@@ -186,7 +183,7 @@ namespace Trinex
 
 		if (source.empty())
 		{
-			error_log("PipelineLibrary", "Shader module '%s' is empty", path);
+			trinex_error(Log::Graphics, "Shader module '%s' is empty", path);
 			return false;
 		}
 

@@ -1,4 +1,3 @@
-#include <Core/logger.hpp>
 #include <Core/memory.hpp>
 #include <Core/profiler.hpp>
 #include <Core/threading.hpp>
@@ -62,7 +61,7 @@ namespace Trinex
 
 	VulkanSwapchain& VulkanSwapchain::create_swapchain(vk::SwapchainKHR* old)
 	{
-		info_log("Vulkan API", "Creating new swapchain");
+		trinex_info(Log::RHI, "Creating new swapchain");
 		m_need_recreate = false;
 
 		vkb::SwapchainBuilder builder(VulkanAPI::instance()->m_physical_device, VulkanAPI::instance()->m_device, m_surface,
@@ -173,7 +172,7 @@ namespace Trinex
 
 		if (result.result == vk::Result::eErrorValidationFailedEXT)
 		{
-			error_log("Vulkan", "vkAcquireNextImageKHR failed with validation error");
+			trinex_error(Log::RHI, "vkAcquireNextImageKHR failed with validation error");
 		}
 		else if (result.result != vk::Result::eSuccess && result.result != vk::Result::eSuboptimalKHR)
 		{
@@ -237,7 +236,7 @@ namespace Trinex
 			}
 			else if (status == Status::SurfaceLost)
 			{
-				warn_log("Vulkan", "Swapchain surface lost");
+				trinex_warning(Log::RHI, "Swapchain surface lost");
 			}
 			else
 			{

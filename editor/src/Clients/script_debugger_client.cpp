@@ -1,7 +1,6 @@
 #include <Clients/script_debuger_client.hpp>
 #include <Core/base_engine.hpp>
 #include <Core/editor_config.hpp>
-#include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/threading.hpp>
 #include <Graphics/render_viewport.hpp>
@@ -378,7 +377,7 @@ namespace Trinex
 
 				if (!m_script_for_popup->save())
 				{
-					error_log("ScriptDebugger", "Failed to save script '%s'", m_script_for_popup->path().c_str());
+					trinex_error(Log::Scripting, "Failed to save script '%s'", m_script_for_popup->path().c_str());
 				}
 				ImGui::CloseCurrentPopup();
 			}

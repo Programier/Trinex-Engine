@@ -1,6 +1,5 @@
 #include <Core/file_manager.hpp>
 #include <Core/group.hpp>
-#include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Core/reflection/property.hpp>
@@ -60,10 +59,10 @@ export Material main<Material : IMaterial>(in IMaterialInput input)
 	{
 		if (m_nodes.size() == std::numeric_limits<u16>::max())
 		{
-			error_log("VisualMaterialGraph",
-			          "The limit of %d nodes has been reached. Take a look at the material — you're "
-			          "clearly doing something wrong...",
-			          std::numeric_limits<u16>::max());
+			trinex_error(Log::Graphics,
+			             "The limit of %d nodes has been reached. Take a look at the material — you're "
+			             "clearly doing something wrong...",
+			             std::numeric_limits<u16>::max());
 
 			return nullptr;
 		}

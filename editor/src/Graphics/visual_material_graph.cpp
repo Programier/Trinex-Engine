@@ -1,5 +1,4 @@
 #include <Core/group.hpp>
-#include <Core/logger.hpp>
 #include <Core/memory.hpp>
 #include <Core/reflection/class.hpp>
 #include <Graphics/visual_material.hpp>

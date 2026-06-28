@@ -1,5 +1,4 @@
 #include <Core/file_manager.hpp>
-#include <Core/logger.hpp>
 #include <Core/math/math.hpp>
 #include <Engine/font.hpp>
 #include <Image/image.hpp>
@@ -19,7 +18,7 @@ namespace Trinex
 	{
 		if (FT_Done_FreeType(m_library))
 		{
-			error_log("Font", "Failed to terminate FreeType library!");
+			trinex_error(Log::Core, "Failed to terminate FreeType library!");
 		}
 	}
 
@@ -72,7 +71,7 @@ namespace Trinex
 
 		if (FT_New_Memory_Face(m_library, buffer, size, 0, &make_face(m_font)))
 		{
-			error_log("Font", "Failed to create font face!");
+			trinex_error(Log::Core, "Failed to create font face!");
 			close();
 			return false;
 		}
@@ -168,7 +167,7 @@ namespace Trinex
 
 		if (config->font_size.y == 0)
 		{
-			error_log("FontConfig", "font_size.y cannot be 0!");
+			trinex_error(Log::Core, "font_size.y cannot be 0!");
 			return image;
 		}
 

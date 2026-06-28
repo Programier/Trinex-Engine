@@ -1,5 +1,4 @@
 #include <Core/etl/templates.hpp>
-#include <Core/logger.hpp>
 #include <Core/string_functions.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>

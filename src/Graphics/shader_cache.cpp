@@ -3,7 +3,6 @@
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/lifecycle.hpp>
-#include <Core/logger.hpp>
 #include <Core/reflection/struct.hpp>
 #include <Core/string_functions.hpp>
 #include <Engine/project.hpp>
@@ -57,7 +56,7 @@ namespace Trinex
 	}
 
 	template<typename T>
-	static bool load_shader_cache(T* cache, const StringView& object_path, StringView rhi_name, const char* tag)
+	static bool load_shader_cache(T* cache, const StringView& object_path, StringView rhi_name)
 	{
 		rhi_name  = find_rhi_name(rhi_name);
 		Path path = find_path(object_path, rhi_name);
@@ -65,7 +64,7 @@ namespace Trinex
 
 		if (!reader.is_open())
 		{
-			error_log(tag, "Failed to open file '%s'", path.c_str());
+			trinex_error(Log::Graphics, "Failed to open file '%s'", path.c_str());
 			return false;
 		}
 
@@ -74,7 +73,7 @@ namespace Trinex
 	}
 
 	template<typename T>
-	static bool store_shader_cache(const T* cache, const StringView& object_path, StringView rhi_name, const char* tag)
+	static bool store_shader_cache(const T* cache, const StringView& object_path, StringView rhi_name)
 	{
 		rhi_name  = find_rhi_name(rhi_name);
 		Path path = find_path(object_path, rhi_name);
@@ -83,7 +82,7 @@ namespace Trinex
 
 		if (!writer.is_open())
 		{
-			error_log(tag, "Failed to open file '%s'", path.c_str());
+			trinex_error(Log::Graphics, "Failed to open file '%s'", path.c_str());
 			return false;
 		}
 
@@ -98,12 +97,12 @@ namespace Trinex
 
 	bool GraphicsShaderCache::load(const StringView& object_path, StringView rhi_name)
 	{
-		return load_shader_cache(this, object_path, rhi_name, "GraphicsShaderCache");
+		return load_shader_cache(this, object_path, rhi_name);
 	}
 
 	bool GraphicsShaderCache::store(const StringView& object_path, StringView rhi_name) const
 	{
-		return store_shader_cache(this, object_path, rhi_name, "GraphicsShaderCache");
+		return store_shader_cache(this, object_path, rhi_name);
 	}
 
 	static inline void copy_buffer(Buffer& buffer, Shader* shader)
@@ -190,12 +189,12 @@ namespace Trinex
 
 	bool ComputeShaderCache::load(const StringView& object_path, StringView rhi_name)
 	{
-		return load_shader_cache(this, object_path, rhi_name, "ComputeShaderCache");
+		return load_shader_cache(this, object_path, rhi_name);
 	}
 
 	bool ComputeShaderCache::store(const StringView& object_path, StringView rhi_name) const
 	{
-		return store_shader_cache(this, object_path, rhi_name, "ComputeShaderCache");
+		return store_shader_cache(this, object_path, rhi_name);
 	}
 
 	bool ComputeShaderCache::serialize(Archive& ar)
@@ -247,7 +246,7 @@ namespace Trinex
 
 		if (!writer.is_open())
 		{
-			error_log("PipelineLibraryCache", "Failed to open file '%s'", path.c_str());
+			trinex_error(Log::Graphics, "Failed to open file '%s'", path.c_str());
 			return false;
 		}
 
@@ -329,7 +328,7 @@ namespace Trinex
 
 		if (!writer.is_open())
 		{
-			error_log("PipelineLibraryCacheManifest", "Failed to open file '%s'", path.c_str());
+			trinex_error(Log::Graphics, "Failed to open file '%s'", path.c_str());
 			return false;
 		}
 
@@ -364,7 +363,7 @@ namespace Trinex
 	{
 		if (!PipelineLibraryCacheManifest::instance().store())
 		{
-			error_log("PipelineLibraryCacheManifest", "Failed to store pipeline library cache manifest");
+			trinex_error(Log::Graphics, "Failed to store pipeline library cache manifest");
 		}
 	}
 }// namespace Trinex

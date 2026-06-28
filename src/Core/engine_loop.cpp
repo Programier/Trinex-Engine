@@ -8,7 +8,6 @@
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/library.hpp>
-#include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/struct.hpp>
 #include <Core/string_functions.hpp>
@@ -73,7 +72,7 @@ namespace Trinex
 
 	i32 EngineLoop::preinit(i32 argc, const char** argv)
 	{
-		info_log("TrinexEngine", "Start engine!");
+		trinex_info(Log::Core, "Start engine!");
 
 		Arguments arguments;
 		arguments.init(argc, argv);
@@ -101,7 +100,7 @@ namespace Trinex
 
 		if (engine_instance == nullptr)
 		{
-			error_log("EngineLoop", "Failed to create engine instance!");
+			trinex_error(Log::Core, "Failed to create engine instance!");
 			return -1;
 		}
 
@@ -176,7 +175,7 @@ namespace Trinex
 
 	void EngineLoop::terminate()
 	{
-		info_log("EngineInstance", "Terminate Engine");
+		trinex_info(Log::Core, "Terminate Engine");
 
 		LifeCycle::execute(LifeCycle::Shutdown);
 		engine_instance->terminate();

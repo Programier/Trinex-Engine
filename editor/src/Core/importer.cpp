@@ -3,7 +3,6 @@
 #include <Core/etl/variant.hpp>
 #include <Core/etl/vector.hpp>
 #include <Core/importer.hpp>
-#include <Core/logger.hpp>
 #include <Core/math/math.hpp>
 #include <Core/memory.hpp>
 #include <Core/package.hpp>
@@ -785,17 +784,17 @@ namespace Trinex::Importer
 
 			if (!ok)
 			{
-				error_log("Importer", "Failed to load scene!");
+				trinex_error(Log::Core, "Failed to load scene!");
 			}
 
 			if (!warn.empty())
 			{
-				warn_log("Importer", "%s", warn.c_str());
+				trinex_warning(Log::Core, "%s", warn.c_str());
 			}
 
 			if (!err.empty())
 			{
-				error_log("Importer", "%s", err.c_str());
+				trinex_error(Log::Core, "%s", err.c_str());
 			}
 
 			m_meshes.resize(model.meshes.size());

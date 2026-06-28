@@ -1,4 +1,3 @@
-#include <Core/logger.hpp>
 #include <Core/object.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>

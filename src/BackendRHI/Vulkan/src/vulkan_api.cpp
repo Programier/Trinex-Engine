@@ -1,6 +1,5 @@
 ﻿#include <VkBootstrap.h>
 
-#include <Core/logger.hpp>
 #include <Core/memory.hpp>
 #include <Core/profiler.hpp>
 #include <Core/reflection/struct.hpp>
@@ -44,17 +43,21 @@ namespace Trinex
 	{
 #define has_bit(bit) ((message_severity & bit) == bit)
 
-		if (has_bit(VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) || has_bit(VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT))
+		if (has_bit(VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT))
 		{
-			info_log("Vulkan API", "%s", callback_data->pMessage);
+			trinex_debug(Log::RHI, "%s", callback_data->pMessage);
+		}
+		else if (has_bit(VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT))
+		{
+			trinex_info(Log::RHI, "%s", callback_data->pMessage);
 		}
 		else if (has_bit(VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT))
 		{
-			warn_log("Vulkan API", "%s", callback_data->pMessage);
+			trinex_warning(Log::RHI, "%s", callback_data->pMessage);
 		}
 		else if (has_bit(VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT))
 		{
-			error_log("Vulkan API", "%s", callback_data->pMessage);
+			trinex_error(Log::RHI, "%s", callback_data->pMessage);
 		}
 
 		return VK_FALSE;
@@ -245,7 +248,7 @@ namespace Trinex
 			m_physical_device.getProperties2(&props);
 		}
 
-		info_log("Vulkan", "Selected GPU '%s'", info.renderer.c_str());
+		trinex_info(Log::RHI, "Selected GPU '%s'", info.renderer.c_str());
 
 		// Initialize device
 		auto bootstrap_device = build_device(selected_device);

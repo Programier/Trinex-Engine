@@ -1,4 +1,3 @@
-#include <Core/logger.hpp>
 #include <Core/reflection/struct.hpp>
 #include <Image/image.hpp>
 #include <Platform/platform.hpp>
@@ -257,7 +256,7 @@ namespace Trinex
 		        SDL_CreateRGBSurfaceFrom(data, width, height, channels * 8, width * channels, r_mask, g_mask, b_mask, a_mask);
 		if (surface == nullptr)
 		{
-			error_log("WindowSDL", "Failed to create surface from image: %s", SDL_GetError());
+			trinex_error(Log::Platform, "Failed to create surface from image: %s", SDL_GetError());
 		}
 		return surface;
 	}
@@ -276,7 +275,7 @@ namespace Trinex
 		}
 		else
 		{
-			error_log("WindowSDL", "Window icon format must be RGB or RGBA!");
+			trinex_error(Log::Platform, "Window icon format must be RGB or RGBA!");
 		}
 
 		return *this;
@@ -301,7 +300,7 @@ namespace Trinex
 		}
 		else
 		{
-			error_log("WindowSDL", "Window icon format must be RGB or RGBA!");
+			trinex_error(Log::Platform, "Window icon format must be RGB or RGBA!");
 		}
 
 		return *this;

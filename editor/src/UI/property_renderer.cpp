@@ -4,7 +4,6 @@
 #include <Core/etl/algorithm.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/icons.hpp>
-#include <Core/logger.hpp>
 #include <Core/object.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>

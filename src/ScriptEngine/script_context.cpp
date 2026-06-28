@@ -1,5 +1,4 @@
 #include <Core/etl/templates.hpp>
-#include <Core/logger.hpp>
 #include <Core/math/vector.hpp>
 #include <Core/memory.hpp>
 #include <Core/profiler.hpp>
@@ -36,8 +35,8 @@ namespace Trinex
 
 		if (script)
 		{
-			error_log("ScriptEngine", "Script Exception: %s (Line: %d, Column: %d): %s", script->path().c_str(), line, column,
-			          exception_string);
+			trinex_error(Log::Scripting, "Script Exception: %s (Line: %d, Column: %d): %s", script->path().c_str(), line, column,
+			             exception_string);
 			script->on_exception(script);
 		}
 	}

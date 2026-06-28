@@ -1,6 +1,5 @@
 #include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
-#include <Core/logger.hpp>
 #include <Core/object.hpp>
 #include <Core/package.hpp>
 #include <Core/reflection/class.hpp>
@@ -221,7 +220,7 @@ namespace Trinex
 
 			if (self == nullptr)
 			{
-				error_log("Archive", "Cannot load object. Class '%s' not found!", hierarchy.front().c_str());
+				trinex_error(Log::Core, "Cannot load object. Class '%s' not found!", hierarchy.front().c_str());
 				return false;
 			}
 
@@ -229,7 +228,7 @@ namespace Trinex
 
 			if (object == nullptr)
 			{
-				error_log("Archive", "Cannot create object of class '%s'!", hierarchy.front().c_str());
+				trinex_error(Log::Core, "Cannot create object of class '%s'!", hierarchy.front().c_str());
 				return false;
 			}
 
@@ -247,7 +246,7 @@ namespace Trinex
 
 			if (!valid)
 			{
-				error_log("Object", "Failed to load object");
+				trinex_error(Log::Core, "Failed to load object");
 				trx_delete object;
 				object = nullptr;
 			}

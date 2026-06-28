@@ -1,7 +1,6 @@
 #include <Core/arguments.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
-#include <Core/logger.hpp>
 #include <Core/string_functions.hpp>
 #include <Engine/project.hpp>
 #include <Platform/platform.hpp>
@@ -171,7 +170,7 @@ Engine::Project::shader_cache_dir = "{}";
 	{                                                                                                                            \
 		if (with_msg)                                                                                                            \
 		{                                                                                                                        \
-			error_log("Project", "Project value '%s' can't be empty!", #var);                                                    \
+			trinex_error(Log::Engine, "Project value '%s' can't be empty!", #var);                                               \
 		}                                                                                                                        \
 		return false;                                                                                                            \
 	}
@@ -219,7 +218,7 @@ Engine::Project::shader_cache_dir = "{}";
 
 		if (!open_project("TrinexProject.trinex") || !check_initialize(true))
 		{
-			error_log("Project", "Failed to initialize project. Using default project settins!");
+			trinex_error(Log::Engine, "Failed to initialize project. Using default project settins!");
 			setup_default_project();
 		}
 	}

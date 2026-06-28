@@ -1,6 +1,5 @@
 #include <Core/etl/algorithm.hpp>
 #include <Core/garbage_collector.hpp>
-#include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
 #include <Graphics/pipeline.hpp>
@@ -101,16 +100,19 @@ namespace Trinex
 	{
 		bool found_result = false;
 
-		return compile(env, [&](const ShaderCompilationResult& current_result) {
-			if (found_result)
-			{
-				error_log("ShaderCompiler", "Expected a single permutation result, but compiler produced multiple permutations");
-				return false;
-			}
+		return compile(env,
+		               [&](const ShaderCompilationResult& current_result) {
+			               if (found_result)
+			               {
+				               trinex_error(Log::Graphics,
+				                            "Expected a single permutation result, but compiler produced multiple permutations");
+				               return false;
+			               }
 
-			result       = current_result;
-			found_result = true;
-			return true;
-		}) && found_result;
+			               result       = current_result;
+			               found_result = true;
+			               return true;
+		               }) &&
+		       found_result;
 	}
 }// namespace Trinex

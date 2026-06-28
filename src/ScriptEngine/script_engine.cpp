@@ -1,6 +1,5 @@
 #include <Core/etl/array.hpp>
 #include <Core/etl/templates.hpp>
-#include <Core/logger.hpp>
 #include <Core/stacktrace.hpp>
 #include <Core/string_functions.hpp>
 #include <ScriptEngine/script.hpp>
@@ -47,21 +46,21 @@ namespace Trinex
 	{
 		if (msg->type == asMSGTYPE_WARNING)
 		{
-			warn_log("ScriptEngine", "%s (%d, %d): %s", msg->section, msg->row, msg->col, msg->message);
+			trinex_warning(Log::Scripting, "%s (%d, %d): %s", msg->section, msg->row, msg->col, msg->message);
 		}
 		else if (msg->type == asMSGTYPE_INFORMATION)
 		{
-			info_log("ScriptEngine", "%s (%d, %d): %s", msg->section, msg->row, msg->col, msg->message);
+			trinex_info(Log::Scripting, "%s (%d, %d): %s", msg->section, msg->row, msg->col, msg->message);
 		}
 		else
 		{
 			if (ScriptEngine::exception_on_error)
 			{
 				//trinex_(Strings::format("{} ({}, {}): {}", msg->section, msg->row, msg->col, msg->message));
-				error_log("ScriptEngine", "%s (%d, %d): %s", msg->section, msg->row, msg->col, msg->message);
+				trinex_error(Log::Scripting, "%s (%d, %d): %s", msg->section, msg->row, msg->col, msg->message);
 			}
 			else
-				error_log("ScriptEngine", "%s (%d, %d): %s", msg->section, msg->row, msg->col, msg->message);
+				trinex_error(Log::Scripting, "%s (%d, %d): %s", msg->section, msg->row, msg->col, msg->message);
 		}
 	}
 
@@ -114,7 +113,7 @@ namespace Trinex
 		asSetGlobalMemoryFunctions(angel_script_allocate, angel_script_deallocate);
 
 		data->engine = asCreateScriptEngine(ANGELSCRIPT_VERSION);
-		info_log("ScriptEngine", "Created script engine [%p]", data->engine);
+		trinex_info(Log::Scripting, "Created script engine [%p]", data->engine);
 
 		data->engine->SetEngineProperty(asEP_OPTIMIZE_BYTECODE, 1);
 		data->engine->SetEngineProperty(asEP_ALLOW_UNICODE_IDENTIFIERS, 1);
@@ -127,7 +126,7 @@ namespace Trinex
 #if ARCH_X86_64 || ARCH_ARM
 		if constexpr (enable_jit)
 		{
-			info_log("ScriptEngine", "Enable JIT compiler!");
+			trinex_info(Log::Scripting, "Enable JIT compiler!");
 			data->jit_compiler = trx_new PlatformJitCompiler();
 			data->engine->SetEngineProperty(asEP_INCLUDE_JIT_INSTRUCTIONS, true);
 			data->engine->SetJITCompiler(data->jit_compiler);

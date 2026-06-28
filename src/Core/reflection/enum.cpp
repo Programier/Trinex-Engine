@@ -1,5 +1,4 @@
 #include <Core/constants.hpp>
-#include <Core/logger.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Core/string_functions.hpp>
 #include <ScriptEngine/registrar.hpp>

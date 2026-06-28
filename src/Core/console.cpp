@@ -3,7 +3,6 @@
 #include <Core/etl/charconv.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/file_manager.hpp>
-#include <Core/logger.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/types/path.hpp>
@@ -190,7 +189,7 @@ namespace Trinex::Console
 
 			if (iter != entries.end() && iter->second != entry)
 			{
-				warn_log("Console", "Duplicate console entry '%s' was replaced", entry->name().c_str());
+				trinex_warning(Log::Core, "Duplicate console entry '%s' was replaced", entry->name().c_str());
 			}
 
 			entries[entry->name()] = entry;

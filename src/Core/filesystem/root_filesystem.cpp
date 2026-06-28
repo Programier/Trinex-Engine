@@ -4,7 +4,6 @@
 #include <Core/filesystem/file_watcher.hpp>
 #include <Core/filesystem/redirector.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
-#include <Core/logger.hpp>
 #include <Core/memory.hpp>
 #include <Core/types/path.hpp>
 #include <Platform/platform.hpp>

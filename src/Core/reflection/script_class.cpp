@@ -1,4 +1,3 @@
-#include <Core/logger.hpp>
 #include <Core/reflection/script_class.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script.hpp>
@@ -50,7 +49,7 @@ namespace Trinex::Refl
 
 		if (obj == nullptr)
 		{
-			error_log("ScriptClass", "Failed to create new instance");
+			trinex_error(Log::Scripting, "Failed to create new instance");
 			return nullptr;
 		}
 

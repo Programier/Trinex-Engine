@@ -1,6 +1,5 @@
 #include <Core/etl/map.hpp>
 #include <Core/filesystem/file_watcher.hpp>
-#include <Core/logger.hpp>
 #include <Core/memory.hpp>
 #include <Platform/platform.hpp>
 #include <cerrno>
@@ -71,7 +70,7 @@ namespace Trinex::Platform
 
 				if (wd < 0)
 				{
-					error_log("VFS Watcher", "Failed to watch '%s': %s", directory.c_str(), std::strerror(errno));
+					trinex_error(Log::FileSystem, "Failed to watch '%s': %s", directory.c_str(), std::strerror(errno));
 					return false;
 				}
 
@@ -90,7 +89,7 @@ namespace Trinex::Platform
 				{
 					if (code)
 					{
-						error_log("VFS Watcher", "Failed to enumerate '%s': %s", directory.c_str(), code.message().c_str());
+						trinex_error(Log::FileSystem, "Failed to enumerate '%s': %s", directory.c_str(), code.message().c_str());
 						return false;
 					}
 
@@ -207,7 +206,7 @@ namespace Trinex::Platform
 					{
 						if (size < 0 && errno != EAGAIN && errno != EWOULDBLOCK)
 						{
-							error_log("VFS Watcher", "Failed to read watcher events: %s", std::strerror(errno));
+							trinex_error(Log::FileSystem, "Failed to read watcher events: %s", std::strerror(errno));
 						}
 						break;
 					}
@@ -325,14 +324,14 @@ namespace Trinex::Platform
 
 				if (!fs::exists(watch.watch_root.str()))
 				{
-					warn_log("VFS Watcher", "Watch root '%s' does not exist", watch.watch_root.c_str());
+					trinex_warning(Log::FileSystem, "Watch root '%s' does not exist", watch.watch_root.c_str());
 					return false;
 				}
 
 				watch.fd = inotify_init1(IN_NONBLOCK);
 				if (watch.fd < 0)
 				{
-					error_log("VFS Watcher", "Failed to initialize inotify: %s", std::strerror(errno));
+					trinex_error(Log::FileSystem, "Failed to initialize inotify: %s", std::strerror(errno));
 					return false;
 				}
 

@@ -5,7 +5,6 @@
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/library.hpp>
-#include <Core/logger.hpp>
 #include <Platform/platform.hpp>
 
 
@@ -36,7 +35,7 @@ namespace Trinex
 		void* func = Platform::LibraryLoader::find_function(handle, name);
 
 		if (func == nullptr)
-			error_log("Library", "Failed to load function %s from lib %s\n", name.c_str(), m_libname.c_str());
+			trinex_error(Log::Core, "Failed to load function %s from lib %s\n", name.c_str(), m_libname.c_str());
 
 		return func;
 	}
@@ -71,7 +70,7 @@ namespace Trinex
 			trinex_verify(it->handle == m_handle);
 
 			m_libraries.erase(it);
-			info_log("Library", "Close library: '%s'", m_libname.c_str());
+			trinex_info(Log::Core, "Close library: '%s'", m_libname.c_str());
 			Platform::LibraryLoader::close_library(m_handle);
 		}
 	}
@@ -98,11 +97,11 @@ namespace Trinex
 
 	void Library::close_all()
 	{
-		info_log("LibrariesController", "Closing all opened libs\n");
+		trinex_info(Log::Core, "Closing all opened libs");
 
 		for (auto& ell : m_libraries)
 		{
-			info_log("LibrariesController", "Close library: '%s'", ell.name.c_str());
+			trinex_info(Log::Core, "Close library: '%s'", ell.name.c_str());
 			Platform::LibraryLoader::close_library(ell.handle);
 		}
 		m_libraries.clear();

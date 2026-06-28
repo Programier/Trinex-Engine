@@ -1,5 +1,4 @@
 #include <Core/base_engine.hpp>
-#include <Core/logger.hpp>
 #include <Core/memory.hpp>
 #include <Core/threading.hpp>
 #include <Input/event_system.hpp>
@@ -46,7 +45,7 @@ namespace Trinex::Platform
 		{
 			for (auto& pair : m_game_controllers)
 			{
-				info_log("WindowSDL", "Force close controller with id %d", pair.first);
+				trinex_info(Log::Input, "Force close controller with id %d", pair.first);
 				SDL_GameControllerClose(pair.second);
 			}
 

@@ -1,6 +1,5 @@
 #include <Core/base_engine.hpp>
 #include <Core/garbage_collector.hpp>
-#include <Core/logger.hpp>
 #include <Core/math/math.hpp>
 #include <Core/object.hpp>
 #include <Core/object_listener.hpp>
@@ -44,12 +43,11 @@ namespace Trinex
 		{
 			if (!object->is_noname())
 			{
-				debug_log("Garbage Collector", "Destroy object '%s'", object->string_name().c_str());
+				trinex_debug(Log::Core, "Destroy object '%s'", object->string_name().c_str());
 			}
 			else
 			{
-				debug_log("Garbage Collector", "Destroy noname object with type '%s'",
-				          object->class_instance()->full_name().c_str());
+				trinex_debug(Log::Core, "Destroy noname object with type '%s'", object->class_instance()->full_name().c_str());
 			}
 		}
 

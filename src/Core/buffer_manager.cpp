@@ -1,5 +1,4 @@
 #include <Core/buffer_manager.hpp>
-#include <Core/logger.hpp>
 #include <cstring>
 
 namespace Trinex

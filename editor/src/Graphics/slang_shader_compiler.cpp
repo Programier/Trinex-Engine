@@ -7,7 +7,6 @@
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/garbage_collector.hpp>
-#include <Core/logger.hpp>
 #include <Core/memory.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
@@ -39,31 +38,6 @@
 
 namespace Trinex
 {
-	class CompileLogHandler : public Logger
-	{
-	public:
-		Logger* base   = nullptr;
-		bool has_error = false;
-
-		CompileLogHandler()
-		{
-			base           = Logger::logger;
-			Logger::logger = this;
-		}
-
-		~CompileLogHandler() { Logger::logger = base; }
-
-		Logger& log_msg(const char* tag, const char* msg) override { return base->log_msg(tag, msg); }
-		Logger& debug_msg(const char* tag, const char* msg) override { return base->debug_msg(tag, msg); }
-		Logger& warning_msg(const char* tag, const char* msg) override { return base->warning_msg(tag, msg); }
-		Logger& error_msg(const char* tag, const char* msg) override
-		{
-			if (std::strcmp(tag, "ShaderCompiler") == 0)
-				has_error = true;
-			return base->error_msg(tag, msg);
-		}
-	};
-
 	static slang::IGlobalSession* g_slang_global_session = nullptr;
 
 	class ReflectionParser
@@ -220,7 +194,7 @@ namespace Trinex
 			}
 			else
 			{
-				error_log("ShaderCompiler", "Failed to find semantic '%s'", name.c_str());
+				trinex_error(Log::Graphics, "Failed to find semantic '%s'", name.c_str());
 				return false;
 			}
 		}
@@ -280,7 +254,7 @@ namespace Trinex
 
 				if (semantic_name == nullptr)
 				{
-					error_log("ShaderCompiler", "Cannot find semantic for vertex input '%s'", var->getName());
+					trinex_error(Log::Graphics, "Cannot find semantic for vertex input '%s'", var->getName());
 					return false;
 				}
 
@@ -296,7 +270,7 @@ namespace Trinex
 
 					if (index > max_semantic_index)
 					{
-						error_log("ShaderCompiler", "Unsupported semantic index %zu for semantic %s!", index, semantic_name);
+						trinex_error(Log::Graphics, "Unsupported semantic index %zu for semantic %s!", index, semantic_name);
 						return false;
 					}
 
@@ -308,7 +282,7 @@ namespace Trinex
 			}
 			else
 			{
-				error_log("ShaderCompiler", "Unsupported input variable type!");
+				trinex_error(Log::Graphics, "Unsupported input variable type!");
 				return false;
 			}
 
@@ -418,7 +392,7 @@ namespace Trinex
 
 				if (info.type == RHIShaderParameterType::Undefined)
 				{
-					error_log("ShaderCompiler", "Failed to get parameter type!");
+					trinex_error(Log::Graphics, "Failed to get parameter type!");
 					return false;
 				}
 
@@ -428,7 +402,7 @@ namespace Trinex
 				}
 				else
 				{
-					error_log("ShaderCompiler", "Failed to get parameter layout info!");
+					trinex_error(Log::Graphics, "Failed to get parameter layout info!");
 					return false;
 				}
 				return register_parameter(info);
@@ -520,7 +494,7 @@ namespace Trinex
 						}
 						else
 						{
-							error_log("ShaderCompiler", "Failed to get parameter layout info!");
+							trinex_error(Log::Graphics, "Failed to get parameter layout info!");
 							return false;
 						}
 
@@ -571,8 +545,8 @@ namespace Trinex
 			}
 			else
 			{
-				error_log("ShaderCompiler", "Resource type with name '%s' is not supported as uniform parameters",
-				          param.name.c_str());
+				trinex_error(Log::Graphics, "Resource type with name '%s' is not supported as uniform parameters",
+				             param.name.c_str());
 				return false;
 			}
 
@@ -582,7 +556,6 @@ namespace Trinex
 		bool create_reflection(slang::ShaderReflection* reflection, ShaderCompilationResult::Reflection* out,
 		                       const Span<Slang::ComPtr<slang::IMetadata>>& metadatas, const char* vertex_entry_name)
 		{
-			CompileLogHandler log_handler;
 			m_reflection = out;
 			m_metadatas  = metadatas;
 
@@ -606,7 +579,7 @@ namespace Trinex
 			}
 
 			out = nullptr;
-			return log_handler.has_error == false;
+			return true;
 		}
 	};
 
@@ -798,7 +771,7 @@ namespace Trinex
 				{
 					if (pipeline_attribute->getArgumentCount() != 1)
 					{
-						error_log("ShaderCompiler", "trinex_pipeline attribute must have exactly one argument");
+						trinex_error(Log::Graphics, "trinex_pipeline attribute must have exactly one argument");
 						return false;
 					}
 
@@ -808,7 +781,7 @@ namespace Trinex
 
 					if (name == nullptr)
 					{
-						error_log("ShaderCompiler", "Failed to parse trinex_pipeline attribute");
+						trinex_error(Log::Graphics, "Failed to parse trinex_pipeline attribute");
 						return false;
 					}
 
@@ -826,8 +799,8 @@ namespace Trinex
 							auto& stage_entry = permutation.stage_entries.emplace_back();
 							if (!parse_stage_attribute(attribute, stage_entry))
 							{
-								error_log("ShaderCompiler", "Failed to parse trinex_stage on permutation '%s'",
-								          permutation.name.c_str());
+								trinex_error(Log::Graphics, "Failed to parse trinex_stage on permutation '%s'",
+								             permutation.name.c_str());
 								return false;
 							}
 
@@ -836,8 +809,8 @@ namespace Trinex
 							{
 								if (permutation.stage_entries[stage_index].stage == stage_entry.stage)
 								{
-									error_log("ShaderCompiler", "Duplicate stage '%s' on permutation '%s'",
-									          stage_entry.stage.c_str(), permutation.name.c_str());
+									trinex_error(Log::Graphics, "Duplicate stage '%s' on permutation '%s'",
+									             stage_entry.stage.c_str(), permutation.name.c_str());
 									return false;
 								}
 							}
@@ -848,8 +821,8 @@ namespace Trinex
 						auto& specialization_arg = permutation.specialization_args.emplace_back();
 						if (!parse_specialization_attribute(attribute, specialization_arg))
 						{
-							error_log("ShaderCompiler", "Failed to parse trinex_specialize on permutation '%s'",
-							          permutation.name.c_str());
+							trinex_error(Log::Graphics, "Failed to parse trinex_specialize on permutation '%s'",
+							             permutation.name.c_str());
 							return false;
 						}
 					}
@@ -908,7 +881,7 @@ namespace Trinex
 
 		if (SLANG_FAILED(g_slang_global_session->createSession(desc.session_desc, m_session.writeRef())))
 		{
-			error_log("Shader Compiler", "Failed to create session");
+			trinex_error(Log::Graphics, "Failed to create session");
 			m_session = nullptr;
 		}
 	}
@@ -968,11 +941,11 @@ namespace Trinex
 				{
 					if (module)
 					{
-						warn_log("ShaderCompiler", reinterpret_cast<const char*>(diagnostics->getBufferPointer()));
+						trinex_warning(Log::Graphics, reinterpret_cast<const char*>(diagnostics->getBufferPointer()));
 					}
 					else
 					{
-						error_log("ShaderCompiler", reinterpret_cast<const char*>(diagnostics->getBufferPointer()));
+						trinex_error(Log::Graphics, reinterpret_cast<const char*>(diagnostics->getBufferPointer()));
 						return false;
 					}
 				}
@@ -991,11 +964,11 @@ namespace Trinex
 				{
 					if (module)
 					{
-						warn_log("ShaderCompiler", reinterpret_cast<const char*>(diagnostics->getBufferPointer()));
+						trinex_warning(Log::Graphics, reinterpret_cast<const char*>(diagnostics->getBufferPointer()));
 					}
 					else
 					{
-						error_log("ShaderCompiler", reinterpret_cast<const char*>(diagnostics->getBufferPointer()));
+						trinex_error(Log::Graphics, reinterpret_cast<const char*>(diagnostics->getBufferPointer()));
 						return false;
 					}
 				}
@@ -1052,8 +1025,8 @@ namespace Trinex
 
 				if (info == nullptr)
 				{
-					error_log("ShaderCompiler", "Unsupported shader stage '%s' on permutation '%s'", stage_entry.stage.c_str(),
-					          permutation.name.c_str());
+					trinex_error(Log::Graphics, "Unsupported shader stage '%s' on permutation '%s'", stage_entry.stage.c_str(),
+					             permutation.name.c_str());
 					return false;
 				}
 
@@ -1077,7 +1050,7 @@ namespace Trinex
 
 					if (info.entry)
 					{
-						error_log("ShaderCompiler", "Detected multiple entry points with name '%s'", info.selected_entry_name);
+						trinex_error(Log::Graphics, "Detected multiple entry points with name '%s'", info.selected_entry_name);
 						return false;
 					}
 
@@ -1088,8 +1061,8 @@ namespace Trinex
 
 				if (info.entry == nullptr && info.selected_entry_name != info.default_entry_name)
 				{
-					error_log("ShaderCompiler", "Cannot find entry point '%s' for stage '%s' on permutation '%s'",
-					          info.selected_entry_name, info.stage_name, permutation.name.c_str());
+					trinex_error(Log::Graphics, "Cannot find entry point '%s' for stage '%s' on permutation '%s'",
+					             info.selected_entry_name, info.stage_name, permutation.name.c_str());
 					return false;
 				}
 			}
@@ -1102,7 +1075,7 @@ namespace Trinex
 				                                                composite.writeRef(), diagnostics_blob.writeRef());
 
 				if (diagnostics_blob != nullptr)
-					error_log("ShaderCompiler", "%s", (const char*) diagnostics_blob->getBufferPointer());
+					trinex_error(Log::Graphics, "%s", (const char*) diagnostics_blob->getBufferPointer());
 
 				if (SLANG_FAILED(slang_result))
 					return false;
@@ -1125,7 +1098,7 @@ namespace Trinex
 				                                                 specialized_program.writeRef(), diagnostics_blob.writeRef());
 
 				if (diagnostics_blob != nullptr)
-					error_log("ShaderCompiler", "%s", (const char*) diagnostics_blob->getBufferPointer());
+					trinex_error(Log::Graphics, "%s", (const char*) diagnostics_blob->getBufferPointer());
 
 				if (SLANG_FAILED(slang_result))
 					return false;
@@ -1138,7 +1111,7 @@ namespace Trinex
 				SlangResult slang_result = linked_component->link(program.writeRef(), diagnostics_blob.writeRef());
 
 				if (diagnostics_blob != nullptr)
-					error_log("ShaderCompiler", "%s", (const char*) diagnostics_blob->getBufferPointer());
+					trinex_error(Log::Graphics, "%s", (const char*) diagnostics_blob->getBufferPointer());
 
 				if (SLANG_FAILED(slang_result))
 					return false;
@@ -1155,7 +1128,7 @@ namespace Trinex
 				        program->getEntryPointCode(info.index, 0, code.writeRef(), diagnostics_blob.writeRef());
 
 				if (diagnostics_blob != nullptr)
-					error_log("ShaderCompiler", "%s", (const char*) diagnostics_blob->getBufferPointer());
+					trinex_error(Log::Graphics, "%s", (const char*) diagnostics_blob->getBufferPointer());
 
 				if (SLANG_FAILED(slang_result))
 					return false;
@@ -1170,11 +1143,11 @@ namespace Trinex
 				slang::ProgramLayout* reflection = program->getLayout(0, diagnostics_blob.writeRef());
 
 				if (diagnostics_blob != nullptr)
-					error_log("ShaderCompiler", "%s", (const char*) diagnostics_blob->getBufferPointer());
+					trinex_error(Log::Graphics, "%s", (const char*) diagnostics_blob->getBufferPointer());
 
 				if (!reflection)
 				{
-					error_log("ShaderCompiler", "Failed to get shader reflection!");
+					trinex_error(Log::Graphics, "Failed to get shader reflection!");
 					return false;
 				}
 

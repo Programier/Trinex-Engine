@@ -1,6 +1,5 @@
 #include <Core/engine_types.hpp>
 #include <Core/etl/templates.hpp>
-#include <Core/logger.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
@@ -828,7 +827,7 @@ namespace Trinex
 		{
 			if ((ScriptVector::m_type_id & asTYPEID_APPOBJECT) == 0)
 			{
-				error_log("ScriptVector", "ScriptVector doesn't support script objects!");
+				trinex_error(Log::Scripting, "ScriptVector doesn't support script objects!");
 				return false;
 			}
 
@@ -836,13 +835,13 @@ namespace Trinex
 			{
 				if (T::find_default_constructor() == nullptr)
 				{
-					error_log("ScriptVector", "ScriptVector requires default constructor!");
+					trinex_error(Log::Scripting, "ScriptVector requires default constructor!");
 					return false;
 				}
 
 				if (T::find_copy_constructor() == nullptr)
 				{
-					error_log("ScriptVector", "ScriptVector requires copy constructor!");
+					trinex_error(Log::Scripting, "ScriptVector requires copy constructor!");
 					return false;
 				}
 			}

@@ -1,4 +1,3 @@
-#include <Core/logger.hpp>
 #include <Core/object.hpp>
 #include <Core/reflection/class.hpp>
 #include <ScriptEngine/script_engine.hpp>
@@ -43,7 +42,7 @@ namespace Trinex
 		}
 		else
 		{
-			error_log("ScriptObject", "Type ID '%d' is not class type id!", type_id);
+			trinex_error(Log::Scripting, "Type ID '%d' is not class type id!", type_id);
 		}
 	}
 
@@ -74,7 +73,7 @@ namespace Trinex
 
 		if (!create(object.address(), object.type_id(), true))
 		{
-			error_log("ScriptObject", "Failed to create new object");
+			trinex_error(Log::Scripting, "Failed to create new object");
 			release();
 		}
 
@@ -87,7 +86,7 @@ namespace Trinex
 		{
 			if (!create(variable.address(), variable.type_id(), true))
 			{
-				error_log("ScriptObject", "Failed to convert script variable to script object!");
+				trinex_error(Log::Scripting, "Failed to convert script variable to script object!");
 			}
 		}
 	}
@@ -109,7 +108,7 @@ namespace Trinex
 		{
 			if (!create(variable.address(), variable.type_id(), true))
 			{
-				error_log("ScriptObject", "Failed to convert script variable to script object!");
+				trinex_error(Log::Scripting, "Failed to convert script variable to script object!");
 				release();
 			}
 		}
@@ -129,7 +128,7 @@ namespace Trinex
 	{
 		if (!ScriptEngine::is_object_type(type_id))
 		{
-			error_log("ScriptObject", "Type ID is not refer to object type!");
+			trinex_error(Log::Scripting, "Type ID is not refer to object type!");
 			return false;
 		}
 
@@ -150,7 +149,7 @@ namespace Trinex
 		if (m_address == nullptr)
 		{
 			release();
-			error_log("ScriptObject", "Failed to create script object!");
+			trinex_error(Log::Scripting, "Failed to create script object!");
 			return false;
 		}
 
@@ -172,7 +171,7 @@ namespace Trinex
 	{
 		if (!ScriptEngine::is_object_type(type_id, true))
 		{
-			error_log("ScriptObject", "Type ID is not refer to object or handle type!");
+			trinex_error(Log::Scripting, "Type ID is not refer to object or handle type!");
 			return false;
 		}
 
@@ -187,7 +186,7 @@ namespace Trinex
 			if (m_address == nullptr)
 			{
 				release();
-				error_log("ScriptVariableBase", "Failed to create script object!");
+				trinex_error(Log::Scripting, "Failed to create script object!");
 				return false;
 			}
 		}

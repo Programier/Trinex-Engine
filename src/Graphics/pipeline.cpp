@@ -1,6 +1,5 @@
 #include <Core/archive.hpp>
 #include <Core/garbage_collector.hpp>
-#include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/threading.hpp>
@@ -102,7 +101,7 @@ namespace Trinex
 				return true;
 			}
 
-			error_log("Pipeline", "Parameter with name '%s' already exist!");
+			trinex_error(Log::Graphics, "Parameter with name '%s' already exist!");
 			return false;
 		}
 
@@ -314,7 +313,7 @@ namespace Trinex
 			RenderPass* pass = RenderPass::static_find(pipeline->name());
 			if (pass == nullptr)
 			{
-				error_log("Pipeline", "Failed to find render pass with name '%s'", pipeline->name().c_str());
+				trinex_error(Log::Graphics, "Failed to find render pass with name '%s'", pipeline->name().c_str());
 				return false;
 			}
 
@@ -352,21 +351,21 @@ namespace Trinex
 
 		if (!cache_serialize_result && archive.is_reading())
 		{
-			warn_log("GraphicsPipeline", "Missing shader cache for pipeline '%s'.%s", pipeline_name.c_str(),
-			         material ? " Recompiling..." : "");
+			trinex_warning(Log::Graphics, "Missing shader cache for pipeline '%s'.%s", pipeline_name.c_str(),
+			               material ? " Recompiling..." : "");
 
 			if (material)
 			{
 				if ((cache_serialize_result = compile_pipeline(material, this)))
 				{
-					info_log("GraphicsPipeline", "Compile success!");
+					trinex_info(Log::Graphics, "Compile success!");
 
 					cache.init_from(this);
 					cache.store(pipeline_name);
 				}
 				else
 				{
-					error_log("GraphicsPipeline", "Compile fail!");
+					trinex_error(Log::Graphics, "Compile fail!");
 				}
 			}
 		}

@@ -2,7 +2,6 @@
 #include <Core/base_engine.hpp>
 #include <Core/default_resources.hpp>
 #include <Core/file_manager.hpp>
-#include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Core/reflection/property.hpp>
@@ -154,7 +153,7 @@ namespace Trinex
 				return parameter;
 			}
 
-			error_log("MaterialInterface", "Ambiguous parameter type with name '%s'", name.c_str());
+			trinex_error(Log::Graphics, "Ambiguous parameter type with name '%s'", name.c_str());
 			return nullptr;
 		}
 
@@ -162,7 +161,7 @@ namespace Trinex
 
 		if (class_instance == nullptr)
 		{
-			error_log("MaterialInterface", "Failed to find material parameter class");
+			trinex_error(Log::Graphics, "Failed to find material parameter class");
 			return nullptr;
 		}
 
@@ -170,7 +169,7 @@ namespace Trinex
 
 		if (parameter == nullptr)
 		{
-			error_log("MaterialInterface", "Failed to create material parameter '%s'", name.c_str());
+			trinex_error(Log::Graphics, "Failed to create material parameter '%s'", name.c_str());
 		}
 
 		return parameter;
@@ -271,7 +270,7 @@ namespace Trinex
 	{
 		if (pass == nullptr)
 		{
-			error_log("Material", "Cannot bind pipeline to undefined pass!");
+			trinex_error(Log::Graphics, "Cannot bind pipeline to undefined pass!");
 			return false;
 		}
 
@@ -362,8 +361,9 @@ namespace Trinex
 			{
 				if (pass->is_material_compatible(this) && pipeline(pass) == nullptr)
 				{
-					warn_log("Material", "Material '%s' should support pass '%s', however no pipeline was found. Recompiling...",
-					         material_name.c_str(), pass->name().c_str());
+					trinex_warning(Log::Graphics,
+					               "Material '%s' should support pass '%s', however no pipeline was found. Recompiling...",
+					               material_name.c_str(), pass->name().c_str());
 
 					if (compile(compiler, pass))
 					{
@@ -374,7 +374,7 @@ namespace Trinex
 
 			if (count > 0)
 			{
-				info_log("Material", "'%d' pipelines have been compiled. Saving the material...", count);
+				trinex_info(Log::Graphics, "'%d' pipelines have been compiled. Saving the material...", count);
 				remove_unreferenced_parameters();
 				save();
 			}
@@ -599,7 +599,7 @@ namespace Trinex
 
 			if (compiler == nullptr)
 			{
-				error_log("Material", "Failed to find material compiler");
+				trinex_error(Log::Graphics, "Failed to find material compiler");
 				return false;
 			}
 		}
@@ -607,7 +607,7 @@ namespace Trinex
 		String source;
 		if (!shader_source(source))
 		{
-			error_log("Material", "Failed to get material source");
+			trinex_error(Log::Graphics, "Failed to get material source");
 			return false;
 		}
 

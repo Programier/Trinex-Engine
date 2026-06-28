@@ -3,7 +3,6 @@
 #include <Core/etl/critical_section.hpp>
 #include <Core/etl/pair.hpp>
 #include <Core/etl/vector.hpp>
-#include <Core/logger.hpp>
 #include <Core/math/math.hpp>
 #include <Core/memory.hpp>
 #include <Core/threading.hpp>

@@ -1,5 +1,4 @@
 #include <Core/filesystem/directory_iterator.hpp>
-#include <Core/logger.hpp>
 #include <Core/types/path.hpp>
 #include <cerrno>
 #include <common_file.hpp>
@@ -143,7 +142,7 @@ namespace Trinex::VFS
 			return trx_new WriteOnlyCommonFile(this, full_path, std::move(file));
 		}
 
-		error_log("Common FS", "%s: %s", path.c_str(), std::strerror(errno));
+		trinex_error(Log::FileSystem, "%s: %s", path.c_str(), std::strerror(errno));
 		return nullptr;
 	}
 
@@ -170,7 +169,7 @@ namespace Trinex::VFS
 
 		if (code)
 		{
-			error_log("CommonFS", "%s", code.message().c_str());
+			trinex_error(Log::FileSystem, "%s", code.message().c_str());
 			return false;
 		}
 		return true;
@@ -183,7 +182,7 @@ namespace Trinex::VFS
 
 		if (code)
 		{
-			error_log("CommonFS", "%s", code.message().c_str());
+			trinex_error(Log::FileSystem, "%s", code.message().c_str());
 			return false;
 		}
 		return true;

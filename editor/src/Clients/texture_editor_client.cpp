@@ -2,7 +2,6 @@
 #include <Core/base_engine.hpp>
 #include <Core/default_resources.hpp>
 #include <Core/editor_resources.hpp>
-#include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/threading.hpp>
 #include <Engine/Render/pipelines.hpp>

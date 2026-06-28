@@ -1,5 +1,4 @@
 #include <Core/etl/scope_variable.hpp>
-#include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>

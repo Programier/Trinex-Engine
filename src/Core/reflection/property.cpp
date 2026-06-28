@@ -1,6 +1,5 @@
 #include <Core/archive.hpp>
 #include <Core/etl/templates.hpp>
-#include <Core/logger.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Core/reflection/property.hpp>
@@ -306,7 +305,7 @@ namespace Trinex::Refl
 
 				if (!obj)
 				{
-					error_log("ReflObjectProperty", "Failed to find reflection object '%s'", name.c_str());
+					trinex_error(Log::Reflection, "Failed to find reflection object '%s'", name.c_str());
 					return false;
 				}
 			}

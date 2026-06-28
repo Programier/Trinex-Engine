@@ -1,4 +1,3 @@
-#include <Core/logger.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <angelscript.h>
@@ -61,7 +60,7 @@ namespace Trinex
 	{
 		const String* str = static_cast<const String*>(gen->GetArgAddress(0));
 		String result     = to_string(*str, gen, 1);
-		info_log("ScriptEngine", "%s", result.c_str());
+		trinex_info(Log::Scripting, "%s", result.c_str());
 	}
 
 	static void script_print(asIScriptGeneric* gen)
@@ -75,7 +74,7 @@ namespace Trinex
 			result += to_string(gen, arg);
 		}
 
-		info_log("ScriptEngine", "%s", result.c_str());
+		trinex_info(Log::Scripting, "%s", result.c_str());
 	}
 
 	trinex_on_pre_init({.after = {"Trinex::DefaultScriptAddons"}})

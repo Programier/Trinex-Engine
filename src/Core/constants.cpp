@@ -1,5 +1,4 @@
 #include <Core/constants.hpp>
-#include <Core/logger.hpp>
 #include <Core/math/matrix.hpp>
 #include <Core/math/quaternion.hpp>
 #include <Core/math/vector.hpp>

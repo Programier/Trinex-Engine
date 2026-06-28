@@ -7,7 +7,6 @@
 #include <Core/file_flag.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
-#include <Core/logger.hpp>
 #include <Core/memory.hpp>
 #include <Core/object.hpp>
 #include <Core/object_listener.hpp>
@@ -244,7 +243,7 @@ namespace Trinex
 			String validation;
 			if (!static_validate_object_name(name, &validation))
 			{
-				error_log("Object", "%s", validation.c_str());
+				trinex_error(Log::Core, "%s", validation.c_str());
 				return false;
 			}
 		}
@@ -430,7 +429,7 @@ namespace Trinex
 
 		if (this == new_owner)
 		{
-			error_log("Object", "Object cannot own itself!");
+			trinex_error(Log::Core, "Object cannot own itself!");
 			return false;
 		}
 
@@ -440,7 +439,7 @@ namespace Trinex
 		{
 			if (!m_owner->unregister_child(this))
 			{
-				error_log("Object", "Failed to unregister object from prev owner!");
+				trinex_error(Log::Core, "Failed to unregister object from prev owner!");
 				return false;
 			}
 
@@ -595,12 +594,13 @@ namespace Trinex
 
 		if constexpr (std::is_base_of_v<BufferReader, Type>)
 		{
-			error_log("Object", "Failed to load object '%s': File '%s' not found!", object->full_name().c_str(), path.c_str());
+			trinex_error(Log::Core, "Failed to load object '%s': File '%s' not found!", object->full_name().c_str(),
+			             path.c_str());
 		}
 		else
 		{
-			error_log("Object", "Failed to save object'%s': Failed to create file '%s'!", object->full_name().c_str(),
-			          path.c_str());
+			trinex_error(Log::Core, "Failed to save object'%s': Failed to create file '%s'!", object->full_name().c_str(),
+			             path.c_str());
 		}
 
 		return nullptr;
@@ -610,7 +610,7 @@ namespace Trinex
 	{
 		if (!flags.any(Flags::IsSerializable))
 		{
-			error_log("Object", "Cannot save non-serializable package!");
+			trinex_error(Log::Core, "Cannot save non-serializable package!");
 			return false;
 		}
 
@@ -658,7 +658,7 @@ namespace Trinex
 	{
 		if (reader == nullptr)
 		{
-			error_log("Object", "Cannot load object from nullptr buffer reader!");
+			trinex_error(Log::Core, "Cannot load object from nullptr buffer reader!");
 			return nullptr;
 		}
 
@@ -675,14 +675,14 @@ namespace Trinex
 		ar.serialize(flag);
 		if (flag != FileFlag::asset_flag())
 		{
-			error_log("Object", "Cannot load object. Asset flag mismatch!");
+			trinex_error(Log::Core, "Cannot load object. Asset flag mismatch!");
 			return nullptr;
 		}
 
 		Vector<u8> compressed_buffer;
 		if (!(ar.serialize(compressed_buffer)))
 		{
-			error_log("Object", "Failed to read compressed buffer!");
+			trinex_error(Log::Core, "Failed to read compressed buffer!");
 			return nullptr;
 		}
 
@@ -792,7 +792,7 @@ namespace Trinex
 
 			if (!src->save(&writer, flags))
 			{
-				error_log("Object", "Failed to save object to buffer!");
+				trinex_error(Log::Core, "Failed to save object to buffer!");
 				return nullptr;
 			}
 		}
@@ -803,7 +803,7 @@ namespace Trinex
 
 			if (!new_object)
 			{
-				error_log("Object", "Failed to create copy of object!");
+				trinex_error(Log::Core, "Failed to create copy of object!");
 			}
 
 			return new_object;
