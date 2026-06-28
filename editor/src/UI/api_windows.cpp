@@ -1120,6 +1120,11 @@ namespace Trinex::UI
 		return Vec2((min.x + max.x) * 0.5f, (min.y + max.y) * 0.5f);
 	}
 
+	void keyboard_focus_here(i32 offset)
+	{
+		ImGui::SetKeyboardFocusHere(offset);
+	}
+
 	/////////////////////// TEXT AND TOOLTIPS ///////////////////////
 
 	void text(const char* fmt, ...)
@@ -1135,6 +1140,23 @@ namespace Trinex::UI
 		va_list args;
 		va_start(args, fmt);
 		text_v(active_context()->style.colors.text_muted, fmt, args);
+		va_end(args);
+	}
+
+	void text_wrapped(const char* fmt, ...)
+	{
+		va_list args;
+		va_start(args, fmt);
+
+		char buffer[2048];
+		std::vsnprintf(buffer, sizeof(buffer), fmt, args);
+
+		ImGui::PushStyleColor(ImGuiCol_Text, to_imvec(active_context()->style.colors.text));
+		ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + std::max(1.0f, ImGui::GetContentRegionAvail().x));
+		ImGui::TextUnformatted(buffer);
+		ImGui::PopTextWrapPos();
+		ImGui::PopStyleColor();
+
 		va_end(args);
 	}
 
@@ -1209,6 +1231,11 @@ namespace Trinex::UI
 	void help_tooltip(const char* description)
 	{
 		help_marker(description);
+	}
+
+	void clipboard_text(const char* text)
+	{
+		ImGui::SetClipboardText(text != nullptr ? text : "");
 	}
 
 }// namespace Trinex::UI

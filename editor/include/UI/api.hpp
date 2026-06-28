@@ -198,10 +198,12 @@ namespace Trinex::UI
 	Vec2 item_rect_max();
 	Vec2 item_rect_size();
 	Vec2 item_rect_center();
+	void keyboard_focus_here(i32 offset = 0);
 
 	/////////////////////// TEXT AND TOOLTIPS ///////////////////////
 	void text(const char* fmt, ...);
 	void text_muted(const char* fmt, ...);
+	void text_wrapped(const char* fmt, ...);
 	void text_colored(const Vec4& color, const char* fmt, ...);
 	void label(const char* text, const char* value = nullptr);
 	void help_marker(const char* description);
@@ -209,6 +211,7 @@ namespace Trinex::UI
 	void tooltip_delayed(const char* text, float delay = 0.45f);
 	void tooltip_if_hovered(const char* text, float delay = 0.0f);
 	void help_tooltip(const char* description);
+	void clipboard_text(const char* text);
 
 	/////////////////////// IMAGES AND CONTROLS ///////////////////////
 	void image(const Texture& texture, Size size, const ImageOptions& options = {});
