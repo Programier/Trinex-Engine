@@ -16,8 +16,7 @@ struct ImGuiTrinexTextureId {
 	    : texture(texture), sampler(sampler)
 	{}
 
-	inline consteval ImGuiTrinexTextureId(decltype(NULL)) : ImGuiTrinexTextureId() {}
-	inline consteval ImGuiTrinexTextureId(decltype(nullptr)) : ImGuiTrinexTextureId() {}
+	inline consteval ImGuiTrinexTextureId(int) : ImGuiTrinexTextureId() {}
 
 	inline bool operator==(const ImGuiTrinexTextureId& other) const { return other.texture == texture; }
 	inline bool operator!=(const ImGuiTrinexTextureId& other) const { return other.texture != texture; }
