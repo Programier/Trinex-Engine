@@ -680,6 +680,16 @@ namespace Trinex::UI
 		trinex_bitfield_enum_struct(PanelFlags, u32);
 	};
 
+	struct RenderScaleFlags {
+		enum Enum : u8
+		{
+			Undefined               = 0,
+			StartFromLastItemBounds = 1 << 0,
+		};
+
+		trinex_bitfield_enum_struct(RenderScaleFlags, u8);
+	};
+
 	struct Texture {
 		RHITexture* texture = nullptr;
 		RHISampler* sampler = nullptr;

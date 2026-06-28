@@ -54,7 +54,7 @@ namespace Trinex::UI
 	void push_blur(const BlurOptions& options);
 	void pop_blur();
 	void blur(const Vec2& min, const Vec2& max, DrawList draw_list, const BlurOptions& options);
-	void push_render_scale(Vec2 scale, Vec2 pivot = Vec2(0.5f, 0.5f));
+	void push_render_scale(Vec2 scale, Vec2 pivot = Vec2(0.5f, 0.5f), RenderScaleFlags flags = RenderScaleFlags::Undefined);
 	void pop_render_scale();
 
 	/////////////////////// ANIMATION AND IDENTITY ///////////////////////
@@ -398,6 +398,11 @@ namespace Trinex::UI
 	inline void blur(const Vec2& min, const Vec2& max, const BlurOptions& options)
 	{
 		blur(min, max, DrawList::Default, options);
+	}
+
+	inline void push_render_scale(Vec2 scale, RenderScaleFlags flags)
+	{
+		return push_render_scale(scale, {0.5f, 0.5f}, flags);
 	}
 
 	/////////////////////// INLINE ANIMATION AND IDENTITY HELPERS ///////////////////////

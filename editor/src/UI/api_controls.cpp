@@ -98,12 +98,12 @@ namespace Trinex::UI
 		                                                active_context()->style.hover_padding.y != 0.0f);
 		if (hover_scaled)
 		{
-			push_render_scale(make_hover_render_scale(frame_size, anim.hover));
+			push_render_scale(make_hover_render_scale(frame_size, anim.hover), RenderScaleFlags::StartFromLastItemBounds);
 		}
 		const bool press_scaled = anim.active > 0.0f;
 		if (press_scaled)
 		{
-			push_render_scale(make_press_render_scale(frame_size, anim.active));
+			push_render_scale(make_press_render_scale(frame_size, anim.active), RenderScaleFlags::StartFromLastItemBounds);
 		}
 
 		ImDrawList* draw                 = ImGui::GetWindowDrawList();
@@ -207,12 +207,12 @@ namespace Trinex::UI
 		                                                active_context()->style.hover_padding.y != 0.0f);
 		if (hover_scaled)
 		{
-			push_render_scale(make_hover_render_scale(size, anim.hover));
+			push_render_scale(make_hover_render_scale(size, anim.hover), RenderScaleFlags::StartFromLastItemBounds);
 		}
 		const bool press_scaled = anim.active > 0.0f;
 		if (press_scaled)
 		{
-			push_render_scale(make_press_render_scale(size, anim.active));
+			push_render_scale(make_press_render_scale(size, anim.active), RenderScaleFlags::StartFromLastItemBounds);
 		}
 		ImDrawList* draw           = ImGui::GetWindowDrawList();
 		const InteractiveRect rect = make_interactive_rect(pos, size);

@@ -621,16 +621,23 @@ namespace Trinex::UI
 		}
 	}
 
-	void push_render_scale(Vec2 scale, Vec2 pivot)
+	void push_render_scale(Vec2 scale, Vec2 pivot, RenderScaleFlags flags)
 	{
 		RenderScale& render_scale = active_context()->render_scale_stack.emplace_back();
 		render_scale.scope        = trx_stack_new RenderScale::Scope(ImGui::GetWindowDrawList());
 		render_scale.scale        = scale;
 		render_scale.pivot        = pivot;
-		render_scale.min          = {FLT_MAX, FLT_MAX};
-		render_scale.max          = {-FLT_MAX, -FLT_MAX};
 
-		ImGui::BeginGroup();
+		if (flags & RenderScaleFlags::StartFromLastItemBounds)
+		{
+			render_scale.min = item_rect_min();
+			render_scale.max = item_rect_max();
+		}
+		else
+		{
+			render_scale.min = cursor_screen_position();
+			render_scale.max = render_scale.min;
+		}
 	}
 
 	void pop_render_scale()
@@ -639,17 +646,12 @@ namespace Trinex::UI
 		trinex_assert(!stack.empty() && "UI::pop_render_scale() called without matching push_render_scale()");
 
 		RenderScale& render_scale = stack.back();
-		ImGui::EndGroup();
 
 		if (render_scale.scale.x != 1.f || render_scale.scale.y != 1.f)
 		{
 			// Update bounds
 			{
-				auto min = to_vec(ImGui::GetItemRectMin());
-				auto max = to_vec(ImGui::GetItemRectMax());
-
-				render_scale.min = Math::min(render_scale.min, min);
-				render_scale.max = Math::max(render_scale.max, max);
+				render_scale.max = Math::max(render_scale.max, item_rect_max());
 			}
 
 			// Scale content

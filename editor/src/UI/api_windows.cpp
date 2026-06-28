@@ -498,12 +498,12 @@ namespace Trinex::UI
 		                                                active_context()->style.hover_padding.y != 0.0f);
 		if (hover_scaled)
 		{
-			push_render_scale(make_hover_render_scale(to_imvec(size), anim.hover));
+			push_render_scale(make_hover_render_scale(to_imvec(size), anim.hover), RenderScaleFlags::StartFromLastItemBounds);
 		}
 		const bool press_scaled = anim.active > 0.0f;
 		if (press_scaled)
 		{
-			push_render_scale(make_press_render_scale(to_imvec(size), anim.active));
+			push_render_scale(make_press_render_scale(to_imvec(size), anim.active), RenderScaleFlags::StartFromLastItemBounds);
 		}
 
 		const InteractiveRect rect = make_interactive_rect(pos, to_imvec(size));
