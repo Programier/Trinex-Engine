@@ -1184,14 +1184,9 @@ namespace Trinex::UI::Backend
 		return RenderBackend::backend_data()->target;
 	}
 
-	RHITexture* push_layer()
+	RHITexture* push_layer(RHITexture* layer)
 	{
-		return nullptr;
-	}
-
-	RHITexture* pop_layer()
-	{
-		return nullptr;
+		return RenderBackend::backend_data()->target;
 	}
 
 	void imgui_init(Window* window, ImGuiContext* context)

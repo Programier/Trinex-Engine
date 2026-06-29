@@ -14,8 +14,7 @@ namespace Trinex
 	{
 		RHIContext* rhi();
 		RHITexture* layer();
-		RHITexture* push_layer();
-		RHITexture* pop_layer();
+		RHITexture* layer(RHITexture* value);
 
 		void imgui_init(Window* window, ImGuiContext* context);
 		void imgui_shutdown(Window* window, ImGuiContext* context);

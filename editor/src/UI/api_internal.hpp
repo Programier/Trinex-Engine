@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/editor_config.hpp>
+#include <Core/etl/stack.hpp>
 #include <Core/etl/vector.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/math/math.hpp>
@@ -176,8 +177,9 @@ namespace Trinex::UI
 		static constexpr usize font_family_count = 3;
 		static constexpr usize font_size_count   = 3;
 
-		Trinex::Window* window                            = nullptr;
-		ImGuiContext* context                             = nullptr;
+		Trinex::Window* window = nullptr;
+		ImGuiContext* context  = nullptr;
+		Stack<4096> stack;
 		u128 stack_memory_location                        = 0;
 		ImFont* fonts[font_family_count][font_size_count] = {};
 		Style style;

@@ -1,5 +1,6 @@
 #include <UI/api.hpp>
 #include <UI/backend.hpp>
+#include <imgui.h>
 
 namespace Trinex::UI::Rendering
 {
@@ -15,11 +16,11 @@ namespace Trinex::UI::Rendering
 
 	RHITexture* push_layer()
 	{
-		return UI::Backend::push_layer();
+		return nullptr;
 	}
 
 	RHITexture* pop_layer()
 	{
-		return UI::Backend::pop_layer();
+		return nullptr;
 	}
 }// namespace Trinex::UI::Rendering
