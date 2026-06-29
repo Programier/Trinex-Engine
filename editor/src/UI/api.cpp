@@ -724,21 +724,84 @@ namespace Trinex::UI
 
 	float apply_ease(float t, Ease mode)
 	{
-		t = Math::clamp(t, 0.f, 1.f);
+		t = Math::clamp(t, 0.0f, 1.0f);
+
 		switch (mode)
 		{
-			case Ease::Linear: return t;
-			case Ease::InQuad: return t * t;
-			case Ease::OutQuad: return 1.0f - (1.0f - t) * (1.0f - t);
-			case Ease::InOutQuad: return t < 0.5f ? 2.0f * t * t : 1.0f - std::pow(-2.0f * t + 2.0f, 2.0f) * 0.5f;
+			case Ease::Linear:
+			{
+				return t;
+			}
+
+			case Ease::InQuad:
+			{
+				return t * t;
+			}
+
+			case Ease::OutQuad:
+			{
+				const float inv = 1.0f - t;
+				return 1.0f - inv * inv;
+			}
+
+			case Ease::InOutQuad:
+			{
+				if (t < 0.5f)
+					return 2.0f * t * t;
+
+				const float v = -2.0f * t + 2.0f;
+				return 1.0f - (v * v) * 0.5f;
+			}
+
+			case Ease::OutCubic:
+			{
+				const float inv = 1.0f - t;
+				return 1.0f - inv * inv * inv;
+			}
+
+			case Ease::InExpo:
+			{
+				if (t <= 0.0f)
+					return 0.0f;
+
+				return std::pow(2.0f, 10.0f * t - 10.0f);
+			}
+
+			case Ease::OutExpo:
+			{
+				if (t >= 1.0f)
+					return 1.0f;
+
+				return 1.0f - std::pow(2.0f, -10.0f * t);
+			}
+
+			case Ease::InOutExpo:
+			{
+				if (t <= 0.0f)
+					return 0.0f;
+
+				if (t >= 1.0f)
+					return 1.0f;
+
+				if (t < 0.5f)
+					return std::pow(2.0f, 20.0f * t - 10.0f) * 0.5f;
+
+				return (2.0f - std::pow(2.0f, -20.0f * t + 10.0f)) * 0.5f;
+			}
+
 			case Ease::OutBack:
 			{
 				const float c1 = 1.70158f;
 				const float c3 = c1 + 1.0f;
-				return 1.0f + c3 * std::pow(t - 1.0f, 3.0f) + c1 * std::pow(t - 1.0f, 2.0f);
+
+				const float v = t - 1.0f;
+				return 1.0f + c3 * v * v * v + c1 * v * v;
 			}
-			case Ease::OutCubic:
-			default: return 1.0f - std::pow(1.0f - t, 3.0f);
+
+			default:
+			{
+				return t;
+			}
 		}
 	}
 

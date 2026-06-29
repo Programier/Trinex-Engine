@@ -447,12 +447,15 @@ namespace Trinex::UI
 			}
 		}
 
-		inline float approach(float current, float target, float speed)
+		inline float approach(float current, float target, float speed, float epsilon = 0.001f)
 		{
-			const float k    = 1.0f - std::exp(-std::max(0.0f, speed) * dt());
+			const float delta_time = std::max(0.0f, dt());
+			const float s          = std::max(0.0f, speed);
+
+			const float k    = -std::expm1(-s * delta_time);
 			const float next = current + (target - current) * k;
 
-			if (std::abs(target - next) <= 0.005f)
+			if (std::abs(target - next) <= epsilon)
 			{
 				return target;
 			}

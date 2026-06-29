@@ -91,9 +91,9 @@ namespace Trinex::UI
 
 		anim.open = approach(anim.open, open ? 1.0f : 0.0f);
 		// Symmetric easing keeps perceived expand/collapse duration matched.
-		const float eased_open    = apply_ease(anim.open, Ease::InOutQuad);
+		const float eased_open    = apply_ease(anim.open, Ease::OutCubic);
 		const bool render_content = !options.leaf && (open || anim.open > 0.001f);
-		
+
 		if (render_content)
 		{
 			const ImVec2 content_start = ImGui::GetCursorScreenPos();
@@ -143,7 +143,7 @@ namespace Trinex::UI
 			anim.extra = measured_height;
 		}
 
-		const float eased_open     = apply_ease(anim.open, Ease::InOutQuad);
+		const float eased_open     = apply_ease(anim.open, Ease::OutCubic);
 		const float cached_height  = std::max(anim.extra, measured_height);
 		const float visible_height = cached_height * eased_open;
 
@@ -152,7 +152,8 @@ namespace Trinex::UI
 		ImGui::PopClipRect();
 
 		ImGui::SetCursorScreenPos(ImVec2(context.content_start.x, context.content_start.y + visible_height));
-		ImGui::Dummy(ImVec2(0.0f, 0.0f));
+		ImGui::Dummy({0.f, 0.f});
+		ImGui::SameLine(0.f, 0.f);
 		ImGui::PopID();
 	}
 

@@ -61,12 +61,21 @@ namespace Trinex::UI
 	struct Ease {
 		enum Enum : u8
 		{
-			Linear    = 0,
+			Linear = 0,
+
 			InQuad    = 1,
 			OutQuad   = 2,
 			InOutQuad = 3,
-			OutCubic  = 4,
-			OutBack   = 5,
+
+			InCubic    = 4,
+			OutCubic   = 5,
+			InOutCubic = 6,
+
+			InExpo    = 7,
+			OutExpo   = 8,
+			InOutExpo = 9,
+
+			OutBack = 10,
 		};
 
 		trinex_enum_struct(Ease);
@@ -947,7 +956,7 @@ namespace Trinex::UI
 	};
 
 	struct Style {
-		f32 animation_speed = 1.0f;
+		f32 animation_speed = 16.0f;
 		f32 rounding        = 8.0f;
 		f32 border_size     = 1.0f;
 		f32 frame_height    = 32.0f;
