@@ -10,6 +10,7 @@ namespace Trinex
 	class Window;
 	class RHITexture;
 	class RHISampler;
+	class RHIContext;
 }// namespace Trinex
 
 namespace Trinex::UI

@@ -13,7 +13,9 @@ namespace Trinex
 	namespace UI::Backend
 	{
 		RHIContext* rhi();
-		RHITexture* render_target();
+		RHITexture* layer();
+		RHITexture* push_layer();
+		RHITexture* pop_layer();
 
 		void imgui_init(Window* window, ImGuiContext* context);
 		void imgui_shutdown(Window* window, ImGuiContext* context);

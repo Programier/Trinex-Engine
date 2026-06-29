@@ -569,9 +569,9 @@ namespace Trinex::UI
 				const RHITextureFlags flags = RHITextureFlags::ColorAttachment;
 				RHITexturePool* pool        = RHITexturePool::global_instance();
 
-				RHIContext* ctx              = Backend::rhi();
-				RHITexture* window           = Backend::render_target();
-				const Vector2u viewport_size = window->size();
+				RHIContext* ctx              = Rendering::context();
+				RHITexture* layer            = Rendering::layer();
+				const Vector2u viewport_size = layer->size();
 				RHITexture* temporary        = pool->acquire(RHISurfaceFormat::RGBA8, viewport_size, flags);
 
 				const Vector2f blur_offset = area_min / Vector2f(viewport_size);
@@ -580,17 +580,17 @@ namespace Trinex::UI
 				ctx->push_debug_stage("Bloor");
 
 				ctx->end_rendering();
-				ctx->barrier(window, RHIAccess::SRVGraphics);
+				ctx->barrier(layer, RHIAccess::SRVGraphics);
 				ctx->barrier(temporary, RHIAccess::RTV);
 
 				ctx->begin_rendering(temporary->as_rtv());
-				Pipelines::GaussianBlur::blur(ctx, window->as_srv(), {0.f, 1.f / static_cast<f32>(viewport_size.y)}, sigma,
-				                              radius, {}, nullptr, blur_offset, blur_size);
+				Pipelines::GaussianBlur::blur(ctx, layer->as_srv(), {0.f, 1.f / static_cast<f32>(viewport_size.y)}, sigma, radius,
+				                              {}, nullptr, blur_offset, blur_size);
 				ctx->end_rendering();
 
-				ctx->barrier(window, RHIAccess::RTV);
+				ctx->barrier(layer, RHIAccess::RTV);
 				ctx->barrier(temporary, RHIAccess::SRVGraphics);
-				ctx->begin_rendering(window->as_rtv());
+				ctx->begin_rendering(layer->as_rtv());
 				Pipelines::GaussianBlur::blur(ctx, temporary->as_srv(), {1.f / static_cast<f32>(viewport_size.x), 0.f}, sigma,
 				                              radius, {}, nullptr, blur_offset, blur_size);
 
