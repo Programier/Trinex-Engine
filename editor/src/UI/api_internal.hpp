@@ -1401,5 +1401,12 @@ namespace Trinex::UI
 		{
 			ImGui::PopStyleColor(5);
 		}
+
+		inline void dummy_no_spacing(const ImVec2& size = ImVec2(0.0f, 0.0f))
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
+			ImGui::Dummy(size);
+			ImGui::PopStyleVar();
+		}
 	}// namespace
 }// namespace Trinex::UI

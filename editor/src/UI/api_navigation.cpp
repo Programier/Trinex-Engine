@@ -152,8 +152,7 @@ namespace Trinex::UI
 		ImGui::PopClipRect();
 
 		ImGui::SetCursorScreenPos(ImVec2(context.content_start.x, context.content_start.y + visible_height));
-		ImGui::Dummy({0.f, 0.f});
-		ImGui::SameLine(0.f, 0.f);
+		dummy_no_spacing();
 		ImGui::PopID();
 	}
 
@@ -602,7 +601,7 @@ namespace Trinex::UI
 		const ImVec2 target_size(width, max_height);
 		const ImVec2 target_pos(viewport->WorkPos.x + (viewport->WorkSize.x - target_size.x) * 0.5f,
 		                        viewport->WorkPos.y + std::max(24.0f, (viewport->WorkSize.y - target_size.y) * 0.22f));
-		const Vec2 popup_scale(Math::lerp(0.5f, 1.0f, eased), Math::lerp(0.5f, 1.0f, eased));
+		const Vec2 popup_scale(Math::lerp(0.8f, 1.0f, eased), Math::lerp(0.8f, 1.0f, eased));
 
 		const float rounding = active_context()->style.rounding + 2.0f;
 		const float padding  = active_context()->style.padding;
