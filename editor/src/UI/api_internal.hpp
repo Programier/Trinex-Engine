@@ -66,7 +66,6 @@ namespace Trinex::UI
 	struct TreeContext {
 		ImGuiID id                = 0;
 		bool logical_open         = false;
-		float open_anim           = 0.0f;
 		ImVec2 content_start      = ImVec2(0.0f, 0.0f);
 		float previous_draw_alpha = 1.0f;
 	};
@@ -196,7 +195,6 @@ namespace Trinex::UI
 		int menu_popup_style_depth    = 0;
 		int menu_alpha_depth          = 0;
 		int table_style_depth         = 0;
-		Vector<float> tree_indent_stack;
 		Vector<TreeContext> tree_stack;
 		Vector<AreaContext> area_stack;
 		Vector<PanelContext> panel_stack;

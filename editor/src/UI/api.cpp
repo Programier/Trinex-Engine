@@ -90,7 +90,6 @@ namespace Trinex::UI
 		context->menu_popup_style_depth = 0;
 		context->menu_alpha_depth       = 0;
 		context->table_style_depth      = 0;
-		context->tree_indent_stack.clear();
 		context->tree_stack.clear();
 		context->area_stack.clear();
 		context->panel_stack.clear();

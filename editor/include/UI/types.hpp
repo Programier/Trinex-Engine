@@ -947,7 +947,7 @@ namespace Trinex::UI
 	};
 
 	struct Style {
-		f32 animation_speed = 24.0f;
+		f32 animation_speed = 1.0f;
 		f32 rounding        = 8.0f;
 		f32 border_size     = 1.0f;
 		f32 frame_height    = 32.0f;

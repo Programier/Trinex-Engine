@@ -70,11 +70,9 @@ namespace Trinex::UI
 			stored          = options.open != nullptr ? *options.open : options.default_open;
 			initialized[id] = true;
 		}
-		bool open          = options.leaf ? false : (options.open != nullptr ? *options.open : stored);
-		AnimState& anim    = state_for(id);
-		auto& stack        = active_context()->tree_indent_stack;
-		const float indent = stack.empty() ? 0.0f : stack.back();
-		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + indent);
+		bool open       = options.leaf ? false : (options.open != nullptr ? *options.open : stored);
+		AnimState& anim = state_for(id);
+
 		const bool clicked = animated_row(label, options.icon, options.badge, options.selected, false,
 		                                  ImVec2(ImGui::GetContentRegionAvail().x, active_context()->style.frame_height),
 		                                  options.accent, !options.leaf, anim.open);
@@ -95,6 +93,7 @@ namespace Trinex::UI
 		// Symmetric easing keeps perceived expand/collapse duration matched.
 		const float eased_open    = apply_ease(anim.open, Ease::InOutQuad);
 		const bool render_content = !options.leaf && (open || anim.open > 0.001f);
+		
 		if (render_content)
 		{
 			const ImVec2 content_start = ImGui::GetCursorScreenPos();
@@ -110,12 +109,12 @@ namespace Trinex::UI
 			tree_context context;
 			context.id                  = id;
 			context.logical_open        = open;
-			context.open_anim           = anim.open;
 			context.content_start       = content_start;
 			context.previous_draw_alpha = active_context()->draw_alpha;
 			active_context()->tree_stack.push_back(context);
 			active_context()->draw_alpha *= eased_open;
-			active_context()->tree_indent_stack.push_back(indent + 18.0f);
+
+			UI::indent();
 			return true;
 		}
 		ImGui::PopID();
@@ -124,21 +123,17 @@ namespace Trinex::UI
 
 	void tree_pop()
 	{
-		auto& tree_stack   = active_context()->tree_stack;
-		auto& indent_stack = active_context()->tree_indent_stack;
+		auto& tree_stack = active_context()->tree_stack;
 
 		if (tree_stack.empty())
 		{
 			return;
 		}
 
+		UI::unindent();
+
 		tree_context context = tree_stack.back();
 		tree_stack.pop_back();
-
-		if (!indent_stack.empty())
-		{
-			indent_stack.pop_back();
-		}
 
 		ImVec2 content_end          = ImGui::GetCursorScreenPos();
 		const float measured_height = std::max(0.0f, content_end.y - context.content_start.y);
@@ -165,9 +160,6 @@ namespace Trinex::UI
 	{
 		TreeNodeOptions copy = options;
 		copy.leaf            = true;
-		auto& stack          = active_context()->tree_indent_stack;
-		const float indent   = stack.empty() ? 0.0f : stack.back();
-		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + indent);
 		return animated_row(label, copy.icon, copy.badge, copy.selected, false,
 		                    ImVec2(ImGui::GetContentRegionAvail().x, active_context()->style.frame_height), copy.accent, false,
 		                    0.0f);
