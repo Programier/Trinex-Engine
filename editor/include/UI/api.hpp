@@ -6,8 +6,6 @@
 namespace Trinex::UI
 {
 	/////////////////////// LIFECYCLE AND FRAME ///////////////////////
-	void initialize();
-	void shutdown();
 	Context* create_context(Trinex::Window* window);
 	void destroy_context(Context* context);
 	bool begin_frame(Context* context);
@@ -86,13 +84,9 @@ namespace Trinex::UI
 	void viewport_dockspace(const FunctionRef<void(DockLayout&)>& builder);
 
 	/////////////////////// RENDERING ///////////////////////
-	namespace Rendering
-	{
-		RHIContext* context();
-		RHITexture* layer();
-		RHITexture* push_layer();
-		RHITexture* pop_layer();
-	}// namespace Rendering
+	RHITexture* layer();
+	RHITexture* push_layer();
+	RHITexture* pop_layer();
 
 	/////////////////////// WINDOWS AND CONTAINERS ///////////////////////
 	bool begin_window(StringView name, bool* open = nullptr, const WindowOptions& options = {});

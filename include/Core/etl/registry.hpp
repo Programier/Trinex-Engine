@@ -35,8 +35,8 @@ namespace Trinex
 		trinex_non_copyable(Registry);
 		trinex_non_moveable(Registry);
 
-		static inline RegistryInstance* static_first() { return RegistryInstance::s_first; }
-		static inline RegistryInstance* static_last() { return RegistryInstance::s_last; }
+		static inline RegistryInstance* first() { return RegistryInstance::s_first; }
+		static inline RegistryInstance* last() { return RegistryInstance::s_last; }
 		static inline DummyCriticalSection critical_section() { return {}; }
 
 		template<typename Func, typename... Args>
@@ -44,7 +44,7 @@ namespace Trinex
 		{
 			[[maybe_unused]] auto lock = RegistryInstance::critical_section();
 
-			RegistryInstance* head = static_first();
+			RegistryInstance* head = Registry::first();
 
 			while (head)
 			{
@@ -58,7 +58,7 @@ namespace Trinex
 		{
 			[[maybe_unused]] auto lock = RegistryInstance::critical_section();
 
-			RegistryInstance* head = static_first();
+			RegistryInstance* head = Registry::first();
 
 			while (head)
 			{
@@ -72,7 +72,7 @@ namespace Trinex
 		{
 			[[maybe_unused]] auto lock = RegistryInstance::critical_section();
 
-			RegistryInstance* head = static_first();
+			RegistryInstance* head = Registry::first();
 
 			while (head)
 			{
@@ -83,6 +83,67 @@ namespace Trinex
 
 		inline RegistryInstance* prev() const { return m_prev; }
 		inline RegistryInstance* next() const { return m_next; }
+
+		template<typename Compare>
+		static void sort(Compare&& compare)
+		{
+			[[maybe_unused]] auto lock = RegistryInstance::critical_section();
+
+			RegistryInstance* head = Registry::first();
+			if (head == nullptr || head->m_next == nullptr)
+			{
+				return;
+			}
+
+			RegistryInstance* sorted = nullptr;
+			RegistryInstance* tail   = nullptr;
+
+			while (head)
+			{
+				RegistryInstance* node = head;
+				head                   = head->m_next;
+				node->m_prev           = nullptr;
+				node->m_next           = nullptr;
+
+				if (sorted == nullptr)
+				{
+					sorted = tail = node;
+					continue;
+				}
+
+				RegistryInstance* current = sorted;
+				while (current && !compare(node, current))
+				{
+					current = current->m_next;
+				}
+
+				if (current == sorted)
+				{
+					node->m_next   = sorted;
+					sorted->m_prev = node;
+					sorted         = node;
+					continue;
+				}
+
+				if (current == nullptr)
+				{
+					tail->m_next = node;
+					node->m_prev = tail;
+					tail         = node;
+					continue;
+				}
+
+				RegistryInstance* prev = current->m_prev;
+				prev->m_next           = node;
+				node->m_prev           = prev;
+				node->m_next           = current;
+				current->m_prev        = node;
+			}
+
+			RegistryInstance::s_first = sorted;
+			RegistryInstance::s_last  = tail;
+		}
+
 
 		virtual ~Registry()
 		{
@@ -110,14 +171,6 @@ namespace Trinex
 
 #define trinex_registry(Type)                                                                                                    \
 public:                                                                                                                          \
-	static inline Type* static_first()                                                                                           \
-	{                                                                                                                            \
-		return s_first;                                                                                                          \
-	}                                                                                                                            \
-	static inline Type* static_last()                                                                                            \
-	{                                                                                                                            \
-		return s_last;                                                                                                           \
-	}                                                                                                                            \
 	friend class Registry;                                                                                                       \
                                                                                                                                  \
 private:                                                                                                                         \

@@ -6,7 +6,6 @@
 #include <RHI/context.hpp>
 #include <RHI/handles.hpp>
 #include <RHI/rhi.hpp>
-#include <UI/backend.hpp>
 #include <Window/window.hpp>
 
 namespace Trinex::UI
@@ -82,7 +81,15 @@ namespace Trinex::UI
 		ImGui::SetCurrentContext(ctx->context);
 		ctx->style = Style{};
 
-		UI::Backend::imgui_init(window, ctx->context);
+		{
+			ContextListener* listener = ContextListener::first();
+
+			while (listener)
+			{
+				listener->on_create(ctx);
+				listener = listener->next();
+			}
+		}
 
 		auto& io = ImGui::GetIO();
 		initialize_fonts(ctx);
@@ -119,14 +126,22 @@ namespace Trinex::UI
 		return ctx;
 	}
 
-	void* backend_context_handle(Context* context)
-	{
-		return context ? context->context : nullptr;
-	}
-
 	void destroy_context(Context* context)
 	{
-		UI::Backend::imgui_shutdown(context->window, context->context);
+		ImGuiContext* ctx = ImGui::GetCurrentContext();
+		ImGui::SetCurrentContext(context->context);
+
+		{
+			ContextListener* listener = ContextListener::last();
+
+			while (listener)
+			{
+				listener->on_destroy(context);
+				listener = listener->prev();
+			}
+		}
+
+		ImGui::SetCurrentContext(ctx);
 		ImGui::DestroyContext(context->context);
 		trx_delete context;
 	}
@@ -137,7 +152,17 @@ namespace Trinex::UI
 		g_context = context;
 
 		ImGui::SetCurrentContext(context->context);
-		UI::Backend::imgui_new_frame(context->window);
+
+		{
+			ContextListener* listener = ContextListener::first();
+
+			while (listener)
+			{
+				listener->on_new_frame(context);
+				listener = listener->next();
+			}
+		}
+
 		ImGui::NewFrame();
 
 		context->stack_memory_location = StackByteAllocator::location();
@@ -269,25 +294,13 @@ namespace Trinex::UI
 		}
 
 		{
-			auto viewport           = g_context->window->render_viewport();
-			RHISwapchain* swapchain = viewport->swapchain();
+			ContextListener* listener = ContextListener::first();
 
-			RHIContext* ctx = RHIContextPool::global_instance()->begin();
+			while (listener)
 			{
-				auto texture = swapchain->as_texture();
-				auto rtv     = texture->as_rtv();
-
-				ctx->barrier(texture, RHIAccess::TransferDst);
-				ctx->clear_rtv(rtv, 0.f, 0.f, 0.f, 1.f);
-				ctx->barrier(texture, RHIAccess::RTV);
-
-				UI::Backend::imgui_render(ctx, g_context->window, ImGui::GetDrawData());
-
-				ctx->barrier(texture, RHIAccess::PresentSrc);
+				listener->on_render(g_context);
+				listener = listener->next();
 			}
-
-			RHIContextPool::global_instance()->end(ctx, swapchain->acquire_semaphore(), swapchain->present_semaphore());
-			RHI::instance()->present(swapchain);
 		}
 
 		{
@@ -525,51 +538,51 @@ namespace Trinex::UI
 		if (options.radius > 0.0f)
 		{
 			paint(draw_list, [options, area_min, area_max]() {
-				const float radius = Math::clamp(options.radius, 0.0f, 64.0f);
+				// const float radius = Math::clamp(options.radius, 0.0f, 64.0f);
 
-				if (radius <= 0.0f)
-				{
-					return;
-				}
+				// if (radius <= 0.0f)
+				// {
+				// 	return;
+				// }
 
-				const float sigma           = options.sigma > 0.0f ? options.sigma : Math::max(1.0f, radius * 0.45f);
-				const RHITextureFlags flags = RHITextureFlags::ColorAttachment;
-				RHITexturePool* pool        = RHITexturePool::global_instance();
+				// const float sigma           = options.sigma > 0.0f ? options.sigma : Math::max(1.0f, radius * 0.45f);
+				// const RHITextureFlags flags = RHITextureFlags::ColorAttachment;
+				// RHITexturePool* pool        = RHITexturePool::global_instance();
 
-				RHIContext* ctx              = Rendering::context();
-				RHITexture* layer            = Rendering::layer();
-				const Vector2u viewport_size = layer->size();
-				RHITexture* temporary        = pool->acquire(RHISurfaceFormat::RGBA8, viewport_size, flags);
+				// RHIContext* ctx              = Rendering::context();
+				// RHITexture* layer            = Rendering::layer();
+				// const Vector2u viewport_size = layer->size();
+				// RHITexture* temporary        = pool->acquire(RHISurfaceFormat::RGBA8, viewport_size, flags);
 
-				const Vector2f blur_offset = area_min / Vector2f(viewport_size);
-				const Vector2f blur_size   = (area_max - area_min) / Vector2f(viewport_size);
+				// const Vector2f blur_offset = area_min / Vector2f(viewport_size);
+				// const Vector2f blur_size   = (area_max - area_min) / Vector2f(viewport_size);
 
-				ctx->push_debug_stage("Bloor");
+				// ctx->push_debug_stage("Bloor");
 
-				ctx->end_rendering();
-				ctx->barrier(layer, RHIAccess::SRVGraphics);
-				ctx->barrier(temporary, RHIAccess::RTV);
+				// ctx->end_rendering();
+				// ctx->barrier(layer, RHIAccess::SRVGraphics);
+				// ctx->barrier(temporary, RHIAccess::RTV);
 
-				ctx->begin_rendering(temporary->as_rtv());
-				Pipelines::GaussianBlur::blur(ctx, layer->as_srv(), {0.f, 1.f / static_cast<f32>(viewport_size.y)}, sigma, radius,
-				                              {}, nullptr, blur_offset, blur_size);
-				ctx->end_rendering();
+				// ctx->begin_rendering(temporary->as_rtv());
+				// Pipelines::GaussianBlur::blur(ctx, layer->as_srv(), {0.f, 1.f / static_cast<f32>(viewport_size.y)}, sigma, radius,
+				//                               {}, nullptr, blur_offset, blur_size);
+				// ctx->end_rendering();
 
-				ctx->barrier(layer, RHIAccess::RTV);
-				ctx->barrier(temporary, RHIAccess::SRVGraphics);
-				ctx->begin_rendering(layer->as_rtv());
-				Pipelines::GaussianBlur::blur(ctx, temporary->as_srv(), {1.f / static_cast<f32>(viewport_size.x), 0.f}, sigma,
-				                              radius, {}, nullptr, blur_offset, blur_size);
+				// ctx->barrier(layer, RHIAccess::RTV);
+				// ctx->barrier(temporary, RHIAccess::SRVGraphics);
+				// ctx->begin_rendering(layer->as_rtv());
+				// Pipelines::GaussianBlur::blur(ctx, temporary->as_srv(), {1.f / static_cast<f32>(viewport_size.x), 0.f}, sigma,
+				//                               radius, {}, nullptr, blur_offset, blur_size);
 
-				if (options.noise_opacity > 0.f)
-				{
-					ctx->push_debug_stage("Noise");
-					Pipelines::NoiseApplication::noise(ctx, options.noise_opacity, options.noise_scale, blur_offset, blur_size);
-					ctx->pop_debug_stage();
-				}
+				// if (options.noise_opacity > 0.f)
+				// {
+				// 	ctx->push_debug_stage("Noise");
+				// 	Pipelines::NoiseApplication::noise(ctx, options.noise_opacity, options.noise_scale, blur_offset, blur_size);
+				// 	ctx->pop_debug_stage();
+				// }
 
-				ctx->pop_debug_stage();
-				pool->release(temporary);
+				// ctx->pop_debug_stage();
+				// pool->release(temporary);
 			});
 		}
 
@@ -980,7 +993,7 @@ namespace Trinex::UI
 	}
 
 	DockBuilderSplitResult DockLayout::split(DockID dock, DockSplitDir dir, float ratio, StringView remainder_id,
-                                         StringView child_id)
+	                                         StringView child_id)
 	{
 		DockBuilderSplitResult result = dock_builder_split(dock, dir, ratio);
 

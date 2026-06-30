@@ -8,7 +8,6 @@
 #include <RHI/context.hpp>
 #include <RHI/handles.hpp>
 #include <RHI/rhi.hpp>
-#include <UI/backend.hpp>
 #include <algorithm>
 #include <cctype>
 #include <cstring>
@@ -139,9 +138,9 @@ namespace Trinex::UI
 		ImDrawCallback viewport_setup = [](const ImDrawList*, const ImDrawCmd* cmd) {
 			ViewportArgs* args = reinterpret_cast<ViewportArgs*>(cmd->UserCallbackData);
 
-			auto ctx = Trinex::UI::Backend::rhi();
-			ctx->viewport(Trinex::RHIRegion(args->size, args->pos));
-			ctx->scissor(Trinex::RHIRegion(args->size, args->pos));
+			// auto ctx = Trinex::UI::Backend::rhi();
+			// ctx->viewport(Trinex::RHIRegion(args->size, args->pos));
+			// ctx->scissor(Trinex::RHIRegion(args->size, args->pos));
 		};
 
 		list->AddCallback(viewport_setup, &viewport_args, sizeof(viewport_args));

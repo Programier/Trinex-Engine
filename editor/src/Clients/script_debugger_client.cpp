@@ -12,7 +12,6 @@
 #include <ScriptEngine/script_module.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 #include <ScriptEngine/script_variable.hpp>
-#include <UI/backend.hpp>
 #include <UI/imgui.hpp>
 #include <UI/theme.hpp>
 #include <Window/window.hpp>

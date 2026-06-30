@@ -13,7 +13,6 @@
 #include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 #include <RHI/static_sampler.hpp>
-#include <UI/backend.hpp>
 #include <UI/imgui.hpp>
 #include <Widgets/property_renderer.hpp>
 #include <imgui_internal.h>
@@ -21,6 +20,14 @@
 
 namespace Trinex
 {
+	namespace UI::Backend
+	{
+		inline RHIContext* rhi()
+		{
+			return nullptr;
+		}
+	}// namespace UI::Backend
+	
 	class TextureView : public GlobalPipelineLibrary
 	{
 	private:

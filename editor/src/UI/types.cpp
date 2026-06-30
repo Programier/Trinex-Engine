@@ -35,6 +35,49 @@ namespace Trinex::UI
 		return ImGui::GetID(id);
 	}
 
+	trinex_implement_registry(ContextListener);
+
+	bool ContextListener::m_dirty = false;
+
+	ContextListener::ContextListener(u64 sort_index) : m_sort_index(sort_index)
+	{
+		m_dirty = true;
+	}
+
+	ContextListener* ContextListener::update_state(ContextListener*& value)
+	{
+		if (m_dirty)
+		{
+			ContextListener::sort([](ContextListener* first, ContextListener* second) -> bool {
+				return first->m_sort_index < second->m_sort_index;
+			});
+
+			m_dirty = false;
+		}
+
+		return value;
+	}
+
+	ContextListener& ContextListener::on_create(Context* context)
+	{
+		return *this;
+	}
+
+	ContextListener& ContextListener::on_destroy(Context* context)
+	{
+		return *this;
+	}
+
+	ContextListener& ContextListener::on_new_frame(Context* context)
+	{
+		return *this;
+	}
+
+	ContextListener& ContextListener::on_render(Context* context)
+	{
+		return *this;
+	}
+
 	Widget* Widget::create(StringView name, const WindowOptions& options, bool open, const Action& action)
 	{
 		return trx_new FunctionWidget(name, options, open, action);

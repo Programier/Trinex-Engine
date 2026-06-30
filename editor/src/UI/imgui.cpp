@@ -33,8 +33,6 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
-#include <UI/backend.hpp>
-
 namespace Trinex
 {
 	//////////////////////////// IMGUI WINDOW BACKEND IMPLEMENTATION ////////////////////////////
@@ -160,8 +158,6 @@ namespace Trinex
 		m_context = context;
 
 		ImGuiContextLock lock(context);
-
-		UI::Backend::imgui_init(window, context);
 		UI::initialize_theme(context);
 	}
 
@@ -173,7 +169,6 @@ namespace Trinex
 			current_window = nullptr;
 
 		ImGuiContextLock lock(m_context);
-		UI::Backend::imgui_shutdown(nullptr, m_context);
 
 		m_window  = nullptr;
 		m_context = nullptr;
@@ -207,7 +202,6 @@ namespace Trinex
 	ImGuiWindow& ImGuiWindow::new_frame()
 	{
 		make_current(this);
-		UI::Backend::imgui_new_frame(m_window);
 		ImGui::NewFrame();
 		++m_frame;
 		return *this;
@@ -239,10 +233,6 @@ namespace Trinex
 				ctx->barrier(texture, RHIAccess::RTV);
 
 				ImGuiContextLock lock(m_context);
-
-
-				UI::Backend::imgui_render(ctx, window(), ImGui::GetDrawData());
-
 				ctx->barrier(texture, RHIAccess::PresentSrc);
 			}
 			RHIContextPool::global_instance()->end(ctx, swapchain->acquire_semaphore(), swapchain->present_semaphore());
@@ -324,10 +314,6 @@ namespace ImGui
 
 		ImDrawCallback viewport_setup = [](const ImDrawList* parent_list, const ImDrawCmd* cmd) {
 			Args* args = reinterpret_cast<Args*>(cmd->UserCallbackData);
-
-			auto ctx = Trinex::UI::Backend::rhi();
-			ctx->viewport(Trinex::RHIRegion(args->size, args->pos));
-			ctx->scissor(Trinex::RHIRegion(args->size, args->pos));
 		};
 
 		list->AddCallback(viewport_setup, &args, sizeof(args));

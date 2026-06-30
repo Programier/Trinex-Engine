@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/etl/function.hpp>
+#include <Core/etl/registry.hpp>
 #include <Core/etl/string.hpp>
 #include <Core/etl/type_traits.hpp>
 #include <Core/etl/vector.hpp>
@@ -1119,6 +1120,28 @@ namespace Trinex::UI
 		Default = 0,
 		Text,
 		Icons,
+	};
+
+	class ContextListener : public Registry<ContextListener>
+	{
+		trinex_registry(ContextListener);
+
+	private:
+		static bool m_dirty;
+		u64 m_sort_index;
+
+		static ContextListener* update_state(ContextListener*& value);
+
+	public:
+		ContextListener(u64 sort_index = ~0);
+
+		static inline ContextListener* first() { return update_state(s_first); }
+		static inline ContextListener* last() { return update_state(s_last); }
+
+		virtual ContextListener& on_create(Context* context);
+		virtual ContextListener& on_destroy(Context* context);
+		virtual ContextListener& on_new_frame(Context* context);
+		virtual ContextListener& on_render(Context* context);
 	};
 
 	class Widget
