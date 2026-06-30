@@ -916,7 +916,7 @@ namespace Trinex::UI
 		bool open            = true;
 		if (begin_modal(title, &open))
 		{
-			text("%s", String(has_text(message) ? message : StringView()).c_str());
+			text(has_text(message) ? message : StringView());
 			spacing();
 			if ((danger ? danger_button(confirm_text) : button(confirm_text)))
 			{
@@ -966,16 +966,16 @@ namespace Trinex::UI
 
 	void key_value_row(StringView key, StringView value)
 	{
-		text_muted("%s", String(key).c_str());
+		text_muted(key);
 		ImGui::SameLine(ImGui::GetWindowWidth() * 0.45f);
-		text("%s", String(value).c_str());
+		text(value);
 	}
 
 	void property_row(StringView row_label, const Function<void()>& content, Unit label_width)
 	{
 		imgui_push_id(row_label);
 		ImGui::AlignTextToFramePadding();
-		text_muted("%s", String(row_label).c_str());
+		text_muted(row_label);
 		ImGui::SameLine(resolve(label_width));
 		if (content)
 		{
@@ -1471,7 +1471,7 @@ namespace Trinex::UI
 		ImGui::BeginGroup();
 		spinner("loading_state_spinner", 10.0f, 2.5f);
 		ImGui::SameLine();
-		text_muted("%s", String(has_text(loading_text) ? loading_text : StringView("Loading...")).c_str());
+		text_muted(has_text(loading_text) ? loading_text : StringView("Loading..."));
 		ImGui::EndGroup();
 	}
 

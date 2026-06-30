@@ -715,10 +715,11 @@ namespace Trinex::UI
 		return marker == StringView::npos ? label : label.substr(0, marker);
 	}
 
-	void text_v(const Vec4& color, const char* fmt, va_list args)
+	void text_v(const Vec4& color, StringView fmt, va_list args)
 	{
 		char buffer[2048];
-		std::vsnprintf(buffer, sizeof(buffer), fmt, args);
+		String format(fmt);
+		std::vsnprintf(buffer, sizeof(buffer), format.c_str(), args);
 		ImGui::PushStyleColor(ImGuiCol_Text, to_imvec(color));
 		ImGui::TextUnformatted(buffer);
 		ImGui::PopStyleColor();

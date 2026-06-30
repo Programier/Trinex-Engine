@@ -557,7 +557,7 @@ namespace Trinex::UI
 	bool consume_pending_modal(StringView name);
 	bool consume_pending_popup(StringView name);
 	StringView visible_label(StringView label);
-	void text_v(const Vec4& color, const char* fmt, va_list args);
+	void text_v(const Vec4& color, StringView fmt, va_list args);
 	void push_input_frame_styles(float focus);
 
 	inline void pop_input_frame_styles()

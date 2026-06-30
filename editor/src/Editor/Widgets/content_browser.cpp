@@ -397,7 +397,7 @@ namespace Trinex
 
 		if (package == nullptr)
 		{
-			UI::text("%s!", "editor/No package selected"_localized);
+			UI::text("editor/No package selected!"_localized);
 			UI::end_window();
 			return;
 		}

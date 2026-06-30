@@ -283,7 +283,7 @@ namespace Trinex::UI
 		ImGui::BeginGroup();
 		if (has_text(label))
 		{
-			text_muted("%s", String(label).c_str());
+			text_muted(label);
 		}
 
 		if (!begin_panel(label, options))
@@ -1135,7 +1135,12 @@ namespace Trinex::UI
 
 	/////////////////////// TEXT AND TOOLTIPS ///////////////////////
 
-	void text(const char* fmt, ...)
+	void text_unformatted(StringView text)
+	{
+		ImGui::TextUnformatted(text.data(), text.data() + text.size());
+	}
+
+	void text(StringView fmt, ...)
 	{
 		va_list args;
 		va_start(args, fmt);
@@ -1143,7 +1148,7 @@ namespace Trinex::UI
 		va_end(args);
 	}
 
-	void text_muted(const char* fmt, ...)
+	void text_muted(StringView fmt, ...)
 	{
 		va_list args;
 		va_start(args, fmt);
@@ -1151,13 +1156,14 @@ namespace Trinex::UI
 		va_end(args);
 	}
 
-	void text_wrapped(const char* fmt, ...)
+	void text_wrapped(StringView fmt, ...)
 	{
 		va_list args;
 		va_start(args, fmt);
 
 		char buffer[2048];
-		std::vsnprintf(buffer, sizeof(buffer), fmt, args);
+		String format(fmt);
+		std::vsnprintf(buffer, sizeof(buffer), format.c_str(), args);
 
 		ImGui::PushStyleColor(ImGuiCol_Text, to_imvec(active_context()->style.colors.text));
 		ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + Math::max(1.0f, ImGui::GetContentRegionAvail().x));
@@ -1168,7 +1174,7 @@ namespace Trinex::UI
 		va_end(args);
 	}
 
-	void text_colored(const Vec4& color, const char* fmt, ...)
+	void text_colored(const Vec4& color, StringView fmt, ...)
 	{
 		va_list args;
 		va_start(args, fmt);
@@ -1178,11 +1184,11 @@ namespace Trinex::UI
 
 	void label(StringView label_text, StringView value)
 	{
-		text_muted("%s", String(label_text).c_str());
+		text_muted(label_text);
 		if (has_text(value))
 		{
 			ImGui::SameLine();
-			text("%s", String(value).c_str());
+			text(value);
 		}
 	}
 

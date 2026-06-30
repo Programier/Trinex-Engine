@@ -210,10 +210,11 @@ namespace Trinex::UI
 	void keyboard_focus_here(i32 offset = 0);
 
 	/////////////////////// TEXT AND TOOLTIPS ///////////////////////
-	void text(const char* fmt, ...);
-	void text_muted(const char* fmt, ...);
-	void text_wrapped(const char* fmt, ...);
-	void text_colored(const Vec4& color, const char* fmt, ...);
+	void text_unformatted(StringView text);
+	void text(StringView fmt, ...);
+	void text_muted(StringView fmt, ...);
+	void text_wrapped(StringView fmt, ...);
+	void text_colored(const Vec4& color, StringView fmt, ...);
 	void label(StringView text, StringView value = {});
 	void help_marker(StringView description);
 	void tooltip(StringView text);
