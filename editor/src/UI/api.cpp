@@ -65,49 +65,6 @@ namespace Trinex::UI
 
 	/////////////////////// LIFECYCLE AND FRAME ///////////////////////
 
-	void initialize()
-	{
-		active_context()->style = Style{};
-		apply_imgui_style(active_context()->style);
-	}
-
-	void shutdown()
-	{
-		Context* context = active_context();
-
-		context->stack_memory_location = 0;
-		context->style_stack.clear();
-		context->anim.clear();
-		context->open.clear();
-		context->hover_time.clear();
-		context->notification_y.clear();
-		context->active_combo           = 0;
-		context->active_combo_field_min = ImVec2(0.0f, 0.0f);
-		context->active_combo_field_max = ImVec2(0.0f, 0.0f);
-		context->active_combo_popup_min = ImVec2(0.0f, 0.0f);
-		context->active_combo_popup_max = ImVec2(0.0f, 0.0f);
-		context->menu_bar_style_depth   = 0;
-		context->menu_popup_style_depth = 0;
-		context->menu_alpha_depth       = 0;
-		context->table_style_depth      = 0;
-		context->tree_stack.clear();
-		context->area_stack.clear();
-		context->panel_stack.clear();
-		context->glass_panel_stack.clear();
-		context->card_stack.clear();
-		context->shadow_stack.clear();
-		context->disabled_alpha_stack.clear();
-		context->pending_modals.clear();
-		context->pending_popups.clear();
-		context->command_palette.reset();
-		context->notifications.clear();
-		context->render_scale_stack.clear();
-		context->keybind_capture = 0;
-		context->draw_alpha      = 1.0f;
-
-		destroy_list(active_context()->window_list);
-	}
-
 	Context* create_context(Trinex::Window* window)
 	{
 		Context* ctx = trx_new Context();
@@ -135,18 +92,14 @@ namespace Trinex::UI
 			hook.UserData = nullptr;
 			hook.Owner    = 0;
 			hook.Callback = +[](ImGuiContext* ctx, ImGuiContextHook* hook) {
-				auto& stack = active_context()->render_scale_stack;
-
-				if (!stack.empty())
+				if (auto render_scale = active_context()->render_scale)
 				{
-					RenderScale& render_scale = stack.back();
-
 					ImGuiWindow* window = ImGui::GetCurrentWindow();
-					render_scale.scope  = trx_stack_new RenderScale::Scope(window->DrawList, 0, 0, render_scale.scope);
+					render_scale->scope = trx_stack_new RenderScale::Scope(window->DrawList, 0, 0, render_scale->scope);
 
-					ImRect rect      = ImGui::GetCurrentWindow()->Rect();
-					render_scale.min = Math::min(render_scale.min, to_vec(rect.Min));
-					render_scale.max = Math::max(render_scale.max, to_vec(rect.Max));
+					ImRect rect       = ImGui::GetCurrentWindow()->Rect();
+					render_scale->min = Math::min(render_scale->min, to_vec(rect.Min));
+					render_scale->max = Math::max(render_scale->max, to_vec(rect.Max));
 				}
 			};
 
@@ -155,6 +108,11 @@ namespace Trinex::UI
 
 		register_console_commands(ctx);
 		return ctx;
+	}
+
+	void* backend_context_handle(Context* context)
+	{
+		return context ? context->context : nullptr;
 	}
 
 	void destroy_context(Context* context)
@@ -622,39 +580,47 @@ namespace Trinex::UI
 
 	void push_render_scale(Vec2 scale, Vec2 pivot, RenderScaleFlags flags)
 	{
-		RenderScale& render_scale = active_context()->render_scale_stack.emplace_back();
-		render_scale.scope        = trx_stack_new RenderScale::Scope(ImGui::GetWindowDrawList());
-		render_scale.scale        = scale;
-		render_scale.pivot        = pivot;
+		Context* context = active_context();
+
+		RenderScale* render_scale = context->stack.push<RenderScale>();
+		render_scale->prev        = context->render_scale;
+		context->render_scale     = render_scale;
+
+		render_scale->scope = trx_stack_new RenderScale::Scope(ImGui::GetWindowDrawList());
+		render_scale->scale = scale;
+		render_scale->pivot = pivot;
 
 		if (flags & RenderScaleFlags::StartFromLastItemBounds)
 		{
-			render_scale.min = item_rect_min();
-			render_scale.max = item_rect_max();
+			render_scale->min = item_rect_min();
+			render_scale->max = item_rect_max();
 		}
 		else
 		{
-			render_scale.min = cursor_screen_position();
-			render_scale.max = render_scale.min;
+			render_scale->min = cursor_screen_position();
+			render_scale->max = render_scale->min;
 		}
 	}
 
 	void pop_render_scale()
 	{
-		auto& stack = active_context()->render_scale_stack;
-		trinex_assert(!stack.empty() && "UI::pop_render_scale() called without matching push_render_scale()");
+		Context* context = active_context();
 
-		RenderScale& render_scale = stack.back();
+		RenderScale* render_scale = context->stack.pop<RenderScale>();
+		trinex_assert(render_scale && context->render_scale == render_scale &&
+		              "UI::pop_render_scale() called without matching push_render_scale()");
 
-		if (render_scale.scale.x != 1.f || render_scale.scale.y != 1.f)
+		context->render_scale = render_scale->prev;
+
+		if (render_scale->scale.x != 1.f || render_scale->scale.y != 1.f)
 		{
 			// Update bounds
 			{
-				render_scale.max = Math::max(render_scale.max, item_rect_max());
+				render_scale->max = Math::max(render_scale->max, item_rect_max());
 			}
 
 			// Scale content
-			for (auto scope = render_scale.scope; scope; scope = scope->next)
+			for (auto scope = render_scale->scope; scope; scope = scope->next)
 			{
 				ImDrawList* draw_list = scope->draw_list;
 				i32 vtx_end           = draw_list->VtxBuffer.Size;
@@ -663,30 +629,28 @@ namespace Trinex::UI
 				if (vtx_end <= scope->start_vertex)
 					continue;
 
-				const Vec2 pivot = render_scale.min + (render_scale.max - render_scale.min) * render_scale.pivot;
+				const Vec2 pivot = render_scale->min + (render_scale->max - render_scale->min) * render_scale->pivot;
 
 				for (u32 i = scope->start_vertex; i < vtx_end; ++i)
 				{
 					ImVec2& p = draw_list->VtxBuffer[i].pos;
 
-					p.x = pivot.x + (p.x - pivot.x) * render_scale.scale.x;
-					p.y = pivot.y + (p.y - pivot.y) * render_scale.scale.y;
+					p.x = pivot.x + (p.x - pivot.x) * render_scale->scale.x;
+					p.y = pivot.y + (p.y - pivot.y) * render_scale->scale.y;
 				}
 
 				for (u32 i = scope->start_command; i < cmd_end; ++i)
 				{
 					ImVec4& rect = draw_list->CmdBuffer[i].ClipRect;
 
-					rect.x = pivot.x + (rect.x - pivot.x) * render_scale.scale.x;
-					rect.y = pivot.y + (rect.y - pivot.y) * render_scale.scale.y;
+					rect.x = pivot.x + (rect.x - pivot.x) * render_scale->scale.x;
+					rect.y = pivot.y + (rect.y - pivot.y) * render_scale->scale.y;
 
-					rect.z = pivot.x + (rect.z - pivot.x) * render_scale.scale.x;
-					rect.w = pivot.y + (rect.w - pivot.y) * render_scale.scale.y;
+					rect.z = pivot.x + (rect.z - pivot.x) * render_scale->scale.x;
+					rect.w = pivot.y + (rect.w - pivot.y) * render_scale->scale.y;
 				}
 			}
 		}
-
-		stack.pop_back();
 	}
 
 	void paint(Vec2 pos, Size size, PaintFunction function, void* userdata, usize userdata_size, DrawList draw_list)

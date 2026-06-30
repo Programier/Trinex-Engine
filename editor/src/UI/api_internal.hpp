@@ -166,6 +166,7 @@ namespace Trinex::UI
 			{}
 		};
 
+		RenderScale* prev;
 		Scope* scope;
 		Vec2 scale;
 		Vec2 pivot;
@@ -208,7 +209,7 @@ namespace Trinex::UI
 		Vector<String> pending_modals;
 		Vector<String> pending_popups;
 		Vector<Notification> notifications;
-		Vector<RenderScale> render_scale_stack;
+		RenderScale* render_scale     = nullptr;
 		PersistentWindow* window_list = nullptr;
 		CommandPaletteState command_palette;
 		ImGuiID next_notification_id = 1;

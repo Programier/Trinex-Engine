@@ -35,7 +35,7 @@ namespace Trinex
 		Segment* m_current = nullptr;
 
 	private:
-		static usize align_up(usize value, usize alignment) noexcept { return (value + alignment - 1) & ~(alignment - 1); }
+		static inline usize align_up(usize value, usize alignment) noexcept { return (value + alignment - 1) & ~(alignment - 1); }
 
 		template<class T>
 		static bool layout(usize used, usize& object_offset, usize& footer_offset, usize& end_offset) noexcept
