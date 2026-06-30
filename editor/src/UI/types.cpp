@@ -11,7 +11,7 @@ namespace Trinex::UI
 			Action m_action;
 
 		public:
-			FunctionWidget(const char* name, const WindowOptions& options, bool open, const Action& action)
+			FunctionWidget(StringView name, const WindowOptions& options, bool open, const Action& action)
 			    : Widget(name, options, open), m_action(action)
 			{}
 
@@ -35,7 +35,7 @@ namespace Trinex::UI
 		return ImGui::GetID(id);
 	}
 
-	Widget* Widget::create(const char* name, const WindowOptions& options, bool open, const Action& action)
+	Widget* Widget::create(StringView name, const WindowOptions& options, bool open, const Action& action)
 	{
 		return trx_new FunctionWidget(name, options, open, action);
 	}

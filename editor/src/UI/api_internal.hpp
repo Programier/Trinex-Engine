@@ -412,6 +412,42 @@ namespace Trinex::UI
 		return static_cast<int>(value.value);
 	}
 
+	inline void imgui_push_id(StringView value)
+	{
+		ImGui::PushID(value.data(), value.data() + value.size());
+	}
+
+	inline ImGuiID imgui_get_id(StringView value)
+	{
+		return ImGui::GetID(value.data(), value.data() + value.size());
+	}
+
+	inline ImVec2 imgui_calc_text_size(StringView value, bool hide_text_after_double_hash = false, float wrap_width = -1.0f)
+	{
+		return ImGui::CalcTextSize(value.data(), value.data() + value.size(), hide_text_after_double_hash, wrap_width);
+	}
+
+	inline void imgui_text_unformatted(StringView value)
+	{
+		ImGui::TextUnformatted(value.data(), value.data() + value.size());
+	}
+
+	inline void draw_list_add_text(ImDrawList* draw, const ImVec2& pos, ImU32 col, StringView text)
+	{
+		draw->AddText(pos, col, text.data(), text.data() + text.size());
+	}
+
+	inline void draw_list_add_text(ImDrawList* draw, ImFont* font, float font_size, const ImVec2& pos, ImU32 col, StringView text)
+	{
+		draw->AddText(font, font_size, pos, col, text.data(), text.data() + text.size());
+	}
+
+	inline void draw_list_add_text(ImDrawList* draw, ImFont* font, float font_size, const ImVec2& pos, ImU32 col, StringView text,
+	                               float wrap_width)
+	{
+		draw->AddText(font, font_size, pos, col, text.data(), text.data() + text.size(), wrap_width);
+	}
+
 	ImU32 col_u32(const Vec4& color, float alpha_mul = 1.0f);
 
 	inline bool has_color(const Vec4& c)
@@ -419,9 +455,9 @@ namespace Trinex::UI
 		return c.x != 0.0f || c.y != 0.0f || c.z != 0.0f || c.w != 0.0f;
 	}
 
-	inline bool has_text(const char* text)
+	inline bool has_text(StringView text)
 	{
-		return text != nullptr && text[0] != '\0';
+		return !text.empty();
 	}
 
 	bool has_any_bound(const Size& min, const Size& max);
@@ -438,10 +474,10 @@ namespace Trinex::UI
 		return options.radius > 0.0f || options.tint.w > 0.0f;
 	}
 
-	bool equals_case_insensitive(const char* a, const char* b);
-	bool starts_with_case_insensitive(const char* text, const char* prefix);
-	bool contains_case_insensitive_text(const char* text, const char* query);
-	int command_match_score(const RegisteredCommand& command, const char* query);
+	bool equals_case_insensitive(StringView a, StringView b);
+	bool starts_with_case_insensitive(StringView text, StringView prefix);
+	bool contains_case_insensitive_text(StringView text, StringView query);
+	int command_match_score(const RegisteredCommand& command, StringView query);
 	void refresh_command_palette_results();
 
 	inline const Shadow& current_shadow()
@@ -498,7 +534,7 @@ namespace Trinex::UI
 	Vec2 make_press_render_scale(const ImVec2& base_size, float active_t);
 	InteractiveRect make_interactive_rect(const ImVec2& pos, const ImVec2& base_size);
 	void draw_shadow_rect(ImDrawList* draw, const ImVec2& min, const ImVec2& max, float rounding, const Shadow& shadow);
-	bool contains_case_insensitive(const char* text, const char* filter);
+	bool contains_case_insensitive(StringView text, StringView filter);
 
 	inline bool is_modifier_key(ui::Key key)
 	{
@@ -518,9 +554,9 @@ namespace Trinex::UI
 		return point.x >= min.x && point.x <= max.x && point.y >= min.y && point.y <= max.y;
 	}
 
-	bool consume_pending_modal(const char* name);
-	bool consume_pending_popup(const char* name);
-	const char* visible_label(const char* label);
+	bool consume_pending_modal(StringView name);
+	bool consume_pending_popup(StringView name);
+	StringView visible_label(StringView label);
 	void text_v(const Vec4& color, const char* fmt, va_list args);
 	void push_input_frame_styles(float focus);
 
@@ -529,9 +565,9 @@ namespace Trinex::UI
 		ImGui::PopStyleColor();
 	}
 
-	ImVec2 default_item_size(const char* label, ImVec2 requested, float min_width = 0.0f);
+	ImVec2 default_item_size(StringView label, ImVec2 requested, float min_width = 0.0f);
 	void draw_chevron(ImDrawList* draw, ImVec2 center, float size, float t, ImU32 color);
-	bool animated_row(const char* label, const char* icon, const char* right_text, bool selected, bool disabled, ImVec2 size,
+	bool animated_row(StringView label, StringView icon, StringView right_text, bool selected, bool disabled, ImVec2 size,
 	                  Vec4 accent, bool draw_arrow, float arrow_t);
 	Vec4 notification_color(ui::NotificationKind kind);
 	void push_menu_bar_colors();

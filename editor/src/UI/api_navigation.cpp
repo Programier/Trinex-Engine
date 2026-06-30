@@ -7,10 +7,10 @@ namespace Trinex::UI
 {
 	/////////////////////// HEADERS, TREES AND NAVIGATION ///////////////////////
 
-	bool begin_collapsing_header(const char* label, const HeaderOptions& options)
+	bool begin_collapsing_header(StringView label, const HeaderOptions& options)
 	{
 		cleanup_states();
-		ImGui::PushID(label);
+		imgui_push_id(label);
 		const ImGuiID id = ImGui::GetID("header_open");
 		bool& stored     = active_context()->open[id];
 		static Map<ImGuiID, bool> initialized;
@@ -50,7 +50,7 @@ namespace Trinex::UI
 		end_animated_area();
 	}
 
-	bool begin_section_header(const char* label, const HeaderOptions& options)
+	bool begin_section_header(StringView label, const HeaderOptions& options)
 	{
 		spacing(2.0f);
 		return begin_collapsing_header(label, options);
@@ -61,9 +61,9 @@ namespace Trinex::UI
 		end_collapsing_header();
 	}
 
-	bool tree_node(const char* label, const TreeNodeOptions& options)
+	bool tree_node(StringView label, const TreeNodeOptions& options)
 	{
-		ImGui::PushID(label);
+		imgui_push_id(label);
 		const ImGuiID id = ImGui::GetID("tree_open");
 		bool& stored     = active_context()->open[id];
 		static Map<ImGuiID, bool> initialized;
@@ -158,7 +158,7 @@ namespace Trinex::UI
 		ImGui::PopID();
 	}
 
-	bool tree_leaf(const char* label, const TreeNodeOptions& options)
+	bool tree_leaf(StringView label, const TreeNodeOptions& options)
 	{
 		TreeNodeOptions copy = options;
 		copy.leaf            = true;
@@ -167,21 +167,21 @@ namespace Trinex::UI
 		                    0.0f);
 	}
 
-	bool tree_item(const char* label, const TreeNodeOptions& options)
+	bool tree_item(StringView label, const TreeNodeOptions& options)
 	{
 		return tree_leaf(label, options);
 	}
 
-	bool selectable_tree_item(const char* label, bool selected, const TreeNodeOptions& options)
+	bool selectable_tree_item(StringView label, bool selected, const TreeNodeOptions& options)
 	{
 		TreeNodeOptions copy = options;
 		copy.selected        = selected;
 		return tree_leaf(label, copy);
 	}
 
-	bool begin_tab_bar(const char* id)
+	bool begin_tab_bar(StringView id)
 	{
-		ImGui::PushID(id);
+		imgui_push_id(id);
 		ImGui::BeginGroup();
 		return true;
 	}
@@ -192,7 +192,7 @@ namespace Trinex::UI
 		ImGui::PopID();
 	}
 
-	bool tab(const char* label, bool selected, Size size)
+	bool tab(StringView label, bool selected, Size size)
 	{
 		ButtonOptions options;
 		Vec2 resolved_size = resolve(size);
@@ -202,7 +202,7 @@ namespace Trinex::UI
 		const bool clicked = button(label, options);
 		const ImVec2 min   = ImGui::GetItemRectMin();
 		const ImVec2 max   = ImGui::GetItemRectMax();
-		AnimState& anim    = state_for(ImGui::GetID(label));
+		AnimState& anim    = state_for(imgui_get_id(label));
 		anim.selected      = approach(anim.selected, selected ? 1.0f : 0.0f);
 		ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(min.x + 8.0f, max.y - 3.0f),
 		                                          ImVec2(Math::lerp(min.x + 8.0f, max.x - 8.0f, anim.selected), max.y),
@@ -210,19 +210,19 @@ namespace Trinex::UI
 		return clicked;
 	}
 
-	bool sidebar_item(const char* label, bool selected, const char* icon, const char* badge_text)
+	bool sidebar_item(StringView label, bool selected, StringView icon, StringView badge_text)
 	{
 		return animated_row(label, icon, badge_text, selected, false,
 		                    ImVec2(ImGui::GetContentRegionAvail().x, active_context()->style.frame_height),
 		                    active_context()->style.colors.accent, false, 0.0f);
 	}
 
-	bool nav_item(const char* label, bool selected, const char* icon)
+	bool nav_item(StringView label, bool selected, StringView icon)
 	{
-		return sidebar_item(label, selected, icon, nullptr);
+		return sidebar_item(label, selected, icon, {});
 	}
 
-	bool breadcrumb(const char* label, bool current)
+	bool breadcrumb(StringView label, bool current)
 	{
 		const bool clicked = ghost_button(label, Vec2(0.0f, 26.0f));
 		if (!current)
@@ -236,15 +236,16 @@ namespace Trinex::UI
 
 	/////////////////////// POPUPS, MENUS AND COMMANDS ///////////////////////
 
-	bool begin_modal(const char* name, bool* open, WindowFlags flags)
+	bool begin_modal(StringView name, bool* open, WindowFlags flags)
 	{
+		String name_storage(name);
 		if (consume_pending_modal(name))
 		{
-			ImGui::OpenPopup(name);
+			ImGui::OpenPopup(name_storage.c_str());
 		}
 
 		push_window_styles(true);
-		const bool visible = ImGui::BeginPopupModal(name, open, to_imgui_window_flags(flags));
+		const bool visible = ImGui::BeginPopupModal(name_storage.c_str(), open, to_imgui_window_flags(flags));
 
 		if (!visible)
 		{
@@ -253,9 +254,9 @@ namespace Trinex::UI
 		return visible;
 	}
 
-	void open_modal(const char* name)
+	void open_modal(StringView name)
 	{
-		if (name != nullptr)
+		if (!name.empty())
 		{
 			active_context()->pending_modals.emplace_back(name);
 		}
@@ -267,18 +268,19 @@ namespace Trinex::UI
 		pop_window_styles();
 	}
 
-	bool begin_popup(const char* id, WindowFlags flags)
+	bool begin_popup(StringView id, WindowFlags flags)
 	{
+		String id_storage(id);
 		if (consume_pending_popup(id))
 		{
-			ImGui::OpenPopup(id);
+			ImGui::OpenPopup(id_storage.c_str());
 		}
-		return ImGui::BeginPopup(id, to_imgui_window_flags(flags));
+		return ImGui::BeginPopup(id_storage.c_str(), to_imgui_window_flags(flags));
 	}
 
-	void open_popup(const char* id)
+	void open_popup(StringView id)
 	{
-		if (id != nullptr)
+		if (!id.empty())
 		{
 			active_context()->pending_popups.emplace_back(id);
 		}
@@ -294,9 +296,10 @@ namespace Trinex::UI
 		ImGui::CloseCurrentPopup();
 	}
 
-	bool begin_context_menu(const char* id)
+	bool begin_context_menu(StringView id)
 	{
-		return ImGui::BeginPopupContextItem(id);
+		String id_storage(id);
+		return ImGui::BeginPopupContextItem(id_storage.empty() ? nullptr : id_storage.c_str());
 	}
 
 	void end_context_menu()
@@ -360,14 +363,15 @@ namespace Trinex::UI
 		}
 	}
 
-	bool begin_menu(const char* label, bool enabled)
+	bool begin_menu(StringView label, bool enabled)
 	{
-		const ImGuiID id  = ImGui::GetID(label);
+		const ImGuiID id  = imgui_get_id(label);
 		AnimState& anim   = state_for(id);
 		const float alpha = Math::max(0.001f, apply_ease(anim.open, Ease::InOutQuad));
 		ImGui::SetNextWindowBgAlpha(active_context()->style.colors.panel.w * active_context()->style.alpha * alpha);
 		push_menu_popup_colors();
-		const bool open = ImGui::BeginMenu(label, enabled);
+		String label_storage(label);
+		const bool open = ImGui::BeginMenu(label_storage.c_str(), enabled);
 		anim.open       = approach(anim.open, open ? 1.0f : 0.0f);
 		if (open)
 		{
@@ -398,18 +402,24 @@ namespace Trinex::UI
 		}
 	}
 
-	bool menu_item(const char* label, const char* shortcut, bool selected, bool enabled)
+	bool menu_item(StringView label, StringView shortcut, bool selected, bool enabled)
 	{
 		push_menu_popup_colors();
-		const bool clicked = ImGui::MenuItem(label, shortcut, selected, enabled);
+		String label_storage(label);
+		String shortcut_storage(shortcut);
+		const bool clicked = ImGui::MenuItem(label_storage.c_str(), shortcut_storage.empty() ? nullptr : shortcut_storage.c_str(),
+		                                     selected, enabled);
 		pop_menu_popup_colors();
 		return clicked;
 	}
 
-	bool menu_item(const char* label, const char* shortcut, bool* selected, bool enabled)
+	bool menu_item(StringView label, StringView shortcut, bool* selected, bool enabled)
 	{
 		push_menu_popup_colors();
-		const bool clicked = ImGui::MenuItem(label, shortcut, selected, enabled);
+		String label_storage(label);
+		String shortcut_storage(shortcut);
+		const bool clicked = ImGui::MenuItem(label_storage.c_str(), shortcut_storage.empty() ? nullptr : shortcut_storage.c_str(),
+		                                     selected, enabled);
 		pop_menu_popup_colors();
 		return clicked;
 	}
@@ -858,53 +868,55 @@ namespace Trinex::UI
 
 	/////////////////////// ICONS ///////////////////////
 
-	void icon(const char* value, FontSize size)
+	void icon(StringView value, FontSize size)
 	{
-		if (value == nullptr)
+		if (!has_text(value))
 		{
 			return;
 		}
 
 		push_icons_font(size);
-		ImGui::TextUnformatted(value);
+		imgui_text_unformatted(value);
 		pop_font();
 	}
 
-	void icon_colored(const Vec4& color, const char* value, FontSize size)
+	void icon_colored(const Vec4& color, StringView value, FontSize size)
 	{
-		if (value == nullptr)
+		if (!has_text(value))
 		{
 			return;
 		}
 
 		push_icons_font(size);
-		ImGui::TextColored(to_imvec(color), "%s", value);
+		ImGui::PushStyleColor(ImGuiCol_Text, to_imvec(color));
+		imgui_text_unformatted(value);
+		ImGui::PopStyleColor();
 		pop_font();
 	}
 
 	/////////////////////// FEEDBACK AND DATA VIEWS ///////////////////////
 
-	void notification(const char* message, const NotificationOptions& options)
+	void notification(StringView message, const NotificationOptions& options)
 	{
 		Notification n;
 		n.id           = active_context()->next_notification_id++;
-		n.title        = options.title != nullptr ? options.title : "";
-		n.message      = message != nullptr ? message : "";
+		n.title        = String(has_text(options.title) ? options.title : StringView());
+		n.message      = String(has_text(message) ? message : StringView());
 		n.kind         = options.kind;
 		n.duration     = Math::max(0.1f, options.duration);
-		n.action_label = options.action_label != nullptr ? options.action_label : "";
+		n.action_label = String(has_text(options.action_label) ? options.action_label : StringView());
 		n.action       = options.action;
 		active_context()->notifications.push_back(std::move(n));
 	}
 
-	ConfirmResult confirmation(const char* title, const char* message, const char* confirm_text, const char* cancel_text,
+	ConfirmResult confirmation(StringView title, StringView message, StringView confirm_text, StringView cancel_text,
 	                           bool danger)
 	{
 		ConfirmResult result = ConfirmResult::Undefined;
 		bool open            = true;
 		if (begin_modal(title, &open))
 		{
-			text("%s", message != nullptr ? message : "");
+			text("%s", String(has_text(message) ? message : StringView()).c_str());
 			spacing();
 			if ((danger ? danger_button(confirm_text) : button(confirm_text)))
 			{
@@ -926,19 +938,19 @@ namespace Trinex::UI
 		return result;
 	}
 
-	void badge(const char* value, const Vec4& color)
+	void badge(StringView value, const Vec4& color)
 	{
 		const Vec4 c     = has_color(color) ? color : active_context()->style.colors.accent;
-		const ImVec2 ts  = ImGui::CalcTextSize(value);
+		const ImVec2 ts  = imgui_calc_text_size(value);
 		const ImVec2 pos = ImGui::GetCursorScreenPos();
 		const ImVec2 size(ts.x + 12.0f, ts.y + 6.0f);
 		ImGui::Dummy(size);
 		ImDrawList* draw = ImGui::GetWindowDrawList();
 		draw->AddRectFilled(pos, add(pos, size), col_u32(with_alpha(c, 0.22f)), size.y * 0.5f);
-		draw->AddText(ImVec2(pos.x + 6.0f, pos.y + 3.0f), col_u32(c), value);
+		draw_list_add_text(draw, ImVec2(pos.x + 6.0f, pos.y + 3.0f), col_u32(c), value);
 	}
 
-	void pill(const char* value, const Vec4& color)
+	void pill(StringView value, const Vec4& color)
 	{
 		badge(value, color);
 	}
@@ -952,18 +964,18 @@ namespace Trinex::UI
 		                                            col_u32(has_color(color) ? color : active_context()->style.colors.success));
 	}
 
-	void key_value_row(const char* key, const char* value)
+	void key_value_row(StringView key, StringView value)
 	{
-		text_muted("%s", key);
+		text_muted("%s", String(key).c_str());
 		ImGui::SameLine(ImGui::GetWindowWidth() * 0.45f);
-		text("%s", value);
+		text("%s", String(value).c_str());
 	}
 
-	void property_row(const char* row_label, const Function<void()>& content, Unit label_width)
+	void property_row(StringView row_label, const Function<void()>& content, Unit label_width)
 	{
-		ImGui::PushID(row_label);
+		imgui_push_id(row_label);
 		ImGui::AlignTextToFramePadding();
-		text_muted("%s", row_label);
+		text_muted("%s", String(row_label).c_str());
 		ImGui::SameLine(resolve(label_width));
 		if (content)
 		{
@@ -972,44 +984,44 @@ namespace Trinex::UI
 		ImGui::PopID();
 	}
 
-	bool property_bool(const char* label, bool* value, bool use_checkbox, Unit label_width)
+	bool property_bool(StringView label, bool* value, bool use_checkbox, Unit label_width)
 	{
 		bool changed = false;
 		property_row(label, [&] { changed = use_checkbox ? checkbox("##value", value) : toggle("##value", value); }, label_width);
 		return changed;
 	}
 
-	bool property_float(const char* label, float* value, float min, float max, const char* format, Unit label_width)
+	bool property_float(StringView label, float* value, float min, float max, const char* format, Unit label_width)
 	{
 		bool changed = false;
 		property_row(label, [&] { changed = slider("##value", value, min, max, format); }, label_width);
 		return changed;
 	}
 
-	bool property_int(const char* label, int* value, int min, int max, const char* format, Unit label_width)
+	bool property_int(StringView label, int* value, int min, int max, const char* format, Unit label_width)
 	{
 		bool changed = false;
 		property_row(label, [&] { changed = slider("##value", value, min, max, format); }, label_width);
 		return changed;
 	}
 
-	bool property_text(const char* label, char* buffer, size_t buffer_size, Unit label_width)
+	bool property_text(StringView label, char* buffer, size_t buffer_size, Unit label_width)
 	{
 		bool changed = false;
 		property_row(label, [&] { changed = input("##value", buffer, buffer_size); }, label_width);
 		return changed;
 	}
 
-	bool property_color(const char* label, Vec4* color, bool alpha, Unit label_width)
+	bool property_color(StringView label, Vec4* color, bool alpha, Unit label_width)
 	{
 		bool changed = false;
 		property_row(label, [&] { changed = color_edit("##value", color, alpha); }, label_width);
 		return changed;
 	}
 
-	bool splitter(const char* id, float* size_a, float* size_b, Unit min_a, Unit min_b, bool vertical, Unit thickness)
+	bool splitter(StringView id, float* size_a, float* size_b, Unit min_a, Unit min_b, bool vertical, Unit thickness)
 	{
-		ImGui::PushID(id);
+		imgui_push_id(id);
 		const float resolved_min_a     = resolve(min_a, vertical ? Axis::X : Axis::Y);
 		const float resolved_min_b     = resolve(min_b, vertical ? Axis::X : Axis::Y);
 		const float resolved_thickness = resolve(thickness, vertical ? Axis::X : Axis::Y);
@@ -1033,7 +1045,7 @@ namespace Trinex::UI
 		return active;
 	}
 
-	bool begin_toolbar(const char* id)
+	bool begin_toolbar(StringView id)
 	{
 		PanelOptions options;
 		options.size = Size(0.0f, active_context()->style.frame_height + active_context()->style.padding * 2.0f);
@@ -1045,10 +1057,12 @@ namespace Trinex::UI
 		end_panel();
 	}
 
-	bool begin_table(const char* id, int columns, TableFlags flags, Size outer_size, Unit inner_width)
+	bool begin_table(StringView id, int columns, TableFlags flags, Size outer_size, Unit inner_width)
 	{
+		String id_storage(id);
 		const bool open =
-		        ImGui::BeginTable(id, columns, to_imgui_table_flags(flags), to_imvec(resolve(outer_size)), resolve(inner_width));
+		        ImGui::BeginTable(id_storage.c_str(), columns, to_imgui_table_flags(flags), to_imvec(resolve(outer_size)),
+		                          resolve(inner_width));
 		if (open)
 		{
 			++active_context()->table_style_depth;
@@ -1065,9 +1079,10 @@ namespace Trinex::UI
 		}
 	}
 
-	void table_setup_column(const char* label, TableColumnFlags flags, float width_or_weight, ID user_id)
+	void table_setup_column(StringView label, TableColumnFlags flags, float width_or_weight, ID user_id)
 	{
-		ImGui::TableSetupColumn(label, to_imgui_table_column_flags(flags), width_or_weight, to_imgui_id(user_id));
+		String label_storage(label);
+		ImGui::TableSetupColumn(label_storage.c_str(), to_imgui_table_column_flags(flags), width_or_weight, to_imgui_id(user_id));
 	}
 
 	void table_headers()
@@ -1090,9 +1105,10 @@ namespace Trinex::UI
 		return ImGui::TableSetColumnIndex(idx);
 	}
 
-	bool begin_list_box(const char* label, Size size)
+	bool begin_list_box(StringView label, Size size)
 	{
-		return ImGui::BeginListBox(label, to_imvec(resolve(size)));
+		String label_storage(label);
+		return ImGui::BeginListBox(label_storage.c_str(), to_imvec(resolve(size)));
 	}
 
 	void end_list_box()
@@ -1100,17 +1116,17 @@ namespace Trinex::UI
 		ImGui::EndListBox();
 	}
 
-	bool list_item(const char* label, bool selected, const char* icon, const char* badge_text)
+	bool list_item(StringView label, bool selected, StringView icon, StringView badge_text)
 	{
 		return animated_row(label, icon, badge_text, selected, false,
 		                    ImVec2(ImGui::GetContentRegionAvail().x, active_context()->style.frame_height),
 		                    active_context()->style.colors.accent, false, 0.0f);
 	}
 
-	bool filtered_list(const char* id, const char* filter, const char* const items[], int item_count, int* selected_index)
+	bool filtered_list(StringView id, StringView filter, const char* const items[], int item_count, int* selected_index)
 	{
 		bool changed = false;
-		ImGui::PushID(id);
+		imgui_push_id(id);
 		for (int i = 0; i < item_count; ++i)
 		{
 			if (!contains_case_insensitive(items[i], filter))
@@ -1135,15 +1151,18 @@ namespace Trinex::UI
 		return ImGui::BeginDragDropSource(to_imgui_drag_drop_flags(flags));
 	}
 
-	bool drag_payload(const char* type, const void* data, size_t size, Condition condition)
+	bool drag_payload(StringView type, const void* data, size_t size, Condition condition)
 	{
-		return ImGui::SetDragDropPayload(type, data, size, to_imgui_cond(condition));
+		String type_storage(type);
+		return ImGui::SetDragDropPayload(type_storage.c_str(), data, size, to_imgui_cond(condition));
 	}
 
-	bool drag_payload_text(const char* type, const char* value, Condition condition)
+	bool drag_payload_text(StringView type, StringView value, Condition condition)
 	{
-		const char* text_value = value != nullptr ? value : "";
-		return ImGui::SetDragDropPayload(type, text_value, std::strlen(text_value) + 1, to_imgui_cond(condition));
+		String type_storage(type);
+		String value_storage(value);
+		return ImGui::SetDragDropPayload(type_storage.c_str(), value_storage.c_str(), value_storage.size() + 1,
+		                                 to_imgui_cond(condition));
 	}
 
 	void end_drag_source()
@@ -1156,10 +1175,11 @@ namespace Trinex::UI
 		return ImGui::BeginDragDropTarget();
 	}
 
-	const DragDropPayload* accept_drop_payload(const char* type, DragDropFlags flags)
+	const DragDropPayload* accept_drop_payload(StringView type, DragDropFlags flags)
 	{
 		static DragDropPayload payload;
-		if (const ImGuiPayload* accepted = ImGui::AcceptDragDropPayload(type, to_imgui_drag_drop_flags(flags)))
+		String type_storage(type);
+		if (const ImGuiPayload* accepted = ImGui::AcceptDragDropPayload(type_storage.c_str(), to_imgui_drag_drop_flags(flags)))
 		{
 			payload.data      = accepted->Data;
 			payload.data_size = accepted->DataSize;
@@ -1175,10 +1195,10 @@ namespace Trinex::UI
 		ImGui::EndDragDropTarget();
 	}
 
-	void callout(const char* title, const char* message, NotificationKind kind)
+	void callout(StringView title, StringView message, NotificationKind kind)
 	{
-		const char* title_text   = has_text(title) ? visible_label(title) : nullptr;
-		const char* message_text = has_text(message) ? message : nullptr;
+		const StringView title_text   = has_text(title) ? visible_label(title) : StringView();
+		const StringView message_text = has_text(message) ? message : StringView();
 		if (!has_text(title_text) && !has_text(message_text))
 		{
 			return;
@@ -1191,19 +1211,19 @@ namespace Trinex::UI
 		const Vec4 accent      = color_for_notification_kind(kind);
 		const Vec4 background  = mix_color(active_context()->style.colors.panel, accent, 0.08f);
 		const Vec4 border      = mix_color(active_context()->style.colors.border, accent, 0.35f);
-		const char* icon       = icon_for_notification_kind(kind);
+		const StringView icon  = icon_for_notification_kind(kind);
 
 		const ImVec2 pos      = ImGui::GetCursorScreenPos();
 		const float width     = Math::max(1.0f, ImGui::GetContentRegionAvail().x);
-		const ImVec2 icon_sz  = has_text(icon) ? ImGui::CalcTextSize(icon) : ImVec2(0.0f, 0.0f);
+		const ImVec2 icon_sz  = has_text(icon) ? imgui_calc_text_size(icon) : ImVec2(0.0f, 0.0f);
 		const float icon_gap  = icon_sz.x > 0.0f ? spacing * 0.75f : 0.0f;
 		const float content_x = pos.x + padding + strip_size + 8.0f;
 		const float text_x    = content_x + icon_sz.x + icon_gap;
 		const float wrap_w    = Math::max(1.0f, width - (text_x - pos.x) - padding);
 		const ImVec2 title_sz =
-		        has_text(title_text) ? ImGui::CalcTextSize(title_text, nullptr, false, wrap_w) : ImVec2(0.0f, 0.0f);
+		        has_text(title_text) ? imgui_calc_text_size(title_text, false, wrap_w) : ImVec2(0.0f, 0.0f);
 		const ImVec2 msg_sz =
-		        has_text(message_text) ? ImGui::CalcTextSize(message_text, nullptr, false, wrap_w) : ImVec2(0.0f, 0.0f);
+		        has_text(message_text) ? imgui_calc_text_size(message_text, false, wrap_w) : ImVec2(0.0f, 0.0f);
 		const float title_h = Math::max(title_sz.y, icon_sz.y);
 		const float gap_y   = has_text(title_text) && has_text(message_text) ? spacing * 0.35f : 0.0f;
 		const float body_h  = has_text(title_text) ? title_h + gap_y + msg_sz.y : Math::max(msg_sz.y, icon_sz.y);
@@ -1219,25 +1239,25 @@ namespace Trinex::UI
 
 		if (icon_sz.x > 0.0f)
 		{
-			draw->AddText(ImVec2(content_x, pos.y + padding), col_u32(accent), icon);
+			draw_list_add_text(draw, ImVec2(content_x, pos.y + padding), col_u32(accent), icon);
 		}
 		if (has_text(title_text))
 		{
-			draw->AddText(ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(text_x, pos.y + padding),
-			              col_u32(active_context()->style.colors.text), title_text, nullptr, wrap_w);
+			draw_list_add_text(draw, ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(text_x, pos.y + padding),
+			                   col_u32(active_context()->style.colors.text), title_text, wrap_w);
 		}
 		if (has_text(message_text))
 		{
 			const float message_y = pos.y + padding + (has_text(title_text) ? title_h + gap_y : 0.0f);
-			draw->AddText(ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(text_x, message_y),
-			              col_u32(active_context()->style.colors.text_muted), message_text, nullptr, wrap_w);
+			draw_list_add_text(draw, ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(text_x, message_y),
+			                   col_u32(active_context()->style.colors.text_muted), message_text, wrap_w);
 		}
 	}
 
-	void banner(const char* title, const char* message, const Vec4& accent_color)
+	void banner(StringView title, StringView message, const Vec4& accent_color)
 	{
-		const char* title_text   = has_text(title) ? visible_label(title) : nullptr;
-		const char* message_text = has_text(message) ? message : nullptr;
+		const StringView title_text   = has_text(title) ? visible_label(title) : StringView();
+		const StringView message_text = has_text(message) ? message : StringView();
 		if (!has_text(title_text) && !has_text(message_text))
 		{
 			return;
@@ -1256,9 +1276,9 @@ namespace Trinex::UI
 		const float text_x = pos.x + padding + strip_size + 10.0f;
 		const float wrap_w = Math::max(1.0f, width - (text_x - pos.x) - padding);
 		const ImVec2 title_sz =
-		        has_text(title_text) ? ImGui::CalcTextSize(title_text, nullptr, false, wrap_w) : ImVec2(0.0f, 0.0f);
+		        has_text(title_text) ? imgui_calc_text_size(title_text, false, wrap_w) : ImVec2(0.0f, 0.0f);
 		const ImVec2 msg_sz =
-		        has_text(message_text) ? ImGui::CalcTextSize(message_text, nullptr, false, wrap_w) : ImVec2(0.0f, 0.0f);
+		        has_text(message_text) ? imgui_calc_text_size(message_text, false, wrap_w) : ImVec2(0.0f, 0.0f);
 		const float gap_y = has_text(title_text) && has_text(message_text) ? spacing * 0.45f : 0.0f;
 		const ImVec2 size(width, padding * 2.0f + title_sz.y + gap_y + msg_sz.y);
 
@@ -1272,22 +1292,22 @@ namespace Trinex::UI
 
 		if (has_text(title_text))
 		{
-			draw->AddText(ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(text_x, pos.y + padding),
-			              col_u32(active_context()->style.colors.text), title_text, nullptr, wrap_w);
+			draw_list_add_text(draw, ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(text_x, pos.y + padding),
+			                   col_u32(active_context()->style.colors.text), title_text, wrap_w);
 		}
 		if (has_text(message_text))
 		{
-			draw->AddText(ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(text_x, pos.y + padding + title_sz.y + gap_y),
-			              col_u32(active_context()->style.colors.text_muted), message_text, nullptr, wrap_w);
+			draw_list_add_text(draw, ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(text_x, pos.y + padding + title_sz.y + gap_y),
+			                   col_u32(active_context()->style.colors.text_muted), message_text, wrap_w);
 		}
 	}
 
 	bool hero(const HeroOptions& options)
 	{
-		const char* icon_text        = has_text(options.icon) ? options.icon : nullptr;
-		const char* title_text       = has_text(options.title) ? visible_label(options.title) : nullptr;
-		const char* description_text = has_text(options.description) ? options.description : nullptr;
-		const char* action_text      = has_text(options.action_label) ? visible_label(options.action_label) : nullptr;
+		const StringView icon_text        = has_text(options.icon) ? options.icon : StringView();
+		const StringView title_text       = has_text(options.title) ? visible_label(options.title) : StringView();
+		const StringView description_text = has_text(options.description) ? options.description : StringView();
+		const StringView action_text      = has_text(options.action_label) ? visible_label(options.action_label) : StringView();
 		if (!has_text(icon_text) && !has_text(title_text) && !has_text(description_text) && !has_text(action_text))
 		{
 			return false;
@@ -1306,10 +1326,10 @@ namespace Trinex::UI
 		const float content_width = Math::max(1.0f, width - padding * 2.0f);
 		const float desc_wrap     = Math::max(140.0f, Math::min(content_width, options.centered ? 520.0f : content_width));
 
-		const ImVec2 icon_sz = has_text(icon_text) ? ImGui::CalcTextSize(icon_text) : ImVec2(0.0f, 0.0f);
+		const ImVec2 icon_sz = has_text(icon_text) ? imgui_calc_text_size(icon_text) : ImVec2(0.0f, 0.0f);
 		const ImVec2 title_sz =
-		        has_text(title_text) ? ImGui::CalcTextSize(title_text, nullptr, false, content_width) : ImVec2(0.0f, 0.0f);
-		const ImVec2 desc_sz = has_text(description_text) ? ImGui::CalcTextSize(description_text, nullptr, false, desc_wrap)
+		        has_text(title_text) ? imgui_calc_text_size(title_text, false, content_width) : ImVec2(0.0f, 0.0f);
+		const ImVec2 desc_sz = has_text(description_text) ? imgui_calc_text_size(description_text, false, desc_wrap)
 		                                                  : ImVec2(0.0f, 0.0f);
 
 		float button_h = 0.0f;
@@ -1318,10 +1338,11 @@ namespace Trinex::UI
 		action_id[0] = '\0';
 		if (has_text(action_text))
 		{
-			const ImVec2 action_sz = ImGui::CalcTextSize(action_text, nullptr, true);
+			const ImVec2 action_sz = imgui_calc_text_size(action_text, true);
 			button_w               = Math::max(96.0f, action_sz.x + active_context()->style.padding * 2.0f);
 			button_h               = active_context()->style.frame_height;
-			std::snprintf(action_id, sizeof(action_id), "%s##hero_action", action_text);
+			std::snprintf(action_id, sizeof(action_id), "%.*s##hero_action", static_cast<int>(action_text.size()),
+			              action_text.data());
 		}
 
 		float content_h = 0.0f;
@@ -1377,19 +1398,19 @@ namespace Trinex::UI
 
 		if (has_text(icon_text))
 		{
-			draw->AddText(ImVec2(block_x(icon_sz.x), y), col_u32(accent, alpha_mul), icon_text);
+			draw_list_add_text(draw, ImVec2(block_x(icon_sz.x), y), col_u32(accent, alpha_mul), icon_text);
 			y += icon_sz.y + spacing;
 		}
 		if (has_text(title_text))
 		{
-			draw->AddText(ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(block_x(title_sz.x), y),
-			              col_u32(active_context()->style.colors.text, alpha_mul), title_text, nullptr, content_width);
+			draw_list_add_text(draw, ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(block_x(title_sz.x), y),
+			                   col_u32(active_context()->style.colors.text, alpha_mul), title_text, content_width);
 			y += title_sz.y + spacing;
 		}
 		if (has_text(description_text))
 		{
-			draw->AddText(ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(block_x(desc_sz.x), y),
-			              col_u32(active_context()->style.colors.text_muted, alpha_mul), description_text, nullptr, desc_wrap);
+			draw_list_add_text(draw, ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(block_x(desc_sz.x), y),
+			                   col_u32(active_context()->style.colors.text_muted, alpha_mul), description_text, desc_wrap);
 			y += desc_sz.y + spacing;
 		}
 
@@ -1405,11 +1426,11 @@ namespace Trinex::UI
 			ImGui::SetCursorScreenPos(button_pos);
 			if (has_text(title_text))
 			{
-				ImGui::PushID(title_text);
+				imgui_push_id(title_text);
 			}
 			else if (has_text(description_text))
 			{
-				ImGui::PushID(description_text);
+				imgui_push_id(description_text);
 			}
 			else
 			{
@@ -1426,35 +1447,35 @@ namespace Trinex::UI
 
 	void empty_state(const StateOptions& options)
 	{
-		const char* icon        = options.icon != nullptr ? options.icon : "-";
-		const char* title       = options.title != nullptr ? options.title : "Nothing here";
-		const char* description = options.description != nullptr ? options.description : "";
+		const StringView icon        = has_text(options.icon) ? options.icon : StringView("-");
+		const StringView title       = has_text(options.title) ? options.title : StringView("Nothing here");
+		const StringView description = has_text(options.description) ? options.description : StringView();
 		ImVec2 avail            = ImGui::GetContentRegionAvail();
 		ImVec2 start            = ImGui::GetCursorScreenPos();
 		ImVec2 center(start.x + avail.x * 0.5f, start.y + Math::max(120.0f, avail.y * 0.35f));
 		ImDrawList* draw        = ImGui::GetWindowDrawList();
-		const ImVec2 icon_size  = ImGui::CalcTextSize(icon);
-		const ImVec2 title_size = ImGui::CalcTextSize(title);
-		const ImVec2 desc_size  = ImGui::CalcTextSize(description);
-		draw->AddText(ImVec2(center.x - icon_size.x * 0.5f, center.y - 34.0f), col_u32(active_context()->style.colors.text_muted),
-		              icon);
-		draw->AddText(ImVec2(center.x - title_size.x * 0.5f, center.y - 6.0f), col_u32(active_context()->style.colors.text),
-		              title);
-		draw->AddText(ImVec2(center.x - desc_size.x * 0.5f, center.y + 18.0f), col_u32(active_context()->style.colors.text_muted),
-		              description);
+		const ImVec2 icon_size  = imgui_calc_text_size(icon);
+		const ImVec2 title_size = imgui_calc_text_size(title);
+		const ImVec2 desc_size  = imgui_calc_text_size(description);
+		draw_list_add_text(draw, ImVec2(center.x - icon_size.x * 0.5f, center.y - 34.0f),
+		                   col_u32(active_context()->style.colors.text_muted), icon);
+		draw_list_add_text(draw, ImVec2(center.x - title_size.x * 0.5f, center.y - 6.0f),
+		                   col_u32(active_context()->style.colors.text), title);
+		draw_list_add_text(draw, ImVec2(center.x - desc_size.x * 0.5f, center.y + 18.0f),
+		                   col_u32(active_context()->style.colors.text_muted), description);
 		ImGui::Dummy(ImVec2(avail.x, 140.0f));
 	}
 
-	void loading_state(const char* loading_text)
+	void loading_state(StringView loading_text)
 	{
 		ImGui::BeginGroup();
 		spinner("loading_state_spinner", 10.0f, 2.5f);
 		ImGui::SameLine();
-		text_muted("%s", loading_text != nullptr ? loading_text : "Loading...");
+		text_muted("%s", String(has_text(loading_text) ? loading_text : StringView("Loading...")).c_str());
 		ImGui::EndGroup();
 	}
 
-	void error_state(const char* message, const char* title)
+	void error_state(StringView message, StringView title)
 	{
 		const ImVec2 pos = ImGui::GetCursorScreenPos();
 		const ImVec2 size(ImGui::GetContentRegionAvail().x, 64.0f);
@@ -1462,10 +1483,10 @@ namespace Trinex::UI
 		draw->AddRectFilled(pos, add(pos, size), col_u32(with_alpha(active_context()->style.colors.error, 0.14f)),
 		                    active_context()->style.rounding);
 		draw->AddRect(pos, add(pos, size), col_u32(active_context()->style.colors.error, 0.7f), active_context()->style.rounding);
-		draw->AddText(ImVec2(pos.x + 14.0f, pos.y + 10.0f), col_u32(active_context()->style.colors.error),
-		              title != nullptr ? title : "Error");
-		draw->AddText(ImVec2(pos.x + 14.0f, pos.y + 34.0f), col_u32(active_context()->style.colors.text),
-		              message != nullptr ? message : "");
+		draw_list_add_text(draw, ImVec2(pos.x + 14.0f, pos.y + 10.0f), col_u32(active_context()->style.colors.error),
+		                   has_text(title) ? title : StringView("Error"));
+		draw_list_add_text(draw, ImVec2(pos.x + 14.0f, pos.y + 34.0f), col_u32(active_context()->style.colors.text),
+		                   has_text(message) ? message : StringView());
 		ImGui::Dummy(size);
 	}
 }// namespace Trinex::UI

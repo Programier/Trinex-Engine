@@ -51,7 +51,7 @@ namespace Trinex::UI
 		}
 	}
 
-	bool image_button(const char* id_text, const Texture& texture, Size size, const ImageOptions& options)
+	bool image_button(StringView id_text, const Texture& texture, Size size, const ImageOptions& options)
 	{
 		const Vec2 resolved_size = resolve(size);
 		if (texture == nullptr)
@@ -62,9 +62,9 @@ namespace Trinex::UI
 
 		cleanup_states();
 
-		if (id_text != nullptr)
+		if (!id_text.empty())
 		{
-			ImGui::PushID(id_text);
+			imgui_push_id(id_text);
 		}
 		else
 		{
@@ -146,16 +146,15 @@ namespace Trinex::UI
 		return clicked;
 	}
 
-	bool button(const char* label, const ButtonOptions& options)
+	bool button(StringView label, const ButtonOptions& options)
 	{
 		cleanup_states();
-		ImGui::PushID(label);
+		imgui_push_id(label);
 		const ImGuiID id              = ImGui::GetID("button");
 		AnimState& anim               = state_for(id);
 		const StringView text_label   = visible_label(label);
-		const StringView icon_label   = options.icon != nullptr ? StringView(options.icon) : StringView();
 		const bool has_text           = !text_label.empty();
-		const bool has_icon           = !icon_label.empty();
+		const bool has_icon           = !options.icon.empty();
 		const float icon_gap          = has_icon && has_text ? active_context()->style.spacing * 0.5f : 0.0f;
 		const float current_font_size = ImGui::GetFontSize();
 		ImFont* icon_font             = nullptr;
@@ -167,7 +166,7 @@ namespace Trinex::UI
 			if (icon_font != nullptr)
 			{
 				icon_size = icon_font->CalcTextSizeA(current_font_size, std::numeric_limits<float>::max(), 0.0f,
-				                                     icon_label.data(), icon_label.data() + icon_label.size());
+				                                     options.icon.data(), options.icon.data() + options.icon.size());
 			}
 		}
 
@@ -243,7 +242,7 @@ namespace Trinex::UI
 		if (has_icon && icon_font != nullptr)
 		{
 			draw->AddText(icon_font, current_font_size, ImVec2(x, rect.center.y - icon_size.y * 0.5f), col_u32(tc),
-			              icon_label.data(), icon_label.data() + icon_label.size());
+			              options.icon.data(), options.icon.data() + options.icon.size());
 			x += icon_size.x + icon_gap;
 		}
 		if (has_text)
@@ -263,26 +262,29 @@ namespace Trinex::UI
 		return clicked;
 	}
 
-	bool invisible_button(const char* label, const ButtonOptions& options)
+	bool invisible_button(StringView label, const ButtonOptions& options)
 	{
-		return ImGui::InvisibleButton(label, to_imvec(resolve(options.size)), options.flags);
+		{
+			String label_storage(label);
+			return ImGui::InvisibleButton(label_storage.c_str(), to_imvec(resolve(options.size)), options.flags);
+		}
 	}
 
-	bool icon_button(const char* icon, const char* label, const ButtonOptions& options)
+	bool icon_button(StringView icon, StringView label, const ButtonOptions& options)
 	{
 		ButtonOptions copy = options;
 		copy.icon          = icon;
 		return button(label, copy);
 	}
 
-	bool small_button(const char* label)
+	bool small_button(StringView label)
 	{
 		ButtonOptions options;
 		options.size = Size(0.0f, 24.0f);
 		return button(label, options);
 	}
 
-	bool ghost_button(const char* label, Size size)
+	bool ghost_button(StringView label, Size size)
 	{
 		ButtonOptions options;
 		options.size  = size;
@@ -290,7 +292,7 @@ namespace Trinex::UI
 		return button(label, options);
 	}
 
-	bool danger_button(const char* label, Size size)
+	bool danger_button(StringView label, Size size)
 	{
 		ButtonOptions options;
 		options.size   = size;
@@ -298,14 +300,14 @@ namespace Trinex::UI
 		return button(label, options);
 	}
 
-	bool checkbox(const char* label, bool* value)
+	bool checkbox(StringView label, bool* value)
 	{
 		cleanup_states();
-		ImGui::PushID(label);
+		imgui_push_id(label);
 		const ImGuiID id = ImGui::GetID("checkbox");
 		AnimState& anim  = state_for(id);
 		const float box  = 20.0f;
-		const ImVec2 ts  = ImGui::CalcTextSize(visible_label(label));
+		const ImVec2 ts  = imgui_calc_text_size(visible_label(label));
 		const ImVec2 size(box + active_context()->style.spacing + ts.x, Math::max(box, active_context()->style.frame_height));
 		const ImVec2 pos = ImGui::GetCursorScreenPos();
 		ImGui::InvisibleButton("##checkbox", size);
@@ -339,20 +341,20 @@ namespace Trinex::UI
 			draw->AddLine(ImVec2(c.x - 1.0f * s, c.y + 4.0f * s), ImVec2(c.x + 6.0f * s, c.y - 5.0f * s),
 			              col_u32(active_context()->style.colors.text, anim.value), 2.0f);
 		}
-		draw->AddText(ImVec2(pos.x + box + active_context()->style.spacing, pos.y + (size.y - ts.y) * 0.5f),
-		              col_u32(active_context()->style.colors.text), visible_label(label));
+		draw_list_add_text(draw, ImVec2(pos.x + box + active_context()->style.spacing, pos.y + (size.y - ts.y) * 0.5f),
+		                   col_u32(active_context()->style.colors.text), visible_label(label));
 		ImGui::PopID();
 		return clicked;
 	}
 
-	bool toggle(const char* label, bool* value)
+	bool toggle(StringView label, bool* value)
 	{
 		cleanup_states();
-		ImGui::PushID(label);
+		imgui_push_id(label);
 		const ImGuiID id = ImGui::GetID("toggle");
 		AnimState& anim  = state_for(id);
 		const ImVec2 track(46.0f, 24.0f);
-		const ImVec2 ts = ImGui::CalcTextSize(visible_label(label));
+		const ImVec2 ts = imgui_calc_text_size(visible_label(label));
 		const ImVec2 size(track.x + active_context()->style.spacing + ts.x,
 		                  Math::max(track.y, active_context()->style.frame_height));
 		const ImVec2 pos = ImGui::GetCursorScreenPos();
@@ -375,20 +377,20 @@ namespace Trinex::UI
 		const float knob_r = 9.0f + anim.hover;
 		const float knob_x = Math::lerp(p.x + track.y * 0.5f, p.x + track.x - track.y * 0.5f, toggle_t);
 		draw->AddCircleFilled(ImVec2(knob_x, p.y + track.y * 0.5f), knob_r, col_u32(active_context()->style.colors.text));
-		draw->AddText(ImVec2(pos.x + track.x + active_context()->style.spacing, pos.y + (size.y - ts.y) * 0.5f),
-		              col_u32(active_context()->style.colors.text), visible_label(label));
+		draw_list_add_text(draw, ImVec2(pos.x + track.x + active_context()->style.spacing, pos.y + (size.y - ts.y) * 0.5f),
+		                   col_u32(active_context()->style.colors.text), visible_label(label));
 		ImGui::PopID();
 		return clicked;
 	}
 
-	bool slider(const char* label, float* value, float min, float max, const char* format)
+	bool slider(StringView label, float* value, float min, float max, const char* format)
 	{
 		cleanup_states();
-		ImGui::PushID(label);
+		imgui_push_id(label);
 		const ImGuiID id        = ImGui::GetID("slider");
 		AnimState& anim         = state_for(id);
 		const float width       = ImGui::CalcItemWidth();
-		const ImVec2 label_size = ImGui::CalcTextSize(visible_label(label));
+		const ImVec2 label_size = imgui_calc_text_size(visible_label(label));
 		const ImVec2 size(width, active_context()->style.frame_height);
 		const ImVec2 pos = ImGui::GetCursorScreenPos();
 		ImGui::InvisibleButton("##slider", size);
@@ -419,10 +421,10 @@ namespace Trinex::UI
 		                    bar_h * 0.5f);
 		draw->AddCircleFilled(ImVec2(Math::lerp(bar_min.x, bar_max.x, anim.value), bar_min.y + bar_h * 0.5f),
 		                      6.0f + anim.active * 2.0f, col_u32(active_context()->style.colors.text));
-		if (label_size.x > 0.0f && std::strstr(label, "##") != label)
+		if (label_size.x > 0.0f && !visible_label(label).empty())
 		{
 			ImGui::SameLine();
-			ImGui::TextUnformatted(visible_label(label));
+			imgui_text_unformatted(visible_label(label));
 		}
 		if (value != nullptr && ImGui::IsItemHovered())
 		{
@@ -434,7 +436,7 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	bool slider(const char* label, int* value, int min, int max, const char* format)
+	bool slider(StringView label, int* value, int min, int max, const char* format)
 	{
 		float v = value != nullptr ? static_cast<float>(*value) : 0.0f;
 		(void) format;
@@ -446,13 +448,14 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	bool drag(const char* label, float* value, float speed, float min, float max, const char* format)
+	bool drag(StringView label, float* value, float speed, float min, float max, const char* format)
 	{
 		cleanup_states();
-		ImGui::PushID(label);
+		imgui_push_id(label);
 		AnimState& anim = state_for(ImGui::GetID("drag"));
 		push_input_frame_styles(anim.focus);
-		const bool changed = ImGui::DragFloat(label, value, speed, min, max, format);
+		String label_storage(label);
+		const bool changed = ImGui::DragFloat(label_storage.c_str(), value, speed, min, max, format);
 		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
 		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f);
 		pop_input_frame_styles();
@@ -460,13 +463,14 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	bool drag(const char* label, int* value, float speed, int min, int max, const char* format)
+	bool drag(StringView label, int* value, float speed, int min, int max, const char* format)
 	{
 		cleanup_states();
-		ImGui::PushID(label);
+		imgui_push_id(label);
 		AnimState& anim = state_for(ImGui::GetID("drag"));
 		push_input_frame_styles(anim.focus);
-		const bool changed = ImGui::DragInt(label, value, speed, min, max, format);
+		String label_storage(label);
+		const bool changed = ImGui::DragInt(label_storage.c_str(), value, speed, min, max, format);
 		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
 		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f);
 		pop_input_frame_styles();
@@ -474,7 +478,7 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	bool drag(const char* label, Vec2* value, float speed, float min, float max, const char* format)
+	bool drag(StringView label, Vec2* value, float speed, float min, float max, const char* format)
 	{
 		if (value == nullptr)
 		{
@@ -482,10 +486,11 @@ namespace Trinex::UI
 		}
 
 		cleanup_states();
-		ImGui::PushID(label);
+		imgui_push_id(label);
 		AnimState& anim = state_for(ImGui::GetID("drag"));
 		push_input_frame_styles(anim.focus);
-		const bool changed = ImGui::DragFloat2(label, &value->x, speed, min, max, format);
+		String label_storage(label);
+		const bool changed = ImGui::DragFloat2(label_storage.c_str(), &value->x, speed, min, max, format);
 		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
 		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f);
 		pop_input_frame_styles();
@@ -493,7 +498,7 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	bool drag(const char* label, Vec3* value, float speed, float min, float max, const char* format)
+	bool drag(StringView label, Vec3* value, float speed, float min, float max, const char* format)
 	{
 		if (value == nullptr)
 		{
@@ -501,10 +506,11 @@ namespace Trinex::UI
 		}
 
 		cleanup_states();
-		ImGui::PushID(label);
+		imgui_push_id(label);
 		AnimState& anim = state_for(ImGui::GetID("drag"));
 		push_input_frame_styles(anim.focus);
-		const bool changed = ImGui::DragFloat3(label, &value->x, speed, min, max, format);
+		String label_storage(label);
+		const bool changed = ImGui::DragFloat3(label_storage.c_str(), &value->x, speed, min, max, format);
 		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
 		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f);
 		pop_input_frame_styles();
@@ -512,7 +518,7 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	bool drag(const char* label, Vec4* value, float speed, float min, float max, const char* format)
+	bool drag(StringView label, Vec4* value, float speed, float min, float max, const char* format)
 	{
 		if (value == nullptr)
 		{
@@ -520,10 +526,11 @@ namespace Trinex::UI
 		}
 
 		cleanup_states();
-		ImGui::PushID(label);
+		imgui_push_id(label);
 		AnimState& anim = state_for(ImGui::GetID("drag"));
 		push_input_frame_styles(anim.focus);
-		const bool changed = ImGui::DragFloat4(label, &value->x, speed, min, max, format);
+		String label_storage(label);
+		const bool changed = ImGui::DragFloat4(label_storage.c_str(), &value->x, speed, min, max, format);
 		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
 		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f);
 		pop_input_frame_styles();
@@ -531,13 +538,14 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	bool input(const char* label, double* value, const char* format)
+	bool input(StringView label, double* value, const char* format)
 	{
 		cleanup_states();
-		ImGui::PushID(label);
+		imgui_push_id(label);
 		AnimState& anim = state_for(ImGui::GetID("input"));
 		push_input_frame_styles(anim.focus);
-		const bool changed = ImGui::InputDouble(label, value, 0.0, 0.0, format);
+		String label_storage(label);
+		const bool changed = ImGui::InputDouble(label_storage.c_str(), value, 0.0, 0.0, format);
 		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
 		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f);
 		pop_input_frame_styles();
@@ -545,13 +553,14 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	bool input(const char* label, float* value, const char* format)
+	bool input(StringView label, float* value, const char* format)
 	{
 		cleanup_states();
-		ImGui::PushID(label);
+		imgui_push_id(label);
 		AnimState& anim = state_for(ImGui::GetID("input"));
 		push_input_frame_styles(anim.focus);
-		const bool changed = ImGui::InputFloat(label, value, 0.0f, 0.0f, format);
+		String label_storage(label);
+		const bool changed = ImGui::InputFloat(label_storage.c_str(), value, 0.0f, 0.0f, format);
 		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
 		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f);
 		pop_input_frame_styles();
@@ -559,13 +568,14 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	bool input(const char* label, int* value)
+	bool input(StringView label, int* value)
 	{
 		cleanup_states();
-		ImGui::PushID(label);
+		imgui_push_id(label);
 		AnimState& anim = state_for(ImGui::GetID("input"));
 		push_input_frame_styles(anim.focus);
-		const bool changed = ImGui::InputInt(label, value);
+		String label_storage(label);
+		const bool changed = ImGui::InputInt(label_storage.c_str(), value);
 		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
 		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f);
 		pop_input_frame_styles();
@@ -573,26 +583,7 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	bool input(const char* label, Vec2* value, const char* format)
-	{
-		if (value == nullptr)
-		{
-			return false;
-		}
-
-		cleanup_states();
-		ImGui::PushID(label);
-		AnimState& anim = state_for(ImGui::GetID("input"));
-		push_input_frame_styles(anim.focus);
-		const bool changed = ImGui::InputFloat2(label, &value->x, format);
-		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
-		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f);
-		pop_input_frame_styles();
-		ImGui::PopID();
-		return changed;
-	}
-
-	bool input(const char* label, Vec3* value, const char* format)
+	bool input(StringView label, Vec2* value, const char* format)
 	{
 		if (value == nullptr)
 		{
@@ -600,10 +591,11 @@ namespace Trinex::UI
 		}
 
 		cleanup_states();
-		ImGui::PushID(label);
+		imgui_push_id(label);
 		AnimState& anim = state_for(ImGui::GetID("input"));
 		push_input_frame_styles(anim.focus);
-		const bool changed = ImGui::InputFloat3(label, &value->x, format);
+		String label_storage(label);
+		const bool changed = ImGui::InputFloat2(label_storage.c_str(), &value->x, format);
 		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
 		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f);
 		pop_input_frame_styles();
@@ -611,7 +603,7 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	bool input(const char* label, Vec4* value, const char* format)
+	bool input(StringView label, Vec3* value, const char* format)
 	{
 		if (value == nullptr)
 		{
@@ -619,10 +611,11 @@ namespace Trinex::UI
 		}
 
 		cleanup_states();
-		ImGui::PushID(label);
+		imgui_push_id(label);
 		AnimState& anim = state_for(ImGui::GetID("input"));
 		push_input_frame_styles(anim.focus);
-		const bool changed = ImGui::InputFloat4(label, &value->x, format);
+		String label_storage(label);
+		const bool changed = ImGui::InputFloat3(label_storage.c_str(), &value->x, format);
 		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
 		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f);
 		pop_input_frame_styles();
@@ -630,13 +623,19 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	bool input(const char* label, char* buffer, size_t buffer_size, InputTextFlags flags)
+	bool input(StringView label, Vec4* value, const char* format)
 	{
+		if (value == nullptr)
+		{
+			return false;
+		}
+
 		cleanup_states();
-		ImGui::PushID(label);
+		imgui_push_id(label);
 		AnimState& anim = state_for(ImGui::GetID("input"));
 		push_input_frame_styles(anim.focus);
-		const bool changed = ImGui::InputText(label, buffer, buffer_size, to_imgui_input_text_flags(flags));
+		String label_storage(label);
+		const bool changed = ImGui::InputFloat4(label_storage.c_str(), &value->x, format);
 		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
 		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f);
 		pop_input_frame_styles();
@@ -644,13 +643,14 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	bool input(const char* label, const char* hint, char* buffer, size_t buffer_size, InputTextFlags flags)
+	bool input(StringView label, char* buffer, size_t buffer_size, InputTextFlags flags)
 	{
 		cleanup_states();
-		ImGui::PushID(label);
+		imgui_push_id(label);
 		AnimState& anim = state_for(ImGui::GetID("input"));
 		push_input_frame_styles(anim.focus);
-		const bool changed = ImGui::InputTextWithHint(label, hint, buffer, buffer_size, to_imgui_input_text_flags(flags));
+		String label_storage(label);
+		const bool changed = ImGui::InputText(label_storage.c_str(), buffer, buffer_size, to_imgui_input_text_flags(flags));
 		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
 		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f);
 		pop_input_frame_styles();
@@ -658,37 +658,55 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	bool input(const char* label, char* buffer, size_t buffer_size, Size size, InputTextFlags flags)
+	bool input(StringView label, StringView hint, char* buffer, size_t buffer_size, InputTextFlags flags)
 	{
 		cleanup_states();
-		ImGui::PushID(label);
+		imgui_push_id(label);
 		AnimState& anim = state_for(ImGui::GetID("input"));
 		push_input_frame_styles(anim.focus);
-		const bool changed =
-		        ImGui::InputTextMultiline(label, buffer, buffer_size, to_imvec(resolve(size)), to_imgui_input_text_flags(flags));
-		anim.hover = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
-		anim.focus = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f);
+		String label_storage(label);
+		String hint_storage(hint);
+		const bool changed = ImGui::InputTextWithHint(label_storage.c_str(), hint_storage.c_str(), buffer, buffer_size,
+		                                              to_imgui_input_text_flags(flags));
+		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
+		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f);
 		pop_input_frame_styles();
 		ImGui::PopID();
 		return changed;
 	}
 
-	bool search_input(const char* label, char* buffer, size_t buffer_size)
+	bool input(StringView label, char* buffer, size_t buffer_size, Size size, InputTextFlags flags)
+	{
+		cleanup_states();
+		imgui_push_id(label);
+		AnimState& anim = state_for(ImGui::GetID("input"));
+		push_input_frame_styles(anim.focus);
+		String label_storage(label);
+		const bool changed = ImGui::InputTextMultiline(label_storage.c_str(), buffer, buffer_size, to_imvec(resolve(size)),
+		                                               to_imgui_input_text_flags(flags));
+		anim.hover         = approach(anim.hover, ImGui::IsItemHovered() ? 1.0f : 0.0f);
+		anim.focus         = approach(anim.focus, ImGui::IsItemActive() ? 1.0f : 0.0f);
+		pop_input_frame_styles();
+		ImGui::PopID();
+		return changed;
+	}
+
+	bool search_input(StringView label, char* buffer, size_t buffer_size)
 	{
 		return input(label, buffer, buffer_size);
 	}
 
-	bool begin_combo(const char* label, const char* preview_value, ComboFlags flags)
+	bool begin_combo(StringView label, StringView preview_value, ComboFlags flags)
 	{
 		auto& combo = active_context()->active_combo;
 
 		cleanup_states();
-		ImGui::PushID(label);
+		imgui_push_id(label);
 		const ImGuiID id = ImGui::GetID("combo_open");
 		bool& open       = active_context()->open[id];
 		AnimState& anim  = state_for(id);
 
-		const ImVec2 label_size = ImGui::CalcTextSize(visible_label(label));
+		const ImVec2 label_size = imgui_calc_text_size(visible_label(label));
 		const float width       = ImGui::CalcItemWidth();
 		const ImVec2 frame_size(width, active_context()->style.frame_height);
 		const ImVec2 pos = ImGui::GetCursorScreenPos();
@@ -748,17 +766,16 @@ namespace Trinex::UI
 		draw->AddRect(pos, add(pos, frame_size),
 		              col_u32(Math::lerp(active_context()->style.colors.border, active_context()->style.colors.accent, open_t)),
 		              active_context()->style.rounding, 0, active_context()->style.border_size);
-		const char* preview       = preview_value != nullptr ? preview_value : "";
-		const ImVec2 preview_size = ImGui::CalcTextSize(preview);
-		draw->AddText(ImVec2(pos.x + active_context()->style.padding, pos.y + (frame_size.y - preview_size.y) * 0.5f),
-		              col_u32(active_context()->style.colors.text), preview);
+		const ImVec2 preview_size = imgui_calc_text_size(preview_value);
+		draw_list_add_text(draw, ImVec2(pos.x + active_context()->style.padding, pos.y + (frame_size.y - preview_size.y) * 0.5f),
+		                   col_u32(active_context()->style.colors.text), preview_value);
 		draw_chevron(draw, ImVec2(pos.x + frame_size.x - 16.0f, pos.y + frame_size.y * 0.5f), 9.0f, open_t,
 		             col_u32(active_context()->style.colors.text_muted));
 
-		if (label_size.x > 0.0f && std::strstr(label, "##") != label)
+		if (label_size.x > 0.0f && !visible_label(label).empty())
 		{
 			ImGui::SameLine();
-			ImGui::TextUnformatted(visible_label(label));
+			imgui_text_unformatted(visible_label(label));
 		}
 
 		UI::push_render_scale(Vec2(1.f, anim.open), {0.5, 0.f});
@@ -806,7 +823,7 @@ namespace Trinex::UI
 		ImGui::PopID();
 	}
 
-	bool combo(const char* label, int* current_item, const char* const items[], int item_count)
+	bool combo(StringView label, int* current_item, const char* const items[], int item_count)
 	{
 		if (current_item == nullptr || items == nullptr || item_count <= 0)
 		{
@@ -838,7 +855,7 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	bool selectable(const char* label, bool selected, SelectableFlags flags, Size size)
+	bool selectable(StringView label, bool selected, SelectableFlags flags, Size size)
 	{
 		TreeNodeOptions options;
 		options.selected = selected;
@@ -856,14 +873,14 @@ namespace Trinex::UI
 		return clicked;
 	}
 
-	bool radio_button(const char* label, bool active)
+	bool radio_button(StringView label, bool active)
 	{
 		cleanup_states();
-		ImGui::PushID(label);
+		imgui_push_id(label);
 		const ImGuiID id       = ImGui::GetID("radio");
 		AnimState& anim        = state_for(id);
 		const float diameter   = 20.0f;
-		const ImVec2 text_size = ImGui::CalcTextSize(visible_label(label));
+		const ImVec2 text_size = imgui_calc_text_size(visible_label(label));
 		const ImVec2 size(diameter + active_context()->style.spacing + text_size.x,
 		                  Math::max(active_context()->style.frame_height, diameter));
 		const ImVec2 pos = ImGui::GetCursorScreenPos();
@@ -881,13 +898,14 @@ namespace Trinex::UI
 		                24, 2.0f);
 		draw->AddCircleFilled(center, diameter * 0.31f * apply_ease(anim.selected, Ease::OutBack),
 		                      col_u32(active_context()->style.colors.accent, anim.selected));
-		draw->AddText(ImVec2(pos.x + diameter + active_context()->style.spacing, pos.y + (size.y - text_size.y) * 0.5f),
-		              col_u32(active_context()->style.colors.text), visible_label(label));
+		draw_list_add_text(draw,
+		                   ImVec2(pos.x + diameter + active_context()->style.spacing, pos.y + (size.y - text_size.y) * 0.5f),
+		                   col_u32(active_context()->style.colors.text), visible_label(label));
 		ImGui::PopID();
 		return clicked;
 	}
 
-	bool radio_button(const char* label, int* value, int button_value)
+	bool radio_button(StringView label, int* value, int button_value)
 	{
 		const bool clicked = radio_button(label, value != nullptr && *value == button_value);
 		if (clicked && value != nullptr && *value != button_value)
@@ -898,14 +916,14 @@ namespace Trinex::UI
 		return false;
 	}
 
-	bool segmented_control(const char* label, int* current_item, const char* const items[], int item_count, Size size_arg)
+	bool segmented_control(StringView label, int* current_item, const char* const items[], int item_count, Size size_arg)
 	{
 		if (current_item == nullptr || items == nullptr || item_count <= 0)
 		{
 			return false;
 		}
 		cleanup_states();
-		ImGui::PushID(label);
+		imgui_push_id(label);
 		const Vec2 resolved_size = resolve(size_arg);
 		const float width        = resolved_size.x > 0.0f ? resolved_size.x : ImGui::GetContentRegionAvail().x;
 		const float height       = resolved_size.y > 0.0f ? resolved_size.y : active_context()->style.frame_height;
@@ -963,7 +981,7 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	void progress_bar(float fraction, Size size_arg, const char* overlay)
+	void progress_bar(float fraction, Size size_arg, StringView overlay)
 	{
 		cleanup_states();
 		const ImGuiID id = ImGui::GetID("ui_progress_bar");
@@ -984,17 +1002,17 @@ namespace Trinex::UI
 		draw->AddRectFilled(pos, add(pos, size), col_u32(active_context()->style.colors.background_active), size.y * 0.5f);
 		draw->AddRectFilled(pos, ImVec2(pos.x + size.x * anim.value, pos.y + size.y),
 		                    col_u32(active_context()->style.colors.accent), size.y * 0.5f);
-		if (overlay != nullptr)
+		if (!overlay.empty())
 		{
-			const ImVec2 ts = ImGui::CalcTextSize(overlay);
-			draw->AddText(ImVec2(pos.x + (size.x - ts.x) * 0.5f, pos.y + (size.y - ts.y) * 0.5f),
-			              col_u32(active_context()->style.colors.text), overlay);
+			const ImVec2 ts = imgui_calc_text_size(overlay);
+			draw_list_add_text(draw, ImVec2(pos.x + (size.x - ts.x) * 0.5f, pos.y + (size.y - ts.y) * 0.5f),
+			                   col_u32(active_context()->style.colors.text), overlay);
 		}
 	}
 
-	void spinner(const char* id, Unit radius, Unit thickness, const Vec4& color)
+	void spinner(StringView id, Unit radius, Unit thickness, const Vec4& color)
 	{
-		ImGui::PushID(id);
+		imgui_push_id(id);
 		const float resolved_radius    = resolve(radius);
 		const float resolved_thickness = resolve(thickness);
 		const ImVec2 pos               = ImGui::GetCursorScreenPos();
@@ -1017,17 +1035,18 @@ namespace Trinex::UI
 		ImGui::PopID();
 	}
 
-	bool color_edit(const char* label, Vec4* color, bool alpha, ColorEditFlags flags)
+	bool color_edit(StringView label, Vec4* color, bool alpha, ColorEditFlags flags)
 	{
 		if (color == nullptr)
 		{
 			return false;
 		}
-		return alpha ? ImGui::ColorEdit4(label, &color->x, to_imgui_color_edit_flags(flags))
-		             : ImGui::ColorEdit3(label, &color->x, to_imgui_color_edit_flags(flags));
+		String label_storage(label);
+		return alpha ? ImGui::ColorEdit4(label_storage.c_str(), &color->x, to_imgui_color_edit_flags(flags))
+		             : ImGui::ColorEdit3(label_storage.c_str(), &color->x, to_imgui_color_edit_flags(flags));
 	}
 
-	bool keybind_input(const char* label, Keybind* binding)
+	bool keybind_input(StringView label, Keybind* binding)
 	{
 		if (binding == nullptr)
 		{
@@ -1035,14 +1054,14 @@ namespace Trinex::UI
 		}
 
 		cleanup_states();
-		ImGui::PushID(label);
+		imgui_push_id(label);
 		const ImGuiID id        = ImGui::GetID("keybind");
 		AnimState& anim         = state_for(id);
 		const String display    = active_context()->keybind_capture == id ? "Press key..." : keybind_to_string(*binding);
-		const ImVec2 label_size = ImGui::CalcTextSize(visible_label(label));
+		const ImVec2 label_size = imgui_calc_text_size(visible_label(label));
 		const ImVec2 field_size(Math::max(130.0f, ImGui::CalcItemWidth() * 0.55f), active_context()->style.frame_height);
 		ImGui::AlignTextToFramePadding();
-		ImGui::TextUnformatted(visible_label(label));
+		imgui_text_unformatted(visible_label(label));
 		ImGui::SameLine();
 		const ImVec2 pos = ImGui::GetCursorScreenPos();
 		ImGui::InvisibleButton("##keybind_button", field_size);

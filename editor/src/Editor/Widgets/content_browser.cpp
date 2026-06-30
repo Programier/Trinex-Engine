@@ -452,7 +452,7 @@ namespace Trinex
 		{
 			for (i32 column = 0; column < columns; ++column)
 			{
-				UI::table_setup_column(nullptr, UI::TableColumnFlags::WidthFixed, column_step);
+				UI::table_setup_column("", UI::TableColumnFlags::WidthFixed, column_step);
 			}
 
 			ImGuiListClipper clipper;

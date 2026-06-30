@@ -841,7 +841,7 @@ namespace Trinex::UI
 
 	struct DockPlacement {
 		DockID id             = DockID();
-		const char* id_text   = nullptr;
+		StringView id_text    = {};
 		Condition condition   = Condition::Undefined;
 		DockWindowFlags flags = DockWindowFlags::Undefined;
 	};
@@ -862,9 +862,9 @@ namespace Trinex::UI
 	};
 
 	struct WindowTabOptions {
-		DockTabFlags flags  = DockTabFlags::Undefined;
-		Vec4 color          = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
-		const char* tooltip = nullptr;
+		DockTabFlags flags = DockTabFlags::Undefined;
+		Vec4 color         = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
+		StringView tooltip = {};
 	};
 
 	class DockLayout
@@ -885,18 +885,18 @@ namespace Trinex::UI
 
 	public:
 		bool exists() const;
-		DockLayout& bind(const char* id, DockID dock);
+		DockLayout& bind(StringView id, DockID dock);
 		DockLayout& flags(DockID dock, DockNodeFlags flags);
-		DockLayout& flags(const char* id, DockNodeFlags flags);
-		DockID find(const char* id) const;
-		DockID require(const char* id) const;
-		bool has(const char* id) const;
-		Result split(DockID dock, DockSplitDir dir, f32 ratio, const char* id = nullptr);
-		Result split(DockID dock, DockSplitDir dir, f32 ratio, const char* remainder_id, const char* child_id);
-		DockID crop(DockID& dock, DockSplitDir dir, f32 ratio, const char* id = nullptr);
-		DockID crop(DockID& dock, DockSplitDir dir, f32 ratio, const char* remainder_id, const char* child_id);
-		DockID dock(const char* window_name, DockID dock_id);
-		DockID dock(const char* window_name, const char* dock_id);
+		DockLayout& flags(StringView id, DockNodeFlags flags);
+		DockID find(StringView id) const;
+		DockID require(StringView id) const;
+		bool has(StringView id) const;
+		Result split(DockID dock, DockSplitDir dir, f32 ratio, StringView id = {});
+		Result split(DockID dock, DockSplitDir dir, f32 ratio, StringView remainder_id, StringView child_id);
+		DockID crop(DockID& dock, DockSplitDir dir, f32 ratio, StringView id = {});
+		DockID crop(DockID& dock, DockSplitDir dir, f32 ratio, StringView remainder_id, StringView child_id);
+		DockID dock(StringView window_name, DockID dock_id);
+		DockID dock(StringView window_name, StringView dock_id);
 
 		bool begin(Size size = {}, DockNodeFlags flags = DockNodeFlags::Undefined);
 		bool begin(DockID root, Size size = {}, DockNodeFlags flags = DockNodeFlags::Undefined);
@@ -906,9 +906,9 @@ namespace Trinex::UI
 		inline DockID main() const { return m_main; }
 		inline DockLayout& main(DockID id) { trinex_this_return(m_main = id ? id : m_root); }
 
-		inline DockID dock(const char* window_name) { return dock(window_name, m_main); }
-		inline Result split(DockSplitDir dir, f32 ratio, const char* id = nullptr) { return split(m_main, dir, ratio, id); }
-		inline Result split(DockSplitDir dir, f32 ratio, const char* remainder_id, const char* child_id)
+		inline DockID dock(StringView window_name) { return dock(window_name, m_main); }
+		inline Result split(DockSplitDir dir, f32 ratio, StringView id = {}) { return split(m_main, dir, ratio, id); }
+		inline Result split(DockSplitDir dir, f32 ratio, StringView remainder_id, StringView child_id)
 		{
 			return split(m_main, dir, ratio, remainder_id, child_id);
 		}
@@ -1027,7 +1027,7 @@ namespace Trinex::UI
 
 	struct ButtonOptions {
 		Size size         = Size(0.0f, 0.0f);
-		const char* icon  = nullptr;
+		StringView icon   = {};
 		bool disabled     = false;
 		bool ghost        = false;
 		Vec4 accent       = Vec4(0, 0, 0, 0);
@@ -1035,18 +1035,18 @@ namespace Trinex::UI
 	};
 
 	struct HeaderOptions {
-		const char* icon       = nullptr;
-		const char* right_text = nullptr;
-		bool default_open      = false;
-		bool full_row_click    = true;
-		bool disabled          = false;
-		bool* open             = nullptr;
-		Vec4 accent            = Vec4(0, 0, 0, 0);
+		StringView icon       = {};
+		StringView right_text = {};
+		bool default_open     = false;
+		bool full_row_click   = true;
+		bool disabled         = false;
+		bool* open            = nullptr;
+		Vec4 accent           = Vec4(0, 0, 0, 0);
 	};
 
 	struct TreeNodeOptions {
-		const char* icon    = nullptr;
-		const char* badge   = nullptr;
+		StringView icon     = {};
+		StringView badge    = {};
 		bool default_open   = false;
 		bool selected       = false;
 		bool leaf           = false;
@@ -1057,10 +1057,10 @@ namespace Trinex::UI
 	};
 
 	struct NotificationOptions {
-		NotificationKind kind    = NotificationKind::Info;
-		f32 duration             = 3.0f;
-		const char* title        = nullptr;
-		const char* action_label = nullptr;
+		NotificationKind kind   = NotificationKind::Info;
+		f32 duration            = 3.0f;
+		StringView title        = {};
+		StringView action_label = {};
 		Action action;
 	};
 
@@ -1073,16 +1073,16 @@ namespace Trinex::UI
 	};
 
 	struct StateOptions {
-		const char* icon        = nullptr;
-		const char* title       = nullptr;
-		const char* description = nullptr;
+		StringView icon        = {};
+		StringView title       = {};
+		StringView description = {};
 	};
 
 	struct HeroOptions {
-		const char* icon         = nullptr;
-		const char* title        = nullptr;
-		const char* description  = nullptr;
-		const char* action_label = nullptr;
+		StringView icon         = {};
+		StringView title        = {};
+		StringView description  = {};
+		StringView action_label = {};
 
 		Size size   = Size(0.0f, 0.0f);
 		Vec4 accent = Vec4(0, 0, 0, 0);
@@ -1099,11 +1099,11 @@ namespace Trinex::UI
 	};
 
 	struct Command {
-		const char* id          = nullptr;
-		const char* name        = nullptr;
-		const char* description = nullptr;
-		const char* shortcut    = nullptr;
-		const char* icon        = nullptr;
+		StringView id          = {};
+		StringView name        = {};
+		StringView description = {};
+		StringView shortcut    = {};
+		StringView icon        = {};
 		Action action;
 	};
 
@@ -1129,13 +1129,13 @@ namespace Trinex::UI
 		bool m_is_open = false;
 
 	public:
-		static Widget* create(const char* name, const WindowOptions& options, bool open, const Action& action);
-		static inline Widget* create(const char* name, const WindowOptions& options, const Action& action)
+		static Widget* create(StringView name, const WindowOptions& options, bool open, const Action& action);
+		static inline Widget* create(StringView name, const WindowOptions& options, const Action& action)
 		{
 			return create(name, options, false, action);
 		}
-		static inline Widget* create(const char* name, bool open, const Action& action) { return create(name, {}, open, action); }
-		static inline Widget* create(const char* name, const Action& action) { return create(name, {}, action); }
+		static inline Widget* create(StringView name, bool open, const Action& action) { return create(name, {}, open, action); }
+		static inline Widget* create(StringView name, const Action& action) { return create(name, {}, action); }
 
 	public:
 		Widget(StringView name = "", const WindowOptions& options = {}, bool open = false);

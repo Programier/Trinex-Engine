@@ -6,7 +6,7 @@ namespace Trinex::UI
 {
 	/////////////////////// WINDOWS AND CONTAINERS ///////////////////////
 
-	bool begin_window(const char* name, bool* open, const WindowOptions& options)
+	bool begin_window(StringView name, bool* open, const WindowOptions& options)
 	{
 		trinex_assert(has_text(name) && "UI::begin_window() requires a non-empty name");
 		if (!has_text(name))
@@ -22,7 +22,8 @@ namespace Trinex::UI
 		apply_window_options_pre_begin(options);
 		push_window_styles(false);
 
-		const bool visible = ImGui::Begin(name, open, to_imgui_window_flags(options.flags));
+		String name_storage(name);
+		const bool visible = ImGui::Begin(name_storage.c_str(), open, to_imgui_window_flags(options.flags));
 		if (visible)
 		{
 			apply_window_options_post_begin(options);
@@ -86,7 +87,7 @@ namespace Trinex::UI
 		}
 	}
 
-	bool begin_panel(const char* id, const PanelOptions& options)
+	bool begin_panel(StringView id, const PanelOptions& options)
 	{
 		const Vec4 bg = has_color(options.background_color) ? options.background_color : active_context()->style.colors.panel;
 		const float rounding = options.rounding >= 0.0f ? options.rounding : active_context()->style.rounding;
@@ -96,7 +97,8 @@ namespace Trinex::UI
 		                    ImVec2(active_context()->style.padding, active_context()->style.padding));
 		ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
 		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
-		const bool visible = ImGui::BeginChild(id, to_imvec(resolve(options.size)),
+		String id_storage(id);
+		const bool visible = ImGui::BeginChild(id_storage.c_str(), to_imvec(resolve(options.size)),
 		                                       options.flags | ImGuiChildFlags_AlwaysUseWindowPadding, options.window_flags);
 		if (!visible)
 		{
@@ -157,7 +159,7 @@ namespace Trinex::UI
 		ImGui::PopStyleVar(3);
 	}
 
-	bool begin_glass_panel(const char* id, Size size, const GlassOptions& options)
+	bool begin_glass_panel(StringView id, Size size, const GlassOptions& options)
 	{
 		trinex_assert(has_text(id) && "UI::begin_glass_panel() requires a non-empty id");
 		if (!has_text(id))
@@ -187,7 +189,8 @@ namespace Trinex::UI
 		ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
 		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
 
-		const bool visible = ImGui::BeginChild(id, to_imvec(resolved_size), child_flags, ImGuiWindowFlags_None);
+		String id_storage(id);
+		const bool visible = ImGui::BeginChild(id_storage.c_str(), to_imvec(resolved_size), child_flags, ImGuiWindowFlags_None);
 		if (!visible)
 		{
 			ImGui::EndChild();
@@ -275,12 +278,12 @@ namespace Trinex::UI
 		ImGui::PopStyleVar(3);
 	}
 
-	bool begin_group_panel(const char* label, const PanelOptions& options)
+	bool begin_group_panel(StringView label, const PanelOptions& options)
 	{
 		ImGui::BeginGroup();
-		if (label != nullptr && label[0] != '\0')
+		if (has_text(label))
 		{
-			text_muted("%s", label);
+			text_muted("%s", String(label).c_str());
 		}
 
 		if (!begin_panel(label, options))
@@ -309,12 +312,12 @@ namespace Trinex::UI
 		ImGui::EndGroup();
 	}
 
-	bool begin_card(const char* title, const CardOptions& options)
+	bool begin_card(StringView title, const CardOptions& options)
 	{
 		cleanup_states();
-		if (title != nullptr && title[0] != '\0')
+		if (has_text(title))
 		{
-			ImGui::PushID(title);
+			imgui_push_id(title);
 		}
 		else
 		{
@@ -446,12 +449,12 @@ namespace Trinex::UI
 		ImGui::PopID();
 	}
 
-	bool card_button(const char* title, const CardOptions& options, const ActionRef& action)
+	bool card_button(StringView title, const CardOptions& options, const ActionRef& action)
 	{
 		cleanup_states();
-		if (title != nullptr && title[0] != '\0')
+		if (has_text(title))
 		{
-			ImGui::PushID(title);
+			imgui_push_id(title);
 		}
 		else
 		{
@@ -567,9 +570,10 @@ namespace Trinex::UI
 
 	/////////////////////// LAYOUT AND SCROLLING ///////////////////////
 
-	bool begin_horizontal(const char* id_text, Size size, float align)
+	bool begin_horizontal(StringView id_text, Size size, float align)
 	{
-		ImGui::BeginHorizontal(id_text, to_imvec(resolve(size)), align);
+		String id_storage(id_text);
+		ImGui::BeginHorizontal(id_storage.c_str(), to_imvec(resolve(size)), align);
 		return true;
 	}
 
@@ -590,9 +594,10 @@ namespace Trinex::UI
 		ImGui::EndHorizontal();
 	}
 
-	bool begin_vertical(const char* id_text, Size size, float align)
+	bool begin_vertical(StringView id_text, Size size, float align)
 	{
-		ImGui::BeginVertical(id_text, to_imvec(resolve(size)), align);
+		String id_storage(id_text);
+		ImGui::BeginVertical(id_storage.c_str(), to_imvec(resolve(size)), align);
 		return true;
 	}
 
@@ -704,9 +709,9 @@ namespace Trinex::UI
 		ImGui::EndDisabled();
 	}
 
-	bool begin_animated_area(const char* id_label, bool visible)
+	bool begin_animated_area(StringView id_label, bool visible)
 	{
-		ImGui::PushID(id_label);
+		imgui_push_id(id_label);
 		const ImGuiID id  = ImGui::GetID("animated_area");
 		AnimState& anim   = state_for(id);
 		anim.open         = approach(anim.open, visible ? 1.0f : 0.0f);
@@ -764,9 +769,10 @@ namespace Trinex::UI
 		ImGui::PopID();
 	}
 
-	bool begin_scroll_area(const char* id, Size size, bool border, WindowFlags flags)
+	bool begin_scroll_area(StringView id, Size size, bool border, WindowFlags flags)
 	{
-		bool visible = ImGui::BeginChild(id, to_imvec(resolve(size)), border, to_imgui_window_flags(flags));
+		String id_storage(id);
+		bool visible = ImGui::BeginChild(id_storage.c_str(), to_imvec(resolve(size)), border, to_imgui_window_flags(flags));
 
 		if (!visible)
 		{
@@ -1170,17 +1176,17 @@ namespace Trinex::UI
 		va_end(args);
 	}
 
-	void label(const char* label_text, const char* value)
+	void label(StringView label_text, StringView value)
 	{
-		text_muted("%s", label_text);
-		if (value != nullptr)
+		text_muted("%s", String(label_text).c_str());
+		if (has_text(value))
 		{
 			ImGui::SameLine();
-			text("%s", value);
+			text("%s", String(value).c_str());
 		}
 	}
 
-	void help_marker(const char* description)
+	void help_marker(StringView description)
 	{
 		ImGui::TextDisabled("(?)");
 		if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort))
@@ -1189,16 +1195,16 @@ namespace Trinex::UI
 		}
 	}
 
-	void tooltip(const char* value)
+	void tooltip(StringView value)
 	{
 		ImGui::BeginTooltip();
 		ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-		ImGui::TextUnformatted(value);
+		imgui_text_unformatted(value);
 		ImGui::PopTextWrapPos();
 		ImGui::EndTooltip();
 	}
 
-	void tooltip_delayed(const char* value, float delay)
+	void tooltip_delayed(StringView value, float delay)
 	{
 		const ImGuiID id = ImGui::GetItemID();
 		float& time      = active_context()->hover_time[id];
@@ -1216,7 +1222,7 @@ namespace Trinex::UI
 		}
 	}
 
-	void tooltip_if_hovered(const char* value, float delay)
+	void tooltip_if_hovered(StringView value, float delay)
 	{
 		if (!ImGui::IsItemHovered())
 		{
@@ -1230,14 +1236,15 @@ namespace Trinex::UI
 		tooltip_delayed(value, delay);
 	}
 
-	void help_tooltip(const char* description)
+	void help_tooltip(StringView description)
 	{
 		help_marker(description);
 	}
 
-	void clipboard_text(const char* text)
+	void clipboard_text(StringView text)
 	{
-		ImGui::SetClipboardText(text != nullptr ? text : "");
+		String storage(has_text(text) ? text : StringView());
+		ImGui::SetClipboardText(storage.c_str());
 	}
 
 }// namespace Trinex::UI

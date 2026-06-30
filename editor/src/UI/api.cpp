@@ -835,9 +835,9 @@ namespace Trinex::UI
 		ImGui::PopID();
 	}
 
-	ID id(const char* id)
+	ID id(StringView id)
 	{
-		return to_ui_id(ImGui::GetID(id));
+		return to_ui_id(ImGui::GetID(id.data(), id.data() + id.size()));
 	}
 
 	/////////////////////// DOCKING ///////////////////////
@@ -897,9 +897,10 @@ namespace Trinex::UI
 		return result;
 	}
 
-	static void dock_builder_dock_window(const char* window_name, ID dock_id)
+	static void dock_builder_dock_window(StringView window_name, ID dock_id)
 	{
-		ImGui::DockBuilderDockWindow(window_name, to_imgui_id(dock_id));
+		String storage(window_name);
+		ImGui::DockBuilderDockWindow(storage.c_str(), to_imgui_id(dock_id));
 	}
 
 	bool DockLayout::exists() const
@@ -907,7 +908,7 @@ namespace Trinex::UI
 		return ImGui::DockBuilderGetNode(to_imgui_id(m_root)) != nullptr;
 	}
 
-	DockLayout& DockLayout::bind(const char* id, DockID dock)
+	DockLayout& DockLayout::bind(StringView id, DockID dock)
 	{
 		if (!has_text(id))
 		{
@@ -930,7 +931,7 @@ namespace Trinex::UI
 		return *this;
 	}
 
-	DockID DockLayout::find(const char* id) const
+	DockID DockLayout::find(StringView id) const
 	{
 		if (!has_text(id))
 		{
@@ -948,14 +949,14 @@ namespace Trinex::UI
 		return DockID();
 	}
 
-	DockID DockLayout::require(const char* id) const
+	DockID DockLayout::require(StringView id) const
 	{
 		const DockID dock = find(id);
 		trinex_assert(dock && "UI::DockLayout::require() cannot find named dock");
 		return dock;
 	}
 
-	bool DockLayout::has(const char* id) const
+	bool DockLayout::has(StringView id) const
 	{
 		return static_cast<bool>(find(id));
 	}
@@ -966,20 +967,20 @@ namespace Trinex::UI
 		return *this;
 	}
 
-	DockLayout& DockLayout::flags(const char* id, DockNodeFlags flags)
+	DockLayout& DockLayout::flags(StringView id, DockNodeFlags flags)
 	{
 		return this->flags(require(id), flags);
 	}
 
-	DockBuilderSplitResult DockLayout::split(DockID dock, DockSplitDir dir, float ratio, const char* id)
+	DockBuilderSplitResult DockLayout::split(DockID dock, DockSplitDir dir, float ratio, StringView id)
 	{
 		DockBuilderSplitResult result = dock_builder_split(dock, dir, ratio);
 		bind(id, result.child);
 		return result;
 	}
 
-	DockBuilderSplitResult DockLayout::split(DockID dock, DockSplitDir dir, float ratio, const char* remainder_id,
-	                                         const char* child_id)
+	DockBuilderSplitResult DockLayout::split(DockID dock, DockSplitDir dir, float ratio, StringView remainder_id,
+                                         StringView child_id)
 	{
 		DockBuilderSplitResult result = dock_builder_split(dock, dir, ratio);
 
@@ -993,27 +994,27 @@ namespace Trinex::UI
 		return result;
 	}
 
-	DockID DockLayout::crop(DockID& dock, DockSplitDir dir, float ratio, const char* id)
+	DockID DockLayout::crop(DockID& dock, DockSplitDir dir, float ratio, StringView id)
 	{
 		auto result = split(dock, dir, ratio, id);
 		dock        = result.remainder;
 		return result.child;
 	}
 
-	DockID DockLayout::crop(DockID& dock, DockSplitDir dir, float ratio, const char* remainder_id, const char* child_id)
+	DockID DockLayout::crop(DockID& dock, DockSplitDir dir, float ratio, StringView remainder_id, StringView child_id)
 	{
 		auto result = split(dock, dir, ratio, remainder_id, child_id);
 		dock        = result.remainder;
 		return result.child;
 	}
 
-	DockID DockLayout::dock(const char* window_name, DockID dock_id)
+	DockID DockLayout::dock(StringView window_name, DockID dock_id)
 	{
 		dock_builder_dock_window(window_name, dock_id);
 		return dock_id;
 	}
 
-	DockID DockLayout::dock(const char* window_name, const char* dock_id)
+	DockID DockLayout::dock(StringView window_name, StringView dock_id)
 	{
 		return dock(window_name, require(dock_id));
 	}

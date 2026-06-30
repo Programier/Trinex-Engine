@@ -315,7 +315,7 @@ namespace Trinex::UI
 		DockPlacement placement = options.dock;
 		if (!placement.id && has_text(placement.id_text))
 		{
-			placement.id = to_ui_id(ImHashStr(placement.id_text));
+			placement.id = to_ui_id(ImHashStr(placement.id_text.data(), placement.id_text.size()));
 		}
 		return placement;
 	}
@@ -403,7 +403,8 @@ namespace Trinex::UI
 
 		if (has_text(options.tab.tooltip) && ImGui::IsMouseHoveringRect(tab_rect.Min, tab_rect.Max))
 		{
-			ImGui::SetTooltip("%s", options.tab.tooltip);
+			String tooltip(options.tab.tooltip);
+			ImGui::SetTooltip("%s", tooltip.c_str());
 		}
 	}
 
@@ -436,44 +437,39 @@ namespace Trinex::UI
 		}
 	}
 
-	bool equals_case_insensitive(const char* a, const char* b)
+	bool equals_case_insensitive(StringView a, StringView b)
 	{
-		if (a == nullptr || b == nullptr)
-		{
-			return a == b;
-		}
-		while (*a != '\0' && *b != '\0')
-		{
-			if (std::tolower(static_cast<unsigned char>(*a)) != std::tolower(static_cast<unsigned char>(*b)))
-			{
-				return false;
-			}
-			++a;
-			++b;
-		}
-		return *a == '\0' && *b == '\0';
-	}
-
-	bool starts_with_case_insensitive(const char* text, const char* prefix)
-	{
-		if (!has_text(text) || !has_text(prefix))
+		if (a.size() != b.size())
 		{
 			return false;
 		}
-		while (*prefix != '\0')
+		for (usize i = 0; i < a.size(); ++i)
 		{
-			if (*text == '\0' ||
-			    std::tolower(static_cast<unsigned char>(*text)) != std::tolower(static_cast<unsigned char>(*prefix)))
+			if (std::tolower(static_cast<unsigned char>(a[i])) != std::tolower(static_cast<unsigned char>(b[i])))
 			{
 				return false;
 			}
-			++text;
-			++prefix;
 		}
 		return true;
 	}
 
-	bool contains_case_insensitive_text(const char* text, const char* query)
+	bool starts_with_case_insensitive(StringView text, StringView prefix)
+	{
+		if (text.size() < prefix.size())
+		{
+			return false;
+		}
+		for (usize i = 0; i < prefix.size(); ++i)
+		{
+			if (std::tolower(static_cast<unsigned char>(text[i])) != std::tolower(static_cast<unsigned char>(prefix[i])))
+			{
+				return false;
+			}
+		}
+		return !prefix.empty();
+	}
+
+	bool contains_case_insensitive_text(StringView text, StringView query)
 	{
 		if (!has_text(query))
 		{
@@ -484,17 +480,17 @@ namespace Trinex::UI
 			return false;
 		}
 
-		for (const char* it = text; *it != '\0'; ++it)
+		for (usize i = 0; i < text.size(); ++i)
 		{
-			const char* a = it;
-			const char* b = query;
-			while (*a != '\0' && *b != '\0' &&
-			       std::tolower(static_cast<unsigned char>(*a)) == std::tolower(static_cast<unsigned char>(*b)))
+			usize a = i;
+			usize b = 0;
+			while (a < text.size() && b < query.size() &&
+			       std::tolower(static_cast<unsigned char>(text[a])) == std::tolower(static_cast<unsigned char>(query[b])))
 			{
 				++a;
 				++b;
 			}
-			if (*b == '\0')
+			if (b == query.size())
 			{
 				return true;
 			}
@@ -502,7 +498,7 @@ namespace Trinex::UI
 		return false;
 	}
 
-	int command_match_score(const RegisteredCommand& command, const char* query)
+	int command_match_score(const RegisteredCommand& command, StringView query)
 	{
 		if (!has_text(query))
 		{
@@ -648,13 +644,13 @@ namespace Trinex::UI
 		draw->PopClipRect();
 	}
 
-	bool contains_case_insensitive(const char* text, const char* filter)
+	bool contains_case_insensitive(StringView text, StringView filter)
 	{
-		if (filter == nullptr || filter[0] == '\0')
+		if (filter.empty())
 		{
 			return true;
 		}
-		if (text == nullptr)
+		if (text.empty())
 		{
 			return false;
 		}
@@ -665,9 +661,9 @@ namespace Trinex::UI
 		return a.find(b) != String::npos;
 	}
 
-	bool consume_pending_modal(const char* name)
+	bool consume_pending_modal(StringView name)
 	{
-		if (name == nullptr)
+		if (name.empty())
 		{
 			return false;
 		}
@@ -685,9 +681,9 @@ namespace Trinex::UI
 		return false;
 	}
 
-	bool consume_pending_popup(const char* name)
+	bool consume_pending_popup(StringView name)
 	{
-		if (name == nullptr)
+		if (name.empty())
 		{
 			return false;
 		}
@@ -705,14 +701,18 @@ namespace Trinex::UI
 		return false;
 	}
 
-	const char* visible_label(const char* label)
+	StringView visible_label(StringView label)
 	{
-		if (label == nullptr)
+		if (label.empty())
 		{
-			return "";
+			return {};
 		}
-		const char* marker = std::strstr(label, "##");
-		return marker == label ? "" : label;
+		const usize marker = label.find("##");
+		if (marker == 0)
+		{
+			return {};
+		}
+		return marker == StringView::npos ? label : label.substr(0, marker);
 	}
 
 	void text_v(const Vec4& color, const char* fmt, va_list args)
@@ -730,9 +730,9 @@ namespace Trinex::UI
 		                                                           active_context()->style.colors.accent, focus)));
 	}
 
-	ImVec2 default_item_size(const char* label, ImVec2 requested, float min_width)
+	ImVec2 default_item_size(StringView label, ImVec2 requested, float min_width)
 	{
-		ImVec2 text_size = ImGui::CalcTextSize(label, nullptr, true);
+		ImVec2 text_size = imgui_calc_text_size(label, true);
 		ImVec2 size      = requested;
 		if (size.x <= 0.0f)
 		{
@@ -761,11 +761,11 @@ namespace Trinex::UI
 		draw->AddTriangleFilled(out[0], out[1], out[2], color);
 	}
 
-	bool animated_row(const char* label, const char* icon, const char* right_text, bool selected, bool disabled, ImVec2 size,
+	bool animated_row(StringView label, StringView icon, StringView right_text, bool selected, bool disabled, ImVec2 size,
 	                  Vec4 accent, bool draw_arrow, float arrow_t)
 	{
 		cleanup_states();
-		ImGui::PushID(label);
+		imgui_push_id(label);
 		const ImGuiID id = ImGui::GetID("row");
 		AnimState& anim  = state_for(id);
 		size.x           = size.x <= 0.0f ? ImGui::GetContentRegionAvail().x : size.x;
@@ -809,21 +809,22 @@ namespace Trinex::UI
 			             col_u32(Math::lerp(active_context()->style.colors.text_muted, sel, anim.hover + anim.selected)));
 			x += 18.0f;
 		}
-		if (icon != nullptr && icon[0] != '\0')
+		if (has_text(icon))
 		{
-			draw->AddText(ImVec2(x, pos.y + (size.y - ImGui::GetTextLineHeight()) * 0.5f),
-			              col_u32(Math::lerp(active_context()->style.colors.text_muted, sel, anim.hover)), icon);
-			x += ImGui::CalcTextSize(icon).x + 7.0f;
+			draw_list_add_text(draw, ImVec2(x, pos.y + (size.y - ImGui::GetTextLineHeight()) * 0.5f),
+			                   col_u32(Math::lerp(active_context()->style.colors.text_muted, sel, anim.hover)), icon);
+			x += imgui_calc_text_size(icon).x + 7.0f;
 		}
 
 		const Vec4 text_col = disabled ? active_context()->style.colors.text_disabled
 		                               : Math::lerp(active_context()->style.colors.text, sel, anim.selected * 0.35f);
-		draw->AddText(ImVec2(x, pos.y + (size.y - ImGui::GetTextLineHeight()) * 0.5f), col_u32(text_col), visible_label(label));
-		if (right_text != nullptr && right_text[0] != '\0')
+		draw_list_add_text(draw, ImVec2(x, pos.y + (size.y - ImGui::GetTextLineHeight()) * 0.5f), col_u32(text_col),
+		                   visible_label(label));
+		if (has_text(right_text))
 		{
-			const ImVec2 rt = ImGui::CalcTextSize(right_text);
-			draw->AddText(ImVec2(max.x - rt.x - active_context()->style.padding, pos.y + (size.y - rt.y) * 0.5f),
-			              col_u32(active_context()->style.colors.text_muted), right_text);
+			const ImVec2 rt = imgui_calc_text_size(right_text);
+			draw_list_add_text(draw, ImVec2(max.x - rt.x - active_context()->style.padding, pos.y + (size.y - rt.y) * 0.5f),
+			                   col_u32(active_context()->style.colors.text_muted), right_text);
 		}
 
 		ImGui::PopID();
