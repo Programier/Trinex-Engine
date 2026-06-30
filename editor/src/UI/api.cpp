@@ -1,4 +1,13 @@
 #include "api_internal.hpp"
+#include <Core/math/math.hpp>
+#include <Engine/Render/pipelines.hpp>
+#include <Graphics/render_pools.hpp>
+#include <Graphics/render_viewport.hpp>
+#include <RHI/context.hpp>
+#include <RHI/handles.hpp>
+#include <RHI/rhi.hpp>
+#include <UI/backend.hpp>
+#include <Window/window.hpp>
 
 namespace Trinex::UI
 {
@@ -507,7 +516,7 @@ namespace Trinex::UI
 
 	void blur(const Vec2& min, const Vec2& max, DrawList draw_list, const BlurOptions& options)
 	{
-		const float spread = std::max(0.0f, options.spread);
+		const float spread = Math::max(0.0f, options.spread);
 		const Vec2 pad(spread, spread);
 		const Vec2 area_min  = min - pad;
 		const Vec2 area_max  = max + pad;
@@ -523,7 +532,7 @@ namespace Trinex::UI
 					return;
 				}
 
-				const float sigma           = options.sigma > 0.0f ? options.sigma : std::max(1.0f, radius * 0.45f);
+				const float sigma           = options.sigma > 0.0f ? options.sigma : Math::max(1.0f, radius * 0.45f);
 				const RHITextureFlags flags = RHITextureFlags::ColorAttachment;
 				RHITexturePool* pool        = RHITexturePool::global_instance();
 
@@ -573,7 +582,7 @@ namespace Trinex::UI
 			{
 				const float base_rounding = options.rounding >= 0.0f ? options.rounding : active_context()->style.rounding;
 				list->AddRectFilled(to_imvec(area_min), to_imvec(area_max), col_u32(options.tint),
-				                    std::max(0.0f, base_rounding + spread));
+				                    Math::max(0.0f, base_rounding + spread));
 			}
 		}
 	}
@@ -728,7 +737,7 @@ namespace Trinex::UI
 				if (t <= 0.0f)
 					return 0.0f;
 
-				return std::pow(2.0f, 10.0f * t - 10.0f);
+				return Math::pow(2.0f, 10.0f * t - 10.0f);
 			}
 
 			case Ease::OutExpo:
@@ -736,7 +745,7 @@ namespace Trinex::UI
 				if (t >= 1.0f)
 					return 1.0f;
 
-				return 1.0f - std::pow(2.0f, -10.0f * t);
+				return 1.0f - Math::pow(2.0f, -10.0f * t);
 			}
 
 			case Ease::InOutExpo:
@@ -748,9 +757,9 @@ namespace Trinex::UI
 					return 1.0f;
 
 				if (t < 0.5f)
-					return std::pow(2.0f, 20.0f * t - 10.0f) * 0.5f;
+					return Math::pow(2.0f, 20.0f * t - 10.0f) * 0.5f;
 
-				return (2.0f - std::pow(2.0f, -20.0f * t + 10.0f)) * 0.5f;
+				return (2.0f - Math::pow(2.0f, -20.0f * t + 10.0f)) * 0.5f;
 			}
 
 			case Ease::OutBack:

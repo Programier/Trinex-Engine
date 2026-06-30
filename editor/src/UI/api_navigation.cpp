@@ -1,5 +1,7 @@
 #include "api_internal.hpp"
 #include <Core/console.hpp>
+#include <Core/math/math.hpp>
+#include <cstring>
 
 namespace Trinex::UI
 {
@@ -11,7 +13,7 @@ namespace Trinex::UI
 		ImGui::PushID(label);
 		const ImGuiID id = ImGui::GetID("header_open");
 		bool& stored     = active_context()->open[id];
-		static std::unordered_map<ImGuiID, bool> initialized;
+		static Map<ImGuiID, bool> initialized;
 		if (!initialized[id])
 		{
 			stored          = options.open != nullptr ? *options.open : options.default_open;
@@ -64,7 +66,7 @@ namespace Trinex::UI
 		ImGui::PushID(label);
 		const ImGuiID id = ImGui::GetID("tree_open");
 		bool& stored     = active_context()->open[id];
-		static std::unordered_map<ImGuiID, bool> initialized;
+		static Map<ImGuiID, bool> initialized;
 		if (!initialized[id])
 		{
 			stored          = options.open != nullptr ? *options.open : options.default_open;
@@ -97,11 +99,11 @@ namespace Trinex::UI
 		if (render_content)
 		{
 			const ImVec2 content_start = ImGui::GetCursorScreenPos();
-			const float cached_height  = std::max(0.0f, anim.extra);
+			const float cached_height  = Math::max(0.0f, anim.extra);
 			const float visible_height = cached_height * eased_open;
 			const ImVec2 clip_min(content_start.x - 2.0f, content_start.y);
 			const ImVec2 clip_max(content_start.x + ImGui::GetContentRegionAvail().x + 2.0f,
-			                      content_start.y + std::max(0.0f, visible_height));
+			                      content_start.y + Math::max(0.0f, visible_height));
 
 			ImGui::PushClipRect(clip_min, clip_max, true);
 			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * eased_open);
@@ -136,7 +138,7 @@ namespace Trinex::UI
 		tree_stack.pop_back();
 
 		ImVec2 content_end          = ImGui::GetCursorScreenPos();
-		const float measured_height = std::max(0.0f, content_end.y - context.content_start.y);
+		const float measured_height = Math::max(0.0f, content_end.y - context.content_start.y);
 		AnimState& anim             = state_for(context.id);
 		if (context.logical_open && measured_height > 0.0f)
 		{
@@ -144,7 +146,7 @@ namespace Trinex::UI
 		}
 
 		const float eased_open     = apply_ease(anim.open, Ease::OutCubic);
-		const float cached_height  = std::max(anim.extra, measured_height);
+		const float cached_height  = Math::max(anim.extra, measured_height);
 		const float visible_height = cached_height * eased_open;
 
 		active_context()->draw_alpha = context.previous_draw_alpha;
@@ -362,7 +364,7 @@ namespace Trinex::UI
 	{
 		const ImGuiID id  = ImGui::GetID(label);
 		AnimState& anim   = state_for(id);
-		const float alpha = std::max(0.001f, apply_ease(anim.open, Ease::InOutQuad));
+		const float alpha = Math::max(0.001f, apply_ease(anim.open, Ease::InOutQuad));
 		ImGui::SetNextWindowBgAlpha(active_context()->style.colors.panel.w * active_context()->style.alpha * alpha);
 		push_menu_popup_colors();
 		const bool open = ImGui::BeginMenu(label, enabled);
@@ -592,15 +594,15 @@ namespace Trinex::UI
 		}
 
 		ImGuiViewport* viewport        = ImGui::GetMainViewport();
-		const float palette_max_width  = std::max(260.0f, viewport->WorkSize.x - 24.0f);
-		const float palette_max_height = std::max(220.0f, viewport->WorkSize.y - 24.0f);
-		const float width              = Math::clamp(viewport->WorkSize.x * 0.52f, std::min(360.0f, palette_max_width),
-		                                             std::min(720.0f, palette_max_width));
-		const float max_height         = Math::clamp(viewport->WorkSize.y * 0.65f, std::min(260.0f, palette_max_height),
-		                                             std::min(520.0f, palette_max_height));
+		const float palette_max_width  = Math::max(260.0f, viewport->WorkSize.x - 24.0f);
+		const float palette_max_height = Math::max(220.0f, viewport->WorkSize.y - 24.0f);
+		const float width              = Math::clamp(viewport->WorkSize.x * 0.52f, Math::min(360.0f, palette_max_width),
+		                                             Math::min(720.0f, palette_max_width));
+		const float max_height         = Math::clamp(viewport->WorkSize.y * 0.65f, Math::min(260.0f, palette_max_height),
+		                                             Math::min(520.0f, palette_max_height));
 		const ImVec2 target_size(width, max_height);
 		const ImVec2 target_pos(viewport->WorkPos.x + (viewport->WorkSize.x - target_size.x) * 0.5f,
-		                        viewport->WorkPos.y + std::max(24.0f, (viewport->WorkSize.y - target_size.y) * 0.22f));
+		                        viewport->WorkPos.y + Math::max(24.0f, (viewport->WorkSize.y - target_size.y) * 0.22f));
 		const Vec2 popup_scale(Math::lerp(0.8f, 1.0f, eased), Math::lerp(0.8f, 1.0f, eased));
 
 		const float rounding = active_context()->style.rounding + 2.0f;
@@ -712,14 +714,15 @@ namespace Trinex::UI
 		ImGui::Separator();
 		ImGui::Spacing();
 
-		const float list_height = std::max(120.0f, target_size.y - active_context()->style.frame_height - padding * 3.0f - 10.0f);
+		const float list_height =
+		        Math::max(120.0f, target_size.y - active_context()->style.frame_height - padding * 3.0f - 10.0f);
 		ImGui::BeginChild("##command_palette_results", ImVec2(0.0f, list_height), false, ImGuiWindowFlags_NoBackground);
 
 		if (!has_results)
 		{
 			const ImVec2 avail = ImGui::GetContentRegionAvail();
 			const ImVec2 start = ImGui::GetCursorScreenPos();
-			const ImVec2 center(start.x + avail.x * 0.5f, start.y + std::max(72.0f, avail.y * 0.38f));
+			const ImVec2 center(start.x + avail.x * 0.5f, start.y + Math::max(72.0f, avail.y * 0.38f));
 			const char* empty_title = "No commands found";
 			const char* empty_desc  = "Try a different search query.";
 			const ImVec2 title_size = ImGui::CalcTextSize(empty_title);
@@ -729,7 +732,7 @@ namespace Trinex::UI
 			              empty_title);
 			draw->AddText(ImVec2(center.x - desc_size.x * 0.5f, center.y + 10.0f),
 			              col_u32(active_context()->style.colors.text_muted), empty_desc);
-			ImGui::Dummy(ImVec2(avail.x, std::max(140.0f, avail.y)));
+			ImGui::Dummy(ImVec2(avail.x, Math::max(140.0f, avail.y)));
 		}
 		else
 		{
@@ -787,7 +790,7 @@ namespace Trinex::UI
 				const float icon_x       = min.x + padding * 0.75f;
 				const float text_x       = icon_x + (has_icon ? 28.0f : 0.0f);
 				const float shortcut_pad = has_shortcut ? ImGui::CalcTextSize(command.shortcut.c_str()).x + padding : 0.0f;
-				const float wrap_w       = std::max(80.0f, row_width - (text_x - min.x) - shortcut_pad - padding);
+				const float wrap_w       = Math::max(80.0f, row_width - (text_x - min.x) - shortcut_pad - padding);
 				const float text_y       = min.y + 8.0f;
 				const float alpha_mul    = enabled ? 1.0f : 0.48f;
 
@@ -888,7 +891,7 @@ namespace Trinex::UI
 		n.title        = options.title != nullptr ? options.title : "";
 		n.message      = message != nullptr ? message : "";
 		n.kind         = options.kind;
-		n.duration     = std::max(0.1f, options.duration);
+		n.duration     = Math::max(0.1f, options.duration);
 		n.action_label = options.action_label != nullptr ? options.action_label : "";
 		n.action       = options.action;
 		active_context()->notifications.push_back(std::move(n));
@@ -1191,19 +1194,19 @@ namespace Trinex::UI
 		const char* icon       = icon_for_notification_kind(kind);
 
 		const ImVec2 pos      = ImGui::GetCursorScreenPos();
-		const float width     = std::max(1.0f, ImGui::GetContentRegionAvail().x);
+		const float width     = Math::max(1.0f, ImGui::GetContentRegionAvail().x);
 		const ImVec2 icon_sz  = has_text(icon) ? ImGui::CalcTextSize(icon) : ImVec2(0.0f, 0.0f);
 		const float icon_gap  = icon_sz.x > 0.0f ? spacing * 0.75f : 0.0f;
 		const float content_x = pos.x + padding + strip_size + 8.0f;
 		const float text_x    = content_x + icon_sz.x + icon_gap;
-		const float wrap_w    = std::max(1.0f, width - (text_x - pos.x) - padding);
+		const float wrap_w    = Math::max(1.0f, width - (text_x - pos.x) - padding);
 		const ImVec2 title_sz =
 		        has_text(title_text) ? ImGui::CalcTextSize(title_text, nullptr, false, wrap_w) : ImVec2(0.0f, 0.0f);
 		const ImVec2 msg_sz =
 		        has_text(message_text) ? ImGui::CalcTextSize(message_text, nullptr, false, wrap_w) : ImVec2(0.0f, 0.0f);
-		const float title_h = std::max(title_sz.y, icon_sz.y);
+		const float title_h = Math::max(title_sz.y, icon_sz.y);
 		const float gap_y   = has_text(title_text) && has_text(message_text) ? spacing * 0.35f : 0.0f;
-		const float body_h  = has_text(title_text) ? title_h + gap_y + msg_sz.y : std::max(msg_sz.y, icon_sz.y);
+		const float body_h  = has_text(title_text) ? title_h + gap_y + msg_sz.y : Math::max(msg_sz.y, icon_sz.y);
 		const ImVec2 size(width, padding * 2.0f + body_h);
 
 		ImGui::Dummy(size);
@@ -1249,9 +1252,9 @@ namespace Trinex::UI
 		const Vec4 border      = mix_color(active_context()->style.colors.border, accent, 0.45f);
 
 		const ImVec2 pos   = ImGui::GetCursorScreenPos();
-		const float width  = std::max(1.0f, ImGui::GetContentRegionAvail().x);
+		const float width  = Math::max(1.0f, ImGui::GetContentRegionAvail().x);
 		const float text_x = pos.x + padding + strip_size + 10.0f;
-		const float wrap_w = std::max(1.0f, width - (text_x - pos.x) - padding);
+		const float wrap_w = Math::max(1.0f, width - (text_x - pos.x) - padding);
 		const ImVec2 title_sz =
 		        has_text(title_text) ? ImGui::CalcTextSize(title_text, nullptr, false, wrap_w) : ImVec2(0.0f, 0.0f);
 		const ImVec2 msg_sz =
@@ -1299,9 +1302,9 @@ namespace Trinex::UI
 		const float alpha_mul     = options.disabled ? 0.55f : 1.0f;
 		const ImVec2 pos          = ImGui::GetCursorScreenPos();
 		const Vec2 resolved_size  = resolve(options.size);
-		const float width         = resolved_size.x > 0.0f ? resolved_size.x : std::max(1.0f, ImGui::GetContentRegionAvail().x);
-		const float content_width = std::max(1.0f, width - padding * 2.0f);
-		const float desc_wrap     = std::max(140.0f, std::min(content_width, options.centered ? 520.0f : content_width));
+		const float width         = resolved_size.x > 0.0f ? resolved_size.x : Math::max(1.0f, ImGui::GetContentRegionAvail().x);
+		const float content_width = Math::max(1.0f, width - padding * 2.0f);
+		const float desc_wrap     = Math::max(140.0f, Math::min(content_width, options.centered ? 520.0f : content_width));
 
 		const ImVec2 icon_sz = has_text(icon_text) ? ImGui::CalcTextSize(icon_text) : ImVec2(0.0f, 0.0f);
 		const ImVec2 title_sz =
@@ -1316,7 +1319,7 @@ namespace Trinex::UI
 		if (has_text(action_text))
 		{
 			const ImVec2 action_sz = ImGui::CalcTextSize(action_text, nullptr, true);
-			button_w               = std::max(96.0f, action_sz.x + active_context()->style.padding * 2.0f);
+			button_w               = Math::max(96.0f, action_sz.x + active_context()->style.padding * 2.0f);
 			button_h               = active_context()->style.frame_height;
 			std::snprintf(action_id, sizeof(action_id), "%s##hero_action", action_text);
 		}
@@ -1338,7 +1341,7 @@ namespace Trinex::UI
 		add_block(has_text(description_text), desc_sz.y);
 		add_block(has_text(action_text), button_h);
 
-		const float auto_height = std::max(content_h + padding * 2.0f, 120.0f);
+		const float auto_height = Math::max(content_h + padding * 2.0f, 120.0f);
 		const float height      = resolved_size.y > 0.0f ? resolved_size.y : auto_height;
 		const ImVec2 size(width, height);
 
@@ -1365,7 +1368,7 @@ namespace Trinex::UI
 		}
 
 		const float content_top =
-		        resolved_size.y > 0.0f ? pos.y + std::max(padding, (height - content_h) * 0.5f) : pos.y + padding;
+		        resolved_size.y > 0.0f ? pos.y + Math::max(padding, (height - content_h) * 0.5f) : pos.y + padding;
 		float y              = content_top;
 		const float left_x   = pos.x + padding;
 		const float center_x = pos.x + width * 0.5f;
@@ -1428,7 +1431,7 @@ namespace Trinex::UI
 		const char* description = options.description != nullptr ? options.description : "";
 		ImVec2 avail            = ImGui::GetContentRegionAvail();
 		ImVec2 start            = ImGui::GetCursorScreenPos();
-		ImVec2 center(start.x + avail.x * 0.5f, start.y + std::max(120.0f, avail.y * 0.35f));
+		ImVec2 center(start.x + avail.x * 0.5f, start.y + Math::max(120.0f, avail.y * 0.35f));
 		ImDrawList* draw        = ImGui::GetWindowDrawList();
 		const ImVec2 icon_size  = ImGui::CalcTextSize(icon);
 		const ImVec2 title_size = ImGui::CalcTextSize(title);

@@ -1,4 +1,6 @@
 #include "api_internal.hpp"
+#include <Core/math/math.hpp>
+#include <cstring>
 
 namespace Trinex::UI
 {
@@ -14,8 +16,8 @@ namespace Trinex::UI
 		}
 
 		const float rounding = options.rounding >= 0.0f ? options.rounding : active_context()->style.rounding;
-		const float padding  = std::max(0.0f, options.padding);
-		const ImVec2 image_size(std::max(0.0f, resolved_size.x), std::max(0.0f, resolved_size.y));
+		const float padding  = Math::max(0.0f, options.padding);
+		const ImVec2 image_size(Math::max(0.0f, resolved_size.x), Math::max(0.0f, resolved_size.y));
 		const ImVec2 frame_size(image_size.x + padding * 2.0f, image_size.y + padding * 2.0f);
 		const ImVec2 pos = ImGui::GetCursorScreenPos();
 
@@ -25,7 +27,7 @@ namespace Trinex::UI
 		const ImVec2 max = add(pos, frame_size);
 		const ImVec2 image_min(pos.x + padding, pos.y + padding);
 		const ImVec2 image_max(image_min.x + image_size.x, image_min.y + image_size.y);
-		const float image_rounding = std::max(0.0f, rounding - padding * 0.5f);
+		const float image_rounding = Math::max(0.0f, rounding - padding * 0.5f);
 
 		Vec4 frame_bg     = has_color(options.background_color) ? options.background_color : active_context()->style.colors.panel;
 		Vec4 frame_border = has_color(options.border_color) ? options.border_color : active_context()->style.colors.border;
@@ -73,8 +75,8 @@ namespace Trinex::UI
 		const ImGuiID id     = ImGui::GetID("image_button");
 		AnimState& anim      = state_for(id);
 		const float rounding = options.rounding >= 0.0f ? options.rounding : active_context()->style.rounding;
-		const float padding  = std::max(0.0f, options.padding);
-		const ImVec2 image_size(std::max(0.0f, resolved_size.x), std::max(0.0f, resolved_size.y));
+		const float padding  = Math::max(0.0f, options.padding);
+		const ImVec2 image_size(Math::max(0.0f, resolved_size.x), Math::max(0.0f, resolved_size.y));
 		const ImVec2 frame_size(image_size.x + padding * 2.0f, image_size.y + padding * 2.0f);
 		const ImVec2 pos = ImGui::GetCursorScreenPos();
 
@@ -109,7 +111,7 @@ namespace Trinex::UI
 		ImDrawList* draw                 = ImGui::GetWindowDrawList();
 		const InteractiveRect frame_rect = make_interactive_rect(pos, frame_size);
 		const InteractiveRect image_rect = make_interactive_rect(ImVec2(pos.x + padding, pos.y + padding), image_size);
-		const float image_rounding       = std::max(0.0f, (rounding - padding * 0.5f) * image_rect.rounding_scale);
+		const float image_rounding       = Math::max(0.0f, (rounding - padding * 0.5f) * image_rect.rounding_scale);
 
 		if (has_shadow_override())
 		{
@@ -171,11 +173,11 @@ namespace Trinex::UI
 
 		const ImVec2 text_size = has_text ? ImGui::CalcTextSize(text_label.data(), text_label.data() + text_label.size(), true)
 		                                  : ImVec2(0.0f, 0.0f);
-		const ImVec2 content_size(icon_size.x + icon_gap + text_size.x, std::max(icon_size.y, text_size.y));
+		const ImVec2 content_size(icon_size.x + icon_gap + text_size.x, Math::max(icon_size.y, text_size.y));
 		ImVec2 size = to_imvec(resolve(options.size));
 		if (size.x <= 0.0f)
 		{
-			size.x = std::max(72.0f, content_size.x + active_context()->style.padding * 2.0f);
+			size.x = Math::max(72.0f, content_size.x + active_context()->style.padding * 2.0f);
 		}
 		if (size.y <= 0.0f)
 		{
@@ -304,7 +306,7 @@ namespace Trinex::UI
 		AnimState& anim  = state_for(id);
 		const float box  = 20.0f;
 		const ImVec2 ts  = ImGui::CalcTextSize(visible_label(label));
-		const ImVec2 size(box + active_context()->style.spacing + ts.x, std::max(box, active_context()->style.frame_height));
+		const ImVec2 size(box + active_context()->style.spacing + ts.x, Math::max(box, active_context()->style.frame_height));
 		const ImVec2 pos = ImGui::GetCursorScreenPos();
 		ImGui::InvisibleButton("##checkbox", size);
 		const bool clicked = ImGui::IsItemClicked();
@@ -352,7 +354,7 @@ namespace Trinex::UI
 		const ImVec2 track(46.0f, 24.0f);
 		const ImVec2 ts = ImGui::CalcTextSize(visible_label(label));
 		const ImVec2 size(track.x + active_context()->style.spacing + ts.x,
-		                  std::max(track.y, active_context()->style.frame_height));
+		                  Math::max(track.y, active_context()->style.frame_height));
 		const ImVec2 pos = ImGui::GetCursorScreenPos();
 		ImGui::InvisibleButton("##toggle", size);
 		const bool clicked = ImGui::IsItemClicked();
@@ -439,7 +441,7 @@ namespace Trinex::UI
 		const bool changed = slider(label, &v, static_cast<float>(min), static_cast<float>(max), "%.0f");
 		if (changed && value != nullptr)
 		{
-			*value = static_cast<int>(std::round(v));
+			*value = static_cast<int>(Math::round(v));
 		}
 		return changed;
 	}
@@ -733,9 +735,9 @@ namespace Trinex::UI
 			combo = 0;
 		}
 
-		anim.hover  = approach(anim.hover, hovered ? 1.0f : 0.0f);
-		anim.active = approach(anim.active, active ? 1.0f : 0.0f);
-		anim.open   = approach(anim.open, open ? 1.0f : 0.0f);
+		anim.hover         = approach(anim.hover, hovered ? 1.0f : 0.0f);
+		anim.active        = approach(anim.active, active ? 1.0f : 0.0f);
+		anim.open          = approach(anim.open, open ? 1.0f : 0.0f);
 		const float open_t = apply_ease(anim.open, Ease::InOutQuad);
 
 		ImDrawList* draw = ImGui::GetWindowDrawList();
@@ -810,7 +812,7 @@ namespace Trinex::UI
 		{
 			return false;
 		}
-		const int index = std::max(0, Math::min(*current_item, item_count - 1));
+		const int index = Math::max(0, Math::min(*current_item, item_count - 1));
 		bool changed    = false;
 		if (begin_combo(label, items[index]))
 		{
@@ -863,7 +865,7 @@ namespace Trinex::UI
 		const float diameter   = 20.0f;
 		const ImVec2 text_size = ImGui::CalcTextSize(visible_label(label));
 		const ImVec2 size(diameter + active_context()->style.spacing + text_size.x,
-		                  std::max(active_context()->style.frame_height, diameter));
+		                  Math::max(active_context()->style.frame_height, diameter));
 		const ImVec2 pos = ImGui::GetCursorScreenPos();
 		ImGui::InvisibleButton("##radio", size);
 		const bool clicked = ImGui::IsItemClicked();
@@ -1007,8 +1009,8 @@ namespace Trinex::UI
 			const float a0    = start + (static_cast<float>(i) / 24.0f) * 6.2831853f;
 			const float a1    = start + (static_cast<float>(i + 1) / 24.0f) * 6.2831853f;
 			const float alpha = static_cast<float>(i + 1) / 24.0f;
-			draw->AddLine(ImVec2(center.x + std::cos(a0) * resolved_radius, center.y + std::sin(a0) * resolved_radius),
-			              ImVec2(center.x + std::cos(a1) * resolved_radius, center.y + std::sin(a1) * resolved_radius),
+			draw->AddLine(ImVec2(center.x + Math::cos(a0) * resolved_radius, center.y + Math::sin(a0) * resolved_radius),
+			              ImVec2(center.x + Math::cos(a1) * resolved_radius, center.y + Math::sin(a1) * resolved_radius),
 			              col_u32(has_color(color) ? color : active_context()->style.colors.accent, alpha), resolved_thickness);
 			(void) c;
 		}
@@ -1038,7 +1040,7 @@ namespace Trinex::UI
 		AnimState& anim         = state_for(id);
 		const String display    = active_context()->keybind_capture == id ? "Press key..." : keybind_to_string(*binding);
 		const ImVec2 label_size = ImGui::CalcTextSize(visible_label(label));
-		const ImVec2 field_size(std::max(130.0f, ImGui::CalcItemWidth() * 0.55f), active_context()->style.frame_height);
+		const ImVec2 field_size(Math::max(130.0f, ImGui::CalcItemWidth() * 0.55f), active_context()->style.frame_height);
 		ImGui::AlignTextToFramePadding();
 		ImGui::TextUnformatted(visible_label(label));
 		ImGui::SameLine();

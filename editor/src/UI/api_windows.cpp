@@ -1,4 +1,6 @@
 #include "api_internal.hpp"
+#include <Core/math/math.hpp>
+#include <imgui_stacklayout.h>
 
 namespace Trinex::UI
 {
@@ -261,7 +263,7 @@ namespace Trinex::UI
 
 		if (context.highlight_top && context.highlight.w > 0.0f)
 		{
-			const float inset = std::max(1.0f, active_context()->style.border_size);
+			const float inset = Math::max(1.0f, active_context()->style.border_size);
 			const ImVec2 line_min(min.x + context.rounding * 0.35f, min.y + inset);
 			const ImVec2 line_max(max.x - context.rounding * 0.35f, min.y + inset);
 			draw->AddLine(line_min, line_max, col_u32(context.highlight), 1.0f);
@@ -362,7 +364,7 @@ namespace Trinex::UI
 		context.border           = options.border;
 		context.background       = options.background;
 		context.rounding         = rounding;
-		context.elevation        = std::max(0.0f, options.elevation);
+		context.elevation        = Math::max(0.0f, options.elevation);
 		context.accent           = accent;
 		context.background_color = bg;
 		context.border_color     = border;
@@ -717,7 +719,7 @@ namespace Trinex::UI
 
 		const float eased          = apply_ease(anim.open, Ease::InOutQuad);
 		const ImVec2 start         = ImGui::GetCursorScreenPos();
-		const float visible_height = std::max(0.0f, anim.extra) * eased;
+		const float visible_height = Math::max(0.0f, anim.extra) * eased;
 		const ImVec2 clip_min(start.x - 2.0f, start.y);
 		const ImVec2 clip_max(start.x + ImGui::GetContentRegionAvail().x + 2.0f, start.y + visible_height);
 
@@ -746,14 +748,14 @@ namespace Trinex::UI
 		stack.pop_back();
 
 		const ImVec2 end            = ImGui::GetCursorScreenPos();
-		const float measured_height = std::max(0.0f, end.y - context.content_start.y);
+		const float measured_height = Math::max(0.0f, end.y - context.content_start.y);
 		AnimState& anim             = state_for(context.id);
 		if (measured_height > 0.0f)
 		{
 			anim.extra = measured_height;
 		}
 
-		const float visible_height   = std::max(anim.extra, measured_height) * apply_ease(anim.open, Ease::InOutQuad);
+		const float visible_height   = Math::max(anim.extra, measured_height) * apply_ease(anim.open, Ease::InOutQuad);
 		active_context()->draw_alpha = context.previous_draw_alpha;
 		ImGui::PopStyleVar();
 		ImGui::PopClipRect();
@@ -1152,7 +1154,7 @@ namespace Trinex::UI
 		std::vsnprintf(buffer, sizeof(buffer), fmt, args);
 
 		ImGui::PushStyleColor(ImGuiCol_Text, to_imvec(active_context()->style.colors.text));
-		ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + std::max(1.0f, ImGui::GetContentRegionAvail().x));
+		ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + Math::max(1.0f, ImGui::GetContentRegionAvail().x));
 		ImGui::TextUnformatted(buffer);
 		ImGui::PopTextWrapPos();
 		ImGui::PopStyleColor();
