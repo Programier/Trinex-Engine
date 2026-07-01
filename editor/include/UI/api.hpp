@@ -84,8 +84,8 @@ namespace Trinex::UI
 	void viewport_dockspace(const FunctionRef<void(DockLayout&)>& builder);
 
 	/////////////////////// RENDERING ///////////////////////
-	void push_layer(const LayerOptions& options = {});
-	Layer* pop_layer();
+	bool begin_layer(const LayerOptions& options = {});
+	void end_layer();
 
 	/////////////////////// WINDOWS AND CONTAINERS ///////////////////////
 	bool begin_window(StringView name, bool* open = nullptr, const WindowOptions& options = {});

@@ -176,7 +176,9 @@ namespace Trinex::Pipelines
 		args.swizzle    = swizzle;
 
 		auto self = instance();
-		push_context_state(self, ctx);
+		ctx->depth_stencil_state(RHIDepthStencilState());
+		ctx->rasterizer_state(RHIRasterizerState());
+		ctx->bind_pipeline(self->handle());
 
 		if (sampler == nullptr)
 			sampler = RHIBilinearSampler::static_sampler();

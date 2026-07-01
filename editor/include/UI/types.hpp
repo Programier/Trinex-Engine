@@ -445,6 +445,19 @@ namespace Trinex::UI
 		trinex_bitfield_enum_struct(DockWindowFlags, u32);
 	};
 
+	struct LayerCompositeMode {
+		enum Enum : u8
+		{
+			Undefined  = 0,
+			AlphaBlend = 1,
+			Copy       = 2,
+			Additive   = 3,
+			Custom     = 4,
+		};
+
+		trinex_enum_struct(LayerCompositeMode);
+	};
+
 	struct DockTabFlags {
 		enum Enum : u16
 		{
@@ -701,6 +714,22 @@ namespace Trinex::UI
 		trinex_bitfield_enum_struct(RenderScaleFlags, u8);
 	};
 
+	struct LayerFlags {
+		enum Enum : u8
+		{
+			Undefined           = 0,
+			ClearOnPush         = 1 << 0,
+			IncludeWindowBg     = 1 << 1,
+			IncludeWindowBorder = 1 << 2,
+			IncludeWindowDecor  = 1 << 3,
+			ClipToWindowRect    = 1 << 4,
+			CaptureWholeWindow  = 1 << 5,
+			CompositeOnPop      = 1 << 6,
+		};
+
+		trinex_bitfield_enum_struct(LayerFlags, u8);
+	};
+
 	struct Texture {
 		RHITexture* texture = nullptr;
 		RHISampler* sampler = nullptr;
@@ -709,9 +738,6 @@ namespace Trinex::UI
 
 		inline bool operator==(const Texture& rhs) const { return texture == rhs.texture && sampler == rhs.sampler; }
 		inline bool operator!=(const Texture& rhs) const { return texture != rhs.texture || sampler != rhs.sampler; }
-	};
-
-	struct Layer {
 	};
 
 	class ID
@@ -1068,7 +1094,26 @@ namespace Trinex::UI
 		Action action;
 	};
 
+	struct LayerCompositeContext {
+		RHIContext* context     = nullptr;
+		RHITexture* source      = nullptr;
+		RHITexture* destination = nullptr;
+		float opacity           = 1.0f;
+	};
+
+	class LayerCompositePass
+	{
+	public:
+		virtual ~LayerCompositePass()                                             = default;
+		virtual LayerCompositePass& execute(const LayerCompositeContext& context) = 0;
+	};
+
 	struct LayerOptions {
+		Vec4 clear_color                   = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
+		LayerCompositeMode composite_mode  = LayerCompositeMode::AlphaBlend;
+		LayerCompositePass* composite_pass = nullptr;
+		float opacity                      = 1.0f;
+		LayerFlags flags                   = LayerFlags::ClearOnPush | LayerFlags::CompositeOnPop;
 	};
 
 	struct Keybind {

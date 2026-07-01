@@ -549,6 +549,7 @@ namespace Trinex::UI
 				m_context->barrier(texture, RHIAccess::SRVGraphics);
 				BeginRendering();
 				const Vector2f texel = 1.f / Vector2f(m_size);
+				m_context->blending_state(RHIBlendingState());
 				Pipelines::Passthrow::passthrow(m_context, RHIRegion(size * texel, position * texel), texture->as_srv());
 				m_flags.set(Flags::IsDepthStencilDirty | Flags::IsBlendingDirty);
 			}

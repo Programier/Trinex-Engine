@@ -1,6 +1,7 @@
 #include "api_internal.hpp"
 #include <Core/base_engine.hpp>
 #include <Core/profiler.hpp>
+#include <Engine/Render/pipelines.hpp>
 #include <Graphics/pipeline_library.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/render_viewport.hpp>
@@ -89,10 +90,10 @@ namespace Trinex::RenderBackend
 		};
 
 		struct ImGuiTrinexData {
-			RHIContext* context   = nullptr;
-			RHITexture* swapchain = nullptr;
-			RHITexture* target    = nullptr;
-			RenderFlags flags     = RenderFlags::Undefined;
+			RHIContext* context  = nullptr;
+			RHITexture* layer    = nullptr;
+			RenderFlags flags    = RenderFlags::Undefined;
+			Vector4f clear_color = {0.f, 0.f, 0.f, 0.f};
 		};
 
 		struct ImGuiTrinexViewportData {
@@ -195,8 +196,6 @@ namespace Trinex::RenderBackend
 
 		static void begin_rendering(ImGuiTrinexData* bd)
 		{
-			RHITexture* target = bd->target ? bd->target : bd->swapchain;
-
 			if (bd->flags & RenderFlags::IsInRendering)
 			{
 				if (bd->flags.any(RenderFlags::IsTargetDirty || RenderFlags::ClearLayer))
@@ -206,22 +205,21 @@ namespace Trinex::RenderBackend
 				}
 			}
 
-			if (bd->flags.any(RenderFlags::ClearLayer))
-			{
-				if (target)
-				{
-					bd->context->barrier(target, RHIAccess::TransferDst);
-					bd->context->clear_rtv(target->as_rtv());
-				}
-				bd->flags.remove(RenderFlags::ClearLayer);
-			}
-
 			if (!bd->flags.any(RenderFlags::IsInRendering))
 			{
-				if (target)
+				if (bd->layer)
 				{
-					bd->context->barrier(target, RHIAccess::RTV);
-					bd->context->begin_rendering(RHIRenderingInfo(target->as_rtv()));
+					bd->context->barrier(bd->layer, RHIAccess::RTV);
+					RHIRenderingInfo info = RHIRenderingInfo(bd->layer->as_rtv());
+
+					if (bd->flags & RenderFlags::ClearLayer)
+					{
+						info.colors[0].load  = RHILoadFunc::Clear;
+						info.colors[0].color = bd->clear_color;
+						bd->flags.remove(RenderFlags::ClearLayer);
+					}
+
+					bd->context->begin_rendering(info);
 					bd->flags.set(RenderFlags::IsInRendering);
 				}
 				bd->flags.remove(RenderFlags::IsTargetDirty);
@@ -418,7 +416,7 @@ namespace Trinex::RenderBackend
 			trinex_rhi_pop_stage(ctx);
 
 			bd->context = nullptr;
-			bd->target  = nullptr;
+			bd->layer   = nullptr;
 		}
 
 		static void destroy_device_objects()
@@ -523,10 +521,9 @@ namespace Trinex::RenderBackend
 					auto texture = swapchain->as_texture();
 					auto rtv     = texture->as_rtv();
 
-					bd->swapchain = texture;
-					bd->target    = texture;
-					bd->context   = ctx;
-					bd->flags     = RenderFlags::Undefined;
+					bd->layer   = texture;
+					bd->context = ctx;
+					bd->flags   = RenderFlags::Undefined;
 
 					ctx->barrier(texture, RHIAccess::TransferDst);
 					ctx->clear_rtv(rtv, 0.f, 0.f, 0.f, 1.f);
@@ -548,10 +545,116 @@ namespace Trinex::RenderBackend
 
 namespace Trinex::UI
 {
-	void push_layer() {}
-
-	Layer* pop_layer()
+	static void composite_layers(RenderBackend::ImGuiTrinexData* bd, RHITexture* src, LayerOptions* options)
 	{
-		return nullptr;
+		if (options->composite_mode == LayerCompositeMode::Undefined)
+			return;
+
+		bd->context->barrier(src, RHIAccess::SRVGraphics);
+		bd->context->scissor(RHIRegion());
+
+		if (options->composite_mode == LayerCompositeMode::Custom)
+		{
+			if (options->composite_pass)
+			{
+				LayerCompositeContext ctx;
+				ctx.context     = bd->context;
+				ctx.destination = bd->layer;
+				ctx.source      = src;
+				ctx.opacity     = options->opacity;
+
+				bd->context->barrier(src, RHIAccess::SRVGraphics);
+				options->composite_pass->execute(ctx);
+			}
+
+			return;
+		}
+
+		RenderBackend::begin_rendering(bd);
+
+		switch (options->composite_mode)
+		{
+			case LayerCompositeMode::Copy: bd->context->blending_state(RHIBlendingState::opaque()); break;
+			case LayerCompositeMode::Additive: bd->context->blending_state(RHIBlendingState::additive()); break;
+			default: bd->context->blending_state(RHIBlendingState::translucent()); break;
+		}
+
+		Pipelines::Passthrow::passthrow(bd->context, src->as_srv());
+
+		if (options->composite_mode != LayerCompositeMode::AlphaBlend)
+		{
+			bd->context->blending_state(RHIBlendingState::translucent());
+		}
+	}
+
+	static void push_layer_callback(const ImDrawList* list, const ImDrawCmd* cmd)
+	{
+		auto context = active_context();
+		auto bd      = RenderBackend::backend_data();
+		auto options = static_cast<const UI::LayerOptions*>(cmd->UserCallbackData);
+		auto pool    = RHITexturePool::global_instance();
+
+		context->stack.push<RHITexture*>(bd->layer);
+		bd->layer = pool->acquire(RHISurfaceFormat::RGBA8, bd->layer->size(), RHITextureFlags::ColorAttachment);
+
+		bd->flags |= RenderBackend::RenderFlags::IsTargetDirty;
+
+		if (options->flags & LayerFlags::ClearOnPush)
+		{
+			bd->flags |= RenderBackend::RenderFlags::ClearLayer;
+			bd->clear_color = options->clear_color;
+		}
+
+		bd->context->push_debug_stage("Layer Rendering");
+	}
+
+	static void pop_layer_callback(const ImDrawList*, const ImDrawCmd* cmd)
+	{
+		auto context = active_context();
+		auto bd      = RenderBackend::backend_data();
+		auto options = static_cast<UI::LayerOptions*>(cmd->UserCallbackData);
+		auto pool    = RHITexturePool::global_instance();
+
+		RHITexture* layer = bd->layer;
+
+		bd->layer = *context->stack.pop<RHITexture*>();
+		bd->flags |= RenderBackend::RenderFlags::IsTargetDirty;
+
+		RenderBackend::end_rendering(bd);
+		bd->context->pop_debug_stage();
+
+		if (options->flags & LayerFlags::CompositeOnPop)
+		{
+			composite_layers(bd, layer, options);
+		}
+
+		pool->release(layer);
+	}
+
+	bool begin_layer(const LayerOptions& options)
+	{
+		Context* context = active_context();
+		ImDrawList* list = ImGui::GetWindowDrawList();
+
+		if (list == nullptr || context == nullptr)
+			return false;
+
+		context->stack.push<LayerOptions>(options);
+		list->AddCallback(push_layer_callback, const_cast<LayerOptions*>(&options), sizeof(options));
+		return true;
+	}
+
+	void end_layer()
+	{
+		Context* context = active_context();
+		ImDrawList* list = ImGui::GetWindowDrawList();
+
+		if (list == nullptr || context == nullptr)
+			return;
+
+		LayerOptions* options = context->stack.pop<LayerOptions>();
+
+		list->AddCallback(pop_layer_callback, options, sizeof(LayerOptions));
+		list->AddCallback(ImDrawCallback_ResetRenderState);
 	}
 }// namespace Trinex::UI
