@@ -76,10 +76,23 @@ namespace Trinex::RenderBackend
 			m_projection         = RHI::instance()->create_buffer(sizeof(Matrix4f), flags);
 		}
 
+		struct RenderFlags {
+			enum Enum : u8
+			{
+				Undefined     = 0,
+				IsInRendering = 1 << 0,
+				IsTargetDirty = 1 << 1,
+				ClearLayer    = 1 << 2,
+			};
+
+			trinex_bitfield_enum_struct(RenderFlags, u8);
+		};
+
 		struct ImGuiTrinexData {
-			RHIContext* context     = nullptr;
-			RHITexture* target      = nullptr;
-			Texture2D* font_texture = nullptr;
+			RHIContext* context   = nullptr;
+			RHITexture* swapchain = nullptr;
+			RHITexture* target    = nullptr;
+			RenderFlags flags     = RenderFlags::Undefined;
 		};
 
 		struct ImGuiTrinexViewportData {
@@ -180,7 +193,51 @@ namespace Trinex::RenderBackend
 			}
 		}
 
-		static void render(RHIContext* ctx, Window* window, ImDrawData* draw_data)
+		static void begin_rendering(ImGuiTrinexData* bd)
+		{
+			RHITexture* target = bd->target ? bd->target : bd->swapchain;
+
+			if (bd->flags & RenderFlags::IsInRendering)
+			{
+				if (bd->flags.any(RenderFlags::IsTargetDirty || RenderFlags::ClearLayer))
+				{
+					bd->context->end_rendering();
+					bd->flags.remove(RenderFlags::IsInRendering);
+				}
+			}
+
+			if (bd->flags.any(RenderFlags::ClearLayer))
+			{
+				if (target)
+				{
+					bd->context->barrier(target, RHIAccess::TransferDst);
+					bd->context->clear_rtv(target->as_rtv());
+				}
+				bd->flags.remove(RenderFlags::ClearLayer);
+			}
+
+			if (!bd->flags.any(RenderFlags::IsInRendering))
+			{
+				if (target)
+				{
+					bd->context->barrier(target, RHIAccess::RTV);
+					bd->context->begin_rendering(RHIRenderingInfo(target->as_rtv()));
+					bd->flags.set(RenderFlags::IsInRendering);
+				}
+				bd->flags.remove(RenderFlags::IsTargetDirty);
+			}
+		}
+
+		static void end_rendering(ImGuiTrinexData* bd)
+		{
+			if (bd->flags & RenderFlags::IsInRendering)
+			{
+				bd->context->end_rendering();
+				bd->flags.remove(RenderFlags::IsInRendering);
+			}
+		}
+
+		static void render(RHIContext* ctx, ImDrawData* draw_data)
 		{
 			trinex_profile_cpu_n("ImGui");
 			trinex_rhi_push_stage(ctx, "ImGui Render");
@@ -201,12 +258,10 @@ namespace Trinex::RenderBackend
 				return;
 			}
 
-			RHITexturePool* pool     = RHITexturePool::global_instance();
+
 			const Vector2u view_size = {draw_data->DisplaySize.x, draw_data->DisplaySize.y};
 
 			bd->context = ctx;
-			bd->target  = pool->acquire(RHISurfaceFormat::RGBA8, view_size, RHITextureFlags::ColorAttachment);
-
 			trinex_rhi_push_stage(ctx, "ImGui Setup state");
 
 			if (draw_data->Textures != nullptr)
@@ -302,11 +357,6 @@ namespace Trinex::RenderBackend
 			{
 				trinex_profile_cpu_n("Render");
 
-				ctx->barrier(bd->target, RHIAccess::TransferDst);
-				ctx->clear_rtv(bd->target->as_rtv(), 0.f, 0.f, 0.f, 1.f);
-				ctx->barrier(bd->target, RHIAccess::RTV);
-				ctx->begin_rendering(bd->target->as_rtv());
-
 				auto pipeline = ImGuiPipeline::instance();
 				for (int n = 0; n < draw_data->CmdListsCount; n++)
 				{
@@ -315,20 +365,21 @@ namespace Trinex::RenderBackend
 
 					for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
 					{
+						begin_rendering(bd);
+
 						const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
 
 						if (pcmd->UserCallback != nullptr)
 						{
 							if (pcmd->UserCallback == ImDrawCallback_ResetRenderState)
 							{
-								ctx->end_rendering();
+								end_rendering(bd);
 								setup_render_state(draw_data);
-								ctx->begin_rendering(bd->target->as_rtv());
 							}
 							else
 								pcmd->UserCallback(cmd_list, pcmd);
 						}
-						else
+						else if (bd->flags.all(RenderFlags::IsInRendering))
 						{
 							ImVec2 clip_min(Math::max(pcmd->ClipRect.x - clip_off.x, 0.f),
 							                Math::max(pcmd->ClipRect.y - clip_off.y, 0.f));
@@ -349,7 +400,7 @@ namespace Trinex::RenderBackend
 
 							ImTextureID texture = pcmd->GetTexID();
 
-							pipeline->bind(ctx, texture.texture ? texture.texture : bd->font_texture->handle());
+							pipeline->bind(ctx, texture.texture);
 							pipeline->bind(ctx, texture.sampler ? texture.sampler : RHIBilinearSampler::static_sampler());
 
 							ctx->draw_indexed(RHITopology::TriangleList, pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset,
@@ -362,16 +413,9 @@ namespace Trinex::RenderBackend
 					trinex_rhi_pop_stage(ctx);
 				}
 
-				ctx->end_rendering();
-
-				RHITexture* swapchain = window->render_viewport()->swapchain()->as_texture();
-
-				ctx->barrier(bd->target, RHIAccess::TransferSrc);
-				ctx->barrier(swapchain, RHIAccess::TransferDst);
-				ctx->copy(swapchain, RHITextureRegion(swapchain->size()), bd->target, RHITextureRegion(view_size));
+				end_rendering(bd);
 			}
 			trinex_rhi_pop_stage(ctx);
-			pool->release(bd->target);
 
 			bd->context = nullptr;
 			bd->target  = nullptr;
@@ -379,9 +423,6 @@ namespace Trinex::RenderBackend
 
 		static void destroy_device_objects()
 		{
-			ImGuiTrinexData* bd         = backend_data();
-			bool call_garbage_collector = !Trinex::engine_instance->is_shuting_down();
-
 			for (ImTextureData* tex : ImGui::GetPlatformIO().Textures)
 			{
 				if (tex->RefCount == 1)
@@ -394,9 +435,7 @@ namespace Trinex::RenderBackend
 		static void create_device_objects()
 		{
 			ImGuiTrinexData* bd = backend_data();
-			if (bd->font_texture)
-				destroy_device_objects();
-
+			destroy_device_objects();
 			ImGuiPipeline::create();
 		}
 
@@ -480,15 +519,20 @@ namespace Trinex::RenderBackend
 
 				RHIContext* ctx = RHIContextPool::global_instance()->begin();
 				{
+					auto bd      = RenderBackend::backend_data();
 					auto texture = swapchain->as_texture();
 					auto rtv     = texture->as_rtv();
+
+					bd->swapchain = texture;
+					bd->target    = texture;
+					bd->context   = ctx;
+					bd->flags     = RenderFlags::Undefined;
 
 					ctx->barrier(texture, RHIAccess::TransferDst);
 					ctx->clear_rtv(rtv, 0.f, 0.f, 0.f, 1.f);
 					ctx->barrier(texture, RHIAccess::RTV);
 
-					RenderBackend::render(ctx, context->window, ImGui::GetDrawData());
-
+					RenderBackend::render(ctx, ImGui::GetDrawData());
 					ctx->barrier(texture, RHIAccess::PresentSrc);
 				}
 
@@ -504,17 +548,9 @@ namespace Trinex::RenderBackend
 
 namespace Trinex::UI
 {
-	RHITexture* layer()
-	{
-		return nullptr;
-	}
+	void push_layer() {}
 
-	RHITexture* push_layer()
-	{
-		return nullptr;
-	}
-
-	RHITexture* pop_layer()
+	Layer* pop_layer()
 	{
 		return nullptr;
 	}

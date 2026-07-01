@@ -711,6 +711,9 @@ namespace Trinex::UI
 		inline bool operator!=(const Texture& rhs) const { return texture != rhs.texture || sampler != rhs.sampler; }
 	};
 
+	struct Layer {
+	};
+
 	class ID
 	{
 	public:
@@ -1065,6 +1068,9 @@ namespace Trinex::UI
 		Action action;
 	};
 
+	struct LayerOptions {
+	};
+
 	struct Keybind {
 		Key key_code = Key::Undefined;
 		bool ctrl    = false;
@@ -1140,8 +1146,35 @@ namespace Trinex::UI
 
 		virtual ContextListener& on_create(Context* context);
 		virtual ContextListener& on_destroy(Context* context);
-		virtual ContextListener& on_new_frame(Context* context);
+
+		virtual ContextListener& on_begin_frame(Context* context);
+		virtual ContextListener& on_end_frame(Context* context);
+
 		virtual ContextListener& on_render(Context* context);
+
+		template<ContextListener& (ContextListener::*method)(Context*)>
+		static inline void for_each(Context* context)
+		{
+			ContextListener* listener = ContextListener::first();
+
+			while (listener)
+			{
+				(listener->*method)(context);
+				listener = listener->next();
+			}
+		}
+
+		template<ContextListener& (ContextListener::*method)(Context*)>
+		static inline void reverse_for_each(Context* context)
+		{
+			ContextListener* listener = ContextListener::last();
+
+			while (listener)
+			{
+				(listener->*method)(context);
+				listener = listener->prev();
+			}
+		}
 	};
 
 	class Widget

@@ -692,7 +692,7 @@ namespace Trinex
 					return *this;
 				}
 
-				ContextListener& on_new_frame(UI::Context* context) override
+				ContextListener& on_begin_frame(UI::Context* context) override
 				{
 					Window* window = context->window;
 

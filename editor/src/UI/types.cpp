@@ -68,7 +68,12 @@ namespace Trinex::UI
 		return *this;
 	}
 
-	ContextListener& ContextListener::on_new_frame(Context* context)
+	ContextListener& ContextListener::on_begin_frame(Context* context)
+	{
+		return *this;
+	}
+
+	ContextListener& ContextListener::on_end_frame(Context* context)
 	{
 		return *this;
 	}

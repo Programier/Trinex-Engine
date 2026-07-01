@@ -161,6 +161,7 @@ namespace Trinex::UI
 
 		Trinex::Window* window = nullptr;
 		ImGuiContext* context  = nullptr;
+		RHITexture* layer      = nullptr;
 		Stack<4096> stack;
 		u128 stack_memory_location                        = 0;
 		ImFont* fonts[font_family_count][font_size_count] = {};

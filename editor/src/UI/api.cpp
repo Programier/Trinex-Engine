@@ -81,15 +81,7 @@ namespace Trinex::UI
 		ImGui::SetCurrentContext(ctx->context);
 		ctx->style = Style{};
 
-		{
-			ContextListener* listener = ContextListener::first();
-
-			while (listener)
-			{
-				listener->on_create(ctx);
-				listener = listener->next();
-			}
-		}
+		ContextListener::for_each<&ContextListener::on_create>(ctx);
 
 		auto& io = ImGui::GetIO();
 		initialize_fonts(ctx);
@@ -131,15 +123,7 @@ namespace Trinex::UI
 		ImGuiContext* ctx = ImGui::GetCurrentContext();
 		ImGui::SetCurrentContext(context->context);
 
-		{
-			ContextListener* listener = ContextListener::last();
-
-			while (listener)
-			{
-				listener->on_destroy(context);
-				listener = listener->prev();
-			}
-		}
+		ContextListener::reverse_for_each<&ContextListener::on_destroy>(context);
 
 		ImGui::SetCurrentContext(ctx);
 		ImGui::DestroyContext(context->context);
@@ -153,19 +137,11 @@ namespace Trinex::UI
 
 		ImGui::SetCurrentContext(context->context);
 
-		{
-			ContextListener* listener = ContextListener::first();
-
-			while (listener)
-			{
-				listener->on_new_frame(context);
-				listener = listener->next();
-			}
-		}
+		ContextListener::for_each<&ContextListener::on_begin_frame>(context);
 
 		ImGui::NewFrame();
-
 		context->stack_memory_location = StackByteAllocator::location();
+
 		return true;
 	}
 
@@ -286,6 +262,8 @@ namespace Trinex::UI
 			}
 		}
 
+		ContextListener::for_each<&ContextListener::on_end_frame>(g_context);
+
 		ImGui::Render();
 
 		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -293,19 +271,11 @@ namespace Trinex::UI
 			ImGui::UpdatePlatformWindows();
 		}
 
-		{
-			ContextListener* listener = ContextListener::first();
-
-			while (listener)
-			{
-				listener->on_render(g_context);
-				listener = listener->next();
-			}
-		}
+		ContextListener::for_each<&ContextListener::on_render>(g_context);
 
 		{
 			auto& stack = active_context()->shadow_stack;
-			trinex_assert(stack.empty() && "UI::push_shadow()/pop_shadow() imbalance detected at end_frame()");
+			trinex_assert_msg(stack.empty(), "UI::push_shadow()/pop_shadow() imbalance detected at end_frame()");
 			if (!stack.empty())
 			{
 				stack.clear();
