@@ -11,7 +11,7 @@ struct Args
 	uint swizzle;
 }
 
-uniform Sampler2D scene;
+uniform Sampler2D source;
 
 [parameter_type(meta::type::UniformBuffer)]
 uniform Args args;
@@ -26,5 +26,5 @@ float4 vertex_main(in uint index: SV_VertexID, out float2 uv: TEXCOORD0) : SV_Po
 [shader("fragment")]
 float4 fragment_main(in float2 uv: TEXCOORD0) : SV_Target
 {
-	return Math::swizzle(scene.SampleLevel(uv, 0.f), args.swizzle);
+	return Math::swizzle(source.SampleLevel(uv, 0.f), args.swizzle);
 }

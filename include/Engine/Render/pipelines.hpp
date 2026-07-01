@@ -28,7 +28,6 @@ namespace Trinex
 
 	namespace Pipelines
 	{
-
 		class ENGINE_EXPORT GaussianBlur : public GlobalPipelineLibrary
 		{
 			trinex_declare_pipeline(GaussianBlur, GlobalPipelineLibrary);
@@ -76,7 +75,7 @@ namespace Trinex
 		{
 			trinex_declare_pipeline(Passthrow, GlobalPipelineLibrary);
 
-			const RHIShaderParameterInfo* m_scene;
+			const RHIShaderParameterInfo* m_source;
 			const RHIShaderParameterInfo* m_args;
 
 		public:

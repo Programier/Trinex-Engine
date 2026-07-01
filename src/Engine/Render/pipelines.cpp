@@ -148,8 +148,8 @@ namespace Trinex::Pipelines
 
 	trinex_implement_pipeline(Passthrow, "[shaders]:/TrinexEngine/trinex/graphics/passthrow.slang")
 	{
-		m_scene = find_parameter("scene");
-		m_args  = find_parameter("args");
+		m_source = find_parameter("source");
+		m_args   = find_parameter("args");
 	}
 
 	void Passthrow::passthrow(RHIContext* ctx, RHIShaderResourceView* src, Swizzle swizzle, RHIRegion region, RHISampler* sampler)
@@ -181,8 +181,8 @@ namespace Trinex::Pipelines
 		if (sampler == nullptr)
 			sampler = RHIBilinearSampler::static_sampler();
 
-		ctx->bind_srv(src, self->m_scene->binding);
-		ctx->bind_sampler(sampler, self->m_scene->binding);
+		ctx->bind_srv(src, self->m_source->binding);
+		ctx->bind_sampler(sampler, self->m_source->binding);
 		ctx->update_scalar(&args, sizeof(args), self->m_args);
 		ctx->draw(RHITopology::TriangleList, 6, 0);
 	}

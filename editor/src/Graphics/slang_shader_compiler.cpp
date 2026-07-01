@@ -855,6 +855,19 @@ namespace Trinex
 		{
 			g_slang_global_session->AddRef();
 		}
+	}
+
+	SLANG_ShaderCompiler::~SLANG_ShaderCompiler()
+	{
+		if (g_slang_global_session->Release() == 0)
+		{
+			g_slang_global_session = nullptr;
+		}
+	}
+
+	SLANG_ShaderCompiler& SLANG_ShaderCompiler::on_create()
+	{
+		Super::on_create();
 
 		Path include_directories[] = {
 		        rootfs()->native_path(Project::shaders_dir),
@@ -884,14 +897,7 @@ namespace Trinex
 			trinex_error(Log::Graphics, "Failed to create session");
 			m_session = nullptr;
 		}
-	}
-
-	SLANG_ShaderCompiler::~SLANG_ShaderCompiler()
-	{
-		if (g_slang_global_session->Release() == 0)
-		{
-			g_slang_global_session = nullptr;
-		}
+		return *this;
 	}
 
 	void SLANG_ShaderCompiler::initialize_context(SessionInitializer* session)
