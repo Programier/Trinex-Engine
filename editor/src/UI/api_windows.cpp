@@ -524,7 +524,7 @@ namespace Trinex::UI
 		ImDrawList* draw = ImGui::GetWindowDrawList();
 		if (options.elevation > 0.0f)
 		{
-			Shadow shadow = scaled_shadow(current_shadow(), options.elevation);
+			ShadowOptions shadow = scaled_shadow(current_shadow(), options.elevation);
 			if (options.disabled)
 			{
 				shadow.color.w *= 0.55f;

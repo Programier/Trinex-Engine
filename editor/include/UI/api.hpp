@@ -47,7 +47,7 @@ namespace Trinex::UI
 	void paint(Size size, PaintFunction function, void* userdata = nullptr, usize userdata_size = 0,
 	           DrawList draw_list = DrawList::Default);
 	void paint(PaintFunction function, void* userdata = nullptr, usize userdata_size = 0, DrawList draw_list = DrawList::Default);
-	void push_shadow(const Shadow& shadow);
+	void push_shadow(const ShadowOptions& shadow);
 	void pop_shadow();
 	void push_blur(const BlurOptions& options);
 	void pop_blur();
@@ -379,7 +379,7 @@ namespace Trinex::UI
 		pop_style();
 	}
 
-	inline void shadow(const Shadow& value, const ActionRef& func)
+	inline void shadow(const ShadowOptions& value, const ActionRef& func)
 	{
 		push_shadow(value);
 		func();

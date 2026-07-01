@@ -440,9 +440,9 @@ namespace Trinex::UI
 			if (existing.id == command.id)
 			{
 				existing.name        = command.name;
-				existing.description = command.description != nullptr ? command.description : "";
-				existing.shortcut    = command.shortcut != nullptr ? command.shortcut : "";
-				existing.icon        = command.icon != nullptr ? command.icon : "";
+				existing.description = command.description;
+				existing.shortcut    = command.shortcut;
+				existing.icon        = command.icon.empty() ? ICON_LC_COMMAND : command.icon;
 				existing.action      = command.action;
 				return;
 			}
@@ -451,9 +451,9 @@ namespace Trinex::UI
 		RegisteredCommand& entry = context->command_palette.commands.emplace_back();
 		entry.id                 = command.id;
 		entry.name               = command.name;
-		entry.description        = command.description != nullptr ? command.description : "";
-		entry.shortcut           = command.shortcut != nullptr ? command.shortcut : "";
-		entry.icon               = command.icon != nullptr ? command.icon : ICON_LC_COMMAND;
+		entry.description        = command.description;
+		entry.shortcut           = command.shortcut;
+		entry.icon               = command.icon.empty() ? ICON_LC_COMMAND : command.icon;
 		entry.action             = command.action;
 		entry.is_console_command = false;
 	}
@@ -670,7 +670,7 @@ namespace Trinex::UI
 		palette_blur.tint     = Vec4(0, 0, 0, 0);
 		push_blur(palette_blur);
 
-		Shadow palette_shadow;
+		ShadowOptions palette_shadow;
 		palette_shadow.offset = Vec2(0.0f, 10.0f);
 		palette_shadow.blur   = 28.0f;
 		palette_shadow.spread = 0.0f;
@@ -909,8 +909,7 @@ namespace Trinex::UI
 		active_context()->notifications.push_back(std::move(n));
 	}
 
-	ConfirmResult confirmation(StringView title, StringView message, StringView confirm_text, StringView cancel_text,
-	                           bool danger)
+	ConfirmResult confirmation(StringView title, StringView message, StringView confirm_text, StringView cancel_text, bool danger)
 	{
 		ConfirmResult result = ConfirmResult::Undefined;
 		bool open            = true;
@@ -1060,9 +1059,8 @@ namespace Trinex::UI
 	bool begin_table(StringView id, int columns, TableFlags flags, Size outer_size, Unit inner_width)
 	{
 		String id_storage(id);
-		const bool open =
-		        ImGui::BeginTable(id_storage.c_str(), columns, to_imgui_table_flags(flags), to_imvec(resolve(outer_size)),
-		                          resolve(inner_width));
+		const bool open = ImGui::BeginTable(id_storage.c_str(), columns, to_imgui_table_flags(flags),
+		                                    to_imvec(resolve(outer_size)), resolve(inner_width));
 		if (open)
 		{
 			++active_context()->table_style_depth;
@@ -1220,13 +1218,11 @@ namespace Trinex::UI
 		const float content_x = pos.x + padding + strip_size + 8.0f;
 		const float text_x    = content_x + icon_sz.x + icon_gap;
 		const float wrap_w    = Math::max(1.0f, width - (text_x - pos.x) - padding);
-		const ImVec2 title_sz =
-		        has_text(title_text) ? imgui_calc_text_size(title_text, false, wrap_w) : ImVec2(0.0f, 0.0f);
-		const ImVec2 msg_sz =
-		        has_text(message_text) ? imgui_calc_text_size(message_text, false, wrap_w) : ImVec2(0.0f, 0.0f);
-		const float title_h = Math::max(title_sz.y, icon_sz.y);
-		const float gap_y   = has_text(title_text) && has_text(message_text) ? spacing * 0.35f : 0.0f;
-		const float body_h  = has_text(title_text) ? title_h + gap_y + msg_sz.y : Math::max(msg_sz.y, icon_sz.y);
+		const ImVec2 title_sz = has_text(title_text) ? imgui_calc_text_size(title_text, false, wrap_w) : ImVec2(0.0f, 0.0f);
+		const ImVec2 msg_sz   = has_text(message_text) ? imgui_calc_text_size(message_text, false, wrap_w) : ImVec2(0.0f, 0.0f);
+		const float title_h   = Math::max(title_sz.y, icon_sz.y);
+		const float gap_y     = has_text(title_text) && has_text(message_text) ? spacing * 0.35f : 0.0f;
+		const float body_h    = has_text(title_text) ? title_h + gap_y + msg_sz.y : Math::max(msg_sz.y, icon_sz.y);
 		const ImVec2 size(width, padding * 2.0f + body_h);
 
 		ImGui::Dummy(size);
@@ -1271,15 +1267,13 @@ namespace Trinex::UI
 		const Vec4 background  = mix_color(active_context()->style.colors.panel, accent, 0.10f);
 		const Vec4 border      = mix_color(active_context()->style.colors.border, accent, 0.45f);
 
-		const ImVec2 pos   = ImGui::GetCursorScreenPos();
-		const float width  = Math::max(1.0f, ImGui::GetContentRegionAvail().x);
-		const float text_x = pos.x + padding + strip_size + 10.0f;
-		const float wrap_w = Math::max(1.0f, width - (text_x - pos.x) - padding);
-		const ImVec2 title_sz =
-		        has_text(title_text) ? imgui_calc_text_size(title_text, false, wrap_w) : ImVec2(0.0f, 0.0f);
-		const ImVec2 msg_sz =
-		        has_text(message_text) ? imgui_calc_text_size(message_text, false, wrap_w) : ImVec2(0.0f, 0.0f);
-		const float gap_y = has_text(title_text) && has_text(message_text) ? spacing * 0.45f : 0.0f;
+		const ImVec2 pos      = ImGui::GetCursorScreenPos();
+		const float width     = Math::max(1.0f, ImGui::GetContentRegionAvail().x);
+		const float text_x    = pos.x + padding + strip_size + 10.0f;
+		const float wrap_w    = Math::max(1.0f, width - (text_x - pos.x) - padding);
+		const ImVec2 title_sz = has_text(title_text) ? imgui_calc_text_size(title_text, false, wrap_w) : ImVec2(0.0f, 0.0f);
+		const ImVec2 msg_sz   = has_text(message_text) ? imgui_calc_text_size(message_text, false, wrap_w) : ImVec2(0.0f, 0.0f);
+		const float gap_y     = has_text(title_text) && has_text(message_text) ? spacing * 0.45f : 0.0f;
 		const ImVec2 size(width, padding * 2.0f + title_sz.y + gap_y + msg_sz.y);
 
 		ImGui::Dummy(size);
@@ -1329,8 +1323,8 @@ namespace Trinex::UI
 		const ImVec2 icon_sz = has_text(icon_text) ? imgui_calc_text_size(icon_text) : ImVec2(0.0f, 0.0f);
 		const ImVec2 title_sz =
 		        has_text(title_text) ? imgui_calc_text_size(title_text, false, content_width) : ImVec2(0.0f, 0.0f);
-		const ImVec2 desc_sz = has_text(description_text) ? imgui_calc_text_size(description_text, false, desc_wrap)
-		                                                  : ImVec2(0.0f, 0.0f);
+		const ImVec2 desc_sz =
+		        has_text(description_text) ? imgui_calc_text_size(description_text, false, desc_wrap) : ImVec2(0.0f, 0.0f);
 
 		float button_h = 0.0f;
 		float button_w = 0.0f;
@@ -1372,7 +1366,7 @@ namespace Trinex::UI
 		const ImVec2 max = add(pos, size);
 		if (options.elevation > 0.0f)
 		{
-			Shadow shadow = scaled_shadow(current_shadow(), options.elevation);
+			ShadowOptions shadow = scaled_shadow(current_shadow(), options.elevation);
 			if (options.disabled)
 			{
 				shadow.color.w *= 0.55f;
@@ -1450,8 +1444,8 @@ namespace Trinex::UI
 		const StringView icon        = has_text(options.icon) ? options.icon : StringView("-");
 		const StringView title       = has_text(options.title) ? options.title : StringView("Nothing here");
 		const StringView description = has_text(options.description) ? options.description : StringView();
-		ImVec2 avail            = ImGui::GetContentRegionAvail();
-		ImVec2 start            = ImGui::GetCursorScreenPos();
+		ImVec2 avail                 = ImGui::GetContentRegionAvail();
+		ImVec2 start                 = ImGui::GetCursorScreenPos();
 		ImVec2 center(start.x + avail.x * 0.5f, start.y + Math::max(120.0f, avail.y * 0.35f));
 		ImDrawList* draw        = ImGui::GetWindowDrawList();
 		const ImVec2 icon_size  = imgui_calc_text_size(icon);

@@ -65,7 +65,7 @@ namespace Trinex::UI
 		float rounding        = 0.0f;
 		Vec4 background_color = Vec4(0, 0, 0, 0);
 		Vec4 border_color     = Vec4(0, 0, 0, 0);
-		Shadow shadow;
+		ShadowOptions shadow;
 	};
 
 	struct GlassPanelContext {
@@ -79,7 +79,7 @@ namespace Trinex::UI
 		Vec4 border_color  = Vec4(0, 0, 0, 0);
 		Vec4 highlight     = Vec4(0, 0, 0, 0);
 		BlurOptions blur;
-		Shadow shadow;
+		ShadowOptions shadow;
 	};
 
 	struct CardContext {
@@ -94,7 +94,7 @@ namespace Trinex::UI
 		Vec4 accent           = Vec4(0, 0, 0, 0);
 		Vec4 background_color = Vec4(0, 0, 0, 0);
 		Vec4 border_color     = Vec4(0, 0, 0, 0);
-		Shadow shadow;
+		ShadowOptions shadow;
 	};
 
 	struct PersistentWindow {
@@ -185,7 +185,7 @@ namespace Trinex::UI
 		Vector<PanelContext> panel_stack;
 		Vector<GlassPanelContext> glass_panel_stack;
 		Vector<CardContext> card_stack;
-		Vector<Shadow> shadow_stack;
+		Vector<ShadowOptions> shadow_stack;
 		Vector<BlurOptions> blur_stack;
 		Vector<float> disabled_alpha_stack;
 		Vector<String> pending_modals;
@@ -481,7 +481,7 @@ namespace Trinex::UI
 	int command_match_score(const RegisteredCommand& command, StringView query);
 	void refresh_command_palette_results();
 
-	inline const Shadow& current_shadow()
+	inline const ShadowOptions& current_shadow()
 	{
 		auto& stack = active_context()->shadow_stack;
 		return stack.empty() ? active_context()->style.shadow : stack.back();
@@ -498,12 +498,12 @@ namespace Trinex::UI
 		return !active_context()->shadow_stack.empty();
 	}
 
-	inline bool shadow_visible(const Shadow& shadow)
+	inline bool shadow_visible(const ShadowOptions& shadow)
 	{
 		return shadow.color.w > 0.0f;
 	}
 
-	Shadow scaled_shadow(const Shadow& shadow, float elevation);
+	ShadowOptions scaled_shadow(const ShadowOptions& shadow, float elevation);
 
 	inline Vec4 with_alpha(Vec4 c, float alpha)
 	{
@@ -534,7 +534,7 @@ namespace Trinex::UI
 	Vec2 make_hover_render_scale(const ImVec2& base_size, float hover_t);
 	Vec2 make_press_render_scale(const ImVec2& base_size, float active_t);
 	InteractiveRect make_interactive_rect(const ImVec2& pos, const ImVec2& base_size);
-	void draw_shadow_rect(ImDrawList* draw, const ImVec2& min, const ImVec2& max, float rounding, const Shadow& shadow);
+	void draw_shadow_rect(ImDrawList* draw, const ImVec2& min, const ImVec2& max, float rounding, const ShadowOptions& shadow);
 	bool contains_case_insensitive(StringView text, StringView filter);
 
 	inline bool is_modifier_key(ui::Key key)

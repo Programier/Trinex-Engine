@@ -464,7 +464,7 @@ namespace Trinex::UI
 		ImGui::PopStyleVar(count);
 	}
 
-	void push_shadow(const Shadow& shadow)
+	void push_shadow(const ShadowOptions& shadow)
 	{
 		active_context()->shadow_stack.push_back(shadow);
 	}

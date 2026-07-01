@@ -563,12 +563,12 @@ namespace Trinex::UI
 		}
 	}
 
-	Shadow scaled_shadow(const Shadow& shadow, float elevation)
+	ShadowOptions scaled_shadow(const ShadowOptions& shadow, float elevation)
 	{
-		Shadow result     = shadow;
-		const float scale = Math::max(0.0f, elevation);
-		const float alpha = Math::clamp(elevation, 0.0f, 1.5f);
-		result.offset     = Vec2(result.offset.x * scale, result.offset.y * scale);
+		ShadowOptions result = shadow;
+		const float scale    = Math::max(0.0f, elevation);
+		const float alpha    = Math::clamp(elevation, 0.0f, 1.5f);
+		result.offset        = Vec2(result.offset.x * scale, result.offset.y * scale);
 		result.blur *= scale;
 		result.spread *= scale;
 		result.color.w *= alpha;
@@ -603,7 +603,7 @@ namespace Trinex::UI
 		return rect;
 	}
 
-	void draw_shadow_rect(ImDrawList* draw, const ImVec2& min, const ImVec2& max, float rounding, const Shadow& shadow)
+	void draw_shadow_rect(ImDrawList* draw, const ImVec2& min, const ImVec2& max, float rounding, const ShadowOptions& shadow)
 	{
 		if (draw == nullptr || !shadow_visible(shadow))
 		{

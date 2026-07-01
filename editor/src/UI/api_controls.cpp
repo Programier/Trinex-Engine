@@ -219,7 +219,7 @@ namespace Trinex::UI
 		const InteractiveRect rect = make_interactive_rect(pos, size);
 		if (has_shadow_override())
 		{
-			Shadow shadow = current_shadow();
+			ShadowOptions shadow = current_shadow();
 			if (options.disabled)
 			{
 				shadow.color.w *= 0.55f;

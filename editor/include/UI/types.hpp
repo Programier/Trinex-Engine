@@ -969,11 +969,12 @@ namespace Trinex::UI
 		Vec4 error              = Vec4(0.95f, 0.32f, 0.32f, 1.00f);
 	};
 
-	struct Shadow {
+	struct ShadowOptions {
 		Vec2 offset = Vec2(0.0f, 4.0f);
+		Vec4 color  = Vec4(0.0f, 0.0f, 0.0f, 0.22f);
 		f32 blur    = 16.0f;
 		f32 spread  = 0.0f;
-		Vec4 color  = Vec4(0.0f, 0.0f, 0.0f, 0.22f);
+		f32 opacity = 1.f;
 	};
 
 	struct BlurOptions {
@@ -997,7 +998,7 @@ namespace Trinex::UI
 		Vec2 hover_padding  = Vec2(3.0f, 3.0f);
 		Vec2 press_padding  = Vec2(3.0f, 3.0f);
 		BlurOptions blur;
-		Shadow shadow;
+		ShadowOptions shadow;
 		ColorTheme colors;
 	};
 
