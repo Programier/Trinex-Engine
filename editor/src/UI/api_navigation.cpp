@@ -662,14 +662,6 @@ namespace Trinex::UI
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * eased);
 		push_render_scale(popup_scale);
 
-		BlurOptions palette_blur;
-		palette_blur.radius   = 12.0f * eased;
-		palette_blur.sigma    = 6.0f;
-		palette_blur.spread   = 0.0f;
-		palette_blur.rounding = rounding;
-		palette_blur.tint     = Vec4(0, 0, 0, 0);
-		push_blur(palette_blur);
-
 		ShadowOptions palette_shadow;
 		palette_shadow.offset = Vec2(0.0f, 10.0f);
 		palette_shadow.blur   = 28.0f;
@@ -677,22 +669,23 @@ namespace Trinex::UI
 		palette_shadow.color  = Vec4(0.0f, 0.0f, 0.0f, 0.22f * eased);
 		push_shadow(palette_shadow);
 
-		GlassOptions palette_glass;
-		palette_glass.opacity       = 0.8f;
-		palette_glass.tint          = Vec4(0.10f, 0.12f, 0.16f, 0.58f * eased);
-		palette_glass.border_color  = Vec4(1.0f, 1.0f, 1.0f, 0.10f * eased);
-		palette_glass.highlight     = Vec4(1.0f, 1.0f, 1.0f, 0.08f * eased);
-		palette_glass.border        = true;
-		palette_glass.background    = true;
-		palette_glass.highlight_top = true;
-		palette_glass.rounding      = rounding;
-		palette_glass.padding       = padding;
+		PanelOptions palette_panel;
+		palette_panel.size             = px(target_size.x, target_size.y);
+		palette_panel.rounding         = rounding;
+		palette_panel.border           = true;
+		palette_panel.background       = true;
+		palette_panel.background_color = Vec4(0.10f, 0.12f, 0.16f, 0.58f * eased);
+		palette_panel.window_flags     = WindowFlags::NoScrollbar | WindowFlags::NoScrollWithMouse;
 
-		if (!begin_glass_panel("##command_palette_glass", Vec2(target_size.x, target_size.y), palette_glass))
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(padding, padding));
+		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1.0f, 1.0f, 1.0f, 0.10f * eased));
+
+		if (!begin_panel("##command_palette_panel", palette_panel))
 		{
+			ImGui::PopStyleColor();
+			ImGui::PopStyleVar();
 			pop_render_scale();
 			pop_shadow();
-			pop_blur();
 			ImGui::PopStyleVar();
 			active_context()->draw_alpha = previous_draw_alpha;
 			ImGui::EndPopup();
@@ -724,8 +717,7 @@ namespace Trinex::UI
 		ImGui::Separator();
 		ImGui::Spacing();
 
-		const float list_height =
-		        Math::max(120.0f, target_size.y - active_context()->style.frame_height - padding * 3.0f - 10.0f);
+		const float list_height = Math::max(120.0f, ImGui::GetContentRegionAvail().y);
 		ImGui::BeginChild("##command_palette_results", ImVec2(0.0f, list_height), false, ImGuiWindowFlags_NoBackground);
 
 		if (!has_results)
@@ -837,15 +829,26 @@ namespace Trinex::UI
 
 		ImGui::EndChild();
 
+		{
+			ImDrawList* draw  = ImGui::GetWindowDrawList();
+			const ImVec2 min  = ImGui::GetWindowPos();
+			const ImVec2 max  = add(min, ImGui::GetWindowSize());
+			const float inset = Math::max(1.0f, active_context()->style.border_size);
+			const ImVec2 line_min(min.x + rounding * 0.35f, min.y + inset);
+			const ImVec2 line_max(max.x - rounding * 0.35f, min.y + inset);
+			draw->AddLine(line_min, line_max, col_u32(Vec4(1.0f, 1.0f, 1.0f, 0.08f * eased)), 1.0f);
+		}
+
 		if (!palette.open && anim.open <= 0.0f)
 		{
 			ImGui::CloseCurrentPopup();
 		}
 
-		end_glass_panel();
+		end_panel();
+		ImGui::PopStyleColor();
+		ImGui::PopStyleVar();
 		pop_render_scale();
 		pop_shadow();
-		pop_blur();
 		ImGui::PopStyleVar();
 		active_context()->draw_alpha = previous_draw_alpha;
 		ImGui::EndPopup();

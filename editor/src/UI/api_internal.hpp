@@ -78,7 +78,6 @@ namespace Trinex::UI
 		Vec4 tint          = Vec4(0, 0, 0, 0);
 		Vec4 border_color  = Vec4(0, 0, 0, 0);
 		Vec4 highlight     = Vec4(0, 0, 0, 0);
-		BlurOptions blur;
 		ShadowOptions shadow;
 	};
 
@@ -186,7 +185,6 @@ namespace Trinex::UI
 		Vector<GlassPanelContext> glass_panel_stack;
 		Vector<CardContext> card_stack;
 		Vector<ShadowOptions> shadow_stack;
-		Vector<BlurOptions> blur_stack;
 		Vector<float> disabled_alpha_stack;
 		Vector<String> pending_modals;
 		Vector<String> pending_popups;
@@ -483,12 +481,6 @@ namespace Trinex::UI
 	{
 		auto& stack = active_context()->shadow_stack;
 		return stack.empty() ? active_context()->style.shadow : stack.back();
-	}
-
-	inline const BlurOptions& current_blur()
-	{
-		auto& stack = active_context()->blur_stack;
-		return stack.empty() ? active_context()->style.blur : stack.back();
 	}
 
 	inline bool has_shadow_override()

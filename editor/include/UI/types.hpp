@@ -730,6 +730,17 @@ namespace Trinex::UI
 		trinex_bitfield_enum_struct(LayerFlags, u8);
 	};
 
+	struct PaintFlags {
+		enum Enum : u8
+		{
+			Undefined     = 0,
+			SetupViewport = 1 << 0,
+			SetupScissor  = 1 << 1,
+			PushFront     = 1 << 2,
+		};
+		trinex_bitfield_enum_struct(PaintFlags, u8);
+	};
+
 	struct Texture {
 		RHITexture* texture = nullptr;
 		RHISampler* sampler = nullptr;
@@ -1149,6 +1160,13 @@ namespace Trinex::UI
 		f32 padding   = -1.0f;
 		f32 spacing   = -1.0f;
 		f32 elevation = 0.0f;
+	};
+
+	struct PaintOptions {
+		void* userdata      = nullptr;
+		usize userdata_size = 0;
+		DrawList draw_list  = DrawList::Default;
+		PaintFlags flags    = PaintFlags::SetupViewport | PaintFlags::SetupScissor;
 	};
 
 	struct Command {

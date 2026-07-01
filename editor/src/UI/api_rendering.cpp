@@ -559,6 +559,7 @@ namespace Trinex::UI
 		void* userdata         = nullptr;
 		Vector2f pos;
 		Vector2f size;
+		PaintFlags flags;
 	};
 
 	static void paint_callback(const ImDrawList*, const ImDrawCmd* cmd)
@@ -569,14 +570,21 @@ namespace Trinex::UI
 		trinex_assert(bd && bd->context);
 		trinex_assert(args && args->function);
 
-		bd->context->viewport(RHIRegion(args->size, args->pos));
-		bd->context->scissor(RHIRegion(args->size, args->pos));
+		if (args->flags & PaintFlags::SetupViewport)
+			bd->context->viewport(RHIRegion(args->size, args->pos));
+		else
+			bd->context->viewport(RHIRegion());
+
+		if (args->flags & PaintFlags::SetupScissor)
+			bd->context->scissor(RHIRegion(args->size, args->pos));
+		else
+			bd->context->scissor(RHIRegion());
 
 		args->function(bd->context, bd->layer, args->userdata);
 	}
 
 	static void add_paint_callback(ImDrawList* list, ImGuiViewport* vp, Vec2 pos, Vec2 size, PaintFunction function,
-	                               void* userdata, usize userdata_size)
+	                               const PaintOptions& options)
 	{
 		if (list == nullptr || vp == nullptr || function == nullptr)
 			return;
@@ -586,10 +594,32 @@ namespace Trinex::UI
 
 		PaintCallbackArgs callback_args = {
 		        .function = function,
-		        .userdata = memory_copy(userdata, userdata_size),
+		        .userdata = memory_copy(options.userdata, options.userdata_size),
 		        .pos      = (pos - viewport_pos) / viewport_size,
 		        .size     = size / viewport_size,
+		        .flags    = options.flags,
 		};
+
+		if (options.flags & PaintFlags::PushFront)
+		{
+			void* callback_userdata = memory_copy(&callback_args, sizeof(callback_args));
+
+			ImDrawCmd reset_cmd;
+			reset_cmd.UserCallback           = ImDrawCallback_ResetRenderState;
+			reset_cmd.UserCallbackData       = nullptr;
+			reset_cmd.UserCallbackDataSize   = 0;
+			reset_cmd.UserCallbackDataOffset = -1;
+
+			ImDrawCmd callback_cmd;
+			callback_cmd.UserCallback           = paint_callback;
+			callback_cmd.UserCallbackData       = callback_userdata;
+			callback_cmd.UserCallbackDataSize   = 0;
+			callback_cmd.UserCallbackDataOffset = -1;
+
+			list->CmdBuffer.insert(list->CmdBuffer.Data, reset_cmd);
+			list->CmdBuffer.insert(list->CmdBuffer.Data, callback_cmd);
+			return;
+		}
 
 		list->AddCallback(paint_callback, &callback_args, sizeof(callback_args));
 		list->AddCallback(ImDrawCallback_ResetRenderState, nullptr);
@@ -685,7 +715,7 @@ namespace Trinex::UI
 		pool->release(layer);
 	}
 
-	void paint(Vec2 pos, Size size, PaintFunction function, void* userdata, usize userdata_size, DrawList draw_list)
+	void paint(Vec2 pos, Size size, PaintFunction function, const PaintOptions& options)
 	{
 		ImGuiWindow* window = ImGui::GetCurrentWindow();
 
@@ -693,25 +723,25 @@ namespace Trinex::UI
 			return;
 
 		ImGuiViewport* viewport = nullptr;
-		ImDrawList* list        = resolve_draw_list(draw_list, window, viewport);
-		add_paint_callback(list, viewport, pos, resolve(size), function, userdata, userdata_size);
+		ImDrawList* list        = resolve_draw_list(options.draw_list, window, viewport);
+		add_paint_callback(list, viewport, pos, resolve(size), function, options);
 	}
 
-	void paint(Size size, PaintFunction function, void* userdata, usize userdata_size, DrawList draw_list)
+	void paint(Size size, PaintFunction function, const PaintOptions& options)
 	{
 		ImGuiWindow* window = ImGui::GetCurrentWindow();
 		Vec2 pos            = to_vec(ImGui::GetItemRectMin());
-		paint(pos, size, function, userdata, userdata_size, draw_list);
+		paint(pos, size, function, options);
 	}
 
-	void paint(PaintFunction function, void* userdata, usize userdata_size, DrawList draw_list)
+	void paint(PaintFunction function, const PaintOptions& options)
 	{
 		ImGuiWindow* window = ImGui::GetCurrentWindow();
 		ImGuiViewport* vp   = window ? window->Viewport : ImGui::GetMainViewport();
 
 		Vec2 pos  = to_vec(vp->Pos);
 		Vec2 size = to_vec(vp->Size);
-		paint(pos, size, function, userdata, userdata_size, draw_list);
+		paint(pos, size, function, options);
 	}
 
 	bool begin_layer(const LayerOptions& options)

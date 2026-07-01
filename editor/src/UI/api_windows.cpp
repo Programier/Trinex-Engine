@@ -212,12 +212,7 @@ namespace Trinex::UI
 		context.border_color.w *= opacity;
 		context.highlight = options.highlight;
 		context.highlight.w *= opacity;
-		context.blur = current_blur();
-		context.blur.radius *= opacity;
-		context.blur.sigma *= opacity;
-		context.blur.spread *= opacity;
-		context.blur.rounding = rounding;
-		context.shadow        = current_shadow();
+		context.shadow = current_shadow();
 		context.shadow.color.w *= opacity;
 
 		active_context()->glass_panel_stack.push_back(context);
@@ -247,11 +242,6 @@ namespace Trinex::UI
 		if (context.draw_shadow)
 		{
 			draw_shadow_rect(draw, min, max, context.rounding, context.shadow);
-		}
-
-		if (context.blur.radius > 0.0f)
-		{
-			blur(to_vec(min), to_vec(max), context.blur);
 		}
 
 		if (context.background && context.tint.w > 0.0f)

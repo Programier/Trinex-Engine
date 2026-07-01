@@ -42,15 +42,11 @@ namespace Trinex::UI
 	void push_style_var(StyleVar var, f32 value);
 	void push_style_var(StyleVar var, const Vec2& value);
 	void pop_style_var(u32 count = 1);
-	void paint(Vec2 pos, Size size, PaintFunction function, void* userdata = nullptr, usize userdata_size = 0,
-	           DrawList draw_list = DrawList::Default);
-	void paint(Size size, PaintFunction function, void* userdata = nullptr, usize userdata_size = 0,
-	           DrawList draw_list = DrawList::Default);
-	void paint(PaintFunction function, void* userdata = nullptr, usize userdata_size = 0, DrawList draw_list = DrawList::Default);
+	void paint(Vec2 pos, Size size, PaintFunction function, const PaintOptions& options = {});
+	void paint(Size size, PaintFunction function, const PaintOptions& options = {});
+	void paint(PaintFunction function, const PaintOptions& options = {});
 	void push_shadow(const ShadowOptions& shadow);
 	void pop_shadow();
-	void push_blur(const BlurOptions& options);
-	void pop_blur();
 	void blur(const Vec2& min, const Vec2& max, DrawList draw_list, const BlurOptions& options);
 	void push_render_scale(Vec2 scale, Vec2 pivot = Vec2(0.5f, 0.5f), RenderScaleFlags flags = RenderScaleFlags::Undefined);
 	void pop_render_scale();
@@ -94,8 +90,6 @@ namespace Trinex::UI
 	void unregister_widget(Context* context, Widget* widget);
 	bool begin_panel(StringView id_text, const PanelOptions& options = {});
 	void end_panel();
-	bool begin_glass_panel(StringView id, Size size, const GlassOptions& options = {});
-	void end_glass_panel();
 	bool begin_group_panel(StringView label, const PanelOptions& options = {});
 	void end_group_panel();
 	bool begin_group();
@@ -386,13 +380,6 @@ namespace Trinex::UI
 		pop_shadow();
 	}
 
-	inline void blur(const BlurOptions& value, const ActionRef& func)
-	{
-		push_blur(value);
-		func();
-		pop_blur();
-	}
-
 	inline void blur(const Vec2& min, const Vec2& max, const BlurOptions& options)
 	{
 		blur(min, max, DrawList::Default, options);
@@ -464,27 +451,6 @@ namespace Trinex::UI
 	inline bool panel(StringView id_text, const ActionRef& func)
 	{
 		return panel(id_text, {}, func);
-	}
-
-	inline bool glass_panel(StringView id, Size size, const GlassOptions& options, const ActionRef& func)
-	{
-		const bool visible = begin_glass_panel(id, size, options);
-		if (visible)
-		{
-			func();
-			end_glass_panel();
-		}
-		return visible;
-	}
-
-	inline bool glass_panel(StringView id, Size size, const ActionRef& func)
-	{
-		return glass_panel(id, size, {}, func);
-	}
-
-	inline bool glass_panel(StringView id, const ActionRef& func)
-	{
-		return glass_panel(id, Size(0, 0), {}, func);
 	}
 
 	inline bool group_panel(StringView label, const PanelOptions& options, const ActionRef& func)
@@ -932,47 +898,53 @@ namespace Trinex::UI
 	    requires(TriviallyStored<F>)
 	inline void paint(Vec2 pos, Size size, F&& f)
 	{
-		auto callback = +[](RHIContext* ctx, RHITexture* layer, void* userdata) { (*static_cast<F*>(userdata))(ctx, layer); };
-		paint(pos, size, callback, &f, sizeof(f));
+		paint(pos, size, PaintOptions{}, std::forward<F>(f));
 	}
 
 	template<typename F>
 	    requires(TriviallyStored<F>)
-	inline void paint(Vec2 pos, Size size, DrawList draw_list, F&& f)
+	inline void paint(Vec2 pos, Size size, const PaintOptions& options, F&& f)
 	{
 		auto callback = +[](RHIContext* ctx, RHITexture* layer, void* userdata) { (*static_cast<F*>(userdata))(ctx, layer); };
-		paint(pos, size, callback, &f, sizeof(f), draw_list);
+		PaintOptions resolved  = options;
+		resolved.userdata      = &f;
+		resolved.userdata_size = sizeof(f);
+		paint(pos, size, callback, resolved);
 	}
 
 	template<typename F>
 	    requires(TriviallyStored<F>)
 	inline void paint(Size size, F&& f)
 	{
-		auto callback = +[](RHIContext* ctx, RHITexture* layer, void* userdata) { (*static_cast<F*>(userdata))(ctx, layer); };
-		paint(size, callback, &f, sizeof(f));
+		paint(size, PaintOptions{}, std::forward<F>(f));
 	}
 
 	template<typename F>
 	    requires(TriviallyStored<F>)
-	inline void paint(Size size, DrawList draw_list, F&& f)
+	inline void paint(Size size, const PaintOptions& options, F&& f)
 	{
 		auto callback = +[](RHIContext* ctx, RHITexture* layer, void* userdata) { (*static_cast<F*>(userdata))(ctx, layer); };
-		paint(size, callback, &f, sizeof(f), draw_list);
+		PaintOptions resolved  = options;
+		resolved.userdata      = &f;
+		resolved.userdata_size = sizeof(f);
+		paint(size, callback, resolved);
 	}
 
 	template<typename F>
 	    requires(TriviallyStored<F>)
 	inline void paint(F&& f)
 	{
-		auto callback = +[](RHIContext* ctx, RHITexture* layer, void* userdata) { (*static_cast<F*>(userdata))(ctx, layer); };
-		paint(callback, &f, sizeof(f));
+		paint(PaintOptions{}, std::forward<F>(f));
 	}
 
 	template<typename F>
 	    requires(TriviallyStored<F>)
-	inline void paint(DrawList draw_list, F&& f)
+	inline void paint(const PaintOptions& options, F&& f)
 	{
 		auto callback = +[](RHIContext* ctx, RHITexture* layer, void* userdata) { (*static_cast<F*>(userdata))(ctx, layer); };
-		paint(callback, &f, sizeof(f), draw_list);
+		PaintOptions resolved  = options;
+		resolved.userdata      = &f;
+		resolved.userdata_size = sizeof(f);
+		paint(callback, resolved);
 	}
 }// namespace Trinex::UI

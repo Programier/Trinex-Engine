@@ -481,22 +481,6 @@ namespace Trinex::UI
 		}
 	}
 
-	void push_blur(const BlurOptions& options)
-	{
-		active_context()->blur_stack.push_back(options);
-	}
-
-	void pop_blur()
-	{
-		auto& stack = active_context()->blur_stack;
-
-		trinex_assert(!stack.empty() && "UI::pop_blur() called without matching push_blur()");
-		if (!stack.empty())
-		{
-			stack.pop_back();
-		}
-	}
-
 	void blur(const Vec2& min, const Vec2& max, DrawList draw_list, const BlurOptions& options)
 	{
 		const float spread = Math::max(0.0f, options.spread);
@@ -507,7 +491,7 @@ namespace Trinex::UI
 
 		if (options.radius > 0.0f)
 		{
-			paint(draw_list, [options, area_min, area_max](RHIContext* ctx, RHITexture* layer) {
+			paint(PaintOptions{.draw_list = draw_list}, [options, area_min, area_max](RHIContext* ctx, RHITexture* layer) {
 				const float radius = Math::clamp(options.radius, 0.0f, 64.0f);
 
 				if (radius <= 0.0f)
