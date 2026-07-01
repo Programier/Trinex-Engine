@@ -579,7 +579,11 @@ namespace Trinex::UI
 			default: bd->context->blending_state(RHIBlendingState::translucent()); break;
 		}
 
-		Pipelines::Passthrow::passthrow(bd->context, src->as_srv());
+		Pipelines::Passthrow::Args args = {
+		        .color_scale = {1.f, 1.f, 1.f, options->opacity},
+		};
+
+		Pipelines::Passthrow::passthrow(bd->context, src->as_srv(), args);
 
 		if (options->composite_mode != LayerCompositeMode::AlphaBlend)
 		{

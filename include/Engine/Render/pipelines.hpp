@@ -79,11 +79,17 @@ namespace Trinex
 			const RHIShaderParameterInfo* m_args;
 
 		public:
-			static void passthrow(RHIContext* ctx, RHIShaderResourceView* src, Swizzle swizzle = {}, RHIRegion region = {},
-			                      RHISampler* sampler = nullptr);
+			struct Args {
+				RHISampler* sampler    = nullptr;
+				RHIRegion store_region = {};
+				RHIRegion copy_region  = {};
+				Vector4f color_scale   = {1.f, 1.f, 1.f, 1.f};
+				Vector4f color_bias    = {0.f, 0.f, 0.f, 0.f};
+				Swizzle swizzle        = {};
+			};
 
-			static void passthrow(RHIContext* ctx, RHIRegion viewport, RHIShaderResourceView* src, Swizzle swizzle = {},
-			                      RHIRegion region = {}, RHISampler* sampler = nullptr);
+			static void passthrow(RHIContext* ctx, RHIShaderResourceView* src);
+			static void passthrow(RHIContext* ctx, RHIShaderResourceView* src, const Args& args);
 		};
 
 		class ENGINE_EXPORT Downsample : public GlobalPipelineLibrary

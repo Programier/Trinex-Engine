@@ -550,7 +550,9 @@ namespace Trinex::UI
 				BeginRendering();
 				const Vector2f texel = 1.f / Vector2f(m_size);
 				m_context->blending_state(RHIBlendingState());
-				Pipelines::Passthrow::passthrow(m_context, RHIRegion(size * texel, position * texel), texture->as_srv());
+				Pipelines::Passthrow::passthrow(m_context, texture->as_srv(),
+				                                {.store_region = RHIRegion(size * texel, position * texel)});
+				
 				m_flags.set(Flags::IsDepthStencilDirty | Flags::IsBlendingDirty);
 			}
 

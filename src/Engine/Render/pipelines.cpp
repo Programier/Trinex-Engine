@@ -152,42 +152,48 @@ namespace Trinex::Pipelines
 		m_args   = find_parameter("args");
 	}
 
-	void Passthrow::passthrow(RHIContext* ctx, RHIShaderResourceView* src, Swizzle swizzle, RHIRegion region, RHISampler* sampler)
+	void Passthrow::passthrow(RHIContext* ctx, RHIShaderResourceView* src)
 	{
-		passthrow(ctx, region, src, swizzle, region, sampler);
+		return passthrow(ctx, src, {});
 	}
-
-	void Passthrow::passthrow(RHIContext* ctx, RHIRegion viewport, RHIShaderResourceView* src, Swizzle swizzle, RHIRegion region,
-	                          RHISampler* sampler)
+	
+	void Passthrow::passthrow(RHIContext* ctx, RHIShaderResourceView* src, const Args& args)
 	{
-		struct Args {
+		struct SubmitArgs {
 			alignas(8) Vector2f src_offset;
 			alignas(8) Vector2f src_size;
 			alignas(8) Vector2f dst_offset;
 			alignas(8) Vector2f dst_size;
+			alignas(16) Vector4f color_scale;
+			alignas(16) Vector4f color_bias;
 			alignas(4) Swizzle swizzle;
 		};
 
-		Args args;
-		args.src_offset = region.pos;
-		args.src_size   = region.size;
-		args.dst_offset = viewport.pos;
-		args.dst_size   = viewport.size;
-		args.swizzle    = swizzle;
+		SubmitArgs submit;
+		submit.src_offset  = args.copy_region.pos;
+		submit.src_size    = args.copy_region.size;
+		submit.dst_offset  = args.store_region.pos;
+		submit.dst_size    = args.store_region.size;
+		submit.color_scale = args.color_scale;
+		submit.color_bias  = args.color_bias;
+		submit.swizzle     = args.swizzle;
 
 		auto self = instance();
 		ctx->depth_stencil_state(RHIDepthStencilState());
 		ctx->rasterizer_state(RHIRasterizerState());
 		ctx->bind_pipeline(self->handle());
 
+		RHISampler* sampler = args.sampler;
+
 		if (sampler == nullptr)
 			sampler = RHIBilinearSampler::static_sampler();
 
 		ctx->bind_srv(src, self->m_source->binding);
 		ctx->bind_sampler(sampler, self->m_source->binding);
-		ctx->update_scalar(&args, sizeof(args), self->m_args);
+		ctx->update_scalar(&submit, sizeof(submit), self->m_args);
 		ctx->draw(RHITopology::TriangleList, 6, 0);
 	}
+
 
 	trinex_implement_pipeline(Downsample, "[shaders]:/TrinexEngine/trinex/graphics/downsample.slang")
 	{

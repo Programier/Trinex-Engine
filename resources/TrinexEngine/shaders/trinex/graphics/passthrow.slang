@@ -8,6 +8,8 @@ struct Args
 	float2 src_size;
 	float2 dst_offset;
 	float2 dst_size;
+	float4 color_scale;
+	float4 color_offset;
 	uint swizzle;
 }
 
@@ -26,5 +28,5 @@ float4 vertex_main(in uint index: SV_VertexID, out float2 uv: TEXCOORD0) : SV_Po
 [shader("fragment")]
 float4 fragment_main(in float2 uv: TEXCOORD0) : SV_Target
 {
-	return Math::swizzle(source.SampleLevel(uv, 0.f), args.swizzle);
+	return Math::swizzle(args.color_offset + source.SampleLevel(uv, 0.f) * args.color_scale, args.swizzle);
 }
