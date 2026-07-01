@@ -219,7 +219,7 @@ namespace Trinex
 			return false;
 
 		return UI::card_button(object->name().c_str(), {.size = size}, [&]() {
-			const float padding       = UI::style().padding;
+			const float padding       = ImGui::GetStyle().WindowPadding.x;
 			UI::Vec2 content_size     = {glm::max(size.x - padding * 2.0f, 0.0f), glm::max(size.y - padding * 2.0f, 0.0f)};
 			ImTextureID imgui_texture = Icons::find_icon(object);
 			imgui_texture.sampler     = RHIPointWrapSampler::static_sampler();
@@ -446,7 +446,7 @@ namespace Trinex
 		                             UI::TableFlags::NoPadOuterX | UI::TableFlags::NoPadInnerX;
 
 
-		UI::push_style_var(UI::StyleVar::CellPadding, {0.f, 0.f});
+		ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.f, 0.f));
 
 		if (UI::begin_table("##content_grid", columns, table_flags, region))
 		{
@@ -485,7 +485,7 @@ namespace Trinex
 			UI::end_table();
 		}
 
-		UI::pop_style_var();
+		ImGui::PopStyleVar();
 
 		UI::popup("###ContentContextMenu", [&]() {
 			Package* pkg = selected_package();

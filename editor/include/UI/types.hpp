@@ -4,21 +4,10 @@
 #include <Core/etl/string.hpp>
 #include <Core/etl/type_traits.hpp>
 #include <Core/etl/vector.hpp>
-#include <Core/math/vector.hpp>
-
-namespace Trinex
-{
-	class Window;
-	class RHITexture;
-	class RHISampler;
-	class RHIContext;
-}// namespace Trinex
+#include <UI/core.hpp>
 
 namespace Trinex::UI
 {
-	using Vec2      = Vector2f;
-	using Vec3      = Vector3f;
-	using Vec4      = Vector4f;
 	using Action    = Function<void()>;
 	using ActionRef = FunctionRef<void()>;
 

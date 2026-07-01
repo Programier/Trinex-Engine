@@ -409,61 +409,6 @@ namespace Trinex::UI
 		return Vec2(resolve(value.width, Axis::X), resolve(value.height, Axis::Y));
 	}
 
-	/////////////////////// STYLE AND EFFECTS ///////////////////////
-
-	Style& style()
-	{
-		return active_context()->style;
-	}
-
-	void style(const Style& value)
-	{
-		active_context()->style = value;
-		apply_imgui_style(value);
-	}
-
-	void push_style(const Style& value)
-	{
-		active_context()->style_stack.push_back(active_context()->style);
-		active_context()->style = value;
-		apply_imgui_style(value);
-	}
-
-	void pop_style()
-	{
-		if (!active_context()->style_stack.empty())
-		{
-			active_context()->style = active_context()->style_stack.back();
-			active_context()->style_stack.pop_back();
-			apply_imgui_style(active_context()->style);
-		}
-	}
-
-	void push_style_color(StyleColor color, const Vec4& value)
-	{
-		ImGui::PushStyleColor(static_cast<ImGuiCol>(color.value), to_imvec(value));
-	}
-
-	void pop_style_color(u32 count)
-	{
-		ImGui::PopStyleColor(count);
-	}
-
-	void push_style_var(StyleVar var, f32 value)
-	{
-		ImGui::PushStyleVar(static_cast<ImGuiStyleVar>(var.value), value);
-	}
-
-	void push_style_var(StyleVar var, const Vec2& value)
-	{
-		ImGui::PushStyleVar(static_cast<ImGuiStyleVar>(var.value), to_imvec(value));
-	}
-
-	void pop_style_var(u32 count)
-	{
-		ImGui::PopStyleVar(count);
-	}
-
 	void push_shadow(const ShadowOptions& shadow)
 	{
 		active_context()->shadow_stack.push_back(shadow);

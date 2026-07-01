@@ -1,5 +1,6 @@
 #pragma once
 #include <IconsLucide.h>
+#include <UI/style.hpp>
 #include <UI/theme.hpp>
 #include <UI/types.hpp>
 
@@ -33,15 +34,28 @@ namespace Trinex::UI
 	Vec2 resolve(const Size& size);
 
 	/////////////////////// STYLE AND EFFECTS ///////////////////////
-	Style& style();
-	void style(const Style& value);
-	void push_style(const Style& value);
+	void push_style(const GlobalStyle& value);
+	void push_style(const TextStyle& value);
+	void push_style(const WindowStyle& value);
+	void push_style(const ChildStyle& value);
+	void push_style(const PopupStyle& value);
+	void push_style(const LayoutStyle& value);
+	void push_style(const FrameStyle& value);
+	void push_style(const ButtonStyle& value);
+	void push_style(const MarkStyle& value);
+	void push_style(const HeaderStyle& value);
+	void push_style(const ScrollbarStyle& value);
+	void push_style(const GrabStyle& value);
+	void push_style(const SeparatorStyle& value);
+	void push_style(const TabStyle& value);
+	void push_style(const TableStyle& value);
+	void push_style(const PlotStyle& value);
+	void push_style(const TreeStyle& value);
+	void push_style(const DockingStyle& value);
+	void push_style(const NavigationStyle& value);
+	void push_style(const DragDropStyle& value);
+	void push_style(const ImageStyle& value);
 	void pop_style();
-	void push_style_color(StyleColor color, const Vec4& value);
-	void pop_style_color(u32 count = 1);
-	void push_style_var(StyleVar var, f32 value);
-	void push_style_var(StyleVar var, const Vec2& value);
-	void pop_style_var(u32 count = 1);
 	void paint(Vec2 pos, Size size, PaintFunction function, const PaintOptions& options = {});
 	void paint(Size size, PaintFunction function, const PaintOptions& options = {});
 	void paint(PaintFunction function, const PaintOptions& options = {});
@@ -366,7 +380,127 @@ namespace Trinex::UI
 		}
 	}
 
-	inline void style(const Style& value, const ActionRef& func)
+	inline void style(const GlobalStyle& value, const ActionRef& func)
+	{
+		push_style(value);
+		func();
+		pop_style();
+	}
+	inline void style(const TextStyle& value, const ActionRef& func)
+	{
+		push_style(value);
+		func();
+		pop_style();
+	}
+	inline void style(const WindowStyle& value, const ActionRef& func)
+	{
+		push_style(value);
+		func();
+		pop_style();
+	}
+	inline void style(const ChildStyle& value, const ActionRef& func)
+	{
+		push_style(value);
+		func();
+		pop_style();
+	}
+	inline void style(const PopupStyle& value, const ActionRef& func)
+	{
+		push_style(value);
+		func();
+		pop_style();
+	}
+	inline void style(const LayoutStyle& value, const ActionRef& func)
+	{
+		push_style(value);
+		func();
+		pop_style();
+	}
+	inline void style(const FrameStyle& value, const ActionRef& func)
+	{
+		push_style(value);
+		func();
+		pop_style();
+	}
+	inline void style(const ButtonStyle& value, const ActionRef& func)
+	{
+		push_style(value);
+		func();
+		pop_style();
+	}
+	inline void style(const MarkStyle& value, const ActionRef& func)
+	{
+		push_style(value);
+		func();
+		pop_style();
+	}
+	inline void style(const HeaderStyle& value, const ActionRef& func)
+	{
+		push_style(value);
+		func();
+		pop_style();
+	}
+	inline void style(const ScrollbarStyle& value, const ActionRef& func)
+	{
+		push_style(value);
+		func();
+		pop_style();
+	}
+	inline void style(const GrabStyle& value, const ActionRef& func)
+	{
+		push_style(value);
+		func();
+		pop_style();
+	}
+	inline void style(const SeparatorStyle& value, const ActionRef& func)
+	{
+		push_style(value);
+		func();
+		pop_style();
+	}
+	inline void style(const TabStyle& value, const ActionRef& func)
+	{
+		push_style(value);
+		func();
+		pop_style();
+	}
+	inline void style(const TableStyle& value, const ActionRef& func)
+	{
+		push_style(value);
+		func();
+		pop_style();
+	}
+	inline void style(const PlotStyle& value, const ActionRef& func)
+	{
+		push_style(value);
+		func();
+		pop_style();
+	}
+	inline void style(const TreeStyle& value, const ActionRef& func)
+	{
+		push_style(value);
+		func();
+		pop_style();
+	}
+	inline void style(const DockingStyle& value, const ActionRef& func)
+	{
+		push_style(value);
+		func();
+		pop_style();
+	}
+	inline void style(const NavigationStyle& value, const ActionRef& func)
+	{
+		push_style(value);
+		func();
+		pop_style();
+	}
+	inline void style(const DragDropStyle& value, const ActionRef& func)
+	{
+		push_style(value);
+		func();
+		pop_style();
+	}
+	inline void style(const ImageStyle& value, const ActionRef& func)
 	{
 		push_style(value);
 		func();
