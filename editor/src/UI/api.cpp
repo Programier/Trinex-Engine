@@ -507,52 +507,53 @@ namespace Trinex::UI
 
 		if (options.radius > 0.0f)
 		{
-			paint(draw_list, [options, area_min, area_max]() {
-				// const float radius = Math::clamp(options.radius, 0.0f, 64.0f);
+			paint(draw_list, [options, area_min, area_max](RHIContext* ctx, RHITexture* layer) {
+				const float radius = Math::clamp(options.radius, 0.0f, 64.0f);
 
-				// if (radius <= 0.0f)
-				// {
-				// 	return;
-				// }
+				if (radius <= 0.0f)
+				{
+					return;
+				}
 
-				// const float sigma           = options.sigma > 0.0f ? options.sigma : Math::max(1.0f, radius * 0.45f);
-				// const RHITextureFlags flags = RHITextureFlags::ColorAttachment;
-				// RHITexturePool* pool        = RHITexturePool::global_instance();
+				const float sigma           = options.sigma > 0.0f ? options.sigma : Math::max(1.0f, radius * 0.45f);
+				const RHITextureFlags flags = RHITextureFlags::ColorAttachment;
+				RHITexturePool* pool        = RHITexturePool::global_instance();
 
-				// RHIContext* ctx              = Rendering::context();
-				// RHITexture* layer            = Rendering::layer();
-				// const Vector2u viewport_size = layer->size();
-				// RHITexture* temporary        = pool->acquire(RHISurfaceFormat::RGBA8, viewport_size, flags);
+				const Vector2u viewport_size = layer->size();
+				RHITexture* temporary        = pool->acquire(RHISurfaceFormat::RGBA8, viewport_size, flags);
 
-				// const Vector2f blur_offset = area_min / Vector2f(viewport_size);
-				// const Vector2f blur_size   = (area_max - area_min) / Vector2f(viewport_size);
+				const Vector2f blur_offset = area_min / Vector2f(viewport_size);
+				const Vector2f blur_size   = (area_max - area_min) / Vector2f(viewport_size);
 
-				// ctx->push_debug_stage("Bloor");
+				ctx->push_debug_stage("Bloor");
+				{
+					ctx->barrier(layer, RHIAccess::SRVGraphics);
+					ctx->barrier(temporary, RHIAccess::RTV);
 
-				// ctx->end_rendering();
-				// ctx->barrier(layer, RHIAccess::SRVGraphics);
-				// ctx->barrier(temporary, RHIAccess::RTV);
+					ctx->begin_rendering(temporary->as_rtv());
+					Pipelines::GaussianBlur::blur(ctx, layer->as_srv(), {0.f, 1.f / static_cast<f32>(viewport_size.y)}, sigma,
+					                              radius, {}, nullptr, blur_offset, blur_size);
+					ctx->end_rendering();
 
-				// ctx->begin_rendering(temporary->as_rtv());
-				// Pipelines::GaussianBlur::blur(ctx, layer->as_srv(), {0.f, 1.f / static_cast<f32>(viewport_size.y)}, sigma, radius,
-				//                               {}, nullptr, blur_offset, blur_size);
-				// ctx->end_rendering();
+					ctx->barrier(layer, RHIAccess::RTV);
+					ctx->barrier(temporary, RHIAccess::SRVGraphics);
+					ctx->begin_rendering(layer->as_rtv());
 
-				// ctx->barrier(layer, RHIAccess::RTV);
-				// ctx->barrier(temporary, RHIAccess::SRVGraphics);
-				// ctx->begin_rendering(layer->as_rtv());
-				// Pipelines::GaussianBlur::blur(ctx, temporary->as_srv(), {1.f / static_cast<f32>(viewport_size.x), 0.f}, sigma,
-				//                               radius, {}, nullptr, blur_offset, blur_size);
+					Pipelines::GaussianBlur::blur(ctx, temporary->as_srv(), {1.f / static_cast<f32>(viewport_size.x), 0.f}, sigma,
+					                              radius, {}, nullptr, blur_offset, blur_size);
 
-				// if (options.noise_opacity > 0.f)
-				// {
-				// 	ctx->push_debug_stage("Noise");
-				// 	Pipelines::NoiseApplication::noise(ctx, options.noise_opacity, options.noise_scale, blur_offset, blur_size);
-				// 	ctx->pop_debug_stage();
-				// }
+					if (options.noise_opacity > 0.f)
+					{
+						ctx->push_debug_stage("Noise");
+						Pipelines::NoiseApplication::noise(ctx, options.noise_opacity, options.noise_scale, blur_offset,
+						                                   blur_size);
+						ctx->pop_debug_stage();
+					}
 
-				// ctx->pop_debug_stage();
-				// pool->release(temporary);
+					ctx->end_rendering();
+				}
+				ctx->pop_debug_stage();
+				pool->release(temporary);
 			});
 		}
 
@@ -643,37 +644,6 @@ namespace Trinex::UI
 				}
 			}
 		}
-	}
-
-	void paint(Vec2 pos, Size size, PaintFunction function, void* userdata, usize userdata_size, DrawList draw_list)
-	{
-		ImGuiWindow* window = ImGui::GetCurrentWindow();
-
-		if (function == nullptr)
-			return;
-
-		ImGuiViewport* viewport = nullptr;
-		ImDrawList* list        = resolve_draw_list(draw_list, window, viewport);
-		add_paint_callback(list, viewport, pos, resolve(size), function, userdata, userdata_size);
-	}
-
-	void paint(Size size, PaintFunction function, void* userdata, usize userdata_size, DrawList draw_list)
-	{
-		ImGuiWindow* window = ImGui::GetCurrentWindow();
-		ImGuiViewport* vp   = window->Viewport;
-
-		Vec2 pos = to_vec(ImGui::GetItemRectMin());
-		paint(pos, size, function, userdata, userdata_size, draw_list);
-	}
-
-	void paint(PaintFunction function, void* userdata, usize userdata_size, DrawList draw_list)
-	{
-		ImGuiWindow* window = ImGui::GetCurrentWindow();
-		ImGuiViewport* vp   = window ? window->Viewport : ImGui::GetMainViewport();
-
-		Vec2 pos  = to_vec(vp->Pos);
-		Vec2 size = to_vec(vp->Size);
-		paint(pos, size, function, userdata, userdata_size, draw_list);
 	}
 
 	/////////////////////// ANIMATION AND IDENTITY ///////////////////////

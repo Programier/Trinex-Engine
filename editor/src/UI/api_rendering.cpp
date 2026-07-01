@@ -369,9 +369,10 @@ namespace Trinex::RenderBackend
 
 						if (pcmd->UserCallback != nullptr)
 						{
+							end_rendering(bd);
+
 							if (pcmd->UserCallback == ImDrawCallback_ResetRenderState)
 							{
-								end_rendering(bd);
 								setup_render_state(draw_data);
 							}
 							else
@@ -517,20 +518,28 @@ namespace Trinex::RenderBackend
 
 				RHIContext* ctx = RHIContextPool::global_instance()->begin();
 				{
-					auto bd      = RenderBackend::backend_data();
-					auto texture = swapchain->as_texture();
-					auto rtv     = texture->as_rtv();
+					auto bd   = RenderBackend::backend_data();
+					auto dst  = swapchain->as_texture();
+					auto pool = RHITexturePool::global_instance();
 
-					bd->layer   = texture;
+					RHITexture* layer = pool->acquire(RHISurfaceFormat::RGBA8, dst->size(), RHITextureFlags::ColorAttachment);
+
+					bd->layer   = layer;
 					bd->context = ctx;
 					bd->flags   = RenderFlags::Undefined;
 
-					ctx->barrier(texture, RHIAccess::TransferDst);
-					ctx->clear_rtv(rtv, 0.f, 0.f, 0.f, 1.f);
-					ctx->barrier(texture, RHIAccess::RTV);
+					ctx->barrier(layer, RHIAccess::TransferDst);
+					ctx->clear_rtv(layer->as_rtv(), 0.f, 0.f, 0.f, 1.f);
 
 					RenderBackend::render(ctx, ImGui::GetDrawData());
-					ctx->barrier(texture, RHIAccess::PresentSrc);
+
+					ctx->barrier(layer, RHIAccess::TransferSrc);
+					ctx->barrier(dst, RHIAccess::TransferDst);
+					ctx->copy(dst, layer, RHITextureRegion(layer->size()));
+
+					ctx->barrier(dst, RHIAccess::PresentSrc);
+					
+					pool->release(layer);
 				}
 
 				RHIContextPool::global_instance()->end(ctx, swapchain->acquire_semaphore(), swapchain->present_semaphore());
@@ -545,6 +554,47 @@ namespace Trinex::RenderBackend
 
 namespace Trinex::UI
 {
+	struct PaintCallbackArgs {
+		PaintFunction function = nullptr;
+		void* userdata         = nullptr;
+		Vector2f pos;
+		Vector2f size;
+	};
+
+	static void paint_callback(const ImDrawList*, const ImDrawCmd* cmd)
+	{
+		auto bd   = RenderBackend::backend_data();
+		auto args = static_cast<const PaintCallbackArgs*>(cmd->UserCallbackData);
+
+		trinex_assert(bd && bd->context);
+		trinex_assert(args && args->function);
+
+		bd->context->viewport(RHIRegion(args->size, args->pos));
+		bd->context->scissor(RHIRegion(args->size, args->pos));
+
+		args->function(bd->context, bd->layer, args->userdata);
+	}
+
+	static void add_paint_callback(ImDrawList* list, ImGuiViewport* vp, Vec2 pos, Vec2 size, PaintFunction function,
+	                               void* userdata, usize userdata_size)
+	{
+		if (list == nullptr || vp == nullptr || function == nullptr)
+			return;
+
+		const Vec2 viewport_pos(vp->Pos.x, vp->Pos.y);
+		const Vec2 viewport_size(vp->Size.x, vp->Size.y);
+
+		PaintCallbackArgs callback_args = {
+		        .function = function,
+		        .userdata = memory_copy(userdata, userdata_size),
+		        .pos      = (pos - viewport_pos) / viewport_size,
+		        .size     = size / viewport_size,
+		};
+
+		list->AddCallback(paint_callback, &callback_args, sizeof(callback_args));
+		list->AddCallback(ImDrawCallback_ResetRenderState, nullptr);
+	}
+
 	static void composite_layers(RenderBackend::ImGuiTrinexData* bd, RHITexture* src, LayerOptions* options)
 	{
 		if (options->composite_mode == LayerCompositeMode::Undefined)
@@ -633,6 +683,35 @@ namespace Trinex::UI
 		}
 
 		pool->release(layer);
+	}
+
+	void paint(Vec2 pos, Size size, PaintFunction function, void* userdata, usize userdata_size, DrawList draw_list)
+	{
+		ImGuiWindow* window = ImGui::GetCurrentWindow();
+
+		if (function == nullptr)
+			return;
+
+		ImGuiViewport* viewport = nullptr;
+		ImDrawList* list        = resolve_draw_list(draw_list, window, viewport);
+		add_paint_callback(list, viewport, pos, resolve(size), function, userdata, userdata_size);
+	}
+
+	void paint(Size size, PaintFunction function, void* userdata, usize userdata_size, DrawList draw_list)
+	{
+		ImGuiWindow* window = ImGui::GetCurrentWindow();
+		Vec2 pos            = to_vec(ImGui::GetItemRectMin());
+		paint(pos, size, function, userdata, userdata_size, draw_list);
+	}
+
+	void paint(PaintFunction function, void* userdata, usize userdata_size, DrawList draw_list)
+	{
+		ImGuiWindow* window = ImGui::GetCurrentWindow();
+		ImGuiViewport* vp   = window ? window->Viewport : ImGui::GetMainViewport();
+
+		Vec2 pos  = to_vec(vp->Pos);
+		Vec2 size = to_vec(vp->Size);
+		paint(pos, size, function, userdata, userdata_size, draw_list);
 	}
 
 	bool begin_layer(const LayerOptions& options)

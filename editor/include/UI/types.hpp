@@ -1163,7 +1163,7 @@ namespace Trinex::UI
 	template<typename T>
 	concept TriviallyStored = std::is_trivially_copyable_v<T> && std::is_trivially_destructible_v<T>;
 
-	using PaintFunction = void (*)(void* userdata);
+	using PaintFunction = void (*)(RHIContext* context, RHITexture* target, void* userdata);
 
 	struct Context;
 

@@ -117,63 +117,6 @@ namespace Trinex::UI
 		return dst;
 	}
 
-	void add_paint_callback(ImDrawList* list, ImGuiViewport* vp, Vec2 pos, Vec2 size, PaintFunction function, void* userdata,
-	                        usize userdata_size)
-	{
-		if (list == nullptr || vp == nullptr || function == nullptr)
-		{
-			return;
-		}
-
-		struct ViewportArgs {
-			Trinex::Vector2f16 pos;
-			Trinex::Vector2f16 size;
-		} viewport_args;
-
-		const Vec2 viewport_pos(vp->Pos.x, vp->Pos.y);
-		const Vec2 viewport_size(vp->Size.x, vp->Size.y);
-		viewport_args.pos  = (pos - viewport_pos) / viewport_size;
-		viewport_args.size = size / viewport_size;
-
-		ImDrawCallback viewport_setup = [](const ImDrawList*, const ImDrawCmd* cmd) {
-			ViewportArgs* args = reinterpret_cast<ViewportArgs*>(cmd->UserCallbackData);
-
-			// auto ctx = Trinex::UI::Backend::rhi();
-			// ctx->viewport(Trinex::RHIRegion(args->size, args->pos));
-			// ctx->scissor(Trinex::RHIRegion(args->size, args->pos));
-		};
-
-		list->AddCallback(viewport_setup, &viewport_args, sizeof(viewport_args));
-
-		if (userdata == nullptr)
-		{
-			ImDrawCallback callback = [](const ImDrawList*, const ImDrawCmd* cmd) {
-				PaintFunction* function = static_cast<PaintFunction*>(cmd->UserCallbackData);
-				(*function)(nullptr);
-			};
-
-			list->AddCallback(callback, &function, sizeof(function));
-		}
-		else
-		{
-			struct CallbackArgs {
-				PaintFunction function;
-				void* userdata;
-			};
-
-			CallbackArgs callback_args = {.function = function, .userdata = memory_copy(userdata, userdata_size)};
-
-			ImDrawCallback callback = [](const ImDrawList*, const ImDrawCmd* cmd) {
-				CallbackArgs* args = static_cast<CallbackArgs*>(cmd->UserCallbackData);
-				args->function(args->userdata);
-			};
-
-			list->AddCallback(callback, &callback_args, sizeof(callback_args));
-		}
-
-		list->AddCallback(ImDrawCallback_ResetRenderState, nullptr);
-	}
-
 	AnimState& state_for(ImGuiID id)
 	{
 		AnimState& state = active_context()->anim[id];

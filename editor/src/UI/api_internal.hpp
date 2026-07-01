@@ -248,8 +248,6 @@ namespace Trinex::UI
 	ImFont* resolve_font(Context* ctx, ui::FontFamily family, ui::FontSize size);
 	float dt();
 	void* memory_copy(void* memory, usize size);
-	void add_paint_callback(ImDrawList* list, ImGuiViewport* vp, Vec2 pos, Vec2 size, PaintFunction function, void* userdata,
-	                        usize userdata_size);
 
 	inline ImDrawList* resolve_draw_list(DrawList draw_list, ImGuiWindow* window)
 	{

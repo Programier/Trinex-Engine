@@ -932,7 +932,7 @@ namespace Trinex::UI
 	    requires(TriviallyStored<F>)
 	inline void paint(Vec2 pos, Size size, F&& f)
 	{
-		auto callback = +[](void* userdata) { (*static_cast<F*>(userdata))(); };
+		auto callback = +[](RHIContext* ctx, RHITexture* layer, void* userdata) { (*static_cast<F*>(userdata))(ctx, layer); };
 		paint(pos, size, callback, &f, sizeof(f));
 	}
 
@@ -940,7 +940,7 @@ namespace Trinex::UI
 	    requires(TriviallyStored<F>)
 	inline void paint(Vec2 pos, Size size, DrawList draw_list, F&& f)
 	{
-		auto callback = +[](void* userdata) { (*static_cast<F*>(userdata))(); };
+		auto callback = +[](RHIContext* ctx, RHITexture* layer, void* userdata) { (*static_cast<F*>(userdata))(ctx, layer); };
 		paint(pos, size, callback, &f, sizeof(f), draw_list);
 	}
 
@@ -948,7 +948,7 @@ namespace Trinex::UI
 	    requires(TriviallyStored<F>)
 	inline void paint(Size size, F&& f)
 	{
-		auto callback = +[](void* userdata) { (*static_cast<F*>(userdata))(); };
+		auto callback = +[](RHIContext* ctx, RHITexture* layer, void* userdata) { (*static_cast<F*>(userdata))(ctx, layer); };
 		paint(size, callback, &f, sizeof(f));
 	}
 
@@ -956,7 +956,7 @@ namespace Trinex::UI
 	    requires(TriviallyStored<F>)
 	inline void paint(Size size, DrawList draw_list, F&& f)
 	{
-		auto callback = +[](void* userdata) { (*static_cast<F*>(userdata))(); };
+		auto callback = +[](RHIContext* ctx, RHITexture* layer, void* userdata) { (*static_cast<F*>(userdata))(ctx, layer); };
 		paint(size, callback, &f, sizeof(f), draw_list);
 	}
 
@@ -964,7 +964,7 @@ namespace Trinex::UI
 	    requires(TriviallyStored<F>)
 	inline void paint(F&& f)
 	{
-		auto callback = +[](void* userdata) { (*static_cast<F*>(userdata))(); };
+		auto callback = +[](RHIContext* ctx, RHITexture* layer, void* userdata) { (*static_cast<F*>(userdata))(ctx, layer); };
 		paint(callback, &f, sizeof(f));
 	}
 
@@ -972,7 +972,7 @@ namespace Trinex::UI
 	    requires(TriviallyStored<F>)
 	inline void paint(DrawList draw_list, F&& f)
 	{
-		auto callback = +[](void* userdata) { (*static_cast<F*>(userdata))(); };
+		auto callback = +[](RHIContext* ctx, RHITexture* layer, void* userdata) { (*static_cast<F*>(userdata))(ctx, layer); };
 		paint(callback, &f, sizeof(f), draw_list);
 	}
 }// namespace Trinex::UI
