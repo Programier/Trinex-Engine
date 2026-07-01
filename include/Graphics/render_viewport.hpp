@@ -29,13 +29,13 @@ namespace Trinex
 		Vector2u m_size;
 
 	public:
-		RenderViewport(Window* window, bool vsync);
+		RenderViewport(Window* window, u32 present_interval);
 		~RenderViewport();
 
 		RenderViewport& update(float dt);
 		ViewportClient* client() const;
 		RenderViewport& client(ViewportClient* client);
-		RenderViewport& vsync(bool flag);
+		RenderViewport& present_interval(u32 interval);
 		RenderViewport& on_resize(const Vector2u& size);
 		RenderViewport& on_orientation_changed(Orientation orientation);
 

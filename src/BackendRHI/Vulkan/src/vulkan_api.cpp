@@ -343,18 +343,22 @@ namespace Trinex
 
 	vk::PresentModeKHR VulkanAPI::present_mode_of(bool vsync, vk::SurfaceKHR surface)
 	{
+		return present_mode_of(vsync ? 1u : 0u, surface);
+	}
+
+	vk::PresentModeKHR VulkanAPI::present_mode_of(u32 interval, vk::SurfaceKHR surface)
+	{
 		auto present_modes = vk::check_result(m_physical_device.getSurfacePresentModesKHR(surface));
 
 		trinex_verify_msg(!present_modes.empty(), "Failed to find present mode!");
 
-		if (vsync)
+		if (interval == 0)
 		{
-			return find_present_mode(present_modes, {vk::PresentModeKHR::eFifo, vk::PresentModeKHR::eFifoRelaxed});
+			return find_present_mode(present_modes,
+			                         {vk::PresentModeKHR::eImmediate, vk::PresentModeKHR::eMailbox, vk::PresentModeKHR::eFifo});
 		}
-		else
-		{
-			return find_present_mode(present_modes, {vk::PresentModeKHR::eImmediate, vk::PresentModeKHR::eMailbox});
-		}
+
+		return find_present_mode(present_modes, {vk::PresentModeKHR::eFifo, vk::PresentModeKHR::eFifoRelaxed});
 	}
 
 	vk::SurfaceKHR VulkanAPI::create_surface(Window* window)

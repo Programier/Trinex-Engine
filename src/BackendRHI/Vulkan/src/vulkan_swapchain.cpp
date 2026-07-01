@@ -47,9 +47,10 @@ namespace Trinex
 		}
 	}
 
-	VulkanSwapchain::VulkanSwapchain(Window* window, bool vsync) : m_surface(VulkanAPI::instance()->create_surface(window))
+	VulkanSwapchain::VulkanSwapchain(Window* window, u32 present_interval)
+	    : m_surface(VulkanAPI::instance()->create_surface(window)), m_present_interval(present_interval)
 	{
-		m_present_mode = VulkanAPI::instance()->present_mode_of(vsync, m_surface);
+		m_present_mode = VulkanAPI::instance()->present_mode_of(m_present_interval, m_surface);
 		create_swapchain();
 	}
 
@@ -279,9 +280,24 @@ namespace Trinex
 		return m_backbuffers[m_image_index];
 	}
 
-	void VulkanSwapchain::vsync(bool flag)
+	void VulkanSwapchain::present_interval(u32 interval)
 	{
-		auto mode = VulkanAPI::instance()->present_mode_of(flag, m_surface);
+		if (interval > 1)
+		{
+			trinex_warning(Log::RHI,
+			               "Vulkan swapchain does not support PresentInterval > 1 without additional presentation extensions;"
+			               "clamping %u to 1",
+			               interval);
+			interval = 1;
+		}
+
+		auto mode = VulkanAPI::instance()->present_mode_of(interval, m_surface);
+
+		if (interval != m_present_interval)
+		{
+			m_present_interval = interval;
+		}
+
 		if (mode != m_present_mode)
 		{
 			m_present_mode  = mode;
@@ -314,9 +330,9 @@ namespace Trinex
 		trx_delete this;
 	}
 
-	RHISwapchain* VulkanAPI::create_swapchain(Window* window, bool vsync)
+	RHISwapchain* VulkanAPI::create_swapchain(Window* window, u32 present_interval)
 	{
-		return trx_new VulkanSwapchain(window, vsync);
+		return trx_new VulkanSwapchain(window, present_interval);
 	}
 
 	VulkanAPI& VulkanAPI::present(RHISwapchain* swapchain)

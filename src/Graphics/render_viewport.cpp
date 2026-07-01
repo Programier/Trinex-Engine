@@ -137,12 +137,12 @@ namespace Trinex
 		}
 	}// namespace
 
-	RenderViewport::RenderViewport(Window* window, bool vsync)
+	RenderViewport::RenderViewport(Window* window, u32 present_interval)
 	{
 		register_viewport_event_bridge();
 		m_viewports.push_back(this);
 		m_window    = window;
-		m_swapchain = RHI::instance()->create_swapchain(window, vsync);
+		m_swapchain = RHI::instance()->create_swapchain(window, present_interval);
 		m_size      = window->size();
 	}
 
@@ -191,9 +191,9 @@ namespace Trinex
 		return *this;
 	}
 
-	RenderViewport& RenderViewport::vsync(bool flag)
+	RenderViewport& RenderViewport::present_interval(u32 interval)
 	{
-		m_swapchain->vsync(flag);
+		m_swapchain->present_interval(interval);
 		return *this;
 	}
 

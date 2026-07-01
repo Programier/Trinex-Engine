@@ -29,8 +29,9 @@ namespace Trinex
 		vk::SurfaceKHR m_surface;
 		vk::PresentModeKHR m_present_mode;
 		vk::SwapchainKHR m_swapchain;
-		i32 m_sync_index  = 0;
-		i32 m_image_index = -1;
+		u32 m_present_interval = 1;
+		i32 m_sync_index       = 0;
+		i32 m_image_index      = -1;
 		Vector2u m_size;
 		bool m_need_recreate = false;
 
@@ -40,7 +41,7 @@ namespace Trinex
 		VulkanSwapchain& recreate_swapchain();
 
 	public:
-		VulkanSwapchain(Window* window, bool vsync);
+		VulkanSwapchain(Window* window, u32 present_interval);
 		~VulkanSwapchain();
 
 		i32 acquire_image_index();
@@ -53,7 +54,7 @@ namespace Trinex
 
 		void present();
 		void resize(const Vector2u& size) override;
-		void vsync(bool flag) override;
+		void present_interval(u32 interval) override;
 		RHIRenderTargetView* as_rtv() override;
 		RHITexture* as_texture() override;
 		void destroy() override;

@@ -107,7 +107,7 @@ namespace Trinex
 	};
 
 	struct NoneSwapchain : public NoneApiDestroyable<RHISwapchain> {
-		void vsync(bool flag) override {}
+		void present_interval(u32 interval) override {}
 		void resize(const Vector2u& new_size) override {}
 		RHISemaphore* acquire_semaphore() override { return rhi_default<NoneSemaphore>(); }
 		RHISemaphore* present_semaphore() override { return rhi_default<NoneSemaphore>(); }
@@ -188,7 +188,7 @@ namespace Trinex
 		return new NoneBuffer();
 	}
 
-	RHISwapchain* NoneApi::create_swapchain(Window* window, bool vsync)
+	RHISwapchain* NoneApi::create_swapchain(Window* window, u32 present_interval)
 	{
 		return new NoneSwapchain();
 	}

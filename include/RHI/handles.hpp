@@ -142,8 +142,8 @@ namespace Trinex
 	class ENGINE_EXPORT RHISwapchain : public RHIObject
 	{
 	public:
-		virtual void vsync(bool flag)             = 0;
-		virtual void resize(const Vector2u& size) = 0;
+		virtual void present_interval(u32 interval) = 0;
+		virtual void resize(const Vector2u& size)   = 0;
 
 		virtual RHISemaphore* acquire_semaphore() = 0;
 		virtual RHISemaphore* present_semaphore() = 0;

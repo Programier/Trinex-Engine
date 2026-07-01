@@ -30,7 +30,7 @@ namespace Trinex
 		RHIPipeline* create_compute_pipeline(const RHIComputePipelineDesc& desc) override;
 		RHIPipeline* create_ray_tracing_pipeline(const RHIRayTracingPipelineDesc& desc) override;
 		RHIBuffer* create_buffer(usize size, RHIBufferFlags type) override;
-		RHISwapchain* create_swapchain(Window* window, bool vsync) override;
+		RHISwapchain* create_swapchain(Window* window, u32 present_interval) override;
 		RHIContext* create_context(RHIContextFlags flags) override;
 
 		RHIAccelerationStructure* create_acceleration_structure(const RHIRayTracingAccelerationInputs* inputs) override;
