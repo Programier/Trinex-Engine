@@ -32,9 +32,9 @@ namespace Trinex::UI
 		Vec4 frame_bg     = has_color(options.background_color) ? options.background_color : active_context()->style.colors.panel;
 		Vec4 frame_border = has_color(options.border_color) ? options.border_color : active_context()->style.colors.border;
 
-		if ((options.background || options.border) && has_shadow_override())
+		if ((options.background || options.border) && current_shadow())
 		{
-			draw_shadow_rect(draw, pos, max, rounding, current_shadow());
+			draw_shadow_rect(draw, pos, max, rounding, *current_shadow());
 		}
 
 		if (options.background)
@@ -113,9 +113,9 @@ namespace Trinex::UI
 		const InteractiveRect image_rect = make_interactive_rect(ImVec2(pos.x + padding, pos.y + padding), image_size);
 		const float image_rounding       = Math::max(0.0f, (rounding - padding * 0.5f) * image_rect.rounding_scale);
 
-		if (has_shadow_override())
+		if (auto shadow = current_shadow())
 		{
-			draw_shadow_rect(draw, frame_rect.min, frame_rect.max, rounding * frame_rect.rounding_scale, current_shadow());
+			draw_shadow_rect(draw, frame_rect.min, frame_rect.max, rounding * frame_rect.rounding_scale, *shadow);
 		}
 
 		if (options.background)
@@ -217,14 +217,16 @@ namespace Trinex::UI
 		}
 		ImDrawList* draw           = ImGui::GetWindowDrawList();
 		const InteractiveRect rect = make_interactive_rect(pos, size);
-		if (has_shadow_override())
+		if (auto shadow = current_shadow())
 		{
-			ShadowOptions shadow = current_shadow();
+			ShadowOptions overrided = *shadow;
+
 			if (options.disabled)
 			{
-				shadow.color.w *= 0.55f;
+				overrided.color.w *= 0.55f;
 			}
-			draw_shadow_rect(draw, rect.min, rect.max, active_context()->style.rounding * rect.rounding_scale, shadow);
+
+			draw_shadow_rect(draw, rect.min, rect.max, active_context()->style.rounding * rect.rounding_scale, overrided);
 		}
 		if (!options.ghost || anim.hover > 0.01f || anim.active > 0.01f)
 		{

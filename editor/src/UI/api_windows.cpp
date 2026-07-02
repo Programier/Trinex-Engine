@@ -114,8 +114,7 @@ namespace Trinex::UI
 		context.rounding         = rounding;
 		context.background_color = bg;
 		context.border_color     = active_context()->style.colors.border;
-		context.draw_shadow      = options.background && has_shadow_override() && shadow_visible(current_shadow());
-		context.shadow           = current_shadow();
+		context.draw_shadow      = options.background && shadow_visible(current_shadow());
 		active_context()->panel_stack.push_back(context);
 		ImGui::GetWindowDrawList()->ChannelsSplit(2);
 		ImGui::GetWindowDrawList()->ChannelsSetCurrent(1);
@@ -139,9 +138,9 @@ namespace Trinex::UI
 		draw->ChannelsSetCurrent(0);
 		const ImVec2 min = ImGui::GetWindowPos();
 		const ImVec2 max = add(min, ImGui::GetWindowSize());
-		if (context.draw_shadow)
+		if (context.background && shadow_visible(current_shadow()))
 		{
-			draw_shadow_rect(draw, min, max, context.rounding, context.shadow);
+			draw_shadow_rect(draw, min, max, context.rounding, *current_shadow());
 		}
 		if (context.background)
 		{
@@ -154,115 +153,6 @@ namespace Trinex::UI
 		draw->ChannelsSetCurrent(1);
 		draw->ChannelsMerge();
 
-		ImGui::EndChild();
-		ImGui::PopStyleColor(2);
-		ImGui::PopStyleVar(3);
-	}
-
-	bool begin_glass_panel(StringView id, Size size, const GlassOptions& options)
-	{
-		trinex_assert(has_text(id) && "UI::begin_glass_panel() requires a non-empty id");
-		if (!has_text(id))
-		{
-			return false;
-		}
-
-		const float rounding = options.rounding >= 0.0f ? options.rounding : active_context()->style.rounding;
-		const float padding  = options.padding >= 0.0f ? options.padding : active_context()->style.padding;
-		const float opacity  = Math::clamp(options.opacity, 0.0f, 1.0f);
-
-		Vec2 resolved_size = resolve(size);
-		if (resolved_size.x <= 0.0f)
-		{
-			resolved_size.x = ImGui::GetContentRegionAvail().x;
-		}
-
-		ImGuiChildFlags child_flags = ImGuiChildFlags_AlwaysUseWindowPadding;
-		if (resolved_size.y <= 0.0f)
-		{
-			child_flags |= ImGuiChildFlags_AutoResizeY;
-		}
-
-		ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, rounding);
-		ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(padding, padding));
-		ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
-		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
-
-		String id_storage(id);
-		const bool visible = ImGui::BeginChild(id_storage.c_str(), to_imvec(resolved_size), child_flags, ImGuiWindowFlags_None);
-		if (!visible)
-		{
-			ImGui::EndChild();
-			ImGui::PopStyleColor(2);
-			ImGui::PopStyleVar(3);
-			return false;
-		}
-
-		GlassPanelContext context;
-		context.id            = ImGui::GetID("glass_panel_anim");
-		context.border        = options.border;
-		context.background    = options.background;
-		context.draw_shadow   = shadow_visible(current_shadow()) && opacity > 0.0f;
-		context.highlight_top = options.highlight_top;
-		context.rounding      = rounding;
-		context.tint          = options.tint;
-		context.tint.w *= opacity;
-		context.border_color = has_color(options.border_color) ? options.border_color : default_glass_border();
-		context.border_color.w *= opacity;
-		context.highlight = options.highlight;
-		context.highlight.w *= opacity;
-		context.shadow = current_shadow();
-		context.shadow.color.w *= opacity;
-
-		active_context()->glass_panel_stack.push_back(context);
-		ImGui::GetWindowDrawList()->ChannelsSplit(2);
-		ImGui::GetWindowDrawList()->ChannelsSetCurrent(1);
-		return true;
-	}
-
-	void end_glass_panel()
-	{
-		auto& stack = active_context()->glass_panel_stack;
-		trinex_assert(!stack.empty() && "UI::end_glass_panel() called without matching begin_glass_panel()");
-
-		if (stack.empty())
-		{
-			return;
-		}
-
-		const GlassPanelContext context = stack.back();
-		stack.pop_back();
-
-		const ImVec2 min = ImGui::GetWindowPos();
-		const ImVec2 max = add(min, ImGui::GetWindowSize());
-		ImDrawList* draw = ImGui::GetWindowDrawList();
-		draw->ChannelsSetCurrent(0);
-
-		if (context.draw_shadow)
-		{
-			draw_shadow_rect(draw, min, max, context.rounding, context.shadow);
-		}
-
-		if (context.background && context.tint.w > 0.0f)
-		{
-			draw->AddRectFilled(min, max, col_u32(context.tint), context.rounding);
-		}
-
-		if (context.border)
-		{
-			draw->AddRect(min, max, col_u32(context.border_color), context.rounding, 0, active_context()->style.border_size);
-		}
-
-		if (context.highlight_top && context.highlight.w > 0.0f)
-		{
-			const float inset = Math::max(1.0f, active_context()->style.border_size);
-			const ImVec2 line_min(min.x + context.rounding * 0.35f, min.y + inset);
-			const ImVec2 line_max(max.x - context.rounding * 0.35f, min.y + inset);
-			draw->AddLine(line_min, line_max, col_u32(context.highlight), 1.0f);
-		}
-		draw->ChannelsSetCurrent(1);
-		draw->ChannelsMerge();
 		ImGui::EndChild();
 		ImGui::PopStyleColor(2);
 		ImGui::PopStyleVar(3);
@@ -361,7 +251,6 @@ namespace Trinex::UI
 		context.accent           = accent;
 		context.background_color = bg;
 		context.border_color     = border;
-		context.shadow           = current_shadow();
 		active_context()->card_stack.push_back(context);
 		ImGui::GetWindowDrawList()->ChannelsSplit(2);
 		ImGui::GetWindowDrawList()->ChannelsSetCurrent(1);
@@ -407,9 +296,9 @@ namespace Trinex::UI
 		ImDrawList* draw = ImGui::GetWindowDrawList();
 		draw->ChannelsSetCurrent(0);
 
-		if (context.elevation > 0.0f)
+		if (context.elevation > 0.0f && current_shadow())
 		{
-			draw_shadow_rect(draw, min, max, context.rounding, scaled_shadow(context.shadow, context.elevation));
+			draw_shadow_rect(draw, min, max, context.rounding, scaled_shadow(*current_shadow(), context.elevation));
 		}
 		if (context.background)
 		{
@@ -512,9 +401,9 @@ namespace Trinex::UI
 		border = Math::lerp(border, accent, anim.hover * 0.30f + anim.selected * 0.55f + anim.active * 0.20f);
 
 		ImDrawList* draw = ImGui::GetWindowDrawList();
-		if (options.elevation > 0.0f)
+		if (options.elevation > 0.0f && current_shadow())
 		{
-			ShadowOptions shadow = scaled_shadow(current_shadow(), options.elevation);
+			ShadowOptions shadow = scaled_shadow(*current_shadow(), options.elevation);
 			if (options.disabled)
 			{
 				shadow.color.w *= 0.55f;

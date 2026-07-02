@@ -282,16 +282,6 @@ namespace Trinex::UI
 			}
 		}
 
-		{
-			auto& stack = active_context()->glass_panel_stack;
-
-			trinex_assert(stack.empty() && "UI::begin_glass_panel()/end_glass_panel() imbalance detected at end_frame()");
-			if (!stack.empty())
-			{
-				stack.clear();
-			}
-		}
-
 		StackByteAllocator::location(g_context->stack_memory_location);
 
 		g_context = nullptr;

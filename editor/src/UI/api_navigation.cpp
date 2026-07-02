@@ -1369,12 +1369,16 @@ namespace Trinex::UI
 		const ImVec2 max = add(pos, size);
 		if (options.elevation > 0.0f)
 		{
-			ShadowOptions shadow = scaled_shadow(current_shadow(), options.elevation);
-			if (options.disabled)
+			if (auto shadow = current_shadow())
 			{
-				shadow.color.w *= 0.55f;
+				ShadowOptions overrided = scaled_shadow(*shadow, options.elevation);
+				
+				if (options.disabled)
+				{
+					overrided.color.w *= 0.55f;
+				}
+				draw_shadow_rect(draw, pos, max, rounding, overrided);
 			}
-			draw_shadow_rect(draw, pos, max, rounding, shadow);
 		}
 		if (options.background)
 		{

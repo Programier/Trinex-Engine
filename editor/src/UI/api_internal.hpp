@@ -12,6 +12,38 @@
 
 namespace Trinex::UI
 {
+	using ContextStack = Stack<4096>;
+
+	struct ColorTheme {
+		Vec4 text               = Vec4(0.92f, 0.94f, 0.96f, 1.00f);
+		Vec4 text_muted         = Vec4(0.58f, 0.63f, 0.70f, 1.00f);
+		Vec4 text_disabled      = Vec4(0.38f, 0.42f, 0.48f, 1.00f);
+		Vec4 background         = Vec4(0.08f, 0.10f, 0.13f, 1.00f);
+		Vec4 background_hovered = Vec4(0.13f, 0.16f, 0.21f, 1.00f);
+		Vec4 background_active  = Vec4(0.17f, 0.21f, 0.28f, 1.00f);
+		Vec4 panel              = Vec4(0.10f, 0.12f, 0.16f, 1.00f);
+		Vec4 border             = Vec4(0.24f, 0.29f, 0.36f, 1.00f);
+		Vec4 accent             = Vec4(0.28f, 0.62f, 0.95f, 1.00f);
+		Vec4 accent_hovered     = Vec4(0.36f, 0.70f, 1.00f, 1.00f);
+		Vec4 accent_active      = Vec4(0.18f, 0.47f, 0.82f, 1.00f);
+		Vec4 success            = Vec4(0.29f, 0.78f, 0.48f, 1.00f);
+		Vec4 warning            = Vec4(0.95f, 0.68f, 0.22f, 1.00f);
+		Vec4 error              = Vec4(0.95f, 0.32f, 0.32f, 1.00f);
+	};
+
+	struct Style {
+		f32 animation_speed = 16.0f;
+		f32 rounding        = 8.0f;
+		f32 border_size     = 1.0f;
+		f32 frame_height    = 32.0f;
+		f32 padding         = 10.0f;
+		f32 spacing         = 8.0f;
+		f32 alpha           = 1.0f;
+		Vec2 hover_padding  = Vec2(3.0f, 3.0f);
+		Vec2 press_padding  = Vec2(3.0f, 3.0f);
+		ColorTheme colors;
+	};
+
 	struct AnimState {
 		f32 hover        = 0.0f;
 		f32 active       = 0.0f;
@@ -65,20 +97,6 @@ namespace Trinex::UI
 		float rounding        = 0.0f;
 		Vec4 background_color = Vec4(0, 0, 0, 0);
 		Vec4 border_color     = Vec4(0, 0, 0, 0);
-		ShadowOptions shadow;
-	};
-
-	struct GlassPanelContext {
-		ImGuiID id         = 0;
-		bool border        = true;
-		bool background    = true;
-		bool draw_shadow   = true;
-		bool highlight_top = true;
-		float rounding     = 0.0f;
-		Vec4 tint          = Vec4(0, 0, 0, 0);
-		Vec4 border_color  = Vec4(0, 0, 0, 0);
-		Vec4 highlight     = Vec4(0, 0, 0, 0);
-		ShadowOptions shadow;
 	};
 
 	struct CardContext {
@@ -93,7 +111,6 @@ namespace Trinex::UI
 		Vec4 accent           = Vec4(0, 0, 0, 0);
 		Vec4 background_color = Vec4(0, 0, 0, 0);
 		Vec4 border_color     = Vec4(0, 0, 0, 0);
-		ShadowOptions shadow;
 	};
 
 	struct PersistentWindow {
@@ -161,7 +178,7 @@ namespace Trinex::UI
 		Trinex::Window* window = nullptr;
 		ImGuiContext* context  = nullptr;
 		RHITexture* layer      = nullptr;
-		Stack<4096> stack;
+		ContextStack stack;
 		u128 stack_memory_location                        = 0;
 		ImFont* fonts[font_family_count][font_size_count] = {};
 		Style style;
@@ -182,7 +199,6 @@ namespace Trinex::UI
 		Vector<TreeContext> tree_stack;
 		Vector<AreaContext> area_stack;
 		Vector<PanelContext> panel_stack;
-		Vector<GlassPanelContext> glass_panel_stack;
 		Vector<CardContext> card_stack;
 		Vector<ShadowOptions> shadow_stack;
 		Vector<float> disabled_alpha_stack;
@@ -477,20 +493,15 @@ namespace Trinex::UI
 	int command_match_score(const RegisteredCommand& command, StringView query);
 	void refresh_command_palette_results();
 
-	inline const ShadowOptions& current_shadow()
+	inline const ShadowOptions* current_shadow()
 	{
 		auto& stack = active_context()->shadow_stack;
-		return stack.empty() ? active_context()->style.shadow : stack.back();
+		return stack.empty() ? nullptr : &stack.back();
 	}
 
-	inline bool has_shadow_override()
+	inline bool shadow_visible(const ShadowOptions* shadow)
 	{
-		return !active_context()->shadow_stack.empty();
-	}
-
-	inline bool shadow_visible(const ShadowOptions& shadow)
-	{
-		return shadow.color.w > 0.0f;
+		return shadow && shadow->color.w > 0.0f;
 	}
 
 	ShadowOptions scaled_shadow(const ShadowOptions& shadow, float elevation);

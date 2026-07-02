@@ -3,18 +3,84 @@
 
 namespace Trinex::UI
 {
-	static inline void push_style_counters(u32 colors, u32 vars)
+	template<typename T>
+	struct OverridedValue {
+		T& dst;
+		const T& src;
+	};
+
+	static void pop_basic_style(ContextStack* stack)
+	{
+		ImGui::PopStyleVar(*stack->pop<u32>());
+		ImGui::PopStyleColor(*stack->pop<u32>());
+	}
+
+	template<typename T>
+	static void pop_overrided_value(ContextStack* stack)
+	{
+		T* ptr = *stack->pop<T*>();
+		(*ptr) = *stack->pop<T>();
+	}
+
+	template<typename T, typename... Ts>
+	static void pop_overrided_style(ContextStack* stack)
+	{
+		if constexpr (sizeof...(Ts) > 0)
+		{
+			pop_overrided_style<Ts...>(stack);
+		}
+
+		pop_overrided_value<T>(stack);
+	}
+
+	template<typename... Ts>
+	static void pop_mixed_style(ContextStack* stack)
+	{
+		pop_basic_style(stack);
+		pop_overrided_style<Ts...>(stack);
+	}
+
+	static inline void push_basic_style(u32 colors, u32 vars)
 	{
 		auto& stack = active_context()->stack;
 		stack.push<u32>(colors);
 		stack.push<u32>(vars);
+		stack.push<void (*)(ContextStack*)>(pop_basic_style);
+	}
+
+	template<typename T>
+	static inline void push_override_value(ContextStack* stack, const OverridedValue<T>& value)
+	{
+		stack->push<T>(value.dst);
+		stack->push<T*>(&value.dst);
+		value.dst = value.src;
+	}
+
+	template<typename... Ts>
+	static inline void push_override_style(const OverridedValue<Ts>&... values)
+	{
+		auto& stack = active_context()->stack;
+		(push_override_value(&stack, values), ...);
+		stack.push<void (*)(ContextStack*)>(pop_overrided_style<Ts...>);
+	}
+
+	template<typename... Ts>
+	static inline void push_mixed_style(u32 colors, u32 vars, const OverridedValue<Ts>&... values)
+	{
+		auto& stack = active_context()->stack;
+		(push_override_value(&stack, values), ...);
+
+		stack.push<u32>(colors);
+		stack.push<u32>(vars);
+
+		stack.push<void (*)(ContextStack*)>(pop_mixed_style<Ts...>);
 	}
 
 	void push_style(const GlobalStyle& value)
 	{
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, value.alpha);
 		ImGui::PushStyleVar(ImGuiStyleVar_DisabledAlpha, value.disabled_alpha);
-		push_style_counters(0, 2);
+		push_basic_style(0, 2);
 	}
 
 	void push_style(const TextStyle& value)
@@ -24,7 +90,7 @@ namespace Trinex::UI
 		ImGui::PushStyleColor(ImGuiCol_TextLink, to_imvec(value.link));
 		ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, to_imvec(value.selection_bg));
 		ImGui::PushStyleColor(ImGuiCol_InputTextCursor, to_imvec(value.cursor));
-		push_style_counters(5, 0);
+		push_basic_style(5, 0);
 	}
 
 	void push_style(const WindowStyle& value)
@@ -44,7 +110,7 @@ namespace Trinex::UI
 		ImGui::PushStyleColor(ImGuiCol_ResizeGrip, to_imvec(value.resize_grip));
 		ImGui::PushStyleColor(ImGuiCol_ResizeGripHovered, to_imvec(value.resize_grip_hovered));
 		ImGui::PushStyleColor(ImGuiCol_ResizeGripActive, to_imvec(value.resize_grip_active));
-		push_style_counters(10, 5);
+		push_basic_style(10, 5);
 	}
 
 	void push_style(const ChildStyle& value)
@@ -52,7 +118,7 @@ namespace Trinex::UI
 		ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, value.rounding);
 		ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, value.border_size);
 		ImGui::PushStyleColor(ImGuiCol_ChildBg, to_imvec(with_alpha(value.bg, value.opacity)));
-		push_style_counters(1, 2);
+		push_basic_style(1, 2);
 	}
 
 	void push_style(const PopupStyle& value)
@@ -60,7 +126,7 @@ namespace Trinex::UI
 		ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, value.rounding);
 		ImGui::PushStyleVar(ImGuiStyleVar_PopupBorderSize, value.border_size);
 		ImGui::PushStyleColor(ImGuiCol_PopupBg, to_imvec(with_alpha(value.bg, value.opacity)));
-		push_style_counters(1, 2);
+		push_basic_style(1, 2);
 	}
 
 	void push_style(const LayoutStyle& value)
@@ -68,7 +134,7 @@ namespace Trinex::UI
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, to_imvec(value.item_spacing));
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, to_imvec(value.item_inner_spacing));
 		ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, value.indent_spacing);
-		push_style_counters(0, 3);
+		push_basic_style(0, 3);
 	}
 
 	void push_style(const FrameStyle& value)
@@ -79,7 +145,7 @@ namespace Trinex::UI
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, to_imvec(value.bg));
 		ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, to_imvec(value.bg_hovered));
 		ImGui::PushStyleColor(ImGuiCol_FrameBgActive, to_imvec(value.bg_active));
-		push_style_counters(3, 3);
+		push_basic_style(3, 3);
 	}
 
 	void push_style(const ButtonStyle& value)
@@ -88,13 +154,13 @@ namespace Trinex::UI
 		ImGui::PushStyleColor(ImGuiCol_Button, to_imvec(value.bg));
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, to_imvec(value.bg_hovered));
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, to_imvec(value.bg_active));
-		push_style_counters(3, 1);
+		push_basic_style(3, 1);
 	}
 
 	void push_style(const MarkStyle& value)
 	{
 		ImGui::PushStyleColor(ImGuiCol_CheckMark, to_imvec(value.check_mark));
-		push_style_counters(1, 0);
+		push_basic_style(1, 0);
 	}
 
 	void push_style(const HeaderStyle& value)
@@ -103,7 +169,7 @@ namespace Trinex::UI
 		ImGui::PushStyleColor(ImGuiCol_Header, to_imvec(value.bg));
 		ImGui::PushStyleColor(ImGuiCol_HeaderHovered, to_imvec(value.bg_hovered));
 		ImGui::PushStyleColor(ImGuiCol_HeaderActive, to_imvec(value.bg_active));
-		push_style_counters(3, 1);
+		push_basic_style(3, 1);
 	}
 
 	void push_style(const ScrollbarStyle& value)
@@ -114,7 +180,7 @@ namespace Trinex::UI
 		ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, to_imvec(value.grab));
 		ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, to_imvec(value.grab_hovered));
 		ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, to_imvec(value.grab_active));
-		push_style_counters(4, 2);
+		push_basic_style(4, 2);
 	}
 
 	void push_style(const GrabStyle& value)
@@ -123,7 +189,7 @@ namespace Trinex::UI
 		ImGui::PushStyleVar(ImGuiStyleVar_GrabRounding, value.rounding);
 		ImGui::PushStyleColor(ImGuiCol_SliderGrab, to_imvec(value.slider_grab));
 		ImGui::PushStyleColor(ImGuiCol_SliderGrabActive, to_imvec(value.slider_grab_active));
-		push_style_counters(2, 2);
+		push_basic_style(2, 2);
 	}
 
 	void push_style(const SeparatorStyle& value)
@@ -134,7 +200,7 @@ namespace Trinex::UI
 		ImGui::PushStyleColor(ImGuiCol_Separator, to_imvec(value.color));
 		ImGui::PushStyleColor(ImGuiCol_SeparatorHovered, to_imvec(value.hovered));
 		ImGui::PushStyleColor(ImGuiCol_SeparatorActive, to_imvec(value.active));
-		push_style_counters(3, 3);
+		push_basic_style(3, 3);
 	}
 
 	void push_style(const TabStyle& value)
@@ -152,7 +218,7 @@ namespace Trinex::UI
 		ImGui::PushStyleColor(ImGuiCol_TabDimmed, to_imvec(value.bg_dimmed));
 		ImGui::PushStyleColor(ImGuiCol_TabDimmedSelected, to_imvec(value.bg_dimmed_selected));
 		ImGui::PushStyleColor(ImGuiCol_TabDimmedSelectedOverline, to_imvec(value.dimmed_selected_overline));
-		push_style_counters(7, 6);
+		push_basic_style(7, 6);
 	}
 
 	void push_style(const TableStyle& value)
@@ -165,7 +231,7 @@ namespace Trinex::UI
 		ImGui::PushStyleColor(ImGuiCol_TableBorderLight, to_imvec(value.border_light));
 		ImGui::PushStyleColor(ImGuiCol_TableRowBg, to_imvec(value.row_bg));
 		ImGui::PushStyleColor(ImGuiCol_TableRowBgAlt, to_imvec(value.row_bg_alt));
-		push_style_counters(5, 3);
+		push_basic_style(5, 3);
 	}
 
 	void push_style(const PlotStyle& value)
@@ -174,7 +240,7 @@ namespace Trinex::UI
 		ImGui::PushStyleColor(ImGuiCol_PlotLinesHovered, to_imvec(value.lines_hovered));
 		ImGui::PushStyleColor(ImGuiCol_PlotHistogram, to_imvec(value.histogram));
 		ImGui::PushStyleColor(ImGuiCol_PlotHistogramHovered, to_imvec(value.histogram_hovered));
-		push_style_counters(4, 0);
+		push_basic_style(4, 0);
 	}
 
 	void push_style(const TreeStyle& value)
@@ -182,7 +248,7 @@ namespace Trinex::UI
 		ImGui::PushStyleVar(ImGuiStyleVar_TreeLinesSize, value.lines_size);
 		ImGui::PushStyleVar(ImGuiStyleVar_TreeLinesRounding, value.lines_rounding);
 		ImGui::PushStyleColor(ImGuiCol_TreeLines, to_imvec(value.lines));
-		push_style_counters(1, 2);
+		push_basic_style(1, 2);
 	}
 
 	void push_style(const DockingStyle& value)
@@ -190,7 +256,7 @@ namespace Trinex::UI
 		ImGui::PushStyleVar(ImGuiStyleVar_DockingSeparatorSize, value.separator_size);
 		ImGui::PushStyleColor(ImGuiCol_DockingPreview, to_imvec(value.preview));
 		ImGui::PushStyleColor(ImGuiCol_DockingEmptyBg, to_imvec(value.empty_bg));
-		push_style_counters(2, 1);
+		push_basic_style(2, 1);
 	}
 
 	void push_style(const NavigationStyle& value)
@@ -199,25 +265,28 @@ namespace Trinex::UI
 		ImGui::PushStyleColor(ImGuiCol_NavWindowingHighlight, to_imvec(value.windowing_highlight));
 		ImGui::PushStyleColor(ImGuiCol_NavWindowingDimBg, to_imvec(value.windowing_dim_bg));
 		ImGui::PushStyleColor(ImGuiCol_ModalWindowDimBg, to_imvec(value.modal_dim_bg));
-		push_style_counters(4, 0);
+		push_basic_style(4, 0);
 	}
 
 	void push_style(const DragDropStyle& value)
 	{
 		ImGui::PushStyleColor(ImGuiCol_DragDropTarget, to_imvec(value.target));
-		push_style_counters(1, 0);
+		push_basic_style(1, 0);
 	}
 
 	void push_style(const ImageStyle& value)
 	{
 		ImGui::PushStyleVar(ImGuiStyleVar_ImageBorderSize, value.border_size);
-		push_style_counters(0, 1);
+		push_basic_style(0, 1);
 	}
 
 	void pop_style()
 	{
 		auto& stack = active_context()->stack;
-		ImGui::PopStyleVar(*stack.pop<u32>());
-		ImGui::PopStyleColor(*stack.pop<u32>());
+
+		if (auto cmd = *stack.pop<void (*)(ContextStack*)>())
+		{
+			cmd(&stack);
+		}
 	}
 }// namespace Trinex::UI

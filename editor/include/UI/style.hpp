@@ -436,4 +436,53 @@ namespace Trinex::UI
 		// ImGuiStyleVar_ImageBorderSize
 		f32 border_size = 0.0f;
 	};
+	
+	
+	// ============================================================================
+	// Animations
+	// ============================================================================
+	
+	struct TransitionAnimation {
+		f32 speed = 16.0f;
+		f32 delay = 0.0f;
+		Ease ease = Ease::Linear;
+	};
+
+	struct HoverAnimation {
+		TransitionAnimation transition;
+		Vec2 padding = Vec2(3.0f, 3.0f);
+		Vec2 offset  = Vec2(0.0f, 0.0f);
+
+		f32 scale   = 1.0f;
+		f32 opacity = 1.0f;
+	};
+
+	struct PressAnimation {
+		TransitionAnimation transition;
+
+		Vec2 padding = Vec2(3.0f, 3.0f);
+		Vec2 offset  = Vec2(0.0f, 1.0f);
+
+		f32 scale   = 0.98f;
+		f32 opacity = 1.0f;
+	};
+
+	struct ColorAnimation {
+		TransitionAnimation transition;
+
+		f32 amount = 1.0f;
+	};
+
+	struct AlphaAnimation {
+		TransitionAnimation transition;
+
+		f32 opacity = 1.0f;
+	};
+
+	struct ShapeAnimation {
+		TransitionAnimation transition;
+
+		f32 rounding_amount = 1.0f;
+		f32 border_amount   = 1.0f;
+	};
 }// namespace Trinex::UI

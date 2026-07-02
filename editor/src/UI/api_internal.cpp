@@ -548,7 +548,7 @@ namespace Trinex::UI
 
 	void draw_shadow_rect(ImDrawList* draw, const ImVec2& min, const ImVec2& max, float rounding, const ShadowOptions& shadow)
 	{
-		if (draw == nullptr || !shadow_visible(shadow))
+		if (draw == nullptr || !shadow_visible(&shadow))
 		{
 			return;
 		}
