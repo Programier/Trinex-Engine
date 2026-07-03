@@ -281,6 +281,7 @@ namespace Trinex::UI
 
 	struct PanelOptions {
 		Vec4 background_color    = Vec4(0, 0, 0, 0);
+		Vec4 border_color        = Vec4(0, 0, 0, 0);
 		Size size                = Size(0.0f, 0.0f);
 		f32 rounding             = -1.0f;
 		bool border              = true;

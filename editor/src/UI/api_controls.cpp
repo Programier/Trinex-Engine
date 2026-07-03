@@ -15,7 +15,7 @@ namespace Trinex::UI
 			return;
 		}
 
-		const float rounding = options.rounding >= 0.0f ? options.rounding : active_context()->style.rounding;
+		const float rounding = options.rounding >= 0.0f ? options.rounding : imgui_frame_rounding();
 		const float padding  = Math::max(0.0f, options.padding);
 		const ImVec2 image_size(Math::max(0.0f, resolved_size.x), Math::max(0.0f, resolved_size.y));
 		const ImVec2 frame_size(image_size.x + padding * 2.0f, image_size.y + padding * 2.0f);
@@ -29,8 +29,8 @@ namespace Trinex::UI
 		const ImVec2 image_max(image_min.x + image_size.x, image_min.y + image_size.y);
 		const float image_rounding = Math::max(0.0f, rounding - padding * 0.5f);
 
-		Vec4 frame_bg     = has_color(options.background_color) ? options.background_color : active_context()->style.colors.panel;
-		Vec4 frame_border = has_color(options.border_color) ? options.border_color : border_color();
+		Vec4 frame_bg     = has_color(options.background_color) ? options.background_color : panel_color();
+		Vec4 frame_border = has_color(options.border_color) ? options.border_color : imgui_color(ImGuiCol_Border);
 
 		if ((options.background || options.border) && current_shadow())
 		{
@@ -47,7 +47,7 @@ namespace Trinex::UI
 
 		if (options.border)
 		{
-			draw->AddRect(pos, max, col_u32(frame_border), rounding, 0, active_context()->style.border_size);
+			draw->AddRect(pos, max, col_u32(frame_border), rounding, 0, imgui_border_size());
 		}
 	}
 
@@ -74,7 +74,7 @@ namespace Trinex::UI
 
 		const ImGuiID id     = ImGui::GetID("image_button");
 		AnimState& anim      = state_for(id);
-		const float rounding = options.rounding >= 0.0f ? options.rounding : active_context()->style.rounding;
+		const float rounding = options.rounding >= 0.0f ? options.rounding : imgui_frame_rounding();
 		const float padding  = Math::max(0.0f, options.padding);
 		const ImVec2 image_size(Math::max(0.0f, resolved_size.x), Math::max(0.0f, resolved_size.y));
 		const ImVec2 frame_size(image_size.x + padding * 2.0f, image_size.y + padding * 2.0f);
@@ -89,11 +89,11 @@ namespace Trinex::UI
 		anim.hover  = approach(anim.hover, hovered ? 1.0f : 0.0f);
 		anim.active = approach(anim.active, active ? 1.0f : 0.0f * 1.5f);
 
-		const Vec4 accent = has_color(options.accent) ? options.accent : active_context()->style.colors.accent;
-		Vec4 frame_bg     = has_color(options.background_color) ? options.background_color : active_context()->style.colors.panel;
-		Vec4 frame_border = has_color(options.border_color) ? options.border_color : border_color();
-		frame_bg          = Math::lerp(frame_bg, active_context()->style.colors.background_hovered, anim.hover * 0.55f);
-		frame_bg          = Math::lerp(frame_bg, active_context()->style.colors.background_active, anim.active * 0.65f);
+		const Vec4 accent = has_color(options.accent) ? options.accent : accent_color();
+		Vec4 frame_bg     = has_color(options.background_color) ? options.background_color : panel_color();
+		Vec4 frame_border = has_color(options.border_color) ? options.border_color : imgui_color(ImGuiCol_Border);
+		frame_bg          = Math::lerp(frame_bg, background_hovered_color(), anim.hover * 0.55f);
+		frame_bg          = Math::lerp(frame_bg, background_active_color(), anim.active * 0.65f);
 		frame_border      = Math::lerp(frame_border, accent, anim.hover * 0.7f + anim.active * 0.3f);
 
 		const bool hover_scaled = anim.hover > 0.0f && (active_context()->style.hover_padding.x != 0.0f ||
@@ -129,7 +129,7 @@ namespace Trinex::UI
 		if (options.border)
 		{
 			draw->AddRect(frame_rect.min, frame_rect.max, col_u32(frame_border), rounding * frame_rect.rounding_scale, 0,
-			              active_context()->style.border_size);
+			              imgui_border_size());
 		}
 
 		if (press_scaled)
@@ -155,7 +155,7 @@ namespace Trinex::UI
 		const StringView text_label   = visible_label(label);
 		const bool has_text           = !text_label.empty();
 		const bool has_icon           = !options.icon.empty();
-		const float icon_gap          = has_icon && has_text ? active_context()->style.spacing * 0.5f : 0.0f;
+		const float icon_gap          = has_icon && has_text ? imgui_item_spacing() * 0.5f : 0.0f;
 		const float current_font_size = ImGui::GetFontSize();
 		ImFont* icon_font             = nullptr;
 		ImVec2 icon_size(0.0f, 0.0f);
@@ -176,11 +176,11 @@ namespace Trinex::UI
 		ImVec2 size = to_imvec(resolve(options.size));
 		if (size.x <= 0.0f)
 		{
-			size.x = Math::max(72.0f, content_size.x + active_context()->style.padding * 2.0f);
+			size.x = Math::max(72.0f, content_size.x + imgui_frame_padding() * 2.0f);
 		}
 		if (size.y <= 0.0f)
 		{
-			size.y = active_context()->style.frame_height;
+			size.y = imgui_frame_height();
 		}
 		const ImVec2 pos = ImGui::GetCursorScreenPos();
 
@@ -200,9 +200,9 @@ namespace Trinex::UI
 		anim.hover         = approach(anim.hover, hovered ? 1.0f : 0.0f);
 		anim.active        = approach(anim.active, active ? 1.0f : 0.0f * 1.5f);
 
-		const Vec4 accent       = has_color(options.accent) ? options.accent : active_context()->style.colors.accent;
-		Vec4 bg                 = options.ghost ? Vec4(0, 0, 0, 0) : active_context()->style.colors.background_active;
-		bg                      = Math::lerp(bg, active_context()->style.colors.background_hovered, anim.hover);
+		const Vec4 accent       = has_color(options.accent) ? options.accent : accent_color();
+		Vec4 bg                 = options.ghost ? Vec4(0, 0, 0, 0) : background_active_color();
+		bg                      = Math::lerp(bg, background_hovered_color(), anim.hover);
 		bg                      = Math::lerp(bg, accent, anim.active * 0.65f);
 		const bool hover_scaled = anim.hover > 0.0f && (active_context()->style.hover_padding.x != 0.0f ||
 		                                                active_context()->style.hover_padding.y != 0.0f);
@@ -226,19 +226,19 @@ namespace Trinex::UI
 				overrided.color.w *= 0.55f;
 			}
 
-			draw_shadow_rect(draw, rect.min, rect.max, active_context()->style.rounding * rect.rounding_scale, overrided);
+			draw_shadow_rect(draw, rect.min, rect.max, imgui_frame_rounding() * rect.rounding_scale, overrided);
 		}
 		if (!options.ghost || anim.hover > 0.01f || anim.active > 0.01f)
 		{
 			draw->AddRectFilled(rect.min, rect.max, col_u32(bg, options.disabled ? 0.45f : 1.0f),
-			                    active_context()->style.rounding * rect.rounding_scale);
+			                    imgui_frame_rounding() * rect.rounding_scale);
 		}
-		draw->AddRect(
-		        rect.min, rect.max,
-		        col_u32(Math::lerp(border_color(), accent, anim.hover), options.disabled ? 0.45f : 1.0f),
-		        active_context()->style.rounding * rect.rounding_scale, 0, active_context()->style.border_size);
+		draw->AddRect(rect.min, rect.max,
+		              col_u32(Math::lerp(imgui_color(ImGuiCol_Border), accent, anim.hover), options.disabled ? 0.45f : 1.0f),
+		              imgui_frame_rounding() * rect.rounding_scale, 0, imgui_border_size());
 
-		const Vec4 tc = options.disabled ? text_disabled_color() : Math::lerp(text_color(), Vec4(1, 1, 1, 1), anim.hover * 0.35f);
+		const Vec4 tc = options.disabled ? imgui_color(ImGuiCol_TextDisabled)
+		                                 : Math::lerp(imgui_color(ImGuiCol_Text), Vec4(1, 1, 1, 1), anim.hover * 0.35f);
 		float x       = rect.center.x - content_size.x * 0.5f;
 		if (has_icon && icon_font != nullptr)
 		{
@@ -309,7 +309,7 @@ namespace Trinex::UI
 		AnimState& anim  = state_for(id);
 		const float box  = 20.0f;
 		const ImVec2 ts  = imgui_calc_text_size(visible_label(label));
-		const ImVec2 size(box + active_context()->style.spacing + ts.x, Math::max(box, active_context()->style.frame_height));
+		const ImVec2 size(box + imgui_item_spacing() + ts.x, Math::max(box, imgui_frame_height()));
 		const ImVec2 pos = ImGui::GetCursorScreenPos();
 		ImGui::InvisibleButton("##checkbox", size);
 		const bool clicked = ImGui::IsItemClicked();
@@ -323,27 +323,26 @@ namespace Trinex::UI
 
 		ImDrawList* draw = ImGui::GetWindowDrawList();
 		const ImVec2 box_pos(pos.x, pos.y + (size.y - box) * 0.5f);
-		const Vec4 fill =
-		        Math::lerp(active_context()->style.colors.background, active_context()->style.colors.accent, anim.value);
+		const Vec4 fill = Math::lerp(background_color(), accent_color(), anim.value);
 		draw->AddRectFilled(
 		        box_pos, add(box_pos, ImVec2(box, box)),
-		        col_u32(Math::lerp(fill, active_context()->style.colors.background_hovered, anim.hover * (1.0f - anim.value))),
-		        active_context()->style.rounding * 0.55f);
+		        col_u32(Math::lerp(fill, background_hovered_color(), anim.hover * (1.0f - anim.value))),
+		        imgui_frame_rounding() * 0.55f);
 		draw->AddRect(box_pos, add(box_pos, ImVec2(box, box)),
-		              col_u32(Math::lerp(border_color(), active_context()->style.colors.accent_hovered,
+		              col_u32(Math::lerp(imgui_color(ImGuiCol_Border), active_context()->style.colors.accent_hovered,
 		                                 anim.hover + anim.value)),
-		              active_context()->style.rounding * 0.55f, 0, active_context()->style.border_size);
+		              imgui_frame_rounding() * 0.55f, 0, imgui_border_size());
 		if (anim.value > 0.02f)
 		{
 			const float s  = apply_ease(anim.value, Ease::OutBack);
 			const ImVec2 c = add(box_pos, ImVec2(box * 0.5f, box * 0.5f));
 			draw->AddLine(ImVec2(c.x - 5.0f * s, c.y), ImVec2(c.x - 1.0f * s, c.y + 4.0f * s),
-			              col_u32(text_color(), anim.value), 2.0f);
+			              col_u32(imgui_color(ImGuiCol_Text), anim.value), 2.0f);
 			draw->AddLine(ImVec2(c.x - 1.0f * s, c.y + 4.0f * s), ImVec2(c.x + 6.0f * s, c.y - 5.0f * s),
-			              col_u32(text_color(), anim.value), 2.0f);
+			              col_u32(imgui_color(ImGuiCol_Text), anim.value), 2.0f);
 		}
-		draw_list_add_text(draw, ImVec2(pos.x + box + active_context()->style.spacing, pos.y + (size.y - ts.y) * 0.5f),
-		                   col_u32(text_color()), visible_label(label));
+		draw_list_add_text(draw, ImVec2(pos.x + box + imgui_item_spacing(), pos.y + (size.y - ts.y) * 0.5f),
+		                   col_u32(imgui_color(ImGuiCol_Text)), visible_label(label));
 		ImGui::PopID();
 		return clicked;
 	}
@@ -356,8 +355,7 @@ namespace Trinex::UI
 		AnimState& anim  = state_for(id);
 		const ImVec2 track(46.0f, 24.0f);
 		const ImVec2 ts = imgui_calc_text_size(visible_label(label));
-		const ImVec2 size(track.x + active_context()->style.spacing + ts.x,
-		                  Math::max(track.y, active_context()->style.frame_height));
+		const ImVec2 size(track.x + imgui_item_spacing() + ts.x, Math::max(track.y, imgui_frame_height()));
 		const ImVec2 pos = ImGui::GetCursorScreenPos();
 		ImGui::InvisibleButton("##toggle", size);
 		const bool clicked = ImGui::IsItemClicked();
@@ -371,15 +369,14 @@ namespace Trinex::UI
 		ImDrawList* draw = ImGui::GetWindowDrawList();
 		const ImVec2 p(pos.x, pos.y + (size.y - track.y) * 0.5f);
 		const float toggle_t = apply_ease(anim.value, Ease::InOutQuad);
-		const Vec4 track_col = Math::lerp(Math::lerp(active_context()->style.colors.background_active,
-		                                             active_context()->style.colors.background_hovered, anim.hover),
-		                                  active_context()->style.colors.accent, toggle_t);
+		const Vec4 track_col =
+		        Math::lerp(Math::lerp(background_active_color(), background_hovered_color(), anim.hover), accent_color(), toggle_t);
 		draw->AddRectFilled(p, add(p, track), col_u32(track_col), track.y * 0.5f);
 		const float knob_r = 9.0f + anim.hover;
 		const float knob_x = Math::lerp(p.x + track.y * 0.5f, p.x + track.x - track.y * 0.5f, toggle_t);
-		draw->AddCircleFilled(ImVec2(knob_x, p.y + track.y * 0.5f), knob_r, col_u32(text_color()));
-		draw_list_add_text(draw, ImVec2(pos.x + track.x + active_context()->style.spacing, pos.y + (size.y - ts.y) * 0.5f),
-		                   col_u32(text_color()), visible_label(label));
+		draw->AddCircleFilled(ImVec2(knob_x, p.y + track.y * 0.5f), knob_r, col_u32(imgui_color(ImGuiCol_Text)));
+		draw_list_add_text(draw, ImVec2(pos.x + track.x + imgui_item_spacing(), pos.y + (size.y - ts.y) * 0.5f),
+		                   col_u32(imgui_color(ImGuiCol_Text)), visible_label(label));
 		ImGui::PopID();
 		return clicked;
 	}
@@ -392,7 +389,7 @@ namespace Trinex::UI
 		AnimState& anim         = state_for(id);
 		const float width       = ImGui::CalcItemWidth();
 		const ImVec2 label_size = imgui_calc_text_size(visible_label(label));
-		const ImVec2 size(width, active_context()->style.frame_height);
+		const ImVec2 size(width, imgui_frame_height());
 		const ImVec2 pos = ImGui::GetCursorScreenPos();
 		ImGui::InvisibleButton("##slider", size);
 		bool changed = false;
@@ -415,13 +412,13 @@ namespace Trinex::UI
 		const float bar_h = 7.0f;
 		const ImVec2 bar_min(pos.x, pos.y + (size.y - bar_h) * 0.5f);
 		const ImVec2 bar_max(pos.x + size.x, bar_min.y + bar_h);
-		draw->AddRectFilled(bar_min, bar_max, col_u32(active_context()->style.colors.background_active), bar_h * 0.5f);
+		draw->AddRectFilled(bar_min, bar_max, col_u32(background_active_color()), bar_h * 0.5f);
 		draw->AddRectFilled(bar_min, ImVec2(Math::lerp(bar_min.x, bar_max.x, anim.value), bar_max.y),
-		                    col_u32(Math::lerp(active_context()->style.colors.accent,
+		                    col_u32(Math::lerp(accent_color(),
 		                                       active_context()->style.colors.accent_hovered, anim.hover)),
 		                    bar_h * 0.5f);
 		draw->AddCircleFilled(ImVec2(Math::lerp(bar_min.x, bar_max.x, anim.value), bar_min.y + bar_h * 0.5f),
-		                      6.0f + anim.active * 2.0f, col_u32(text_color()));
+		                      6.0f + anim.active * 2.0f, col_u32(imgui_color(ImGuiCol_Text)));
 		if (label_size.x > 0.0f && !visible_label(label).empty())
 		{
 			ImGui::SameLine();
@@ -709,7 +706,7 @@ namespace Trinex::UI
 
 		const ImVec2 label_size = imgui_calc_text_size(visible_label(label));
 		const float width       = ImGui::CalcItemWidth();
-		const ImVec2 frame_size(width, active_context()->style.frame_height);
+		const ImVec2 frame_size(width, imgui_frame_height());
 		const ImVec2 pos = ImGui::GetCursorScreenPos();
 		ImGui::InvisibleButton("##combo_field", frame_size);
 		const bool hovered    = ImGui::IsItemHovered();
@@ -760,18 +757,17 @@ namespace Trinex::UI
 		const float open_t = apply_ease(anim.open, Ease::InOutQuad);
 
 		ImDrawList* draw = ImGui::GetWindowDrawList();
-		const Vec4 bg    = Math::lerp(Math::lerp(active_context()->style.colors.background,
-		                                         active_context()->style.colors.background_hovered, anim.hover),
-		                              active_context()->style.colors.background_active, anim.active);
-		draw->AddRectFilled(pos, add(pos, frame_size), col_u32(bg), active_context()->style.rounding);
+		const Vec4 bg = Math::lerp(Math::lerp(background_color(), background_hovered_color(), anim.hover),
+		                           background_active_color(), anim.active);
+		draw->AddRectFilled(pos, add(pos, frame_size), col_u32(bg), imgui_frame_rounding());
 		draw->AddRect(pos, add(pos, frame_size),
-		              col_u32(Math::lerp(border_color(), active_context()->style.colors.accent, open_t)),
-		              active_context()->style.rounding, 0, active_context()->style.border_size);
+		              col_u32(Math::lerp(imgui_color(ImGuiCol_Border), accent_color(), open_t)),
+		              imgui_frame_rounding(), 0, imgui_border_size());
 		const ImVec2 preview_size = imgui_calc_text_size(preview_value);
-		draw_list_add_text(draw, ImVec2(pos.x + active_context()->style.padding, pos.y + (frame_size.y - preview_size.y) * 0.5f),
-		                   col_u32(text_color()), preview_value);
+		draw_list_add_text(draw, ImVec2(pos.x + imgui_frame_padding(), pos.y + (frame_size.y - preview_size.y) * 0.5f),
+		                   col_u32(imgui_color(ImGuiCol_Text)), preview_value);
 		draw_chevron(draw, ImVec2(pos.x + frame_size.x - 16.0f, pos.y + frame_size.y * 0.5f), 9.0f, open_t,
-		             col_u32(active_context()->style.colors.text_muted));
+		             col_u32(text_muted_color()));
 
 		if (label_size.x > 0.0f && !visible_label(label).empty())
 		{
@@ -786,16 +782,17 @@ namespace Trinex::UI
 			ImGui::SetNextWindowPos(ImVec2(pos.x, pos.y + frame_size.y), ImGuiCond_Always);
 		}
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-		ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-		const bool visible = ImGui::BeginPopup("##combo_popup");
+		const bool visible = ImGui::BeginPopup("##combo_popup", ImGuiWindowFlags_NoBackground);
 		if (visible)
 		{
-			ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, active_context()->style.rounding);
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4.0f, 4.0f));
-			ImGui::PushStyleColor(ImGuiCol_ChildBg, to_imvec(active_context()->style.colors.panel));
-			ImGui::PushStyleColor(ImGuiCol_Border, to_imvec(border_color()));
-			ImGui::BeginChild("##combo_panel", ImVec2(width, 160.0f), true);
+			PanelOptions options;
+			options.size             = px(width, 160.0f);
+			options.rounding         = imgui_child_rounding();
+			options.background       = true;
+			options.border           = true;
+			options.background_color = panel_color();
+			options.border_color     = imgui_color(ImGuiCol_Border);
+			begin_panel("##combo_panel", options);
 
 			if (active_context()->active_combo == id)
 			{
@@ -806,7 +803,6 @@ namespace Trinex::UI
 			}
 			return true;
 		}
-		ImGui::PopStyleColor(2);
 		ImGui::PopStyleVar();
 		ImGui::PopID();
 		return false;
@@ -814,11 +810,8 @@ namespace Trinex::UI
 
 	void end_combo()
 	{
-		ImGui::EndChild();
-		ImGui::PopStyleColor(2);
-		ImGui::PopStyleVar(2);
+		end_panel();
 		ImGui::EndPopup();
-		ImGui::PopStyleColor(2);
 		ImGui::PopStyleVar();
 		UI::pop_render_scale();
 		ImGui::PopID();
@@ -882,8 +875,7 @@ namespace Trinex::UI
 		AnimState& anim        = state_for(id);
 		const float diameter   = 20.0f;
 		const ImVec2 text_size = imgui_calc_text_size(visible_label(label));
-		const ImVec2 size(diameter + active_context()->style.spacing + text_size.x,
-		                  Math::max(active_context()->style.frame_height, diameter));
+		const ImVec2 size(diameter + imgui_item_spacing() + text_size.x, Math::max(imgui_frame_height(), diameter));
 		const ImVec2 pos = ImGui::GetCursorScreenPos();
 		ImGui::InvisibleButton("##radio", size);
 		const bool clicked = ImGui::IsItemClicked();
@@ -894,14 +886,13 @@ namespace Trinex::UI
 		ImDrawList* draw = ImGui::GetWindowDrawList();
 		const ImVec2 center(pos.x + diameter * 0.5f, pos.y + size.y * 0.5f);
 		draw->AddCircle(center, diameter * 0.5f,
-		                col_u32(Math::lerp(border_color(), active_context()->style.colors.accent,
+		                col_u32(Math::lerp(imgui_color(ImGuiCol_Border), accent_color(),
 		                                   anim.hover + anim.selected)),
 		                24, 2.0f);
 		draw->AddCircleFilled(center, diameter * 0.31f * apply_ease(anim.selected, Ease::OutBack),
-		                      col_u32(active_context()->style.colors.accent, anim.selected));
-		draw_list_add_text(draw,
-		                   ImVec2(pos.x + diameter + active_context()->style.spacing, pos.y + (size.y - text_size.y) * 0.5f),
-		                   col_u32(text_color()), visible_label(label));
+		                      col_u32(accent_color(), anim.selected));
+		draw_list_add_text(draw, ImVec2(pos.x + diameter + imgui_item_spacing(), pos.y + (size.y - text_size.y) * 0.5f),
+		                   col_u32(imgui_color(ImGuiCol_Text)), visible_label(label));
 		ImGui::PopID();
 		return clicked;
 	}
@@ -927,14 +918,13 @@ namespace Trinex::UI
 		imgui_push_id(label);
 		const Vec2 resolved_size = resolve(size_arg);
 		const float width        = resolved_size.x > 0.0f ? resolved_size.x : ImGui::GetContentRegionAvail().x;
-		const float height       = resolved_size.y > 0.0f ? resolved_size.y : active_context()->style.frame_height;
+		const float height       = resolved_size.y > 0.0f ? resolved_size.y : imgui_frame_height();
 		const float segment_w    = width / static_cast<float>(item_count);
 		const ImVec2 start       = ImGui::GetCursorScreenPos();
 		ImDrawList* draw         = ImGui::GetWindowDrawList();
-		draw->AddRectFilled(start, add(start, ImVec2(width, height)), col_u32(active_context()->style.colors.background),
-		                    active_context()->style.rounding);
-		draw->AddRect(start, add(start, ImVec2(width, height)), col_u32(border_color()),
-		              active_context()->style.rounding);
+		draw->AddRectFilled(start, add(start, ImVec2(width, height)), col_u32(background_color()),
+		                    imgui_frame_rounding());
+		draw->AddRect(start, add(start, ImVec2(width, height)), col_u32(imgui_color(ImGuiCol_Border)), imgui_frame_rounding());
 
 		bool changed = false;
 		for (int i = 0; i < item_count; ++i)
@@ -951,24 +941,23 @@ namespace Trinex::UI
 			const ImVec2 max(start.x + segment_w * (i + 1), start.y + height);
 			if (anim.hover > 0.01f)
 			{
-				draw->AddRectFilled(min, max, col_u32(active_context()->style.colors.background_hovered, anim.hover * 0.45f),
-				                    i == 0 || i == item_count - 1 ? active_context()->style.rounding : 0.0f);
+				draw->AddRectFilled(min, max, col_u32(background_hovered_color(), anim.hover * 0.45f),
+				                    i == 0 || i == item_count - 1 ? imgui_frame_rounding() : 0.0f);
 			}
 			if (anim.selected > 0.01f)
 			{
-				draw->AddRectFilled(min, max, col_u32(active_context()->style.colors.accent, 0.28f * anim.selected),
-				                    i == 0 || i == item_count - 1 ? active_context()->style.rounding : 0.0f);
+				draw->AddRectFilled(min, max, col_u32(accent_color(), 0.28f * anim.selected),
+				                    i == 0 || i == item_count - 1 ? imgui_frame_rounding() : 0.0f);
 				draw->AddRectFilled(ImVec2(min.x + 8.0f, max.y - 3.0f), ImVec2(max.x - 8.0f, max.y),
-				                    col_u32(active_context()->style.colors.accent, anim.selected), 2.0f);
+				                    col_u32(accent_color(), anim.selected), 2.0f);
 			}
 			if (i > 0)
 			{
-				draw->AddLine(ImVec2(min.x, min.y + 6.0f), ImVec2(min.x, max.y - 6.0f),
-				              col_u32(border_color()));
+				draw->AddLine(ImVec2(min.x, min.y + 6.0f), ImVec2(min.x, max.y - 6.0f), col_u32(imgui_color(ImGuiCol_Border)));
 			}
 			const ImVec2 ts = ImGui::CalcTextSize(items[i]);
 			draw->AddText(ImVec2(min.x + (segment_w - ts.x) * 0.5f, min.y + (height - ts.y) * 0.5f),
-			              col_u32(text_color()), items[i]);
+			              col_u32(imgui_color(ImGuiCol_Text)), items[i]);
 			if (clicked && *current_item != i)
 			{
 				*current_item = i;
@@ -1000,14 +989,13 @@ namespace Trinex::UI
 		const ImVec2 pos = ImGui::GetCursorScreenPos();
 		ImGui::Dummy(size);
 		ImDrawList* draw = ImGui::GetWindowDrawList();
-		draw->AddRectFilled(pos, add(pos, size), col_u32(active_context()->style.colors.background_active), size.y * 0.5f);
-		draw->AddRectFilled(pos, ImVec2(pos.x + size.x * anim.value, pos.y + size.y),
-		                    col_u32(active_context()->style.colors.accent), size.y * 0.5f);
+		draw->AddRectFilled(pos, add(pos, size), col_u32(background_active_color()), size.y * 0.5f);
+		draw->AddRectFilled(pos, ImVec2(pos.x + size.x * anim.value, pos.y + size.y), col_u32(accent_color()), size.y * 0.5f);
 		if (!overlay.empty())
 		{
 			const ImVec2 ts = imgui_calc_text_size(overlay);
 			draw_list_add_text(draw, ImVec2(pos.x + (size.x - ts.x) * 0.5f, pos.y + (size.y - ts.y) * 0.5f),
-			                   col_u32(text_color()), overlay);
+			                   col_u32(imgui_color(ImGuiCol_Text)), overlay);
 		}
 	}
 
@@ -1022,7 +1010,7 @@ namespace Trinex::UI
 		ImDrawList* draw    = ImGui::GetWindowDrawList();
 		const ImVec2 center = add(pos, mul(size, 0.5f));
 		const float start   = static_cast<float>(ImGui::GetTime() * 6.0);
-		const ImU32 c       = col_u32(has_color(color) ? color : active_context()->style.colors.accent);
+		const ImU32 c       = col_u32(has_color(color) ? color : accent_color());
 		for (int i = 0; i < 24; ++i)
 		{
 			const float a0    = start + (static_cast<float>(i) / 24.0f) * 6.2831853f;
@@ -1030,7 +1018,7 @@ namespace Trinex::UI
 			const float alpha = static_cast<float>(i + 1) / 24.0f;
 			draw->AddLine(ImVec2(center.x + Math::cos(a0) * resolved_radius, center.y + Math::sin(a0) * resolved_radius),
 			              ImVec2(center.x + Math::cos(a1) * resolved_radius, center.y + Math::sin(a1) * resolved_radius),
-			              col_u32(has_color(color) ? color : active_context()->style.colors.accent, alpha), resolved_thickness);
+			              col_u32(has_color(color) ? color : accent_color(), alpha), resolved_thickness);
 			(void) c;
 		}
 		ImGui::PopID();
@@ -1060,7 +1048,7 @@ namespace Trinex::UI
 		AnimState& anim         = state_for(id);
 		const String display    = active_context()->keybind_capture == id ? "Press key..." : keybind_to_string(*binding);
 		const ImVec2 label_size = imgui_calc_text_size(visible_label(label));
-		const ImVec2 field_size(Math::max(130.0f, ImGui::CalcItemWidth() * 0.55f), active_context()->style.frame_height);
+		const ImVec2 field_size(Math::max(130.0f, ImGui::CalcItemWidth() * 0.55f), imgui_frame_height());
 		ImGui::AlignTextToFramePadding();
 		imgui_text_unformatted(visible_label(label));
 		ImGui::SameLine();
@@ -1075,16 +1063,14 @@ namespace Trinex::UI
 		anim.focus       = approach(anim.focus, active_context()->keybind_capture == id ? 1.0f : 0.0f);
 		ImDrawList* draw = ImGui::GetWindowDrawList();
 		draw->AddRectFilled(pos, add(pos, field_size),
-		                    col_u32(Math::lerp(active_context()->style.colors.background,
-		                                       active_context()->style.colors.background_hovered, anim.hover)),
-		                    active_context()->style.rounding);
-		draw->AddRect(
-		        pos, add(pos, field_size),
-		        col_u32(Math::lerp(border_color(), active_context()->style.colors.accent, anim.focus)),
-		        active_context()->style.rounding, 0, active_context()->style.border_size);
+		                    col_u32(Math::lerp(background_color(), background_hovered_color(), anim.hover)),
+		                    imgui_frame_rounding());
+		draw->AddRect(pos, add(pos, field_size),
+		              col_u32(Math::lerp(imgui_color(ImGuiCol_Border), accent_color(), anim.focus)),
+		              imgui_frame_rounding(), 0, imgui_border_size());
 		const ImVec2 ts = ImGui::CalcTextSize(display.c_str());
-		draw->AddText(ImVec2(pos.x + active_context()->style.padding, pos.y + (field_size.y - ts.y) * 0.5f),
-		              col_u32(text_color()), display.c_str());
+		draw->AddText(ImVec2(pos.x + imgui_frame_padding(), pos.y + (field_size.y - ts.y) * 0.5f),
+		              col_u32(imgui_color(ImGuiCol_Text)), display.c_str());
 		(void) label_size;
 
 		bool changed = false;

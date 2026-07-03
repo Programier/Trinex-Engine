@@ -157,7 +157,7 @@ namespace Trinex::UI
 	ImU32 col_u32(const ImVec4& color, float alpha_mul)
 	{
 		ImVec4 c = color;
-		c.w *= active_context()->style.alpha * active_context()->draw_alpha * alpha_mul;
+		c.w *= imgui_alpha() * alpha_mul;
 		return ImGui::GetColorU32(c);
 	}
 
@@ -236,7 +236,7 @@ namespace Trinex::UI
 	ImU32 col_u32(const Vec4& color, float alpha_mul)
 	{
 		ImVec4 c = to_imvec(color);
-		c.w *= active_context()->style.alpha * active_context()->draw_alpha * alpha_mul;
+		c.w *= imgui_alpha() * alpha_mul;
 		return ImGui::GetColorU32(c);
 	}
 
@@ -363,7 +363,7 @@ namespace Trinex::UI
 			case NotificationKind::Warning: return active_context()->style.colors.warning;
 			case NotificationKind::Error: return active_context()->style.colors.error;
 			case NotificationKind::Info:
-			default: return active_context()->style.colors.accent;
+			default: return accent_color();
 		}
 	}
 
@@ -669,7 +669,7 @@ namespace Trinex::UI
 
 	void push_input_frame_styles(float focus)
 	{
-		ImGui::PushStyleColor(ImGuiCol_Border, to_imvec(Math::lerp(border_color(), active_context()->style.colors.accent, focus)));
+		ImGui::PushStyleColor(ImGuiCol_Border, to_imvec(Math::lerp(imgui_color(ImGuiCol_Border), accent_color(), focus)));
 	}
 
 	ImVec2 default_item_size(StringView label, ImVec2 requested, float min_width)
@@ -678,11 +678,11 @@ namespace Trinex::UI
 		ImVec2 size      = requested;
 		if (size.x <= 0.0f)
 		{
-			size.x = Math::max(min_width, text_size.x + active_context()->style.padding * 2.0f);
+			size.x = Math::max(min_width, text_size.x + imgui_frame_padding() * 2.0f);
 		}
 		if (size.y <= 0.0f)
 		{
-			size.y = active_context()->style.frame_height;
+			size.y = imgui_frame_height();
 		}
 		return size;
 	}
@@ -711,7 +711,7 @@ namespace Trinex::UI
 		const ImGuiID id = ImGui::GetID("row");
 		AnimState& anim  = state_for(id);
 		size.x           = size.x <= 0.0f ? ImGui::GetContentRegionAvail().x : size.x;
-		size.y           = size.y <= 0.0f ? active_context()->style.frame_height : size.y;
+		size.y           = size.y <= 0.0f ? imgui_frame_height() : size.y;
 
 		ImVec2 pos = ImGui::GetCursorScreenPos();
 		ImGui::InvisibleButton("##row_button", size);
@@ -726,8 +726,8 @@ namespace Trinex::UI
 		anim.selected = approach(anim.selected, visual_selected ? 1.0f : 0.0f);
 
 		const Vec4 base =
-		        Math::lerp(active_context()->style.colors.panel, active_context()->style.colors.background_hovered, anim.hover);
-		const Vec4 sel = has_color(accent) ? accent : active_context()->style.colors.accent;
+		        Math::lerp(panel_color(), background_hovered_color(), anim.hover);
+		const Vec4 sel = has_color(accent) ? accent : accent_color();
 		Vec4 bg        = Math::lerp(base, with_alpha(sel, 0.22f), anim.selected);
 		bg             = Math::lerp(bg, with_alpha(sel, 0.18f), anim.active * 0.45f);
 
@@ -735,37 +735,38 @@ namespace Trinex::UI
 		const ImVec2 max = add(pos, size);
 		if (anim.hover > 0.01f || anim.selected > 0.01f || anim.active > 0.01f)
 		{
-			draw->AddRectFilled(pos, max, col_u32(bg), active_context()->style.rounding);
+			draw->AddRectFilled(pos, max, col_u32(bg), imgui_frame_rounding());
 		}
 		if (anim.selected > 0.01f)
 		{
-			draw->AddRectFilled(pos, ImVec2(pos.x + 3.0f, max.y), col_u32(sel, anim.selected), active_context()->style.rounding,
+			draw->AddRectFilled(pos, ImVec2(pos.x + 3.0f, max.y), col_u32(sel, anim.selected), imgui_frame_rounding(),
 			                    ImDrawFlags_RoundCornersLeft);
 		}
 
-		float x        = pos.x + active_context()->style.padding;
+		float x        = pos.x + imgui_frame_padding();
 		const float cy = pos.y + size.y * 0.5f;
 		if (draw_arrow)
 		{
 			draw_chevron(draw, ImVec2(x + 5.0f, cy), 10.0f, visual_arrow_t,
-			             col_u32(Math::lerp(active_context()->style.colors.text_muted, sel, anim.hover + anim.selected)));
+			             col_u32(Math::lerp(text_muted_color(), sel, anim.hover + anim.selected)));
 			x += 18.0f;
 		}
 		if (has_text(icon))
 		{
 			draw_list_add_text(draw, ImVec2(x, pos.y + (size.y - ImGui::GetTextLineHeight()) * 0.5f),
-			                   col_u32(Math::lerp(active_context()->style.colors.text_muted, sel, anim.hover)), icon);
+			                   col_u32(Math::lerp(text_muted_color(), sel, anim.hover)), icon);
 			x += imgui_calc_text_size(icon).x + 7.0f;
 		}
 
-		const Vec4 text_col = disabled ? text_disabled_color() : Math::lerp(text_color(), sel, anim.selected * 0.35f);
+		const Vec4 text_col = disabled ? imgui_color(ImGuiCol_TextDisabled)
+		                               : Math::lerp(imgui_color(ImGuiCol_Text), sel, anim.selected * 0.35f);
 		draw_list_add_text(draw, ImVec2(x, pos.y + (size.y - ImGui::GetTextLineHeight()) * 0.5f), col_u32(text_col),
 		                   visible_label(label));
 		if (has_text(right_text))
 		{
 			const ImVec2 rt = imgui_calc_text_size(right_text);
-			draw_list_add_text(draw, ImVec2(max.x - rt.x - active_context()->style.padding, pos.y + (size.y - rt.y) * 0.5f),
-			                   col_u32(active_context()->style.colors.text_muted), right_text);
+			draw_list_add_text(draw, ImVec2(max.x - rt.x - imgui_frame_padding(), pos.y + (size.y - rt.y) * 0.5f),
+			                   col_u32(text_muted_color()), right_text);
 		}
 
 		ImGui::PopID();
@@ -780,15 +781,14 @@ namespace Trinex::UI
 			case ui::NotificationKind::Warning: return active_context()->style.colors.warning;
 			case ui::NotificationKind::Error: return active_context()->style.colors.error;
 			case ui::NotificationKind::Info:
-			default: return active_context()->style.colors.accent;
+			default: return accent_color();
 		}
 	}
 
 	void push_menu_bar_colors()
 	{
-		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, active_context()->style.rounding * 0.55f);
-		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,
-		                    ImVec2(active_context()->style.spacing, active_context()->style.spacing * 0.75f));
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, imgui_frame_rounding() * 0.55f);
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(imgui_item_spacing(), imgui_item_spacing() * 0.75f));
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, to_imvec(with_alpha(active_context()->style.colors.accent_hovered, 0.18f)));
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, to_imvec(with_alpha(active_context()->style.colors.accent_active, 0.24f)));
 	}
@@ -801,9 +801,8 @@ namespace Trinex::UI
 
 	void push_menu_popup_colors()
 	{
-		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, active_context()->style.rounding * 0.55f);
-		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,
-		                    ImVec2(active_context()->style.spacing, active_context()->style.spacing * 0.6f));
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, imgui_frame_rounding() * 0.55f);
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(imgui_item_spacing(), imgui_item_spacing() * 0.6f));
 	}
 
 	void pop_menu_popup_colors()
@@ -820,17 +819,17 @@ namespace Trinex::UI
 		const float y           = cursor.y - style.FramePadding.y;
 		const ImVec2 min(window_pos.x, y);
 		const ImVec2 max(window_pos.x + ImGui::GetWindowWidth(), y + ImGui::GetFrameHeight());
-		draw->AddRectFilled(min, max, col_u32(active_context()->style.colors.panel), 0.0f);
-		draw->AddLine(ImVec2(min.x, max.y), max, col_u32(border_color()));
+		draw->AddRectFilled(min, max, col_u32(panel_color()), 0.0f);
+		draw->AddLine(ImVec2(min.x, max.y), max, col_u32(imgui_color(ImGuiCol_Border)));
 	}
 
 	void push_window_styles(bool modal)
 	{
-		const Vec4 bg = modal ? active_context()->style.colors.panel : active_context()->style.colors.background;
+		const Vec4 bg = modal ? panel_color() : background_color();
 		const Vec4 title_bg =
-		        Math::lerp(active_context()->style.colors.background_active, active_context()->style.colors.accent_active, 0.35f);
+		        Math::lerp(background_active_color(), active_context()->style.colors.accent_active, 0.35f);
 		const Vec4 title_bg_active =
-		        Math::lerp(active_context()->style.colors.background_active, active_context()->style.colors.accent, 0.24f);
+		        Math::lerp(background_active_color(), accent_color(), 0.24f);
 		ImGui::PushStyleColor(ImGuiCol_WindowBg, to_imvec(bg));
 		ImGui::PushStyleColor(ImGuiCol_PopupBg, to_imvec(bg));
 		ImGui::PushStyleColor(ImGuiCol_TitleBg, to_imvec(title_bg));

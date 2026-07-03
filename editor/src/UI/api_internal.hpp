@@ -15,27 +15,15 @@ namespace Trinex::UI
 	using ContextStack = Stack<4096>;
 
 	struct ColorTheme {
-		Vec4 text_muted         = Vec4(0.58f, 0.63f, 0.70f, 1.00f);
-		Vec4 background         = Vec4(0.08f, 0.10f, 0.13f, 1.00f);
-		Vec4 background_hovered = Vec4(0.13f, 0.16f, 0.21f, 1.00f);
-		Vec4 background_active  = Vec4(0.17f, 0.21f, 0.28f, 1.00f);
-		Vec4 panel              = Vec4(0.10f, 0.12f, 0.16f, 1.00f);
-		Vec4 accent             = Vec4(0.28f, 0.62f, 0.95f, 1.00f);
-		Vec4 accent_hovered     = Vec4(0.36f, 0.70f, 1.00f, 1.00f);
-		Vec4 accent_active      = Vec4(0.18f, 0.47f, 0.82f, 1.00f);
-		Vec4 success            = Vec4(0.29f, 0.78f, 0.48f, 1.00f);
-		Vec4 warning            = Vec4(0.95f, 0.68f, 0.22f, 1.00f);
-		Vec4 error              = Vec4(0.95f, 0.32f, 0.32f, 1.00f);
+		Vec4 accent_hovered = Vec4(0.36f, 0.70f, 1.00f, 1.00f);
+		Vec4 accent_active  = Vec4(0.18f, 0.47f, 0.82f, 1.00f);
+		Vec4 success        = Vec4(0.29f, 0.78f, 0.48f, 1.00f);
+		Vec4 warning        = Vec4(0.95f, 0.68f, 0.22f, 1.00f);
+		Vec4 error          = Vec4(0.95f, 0.32f, 0.32f, 1.00f);
 	};
 
 	struct Style {
 		f32 animation_speed = 16.0f;
-		f32 rounding        = 8.0f;
-		f32 border_size     = 1.0f;
-		f32 frame_height    = 32.0f;
-		f32 padding         = 10.0f;
-		f32 spacing         = 8.0f;
-		f32 alpha           = 1.0f;
 		Vec2 hover_padding  = Vec2(3.0f, 3.0f);
 		Vec2 press_padding  = Vec2(3.0f, 3.0f);
 		ColorTheme colors;
@@ -75,16 +63,14 @@ namespace Trinex::UI
 	};
 
 	struct TreeContext {
-		ImGuiID id                = 0;
-		bool logical_open         = false;
-		ImVec2 content_start      = ImVec2(0.0f, 0.0f);
-		float previous_draw_alpha = 1.0f;
+		ImGuiID id           = 0;
+		bool logical_open    = false;
+		ImVec2 content_start = ImVec2(0.0f, 0.0f);
 	};
 
 	struct AreaContext {
-		ImGuiID id                = 0;
-		ImVec2 content_start      = ImVec2(0.0f, 0.0f);
-		float previous_draw_alpha = 1.0f;
+		ImGuiID id           = 0;
+		ImVec2 content_start = ImVec2(0.0f, 0.0f);
 	};
 
 	struct PanelContext {
@@ -198,7 +184,6 @@ namespace Trinex::UI
 		Vector<PanelContext> panel_stack;
 		Vector<CardContext> card_stack;
 		Vector<ShadowOptions> shadow_stack;
-		Vector<float> disabled_alpha_stack;
 		Vector<String> pending_modals;
 		Vector<String> pending_popups;
 		Vector<Notification> notifications;
@@ -207,7 +192,6 @@ namespace Trinex::UI
 		CommandPaletteState command_palette;
 		ImGuiID next_notification_id = 1;
 		ImGuiID keybind_capture      = 0;
-		float draw_alpha             = 1.0f;
 		int last_cleanup_frame       = 0;
 	};
 
@@ -342,14 +326,85 @@ namespace Trinex::UI
 		return imgui_color(ImGuiCol_Text);
 	}
 
+	inline Vec4 text_muted_color()
+	{
+		return imgui_color(ImGuiCol_TextDisabled);
+	}
+
 	inline Vec4 text_disabled_color()
 	{
 		return imgui_color(ImGuiCol_TextDisabled);
 	}
 
-	inline Vec4 border_color()
+	inline Vec4 background_color()
 	{
-		return imgui_color(ImGuiCol_Border);
+		return imgui_color(ImGuiCol_FrameBg);
+	}
+
+	inline Vec4 background_hovered_color()
+	{
+		return imgui_color(ImGuiCol_FrameBgHovered);
+	}
+
+	inline Vec4 background_active_color()
+	{
+		return imgui_color(ImGuiCol_FrameBgActive);
+	}
+
+	inline Vec4 panel_color()
+	{
+		return imgui_color(ImGuiCol_PopupBg);
+	}
+
+	inline Vec4 accent_color()
+	{
+		return imgui_color(ImGuiCol_CheckMark);
+	}
+
+	inline float imgui_alpha()
+	{
+		return ImGui::GetStyle().Alpha;
+	}
+
+	inline float imgui_frame_rounding()
+	{
+		return ImGui::GetStyle().FrameRounding;
+	}
+
+	inline float imgui_child_rounding()
+	{
+		return ImGui::GetStyle().ChildRounding;
+	}
+
+	inline float imgui_window_rounding()
+	{
+		return ImGui::GetStyle().WindowRounding;
+	}
+
+	inline float imgui_border_size()
+	{
+		const ImGuiStyle& style = ImGui::GetStyle();
+		return Math::max(style.FrameBorderSize, Math::max(style.ChildBorderSize, style.WindowBorderSize));
+	}
+
+	inline float imgui_frame_height()
+	{
+		return ImGui::GetFrameHeight();
+	}
+
+	inline float imgui_window_padding()
+	{
+		return ImGui::GetStyle().WindowPadding.x;
+	}
+
+	inline float imgui_frame_padding()
+	{
+		return ImGui::GetStyle().FramePadding.x;
+	}
+
+	inline float imgui_item_spacing()
+	{
+		return ImGui::GetStyle().ItemSpacing.x;
 	}
 
 	inline ImGuiID to_imgui_id(ID value)

@@ -14,27 +14,37 @@ namespace Trinex::UI
 
 	static void apply_imgui_style(const Style& value)
 	{
+		constexpr float alpha        = 1.0f;
+		constexpr float padding      = 10.0f;
+		constexpr float spacing      = 8.0f;
+		constexpr float rounding     = 8.0f;
+		constexpr float border_size  = 1.0f;
+		const Vec4 background        = Vec4(0.08f, 0.10f, 0.13f, 1.00f);
+		const Vec4 background_hovered = Vec4(0.13f, 0.16f, 0.21f, 1.00f);
+		const Vec4 background_active  = Vec4(0.17f, 0.21f, 0.28f, 1.00f);
+		const Vec4 panel              = Vec4(0.10f, 0.12f, 0.16f, 1.00f);
+		const Vec4 accent             = Vec4(0.28f, 0.62f, 0.95f, 1.00f);
 		ImGuiStyle& style        = ImGui::GetStyle();
 		ColorTheme colors        = value.colors;
 		const Vec4 text          = Vec4(0.92f, 0.94f, 0.96f, 1.00f);
 		const Vec4 text_disabled = Vec4(0.38f, 0.42f, 0.48f, 1.00f);
 		const Vec4 border        = Vec4(0.24f, 0.29f, 0.36f, 1.00f);
 
-		style.Alpha             = value.alpha;
-		style.WindowPadding     = ImVec2(value.padding, value.padding);
-		style.FramePadding      = ImVec2(value.padding, 6.0f);
-		style.CellPadding       = ImVec2(value.padding, value.spacing);
-		style.ItemSpacing       = ImVec2(value.spacing, value.spacing);
-		style.WindowRounding    = value.rounding;
-		style.ChildRounding     = value.rounding;
-		style.PopupRounding     = value.rounding;
-		style.FrameRounding     = value.rounding;
-		style.ScrollbarRounding = value.rounding;
-		style.GrabRounding      = value.rounding;
-		style.TabRounding       = value.rounding;
-		style.WindowBorderSize  = value.border_size;
+		style.Alpha             = alpha;
+		style.WindowPadding     = ImVec2(padding, padding);
+		style.FramePadding      = ImVec2(padding, 6.0f);
+		style.CellPadding       = ImVec2(padding, spacing);
+		style.ItemSpacing       = ImVec2(spacing, spacing);
+		style.WindowRounding    = rounding;
+		style.ChildRounding     = rounding;
+		style.PopupRounding     = rounding;
+		style.FrameRounding     = rounding;
+		style.ScrollbarRounding = rounding;
+		style.GrabRounding      = rounding;
+		style.TabRounding       = rounding;
+		style.WindowBorderSize  = border_size;
 		style.ChildBorderSize   = 0.0f;
-		style.PopupBorderSize   = value.border_size;
+		style.PopupBorderSize   = border_size;
 		style.FrameBorderSize   = 0.0f;
 		style.TabBorderSize     = 0.0f;
 		style.AntiAliasedLines  = true;
@@ -43,35 +53,35 @@ namespace Trinex::UI
 		ImVec4* imgui_colors                     = style.Colors;
 		imgui_colors[ImGuiCol_Text]              = to_imvec(text);
 		imgui_colors[ImGuiCol_TextDisabled]      = to_imvec(text_disabled);
-		imgui_colors[ImGuiCol_WindowBg]          = to_imvec(colors.background);
+		imgui_colors[ImGuiCol_WindowBg]          = to_imvec(background);
 		imgui_colors[ImGuiCol_ChildBg]           = ImVec4(0, 0, 0, 0);
-		imgui_colors[ImGuiCol_PopupBg]           = to_imvec(colors.panel);
+		imgui_colors[ImGuiCol_PopupBg]           = to_imvec(panel);
 		imgui_colors[ImGuiCol_Border]            = to_imvec(border);
 		imgui_colors[ImGuiCol_BorderShadow]      = ImVec4(0, 0, 0, 0);
-		imgui_colors[ImGuiCol_FrameBg]           = to_imvec(colors.background);
-		imgui_colors[ImGuiCol_FrameBgHovered]    = to_imvec(colors.background_hovered);
-		imgui_colors[ImGuiCol_FrameBgActive]     = to_imvec(colors.background_active);
-		imgui_colors[ImGuiCol_TitleBg]           = to_imvec(Math::lerp(colors.background_active, colors.accent_active, 0.35f));
-		imgui_colors[ImGuiCol_TitleBgActive]     = to_imvec(Math::lerp(colors.background_active, colors.accent, 0.24f));
+		imgui_colors[ImGuiCol_FrameBg]           = to_imvec(background);
+		imgui_colors[ImGuiCol_FrameBgHovered]    = to_imvec(background_hovered);
+		imgui_colors[ImGuiCol_FrameBgActive]     = to_imvec(background_active);
+		imgui_colors[ImGuiCol_TitleBg]           = to_imvec(Math::lerp(background_active, colors.accent_active, 0.35f));
+		imgui_colors[ImGuiCol_TitleBgActive]     = to_imvec(Math::lerp(background_active, accent, 0.24f));
 		imgui_colors[ImGuiCol_TitleBgCollapsed]  = imgui_colors[ImGuiCol_TitleBg];
-		imgui_colors[ImGuiCol_MenuBarBg]         = to_imvec(colors.panel);
-		imgui_colors[ImGuiCol_CheckMark]         = to_imvec(colors.accent);
-		imgui_colors[ImGuiCol_SliderGrab]        = to_imvec(colors.accent);
+		imgui_colors[ImGuiCol_MenuBarBg]         = to_imvec(panel);
+		imgui_colors[ImGuiCol_CheckMark]         = to_imvec(accent);
+		imgui_colors[ImGuiCol_SliderGrab]        = to_imvec(accent);
 		imgui_colors[ImGuiCol_SliderGrabActive]  = to_imvec(colors.accent_active);
 		imgui_colors[ImGuiCol_Button]            = ImVec4(0, 0, 0, 0);
 		imgui_colors[ImGuiCol_ButtonHovered]     = to_imvec(with_alpha(colors.accent_hovered, 0.24f));
 		imgui_colors[ImGuiCol_ButtonActive]      = to_imvec(with_alpha(colors.accent_active, 0.30f));
-		imgui_colors[ImGuiCol_Header]            = to_imvec(with_alpha(colors.accent, 0.16f));
+		imgui_colors[ImGuiCol_Header]            = to_imvec(with_alpha(accent, 0.16f));
 		imgui_colors[ImGuiCol_HeaderHovered]     = to_imvec(with_alpha(colors.accent_hovered, 0.24f));
 		imgui_colors[ImGuiCol_HeaderActive]      = to_imvec(with_alpha(colors.accent_active, 0.30f));
 		imgui_colors[ImGuiCol_Separator]         = to_imvec(border);
-		imgui_colors[ImGuiCol_TableHeaderBg]     = to_imvec(colors.background_active);
+		imgui_colors[ImGuiCol_TableHeaderBg]     = to_imvec(background_active);
 		imgui_colors[ImGuiCol_TableBorderStrong] = to_imvec(border);
 		imgui_colors[ImGuiCol_TableBorderLight]  = to_imvec(with_alpha(border, 0.55f));
-		imgui_colors[ImGuiCol_TableRowBg]        = to_imvec(with_alpha(colors.panel, 0.30f));
-		imgui_colors[ImGuiCol_TableRowBgAlt]     = to_imvec(with_alpha(colors.background_hovered, 0.38f));
-		imgui_colors[ImGuiCol_TextSelectedBg]    = to_imvec(with_alpha(colors.accent, 0.35f));
-		imgui_colors[ImGuiCol_NavCursor]         = to_imvec(colors.accent);
+		imgui_colors[ImGuiCol_TableRowBg]        = to_imvec(with_alpha(panel, 0.30f));
+		imgui_colors[ImGuiCol_TableRowBgAlt]     = to_imvec(with_alpha(background_hovered, 0.38f));
+		imgui_colors[ImGuiCol_TextSelectedBg]    = to_imvec(with_alpha(accent, 0.35f));
+		imgui_colors[ImGuiCol_NavCursor]         = to_imvec(accent);
 	}
 
 	/////////////////////// LIFECYCLE AND FRAME ///////////////////////
@@ -94,7 +104,7 @@ namespace Trinex::UI
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 		io.IniFilename = nullptr;
 		io.LogFilename = nullptr;
-		apply_imgui_style(ctx->style);
+		//apply_imgui_style(ctx->style);
 
 		// Begin window hook
 		{
@@ -236,19 +246,19 @@ namespace Trinex::UI
 				const ImVec2 min(max.x - width, animated_y - height);
 				const Vec4 accent = notification_color(it->kind);
 
-				draw->AddRectFilled(min, max, col_u32(active_context()->style.colors.panel, alpha * 0.96f),
-				                    active_context()->style.rounding);
-				draw->AddRect(min, max, col_u32(border_color(), alpha), active_context()->style.rounding);
-				draw->AddRectFilled(min, ImVec2(min.x + 4.0f, max.y), col_u32(accent, alpha), active_context()->style.rounding,
+				draw->AddRectFilled(min, max, col_u32(panel_color(), alpha * 0.96f),
+				                    imgui_window_rounding());
+				draw->AddRect(min, max, col_u32(imgui_color(ImGuiCol_Border), alpha), imgui_window_rounding());
+				draw->AddRectFilled(min, ImVec2(min.x + 4.0f, max.y), col_u32(accent, alpha), imgui_window_rounding(),
 				                    ImDrawFlags_RoundCornersLeft);
 				float tx = min.x + 16.0f;
 				float ty = min.y + 12.0f;
 				if (!it->title.empty())
 				{
-					draw->AddText(ImVec2(tx, ty), col_u32(text_color(), alpha), it->title.c_str());
+					draw->AddText(ImVec2(tx, ty), col_u32(imgui_color(ImGuiCol_Text), alpha), it->title.c_str());
 					ty += ImGui::GetTextLineHeight() + 5.0f;
 				}
-				draw->AddText(ImVec2(tx, ty), col_u32(active_context()->style.colors.text_muted, alpha), it->message.c_str());
+				draw->AddText(ImVec2(tx, ty), col_u32(text_muted_color(), alpha), it->message.c_str());
 				if (!it->action_label.empty())
 				{
 					const ImVec2 button_size(ImGui::CalcTextSize(it->action_label.c_str()).x + 18.0f, 22.0f);
@@ -257,10 +267,10 @@ namespace Trinex::UI
 					const bool hovered      = ImGui::IsMouseHoveringRect(button_min, button_max);
 					draw->AddRectFilled(button_min, button_max,
 					                    col_u32(hovered ? active_context()->style.colors.accent_hovered
-					                                    : active_context()->style.colors.accent,
+					                                    : accent_color(),
 					                            alpha),
 					                    5.0f);
-					draw->AddText(ImVec2(button_min.x + 9.0f, button_min.y + 3.0f), col_u32(text_color(), alpha),
+					draw->AddText(ImVec2(button_min.x + 9.0f, button_min.y + 3.0f), col_u32(imgui_color(ImGuiCol_Text), alpha),
 					              it->action_label.c_str());
 
 					if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
@@ -510,7 +520,7 @@ namespace Trinex::UI
 			ImDrawList* list        = resolve_draw_list(draw_list, window, viewport);
 			if (list != nullptr)
 			{
-				const float base_rounding = options.rounding >= 0.0f ? options.rounding : active_context()->style.rounding;
+				const float base_rounding = options.rounding >= 0.0f ? options.rounding : imgui_window_rounding();
 				list->AddRectFilled(to_imvec(area_min), to_imvec(area_max), col_u32(options.tint),
 				                    Math::max(0.0f, base_rounding + spread));
 			}

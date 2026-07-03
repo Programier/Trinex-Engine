@@ -89,22 +89,22 @@ namespace Trinex::UI
 
 	bool begin_panel(StringView id, const PanelOptions& options)
 	{
-		const Vec4 bg = has_color(options.background_color) ? options.background_color : active_context()->style.colors.panel;
-		const float rounding = options.rounding >= 0.0f ? options.rounding : active_context()->style.rounding;
+		const Vec4 bg     = has_color(options.background_color) ? options.background_color : panel_color();
+		const Vec4 border = has_color(options.border_color) ? options.border_color : imgui_color(ImGuiCol_Border);
+		const float rounding  = options.rounding >= 0.0f ? options.rounding : imgui_child_rounding();
+		ImGuiChildFlags flags = static_cast<ImGuiChildFlags>(options.flags);
+		flags |= ImGuiChildFlags_AlwaysUseWindowPadding;
+		flags &= ~ImGuiChildFlags_Borders;
+		flags &= ~ImGuiChildFlags_FrameStyle;
 		ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, rounding);
-		ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,
-		                    ImVec2(active_context()->style.padding, active_context()->style.padding));
-		ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
-		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(imgui_window_padding(), imgui_window_padding()));
 		String id_storage(id);
-		const bool visible = ImGui::BeginChild(id_storage.c_str(), to_imvec(resolve(options.size)),
-		                                       options.flags | ImGuiChildFlags_AlwaysUseWindowPadding, options.window_flags);
+		const bool visible = ImGui::BeginChild(id_storage.c_str(), to_imvec(resolve(options.size)), flags,
+		                                       to_imgui_window_flags(options.window_flags | WindowFlags::NoBackground));
 		if (!visible)
 		{
 			ImGui::EndChild();
-			ImGui::PopStyleColor(2);
-			ImGui::PopStyleVar(3);
+			ImGui::PopStyleVar(2);
 			return false;
 		}
 
@@ -113,7 +113,7 @@ namespace Trinex::UI
 		context.background       = options.background;
 		context.rounding         = rounding;
 		context.background_color = bg;
-		context.border_color     = border_color();
+		context.border_color     = border;
 		context.draw_shadow      = options.background && shadow_visible(current_shadow());
 		active_context()->panel_stack.push_back(context);
 		ImGui::GetWindowDrawList()->ChannelsSplit(2);
@@ -148,14 +148,13 @@ namespace Trinex::UI
 		}
 		if (context.border)
 		{
-			draw->AddRect(min, max, col_u32(context.border_color), context.rounding, 0, active_context()->style.border_size);
+			draw->AddRect(min, max, col_u32(context.border_color), context.rounding, 0, imgui_border_size());
 		}
 		draw->ChannelsSetCurrent(1);
 		draw->ChannelsMerge();
 
 		ImGui::EndChild();
-		ImGui::PopStyleColor(2);
-		ImGui::PopStyleVar(3);
+		ImGui::PopStyleVar(2);
 	}
 
 	bool begin_group_panel(StringView label, const PanelOptions& options)
@@ -204,12 +203,12 @@ namespace Trinex::UI
 			ImGui::PushID(ImGui::GetID("card_scope"));
 		}
 
-		const float rounding = options.rounding >= 0.0f ? options.rounding : active_context()->style.rounding;
-		const float padding  = options.padding >= 0.0f ? options.padding : active_context()->style.padding;
-		const float spacing  = options.spacing >= 0.0f ? options.spacing : active_context()->style.spacing;
-		const Vec4 accent    = has_color(options.accent) ? options.accent : active_context()->style.colors.accent;
-		const Vec4 bg     = has_color(options.background_color) ? options.background_color : active_context()->style.colors.panel;
-		const Vec4 border = has_color(options.border_color) ? options.border_color : border_color();
+		const float rounding = options.rounding >= 0.0f ? options.rounding : imgui_child_rounding();
+		const float padding  = options.padding >= 0.0f ? options.padding : imgui_window_padding();
+		const float spacing  = options.spacing >= 0.0f ? options.spacing : imgui_item_spacing();
+		const Vec4 accent    = has_color(options.accent) ? options.accent : accent_color();
+		const Vec4 bg     = has_color(options.background_color) ? options.background_color : panel_color();
+		const Vec4 border = has_color(options.border_color) ? options.border_color : imgui_color(ImGuiCol_Border);
 
 		Vec2 size = resolve(options.size);
 		if (size.x <= 0.0f)
@@ -226,14 +225,11 @@ namespace Trinex::UI
 		ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, rounding);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(padding, padding));
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(spacing, spacing));
-		ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
-		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
 
-		const bool visible = ImGui::BeginChild("##card", to_imvec(size), child_flags, ImGuiWindowFlags_None);
+		const bool visible = ImGui::BeginChild("##card", to_imvec(size), child_flags, ImGuiWindowFlags_NoBackground);
 		if (!visible)
 		{
 			ImGui::EndChild();
-			ImGui::PopStyleColor(2);
 			ImGui::PopStyleVar(3);
 			ImGui::PopID();
 			return false;
@@ -288,7 +284,7 @@ namespace Trinex::UI
 		Vec4 background    = context.background ? context.background_color : Vec4(0, 0, 0, 0);
 		if (context.background)
 		{
-			background = Math::lerp(background, active_context()->style.colors.background_hovered, anim.hover * 0.40f);
+			background = Math::lerp(background, background_hovered_color(), anim.hover * 0.40f);
 			background = Math::lerp(background, with_alpha(accent, 1.0f), anim.selected * 0.12f);
 		}
 		border_target = Math::lerp(border_target, accent, anim.hover * 0.30f);
@@ -312,7 +308,7 @@ namespace Trinex::UI
 		if (context.border)
 		{
 			const float alpha = context.selected ? 1.0f : Math::lerp(0.85f, 1.0f, anim.hover * 0.65f);
-			draw->AddRect(min, max, col_u32(border_target, alpha), context.rounding, 0, active_context()->style.border_size);
+			draw->AddRect(min, max, col_u32(border_target, alpha), context.rounding, 0, imgui_border_size());
 		}
 		draw->ChannelsSetCurrent(1);
 		draw->ChannelsMerge();
@@ -323,7 +319,6 @@ namespace Trinex::UI
 		}
 
 		ImGui::EndChild();
-		ImGui::PopStyleColor(2);
 		ImGui::PopStyleVar(3);
 		ImGui::PopID();
 	}
@@ -342,12 +337,12 @@ namespace Trinex::UI
 
 		const ImGuiID id     = ImGui::GetID("card_button");
 		AnimState& anim      = state_for(id);
-		const float rounding = options.rounding >= 0.0f ? options.rounding : active_context()->style.rounding;
-		const float padding  = options.padding >= 0.0f ? options.padding : active_context()->style.padding;
-		const float spacing  = options.spacing >= 0.0f ? options.spacing : active_context()->style.spacing;
-		const Vec4 accent    = has_color(options.accent) ? options.accent : active_context()->style.colors.accent;
-		Vec4 bg     = has_color(options.background_color) ? options.background_color : active_context()->style.colors.panel;
-		Vec4 border = has_color(options.border_color) ? options.border_color : border_color();
+		const float rounding = options.rounding >= 0.0f ? options.rounding : imgui_child_rounding();
+		const float padding  = options.padding >= 0.0f ? options.padding : imgui_window_padding();
+		const float spacing  = options.spacing >= 0.0f ? options.spacing : imgui_item_spacing();
+		const Vec4 accent    = has_color(options.accent) ? options.accent : accent_color();
+		Vec4 bg     = has_color(options.background_color) ? options.background_color : panel_color();
+		Vec4 border = has_color(options.border_color) ? options.border_color : imgui_color(ImGuiCol_Border);
 
 		Vec2 size = resolve(options.size);
 		if (size.x <= 0.0f)
@@ -356,7 +351,7 @@ namespace Trinex::UI
 		}
 		if (size.y <= 0.0f)
 		{
-			size.y = padding * 2.0f + active_context()->style.frame_height;
+			size.y = padding * 2.0f + imgui_frame_height();
 		}
 
 		const ImVec2 pos = ImGui::GetCursorScreenPos();
@@ -394,8 +389,8 @@ namespace Trinex::UI
 
 		if (options.background)
 		{
-			bg = Math::lerp(bg, active_context()->style.colors.background_hovered, anim.hover * 0.40f);
-			bg = Math::lerp(bg, active_context()->style.colors.background_active, anim.active * 0.38f);
+			bg = Math::lerp(bg, background_hovered_color(), anim.hover * 0.40f);
+			bg = Math::lerp(bg, background_active_color(), anim.active * 0.38f);
 			bg = Math::lerp(bg, with_alpha(accent, 1.0f), anim.selected * 0.12f);
 		}
 		border = Math::lerp(border, accent, anim.hover * 0.30f + anim.selected * 0.55f + anim.active * 0.20f);
@@ -431,7 +426,7 @@ namespace Trinex::UI
 		{
 			const float alpha = options.selected ? 1.0f : Math::lerp(0.85f, 1.0f, anim.hover * 0.65f);
 			draw->AddRect(rect.min, rect.max, col_u32(border, alpha * (options.disabled ? 0.7f : 1.0f)),
-			              rounding * rect.rounding_scale, 0, active_context()->style.border_size);
+			              rounding * rect.rounding_scale, 0, imgui_border_size());
 		}
 
 		if (press_scaled)
@@ -515,7 +510,7 @@ namespace Trinex::UI
 	void separator()
 	{
 		ImGui::Spacing();
-		ImGui::PushStyleColor(ImGuiCol_Separator, to_imvec(border_color()));
+		ImGui::PushStyleColor(ImGuiCol_Separator, to_imvec(imgui_color(ImGuiCol_Border)));
 		ImGui::Separator();
 		ImGui::PopStyleColor();
 		ImGui::Spacing();
@@ -566,24 +561,11 @@ namespace Trinex::UI
 	{
 		ImGui::BeginDisabled(disabled);
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * (disabled ? 0.55f : 1.0f));
-		active_context()->disabled_alpha_stack.push_back(active_context()->draw_alpha);
-
-		if (disabled)
-		{
-			active_context()->draw_alpha *= 0.55f;
-		}
 		return true;
 	}
 
 	void end_disabled()
 	{
-		auto& stack = active_context()->disabled_alpha_stack;
-
-		if (!stack.empty())
-		{
-			active_context()->draw_alpha = stack.back();
-			stack.pop_back();
-		}
 		ImGui::PopStyleVar();
 		ImGui::EndDisabled();
 	}
@@ -611,11 +593,9 @@ namespace Trinex::UI
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * eased);
 
 		area_context context;
-		context.id                  = id;
-		context.content_start       = start;
-		context.previous_draw_alpha = active_context()->draw_alpha;
+		context.id            = id;
+		context.content_start = start;
 		active_context()->area_stack.push_back(context);
-		active_context()->draw_alpha *= eased;
 		return true;
 	}
 
@@ -640,7 +620,6 @@ namespace Trinex::UI
 		}
 
 		const float visible_height   = Math::max(anim.extra, measured_height) * apply_ease(anim.open, Ease::InOutQuad);
-		active_context()->draw_alpha = context.previous_draw_alpha;
 		ImGui::PopStyleVar();
 		ImGui::PopClipRect();
 		ImGui::SetCursorScreenPos(ImVec2(context.content_start.x, context.content_start.y + visible_height));
@@ -1023,7 +1002,7 @@ namespace Trinex::UI
 	{
 		va_list args;
 		va_start(args, fmt);
-		text_v(text_color(), fmt, args);
+		text_v(imgui_color(ImGuiCol_Text), fmt, args);
 		va_end(args);
 	}
 
@@ -1031,7 +1010,7 @@ namespace Trinex::UI
 	{
 		va_list args;
 		va_start(args, fmt);
-		text_v(active_context()->style.colors.text_muted, fmt, args);
+		text_v(text_muted_color(), fmt, args);
 		va_end(args);
 	}
 
@@ -1044,11 +1023,9 @@ namespace Trinex::UI
 		String format(fmt);
 		std::vsnprintf(buffer, sizeof(buffer), format.c_str(), args);
 
-		ImGui::PushStyleColor(ImGuiCol_Text, to_imvec(text_color()));
 		ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + Math::max(1.0f, ImGui::GetContentRegionAvail().x));
 		ImGui::TextUnformatted(buffer);
 		ImGui::PopTextWrapPos();
-		ImGui::PopStyleColor();
 
 		va_end(args);
 	}
