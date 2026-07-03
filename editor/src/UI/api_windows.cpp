@@ -113,7 +113,7 @@ namespace Trinex::UI
 		context.background       = options.background;
 		context.rounding         = rounding;
 		context.background_color = bg;
-		context.border_color     = active_context()->style.colors.border;
+		context.border_color     = border_color();
 		context.draw_shadow      = options.background && shadow_visible(current_shadow());
 		active_context()->panel_stack.push_back(context);
 		ImGui::GetWindowDrawList()->ChannelsSplit(2);
@@ -209,7 +209,7 @@ namespace Trinex::UI
 		const float spacing  = options.spacing >= 0.0f ? options.spacing : active_context()->style.spacing;
 		const Vec4 accent    = has_color(options.accent) ? options.accent : active_context()->style.colors.accent;
 		const Vec4 bg     = has_color(options.background_color) ? options.background_color : active_context()->style.colors.panel;
-		const Vec4 border = has_color(options.border_color) ? options.border_color : active_context()->style.colors.border;
+		const Vec4 border = has_color(options.border_color) ? options.border_color : border_color();
 
 		Vec2 size = resolve(options.size);
 		if (size.x <= 0.0f)
@@ -347,7 +347,7 @@ namespace Trinex::UI
 		const float spacing  = options.spacing >= 0.0f ? options.spacing : active_context()->style.spacing;
 		const Vec4 accent    = has_color(options.accent) ? options.accent : active_context()->style.colors.accent;
 		Vec4 bg     = has_color(options.background_color) ? options.background_color : active_context()->style.colors.panel;
-		Vec4 border = has_color(options.border_color) ? options.border_color : active_context()->style.colors.border;
+		Vec4 border = has_color(options.border_color) ? options.border_color : border_color();
 
 		Vec2 size = resolve(options.size);
 		if (size.x <= 0.0f)
@@ -515,7 +515,7 @@ namespace Trinex::UI
 	void separator()
 	{
 		ImGui::Spacing();
-		ImGui::PushStyleColor(ImGuiCol_Separator, to_imvec(active_context()->style.colors.border));
+		ImGui::PushStyleColor(ImGuiCol_Separator, to_imvec(border_color()));
 		ImGui::Separator();
 		ImGui::PopStyleColor();
 		ImGui::Spacing();
@@ -1023,7 +1023,7 @@ namespace Trinex::UI
 	{
 		va_list args;
 		va_start(args, fmt);
-		text_v(active_context()->style.colors.text, fmt, args);
+		text_v(text_color(), fmt, args);
 		va_end(args);
 	}
 
@@ -1044,7 +1044,7 @@ namespace Trinex::UI
 		String format(fmt);
 		std::vsnprintf(buffer, sizeof(buffer), format.c_str(), args);
 
-		ImGui::PushStyleColor(ImGuiCol_Text, to_imvec(active_context()->style.colors.text));
+		ImGui::PushStyleColor(ImGuiCol_Text, to_imvec(text_color()));
 		ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + Math::max(1.0f, ImGui::GetContentRegionAvail().x));
 		ImGui::TextUnformatted(buffer);
 		ImGui::PopTextWrapPos();

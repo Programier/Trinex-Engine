@@ -669,8 +669,7 @@ namespace Trinex::UI
 
 	void push_input_frame_styles(float focus)
 	{
-		ImGui::PushStyleColor(ImGuiCol_Border, to_imvec(Math::lerp(active_context()->style.colors.border,
-		                                                           active_context()->style.colors.accent, focus)));
+		ImGui::PushStyleColor(ImGuiCol_Border, to_imvec(Math::lerp(border_color(), active_context()->style.colors.accent, focus)));
 	}
 
 	ImVec2 default_item_size(StringView label, ImVec2 requested, float min_width)
@@ -759,8 +758,7 @@ namespace Trinex::UI
 			x += imgui_calc_text_size(icon).x + 7.0f;
 		}
 
-		const Vec4 text_col = disabled ? active_context()->style.colors.text_disabled
-		                               : Math::lerp(active_context()->style.colors.text, sel, anim.selected * 0.35f);
+		const Vec4 text_col = disabled ? text_disabled_color() : Math::lerp(text_color(), sel, anim.selected * 0.35f);
 		draw_list_add_text(draw, ImVec2(x, pos.y + (size.y - ImGui::GetTextLineHeight()) * 0.5f), col_u32(text_col),
 		                   visible_label(label));
 		if (has_text(right_text))
@@ -823,7 +821,7 @@ namespace Trinex::UI
 		const ImVec2 min(window_pos.x, y);
 		const ImVec2 max(window_pos.x + ImGui::GetWindowWidth(), y + ImGui::GetFrameHeight());
 		draw->AddRectFilled(min, max, col_u32(active_context()->style.colors.panel), 0.0f);
-		draw->AddLine(ImVec2(min.x, max.y), max, col_u32(active_context()->style.colors.border));
+		draw->AddLine(ImVec2(min.x, max.y), max, col_u32(border_color()));
 	}
 
 	void push_window_styles(bool modal)

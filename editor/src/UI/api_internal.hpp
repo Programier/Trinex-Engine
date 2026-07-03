@@ -15,14 +15,11 @@ namespace Trinex::UI
 	using ContextStack = Stack<4096>;
 
 	struct ColorTheme {
-		Vec4 text               = Vec4(0.92f, 0.94f, 0.96f, 1.00f);
 		Vec4 text_muted         = Vec4(0.58f, 0.63f, 0.70f, 1.00f);
-		Vec4 text_disabled      = Vec4(0.38f, 0.42f, 0.48f, 1.00f);
 		Vec4 background         = Vec4(0.08f, 0.10f, 0.13f, 1.00f);
 		Vec4 background_hovered = Vec4(0.13f, 0.16f, 0.21f, 1.00f);
 		Vec4 background_active  = Vec4(0.17f, 0.21f, 0.28f, 1.00f);
 		Vec4 panel              = Vec4(0.10f, 0.12f, 0.16f, 1.00f);
-		Vec4 border             = Vec4(0.24f, 0.29f, 0.36f, 1.00f);
 		Vec4 accent             = Vec4(0.28f, 0.62f, 0.95f, 1.00f);
 		Vec4 accent_hovered     = Vec4(0.36f, 0.70f, 1.00f, 1.00f);
 		Vec4 accent_active      = Vec4(0.18f, 0.47f, 0.82f, 1.00f);
@@ -333,6 +330,26 @@ namespace Trinex::UI
 	inline Vec4 to_vec(const ImVec4& v)
 	{
 		return Vec4(v.x, v.y, v.z, v.w);
+	}
+
+	inline Vec4 imgui_color(ImGuiCol index)
+	{
+		return to_vec(ImGui::GetStyleColorVec4(index));
+	}
+
+	inline Vec4 text_color()
+	{
+		return imgui_color(ImGuiCol_Text);
+	}
+
+	inline Vec4 text_disabled_color()
+	{
+		return imgui_color(ImGuiCol_TextDisabled);
+	}
+
+	inline Vec4 border_color()
+	{
+		return imgui_color(ImGuiCol_Border);
 	}
 
 	inline ImGuiID to_imgui_id(ID value)

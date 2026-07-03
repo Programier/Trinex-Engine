@@ -730,7 +730,7 @@ namespace Trinex::UI
 			const ImVec2 title_size = ImGui::CalcTextSize(empty_title);
 			const ImVec2 desc_size  = ImGui::CalcTextSize(empty_desc);
 			ImDrawList* draw        = ImGui::GetWindowDrawList();
-			draw->AddText(ImVec2(center.x - title_size.x * 0.5f, center.y - 12.0f), col_u32(active_context()->style.colors.text),
+			draw->AddText(ImVec2(center.x - title_size.x * 0.5f, center.y - 12.0f), col_u32(text_color()),
 			              empty_title);
 			draw->AddText(ImVec2(center.x - desc_size.x * 0.5f, center.y + 10.0f),
 			              col_u32(active_context()->style.colors.text_muted), empty_desc);
@@ -805,7 +805,7 @@ namespace Trinex::UI
 					        command.icon.c_str());
 				}
 				draw->AddText(ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(text_x, text_y),
-				              col_u32(active_context()->style.colors.text, alpha_mul), command.name.c_str(), nullptr, wrap_w);
+				              col_u32(text_color(), alpha_mul), command.name.c_str(), nullptr, wrap_w);
 				if (has_desc)
 				{
 					draw->AddText(ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(text_x, text_y + 18.0f),
@@ -1211,7 +1211,7 @@ namespace Trinex::UI
 		const float strip_size = 4.0f;
 		const Vec4 accent      = color_for_notification_kind(kind);
 		const Vec4 background  = mix_color(active_context()->style.colors.panel, accent, 0.08f);
-		const Vec4 border      = mix_color(active_context()->style.colors.border, accent, 0.35f);
+		const Vec4 border      = mix_color(border_color(), accent, 0.35f);
 		const StringView icon  = icon_for_notification_kind(kind);
 
 		const ImVec2 pos      = ImGui::GetCursorScreenPos();
@@ -1243,7 +1243,7 @@ namespace Trinex::UI
 		if (has_text(title_text))
 		{
 			draw_list_add_text(draw, ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(text_x, pos.y + padding),
-			                   col_u32(active_context()->style.colors.text), title_text, wrap_w);
+			                   col_u32(text_color()), title_text, wrap_w);
 		}
 		if (has_text(message_text))
 		{
@@ -1268,7 +1268,7 @@ namespace Trinex::UI
 		const float strip_size = 5.0f;
 		const Vec4 accent      = has_color(accent_color) ? accent_color : active_context()->style.colors.accent;
 		const Vec4 background  = mix_color(active_context()->style.colors.panel, accent, 0.10f);
-		const Vec4 border      = mix_color(active_context()->style.colors.border, accent, 0.45f);
+		const Vec4 border      = mix_color(border_color(), accent, 0.45f);
 
 		const ImVec2 pos      = ImGui::GetCursorScreenPos();
 		const float width     = Math::max(1.0f, ImGui::GetContentRegionAvail().x);
@@ -1290,7 +1290,7 @@ namespace Trinex::UI
 		if (has_text(title_text))
 		{
 			draw_list_add_text(draw, ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(text_x, pos.y + padding),
-			                   col_u32(active_context()->style.colors.text), title_text, wrap_w);
+			                   col_u32(text_color()), title_text, wrap_w);
 		}
 		if (has_text(message_text))
 		{
@@ -1315,7 +1315,7 @@ namespace Trinex::UI
 		const float spacing       = options.spacing >= 0.0f ? options.spacing : active_context()->style.spacing;
 		const Vec4 accent         = has_color(options.accent) ? options.accent : active_context()->style.colors.accent;
 		const Vec4 background     = mix_color(active_context()->style.colors.panel, accent, 0.04f);
-		const Vec4 border         = mix_color(active_context()->style.colors.border, accent, 0.25f);
+		const Vec4 border         = mix_color(border_color(), accent, 0.25f);
 		const float alpha_mul     = options.disabled ? 0.55f : 1.0f;
 		const ImVec2 pos          = ImGui::GetCursorScreenPos();
 		const Vec2 resolved_size  = resolve(options.size);
@@ -1405,7 +1405,7 @@ namespace Trinex::UI
 		if (has_text(title_text))
 		{
 			draw_list_add_text(draw, ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(block_x(title_sz.x), y),
-			                   col_u32(active_context()->style.colors.text, alpha_mul), title_text, content_width);
+			                   col_u32(text_color(), alpha_mul), title_text, content_width);
 			y += title_sz.y + spacing;
 		}
 		if (has_text(description_text))
@@ -1461,7 +1461,7 @@ namespace Trinex::UI
 		draw_list_add_text(draw, ImVec2(center.x - icon_size.x * 0.5f, center.y - 34.0f),
 		                   col_u32(active_context()->style.colors.text_muted), icon);
 		draw_list_add_text(draw, ImVec2(center.x - title_size.x * 0.5f, center.y - 6.0f),
-		                   col_u32(active_context()->style.colors.text), title);
+		                   col_u32(text_color()), title);
 		draw_list_add_text(draw, ImVec2(center.x - desc_size.x * 0.5f, center.y + 18.0f),
 		                   col_u32(active_context()->style.colors.text_muted), description);
 		ImGui::Dummy(ImVec2(avail.x, 140.0f));
@@ -1486,7 +1486,7 @@ namespace Trinex::UI
 		draw->AddRect(pos, add(pos, size), col_u32(active_context()->style.colors.error, 0.7f), active_context()->style.rounding);
 		draw_list_add_text(draw, ImVec2(pos.x + 14.0f, pos.y + 10.0f), col_u32(active_context()->style.colors.error),
 		                   has_text(title) ? title : StringView("Error"));
-		draw_list_add_text(draw, ImVec2(pos.x + 14.0f, pos.y + 34.0f), col_u32(active_context()->style.colors.text),
+		draw_list_add_text(draw, ImVec2(pos.x + 14.0f, pos.y + 34.0f), col_u32(text_color()),
 		                   has_text(message) ? message : StringView());
 		ImGui::Dummy(size);
 	}

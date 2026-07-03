@@ -30,7 +30,7 @@ namespace Trinex::UI
 		const float image_rounding = Math::max(0.0f, rounding - padding * 0.5f);
 
 		Vec4 frame_bg     = has_color(options.background_color) ? options.background_color : active_context()->style.colors.panel;
-		Vec4 frame_border = has_color(options.border_color) ? options.border_color : active_context()->style.colors.border;
+		Vec4 frame_border = has_color(options.border_color) ? options.border_color : border_color();
 
 		if ((options.background || options.border) && current_shadow())
 		{
@@ -91,7 +91,7 @@ namespace Trinex::UI
 
 		const Vec4 accent = has_color(options.accent) ? options.accent : active_context()->style.colors.accent;
 		Vec4 frame_bg     = has_color(options.background_color) ? options.background_color : active_context()->style.colors.panel;
-		Vec4 frame_border = has_color(options.border_color) ? options.border_color : active_context()->style.colors.border;
+		Vec4 frame_border = has_color(options.border_color) ? options.border_color : border_color();
 		frame_bg          = Math::lerp(frame_bg, active_context()->style.colors.background_hovered, anim.hover * 0.55f);
 		frame_bg          = Math::lerp(frame_bg, active_context()->style.colors.background_active, anim.active * 0.65f);
 		frame_border      = Math::lerp(frame_border, accent, anim.hover * 0.7f + anim.active * 0.3f);
@@ -235,11 +235,10 @@ namespace Trinex::UI
 		}
 		draw->AddRect(
 		        rect.min, rect.max,
-		        col_u32(Math::lerp(active_context()->style.colors.border, accent, anim.hover), options.disabled ? 0.45f : 1.0f),
+		        col_u32(Math::lerp(border_color(), accent, anim.hover), options.disabled ? 0.45f : 1.0f),
 		        active_context()->style.rounding * rect.rounding_scale, 0, active_context()->style.border_size);
 
-		const Vec4 tc = options.disabled ? active_context()->style.colors.text_disabled
-		                                 : Math::lerp(active_context()->style.colors.text, Vec4(1, 1, 1, 1), anim.hover * 0.35f);
+		const Vec4 tc = options.disabled ? text_disabled_color() : Math::lerp(text_color(), Vec4(1, 1, 1, 1), anim.hover * 0.35f);
 		float x       = rect.center.x - content_size.x * 0.5f;
 		if (has_icon && icon_font != nullptr)
 		{
@@ -331,7 +330,7 @@ namespace Trinex::UI
 		        col_u32(Math::lerp(fill, active_context()->style.colors.background_hovered, anim.hover * (1.0f - anim.value))),
 		        active_context()->style.rounding * 0.55f);
 		draw->AddRect(box_pos, add(box_pos, ImVec2(box, box)),
-		              col_u32(Math::lerp(active_context()->style.colors.border, active_context()->style.colors.accent_hovered,
+		              col_u32(Math::lerp(border_color(), active_context()->style.colors.accent_hovered,
 		                                 anim.hover + anim.value)),
 		              active_context()->style.rounding * 0.55f, 0, active_context()->style.border_size);
 		if (anim.value > 0.02f)
@@ -339,12 +338,12 @@ namespace Trinex::UI
 			const float s  = apply_ease(anim.value, Ease::OutBack);
 			const ImVec2 c = add(box_pos, ImVec2(box * 0.5f, box * 0.5f));
 			draw->AddLine(ImVec2(c.x - 5.0f * s, c.y), ImVec2(c.x - 1.0f * s, c.y + 4.0f * s),
-			              col_u32(active_context()->style.colors.text, anim.value), 2.0f);
+			              col_u32(text_color(), anim.value), 2.0f);
 			draw->AddLine(ImVec2(c.x - 1.0f * s, c.y + 4.0f * s), ImVec2(c.x + 6.0f * s, c.y - 5.0f * s),
-			              col_u32(active_context()->style.colors.text, anim.value), 2.0f);
+			              col_u32(text_color(), anim.value), 2.0f);
 		}
 		draw_list_add_text(draw, ImVec2(pos.x + box + active_context()->style.spacing, pos.y + (size.y - ts.y) * 0.5f),
-		                   col_u32(active_context()->style.colors.text), visible_label(label));
+		                   col_u32(text_color()), visible_label(label));
 		ImGui::PopID();
 		return clicked;
 	}
@@ -378,9 +377,9 @@ namespace Trinex::UI
 		draw->AddRectFilled(p, add(p, track), col_u32(track_col), track.y * 0.5f);
 		const float knob_r = 9.0f + anim.hover;
 		const float knob_x = Math::lerp(p.x + track.y * 0.5f, p.x + track.x - track.y * 0.5f, toggle_t);
-		draw->AddCircleFilled(ImVec2(knob_x, p.y + track.y * 0.5f), knob_r, col_u32(active_context()->style.colors.text));
+		draw->AddCircleFilled(ImVec2(knob_x, p.y + track.y * 0.5f), knob_r, col_u32(text_color()));
 		draw_list_add_text(draw, ImVec2(pos.x + track.x + active_context()->style.spacing, pos.y + (size.y - ts.y) * 0.5f),
-		                   col_u32(active_context()->style.colors.text), visible_label(label));
+		                   col_u32(text_color()), visible_label(label));
 		ImGui::PopID();
 		return clicked;
 	}
@@ -422,7 +421,7 @@ namespace Trinex::UI
 		                                       active_context()->style.colors.accent_hovered, anim.hover)),
 		                    bar_h * 0.5f);
 		draw->AddCircleFilled(ImVec2(Math::lerp(bar_min.x, bar_max.x, anim.value), bar_min.y + bar_h * 0.5f),
-		                      6.0f + anim.active * 2.0f, col_u32(active_context()->style.colors.text));
+		                      6.0f + anim.active * 2.0f, col_u32(text_color()));
 		if (label_size.x > 0.0f && !visible_label(label).empty())
 		{
 			ImGui::SameLine();
@@ -766,11 +765,11 @@ namespace Trinex::UI
 		                              active_context()->style.colors.background_active, anim.active);
 		draw->AddRectFilled(pos, add(pos, frame_size), col_u32(bg), active_context()->style.rounding);
 		draw->AddRect(pos, add(pos, frame_size),
-		              col_u32(Math::lerp(active_context()->style.colors.border, active_context()->style.colors.accent, open_t)),
+		              col_u32(Math::lerp(border_color(), active_context()->style.colors.accent, open_t)),
 		              active_context()->style.rounding, 0, active_context()->style.border_size);
 		const ImVec2 preview_size = imgui_calc_text_size(preview_value);
 		draw_list_add_text(draw, ImVec2(pos.x + active_context()->style.padding, pos.y + (frame_size.y - preview_size.y) * 0.5f),
-		                   col_u32(active_context()->style.colors.text), preview_value);
+		                   col_u32(text_color()), preview_value);
 		draw_chevron(draw, ImVec2(pos.x + frame_size.x - 16.0f, pos.y + frame_size.y * 0.5f), 9.0f, open_t,
 		             col_u32(active_context()->style.colors.text_muted));
 
@@ -795,7 +794,7 @@ namespace Trinex::UI
 			ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, active_context()->style.rounding);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4.0f, 4.0f));
 			ImGui::PushStyleColor(ImGuiCol_ChildBg, to_imvec(active_context()->style.colors.panel));
-			ImGui::PushStyleColor(ImGuiCol_Border, to_imvec(active_context()->style.colors.border));
+			ImGui::PushStyleColor(ImGuiCol_Border, to_imvec(border_color()));
 			ImGui::BeginChild("##combo_panel", ImVec2(width, 160.0f), true);
 
 			if (active_context()->active_combo == id)
@@ -895,14 +894,14 @@ namespace Trinex::UI
 		ImDrawList* draw = ImGui::GetWindowDrawList();
 		const ImVec2 center(pos.x + diameter * 0.5f, pos.y + size.y * 0.5f);
 		draw->AddCircle(center, diameter * 0.5f,
-		                col_u32(Math::lerp(active_context()->style.colors.border, active_context()->style.colors.accent,
+		                col_u32(Math::lerp(border_color(), active_context()->style.colors.accent,
 		                                   anim.hover + anim.selected)),
 		                24, 2.0f);
 		draw->AddCircleFilled(center, diameter * 0.31f * apply_ease(anim.selected, Ease::OutBack),
 		                      col_u32(active_context()->style.colors.accent, anim.selected));
 		draw_list_add_text(draw,
 		                   ImVec2(pos.x + diameter + active_context()->style.spacing, pos.y + (size.y - text_size.y) * 0.5f),
-		                   col_u32(active_context()->style.colors.text), visible_label(label));
+		                   col_u32(text_color()), visible_label(label));
 		ImGui::PopID();
 		return clicked;
 	}
@@ -934,7 +933,7 @@ namespace Trinex::UI
 		ImDrawList* draw         = ImGui::GetWindowDrawList();
 		draw->AddRectFilled(start, add(start, ImVec2(width, height)), col_u32(active_context()->style.colors.background),
 		                    active_context()->style.rounding);
-		draw->AddRect(start, add(start, ImVec2(width, height)), col_u32(active_context()->style.colors.border),
+		draw->AddRect(start, add(start, ImVec2(width, height)), col_u32(border_color()),
 		              active_context()->style.rounding);
 
 		bool changed = false;
@@ -965,11 +964,11 @@ namespace Trinex::UI
 			if (i > 0)
 			{
 				draw->AddLine(ImVec2(min.x, min.y + 6.0f), ImVec2(min.x, max.y - 6.0f),
-				              col_u32(active_context()->style.colors.border));
+				              col_u32(border_color()));
 			}
 			const ImVec2 ts = ImGui::CalcTextSize(items[i]);
 			draw->AddText(ImVec2(min.x + (segment_w - ts.x) * 0.5f, min.y + (height - ts.y) * 0.5f),
-			              col_u32(active_context()->style.colors.text), items[i]);
+			              col_u32(text_color()), items[i]);
 			if (clicked && *current_item != i)
 			{
 				*current_item = i;
@@ -1008,7 +1007,7 @@ namespace Trinex::UI
 		{
 			const ImVec2 ts = imgui_calc_text_size(overlay);
 			draw_list_add_text(draw, ImVec2(pos.x + (size.x - ts.x) * 0.5f, pos.y + (size.y - ts.y) * 0.5f),
-			                   col_u32(active_context()->style.colors.text), overlay);
+			                   col_u32(text_color()), overlay);
 		}
 	}
 
@@ -1081,11 +1080,11 @@ namespace Trinex::UI
 		                    active_context()->style.rounding);
 		draw->AddRect(
 		        pos, add(pos, field_size),
-		        col_u32(Math::lerp(active_context()->style.colors.border, active_context()->style.colors.accent, anim.focus)),
+		        col_u32(Math::lerp(border_color(), active_context()->style.colors.accent, anim.focus)),
 		        active_context()->style.rounding, 0, active_context()->style.border_size);
 		const ImVec2 ts = ImGui::CalcTextSize(display.c_str());
 		draw->AddText(ImVec2(pos.x + active_context()->style.padding, pos.y + (field_size.y - ts.y) * 0.5f),
-		              col_u32(active_context()->style.colors.text), display.c_str());
+		              col_u32(text_color()), display.c_str());
 		(void) label_size;
 
 		bool changed = false;

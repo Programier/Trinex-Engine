@@ -280,13 +280,17 @@ namespace Trinex::UI
 		push_basic_style(0, 1);
 	}
 
-	void pop_style()
+	void pop_style(u32 count)
 	{
 		auto& stack = active_context()->stack;
 
-		if (auto cmd = *stack.pop<void (*)(ContextStack*)>())
+		while (count > 0)
 		{
-			cmd(&stack);
+			if (auto cmd = *stack.pop<void (*)(ContextStack*)>())
+			{
+				cmd(&stack);
+			}
+			--count;
 		}
 	}
 }// namespace Trinex::UI

@@ -14,8 +14,11 @@ namespace Trinex::UI
 
 	static void apply_imgui_style(const Style& value)
 	{
-		ImGuiStyle& style = ImGui::GetStyle();
-		ColorTheme colors = value.colors;
+		ImGuiStyle& style        = ImGui::GetStyle();
+		ColorTheme colors        = value.colors;
+		const Vec4 text          = Vec4(0.92f, 0.94f, 0.96f, 1.00f);
+		const Vec4 text_disabled = Vec4(0.38f, 0.42f, 0.48f, 1.00f);
+		const Vec4 border        = Vec4(0.24f, 0.29f, 0.36f, 1.00f);
 
 		style.Alpha             = value.alpha;
 		style.WindowPadding     = ImVec2(value.padding, value.padding);
@@ -38,12 +41,12 @@ namespace Trinex::UI
 		style.AntiAliasedFill   = true;
 
 		ImVec4* imgui_colors                     = style.Colors;
-		imgui_colors[ImGuiCol_Text]              = to_imvec(colors.text);
-		imgui_colors[ImGuiCol_TextDisabled]      = to_imvec(colors.text_disabled);
+		imgui_colors[ImGuiCol_Text]              = to_imvec(text);
+		imgui_colors[ImGuiCol_TextDisabled]      = to_imvec(text_disabled);
 		imgui_colors[ImGuiCol_WindowBg]          = to_imvec(colors.background);
 		imgui_colors[ImGuiCol_ChildBg]           = ImVec4(0, 0, 0, 0);
 		imgui_colors[ImGuiCol_PopupBg]           = to_imvec(colors.panel);
-		imgui_colors[ImGuiCol_Border]            = to_imvec(colors.border);
+		imgui_colors[ImGuiCol_Border]            = to_imvec(border);
 		imgui_colors[ImGuiCol_BorderShadow]      = ImVec4(0, 0, 0, 0);
 		imgui_colors[ImGuiCol_FrameBg]           = to_imvec(colors.background);
 		imgui_colors[ImGuiCol_FrameBgHovered]    = to_imvec(colors.background_hovered);
@@ -61,10 +64,10 @@ namespace Trinex::UI
 		imgui_colors[ImGuiCol_Header]            = to_imvec(with_alpha(colors.accent, 0.16f));
 		imgui_colors[ImGuiCol_HeaderHovered]     = to_imvec(with_alpha(colors.accent_hovered, 0.24f));
 		imgui_colors[ImGuiCol_HeaderActive]      = to_imvec(with_alpha(colors.accent_active, 0.30f));
-		imgui_colors[ImGuiCol_Separator]         = to_imvec(colors.border);
+		imgui_colors[ImGuiCol_Separator]         = to_imvec(border);
 		imgui_colors[ImGuiCol_TableHeaderBg]     = to_imvec(colors.background_active);
-		imgui_colors[ImGuiCol_TableBorderStrong] = to_imvec(colors.border);
-		imgui_colors[ImGuiCol_TableBorderLight]  = to_imvec(with_alpha(colors.border, 0.55f));
+		imgui_colors[ImGuiCol_TableBorderStrong] = to_imvec(border);
+		imgui_colors[ImGuiCol_TableBorderLight]  = to_imvec(with_alpha(border, 0.55f));
 		imgui_colors[ImGuiCol_TableRowBg]        = to_imvec(with_alpha(colors.panel, 0.30f));
 		imgui_colors[ImGuiCol_TableRowBgAlt]     = to_imvec(with_alpha(colors.background_hovered, 0.38f));
 		imgui_colors[ImGuiCol_TextSelectedBg]    = to_imvec(with_alpha(colors.accent, 0.35f));
@@ -142,6 +145,28 @@ namespace Trinex::UI
 		ImGui::NewFrame();
 		context->stack_memory_location = StackByteAllocator::location();
 
+		push_style(GlobalStyle{});
+		push_style(TextStyle{});
+		push_style(WindowStyle{});
+		push_style(ChildStyle{});
+		push_style(PopupStyle{});
+		push_style(LayoutStyle{});
+		push_style(FrameStyle{});
+		push_style(ButtonStyle{});
+		push_style(MarkStyle{});
+		push_style(HeaderStyle{});
+		push_style(ScrollbarStyle{});
+		push_style(GrabStyle{});
+		push_style(SeparatorStyle{});
+		push_style(TabStyle{});
+		push_style(TableStyle{});
+		push_style(PlotStyle{});
+		push_style(TreeStyle{});
+		push_style(DockingStyle{});
+		push_style(NavigationStyle{});
+		push_style(DragDropStyle{});
+		push_style(ImageStyle{});
+
 		return true;
 	}
 
@@ -213,14 +238,14 @@ namespace Trinex::UI
 
 				draw->AddRectFilled(min, max, col_u32(active_context()->style.colors.panel, alpha * 0.96f),
 				                    active_context()->style.rounding);
-				draw->AddRect(min, max, col_u32(active_context()->style.colors.border, alpha), active_context()->style.rounding);
+				draw->AddRect(min, max, col_u32(border_color(), alpha), active_context()->style.rounding);
 				draw->AddRectFilled(min, ImVec2(min.x + 4.0f, max.y), col_u32(accent, alpha), active_context()->style.rounding,
 				                    ImDrawFlags_RoundCornersLeft);
 				float tx = min.x + 16.0f;
 				float ty = min.y + 12.0f;
 				if (!it->title.empty())
 				{
-					draw->AddText(ImVec2(tx, ty), col_u32(active_context()->style.colors.text, alpha), it->title.c_str());
+					draw->AddText(ImVec2(tx, ty), col_u32(text_color(), alpha), it->title.c_str());
 					ty += ImGui::GetTextLineHeight() + 5.0f;
 				}
 				draw->AddText(ImVec2(tx, ty), col_u32(active_context()->style.colors.text_muted, alpha), it->message.c_str());
@@ -235,8 +260,8 @@ namespace Trinex::UI
 					                                    : active_context()->style.colors.accent,
 					                            alpha),
 					                    5.0f);
-					draw->AddText(ImVec2(button_min.x + 9.0f, button_min.y + 3.0f),
-					              col_u32(active_context()->style.colors.text, alpha), it->action_label.c_str());
+					draw->AddText(ImVec2(button_min.x + 9.0f, button_min.y + 3.0f), col_u32(text_color(), alpha),
+					              it->action_label.c_str());
 
 					if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 					{
@@ -261,6 +286,8 @@ namespace Trinex::UI
 				}
 			}
 		}
+
+		pop_style(21);
 
 		ContextListener::for_each<&ContextListener::on_end_frame>(g_context);
 

@@ -55,7 +55,7 @@ namespace Trinex::UI
 	void push_style(const NavigationStyle& value);
 	void push_style(const DragDropStyle& value);
 	void push_style(const ImageStyle& value);
-	void pop_style();
+	void pop_style(u32 count = 1);
 	void paint(Vec2 pos, Size size, PaintFunction function, const PaintOptions& options = {});
 	void paint(Size size, PaintFunction function, const PaintOptions& options = {});
 	void paint(PaintFunction function, const PaintOptions& options = {});
