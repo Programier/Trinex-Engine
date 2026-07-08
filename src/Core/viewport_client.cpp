@@ -1,9 +1,8 @@
-#include <Input/event_system.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/viewport_client.hpp>
+#include <Input/event_system.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
-#include <ScriptEngine/script_object.hpp>
 
 namespace Trinex
 {
@@ -20,8 +19,8 @@ namespace Trinex
 		vc_attach   = r.method("void attach(RenderViewport)", trinex_scoped_method(This, attach));
 		vc_deattach = r.method("void deattach(RenderViewport)", trinex_scoped_method(This, deattach));
 
-			// Need to check, can we use script engine in multi-thread mode?
-			//vc_render = r.method("void render(RenderViewport viewport)", trinex_scoped_method(This, render));
+		// Need to check, can we use script engine in multi-thread mode?
+		//vc_render = r.method("void render(RenderViewport viewport)", trinex_scoped_method(This, render));
 
 		ScriptEngine::on_terminate.push([]() {
 			vc_update.release();

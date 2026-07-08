@@ -7,7 +7,6 @@
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_function.hpp>
 #include <ScriptEngine/script_module.hpp>
-#include <ScriptEngine/script_object.hpp>
 #include <ScriptEngine/script_primitives.hpp>
 #include <angelscript.h>
 #include <scriptdictionary.h>
@@ -15,16 +14,15 @@
 
 namespace Trinex
 {
-	static asIScriptContext* m_context      = nullptr;
-	static Function<void(void*)> m_callback = {};
-
-	static void script_line_callback_internal(asIScriptEngine* engine, void* userdata)
+	static void script_line_callback_internal(asIScriptEngine*, void* userdata)
 	{
-		if (m_callback)
-			m_callback(userdata);
+		auto* context = static_cast<ScriptContext*>(userdata);
+
+		if (context)
+			context->trigger_line_callback();
 	}
 
-	static void script_exception_callback(asIScriptContext* ctx, void* object)
+	static void script_exception_callback(asIScriptContext* ctx, void*)
 	{
 		ScriptFunction function      = ctx->GetExceptionFunction();
 		const char* exception_string = ctx->GetExceptionString();
@@ -41,31 +39,100 @@ namespace Trinex
 		}
 	}
 
-	void ScriptContext::initialize()
+	ScriptContext* ScriptContext::current()
 	{
-		m_context = ScriptEngine::engine()->RequestContext();
-		m_context->AddRef();
+		if (asIScriptContext* ctx = asGetActiveContext())
+		{
+			if (ScriptContext* result = static_cast<ScriptContext*>(ctx->GetUserData()))
+				return result;
+		}
 
-		m_context->SetExceptionCallback(asFUNCTION(script_exception_callback), nullptr, asCALL_CDECL);
+		return local();
 	}
 
-	void ScriptContext::terminate()
+	ScriptContext* ScriptContext::local()
 	{
+		static thread_local ScriptContext* ctx = trx_new ScriptContext();
+		return ctx;
+	}
+
+	void ScriptContext::initialize_callbacks()
+	{
+		if (m_context)
+		{
+			m_context->SetExceptionCallback(asFUNCTION(script_exception_callback), nullptr, asCALL_CDECL);
+		}
+	}
+
+	void ScriptContext::release_context()
+	{
+		if (m_context == nullptr)
+			return;
+
 		clear_line_callback();
 		m_context->Release();
-		ScriptEngine::engine()->ReturnContext(m_context);
+		ScriptEngine::release_context(m_context);
 		m_context = nullptr;
 	}
 
-	ScriptContext& ScriptContext::instance()
+	void ScriptContext::trigger_line_callback()
 	{
-		static ScriptContext context;
-		return context;
+		if (m_line_callback)
+			m_line_callback(this);
 	}
 
-	bool ScriptContext::begin_execute(const ScriptFunction& function)
+	ScriptContext::ScriptContext()
+	{
+		if (ScriptEngine::engine())
+		{
+			m_context = ScriptEngine::new_context();
+
+			if (m_context)
+			{
+				m_context->SetUserData(this);
+				m_context->AddRef();
+				initialize_callbacks();
+			}
+		}
+	}
+
+
+	ScriptContext::ScriptContext(ScriptContext&& other) noexcept
+	    : m_context(other.m_context), m_line_callback(std::move(other.m_line_callback))
+	{
+		other.m_context = nullptr;
+	}
+
+	ScriptContext& ScriptContext::operator=(ScriptContext&& other) noexcept
+	{
+		if (this != &other)
+		{
+			release_context();
+			m_context       = other.m_context;
+			m_line_callback = std::move(other.m_line_callback);
+			other.m_context = nullptr;
+		}
+
+		return *this;
+	}
+
+	bool ScriptContext::is_valid() const
+	{
+		return m_context != nullptr;
+	}
+
+	asIScriptContext* ScriptContext::context() const
+	{
+		return m_context;
+	}
+
+	bool ScriptContext::begin_execute(const ScriptFunction& script_function)
 	{
 		trinex_profile_cpu_n("ScriptContext::begin_execute");
+
+		if (!is_valid())
+			return false;
+
 		auto current_state = state();
 
 		if (!is_in<State::Uninitialized, State::Active>(current_state))
@@ -83,7 +150,7 @@ namespace Trinex
 			trinex_verify(push_state());
 		}
 
-		if (!prepare(function))
+		if (!prepare(script_function))
 		{
 			if (current_state == State::Active)
 			{
@@ -99,9 +166,12 @@ namespace Trinex
 	bool ScriptContext::end_execute(void* return_value)
 	{
 		trinex_profile_cpu_n("ScriptContext::end_execute");
-		const bool is_active = callstack_size() > 1;
 
-		bool is_prepared = state() == State::Prepared;
+		if (!is_valid())
+			return false;
+
+		const bool is_active = callstack_size() > 1;
+		bool is_prepared     = state() == State::Prepared;
 
 		if (is_prepared)
 		{
@@ -149,41 +219,39 @@ namespace Trinex
 		return is_prepared;
 	}
 
-	asIScriptContext* ScriptContext::context()
-	{
-		return m_context;
-	}
-
 	bool ScriptContext::prepare(const ScriptFunction& func)
 	{
-		return m_context->Prepare(func.function()) >= 0;
+		return is_valid() && m_context->Prepare(func.function()) >= 0;
 	}
 
 	bool ScriptContext::unprepare()
 	{
-		return m_context->Unprepare() >= 0;
+		return is_valid() && m_context->Unprepare() >= 0;
 	}
 
 	bool ScriptContext::execute()
 	{
 		trinex_profile_cpu_n("ScriptContext::execute");
-		return m_context->Execute() >= 0;
+		return is_valid() && m_context->Execute() >= 0;
 	}
 
 	bool ScriptContext::abort()
 	{
-		return m_context->Abort() >= 0;
+		return is_valid() && m_context->Abort() >= 0;
 	}
 
 	bool ScriptContext::suspend()
 	{
-		return m_context->Suspend() >= 0;
+		return is_valid() && m_context->Suspend() >= 0;
 	}
 
-	ScriptContext::State ScriptContext::state()
+	ScriptContext::State ScriptContext::state() const
 	{
-		auto state = m_context->GetState();
-		switch (state)
+		if (!is_valid())
+			return State::Undefined;
+
+		auto current_state = m_context->GetState();
+		switch (current_state)
 		{
 			case asEXECUTION_FINISHED: return State::Finished;
 			case asEXECUTION_SUSPENDED: return State::Suspended;
@@ -200,157 +268,154 @@ namespace Trinex
 
 	bool ScriptContext::push_state()
 	{
-		return m_context->PushState() >= 0;
+		return is_valid() && m_context->PushState() >= 0;
 	}
 
 	bool ScriptContext::pop_state()
 	{
-		return m_context->PopState() >= 0;
+		return is_valid() && m_context->PopState() >= 0;
 	}
 
-	u32 ScriptContext::nest_count()
+	u32 ScriptContext::nest_count() const
 	{
+		if (!is_valid())
+			return 0;
+
 		asUINT count = 0;
 		if (m_context->IsNested(&count))
 		{
 			return static_cast<u32>(count);
 		}
-		return 0;
-	}
 
-	bool ScriptContext::object(const ScriptObject& object)
-	{
-		return ScriptContext::object(object.address());
+		return 0;
 	}
 
 	bool ScriptContext::object(const void* address)
 	{
-		if (address == nullptr)
+		if (!is_valid() || address == nullptr)
 			return false;
+
 		return m_context->SetObject(const_cast<void*>(address)) >= 0;
 	}
 
 	bool ScriptContext::arg_bool(u32 arg, bool value)
 	{
-		return m_context->SetArgByte(arg, value) >= 0;
+		return is_valid() && m_context->SetArgByte(arg, value) >= 0;
 	}
 
 	bool ScriptContext::arg_byte(u32 arg, u8 value)
 	{
-		return m_context->SetArgByte(arg, value) >= 0;
+		return is_valid() && m_context->SetArgByte(arg, value) >= 0;
 	}
 
 	bool ScriptContext::arg_word(u32 arg, u16 value)
 	{
-		return m_context->SetArgWord(arg, value) >= 0;
+		return is_valid() && m_context->SetArgWord(arg, value) >= 0;
 	}
 
 	bool ScriptContext::arg_dword(u32 arg, u32 value)
 	{
-		return m_context->SetArgDWord(arg, value) >= 0;
+		return is_valid() && m_context->SetArgDWord(arg, value) >= 0;
 	}
 
 	bool ScriptContext::arg_qword(u32 arg, u64 value)
 	{
-		return m_context->SetArgQWord(arg, value) >= 0;
+		return is_valid() && m_context->SetArgQWord(arg, value) >= 0;
 	}
 
 	bool ScriptContext::arg_float(u32 arg, float value)
 	{
-		return m_context->SetArgFloat(arg, value) >= 0;
+		return is_valid() && m_context->SetArgFloat(arg, value) >= 0;
 	}
 
 	bool ScriptContext::arg_double(u32 arg, double value)
 	{
-		return m_context->SetArgDouble(arg, value) >= 0;
+		return is_valid() && m_context->SetArgDouble(arg, value) >= 0;
 	}
 
-	bool ScriptContext::arg_script_obj(u32 arg, const ScriptObject& obj)
+	bool ScriptContext::arg_script_obj(u32 arg, const void* object)
 	{
-		return m_context->SetArgObject(arg, obj.address()) >= 0;
+		return is_valid() && m_context->SetArgObject(arg, const_cast<void*>(object)) >= 0;
 	}
 
 	bool ScriptContext::arg_var_type(u32 arg, void* ptr, i32 type_id)
 	{
-		return m_context->SetArgVarType(arg, ptr, type_id);
+		return is_valid() && m_context->SetArgVarType(arg, ptr, type_id);
 	}
 
 	bool ScriptContext::arg_address(u32 arg, void* addr, bool is_object)
 	{
+		if (!is_valid())
+			return false;
+
 		if (is_object)
 			return m_context->SetArgObject(arg, addr) >= 0;
 
 		return m_context->SetArgAddress(arg, addr) >= 0;
 	}
 
-	void* ScriptContext::address_of_arg(u32 arg)
+	void* ScriptContext::address_of_arg(u32 arg) const
 	{
-		return m_context->GetAddressOfArg(arg);
+		return is_valid() ? m_context->GetAddressOfArg(arg) : nullptr;
 	}
 
-	u8 ScriptContext::return_byte()
+	u8 ScriptContext::return_byte() const
 	{
-		return static_cast<u8>(m_context->GetReturnByte());
+		return is_valid() ? static_cast<u8>(m_context->GetReturnByte()) : 0;
 	}
 
-	u16 ScriptContext::return_word()
+	u16 ScriptContext::return_word() const
 	{
-		return static_cast<u16>(m_context->GetReturnWord());
+		return is_valid() ? static_cast<u16>(m_context->GetReturnWord()) : 0;
 	}
 
-	u32 ScriptContext::return_dword()
+	u32 ScriptContext::return_dword() const
 	{
-		return static_cast<u32>(m_context->GetReturnDWord());
+		return is_valid() ? static_cast<u32>(m_context->GetReturnDWord()) : 0;
 	}
 
-	u64 ScriptContext::return_qword()
+	u64 ScriptContext::return_qword() const
 	{
-		return static_cast<u64>(m_context->GetReturnQWord());
+		return is_valid() ? static_cast<u64>(m_context->GetReturnQWord()) : 0;
 	}
 
-	float ScriptContext::return_float()
+	float ScriptContext::return_float() const
 	{
-		return m_context->GetReturnFloat();
+		return is_valid() ? m_context->GetReturnFloat() : 0.f;
 	}
 
-	double ScriptContext::return_double()
+	double ScriptContext::return_double() const
 	{
-		return m_context->GetReturnDouble();
+		return is_valid() ? m_context->GetReturnDouble() : 0.0;
 	}
 
-	void* ScriptContext::return_address()
+	void* ScriptContext::return_address() const
 	{
-		return m_context->GetReturnAddress();
+		return is_valid() ? m_context->GetReturnAddress() : nullptr;
 	}
 
-	void* ScriptContext::return_object_ptr()
+	void* ScriptContext::return_object_ptr() const
 	{
+		if (!is_valid())
+			return nullptr;
+
 		i32 return_typeid = function(0).return_type_id();
 		if (return_typeid & asTYPEID_MASK_OBJECT)
 		{
 			return m_context->GetReturnObject();
 		}
+
 		return nullptr;
 	}
 
-	ScriptObject ScriptContext::return_object()
+	void* ScriptContext::address_of_return_value() const
 	{
-		i32 return_typeid = function(0).return_type_id();
-		if (return_typeid & asTYPEID_MASK_OBJECT)
-		{
-			return ScriptObject(m_context->GetReturnObject(), return_typeid);
-		}
-		return {};
-	}
-
-	void* ScriptContext::address_of_return_value()
-	{
-		return m_context->GetAddressOfReturnValue();
+		return is_valid() ? m_context->GetAddressOfReturnValue() : nullptr;
 	}
 
 	bool ScriptContext::exception(const char* info, bool allow_catch)
 	{
-		return m_context->SetException(info, allow_catch) >= 0;
+		return is_valid() && m_context->SetException(info, allow_catch) >= 0;
 	}
 
 	bool ScriptContext::exception(const String& info, bool allow_catch)
@@ -358,9 +423,13 @@ namespace Trinex
 		return exception(info.c_str(), allow_catch);
 	}
 
-	Vector2i ScriptContext::exception_line_position(StringView* section)
+	Vector2i ScriptContext::exception_line_position(StringView* section) const
 	{
-		Vector2i result  = {-1, -1};
+		Vector2i result = {-1, -1};
+
+		if (!is_valid())
+			return result;
+
 		const char* name = nullptr;
 		result.y         = m_context->GetExceptionLineNumber(&result.x, section ? &name : nullptr);
 
@@ -368,44 +437,60 @@ namespace Trinex
 		{
 			(*section) = name;
 		}
+
 		return result;
 	}
 
-	ScriptFunction ScriptContext::exception_function()
+	ScriptFunction ScriptContext::exception_function() const
 	{
-		return ScriptFunction(m_context->GetExceptionFunction());
+		return is_valid() ? ScriptFunction(m_context->GetExceptionFunction()) : ScriptFunction();
 	}
 
-	String ScriptContext::exception_string()
+	String ScriptContext::exception_string() const
 	{
-		if (const char* text = m_context->GetExceptionString())
+		if (is_valid())
 		{
-			return text;
+			if (const char* text = m_context->GetExceptionString())
+			{
+				return text;
+			}
 		}
+
 		return "";
 	}
 
-	bool ScriptContext::will_exception_be_caught()
+	bool ScriptContext::will_exception_be_caught() const
 	{
-		return m_context->WillExceptionBeCaught();
+		return is_valid() && m_context->WillExceptionBeCaught();
 	}
 
 	bool ScriptContext::line_callback(const Function<void(void*)>& function, void* userdata)
 	{
-		m_callback        = function;
-		const bool result = m_context->SetLineCallback(asFUNCTION(script_line_callback_internal), userdata, asCALL_CDECL) >= 0;
+		if (!is_valid())
+			return false;
+
+		if (function)
+		{
+			m_line_callback = [function, userdata](void*) { function(userdata); };
+		}
+		else
+		{
+			m_line_callback = {};
+		}
+
+		const bool result = m_context->SetLineCallback(asFUNCTION(script_line_callback_internal), this, asCALL_CDECL) >= 0;
 		if (!result)
 			clear_line_callback();
 		return result;
 	}
 
-	bool ScriptContext::line_callback(const ScriptFunction& function)
+	bool ScriptContext::line_callback(const ScriptFunction& script_function)
 	{
 		return line_callback(
-		        [function](void*) {
+		        [this, script_function](void*) {
 			        m_context->ClearLineCallback();
-			        ScriptContext::execute(function);
-			        m_context->SetLineCallback(asFUNCTION(script_line_callback_internal), nullptr, asCALL_CDECL);
+			        this->execute(script_function, nullptr);
+			        m_context->SetLineCallback(asFUNCTION(script_line_callback_internal), this, asCALL_CDECL);
 		        },
 		        nullptr);
 	}
@@ -413,29 +498,38 @@ namespace Trinex
 	ScriptContext& ScriptContext::clear_line_callback()
 	{
 		Function<void(void*)> tmp = {};
-		m_callback.swap(tmp);
-		m_context->ClearLineCallback();
-		return instance();
+		m_line_callback.swap(tmp);
+
+		if (m_context)
+		{
+			m_context->ClearLineCallback();
+		}
+
+		return *this;
 	}
 
-	u32 ScriptContext::callstack_size()
+	u32 ScriptContext::callstack_size() const
 	{
-		return m_context->GetCallstackSize();
+		return is_valid() ? m_context->GetCallstackSize() : 0;
 	}
 
-	ScriptFunction ScriptContext::function(u32 stack_level)
+	ScriptFunction ScriptContext::function(u32 stack_level) const
 	{
-		return ScriptFunction(m_context->GetFunction(stack_level));
+		return is_valid() ? ScriptFunction(m_context->GetFunction(stack_level)) : ScriptFunction();
 	}
 
-	ScriptFunction ScriptContext::system_function()
+	ScriptFunction ScriptContext::system_function() const
 	{
-		return ScriptFunction(m_context->GetSystemFunction());
+		return is_valid() ? ScriptFunction(m_context->GetSystemFunction()) : ScriptFunction();
 	}
 
-	Vector2i ScriptContext::line_position(u32 stack_level, StringView* section_name)
+	Vector2i ScriptContext::line_position(u32 stack_level, StringView* section_name) const
 	{
-		Vector2i result     = {-1, -1};
+		Vector2i result = {-1, -1};
+
+		if (!is_valid())
+			return result;
+
 		const char* section = nullptr;
 		result.y            = m_context->GetLineNumber(stack_level, &result.x, (section_name ? &section : nullptr));
 
@@ -447,15 +541,21 @@ namespace Trinex
 		return result;
 	}
 
-	u32 ScriptContext::var_count(u32 stack_level)
+	u32 ScriptContext::var_count(u32 stack_level) const
 	{
+		if (!is_valid())
+			return 0;
+
 		const int count = m_context->GetVarCount(stack_level);
 		return count > 0 ? static_cast<u32>(count) : 0;
 	}
 
 	bool ScriptContext::var(u32 var_index, u32 stack_level, StringView* name, i32* type_id, ScriptTypeModifiers* modifiers,
-	                        bool* is_var_on_heap, i32* stack_offset)
+	                        bool* is_var_on_heap, i32* stack_offset) const
 	{
+		if (!is_valid())
+			return false;
+
 		asETypeModifiers script_modifiers;
 		const char* script_name;
 		const bool result = m_context->GetVar(var_index, stack_level, &script_name, type_id,
@@ -470,35 +570,48 @@ namespace Trinex
 		{
 			(*modifiers) = static_cast<BitMask>(script_modifiers);
 		}
+
 		return result;
 	}
 
-	String ScriptContext::var_declaration(u32 var_index, u32 stack_level, bool include_namespace)
+	String ScriptContext::var_declaration(u32 var_index, u32 stack_level, bool include_namespace) const
 	{
-		if (auto decl = m_context->GetVarDeclaration(var_index, stack_level, include_namespace))
-			return decl;
+		if (is_valid())
+		{
+			if (auto decl = m_context->GetVarDeclaration(var_index, stack_level, include_namespace))
+				return decl;
+		}
+
 		return "";
 	}
 
 	u8* ScriptContext::address_of_var(u32 var_index, u32 stack_level, bool dont_dereference,
-	                                  bool return_address_of_unitialized_objects)
+	                                  bool return_address_of_unitialized_objects) const
 	{
+		if (!is_valid())
+			return nullptr;
+
 		return reinterpret_cast<u8*>(
 		        m_context->GetAddressOfVar(var_index, stack_level, dont_dereference, return_address_of_unitialized_objects));
 	}
 
-	bool ScriptContext::is_var_in_scope(u32 var_index, u32 stack_level)
+	bool ScriptContext::is_var_in_scope(u32 var_index, u32 stack_level) const
 	{
-		return m_context->IsVarInScope(var_index, stack_level);
+		return is_valid() && m_context->IsVarInScope(var_index, stack_level);
 	}
 
-	i32 ScriptContext::this_type_id(u32 stack_level)
+	i32 ScriptContext::this_type_id(u32 stack_level) const
 	{
-		return m_context->GetThisTypeId(stack_level);
+		return is_valid() ? m_context->GetThisTypeId(stack_level) : 0;
 	}
 
-	u8* ScriptContext::this_pointer(u32 stack_level)
+	u8* ScriptContext::this_pointer(u32 stack_level) const
 	{
-		return reinterpret_cast<u8*>(m_context->GetThisPointer(stack_level));
+		return is_valid() ? reinterpret_cast<u8*>(m_context->GetThisPointer(stack_level)) : nullptr;
+	}
+
+	ScriptContext::~ScriptContext()
+	{
+		release_context();
 	}
 }// namespace Trinex

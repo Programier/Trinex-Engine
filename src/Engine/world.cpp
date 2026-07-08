@@ -6,7 +6,7 @@
 #include <Engine/Render/scene.hpp>
 #include <Engine/world.hpp>
 #include <ScriptEngine/script_context.hpp>
-#include <ScriptEngine/script_object.hpp>
+
 
 namespace Trinex
 {

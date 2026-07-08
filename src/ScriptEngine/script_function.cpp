@@ -151,6 +151,7 @@ namespace Trinex
 
 	bool ScriptFunction::is_protected() const
 	{
+		check_function(false);
 		return m_function->IsProtected();
 	}
 
@@ -241,6 +242,7 @@ namespace Trinex
 
 	i32 ScriptFunction::type_id() const
 	{
+		check_function(0);
 		return m_function->GetTypeId();
 	}
 

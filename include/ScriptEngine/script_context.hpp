@@ -6,7 +6,7 @@
 #include <Core/etl/string.hpp>
 #include <Core/etl/type_traits.hpp>
 #include <Core/math/fwd.hpp>
-#include <ScriptEngine/script_variable.hpp>
+#include <ScriptEngine/enums.hpp>
 #include <angelscript.h>
 
 class asIScriptContext;
@@ -19,15 +19,11 @@ namespace Trinex
 
 	class ENGINE_EXPORT ScriptContext
 	{
-	private:
-		static void initialize();
-		static void terminate();
+		asIScriptContext* m_context           = nullptr;
+		Function<void(void*)> m_line_callback = {};
 
-		struct ExecutionInfo {
-			ScriptTypeModifiers return_type_modifiers;
-			i32 return_type_id = 0;
-			bool is_active     = false;
-		};
+		void initialize_callbacks();
+		void release_context();
 
 	public:
 		enum class State
@@ -44,37 +40,48 @@ namespace Trinex
 			Deserealization = 9,
 		};
 
-		static ScriptContext& instance();
-		static bool begin_execute(const ScriptFunction& function);
-		static bool end_execute(void* return_value = nullptr);
+	public:
+		static ScriptContext* current();
+		static ScriptContext* local();
 
-		static asIScriptContext* context();
-		static bool prepare(const ScriptFunction& func);
-		static bool unprepare();
-		static bool execute();
-		static bool abort();
-		static bool suspend();
-		static State state();
-		static bool push_state();
-		static bool pop_state();
-		static u32 nest_count();
+	public:
+		ScriptContext();
+		ScriptContext(const ScriptContext&) = delete;
+		ScriptContext(ScriptContext&& other) noexcept;
+		ScriptContext& operator=(const ScriptContext&) = delete;
+		ScriptContext& operator=(ScriptContext&& other) noexcept;
 
-		static bool object(const ScriptObject& object);
-		static bool object(const void* address);
+		bool is_valid() const;
+		asIScriptContext* context() const;
+		void trigger_line_callback();
 
-		static bool arg_bool(u32 arg, bool value);
-		static bool arg_byte(u32 arg, u8 value);
-		static bool arg_word(u32 arg, u16 value);
-		static bool arg_dword(u32 arg, u32 value);
-		static bool arg_qword(u32 arg, u64 value);
-		static bool arg_float(u32 arg, float value);
-		static bool arg_double(u32 arg, double value);
-		static bool arg_script_obj(u32 arg, const ScriptObject& obj);
-		static bool arg_address(u32 arg, void* addr, bool is_object = false);
-		static bool arg_var_type(u32 arg, void* ptr, i32 type_id);
+		bool begin_execute(const ScriptFunction& function);
+		bool end_execute(void* return_value = nullptr);
+
+		bool prepare(const ScriptFunction& func);
+		bool unprepare();
+		bool execute();
+		bool abort();
+		bool suspend();
+		State state() const;
+		bool push_state();
+		bool pop_state();
+		u32 nest_count() const;
+
+		bool object(const void* address);
+		bool arg_bool(u32 arg, bool value);
+		bool arg_byte(u32 arg, u8 value);
+		bool arg_word(u32 arg, u16 value);
+		bool arg_dword(u32 arg, u32 value);
+		bool arg_qword(u32 arg, u64 value);
+		bool arg_float(u32 arg, float value);
+		bool arg_double(u32 arg, double value);
+		bool arg_script_obj(u32 arg, const void* object);
+		bool arg_address(u32 arg, void* addr, bool is_object = false);
+		bool arg_var_type(u32 arg, void* ptr, i32 type_id);
 
 		template<typename ValueType>
-		static bool arg(u32 idx, ValueType&& value)
+		bool arg(u32 idx, ValueType&& value)
 		{
 			using T = std::decay_t<ValueType>;
 
@@ -108,7 +115,7 @@ namespace Trinex
 		}
 
 		template<typename T>
-		static bool arg(u32 idx, RRef<T>& ref)
+		bool arg(u32 idx, RRef<T>& ref)
 		{
 			if constexpr (std::is_pointer_v<T>)
 			{
@@ -121,7 +128,7 @@ namespace Trinex
 		}
 
 		template<typename T>
-		static bool arg(u32 idx, LRef<T> ref)
+		bool arg(u32 idx, LRef<T> ref)
 		{
 			if constexpr (std::is_pointer_v<T>)
 			{
@@ -133,25 +140,23 @@ namespace Trinex
 			}
 		}
 
-		static void* address_of_arg(u32 arg);
+		void* address_of_arg(u32 arg) const;
 
-		// Return value
-		static u8 return_byte();
-		static u16 return_word();
-		static u32 return_dword();
-		static u64 return_qword();
-		static float return_float();
-		static double return_double();
-		static void* return_address();
-		static ScriptObject return_object();
-		static void* return_object_ptr();
-		static void* address_of_return_value();
+		u8 return_byte() const;
+		u16 return_word() const;
+		u32 return_dword() const;
+		u64 return_qword() const;
+		float return_float() const;
+		double return_double() const;
+		void* return_address() const;
+		void* return_object_ptr() const;
+		void* address_of_return_value() const;
 
-		// Function execution
 		template<typename... Args>
-		static inline bool execute(const ScriptFunction& function, void* return_value = nullptr, const Args&... args)
+		bool execute(const ScriptFunction& function, void* return_value = nullptr, const Args&... args)
 		{
-			begin_execute(function);
+			if (!begin_execute(function))
+				return false;
 
 			u32 argument = 0;
 			(arg(argument++, args), ...);
@@ -160,10 +165,10 @@ namespace Trinex
 		}
 
 		template<typename... Args>
-		static inline bool execute(const ScriptObject& self, const ScriptFunction& function, void* return_value = nullptr,
-		                           const Args&... args)
+		bool execute(const void* self, const ScriptFunction& function, void* return_value = nullptr, const Args&... args)
 		{
-			begin_execute(function);
+			if (!begin_execute(function))
+				return false;
 
 			u32 argument = 0;
 			object(self), (arg(argument++, args), ...);
@@ -171,44 +176,33 @@ namespace Trinex
 			return end_execute(return_value);
 		}
 
-		template<typename... Args>
-		static inline bool execute(const void* self, const ScriptFunction& function, void* return_value = nullptr,
-		                           const Args&... args)
-		{
-			begin_execute(function);
+		bool exception(const char* info, bool allow_catch = true);
+		bool exception(const String& info, bool allow_catch = true);
+		Vector2i exception_line_position(StringView* section_name = nullptr) const;
+		ScriptFunction exception_function() const;
+		String exception_string() const;
+		bool will_exception_be_caught() const;
 
-			u32 argument = 0;
-			object(self), (arg(argument++, args), ...);
+		bool line_callback(const Function<void(void*)>& function, void* userdata = nullptr);
+		bool line_callback(const ScriptFunction& function);
+		ScriptContext& clear_line_callback();
 
-			return end_execute(return_value);
-		}
+		u32 callstack_size() const;
+		ScriptFunction function(u32 stack_level = 0) const;
+		Vector2i line_position(u32 stack_level = 0, StringView* section_name = nullptr) const;
+		u32 var_count(u32 stack_level = 0) const;
+		bool var(u32 var_index, u32 stack_level, StringView* name, i32* type_id = 0, ScriptTypeModifiers* modifiers = nullptr,
+		         bool* is_var_on_heap = 0, i32* stack_offset = 0) const;
+		String var_declaration(u32 var_index, u32 stack_level = 0, bool include_namespace = false) const;
+		u8* address_of_var(u32 var_index, u32 stack_level = 0, bool dont_dereference = false,
+		                   bool return_address_of_unitialized_objects = false) const;
+		bool is_var_in_scope(u32 var_index, u32 stack_level = 0) const;
+		i32 this_type_id(u32 stack_level = 0) const;
+		u8* this_pointer(u32 stack_level = 0) const;
+		ScriptFunction system_function() const;
 
-		// Exception handling
-		static bool exception(const char* info, bool allow_catch = true);
-		static bool exception(const String& info, bool allow_catch = true);
-		static Vector2i exception_line_position(StringView* section_name = nullptr);
-		static ScriptFunction exception_function();
-		static String exception_string();
-		static bool will_exception_be_caught();
+		~ScriptContext();
 
-		// Debugging
-		static bool line_callback(const Function<void(void*)>& function, void* userdata = nullptr);
-		static bool line_callback(const ScriptFunction& function);
-		static ScriptContext& clear_line_callback();
-
-		static u32 callstack_size();
-		static ScriptFunction function(u32 stack_level = 0);
-		static Vector2i line_position(u32 stack_level = 0, StringView* section_name = nullptr);
-		static u32 var_count(u32 stack_level = 0);
-		static bool var(u32 var_index, u32 stack_level, StringView* name, i32* type_id = 0,
-		                ScriptTypeModifiers* modifiers = nullptr, bool* is_var_on_heap = 0, i32* stack_offset = 0);
-		static String var_declaration(u32 var_index, u32 stack_level = 0, bool include_namespace = false);
-		static u8* address_of_var(u32 var_index, u32 stack_level = 0, bool dont_dereference = false,
-		                          bool return_address_of_unitialized_objects = false);
-		static bool is_var_in_scope(u32 var_index, u32 stack_level = 0);
-		static i32 this_type_id(u32 stack_level = 0);
-		static u8* this_pointer(u32 stack_level = 0);
-		static ScriptFunction system_function();
 		friend class ScriptEngine;
 	};
 }// namespace Trinex

@@ -781,13 +781,13 @@ namespace Trinex::VisualMaterialGraph
 	Expression Node::script_compile(OutputPin* pin, Compiler& compiler)
 	{
 		Expression result;
-		ScriptContext::execute(this, s_node_compile_output, &result, pin, &compiler);
+		ScriptContext::current()->execute(this, s_node_compile_output, &result, pin, &compiler);
 		return result;
 	}
 
 	void Node::script_render()
 	{
-		ScriptContext::execute(this, s_node_render);
+		ScriptContext::current()->execute(this, s_node_render);
 	}
 
 	Node& Node::on_property_changed(const Refl::PropertyChangedEvent& event)

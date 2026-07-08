@@ -7,8 +7,8 @@
 #include <Engine/Actors/actor.hpp>
 #include <Engine/world.hpp>
 #include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
-#include <ScriptEngine/script_object.hpp>
 
 namespace Trinex
 {
@@ -31,27 +31,27 @@ namespace Trinex
 
 	void Actor::scriptable_spawned()
 	{
-		ScriptObject(this).execute(script_actor_spawned);
+		ScriptContext::current()->execute(this, script_actor_spawned);
 	}
 
 	void Actor::scriptable_start_play()
 	{
-		ScriptObject(this).execute(script_actor_start_play);
+		ScriptContext::current()->execute(this, script_actor_start_play);
 	}
 
 	void Actor::scriptable_update(float dt)
 	{
-		ScriptObject(this).execute(script_actor_update, nullptr, dt);
+		ScriptContext::current()->execute(this, script_actor_update, nullptr, dt);
 	}
 
 	void Actor::scriptable_stop_play()
 	{
-		ScriptObject(this).execute(script_actor_stop_play);
+		ScriptContext::current()->execute(this, script_actor_stop_play);
 	}
 
 	void Actor::scriptable_despawned()
 	{
-		ScriptObject(this).execute(script_actor_despawned);
+		ScriptContext::current()->execute(this, script_actor_despawned);
 	}
 
 	Actor* Actor::new_instance(Refl::Class* self, const Vector3f& location, const Quaternion& rotation, const Vector3f& scale,

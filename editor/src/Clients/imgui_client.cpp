@@ -91,12 +91,12 @@ namespace Trinex
 
 	void ImGuiViewportClient::scriptable_update(float dt)
 	{
-		ScriptContext::execute(this, m_ic_script_update, nullptr, dt);
+		ScriptContext::current()->execute(this, m_ic_script_update, nullptr, dt);
 	}
 
 	void ImGuiViewportClient::scriptable_select(Object* object)
 	{
-		ScriptContext::execute(this, m_ic_script_select);
+		ScriptContext::current()->execute(this, m_ic_script_select);
 	}
 
 	bool ImGuiViewportClient::register_client(Refl::Class* object_type, Refl::Class* renderer)

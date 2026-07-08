@@ -10,7 +10,6 @@
 #include <Engine/camera_view.hpp>
 #include <Graphics/editor_scene_renderer.hpp>
 #include <Graphics/render_viewport.hpp>
-#include <ScriptEngine/script_object.hpp>
 #include <Widgets/imgui_windows.hpp>
 #include <Widgets/property_renderer.hpp>
 

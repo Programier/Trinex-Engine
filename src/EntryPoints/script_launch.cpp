@@ -6,7 +6,6 @@
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_function.hpp>
 #include <ScriptEngine/script_module.hpp>
-#include <ScriptEngine/script_object.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 #include <fstream>
 #include <scripthelper.h>
@@ -59,7 +58,7 @@ namespace Trinex
 			}
 
 			i32 result = 0;
-			ScriptContext::execute(function, &result);
+			ScriptContext::current()->execute(function, &result);
 			return result;
 		}
 	};

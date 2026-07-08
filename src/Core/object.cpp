@@ -17,8 +17,8 @@
 #include <Core/threading.hpp>
 #include <Engine/project.hpp>
 #include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
-#include <ScriptEngine/script_object.hpp>
 #include <angelscript.h>
 
 namespace Trinex
@@ -96,12 +96,12 @@ namespace Trinex
 
 	void Object::script_preload()
 	{
-		ScriptObject(this).execute(script_object_preload);
+		ScriptContext::current()->execute(this, script_object_preload);
 	}
 
 	void Object::script_postload()
 	{
-		ScriptObject(this).execute(script_object_postload);
+		ScriptContext::current()->execute(this, script_object_postload);
 	}
 
 	bool Object::private_check_instance(const Refl::Class* const check_class) const

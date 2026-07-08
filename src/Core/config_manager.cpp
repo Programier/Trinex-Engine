@@ -5,6 +5,7 @@
 #include <Engine/project.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
+#include <ScriptEngine/script_function.hpp>
 #include <angelscript.h>
 #include <scriptbuilder.h>
 
@@ -86,7 +87,7 @@ namespace Trinex::ConfigManager
 
 				if (std::find(metadata.begin(), metadata.end(), find_entry) != metadata.end())
 				{
-					ScriptContext::execute(func);
+					ScriptContext::current()->execute(func);
 				}
 			}
 		}

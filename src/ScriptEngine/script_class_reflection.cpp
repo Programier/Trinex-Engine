@@ -111,10 +111,12 @@ namespace Trinex
 		const bool success = module->CompileFunction(section.c_str(), code.c_str(), 0, 0, &function) >= 0;
 		trinex_verify_fmt(success, "Failed to bind meta '%s'", meta.data());
 
-		ScriptContext::prepare(function);
-		ScriptContext::arg_address(0, self);
-		ScriptContext::execute();
-		ScriptContext::unprepare();
+		auto ctx = ScriptContext::current();
+
+		ctx->prepare(function);
+		ctx->arg_address(0, self);
+		ctx->execute();
+		ctx->unprepare();
 
 		function->Release();
 		module->SetDefaultNamespace(ns);
@@ -352,9 +354,9 @@ namespace Trinex
 		{
 			register_reflection(this, script_class);
 		}
+
 		return script_class;
 	}
-
 
 	static Refl::Property* string_property(Script* script, Refl::Struct* self, ScriptTypeInfo info, u32 idx)
 	{

@@ -42,32 +42,32 @@ namespace Trinex
 
 	void ActorComponent::script_spawned()
 	{
-		ScriptContext::execute(this, script_actor_comp_spawned);
+		ScriptContext::current()->execute(this, script_actor_comp_spawned);
 	}
 
 	void ActorComponent::script_start_play()
 	{
-		ScriptContext::execute(this, script_actor_comp_start_play);
+		ScriptContext::current()->execute(this, script_actor_comp_start_play);
 	}
 
 	void ActorComponent::script_update(float dt)
 	{
-		ScriptContext::execute(this, script_actor_comp_update, nullptr, dt);
+		ScriptContext::current()->execute(this, script_actor_comp_update, nullptr, dt);
 	}
 
 	void ActorComponent::script_stop_play()
 	{
-		ScriptContext::execute(this, script_actor_comp_stop_play);
+		ScriptContext::current()->execute(this, script_actor_comp_stop_play);
 	}
 
 	void ActorComponent::script_despawned()
 	{
-		ScriptContext::execute(this, script_actor_comp_despawned);
+		ScriptContext::current()->execute(this, script_actor_comp_despawned);
 	}
 
 	void ActorComponent::script_sync()
 	{
-		ScriptContext::execute(this, script_actor_comp_sync, nullptr);
+		ScriptContext::current()->execute(this, script_actor_comp_sync, nullptr);
 	}
 
 	ActorComponent::ActorComponent() {}

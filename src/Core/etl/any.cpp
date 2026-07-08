@@ -1,7 +1,6 @@
 #include <Core/etl/any.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
-#include <ScriptEngine/script_variable.hpp>
 #include <angelscript.h>
 #include <cstring>
 
@@ -205,23 +204,23 @@ namespace Trinex
 		{
 			if (ScriptEngine::is_primitive_type(type_id))
 			{
-				ScriptVariable var(value, type_id);
+				// ScriptVariable var(value, type_id);
 
-				switch (type_id)
-				{
-					case asTYPEID_BOOL: any = var.bool_value(); break;
-					case asTYPEID_INT8: any = var.int8_value(); break;
-					case asTYPEID_INT16: any = var.int16_value(); break;
-					case asTYPEID_INT32: any = var.int32_value(); break;
-					case asTYPEID_INT64: any = var.int64_value(); break;
-					case asTYPEID_UINT8: any = var.uint8_value(); break;
-					case asTYPEID_UINT16: any = var.uint16_value(); break;
-					case asTYPEID_UINT32: any = var.uint32_value(); break;
-					case asTYPEID_UINT64: any = var.uint64_value(); break;
-					case asTYPEID_FLOAT: any = var.float_value(); break;
-					case asTYPEID_DOUBLE: any = var.double_value(); break;
-					default: break;
-				}
+				// switch (type_id)
+				// {
+				// 	case asTYPEID_BOOL: any = var.bool_value(); break;
+				// 	case asTYPEID_INT8: any = var.int8_value(); break;
+				// 	case asTYPEID_INT16: any = var.int16_value(); break;
+				// 	case asTYPEID_INT32: any = var.int32_value(); break;
+				// 	case asTYPEID_INT64: any = var.int64_value(); break;
+				// 	case asTYPEID_UINT8: any = var.uint8_value(); break;
+				// 	case asTYPEID_UINT16: any = var.uint16_value(); break;
+				// 	case asTYPEID_UINT32: any = var.uint32_value(); break;
+				// 	case asTYPEID_UINT64: any = var.uint64_value(); break;
+				// 	case asTYPEID_FLOAT: any = var.float_value(); break;
+				// 	case asTYPEID_DOUBLE: any = var.double_value(); break;
+				// 	default: break;
+				// }
 			}
 			else if (ScriptEngine::is_handle_type(type_id))
 			{

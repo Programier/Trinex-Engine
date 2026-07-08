@@ -7,9 +7,7 @@
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_function.hpp>
 #include <ScriptEngine/script_module.hpp>
-#include <ScriptEngine/script_object.hpp>
 #include <ScriptEngine/script_type_info.hpp>
-#include <ScriptEngine/script_variable.hpp>
 #include <angelscript.h>
 #include <scripthelper.h>
 
@@ -34,6 +32,7 @@ namespace Trinex
 
 		Map<i32, ScriptEngine::VariableToStringFunction> parsers_map;
 		Map<i32, Refl::Class*> classes_map;
+		ScriptBuildResult* diagnostics_result = nullptr;
 
 		static ScriptEngineData* instance()
 		{
@@ -44,6 +43,26 @@ namespace Trinex
 
 	static void angel_script_callback(const asSMessageInfo* msg, void* param)
 	{
+		ScriptEngineData* data = ScriptEngineData::instance();
+
+		if (data->diagnostics_result)
+		{
+			ScriptDiagnostic diagnostic;
+			diagnostic.section = msg->section ? msg->section : "";
+			diagnostic.row     = msg->row;
+			diagnostic.column  = msg->col;
+			diagnostic.message = msg->message ? msg->message : "";
+
+			switch (msg->type)
+			{
+				case asMSGTYPE_WARNING: diagnostic.type = ScriptDiagnostic::Type::Warning; break;
+				case asMSGTYPE_INFORMATION: diagnostic.type = ScriptDiagnostic::Type::Info; break;
+				default: diagnostic.type = ScriptDiagnostic::Type::Error; break;
+			}
+
+			data->diagnostics_result->diagnostics.push_back(std::move(diagnostic));
+		}
+
 		if (msg->type == asMSGTYPE_WARNING)
 		{
 			trinex_warning(Log::Scripting, "%s (%d, %d): %s", msg->section, msg->row, msg->col, msg->message);
@@ -133,7 +152,6 @@ namespace Trinex
 		}
 #endif
 		LifeCycle::on_post_shutdown(ScriptEngine::terminate);
-		ScriptContext::initialize();
 
 		data->script_folder = trx_new ScriptFolder("[scripts]:");
 		return instance();
@@ -146,7 +164,6 @@ namespace Trinex
 		if (data->engine)
 		{
 			on_terminate();
-			ScriptContext::terminate();
 
 			trx_delete_inline(data->script_folder);
 			data->script_folder = nullptr;
@@ -245,6 +262,25 @@ namespace Trinex
 	class ScriptFolder* ScriptEngine::scripts_folder()
 	{
 		return ScriptEngineData::instance()->script_folder;
+	}
+
+	ScriptEngine& ScriptEngine::begin_diagnostics_capture(ScriptBuildResult* result)
+	{
+		ScriptEngineData::instance()->diagnostics_result = result;
+
+		if (result)
+		{
+			result->success = false;
+			result->diagnostics.clear();
+		}
+
+		return instance();
+	}
+
+	ScriptEngine& ScriptEngine::end_diagnostics_capture()
+	{
+		ScriptEngineData::instance()->diagnostics_result = nullptr;
+		return instance();
 	}
 
 	ScriptEngine& ScriptEngine::register_class(i32 type_id, Refl::Class* self)
@@ -740,14 +776,14 @@ namespace Trinex
 	static String script_object_to_string_ref(const u8* object, asIScriptFunction* func)
 	{
 		String* result = nullptr;
-		ScriptContext::execute(object, ScriptFunction(func), &result);
+		ScriptContext::current()->execute(object, ScriptFunction(func), &result);
 		return *result;
 	}
 
 	static String script_object_to_string_value(const u8* object, asIScriptFunction* func)
 	{
 		String result;
-		ScriptContext::execute(object, ScriptFunction(func), &result);
+		ScriptContext::current()->execute(object, ScriptFunction(func), &result);
 		return result;
 	}
 
@@ -821,33 +857,33 @@ namespace Trinex
 		if (auto parser = custom_variable_parser(type_id))
 			return parser(address, type_id, repr);
 
-		if (ScriptEngine::is_primitive_type(type_id))
-		{
-			ScriptVariable var(const_cast<u8*>(address), type_id);
+		// if (ScriptEngine::is_primitive_type(type_id))
+		// {
+		// 	ScriptVariable var(const_cast<u8*>(address), type_id);
 
-			if (var.is_bool())
-				return var.bool_value() ? "true" : "false";
-			else if (var.is_int8())
-				return Strings::format("{}", var.int8_value());
-			else if (var.is_int16())
-				return Strings::format("{}", var.int16_value());
-			else if (var.is_int32())
-				return Strings::format("{}", var.int32_value());
-			else if (var.is_int64())
-				return Strings::format("{}", var.int64_value());
-			else if (var.is_uint8())
-				return Strings::format("{}", var.uint8_value());
-			else if (var.is_uint16())
-				return Strings::format("{}", var.uint16_value());
-			else if (var.is_uint32())
-				return Strings::format("{}", var.uint32_value());
-			else if (var.is_uint64())
-				return Strings::format("{}", var.uint64_value());
-			else if (var.is_float())
-				return Strings::format("{}", var.float_value());
-			else if (var.is_double())
-				return Strings::format("{}", var.double_value());
-		}
+		// 	if (var.is_bool())
+		// 		return var.bool_value() ? "true" : "false";
+		// 	else if (var.is_int8())
+		// 		return Strings::format("{}", var.int8_value());
+		// 	else if (var.is_int16())
+		// 		return Strings::format("{}", var.int16_value());
+		// 	else if (var.is_int32())
+		// 		return Strings::format("{}", var.int32_value());
+		// 	else if (var.is_int64())
+		// 		return Strings::format("{}", var.int64_value());
+		// 	else if (var.is_uint8())
+		// 		return Strings::format("{}", var.uint8_value());
+		// 	else if (var.is_uint16())
+		// 		return Strings::format("{}", var.uint16_value());
+		// 	else if (var.is_uint32())
+		// 		return Strings::format("{}", var.uint32_value());
+		// 	else if (var.is_uint64())
+		// 		return Strings::format("{}", var.uint64_value());
+		// 	else if (var.is_float())
+		// 		return Strings::format("{}", var.float_value());
+		// 	else if (var.is_double())
+		// 		return Strings::format("{}", var.double_value());
+		// }
 
 		ScriptTypeInfo info = ScriptEngine::type_info_by_id(type_id);
 		if (!info.is_valid())

@@ -46,7 +46,7 @@ namespace Trinex::Refl
 	{
 		if (!Trinex::Object::static_setup_next_object_info())
 		{
-			i32 type_id = ScriptContext::this_type_id();
+			i32 type_id = ScriptContext::current()->this_type_id();
 
 			if (Class* script_class = ScriptEngine::find_class(type_id))
 				Trinex::Object::static_setup_next_object_info(script_class);

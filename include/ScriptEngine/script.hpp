@@ -6,6 +6,7 @@
 #include <Core/etl/span.hpp>
 #include <Core/types/name.hpp>
 #include <Core/types/path.hpp>
+#include <ScriptEngine/script_diagnostics.hpp>
 #include <ScriptEngine/script_module.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 
@@ -82,6 +83,7 @@ namespace Trinex
 		TreeMap<i32, TreeSet<String>> m_func_metadata_map;
 		TreeMap<String, TreeSet<String>> m_var_metadata_map;
 		TreeMap<String, ClassMetadata> m_class_metadata_map;
+		ScriptBuildResult m_last_build_result;
 
 		mutable bool m_is_dirty;
 
@@ -105,6 +107,7 @@ namespace Trinex
 
 		bool is_dirty() const;
 		const Path& path() const;
+		const ScriptBuildResult& last_build_result() const;
 		bool load();
 		bool save() const;
 		bool build(bool exception_on_error = true);

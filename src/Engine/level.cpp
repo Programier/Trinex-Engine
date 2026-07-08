@@ -78,17 +78,17 @@ namespace Trinex
 
 	void LevelInstance::scriptable_start_play()
 	{
-		ScriptContext::execute(this, script_level_start_play, nullptr);
+		ScriptContext::current()->execute(this, script_level_start_play, nullptr);
 	}
 
 	void LevelInstance::scriptable_update(float dt)
 	{
-		ScriptContext::execute(this, script_level_update, nullptr, dt);
+		ScriptContext::current()->execute(this, script_level_update, nullptr, dt);
 	}
 
 	void LevelInstance::scriptable_stop_play()
 	{
-		ScriptContext::execute(this, script_level_stop_play, nullptr);
+		ScriptContext::current()->execute(this, script_level_stop_play, nullptr);
 	}
 
 	Object* LevelInstance::register_child(Object* child, u32& index)

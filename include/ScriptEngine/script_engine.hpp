@@ -2,6 +2,7 @@
 #include <Core/callback.hpp>
 #include <Core/etl/map.hpp>
 #include <ScriptEngine/enums.hpp>
+#include <ScriptEngine/script_diagnostics.hpp>
 #include <ScriptEngine/script_func_ptr.hpp>
 #include <ScriptEngine/script_function.hpp>
 
@@ -16,6 +17,7 @@ namespace Trinex
 	class ScriptTypeInfo;
 	class ScriptObject;
 	class ScriptFunction;
+	class ScriptExecutionContext;
 
 	class ENGINE_EXPORT ScriptNamespaceScopedChanger final
 	{
@@ -63,6 +65,8 @@ namespace Trinex
 		static i32 register_property(const String& declaration, void* data);
 		static class ScriptFolder* scripts_folder();
 		static ScriptEngine& load_scripts();
+		static ScriptEngine& begin_diagnostics_capture(ScriptBuildResult* result);
+		static ScriptEngine& end_diagnostics_capture();
 
 		static ScriptEngine& register_class(i32 type_id, Refl::Class* self);
 		static Refl::Class* find_class(i32 type_id);
@@ -189,5 +193,6 @@ namespace Trinex
 		friend class ScriptFunction;
 		friend class ScriptClassRegistrar;
 		friend class ScriptObject;
+		friend class ScriptContext;
 	};
 }// namespace Trinex

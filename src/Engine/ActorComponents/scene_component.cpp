@@ -11,7 +11,6 @@
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_function.hpp>
-#include <ScriptEngine/script_object.hpp>
 
 namespace Trinex
 {
@@ -73,7 +72,7 @@ namespace Trinex
 
 	void SceneComponent::script_on_transform_changed()
 	{
-		ScriptObject(this).execute(script_scene_comp_transform_changed);
+		ScriptContext::current()->execute(this, script_scene_comp_transform_changed);
 	}
 
 	SceneComponent& SceneComponent::attach(SceneComponent* child)

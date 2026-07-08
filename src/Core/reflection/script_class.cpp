@@ -4,7 +4,6 @@
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_function.hpp>
-#include <ScriptEngine/script_variable.hpp>
 #include <angelscript.h>
 
 namespace Trinex::Refl
@@ -45,7 +44,7 @@ namespace Trinex::Refl
 		trinex_verify_msg(scriptable, "Cannot create non-scriptable object from scriptable class");
 
 		Trinex::Object* obj = nullptr;
-		ScriptContext::execute(m_factory, &obj);
+		ScriptContext::current()->execute(m_factory, &obj);
 
 		if (obj == nullptr)
 		{

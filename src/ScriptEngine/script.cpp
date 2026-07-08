@@ -362,6 +362,11 @@ namespace Trinex
 		return m_path;
 	}
 
+	const ScriptBuildResult& Script::last_build_result() const
+	{
+		return m_last_build_result;
+	}
+
 	bool Script::load()
 	{
 		FileReader reader(path());
@@ -449,9 +454,24 @@ namespace Trinex
 	bool Script::build(bool exception_on_error)
 	{
 		Builder builder;
+		ScriptBuildResult build_result;
 
-		const bool old_exception_on_error = ScriptEngine::exception_on_error;
-		ScriptEngine::exception_on_error  = exception_on_error;
+		struct ScriptBuildStateGuard {
+			bool old_exception_on_error = false;
+
+			ScriptBuildStateGuard(bool exception_on_error) : old_exception_on_error(ScriptEngine::exception_on_error)
+			{
+				ScriptEngine::exception_on_error = exception_on_error;
+			}
+
+			~ScriptBuildStateGuard()
+			{
+				ScriptEngine::exception_on_error = old_exception_on_error;
+				ScriptEngine::end_diagnostics_capture();
+			}
+		} guard(exception_on_error);
+
+		ScriptEngine::begin_diagnostics_capture(&build_result);
 
 		StringView module_name = path().str();
 
@@ -461,21 +481,22 @@ namespace Trinex
 		if (builder.StartNewModule(ScriptEngine::engine(), module_name.data()) < 0)
 		{
 			trinex_error(Log::Scripting, "Failed to start new module!");
+			m_last_build_result = std::move(build_result);
 			return false;
 		}
 
 		if (builder.AddSectionFromMemory(path().c_str(), m_code.data(), m_code.size()) < 0)
 		{
 			trinex_error(Log::Scripting, "Failed to add script section!");
+			m_last_build_result = std::move(build_result);
 			return false;
 		}
 
 		if (builder.BuildModule() < 0)
 		{
+			m_last_build_result = std::move(build_result);
 			return false;
 		}
-
-		ScriptEngine::exception_on_error = old_exception_on_error;
 
 		delete_reflection();
 
@@ -498,10 +519,13 @@ namespace Trinex
 
 				if (func.is_valid() && func.param_count() == 0)
 				{
-					ScriptContext::execute(func);
+					ScriptContext::current()->execute(func);
 				}
 			}
 		}
+
+		build_result.success = true;
+		m_last_build_result  = std::move(build_result);
 
 		on_build(this);
 		return true;
