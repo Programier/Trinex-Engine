@@ -1,4 +1,5 @@
 #include "api_internal.hpp"
+#include <Core/etl/variant.hpp>
 #include <UI/style.hpp>
 
 namespace Trinex::UI
@@ -8,6 +9,66 @@ namespace Trinex::UI
 		T& dst;
 		const T& src;
 	};
+
+	struct OverridedColor {
+		ImGuiCol id;
+		const Optional<Color>& value;
+	};
+
+
+	struct OverridedVar {
+		ImGuiStyleVar id;
+		Variant<const Optional<f32>*, const Optional<Vec2>*> value;
+
+		OverridedVar(ImGuiStyleVar id, const Optional<f32>& value) : id(id), value(&value) {}
+		OverridedVar(ImGuiStyleVar id, const Optional<Vec2>& value) : id(id), value(&value) {}
+	};
+
+	static i32 push_style_color(const std::initializer_list<OverridedColor>& values)
+	{
+		i32 result = 0;
+
+		for (const OverridedColor& color : values)
+		{
+			if (color.value.has_value())
+			{
+				ImGui::PushStyleColor(color.id, to_imvec(color.value.value()));
+				++result;
+			}
+		}
+
+		return result;
+	}
+
+	static void push_style_var_value(ImGuiStyleVar id, f32 value)
+	{
+		ImGui::PushStyleVar(id, value);
+	}
+
+	static void push_style_var_value(ImGuiStyleVar id, const Vec2& value)
+	{
+		ImGui::PushStyleVar(id, to_imvec(value));
+	}
+
+	static i32 push_style_var(const std::initializer_list<OverridedVar>& vars)
+	{
+		i32 result = 0;
+
+		for (const OverridedVar& var : vars)
+		{
+			auto visitor = [&](const auto* value) {
+				if (value->has_value())
+				{
+					push_style_var_value(var.id, value->value());
+					++result;
+				}
+			};
+
+			etl::visit(visitor, var.value);
+		}
+
+		return result;
+	}
 
 	static void pop_basic_style(ContextStack* stack)
 	{
@@ -78,206 +139,288 @@ namespace Trinex::UI
 
 	void push_style(const GlobalStyle& value)
 	{
-		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, value.alpha);
-		ImGui::PushStyleVar(ImGuiStyleVar_DisabledAlpha, value.disabled_alpha);
-		push_basic_style(0, 2);
+		const i32 vars = push_style_var({
+		        {ImGuiStyleVar_Alpha, value.alpha},
+		        {ImGuiStyleVar_DisabledAlpha, value.disabled_alpha},
+		});
+
+		push_basic_style(0, vars);
 	}
 
 	void push_style(const TextStyle& value)
 	{
-		ImGui::PushStyleColor(ImGuiCol_Text, to_imvec(value.color));
-		ImGui::PushStyleColor(ImGuiCol_TextDisabled, to_imvec(value.disabled));
-		ImGui::PushStyleColor(ImGuiCol_TextLink, to_imvec(value.link));
-		ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, to_imvec(value.selection_bg));
-		ImGui::PushStyleColor(ImGuiCol_InputTextCursor, to_imvec(value.cursor));
-		push_basic_style(5, 0);
+		const i32 colors = push_style_color({
+		        {ImGuiCol_Text, value.color},
+		        {ImGuiCol_TextDisabled, value.disabled},
+		        {ImGuiCol_TextLink, value.link},
+		        {ImGuiCol_TextSelectedBg, value.selection_bg},
+		        {ImGuiCol_InputTextCursor, value.cursor},
+		});
+		push_basic_style(colors, 0);
 	}
 
 	void push_style(const WindowStyle& value)
 	{
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, to_imvec(value.padding));
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, to_imvec(value.min_size));
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowTitleAlign, to_imvec(value.title_align));
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, value.rounding);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, value.border_size);
-		ImGui::PushStyleColor(ImGuiCol_WindowBg, to_imvec(with_alpha(value.bg, value.opacity)));
-		ImGui::PushStyleColor(ImGuiCol_Border, to_imvec(value.border));
-		ImGui::PushStyleColor(ImGuiCol_BorderShadow, to_imvec(value.border_shadow));
-		ImGui::PushStyleColor(ImGuiCol_TitleBg, to_imvec(value.title_bg));
-		ImGui::PushStyleColor(ImGuiCol_TitleBgActive, to_imvec(value.title_bg_active));
-		ImGui::PushStyleColor(ImGuiCol_TitleBgCollapsed, to_imvec(value.title_bg_collapsed));
-		ImGui::PushStyleColor(ImGuiCol_MenuBarBg, to_imvec(value.menu_bar_bg));
-		ImGui::PushStyleColor(ImGuiCol_ResizeGrip, to_imvec(value.resize_grip));
-		ImGui::PushStyleColor(ImGuiCol_ResizeGripHovered, to_imvec(value.resize_grip_hovered));
-		ImGui::PushStyleColor(ImGuiCol_ResizeGripActive, to_imvec(value.resize_grip_active));
-		push_basic_style(10, 5);
+		const i32 colors = push_style_color({
+		        {ImGuiCol_WindowBg, value.bg},
+		        {ImGuiCol_Border, value.border},
+		        {ImGuiCol_BorderShadow, value.border_shadow},
+		        {ImGuiCol_TitleBg, value.title_bg},
+		        {ImGuiCol_TitleBgActive, value.title_bg_active},
+		        {ImGuiCol_TitleBgCollapsed, value.title_bg_collapsed},
+		        {ImGuiCol_MenuBarBg, value.menu_bar_bg},
+		        {ImGuiCol_ResizeGrip, value.resize_grip},
+		        {ImGuiCol_ResizeGripHovered, value.resize_grip_hovered},
+		        {ImGuiCol_ResizeGripActive, value.resize_grip_active},
+		});
+
+		const i32 vars = push_style_var({
+		        {ImGuiStyleVar_WindowPadding, value.padding},
+		        {ImGuiStyleVar_WindowMinSize, value.min_size},
+		        {ImGuiStyleVar_WindowTitleAlign, value.title_align},
+		        {ImGuiStyleVar_WindowRounding, value.rounding},
+		        {ImGuiStyleVar_WindowBorderSize, value.border_size},
+		});
+
+		push_basic_style(colors, vars);
 	}
 
 	void push_style(const ChildStyle& value)
 	{
-		ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, value.rounding);
-		ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, value.border_size);
-		ImGui::PushStyleColor(ImGuiCol_ChildBg, to_imvec(with_alpha(value.bg, value.opacity)));
-		push_basic_style(1, 2);
+		const i32 colors = push_style_color({{ImGuiCol_ChildBg, value.bg}});
+
+		const i32 vars = push_style_var({
+		        {ImGuiStyleVar_ChildRounding, value.rounding},
+		        {ImGuiStyleVar_ChildBorderSize, value.border_size},
+		});
+
+		push_basic_style(colors, vars);
 	}
 
 	void push_style(const PopupStyle& value)
 	{
-		ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, value.rounding);
-		ImGui::PushStyleVar(ImGuiStyleVar_PopupBorderSize, value.border_size);
-		ImGui::PushStyleColor(ImGuiCol_PopupBg, to_imvec(with_alpha(value.bg, value.opacity)));
-		push_basic_style(1, 2);
+		const i32 colors = push_style_color({{ImGuiCol_PopupBg, value.bg}});
+
+		const i32 vars = push_style_var({
+		        {ImGuiStyleVar_PopupRounding, value.rounding},
+		        {ImGuiStyleVar_PopupBorderSize, value.border_size},
+		});
+
+		push_basic_style(colors, vars);
 	}
 
 	void push_style(const LayoutStyle& value)
 	{
-		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, to_imvec(value.item_spacing));
-		ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, to_imvec(value.item_inner_spacing));
-		ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, value.indent_spacing);
-		push_basic_style(0, 3);
+		const i32 vars = push_style_var({
+		        {ImGuiStyleVar_ItemSpacing, value.item_spacing},
+		        {ImGuiStyleVar_ItemInnerSpacing, value.item_inner_spacing},
+		        {ImGuiStyleVar_IndentSpacing, value.indent_spacing},
+		});
+
+		push_basic_style(0, vars);
 	}
 
 	void push_style(const FrameStyle& value)
 	{
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, to_imvec(value.padding));
-		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, value.rounding);
-		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, value.border_size);
-		ImGui::PushStyleColor(ImGuiCol_FrameBg, to_imvec(value.bg));
-		ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, to_imvec(value.bg_hovered));
-		ImGui::PushStyleColor(ImGuiCol_FrameBgActive, to_imvec(value.bg_active));
-		push_basic_style(3, 3);
+		const i32 colors = push_style_color({
+		        {ImGuiCol_FrameBg, value.bg},
+		        {ImGuiCol_FrameBgHovered, value.bg_hovered},
+		        {ImGuiCol_FrameBgActive, value.bg_active},
+		});
+
+		const i32 vars = push_style_var({
+		        {ImGuiStyleVar_FramePadding, value.padding},
+		        {ImGuiStyleVar_FrameRounding, value.rounding},
+		        {ImGuiStyleVar_FrameBorderSize, value.border_size},
+		});
+
+		push_basic_style(colors, vars);
 	}
 
 	void push_style(const ButtonStyle& value)
 	{
-		ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, to_imvec(value.text_align));
-		ImGui::PushStyleColor(ImGuiCol_Button, to_imvec(value.bg));
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, to_imvec(value.bg_hovered));
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, to_imvec(value.bg_active));
-		push_basic_style(3, 1);
+		const i32 colors = push_style_color({
+		        {ImGuiCol_Button, value.bg},
+		        {ImGuiCol_ButtonHovered, value.bg_hovered},
+		        {ImGuiCol_ButtonActive, value.bg_active},
+		});
+
+		const i32 vars = push_style_var({
+		        {ImGuiStyleVar_ButtonTextAlign, value.text_align},
+		});
+
+		push_basic_style(colors, vars);
 	}
 
 	void push_style(const MarkStyle& value)
 	{
-		ImGui::PushStyleColor(ImGuiCol_CheckMark, to_imvec(value.check_mark));
-		push_basic_style(1, 0);
+		const i32 colors = push_style_color({
+		        {ImGuiCol_CheckMark, value.check_mark},
+		});
+		push_basic_style(colors, 0);
 	}
 
 	void push_style(const HeaderStyle& value)
 	{
-		ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, to_imvec(value.selectable_text_align));
-		ImGui::PushStyleColor(ImGuiCol_Header, to_imvec(value.bg));
-		ImGui::PushStyleColor(ImGuiCol_HeaderHovered, to_imvec(value.bg_hovered));
-		ImGui::PushStyleColor(ImGuiCol_HeaderActive, to_imvec(value.bg_active));
-		push_basic_style(3, 1);
+		const i32 colors = push_style_color({
+		        {ImGuiCol_Header, value.bg},
+		        {ImGuiCol_HeaderHovered, value.bg_hovered},
+		        {ImGuiCol_HeaderActive, value.bg_active},
+		});
+
+		const i32 vars = push_style_var({{ImGuiStyleVar_SelectableTextAlign, value.selectable_text_align}});
+		push_basic_style(colors, vars);
 	}
 
 	void push_style(const ScrollbarStyle& value)
 	{
-		ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, value.size);
-		ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarRounding, value.rounding);
-		ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, to_imvec(value.bg));
-		ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, to_imvec(value.grab));
-		ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, to_imvec(value.grab_hovered));
-		ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, to_imvec(value.grab_active));
-		push_basic_style(4, 2);
+		const i32 colors = push_style_color({
+		        {ImGuiCol_ScrollbarBg, value.bg},
+		        {ImGuiCol_ScrollbarGrab, value.grab},
+		        {ImGuiCol_ScrollbarGrabHovered, value.grab_hovered},
+		        {ImGuiCol_ScrollbarGrabActive, value.grab_active},
+		});
+
+		const i32 vars = push_style_var({
+		        {ImGuiStyleVar_ScrollbarSize, value.size},
+		        {ImGuiStyleVar_ScrollbarRounding, value.rounding},
+		});
+
+		push_basic_style(colors, 2);
 	}
 
 	void push_style(const GrabStyle& value)
 	{
-		ImGui::PushStyleVar(ImGuiStyleVar_GrabMinSize, value.min_size);
-		ImGui::PushStyleVar(ImGuiStyleVar_GrabRounding, value.rounding);
-		ImGui::PushStyleColor(ImGuiCol_SliderGrab, to_imvec(value.slider_grab));
-		ImGui::PushStyleColor(ImGuiCol_SliderGrabActive, to_imvec(value.slider_grab_active));
-		push_basic_style(2, 2);
+		const i32 colors = push_style_color({
+		        {ImGuiCol_SliderGrab, value.slider_grab},
+		        {ImGuiCol_SliderGrabActive, value.slider_grab_active},
+		});
+
+		const i32 vars = push_style_var({
+		        {ImGuiStyleVar_GrabMinSize, value.min_size},
+		        {ImGuiStyleVar_GrabRounding, value.rounding},
+		});
+
+		push_basic_style(colors, vars);
 	}
 
 	void push_style(const SeparatorStyle& value)
 	{
-		ImGui::PushStyleVar(ImGuiStyleVar_SeparatorTextBorderSize, value.text_border_size);
-		ImGui::PushStyleVar(ImGuiStyleVar_SeparatorTextAlign, to_imvec(value.text_align));
-		ImGui::PushStyleVar(ImGuiStyleVar_SeparatorTextPadding, to_imvec(value.text_padding));
-		ImGui::PushStyleColor(ImGuiCol_Separator, to_imvec(value.color));
-		ImGui::PushStyleColor(ImGuiCol_SeparatorHovered, to_imvec(value.hovered));
-		ImGui::PushStyleColor(ImGuiCol_SeparatorActive, to_imvec(value.active));
-		push_basic_style(3, 3);
+		const i32 colors = push_style_color({
+		        {ImGuiCol_Separator, value.color},
+		        {ImGuiCol_SeparatorHovered, value.hovered},
+		        {ImGuiCol_SeparatorActive, value.active},
+		});
+
+		const i32 vars = push_style_var({
+		        {ImGuiStyleVar_SeparatorTextBorderSize, value.text_border_size},
+		        {ImGuiStyleVar_SeparatorTextAlign, value.text_align},
+		        {ImGuiStyleVar_SeparatorTextPadding, value.text_padding},
+		});
+
+		push_basic_style(colors, vars);
 	}
 
 	void push_style(const TabStyle& value)
 	{
-		ImGui::PushStyleVar(ImGuiStyleVar_TabRounding, value.rounding);
-		ImGui::PushStyleVar(ImGuiStyleVar_TabBorderSize, value.border_size);
-		ImGui::PushStyleVar(ImGuiStyleVar_TabMinWidthBase, value.min_width_base);
-		ImGui::PushStyleVar(ImGuiStyleVar_TabMinWidthShrink, value.min_width_shrink);
-		ImGui::PushStyleVar(ImGuiStyleVar_TabBarBorderSize, value.bar_border_size);
-		ImGui::PushStyleVar(ImGuiStyleVar_TabBarOverlineSize, value.bar_overline_size);
-		ImGui::PushStyleColor(ImGuiCol_Tab, to_imvec(value.bg));
-		ImGui::PushStyleColor(ImGuiCol_TabHovered, to_imvec(value.bg_hovered));
-		ImGui::PushStyleColor(ImGuiCol_TabSelected, to_imvec(value.bg_selected));
-		ImGui::PushStyleColor(ImGuiCol_TabSelectedOverline, to_imvec(value.selected_overline));
-		ImGui::PushStyleColor(ImGuiCol_TabDimmed, to_imvec(value.bg_dimmed));
-		ImGui::PushStyleColor(ImGuiCol_TabDimmedSelected, to_imvec(value.bg_dimmed_selected));
-		ImGui::PushStyleColor(ImGuiCol_TabDimmedSelectedOverline, to_imvec(value.dimmed_selected_overline));
-		push_basic_style(7, 6);
+		const i32 colors = push_style_color({
+		        {ImGuiCol_Tab, value.bg},
+		        {ImGuiCol_TabHovered, value.bg_hovered},
+		        {ImGuiCol_TabSelected, value.bg_selected},
+		        {ImGuiCol_TabSelectedOverline, value.selected_overline},
+		        {ImGuiCol_TabDimmed, value.bg_dimmed},
+		        {ImGuiCol_TabDimmedSelected, value.bg_dimmed_selected},
+		        {ImGuiCol_TabDimmedSelectedOverline, value.dimmed_selected_overline},
+		});
+
+		const i32 vars = push_style_var({
+		        {ImGuiStyleVar_TabRounding, value.rounding},
+		        {ImGuiStyleVar_TabBorderSize, value.border_size},
+		        {ImGuiStyleVar_TabMinWidthBase, value.min_width_base},
+		        {ImGuiStyleVar_TabMinWidthShrink, value.min_width_shrink},
+		        {ImGuiStyleVar_TabBarBorderSize, value.bar_border_size},
+		        {ImGuiStyleVar_TabBarOverlineSize, value.bar_overline_size},
+		});
+
+		push_basic_style(colors, vars);
 	}
 
 	void push_style(const TableStyle& value)
 	{
-		ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, to_imvec(value.cell_padding));
-		ImGui::PushStyleVar(ImGuiStyleVar_TableAngledHeadersAngle, value.angled_headers_angle);
-		ImGui::PushStyleVar(ImGuiStyleVar_TableAngledHeadersTextAlign, to_imvec(value.angled_headers_text_align));
-		ImGui::PushStyleColor(ImGuiCol_TableHeaderBg, to_imvec(value.header_bg));
-		ImGui::PushStyleColor(ImGuiCol_TableBorderStrong, to_imvec(value.border_strong));
-		ImGui::PushStyleColor(ImGuiCol_TableBorderLight, to_imvec(value.border_light));
-		ImGui::PushStyleColor(ImGuiCol_TableRowBg, to_imvec(value.row_bg));
-		ImGui::PushStyleColor(ImGuiCol_TableRowBgAlt, to_imvec(value.row_bg_alt));
-		push_basic_style(5, 3);
+		const i32 colors = push_style_color({
+		        {ImGuiCol_TableHeaderBg, value.header_bg},
+		        {ImGuiCol_TableBorderStrong, value.border_strong},
+		        {ImGuiCol_TableBorderLight, value.border_light},
+		        {ImGuiCol_TableRowBg, value.row_bg},
+		        {ImGuiCol_TableRowBgAlt, value.row_bg_alt},
+		});
+
+		const i32 vars = push_style_var({
+		        {ImGuiStyleVar_CellPadding, value.cell_padding},
+		        {ImGuiStyleVar_TableAngledHeadersAngle, value.angled_headers_angle},
+		        {ImGuiStyleVar_TableAngledHeadersTextAlign, value.angled_headers_text_align},
+		});
+
+		push_basic_style(colors, vars);
 	}
 
 	void push_style(const PlotStyle& value)
 	{
-		ImGui::PushStyleColor(ImGuiCol_PlotLines, to_imvec(value.lines));
-		ImGui::PushStyleColor(ImGuiCol_PlotLinesHovered, to_imvec(value.lines_hovered));
-		ImGui::PushStyleColor(ImGuiCol_PlotHistogram, to_imvec(value.histogram));
-		ImGui::PushStyleColor(ImGuiCol_PlotHistogramHovered, to_imvec(value.histogram_hovered));
-		push_basic_style(4, 0);
+		const i32 colors = push_style_color({
+		        {ImGuiCol_PlotLines, value.lines},
+		        {ImGuiCol_PlotLinesHovered, value.lines_hovered},
+		        {ImGuiCol_PlotHistogram, value.histogram},
+		        {ImGuiCol_PlotHistogramHovered, value.histogram_hovered},
+		});
+
+		push_basic_style(colors, 0);
 	}
 
 	void push_style(const TreeStyle& value)
 	{
-		ImGui::PushStyleVar(ImGuiStyleVar_TreeLinesSize, value.lines_size);
-		ImGui::PushStyleVar(ImGuiStyleVar_TreeLinesRounding, value.lines_rounding);
-		ImGui::PushStyleColor(ImGuiCol_TreeLines, to_imvec(value.lines));
-		push_basic_style(1, 2);
+		const i32 colors = push_style_color({{ImGuiCol_TreeLines, value.lines}});
+
+		const i32 vars = push_style_var({
+		        {ImGuiStyleVar_TreeLinesSize, value.lines_size},
+		        {ImGuiStyleVar_TreeLinesRounding, value.lines_rounding},
+		});
+
+		push_basic_style(colors, vars);
 	}
 
 	void push_style(const DockingStyle& value)
 	{
-		ImGui::PushStyleVar(ImGuiStyleVar_DockingSeparatorSize, value.separator_size);
-		ImGui::PushStyleColor(ImGuiCol_DockingPreview, to_imvec(value.preview));
-		ImGui::PushStyleColor(ImGuiCol_DockingEmptyBg, to_imvec(value.empty_bg));
-		push_basic_style(2, 1);
+		const i32 colors = push_style_color({
+		        {ImGuiCol_DockingPreview, value.preview},
+		        {ImGuiCol_DockingEmptyBg, value.empty_bg},
+		});
+
+		const i32 vars = push_style_var({{ImGuiStyleVar_DockingSeparatorSize, value.separator_size}});
+		push_basic_style(colors, vars);
 	}
 
 	void push_style(const NavigationStyle& value)
 	{
-		ImGui::PushStyleColor(ImGuiCol_NavCursor, to_imvec(value.cursor));
-		ImGui::PushStyleColor(ImGuiCol_NavWindowingHighlight, to_imvec(value.windowing_highlight));
-		ImGui::PushStyleColor(ImGuiCol_NavWindowingDimBg, to_imvec(value.windowing_dim_bg));
-		ImGui::PushStyleColor(ImGuiCol_ModalWindowDimBg, to_imvec(value.modal_dim_bg));
-		push_basic_style(4, 0);
+		const i32 colors = push_style_color({
+		        {ImGuiCol_NavCursor, value.cursor},
+		        {ImGuiCol_NavWindowingHighlight, value.windowing_highlight},
+		        {ImGuiCol_NavWindowingDimBg, value.windowing_dim_bg},
+		        {ImGuiCol_ModalWindowDimBg, value.modal_dim_bg},
+		});
+
+		push_basic_style(colors, 0);
 	}
 
 	void push_style(const DragDropStyle& value)
 	{
-		ImGui::PushStyleColor(ImGuiCol_DragDropTarget, to_imvec(value.target));
-		push_basic_style(1, 0);
+		const i32 colors = push_style_color({{ImGuiCol_DragDropTarget, value.target}});
+		push_basic_style(colors, 0);
 	}
 
 	void push_style(const ImageStyle& value)
 	{
-		ImGui::PushStyleVar(ImGuiStyleVar_ImageBorderSize, value.border_size);
-		push_basic_style(0, 1);
+		const i32 vars = push_style_var({{ImGuiStyleVar_ImageBorderSize, value.border_size}});
+		push_basic_style(0, vars);
 	}
 
 	void pop_style(u32 count)

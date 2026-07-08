@@ -12,76 +12,306 @@ namespace Trinex::UI
 {
 	Context* g_context = nullptr;
 
-	static void apply_imgui_style(const Style& value)
+	static void initialize_style(ImGuiStyle* style)
 	{
-		constexpr float alpha        = 1.0f;
-		constexpr float padding      = 10.0f;
-		constexpr float spacing      = 8.0f;
-		constexpr float rounding     = 8.0f;
-		constexpr float border_size  = 1.0f;
-		const Vec4 background        = Vec4(0.08f, 0.10f, 0.13f, 1.00f);
-		const Vec4 background_hovered = Vec4(0.13f, 0.16f, 0.21f, 1.00f);
-		const Vec4 background_active  = Vec4(0.17f, 0.21f, 0.28f, 1.00f);
-		const Vec4 panel              = Vec4(0.10f, 0.12f, 0.16f, 1.00f);
-		const Vec4 accent             = Vec4(0.28f, 0.62f, 0.95f, 1.00f);
-		ImGuiStyle& style        = ImGui::GetStyle();
-		ColorTheme colors        = value.colors;
-		const Vec4 text          = Vec4(0.92f, 0.94f, 0.96f, 1.00f);
-		const Vec4 text_disabled = Vec4(0.38f, 0.42f, 0.48f, 1.00f);
-		const Vec4 border        = Vec4(0.24f, 0.29f, 0.36f, 1.00f);
+		if (!style)
+			return;
 
-		style.Alpha             = alpha;
-		style.WindowPadding     = ImVec2(padding, padding);
-		style.FramePadding      = ImVec2(padding, 6.0f);
-		style.CellPadding       = ImVec2(padding, spacing);
-		style.ItemSpacing       = ImVec2(spacing, spacing);
-		style.WindowRounding    = rounding;
-		style.ChildRounding     = rounding;
-		style.PopupRounding     = rounding;
-		style.FrameRounding     = rounding;
-		style.ScrollbarRounding = rounding;
-		style.GrabRounding      = rounding;
-		style.TabRounding       = rounding;
-		style.WindowBorderSize  = border_size;
-		style.ChildBorderSize   = 0.0f;
-		style.PopupBorderSize   = border_size;
-		style.FrameBorderSize   = 0.0f;
-		style.TabBorderSize     = 0.0f;
-		style.AntiAliasedLines  = true;
-		style.AntiAliasedFill   = true;
+		ImVec4* colors = style->Colors;
 
-		ImVec4* imgui_colors                     = style.Colors;
-		imgui_colors[ImGuiCol_Text]              = to_imvec(text);
-		imgui_colors[ImGuiCol_TextDisabled]      = to_imvec(text_disabled);
-		imgui_colors[ImGuiCol_WindowBg]          = to_imvec(background);
-		imgui_colors[ImGuiCol_ChildBg]           = ImVec4(0, 0, 0, 0);
-		imgui_colors[ImGuiCol_PopupBg]           = to_imvec(panel);
-		imgui_colors[ImGuiCol_Border]            = to_imvec(border);
-		imgui_colors[ImGuiCol_BorderShadow]      = ImVec4(0, 0, 0, 0);
-		imgui_colors[ImGuiCol_FrameBg]           = to_imvec(background);
-		imgui_colors[ImGuiCol_FrameBgHovered]    = to_imvec(background_hovered);
-		imgui_colors[ImGuiCol_FrameBgActive]     = to_imvec(background_active);
-		imgui_colors[ImGuiCol_TitleBg]           = to_imvec(Math::lerp(background_active, colors.accent_active, 0.35f));
-		imgui_colors[ImGuiCol_TitleBgActive]     = to_imvec(Math::lerp(background_active, accent, 0.24f));
-		imgui_colors[ImGuiCol_TitleBgCollapsed]  = imgui_colors[ImGuiCol_TitleBg];
-		imgui_colors[ImGuiCol_MenuBarBg]         = to_imvec(panel);
-		imgui_colors[ImGuiCol_CheckMark]         = to_imvec(accent);
-		imgui_colors[ImGuiCol_SliderGrab]        = to_imvec(accent);
-		imgui_colors[ImGuiCol_SliderGrabActive]  = to_imvec(colors.accent_active);
-		imgui_colors[ImGuiCol_Button]            = ImVec4(0, 0, 0, 0);
-		imgui_colors[ImGuiCol_ButtonHovered]     = to_imvec(with_alpha(colors.accent_hovered, 0.24f));
-		imgui_colors[ImGuiCol_ButtonActive]      = to_imvec(with_alpha(colors.accent_active, 0.30f));
-		imgui_colors[ImGuiCol_Header]            = to_imvec(with_alpha(accent, 0.16f));
-		imgui_colors[ImGuiCol_HeaderHovered]     = to_imvec(with_alpha(colors.accent_hovered, 0.24f));
-		imgui_colors[ImGuiCol_HeaderActive]      = to_imvec(with_alpha(colors.accent_active, 0.30f));
-		imgui_colors[ImGuiCol_Separator]         = to_imvec(border);
-		imgui_colors[ImGuiCol_TableHeaderBg]     = to_imvec(background_active);
-		imgui_colors[ImGuiCol_TableBorderStrong] = to_imvec(border);
-		imgui_colors[ImGuiCol_TableBorderLight]  = to_imvec(with_alpha(border, 0.55f));
-		imgui_colors[ImGuiCol_TableRowBg]        = to_imvec(with_alpha(panel, 0.30f));
-		imgui_colors[ImGuiCol_TableRowBgAlt]     = to_imvec(with_alpha(background_hovered, 0.38f));
-		imgui_colors[ImGuiCol_TextSelectedBg]    = to_imvec(with_alpha(accent, 0.35f));
-		imgui_colors[ImGuiCol_NavCursor]         = to_imvec(accent);
+		constexpr float deg_to_rad = IM_PI / 180.0f;
+
+		// ============================================================================
+		// Palette
+		// ============================================================================
+
+		const ImVec4 text       = ImVec4(0.86f, 0.88f, 0.91f, 1.00f);
+		const ImVec4 text_muted = ImVec4(0.48f, 0.51f, 0.56f, 1.00f);
+		const ImVec4 text_dim   = ImVec4(0.34f, 0.36f, 0.40f, 1.00f);
+
+		const ImVec4 bg_0 = ImVec4(0.035f, 0.037f, 0.042f, 1.00f);// main bg
+		const ImVec4 bg_1 = ImVec4(0.050f, 0.053f, 0.060f, 1.00f);// panels
+		const ImVec4 bg_2 = ImVec4(0.070f, 0.075f, 0.085f, 1.00f);// frames
+		const ImVec4 bg_3 = ImVec4(0.095f, 0.103f, 0.116f, 1.00f);// hover
+		const ImVec4 bg_4 = ImVec4(0.125f, 0.138f, 0.155f, 1.00f);// active
+		const ImVec4 bg_5 = ImVec4(0.160f, 0.175f, 0.195f, 1.00f);// strong active
+
+		const ImVec4 border       = ImVec4(0.155f, 0.165f, 0.185f, 0.90f);
+		const ImVec4 border_soft  = ImVec4(0.120f, 0.130f, 0.145f, 0.70f);
+		const ImVec4 border_focus = ImVec4(0.360f, 0.520f, 0.640f, 0.80f);
+
+		const ImVec4 accent       = ImVec4(0.330f, 0.520f, 0.640f, 1.00f);
+		const ImVec4 accent_hover = ImVec4(0.420f, 0.620f, 0.740f, 1.00f);
+		const ImVec4 accent_hot   = ImVec4(0.540f, 0.760f, 0.900f, 1.00f);
+
+		// ============================================================================
+		// Global
+		// ============================================================================
+
+		style->Alpha         = 1.0f;
+		style->DisabledAlpha = 0.45f;
+
+		// ============================================================================
+		// Window
+		// ============================================================================
+
+		style->WindowPadding    = ImVec2(10.0f, 8.0f);
+		style->WindowMinSize    = ImVec2(64.0f, 64.0f);
+		style->WindowTitleAlign = ImVec2(0.5f, 0.5f);
+		style->WindowRounding   = 6.0f;
+		style->WindowBorderSize = 1.0f;
+
+		// ============================================================================
+		// Child Window
+		// ============================================================================
+
+		style->ChildRounding   = 5.0f;
+		style->ChildBorderSize = 1.0f;
+
+		// ============================================================================
+		// Popup / Tooltip / Menu Popup
+		// ============================================================================
+
+		style->PopupRounding   = 6.0f;
+		style->PopupBorderSize = 1.0f;
+
+		// ============================================================================
+		// Layout
+		// ============================================================================
+
+		style->ItemSpacing      = ImVec2(8.0f, 5.0f);
+		style->ItemInnerSpacing = ImVec2(6.0f, 4.0f);
+		style->IndentSpacing    = 18.0f;
+
+		// ============================================================================
+		// Frame
+		// ============================================================================
+
+		style->FramePadding    = ImVec2(8.0f, 4.0f);
+		style->FrameRounding   = 4.0f;
+		style->FrameBorderSize = 1.0f;
+
+		// ============================================================================
+		// Button
+		// ============================================================================
+
+		style->ButtonTextAlign = ImVec2(0.5f, 0.5f);
+
+		// ============================================================================
+		// Header / Selectable / TreeNode / MenuItem
+		// ============================================================================
+
+		style->SelectableTextAlign = ImVec2(0.0f, 0.5f);
+
+		// ============================================================================
+		// Scrollbar
+		// ============================================================================
+
+		style->ScrollbarSize     = 13.0f;
+		style->ScrollbarRounding = 6.0f;
+
+		// ============================================================================
+		// Slider / Drag Grab
+		// ============================================================================
+
+		style->GrabMinSize  = 11.0f;
+		style->GrabRounding = 4.0f;
+
+		// ============================================================================
+		// Separator
+		// ============================================================================
+
+		style->SeparatorTextBorderSize = 1.0f;
+		style->SeparatorTextAlign      = ImVec2(0.0f, 0.5f);
+		style->SeparatorTextPadding    = ImVec2(16.0f, 4.0f);
+
+		// ============================================================================
+		// Tab
+		// ============================================================================
+
+		style->TabRounding        = 4.0f;
+		style->TabBorderSize      = 0.0f;
+		style->TabMinWidthBase    = 44.0f;
+		style->TabMinWidthShrink  = 24.0f;
+		style->TabBarBorderSize   = 1.0f;
+		style->TabBarOverlineSize = 2.0f;
+
+		// ============================================================================
+		// Table
+		// ============================================================================
+
+		style->CellPadding                 = ImVec2(8.0f, 4.0f);
+		style->TableAngledHeadersAngle     = 35.0f * deg_to_rad;
+		style->TableAngledHeadersTextAlign = ImVec2(0.5f, 0.0f);
+
+		// ============================================================================
+		// Tree
+		// ============================================================================
+
+		style->TreeLinesSize     = 1.25f;
+		style->TreeLinesRounding = 3.0f;
+
+		// ============================================================================
+		// Docking
+		// ============================================================================
+
+		style->DockingSeparatorSize = 2.0f;
+
+		// ============================================================================
+		// Image
+		// ============================================================================
+
+		style->ImageBorderSize = 1.0f;
+
+		// ============================================================================
+		// Text
+		// ============================================================================
+
+		colors[ImGuiCol_Text]            = text;
+		colors[ImGuiCol_TextDisabled]    = text_muted;
+		colors[ImGuiCol_TextLink]        = ImVec4(0.480f, 0.680f, 0.800f, 1.00f);
+		colors[ImGuiCol_TextSelectedBg]  = ImVec4(0.330f, 0.520f, 0.640f, 0.35f);
+		colors[ImGuiCol_InputTextCursor] = accent_hot;
+
+		// ============================================================================
+		// Window
+		// ============================================================================
+
+		colors[ImGuiCol_WindowBg]          = bg_0;
+		colors[ImGuiCol_Border]            = border;
+		colors[ImGuiCol_BorderShadow]      = ImVec4(0.00f, 0.00f, 0.00f, 0.35f);
+		colors[ImGuiCol_TitleBg]           = ImVec4(0.040f, 0.042f, 0.048f, 1.00f);
+		colors[ImGuiCol_TitleBgActive]     = ImVec4(0.060f, 0.066f, 0.076f, 1.00f);
+		colors[ImGuiCol_TitleBgCollapsed]  = ImVec4(0.030f, 0.032f, 0.037f, 1.00f);
+		colors[ImGuiCol_MenuBarBg]         = bg_1;
+		colors[ImGuiCol_ResizeGrip]        = ImVec4(0.330f, 0.520f, 0.640f, 0.22f);
+		colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.420f, 0.620f, 0.740f, 0.45f);
+		colors[ImGuiCol_ResizeGripActive]  = ImVec4(0.540f, 0.760f, 0.900f, 0.75f);
+
+		// ============================================================================
+		// Child Window
+		// ============================================================================
+
+		colors[ImGuiCol_ChildBg] = bg_1;
+
+		// ============================================================================
+		// Popup / Tooltip / Menu Popup
+		// ============================================================================
+
+		colors[ImGuiCol_PopupBg] = ImVec4(0.045f, 0.048f, 0.055f, 1.00f);
+
+		// ============================================================================
+		// Frame
+		// ============================================================================
+
+		colors[ImGuiCol_FrameBg]        = bg_2;
+		colors[ImGuiCol_FrameBgHovered] = bg_3;
+		colors[ImGuiCol_FrameBgActive]  = bg_4;
+
+		// ============================================================================
+		// Button
+		// ============================================================================
+
+		colors[ImGuiCol_Button]        = ImVec4(0.075f, 0.082f, 0.094f, 1.00f);
+		colors[ImGuiCol_ButtonHovered] = ImVec4(0.105f, 0.118f, 0.135f, 1.00f);
+		colors[ImGuiCol_ButtonActive]  = ImVec4(0.145f, 0.165f, 0.190f, 1.00f);
+
+		// ============================================================================
+		// Checkbox / Radio / Markers
+		// ============================================================================
+
+		colors[ImGuiCol_CheckMark] = accent_hot;
+
+		// ============================================================================
+		// Header / Selectable / TreeNode / MenuItem
+		// ============================================================================
+
+		colors[ImGuiCol_Header]        = ImVec4(0.080f, 0.090f, 0.105f, 0.90f);
+		colors[ImGuiCol_HeaderHovered] = ImVec4(0.115f, 0.132f, 0.152f, 0.95f);
+		colors[ImGuiCol_HeaderActive]  = ImVec4(0.330f, 0.520f, 0.640f, 0.30f);
+
+		// ============================================================================
+		// Scrollbar
+		// ============================================================================
+
+		colors[ImGuiCol_ScrollbarBg]          = ImVec4(0.025f, 0.027f, 0.032f, 0.70f);
+		colors[ImGuiCol_ScrollbarGrab]        = ImVec4(0.115f, 0.125f, 0.142f, 0.95f);
+		colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.165f, 0.180f, 0.205f, 0.95f);
+		colors[ImGuiCol_ScrollbarGrabActive]  = ImVec4(0.330f, 0.520f, 0.640f, 0.70f);
+
+		// ============================================================================
+		// Slider / Drag Grab
+		// ============================================================================
+
+		colors[ImGuiCol_SliderGrab]       = ImVec4(0.330f, 0.520f, 0.640f, 0.80f);
+		colors[ImGuiCol_SliderGrabActive] = ImVec4(0.540f, 0.760f, 0.900f, 0.95f);
+
+		// ============================================================================
+		// Separator
+		// ============================================================================
+
+		colors[ImGuiCol_Separator]        = border_soft;
+		colors[ImGuiCol_SeparatorHovered] = ImVec4(0.330f, 0.520f, 0.640f, 0.65f);
+		colors[ImGuiCol_SeparatorActive]  = ImVec4(0.540f, 0.760f, 0.900f, 0.85f);
+
+		// ============================================================================
+		// Tab
+		// ============================================================================
+
+		colors[ImGuiCol_Tab]                       = ImVec4(0.045f, 0.048f, 0.055f, 1.00f);
+		colors[ImGuiCol_TabHovered]                = ImVec4(0.100f, 0.115f, 0.135f, 1.00f);
+		colors[ImGuiCol_TabSelected]               = ImVec4(0.070f, 0.078f, 0.090f, 1.00f);
+		colors[ImGuiCol_TabSelectedOverline]       = accent;
+		colors[ImGuiCol_TabDimmed]                 = ImVec4(0.035f, 0.037f, 0.042f, 1.00f);
+		colors[ImGuiCol_TabDimmedSelected]         = ImVec4(0.055f, 0.060f, 0.070f, 1.00f);
+		colors[ImGuiCol_TabDimmedSelectedOverline] = ImVec4(0.330f, 0.520f, 0.640f, 0.45f);
+
+		// ============================================================================
+		// Table
+		// ============================================================================
+
+		colors[ImGuiCol_TableHeaderBg]     = ImVec4(0.065f, 0.072f, 0.084f, 1.00f);
+		colors[ImGuiCol_TableBorderStrong] = ImVec4(0.180f, 0.195f, 0.220f, 0.85f);
+		colors[ImGuiCol_TableBorderLight]  = ImVec4(0.120f, 0.132f, 0.150f, 0.65f);
+		colors[ImGuiCol_TableRowBg]        = ImVec4(0.000f, 0.000f, 0.000f, 0.00f);
+		colors[ImGuiCol_TableRowBgAlt]     = ImVec4(0.090f, 0.095f, 0.105f, 0.30f);
+
+		// ============================================================================
+		// Plot
+		// ============================================================================
+
+		colors[ImGuiCol_PlotLines]            = ImVec4(0.420f, 0.620f, 0.740f, 1.00f);
+		colors[ImGuiCol_PlotLinesHovered]     = ImVec4(0.540f, 0.760f, 0.900f, 1.00f);
+		colors[ImGuiCol_PlotHistogram]        = ImVec4(0.460f, 0.560f, 0.700f, 1.00f);
+		colors[ImGuiCol_PlotHistogramHovered] = ImVec4(0.620f, 0.720f, 0.840f, 1.00f);
+
+		// ============================================================================
+		// Tree
+		// ============================================================================
+
+		colors[ImGuiCol_TreeLines] = ImVec4(0.330f, 0.520f, 0.640f, 0.35f);
+
+		// ============================================================================
+		// Docking
+		// ============================================================================
+
+		colors[ImGuiCol_DockingPreview] = ImVec4(0.330f, 0.520f, 0.640f, 0.35f);
+		colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.025f, 0.027f, 0.032f, 1.00f);
+
+		// ============================================================================
+		// Navigation / Modal / Overlay
+		// ============================================================================
+
+		colors[ImGuiCol_NavCursor]             = accent_hot;
+		colors[ImGuiCol_NavWindowingHighlight] = ImVec4(0.540f, 0.760f, 0.900f, 0.65f);
+		colors[ImGuiCol_NavWindowingDimBg]     = ImVec4(0.000f, 0.000f, 0.000f, 0.55f);
+		colors[ImGuiCol_ModalWindowDimBg]      = ImVec4(0.000f, 0.000f, 0.000f, 0.62f);
+
+		// ============================================================================
+		// Drag & Drop
+		// ============================================================================
+
+		colors[ImGuiCol_DragDropTarget] = ImVec4(0.540f, 0.760f, 0.900f, 0.85f);
 	}
 
 	/////////////////////// LIFECYCLE AND FRAME ///////////////////////
@@ -104,7 +334,8 @@ namespace Trinex::UI
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 		io.IniFilename = nullptr;
 		io.LogFilename = nullptr;
-		//apply_imgui_style(ctx->style);
+
+		initialize_style(&ImGui::GetStyle());
 
 		// Begin window hook
 		{
@@ -154,28 +385,6 @@ namespace Trinex::UI
 
 		ImGui::NewFrame();
 		context->stack_memory_location = StackByteAllocator::location();
-
-		push_style(GlobalStyle{});
-		push_style(TextStyle{});
-		push_style(WindowStyle{});
-		push_style(ChildStyle{});
-		push_style(PopupStyle{});
-		push_style(LayoutStyle{});
-		push_style(FrameStyle{});
-		push_style(ButtonStyle{});
-		push_style(MarkStyle{});
-		push_style(HeaderStyle{});
-		push_style(ScrollbarStyle{});
-		push_style(GrabStyle{});
-		push_style(SeparatorStyle{});
-		push_style(TabStyle{});
-		push_style(TableStyle{});
-		push_style(PlotStyle{});
-		push_style(TreeStyle{});
-		push_style(DockingStyle{});
-		push_style(NavigationStyle{});
-		push_style(DragDropStyle{});
-		push_style(ImageStyle{});
 
 		return true;
 	}
@@ -246,8 +455,7 @@ namespace Trinex::UI
 				const ImVec2 min(max.x - width, animated_y - height);
 				const Vec4 accent = notification_color(it->kind);
 
-				draw->AddRectFilled(min, max, col_u32(panel_color(), alpha * 0.96f),
-				                    imgui_window_rounding());
+				draw->AddRectFilled(min, max, col_u32(panel_color(), alpha * 0.96f), imgui_window_rounding());
 				draw->AddRect(min, max, col_u32(imgui_color(ImGuiCol_Border), alpha), imgui_window_rounding());
 				draw->AddRectFilled(min, ImVec2(min.x + 4.0f, max.y), col_u32(accent, alpha), imgui_window_rounding(),
 				                    ImDrawFlags_RoundCornersLeft);
@@ -266,9 +474,7 @@ namespace Trinex::UI
 					const ImVec2 button_max = add(button_min, button_size);
 					const bool hovered      = ImGui::IsMouseHoveringRect(button_min, button_max);
 					draw->AddRectFilled(button_min, button_max,
-					                    col_u32(hovered ? active_context()->style.colors.accent_hovered
-					                                    : accent_color(),
-					                            alpha),
+					                    col_u32(hovered ? active_context()->style.colors.accent_hovered : accent_color(), alpha),
 					                    5.0f);
 					draw->AddText(ImVec2(button_min.x + 9.0f, button_min.y + 3.0f), col_u32(imgui_color(ImGuiCol_Text), alpha),
 					              it->action_label.c_str());
@@ -296,8 +502,6 @@ namespace Trinex::UI
 				}
 			}
 		}
-
-		pop_style(21);
 
 		ContextListener::for_each<&ContextListener::on_end_frame>(g_context);
 

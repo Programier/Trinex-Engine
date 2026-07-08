@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/etl/optional.hpp>
 #include <UI/core.hpp>
 
 namespace Trinex::UI
@@ -9,10 +10,10 @@ namespace Trinex::UI
 
 	struct GlobalStyle {
 		// ImGuiStyleVar_Alpha
-		f32 alpha = 1.0f;
+		Optional<f32> alpha;
 
 		// ImGuiStyleVar_DisabledAlpha
-		f32 disabled_alpha = 0.45f;
+		Optional<f32> disabled_alpha;
 	};
 
 	// ============================================================================
@@ -21,19 +22,19 @@ namespace Trinex::UI
 
 	struct TextStyle {
 		// ImGuiCol_Text
-		Color color = Color(0.92f, 0.95f, 0.98f, 1.00f);
+		Optional<Color> color;
 
 		// ImGuiCol_TextDisabled
-		Color disabled = Color(0.45f, 0.50f, 0.60f, 1.00f);
+		Optional<Color> disabled;
 
 		// ImGuiCol_TextLink
-		Color link = Color(0.40f, 0.91f, 0.98f, 1.00f);
+		Optional<Color> link;
 
 		// ImGuiCol_TextSelectedBg
-		Color selection_bg = Color(0.32f, 0.72f, 0.95f, 0.35f);
+		Optional<Color> selection_bg;
 
 		// ImGuiCol_InputTextCursor
-		Color cursor = Color(0.67f, 0.97f, 1.00f, 1.00f);
+		Optional<Color> cursor;
 	};
 
 	// ============================================================================
@@ -42,52 +43,49 @@ namespace Trinex::UI
 
 	struct WindowStyle {
 		// ImGuiStyleVar_WindowPadding
-		Vec2 padding{14.0f, 12.0f};
+		Optional<Vec2> padding;
 
 		// ImGuiStyleVar_WindowMinSize
-		Vec2 min_size{64.0f, 64.0f};
+		Optional<Vec2> min_size;
 
 		// ImGuiStyleVar_WindowTitleAlign
-		Vec2 title_align{0.5f, 0.5f};
+		Optional<Vec2> title_align;
 
 		// ImGuiStyleVar_WindowRounding
-		f32 rounding = 12.0f;
+		Optional<f32> rounding;
 
 		// ImGuiStyleVar_WindowBorderSize
-		f32 border_size = 1.0f;
-
-		// Logical opacity for WindowBg alpha.
-		f32 opacity = 0.98f;
+		Optional<f32> border_size;
 
 		// ImGuiCol_WindowBg
-		Color bg = Color(0.045f, 0.065f, 0.120f, 0.98f);
+		Optional<Color> bg;
 
 		// ImGuiCol_Border
-		Color border = Color(0.23f, 0.31f, 0.48f, 0.65f);
+		Optional<Color> border;
 
 		// ImGuiCol_BorderShadow
-		Color border_shadow = Color(0.00f, 0.00f, 0.00f, 0.35f);
+		Optional<Color> border_shadow;
 
 		// ImGuiCol_TitleBg
-		Color title_bg = Color(0.055f, 0.080f, 0.150f, 1.00f);
+		Optional<Color> title_bg;
 
 		// ImGuiCol_TitleBgActive
-		Color title_bg_active = Color(0.10f, 0.16f, 0.28f, 1.00f);
+		Optional<Color> title_bg_active;
 
 		// ImGuiCol_TitleBgCollapsed
-		Color title_bg_collapsed = Color(0.035f, 0.050f, 0.095f, 0.90f);
+		Optional<Color> title_bg_collapsed;
 
 		// ImGuiCol_MenuBarBg
-		Color menu_bar_bg = Color(0.065f, 0.095f, 0.170f, 1.00f);
+		Optional<Color> menu_bar_bg;
 
 		// ImGuiCol_ResizeGrip
-		Color resize_grip = Color(0.40f, 0.91f, 0.98f, 0.28f);
+		Optional<Color> resize_grip;
 
 		// ImGuiCol_ResizeGripHovered
-		Color resize_grip_hovered = Color(0.40f, 0.91f, 0.98f, 0.55f);
+		Optional<Color> resize_grip_hovered;
 
 		// ImGuiCol_ResizeGripActive
-		Color resize_grip_active = Color(0.65f, 0.55f, 0.98f, 0.85f);
+		Optional<Color> resize_grip_active;
 	};
 
 	// ============================================================================
@@ -96,16 +94,13 @@ namespace Trinex::UI
 
 	struct ChildStyle {
 		// ImGuiStyleVar_ChildRounding
-		f32 rounding = 10.0f;
+		Optional<f32> rounding;
 
 		// ImGuiStyleVar_ChildBorderSize
-		f32 border_size = 1.0f;
-
-		// Logical opacity for ChildBg alpha.
-		f32 opacity = 0.92f;
+		Optional<f32> border_size;
 
 		// ImGuiCol_ChildBg
-		Color bg = Color(0.065f, 0.090f, 0.155f, 0.92f);
+		Optional<Color> bg;
 	};
 
 	// ============================================================================
@@ -114,16 +109,16 @@ namespace Trinex::UI
 
 	struct PopupStyle {
 		// ImGuiStyleVar_PopupRounding
-		f32 rounding = 10.0f;
+		Optional<f32> rounding;
 
 		// ImGuiStyleVar_PopupBorderSize
-		f32 border_size = 1.0f;
+		Optional<f32> border_size;
 
 		// Logical opacity for PopupBg alpha.
-		f32 opacity = 0.98f;
+		Optional<f32> opacity;
 
 		// ImGuiCol_PopupBg
-		Color bg = Color(0.055f, 0.080f, 0.145f, 0.98f);
+		Optional<Color> bg;
 	};
 
 	// ============================================================================
@@ -132,13 +127,13 @@ namespace Trinex::UI
 
 	struct LayoutStyle {
 		// ImGuiStyleVar_ItemSpacing
-		Vec2 item_spacing{10.0f, 8.0f};
+		Optional<Vec2> item_spacing;
 
 		// ImGuiStyleVar_ItemInnerSpacing
-		Vec2 item_inner_spacing{8.0f, 6.0f};
+		Optional<Vec2> item_inner_spacing;
 
 		// ImGuiStyleVar_IndentSpacing
-		f32 indent_spacing = 22.0f;
+		Optional<f32> indent_spacing;
 	};
 
 	// ============================================================================
@@ -147,22 +142,22 @@ namespace Trinex::UI
 
 	struct FrameStyle {
 		// ImGuiStyleVar_FramePadding
-		Vec2 padding{10.0f, 6.0f};
+		Optional<Vec2> padding;
 
 		// ImGuiStyleVar_FrameRounding
-		f32 rounding = 8.0f;
+		Optional<f32> rounding = 8.0f;
 
 		// ImGuiStyleVar_FrameBorderSize
-		f32 border_size = 1.0f;
+		Optional<f32> border_size = 1.0f;
 
 		// ImGuiCol_FrameBg
-		Color bg = Color(0.085f, 0.120f, 0.200f, 1.00f);
+		Optional<Color> bg;
 
 		// ImGuiCol_FrameBgHovered
-		Color bg_hovered = Color(0.12f, 0.18f, 0.30f, 1.00f);
+		Optional<Color> bg_hovered;
 
 		// ImGuiCol_FrameBgActive
-		Color bg_active = Color(0.16f, 0.24f, 0.40f, 1.00f);
+		Optional<Color> bg_active;
 	};
 
 	// ============================================================================
@@ -171,16 +166,16 @@ namespace Trinex::UI
 
 	struct ButtonStyle {
 		// ImGuiStyleVar_ButtonTextAlign
-		Vec2 text_align{0.5f, 0.5f};
+		Optional<Vec2> text_align;
 
 		// ImGuiCol_Button
-		Color bg = Color(0.13f, 0.23f, 0.36f, 1.00f);
+		Optional<Color> bg;
 
 		// ImGuiCol_ButtonHovered
-		Color bg_hovered = Color(0.18f, 0.35f, 0.52f, 1.00f);
+		Optional<Color> bg_hovered;
 
 		// ImGuiCol_ButtonActive
-		Color bg_active = Color(0.40f, 0.91f, 0.98f, 0.80f);
+		Optional<Color> bg_active;
 	};
 
 	// ============================================================================
@@ -189,7 +184,7 @@ namespace Trinex::UI
 
 	struct MarkStyle {
 		// ImGuiCol_CheckMark
-		Color check_mark = Color(0.67f, 0.97f, 1.00f, 1.00f);
+		Optional<Color> check_mark;
 	};
 
 	// ============================================================================
@@ -198,16 +193,16 @@ namespace Trinex::UI
 
 	struct HeaderStyle {
 		// ImGuiStyleVar_SelectableTextAlign
-		Vec2 selectable_text_align{0.0f, 0.5f};
+		Optional<Vec2> selectable_text_align;
 
 		// ImGuiCol_Header
-		Color bg = Color(0.12f, 0.18f, 0.30f, 0.85f);
+		Optional<Color> bg;
 
 		// ImGuiCol_HeaderHovered
-		Color bg_hovered = Color(0.18f, 0.35f, 0.52f, 0.95f);
+		Optional<Color> bg_hovered;
 
 		// ImGuiCol_HeaderActive
-		Color bg_active = Color(0.40f, 0.91f, 0.98f, 0.32f);
+		Optional<Color> bg_active;
 	};
 
 	// ============================================================================
@@ -216,22 +211,22 @@ namespace Trinex::UI
 
 	struct ScrollbarStyle {
 		// ImGuiStyleVar_ScrollbarSize
-		f32 size = 14.0f;
+		Optional<f32> size;
 
 		// ImGuiStyleVar_ScrollbarRounding
-		f32 rounding = 10.0f;
+		Optional<f32> rounding;
 
 		// ImGuiCol_ScrollbarBg
-		Color bg = Color(0.035f, 0.050f, 0.095f, 0.65f);
+		Optional<Color> bg;
 
 		// ImGuiCol_ScrollbarGrab
-		Color grab = Color(0.20f, 0.28f, 0.43f, 0.90f);
+		Optional<Color> grab;
 
 		// ImGuiCol_ScrollbarGrabHovered
-		Color grab_hovered = Color(0.30f, 0.43f, 0.62f, 0.95f);
+		Optional<Color> grab_hovered;
 
 		// ImGuiCol_ScrollbarGrabActive
-		Color grab_active = Color(0.40f, 0.91f, 0.98f, 0.85f);
+		Optional<Color> grab_active;
 	};
 
 	// ============================================================================
@@ -240,16 +235,16 @@ namespace Trinex::UI
 
 	struct GrabStyle {
 		// ImGuiStyleVar_GrabMinSize
-		f32 min_size = 12.0f;
+		Optional<f32> min_size = 12.0f;
 
 		// ImGuiStyleVar_GrabRounding
-		f32 rounding = 8.0f;
+		Optional<f32> rounding = 8.0f;
 
 		// ImGuiCol_SliderGrab
-		Color slider_grab = Color(0.40f, 0.91f, 0.98f, 0.85f);
+		Optional<Color> slider_grab;
 
 		// ImGuiCol_SliderGrabActive
-		Color slider_grab_active = Color(0.65f, 0.55f, 0.98f, 1.00f);
+		Optional<Color> slider_grab_active;
 	};
 
 	// ============================================================================
@@ -258,22 +253,22 @@ namespace Trinex::UI
 
 	struct SeparatorStyle {
 		// ImGuiStyleVar_SeparatorTextBorderSize
-		f32 text_border_size = 1.0f;
+		Optional<f32> text_border_size = 1.0f;
 
 		// ImGuiStyleVar_SeparatorTextAlign
-		Vec2 text_align{0.0f, 0.5f};
+		Optional<Vec2> text_align;
 
 		// ImGuiStyleVar_SeparatorTextPadding
-		Vec2 text_padding{20.0f, 4.0f};
+		Optional<Vec2> text_padding;
 
 		// ImGuiCol_Separator
-		Color color = Color(0.23f, 0.31f, 0.48f, 0.65f);
+		Optional<Color> color;
 
 		// ImGuiCol_SeparatorHovered
-		Color hovered = Color(0.40f, 0.91f, 0.98f, 0.70f);
+		Optional<Color> hovered;
 
 		// ImGuiCol_SeparatorActive
-		Color active = Color(0.65f, 0.55f, 0.98f, 0.95f);
+		Optional<Color> active;
 	};
 
 	// ============================================================================
@@ -282,43 +277,43 @@ namespace Trinex::UI
 
 	struct TabStyle {
 		// ImGuiStyleVar_TabRounding
-		f32 rounding = 9.0f;
+		Optional<f32> rounding;
 
 		// ImGuiStyleVar_TabBorderSize
-		f32 border_size = 0.0f;
+		Optional<f32> border_size;
 
 		// ImGuiStyleVar_TabMinWidthBase
-		f32 min_width_base = 44.0f;
+		Optional<f32> min_width_base;
 
 		// ImGuiStyleVar_TabMinWidthShrink
-		f32 min_width_shrink = 24.0f;
+		Optional<f32> min_width_shrink;
 
 		// ImGuiStyleVar_TabBarBorderSize
-		f32 bar_border_size = 1.0f;
+		Optional<f32> bar_border_size;
 
 		// ImGuiStyleVar_TabBarOverlineSize
-		f32 bar_overline_size = 2.0f;
+		Optional<f32> bar_overline_size;
 
 		// ImGuiCol_Tab
-		Color bg = Color(0.08f, 0.12f, 0.21f, 1.00f);
+		Optional<Color> bg;
 
 		// ImGuiCol_TabHovered
-		Color bg_hovered = Color(0.18f, 0.35f, 0.52f, 1.00f);
+		Optional<Color> bg_hovered;
 
 		// ImGuiCol_TabSelected
-		Color bg_selected = Color(0.13f, 0.23f, 0.36f, 1.00f);
+		Optional<Color> bg_selected;
 
 		// ImGuiCol_TabSelectedOverline
-		Color selected_overline = Color(0.40f, 0.91f, 0.98f, 1.00f);
+		Optional<Color> selected_overline;
 
 		// ImGuiCol_TabDimmed
-		Color bg_dimmed = Color(0.055f, 0.080f, 0.145f, 1.00f);
+		Optional<Color> bg_dimmed;
 
 		// ImGuiCol_TabDimmedSelected
-		Color bg_dimmed_selected = Color(0.10f, 0.16f, 0.28f, 1.00f);
+		Optional<Color> bg_dimmed_selected;
 
 		// ImGuiCol_TabDimmedSelectedOverline
-		Color dimmed_selected_overline = Color(0.65f, 0.55f, 0.98f, 0.75f);
+		Optional<Color> dimmed_selected_overline;
 	};
 
 	// ============================================================================
@@ -327,28 +322,28 @@ namespace Trinex::UI
 
 	struct TableStyle {
 		// ImGuiStyleVar_CellPadding
-		Vec2 cell_padding{10.0f, 7.0f};
+		Optional<Vec2> cell_padding;
 
 		// ImGuiStyleVar_TableAngledHeadersAngle
-		f32 angled_headers_angle = 35.0f;
+		Optional<f32> angled_headers_angle;
 
 		// ImGuiStyleVar_TableAngledHeadersTextAlign
-		Vec2 angled_headers_text_align{0.5f, 0.0f};
+		Optional<Vec2> angled_headers_text_align;
 
 		// ImGuiCol_TableHeaderBg
-		Color header_bg = Color(0.10f, 0.16f, 0.28f, 1.00f);
+		Optional<Color> header_bg;
 
 		// ImGuiCol_TableBorderStrong
-		Color border_strong = Color(0.28f, 0.38f, 0.58f, 0.80f);
+		Optional<Color> border_strong;
 
 		// ImGuiCol_TableBorderLight
-		Color border_light = Color(0.20f, 0.27f, 0.42f, 0.55f);
+		Optional<Color> border_light;
 
 		// ImGuiCol_TableRowBg
-		Color row_bg = Color(0.00f, 0.00f, 0.00f, 0.00f);
+		Optional<Color> row_bg;
 
 		// ImGuiCol_TableRowBgAlt
-		Color row_bg_alt = Color(0.12f, 0.18f, 0.30f, 0.28f);
+		Optional<Color> row_bg_alt;
 	};
 
 	// ============================================================================
@@ -357,16 +352,16 @@ namespace Trinex::UI
 
 	struct PlotStyle {
 		// ImGuiCol_PlotLines
-		Color lines = Color(0.40f, 0.91f, 0.98f, 1.00f);
+		Optional<Color> lines;
 
 		// ImGuiCol_PlotLinesHovered
-		Color lines_hovered = Color(0.67f, 0.97f, 1.00f, 1.00f);
+		Optional<Color> lines_hovered;
 
 		// ImGuiCol_PlotHistogram
-		Color histogram = Color(0.65f, 0.55f, 0.98f, 1.00f);
+		Optional<Color> histogram;
 
 		// ImGuiCol_PlotHistogramHovered
-		Color histogram_hovered = Color(0.93f, 0.55f, 0.82f, 1.00f);
+		Optional<Color> histogram_hovered;
 	};
 
 	// ============================================================================
@@ -375,13 +370,13 @@ namespace Trinex::UI
 
 	struct TreeStyle {
 		// ImGuiStyleVar_TreeLinesSize
-		f32 lines_size = 1.5f;
+		Optional<f32> lines_size;
 
 		// ImGuiStyleVar_TreeLinesRounding
-		f32 lines_rounding = 4.0f;
+		Optional<f32> lines_rounding;
 
 		// ImGuiCol_TreeLines
-		Color lines = Color(0.40f, 0.91f, 0.98f, 0.45f);
+		Optional<Color> lines;
 	};
 
 	// ============================================================================
@@ -390,13 +385,13 @@ namespace Trinex::UI
 
 	struct DockingStyle {
 		// ImGuiStyleVar_DockingSeparatorSize
-		f32 separator_size = 2.0f;
+		Optional<f32> separator_size;
 
 		// ImGuiCol_DockingPreview
-		Color preview = Color(0.40f, 0.91f, 0.98f, 0.38f);
+		Optional<Color> preview;
 
 		// ImGuiCol_DockingEmptyBg
-		Color empty_bg = Color(0.030f, 0.040f, 0.075f, 1.00f);
+		Optional<Color> empty_bg;
 	};
 
 	// ============================================================================
@@ -405,16 +400,16 @@ namespace Trinex::UI
 
 	struct NavigationStyle {
 		// ImGuiCol_NavCursor
-		Color cursor = Color(0.67f, 0.97f, 1.00f, 1.00f);
+		Optional<Color> cursor;
 
 		// ImGuiCol_NavWindowingHighlight
-		Color windowing_highlight = Color(0.67f, 0.97f, 1.00f, 0.70f);
+		Optional<Color> windowing_highlight;
 
 		// ImGuiCol_NavWindowingDimBg
-		Color windowing_dim_bg = Color(0.00f, 0.00f, 0.00f, 0.55f);
+		Optional<Color> windowing_dim_bg;
 
 		// ImGuiCol_ModalWindowDimBg
-		Color modal_dim_bg = Color(0.00f, 0.00f, 0.00f, 0.62f);
+		Optional<Color> modal_dim_bg;
 	};
 
 	// ============================================================================
@@ -423,7 +418,7 @@ namespace Trinex::UI
 
 	struct DragDropStyle {
 		// ImGuiCol_DragDropTarget
-		Color target = Color(0.65f, 0.55f, 0.98f, 0.95f);
+		Optional<Color> target;
 	};
 
 	// ============================================================================
@@ -432,7 +427,7 @@ namespace Trinex::UI
 
 	struct ImageStyle {
 		// ImGuiStyleVar_ImageBorderSize
-		f32 border_size = 1.0f;
+		Optional<f32> border_size;
 	};
 
 
@@ -441,46 +436,46 @@ namespace Trinex::UI
 	// ============================================================================
 
 	struct TransitionAnimation {
-		f32 speed = 16.0f;
-		f32 delay = 0.0f;
-		Ease ease = Ease::Linear;
+		Optional<f32> speed;
+		Optional<f32> delay;
+		Optional<Ease> ease;
 	};
 
 	struct HoverAnimation {
 		TransitionAnimation transition;
-		Vec2 padding = Vec2(3.0f, 3.0f);
-		Vec2 offset  = Vec2(0.0f, 0.0f);
+		Optional<Vec2> padding;
+		Optional<Vec2> offset;
 
-		f32 scale   = 1.0f;
-		f32 opacity = 1.0f;
+		Optional<f32> scale;
+		Optional<f32> opacity;
 	};
 
 	struct PressAnimation {
 		TransitionAnimation transition;
 
-		Vec2 padding = Vec2(3.0f, 3.0f);
-		Vec2 offset  = Vec2(0.0f, 1.0f);
+		Optional<Vec2> padding;
+		Optional<Vec2> offset;
 
-		f32 scale   = 0.98f;
-		f32 opacity = 1.0f;
+		Optional<f32> scale;
+		Optional<f32> opacity;
 	};
 
 	struct ColorAnimation {
 		TransitionAnimation transition;
 
-		f32 amount = 1.0f;
+		Optional<f32> amount;
 	};
 
 	struct AlphaAnimation {
 		TransitionAnimation transition;
 
-		f32 opacity = 1.0f;
+		Optional<f32> opacity;
 	};
 
 	struct ShapeAnimation {
 		TransitionAnimation transition;
 
-		f32 rounding_amount = 1.0f;
-		f32 border_amount   = 1.0f;
+		Optional<f32> rounding_amount;
+		Optional<f32> border_amount;
 	};
 }// namespace Trinex::UI

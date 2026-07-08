@@ -110,8 +110,8 @@ namespace Trinex::UI
 
 			tree_context context;
 			context.id            = id;
-			context.logical_open   = open;
-			context.content_start  = content_start;
+			context.logical_open  = open;
+			context.content_start = content_start;
 			active_context()->tree_stack.push_back(context);
 
 			UI::indent();
@@ -209,8 +209,7 @@ namespace Trinex::UI
 	bool sidebar_item(StringView label, bool selected, StringView icon, StringView badge_text)
 	{
 		return animated_row(label, icon, badge_text, selected, false,
-		                    ImVec2(ImGui::GetContentRegionAvail().x, imgui_frame_height()), accent_color(),
-		                    false, 0.0f);
+		                    ImVec2(ImGui::GetContentRegionAvail().x, imgui_frame_height()), accent_color(), false, 0.0f);
 	}
 
 	bool nav_item(StringView label, bool selected, StringView icon)
@@ -610,7 +609,7 @@ namespace Trinex::UI
 		                        viewport->WorkPos.y + Math::max(24.0f, (viewport->WorkSize.y - target_size.y) * 0.22f));
 		const Vec2 popup_scale(Math::lerp(0.8f, 1.0f, eased), Math::lerp(0.8f, 1.0f, eased));
 
-		const float rounding = imgui_window_rounding() + 2.0f;
+		const float rounding = imgui_window_rounding();
 		const float padding  = imgui_window_padding();
 		const float spacing  = imgui_item_spacing();
 
@@ -622,16 +621,14 @@ namespace Trinex::UI
 		{
 			ImGui::OpenPopup("##command_palette_popup");
 		}
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, rounding);
-		ImGui::PushStyleColor(ImGuiCol_ModalWindowDimBg,
-		                      to_imvec(with_alpha(background_color(), 0.28f * eased)));
+
+		ImGui::PushStyleColor(ImGuiCol_ModalWindowDimBg, to_imvec(with_alpha(background_color(), 0.28f * eased)));
 
 		const ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove |
 		                               ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDocking |
 		                               ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBackground;
 		const bool visible = ImGui::BeginPopupModal("##command_palette_popup", nullptr, flags);
 		ImGui::PopStyleColor();
-		ImGui::PopStyleVar();
 
 		if (!visible)
 		{
@@ -666,8 +663,6 @@ namespace Trinex::UI
 		palette_panel.background_color = Vec4(0.10f, 0.12f, 0.16f, 0.58f * eased);
 		palette_panel.border_color     = with_alpha(imgui_color(ImGuiCol_Border), 0.10f * eased);
 		palette_panel.window_flags     = WindowFlags::NoScrollbar | WindowFlags::NoScrollWithMouse;
-
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(padding, padding));
 
 		if (!begin_panel("##command_palette_panel", palette_panel))
 		{
@@ -719,8 +714,7 @@ namespace Trinex::UI
 			ImDrawList* draw        = ImGui::GetWindowDrawList();
 			draw->AddText(ImVec2(center.x - title_size.x * 0.5f, center.y - 12.0f), col_u32(imgui_color(ImGuiCol_Text)),
 			              empty_title);
-			draw->AddText(ImVec2(center.x - desc_size.x * 0.5f, center.y + 10.0f),
-			              col_u32(text_muted_color()), empty_desc);
+			draw->AddText(ImVec2(center.x - desc_size.x * 0.5f, center.y + 10.0f), col_u32(text_muted_color()), empty_desc);
 			ImGui::Dummy(ImVec2(avail.x, Math::max(140.0f, avail.y)));
 		}
 		else
@@ -764,8 +758,7 @@ namespace Trinex::UI
 				Vec4 row_bg      = panel_color();
 				if (selected)
 				{
-					row_bg = mix_color(background_active_color(), accent_color(),
-					                   0.18f);
+					row_bg = mix_color(background_active_color(), accent_color(), 0.18f);
 				}
 				else if (hovered)
 				{
@@ -785,25 +778,21 @@ namespace Trinex::UI
 
 				if (has_icon)
 				{
-					draw->AddText(
-					        ImVec2(icon_x, text_y),
-					        col_u32(selected ? accent_color() : text_muted_color(),
-					                alpha_mul),
-					        command.icon.c_str());
+					draw->AddText(ImVec2(icon_x, text_y), col_u32(selected ? accent_color() : text_muted_color(), alpha_mul),
+					              command.icon.c_str());
 				}
 				draw->AddText(ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(text_x, text_y),
 				              col_u32(imgui_color(ImGuiCol_Text), alpha_mul), command.name.c_str(), nullptr, wrap_w);
 				if (has_desc)
 				{
 					draw->AddText(ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(text_x, text_y + 18.0f),
-					              col_u32(text_muted_color(), alpha_mul), command.description.c_str(),
-					              nullptr, wrap_w);
+					              col_u32(text_muted_color(), alpha_mul), command.description.c_str(), nullptr, wrap_w);
 				}
 				if (has_shortcut)
 				{
 					const ImVec2 shortcut_size = ImGui::CalcTextSize(command.shortcut.c_str());
-					draw->AddText(ImVec2(max.x - shortcut_size.x - padding, min.y + 8.0f),
-					              col_u32(text_muted_color(), alpha_mul), command.shortcut.c_str());
+					draw->AddText(ImVec2(max.x - shortcut_size.x - padding, min.y + 8.0f), col_u32(text_muted_color(), alpha_mul),
+					              command.shortcut.c_str());
 				}
 				ImGui::PopID();
 
@@ -832,8 +821,6 @@ namespace Trinex::UI
 		}
 
 		end_panel();
-		ImGui::PopStyleColor();
-		ImGui::PopStyleVar();
 		pop_render_scale();
 		pop_shadow();
 		ImGui::PopStyleVar();
@@ -1106,8 +1093,7 @@ namespace Trinex::UI
 	bool list_item(StringView label, bool selected, StringView icon, StringView badge_text)
 	{
 		return animated_row(label, icon, badge_text, selected, false,
-		                    ImVec2(ImGui::GetContentRegionAvail().x, imgui_frame_height()), accent_color(),
-		                    false, 0.0f);
+		                    ImVec2(ImGui::GetContentRegionAvail().x, imgui_frame_height()), accent_color(), false, 0.0f);
 	}
 
 	bool filtered_list(StringView id, StringView filter, const char* const items[], int item_count, int* selected_index)
@@ -1444,12 +1430,11 @@ namespace Trinex::UI
 		const ImVec2 icon_size  = imgui_calc_text_size(icon);
 		const ImVec2 title_size = imgui_calc_text_size(title);
 		const ImVec2 desc_size  = imgui_calc_text_size(description);
-		draw_list_add_text(draw, ImVec2(center.x - icon_size.x * 0.5f, center.y - 34.0f),
-		                   col_u32(text_muted_color()), icon);
+		draw_list_add_text(draw, ImVec2(center.x - icon_size.x * 0.5f, center.y - 34.0f), col_u32(text_muted_color()), icon);
 		draw_list_add_text(draw, ImVec2(center.x - title_size.x * 0.5f, center.y - 6.0f), col_u32(imgui_color(ImGuiCol_Text)),
 		                   title);
-		draw_list_add_text(draw, ImVec2(center.x - desc_size.x * 0.5f, center.y + 18.0f),
-		                   col_u32(text_muted_color()), description);
+		draw_list_add_text(draw, ImVec2(center.x - desc_size.x * 0.5f, center.y + 18.0f), col_u32(text_muted_color()),
+		                   description);
 		ImGui::Dummy(ImVec2(avail.x, 140.0f));
 	}
 
