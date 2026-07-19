@@ -216,6 +216,7 @@ namespace Trinex
 	{
 		i32 id = ScriptEngineData::instance()->engine->RegisterGlobalFunction(declaration, *reinterpret_cast<asSFuncPtr*>(func),
 		                                                                      create_call_conv(conv), auxiliary);
+		trinex_verify(id >= 0);
 		if (id < 0)
 			return {};
 		return function_by_id(id);
@@ -251,7 +252,9 @@ namespace Trinex
 
 	i32 ScriptEngine::register_property(const char* declaration, void* data)
 	{
-		return ScriptEngineData::instance()->engine->RegisterGlobalProperty(declaration, data);
+		i32 result = ScriptEngineData::instance()->engine->RegisterGlobalProperty(declaration, data);
+		trinex_verify(result >= 0);
+		return result;
 	}
 
 	i32 ScriptEngine::register_property(const String& declaration, void* data)
@@ -324,7 +327,7 @@ namespace Trinex
 
 	ScriptEngine& ScriptEngine::register_funcdef(const char* declaration)
 	{
-		ScriptEngineData::instance()->engine->RegisterFuncdef(declaration);
+		trinex_verify(ScriptEngineData::instance()->engine->RegisterFuncdef(declaration) >= 0);
 		return instance();
 	}
 
@@ -335,7 +338,7 @@ namespace Trinex
 
 	ScriptEngine& ScriptEngine::register_typedef(const char* type, const char* declaration)
 	{
-		ScriptEngineData::instance()->engine->RegisterTypedef(type, declaration);
+		trinex_verify(ScriptEngineData::instance()->engine->RegisterTypedef(type, declaration) >= 0);
 		return instance();
 	}
 

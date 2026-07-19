@@ -3,6 +3,34 @@
 
 namespace Trinex
 {
+	struct ScriptClassFlags {
+		enum Enum : u64
+		{
+			Ref                      = 1ULL << 0,
+			Value                    = 1ULL << 1,
+			Pod                      = 1ULL << 3,
+			Template                 = 1ULL << 6,
+			AsHandle                 = 1ULL << 7,
+			AppClass                 = 1ULL << 8,
+			AppClassConstructor      = 1ULL << 9,
+			AppClassDestructor       = 1ULL << 10,
+			AppClassAssignment       = 1ULL << 11,
+			AppClassCopyCtor         = 1ULL << 12,
+			AppPrimitive             = 1ULL << 13,
+			AppFloat                 = 1ULL << 14,
+			AppArray                 = 1ULL << 15,
+			AppClassAllInts          = 1ULL << 16,
+			AppClassAllFloats        = 1ULL << 17,
+			NoCount                  = 1ULL << 18,
+			AppClassAlign8           = 1ULL << 19,
+			ImplicitHandle           = 1ULL << 20,
+			AppClassMoreConstructors = 1ULL << 31,
+			AppNativeInheritance     = 1ULL << 33,
+		};
+
+		trinex_bitfield_enum_struct(ScriptClassFlags, u64);
+	};
+
 	struct ScriptModuleLookup {
 		enum Enum : u8
 		{
@@ -30,15 +58,16 @@ namespace Trinex
 	struct ScriptCallConv {
 		enum Enum
 		{
-			CDecl             = 0,
-			StdCall           = 1,
-			ThisCallAsGlobal  = 2,
-			ThisCall          = 3,
-			CDeclObjLast      = 4,
-			CDeclObjFirst     = 5,
-			Generic           = 6,
-			ThisCall_ObjLast  = 7,
-			ThisCall_ObjFirst = 8,
+			Auto              = 0,
+			CDecl             = 1,
+			StdCall           = 2,
+			ThisCallAsGlobal  = 3,
+			ThisCall          = 4,
+			CDeclObjLast      = 5,
+			CDeclObjFirst     = 6,
+			Generic           = 7,
+			ThisCall_ObjLast  = 8,
+			ThisCall_ObjFirst = 9,
 		};
 
 		trinex_enum_struct(ScriptCallConv);
