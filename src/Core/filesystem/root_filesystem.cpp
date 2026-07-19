@@ -58,7 +58,12 @@ namespace Trinex::VFS
 			new_iterator->m_iterators.reserve(m_iterators.size() - m_index);
 
 			for (usize index = m_index, count = m_iterators.size(); index < count; ++index)
-				new_iterator->m_iterators.push_back(m_iterators[index]->copy());
+			{
+				if (auto iterator = m_iterators[index])
+				{
+					new_iterator->m_iterators.push_back(iterator->copy());
+				}
+			}
 
 			return new_iterator;
 		}

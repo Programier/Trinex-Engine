@@ -1,4 +1,6 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.5)
+cmake_policy(SET CMP0079 NEW)
+
 project(TrinexEngine LANGUAGES C CXX ASM)
 
 option(TRINEX_WITH_TRACY_PROFILER "Build Trinex Engine with supper Tracy Profiler" OFF)
@@ -92,7 +94,7 @@ target_compile_options(TrinexEngine PUBLIC
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_definitions(TrinexEngine PUBLIC -DTRINEX_DEBUG_BUILD=1)
     target_compile_definitions(TrinexEngine PUBLIC -DTRINEX_RELEASE_BUILD=0)
-elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+else()
     target_compile_definitions(TrinexEngine PUBLIC -DTRINEX_DEBUG_BUILD=0)
     target_compile_definitions(TrinexEngine PUBLIC -DTRINEX_RELEASE_BUILD=1)
 endif()
