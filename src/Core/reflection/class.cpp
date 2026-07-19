@@ -1,7 +1,7 @@
 #include <Core/garbage_collector.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
-#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <angelscript.h>
@@ -38,7 +38,7 @@ namespace Trinex::Refl
 
 	Class& Class::register_scriptable_instance()
 	{
-		auto registrar = ScriptClassRegistrar::reference_class(this);
+		auto registrar = ScriptBinding::Class::reflected(this);
 		return *this;
 	}
 
@@ -61,7 +61,7 @@ namespace Trinex::Refl
 
 		if (is_scriptable() && is_native())
 		{
-			auto registrar = ScriptClassRegistrar::existing_class(full_name());
+			auto registrar = ScriptBinding::Class::existing(full_name());
 
 			auto base = parent();
 
@@ -77,14 +77,14 @@ namespace Trinex::Refl
 				auto factory =
 				        Strings::format(R"({}@ f(Trinex::StringView name = "", Trinex::Object owner = null))", full_name());
 
-				registrar.behave(ScriptClassBehave::Construct, "void f()", &Class::script_object_constructor_default,
+				registrar.behaviour(ScriptClassBehave::Construct, "void f()", &Class::script_object_constructor_default,
 				                 ScriptCallConv::ThisCall_ObjFirst, this);
 
-				registrar.behave(ScriptClassBehave::Construct,
+				registrar.behaviour(ScriptClassBehave::Construct,
 				                 R"(void f(Trinex::StringView name = "", Trinex::Object owner = null))",
 				                 &Class::script_object_constructor, ScriptCallConv::ThisCall_ObjFirst, this);
 
-				registrar.behave(ScriptClassBehave::Factory, factory.c_str(), script_object_factory(), ScriptCallConv::CDecl);
+				registrar.behaviour(ScriptClassBehave::Factory, factory.c_str(), script_object_factory(), ScriptCallConv::CDecl);
 			}
 		}
 
@@ -161,7 +161,7 @@ namespace Trinex::Refl
 		return get_asset_class_table();
 	}
 
-	void Class::register_layout(ScriptClassRegistrar& r, ClassInfo* info, DownCast downcast)
+	void Class::register_layout(ScriptBinding::Class& r, ClassInfo* info, DownCast downcast)
 	{
 		Super::register_layout(r, info, downcast);
 		r.method("Trinex::Object@ singletone_instance() const", &Class::singletone_instance);

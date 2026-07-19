@@ -7,7 +7,7 @@
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/scene.hpp>
 #include <Engine/world.hpp>
-#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_binding.hpp>
 
 namespace Trinex
 {

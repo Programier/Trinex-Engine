@@ -1,6 +1,6 @@
 #include <Core/engine_types.hpp>
 #include <Core/etl/templates.hpp>
-#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_type_info.hpp>
@@ -852,27 +852,21 @@ namespace Trinex
 
 	trinex_on_pre_init({.name = "Trinex::ScriptVector"})
 	{
-		using T                      = ScriptVector;
-		auto info                    = ScriptClassRegistrar::ValueInfo();
-		info.is_class                = true;
-		info.all_ints                = true;
-		info.align8                  = alignof(void*) == 8;
-		info.has_constructor         = true;
-		info.has_copy_constructor    = true;
-		info.has_destructor          = true;
-		info.has_assignment_operator = true;
-		info.template_type           = "<T>";
+		using T    = ScriptVector;
+		auto flags = ScriptClassFlags::AppClassAllInts | ScriptClassFlags::Template;
+		if constexpr (alignof(void*) == 8)
+			flags |= ScriptClassFlags::AppClassAlign8;
 
-		auto r = ScriptClassRegistrar::value_class("Trinex::Vector<class T>", sizeof(ScriptVector::Instance), info);
+		auto r = ScriptBinding::Class::create("Trinex::Vector<T>", ScriptBinding::value_type<ScriptVector::Instance>(flags));
 
-		r.behave(ScriptClassBehave::TemplateCallback, "bool f(int &in, bool&out)", template_callback, ScriptCallConv::CDecl);
+		r.behaviour(ScriptClassBehave::TemplateCallback, "bool f(int &in, bool&out)", template_callback, ScriptCallConv::CDecl);
 
-		r.behave(ScriptClassBehave::Construct, "void f(int&)", T::constructor);
-		r.behave(ScriptClassBehave::Construct, "void f(int&, uint64) explicit", T::constructor_sz);
-		r.behave(ScriptClassBehave::Construct, "void f(int&, uint64, const T& v)", T::constructor_sz_v);
-		r.behave(ScriptClassBehave::ListConstruct, "void f(int&, int&in) { repeat T }", T::constructor_lst);
-		r.behave(ScriptClassBehave::Construct, "void f(int&, const Vector<T>&)", T::copy_constructor);
-		r.behave(ScriptClassBehave::Destruct, "void f()", T::destructor, ScriptCallConv::Generic);
+		r.behaviour(ScriptClassBehave::Construct, "void f(int&)", T::constructor);
+		r.behaviour(ScriptClassBehave::Construct, "void f(int&, uint64) explicit", T::constructor_sz);
+		r.behaviour(ScriptClassBehave::Construct, "void f(int&, uint64, const T& v)", T::constructor_sz_v);
+		r.behaviour(ScriptClassBehave::ListConstruct, "void f(int&, int&in) { repeat T }", T::constructor_lst);
+		r.behaviour(ScriptClassBehave::Construct, "void f(int&, const Vector<T>&)", T::copy_constructor);
+		r.behaviour(ScriptClassBehave::Destruct, "void f()", T::destructor, ScriptCallConv::Generic);
 		r.method("Vector<T>& opAssign(const Vector<T>&)", T::opAssign, ScriptCallConv::Generic);
 		r.method("T& opIndex(uint64 i)", T::at, ScriptCallConv::Generic);
 		r.method("const T& opIndex(uint64 i) const", T::at, ScriptCallConv::Generic);

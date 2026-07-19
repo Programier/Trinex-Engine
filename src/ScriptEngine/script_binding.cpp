@@ -72,21 +72,110 @@ namespace Trinex::ScriptBinding
 			}
 		}
 
-		static String normalize_type_name(String name, StringView suffix)
+		static bool is_template_delimiter(char ch)
 		{
-			if (suffix.empty())
-				return name;
+			return ch == '<' || ch == '>' || ch == ',';
+		}
 
-			auto pos = name.find_first_of('<');
-			if (pos == String::npos)
+		static bool is_identifier_char(char ch)
+		{
+			return std::isalnum(static_cast<unsigned char>(ch)) || ch == '_';
+		}
+
+		static bool is_template_parameter(StringView name)
+		{
+			if (name.empty() || !std::isupper(static_cast<unsigned char>(name.front())))
+				return false;
+
+			for (char ch : name)
 			{
-				name += suffix;
-				return name;
+				if (!is_identifier_char(ch))
+					return false;
 			}
 
-			name = name.substr(0, pos);
-			name += suffix;
-			return name;
+			return true;
+		}
+
+		static String trim(StringView view)
+		{
+			while (!view.empty() && std::isspace(static_cast<unsigned char>(view.front()))) view.remove_prefix(1);
+			while (!view.empty() && std::isspace(static_cast<unsigned char>(view.back()))) view.remove_suffix(1);
+			return String(view);
+		}
+
+		static String template_name_without_class(StringView name)
+		{
+			String result;
+			result.reserve(name.size());
+
+			for (usize index = 0; index < name.size();)
+			{
+				if (name.substr(index, 5) == "class" &&
+				    (index == 0 || std::isspace(static_cast<unsigned char>(name[index - 1])) ||
+				     is_template_delimiter(name[index - 1])) &&
+				    (index + 5 >= name.size() || std::isspace(static_cast<unsigned char>(name[index + 5]))))
+				{
+					index += 5;
+					while (index < name.size() && std::isspace(static_cast<unsigned char>(name[index]))) ++index;
+					continue;
+				}
+
+				result.push_back(name[index++]);
+			}
+
+			return result;
+		}
+
+		static String template_name_with_class(StringView name)
+		{
+			String result;
+			result.reserve(name.size());
+
+			usize argument_start = 0;
+			i32 template_depth   = 0;
+
+			auto append_argument = [&](usize end) {
+				String argument = trim(name.substr(argument_start, end - argument_start));
+				if (argument.substr(0, 6) == "class " || !is_template_parameter(argument))
+				{
+					result += argument;
+				}
+				else
+				{
+					result += "class ";
+					result += argument;
+				}
+			};
+
+			for (usize index = 0; index < name.size(); ++index)
+			{
+				const char ch = name[index];
+
+				if (ch == '<')
+				{
+					++template_depth;
+					result.push_back(ch);
+					argument_start = index + 1;
+				}
+				else if (ch == '>' && template_depth > 0)
+				{
+					append_argument(index);
+					--template_depth;
+					result.push_back(ch);
+				}
+				else if (ch == ',' && template_depth == 1)
+				{
+					append_argument(index);
+					result += ", ";
+					argument_start = index + 1;
+				}
+				else if (template_depth == 0)
+				{
+					result.push_back(ch);
+				}
+			}
+
+			return result;
 		}
 	}// namespace
 
@@ -108,35 +197,38 @@ namespace Trinex::ScriptBinding
 		reference() = asSMethodPtr<sizeof(ptr)>::Convert(ptr);
 	}
 
-	ObjectTypeOptions value_type_options(usize size, ScriptClassFlags flags, StringView name_suffix)
+	ObjectTypeOptions value_type(usize size, ScriptClassFlags flags)
 	{
-		return ObjectTypeOptions{.size = size, .flags = flags | ScriptClassFlags::Value, .name_suffix = String(name_suffix)};
+		return ObjectTypeOptions{.size = size, .flags = flags | ScriptClassFlags::Value};
 	}
 
-	ObjectTypeOptions reference_type_options(usize size, ScriptClassFlags flags, StringView name_suffix)
+	ObjectTypeOptions reference_type(usize size, ScriptClassFlags flags)
 	{
-		return ObjectTypeOptions{.size = size, .flags = flags | ScriptClassFlags::Ref, .name_suffix = String(name_suffix)};
+		return ObjectTypeOptions{.size = size, .flags = flags | ScriptClassFlags::Ref};
 	}
 
 	Class::Class(const StringView& name)
-	    : m_class(name), m_class_base(Strings::class_name_sv_of(name)), m_namespace(Strings::namespace_sv_of(name))
+	    : m_class(template_name_without_class(name)), m_class_base(Strings::class_name_sv_of(m_class)),
+	      m_namespace(Strings::namespace_sv_of(m_class))
 	{}
-
-	Class& Class::apply_name_suffix(StringView suffix)
-	{
-		m_class      = normalize_type_name(m_class, suffix);
-		m_class_base = normalize_type_name(m_class_base, suffix);
-		return *this;
-	}
 
 	Class Class::create(const StringView& name, const ObjectTypeOptions& options)
 	{
 		Class binding(name);
-		binding.apply_name_suffix(options.name_suffix);
 		ScopedNamespace ns(binding.m_namespace);
 
 		auto engine = ScriptEngine::engine();
-		trinex_verify(engine->RegisterObjectType(binding.m_class_base.c_str(), options.size, options.flags) >= 0);
+
+		if (options.flags & ScriptClassFlags::Template)
+		{
+			String registered_name = template_name_with_class(binding.m_class_base);
+			trinex_verify(engine->RegisterObjectType(registered_name.c_str(), options.size, options.flags) >= 0);
+		}
+		else
+		{
+			trinex_verify(engine->RegisterObjectType(binding.m_class_base.c_str(), options.size, options.flags) >= 0);
+		}
+
 		return binding;
 	}
 
@@ -152,8 +244,8 @@ namespace Trinex::ScriptBinding
 
 	Class Class::reflected(Refl::Class* class_instance, ScriptClassFlags flags)
 	{
-		auto binding = create(class_instance->full_name(), reference_type_options(class_instance->size(), flags));
-		auto info    = binding.type_info();
+		auto binding                     = create(class_instance->full_name(), reference_type(class_instance->size(), flags));
+		auto info                        = binding.type_info();
 		class_instance->script_type_info = info;
 		ScriptEngine::register_class(info.type_id(), class_instance);
 		return binding;
@@ -181,14 +273,14 @@ namespace Trinex::ScriptBinding
 		return *this;
 	}
 
-	Class& Class::method(const char* decl, const FunctionPointer& func, ScriptCallConv conv, void* auxiliary)
+	ScriptFunction Class::method(const char* decl, const FunctionPointer& func, ScriptCallConv conv, void* auxiliary)
 	{
 		ScopedNamespace ns(m_namespace);
 		auto engine = ScriptEngine::engine();
 
 		trinex_verify(engine->RegisterObjectMethod(m_class_base.c_str(), decl, func, create_call_conv(func, conv, true),
 		                                           auxiliary) >= 0);
-		return *this;
+		return type_info().method_by_decl(decl);
 	}
 
 	Class& Class::static_function(const char* decl, const FunctionPointer& func, ScriptCallConv conv, void* auxiliary)

@@ -1,6 +1,6 @@
 #include <Core/etl/templates.hpp>
 #include <Core/string_functions.hpp>
-#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_pointer.hpp>
 #include <angelscript.h>
@@ -86,11 +86,7 @@ namespace Trinex
 
 	static void register_nullptr()
 	{
-		ScriptClassRegistrar::ValueInfo info = ScriptClassRegistrar::ValueInfo::from<u8>();
-		info.pod                             = true;
-		info.is_primitive                    = true;
-
-		auto r         = ScriptClassRegistrar::value_class("NullPtr", sizeof(u8), info);
+		auto r         = ScriptBinding::Class::create("NullPtr", ScriptBinding::value_type<u8>(ScriptClassFlags::Pod));
 		static u8 null = 0;
 		ScriptEngine::instance().register_property("const NullPtr nullptr", &null);
 	}
@@ -99,38 +95,34 @@ namespace Trinex
 	{
 		register_nullptr();
 
-		ScriptClassRegistrar::ValueInfo info = ScriptClassRegistrar::ValueInfo::from<ScriptPointer>();
-		info.align8                          = true;
-		info.all_ints                        = true;
-		info.template_type                   = "<T>";
+		auto flags = ScriptClassFlags::AppClassAllInts | ScriptClassFlags::AppClassAlign8;
 
-		auto register_base_methods = [](ScriptClassRegistrar& r) {
-			r.behave(ScriptClassBehave::Destruct, "void f()", r.destructor<ScriptPointer>);
+		auto register_base_methods = [](ScriptBinding::Class& r) {
+			r.destructor<ScriptPointer>();
 
-			String assign = Strings::format("{}& opAssign(const NullPtr& other)", r.class_name());
+			String assign = Strings::format("{}& opAssign(const NullPtr& other)", r.name());
 			r.method(assign.c_str(), assign_nullptr);
 			r.method("bool is_null() const", &ScriptPointer::is_null);
 		};
 
 		auto register_void_ptr = [&]() {
-			info.template_type = "";
-			auto r             = ScriptClassRegistrar::value_class("Ptr<void>", sizeof(ScriptPointer), info);
-			r.behave(ScriptClassBehave::Construct, "void f()", r.constructor<ScriptPointer>);
-			r.behave(ScriptClassBehave::Construct, "void f(const Ptr<void>& ptr)",
-			         r.constructor<ScriptPointer, const ScriptPointer&>);
-			r.behave(ScriptClassBehave::Construct, "void f(const NullPtr& nullptr)", nullptr_constructor_void);
+			auto r = ScriptBinding::Class::create("Ptr<void>", ScriptBinding::value_type<ScriptPointer>(flags));
+			r.constructor<ScriptPointer>();
+			r.constructor<ScriptPointer, const ScriptPointer&>("void f(const Ptr<void>& ptr)");
+			r.behaviour(ScriptClassBehave::Construct, "void f(const NullPtr& nullptr)", nullptr_constructor_void);
 			register_base_methods(r);
 		};
 
 		{
-			auto r = ScriptClassRegistrar::value_class("Ptr<class T>", sizeof(ScriptPointer), info);
+			auto r = ScriptBinding::Class::create("Ptr<T>",
+			                                      ScriptBinding::value_type<ScriptPointer>(flags | ScriptClassFlags::Template));
 			register_void_ptr();
 			register_base_methods(r);
 
-			r.behave(ScriptClassBehave::Construct, "void f(int&in)", default_constructor);
-			r.behave(ScriptClassBehave::Construct, "void f(int&in, const Ptr<T>& ptr)", copy_constructor);
-			r.behave(ScriptClassBehave::Construct, "void f(int&in, const NullPtr& nullptr)", nullptr_constructor);
-			r.behave(ScriptClassBehave::Construct, "void f(int&in, T&)", value_constructor);
+			r.behaviour(ScriptClassBehave::Construct, "void f(int&in)", default_constructor);
+			r.behaviour(ScriptClassBehave::Construct, "void f(int&in, const Ptr<T>& ptr)", copy_constructor);
+			r.behaviour(ScriptClassBehave::Construct, "void f(int&in, const NullPtr& nullptr)", nullptr_constructor);
+			r.behaviour(ScriptClassBehave::Construct, "void f(int&in, T&)", value_constructor);
 			r.method("Ptr<T>& opAssign(const Ptr<T>& other)", assign_ptr);
 			r.method("Ptr<T>& opAssign(T& other)", assign_hndl);
 			r.method("T& get() const", address);

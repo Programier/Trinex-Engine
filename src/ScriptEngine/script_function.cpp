@@ -1,6 +1,6 @@
 #include <Core/etl/templates.hpp>
 #include <Core/string_functions.hpp>
-#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_function.hpp>
 #include <ScriptEngine/script_module.hpp>

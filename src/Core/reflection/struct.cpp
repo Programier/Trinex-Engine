@@ -2,7 +2,7 @@
 #include <Core/group.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/reflection/struct.hpp>
-#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_binding.hpp>
 
 #include <Graphics/gpu_buffers.hpp>
 
@@ -368,7 +368,7 @@ namespace Trinex::Refl
 		return self->is_a(other);
 	}
 
-	void Struct::register_layout(ScriptClassRegistrar& r, ClassInfo* info, DownCast downcast)
+	void Struct::register_layout(ScriptBinding::Class& r, ClassInfo* info, DownCast downcast)
 	{
 		Super::register_layout(r, info, downcast);
 

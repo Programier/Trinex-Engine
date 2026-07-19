@@ -3,7 +3,7 @@
 #include <Core/etl/templates.hpp>
 #include <Core/reflection/object.hpp>
 #include <Core/string_functions.hpp>
-#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_engine.hpp>
 
 namespace Trinex::Refl
@@ -109,24 +109,24 @@ namespace Trinex::Refl
 		{
 			initialized = true;
 
-			ScriptClassRegistrar::RefInfo info;
-			info.implicit_handle = true;
-			info.no_count        = true;
-
 			{
-				ScriptEnumRegistrar r("Trinex::Refl::FindFlags");
-				r.set("None", FindFlags::None);
-				r.set("CreateScope", FindFlags::CreateScope);
-				r.set("IsRequired", FindFlags::IsRequired);
+				ScriptBinding::Enum r("Trinex::Refl::FindFlags");
+				r.value("None", FindFlags::None);
+				r.value("CreateScope", FindFlags::CreateScope);
+				r.value("IsRequired", FindFlags::IsRequired);
 			}
 			{
-				auto r = ScriptClassRegistrar::reference_class("Trinex::Refl::ClassInfo", info);
+				auto options = ScriptBinding::reference_type(sizeof(ClassInfo),
+				                                             ScriptClassFlags::NoCount | ScriptClassFlags::ImplicitHandle);
+				auto r       = ScriptBinding::Class::create("Trinex::Refl::ClassInfo", options);
 				r.property("const Name class_name", &ClassInfo::class_name);
 				r.property("const ClassInfo@ parent", &ClassInfo::parent);
 				r.method("bool is_a(const ClassInfo@ info) const", &ClassInfo::is_a);
 			}
 
-			auto r = ScriptClassRegistrar::reference_class("Trinex::Refl::Object", info);
+			auto r = ScriptBinding::Class::create(
+			        "Trinex::Refl::Object",
+			        ScriptBinding::reference_type(sizeof(Object), ScriptClassFlags::NoCount | ScriptClassFlags::ImplicitHandle));
 			r.static_function("Trinex::Refl::ClassInfo@ static_refl_class_info()", &Object::static_refl_class_info);
 			r.static_function("bool is_valid(Object@ object)", Object::is_valid);
 			r.static_function("Object@ static_root()", Object::static_root);
@@ -412,7 +412,7 @@ namespace Trinex::Refl
 		return object;
 	}
 
-	void Object::register_layout(ScriptClassRegistrar& r, ClassInfo* info, DownCast downcast)
+	void Object::register_layout(ScriptBinding::Class& r, ClassInfo* info, DownCast downcast)
 	{
 		using T = Object;
 
@@ -438,7 +438,7 @@ namespace Trinex::Refl
 		r.method("Trinex::Refl::Object@ find(const Trinex::Name& name)", &T::find<Object>);
 		r.method("Trinex::Refl::ClassInfo@ refl_class_info() const", &T::refl_class_info);
 
-		String current_type = r.class_name();
+		String current_type = r.name();
 
 		for (auto i = info->parent; i; i = i->parent)
 		{
@@ -457,7 +457,7 @@ namespace Trinex::Refl
 			String opcast       = Strings::format("{}@ opCast()", current_type);
 			String const_opcast = Strings::format("const {}@ opCast() const", current_type);
 
-			auto r = ScriptClassRegistrar::existing_class(Strings::format("Trinex::Refl::{}", i->class_name.to_string()));
+			auto r = ScriptBinding::Class::existing(Strings::format("Trinex::Refl::{}", i->class_name.to_string()));
 			if (downcast)
 			{
 				r.method(opcast.c_str(), downcast);

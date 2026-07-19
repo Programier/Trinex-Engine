@@ -1,4 +1,4 @@
-#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <VkBootstrap.h>
 #include <vulkan_config.hpp>
@@ -16,12 +16,12 @@ namespace Trinex::VulkanConfig
 
 	trinex_on_pre_init()
 	{
-		ScriptEnumRegistrar reg("Trinex::VulkanGPU");
-		reg.set("other", vkb::DeviceType::other);
-		reg.set("integrated", vkb::DeviceType::integrated);
-		reg.set("discrete", vkb::DeviceType::discrete);
-		reg.set("virtual_gpu", vkb::DeviceType::virtual_gpu);
-		reg.set("cpu", vkb::DeviceType::cpu);
+		ScriptBinding::Enum reg("Trinex::VulkanGPU");
+		reg.value("other", vkb::DeviceType::other);
+		reg.value("integrated", vkb::DeviceType::integrated);
+		reg.value("discrete", vkb::DeviceType::discrete);
+		reg.value("virtual_gpu", vkb::DeviceType::virtual_gpu);
+		reg.value("cpu", vkb::DeviceType::cpu);
 
 		auto& e = ScriptEngine::instance();
 

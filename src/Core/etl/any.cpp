@@ -1,5 +1,5 @@
 #include <Core/etl/any.hpp>
-#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <angelscript.h>
 #include <cstring>
@@ -292,19 +292,13 @@ namespace Trinex
 
 	trinex_on_pre_init()
 	{
-		auto info                    = ScriptClassRegistrar::ValueInfo();
-		info.is_class                = true;
-		info.has_constructor         = true;
-		info.has_destructor          = true;
-		info.has_copy_constructor    = true;
-		info.has_assignment_operator = true;
-		info.more_constructors       = true;
-
-		auto reg = ScriptClassRegistrar::value_class("Trinex::Any", sizeof(Any), info);
-		reg.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<Any>);
-		reg.behave(ScriptClassBehave::Construct, "void f(const Any& any)", ScriptClassRegistrar::constructor<Any, const Any&>);
-		reg.behave(ScriptClassBehave::Construct, "void f(const ?& value)", ScriptAny::constructor);
-		reg.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<Any>);
+		auto reg = ScriptBinding::Class::create("Trinex::Any",
+		                                        ScriptBinding::value_type<Any>(ScriptClassFlags::AppClassMoreConstructors));
+		reg.behaviour(ScriptClassBehave::Construct, "void f()", ScriptBinding::Helpers::constructor<Any>);
+		reg.behaviour(ScriptClassBehave::Construct, "void f(const Any& any)",
+		              ScriptBinding::Helpers::constructor<Any, const Any&>);
+		reg.behaviour(ScriptClassBehave::Construct, "void f(const ?& value)", ScriptAny::constructor);
+		reg.behaviour(ScriptClassBehave::Destruct, "void f()", ScriptBinding::Helpers::destructor<Any>);
 		reg.method("Any& opAssign(const Any&)", ScriptAny::opAssign);
 		reg.method("Any& opAssign(const ?&)", ScriptAny::opAssignValue);
 		reg.method("Any& reset()", &Any::reset);

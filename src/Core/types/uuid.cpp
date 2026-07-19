@@ -1,7 +1,7 @@
 #include <Core/archive.hpp>
 #include <Core/types/uuid.hpp>
 #include <Platform/platform.hpp>
-#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_binding.hpp>
 
 namespace Trinex
 {
@@ -200,21 +200,16 @@ namespace Trinex
 
 	trinex_on_pre_init({.name = "Trinex::UUID", .after = {"Trinex::StringView"}})
 	{
-		ScriptClassRegistrar::ValueInfo info;
-		info.all_ints          = true;
-		info.more_constructors = true;
-		info.pod               = true;
-		info.has_constructor   = true;
-		info.align8            = true;
+		auto flags = ScriptClassFlags::Pod | ScriptClassFlags::AppClassAllInts | ScriptClassFlags::AppClassAlign8 |
+		             ScriptClassFlags::AppClassMoreConstructors;
+		ScriptBinding::Class registrar = ScriptBinding::Class::create("Trinex::UUID", ScriptBinding::value_type<UUID>(flags));
 
-		ScriptClassRegistrar registrar = ScriptClassRegistrar::value_class("Trinex::UUID", sizeof(UUID), info);
-
-		registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<UUID>,
-		                 ScriptCallConv::CDeclObjFirst);
-		registrar.behave(ScriptClassBehave::Construct, "void f(const string&)",
-		                 ScriptClassRegistrar::constructor<UUID, const String&>, ScriptCallConv::CDeclObjFirst);
-		registrar.behave(ScriptClassBehave::Construct, "void f(const StringView&)",
-		                 ScriptClassRegistrar::constructor<UUID, const StringView&>, ScriptCallConv::CDeclObjFirst);
+		registrar.behaviour(ScriptClassBehave::Construct, "void f()", ScriptBinding::Helpers::constructor<UUID>,
+		                    ScriptCallConv::CDeclObjFirst);
+		registrar.behaviour(ScriptClassBehave::Construct, "void f(const string&)",
+		                    ScriptBinding::Helpers::constructor<UUID, const String&>, ScriptCallConv::CDeclObjFirst);
+		registrar.behaviour(ScriptClassBehave::Construct, "void f(const StringView&)",
+		                    ScriptBinding::Helpers::constructor<UUID, const StringView&>, ScriptCallConv::CDeclObjFirst);
 
 		registrar.static_function("UUID generate()", &UUID::generate);
 		registrar.static_function("UUID parse(const StringView&)", &UUID::parse);

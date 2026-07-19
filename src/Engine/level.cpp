@@ -6,7 +6,7 @@
 #include <Engine/Actors/actor.hpp>
 #include <Engine/level.hpp>
 #include <Engine/world.hpp>
-#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_function.hpp>
@@ -34,7 +34,7 @@ namespace Trinex
 	trinex_implement_class(Trinex::LevelInstance, Refl::Class::IsScriptable)
 	{
 		auto self = static_reflection();
-		auto r    = ScriptClassRegistrar::existing_class(self);
+		auto r    = ScriptBinding::Class::existing(self);
 
 
 		static constexpr const char* signatures[] = {

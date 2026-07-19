@@ -4,11 +4,15 @@
 #include <Core/etl/any.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/types/name.hpp>
+#include <ScriptEngine/script_binding.hpp>
 
 namespace Trinex
 {
-	class ScriptClassRegistrar;
-}
+	namespace ScriptBinding
+	{
+		class Class;
+	}
+}// namespace Trinex
 
 namespace Trinex::Refl
 {
@@ -107,7 +111,7 @@ namespace Trinex::Refl
 		static void load_reflection(Object* root = nullptr, bool force_recursive = false);
 		static bool destroy_instance(Object* object);
 		static bool is_valid(Object* object);
-		static void register_layout(ScriptClassRegistrar& r, ClassInfo* info, DownCast downcast);
+		static void register_layout(ScriptBinding::Class& r, ClassInfo* info, DownCast downcast);
 
 		template<typename T>
 		bool is_a() const
@@ -255,7 +259,7 @@ private:
 	{                                                                                                                            \
 		return Trinex::Refl::Object::static_require<decl>(object_name, flags);                                                   \
 	}                                                                                                                            \
-	static void TRINEX_CONCAT(trinex_refl_initializer_, __LINE__)(Trinex::ScriptClassRegistrar & r);                             \
+	static void TRINEX_CONCAT(trinex_refl_initializer_, __LINE__)(Trinex::ScriptBinding::Class & r);                             \
 	void decl::initialize_reflection()                                                                                           \
 	{                                                                                                                            \
 		static bool initialized = false;                                                                                         \
@@ -264,11 +268,9 @@ private:
 			initialized = true;                                                                                                  \
 			Super::initialize_reflection();                                                                                      \
                                                                                                                                  \
-			Trinex::ScriptClassRegistrar::RefInfo info;                                                                          \
-			info.implicit_handle = true;                                                                                         \
-			info.no_count        = true;                                                                                         \
-                                                                                                                                 \
-			auto r = Trinex::ScriptClassRegistrar::reference_class(#decl, info);                                                 \
+			auto r = Trinex::ScriptBinding::Class::create(                                                                       \
+			        #decl, Trinex::ScriptBinding::reference_type(                                                                \
+			                       sizeof(decl), Trinex::ScriptClassFlags::NoCount | Trinex::ScriptClassFlags::ImplicitHandle)); \
 			TRINEX_CONCAT(trinex_refl_initializer_, __LINE__)(r);                                                                \
 			decl::register_layout(r, decl::static_refl_class_info(), script_downcast<decl>);                                     \
 		}                                                                                                                        \
@@ -277,5 +279,5 @@ private:
 	{                                                                                                                            \
 		decl::initialize_reflection();                                                                                           \
 	}                                                                                                                            \
-	static void TRINEX_CONCAT(trinex_refl_initializer_, __LINE__)(Trinex::ScriptClassRegistrar & r)
+	static void TRINEX_CONCAT(trinex_refl_initializer_, __LINE__)(Trinex::ScriptBinding::Class & r)
 }// namespace Trinex::Refl

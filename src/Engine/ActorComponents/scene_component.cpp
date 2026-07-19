@@ -7,7 +7,7 @@
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Engine/Actors/actor.hpp>
-#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_function.hpp>
@@ -35,7 +35,7 @@ namespace Trinex
 		auto& local = *trinex_refl_prop(m_local);
 		local.display_name("Transform").tooltip("Local transform of this component");
 
-		auto r = ScriptClassRegistrar::existing_class(static_reflection());
+		auto r = ScriptBinding::Class::existing(static_reflection());
 
 		r.method("SceneComponent@ attach(SceneComponent@ child) final", &This::attach);
 		r.method("SceneComponent@ detach_from_parent() final", &This::detach_from_parent);

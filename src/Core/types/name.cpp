@@ -5,7 +5,7 @@
 #include <Core/etl/vector.hpp>
 #include <Core/memory.hpp>
 #include <Core/types/name.hpp>
-#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_binding.hpp>
 
 namespace Trinex
 {
@@ -275,21 +275,16 @@ namespace Trinex
 
 	trinex_on_pre_init({.name = "Trinex::Name", .after = {"Trinex::StringView"}})
 	{
-		ScriptClassRegistrar::ValueInfo info;
-		info.all_ints          = true;
-		info.more_constructors = true;
-		info.pod               = true;
-		info.has_constructor   = true;
-		info.align8            = true;
+		auto flags = ScriptClassFlags::Pod | ScriptClassFlags::AppClassAllInts | ScriptClassFlags::AppClassAlign8 |
+		             ScriptClassFlags::AppClassMoreConstructors;
+		ScriptBinding::Class registrar = ScriptBinding::Class::create("Trinex::Name", ScriptBinding::value_type<Name>(flags));
 
-		ScriptClassRegistrar registrar = ScriptClassRegistrar::value_class("Trinex::Name", sizeof(Name), info);
-
-		registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<Name>,
-		                 ScriptCallConv::CDeclObjFirst);
-		registrar.behave(ScriptClassBehave::Construct, "void f(const string&)",
-		                 ScriptClassRegistrar::constructor<Name, const String&>, ScriptCallConv::CDeclObjFirst);
-		registrar.behave(ScriptClassBehave::Construct, "void f(const StringView&)",
-		                 ScriptClassRegistrar::constructor<Name, const StringView&>, ScriptCallConv::CDeclObjFirst);
+		registrar.behaviour(ScriptClassBehave::Construct, "void f()", ScriptBinding::Helpers::constructor<Name>,
+		                    ScriptCallConv::CDeclObjFirst);
+		registrar.behaviour(ScriptClassBehave::Construct, "void f(const string&)",
+		                    ScriptBinding::Helpers::constructor<Name, const String&>, ScriptCallConv::CDeclObjFirst);
+		registrar.behaviour(ScriptClassBehave::Construct, "void f(const StringView&)",
+		                    ScriptBinding::Helpers::constructor<Name, const StringView&>, ScriptCallConv::CDeclObjFirst);
 
 		registrar.static_function("Name find_name(const StringView&)", overload_of<Name(const StringView&)>(Name::find_name));
 		registrar.method("bool is_valid() const", &Name::is_valid);

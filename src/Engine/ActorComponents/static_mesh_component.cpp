@@ -5,7 +5,7 @@
 #include <Engine/Render/scene.hpp>
 #include <Graphics/mesh.hpp>
 #include <RHI/handles.hpp>
-#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_binding.hpp>
 
 namespace Trinex
 {
@@ -42,7 +42,7 @@ namespace Trinex
 	{
 		trinex_refl_virtual_prop(mesh, mesh, mesh)->tooltip("Mesh object of this component");
 
-		auto r = ScriptClassRegistrar::existing_class(static_reflection());
+		auto r = ScriptBinding::Class::existing(static_reflection());
 		r.method("StaticMesh@ mesh() const final", overload_of<StaticMesh*()>(&This::mesh));
 		r.method("StaticMeshComponent@ mesh(StaticMesh@ mesh) final", overload_of<StaticMeshComponent&()>(&This::mesh));
 	}

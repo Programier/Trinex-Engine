@@ -112,7 +112,7 @@ namespace Trinex::Refl
 		Struct& group(class Group*);
 		class Group* group() const;
 
-		static void register_layout(ScriptClassRegistrar& r, ClassInfo* info, DownCast downcast);
+		static void register_layout(ScriptBinding::Class& r, ClassInfo* info, DownCast downcast);
 
 		~Struct();
 	};

@@ -1,20 +1,18 @@
 #include <Core/etl/templates.hpp>
-#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_engine.hpp>
 
 namespace Trinex
 {
 	trinex_on_pre_init({.name = "Trinex::StringView", .after = {"Trinex::DefaultScriptAddons"}})
 	{
-		ScriptClassRegistrar::ValueInfo info;
-		info.pod      = true;
-		info.all_ints = true;
+		auto flags = ScriptClassFlags::Pod | ScriptClassFlags::AppClassAllInts;
+		ScriptBinding::Class registrar =
+		        ScriptBinding::Class::create("Trinex::StringView", ScriptBinding::value_type<StringView>(flags));
 
-		ScriptClassRegistrar registrar = ScriptClassRegistrar::value_class("Trinex::StringView", sizeof(StringView), info);
-
-		registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<StringView>);
-		registrar.behave(ScriptClassBehave::Construct, "void f(const string& in)",
-		                 ScriptClassRegistrar::constructor<StringView, const String&>);
+		registrar.behaviour(ScriptClassBehave::Construct, "void f()", ScriptBinding::Helpers::constructor<StringView>);
+		registrar.behaviour(ScriptClassBehave::Construct, "void f(const string& in)",
+		                    ScriptBinding::Helpers::constructor<StringView, const String&>);
 
 		registrar.method("bool empty() const", &StringView::empty);
 		registrar.method("uint64 length() const", &StringView::length);

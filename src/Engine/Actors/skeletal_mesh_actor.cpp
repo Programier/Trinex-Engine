@@ -3,13 +3,13 @@
 #include <Core/reflection/property.hpp>
 #include <Engine/ActorComponents/skeletal_mesh_component.hpp>
 #include <Engine/Actors/skeletal_mesh_actor.hpp>
-#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_binding.hpp>
 
 namespace Trinex
 {
 	trinex_implement_engine_class(SkeletalMeshActor, Refl::Class::IsScriptable)
 	{
-		auto r = ScriptClassRegistrar::existing_class(static_reflection());
+		auto r = ScriptBinding::Class::existing(static_reflection());
 		r.method("SkeletalMeshComponent@ mesh_component() const final", trinex_scoped_method(This, mesh_component));
 	}
 

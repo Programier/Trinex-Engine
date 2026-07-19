@@ -16,7 +16,7 @@
 #include <Core/string_functions.hpp>
 #include <Core/threading.hpp>
 #include <Engine/project.hpp>
-#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <angelscript.h>
@@ -73,15 +73,17 @@ namespace Trinex
 
 	trinex_implement_engine_class(Object, Refl::Class::IsScriptable)
 	{
-		auto r = ScriptClassRegistrar::existing_class(static_reflection());
+		auto r = ScriptBinding::Class::existing(static_reflection());
 		r.method("const string& string_name() const final", &Object::string_name);
 		r.static_function("Package@ root_package()", &Object::root_package);
 		r.method("const Name& name() const final", overload_of<const Name&>(&Object::name));
 		r.method("Refl::Class@ class_instance() const final", &Object::class_instance);
 		r.method("bool owner(Object@ new_owner) final", overload_of<bool()>(&Object::owner));
 
-		script_object_preload  = r.method("void preload()", trinex_scoped_method(Object, preload));
-		script_object_postload = r.method("void postload()", trinex_scoped_method(Object, postload));
+		r.method("void preload()", trinex_scoped_method(Object, preload));
+		r.method("void postload()", trinex_scoped_method(Object, postload));
+		script_object_preload  = r.type_info().method_by_decl("void preload()");
+		script_object_postload = r.type_info().method_by_decl("void postload()");
 
 		ScriptEngine::on_terminate.push([]() {
 			script_object_preload.release();

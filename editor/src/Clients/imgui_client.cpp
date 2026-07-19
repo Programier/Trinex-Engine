@@ -7,7 +7,7 @@
 #include <Core/types/color.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <RHI/rhi.hpp>
-#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <UI/imgui.hpp>
@@ -24,7 +24,7 @@ namespace Trinex
 
 	trinex_implement_engine_class(ImGuiViewportClient, Refl::Class::IsScriptable)
 	{
-		auto r = ScriptClassRegistrar::existing_class(static_reflection());
+		auto r = ScriptBinding::Class::existing(static_reflection());
 
 		m_ic_script_update =
 		        r.method("void update(float dt)", trinex_scoped_method(This, update, ImGuiViewportClient & (float) ));

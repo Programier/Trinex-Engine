@@ -11,7 +11,7 @@
 #include <Graphics/pipeline.hpp>
 #include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
-#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_binding.hpp>
 
 namespace Trinex
 {

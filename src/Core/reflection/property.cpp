@@ -5,7 +5,7 @@
 #include <Core/reflection/property.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/types/path.hpp>
-#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 
 namespace Trinex::Refl
@@ -14,13 +14,13 @@ namespace Trinex::Refl
 	{
 		using T = Property::Flag;
 
-		ScriptEnumRegistrar e("Trinex::Refl::Property::Flag");
-		e.set("property", 0);
-		e.set("is_read_only", T::IsReadOnly);
-		e.set("is_transient", T::IsTransient);
-		e.set("is_hidden", T::IsHidden);
-		e.set("inline_single_field", T::InlineSingleField);
-		e.set("inline", T::Inline);
+		ScriptBinding::Enum e("Trinex::Refl::Property::Flag");
+		e.value("property", 0);
+		e.value("is_read_only", T::IsReadOnly);
+		e.value("is_transient", T::IsTransient);
+		e.value("is_hidden", T::IsHidden);
+		e.value("inline_single_field", T::InlineSingleField);
+		e.value("inline", T::Inline);
 	}
 
 	trinex_implement_reflect_type(Trinex::Refl::PrimitiveProperty) {}
@@ -99,7 +99,7 @@ namespace Trinex::Refl
 		return *this;
 	}
 
-	void Property::register_layout(ScriptClassRegistrar& r, ClassInfo* info, DownCast downcast)
+	void Property::register_layout(ScriptBinding::Class& r, ClassInfo* info, DownCast downcast)
 	{
 		Super::register_layout(r, info, downcast);
 	}

@@ -1,7 +1,7 @@
 #include <Core/reflection/class.hpp>
 #include <Core/viewport_client.hpp>
 #include <Input/event_system.hpp>
-#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_engine.hpp>
 
 namespace Trinex
@@ -13,11 +13,14 @@ namespace Trinex
 
 	trinex_implement_engine_class(ViewportClient, Refl::Class::IsScriptable)
 	{
-		auto r = ScriptClassRegistrar::existing_class(static_reflection());
+		auto r = ScriptBinding::Class::existing(static_reflection());
 
-		vc_update   = r.method("void update(RenderViewport viewport, float dt)", trinex_scoped_method(This, update));
-		vc_attach   = r.method("void attach(RenderViewport)", trinex_scoped_method(This, attach));
-		vc_deattach = r.method("void deattach(RenderViewport)", trinex_scoped_method(This, deattach));
+		r.method("void update(RenderViewport viewport, float dt)", trinex_scoped_method(This, update));
+		r.method("void attach(RenderViewport)", trinex_scoped_method(This, attach));
+		r.method("void deattach(RenderViewport)", trinex_scoped_method(This, deattach));
+		vc_update   = r.type_info().method_by_decl("void update(RenderViewport viewport, float dt)");
+		vc_attach   = r.type_info().method_by_decl("void attach(RenderViewport)");
+		vc_deattach = r.type_info().method_by_decl("void deattach(RenderViewport)");
 
 		// Need to check, can we use script engine in multi-thread mode?
 		//vc_render = r.method("void render(RenderViewport viewport)", trinex_scoped_method(This, render));

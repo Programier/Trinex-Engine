@@ -1,6 +1,6 @@
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
-#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <angelscript.h>
 
@@ -63,18 +63,12 @@ namespace Trinex::Refl
 
 	trinex_on_reflection_init({.after = {"Trinex::Refl::Class"}})
 	{
-		ScriptClassRegistrar::ValueInfo info;
-		info.template_type        = "<T>";
-		info.pod                  = false;
-		info.has_constructor      = true;
-		info.has_copy_constructor = true;
-		info.has_destructor       = true;
-
-		auto reg = ScriptClassRegistrar::value_class("Trinex::class_of<class T>", sizeof(ClassOf), info);
-		reg.behave(ScriptClassBehave::Construct, "void f(int&)", ScriptClassRegistrar::constructor<ClassOf, asITypeInfo*>);
-		reg.behave(ScriptClassBehave::Construct, "void f(int&, const class_of<T>& in other)",
-		           ScriptClassRegistrar::constructor<ClassOf, asITypeInfo*, const ClassOf&>);
-		reg.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<ClassOf>);
+		auto reg = ScriptBinding::Class::create("Trinex::class_of<T>",
+		                                        ScriptBinding::value_type<ClassOf>(ScriptClassFlags::Template));
+		reg.behaviour(ScriptClassBehave::Construct, "void f(int&)", ScriptBinding::Helpers::constructor<ClassOf, asITypeInfo*>);
+		reg.behaviour(ScriptClassBehave::Construct, "void f(int&, const class_of<T>& in other)",
+		              ScriptBinding::Helpers::constructor<ClassOf, asITypeInfo*, const ClassOf&>);
+		reg.behaviour(ScriptClassBehave::Destruct, "void f()", ScriptBinding::Helpers::destructor<ClassOf>);
 
 		reg.method("Trinex::Refl::Class@ opImplCast() const", &ClassOf::class_of_impl_cast);
 	}

@@ -6,7 +6,7 @@
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Engine/Actors/actor.hpp>
 #include <Engine/world.hpp>
-#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
 
@@ -267,7 +267,7 @@ namespace Trinex
 	trinex_implement_engine_class(Actor, Refl::Class::IsScriptable)
 	{
 		auto self = static_reflection();
-		auto r    = ScriptClassRegistrar::existing_class(self);
+		auto r    = ScriptBinding::Class::existing(self);
 
 		script_actor_spawned    = r.method("void spawned()", trinex_scoped_void_method(Actor, spawned));
 		script_actor_start_play = r.method("void start_play()", trinex_scoped_void_method(Actor, start_play));

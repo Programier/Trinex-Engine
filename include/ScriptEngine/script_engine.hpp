@@ -13,6 +13,11 @@ class asIScriptGeneric;
 
 namespace Trinex
 {
+	namespace ScriptBinding
+	{
+		class Class;
+	}
+
 	class ScriptModule;
 	class ScriptTypeInfo;
 	class ScriptObject;
@@ -191,7 +196,7 @@ namespace Trinex
 		}
 
 		friend class ScriptFunction;
-		friend class ScriptClassRegistrar;
+		friend class ScriptBinding::Class;
 		friend class ScriptObject;
 		friend class ScriptContext;
 	};

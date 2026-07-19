@@ -1,7 +1,7 @@
 #include <Core/archive.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/types/timestamp.hpp>
-#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_binding.hpp>
 #include <chrono>
 
 namespace Trinex
@@ -117,23 +117,19 @@ namespace Trinex
 
 	trinex_on_pre_init({.name = "Trinex::Timestamp", .after = {"Trinex::StringView"}})
 	{
-		ScriptClassRegistrar::ValueInfo info;
-		info.all_ints          = true;
-		info.more_constructors = true;
-		info.pod               = true;
-		info.has_constructor   = true;
-		info.align8            = true;
+		auto flags = ScriptClassFlags::Pod | ScriptClassFlags::AppClassAllInts | ScriptClassFlags::AppClassAlign8 |
+		             ScriptClassFlags::AppClassMoreConstructors;
+		ScriptBinding::Class registrar =
+		        ScriptBinding::Class::create("Trinex::Timestamp", ScriptBinding::value_type<Timestamp>(flags));
 
-		ScriptClassRegistrar registrar = ScriptClassRegistrar::value_class("Trinex::Timestamp", sizeof(Timestamp), info);
-
-		registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<Timestamp>,
-		                 ScriptCallConv::CDeclObjFirst);
-		registrar.behave(ScriptClassBehave::Construct, "void f(uint64)", ScriptClassRegistrar::constructor<Timestamp, u64>,
-		                 ScriptCallConv::CDeclObjFirst);
-		registrar.behave(ScriptClassBehave::Construct, "void f(const string&)",
-		                 ScriptClassRegistrar::constructor<Timestamp, const String&>, ScriptCallConv::CDeclObjFirst);
-		registrar.behave(ScriptClassBehave::Construct, "void f(const StringView&)",
-		                 ScriptClassRegistrar::constructor<Timestamp, const StringView&>, ScriptCallConv::CDeclObjFirst);
+		registrar.behaviour(ScriptClassBehave::Construct, "void f()", ScriptBinding::Helpers::constructor<Timestamp>,
+		                    ScriptCallConv::CDeclObjFirst);
+		registrar.behaviour(ScriptClassBehave::Construct, "void f(uint64)", ScriptBinding::Helpers::constructor<Timestamp, u64>,
+		                    ScriptCallConv::CDeclObjFirst);
+		registrar.behaviour(ScriptClassBehave::Construct, "void f(const string&)",
+		                    ScriptBinding::Helpers::constructor<Timestamp, const String&>, ScriptCallConv::CDeclObjFirst);
+		registrar.behaviour(ScriptClassBehave::Construct, "void f(const StringView&)",
+		                    ScriptBinding::Helpers::constructor<Timestamp, const StringView&>, ScriptCallConv::CDeclObjFirst);
 
 		registrar.static_function("Timestamp now()", &Timestamp::now);
 		registrar.static_function("Timestamp parse(const StringView&)", &Timestamp::parse);

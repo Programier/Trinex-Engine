@@ -1,6 +1,8 @@
 #pragma once
 
+#include <Core/etl/templates.hpp>
 #include <ScriptEngine/enums.hpp>
+#include <ScriptEngine/script_function.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 
 class asIScriptEngine;
@@ -65,7 +67,6 @@ namespace Trinex
 		struct ENGINE_EXPORT ObjectTypeOptions {
 			usize size             = 0;
 			ScriptClassFlags flags = 0;
-			String name_suffix;
 		};
 
 		struct ENGINE_EXPORT Helpers {
@@ -89,12 +90,11 @@ namespace Trinex
 			}
 		};
 
-		ENGINE_EXPORT ObjectTypeOptions value_type_options(usize size, ScriptClassFlags flags = 0, StringView name_suffix = "");
-		ENGINE_EXPORT ObjectTypeOptions reference_type_options(usize size = 0, ScriptClassFlags flags = ScriptClassFlags::NoCount,
-		                                                       StringView name_suffix = "");
+		ENGINE_EXPORT ObjectTypeOptions value_type(usize size, ScriptClassFlags flags = 0);
+		ENGINE_EXPORT ObjectTypeOptions reference_type(usize size = 0, ScriptClassFlags flags = ScriptClassFlags::NoCount);
 
 		template<typename T>
-		ObjectTypeOptions value_type_options(ScriptClassFlags flags = 0, StringView name_suffix = "")
+		ObjectTypeOptions value_type(ScriptClassFlags flags = 0)
 		{
 			flags |= ScriptClassFlags::Value;
 
@@ -127,13 +127,13 @@ namespace Trinex
 					flags |= ScriptClassFlags::AppClassDestructor;
 			}
 
-			return value_type_options(sizeof(T), flags, name_suffix);
+			return value_type(sizeof(T), flags);
 		}
 
 		template<typename T>
-		ObjectTypeOptions reference_type_options(ScriptClassFlags flags = ScriptClassFlags::NoCount, StringView name_suffix = "")
+		ObjectTypeOptions reference_type(ScriptClassFlags flags = ScriptClassFlags::NoCount)
 		{
-			return reference_type_options(sizeof(T), flags, name_suffix);
+			return reference_type(sizeof(T), flags);
 		}
 
 		class ENGINE_EXPORT Class
@@ -143,7 +143,6 @@ namespace Trinex
 			String m_namespace;
 
 			Class(const StringView& name);
-			Class& apply_name_suffix(StringView suffix);
 
 		public:
 			static Class create(const StringView& name, const ObjectTypeOptions& options = {});
@@ -162,8 +161,8 @@ namespace Trinex
 			Class& behaviour(ScriptClassBehave behaviour, const char* decl, const FunctionPointer& func,
 			                 ScriptCallConv conv = ScriptCallConv::Auto, void* auxiliary = nullptr);
 
-			Class& method(const char* decl, const FunctionPointer& func, ScriptCallConv conv = ScriptCallConv::Auto,
-			              void* auxiliary = nullptr);
+			ScriptFunction method(const char* decl, const FunctionPointer& func, ScriptCallConv conv = ScriptCallConv::Auto,
+			                      void* auxiliary = nullptr);
 
 			Class& static_function(const char* decl, const FunctionPointer& func, ScriptCallConv conv = ScriptCallConv::Auto,
 			                       void* auxiliary = nullptr);
@@ -250,16 +249,15 @@ namespace Trinex
 			Namespace& function(const char* decl, const FunctionPointer& func, ScriptCallConv conv, void* auxiliary);
 
 			template<typename T>
-			Class value_class(const StringView& name, ScriptClassFlags flags = 0, StringView name_suffix = "") const
+			Class value_class(const StringView& name, ScriptClassFlags flags = 0) const
 			{
-				return object_type(name, value_type_options<T>(flags, name_suffix));
+				return object_type(name, value_type_options<T>(flags));
 			}
 
 			template<typename T>
-			Class reference_class(const StringView& name, ScriptClassFlags flags = ScriptClassFlags::NoCount,
-			                      StringView name_suffix = "") const
+			Class reference_class(const StringView& name, ScriptClassFlags flags = ScriptClassFlags::NoCount) const
 			{
-				return object_type(name, reference_type_options<T>(flags, name_suffix));
+				return object_type(name, reference_type_options<T>(flags));
 			}
 		};
 

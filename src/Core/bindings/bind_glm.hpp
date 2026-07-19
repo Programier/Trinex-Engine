@@ -8,7 +8,7 @@
 //#include <Core/math/vector.hpp>
 #include <Core/math/matrix.hpp>
 
-#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <fmt/ranges.h>
 #include <glm/ext/matrix_integer.hpp>
@@ -134,49 +134,46 @@ namespace Trinex::Bindings::GLM
 	namespace Detectors
 	{
 		template<typename Type, typename T>
-		using bind_generic_detector = decltype(T::template bind_generic<Type>(static_cast<ScriptClassRegistrar*>(nullptr)));
+		using bind_generic_detector = decltype(T::template bind_generic<Type>(static_cast<ScriptBinding::Class*>(nullptr)));
 
 		template<typename Type, typename T>
-		using bind_detector = decltype(T::template bind<Type>(static_cast<ScriptClassRegistrar*>(nullptr)));
+		using bind_detector = decltype(T::template bind<Type>(static_cast<ScriptBinding::Class*>(nullptr)));
 	};// namespace Detectors
 
 	template<typename T>
-	static ScriptClassRegistrar create_registrar()
+	static ScriptBinding::Class create_registrar()
 	{
-		ScriptClassRegistrar::ValueInfo info = ScriptClassRegistrar::ValueInfo::from<T>();
-		info.is_class                        = true;
-		info.pod                             = true;
-		info.more_constructors               = true;
+		ScriptClassFlags flags = ScriptClassFlags::AppClass | ScriptClassFlags::Pod | ScriptClassFlags::AppClassMoreConstructors;
 
 		using Element = typename T::value_type;
 
 		if constexpr (std::is_floating_point_v<Element>)
 		{
-			info.all_floats = true;
+			flags |= ScriptClassFlags::AppClassAllFloats;
 
 			if constexpr (alignof(T) == 8)
 			{
-				info.align8 = true;
+				flags |= ScriptClassFlags::AppClassAlign8;
 			}
 		}
 		else
 		{
-			info.all_ints = true;
+			flags |= ScriptClassFlags::AppClassAllInts;
 		}
 
-		return ScriptClassRegistrar::value_class(typename_of<T>(), sizeof(T), info);
+		return ScriptBinding::Class::create(typename_of<T>(), ScriptBinding::value_type<T>(flags));
 	}
 
 	template<typename T>
-	static ScriptClassRegistrar exiting_class()
+	static ScriptBinding::Class exiting_class()
 	{
-		return ScriptClassRegistrar::existing_class(String(typename_of<T>()));
+		return ScriptBinding::Class::existing(String(typename_of<T>()));
 	}
 
 	template<typename T, typename BinderType>
 	static void bind_glm_type()
 	{
-		ScriptClassRegistrar reg = exiting_class<T>();
+		ScriptBinding::Class reg = exiting_class<T>();
 
 		if constexpr (is_detected_v<Detectors::bind_generic_detector, T, BinderType>)
 		{
@@ -222,14 +219,14 @@ namespace Trinex::Bindings::GLM
 	}
 
 	template<typename Type, typename... Args>
-	static void bind_constructor(ScriptClassRegistrar* reg)
+	static void bind_constructor(ScriptBinding::Class* reg)
 	{
 		String decl = Strings::format("void f({})", fmt::join({typename_with_modifiers<Args>()...}, ", "));
-		reg->behave(ScriptClassBehave::Construct, decl.c_str(), reg->constructor<Type, Args...>, ScriptCallConv::CDeclObjFirst);
+		reg->constructor<Type, Args...>(decl.c_str());
 	}
 
 	template<typename T, typename Ret, typename... Args>
-	static void bind_func(ScriptClassRegistrar* reg, const char* name, Ret (*func)(T& self, Args... args))
+	static void bind_func(ScriptBinding::Class* reg, const char* name, Ret (*func)(T& self, Args... args))
 	{
 		String decl = function_signature<Ret, Args...>(name, std::is_const_v<T>, true);
 		reg->method(decl.c_str(), func, ScriptCallConv::CDeclObjFirst);
@@ -248,7 +245,7 @@ namespace Trinex::Bindings::GLM
 	}
 
 	template<typename T>
-	static void register_upcast(ScriptClassRegistrar* reg)
+	static void register_upcast(ScriptBinding::Class* reg)
 	{
 		constexpr const char* name = type_names<T>;
 		static_assert(name);
@@ -293,7 +290,7 @@ namespace Trinex::Bindings::GLM
 		}
 
 		template<typename T>
-		static void bind_ops(ScriptClassRegistrar* reg)
+		static void bind_ops(ScriptBinding::Class* reg)
 		{
 			bind_func(reg, "opEquals", opEquals<T>);
 			bind_func(reg, "opIndex", opIndex<T>);
@@ -343,7 +340,7 @@ namespace Trinex::Bindings::GLM
 		}
 
 		template<typename T>
-		static void bind_ops(ScriptClassRegistrar* reg, bool execute_base = true)
+		static void bind_ops(ScriptBinding::Class* reg, bool execute_base = true)
 		{
 			if (execute_base)
 				BaseOperators::bind_ops<T>(reg);
@@ -448,7 +445,7 @@ namespace Trinex::Bindings::GLM
 		}
 
 		template<typename T>
-		static void bind_ops(ScriptClassRegistrar* reg)
+		static void bind_ops(ScriptBinding::Class* reg)
 		{
 			BaseOperators::bind_ops<T>(reg);
 
@@ -571,7 +568,7 @@ namespace Trinex::Bindings::GLM
 		}
 
 		template<typename T>
-		static void bind(ScriptClassRegistrar* reg)
+		static void bind(ScriptBinding::Class* reg)
 		{
 			ScalarOperators::bind_ops<T>(reg);
 			BooleanOperators::bind_ops<T>(reg, false);
@@ -644,7 +641,7 @@ namespace Trinex::Bindings::GLM
 		}
 
 		template<typename T>
-		static void bind_ops(ScriptClassRegistrar* reg)
+		static void bind_ops(ScriptBinding::Class* reg)
 		{
 			ScalarOperators::bind_ops<T>(reg);
 
@@ -667,7 +664,7 @@ namespace Trinex::Bindings::GLM
 
 	struct Vector1_Binder {
 		template<typename Vector>
-		static void bind_generic(ScriptClassRegistrar* reg)
+		static void bind_generic(ScriptBinding::Class* reg)
 		{
 			String x = make_property<Vector>("x");
 			String r = make_property<Vector>("r");
@@ -684,7 +681,7 @@ namespace Trinex::Bindings::GLM
 		}
 
 		template<typename Vector>
-		static void bind(ScriptClassRegistrar* reg)
+		static void bind(ScriptBinding::Class* reg)
 		{
 			register_upcast<typename Vector::value_type>(reg);
 		}
@@ -692,7 +689,7 @@ namespace Trinex::Bindings::GLM
 
 	struct Vector2_Binder {
 		template<typename Vector>
-		static void bind_generic(ScriptClassRegistrar* reg)
+		static void bind_generic(ScriptBinding::Class* reg)
 		{
 			Vector1_Binder::bind_generic<Vector>(reg);
 
@@ -708,7 +705,7 @@ namespace Trinex::Bindings::GLM
 		}
 
 		template<typename Vector>
-		static void bind(ScriptClassRegistrar* reg)
+		static void bind(ScriptBinding::Class* reg)
 		{
 			static_assert(Vector::length() == 2);
 			using Vec1 = typename Vector::value_type;
@@ -719,7 +716,7 @@ namespace Trinex::Bindings::GLM
 	struct Vector3_Binder {
 	private:
 		template<typename Vector, typename Redirect>
-		static void bind_with_redirection(ScriptClassRegistrar* reg)
+		static void bind_with_redirection(ScriptBinding::Class* reg)
 		{
 			using Vec1 = typename Vector::value_type;
 			using Vec2 = const redirect<typename up_cast<Vector>::Type, Redirect>::Type&;
@@ -733,7 +730,7 @@ namespace Trinex::Bindings::GLM
 
 	public:
 		template<typename Vector>
-		static void bind_generic(ScriptClassRegistrar* reg)
+		static void bind_generic(ScriptBinding::Class* reg)
 		{
 			Vector2_Binder::bind_generic<Vector>(reg);
 
@@ -749,7 +746,7 @@ namespace Trinex::Bindings::GLM
 		}
 
 		template<typename Vector>
-		static void bind(ScriptClassRegistrar* reg)
+		static void bind(ScriptBinding::Class* reg)
 		{
 			static_assert(Vector::length() == 3);
 
@@ -763,7 +760,7 @@ namespace Trinex::Bindings::GLM
 	struct Vector4_Binder {
 	private:
 		template<typename Vector, typename Redirect>
-		static void bind_with_redirection(ScriptClassRegistrar* reg)
+		static void bind_with_redirection(ScriptBinding::Class* reg)
 		{
 			using Vec3 = const redirect<typename up_cast<Vector>::Type, Redirect>::Type&;
 			using Vec2 = const redirect<typename up_cast<Vector, 2>::Type, Redirect>::Type&;
@@ -782,7 +779,7 @@ namespace Trinex::Bindings::GLM
 
 	public:
 		template<typename Vector>
-		static void bind_generic(ScriptClassRegistrar* reg)
+		static void bind_generic(ScriptBinding::Class* reg)
 		{
 			Vector3_Binder::bind_generic<Vector>(reg);
 
@@ -798,7 +795,7 @@ namespace Trinex::Bindings::GLM
 		}
 
 		template<typename Vector>
-		static void bind(ScriptClassRegistrar* reg)
+		static void bind(ScriptBinding::Class* reg)
 		{
 			static_assert(Vector::length() == 4);
 			bind_with_redirection<Vector, bool>(reg);
@@ -839,7 +836,7 @@ namespace Trinex::Bindings::GLM
 	// MATRIX BINDINGS
 	struct Matrix_Binder {
 		template<typename T>
-		static void bind_generic(ScriptClassRegistrar* reg)
+		static void bind_generic(ScriptBinding::Class* reg)
 		{
 			bind_constructor<T, typename T::value_type>(reg);
 
@@ -857,7 +854,7 @@ namespace Trinex::Bindings::GLM
 
 	struct Matrix2_Binder : Matrix_Binder {
 		template<typename Matrix>
-		static void bind(ScriptClassRegistrar* reg)
+		static void bind(ScriptBinding::Class* reg)
 		{
 			using Column = typename Matrix::col_type;
 			using Val    = typename Matrix::value_type;
@@ -870,7 +867,7 @@ namespace Trinex::Bindings::GLM
 
 	struct Matrix3_Binder : Matrix_Binder {
 		template<typename Matrix>
-		static void bind(ScriptClassRegistrar* reg)
+		static void bind(ScriptBinding::Class* reg)
 		{
 			using Column = typename Matrix::col_type;
 			using Val    = typename Matrix::value_type;
@@ -884,7 +881,7 @@ namespace Trinex::Bindings::GLM
 
 	struct Matrix4_Binder : Matrix_Binder {
 		template<typename Matrix>
-		static void bind(ScriptClassRegistrar* reg)
+		static void bind(ScriptBinding::Class* reg)
 		{
 			using Column = typename Matrix::col_type;
 			using Val    = typename Matrix::value_type;

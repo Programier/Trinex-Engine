@@ -1,7 +1,7 @@
 #include <Core/etl/algorithm.hpp>
 #include <Core/etl/templates.hpp>
-#include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_binder.hpp>
+#include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_pointer.hpp>
 #include <UI/imgui.hpp>
@@ -67,8 +67,8 @@ struct NullableString {};
 
 namespace Trinex
 {
-#define new_enum_v(a, b) new_enum.set(#b, a##_##b)
-#define new_enum_v2(a, b) new_enum.set(#b, a##b)
+#define new_enum_v(a, b) new_enum.value(#b, a##_##b)
+#define new_enum_v2(a, b) new_enum.value(#b, a##b)
 	template<typename T>
 	struct ImGuiRemapper {
 		using ArgType = T;
@@ -133,7 +133,7 @@ namespace Trinex
 	static void register_enums()
 	{
 		{
-			ScriptEnumRegistrar new_enum("ImGuiWindowFlags");
+			ScriptBinding::Enum new_enum("ImGuiWindowFlags");
 			new_enum_v(ImGuiWindowFlags, None);
 			new_enum_v(ImGuiWindowFlags, NoTitleBar);
 			new_enum_v(ImGuiWindowFlags, NoResize);
@@ -166,7 +166,7 @@ namespace Trinex
 			new_enum_v(ImGuiWindowFlags, DockNodeHost);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiChildFlags");
+			ScriptBinding::Enum new_enum("ImGuiChildFlags");
 			new_enum_v(ImGuiChildFlags, None);
 			new_enum_v(ImGuiChildFlags, Borders);
 			new_enum_v(ImGuiChildFlags, AlwaysUseWindowPadding);
@@ -178,7 +178,7 @@ namespace Trinex
 			new_enum_v(ImGuiChildFlags, FrameStyle);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiInputTextFlags");
+			ScriptBinding::Enum new_enum("ImGuiInputTextFlags");
 			new_enum_v(ImGuiInputTextFlags, None);
 			new_enum_v(ImGuiInputTextFlags, CharsDecimal);
 			new_enum_v(ImGuiInputTextFlags, CharsHexadecimal);
@@ -203,7 +203,7 @@ namespace Trinex
 			new_enum_v(ImGuiInputTextFlags, EscapeClearsAll);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiTreeNodeFlags");
+			ScriptBinding::Enum new_enum("ImGuiTreeNodeFlags");
 			new_enum_v(ImGuiTreeNodeFlags, None);
 			new_enum_v(ImGuiTreeNodeFlags, Selected);
 			new_enum_v(ImGuiTreeNodeFlags, Framed);
@@ -223,7 +223,7 @@ namespace Trinex
 			new_enum_v(ImGuiTreeNodeFlags, CollapsingHeader);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiPopupFlags");
+			ScriptBinding::Enum new_enum("ImGuiPopupFlags");
 			new_enum_v(ImGuiPopupFlags, None);
 			new_enum_v(ImGuiPopupFlags, MouseButtonLeft);
 			new_enum_v(ImGuiPopupFlags, MouseButtonRight);
@@ -236,7 +236,7 @@ namespace Trinex
 			new_enum_v(ImGuiPopupFlags, AnyPopup);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiSelectableFlags");
+			ScriptBinding::Enum new_enum("ImGuiSelectableFlags");
 			new_enum_v(ImGuiSelectableFlags, None);
 			new_enum_v(ImGuiSelectableFlags, DontClosePopups);
 			new_enum_v(ImGuiSelectableFlags, SpanAllColumns);
@@ -245,7 +245,7 @@ namespace Trinex
 			new_enum_v(ImGuiSelectableFlags, AllowOverlap);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiComboFlags");
+			ScriptBinding::Enum new_enum("ImGuiComboFlags");
 			new_enum_v(ImGuiComboFlags, None);
 			new_enum_v(ImGuiComboFlags, PopupAlignLeft);
 			new_enum_v(ImGuiComboFlags, HeightSmall);
@@ -258,7 +258,7 @@ namespace Trinex
 			new_enum_v(ImGuiComboFlags, HeightMask_);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiTabBarFlags");
+			ScriptBinding::Enum new_enum("ImGuiTabBarFlags");
 			new_enum_v(ImGuiTabBarFlags, None);
 			new_enum_v(ImGuiTabBarFlags, Reorderable);
 			new_enum_v(ImGuiTabBarFlags, AutoSelectNewTabs);
@@ -272,7 +272,7 @@ namespace Trinex
 			new_enum_v(ImGuiTabBarFlags, FittingPolicyDefault_);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiTabItemFlags");
+			ScriptBinding::Enum new_enum("ImGuiTabItemFlags");
 			new_enum_v(ImGuiTabItemFlags, None);
 			new_enum_v(ImGuiTabItemFlags, UnsavedDocument);
 			new_enum_v(ImGuiTabItemFlags, SetSelected);
@@ -284,7 +284,7 @@ namespace Trinex
 			new_enum_v(ImGuiTabItemFlags, Trailing);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiTableFlags");
+			ScriptBinding::Enum new_enum("ImGuiTableFlags");
 			new_enum_v(ImGuiTableFlags, None);
 			new_enum_v(ImGuiTableFlags, Resizable);
 			new_enum_v(ImGuiTableFlags, Reorderable);
@@ -324,7 +324,7 @@ namespace Trinex
 			new_enum_v(ImGuiTableFlags, SizingMask_);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiTableColumnFlags");
+			ScriptBinding::Enum new_enum("ImGuiTableColumnFlags");
 			new_enum_v(ImGuiTableColumnFlags, None);
 			new_enum_v(ImGuiTableColumnFlags, Disabled);
 			new_enum_v(ImGuiTableColumnFlags, DefaultHide);
@@ -355,19 +355,19 @@ namespace Trinex
 			new_enum_v(ImGuiTableColumnFlags, NoDirectResize_);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiTableRowFlags");
+			ScriptBinding::Enum new_enum("ImGuiTableRowFlags");
 			new_enum_v(ImGuiTableRowFlags, None);
 			new_enum_v(ImGuiTableRowFlags, Headers);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiTableBgTarget");
+			ScriptBinding::Enum new_enum("ImGuiTableBgTarget");
 			new_enum_v(ImGuiTableBgTarget, None);
 			new_enum_v(ImGuiTableBgTarget, RowBg0);
 			new_enum_v(ImGuiTableBgTarget, RowBg1);
 			new_enum_v(ImGuiTableBgTarget, CellBg);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiFocusedFlags");
+			ScriptBinding::Enum new_enum("ImGuiFocusedFlags");
 			new_enum_v(ImGuiFocusedFlags, None);
 			new_enum_v(ImGuiFocusedFlags, ChildWindows);
 			new_enum_v(ImGuiFocusedFlags, RootWindow);
@@ -377,7 +377,7 @@ namespace Trinex
 			new_enum_v(ImGuiFocusedFlags, RootAndChildWindows);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiHoveredFlags");
+			ScriptBinding::Enum new_enum("ImGuiHoveredFlags");
 			new_enum_v(ImGuiHoveredFlags, None);
 			new_enum_v(ImGuiHoveredFlags, ChildWindows);
 			new_enum_v(ImGuiHoveredFlags, RootWindow);
@@ -401,7 +401,7 @@ namespace Trinex
 			new_enum_v(ImGuiHoveredFlags, NoSharedDelay);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiDockNodeFlags");
+			ScriptBinding::Enum new_enum("ImGuiDockNodeFlags");
 			new_enum_v(ImGuiDockNodeFlags, None);
 			new_enum_v(ImGuiDockNodeFlags, KeepAliveOnly);
 			new_enum_v(ImGuiDockNodeFlags, NoDockingOverCentralNode);
@@ -414,7 +414,7 @@ namespace Trinex
 			new_enum_v(ImGuiDockNodeFlags, NoDockingInCentralNode);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiDragDropFlags");
+			ScriptBinding::Enum new_enum("ImGuiDragDropFlags");
 			new_enum_v(ImGuiDragDropFlags, None);
 			new_enum_v(ImGuiDragDropFlags, SourceNoPreviewTooltip);
 			new_enum_v(ImGuiDragDropFlags, SourceNoDisableHover);
@@ -428,7 +428,7 @@ namespace Trinex
 			new_enum_v(ImGuiDragDropFlags, AcceptPeekOnly);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiDataType");
+			ScriptBinding::Enum new_enum("ImGuiDataType");
 			new_enum_v(ImGuiDataType, S8);
 			new_enum_v(ImGuiDataType, U8);
 			new_enum_v(ImGuiDataType, S16);
@@ -442,7 +442,7 @@ namespace Trinex
 			new_enum_v(ImGuiDataType, COUNT);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiDir");
+			ScriptBinding::Enum new_enum("ImGuiDir");
 			new_enum_v(ImGuiDir, None);
 			new_enum_v(ImGuiDir, Left);
 			new_enum_v(ImGuiDir, Right);
@@ -451,13 +451,13 @@ namespace Trinex
 			new_enum_v(ImGuiDir, COUNT);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiSortDirection");
+			ScriptBinding::Enum new_enum("ImGuiSortDirection");
 			new_enum_v(ImGuiSortDirection, None);
 			new_enum_v(ImGuiSortDirection, Ascending);
 			new_enum_v(ImGuiSortDirection, Descending);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiKey");
+			ScriptBinding::Enum new_enum("ImGuiKey");
 			new_enum_v(ImGuiKey, None);
 			new_enum_v(ImGuiKey, Tab);
 			new_enum_v(ImGuiKey, LeftArrow);
@@ -614,13 +614,13 @@ namespace Trinex
 			new_enum_v(ImGuiKey, ReservedForModAlt);
 			new_enum_v(ImGuiKey, ReservedForModSuper);
 			new_enum_v(ImGuiKey, COUNT);
-			new_enum.set("Mod_None", ImGuiMod_None);
-			new_enum.set("Mod_Ctrl", ImGuiMod_Ctrl);
-			new_enum.set("Mod_Shift", ImGuiMod_Shift);
-			new_enum.set("Mod_Alt", ImGuiMod_Alt);
-			new_enum.set("Mod_Super", ImGuiMod_Super);
-			new_enum.set("Mod_Shortcut", ImGuiMod_Shortcut);
-			new_enum.set("Mod_Mask_", ImGuiMod_Mask_);
+			new_enum.value("Mod_None", ImGuiMod_None);
+			new_enum.value("Mod_Ctrl", ImGuiMod_Ctrl);
+			new_enum.value("Mod_Shift", ImGuiMod_Shift);
+			new_enum.value("Mod_Alt", ImGuiMod_Alt);
+			new_enum.value("Mod_Super", ImGuiMod_Super);
+			new_enum.value("Mod_Shortcut", ImGuiMod_Shortcut);
+			new_enum.value("Mod_Mask_", ImGuiMod_Mask_);
 			new_enum_v(ImGuiKey, NamedKey_BEGIN);
 			new_enum_v(ImGuiKey, NamedKey_END);
 			new_enum_v(ImGuiKey, NamedKey_COUNT);
@@ -631,7 +631,7 @@ namespace Trinex
 		}
 
 		{
-			ScriptEnumRegistrar new_enum("ImGuiConfigFlags");
+			ScriptBinding::Enum new_enum("ImGuiConfigFlags");
 			new_enum_v(ImGuiConfigFlags, None);
 			new_enum_v(ImGuiConfigFlags, NavEnableKeyboard);
 			new_enum_v(ImGuiConfigFlags, NavEnableGamepad);
@@ -647,7 +647,7 @@ namespace Trinex
 			new_enum_v(ImGuiConfigFlags, IsTouchScreen);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiBackendFlags");
+			ScriptBinding::Enum new_enum("ImGuiBackendFlags");
 			new_enum_v(ImGuiBackendFlags, None);
 			new_enum_v(ImGuiBackendFlags, HasGamepad);
 			new_enum_v(ImGuiBackendFlags, HasMouseCursors);
@@ -658,7 +658,7 @@ namespace Trinex
 			new_enum_v(ImGuiBackendFlags, RendererHasViewports);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiCol");
+			ScriptBinding::Enum new_enum("ImGuiCol");
 			new_enum_v(ImGuiCol, Text);
 			new_enum_v(ImGuiCol, TextDisabled);
 			new_enum_v(ImGuiCol, WindowBg);
@@ -717,7 +717,7 @@ namespace Trinex
 			new_enum_v(ImGuiCol, COUNT);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiStyleVar");
+			ScriptBinding::Enum new_enum("ImGuiStyleVar");
 			new_enum_v(ImGuiStyleVar, Alpha);
 			new_enum_v(ImGuiStyleVar, DisabledAlpha);
 			new_enum_v(ImGuiStyleVar, WindowPadding);
@@ -752,7 +752,7 @@ namespace Trinex
 			new_enum_v(ImGuiStyleVar, COUNT);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiButtonFlags");
+			ScriptBinding::Enum new_enum("ImGuiButtonFlags");
 			new_enum_v(ImGuiButtonFlags, None);
 			new_enum_v(ImGuiButtonFlags, MouseButtonLeft);
 			new_enum_v(ImGuiButtonFlags, MouseButtonRight);
@@ -760,7 +760,7 @@ namespace Trinex
 			new_enum_v(ImGuiButtonFlags, MouseButtonMask_);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiColorEditFlags");
+			ScriptBinding::Enum new_enum("ImGuiColorEditFlags");
 			new_enum_v(ImGuiColorEditFlags, None);
 			new_enum_v(ImGuiColorEditFlags, NoAlpha);
 			new_enum_v(ImGuiColorEditFlags, NoPicker);
@@ -792,7 +792,7 @@ namespace Trinex
 			new_enum_v(ImGuiColorEditFlags, InputMask_);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiSliderFlags");
+			ScriptBinding::Enum new_enum("ImGuiSliderFlags");
 			new_enum_v(ImGuiSliderFlags, None);
 			new_enum_v(ImGuiSliderFlags, AlwaysClamp);
 			new_enum_v(ImGuiSliderFlags, Logarithmic);
@@ -801,14 +801,14 @@ namespace Trinex
 			new_enum_v(ImGuiSliderFlags, InvalidMask_);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiMouseButton");
+			ScriptBinding::Enum new_enum("ImGuiMouseButton");
 			new_enum_v(ImGuiMouseButton, Left);
 			new_enum_v(ImGuiMouseButton, Right);
 			new_enum_v(ImGuiMouseButton, Middle);
 			new_enum_v(ImGuiMouseButton, COUNT);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiMouseCursor");
+			ScriptBinding::Enum new_enum("ImGuiMouseCursor");
 			new_enum_v(ImGuiMouseCursor, None);
 			new_enum_v(ImGuiMouseCursor, Arrow);
 			new_enum_v(ImGuiMouseCursor, TextInput);
@@ -822,14 +822,14 @@ namespace Trinex
 			new_enum_v(ImGuiMouseCursor, COUNT);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiMouseSource");
+			ScriptBinding::Enum new_enum("ImGuiMouseSource");
 			new_enum_v(ImGuiMouseSource, Mouse);
 			new_enum_v(ImGuiMouseSource, TouchScreen);
 			new_enum_v(ImGuiMouseSource, Pen);
 			new_enum_v(ImGuiMouseSource, COUNT);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiCond");
+			ScriptBinding::Enum new_enum("ImGuiCond");
 			new_enum_v(ImGuiCond, None);
 			new_enum_v(ImGuiCond, Always);
 			new_enum_v(ImGuiCond, Once);
@@ -837,7 +837,7 @@ namespace Trinex
 			new_enum_v(ImGuiCond, Appearing);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImDrawFlags");
+			ScriptBinding::Enum new_enum("ImDrawFlags");
 			new_enum_v(ImDrawFlags, None);
 			new_enum_v(ImDrawFlags, Closed);
 			new_enum_v(ImDrawFlags, RoundCornersTopLeft);
@@ -854,7 +854,7 @@ namespace Trinex
 			new_enum_v(ImDrawFlags, RoundCornersMask_);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImDrawListFlags");
+			ScriptBinding::Enum new_enum("ImDrawListFlags");
 			new_enum_v(ImDrawListFlags, None);
 			new_enum_v(ImDrawListFlags, AntiAliasedLines);
 			new_enum_v(ImDrawListFlags, AntiAliasedLinesUseTex);
@@ -862,14 +862,14 @@ namespace Trinex
 			new_enum_v(ImDrawListFlags, AllowVtxOffset);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImFontAtlasFlags");
+			ScriptBinding::Enum new_enum("ImFontAtlasFlags");
 			new_enum_v(ImFontAtlasFlags, None);
 			new_enum_v(ImFontAtlasFlags, NoPowerOfTwoHeight);
 			new_enum_v(ImFontAtlasFlags, NoMouseCursors);
 			new_enum_v(ImFontAtlasFlags, NoBakedLines);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiViewportFlags");
+			ScriptBinding::Enum new_enum("ImGuiViewportFlags");
 			new_enum_v(ImGuiViewportFlags, None);
 			new_enum_v(ImGuiViewportFlags, IsPlatformWindow);
 			new_enum_v(ImGuiViewportFlags, IsPlatformMonitor);
@@ -889,7 +889,7 @@ namespace Trinex
 
 		// imgui_internal.h
 		{
-			ScriptEnumRegistrar new_enum("ImGuiItemFlags");
+			ScriptBinding::Enum new_enum("ImGuiItemFlags");
 			new_enum_v(ImGuiItemFlags, None);
 			new_enum_v(ImGuiItemFlags, NoTabStop);
 			new_enum_v(ImGuiItemFlags, ButtonRepeat);
@@ -904,7 +904,7 @@ namespace Trinex
 			new_enum_v(ImGuiItemFlags, HasSelectionUserData);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiItemStatusFlags");
+			ScriptBinding::Enum new_enum("ImGuiItemStatusFlags");
 			new_enum_v(ImGuiItemStatusFlags, None);
 			new_enum_v(ImGuiItemStatusFlags, HoveredRect);
 			new_enum_v(ImGuiItemStatusFlags, HasDisplayRect);
@@ -918,57 +918,57 @@ namespace Trinex
 			new_enum_v(ImGuiItemStatusFlags, HasClipRect);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiSeparatorFlags");
+			ScriptBinding::Enum new_enum("ImGuiSeparatorFlags");
 			new_enum_v(ImGuiSeparatorFlags, None);
 			new_enum_v(ImGuiSeparatorFlags, Horizontal);
 			new_enum_v(ImGuiSeparatorFlags, Vertical);
 			new_enum_v(ImGuiSeparatorFlags, SpanAllColumns);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiFocusRequestFlags");
+			ScriptBinding::Enum new_enum("ImGuiFocusRequestFlags");
 			new_enum_v(ImGuiFocusRequestFlags, None);
 			new_enum_v(ImGuiFocusRequestFlags, RestoreFocusedChild);
 			new_enum_v(ImGuiFocusRequestFlags, UnlessBelowModal);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiTextFlags");
+			ScriptBinding::Enum new_enum("ImGuiTextFlags");
 			new_enum_v(ImGuiTextFlags, None);
 			new_enum_v(ImGuiTextFlags, NoWidthForLargeClippedText);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiTooltipFlags");
+			ScriptBinding::Enum new_enum("ImGuiTooltipFlags");
 			new_enum_v(ImGuiTooltipFlags, None);
 			new_enum_v(ImGuiTooltipFlags, OverridePrevious);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiLayoutType");
+			ScriptBinding::Enum new_enum("ImGuiLayoutType");
 			new_enum_v(ImGuiLayoutType, Horizontal);
 			new_enum_v(ImGuiLayoutType, Vertical);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiLayoutItemType");
+			ScriptBinding::Enum new_enum("ImGuiLayoutItemType");
 			new_enum_v(ImGuiLayoutItemType, Item);
 			new_enum_v(ImGuiLayoutItemType, Spring);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiAxis");
+			ScriptBinding::Enum new_enum("ImGuiAxis");
 			new_enum_v(ImGuiAxis, None);
 			new_enum_v(ImGuiAxis, X);
 			new_enum_v(ImGuiAxis, Y);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiPlotType");
+			ScriptBinding::Enum new_enum("ImGuiPlotType");
 			new_enum_v(ImGuiPlotType, Lines);
 			new_enum_v(ImGuiPlotType, Histogram);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiPopupPositionPolicy");
+			ScriptBinding::Enum new_enum("ImGuiPopupPositionPolicy");
 			new_enum_v(ImGuiPopupPositionPolicy, Default);
 			new_enum_v(ImGuiPopupPositionPolicy, ComboBox);
 			new_enum_v(ImGuiPopupPositionPolicy, Tooltip);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiNextWindowDataFlags");
+			ScriptBinding::Enum new_enum("ImGuiNextWindowDataFlags");
 			new_enum_v(ImGuiNextWindowDataFlags, None);
 			new_enum_v(ImGuiNextWindowDataFlags, HasPos);
 			new_enum_v(ImGuiNextWindowDataFlags, HasSize);
@@ -984,13 +984,13 @@ namespace Trinex
 			new_enum_v(ImGuiNextWindowDataFlags, HasWindowClass);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiNextItemDataFlags");
+			ScriptBinding::Enum new_enum("ImGuiNextItemDataFlags");
 			new_enum_v(ImGuiNextItemDataFlags, None);
 			new_enum_v(ImGuiNextItemDataFlags, HasWidth);
 			new_enum_v(ImGuiNextItemDataFlags, HasOpen);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiInputEventType");
+			ScriptBinding::Enum new_enum("ImGuiInputEventType");
 			new_enum_v(ImGuiInputEventType, None);
 			new_enum_v(ImGuiInputEventType, MousePos);
 			new_enum_v(ImGuiInputEventType, MouseWheel);
@@ -1002,7 +1002,7 @@ namespace Trinex
 			new_enum_v(ImGuiInputEventType, COUNT);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiInputSource");
+			ScriptBinding::Enum new_enum("ImGuiInputSource");
 			new_enum_v(ImGuiInputSource, None);
 			new_enum_v(ImGuiInputSource, Mouse);
 			new_enum_v(ImGuiInputSource, Keyboard);
@@ -1010,7 +1010,7 @@ namespace Trinex
 			new_enum_v(ImGuiInputSource, COUNT);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiInputFlags");
+			ScriptBinding::Enum new_enum("ImGuiInputFlags");
 			new_enum_v(ImGuiInputFlags, None);
 			new_enum_v(ImGuiInputFlags, Repeat);
 			new_enum_v(ImGuiInputFlags, RepeatRateDefault);
@@ -1033,14 +1033,14 @@ namespace Trinex
 			new_enum_v(ImGuiInputFlags, SupportedBySetItemKeyOwner);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiActivateFlags");
+			ScriptBinding::Enum new_enum("ImGuiActivateFlags");
 			new_enum_v(ImGuiActivateFlags, None);
 			new_enum_v(ImGuiActivateFlags, PreferInput);
 			new_enum_v(ImGuiActivateFlags, PreferTweak);
 			new_enum_v(ImGuiActivateFlags, TryToPreserveState);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiScrollFlags");
+			ScriptBinding::Enum new_enum("ImGuiScrollFlags");
 			new_enum_v(ImGuiScrollFlags, None);
 			new_enum_v(ImGuiScrollFlags, KeepVisibleEdgeX);
 			new_enum_v(ImGuiScrollFlags, KeepVisibleEdgeY);
@@ -1053,13 +1053,13 @@ namespace Trinex
 			new_enum_v(ImGuiScrollFlags, MaskY_);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiNavHighlightFlags");
+			ScriptBinding::Enum new_enum("ImGuiNavHighlightFlags");
 			new_enum_v(ImGuiNavHighlightFlags, None);
 			new_enum_v(ImGuiNavHighlightFlags, AlwaysDraw);
 			new_enum_v(ImGuiNavHighlightFlags, NoRounding);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiNavMoveFlags");
+			ScriptBinding::Enum new_enum("ImGuiNavMoveFlags");
 			new_enum_v(ImGuiNavMoveFlags, None);
 			new_enum_v(ImGuiNavMoveFlags, LoopX);
 			new_enum_v(ImGuiNavMoveFlags, LoopY);
@@ -1078,38 +1078,38 @@ namespace Trinex
 			new_enum_v(ImGuiNavMoveFlags, NoSelect);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiNavLayer");
+			ScriptBinding::Enum new_enum("ImGuiNavLayer");
 			new_enum_v(ImGuiNavLayer, Main);
 			new_enum_v(ImGuiNavLayer, Menu);
 			new_enum_v(ImGuiNavLayer, COUNT);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiTypingSelectFlags");
+			ScriptBinding::Enum new_enum("ImGuiTypingSelectFlags");
 			new_enum_v(ImGuiTypingSelectFlags, None);
 			new_enum_v(ImGuiTypingSelectFlags, AllowBackspace);
 			new_enum_v(ImGuiTypingSelectFlags, AllowSingleCharMode);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiDataAuthority");
+			ScriptBinding::Enum new_enum("ImGuiDataAuthority");
 			new_enum_v(ImGuiDataAuthority, Auto);
 			new_enum_v(ImGuiDataAuthority, DockNode);
 			new_enum_v(ImGuiDataAuthority, Window);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiDockNodeState");
+			ScriptBinding::Enum new_enum("ImGuiDockNodeState");
 			new_enum_v(ImGuiDockNodeState, Unknown);
 			new_enum_v(ImGuiDockNodeState, HostWindowHiddenBecauseSingleWindow);
 			new_enum_v(ImGuiDockNodeState, HostWindowHiddenBecauseWindowsAreResizing);
 			new_enum_v(ImGuiDockNodeState, HostWindowVisible);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiWindowDockStyleCol");
+			ScriptBinding::Enum new_enum("ImGuiWindowDockStyleCol");
 			new_enum_v(ImGuiWindowDockStyleCol, Text);
 			new_enum_v(ImGuiWindowDockStyleCol, TabHovered);
 			new_enum_v(ImGuiWindowDockStyleCol, COUNT);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiLocKey");
+			ScriptBinding::Enum new_enum("ImGuiLocKey");
 			new_enum_v(ImGuiLocKey, VersionStr);
 			new_enum_v(ImGuiLocKey, TableSizeOne);
 			new_enum_v(ImGuiLocKey, TableSizeAllFit);
@@ -1124,7 +1124,7 @@ namespace Trinex
 			new_enum_v(ImGuiLocKey, COUNT);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiDebugLogFlags");
+			ScriptBinding::Enum new_enum("ImGuiDebugLogFlags");
 			new_enum_v(ImGuiDebugLogFlags, None);
 			new_enum_v(ImGuiDebugLogFlags, EventActiveId);
 			new_enum_v(ImGuiDebugLogFlags, EventFocus);
@@ -1140,7 +1140,7 @@ namespace Trinex
 			new_enum_v(ImGuiDebugLogFlags, OutputToTestEngine);
 		}
 		{
-			ScriptEnumRegistrar new_enum("ImGuiContextHookType");
+			ScriptBinding::Enum new_enum("ImGuiContextHookType");
 			new_enum_v(ImGuiContextHookType, NewFramePre);
 			new_enum_v(ImGuiContextHookType, NewFramePost);
 			new_enum_v(ImGuiContextHookType, EndFramePre);
@@ -1159,83 +1159,67 @@ namespace Trinex
 	static void register_structures()
 	{
 		{
-			auto info              = ScriptClassRegistrar::ValueInfo::from<ImVec2>();
-			info.all_floats        = true;
-			info.pod               = true;
-			ScriptClassRegistrar r = ScriptClassRegistrar::value_class("ImVec2", sizeof(ImVec2), info);
-			r.behave(ScriptClassBehave::Construct, "void f()", r.constructor<ImVec2>);
-			r.behave(ScriptClassBehave::Construct, "void f(float x, float y)", r.constructor<ImVec2, float, float>);
+			auto flags             = ScriptClassFlags::Pod | ScriptClassFlags::AppClassAllFloats;
+			ScriptBinding::Class r = ScriptBinding::Class::create("ImVec2", ScriptBinding::value_type<ImVec2>(flags));
+			r.constructor<ImVec2>();
+			r.constructor<ImVec2, float, float>("void f(float x, float y)");
 			r.property("float x", &ImVec2::x);
 			r.property("float y", &ImVec2::y);
 		}
 
 		{
-			auto info              = ScriptClassRegistrar::ValueInfo::from<ImVec3>();
-			info.all_floats        = true;
-			info.pod               = true;
-			ScriptClassRegistrar r = ScriptClassRegistrar::value_class("ImVec3", sizeof(ImVec3), info);
-			r.behave(ScriptClassBehave::Construct, "void f()", r.constructor<ImVec3>);
-			r.behave(ScriptClassBehave::Construct, "void f(float x, float y, float z)",
-			         r.constructor<ImVec3, float, float, float>);
+			auto flags             = ScriptClassFlags::Pod | ScriptClassFlags::AppClassAllFloats;
+			ScriptBinding::Class r = ScriptBinding::Class::create("ImVec3", ScriptBinding::value_type<ImVec3>(flags));
+			r.constructor<ImVec3>();
+			r.constructor<ImVec3, float, float, float>("void f(float x, float y, float z)");
 			r.property("float x", &ImVec3::x);
 			r.property("float y", &ImVec3::y);
 			r.property("float z", &ImVec3::z);
 		}
 
 		{
-			auto info              = ScriptClassRegistrar::ValueInfo::from<ImVec4>();
-			info.all_floats        = true;
-			info.pod               = true;
-			ScriptClassRegistrar r = ScriptClassRegistrar::value_class("ImVec4", sizeof(ImVec4), info);
-			r.behave(ScriptClassBehave::Construct, "void f()", r.constructor<ImVec4>);
-			r.behave(ScriptClassBehave::Construct, "void f(float x, float y, float z, float w)",
-			         r.constructor<ImVec4, float, float, float, float>);
+			auto flags             = ScriptClassFlags::Pod | ScriptClassFlags::AppClassAllFloats;
+			ScriptBinding::Class r = ScriptBinding::Class::create("ImVec4", ScriptBinding::value_type<ImVec4>(flags));
+			r.constructor<ImVec4>();
+			r.constructor<ImVec4, float, float, float, float>("void f(float x, float y, float z, float w)");
 			r.property("float x", &ImVec4::x);
 			r.property("float y", &ImVec4::y);
 			r.property("float z", &ImVec4::z);
 			r.property("float w", &ImVec4::w);
 		}
 		{
-			auto info              = ScriptClassRegistrar::ValueInfo::from<ImIVec2>();
-			info.all_ints          = true;
-			info.pod               = true;
-			ScriptClassRegistrar r = ScriptClassRegistrar::value_class("ImIVec2", sizeof(ImIVec2), info);
-			r.behave(ScriptClassBehave::Construct, "void f()", r.constructor<ImIVec2>);
-			r.behave(ScriptClassBehave::Construct, "void f(int x, int y)", r.constructor<ImIVec2, int, int>);
+			auto flags             = ScriptClassFlags::Pod | ScriptClassFlags::AppClassAllInts;
+			ScriptBinding::Class r = ScriptBinding::Class::create("ImIVec2", ScriptBinding::value_type<ImIVec2>(flags));
+			r.constructor<ImIVec2>();
+			r.constructor<ImIVec2, int, int>("void f(int x, int y)");
 			r.property("int x", &ImIVec2::x);
 			r.property("int y", &ImIVec2::y);
 		}
 
 		{
-			auto info              = ScriptClassRegistrar::ValueInfo::from<ImIVec3>();
-			info.all_ints          = true;
-			info.pod               = true;
-			ScriptClassRegistrar r = ScriptClassRegistrar::value_class("ImIVec3", sizeof(ImIVec3), info);
-			r.behave(ScriptClassBehave::Construct, "void f()", r.constructor<ImIVec3>);
-			r.behave(ScriptClassBehave::Construct, "void f(int x, int y, int z)", r.constructor<ImIVec3, int, int, int>);
+			auto flags             = ScriptClassFlags::Pod | ScriptClassFlags::AppClassAllInts;
+			ScriptBinding::Class r = ScriptBinding::Class::create("ImIVec3", ScriptBinding::value_type<ImIVec3>(flags));
+			r.constructor<ImIVec3>();
+			r.constructor<ImIVec3, int, int, int>("void f(int x, int y, int z)");
 			r.property("int x", &ImIVec3::x);
 			r.property("int y", &ImIVec3::y);
 			r.property("int z", &ImIVec3::z);
 		}
 
 		{
-			auto info              = ScriptClassRegistrar::ValueInfo::from<ImIVec4>();
-			info.all_ints          = true;
-			info.pod               = true;
-			ScriptClassRegistrar r = ScriptClassRegistrar::value_class("ImIVec4", sizeof(ImIVec4), info);
-			r.behave(ScriptClassBehave::Construct, "void f()", r.constructor<ImIVec4>);
-			r.behave(ScriptClassBehave::Construct, "void f(int x, int y, int z, int w)",
-			         r.constructor<ImIVec4, int, int, int, int>);
+			auto flags             = ScriptClassFlags::Pod | ScriptClassFlags::AppClassAllInts;
+			ScriptBinding::Class r = ScriptBinding::Class::create("ImIVec4", ScriptBinding::value_type<ImIVec4>(flags));
+			r.constructor<ImIVec4>();
+			r.constructor<ImIVec4, int, int, int, int>("void f(int x, int y, int z, int w)");
 			r.property("int x", &ImIVec4::x);
 			r.property("int y", &ImIVec4::y);
 			r.property("int z", &ImIVec4::z);
 			r.property("int w", &ImIVec4::w);
 		}
 		{
-			auto info              = ScriptClassRegistrar::ValueInfo::from<ImGuiStyle>();
-			info.pod               = true;
-			ScriptClassRegistrar r = ScriptClassRegistrar::value_class("ImGuiStyle", sizeof(ImGuiStyle), info);
-			r.behave(ScriptClassBehave::Construct, "void f()", r.constructor<ImGuiStyle>);
+			ScriptBinding::Class r =
+			        ScriptBinding::Class::create("ImGuiStyle", ScriptBinding::value_type<ImGuiStyle>(ScriptClassFlags::Pod));
+			r.constructor<ImGuiStyle>();
 			r.method("void ScaleAllSizes(float scale_factor)", &ImGuiStyle::ScaleAllSizes);
 
 			auto get_color_proxy = static_cast<const ImVec4& (*) (ImGuiStyle*, int)>(

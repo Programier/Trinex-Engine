@@ -7,7 +7,7 @@
 #include <Engine/ActorComponents/camera_component.hpp>
 #include <Engine/camera_view.hpp>
 #include <RHI/rhi.hpp>
-#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_binding.hpp>
 #include <Window/window.hpp>
 
 namespace Trinex

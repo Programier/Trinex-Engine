@@ -6,7 +6,7 @@
 #include <Core/string_functions.hpp>
 #include <Core/transform.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
-#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_binding.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 
 namespace Trinex
@@ -154,17 +154,15 @@ namespace Trinex
 
 	trinex_on_reflection_init()
 	{
-		ScriptClassRegistrar::ValueInfo info = ScriptClassRegistrar::ValueInfo::from<Transform>();
-		info.pod                             = true;
+		ScriptBinding::Class registrar =
+		        ScriptBinding::Class::create("Trinex::Transform", ScriptBinding::value_type<Transform>(ScriptClassFlags::Pod));
 
-		ScriptClassRegistrar registrar = ScriptClassRegistrar::value_class("Trinex::Transform", sizeof(Transform), info);
-
-		registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<Transform>,
-		                 ScriptCallConv::CDeclObjFirst);
-		registrar.behave(ScriptClassBehave::Construct, "void f(const Trinex::Transform&)",
-		                 ScriptClassRegistrar::constructor<Transform, const Transform&>, ScriptCallConv::CDeclObjFirst);
-		registrar.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<Transform>,
-		                 ScriptCallConv::CDeclObjFirst);
+		registrar.behaviour(ScriptClassBehave::Construct, "void f()", ScriptBinding::Helpers::constructor<Transform>,
+		                    ScriptCallConv::CDeclObjFirst);
+		registrar.behaviour(ScriptClassBehave::Construct, "void f(const Trinex::Transform&)",
+		                    ScriptBinding::Helpers::constructor<Transform, const Transform&>, ScriptCallConv::CDeclObjFirst);
+		registrar.behaviour(ScriptClassBehave::Destruct, "void f()", ScriptBinding::Helpers::destructor<Transform>,
+		                    ScriptCallConv::CDeclObjFirst);
 
 		registrar.property("Trinex::Vector3f location", &Transform::location);
 		registrar.property("Trinex::Quaternion rotation", &Transform::rotation);

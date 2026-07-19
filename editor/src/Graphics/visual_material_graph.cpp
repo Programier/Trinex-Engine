@@ -3,7 +3,7 @@
 #include <Core/reflection/class.hpp>
 #include <Graphics/visual_material.hpp>
 #include <Graphics/visual_material_graph.hpp>
-#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_function.hpp>
@@ -16,7 +16,7 @@ namespace Trinex::VisualMaterialGraph
 
 	trinex_implement_class(Trinex::VisualMaterialGraph::Node, Refl::Class::IsScriptable)
 	{
-		auto r = ScriptClassRegistrar::reference_class(static_reflection());
+		auto r = ScriptBinding::Class::existing(static_reflection());
 
 		s_node_compile_output =
 		        r.method("Expression compile(OutputPin@ pin, Compiler@ compiler)", trinex_scoped_void_method(This, compile));
@@ -839,18 +839,18 @@ namespace Trinex::VisualMaterialGraph
 	static void register_metadata_functions()
 	{
 		{
-			ScriptClassRegistrar r = ScriptClassRegistrar::existing_class("Trinex::Refl::Class");
+			ScriptBinding::Class r = ScriptBinding::Class::existing("Trinex::Refl::Class");
 			r.method("void node_group(const string& group_name) const final", Node::static_node_group);
 		}
 
 		{
-			ScriptClassRegistrar r = ScriptClassRegistrar::existing_class("Trinex::Refl::ScriptClass");
+			ScriptBinding::Class r = ScriptBinding::Class::existing("Trinex::Refl::ScriptClass");
 			r.method("void node_group(const string& group_name) const final", Node::static_node_group);
 		}
 	}
 
 	template<typename T>
-	static void register_pin_methods(ScriptClassRegistrar& r)
+	static void register_pin_methods(ScriptBinding::Class& r)
 	{
 		r.method("const string& name() const", &Pin::name);
 		r.method("Node@ node() const", &Pin::node);
@@ -870,23 +870,15 @@ namespace Trinex::VisualMaterialGraph
 		using SPType = RHIShaderParameterType;
 		register_metadata_functions();
 
-		using Reg = ScriptClassRegistrar;
+		using Reg = ScriptBinding::Class;
 
-		auto ref_class_info            = Reg::RefInfo();
-		ref_class_info.implicit_handle = true;
-		ref_class_info.no_count        = true;
+		auto ref_options = ScriptBinding::reference_type(0, ScriptClassFlags::NoCount | ScriptClassFlags::ImplicitHandle);
 
-		auto value_class_info                    = Reg::ValueInfo::from<Expression>();
-		value_class_info.more_constructors       = true;
-		value_class_info.has_constructor         = true;
-		value_class_info.has_destructor          = true;
-		value_class_info.has_assignment_operator = true;
-		value_class_info.has_copy_constructor    = true;
-
-		auto compiler   = Reg::reference_class("Trinex::VisualMaterialGraph::Compiler", ref_class_info);
-		auto input_pin  = Reg::reference_class("Trinex::VisualMaterialGraph::InputPin", ref_class_info);
-		auto output_pin = Reg::reference_class("Trinex::VisualMaterialGraph::OutputPin", ref_class_info);
-		auto expression = Reg::value_class("Trinex::VisualMaterialGraph::Expression", sizeof(Expression), value_class_info);
+		auto compiler   = Reg::create("Trinex::VisualMaterialGraph::Compiler", ref_options);
+		auto input_pin  = Reg::create("Trinex::VisualMaterialGraph::InputPin", ref_options);
+		auto output_pin = Reg::create("Trinex::VisualMaterialGraph::OutputPin", ref_options);
+		auto expression = Reg::create("Trinex::VisualMaterialGraph::Expression",
+		                              ScriptBinding::value_type<Expression>(ScriptClassFlags::AppClassMoreConstructors));
 
 		register_pin_methods<InputPin>(input_pin);
 		register_pin_methods<OutputPin>(output_pin);
@@ -912,16 +904,18 @@ namespace Trinex::VisualMaterialGraph
 		// Expression Class
 
 		// clang-format off
-		expression.behave(ScriptClassBehave::Construct, "void f()", Reg::constructor<Expression>);
-		expression.behave(ScriptClassBehave::Construct, "void f(const Expression&)", Reg::constructor<Expression, const Expression&>);
-		expression.behave(ScriptClassBehave::Construct, "void f(RHIShaderParameterType type, const string& expression)", Reg::constructor<Expression, RHIShaderParameterType, const String&>);
-		expression.behave(ScriptClassBehave::Destruct, "void f()", Reg::destructor<Expression>);
+		expression.constructor<Expression>();
+		expression.constructor<Expression, const Expression&>("void f(const Expression&)");
+		expression.constructor<Expression, RHIShaderParameterType, const String&>(
+		        "void f(RHIShaderParameterType type, const string& expression)");
+		expression.destructor<Expression>();
 		// clang-format on
 
 		expression.property("string value", &Expression::value);
 		expression.property("RHIShaderParameterType type", &Expression::type);
 
-		expression.method("Expression& opAssign(const Expression&)", Reg::assign<Expression, const Expression&>);
+		expression.method("Expression& opAssign(const Expression&)",
+		                  ScriptBinding::Helpers::assign<Expression, const Expression&>);
 		expression.method("Expression x() const", &Expression::x);
 		expression.method("Expression y() const", &Expression::y);
 		expression.method("Expression z() const", &Expression::z);

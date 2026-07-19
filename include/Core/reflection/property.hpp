@@ -153,7 +153,7 @@ private:
 		virtual Property& item_flags(BitMask flags);
 		Property& render_function(RenderFunction function);
 
-		static void register_layout(ScriptClassRegistrar& r, ClassInfo* info, DownCast downcast);
+		static void register_layout(ScriptBinding::Class& r, ClassInfo* info, DownCast downcast);
 
 		template<typename T>
 		T* address_as(void* context)

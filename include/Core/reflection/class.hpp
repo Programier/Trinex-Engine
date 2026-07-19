@@ -5,7 +5,10 @@
 
 namespace Trinex
 {
-	class ScriptClassRegistrar;
+	namespace ScriptBinding
+	{
+		class Class;
+	}
 	class SingletoneBase;
 
 	namespace Refl
@@ -50,7 +53,7 @@ namespace Trinex
 			using Struct::is_a;
 			const ScriptTypeInfo& find_valid_script_type_info() const;
 			static const Vector<Class*>& asset_classes();
-			static void register_layout(ScriptClassRegistrar& r, ClassInfo* info, DownCast downcast);
+			static void register_layout(ScriptBinding::Class& r, ClassInfo* info, DownCast downcast);
 
 			template<typename Type>
 			bool is_a() const
@@ -59,7 +62,7 @@ namespace Trinex
 				return is_a(Type::static_reflection());
 			}
 
-			friend class Trinex::ScriptClassRegistrar;
+			friend class Trinex::ScriptBinding::Class;
 			friend class Trinex::SingletoneBase;
 		};
 

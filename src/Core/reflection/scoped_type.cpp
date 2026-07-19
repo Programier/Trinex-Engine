@@ -1,6 +1,6 @@
 #include <Core/reflection/scoped_type.hpp>
 #include <Core/string_functions.hpp>
-#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_binding.hpp>
 
 namespace Trinex::Refl
 {

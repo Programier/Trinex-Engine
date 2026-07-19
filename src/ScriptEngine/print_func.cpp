@@ -1,4 +1,4 @@
-#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <angelscript.h>
 
@@ -80,7 +80,7 @@ namespace Trinex
 	trinex_on_pre_init({.after = {"Trinex::DefaultScriptAddons"}})
 	{
 		auto& e  = ScriptEngine::instance();
-		auto str = ScriptClassRegistrar::existing_class("string");
+		auto str = ScriptBinding::Class::existing("string");
 
 		str.method("string format(const ?& ...) const", string_fmt, ScriptCallConv::Generic);
 		e.register_function("void print(const ?& ...)", script_print, ScriptCallConv::Generic);

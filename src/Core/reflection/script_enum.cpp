@@ -1,5 +1,5 @@
 #include <Core/reflection/script_enum.hpp>
-#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script.hpp>
 
 namespace Trinex::Refl

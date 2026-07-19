@@ -1,7 +1,7 @@
 #include <Core/constants.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Core/string_functions.hpp>
-#include <ScriptEngine/registrar.hpp>
+#include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 #include <angelscript.h>
 
@@ -17,7 +17,7 @@ namespace Trinex::Refl
 
 		if (m_flags & IsScriptable)
 		{
-			ScriptEnumRegistrar registrar(name, true);
+			ScriptBinding::Enum registrar(name, true);
 			m_info = registrar.type_info();
 
 			for (auto& entry : entries)
@@ -87,8 +87,8 @@ namespace Trinex::Refl
 
 		if (registrar_ptr)
 		{
-			ScriptEnumRegistrar* registrar = reinterpret_cast<ScriptEnumRegistrar*>(registrar_ptr);
-			registrar->set(name.c_str(), static_cast<i32>(value));
+			ScriptBinding::Enum* registrar = reinterpret_cast<ScriptBinding::Enum*>(registrar_ptr);
+			registrar->value(name.c_str(), static_cast<i32>(value));
 		}
 
 		return &m_entries.back();
@@ -96,7 +96,7 @@ namespace Trinex::Refl
 
 	const Enum::Entry* Enum::create_entry(const Name& name, EnumerateType value)
 	{
-		ScriptEnumRegistrar registrar(scope_name(), this->name(), false);
+		ScriptBinding::Enum registrar(scope_name(), this->name(), false);
 		return create_entry(&registrar, name, value);
 	}
 
