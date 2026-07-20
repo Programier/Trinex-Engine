@@ -35,7 +35,7 @@ namespace Trinex
 		bool add_script_section(const String& name, const String& code, usize code_length = 0, i32 line_offset = 0);
 		bool build();
 
-		bool compile_global_var(const char* section_name, const char* code, i32 line_offset);
+		bool compile_var(const char* section_name, const char* code, i32 line_offset);
 		bool default_namespace(const char* name_space);
 		bool default_namespace(const String& name_space);
 		const char* default_namespace();
@@ -50,16 +50,16 @@ namespace Trinex
 		bool remove_function(const ScriptFunction& function);
 
 		// Global variables
-		u32 global_var_count() const;
-		i32 global_var_index_by_name(const char* name) const;
-		i32 global_var_index_by_decl(const char* decl) const;
-		i32 global_var_index_by_name(const String& name) const;
-		i32 global_var_index_by_decl(const String& decl) const;
-		bool global_var(u32 index, StringView* name = nullptr, StringView* name_space = nullptr, i32* type_id = nullptr,
-		                bool* is_const = nullptr) const;
-		String global_var_declaration(u32 index, bool include_namespace = false) const;
-		void* address_of_global_var(u32 index);
-		i32 remove_global_var(u32 index);
+		u32 var_count() const;
+		i32 var_index_by_name(const char* name) const;
+		i32 var_index_by_decl(const char* decl) const;
+		i32 var_index_by_name(const String& name) const;
+		i32 var_index_by_decl(const String& decl) const;
+		bool var(u32 index, StringView* name = nullptr, StringView* name_space = nullptr, i32* type_id = nullptr,
+		         bool* is_const = nullptr) const;
+		String var_declaration(u32 index, bool include_namespace = false) const;
+		void* address_of_var(u32 index);
+		i32 remove_var(u32 index);
 
 		ScriptModule& bind_imported_funcs();
 		ScriptModule& unbind_imported_funcs();

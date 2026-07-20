@@ -92,7 +92,7 @@ namespace Trinex
 		return m_module->Build() >= 0;
 	}
 
-	bool ScriptModule::compile_global_var(const char* section_name, const char* code, i32 line_offset)
+	bool ScriptModule::compile_var(const char* section_name, const char* code, i32 line_offset)
 	{
 		return m_module->CompileGlobalVar(section_name, code, line_offset) >= 0;
 	}
@@ -155,32 +155,32 @@ namespace Trinex
 		return false;
 	}
 
-	u32 ScriptModule::global_var_count() const
+	u32 ScriptModule::var_count() const
 	{
 		return static_cast<usize>(m_module->GetGlobalVarCount());
 	}
 
-	i32 ScriptModule::global_var_index_by_name(const char* module_name) const
+	i32 ScriptModule::var_index_by_name(const char* module_name) const
 	{
 		return m_module->GetGlobalVarIndexByName(module_name);
 	}
 
-	i32 ScriptModule::global_var_index_by_decl(const char* decl) const
+	i32 ScriptModule::var_index_by_decl(const char* decl) const
 	{
 		return m_module->GetGlobalVarIndexByDecl(decl);
 	}
 
-	i32 ScriptModule::global_var_index_by_name(const String& module_name) const
+	i32 ScriptModule::var_index_by_name(const String& module_name) const
 	{
 		return m_module->GetGlobalVarIndexByName(module_name.c_str());
 	}
 
-	i32 ScriptModule::global_var_index_by_decl(const String& decl) const
+	i32 ScriptModule::var_index_by_decl(const String& decl) const
 	{
 		return m_module->GetGlobalVarIndexByDecl(decl.c_str());
 	}
 
-	bool ScriptModule::global_var(u32 index, StringView* name, StringView* name_space, i32* type_id, bool* is_const) const
+	bool ScriptModule::var(u32 index, StringView* name, StringView* name_space, i32* type_id, bool* is_const) const
 	{
 		const char* out_name      = nullptr;
 		const char* out_namespace = nullptr;
@@ -203,17 +203,17 @@ namespace Trinex
 		return result;
 	}
 
-	String ScriptModule::global_var_declaration(u32 index, bool include_namespace) const
+	String ScriptModule::var_declaration(u32 index, bool include_namespace) const
 	{
 		return Strings::make_string(m_module->GetGlobalVarDeclaration(index, include_namespace));
 	}
 
-	void* ScriptModule::address_of_global_var(u32 index)
+	void* ScriptModule::address_of_var(u32 index)
 	{
 		return m_module->GetAddressOfGlobalVar(index);
 	}
 
-	i32 ScriptModule::remove_global_var(u32 index)
+	i32 ScriptModule::remove_var(u32 index)
 	{
 		return m_module->RemoveGlobalVar(index);
 	}

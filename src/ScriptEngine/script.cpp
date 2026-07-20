@@ -603,7 +603,7 @@ namespace Trinex
 	{
 		if (m_module.is_valid())
 		{
-			String name = m_module.global_var_declaration(var_index, true);
+			String name = m_module.var_declaration(var_index, true);
 			return metadata_for_var(name);
 		}
 		return default_value_of<TreeSet<String>>();
@@ -674,44 +674,44 @@ namespace Trinex
 	}
 
 	// Global variables
-	u32 Script::global_var_count() const
+	u32 Script::var_count() const
 	{
-		return m_module.global_var_count();
+		return m_module.var_count();
 	}
 
-	i32 Script::global_var_index_by_name(const char* name) const
+	i32 Script::var_index_by_name(const char* name) const
 	{
-		return m_module.global_var_index_by_name(name);
+		return m_module.var_index_by_name(name);
 	}
 
-	i32 Script::global_var_index_by_decl(const char* decl) const
+	i32 Script::var_index_by_decl(const char* decl) const
 	{
-		return m_module.global_var_index_by_decl(decl);
+		return m_module.var_index_by_decl(decl);
 	}
 
-	i32 Script::global_var_index_by_name(const String& name) const
+	i32 Script::var_index_by_name(const String& name) const
 	{
-		return m_module.global_var_index_by_name(name);
+		return m_module.var_index_by_name(name);
 	}
 
-	i32 Script::global_var_index_by_decl(const String& decl) const
+	i32 Script::var_index_by_decl(const String& decl) const
 	{
-		return m_module.global_var_index_by_decl(decl);
+		return m_module.var_index_by_decl(decl);
 	}
 
-	bool Script::global_var(u32 index, StringView* name, StringView* name_space, i32* type_id, bool* is_const) const
+	bool Script::var(u32 index, StringView* name, StringView* name_space, i32* type_id, bool* is_const) const
 	{
-		return m_module.global_var(index, name, name_space, type_id, is_const);
+		return m_module.var(index, name, name_space, type_id, is_const);
 	}
 
-	String Script::global_var_declaration(u32 index, bool include_namespace) const
+	String Script::var_declaration(u32 index, bool include_namespace) const
 	{
-		return m_module.global_var_declaration(index, include_namespace);
+		return m_module.var_declaration(index, include_namespace);
 	}
 
-	void* Script::address_of_global_var(u32 index)
+	void* Script::address_of_var(u32 index)
 	{
-		return m_module.address_of_global_var(index);
+		return m_module.address_of_var(index);
 	}
 
 	// Type identification

@@ -141,15 +141,15 @@ namespace Trinex
 		ScriptFunction function_by_name(const String& name) const;
 
 		// Global variables
-		u32 global_var_count() const;
-		i32 global_var_index_by_name(const char* name) const;
-		i32 global_var_index_by_decl(const char* decl) const;
-		i32 global_var_index_by_name(const String& name) const;
-		i32 global_var_index_by_decl(const String& decl) const;
-		bool global_var(u32 index, StringView* name = nullptr, StringView* name_space = nullptr, i32* type_id = nullptr,
-		                bool* is_const = nullptr) const;
-		String global_var_declaration(u32 index, bool include_namespace = false) const;
-		void* address_of_global_var(u32 index);
+		u32 var_count() const;
+		i32 var_index_by_name(const char* name) const;
+		i32 var_index_by_decl(const char* decl) const;
+		i32 var_index_by_name(const String& name) const;
+		i32 var_index_by_decl(const String& decl) const;
+		bool var(u32 index, StringView* name = nullptr, StringView* name_space = nullptr, i32* type_id = nullptr,
+		         bool* is_const = nullptr) const;
+		String var_declaration(u32 index, bool include_namespace = false) const;
+		void* address_of_var(u32 index);
 
 		// Type identification
 		u32 object_type_count() const;
