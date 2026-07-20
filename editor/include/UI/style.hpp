@@ -114,9 +114,6 @@ namespace Trinex::UI
 		// ImGuiStyleVar_PopupBorderSize
 		Optional<f32> border_size;
 
-		// Logical opacity for PopupBg alpha.
-		Optional<f32> opacity;
-
 		// ImGuiCol_PopupBg
 		Optional<Color> bg;
 	};

@@ -286,7 +286,7 @@ namespace Trinex::UI
 		        {ImGuiStyleVar_ScrollbarRounding, value.rounding},
 		});
 
-		push_basic_style(colors, 2);
+		push_basic_style(colors, vars);
 	}
 
 	void push_style(const GrabStyle& value)

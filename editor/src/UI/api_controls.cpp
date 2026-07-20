@@ -804,6 +804,7 @@ namespace Trinex::UI
 			return true;
 		}
 		ImGui::PopStyleVar();
+		UI::pop_render_scale();
 		ImGui::PopID();
 		return false;
 	}
