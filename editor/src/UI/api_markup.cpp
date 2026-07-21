@@ -151,6 +151,23 @@ _Comment    <- '//' (![\r\n] .)*
 			{
 				return std::any_cast<const T&>(value);
 			}
+
+			inline String join_strings(const std::vector<std::string>& values)
+			{
+				String result;
+
+				for (usize index = 0; index < values.size(); ++index)
+				{
+					if (index != 0)
+					{
+						result += ", ";
+					}
+
+					result += values[index].c_str();
+				}
+
+				return result;
+			}
 		}// namespace Detail
 
 		class Parser
@@ -159,9 +176,50 @@ _Comment    <- '//' (![\r\n] .)*
 			peg::parser m_parser;
 
 		private:
-			Parser() : m_parser(grammar) {}
+			Parser() : m_parser(grammar)
+			{
+				configure_logger();
+				configure_actions();
+			}
 
-			void configure_logger() {}
+			void configure_logger()
+			{
+				m_parser.set_error_reporter([](const peg::ErrorReport& report) {
+					String expected;
+
+					if (!report.expected_literals.empty())
+					{
+						expected += " literals [";
+						expected += Detail::join_strings(report.expected_literals);
+						expected += "]";
+					}
+
+					if (!report.expected_rules.empty())
+					{
+						if (!expected.empty())
+						{
+							expected += ",";
+						}
+
+						expected += " rules [";
+						expected += Detail::join_strings(report.expected_rules);
+						expected += "]";
+					}
+
+					const char* token = report.unexpected_token.empty() ? "<eof>" : report.unexpected_token.c_str();
+
+					if (expected.empty())
+					{
+						trinex_error(Log::Editor, "Markup parse error at %zu:%zu near '%s': %s", report.line, report.col, token,
+						             report.message.c_str());
+					}
+					else
+					{
+						trinex_error(Log::Editor, "Markup parse error at %zu:%zu near '%s': expected%s. %s", report.line,
+						             report.col, token, expected.c_str(), report.message.c_str());
+					}
+				});
+			}
 
 			void configure_actions()
 			{
