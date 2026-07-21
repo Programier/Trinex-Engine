@@ -9,5 +9,6 @@ namespace Trinex
 	namespace etl
 	{
 		using std::get;
+		using std::visit;
 	}// namespace etl
 }// namespace Trinex

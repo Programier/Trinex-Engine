@@ -31,7 +31,10 @@ if (TRINEX_WITH_TRACY_PROFILER)
 endif()
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/tlsf")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/cpp-peglib")
 
 target_link_libraries(TrinexEngine PUBLIC fmt-header-only)
+target_link_libraries(TrinexEngine PUBLIC peglib)
+
 target_include_directories(TrinexEngine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/glm-lib)
 target_include_directories(TrinexEngine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/json/include)
