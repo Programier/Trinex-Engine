@@ -17,9 +17,9 @@ namespace Trinex::UI
 
 		while (self)
 		{
-			auto it = m_properties.find(name);
+			auto it = self->m_properties.find(name);
 
-			if (it != m_properties.end())
+			if (it != self->m_properties.end())
 			{
 				const Property& prop = it->second;
 				return prop.setter(object, prop.type, value);
@@ -38,49 +38,102 @@ namespace Trinex::UI
 
 	bool Type::assign(bool* dst, Type* type, const Markup::ValueDesc& value)
 	{
+		if (const bool* source = etl::get_if<bool>(&value.value))
+		{
+			*dst = *source;
+			return true;
+		}
+
 		return false;
 	}
 
 	bool Type::assign(i32* dst, Type* type, const Markup::ValueDesc& value)
 	{
+		if (const i32* source = etl::get_if<i32>(&value.value))
+		{
+			*dst = *source;
+			return true;
+		}
+
 		return false;
 	}
 
 	bool Type::assign(f32* dst, Type* type, const Markup::ValueDesc& value)
 	{
+		if (const f32* source = etl::get_if<f32>(&value.value))
+		{
+			*dst = *source;
+			return true;
+		}
+
+		if (const i32* source = etl::get_if<i32>(&value.value))
+		{
+			*dst = static_cast<f32>(*source);
+			return true;
+		}
+
 		return false;
 	}
 
 	bool Type::assign(String* dst, Type* type, const Markup::ValueDesc& value)
 	{
-		auto visitor = overloaded{
-		        [](Markup::Null value) -> String { return "false"; },
-		        [](bool value) -> String { return value ? "true" : "false"; },
-		        [](i32 value) -> String { return Strings::format("{}", value); },
-		        [](f32 value) -> String { return Strings::format("{}", value); },
-		        [](const String& value) -> String { return value; },
-		        [](const Markup::LocalizationKey& value) -> String { return value; },
-		        [](const Markup::BindingPath& value) -> String { return value; },
-		        [](const Markup::Identifier& value) -> String { return value; },
-		        [](const Markup::Container& value) -> String { return ""; },
-		};
+		if (const String* source = etl::get_if<String>(&value.value))
+		{
+			*dst = *source;
+			return true;
+		}
 
-		(*dst) = etl::visit(visitor, value.value);
-		return true;
+		if (const Markup::Identifier* source = etl::get_if<Markup::Identifier>(&value.value))
+		{
+			*dst = *source;
+			return true;
+		}
+
+		if (const Markup::LocalizationKey* source = etl::get_if<Markup::LocalizationKey>(&value.value))
+		{
+			*dst = *source;
+			return true;
+		}
+
+		if (const Markup::BindingPath* source = etl::get_if<Markup::BindingPath>(&value.value))
+		{
+			*dst = *source;
+			return true;
+		}
+
+		return false;
 	}
 
 	bool Type::assign(Markup::LocalizationKey* dst, Type* type, const Markup::ValueDesc& value)
 	{
+		if (const Markup::LocalizationKey* source = etl::get_if<Markup::LocalizationKey>(&value.value))
+		{
+			*dst = *source;
+			return true;
+		}
+
 		return false;
 	}
 
 	bool Type::assign(Markup::BindingPath* dst, Type* type, const Markup::ValueDesc& value)
 	{
+		if (const Markup::BindingPath* source = etl::get_if<Markup::BindingPath>(&value.value))
+		{
+			*dst = *source;
+			return true;
+		}
+
 		return false;
 	}
 
 	bool Type::assign(Markup::Identifier* dst, Type* type, const Markup::ValueDesc& value)
 	{
+		if (const Markup::Identifier* source = etl::get_if<Markup::Identifier>(&value.value))
+		{
+			*dst = *source;
+			return true;
+		}
+
 		return false;
 	}
 

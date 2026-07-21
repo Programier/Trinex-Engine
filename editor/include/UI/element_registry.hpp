@@ -65,7 +65,10 @@ namespace Trinex::UI
 		static bool assign(Markup::LocalizationKey* dst, Type* type, const Markup::ValueDesc& value);
 		static bool assign(Markup::BindingPath* dst, Type* type, const Markup::ValueDesc& value);
 		static bool assign(Markup::Identifier* dst, Type* type, const Markup::ValueDesc& value);
-		static inline bool assign(Markup::Null* dst, Type* type, const Markup::ValueDesc& value) { return true; }
+		static inline bool assign(Markup::Null* dst, Type* type, const Markup::ValueDesc& value)
+		{
+			return std::holds_alternative<Markup::Null>(value.value);
+		}
 
 		template<typename Prop, typename Instance>
 		inline Type* property_type(Prop Instance::* prop) const

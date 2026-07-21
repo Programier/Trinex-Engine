@@ -12,7 +12,7 @@ namespace Trinex::UI
 	namespace Markup
 	{
 		inline constexpr const char* grammar = R"(
-Document <- Node EndOfFile
+Document <- Node* EndOfFile
 
 Node           <- Identifier '{' Member* '}'
 Member         <- PropertyMember / NodeMember
@@ -40,7 +40,7 @@ String     <- < '"' (Escape / StringChar)* '"' > { no_whitespace }
 Escape     <- '\\' ['"\\nrt]
 StringChar <- !['"\\] .
 
-Float   <- < [+-]? [0-9]+ '.' [0-9]+ ([eE] [+-]? [0-9]+)? >
+Float   <- < [+-]? ([0-9]+ '.' [0-9]* / '.' [0-9]+ / [0-9]+ [eE] [+-]? [0-9]+) ([eE] [+-]? [0-9]+)? >
 Integer <- < [+-]? [0-9]+ >
 Boolean <- < 'true' / 'false' >
 Null    <- < 'null' >
@@ -101,7 +101,7 @@ _Comment    <- '//' (![\r\n] .)*
 
 					++index;
 
-					if (index + 1 > token.size())
+					if (index >= token.size() - 1)
 					{
 						throw std::runtime_error("Incomplete escape sequence");
 					}
@@ -367,7 +367,17 @@ _Comment    <- '//' (![\r\n] .)*
 					return node;
 				};
 
-				m_parser["Document"] = [](const peg::SemanticValues& values) { return Detail::any_ref<Node>(values[0]); };
+				m_parser["Document"] = [](const peg::SemanticValues& values) {
+					Vector<Node> nodes;
+					nodes.reserve(values.size());
+
+					for (const std::any& value : values)
+					{
+						nodes.emplace_back(Detail::any_ref<Node>(value));
+					}
+
+					return nodes;
+				};
 			}
 
 		public:
@@ -377,14 +387,14 @@ _Comment    <- '//' (![\r\n] .)*
 				return &parser;
 			}
 
-			bool parse(Node& node, StringView source)
+			bool parse(Vector<Node>& nodes, StringView source)
 			{
 				if (source.empty())
 				{
 					return false;
 				}
 
-				Node result;
+				Vector<Node> result;
 
 				const bool success = m_parser.parse(source, result);
 
@@ -393,7 +403,7 @@ _Comment    <- '//' (![\r\n] .)*
 					return false;
 				}
 
-				node = etl::move(result);
+				nodes = etl::move(result);
 				return true;
 			}
 		};
@@ -403,7 +413,11 @@ _Comment    <- '//' (![\r\n] .)*
 			auto element = owner->attach(node.type);
 
 			if (element == nullptr)
+			{
+				trinex_error(Log::Editor, "Failed to create element '%s' at %u:%u", node.type.c_str(), node.location.line,
+				             node.location.column);
 				return false;
+			}
 
 			auto type = element->type();
 
@@ -411,8 +425,8 @@ _Comment    <- '//' (![\r\n] .)*
 			{
 				if (!type->property(element, prop.name, prop.value))
 				{
-					trinex_error(Log::Editor, "Failed to assign property '%s' of type '%s'", prop.name.c_str(),
-					             node.type.c_str());
+					trinex_error(Log::Editor, "Failed to assign property '%s' of element '%s' at %u:%u", prop.name.c_str(),
+					             node.type.c_str(), prop.location.line, prop.location.column);
 					return false;
 				}
 			}
@@ -435,12 +449,23 @@ _Comment    <- '//' (![\r\n] .)*
 	Document* create_document(StringView source)
 	{
 		auto parser = Markup::Parser::instance();
-		Markup::Node root;
+		Vector<Markup::Node> roots;
 
-		if (parser->parse(root, source))
+		if (parser->parse(roots, source))
 		{
 			Document* document = trx_new Document();
-			if (create_elements(document, root))
+
+			bool success = true;
+			for (const Markup::Node& root : roots)
+			{
+				if (!create_elements(document, root))
+				{
+					success = false;
+					break;
+				}
+			}
+
+			if (success)
 				return document;
 
 			document->release();

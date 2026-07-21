@@ -29,6 +29,7 @@ namespace Trinex::UI
 	{
 		if (auto element = create(type))
 		{
+			element->m_owner = this;
 			m_childs.push_back(element);
 			return element;
 		}
@@ -40,6 +41,11 @@ namespace Trinex::UI
 	{
 		if (element)
 		{
+			if (element->m_owner == this)
+			{
+				return *this;
+			}
+
 			element->add_reference();
 
 			if (element->m_owner)
@@ -47,6 +53,7 @@ namespace Trinex::UI
 				element->m_owner->deattach(element);
 			}
 
+			element->m_owner = this;
 			m_childs.push_back(element);
 		}
 
@@ -118,5 +125,14 @@ namespace Trinex::UI
 		return Element::reflection();
 	}
 
-	Element::~Element() {}
+	Element::~Element()
+	{
+		for (Element* child : m_childs)
+		{
+			child->m_owner = nullptr;
+			child->release();
+		}
+
+		m_childs.clear();
+	}
 }// namespace Trinex::UI
