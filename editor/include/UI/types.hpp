@@ -3,6 +3,7 @@
 #include <Core/etl/registry.hpp>
 #include <Core/etl/string.hpp>
 #include <Core/etl/type_traits.hpp>
+#include <Core/etl/variant.hpp>
 #include <Core/etl/vector.hpp>
 #include <UI/core.hpp>
 
@@ -48,6 +49,37 @@ namespace Trinex::UI
 		inline bool operator==(const Texture& rhs) const { return texture == rhs.texture && sampler == rhs.sampler; }
 		inline bool operator!=(const Texture& rhs) const { return texture != rhs.texture || sampler != rhs.sampler; }
 	};
+
+	namespace Markup
+	{
+		struct SourceLocation {
+			u32 line   = 0;
+			u32 column = 0;
+		};
+
+		struct LocalizationKey : public String {
+			using String::String;
+		};
+
+		struct BindingPath : public String {
+			using String::String;
+		};
+
+		struct Identifier : public String {
+			using String::String;
+		};
+
+		struct Null {
+		};
+
+		using Container = Vector<struct ValueDesc>;
+		using Value     = Variant<Null, bool, i32, f32, String, LocalizationKey, BindingPath, Identifier, Container>;
+
+		struct ValueDesc {
+			Value value;
+			SourceLocation location;
+		};
+	}// namespace Markup
 
 	class ID
 	{

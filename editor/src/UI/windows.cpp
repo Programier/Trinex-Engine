@@ -1,4 +1,4 @@
-#include "api_internal.hpp"
+#include "internal.hpp"
 #include <Core/math/math.hpp>
 #include <imgui_stacklayout.h>
 
@@ -89,8 +89,8 @@ namespace Trinex::UI
 
 	bool begin_panel(StringView id, const PanelOptions& options)
 	{
-		const Vec4 bg     = has_color(options.background_color) ? options.background_color : panel_color();
-		const Vec4 border = has_color(options.border_color) ? options.border_color : imgui_color(ImGuiCol_Border);
+		const Vec4 bg         = has_color(options.background_color) ? options.background_color : panel_color();
+		const Vec4 border     = has_color(options.border_color) ? options.border_color : imgui_color(ImGuiCol_Border);
 		const float rounding  = options.rounding >= 0.0f ? options.rounding : imgui_child_rounding();
 		ImGuiChildFlags flags = static_cast<ImGuiChildFlags>(options.flags);
 		flags |= ImGuiChildFlags_AlwaysUseWindowPadding;
@@ -207,8 +207,8 @@ namespace Trinex::UI
 		const float padding  = options.padding >= 0.0f ? options.padding : imgui_window_padding();
 		const float spacing  = options.spacing >= 0.0f ? options.spacing : imgui_item_spacing();
 		const Vec4 accent    = has_color(options.accent) ? options.accent : accent_color();
-		const Vec4 bg     = has_color(options.background_color) ? options.background_color : panel_color();
-		const Vec4 border = has_color(options.border_color) ? options.border_color : imgui_color(ImGuiCol_Border);
+		const Vec4 bg        = has_color(options.background_color) ? options.background_color : panel_color();
+		const Vec4 border    = has_color(options.border_color) ? options.border_color : imgui_color(ImGuiCol_Border);
 
 		Vec2 size = resolve(options.size);
 		if (size.x <= 0.0f)
@@ -341,8 +341,8 @@ namespace Trinex::UI
 		const float padding  = options.padding >= 0.0f ? options.padding : imgui_window_padding();
 		const float spacing  = options.spacing >= 0.0f ? options.spacing : imgui_item_spacing();
 		const Vec4 accent    = has_color(options.accent) ? options.accent : accent_color();
-		Vec4 bg     = has_color(options.background_color) ? options.background_color : panel_color();
-		Vec4 border = has_color(options.border_color) ? options.border_color : imgui_color(ImGuiCol_Border);
+		Vec4 bg              = has_color(options.background_color) ? options.background_color : panel_color();
+		Vec4 border          = has_color(options.border_color) ? options.border_color : imgui_color(ImGuiCol_Border);
 
 		Vec2 size = resolve(options.size);
 		if (size.x <= 0.0f)
@@ -619,7 +619,7 @@ namespace Trinex::UI
 			anim.extra = measured_height;
 		}
 
-		const float visible_height   = Math::max(anim.extra, measured_height) * apply_ease(anim.open, Ease::InOutQuad);
+		const float visible_height = Math::max(anim.extra, measured_height) * apply_ease(anim.open, Ease::InOutQuad);
 		ImGui::PopStyleVar();
 		ImGui::PopClipRect();
 		ImGui::SetCursorScreenPos(ImVec2(context.content_start.x, context.content_start.y + visible_height));

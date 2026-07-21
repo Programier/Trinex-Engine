@@ -1,7 +1,10 @@
+#include "../internal.hpp"
 #include <Core/etl/string.hpp>
 #include <Core/etl/utility.hpp>
 #include <Core/etl/variant.hpp>
 #include <Core/etl/vector.hpp>
+#include <UI/Elements/document.hpp>
+#include <UI/element_registry.hpp>
 #include <peglib.h>
 
 namespace Trinex::UI
@@ -52,41 +55,12 @@ _Space      <- [ \t\r\n]
 _Comment    <- '//' (![\r\n] .)*
 	)";
 
-		struct SourceLocation {
-			u32 line   = 0;
-			u32 column = 0;
-		};
-
-		struct LocalizationKey {
-			String value;
-		};
-
-		struct BindingPath {
-			String value;
-		};
-
-		struct Identifier {
-			String value;
-		};
-
-		struct Null {
-		};
-
-		struct Value;
 		struct Property;
 		struct Node;
 
-		using Scalar    = Variant<Null, bool, i64, f64, String, LocalizationKey, BindingPath, Identifier>;
-		using Container = Vector<struct Value>;
-
-		struct Value {
-			Variant<Scalar, Container> value;
-			SourceLocation location;
-		};
-
 		struct Property {
 			String name;
-			Value value;
+			ValueDesc value;
 			SourceLocation location;
 		};
 
@@ -230,9 +204,7 @@ _Comment    <- '//' (![\r\n] .)*
 
 			void configure_leaf_actions()
 			{
-				m_parser["Identifier"] = [](const peg::SemanticValues& values) {
-					return Identifier{.value = String(values.token())};
-				};
+				m_parser["Identifier"] = [](const peg::SemanticValues& values) { return Identifier{values.token()}; };
 
 				m_parser["Path"] = [](const peg::SemanticValues& values) {
 					String path;
@@ -246,7 +218,7 @@ _Comment    <- '//' (![\r\n] .)*
 							path += '.';
 						}
 
-						path += identifier.value;
+						path += identifier;
 					}
 
 					return path;
@@ -255,8 +227,8 @@ _Comment    <- '//' (![\r\n] .)*
 				m_parser["IdentifierValue"] = [](const peg::SemanticValues& values) {
 					const auto& identifier = Detail::any_ref<Identifier>(values[0]);
 
-					return Value{
-					        .value    = Scalar{identifier},
+					return ValueDesc{
+					        .value    = Value{identifier},
 					        .location = Detail::location_of(values),
 					};
 				};
@@ -269,8 +241,8 @@ _Comment    <- '//' (![\r\n] .)*
 						token.remove_prefix(1);
 					}
 
-					return Value{
-					        .value    = Scalar{LocalizationKey{.value = String(token)}},
+					return ValueDesc{
+					        .value    = Value{LocalizationKey{token}},
 					        .location = Detail::location_of(values),
 					};
 				};
@@ -283,42 +255,42 @@ _Comment    <- '//' (![\r\n] .)*
 						token.remove_prefix(1);
 					}
 
-					return Value{
-					        .value    = Scalar{BindingPath{.value = String(token)}},
+					return ValueDesc{
+					        .value    = Value{BindingPath{token}},
 					        .location = Detail::location_of(values),
 					};
 				};
 
 				m_parser["String"] = [](const peg::SemanticValues& values) {
-					return Value{
-					        .value    = Scalar{Detail::unescape_string(values.token())},
+					return ValueDesc{
+					        .value    = Value{Detail::unescape_string(values.token())},
 					        .location = Detail::location_of(values),
 					};
 				};
 
 				m_parser["Integer"] = [](const peg::SemanticValues& values) {
-					return Value{
-					        .value    = Scalar{values.token_to_number<i64>()},
+					return ValueDesc{
+					        .value    = Value{values.token_to_number<i32>()},
 					        .location = Detail::location_of(values),
 					};
 				};
 
 				m_parser["Float"] = [](const peg::SemanticValues& values) {
-					return Value{
-					        .value    = Scalar{values.token_to_number<f64>()},
+					return ValueDesc{
+					        .value    = Value{values.token_to_number<f32>()},
 					        .location = Detail::location_of(values),
 					};
 				};
 
 				m_parser["Boolean"] = [](const peg::SemanticValues& values) {
-					return Value{
-					        .value    = Scalar{values.token() == "true"},
+					return ValueDesc{
+					        .value    = Value{values.token() == "true"},
 					        .location = Detail::location_of(values),
 					};
 				};
 
 				m_parser["Null"] = [](const peg::SemanticValues& values) {
-					return Value{.value = Scalar{Null{}}, .location = Detail::location_of(values)};
+					return ValueDesc{.value = Value{Null{}}, .location = Detail::location_of(values)};
 				};
 			}
 
@@ -330,13 +302,13 @@ _Comment    <- '//' (![\r\n] .)*
 
 					for (const std::any& item : values)
 					{
-						list.emplace_back(Detail::any_ref<Value>(item));
+						list.emplace_back(Detail::any_ref<ValueDesc>(item));
 					}
 
-					return Value{.value = std::move(list), .location = Detail::location_of(values)};
+					return ValueDesc{.value = std::move(list), .location = Detail::location_of(values)};
 				};
 
-				m_parser["Value"]  = [](const peg::SemanticValues& values) { return Detail::any_ref<Value>(values[0]); };
+				m_parser["Value"]  = [](const peg::SemanticValues& values) { return Detail::any_ref<ValueDesc>(values[0]); };
 				m_parser["Member"] = [](const peg::SemanticValues& values) -> std::any { return values[0]; };
 			}
 
@@ -346,8 +318,8 @@ _Comment    <- '//' (![\r\n] .)*
 					const auto& identifier = Detail::any_ref<Identifier>(values[0]);
 
 					return Property{
-					        .name     = identifier.value,
-					        .value    = Detail::any_ref<Value>(values[1]),
+					        .name     = identifier,
+					        .value    = Detail::any_ref<ValueDesc>(values[1]),
 					        .location = Detail::location_of(values),
 					};
 				};
@@ -366,7 +338,7 @@ _Comment    <- '//' (![\r\n] .)*
 					const auto& identifier = Detail::any_ref<Identifier>(values[0]);
 
 					Node node{
-					        .type       = identifier.value,
+					        .type       = identifier,
 					        .properties = {},
 					        .children   = {},
 					        .location   = Detail::location_of(values),
@@ -426,124 +398,55 @@ _Comment    <- '//' (![\r\n] .)*
 			}
 		};
 
-		static void dump_value(const Value& value);
-
-		static void print_indent(u32 indent)
+		static bool create_elements(Element* owner, const Node& node)
 		{
-			for (u32 i = 0; i < indent; ++i)
+			auto element = owner->attach(node.type);
+
+			if (element == nullptr)
+				return false;
+
+			auto type = element->type();
+
+			for (auto& prop : node.properties)
 			{
-				std::printf("  ");
-			}
-		}
-
-		static void dump_value(const Markup::Value& value)
-		{
-			auto visitor = [](const auto& data) {
-				using Type = std::remove_cvref_t<decltype(data)>;
-
-				if constexpr (std::is_same_v<Type, Markup::Scalar>)
+				if (!type->property(element, prop.name, prop.value))
 				{
-					auto visitor = [](const auto& scalar) {
-						using ScalarType = std::remove_cvref_t<decltype(scalar)>;
-
-						if constexpr (std::is_same_v<ScalarType, Markup::Null>)
-						{
-							std::printf("null");
-						}
-						else if constexpr (std::is_same_v<ScalarType, bool>)
-						{
-							std::printf("%s", scalar ? "true" : "false");
-						}
-						else if constexpr (std::is_same_v<ScalarType, i64>)
-						{
-							std::printf("%lld", static_cast<long long>(scalar));
-						}
-						else if constexpr (std::is_same_v<ScalarType, f64>)
-						{
-							std::printf("%g", scalar);
-						}
-						else if constexpr (std::is_same_v<ScalarType, String>)
-						{
-							std::printf("\"%s\"", scalar.c_str());
-						}
-						else if constexpr (std::is_same_v<ScalarType, Markup::LocalizationKey>)
-						{
-							std::printf("@%s", scalar.value.c_str());
-						}
-						else if constexpr (std::is_same_v<ScalarType, Markup::BindingPath>)
-						{
-							std::printf("$%s", scalar.value.c_str());
-						}
-						else if constexpr (std::is_same_v<ScalarType, Markup::Identifier>)
-						{
-							std::printf("%s", scalar.value.c_str());
-						}
-					};
-					etl::visit(visitor, data);
+					trinex_error(Log::Editor, "Failed to assign property '%s' of type '%s'", prop.name.c_str(),
+					             node.type.c_str());
+					return false;
 				}
-				else if constexpr (std::is_same_v<Type, Container>)
+			}
+
+			for (auto& child : node.children)
+			{
+				if (!create_elements(element, child))
 				{
-					std::printf("[");
-
-					for (usize index = 0; index < data.size(); ++index)
-					{
-						if (index != 0)
-						{
-							std::printf(", ");
-						}
-
-						dump_value(data[index]);
-					}
-
-					std::printf("]");
+					return false;
 				}
-			};
-
-			etl::visit(visitor, value.value);
-		}
-
-		static void dump(const Node& node, u32 indent = 0)
-		{
-			print_indent(indent);
-			std::printf("%s {\n", node.type.c_str());
-
-			for (const Markup::Property& property : node.properties)
-			{
-				print_indent(indent + 1);
-
-				std::printf("%s: ", property.name.c_str());
-				dump_value(property.value);
-				std::printf("\n");
 			}
 
-			for (const Markup::Node& child : node.children)
-			{
-				dump(child, indent + 1);
-			}
-
-			print_indent(indent);
-			std::printf("}\n");
+			return true;
 		}
 	}// namespace Markup
 
 
-	trinex_on_pre_init()
+	trinex_implement_ui_element(Document) {}
+
+	Document* create_document(StringView source)
 	{
 		auto parser = Markup::Parser::instance();
+		Markup::Node root;
 
-		Markup::Node node;
+		if (parser->parse(root, source))
+		{
+			Document* document = trx_new Document();
+			if (create_elements(document, root))
+				return document;
 
-		bool status = parser->parse(node, R"(
-			Window{
-				Button {
-					text: @Common.Save
-					enabled: $Project.CanSave
-				}
-			}
-		)");
+			document->release();
+			return nullptr;
+		}
 
-		printf("\n\n\n\nSTATUS: %d\n", status);
-		Markup::dump(node);
-		exit(0);
+		return nullptr;
 	}
 }// namespace Trinex::UI

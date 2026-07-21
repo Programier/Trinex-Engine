@@ -706,4 +706,7 @@ namespace Trinex::UI
 		};
 		trinex_bitfield_enum_struct(PaintFlags, u8);
 	};
+
+
+	class Document;
 }// namespace Trinex::UI

@@ -1,4 +1,4 @@
-#include "api_internal.hpp"
+#include "internal.hpp"
 #include <Core/file_manager.hpp>
 #include <Core/math/math.hpp>
 #include <Core/memory.hpp>
@@ -725,11 +725,10 @@ namespace Trinex::UI
 		anim.active   = approach(anim.active, active ? 1.0f : 0.0f * 1.6f);
 		anim.selected = approach(anim.selected, visual_selected ? 1.0f : 0.0f);
 
-		const Vec4 base =
-		        Math::lerp(panel_color(), background_hovered_color(), anim.hover);
-		const Vec4 sel = has_color(accent) ? accent : accent_color();
-		Vec4 bg        = Math::lerp(base, with_alpha(sel, 0.22f), anim.selected);
-		bg             = Math::lerp(bg, with_alpha(sel, 0.18f), anim.active * 0.45f);
+		const Vec4 base = Math::lerp(panel_color(), background_hovered_color(), anim.hover);
+		const Vec4 sel  = has_color(accent) ? accent : accent_color();
+		Vec4 bg         = Math::lerp(base, with_alpha(sel, 0.22f), anim.selected);
+		bg              = Math::lerp(bg, with_alpha(sel, 0.18f), anim.active * 0.45f);
 
 		ImDrawList* draw = ImGui::GetWindowDrawList();
 		const ImVec2 max = add(pos, size);
@@ -825,11 +824,9 @@ namespace Trinex::UI
 
 	void push_window_styles(bool modal)
 	{
-		const Vec4 bg = modal ? panel_color() : background_color();
-		const Vec4 title_bg =
-		        Math::lerp(background_active_color(), active_context()->style.colors.accent_active, 0.35f);
-		const Vec4 title_bg_active =
-		        Math::lerp(background_active_color(), accent_color(), 0.24f);
+		const Vec4 bg              = modal ? panel_color() : background_color();
+		const Vec4 title_bg        = Math::lerp(background_active_color(), active_context()->style.colors.accent_active, 0.35f);
+		const Vec4 title_bg_active = Math::lerp(background_active_color(), accent_color(), 0.24f);
 		ImGui::PushStyleColor(ImGuiCol_WindowBg, to_imvec(bg));
 		ImGui::PushStyleColor(ImGuiCol_PopupBg, to_imvec(bg));
 		ImGui::PushStyleColor(ImGuiCol_TitleBg, to_imvec(title_bg));

@@ -309,6 +309,14 @@ namespace Trinex
 		return method;
 	}
 
+	template<class... Ts>
+	struct overloaded : Ts... {
+		using Ts::operator()...;
+	};
+
+	template<class... Ts>
+	overloaded(Ts...) -> overloaded<Ts...>;
+
 #define trinex_scoped_method(class_name, method_name, ...)                                                                       \
 	static_cast<Trinex::Signature<decltype(overload_of<__VA_ARGS__>(&class_name::method_name))>::Func<>>(                        \
 	        []<typename Instance, typename... Args>(Instance* instance,                                                          \

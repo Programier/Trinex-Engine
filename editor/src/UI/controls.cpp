@@ -1,4 +1,4 @@
-#include "api_internal.hpp"
+#include "internal.hpp"
 #include <Core/math/math.hpp>
 #include <cstring>
 
@@ -324,10 +324,9 @@ namespace Trinex::UI
 		ImDrawList* draw = ImGui::GetWindowDrawList();
 		const ImVec2 box_pos(pos.x, pos.y + (size.y - box) * 0.5f);
 		const Vec4 fill = Math::lerp(background_color(), accent_color(), anim.value);
-		draw->AddRectFilled(
-		        box_pos, add(box_pos, ImVec2(box, box)),
-		        col_u32(Math::lerp(fill, background_hovered_color(), anim.hover * (1.0f - anim.value))),
-		        imgui_frame_rounding() * 0.55f);
+		draw->AddRectFilled(box_pos, add(box_pos, ImVec2(box, box)),
+		                    col_u32(Math::lerp(fill, background_hovered_color(), anim.hover * (1.0f - anim.value))),
+		                    imgui_frame_rounding() * 0.55f);
 		draw->AddRect(box_pos, add(box_pos, ImVec2(box, box)),
 		              col_u32(Math::lerp(imgui_color(ImGuiCol_Border), active_context()->style.colors.accent_hovered,
 		                                 anim.hover + anim.value)),
@@ -369,8 +368,8 @@ namespace Trinex::UI
 		ImDrawList* draw = ImGui::GetWindowDrawList();
 		const ImVec2 p(pos.x, pos.y + (size.y - track.y) * 0.5f);
 		const float toggle_t = apply_ease(anim.value, Ease::InOutQuad);
-		const Vec4 track_col =
-		        Math::lerp(Math::lerp(background_active_color(), background_hovered_color(), anim.hover), accent_color(), toggle_t);
+		const Vec4 track_col = Math::lerp(Math::lerp(background_active_color(), background_hovered_color(), anim.hover),
+		                                  accent_color(), toggle_t);
 		draw->AddRectFilled(p, add(p, track), col_u32(track_col), track.y * 0.5f);
 		const float knob_r = 9.0f + anim.hover;
 		const float knob_x = Math::lerp(p.x + track.y * 0.5f, p.x + track.x - track.y * 0.5f, toggle_t);
@@ -414,8 +413,7 @@ namespace Trinex::UI
 		const ImVec2 bar_max(pos.x + size.x, bar_min.y + bar_h);
 		draw->AddRectFilled(bar_min, bar_max, col_u32(background_active_color()), bar_h * 0.5f);
 		draw->AddRectFilled(bar_min, ImVec2(Math::lerp(bar_min.x, bar_max.x, anim.value), bar_max.y),
-		                    col_u32(Math::lerp(accent_color(),
-		                                       active_context()->style.colors.accent_hovered, anim.hover)),
+		                    col_u32(Math::lerp(accent_color(), active_context()->style.colors.accent_hovered, anim.hover)),
 		                    bar_h * 0.5f);
 		draw->AddCircleFilled(ImVec2(Math::lerp(bar_min.x, bar_max.x, anim.value), bar_min.y + bar_h * 0.5f),
 		                      6.0f + anim.active * 2.0f, col_u32(imgui_color(ImGuiCol_Text)));
@@ -757,11 +755,10 @@ namespace Trinex::UI
 		const float open_t = apply_ease(anim.open, Ease::InOutQuad);
 
 		ImDrawList* draw = ImGui::GetWindowDrawList();
-		const Vec4 bg = Math::lerp(Math::lerp(background_color(), background_hovered_color(), anim.hover),
-		                           background_active_color(), anim.active);
+		const Vec4 bg    = Math::lerp(Math::lerp(background_color(), background_hovered_color(), anim.hover),
+		                              background_active_color(), anim.active);
 		draw->AddRectFilled(pos, add(pos, frame_size), col_u32(bg), imgui_frame_rounding());
-		draw->AddRect(pos, add(pos, frame_size),
-		              col_u32(Math::lerp(imgui_color(ImGuiCol_Border), accent_color(), open_t)),
+		draw->AddRect(pos, add(pos, frame_size), col_u32(Math::lerp(imgui_color(ImGuiCol_Border), accent_color(), open_t)),
 		              imgui_frame_rounding(), 0, imgui_border_size());
 		const ImVec2 preview_size = imgui_calc_text_size(preview_value);
 		draw_list_add_text(draw, ImVec2(pos.x + imgui_frame_padding(), pos.y + (frame_size.y - preview_size.y) * 0.5f),
@@ -887,9 +884,7 @@ namespace Trinex::UI
 		ImDrawList* draw = ImGui::GetWindowDrawList();
 		const ImVec2 center(pos.x + diameter * 0.5f, pos.y + size.y * 0.5f);
 		draw->AddCircle(center, diameter * 0.5f,
-		                col_u32(Math::lerp(imgui_color(ImGuiCol_Border), accent_color(),
-		                                   anim.hover + anim.selected)),
-		                24, 2.0f);
+		                col_u32(Math::lerp(imgui_color(ImGuiCol_Border), accent_color(), anim.hover + anim.selected)), 24, 2.0f);
 		draw->AddCircleFilled(center, diameter * 0.31f * apply_ease(anim.selected, Ease::OutBack),
 		                      col_u32(accent_color(), anim.selected));
 		draw_list_add_text(draw, ImVec2(pos.x + diameter + imgui_item_spacing(), pos.y + (size.y - text_size.y) * 0.5f),
@@ -923,8 +918,7 @@ namespace Trinex::UI
 		const float segment_w    = width / static_cast<float>(item_count);
 		const ImVec2 start       = ImGui::GetCursorScreenPos();
 		ImDrawList* draw         = ImGui::GetWindowDrawList();
-		draw->AddRectFilled(start, add(start, ImVec2(width, height)), col_u32(background_color()),
-		                    imgui_frame_rounding());
+		draw->AddRectFilled(start, add(start, ImVec2(width, height)), col_u32(background_color()), imgui_frame_rounding());
 		draw->AddRect(start, add(start, ImVec2(width, height)), col_u32(imgui_color(ImGuiCol_Border)), imgui_frame_rounding());
 
 		bool changed = false;
@@ -1066,8 +1060,7 @@ namespace Trinex::UI
 		draw->AddRectFilled(pos, add(pos, field_size),
 		                    col_u32(Math::lerp(background_color(), background_hovered_color(), anim.hover)),
 		                    imgui_frame_rounding());
-		draw->AddRect(pos, add(pos, field_size),
-		              col_u32(Math::lerp(imgui_color(ImGuiCol_Border), accent_color(), anim.focus)),
+		draw->AddRect(pos, add(pos, field_size), col_u32(Math::lerp(imgui_color(ImGuiCol_Border), accent_color(), anim.focus)),
 		              imgui_frame_rounding(), 0, imgui_border_size());
 		const ImVec2 ts = ImGui::CalcTextSize(display.c_str());
 		draw->AddText(ImVec2(pos.x + imgui_frame_padding(), pos.y + (field_size.y - ts.y) * 0.5f),
