@@ -1,5 +1,6 @@
 #include <Core/etl/templates.hpp>
 #include <Core/string_functions.hpp>
+#include <UI/element.hpp>
 #include <UI/element_registry.hpp>
 
 namespace Trinex::UI
@@ -22,7 +23,12 @@ namespace Trinex::UI
 			if (it != self->m_properties.end())
 			{
 				const Property& prop = it->second;
-				return prop.setter(object, prop.type, value);
+
+				FieldBase self;
+				self.owner   = nullptr;
+				self.address = object;
+				self.type    = this;
+				return prop.setter(self, prop, value);
 			}
 
 			self = self->m_parent;
@@ -31,107 +37,83 @@ namespace Trinex::UI
 		return false;
 	}
 
-	bool Type::assign(void* dst, Type* type, const Markup::ValueDesc& value)
+	bool Type::assign(const FieldBase& field, const Markup::ValueDesc& value)
 	{
 		return false;
 	}
 
-	bool Type::assign(bool* dst, Type* type, const Markup::ValueDesc& value)
+	bool Type::assign(const Field<bool>& field, const Markup::ValueDesc& value)
 	{
 		if (const bool* source = etl::get_if<bool>(&value.value))
 		{
-			*dst = *source;
+			field.ref() = *source;
 			return true;
 		}
 
 		return false;
 	}
 
-	bool Type::assign(i32* dst, Type* type, const Markup::ValueDesc& value)
+	bool Type::assign(const Field<i32>& field, const Markup::ValueDesc& value)
 	{
 		if (const i32* source = etl::get_if<i32>(&value.value))
 		{
-			*dst = *source;
+			field.ref() = *source;
 			return true;
 		}
 
 		return false;
 	}
 
-	bool Type::assign(f32* dst, Type* type, const Markup::ValueDesc& value)
+	bool Type::assign(const Field<f32>& field, const Markup::ValueDesc& value)
 	{
 		if (const f32* source = etl::get_if<f32>(&value.value))
 		{
-			*dst = *source;
+			field.ref() = *source;
 			return true;
 		}
 
 		if (const i32* source = etl::get_if<i32>(&value.value))
 		{
-			*dst = static_cast<f32>(*source);
+			field.ref() = static_cast<f32>(*source);
 			return true;
 		}
 
 		return false;
 	}
 
-	bool Type::assign(String* dst, Type* type, const Markup::ValueDesc& value)
+	bool Type::assign(const Field<String>& field, const Markup::ValueDesc& value)
 	{
 		if (const String* source = etl::get_if<String>(&value.value))
 		{
-			*dst = *source;
+			field.ref() = *source;
 			return true;
 		}
 
 		if (const Markup::Identifier* source = etl::get_if<Markup::Identifier>(&value.value))
 		{
-			*dst = *source;
+			field.ref() = *source;
 			return true;
 		}
 
-		if (const Markup::LocalizationKey* source = etl::get_if<Markup::LocalizationKey>(&value.value))
+		// if (const Markup::LocalizationKey* source = etl::get_if<Markup::LocalizationKey>(&value.value))
+		// {
+		// 	*dst = *source;
+		// 	return true;
+		// }
+
+		if (field.owner)
 		{
-			*dst = *source;
-			return true;
-		}
+			void* owner      = field.owner->address;
+			Type* owner_type = field.owner->type;
 
-		if (const Markup::BindingPath* source = etl::get_if<Markup::BindingPath>(&value.value))
-		{
-			*dst = *source;
-			return true;
-		}
-
-		return false;
-	}
-
-	bool Type::assign(Markup::LocalizationKey* dst, Type* type, const Markup::ValueDesc& value)
-	{
-		if (const Markup::LocalizationKey* source = etl::get_if<Markup::LocalizationKey>(&value.value))
-		{
-			*dst = *source;
-			return true;
-		}
-
-		return false;
-	}
-
-	bool Type::assign(Markup::BindingPath* dst, Type* type, const Markup::ValueDesc& value)
-	{
-		if (const Markup::BindingPath* source = etl::get_if<Markup::BindingPath>(&value.value))
-		{
-			*dst = *source;
-			return true;
-		}
-
-		return false;
-	}
-
-	bool Type::assign(Markup::Identifier* dst, Type* type, const Markup::ValueDesc& value)
-	{
-		if (const Markup::Identifier* source = etl::get_if<Markup::Identifier>(&value.value))
-		{
-			*dst = *source;
-			return true;
+			if (const Markup::BindingPath* source = etl::get_if<Markup::BindingPath>(&value.value))
+			{
+				if (auto element = Element::cast(owner, owner_type))
+				{
+					element->bind(field.address, field.type, *source);
+				}
+				return true;
+			}
 		}
 
 		return false;

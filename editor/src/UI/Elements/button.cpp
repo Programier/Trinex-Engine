@@ -6,7 +6,7 @@ namespace Trinex::UI
 {
 	trinex_implement_ui_element(Button)
 	{
-		reflection()->property<&This::text>("text");
+		reflection()->bind<&This::text>("text");
 	}
 
 	bool Button::on_begin_render()

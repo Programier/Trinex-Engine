@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/etl/flat_map.hpp>
+#include <Core/etl/pair.hpp>
 #include <Core/types/name.hpp>
 #include <UI/types.hpp>
 
@@ -9,13 +10,52 @@ namespace Trinex::UI
 	class Type final
 	{
 	private:
+		struct FieldBase {
+			FieldBase const* owner;
+			void* address;
+			Type* type;
+		};
+
+		template<typename T>
+		struct Field : public FieldBase {
+			using FieldBase::FieldBase;
+
+			inline T* ptr() const { return static_cast<T*>(address); }
+			inline T& ref() const { return *ptr(); }
+		};
+
 		template<typename T>
 		struct MemberTraits;
 
 		template<typename FieldType, typename InstanceType>
 		struct MemberTraits<FieldType InstanceType::*> {
-			using Instance = InstanceType;
-			using Field    = FieldType;
+			static inline Field<FieldType> field(const FieldBase& owner, FieldType InstanceType::* prop)
+			{
+				Field<FieldType> result;
+				result.owner   = &owner;
+				result.address = &(static_cast<InstanceType*>(owner.address)->*prop);
+				result.type    = Type::instance<FieldType>();
+				return result;
+			}
+		};
+
+		template<typename FieldType>
+		struct MemberTraits<FieldType*> {
+			static inline Field<FieldType> field(const FieldBase& owner, FieldType* prop)
+			{
+				Field<FieldType> result;
+				result.owner   = &owner;
+				result.address = prop;
+				result.type    = Type::instance<FieldType>();
+				return result;
+			}
+		};
+
+		struct Property {
+			using Setter = bool (*)(const FieldBase& owner, const Property& prop, const Markup::ValueDesc& value);
+
+			Type* type;
+			Setter setter;
 		};
 
 		template<typename T>
@@ -37,13 +77,8 @@ namespace Trinex::UI
 			trx_delete static_cast<T*>(object);
 		}
 
-		struct Property {
-			using Setter = bool (*)(void* object, Type* type, const Markup::ValueDesc& value);
 
-			Type* type;
-			Setter setter;
-		};
-
+	private:
 		void* m_id;
 		Type* m_parent;
 		void* (*m_factory)();
@@ -57,24 +92,17 @@ namespace Trinex::UI
 
 		Type& property(Name name, Type* type, Property::Setter setter);
 
-		static bool assign(void* dst, Type* type, const Markup::ValueDesc& value);
-		static bool assign(bool* dst, Type* type, const Markup::ValueDesc& value);
-		static bool assign(i32* dst, Type* type, const Markup::ValueDesc& value);
-		static bool assign(f32* dst, Type* type, const Markup::ValueDesc& value);
-		static bool assign(String* dst, Type* type, const Markup::ValueDesc& value);
-		static bool assign(Markup::LocalizationKey* dst, Type* type, const Markup::ValueDesc& value);
-		static bool assign(Markup::BindingPath* dst, Type* type, const Markup::ValueDesc& value);
-		static bool assign(Markup::Identifier* dst, Type* type, const Markup::ValueDesc& value);
-		static inline bool assign(Markup::Null* dst, Type* type, const Markup::ValueDesc& value)
-		{
-			return std::holds_alternative<Markup::Null>(value.value);
-		}
+		static bool assign(const FieldBase& field, const Markup::ValueDesc& value);
+		static bool assign(const Field<bool>& field, const Markup::ValueDesc& value);
+		static bool assign(const Field<i32>& field, const Markup::ValueDesc& value);
+		static bool assign(const Field<f32>& field, const Markup::ValueDesc& value);
+		static bool assign(const Field<String>& field, const Markup::ValueDesc& value);
 
 		template<typename Prop, typename Instance>
 		inline Type* property_type(Prop Instance::* prop) const
 		{
 			trinex_assert(prop && type_id<Instance>() == m_id);
-			return Type::instance<Instance>();
+			return Type::instance<Prop>();
 		}
 
 	public:
@@ -94,24 +122,23 @@ namespace Trinex::UI
 		}
 
 		template<auto prop>
-		Type& property(Name name)
+		Type& bind(Name name)
 		{
-			using Instance = MemberTraits<decltype(prop)>::Instance;
-			using Field    = MemberTraits<decltype(prop)>::Field;
-
-			auto setter = +[](void* object, Type* type, const Markup::ValueDesc& value) {
-				Field* field = &(static_cast<Instance*>(object)->*prop);
-				return Type::assign(field, type, value);
+			auto setter = +[](const FieldBase& object, const Property& property, const Markup::ValueDesc& value) {
+				using Traits = MemberTraits<decltype(prop)>;
+				return Type::assign(Traits::field(object, prop), value);
 			};
 
 			return property(name, property_type(prop), setter);
 		}
 
+		Pair<void*, Type*> property(void* object, Name* path, usize size);
 		bool property(void* object, Name name, const Markup::ValueDesc& value);
 
 		inline void* create() { return m_factory(); }
 		inline Type& destroy(void* object) { trinex_this_return(m_destroy(object)); }
 		inline Type* parent() const { return m_parent; }
+		inline Pair<void*, Type*> property(void* object, Name path) { return property(object, &path, 1); }
 	};
 
 	class ElementRegistry final

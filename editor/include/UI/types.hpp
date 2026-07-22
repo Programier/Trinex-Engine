@@ -5,6 +5,7 @@
 #include <Core/etl/type_traits.hpp>
 #include <Core/etl/variant.hpp>
 #include <Core/etl/vector.hpp>
+#include <Core/types/name.hpp>
 #include <UI/core.hpp>
 
 namespace Trinex::UI
@@ -57,12 +58,12 @@ namespace Trinex::UI
 			u32 column = 0;
 		};
 
-		struct LocalizationKey : public String {
-			using String::String;
+		struct LocalizationKey : public Vector<Name> {
+			using Vector::Vector;
 		};
 
-		struct BindingPath : public String {
-			using String::String;
+		struct BindingPath : public Vector<Name> {
+			using Vector::Vector;
 		};
 
 		struct Identifier : public String {

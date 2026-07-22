@@ -2,6 +2,7 @@
 #include <Core/etl/string.hpp>
 #include <Core/etl/vector.hpp>
 #include <Core/types/name.hpp>
+#include <UI/types.hpp>
 
 namespace Trinex::UI
 {
@@ -11,10 +12,16 @@ namespace Trinex::UI
 	{
 	public:
 		using This = Element;
+		struct Binding {
+			void* value;
+			Type* type;
+			Markup::BindingPath path;
+		};
 
 	private:
 		Element* m_owner = nullptr;
 		Vector<Element*> m_childs;
+		Vector<Binding> m_bindings;
 		u32 m_references = 1;
 
 		static Type* initialize_type(Type* type);
@@ -22,6 +29,11 @@ namespace Trinex::UI
 	public:
 		static Element* create(Name name);
 		static Type* reflection();
+		static Element* cast(void* src, Type* type);
+
+		Element& bind(void* value, Type* type, const Markup::BindingPath& path);
+		Element& unbind(void* value);
+		usize binding_index(void* value);
 
 		Element* attach(StringView type);
 		Element& attach(Element* element);
@@ -32,6 +44,7 @@ namespace Trinex::UI
 		u32 add_reference();
 		u32 release();
 
+		virtual Element& on_update();
 		virtual bool on_begin_render();
 		virtual Element& on_end_render();
 		virtual Type* type() const;
@@ -39,6 +52,7 @@ namespace Trinex::UI
 		inline Element* owner() const { return m_owner; }
 		inline const Vector<Element*>& childs() const { return m_childs; }
 		inline u32 references() const { return m_references; }
+		inline const Vector<Binding>& bindings() const { return m_bindings; }
 		virtual ~Element();
 	};
 

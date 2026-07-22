@@ -15,6 +15,21 @@ namespace Trinex::UI
 		return s_type;
 	}
 
+	Element* Element::cast(void* src, Type* type)
+	{
+		auto target = Element::reflection();
+
+		while (type)
+		{
+			if (type == target)
+				return static_cast<Element*>(src);
+
+			type = type->parent();
+		}
+
+		return nullptr;
+	}
+
 	Element* Element::create(Name name)
 	{
 		if (auto type = ElementRegistry::instance()->find(name))
@@ -23,6 +38,33 @@ namespace Trinex::UI
 		}
 
 		return nullptr;
+	}
+
+	Element& Element::bind(void* value, Type* type, const Markup::BindingPath& path)
+	{
+		const usize size = m_bindings.size();
+		const usize idx  = binding_index(value);
+
+		if (idx == size)
+		{
+			m_bindings.push_back({.value = value, .type = type, .path = path});
+		}
+		return *this;
+	}
+
+	Element& Element::unbind(void* value)
+	{
+		auto predicate = [value](const Binding& binding) { return binding.value == value; };
+		auto it        = etl::find_if(m_bindings.begin(), m_bindings.end(), predicate);
+		if (it != m_bindings.end())
+			m_bindings.erase_unordered(it);
+		return *this;
+	}
+
+	usize Element::binding_index(void* value)
+	{
+		auto predicate = [value](const Binding& binding) { return binding.value == value; };
+		return etl::find_if(m_bindings.begin(), m_bindings.end(), predicate) - m_bindings.begin();
 	}
 
 	Element* Element::attach(StringView type)
@@ -108,6 +150,11 @@ namespace Trinex::UI
 		}
 
 		return count;
+	}
+
+	Element& Element::on_update()
+	{
+		return *this;
 	}
 
 	bool Element::on_begin_render()

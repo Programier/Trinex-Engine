@@ -12,7 +12,7 @@ namespace Trinex::UI
 	namespace Markup
 	{
 		inline constexpr const char* grammar = R"(
-Document <- Node* EndOfFile
+Document <- Node* ~EndOfFile
 
 Node           <- Identifier '{' Member* '}'
 Member         <- PropertyMember / NodeMember
@@ -30,9 +30,8 @@ Value <- Localization
        / List
        / IdentifierValue
 
-Localization <- < '@' Path >
-Binding      <- < '$' Path >
-Path         <- Identifier ('.' Identifier)*
+Localization <- < '@' Identifier ('.' Identifier)* >
+Binding      <- < '$' Identifier ('.' Identifier)* >
 
 List <- '[' (Value (',' Value)*)? ']'
 
@@ -206,24 +205,6 @@ _Comment    <- '//' (![\r\n] .)*
 			{
 				m_parser["Identifier"] = [](const peg::SemanticValues& values) { return Identifier{values.token()}; };
 
-				m_parser["Path"] = [](const peg::SemanticValues& values) {
-					String path;
-
-					for (std::size_t index = 0; index < values.size(); ++index)
-					{
-						const auto& identifier = Detail::any_ref<Identifier>(values[index]);
-
-						if (!path.empty())
-						{
-							path += '.';
-						}
-
-						path += identifier;
-					}
-
-					return path;
-				};
-
 				m_parser["IdentifierValue"] = [](const peg::SemanticValues& values) {
 					const auto& identifier = Detail::any_ref<Identifier>(values[0]);
 
@@ -234,29 +215,31 @@ _Comment    <- '//' (![\r\n] .)*
 				};
 
 				m_parser["Localization"] = [](const peg::SemanticValues& values) {
-					StringView token = values.token();
+					LocalizationKey key;
+					key.reserve(values.size());
 
-					if (!token.empty() && token.front() == '@')
+					for (std::size_t index = 0; index < values.size(); ++index)
 					{
-						token.remove_prefix(1);
+						key.emplace_back(Detail::any_ref<Identifier>(values[index]));
 					}
 
 					return ValueDesc{
-					        .value    = Value{LocalizationKey{token}},
+					        .value    = Value{key},
 					        .location = Detail::location_of(values),
 					};
 				};
 
 				m_parser["Binding"] = [](const peg::SemanticValues& values) {
-					StringView token = values.token();
+					BindingPath binding;
+					binding.reserve(values.size());
 
-					if (!token.empty() && token.front() == '$')
+					for (std::size_t index = 0; index < values.size(); ++index)
 					{
-						token.remove_prefix(1);
+						binding.emplace_back(Detail::any_ref<Identifier>(values[index]));
 					}
 
 					return ValueDesc{
-					        .value    = Value{BindingPath{token}},
+					        .value    = Value{binding},
 					        .location = Detail::location_of(values),
 					};
 				};

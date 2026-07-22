@@ -6,11 +6,14 @@ namespace Trinex::UI
 {
 	trinex_implement_ui_element(Window)
 	{
-		reflection()->property<&Window::name>("name");
+		reflection()->bind<&Window::name>("name");
 	}
 
 	bool Window::on_begin_render()
 	{
+		if (name.empty())
+			return false;
+
 		return UI::begin_window(name);
 	}
 
