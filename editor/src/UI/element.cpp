@@ -1,21 +1,21 @@
 #include <Core/etl/algorithm.hpp>
 #include <UI/element.hpp>
-#include <UI/element_registry.hpp>
+#include <UI/reflection.hpp>
 
 namespace Trinex::UI
 {
-	Type* Element::initialize_type(Type* type)
+	Refl::Type* Element::initialize_type(Refl::Type* type)
 	{
 		return type;
 	}
 
-	Type* Element::reflection()
+	Refl::Type* Element::reflection()
 	{
-		static Type* s_type = initialize_type(Type::instance<Element>());
+		static Refl::Type* s_type = initialize_type(Refl::NativeType<Element>::instance());
 		return s_type;
 	}
 
-	Element* Element::cast(void* src, Type* type)
+	Element* Element::cast(void* src, Refl::Type* type)
 	{
 		auto target = Element::reflection();
 
@@ -32,15 +32,15 @@ namespace Trinex::UI
 
 	Element* Element::create(Name name)
 	{
-		if (auto type = ElementRegistry::instance()->find(name))
+		if (auto type = Refl::ElementRegistry::instance()->find(name))
 		{
-			return static_cast<Element*>(type->create());
+			return static_cast<Element*>(type->factory());
 		}
 
 		return nullptr;
 	}
 
-	Element& Element::bind(void* value, Type* type, const Markup::BindingPath& path)
+	Element& Element::bind(void* value, Refl::Type* type, const Markup::BindingPath& path)
 	{
 		const usize size = m_bindings.size();
 		const usize idx  = binding_index(value);
@@ -167,7 +167,7 @@ namespace Trinex::UI
 		return *this;
 	}
 
-	Type* Element::type() const
+	Refl::Type* Element::type() const
 	{
 		return Element::reflection();
 	}

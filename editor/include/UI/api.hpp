@@ -13,7 +13,7 @@ namespace Trinex::UI
 	void end_frame();
 
 	/////////////////////// DOCUMENTS ///////////////////////
-	Document* create_document(StringView source);
+	class Document* create_document(StringView source);
 
 	/////////////////////// FONTS ///////////////////////
 	void push_font(FontFamily family = FontFamily::Default, FontSize size = FontSize::Normal);

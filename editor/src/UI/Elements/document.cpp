@@ -4,7 +4,7 @@
 #include <Core/etl/variant.hpp>
 #include <Core/etl/vector.hpp>
 #include <UI/Elements/document.hpp>
-#include <UI/element_registry.hpp>
+#include <UI/reflection.hpp>
 #include <peglib.h>
 
 namespace Trinex::UI
@@ -406,12 +406,12 @@ _Comment    <- '//' (![\r\n] .)*
 
 			for (auto& prop : node.properties)
 			{
-				if (!type->property(element, prop.name, prop.value))
-				{
-					trinex_error(Log::Editor, "Failed to assign property '%s' of element '%s' at %u:%u", prop.name.c_str(),
-					             node.type.c_str(), prop.location.line, prop.location.column);
-					return false;
-				}
+				// if (!type->property(element, prop.name, prop.value))
+				// {
+				// 	trinex_error(Log::Editor, "Failed to assign property '%s' of element '%s' at %u:%u", prop.name.c_str(),
+				// 	             node.type.c_str(), prop.location.line, prop.location.column);
+				// 	return false;
+				// }
 			}
 
 			for (auto& child : node.children)

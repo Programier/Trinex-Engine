@@ -1,12 +1,12 @@
 #include <UI/Elements/window.hpp>
 #include <UI/api.hpp>
-#include <UI/element_registry.hpp>
+#include <UI/reflection.hpp>
 
 namespace Trinex::UI
 {
 	trinex_implement_ui_element(Window)
 	{
-		reflection()->bind<&Window::name>("name");
+		reflection()->bind("name", &Window::name);
 	}
 
 	bool Window::on_begin_render()

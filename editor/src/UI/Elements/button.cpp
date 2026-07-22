@@ -1,12 +1,12 @@
 #include <UI/Elements/button.hpp>
 #include <UI/api.hpp>
-#include <UI/element_registry.hpp>
+#include <UI/reflection.hpp>
 
 namespace Trinex::UI
 {
 	trinex_implement_ui_element(Button)
 	{
-		reflection()->bind<&This::text>("text");
+		reflection()->bind("text", &This::text);
 	}
 
 	bool Button::on_begin_render()

@@ -6,7 +6,13 @@
 
 namespace Trinex::UI
 {
-	class Type;
+	namespace Refl
+	{
+		class Type;
+
+		template<typename T>
+		class NativeType;
+	}// namespace Refl
 
 	class Element
 	{
@@ -14,7 +20,7 @@ namespace Trinex::UI
 		using This = Element;
 		struct Binding {
 			void* value;
-			Type* type;
+			Refl::Type* type;
 			Markup::BindingPath path;
 		};
 
@@ -24,14 +30,14 @@ namespace Trinex::UI
 		Vector<Binding> m_bindings;
 		u32 m_references = 1;
 
-		static Type* initialize_type(Type* type);
+		static Refl::Type* initialize_type(Refl::Type* type);
 
 	public:
 		static Element* create(Name name);
-		static Type* reflection();
-		static Element* cast(void* src, Type* type);
+		static Refl::Type* reflection();
+		static Element* cast(void* src, Refl::Type* type);
 
-		Element& bind(void* value, Type* type, const Markup::BindingPath& path);
+		Element& bind(void* value, Refl::Type* type, const Markup::BindingPath& path);
 		Element& unbind(void* value);
 		usize binding_index(void* value);
 
@@ -47,7 +53,7 @@ namespace Trinex::UI
 		virtual Element& on_update();
 		virtual bool on_begin_render();
 		virtual Element& on_end_render();
-		virtual Type* type() const;
+		virtual Refl::Type* type() const;
 
 		inline Element* owner() const { return m_owner; }
 		inline const Vector<Element*>& childs() const { return m_childs; }
@@ -60,24 +66,21 @@ namespace Trinex::UI
 public:                                                                                                                          \
 	using This  = name;                                                                                                          \
 	using Super = super;                                                                                                         \
-	Trinex::UI::Type* type() const override;                                                                                     \
-	static Trinex::UI::Type* reflection();                                                                                       \
+	Trinex::UI::Refl::Type* type() const override;                                                                               \
+	static Trinex::UI::Refl::NativeType<name>* reflection();                                                                     \
                                                                                                                                  \
 private:                                                                                                                         \
 	static void initialize_reflection()
 
 #define trinex_implement_ui_element(name)                                                                                        \
-	Trinex::UI::Type* name::type() const                                                                                         \
+	Trinex::UI::Refl::Type* name::type() const                                                                                   \
 	{                                                                                                                            \
 		return name::reflection();                                                                                               \
 	}                                                                                                                            \
-	Trinex::UI::Type* name::reflection()                                                                                         \
+	Trinex::UI::Refl::NativeType<name>* name::reflection()                                                                       \
 	{                                                                                                                            \
-		static UI::Type* s_type = Trinex::UI::ElementRegistry::instance()->bind<name>(#name);                                    \
-		static auto registrar   = Trinex::LifeCycle::on_reflection_init([] {                                                     \
-            s_type->parent<name::Super>();                                                                                     \
-            name::initialize_reflection();                                                                                     \
-        });                                                                                                                    \
+		static Trinex::UI::Refl::NativeType<name>* s_type = Trinex::UI::Refl::ElementRegistry::instance()->bind<name>(#name);    \
+		static auto registrar = Trinex::LifeCycle::on_reflection_init([] { name::initialize_reflection(); });                    \
 		return s_type;                                                                                                           \
 	}                                                                                                                            \
 	trinex_on_pre_init()                                                                                                         \
