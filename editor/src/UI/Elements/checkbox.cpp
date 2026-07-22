@@ -10,10 +10,9 @@ namespace Trinex::UI
 		reflection()->bind("value", &This::value);
 	}
 
-	bool Checkbox::on_begin_render()
+	Element::UpdateFlags Checkbox::on_begin_update()
 	{
-		UI::checkbox(label, &value);
-		return false;
+		return readback_if(UI::checkbox(label, &value));
 	}
 
 	trinex_implement_ui_element(Toggle)
@@ -22,9 +21,8 @@ namespace Trinex::UI
 		reflection()->bind("value", &This::value);
 	}
 
-	bool Toggle::on_begin_render()
+	Element::UpdateFlags Toggle::on_begin_update()
 	{
-		UI::toggle(label, &value);
-		return false;
+		return readback_if(UI::toggle(label, &value));
 	}
 }// namespace Trinex::UI

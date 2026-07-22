@@ -13,10 +13,9 @@ namespace Trinex::UI
 		reflection()->bind("format", &This::format);
 	}
 
-	bool SliderFloat::on_begin_render()
+	Element::UpdateFlags SliderFloat::on_begin_update()
 	{
-		UI::slider(label, &value, min, max, format.c_str());
-		return false;
+		return readback_if(UI::slider(label, &value, min, max, format.c_str()));
 	}
 
 	trinex_implement_ui_element(SliderInt)
@@ -28,9 +27,8 @@ namespace Trinex::UI
 		reflection()->bind("format", &This::format);
 	}
 
-	bool SliderInt::on_begin_render()
+	Element::UpdateFlags SliderInt::on_begin_update()
 	{
-		UI::slider(label, &value, min, max, format.c_str());
-		return false;
+		return readback_if(UI::slider(label, &value, min, max, format.c_str()));
 	}
 }// namespace Trinex::UI

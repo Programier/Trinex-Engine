@@ -11,7 +11,7 @@ namespace Trinex::UI
 		String label;
 		bool value = false;
 
-		bool on_begin_render() override;
+		UpdateFlags on_begin_update() override;
 	};
 
 	class Toggle : public Element
@@ -22,6 +22,6 @@ namespace Trinex::UI
 		String label;
 		bool value = false;
 
-		bool on_begin_render() override;
+		UpdateFlags on_begin_update() override;
 	};
 }// namespace Trinex::UI

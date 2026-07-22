@@ -13,10 +13,9 @@ namespace Trinex::UI
 		reflection()->bind("format", &This::format);
 	}
 
-	bool InputFloat::on_begin_render()
+	Element::UpdateFlags InputFloat::on_begin_update()
 	{
-		UI::input(label, &value, format.c_str());
-		return false;
+		return readback_if(UI::input(label, &value, format.c_str()));
 	}
 
 	trinex_implement_ui_element(InputInt)
@@ -25,10 +24,9 @@ namespace Trinex::UI
 		reflection()->bind("value", &This::value);
 	}
 
-	bool InputInt::on_begin_render()
+	Element::UpdateFlags InputInt::on_begin_update()
 	{
-		UI::input(label, &value);
-		return false;
+		return readback_if(UI::input(label, &value));
 	}
 
 	trinex_implement_ui_element(InputText)
@@ -38,19 +36,20 @@ namespace Trinex::UI
 		reflection()->bind("value", &This::value);
 	}
 
-	bool InputText::on_begin_render()
+	Element::UpdateFlags InputText::on_begin_update()
 	{
 		char buffer[1024] = {};
 		const usize size  = std::min(value.size(), sizeof(buffer) - 1);
 		std::memcpy(buffer, value.data(), size);
 
-		const bool changed = hint.empty() ? UI::input(label, buffer, sizeof(buffer)) : UI::input(label, hint, buffer, sizeof(buffer));
+		const bool changed =
+		        hint.empty() ? UI::input(label, buffer, sizeof(buffer)) : UI::input(label, hint, buffer, sizeof(buffer));
 
 		if (changed)
 		{
 			value = buffer;
 		}
 
-		return false;
+		return readback_if(changed);
 	}
 }// namespace Trinex::UI

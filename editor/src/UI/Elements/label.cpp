@@ -10,9 +10,9 @@ namespace Trinex::UI
 		reflection()->bind("value", &This::value);
 	}
 
-	bool Label::on_begin_render()
+	Element::UpdateFlags Label::on_begin_update()
 	{
 		UI::label(text, value);
-		return false;
+		return UpdateFlags::Undefined;
 	}
 }// namespace Trinex::UI

@@ -31,7 +31,8 @@ Value <- Localization
        / IdentifierValue
 
 Localization <- < '@' Identifier ('.' Identifier)* >
-Binding      <- < '$' Identifier ('.' Identifier)* >
+Binding      <- '$' Identifier ('.' Identifier)* BindingMode?
+BindingMode  <- ':' < 'rw' / 'wr' / 'r' / 'w' >
 
 List <- '[' (Value (',' Value)*)? ']'
 
@@ -235,13 +236,32 @@ _Comment    <- '//' (![\r\n] .)*
 
 					for (std::size_t index = 0; index < values.size(); ++index)
 					{
-						binding.emplace_back(Detail::any_ref<Identifier>(values[index]));
+						if (const auto* mode = std::any_cast<BindingPath::Mode>(&values[index]))
+						{
+							binding.mode = *mode;
+						}
+						else
+						{
+							binding.emplace_back(Detail::any_ref<Identifier>(values[index]));
+						}
 					}
 
 					return ValueDesc{
 					        .value    = Value{binding},
 					        .location = Detail::location_of(values),
 					};
+				};
+
+				m_parser["BindingMode"] = [](const peg::SemanticValues& values) -> BindingPath::Mode {
+					StringView token = values.token();
+
+					if (token == "w")
+						return BindingPath::Mode::Write;
+
+					if (token == "rw" || token == "wr")
+						return BindingPath::Mode::RW;
+
+					return BindingPath::Mode::Read;
 				};
 
 				m_parser["String"] = [](const peg::SemanticValues& values) {

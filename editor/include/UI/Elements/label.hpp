@@ -11,6 +11,6 @@ namespace Trinex::UI
 		String text;
 		String value;
 
-		bool on_begin_render() override;
+		UpdateFlags on_begin_update() override;
 	};
 }// namespace Trinex::UI

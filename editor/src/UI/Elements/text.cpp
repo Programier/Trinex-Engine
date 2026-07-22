@@ -9,9 +9,9 @@ namespace Trinex::UI
 		reflection()->bind("text", &This::text);
 	}
 
-	bool Text::on_begin_render()
+	Element::UpdateFlags Text::on_begin_update()
 	{
 		UI::text(text);
-		return false;
+		return UpdateFlags::Undefined;
 	}
 }// namespace Trinex::UI

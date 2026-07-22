@@ -62,8 +62,22 @@ namespace Trinex::UI
 			using Vector::Vector;
 		};
 
+
 		struct BindingPath : public Vector<Name> {
+			struct Mode {
+				enum Enum : u8
+				{
+					Undefined = 0,
+					Read      = 1 << 0,
+					Write     = 1 << 1,
+					RW        = Read | Write,
+				};
+
+				trinex_bitfield_enum_struct(Mode, u8);
+			};
+
 			using Vector::Vector;
+			Mode mode = Mode::Read;
 		};
 
 		struct Identifier : public String {

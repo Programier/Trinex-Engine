@@ -9,11 +9,13 @@ namespace Trinex::UI
 		reflection()->bind("text", &This::text);
 	}
 
-	bool Button::on_begin_render()
+	Element::UpdateFlags Button::on_begin_update()
 	{
 		if (UI::button(text))
 		{
+			return UpdateFlags::Readback;
 		}
-		return false;
+
+		return UpdateFlags::Undefined;
 	}
 }// namespace Trinex::UI

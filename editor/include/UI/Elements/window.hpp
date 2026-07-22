@@ -11,7 +11,7 @@ namespace Trinex::UI
 		String name;
 
 	public:
-		bool on_begin_render() override;
-		Window& on_end_render() override;
+		UpdateFlags on_begin_update() override;
+		Element& on_end_update() override;
 	};
 }// namespace Trinex::UI

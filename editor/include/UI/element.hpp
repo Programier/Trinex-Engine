@@ -19,6 +19,20 @@ namespace Trinex::UI
 	class Element
 	{
 	public:
+		struct UpdateFlags {
+			enum Enum : u8
+			{
+				Undefined = 0,
+				Readback  = 1 << 0,
+				Childs    = 1 << 1,
+				End       = 1 << 2,
+
+				Default = Childs | End,
+			};
+
+			trinex_bitfield_enum_struct(UpdateFlags, u8);
+		};
+
 		using This = Element;
 		struct Binding {
 			void* value;
@@ -54,10 +68,14 @@ namespace Trinex::UI
 		u32 add_reference();
 		u32 release();
 
-		virtual Element& on_update();
-		virtual bool on_begin_render();
-		virtual Element& on_end_render();
+		virtual UpdateFlags on_begin_update();
+		virtual Element& on_end_update();
 		virtual Refl::Type* type() const;
+
+		static inline UpdateFlags readback_if(bool condition)
+		{
+			return condition ? UpdateFlags::Readback : UpdateFlags::Undefined;
+		}
 
 		inline Element* owner() const { return m_owner; }
 		inline Document* document() const { return m_document; }

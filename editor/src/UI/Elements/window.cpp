@@ -9,15 +9,18 @@ namespace Trinex::UI
 		reflection()->bind("name", &Window::name);
 	}
 
-	bool Window::on_begin_render()
+	Element::UpdateFlags Window::on_begin_update()
 	{
 		if (name.empty())
-			return false;
+			return UpdateFlags::Undefined;
 
-		return UI::begin_window(name);
+		if (UI::begin_window(name))
+			return UpdateFlags::Default;
+
+		return UpdateFlags::End;
 	}
 
-	Window& Window::on_end_render()
+	Element& Window::on_end_update()
 	{
 		UI::end_window();
 		return *this;

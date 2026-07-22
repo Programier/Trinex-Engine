@@ -9,12 +9,12 @@ namespace Trinex::UI
 
 	public:
 		String label;
-		f32 value  = 0.0f;
-		f32 min    = 0.0f;
-		f32 max    = 1.0f;
+		f32 value     = 0.0f;
+		f32 min       = 0.0f;
+		f32 max       = 1.0f;
 		String format = "%.3f";
 
-		bool on_begin_render() override;
+		UpdateFlags on_begin_update() override;
 	};
 
 	class SliderInt : public Element
@@ -23,11 +23,11 @@ namespace Trinex::UI
 
 	public:
 		String label;
-		i32 value = 0;
-		i32 min   = 0;
-		i32 max   = 100;
+		i32 value     = 0;
+		i32 min       = 0;
+		i32 max       = 100;
 		String format = "%d";
 
-		bool on_begin_render() override;
+		UpdateFlags on_begin_update() override;
 	};
 }// namespace Trinex::UI

@@ -139,9 +139,16 @@ namespace Trinex::UI
 
 	Element& Element::render()
 	{
+		auto resolve_binding = [this](const Binding& binding) {
+			return document()->bindings()->resolve(document(), binding.path.data(), binding.path.size());
+		};
+
 		for (auto& binding : m_bindings)
 		{
-			auto resolve = document()->bindings()->resolve(this, binding.path.data(), binding.path.size());
+			if (!(binding.path.mode & Markup::BindingPath::Mode::Read))
+				continue;
+
+			auto resolve = resolve_binding(binding);
 
 			if (!binding.type->assign(binding.value, resolve.first, resolve.second))
 			{
@@ -149,17 +156,35 @@ namespace Trinex::UI
 			}
 		}
 
-		on_update();
+		auto flags = on_begin_update();
 
-		if (on_begin_render())
+		if (flags & UpdateFlags::Readback)
+		{
+			for (auto& binding : m_bindings)
+			{
+				if (!(binding.path.mode & Markup::BindingPath::Mode::Write))
+					continue;
+
+				auto resolve = resolve_binding(binding);
+
+				if (resolve.second == nullptr || !resolve.second->assign(resolve.first, binding.value, binding.type))
+				{
+					trinex_error(Log::Editor, "Failed to update binding");
+				}
+			}
+		}
+
+		if (flags & UpdateFlags::Childs)
 		{
 			for (Element* child : m_childs)
 			{
 				child->render();
 			}
-
-			on_end_render();
 		}
+
+		if (flags & UpdateFlags::End)
+			on_end_update();
+
 		return *this;
 	}
 
@@ -181,17 +206,12 @@ namespace Trinex::UI
 		return count;
 	}
 
-	Element& Element::on_update()
+	Element::UpdateFlags Element::on_begin_update()
 	{
-		return *this;
+		return UpdateFlags::Default;
 	}
 
-	bool Element::on_begin_render()
-	{
-		return true;
-	}
-
-	Element& Element::on_end_render()
+	Element& Element::on_end_update()
 	{
 		return *this;
 	}
