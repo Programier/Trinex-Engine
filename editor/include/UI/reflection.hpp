@@ -3,9 +3,23 @@
 #include <Core/types/name.hpp>
 #include <UI/types.hpp>
 
+namespace Trinex::UI
+{
+	class Document;
+}
+
 namespace Trinex::UI::Refl
 {
 	class Type;
+
+	struct AssignHistory {
+		const AssignHistory* prev;
+		void* dst            = nullptr;
+		const Type* dst_type = nullptr;
+
+		const void* src      = nullptr;
+		const Type* src_type = nullptr;
+	};
 
 	class Property
 	{
@@ -16,7 +30,7 @@ namespace Trinex::UI::Refl
 	public:
 		inline Property(Type* owner = nullptr) : m_owner(owner) {}
 
-		bool assign(void* object, const void* src, Type* src_type);
+		bool assign(void* object, const void* src, const Type* src_type, const AssignHistory* history = nullptr);
 
 		virtual Type* type() const                             = 0;
 		virtual void* resolve(void* address)                   = 0;
@@ -56,35 +70,40 @@ namespace Trinex::UI::Refl
 	class Type
 	{
 	public:
-		using Resolver = bool (*)(void* dst, const void* src);
+		using Resolver = bool (*)(void* dst, const void* src, const AssignHistory* history);
 
 	private:
 		Type* m_parent;
 		FlatMap<Name, Property*> m_properties;
-		FlatMap<Type*, Resolver> m_resolvers;
+		FlatMap<const Type*, Resolver> m_resolvers;
 
 	protected:
 		Type(Type* parent);
 		virtual ~Type();
 
 		Type& bind(Name name, Property* prop);
-
+		bool binding_path_resolver(void* dst, const void* src, const AssignHistory* history);
 
 	public:
 		virtual void* factory() const       = 0;
 		virtual Type& destroy(void* object) = 0;
 
-		bool assign(void* object, Name property, const void* src, Type* type) const;
-		bool assign(void* dst, const void* src, Type* type) const;
+		Pair<void*, const Type*> resolve(void* address, const Name* names, usize count = 1) const;
+
+		bool assign(void* object, Name property, const void* src, const Type* type, const AssignHistory* history = nullptr) const;
+		bool assign(void* dst, const void* src, const Type* type, const AssignHistory* history = nullptr) const;
 		virtual bool assign(void* dst, const void* src) const = 0;
 
 		Property* property(Name name) const;
 		inline Type* parent() const { return m_parent; }
+		inline Pair<void*, const Type*> resolve(void* address, const Name& name) { return resolve(address, &name, 1); }
 
 		Type& bind(Type* type, Resolver resolver);
 
 		template<typename Source>
 		Type& bind(Resolver resolver);
+
+		friend Document;
 	};
 
 	template<typename T>
@@ -105,7 +124,16 @@ namespace Trinex::UI::Refl
 		}
 
 	private:
-		NativeType(Type* parent = nullptr) : Type(parent) {}
+		NativeType(Type* parent = nullptr) : Type(parent)
+		{
+			Type* binding_path = etl::is_same_v<T, Markup::BindingPath>
+			                             ? static_cast<Type*>(this)
+			                             : static_cast<Type*>(NativeType<Markup::BindingPath>::instance());
+
+			Type::bind(binding_path, [](void* dst, const void* src, const AssignHistory* history) -> bool {
+				return NativeType<T>::instance()->binding_path_resolver(dst, src, history);
+			});
+		}
 
 	public:
 		static NativeType* instance()
@@ -114,13 +142,42 @@ namespace Trinex::UI::Refl
 			return &type;
 		}
 
-		void* factory() const override { return trx_new T(); }
-		NativeType& destroy(void* object) override { trinex_this_return(trx_delete static_cast<T*>(object)); }
+		void* factory() const override
+		{
+			if constexpr (etl::is_void_v<T>)
+			{
+				return nullptr;
+			}
+			else
+			{
+				return trx_new T();
+			}
+		}
+
+		NativeType& destroy(void* object) override
+		{
+			if constexpr (etl::is_void_v<T>)
+			{
+				return *this;
+			}
+			else
+			{
+				trx_delete static_cast<T*>(object);
+				return *this;
+			}
+		}
 
 		bool assign(void* dst, const void* src) const override
 		{
-			*static_cast<T*>(dst) = *static_cast<const T*>(src);
-			return true;
+			if constexpr (etl::is_void_v<T>)
+			{
+				return false;
+			}
+			else
+			{
+				*static_cast<T*>(dst) = *static_cast<const T*>(src);
+				return true;
+			}
 		}
 
 		using Type::bind;
@@ -139,6 +196,8 @@ namespace Trinex::UI::Refl
 			Type::bind(name, trx_new StaticProperty(field, this));
 			return *this;
 		}
+
+		friend Document;
 	};
 
 	template<typename Field, typename Instance>

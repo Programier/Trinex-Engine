@@ -6,6 +6,8 @@
 
 namespace Trinex::UI
 {
+	class Document;
+
 	namespace Refl
 	{
 		class Type;
@@ -20,12 +22,13 @@ namespace Trinex::UI
 		using This = Element;
 		struct Binding {
 			void* value;
-			Refl::Type* type;
+			const Refl::Type* type;
 			Markup::BindingPath path;
 		};
 
 	private:
-		Element* m_owner = nullptr;
+		Element* m_owner     = nullptr;
+		Document* m_document = nullptr;
 		Vector<Element*> m_childs;
 		Vector<Binding> m_bindings;
 		u32 m_references = 1;
@@ -35,15 +38,16 @@ namespace Trinex::UI
 	public:
 		static Element* create(Name name);
 		static Refl::Type* reflection();
-		static Element* cast(void* src, Refl::Type* type);
+		static Element* cast(void* src, const Refl::Type* type);
 
-		Element& bind(void* value, Refl::Type* type, const Markup::BindingPath& path);
+		Element& bind(void* value, const Refl::Type* type, const Markup::BindingPath& path);
 		Element& unbind(void* value);
 		usize binding_index(void* value);
 
 		Element* attach(StringView type);
 		Element& attach(Element* element);
 		Element& deattach(Element* element);
+		Element& document(Document* document);
 
 		Element& render();
 
@@ -56,6 +60,7 @@ namespace Trinex::UI
 		virtual Refl::Type* type() const;
 
 		inline Element* owner() const { return m_owner; }
+		inline Document* document() const { return m_document; }
 		inline const Vector<Element*>& childs() const { return m_childs; }
 		inline u32 references() const { return m_references; }
 		inline const Vector<Binding>& bindings() const { return m_bindings; }

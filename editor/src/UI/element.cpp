@@ -1,4 +1,5 @@
 #include <Core/etl/algorithm.hpp>
+#include <UI/Elements/document.hpp>
 #include <UI/element.hpp>
 #include <UI/reflection.hpp>
 
@@ -15,7 +16,7 @@ namespace Trinex::UI
 		return s_type;
 	}
 
-	Element* Element::cast(void* src, Refl::Type* type)
+	Element* Element::cast(void* src, const Refl::Type* type)
 	{
 		auto target = Element::reflection();
 
@@ -40,7 +41,7 @@ namespace Trinex::UI
 		return nullptr;
 	}
 
-	Element& Element::bind(void* value, Refl::Type* type, const Markup::BindingPath& path)
+	Element& Element::bind(void* value, const Refl::Type* type, const Markup::BindingPath& path)
 	{
 		const usize size = m_bindings.size();
 		const usize idx  = binding_index(value);
@@ -72,6 +73,7 @@ namespace Trinex::UI
 		if (auto element = create(type))
 		{
 			element->m_owner = this;
+			element->document(m_document);
 			m_childs.push_back(element);
 			return element;
 		}
@@ -85,6 +87,7 @@ namespace Trinex::UI
 		{
 			if (element->m_owner == this)
 			{
+				element->document(m_document);
 				return *this;
 			}
 
@@ -96,6 +99,7 @@ namespace Trinex::UI
 			}
 
 			element->m_owner = this;
+			element->document(m_document);
 			m_childs.push_back(element);
 		}
 
@@ -116,12 +120,37 @@ namespace Trinex::UI
 
 		m_childs.erase(it);
 		element->m_owner = nullptr;
+		element->document(nullptr);
 		element->release();
+		return *this;
+	}
+
+	Element& Element::document(Document* document)
+	{
+		m_document = document;
+
+		for (Element* child : m_childs)
+		{
+			child->document(document);
+		}
+
 		return *this;
 	}
 
 	Element& Element::render()
 	{
+		for (auto& binding : m_bindings)
+		{
+			auto resolve = document()->bindings()->resolve(this, binding.path.data(), binding.path.size());
+
+			if (!binding.type->assign(binding.value, resolve.first, resolve.second))
+			{
+				trinex_error(Log::Editor, "Failed to update binding");
+			}
+		}
+
+		on_update();
+
 		if (on_begin_render())
 		{
 			for (Element* child : m_childs)
@@ -177,6 +206,7 @@ namespace Trinex::UI
 		for (Element* child : m_childs)
 		{
 			child->m_owner = nullptr;
+			child->document(nullptr);
 			child->release();
 		}
 

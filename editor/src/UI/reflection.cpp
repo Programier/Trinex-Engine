@@ -5,14 +5,21 @@
 
 namespace Trinex::UI::Refl
 {
-	bool Property::assign(void* object, const void* src, Type* src_type)
+	bool Property::assign(void* object, const void* src, const Type* src_type, const AssignHistory* history)
 	{
 		if (object == nullptr || src == nullptr || src_type == nullptr)
 		{
 			return false;
 		}
 
-		return type()->assign(resolve(object), src, src_type);
+		AssignHistory frame;
+		frame.prev     = history;
+		frame.dst      = object;
+		frame.dst_type = owner();
+		frame.src      = src;
+		frame.src_type = src_type;
+
+		return type()->assign(resolve(object), src, src_type, &frame);
 	}
 
 	Type::Type(Type* parent) : m_parent(parent) {}
@@ -25,6 +32,22 @@ namespace Trinex::UI::Refl
 		}
 
 		m_properties.clear();
+	}
+
+	bool Type::binding_path_resolver(void* dst, const void* src, const AssignHistory* history)
+	{
+		while (history)
+		{
+			if (auto element = Element::cast(history->dst, history->dst_type))
+			{
+				element->bind(dst, this, *static_cast<const Markup::BindingPath*>(src));
+				return true;
+			}
+
+			history = history->prev;
+		}
+
+		return false;
 	}
 
 	Type& Type::bind(Name name, Property* prop)
@@ -41,17 +64,38 @@ namespace Trinex::UI::Refl
 		return *this;
 	}
 
-	bool Type::assign(void* object, Name name, const void* src, Type* type) const
+	Pair<void*, const Type*> Type::resolve(void* address, const Name* names, usize count) const
+	{
+		if (address == nullptr)
+			return {nullptr, nullptr};
+
+		const Type* self = this;
+
+		for (usize i = 0; i < count; ++i)
+		{
+			Property* prop = self->property(names[i]);
+
+			if (prop == nullptr)
+				return {nullptr, nullptr};
+
+			address = prop->resolve(address);
+			self    = prop->type();
+		}
+
+		return {address, self};
+	}
+
+	bool Type::assign(void* object, Name name, const void* src, const Type* type, const AssignHistory* history) const
 	{
 		if (Property* prop = property(name))
 		{
-			return prop->assign(object, src, type);
+			return prop->assign(object, src, type, history);
 		}
 
 		return false;
 	}
 
-	bool Type::assign(void* dst, const void* src, Type* type) const
+	bool Type::assign(void* dst, const void* src, const Type* type, const AssignHistory* history) const
 	{
 		if (this == type)
 			return assign(dst, src);
@@ -60,7 +104,7 @@ namespace Trinex::UI::Refl
 
 		if (it != m_resolvers.end())
 		{
-			return it->second(dst, src);
+			return it->second(dst, src, history);
 		}
 
 		return false;
@@ -92,19 +136,19 @@ namespace Trinex::UI::Refl
 	}
 
 	template<typename Dst, typename Src>
-	static bool static_cast_resolver(void* dst, const void* src)
+	static bool static_cast_resolver(void* dst, const void* src, const AssignHistory* history)
 	{
 		*static_cast<Dst*>(dst) = static_cast<Dst>(*static_cast<const Src*>(src));
 		return true;
 	}
 
-	static bool string_to_bool(void* dst, const void* src)
+	static bool string_to_bool(void* dst, const void* src, const AssignHistory* history)
 	{
 		const String& value = *static_cast<const String*>(src);
 		return Strings::boolean_of(value, *static_cast<bool*>(dst));
 	}
 
-	static bool string_to_i32(void* dst, const void* src)
+	static bool string_to_i32(void* dst, const void* src, const AssignHistory* history)
 	{
 		const String& value = *static_cast<const String*>(src);
 		i64 result;
@@ -118,7 +162,7 @@ namespace Trinex::UI::Refl
 		return false;
 	}
 
-	static bool string_to_f32(void* dst, const void* src)
+	static bool string_to_f32(void* dst, const void* src, const AssignHistory* history)
 	{
 		const String& value = *static_cast<const String*>(src);
 		f64 result;
@@ -132,20 +176,20 @@ namespace Trinex::UI::Refl
 		return false;
 	}
 
-	static bool bool_to_string(void* dst, const void* src)
+	static bool bool_to_string(void* dst, const void* src, const AssignHistory* history)
 	{
 		*static_cast<String*>(dst) = *static_cast<const bool*>(src) ? "true" : "false";
 		return true;
 	}
 
 	template<typename Src>
-	static bool number_to_string(void* dst, const void* src)
+	static bool number_to_string(void* dst, const void* src, const AssignHistory* history)
 	{
 		*static_cast<String*>(dst) = Strings::format("{}", *static_cast<const Src*>(src));
 		return true;
 	}
 
-	static bool identifier_to_string(void* dst, const void* src)
+	static bool identifier_to_string(void* dst, const void* src, const AssignHistory* history)
 	{
 		*static_cast<String*>(dst) = *static_cast<const Markup::Identifier*>(src);
 		return true;
@@ -153,16 +197,17 @@ namespace Trinex::UI::Refl
 
 	trinex_on_pre_init()
 	{
-		NativeType<bool>::instance()->bind<i32>(static_cast_resolver<bool, i32>);
-		NativeType<bool>::instance()->bind<f32>(static_cast_resolver<bool, f32>);
+		using ScalarTypesList = TypesList<bool, i8, u8, i16, u16, i32, u32, i64, u64, f16, f32, f64>;
+
+		ScalarTypesList::for_each([]<typename LHS>() {
+			ScalarTypesList::for_each([]<typename RHS>() {
+				auto instance = NativeType<LHS>::instance();
+				instance->template bind<RHS>(static_cast_resolver<LHS, RHS>);
+			});
+		});
+
 		NativeType<bool>::instance()->bind<String>(string_to_bool);
-
-		NativeType<i32>::instance()->bind<bool>(static_cast_resolver<i32, bool>);
-		NativeType<i32>::instance()->bind<f32>(static_cast_resolver<i32, f32>);
 		NativeType<i32>::instance()->bind<String>(string_to_i32);
-
-		NativeType<f32>::instance()->bind<bool>(static_cast_resolver<f32, bool>);
-		NativeType<f32>::instance()->bind<i32>(static_cast_resolver<f32, i32>);
 		NativeType<f32>::instance()->bind<String>(string_to_f32);
 
 		NativeType<String>::instance()->bind<bool>(bool_to_string);

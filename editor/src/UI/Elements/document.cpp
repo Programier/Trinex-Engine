@@ -438,6 +438,17 @@ _Comment    <- '//' (![\r\n] .)*
 
 	trinex_implement_ui_element(Document) {}
 
+	Document::Document()
+	{
+		document(this);
+		m_bindings = trx_new Refl::NativeType<void>();
+	}
+
+	Document::~Document()
+	{
+		trx_delete_inline(m_bindings);
+	}
+
 	Document* create_document(StringView source)
 	{
 		auto parser = Markup::Parser::instance();
