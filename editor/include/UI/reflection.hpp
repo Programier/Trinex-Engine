@@ -13,18 +13,14 @@ namespace Trinex::UI::Refl
 		Type* m_owner;
 
 	protected:
-		static bool assign(void* field, Type* type, const Markup::ValueDesc& value);
-		static bool assign(bool* field, Type* type, const Markup::ValueDesc& value);
-		static bool assign(i32* field, Type* type, const Markup::ValueDesc& value);
-		static bool assign(f32* field, Type* type, const Markup::ValueDesc& value);
-		static bool assign(String* field, Type* type, const Markup::ValueDesc& value);
-
 	public:
 		inline Property(Type* owner = nullptr) : m_owner(owner) {}
 
-		virtual Type* type() const                                              = 0;
-		virtual bool assign(void* object, const Markup::ValueDesc& value) const = 0;
+		bool assign(void* object, const void* src, Type* src_type);
 
+		virtual Type* type() const                             = 0;
+		virtual void* resolve(void* address)                   = 0;
+		virtual const void* resolve(const void* address) const = 0;
 		inline Type* owner() const { return m_owner; }
 		virtual ~Property() {}
 	};
@@ -39,11 +35,8 @@ namespace Trinex::UI::Refl
 		MemberProperty(Field Instance::* property, Type* owner = nullptr) : Property(owner), m_property(property) {}
 		Type* type() const override;
 
-		bool assign(void* object, const Markup::ValueDesc& value) const override
-		{
-			Field* address = &(static_cast<Instance*>(object)->*m_property);
-			return Property::assign(address, MemberProperty::type(), value);
-		}
+		void* resolve(void* address) override { return &(static_cast<Instance*>(address)->*m_property); }
+		const void* resolve(const void* address) const override { return &(static_cast<const Instance*>(address)->*m_property); }
 	};
 
 	template<typename Field>
@@ -56,17 +49,19 @@ namespace Trinex::UI::Refl
 		StaticProperty(Field* property, Type* owner = nullptr) : Property(owner), m_property(property) {}
 		Type* type() const override;
 
-		bool assign(void* object, const Markup::ValueDesc& value) const override
-		{
-			return Property::assign(m_property, StaticProperty::type(), value);
-		}
+		void* resolve(void* address) override { return m_property; }
+		const void* resolve(const void* address) const override { return m_property; }
 	};
 
 	class Type
 	{
+	public:
+		using Resolver = bool (*)(void* dst, const void* src);
+
 	private:
 		Type* m_parent;
 		FlatMap<Name, Property*> m_properties;
+		FlatMap<Type*, Resolver> m_resolvers;
 
 	protected:
 		Type(Type* parent);
@@ -74,11 +69,22 @@ namespace Trinex::UI::Refl
 
 		Type& bind(Name name, Property* prop);
 
+
 	public:
 		virtual void* factory() const       = 0;
 		virtual Type& destroy(void* object) = 0;
 
+		bool assign(void* object, Name property, const void* src, Type* type) const;
+		bool assign(void* dst, const void* src, Type* type) const;
+		virtual bool assign(void* dst, const void* src) const = 0;
+
+		Property* property(Name name) const;
 		inline Type* parent() const { return m_parent; }
+
+		Type& bind(Type* type, Resolver resolver);
+
+		template<typename Source>
+		Type& bind(Resolver resolver);
 	};
 
 	template<typename T>
@@ -111,8 +117,17 @@ namespace Trinex::UI::Refl
 		void* factory() const override { return trx_new T(); }
 		NativeType& destroy(void* object) override { trinex_this_return(trx_delete static_cast<T*>(object)); }
 
-		template<typename Field>
-		NativeType& bind(Name name, Field T::* field)
+		bool assign(void* dst, const void* src) const override
+		{
+			*static_cast<T*>(dst) = *static_cast<const T*>(src);
+			return true;
+		}
+
+		using Type::bind;
+
+		template<typename Field, typename Instance = T>
+		    requires(etl::is_class_v<Instance>)
+		NativeType& bind(Name name, Field Instance::* field)
 		{
 			Type::bind(name, trx_new MemberProperty(field, this));
 			return *this;
@@ -136,6 +151,13 @@ namespace Trinex::UI::Refl
 	Type* StaticProperty<Field>::type() const
 	{
 		return NativeType<Field>::instance();
+	}
+
+	template<typename Source>
+	Type& Type::bind(Resolver resolver)
+	{
+		Type::bind(NativeType<Source>::instance(), resolver);
+		return *this;
 	}
 
 	class ElementRegistry final

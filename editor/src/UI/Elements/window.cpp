@@ -7,6 +7,7 @@ namespace Trinex::UI
 	trinex_implement_ui_element(Window)
 	{
 		reflection()->bind("name", &Window::name);
+		reflection()->bind("value", &Window::value);
 	}
 
 	bool Window::on_begin_render()
@@ -14,7 +15,13 @@ namespace Trinex::UI
 		if (name.empty())
 			return false;
 
-		return UI::begin_window(name);
+		if (UI::begin_window(name))
+		{
+			UI::text("VALUE: %f\n", value);
+			return true;
+		}
+
+		return false;
 	}
 
 	Window& Window::on_end_render()

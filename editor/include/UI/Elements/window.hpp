@@ -9,6 +9,7 @@ namespace Trinex::UI
 
 	public:
 		String name;
+		float value;
 
 	public:
 		bool on_begin_render() override;

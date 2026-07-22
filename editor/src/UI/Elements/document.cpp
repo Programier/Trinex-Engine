@@ -406,12 +406,21 @@ _Comment    <- '//' (![\r\n] .)*
 
 			for (auto& prop : node.properties)
 			{
-				// if (!type->property(element, prop.name, prop.value))
-				// {
-				// 	trinex_error(Log::Editor, "Failed to assign property '%s' of element '%s' at %u:%u", prop.name.c_str(),
-				// 	             node.type.c_str(), prop.location.line, prop.location.column);
-				// 	return false;
-				// }
+				auto visitor = [&]<typename T>(const T& value) -> bool {
+					if (!type->assign(element, prop.name, &value, UI::Refl::NativeType<T>::instance()))
+					{
+						trinex_error(Log::Editor, "Failed to assign property '%s' of element '%s' at %u:%u", prop.name.c_str(),
+						             node.type.c_str(), prop.location.line, prop.location.column);
+						return false;
+					}
+
+					return true;
+				};
+
+				if (!etl::visit(visitor, prop.value.value))
+				{
+					return false;
+				}
 			}
 
 			for (auto& child : node.children)

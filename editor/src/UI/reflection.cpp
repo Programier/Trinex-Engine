@@ -5,29 +5,14 @@
 
 namespace Trinex::UI::Refl
 {
-	bool Property::assign(void* field, Type* type, const Markup::ValueDesc& value)
+	bool Property::assign(void* object, const void* src, Type* src_type)
 	{
-		return false;
-	}
+		if (object == nullptr || src == nullptr || src_type == nullptr)
+		{
+			return false;
+		}
 
-	bool Property::assign(bool* field, Type* type, const Markup::ValueDesc& value)
-	{
-		return false;
-	}
-
-	bool Property::assign(i32* field, Type* type, const Markup::ValueDesc& value)
-	{
-		return false;
-	}
-
-	bool Property::assign(f32* field, Type* type, const Markup::ValueDesc& value)
-	{
-		return false;
-	}
-
-	bool Property::assign(String* field, Type* type, const Markup::ValueDesc& value)
-	{
-		return false;
+		return type()->assign(resolve(object), src, src_type);
 	}
 
 	Type::Type(Type* parent) : m_parent(parent) {}
@@ -44,128 +29,145 @@ namespace Trinex::UI::Refl
 
 	Type& Type::bind(Name name, Property* prop)
 	{
-		trinex_assert(m_properties.find(name) == m_properties.end());
+		trinex_assert(!m_properties.contains(name));
 		m_properties.insert({name, prop});
 		return *this;
 	}
 
-	// Type& Type::property(Name name, Type* type, Property::Setter setter)
-	// {
-	// 	trinex_assert(m_properties.find(name) == m_properties.end());
-	// 	m_properties.insert({name, Property(type, setter)});
-	// 	return *this;
-	// }
+	Type& Type::bind(Type* type, Resolver resolver)
+	{
+		trinex_assert(type && !m_resolvers.contains(type));
+		m_resolvers[type] = resolver;
+		return *this;
+	}
 
-	// bool Type::property(void* object, Name name, const Markup::ValueDesc& value)
-	// {
-	// 	Type* self = this;
+	bool Type::assign(void* object, Name name, const void* src, Type* type) const
+	{
+		if (Property* prop = property(name))
+		{
+			return prop->assign(object, src, type);
+		}
 
-	// 	while (self)
-	// 	{
-	// 		auto it = self->m_properties.find(name);
+		return false;
+	}
 
-	// 		if (it != self->m_properties.end())
-	// 		{
-	// 			const Property& prop = it->second;
+	bool Type::assign(void* dst, const void* src, Type* type) const
+	{
+		if (this == type)
+			return assign(dst, src);
 
-	// 			FieldBase self;
-	// 			self.owner   = nullptr;
-	// 			self.address = object;
-	// 			self.type    = this;
-	// 			return prop.setter(self, prop, value);
-	// 		}
+		auto it = m_resolvers.find(type);
 
-	// 		self = self->m_parent;
-	// 	}
+		if (it != m_resolvers.end())
+		{
+			return it->second(dst, src);
+		}
 
-	// 	return false;
-	// }
+		return false;
+	}
 
-	// bool Type::assign(const FieldBase& field, const Markup::ValueDesc& value)
-	// {
-	// 	return false;
-	// }
+	Property* Type::property(Name name) const
+	{
+		const Type* self = this;
 
-	// bool Type::assign(const Field<bool>& field, const Markup::ValueDesc& value)
-	// {
-	// 	if (const bool* source = etl::get_if<bool>(&value.value))
-	// 	{
-	// 		field.ref() = *source;
-	// 		return true;
-	// 	}
+		while (self)
+		{
+			auto it = self->m_properties.find(name);
 
-	// 	return false;
-	// }
+			if (it != self->m_properties.end())
+			{
+				return it->second;
+			}
 
-	// bool Type::assign(const Field<i32>& field, const Markup::ValueDesc& value)
-	// {
-	// 	if (const i32* source = etl::get_if<i32>(&value.value))
-	// 	{
-	// 		field.ref() = *source;
-	// 		return true;
-	// 	}
+			self = self->m_parent;
+		}
 
-	// 	return false;
-	// }
-
-	// bool Type::assign(const Field<f32>& field, const Markup::ValueDesc& value)
-	// {
-	// 	if (const f32* source = etl::get_if<f32>(&value.value))
-	// 	{
-	// 		field.ref() = *source;
-	// 		return true;
-	// 	}
-
-	// 	if (const i32* source = etl::get_if<i32>(&value.value))
-	// 	{
-	// 		field.ref() = static_cast<f32>(*source);
-	// 		return true;
-	// 	}
-
-	// 	return false;
-	// }
-
-	// bool Type::assign(const Field<String>& field, const Markup::ValueDesc& value)
-	// {
-	// 	if (const String* source = etl::get_if<String>(&value.value))
-	// 	{
-	// 		field.ref() = *source;
-	// 		return true;
-	// 	}
-
-	// 	if (const Markup::Identifier* source = etl::get_if<Markup::Identifier>(&value.value))
-	// 	{
-	// 		field.ref() = *source;
-	// 		return true;
-	// 	}
-
-	// 	// if (const Markup::LocalizationKey* source = etl::get_if<Markup::LocalizationKey>(&value.value))
-	// 	// {
-	// 	// 	*dst = *source;
-	// 	// 	return true;
-	// 	// }
-
-	// 	if (field.owner)
-	// 	{
-	// 		void* owner      = field.owner->address;
-	// 		Type* owner_type = field.owner->type;
-
-	// 		if (const Markup::BindingPath* source = etl::get_if<Markup::BindingPath>(&value.value))
-	// 		{
-	// 			if (auto element = Element::cast(owner, owner_type))
-	// 			{
-	// 				element->bind(field.address, field.type, *source);
-	// 			}
-	// 			return true;
-	// 		}
-	// 	}
-
-	// 	return false;
-	// }
+		return nullptr;
+	}
 
 	ElementRegistry* ElementRegistry::instance()
 	{
 		static ElementRegistry registry;
 		return &registry;
+	}
+
+	template<typename Dst, typename Src>
+	static bool static_cast_resolver(void* dst, const void* src)
+	{
+		*static_cast<Dst*>(dst) = static_cast<Dst>(*static_cast<const Src*>(src));
+		return true;
+	}
+
+	static bool string_to_bool(void* dst, const void* src)
+	{
+		const String& value = *static_cast<const String*>(src);
+		return Strings::boolean_of(value, *static_cast<bool*>(dst));
+	}
+
+	static bool string_to_i32(void* dst, const void* src)
+	{
+		const String& value = *static_cast<const String*>(src);
+		i64 result;
+
+		if (Strings::signed_of(value, result))
+		{
+			*static_cast<i32*>(dst) = static_cast<i32>(result);
+			return true;
+		}
+
+		return false;
+	}
+
+	static bool string_to_f32(void* dst, const void* src)
+	{
+		const String& value = *static_cast<const String*>(src);
+		f64 result;
+
+		if (Strings::floating_of(value, result))
+		{
+			*static_cast<f32*>(dst) = static_cast<f32>(result);
+			return true;
+		}
+
+		return false;
+	}
+
+	static bool bool_to_string(void* dst, const void* src)
+	{
+		*static_cast<String*>(dst) = *static_cast<const bool*>(src) ? "true" : "false";
+		return true;
+	}
+
+	template<typename Src>
+	static bool number_to_string(void* dst, const void* src)
+	{
+		*static_cast<String*>(dst) = Strings::format("{}", *static_cast<const Src*>(src));
+		return true;
+	}
+
+	static bool identifier_to_string(void* dst, const void* src)
+	{
+		*static_cast<String*>(dst) = *static_cast<const Markup::Identifier*>(src);
+		return true;
+	}
+
+	trinex_on_pre_init()
+	{
+		NativeType<bool>::instance()->bind<i32>(static_cast_resolver<bool, i32>);
+		NativeType<bool>::instance()->bind<f32>(static_cast_resolver<bool, f32>);
+		NativeType<bool>::instance()->bind<String>(string_to_bool);
+
+		NativeType<i32>::instance()->bind<bool>(static_cast_resolver<i32, bool>);
+		NativeType<i32>::instance()->bind<f32>(static_cast_resolver<i32, f32>);
+		NativeType<i32>::instance()->bind<String>(string_to_i32);
+
+		NativeType<f32>::instance()->bind<bool>(static_cast_resolver<f32, bool>);
+		NativeType<f32>::instance()->bind<i32>(static_cast_resolver<f32, i32>);
+		NativeType<f32>::instance()->bind<String>(string_to_f32);
+
+		NativeType<String>::instance()->bind<bool>(bool_to_string);
+		NativeType<String>::instance()->bind<i32>(number_to_string<i32>);
+		NativeType<String>::instance()->bind<f32>(number_to_string<f32>);
+		NativeType<String>::instance()->bind<Markup::Identifier>(identifier_to_string);
 	}
 }// namespace Trinex::UI::Refl
