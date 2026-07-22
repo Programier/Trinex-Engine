@@ -3,15 +3,14 @@
 
 namespace Trinex::UI
 {
-	class Window : public Element
+	class Label : public Element
 	{
-		trinex_ui_element(Window, Element);
+		trinex_ui_element(Label, Element);
 
 	public:
-		String name;
+		String text;
+		String value;
 
-	public:
 		bool on_begin_render() override;
-		Window& on_end_render() override;
 	};
 }// namespace Trinex::UI
