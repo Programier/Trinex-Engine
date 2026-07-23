@@ -8,7 +8,8 @@ namespace Trinex::UI
 		trinex_ui_element(SmallButton, Element);
 
 	public:
-		String text;
+		String label;
+		Name on_click;
 
 		UpdateFlags on_begin_update() override;
 	};
@@ -21,6 +22,7 @@ namespace Trinex::UI
 		String icon;
 		String label;
 		Size size = Size(0.0f, 0.0f);
+		Name on_click;
 
 		UpdateFlags on_begin_update() override;
 	};
@@ -30,8 +32,9 @@ namespace Trinex::UI
 		trinex_ui_element(GhostButton, Element);
 
 	public:
-		String text;
+		String label;
 		Size size = Size(0.0f, 0.0f);
+		Name on_click;
 
 		UpdateFlags on_begin_update() override;
 	};
@@ -41,8 +44,9 @@ namespace Trinex::UI
 		trinex_ui_element(DangerButton, Element);
 
 	public:
-		String text;
+		String label;
 		Size size = Size(0.0f, 0.0f);
+		Name on_click;
 
 		UpdateFlags on_begin_update() override;
 	};
@@ -54,6 +58,7 @@ namespace Trinex::UI
 	public:
 		String label;
 		Size size = Size(0.0f, 0.0f);
+		Name on_click;
 
 		UpdateFlags on_begin_update() override;
 	};
@@ -64,8 +69,9 @@ namespace Trinex::UI
 
 	public:
 		String label;
-		i32 value = 0;
-		i32 active = 0;
+		i32 value  = 0;
+		i32 option = 0;
+		Name on_click;
 
 		UpdateFlags on_begin_update() override;
 	};
@@ -77,7 +83,8 @@ namespace Trinex::UI
 	public:
 		String label;
 		bool selected = false;
-		Size size = Size(0.0f, 0.0f);
+		Size size     = Size(0.0f, 0.0f);
+		Name on_click;
 
 		UpdateFlags on_begin_update() override;
 	};
@@ -87,7 +94,7 @@ namespace Trinex::UI
 		trinex_ui_element(ProgressBar, Element);
 
 	public:
-		f32 fraction = 0.0f;
+		f32 value = 0.0f;
 		Size size = Size(-1.0f, 0.0f);
 		String overlay;
 
@@ -100,9 +107,9 @@ namespace Trinex::UI
 
 	public:
 		String id;
-		Unit radius = Unit(8.0f);
+		Unit radius    = Unit(8.0f);
 		Unit thickness = Unit(2.0f);
-		Vec4 color = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
+		Vec4 color     = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
 
 		UpdateFlags on_begin_update() override;
 	};

@@ -8,7 +8,7 @@ namespace Trinex::UI
 		trinex_ui_element(HelpMarker, Element);
 
 	public:
-		String text;
+		String description;
 
 		UpdateFlags on_begin_update() override;
 	};
@@ -29,7 +29,7 @@ namespace Trinex::UI
 		trinex_ui_element(Badge, Element);
 
 	public:
-		String text;
+		String label;
 		Vec4 color = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
 
 		UpdateFlags on_begin_update() override;
@@ -40,7 +40,7 @@ namespace Trinex::UI
 		trinex_ui_element(Pill, Element);
 
 	public:
-		String text;
+		String label;
 		Vec4 color = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
 
 		UpdateFlags on_begin_update() override;

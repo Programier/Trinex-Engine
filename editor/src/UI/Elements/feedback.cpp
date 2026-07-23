@@ -6,12 +6,12 @@ namespace Trinex::UI
 {
 	trinex_implement_ui_element(HelpMarker)
 	{
-		reflection()->bind("text", &This::text);
+		reflection()->bind("description", &This::description);
 	}
 
 	Element::UpdateFlags HelpMarker::on_begin_update()
 	{
-		UI::help_marker(text);
+		UI::help_marker(description);
 		return UpdateFlags::Undefined;
 	}
 
@@ -29,25 +29,25 @@ namespace Trinex::UI
 
 	trinex_implement_ui_element(Badge)
 	{
-		reflection()->bind("text", &This::text);
+		reflection()->bind("label", &This::label);
 		reflection()->bind("color", &This::color);
 	}
 
 	Element::UpdateFlags Badge::on_begin_update()
 	{
-		UI::badge(text, color);
+		UI::badge(label, color);
 		return UpdateFlags::Undefined;
 	}
 
 	trinex_implement_ui_element(Pill)
 	{
-		reflection()->bind("text", &This::text);
+		reflection()->bind("label", &This::label);
 		reflection()->bind("color", &This::color);
 	}
 
 	Element::UpdateFlags Pill::on_begin_update()
 	{
-		UI::pill(text, color);
+		UI::pill(label, color);
 		return UpdateFlags::Undefined;
 	}
 

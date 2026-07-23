@@ -142,6 +142,13 @@ namespace Trinex::UI::Refl
 		return true;
 	}
 
+	template<typename Dst, typename Src>
+	static bool copy_resolver(void* dst, const void* src, const AssignHistory* history)
+	{
+		*static_cast<Dst*>(dst) = *static_cast<const Src*>(src);
+		return true;
+	}
+
 	static bool string_to_bool(void* dst, const void* src, const AssignHistory* history)
 	{
 		const String& value = *static_cast<const String*>(src);
@@ -176,22 +183,24 @@ namespace Trinex::UI::Refl
 		return false;
 	}
 
+	template<typename StringType = String>
 	static bool bool_to_string(void* dst, const void* src, const AssignHistory* history)
 	{
-		*static_cast<String*>(dst) = *static_cast<const bool*>(src) ? "true" : "false";
+		*static_cast<StringType*>(dst) = *static_cast<const bool*>(src) ? "true" : "false";
 		return true;
 	}
 
-	template<typename Src>
+	template<typename Src, typename StringType = String>
 	static bool number_to_string(void* dst, const void* src, const AssignHistory* history)
 	{
-		*static_cast<String*>(dst) = Strings::format("{}", *static_cast<const Src*>(src));
+		*static_cast<StringType*>(dst) = Strings::format("{}", *static_cast<const Src*>(src));
 		return true;
 	}
 
+	template<typename StringType = String>
 	static bool identifier_to_string(void* dst, const void* src, const AssignHistory* history)
 	{
-		*static_cast<String*>(dst) = *static_cast<const Markup::Identifier*>(src);
+		*static_cast<StringType*>(dst) = *static_cast<const Markup::Identifier*>(src);
 		return true;
 	}
 
@@ -306,6 +315,12 @@ namespace Trinex::UI::Refl
 		NativeType<String>::instance()->bind<i32>(number_to_string<i32>);
 		NativeType<String>::instance()->bind<f32>(number_to_string<f32>);
 		NativeType<String>::instance()->bind<Markup::Identifier>(identifier_to_string);
+
+		NativeType<Name>::instance()->bind<String>(copy_resolver<Name, String>);
+		NativeType<Name>::instance()->bind<bool>(bool_to_string<Name>);
+		NativeType<Name>::instance()->bind<i32>(number_to_string<i32, Name>);
+		NativeType<Name>::instance()->bind<f32>(number_to_string<f32, Name>);
+		NativeType<Name>::instance()->bind<Markup::Identifier>(identifier_to_string<Name>);
 
 		NativeType<Unit>::instance()->bind<f32>(f32_to_unit);
 		NativeType<Unit>::instance()->bind<i32>(i32_to_unit);

@@ -4,14 +4,25 @@
 
 namespace Trinex::UI
 {
+	static Element::UpdateFlags handle_click(Element* element, bool clicked, Name event)
+	{
+		if (clicked)
+		{
+			element->dispatch(event);
+		}
+
+		return Element::readback_if(clicked);
+	}
+
 	trinex_implement_ui_element(SmallButton)
 	{
-		reflection()->bind("text", &This::text);
+		reflection()->bind("label", &This::label);
+		reflection()->bind("on_click", &This::on_click);
 	}
 
 	Element::UpdateFlags SmallButton::on_begin_update()
 	{
-		return readback_if(UI::small_button(text));
+		return handle_click(this, UI::small_button(label), on_click);
 	}
 
 	trinex_implement_ui_element(IconButton)
@@ -19,60 +30,65 @@ namespace Trinex::UI
 		reflection()->bind("icon", &This::icon);
 		reflection()->bind("label", &This::label);
 		reflection()->bind("size", &This::size);
+		reflection()->bind("on_click", &This::on_click);
 	}
 
 	Element::UpdateFlags IconButton::on_begin_update()
 	{
 		ButtonOptions options;
 		options.size = size;
-		return readback_if(UI::icon_button(icon, label, options));
+		return handle_click(this, UI::icon_button(icon, label, options), on_click);
 	}
 
 	trinex_implement_ui_element(GhostButton)
 	{
-		reflection()->bind("text", &This::text);
+		reflection()->bind("label", &This::label);
 		reflection()->bind("size", &This::size);
+		reflection()->bind("on_click", &This::on_click);
 	}
 
 	Element::UpdateFlags GhostButton::on_begin_update()
 	{
-		return readback_if(UI::ghost_button(text, size));
+		return handle_click(this, UI::ghost_button(label, size), on_click);
 	}
 
 	trinex_implement_ui_element(DangerButton)
 	{
-		reflection()->bind("text", &This::text);
+		reflection()->bind("label", &This::label);
 		reflection()->bind("size", &This::size);
+		reflection()->bind("on_click", &This::on_click);
 	}
 
 	Element::UpdateFlags DangerButton::on_begin_update()
 	{
-		return readback_if(UI::danger_button(text, size));
+		return handle_click(this, UI::danger_button(label, size), on_click);
 	}
 
 	trinex_implement_ui_element(InvisibleButton)
 	{
 		reflection()->bind("label", &This::label);
 		reflection()->bind("size", &This::size);
+		reflection()->bind("on_click", &This::on_click);
 	}
 
 	Element::UpdateFlags InvisibleButton::on_begin_update()
 	{
 		ButtonOptions options;
 		options.size = size;
-		return readback_if(UI::invisible_button(label, options));
+		return handle_click(this, UI::invisible_button(label, options), on_click);
 	}
 
 	trinex_implement_ui_element(RadioButton)
 	{
 		reflection()->bind("label", &This::label);
 		reflection()->bind("value", &This::value);
-		reflection()->bind("active", &This::active);
+		reflection()->bind("option", &This::option);
+		reflection()->bind("on_click", &This::on_click);
 	}
 
 	Element::UpdateFlags RadioButton::on_begin_update()
 	{
-		return readback_if(UI::radio_button(label, &value, active));
+		return handle_click(this, UI::radio_button(label, &value, option), on_click);
 	}
 
 	trinex_implement_ui_element(Selectable)
@@ -80,23 +96,24 @@ namespace Trinex::UI
 		reflection()->bind("label", &This::label);
 		reflection()->bind("selected", &This::selected);
 		reflection()->bind("size", &This::size);
+		reflection()->bind("on_click", &This::on_click);
 	}
 
 	Element::UpdateFlags Selectable::on_begin_update()
 	{
-		return readback_if(UI::selectable(label, selected, SelectableFlags::Undefined, size));
+		return handle_click(this, UI::selectable(label, selected, SelectableFlags::Undefined, size), on_click);
 	}
 
 	trinex_implement_ui_element(ProgressBar)
 	{
-		reflection()->bind("fraction", &This::fraction);
+		reflection()->bind("value", &This::value);
 		reflection()->bind("size", &This::size);
 		reflection()->bind("overlay", &This::overlay);
 	}
 
 	Element::UpdateFlags ProgressBar::on_begin_update()
 	{
-		UI::progress_bar(fraction, size, overlay);
+		UI::progress_bar(value, size, overlay);
 		return UpdateFlags::Undefined;
 	}
 

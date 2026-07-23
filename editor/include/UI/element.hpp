@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/etl/flat_map.hpp>
 #include <Core/etl/string.hpp>
 #include <Core/etl/vector.hpp>
 #include <Core/types/name.hpp>
@@ -45,6 +46,7 @@ namespace Trinex::UI
 		Document* m_document = nullptr;
 		Vector<Element*> m_childs;
 		Vector<Binding> m_bindings;
+		FlatMap<Name, EventListener> m_listeners;
 		u32 m_references = 1;
 
 		static Refl::Type* initialize_type(Refl::Type* type);
@@ -55,8 +57,10 @@ namespace Trinex::UI
 		static Element* cast(void* src, const Refl::Type* type);
 
 		Element& bind(void* value, const Refl::Type* type, const Markup::BindingPath& path);
+		Element& bind(Name event, EventListener listener);
 		Element& unbind(void* value);
 		usize binding_index(void* value);
+		bool dispatch(Name name);
 
 		Element* attach(StringView type);
 		Element& attach(Element* element);
@@ -75,6 +79,12 @@ namespace Trinex::UI
 		static inline UpdateFlags readback_if(bool condition)
 		{
 			return condition ? UpdateFlags::Readback : UpdateFlags::Undefined;
+		}
+
+		template<typename T>
+		Element& bind(T* value, const Markup::BindingPath& path)
+		{
+			return Element::bind(value, Refl::NativeType<T>::instance(), path);
 		}
 
 		inline Element* owner() const { return m_owner; }

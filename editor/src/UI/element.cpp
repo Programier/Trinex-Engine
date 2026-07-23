@@ -53,6 +53,12 @@ namespace Trinex::UI
 		return *this;
 	}
 
+	Element& Element::bind(Name event, EventListener listener)
+	{
+		m_listeners[event] = etl::move(listener);
+		return *this;
+	}
+
 	Element& Element::unbind(void* value)
 	{
 		auto predicate = [value](const Binding& binding) { return binding.value == value; };
@@ -66,6 +72,33 @@ namespace Trinex::UI
 	{
 		auto predicate = [value](const Binding& binding) { return binding.value == value; };
 		return etl::find_if(m_bindings.begin(), m_bindings.end(), predicate) - m_bindings.begin();
+	}
+
+	bool Element::dispatch(Name name)
+	{
+		if (!name.is_valid())
+			return false;
+
+		Event event;
+		event.sender = this;
+
+		for (Element* element = this; element; element = element->owner())
+		{
+			auto it = element->m_listeners.find(name);
+
+			if (it != element->m_listeners.end())
+			{
+				event.current = element;
+				it->second(&event);
+
+				if (event.handled() || !event.bubbling())
+				{
+					return event.handled();
+				}
+			}
+		}
+
+		return event.handled();
 	}
 
 	Element* Element::attach(StringView type)

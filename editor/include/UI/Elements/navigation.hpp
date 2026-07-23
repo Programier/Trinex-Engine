@@ -12,7 +12,7 @@ namespace Trinex::UI
 		String icon;
 		String right_text;
 		bool default_open = false;
-		bool disabled = false;
+		bool disabled     = false;
 
 		UpdateFlags on_begin_update() override;
 		Element& on_end_update() override;
@@ -27,7 +27,7 @@ namespace Trinex::UI
 		String icon;
 		String right_text;
 		bool default_open = false;
-		bool disabled = false;
+		bool disabled     = false;
 
 		UpdateFlags on_begin_update() override;
 		Element& on_end_update() override;
@@ -42,7 +42,7 @@ namespace Trinex::UI
 		String icon;
 		String badge;
 		bool default_open = false;
-		bool selected = false;
+		bool selected     = false;
 
 		UpdateFlags on_begin_update() override;
 		Element& on_end_update() override;
@@ -57,6 +57,7 @@ namespace Trinex::UI
 		String icon;
 		String badge;
 		bool selected = false;
+		Name on_click;
 
 		UpdateFlags on_begin_update() override;
 	};
@@ -79,7 +80,8 @@ namespace Trinex::UI
 	public:
 		String label;
 		bool selected = false;
-		Size size = Size(0.0f, 0.0f);
+		Size size     = Size(0.0f, 0.0f);
+		Name on_click;
 
 		UpdateFlags on_begin_update() override;
 	};
@@ -93,6 +95,7 @@ namespace Trinex::UI
 		String icon;
 		String badge;
 		bool selected = false;
+		Name on_click;
 
 		UpdateFlags on_begin_update() override;
 	};
@@ -105,6 +108,7 @@ namespace Trinex::UI
 		String label;
 		String icon;
 		bool selected = false;
+		Name on_click;
 
 		UpdateFlags on_begin_update() override;
 	};
@@ -116,6 +120,7 @@ namespace Trinex::UI
 	public:
 		String label;
 		bool current = false;
+		Name on_click;
 
 		UpdateFlags on_begin_update() override;
 	};

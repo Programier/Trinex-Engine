@@ -6,14 +6,15 @@ namespace Trinex::UI
 {
 	trinex_implement_ui_element(Button)
 	{
-		reflection()->bind("text", &This::text);
+		reflection()->bind("label", &This::label);
+		reflection()->bind("on_click", &This::on_click);
 	}
 
 	Element::UpdateFlags Button::on_begin_update()
 	{
-		if (UI::button(text))
+		if (UI::button(label))
 		{
-			return UpdateFlags::Readback;
+			dispatch(on_click);
 		}
 
 		return UpdateFlags::Undefined;

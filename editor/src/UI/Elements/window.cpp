@@ -6,15 +6,15 @@ namespace Trinex::UI
 {
 	trinex_implement_ui_element(Window)
 	{
-		reflection()->bind("name", &Window::name);
+		reflection()->bind("title", &Window::title);
 	}
 
 	Element::UpdateFlags Window::on_begin_update()
 	{
-		if (name.empty())
+		if (title.empty())
 			return UpdateFlags::Undefined;
 
-		if (UI::begin_window(name))
+		if (UI::begin_window(title))
 			return UpdateFlags::Default;
 
 		return UpdateFlags::End;

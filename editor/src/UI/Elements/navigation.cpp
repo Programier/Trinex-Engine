@@ -4,6 +4,16 @@
 
 namespace Trinex::UI
 {
+	static Element::UpdateFlags handle_click(Element* element, bool clicked, const Name& event)
+	{
+		if (clicked)
+		{
+			element->dispatch(event);
+		}
+
+		return Element::readback_if(clicked);
+	}
+
 	static HeaderOptions header_options(StringView icon, StringView right_text, bool default_open, bool disabled)
 	{
 		HeaderOptions options;
@@ -106,11 +116,13 @@ namespace Trinex::UI
 		reflection()->bind("icon", &This::icon);
 		reflection()->bind("badge", &This::badge);
 		reflection()->bind("selected", &This::selected);
+		reflection()->bind("on_click", &This::on_click);
 	}
 
 	Element::UpdateFlags TreeLeaf::on_begin_update()
 	{
-		return readback_if(UI::selectable_tree_item(label, selected, tree_options(icon, badge, false, selected, true)));
+		return handle_click(this, UI::selectable_tree_item(label, selected, tree_options(icon, badge, false, selected, true)),
+		                    on_click);
 	}
 
 	trinex_implement_ui_element(TabBar)
@@ -141,11 +153,12 @@ namespace Trinex::UI
 		reflection()->bind("label", &This::label);
 		reflection()->bind("selected", &This::selected);
 		reflection()->bind("size", &This::size);
+		reflection()->bind("on_click", &This::on_click);
 	}
 
 	Element::UpdateFlags Tab::on_begin_update()
 	{
-		return readback_if(UI::tab(label, selected, size));
+		return handle_click(this, UI::tab(label, selected, size), on_click);
 	}
 
 	trinex_implement_ui_element(SidebarItem)
@@ -154,11 +167,12 @@ namespace Trinex::UI
 		reflection()->bind("icon", &This::icon);
 		reflection()->bind("badge", &This::badge);
 		reflection()->bind("selected", &This::selected);
+		reflection()->bind("on_click", &This::on_click);
 	}
 
 	Element::UpdateFlags SidebarItem::on_begin_update()
 	{
-		return readback_if(UI::sidebar_item(label, selected, icon, badge));
+		return handle_click(this, UI::sidebar_item(label, selected, icon, badge), on_click);
 	}
 
 	trinex_implement_ui_element(NavItem)
@@ -166,21 +180,23 @@ namespace Trinex::UI
 		reflection()->bind("label", &This::label);
 		reflection()->bind("icon", &This::icon);
 		reflection()->bind("selected", &This::selected);
+		reflection()->bind("on_click", &This::on_click);
 	}
 
 	Element::UpdateFlags NavItem::on_begin_update()
 	{
-		return readback_if(UI::nav_item(label, selected, icon));
+		return handle_click(this, UI::nav_item(label, selected, icon), on_click);
 	}
 
 	trinex_implement_ui_element(Breadcrumb)
 	{
 		reflection()->bind("label", &This::label);
 		reflection()->bind("current", &This::current);
+		reflection()->bind("on_click", &This::on_click);
 	}
 
 	Element::UpdateFlags Breadcrumb::on_begin_update()
 	{
-		return readback_if(UI::breadcrumb(label, current));
+		return handle_click(this, UI::breadcrumb(label, current), on_click);
 	}
 }// namespace Trinex::UI

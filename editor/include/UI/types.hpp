@@ -10,8 +10,58 @@
 
 namespace Trinex::UI
 {
+	class Element;
+
 	using Action    = Function<void()>;
 	using ActionRef = FunctionRef<void()>;
+
+	struct Event {
+		struct Flags {
+			enum Enum : u8
+			{
+				Undefined = 0,
+				Handled   = 1 << 0,
+				Bubling   = 1 << 1,
+			};
+
+			trinex_bitfield_enum_struct(Flags, u8);
+		};
+
+		using enum Flags::Enum;
+
+		Element* sender  = nullptr;
+		Element* current = nullptr;
+		Flags flags      = Flags::Bubling;
+
+		inline Event& handle()
+		{
+			flags |= Handled;
+			return *this;
+		}
+
+		inline Event& unhandle()
+		{
+			flags &= ~Handled;
+			return *this;
+		}
+
+		inline Event& stop_propagation()
+		{
+			flags &= ~Bubling;
+			return *this;
+		}
+
+		inline Event& resume_propagation()
+		{
+			flags |= Bubling;
+			return *this;
+		}
+
+		inline bool handled() const { return flags & Handled; }
+		inline bool bubbling() const { return flags & Bubling; }
+	};
+
+	using EventListener = Function<void(Event* event)>;
 
 	struct Unit {
 		enum Type : u8

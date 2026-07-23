@@ -6,13 +6,13 @@ namespace Trinex::UI
 {
 	trinex_implement_ui_element(Label)
 	{
-		reflection()->bind("text", &This::text);
+		reflection()->bind("label", &This::label);
 		reflection()->bind("value", &This::value);
 	}
 
 	Element::UpdateFlags Label::on_begin_update()
 	{
-		UI::label(text, value);
+		UI::label(label, value);
 		return UpdateFlags::Undefined;
 	}
 }// namespace Trinex::UI

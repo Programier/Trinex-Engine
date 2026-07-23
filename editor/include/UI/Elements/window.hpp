@@ -8,7 +8,7 @@ namespace Trinex::UI
 		trinex_ui_element(Window, Element);
 
 	public:
-		String name;
+		String title;
 
 	public:
 		UpdateFlags on_begin_update() override;

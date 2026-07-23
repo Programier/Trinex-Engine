@@ -7,7 +7,8 @@ namespace Trinex::UI
 		trinex_ui_element(Button, Element);
 
 	public:
-		String text;
+		String label;
+		Name on_click;
 
 		UpdateFlags on_begin_update() override;
 	};
