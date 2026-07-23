@@ -180,6 +180,7 @@ namespace Trinex::UI::Refl
 			}
 		}
 
+		using Type::assign;
 		using Type::bind;
 
 		template<typename Field, typename Instance = T>

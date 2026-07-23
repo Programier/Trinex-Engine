@@ -195,6 +195,98 @@ namespace Trinex::UI::Refl
 		return true;
 	}
 
+	static bool value_to_f32(f32& dst, const Markup::ValueDesc& src)
+	{
+		auto visitor = [&]<typename T>(const T& value) -> bool {
+			return NativeType<f32>::instance()->assign(&dst, &value, NativeType<T>::instance());
+		};
+
+		return etl::visit(visitor, src.value);
+	}
+
+	static bool f32_to_unit(void* dst, const void* src, const AssignHistory* history)
+	{
+		*static_cast<Unit*>(dst) = Unit(*static_cast<const f32*>(src));
+		return true;
+	}
+
+	static bool i32_to_unit(void* dst, const void* src, const AssignHistory* history)
+	{
+		*static_cast<Unit*>(dst) = Unit(static_cast<f32>(*static_cast<const i32*>(src)));
+		return true;
+	}
+
+	static bool container_to_vec2(void* dst, const void* src, const AssignHistory* history)
+	{
+		const auto& values = *static_cast<const Markup::Container*>(src);
+
+		if (values.size() != 2)
+		{
+			return false;
+		}
+
+		Vec2 result;
+		if (!value_to_f32(result.x, values[0]) || !value_to_f32(result.y, values[1]))
+		{
+			return false;
+		}
+
+		*static_cast<Vec2*>(dst) = result;
+		return true;
+	}
+
+	static bool container_to_vec3(void* dst, const void* src, const AssignHistory* history)
+	{
+		const auto& values = *static_cast<const Markup::Container*>(src);
+
+		if (values.size() != 3)
+		{
+			return false;
+		}
+
+		Vec3 result;
+		if (!value_to_f32(result.x, values[0]) || !value_to_f32(result.y, values[1]) || !value_to_f32(result.z, values[2]))
+		{
+			return false;
+		}
+
+		*static_cast<Vec3*>(dst) = result;
+		return true;
+	}
+
+	static bool container_to_vec4(void* dst, const void* src, const AssignHistory* history)
+	{
+		const auto& values = *static_cast<const Markup::Container*>(src);
+
+		if (values.size() != 4)
+		{
+			return false;
+		}
+
+		Vec4 result;
+		if (!value_to_f32(result.x, values[0]) || !value_to_f32(result.y, values[1]) || !value_to_f32(result.z, values[2]) ||
+		    !value_to_f32(result.w, values[3]))
+		{
+			return false;
+		}
+
+		*static_cast<Vec4*>(dst) = result;
+		return true;
+	}
+
+	static bool container_to_size(void* dst, const void* src, const AssignHistory* history)
+	{
+		Vec2 result;
+
+		if (!container_to_vec2(&result, src, history))
+		{
+			return false;
+		}
+
+		*static_cast<Size*>(dst) = Size(result);
+		return true;
+	}
+
 	trinex_on_pre_init()
 	{
 		using ScalarTypesList = TypesList<bool, i8, u8, i16, u16, i32, u32, i64, u64, f16, f32, f64>;
@@ -214,5 +306,12 @@ namespace Trinex::UI::Refl
 		NativeType<String>::instance()->bind<i32>(number_to_string<i32>);
 		NativeType<String>::instance()->bind<f32>(number_to_string<f32>);
 		NativeType<String>::instance()->bind<Markup::Identifier>(identifier_to_string);
+
+		NativeType<Unit>::instance()->bind<f32>(f32_to_unit);
+		NativeType<Unit>::instance()->bind<i32>(i32_to_unit);
+		NativeType<Vec2>::instance()->bind<Markup::Container>(container_to_vec2);
+		NativeType<Vec3>::instance()->bind<Markup::Container>(container_to_vec3);
+		NativeType<Vec4>::instance()->bind<Markup::Container>(container_to_vec4);
+		NativeType<Size>::instance()->bind<Markup::Container>(container_to_size);
 	}
 }// namespace Trinex::UI::Refl
