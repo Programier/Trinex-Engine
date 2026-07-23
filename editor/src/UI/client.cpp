@@ -1,5 +1,8 @@
+#include <Core/etl/algorithm.hpp>
+#include <Core/file_manager.hpp>
 #include <Core/reflection/class.hpp>
 #include <Graphics/render_viewport.hpp>
+#include <UI/Elements/document.hpp>
 #include <UI/api.hpp>
 #include <UI/client.hpp>
 #include <Window/config.hpp>
@@ -10,19 +13,19 @@ namespace Trinex::UI
 {
 	namespace
 	{
-		static Map<Refl::Class*, Client*>& opened_clients()
+		static Map<Trinex::Refl::Class*, Client*>& opened_clients()
 		{
-			static Map<Refl::Class*, Client*> value;
+			static Map<Trinex::Refl::Class*, Client*> value;
 			return value;
 		}
 
-		static Map<Refl::Class*, Refl::Class*>& registered_clients()
+		static Map<Trinex::Refl::Class*, Trinex::Refl::Class*>& registered_clients()
 		{
-			static Map<Refl::Class*, Refl::Class*> value;
+			static Map<Trinex::Refl::Class*, Trinex::Refl::Class*> value;
 			return value;
 		}
 
-		static Client* open_client(Refl::Class* client_class)
+		static Client* open_client(Trinex::Refl::Class* client_class)
 		{
 			if (client_class == nullptr)
 				return nullptr;
@@ -41,7 +44,7 @@ namespace Trinex::UI
 
 	trinex_implement_class(Trinex::UI::Client, 0) {}
 
-	bool Client::register_client(Refl::Class* object_type, Refl::Class* renderer)
+	bool Client::register_client(Trinex::Refl::Class* object_type, Trinex::Refl::Class* renderer)
 	{
 		if (object_type == nullptr || renderer == nullptr)
 			return false;
@@ -50,9 +53,9 @@ namespace Trinex::UI
 		return true;
 	}
 
-	Client* Client::client_of(Refl::Class* object_type, bool create_if_not_exist)
+	Client* Client::client_of(Trinex::Refl::Class* object_type, bool create_if_not_exist)
 	{
-		Refl::Class* client_class = nullptr;
+		Trinex::Refl::Class* client_class = nullptr;
 
 		while (object_type && client_class == nullptr)
 		{
@@ -93,6 +96,14 @@ namespace Trinex::UI
 	Client& Client::deattach(class RenderViewport* viewport)
 	{
 		opened_clients().erase(class_instance());
+
+		for (Document* document : m_documents)
+		{
+			document->release();
+		}
+
+		m_documents.clear();
+
 		Super::deattach(viewport);
 		UI::destroy_context(m_ctx);
 		m_ctx      = nullptr;
@@ -130,7 +141,66 @@ namespace Trinex::UI
 			}
 
 			update(dt);
+
+			for (Document* document : m_documents)
+			{
+				if (document->is_open())
+				{
+					document->update();
+				}
+			}
+
 			UI::end_frame();
+		}
+
+		return *this;
+	}
+
+	Document* Client::load_document(const Path& path)
+	{
+		FileReader reader(path);
+
+		if (!reader.is_open())
+		{
+			trinex_error(Log::Editor, "Failed to open UI document '%s'", path.c_str());
+			return nullptr;
+		}
+
+		return create_document(reader.read_string());
+	}
+
+	Document* Client::create_document(StringView source)
+	{
+		Document* document = UI::create_document(source);
+
+		if (document)
+		{
+			add_document(document);
+			document->release();
+		}
+
+		return document;
+	}
+
+	Client& Client::add_document(Document* document)
+	{
+		if (document)
+		{
+			document->add_reference();
+			m_documents.push_back(document);
+		}
+
+		return *this;
+	}
+
+	Client& Client::remove_document(Document* document)
+	{
+		auto it = etl::find(m_documents.begin(), m_documents.end(), document);
+
+		if (it != m_documents.end())
+		{
+			m_documents.erase(it);
+			document->release();
 		}
 
 		return *this;

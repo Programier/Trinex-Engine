@@ -67,7 +67,7 @@ namespace Trinex::UI
 		Element& deattach(Element* element);
 		Element& document(Document* document);
 
-		Element& render();
+		Element& update();
 
 		u32 add_reference();
 		u32 release();

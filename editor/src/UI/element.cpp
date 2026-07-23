@@ -170,7 +170,7 @@ namespace Trinex::UI
 		return *this;
 	}
 
-	Element& Element::render()
+	Element& Element::update()
 	{
 		auto resolve_binding = [this](const Binding& binding) {
 			return document()->bindings()->resolve(document(), binding.path.data(), binding.path.size());
@@ -211,7 +211,7 @@ namespace Trinex::UI
 		{
 			for (Element* child : m_childs)
 			{
-				child->render();
+				child->update();
 			}
 		}
 

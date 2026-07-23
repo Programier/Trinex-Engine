@@ -469,6 +469,28 @@ _Comment    <- '//' (![\r\n] .)*
 		trx_delete_inline(m_bindings);
 	}
 
+	Document& Document::open()
+	{
+		m_open = true;
+		return *this;
+	}
+
+	Document& Document::close()
+	{
+		m_open = false;
+		return *this;
+	}
+
+	bool Document::is_open() const
+	{
+		return m_open;
+	}
+
+	bool Document::is_closed() const
+	{
+		return !m_open;
+	}
+
 	Document* create_document(StringView source)
 	{
 		auto parser = Markup::Parser::instance();

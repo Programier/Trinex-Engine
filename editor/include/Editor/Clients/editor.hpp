@@ -5,8 +5,9 @@ namespace Trinex
 {
 	namespace UI
 	{
+		class Document;
 		class Widget;
-	}
+	}// namespace UI
 
 	class ContentBrowserWidget;
 	class ConsoleWidget;
@@ -17,6 +18,7 @@ namespace Trinex
 
 	private:
 		UI::Widget* m_viewport                  = nullptr;
+		UI::Document* m_document                = nullptr;
 		ContentBrowserWidget* m_content_browser = nullptr;
 		ConsoleWidget* m_console                = nullptr;
 
