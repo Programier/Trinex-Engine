@@ -15,7 +15,7 @@ namespace Trinex::UI
 
 	Element::UpdateFlags SliderFloat::on_begin_update()
 	{
-		return readback_if(UI::slider(label, &value, min, max, format.c_str()));
+		return item_state_flags(readback_if(UI::slider(label, &value, min, max, format.c_str())));
 	}
 
 	trinex_implement_ui_element(SliderInt)
@@ -29,6 +29,6 @@ namespace Trinex::UI
 
 	Element::UpdateFlags SliderInt::on_begin_update()
 	{
-		return readback_if(UI::slider(label, &value, min, max, format.c_str()));
+		return item_state_flags(readback_if(UI::slider(label, &value, min, max, format.c_str())));
 	}
 }// namespace Trinex::UI

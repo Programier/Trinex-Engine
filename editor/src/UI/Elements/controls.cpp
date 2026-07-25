@@ -11,7 +11,7 @@ namespace Trinex::UI
 			element->dispatch(event);
 		}
 
-		return Element::readback_if(clicked);
+		return Element::item_state_flags(Element::readback_if(clicked));
 	}
 
 	trinex_implement_ui_element(SmallButton)
@@ -142,6 +142,6 @@ namespace Trinex::UI
 
 	Element::UpdateFlags ColorEdit::on_begin_update()
 	{
-		return readback_if(UI::color_edit(label, &color, alpha));
+		return item_state_flags(readback_if(UI::color_edit(label, &color, alpha)));
 	}
 }// namespace Trinex::UI

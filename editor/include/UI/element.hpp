@@ -23,17 +23,30 @@ namespace Trinex::UI
 	{
 	public:
 		struct UpdateFlags {
-			enum Enum : u8
+			enum Enum : u16
 			{
-				Undefined = 0,
-				Readback  = 1 << 0,
-				Childs    = 1 << 1,
-				End       = 1 << 2,
+				Undefined  = 0,
+				Readback   = 1 << 0,
+				Childs     = 1 << 1,
+				End        = 1 << 2,
+				Hovered    = 1 << 3,
+				Active     = 1 << 4,
+				Focused    = 1 << 5,
+				Disabled   = 1 << 6,
+				Checked    = 1 << 7,
+				Selected   = 1 << 8,
+				Open       = 1 << 9,
+				Closed     = 1 << 10,
+				Empty      = 1 << 11,
+				FirstChild = 1 << 12,
+				LastChild  = 1 << 13,
+				Odd        = 1 << 14,
+				Even       = 1 << 15,
 
 				Default = Childs | End,
 			};
 
-			trinex_bitfield_enum_struct(UpdateFlags, u8);
+			trinex_bitfield_enum_struct(UpdateFlags, u16);
 		};
 
 		using This = Element;
@@ -52,6 +65,7 @@ namespace Trinex::UI
 		Vector<Binding> m_bindings;
 		Vector<Name> m_styles;
 		Vector<StyleProperty> m_inline_properties;
+		StyleState m_style_state = StyleState::Undefined;
 		FlatMap<Name, EventListener> m_listeners;
 		u32 m_references = 1;
 
@@ -76,6 +90,7 @@ namespace Trinex::UI
 		Element& style(Name name);
 		Element& inline_property(const StyleProperty& property);
 		Element& apply_styles();
+		Element& update_style_state(UpdateFlags flags);
 
 		Element& update();
 
@@ -91,6 +106,8 @@ namespace Trinex::UI
 			return condition ? UpdateFlags::Readback : UpdateFlags::Undefined;
 		}
 
+		static UpdateFlags item_state_flags(UpdateFlags flags = UpdateFlags::Undefined);
+
 		template<typename T>
 		Element& bind(T* value, const Markup::BindingPath& path)
 		{
@@ -104,6 +121,7 @@ namespace Trinex::UI
 		inline const Vector<Element*>& childs() const { return m_childs; }
 		inline const Vector<Name>& styles() const { return m_styles; }
 		inline const Vector<StyleProperty>& inline_properties() const { return m_inline_properties; }
+		inline StyleState style_state() const { return m_style_state; }
 		inline u32 references() const { return m_references; }
 		inline const Vector<Binding>& bindings() const { return m_bindings; }
 		virtual ~Element();

@@ -11,7 +11,7 @@ namespace Trinex::UI
 			element->dispatch(event);
 		}
 
-		return Element::readback_if(clicked);
+		return Element::item_state_flags(Element::readback_if(clicked));
 	}
 
 	static HeaderOptions header_options(StringView icon, StringView right_text, bool default_open, bool disabled)

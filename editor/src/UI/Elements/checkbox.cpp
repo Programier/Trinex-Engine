@@ -12,7 +12,7 @@ namespace Trinex::UI
 
 	Element::UpdateFlags Checkbox::on_begin_update()
 	{
-		return readback_if(UI::checkbox(label, &value));
+		return item_state_flags(readback_if(UI::checkbox(label, &value)));
 	}
 
 	trinex_implement_ui_element(Toggle)
@@ -23,6 +23,6 @@ namespace Trinex::UI
 
 	Element::UpdateFlags Toggle::on_begin_update()
 	{
-		return readback_if(UI::toggle(label, &value));
+		return item_state_flags(readback_if(UI::toggle(label, &value)));
 	}
 }// namespace Trinex::UI

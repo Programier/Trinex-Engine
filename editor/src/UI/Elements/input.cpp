@@ -15,7 +15,7 @@ namespace Trinex::UI
 
 	Element::UpdateFlags InputFloat::on_begin_update()
 	{
-		return readback_if(UI::input(label, &value, format.c_str()));
+		return item_state_flags(readback_if(UI::input(label, &value, format.c_str())));
 	}
 
 	trinex_implement_ui_element(InputInt)
@@ -26,7 +26,7 @@ namespace Trinex::UI
 
 	Element::UpdateFlags InputInt::on_begin_update()
 	{
-		return readback_if(UI::input(label, &value));
+		return item_state_flags(readback_if(UI::input(label, &value)));
 	}
 
 	trinex_implement_ui_element(InputText)
@@ -50,6 +50,6 @@ namespace Trinex::UI
 			value = buffer;
 		}
 
-		return readback_if(changed);
+		return item_state_flags(readback_if(changed));
 	}
 }// namespace Trinex::UI

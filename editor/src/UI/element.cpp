@@ -18,6 +18,26 @@ namespace Trinex::UI
 		return s_type;
 	}
 
+	Element::UpdateFlags Element::item_state_flags(UpdateFlags flags)
+	{
+		if (UI::is_item_hovered())
+		{
+			flags |= UpdateFlags::Hovered;
+		}
+
+		if (UI::is_item_active())
+		{
+			flags |= UpdateFlags::Active;
+		}
+
+		if (UI::is_item_focused())
+		{
+			flags |= UpdateFlags::Focused;
+		}
+
+		return flags;
+	}
+
 	Element* Element::cast(void* src, const Refl::Type* type)
 	{
 		auto target = Element::reflection();
@@ -217,7 +237,7 @@ namespace Trinex::UI
 	{
 		if (document() && document()->style_sheet())
 		{
-			const ComputedStyle style = document()->style_sheet()->resolve(this);
+			const ComputedStyle style = document()->style_sheet()->resolve(this, m_style_state);
 
 			for (const StyleProperty& property : style.properties)
 			{
@@ -236,6 +256,33 @@ namespace Trinex::UI
 				trinex_error(Log::Editor, "Failed to assign inline property '%s' of element '%s' at %u:%u", property.name.c_str(),
 				             type_name().c_str(), property.location.line, property.location.column);
 			}
+		}
+
+		return *this;
+	}
+
+	Element& Element::update_style_state(UpdateFlags flags)
+	{
+		m_style_state = StyleState::Undefined;
+
+		if (flags & UpdateFlags::Hovered)
+		{
+			m_style_state |= StyleState::Hover;
+		}
+
+		if (flags & UpdateFlags::Active)
+		{
+			m_style_state |= StyleState::Active;
+		}
+
+		if (flags & UpdateFlags::Focused)
+		{
+			m_style_state |= StyleState::Focus;
+		}
+
+		if (flags & UpdateFlags::Disabled)
+		{
+			m_style_state |= StyleState::Disabled;
 		}
 
 		return *this;
@@ -265,6 +312,7 @@ namespace Trinex::UI
 		UI::push_id(this);
 		{
 			auto flags = on_begin_update();
+			update_style_state(flags);
 
 			if (flags & UpdateFlags::Readback)
 			{

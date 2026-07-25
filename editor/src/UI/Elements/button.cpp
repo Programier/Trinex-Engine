@@ -12,11 +12,13 @@ namespace Trinex::UI
 
 	Element::UpdateFlags Button::on_begin_update()
 	{
-		if (UI::button(label))
+		const bool clicked = UI::button(label);
+
+		if (clicked)
 		{
 			dispatch(on_click);
 		}
 
-		return UpdateFlags::Undefined;
+		return item_state_flags(readback_if(clicked));
 	}
 }// namespace Trinex::UI
