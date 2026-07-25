@@ -17,9 +17,15 @@ Document <- DocumentItem* ~EndOfFile
 
 DocumentItem <- Include / Style / Node
 Include      <- 'include' String ';'?
-Style        <- 'style' StyleSelector '{' Property* '}'
+Style        <- 'style' StyleSelector '{' StyleMember* '}'
 StyleSelector <- Identifier PseudoClass*
 PseudoClass   <- ':' Identifier
+StyleMember   <- TransitionBlock ';'? / Property
+TransitionBlock <- 'transition' ':'? '{' TransitionProperty* '}'
+TransitionProperty <- Identifier (':' TransitionArgs)? ';'?
+TransitionArgs <- Value TransitionEase? TransitionDelay?
+TransitionEase <- ',' Identifier
+TransitionDelay <- ',' Value
 
 Node           <- Identifier '{' Member* '}'
 Member         <- PropertyMember / NodeMember
@@ -76,9 +82,15 @@ _Comment    <- '//' (![\r\n] .)*
 			SourceLocation location;
 		};
 
+		struct TransitionBlock {
+			Vector<StyleTransition> transitions;
+			SourceLocation location;
+		};
+
 		struct Style {
 			StyleSelector selector;
 			Vector<StyleProperty> properties;
+			Vector<StyleTransition> transitions;
 			SourceLocation location;
 		};
 
@@ -90,6 +102,7 @@ _Comment    <- '//' (![\r\n] .)*
 		};
 
 		using Member       = Variant<Property, Node>;
+		using StyleMember  = Variant<Property, TransitionBlock>;
 		using DocumentItem = Variant<Include, Style, Node>;
 		using StyleMap     = StyleSheet;
 
@@ -195,6 +208,51 @@ _Comment    <- '//' (![\r\n] .)*
 				}
 
 				return StyleState::Undefined;
+			}
+
+			inline bool value_to_f32(f32& dst, const ValueDesc& src)
+			{
+				if (const auto* value = etl::get_if<f32>(&src.value))
+				{
+					dst = *value;
+					return true;
+				}
+
+				if (const auto* value = etl::get_if<i32>(&src.value))
+				{
+					dst = static_cast<f32>(*value);
+					return true;
+				}
+
+				return false;
+			}
+
+			inline Ease ease_of(const Name& name)
+			{
+				if (name == "Linear")
+					return Ease::Linear;
+				if (name == "InQuad")
+					return Ease::InQuad;
+				if (name == "OutQuad")
+					return Ease::OutQuad;
+				if (name == "InOutQuad")
+					return Ease::InOutQuad;
+				if (name == "InCubic")
+					return Ease::InCubic;
+				if (name == "OutCubic")
+					return Ease::OutCubic;
+				if (name == "InOutCubic")
+					return Ease::InOutCubic;
+				if (name == "InExpo")
+					return Ease::InExpo;
+				if (name == "OutExpo")
+					return Ease::OutExpo;
+				if (name == "InOutExpo")
+					return Ease::InOutExpo;
+				if (name == "OutBack")
+					return Ease::OutBack;
+
+				return Ease::OutCubic;
 			}
 		}// namespace Detail
 
@@ -424,6 +482,65 @@ _Comment    <- '//' (![\r\n] .)*
 					return node;
 				};
 
+				m_parser["TransitionEase"] = [](const peg::SemanticValues& values) {
+					return Detail::any_ref<Identifier>(values[0]);
+				};
+
+				m_parser["TransitionDelay"] = [](const peg::SemanticValues& values) {
+					return Detail::any_ref<ValueDesc>(values[0]);
+				};
+
+				m_parser["TransitionProperty"] = [](const peg::SemanticValues& values) {
+					StyleTransition transition;
+					transition.property = Detail::any_ref<Identifier>(values[0]);
+
+					bool has_duration = false;
+
+					for (usize index = 1; index < values.size(); ++index)
+					{
+						if (const auto* value = std::any_cast<ValueDesc>(&values[index]))
+						{
+							if (!has_duration)
+							{
+								Detail::value_to_f32(transition.duration, *value);
+								has_duration = true;
+							}
+							else
+							{
+								Detail::value_to_f32(transition.delay, *value);
+							}
+						}
+						else if (const auto* ease = std::any_cast<Identifier>(&values[index]))
+						{
+							transition.ease = Detail::ease_of(*ease);
+						}
+					}
+
+					return transition;
+				};
+
+				m_parser["TransitionBlock"] = [](const peg::SemanticValues& values) {
+					TransitionBlock block;
+					block.location = Detail::location_of(values);
+					block.transitions.reserve(values.size());
+
+					for (const std::any& value : values)
+					{
+						block.transitions.push_back(Detail::any_ref<StyleTransition>(value));
+					}
+
+					return block;
+				};
+
+				m_parser["StyleMember"] = [](const peg::SemanticValues& values) -> std::any {
+					if (const auto* transition = std::any_cast<TransitionBlock>(&values[0]))
+					{
+						return StyleMember{*transition};
+					}
+
+					return StyleMember{Detail::any_ref<Property>(values[0])};
+				};
+
 				m_parser["PseudoClass"] = [](const peg::SemanticValues& values) {
 					return Detail::any_ref<Identifier>(values[0]);
 				};
@@ -465,16 +582,35 @@ _Comment    <- '//' (![\r\n] .)*
 
 				m_parser["Style"] = [](const peg::SemanticValues& values) {
 					Style style{
-					        .selector   = Detail::any_ref<StyleSelector>(values[0]),
-					        .properties = {},
-					        .location   = Detail::location_of(values),
+					        .selector    = Detail::any_ref<StyleSelector>(values[0]),
+					        .properties  = {},
+					        .transitions = {},
+					        .location    = Detail::location_of(values),
 					};
 
 					style.properties.reserve(values.size() - 1);
 
 					for (usize index = 1; index < values.size(); ++index)
 					{
-						style.properties.push_back(Detail::to_style_property(Detail::any_ref<Property>(values[index])));
+						const auto& member = Detail::any_ref<StyleMember>(values[index]);
+
+						auto visitor = [&style](const auto& value) {
+							using Type = std::remove_cvref_t<decltype(value)>;
+
+							if constexpr (std::is_same_v<Type, Property>)
+							{
+								style.properties.push_back(Detail::to_style_property(value));
+							}
+							else if constexpr (std::is_same_v<Type, TransitionBlock>)
+							{
+								for (const StyleTransition& transition : value.transitions)
+								{
+									style.transitions.push_back(transition);
+								}
+							}
+						};
+
+						etl::visit(visitor, member);
 					}
 
 					return style;
@@ -723,7 +859,7 @@ _Comment    <- '//' (![\r\n] .)*
 					}
 					else if constexpr (std::is_same_v<Type, Style>)
 					{
-						styles.add_rule(value.selector, value.properties, value.location);
+						styles.add_rule(value.selector, value.properties, value.transitions, value.location);
 						return true;
 					}
 					else

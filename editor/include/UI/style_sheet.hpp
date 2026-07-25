@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/etl/flat_map.hpp>
+#include <Core/etl/variant.hpp>
 #include <UI/types.hpp>
 
 namespace Trinex::UI
@@ -31,15 +32,48 @@ namespace Trinex::UI
 		u32 specificity   = 0;
 	};
 
+	using StyleValue = Variant<f32, Vec4>;
+
+	struct StyleTransition {
+		Name property;
+		f32 duration = 0.15f;
+		Ease ease    = Ease::OutCubic;
+		f32 delay    = 0.0f;
+	};
+
 	struct StyleRule {
 		StyleSelector selector;
 		Vector<StyleProperty> properties;
+		Vector<StyleTransition> transitions;
 		Markup::SourceLocation location;
 		u32 order = 0;
 	};
 
 	struct ComputedStyle {
 		Vector<StyleProperty> properties;
+		Vector<StyleTransition> transitions;
+	};
+
+	struct StyleAnimationTrack {
+		StyleValue from;
+		StyleValue to;
+		f32 elapsed  = 0.0f;
+		f32 duration = 0.15f;
+		Ease ease    = Ease::OutCubic;
+		f32 delay    = 0.0f;
+		bool active  = false;
+	};
+
+	class StyleInstance
+	{
+	private:
+		FlatMap<Name, StyleValue> m_values;
+		FlatMap<Name, StyleValue> m_targets;
+		FlatMap<Name, StyleAnimationTrack> m_tracks;
+
+	public:
+		ComputedStyle update(const ComputedStyle& style);
+		StyleInstance& clear();
 	};
 
 	class StyleSheet
@@ -51,7 +85,7 @@ namespace Trinex::UI
 	public:
 		StyleSheet& clear();
 		StyleSheet& add_rule(const StyleSelector& selector, const Vector<StyleProperty>& properties,
-		                     const Markup::SourceLocation& location = {});
+		                     const Vector<StyleTransition>& transitions = {}, const Markup::SourceLocation& location = {});
 		ComputedStyle resolve(const Element* element, StyleState states = StyleState::Undefined) const;
 
 		inline const Vector<StyleRule>& rules() const { return m_rules; }

@@ -65,11 +65,15 @@ namespace Trinex::UI
 		Vector<Binding> m_bindings;
 		Vector<Name> m_styles;
 		Vector<StyleProperty> m_inline_properties;
+		StyleInstance m_style_instance;
 		StyleState m_style_state = StyleState::Undefined;
 		FlatMap<Name, EventListener> m_listeners;
 		u32 m_references = 1;
 
 		static Refl::Type* initialize_type(Refl::NativeType<Element>* type);
+
+	public:
+		f32 alpha = 1.f;
 
 	public:
 		static Element* create(Name name);

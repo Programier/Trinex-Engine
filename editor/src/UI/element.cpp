@@ -9,6 +9,7 @@ namespace Trinex::UI
 	Refl::Type* Element::initialize_type(Refl::NativeType<Element>* type)
 	{
 		type->bind("id", &Element::m_id);
+		type->bind("alpha", &Element::alpha);
 		return type;
 	}
 
@@ -127,7 +128,7 @@ namespace Trinex::UI
 	{
 		if (auto element = create(type))
 		{
-			element->m_owner = this;
+			element->m_owner     = this;
 			element->m_type_name = type;
 			element->document(m_document);
 			m_childs.push_back(element);
@@ -224,6 +225,11 @@ namespace Trinex::UI
 
 	static bool assign_style_property(Element* element, const StyleProperty& property)
 	{
+		if (property.name == "transition")
+		{
+			return true;
+		}
+
 		auto type = element->type();
 
 		auto visitor = [&]<typename T>(const T& value) -> bool {
@@ -237,7 +243,7 @@ namespace Trinex::UI
 	{
 		if (document() && document()->style_sheet())
 		{
-			const ComputedStyle style = document()->style_sheet()->resolve(this, m_style_state);
+			const ComputedStyle style = m_style_instance.update(document()->style_sheet()->resolve(this, m_style_state));
 
 			for (const StyleProperty& property : style.properties)
 			{
