@@ -3,6 +3,8 @@
 #include <Core/etl/string.hpp>
 #include <Core/etl/vector.hpp>
 #include <Core/types/name.hpp>
+#include <UI/style.hpp>
+#include <UI/style_sheet.hpp>
 #include <UI/types.hpp>
 
 namespace Trinex::UI
@@ -45,8 +47,11 @@ namespace Trinex::UI
 		Element* m_owner     = nullptr;
 		Document* m_document = nullptr;
 		Name m_id;
+		Name m_type_name;
 		Vector<Element*> m_childs;
 		Vector<Binding> m_bindings;
+		Vector<Name> m_styles;
+		Vector<StyleProperty> m_inline_properties;
 		FlatMap<Name, EventListener> m_listeners;
 		u32 m_references = 1;
 
@@ -68,6 +73,9 @@ namespace Trinex::UI
 		Element& deattach(Element* element);
 		Element& clear();
 		Element& document(Document* document);
+		Element& style(Name name);
+		Element& inline_property(const StyleProperty& property);
+		Element& apply_styles();
 
 		Element& update();
 
@@ -92,7 +100,10 @@ namespace Trinex::UI
 		inline Element* owner() const { return m_owner; }
 		inline Document* document() const { return m_document; }
 		inline const Name& id() const { return m_id; }
+		inline const Name& type_name() const { return m_type_name; }
 		inline const Vector<Element*>& childs() const { return m_childs; }
+		inline const Vector<Name>& styles() const { return m_styles; }
+		inline const Vector<StyleProperty>& inline_properties() const { return m_inline_properties; }
 		inline u32 references() const { return m_references; }
 		inline const Vector<Binding>& bindings() const { return m_bindings; }
 		virtual ~Element();

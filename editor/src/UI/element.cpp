@@ -108,6 +108,7 @@ namespace Trinex::UI
 		if (auto element = create(type))
 		{
 			element->m_owner = this;
+			element->m_type_name = type;
 			element->document(m_document);
 			m_childs.push_back(element);
 			return element;
@@ -185,11 +186,68 @@ namespace Trinex::UI
 		return *this;
 	}
 
+	Element& Element::style(Name name)
+	{
+		if (name.is_valid())
+		{
+			m_styles.push_back(name);
+		}
+
+		return *this;
+	}
+
+	Element& Element::inline_property(const StyleProperty& property)
+	{
+		m_inline_properties.push_back(property);
+		return *this;
+	}
+
+	static bool assign_style_property(Element* element, const StyleProperty& property)
+	{
+		auto type = element->type();
+
+		auto visitor = [&]<typename T>(const T& value) -> bool {
+			return type->assign(element, property.name, &value, UI::Refl::NativeType<T>::instance());
+		};
+
+		return etl::visit(visitor, property.value.value);
+	}
+
+	Element& Element::apply_styles()
+	{
+		if (document() && document()->style_sheet())
+		{
+			const ComputedStyle style = document()->style_sheet()->resolve(this);
+
+			for (const StyleProperty& property : style.properties)
+			{
+				if (!assign_style_property(this, property))
+				{
+					trinex_error(Log::Editor, "Failed to assign style property '%s' of element '%s' at %u:%u",
+					             property.name.c_str(), type_name().c_str(), property.location.line, property.location.column);
+				}
+			}
+		}
+
+		for (const StyleProperty& property : m_inline_properties)
+		{
+			if (!assign_style_property(this, property))
+			{
+				trinex_error(Log::Editor, "Failed to assign inline property '%s' of element '%s' at %u:%u", property.name.c_str(),
+				             type_name().c_str(), property.location.line, property.location.column);
+			}
+		}
+
+		return *this;
+	}
+
 	Element& Element::update()
 	{
 		auto resolve_binding = [this](const Binding& binding) {
 			return document()->bindings()->resolve(document(), binding.path.data(), binding.path.size());
 		};
+
+		apply_styles();
 
 		for (auto& binding : m_bindings)
 		{

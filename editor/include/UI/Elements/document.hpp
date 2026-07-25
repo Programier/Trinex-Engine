@@ -16,6 +16,7 @@ namespace Trinex::UI
 	private:
 		Refl::NativeType<void>* m_bindings;
 		FlatMap<Name, Element*> m_elements;
+		StyleSheet m_style_sheet;
 		bool m_open = false;
 
 	public:
@@ -33,5 +34,7 @@ namespace Trinex::UI
 		Element* find_element(Name id) const;
 
 		inline Refl::NativeType<void>* bindings() const { return m_bindings; }
+		inline StyleSheet* style_sheet() { return &m_style_sheet; }
+		inline const StyleSheet* style_sheet() const { return &m_style_sheet; }
 	};
 }// namespace Trinex::UI

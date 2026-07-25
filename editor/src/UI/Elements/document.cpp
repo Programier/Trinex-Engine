@@ -17,7 +17,9 @@ Document <- DocumentItem* ~EndOfFile
 
 DocumentItem <- Include / Style / Node
 Include      <- 'include' String ';'?
-Style        <- 'style' Identifier '{' Property* '}'
+Style        <- 'style' StyleSelector '{' Property* '}'
+StyleSelector <- Identifier PseudoClass*
+PseudoClass   <- ':' Identifier
 
 Node           <- Identifier '{' Member* '}'
 Member         <- PropertyMember / NodeMember
@@ -75,8 +77,8 @@ _Comment    <- '//' (![\r\n] .)*
 		};
 
 		struct Style {
-			String name;
-			Vector<Property> properties;
+			StyleSelector selector;
+			Vector<StyleProperty> properties;
 			SourceLocation location;
 		};
 
@@ -89,7 +91,7 @@ _Comment    <- '//' (![\r\n] .)*
 
 		using Member       = Variant<Property, Node>;
 		using DocumentItem = Variant<Include, Style, Node>;
-		using StyleMap     = FlatMap<Name, Vector<Property>>;
+		using StyleMap     = StyleSheet;
 
 		namespace Detail
 		{
@@ -159,6 +161,40 @@ _Comment    <- '//' (![\r\n] .)*
 				}
 
 				return result;
+			}
+
+			inline StyleProperty to_style_property(const Property& property)
+			{
+				return StyleProperty{
+				        .name     = property.name,
+				        .value    = property.value,
+				        .location = property.location,
+				};
+			}
+
+			inline StyleState state_of(const Name& pseudo_class)
+			{
+				if (pseudo_class == "hover")
+				{
+					return StyleState::Hover;
+				}
+
+				if (pseudo_class == "active")
+				{
+					return StyleState::Active;
+				}
+
+				if (pseudo_class == "focus" || pseudo_class == "focused")
+				{
+					return StyleState::Focus;
+				}
+
+				if (pseudo_class == "disabled")
+				{
+					return StyleState::Disabled;
+				}
+
+				return StyleState::Undefined;
 			}
 		}// namespace Detail
 
@@ -388,6 +424,35 @@ _Comment    <- '//' (![\r\n] .)*
 					return node;
 				};
 
+				m_parser["PseudoClass"] = [](const peg::SemanticValues& values) {
+					return Detail::any_ref<Identifier>(values[0]);
+				};
+
+				m_parser["StyleSelector"] = [](const peg::SemanticValues& values) {
+					StyleSelector selector;
+					selector.name        = Detail::any_ref<Identifier>(values[0]);
+					selector.specificity = 1;
+
+					for (usize index = 1; index < values.size(); ++index)
+					{
+						const Name pseudo_class = Detail::any_ref<Identifier>(values[index]);
+						const StyleState state  = Detail::state_of(pseudo_class);
+
+						if (state != StyleState::Undefined)
+						{
+							selector.states |= state;
+							selector.specificity += 10;
+						}
+						else
+						{
+							trinex_error(Log::Editor, "Unknown style pseudo-class '%s' at %u:%u", pseudo_class.c_str(),
+							             Detail::location_of(values).line, Detail::location_of(values).column);
+						}
+					}
+
+					return selector;
+				};
+
 				m_parser["Include"] = [](const peg::SemanticValues& values) {
 					const auto& value  = Detail::any_ref<ValueDesc>(values[0]);
 					const String* path = etl::get_if<String>(&value.value);
@@ -399,10 +464,8 @@ _Comment    <- '//' (![\r\n] .)*
 				};
 
 				m_parser["Style"] = [](const peg::SemanticValues& values) {
-					const auto& identifier = Detail::any_ref<Identifier>(values[0]);
-
 					Style style{
-					        .name       = identifier,
+					        .selector   = Detail::any_ref<StyleSelector>(values[0]),
 					        .properties = {},
 					        .location   = Detail::location_of(values),
 					};
@@ -411,7 +474,7 @@ _Comment    <- '//' (![\r\n] .)*
 
 					for (usize index = 1; index < values.size(); ++index)
 					{
-						style.properties.push_back(Detail::any_ref<Property>(values[index]));
+						style.properties.push_back(Detail::to_style_property(Detail::any_ref<Property>(values[index])));
 					}
 
 					return style;
@@ -556,7 +619,7 @@ _Comment    <- '//' (![\r\n] .)*
 			return true;
 		}
 
-		static bool create_elements(Document* document, Element* owner, const Node& node, const StyleMap& styles)
+		static bool create_elements(Document* document, Element* owner, const Node& node)
 		{
 			auto element = owner->attach(node.type);
 
@@ -589,19 +652,7 @@ _Comment    <- '//' (![\r\n] .)*
 
 			for (const Name& style_name : style_names)
 			{
-				auto it = styles.find(style_name);
-
-				if (it == styles.end())
-				{
-					trinex_error(Log::Editor, "Unknown style '%s' used by element '%s' at %u:%u", style_name.c_str(),
-					             node.type.c_str(), node.location.line, node.location.column);
-					return false;
-				}
-
-				if (!apply_properties(element, node, it->second))
-				{
-					return false;
-				}
+				element->style(style_name);
 			}
 
 			for (const Property& prop : node.properties)
@@ -611,7 +662,9 @@ _Comment    <- '//' (![\r\n] .)*
 					continue;
 				}
 
-				if (!apply_property(element, node, prop))
+				element->inline_property(Detail::to_style_property(prop));
+
+				if (prop.name == "id" && !apply_property(element, node, prop))
 				{
 					return false;
 				}
@@ -624,7 +677,7 @@ _Comment    <- '//' (![\r\n] .)*
 
 			for (const Node& child : node.children)
 			{
-				if (!create_elements(document, element, child, styles))
+				if (!create_elements(document, element, child))
 				{
 					return false;
 				}
@@ -670,7 +723,7 @@ _Comment    <- '//' (![\r\n] .)*
 					}
 					else if constexpr (std::is_same_v<Type, Style>)
 					{
-						styles[value.name] = value.properties;
+						styles.add_rule(value.selector, value.properties, value.location);
 						return true;
 					}
 					else
@@ -716,10 +769,11 @@ _Comment    <- '//' (![\r\n] .)*
 
 		clear();
 		m_elements.clear();
+		m_style_sheet = etl::move(styles);
 
 		for (const Markup::Node& root : roots)
 		{
-			if (!create_elements(this, this, root, styles))
+			if (!create_elements(this, this, root))
 			{
 				clear();
 				m_elements.clear();
