@@ -6,6 +6,7 @@
 #include <RHI/context.hpp>
 #include <RHI/handles.hpp>
 #include <RHI/rhi.hpp>
+#include <UI/widget.hpp>
 #include <Window/window.hpp>
 
 namespace Trinex::UI

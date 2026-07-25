@@ -100,8 +100,8 @@ namespace Trinex::UI
 	/////////////////////// WINDOWS AND CONTAINERS ///////////////////////
 	bool begin_window(StringView name, bool* open = nullptr, const WindowOptions& options = {});
 	void end_window();
-	void register_widget(Context* context, Widget* widget);
-	void unregister_widget(Context* context, Widget* widget);
+	void register_widget(Context* context, class Widget* widget);
+	void unregister_widget(Context* context, class Widget* widget);
 	bool begin_panel(StringView id_text, const PanelOptions& options = {});
 	void end_panel();
 	bool begin_group_panel(StringView label, const PanelOptions& options = {});

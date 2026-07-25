@@ -1,5 +1,6 @@
 #include <Core/etl/algorithm.hpp>
 #include <UI/Elements/document.hpp>
+#include <UI/api.hpp>
 #include <UI/element.hpp>
 #include <UI/reflection.hpp>
 
@@ -202,34 +203,38 @@ namespace Trinex::UI
 			}
 		}
 
-		auto flags = on_begin_update();
-
-		if (flags & UpdateFlags::Readback)
+		UI::push_id(this);
 		{
-			for (auto& binding : m_bindings)
+			auto flags = on_begin_update();
+
+			if (flags & UpdateFlags::Readback)
 			{
-				if (!(binding.path.mode & Markup::BindingPath::Mode::Write))
-					continue;
-
-				auto resolve = resolve_binding(binding);
-
-				if (resolve.second == nullptr || !resolve.second->assign(resolve.first, binding.value, binding.type))
+				for (auto& binding : m_bindings)
 				{
-					trinex_error(Log::Editor, "Failed to update binding");
+					if (!(binding.path.mode & Markup::BindingPath::Mode::Write))
+						continue;
+
+					auto resolve = resolve_binding(binding);
+
+					if (resolve.second == nullptr || !resolve.second->assign(resolve.first, binding.value, binding.type))
+					{
+						trinex_error(Log::Editor, "Failed to update binding");
+					}
 				}
 			}
-		}
 
-		if (flags & UpdateFlags::Childs)
-		{
-			for (Element* child : m_childs)
+			if (flags & UpdateFlags::Childs)
 			{
-				child->update();
+				for (Element* child : m_childs)
+				{
+					child->update();
+				}
 			}
-		}
 
-		if (flags & UpdateFlags::End)
-			on_end_update();
+			if (flags & UpdateFlags::End)
+				on_end_update();
+		}
+		UI::pop_id();
 
 		return *this;
 	}

@@ -1,5 +1,5 @@
 #pragma once
-#include <UI/types.hpp>
+#include <UI/widget.hpp>
 
 namespace Trinex
 {
@@ -7,6 +7,5 @@ namespace Trinex
 	{
 	public:
 		ConsoleWidget(const UI::WindowOptions& options = {}, bool open = false);
-		void on_render() override;
 	};
 }// namespace Trinex

@@ -1,5 +1,6 @@
 #include "internal.hpp"
 #include <Core/math/math.hpp>
+#include <UI/widget.hpp>
 #include <imgui_stacklayout.h>
 
 namespace Trinex::UI
