@@ -115,7 +115,14 @@ namespace Trinex::UI::Refl
 			if constexpr (requires { typename T::Super; })
 			{
 				using Super = typename T::Super;
-				return NativeType<Super>::instance();
+				if constexpr (requires { Super::reflection(); })
+				{
+					return Super::reflection();
+				}
+				else
+				{
+					return NativeType<Super>::instance();
+				}
 			}
 			else
 			{

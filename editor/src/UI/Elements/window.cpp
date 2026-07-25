@@ -12,6 +12,9 @@ namespace Trinex::UI
 		trinex_ui_bind_property(title_align);
 		trinex_ui_bind_property(rounding);
 		trinex_ui_bind_property(border_size);
+		trinex_ui_bind_property(background_color);
+		trinex_ui_bind_property(title_color);
+		trinex_ui_bind_property(resize_grip_color);
 	}
 
 	Window& Window::push_style()
@@ -23,12 +26,20 @@ namespace Trinex::UI
 		push_style_var(ImGuiStyleVar_WindowTitleAlign, title_align);
 		push_style_var(ImGuiStyleVar_WindowRounding, rounding);
 		push_style_var(ImGuiStyleVar_WindowBorderSize, border_size);
+		push_style_color(ImGuiCol_WindowBg, background_color);
+		push_style_color(ImGuiCol_TitleBg, title_color);
+		push_style_color(ImGuiCol_TitleBgActive, title_color);
+		push_style_color(ImGuiCol_TitleBgCollapsed, title_color);
+		push_style_color(ImGuiCol_ResizeGrip, resize_grip_color);
+		push_style_color(ImGuiCol_ResizeGripHovered, resize_grip_color);
+		push_style_color(ImGuiCol_ResizeGripActive, resize_grip_color);
 
 		return *this;
 	}
 
 	Window& Window::pop_style()
 	{
+		ImGui::PopStyleColor(7);
 		ImGui::PopStyleVar(5);
 		return *Super::pop_style().as<This>();
 	}

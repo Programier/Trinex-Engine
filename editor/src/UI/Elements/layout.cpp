@@ -15,6 +15,27 @@ namespace Trinex::UI
 		reflection()->bind("size", &This::size);
 		reflection()->bind("border", &This::border);
 		reflection()->bind("background", &This::background);
+		trinex_ui_bind_property(padding);
+		trinex_ui_bind_property(rounding);
+		trinex_ui_bind_property(border_size);
+		trinex_ui_bind_property(background_color);
+	}
+
+	Panel& Panel::push_style()
+	{
+		Super::push_style();
+		push_style_var(ImGuiStyleVar_WindowPadding, padding);
+		push_style_var(ImGuiStyleVar_ChildRounding, rounding);
+		push_style_var(ImGuiStyleVar_ChildBorderSize, border_size);
+		push_style_color(ImGuiCol_ChildBg, background_color);
+		return *this;
+	}
+
+	Panel& Panel::pop_style()
+	{
+		ImGui::PopStyleColor();
+		ImGui::PopStyleVar(3);
+		return *Super::pop_style().as<This>();
 	}
 
 	Element::UpdateFlags Panel::on_begin_update()
@@ -43,6 +64,27 @@ namespace Trinex::UI
 		reflection()->bind("size", &This::size);
 		reflection()->bind("border", &This::border);
 		reflection()->bind("background", &This::background);
+		trinex_ui_bind_property(padding);
+		trinex_ui_bind_property(rounding);
+		trinex_ui_bind_property(border_size);
+		trinex_ui_bind_property(background_color);
+	}
+
+	GroupPanel& GroupPanel::push_style()
+	{
+		Super::push_style();
+		push_style_var(ImGuiStyleVar_WindowPadding, padding);
+		push_style_var(ImGuiStyleVar_ChildRounding, rounding);
+		push_style_var(ImGuiStyleVar_ChildBorderSize, border_size);
+		push_style_color(ImGuiCol_ChildBg, background_color);
+		return *this;
+	}
+
+	GroupPanel& GroupPanel::pop_style()
+	{
+		ImGui::PopStyleColor();
+		ImGui::PopStyleVar(3);
+		return *Super::pop_style().as<This>();
 	}
 
 	Element::UpdateFlags GroupPanel::on_begin_update()
@@ -140,6 +182,33 @@ namespace Trinex::UI
 		reflection()->bind("id", &This::id);
 		reflection()->bind("size", &This::size);
 		reflection()->bind("border", &This::border);
+		trinex_ui_bind_property(padding);
+		trinex_ui_bind_property(rounding);
+		trinex_ui_bind_property(border_size);
+		trinex_ui_bind_property(background_color);
+		trinex_ui_bind_property(scrollbar_bg_color);
+		trinex_ui_bind_property(scrollbar_grab_color);
+	}
+
+	ScrollArea& ScrollArea::push_style()
+	{
+		Super::push_style();
+		push_style_var(ImGuiStyleVar_WindowPadding, padding);
+		push_style_var(ImGuiStyleVar_ChildRounding, rounding);
+		push_style_var(ImGuiStyleVar_ChildBorderSize, border_size);
+		push_style_color(ImGuiCol_ChildBg, background_color);
+		push_style_color(ImGuiCol_ScrollbarBg, scrollbar_bg_color);
+		push_style_color(ImGuiCol_ScrollbarGrab, scrollbar_grab_color);
+		push_style_color(ImGuiCol_ScrollbarGrabHovered, scrollbar_grab_color);
+		push_style_color(ImGuiCol_ScrollbarGrabActive, scrollbar_grab_color);
+		return *this;
+	}
+
+	ScrollArea& ScrollArea::pop_style()
+	{
+		ImGui::PopStyleColor(5);
+		ImGui::PopStyleVar(3);
+		return *Super::pop_style().as<This>();
 	}
 
 	Element::UpdateFlags ScrollArea::on_begin_update()
@@ -188,7 +257,34 @@ namespace Trinex::UI
 		return *this;
 	}
 
-	trinex_implement_ui_element(Separator) {}
+	trinex_implement_ui_element(Separator)
+	{
+		trinex_ui_bind_property(size);
+		trinex_ui_bind_property(text_border);
+		trinex_ui_bind_property(text_align);
+		trinex_ui_bind_property(text_padding);
+		trinex_ui_bind_property(color);
+	}
+
+	Separator& Separator::push_style()
+	{
+		Super::push_style();
+		push_style_var(ImGuiStyleVar_SeparatorSize, size);
+		push_style_var(ImGuiStyleVar_SeparatorTextBorderSize, text_border);
+		push_style_var(ImGuiStyleVar_SeparatorTextAlign, text_align);
+		push_style_var(ImGuiStyleVar_SeparatorTextPadding, text_padding);
+		push_style_color(ImGuiCol_Separator, color);
+		push_style_color(ImGuiCol_SeparatorHovered, color);
+		push_style_color(ImGuiCol_SeparatorActive, color);
+		return *this;
+	}
+
+	Separator& Separator::pop_style()
+	{
+		ImGui::PopStyleColor(3);
+		ImGui::PopStyleVar(4);
+		return *Super::pop_style().as<This>();
+	}
 
 	Element::UpdateFlags Separator::on_begin_update()
 	{

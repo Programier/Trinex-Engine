@@ -8,6 +8,25 @@ namespace Trinex::UI
 	{
 		reflection()->bind("label", &This::label);
 		reflection()->bind("on_click", &This::on_click);
+		trinex_ui_bind_property(text_align);
+		trinex_ui_bind_property(background_color);
+	}
+
+	Button& Button::push_style()
+	{
+		Super::push_style();
+		push_style_var(ImGuiStyleVar_ButtonTextAlign, text_align);
+		push_style_color(ImGuiCol_Button, background_color);
+		push_style_color(ImGuiCol_ButtonHovered, background_color);
+		push_style_color(ImGuiCol_ButtonActive, background_color);
+		return *this;
+	}
+
+	Button& Button::pop_style()
+	{
+		ImGui::PopStyleColor(3);
+		ImGui::PopStyleVar();
+		return *Super::pop_style().as<This>();
 	}
 
 	Element::UpdateFlags Button::on_begin_update()

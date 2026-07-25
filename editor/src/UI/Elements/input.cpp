@@ -34,6 +34,22 @@ namespace Trinex::UI
 		reflection()->bind("label", &This::label);
 		reflection()->bind("hint", &This::hint);
 		reflection()->bind("value", &This::value);
+		trinex_ui_bind_property(cursor_color);
+		trinex_ui_bind_property(selected_bg_color);
+	}
+
+	InputText& InputText::push_style()
+	{
+		Super::push_style();
+		push_style_color(ImGuiCol_InputTextCursor, cursor_color);
+		push_style_color(ImGuiCol_TextSelectedBg, selected_bg_color);
+		return *this;
+	}
+
+	InputText& InputText::pop_style()
+	{
+		ImGui::PopStyleColor(2);
+		return *Super::pop_style().as<This>();
 	}
 
 	Element::UpdateFlags InputText::on_begin_update()

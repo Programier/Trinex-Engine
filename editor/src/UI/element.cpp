@@ -14,6 +14,9 @@ namespace Trinex::UI
 		type->bind("inner_spacing", &Element::inner_spacing);
 		type->bind("indent", &Element::indent);
 		type->bind("align", &Element::align);
+		type->bind("text_color", &Element::text_color);
+		type->bind("border_color", &Element::border_color);
+		type->bind("border_shadow_color", &Element::border_shadow_color);
 		return type;
 	}
 
@@ -400,11 +403,15 @@ namespace Trinex::UI
 		push_style_var(ImGuiStyleVar_Alpha, alpha);
 		push_style_var(ImGuiStyleVar_IndentSpacing, indent);
 		push_style_var(ImGuiStyleVar_LayoutAlign, align);
+		push_style_color(ImGuiCol_Text, text_color);
+		push_style_color(ImGuiCol_Border, border_color);
+		push_style_color(ImGuiCol_BorderShadow, border_shadow_color);
 		return *this;
 	}
 
 	Element& Element::pop_style()
 	{
+		ImGui::PopStyleColor(3);
 		ImGui::PopStyleVar(5);
 		return *this;
 	}

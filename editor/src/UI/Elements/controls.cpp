@@ -23,6 +23,25 @@ namespace Trinex::UI
 	{
 		reflection()->bind("label", &This::label);
 		reflection()->bind("on_click", &This::on_click);
+		trinex_ui_bind_property(text_align);
+		trinex_ui_bind_property(background_color);
+	}
+
+	SmallButton& SmallButton::push_style()
+	{
+		Super::push_style();
+		push_style_var(ImGuiStyleVar_ButtonTextAlign, text_align);
+		push_style_color(ImGuiCol_Button, background_color);
+		push_style_color(ImGuiCol_ButtonHovered, background_color);
+		push_style_color(ImGuiCol_ButtonActive, background_color);
+		return *this;
+	}
+
+	SmallButton& SmallButton::pop_style()
+	{
+		ImGui::PopStyleColor(3);
+		ImGui::PopStyleVar();
+		return *Super::pop_style().as<This>();
 	}
 
 	Element::UpdateFlags SmallButton::on_begin_update()
@@ -36,6 +55,25 @@ namespace Trinex::UI
 		reflection()->bind("label", &This::label);
 		reflection()->bind("size", &This::size);
 		reflection()->bind("on_click", &This::on_click);
+		trinex_ui_bind_property(text_align);
+		trinex_ui_bind_property(background_color);
+	}
+
+	IconButton& IconButton::push_style()
+	{
+		Super::push_style();
+		push_style_var(ImGuiStyleVar_ButtonTextAlign, text_align);
+		push_style_color(ImGuiCol_Button, background_color);
+		push_style_color(ImGuiCol_ButtonHovered, background_color);
+		push_style_color(ImGuiCol_ButtonActive, background_color);
+		return *this;
+	}
+
+	IconButton& IconButton::pop_style()
+	{
+		ImGui::PopStyleColor(3);
+		ImGui::PopStyleVar();
+		return *Super::pop_style().as<This>();
 	}
 
 	Element::UpdateFlags IconButton::on_begin_update()
@@ -49,6 +87,25 @@ namespace Trinex::UI
 		reflection()->bind("label", &This::label);
 		reflection()->bind("size", &This::size);
 		reflection()->bind("on_click", &This::on_click);
+		trinex_ui_bind_property(text_align);
+		trinex_ui_bind_property(background_color);
+	}
+
+	GhostButton& GhostButton::push_style()
+	{
+		Super::push_style();
+		push_style_var(ImGuiStyleVar_ButtonTextAlign, text_align);
+		push_style_color(ImGuiCol_Button, background_color);
+		push_style_color(ImGuiCol_ButtonHovered, background_color);
+		push_style_color(ImGuiCol_ButtonActive, background_color);
+		return *this;
+	}
+
+	GhostButton& GhostButton::pop_style()
+	{
+		ImGui::PopStyleColor(3);
+		ImGui::PopStyleVar();
+		return *Super::pop_style().as<This>();
 	}
 
 	Element::UpdateFlags GhostButton::on_begin_update()
@@ -61,15 +118,30 @@ namespace Trinex::UI
 		reflection()->bind("label", &This::label);
 		reflection()->bind("size", &This::size);
 		reflection()->bind("on_click", &This::on_click);
+		trinex_ui_bind_property(text_align);
+		trinex_ui_bind_property(background_color);
+	}
+
+	DangerButton& DangerButton::push_style()
+	{
+		Super::push_style();
+		push_style_var(ImGuiStyleVar_ButtonTextAlign, text_align);
+		push_style_color(ImGuiCol_Button, background_color);
+		push_style_color(ImGuiCol_ButtonHovered, background_color);
+		push_style_color(ImGuiCol_ButtonActive, background_color);
+		return *this;
+	}
+
+	DangerButton& DangerButton::pop_style()
+	{
+		ImGui::PopStyleColor(3);
+		ImGui::PopStyleVar();
+		return *Super::pop_style().as<This>();
 	}
 
 	Element::UpdateFlags DangerButton::on_begin_update()
 	{
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.55f, 0.12f, 0.12f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.70f, 0.16f, 0.16f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.45f, 0.08f, 0.08f, 1.0f));
 		const bool clicked = ImGui::Button(label.c_str(), to_imgui_size(size));
-		ImGui::PopStyleColor(3);
 		return handle_click(this, clicked, on_click);
 	}
 
@@ -91,6 +163,20 @@ namespace Trinex::UI
 		reflection()->bind("value", &This::value);
 		reflection()->bind("option", &This::option);
 		reflection()->bind("on_click", &This::on_click);
+		trinex_ui_bind_property(check_color);
+	}
+
+	RadioButton& RadioButton::push_style()
+	{
+		Super::push_style();
+		push_style_color(ImGuiCol_CheckMark, check_color);
+		return *this;
+	}
+
+	RadioButton& RadioButton::pop_style()
+	{
+		ImGui::PopStyleColor();
+		return *Super::pop_style().as<This>();
 	}
 
 	Element::UpdateFlags RadioButton::on_begin_update()
@@ -104,6 +190,27 @@ namespace Trinex::UI
 		reflection()->bind("selected", &This::selected);
 		reflection()->bind("size", &This::size);
 		reflection()->bind("on_click", &This::on_click);
+		trinex_ui_bind_property(rounding);
+		trinex_ui_bind_property(text_align);
+		trinex_ui_bind_property(background_color);
+	}
+
+	Selectable& Selectable::push_style()
+	{
+		Super::push_style();
+		push_style_var(ImGuiStyleVar_SelectableRounding, rounding);
+		push_style_var(ImGuiStyleVar_SelectableTextAlign, text_align);
+		push_style_color(ImGuiCol_Header, background_color);
+		push_style_color(ImGuiCol_HeaderHovered, background_color);
+		push_style_color(ImGuiCol_HeaderActive, background_color);
+		return *this;
+	}
+
+	Selectable& Selectable::pop_style()
+	{
+		ImGui::PopStyleColor(3);
+		ImGui::PopStyleVar(2);
+		return *Super::pop_style().as<This>();
 	}
 
 	Element::UpdateFlags Selectable::on_begin_update()
@@ -116,6 +223,21 @@ namespace Trinex::UI
 		reflection()->bind("value", &This::value);
 		reflection()->bind("size", &This::size);
 		reflection()->bind("overlay", &This::overlay);
+		trinex_ui_bind_property(color);
+	}
+
+	ProgressBar& ProgressBar::push_style()
+	{
+		Super::push_style();
+		push_style_color(ImGuiCol_PlotHistogram, color);
+		push_style_color(ImGuiCol_PlotHistogramHovered, color);
+		return *this;
+	}
+
+	ProgressBar& ProgressBar::pop_style()
+	{
+		ImGui::PopStyleColor(2);
+		return *Super::pop_style().as<This>();
 	}
 
 	Element::UpdateFlags ProgressBar::on_begin_update()

@@ -15,6 +15,9 @@ namespace Trinex::UI
 		Vec2 title_align = {0.5f, 0.5f};
 		f32 rounding     = 0.f;
 		f32 border_size  = 0.f;
+		Vec4 background_color  = {0.06f, 0.06f, 0.10f, 0.94f};
+		Vec4 title_color       = {0.09f, 0.09f, 0.09f, 1.00f};
+		Vec4 resize_grip_color = {0.20f, 0.25f, 0.30f, 0.94f};
 
 	public:
 		Window& push_style() override;

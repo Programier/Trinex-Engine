@@ -12,7 +12,13 @@ namespace Trinex::UI
 		Size size       = Size(0.0f, 0.0f);
 		bool border     = true;
 		bool background = true;
+		Vec2 padding    = {8.0f, 8.0f};
+		f32 rounding    = 0.0f;
+		f32 border_size = 1.0f;
+		Vec4 background_color = {0.00f, 0.00f, 0.00f, 0.00f};
 
+		Panel& push_style() override;
+		Panel& pop_style() override;
 		UpdateFlags on_begin_update() override;
 		Element& on_end_update(UpdateFlags flags) override;
 	};
@@ -26,7 +32,13 @@ namespace Trinex::UI
 		Size size       = Size(0.0f, 0.0f);
 		bool border     = true;
 		bool background = true;
+		Vec2 padding    = {8.0f, 8.0f};
+		f32 rounding    = 0.0f;
+		f32 border_size = 1.0f;
+		Vec4 background_color = {0.00f, 0.00f, 0.00f, 0.00f};
 
+		GroupPanel& push_style() override;
+		GroupPanel& pop_style() override;
 		UpdateFlags on_begin_update() override;
 		Element& on_end_update(UpdateFlags flags) override;
 	};
@@ -85,7 +97,15 @@ namespace Trinex::UI
 		String id;
 		Size size   = Size(0.0f, 0.0f);
 		bool border = false;
+		Vec2 padding    = {8.0f, 8.0f};
+		f32 rounding    = 0.0f;
+		f32 border_size = 1.0f;
+		Vec4 background_color       = {0.00f, 0.00f, 0.00f, 0.00f};
+		Vec4 scrollbar_bg_color     = {0.02f, 0.02f, 0.02f, 0.53f};
+		Vec4 scrollbar_grab_color   = {0.31f, 0.31f, 0.31f, 1.00f};
 
+		ScrollArea& push_style() override;
+		ScrollArea& pop_style() override;
 		UpdateFlags on_begin_update() override;
 		Element& on_end_update(UpdateFlags flags) override;
 	};
@@ -107,6 +127,14 @@ namespace Trinex::UI
 		trinex_ui_element(Separator, Element);
 
 	public:
+		f32 size        = 1.0f;
+		f32 text_border = 3.0f;
+		Vec2 text_align = {0.0f, 0.5f};
+		Vec2 text_padding = {20.0f, 3.0f};
+		Vec4 color = {0.12f, 0.12f, 0.18f, 0.85f};
+
+		Separator& push_style() override;
+		Separator& pop_style() override;
 		UpdateFlags on_begin_update() override;
 	};
 
