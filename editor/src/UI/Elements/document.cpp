@@ -479,13 +479,13 @@ _Comment    <- '//' (![\r\n] .)*
 			return false;
 		}
 
-		clear_childs();
+		clear();
 
 		for (const Markup::Node& root : roots)
 		{
 			if (!create_elements(this, root))
 			{
-				clear_childs();
+				clear();
 				return false;
 			}
 		}
