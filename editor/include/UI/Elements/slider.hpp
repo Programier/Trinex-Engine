@@ -1,11 +1,11 @@
 #pragma once
-#include <UI/element.hpp>
+#include <UI/Elements/frame.hpp>
 
 namespace Trinex::UI
 {
-	class SliderFloat : public Element
+	class SliderFloat : public Frame
 	{
-		trinex_ui_element(SliderFloat, Element);
+		trinex_ui_element(SliderFloat, Frame);
 
 	public:
 		String label;
@@ -17,9 +17,9 @@ namespace Trinex::UI
 		UpdateFlags on_begin_update() override;
 	};
 
-	class SliderInt : public Element
+	class SliderInt : public Frame
 	{
-		trinex_ui_element(SliderInt, Element);
+		trinex_ui_element(SliderInt, Frame);
 
 	public:
 		String label;

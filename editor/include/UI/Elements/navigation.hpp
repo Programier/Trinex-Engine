@@ -15,7 +15,7 @@ namespace Trinex::UI
 		bool disabled     = false;
 
 		UpdateFlags on_begin_update() override;
-		Element& on_end_update() override;
+		Element& on_end_update(UpdateFlags flags) override;
 	};
 
 	class SectionHeader : public Element
@@ -30,7 +30,7 @@ namespace Trinex::UI
 		bool disabled     = false;
 
 		UpdateFlags on_begin_update() override;
-		Element& on_end_update() override;
+		Element& on_end_update(UpdateFlags flags) override;
 	};
 
 	class TreeNode : public Element
@@ -45,7 +45,7 @@ namespace Trinex::UI
 		bool selected     = false;
 
 		UpdateFlags on_begin_update() override;
-		Element& on_end_update() override;
+		Element& on_end_update(UpdateFlags flags) override;
 	};
 
 	class TreeLeaf : public Element
@@ -70,7 +70,7 @@ namespace Trinex::UI
 		String id;
 
 		UpdateFlags on_begin_update() override;
-		Element& on_end_update() override;
+		Element& on_end_update(UpdateFlags flags) override;
 	};
 
 	class Tab : public Element

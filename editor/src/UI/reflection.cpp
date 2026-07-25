@@ -2,6 +2,7 @@
 #include <Core/string_functions.hpp>
 #include <UI/element.hpp>
 #include <UI/reflection.hpp>
+#include <imgui.h>
 
 namespace Trinex::UI::Refl
 {
@@ -225,6 +226,7 @@ namespace Trinex::UI::Refl
 		return true;
 	}
 
+	template<typename VectorType>
 	static bool container_to_vec2(void* dst, const void* src, const AssignHistory* history)
 	{
 		const auto& values = *static_cast<const Markup::Container*>(src);
@@ -234,16 +236,17 @@ namespace Trinex::UI::Refl
 			return false;
 		}
 
-		Vec2 result;
+		VectorType result;
 		if (!value_to_f32(result.x, values[0]) || !value_to_f32(result.y, values[1]))
 		{
 			return false;
 		}
 
-		*static_cast<Vec2*>(dst) = result;
+		*static_cast<VectorType*>(dst) = result;
 		return true;
 	}
 
+	template<typename VectorType>
 	static bool container_to_vec3(void* dst, const void* src, const AssignHistory* history)
 	{
 		const auto& values = *static_cast<const Markup::Container*>(src);
@@ -253,16 +256,17 @@ namespace Trinex::UI::Refl
 			return false;
 		}
 
-		Vec3 result;
+		VectorType result;
 		if (!value_to_f32(result.x, values[0]) || !value_to_f32(result.y, values[1]) || !value_to_f32(result.z, values[2]))
 		{
 			return false;
 		}
 
-		*static_cast<Vec3*>(dst) = result;
+		*static_cast<VectorType*>(dst) = result;
 		return true;
 	}
 
+	template<typename VectorType>
 	static bool container_to_vec4(void* dst, const void* src, const AssignHistory* history)
 	{
 		const auto& values = *static_cast<const Markup::Container*>(src);
@@ -272,14 +276,14 @@ namespace Trinex::UI::Refl
 			return false;
 		}
 
-		Vec4 result;
+		VectorType result;
 		if (!value_to_f32(result.x, values[0]) || !value_to_f32(result.y, values[1]) || !value_to_f32(result.z, values[2]) ||
 		    !value_to_f32(result.w, values[3]))
 		{
 			return false;
 		}
 
-		*static_cast<Vec4*>(dst) = result;
+		*static_cast<VectorType*>(dst) = result;
 		return true;
 	}
 
@@ -287,7 +291,7 @@ namespace Trinex::UI::Refl
 	{
 		Vec2 result;
 
-		if (!container_to_vec2(&result, src, history))
+		if (!container_to_vec2<Vec2>(&result, src, history))
 		{
 			return false;
 		}
@@ -324,9 +328,11 @@ namespace Trinex::UI::Refl
 
 		NativeType<Unit>::instance()->bind<f32>(f32_to_unit);
 		NativeType<Unit>::instance()->bind<i32>(i32_to_unit);
-		NativeType<Vec2>::instance()->bind<Markup::Container>(container_to_vec2);
-		NativeType<Vec3>::instance()->bind<Markup::Container>(container_to_vec3);
-		NativeType<Vec4>::instance()->bind<Markup::Container>(container_to_vec4);
+		NativeType<Vec2>::instance()->bind<Markup::Container>(container_to_vec2<Vec2>);
+		NativeType<Vec3>::instance()->bind<Markup::Container>(container_to_vec3<Vec3>);
+		NativeType<Vec4>::instance()->bind<Markup::Container>(container_to_vec4<Vec4>);
+		NativeType<ImVec2>::instance()->bind<Markup::Container>(container_to_vec2<ImVec2>);
+		NativeType<ImVec4>::instance()->bind<Markup::Container>(container_to_vec4<ImVec4>);
 		NativeType<Size>::instance()->bind<Markup::Container>(container_to_size);
 	}
 }// namespace Trinex::UI::Refl

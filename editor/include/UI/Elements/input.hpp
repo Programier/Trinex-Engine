@@ -1,11 +1,11 @@
 #pragma once
-#include <UI/element.hpp>
+#include <UI/Elements/frame.hpp>
 
 namespace Trinex::UI
 {
-	class InputFloat : public Element
+	class InputFloat : public Frame
 	{
-		trinex_ui_element(InputFloat, Element);
+		trinex_ui_element(InputFloat, Frame);
 
 	public:
 		String label;
@@ -15,9 +15,9 @@ namespace Trinex::UI
 		UpdateFlags on_begin_update() override;
 	};
 
-	class InputInt : public Element
+	class InputInt : public Frame
 	{
-		trinex_ui_element(InputInt, Element);
+		trinex_ui_element(InputInt, Frame);
 
 	public:
 		String label;
@@ -26,9 +26,9 @@ namespace Trinex::UI
 		UpdateFlags on_begin_update() override;
 	};
 
-	class InputText : public Element
+	class InputText : public Frame
 	{
-		trinex_ui_element(InputText, Element);
+		trinex_ui_element(InputText, Frame);
 
 	public:
 		String label;

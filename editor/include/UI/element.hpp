@@ -6,6 +6,7 @@
 #include <Core/types/name.hpp>
 #include <UI/style_sheet.hpp>
 #include <UI/types.hpp>
+#include <imgui.h>
 
 namespace Trinex::UI
 {
@@ -74,8 +75,17 @@ namespace Trinex::UI
 
 		static Refl::Type* initialize_type(Refl::NativeType<Element>* type);
 
+	protected:
+		static void push_style_var(ImGuiStyleVar var, f32 value);
+		static void push_style_var(ImGuiStyleVar var, const Vec2& value);
+		static void push_style_color(ImGuiCol color, const Vec4& value);
+
 	public:
+		Vec2 spacing;
+		Vec2 inner_spacing;
 		f32 alpha = 1.f;
+		f32 indent;
+		f32 align;
 
 	public:
 		static Element* create(Name name);
@@ -103,8 +113,11 @@ namespace Trinex::UI
 		u32 add_reference();
 		u32 release();
 
+		virtual Element& push_style();
+		virtual Element& pop_style();
+
 		virtual UpdateFlags on_begin_update();
-		virtual Element& on_end_update();
+		virtual Element& on_end_update(UpdateFlags flags);
 		virtual Refl::Type* type() const;
 
 		static inline UpdateFlags readback_if(bool condition)
@@ -130,6 +143,18 @@ namespace Trinex::UI
 		inline StyleState style_state() const { return m_style_state; }
 		inline u32 references() const { return m_references; }
 		inline const Vector<Binding>& bindings() const { return m_bindings; }
+
+		template<typename T>
+		inline T* as()
+		{
+			return static_cast<T*>(this);
+		}
+
+		template<typename T>
+		inline const T* as() const
+		{
+			return static_cast<const T*>(this);
+		}
 		virtual ~Element();
 	};
 

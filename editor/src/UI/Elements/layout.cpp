@@ -30,7 +30,7 @@ namespace Trinex::UI
 		return UpdateFlags::Default;
 	}
 
-	Element& Panel::on_end_update()
+	Element& Panel::on_end_update(UpdateFlags flags)
 	{
 		ImGui::EndChild();
 		ImGui::PopID();
@@ -59,7 +59,7 @@ namespace Trinex::UI
 		return UpdateFlags::Default;
 	}
 
-	Element& GroupPanel::on_end_update()
+	Element& GroupPanel::on_end_update(UpdateFlags flags)
 	{
 		ImGui::EndChild();
 		ImGui::PopID();
@@ -74,7 +74,7 @@ namespace Trinex::UI
 		return UpdateFlags::Default;
 	}
 
-	Element& Group::on_end_update()
+	Element& Group::on_end_update(UpdateFlags flags)
 	{
 		ImGui::EndGroup();
 		return *this;
@@ -93,7 +93,7 @@ namespace Trinex::UI
 		return UpdateFlags::Default;
 	}
 
-	Element& Horizontal::on_end_update()
+	Element& Horizontal::on_end_update(UpdateFlags flags)
 	{
 		ImGui::EndGroup();
 		return *this;
@@ -112,7 +112,7 @@ namespace Trinex::UI
 		return UpdateFlags::Default;
 	}
 
-	Element& Vertical::on_end_update()
+	Element& Vertical::on_end_update(UpdateFlags flags)
 	{
 		ImGui::EndGroup();
 		return *this;
@@ -129,7 +129,7 @@ namespace Trinex::UI
 		return UpdateFlags::Default;
 	}
 
-	Element& Disabled::on_end_update()
+	Element& Disabled::on_end_update(UpdateFlags flags)
 	{
 		ImGui::EndDisabled();
 		return *this;
@@ -155,7 +155,7 @@ namespace Trinex::UI
 		return UpdateFlags::Default;
 	}
 
-	Element& ScrollArea::on_end_update()
+	Element& ScrollArea::on_end_update(UpdateFlags flags)
 	{
 		ImGui::EndChild();
 		ImGui::PopID();
@@ -181,7 +181,7 @@ namespace Trinex::UI
 		return UpdateFlags::Default;
 	}
 
-	Element& AnimatedArea::on_end_update()
+	Element& AnimatedArea::on_end_update(UpdateFlags flags)
 	{
 		ImGui::EndGroup();
 		ImGui::PopID();
@@ -238,7 +238,7 @@ namespace Trinex::UI
 		return UpdateFlags::Default;
 	}
 
-	Element& Indent::on_end_update()
+	Element& Indent::on_end_update(UpdateFlags flags)
 	{
 		ImGui::Unindent(amount.value);
 		return *this;

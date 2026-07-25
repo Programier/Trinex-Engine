@@ -2,6 +2,7 @@
 #include <Core/etl/flat_map.hpp>
 #include <Core/etl/variant.hpp>
 #include <UI/types.hpp>
+#include <imgui.h>
 
 namespace Trinex::UI
 {
@@ -32,7 +33,7 @@ namespace Trinex::UI
 		u32 specificity   = 0;
 	};
 
-	using StyleValue = Variant<f32, Vec4>;
+	using StyleValue = Variant<f32, Vec2, Vec3, Vec4, ImVec2, ImVec4>;
 
 	struct StyleTransition {
 		Name property;

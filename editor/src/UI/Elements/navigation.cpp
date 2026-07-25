@@ -39,7 +39,7 @@ namespace Trinex::UI
 		return UpdateFlags::Undefined;
 	}
 
-	Element& CollapsingHeader::on_end_update()
+	Element& CollapsingHeader::on_end_update(UpdateFlags flags)
 	{
 		return *this;
 	}
@@ -64,7 +64,7 @@ namespace Trinex::UI
 		return UpdateFlags::Undefined;
 	}
 
-	Element& SectionHeader::on_end_update()
+	Element& SectionHeader::on_end_update(UpdateFlags flags)
 	{
 		return *this;
 	}
@@ -94,7 +94,7 @@ namespace Trinex::UI
 		return UpdateFlags::End;
 	}
 
-	Element& TreeNode::on_end_update()
+	Element& TreeNode::on_end_update(UpdateFlags flags)
 	{
 		ImGui::TreePop();
 		return *this;
@@ -131,7 +131,7 @@ namespace Trinex::UI
 		return UpdateFlags::Undefined;
 	}
 
-	Element& TabBar::on_end_update()
+	Element& TabBar::on_end_update(UpdateFlags flags)
 	{
 		ImGui::EndTabBar();
 		ImGui::PopID();

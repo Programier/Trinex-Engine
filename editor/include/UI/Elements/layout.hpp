@@ -9,12 +9,12 @@ namespace Trinex::UI
 
 	public:
 		String id;
-		Size size = Size(0.0f, 0.0f);
-		bool border = true;
+		Size size       = Size(0.0f, 0.0f);
+		bool border     = true;
 		bool background = true;
 
 		UpdateFlags on_begin_update() override;
-		Element& on_end_update() override;
+		Element& on_end_update(UpdateFlags flags) override;
 	};
 
 	class GroupPanel : public Element
@@ -23,12 +23,12 @@ namespace Trinex::UI
 
 	public:
 		String label;
-		Size size = Size(0.0f, 0.0f);
-		bool border = true;
+		Size size       = Size(0.0f, 0.0f);
+		bool border     = true;
 		bool background = true;
 
 		UpdateFlags on_begin_update() override;
-		Element& on_end_update() override;
+		Element& on_end_update(UpdateFlags flags) override;
 	};
 
 	class Group : public Element
@@ -37,7 +37,7 @@ namespace Trinex::UI
 
 	public:
 		UpdateFlags on_begin_update() override;
-		Element& on_end_update() override;
+		Element& on_end_update(UpdateFlags flags) override;
 	};
 
 	class Horizontal : public Element
@@ -50,7 +50,7 @@ namespace Trinex::UI
 		f32 align = -1.0f;
 
 		UpdateFlags on_begin_update() override;
-		Element& on_end_update() override;
+		Element& on_end_update(UpdateFlags flags) override;
 	};
 
 	class Vertical : public Element
@@ -63,7 +63,7 @@ namespace Trinex::UI
 		f32 align = -1.0f;
 
 		UpdateFlags on_begin_update() override;
-		Element& on_end_update() override;
+		Element& on_end_update(UpdateFlags flags) override;
 	};
 
 	class Disabled : public Element
@@ -74,7 +74,7 @@ namespace Trinex::UI
 		bool disabled = true;
 
 		UpdateFlags on_begin_update() override;
-		Element& on_end_update() override;
+		Element& on_end_update(UpdateFlags flags) override;
 	};
 
 	class ScrollArea : public Element
@@ -83,11 +83,11 @@ namespace Trinex::UI
 
 	public:
 		String id;
-		Size size = Size(0.0f, 0.0f);
+		Size size   = Size(0.0f, 0.0f);
 		bool border = false;
 
 		UpdateFlags on_begin_update() override;
-		Element& on_end_update() override;
+		Element& on_end_update(UpdateFlags flags) override;
 	};
 
 	class AnimatedArea : public Element
@@ -99,7 +99,7 @@ namespace Trinex::UI
 		bool visible = true;
 
 		UpdateFlags on_begin_update() override;
-		Element& on_end_update() override;
+		Element& on_end_update(UpdateFlags flags) override;
 	};
 
 	class Separator : public Element
@@ -133,7 +133,7 @@ namespace Trinex::UI
 		trinex_ui_element(SameLine, Element);
 
 	public:
-		f32 offset = 0.0f;
+		f32 offset  = 0.0f;
 		f32 spacing = -1.0f;
 
 		UpdateFlags on_begin_update() override;
@@ -147,7 +147,7 @@ namespace Trinex::UI
 		Unit amount = Unit(0.0f);
 
 		UpdateFlags on_begin_update() override;
-		Element& on_end_update() override;
+		Element& on_end_update(UpdateFlags flags) override;
 	};
 
 	class Dummy : public Element
@@ -165,7 +165,7 @@ namespace Trinex::UI
 		trinex_ui_element(Spring, Element);
 
 	public:
-		f32 weight = 1.0f;
+		f32 weight  = 1.0f;
 		f32 spacing = -1.0f;
 
 		UpdateFlags on_begin_update() override;

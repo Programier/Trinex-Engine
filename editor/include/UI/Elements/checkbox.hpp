@@ -1,11 +1,11 @@
 #pragma once
-#include <UI/element.hpp>
+#include <UI/Elements/frame.hpp>
 
 namespace Trinex::UI
 {
-	class Checkbox : public Element
+	class Checkbox : public Frame
 	{
-		trinex_ui_element(Checkbox, Element);
+		trinex_ui_element(Checkbox, Frame);
 
 	public:
 		String label;
@@ -14,9 +14,9 @@ namespace Trinex::UI
 		UpdateFlags on_begin_update() override;
 	};
 
-	class Toggle : public Element
+	class Toggle : public Frame
 	{
-		trinex_ui_element(Toggle, Element);
+		trinex_ui_element(Toggle, Frame);
 
 	public:
 		String label;

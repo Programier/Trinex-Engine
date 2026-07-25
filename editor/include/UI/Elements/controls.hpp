@@ -1,11 +1,11 @@
 #pragma once
-#include <UI/element.hpp>
+#include <UI/Elements/frame.hpp>
 
 namespace Trinex::UI
 {
-	class SmallButton : public Element
+	class SmallButton : public Frame
 	{
-		trinex_ui_element(SmallButton, Element);
+		trinex_ui_element(SmallButton, Frame);
 
 	public:
 		String label;
@@ -14,9 +14,9 @@ namespace Trinex::UI
 		UpdateFlags on_begin_update() override;
 	};
 
-	class IconButton : public Element
+	class IconButton : public Frame
 	{
-		trinex_ui_element(IconButton, Element);
+		trinex_ui_element(IconButton, Frame);
 
 	public:
 		String icon;
@@ -27,9 +27,9 @@ namespace Trinex::UI
 		UpdateFlags on_begin_update() override;
 	};
 
-	class GhostButton : public Element
+	class GhostButton : public Frame
 	{
-		trinex_ui_element(GhostButton, Element);
+		trinex_ui_element(GhostButton, Frame);
 
 	public:
 		String label;
@@ -39,9 +39,9 @@ namespace Trinex::UI
 		UpdateFlags on_begin_update() override;
 	};
 
-	class DangerButton : public Element
+	class DangerButton : public Frame
 	{
-		trinex_ui_element(DangerButton, Element);
+		trinex_ui_element(DangerButton, Frame);
 
 	public:
 		String label;
@@ -63,9 +63,9 @@ namespace Trinex::UI
 		UpdateFlags on_begin_update() override;
 	};
 
-	class RadioButton : public Element
+	class RadioButton : public Frame
 	{
-		trinex_ui_element(RadioButton, Element);
+		trinex_ui_element(RadioButton, Frame);
 
 	public:
 		String label;
@@ -114,9 +114,9 @@ namespace Trinex::UI
 		UpdateFlags on_begin_update() override;
 	};
 
-	class ColorEdit : public Element
+	class ColorEdit : public Frame
 	{
-		trinex_ui_element(ColorEdit, Element);
+		trinex_ui_element(ColorEdit, Frame);
 
 	public:
 		String label;

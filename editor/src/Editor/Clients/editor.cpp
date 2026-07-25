@@ -42,7 +42,6 @@ namespace Trinex
 
 	EditorClient& EditorClient::update(float dt)
 	{
-		printf("UPDATE!\n");
 		Super::update(dt);
 		return *this;
 	}

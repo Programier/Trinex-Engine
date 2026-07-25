@@ -10,6 +10,10 @@ namespace Trinex::UI
 	{
 		type->bind("id", &Element::m_id);
 		type->bind("alpha", &Element::alpha);
+		type->bind("spacing", &Element::spacing);
+		type->bind("inner_spacing", &Element::inner_spacing);
+		type->bind("indent", &Element::indent);
+		type->bind("align", &Element::align);
 		return type;
 	}
 
@@ -317,7 +321,9 @@ namespace Trinex::UI
 
 		ImGui::PushID(this);
 		{
+			push_style();
 			auto flags = on_begin_update();
+
 			update_style_state(flags);
 
 			if (flags & UpdateFlags::Readback)
@@ -345,7 +351,9 @@ namespace Trinex::UI
 			}
 
 			if (flags & UpdateFlags::End)
-				on_end_update();
+				on_end_update(flags);
+
+			pop_style();
 		}
 		ImGui::PopID();
 
@@ -370,12 +378,43 @@ namespace Trinex::UI
 		return count;
 	}
 
+	void Element::push_style_var(ImGuiStyleVar var, f32 value)
+	{
+		ImGui::PushStyleVar(var, value);
+	}
+
+	void Element::push_style_var(ImGuiStyleVar var, const Vec2& value)
+	{
+		ImGui::PushStyleVar(var, ImVec2{value.x, value.y});
+	}
+
+	void Element::push_style_color(ImGuiCol color, const Vec4& value)
+	{
+		ImGui::PushStyleColor(color, ImVec4{value.x, value.y, value.z, value.w});
+	}
+
+	Element& Element::push_style()
+	{
+		push_style_var(ImGuiStyleVar_ItemSpacing, spacing);
+		push_style_var(ImGuiStyleVar_ItemInnerSpacing, inner_spacing);
+		push_style_var(ImGuiStyleVar_Alpha, alpha);
+		push_style_var(ImGuiStyleVar_IndentSpacing, indent);
+		push_style_var(ImGuiStyleVar_LayoutAlign, align);
+		return *this;
+	}
+
+	Element& Element::pop_style()
+	{
+		ImGui::PopStyleVar(5);
+		return *this;
+	}
+
 	Element::UpdateFlags Element::on_begin_update()
 	{
 		return UpdateFlags::Default;
 	}
 
-	Element& Element::on_end_update()
+	Element& Element::on_end_update(UpdateFlags flags)
 	{
 		return *this;
 	}

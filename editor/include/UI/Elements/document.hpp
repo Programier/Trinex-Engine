@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/etl/flat_map.hpp>
+#include <Core/etl/stack.hpp>
 #include <UI/element.hpp>
 
 namespace Trinex

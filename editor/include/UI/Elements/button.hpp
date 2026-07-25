@@ -1,10 +1,11 @@
 #pragma once
-#include <UI/element.hpp>
+#include <UI/Elements/frame.hpp>
+
 namespace Trinex::UI
 {
-	class Button : public Element
+	class Button : public Frame
 	{
-		trinex_ui_element(Button, Element);
+		trinex_ui_element(Button, Frame);
 
 	public:
 		String label;
