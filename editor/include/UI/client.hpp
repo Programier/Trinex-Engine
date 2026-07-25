@@ -37,7 +37,6 @@ namespace Trinex::UI
 		Client& update(class RenderViewport* viewport, float dt) final override;
 
 		Document* load_document(const Path& path);
-		Document* create_document(StringView source);
 		bool reload_document(Document* document);
 		Client& add_document(Document* document);
 		Client& remove_document(Document* document);

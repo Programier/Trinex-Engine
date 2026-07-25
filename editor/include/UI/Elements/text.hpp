@@ -10,6 +10,9 @@ namespace Trinex::UI
 
 	public:
 		String text;
+		Color color;
+
+	public:
 		UpdateFlags on_begin_update() override;
 	};
 }// namespace Trinex::UI

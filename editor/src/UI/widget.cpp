@@ -49,20 +49,16 @@ namespace Trinex::UI
 
 	Document* Widget::load_document(const Path& path)
 	{
-		FileReader reader(path);
+		Document* document = trx_new Document();
 
-		if (!reader.is_open())
+		if (!document->load(path))
 		{
-			trinex_error(Log::Editor, "Failed to open UI document '%s'", path.c_str());
+			document->release();
 			return nullptr;
 		}
 
-		Document* document = create_document(reader.read_string());
-
-		if (document == nullptr)
-		{
-			return nullptr;
-		}
+		add_document(document);
+		document->release();
 
 		for (DocumentEntry& entry : m_documents)
 		{
@@ -76,21 +72,6 @@ namespace Trinex::UI
 			}
 		}
 
-		return document;
-	}
-
-	Document* Widget::create_document(StringView source)
-	{
-		Document* document = trx_new Document();
-
-		if (!document->load(source))
-		{
-			document->release();
-			return nullptr;
-		}
-
-		add_document(document);
-		document->release();
 		return document;
 	}
 
@@ -108,16 +89,7 @@ namespace Trinex::UI
 				return false;
 			}
 
-			FileReader reader(entry.path);
-
-			if (!reader.is_open())
-			{
-				trinex_error(Log::Editor, "Failed to reload UI document '%s'", entry.path.c_str());
-				return false;
-			}
-
-			document->load(reader.read_string());
-			return true;
+			return document->load(entry.path);
 		}
 
 		return false;

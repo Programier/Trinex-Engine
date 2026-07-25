@@ -3,6 +3,7 @@
 #include <Core/etl/utility.hpp>
 #include <Core/etl/variant.hpp>
 #include <Core/etl/vector.hpp>
+#include <Core/file_manager.hpp>
 #include <UI/Elements/document.hpp>
 #include <UI/reflection.hpp>
 #include <peglib.h>
@@ -12,7 +13,11 @@ namespace Trinex::UI
 	namespace Markup
 	{
 		inline constexpr const char* grammar = R"(
-Document <- Node* ~EndOfFile
+Document <- DocumentItem* ~EndOfFile
+
+DocumentItem <- Include / Style / Node
+Include      <- 'include' String ';'?
+Style        <- 'style' Identifier '{' Property* '}'
 
 Node           <- Identifier '{' Member* '}'
 Member         <- PropertyMember / NodeMember
@@ -64,6 +69,17 @@ _Comment    <- '//' (![\r\n] .)*
 			SourceLocation location;
 		};
 
+		struct Include {
+			Path path;
+			SourceLocation location;
+		};
+
+		struct Style {
+			String name;
+			Vector<Property> properties;
+			SourceLocation location;
+		};
+
 		struct Node {
 			String type;
 			Vector<Property> properties;
@@ -71,7 +87,9 @@ _Comment    <- '//' (![\r\n] .)*
 			SourceLocation location;
 		};
 
-		using Member = Variant<Property, Node>;
+		using Member       = Variant<Property, Node>;
+		using DocumentItem = Variant<Include, Style, Node>;
+		using StyleMap     = FlatMap<Name, Vector<Property>>;
 
 		namespace Detail
 		{
@@ -370,16 +388,59 @@ _Comment    <- '//' (![\r\n] .)*
 					return node;
 				};
 
+				m_parser["Include"] = [](const peg::SemanticValues& values) {
+					const auto& value  = Detail::any_ref<ValueDesc>(values[0]);
+					const String* path = etl::get_if<String>(&value.value);
+
+					return Include{
+					        .path     = path == nullptr ? Path() : Path(*path),
+					        .location = Detail::location_of(values),
+					};
+				};
+
+				m_parser["Style"] = [](const peg::SemanticValues& values) {
+					const auto& identifier = Detail::any_ref<Identifier>(values[0]);
+
+					Style style{
+					        .name       = identifier,
+					        .properties = {},
+					        .location   = Detail::location_of(values),
+					};
+
+					style.properties.reserve(values.size() - 1);
+
+					for (usize index = 1; index < values.size(); ++index)
+					{
+						style.properties.push_back(Detail::any_ref<Property>(values[index]));
+					}
+
+					return style;
+				};
+
+				m_parser["DocumentItem"] = [](const peg::SemanticValues& values) -> std::any {
+					if (const auto* include = std::any_cast<Include>(&values[0]))
+					{
+						return DocumentItem{*include};
+					}
+
+					if (const auto* style = std::any_cast<Style>(&values[0]))
+					{
+						return DocumentItem{*style};
+					}
+
+					return DocumentItem{Detail::any_ref<Node>(values[0])};
+				};
+
 				m_parser["Document"] = [](const peg::SemanticValues& values) {
-					Vector<Node> nodes;
-					nodes.reserve(values.size());
+					Vector<DocumentItem> items;
+					items.reserve(values.size());
 
 					for (const std::any& value : values)
 					{
-						nodes.emplace_back(Detail::any_ref<Node>(value));
+						items.emplace_back(Detail::any_ref<DocumentItem>(value));
 					}
 
-					return nodes;
+					return items;
 				};
 			}
 
@@ -390,14 +451,14 @@ _Comment    <- '//' (![\r\n] .)*
 				return &parser;
 			}
 
-			bool parse(Vector<Node>& nodes, StringView source)
+			bool parse(Vector<DocumentItem>& items, StringView source)
 			{
 				if (source.empty())
 				{
 					return false;
 				}
 
-				Vector<Node> result;
+				Vector<DocumentItem> result;
 
 				const bool success = m_parser.parse(source, result);
 
@@ -406,12 +467,96 @@ _Comment    <- '//' (![\r\n] .)*
 					return false;
 				}
 
-				nodes = etl::move(result);
+				items = etl::move(result);
 				return true;
 			}
 		};
 
-		static bool create_elements(Element* owner, const Node& node)
+		static Path resolve_include_path(const Path& owner_path, const Path& include_path)
+		{
+			if (owner_path.empty() || include_path.starts_with("[") || include_path.starts_with("/"))
+			{
+				return include_path;
+			}
+
+			return Path(owner_path.base_path()) / include_path;
+		}
+
+		static bool value_to_name(Name& name, const ValueDesc& desc)
+		{
+			if (const auto* identifier = etl::get_if<Identifier>(&desc.value))
+			{
+				name = *identifier;
+				return true;
+			}
+
+			if (const auto* string = etl::get_if<String>(&desc.value))
+			{
+				name = *string;
+				return true;
+			}
+
+			return false;
+		}
+
+		static bool append_style_names(Vector<Name>& styles, const ValueDesc& desc)
+		{
+			Name name;
+
+			if (value_to_name(name, desc))
+			{
+				styles.push_back(name);
+				return true;
+			}
+
+			if (const auto* list = etl::get_if<Container>(&desc.value))
+			{
+				for (const ValueDesc& item : *list)
+				{
+					if (!append_style_names(styles, item))
+					{
+						return false;
+					}
+				}
+
+				return true;
+			}
+
+			return false;
+		}
+
+		static bool apply_property(Element* element, const Node& node, const Property& prop)
+		{
+			auto type = element->type();
+
+			auto visitor = [&]<typename T>(const T& value) -> bool {
+				if (!type->assign(element, prop.name, &value, UI::Refl::NativeType<T>::instance()))
+				{
+					trinex_error(Log::Editor, "Failed to assign property '%s' of element '%s' at %u:%u", prop.name.c_str(),
+					             node.type.c_str(), prop.location.line, prop.location.column);
+					return false;
+				}
+
+				return true;
+			};
+
+			return etl::visit(visitor, prop.value.value);
+		}
+
+		static bool apply_properties(Element* element, const Node& node, const Vector<Property>& properties)
+		{
+			for (const Property& prop : properties)
+			{
+				if (!apply_property(element, node, prop))
+				{
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		static bool create_elements(Document* document, Element* owner, const Node& node, const StyleMap& styles)
 		{
 			auto element = owner->attach(node.type);
 
@@ -422,30 +567,120 @@ _Comment    <- '//' (![\r\n] .)*
 				return false;
 			}
 
-			auto type = element->type();
+			Vector<Name> style_names;
+			Name element_id;
 
-			for (auto& prop : node.properties)
+			for (const Property& prop : node.properties)
 			{
-				auto visitor = [&]<typename T>(const T& value) -> bool {
-					if (!type->assign(element, prop.name, &value, UI::Refl::NativeType<T>::instance()))
+				if (prop.name == "class" || prop.name == "style")
+				{
+					if (!append_style_names(style_names, prop.value))
 					{
-						trinex_error(Log::Editor, "Failed to assign property '%s' of element '%s' at %u:%u", prop.name.c_str(),
-						             node.type.c_str(), prop.location.line, prop.location.column);
+						trinex_error(Log::Editor, "Invalid style reference on element '%s' at %u:%u", node.type.c_str(),
+						             prop.location.line, prop.location.column);
 						return false;
 					}
+				}
+				else if (prop.name == "id")
+				{
+					value_to_name(element_id, prop.value);
+				}
+			}
 
-					return true;
-				};
+			for (const Name& style_name : style_names)
+			{
+				auto it = styles.find(style_name);
 
-				if (!etl::visit(visitor, prop.value.value))
+				if (it == styles.end())
+				{
+					trinex_error(Log::Editor, "Unknown style '%s' used by element '%s' at %u:%u", style_name.c_str(),
+					             node.type.c_str(), node.location.line, node.location.column);
+					return false;
+				}
+
+				if (!apply_properties(element, node, it->second))
 				{
 					return false;
 				}
 			}
 
-			for (auto& child : node.children)
+			for (const Property& prop : node.properties)
 			{
-				if (!create_elements(element, child))
+				if (prop.name == "class" || prop.name == "style")
+				{
+					continue;
+				}
+
+				if (!apply_property(element, node, prop))
+				{
+					return false;
+				}
+			}
+
+			if (element_id.is_valid())
+			{
+				document->register_element(element_id, element);
+			}
+
+			for (const Node& child : node.children)
+			{
+				if (!create_elements(document, element, child, styles))
+				{
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		static bool load_items(Vector<Node>& nodes, StyleMap& styles, StringView source, const Path& path, u32 depth)
+		{
+			if (depth > 32)
+			{
+				trinex_error(Log::Editor, "Markup include depth exceeded while loading '%s'", path.c_str());
+				return false;
+			}
+
+			auto parser = Parser::instance();
+			Vector<DocumentItem> items;
+
+			if (!parser->parse(items, source))
+			{
+				return false;
+			}
+
+			for (const DocumentItem& item : items)
+			{
+				auto visitor = [&](const auto& value) -> bool {
+					using Type = std::remove_cvref_t<decltype(value)>;
+
+					if constexpr (std::is_same_v<Type, Include>)
+					{
+						const Path include_path = resolve_include_path(path, value.path);
+						FileReader reader(include_path);
+
+						if (!reader.is_open())
+						{
+							trinex_error(Log::Editor, "Failed to include UI document '%s' at %u:%u", include_path.c_str(),
+							             value.location.line, value.location.column);
+							return false;
+						}
+
+						return load_items(nodes, styles, reader.read_string(), include_path, depth + 1);
+					}
+					else if constexpr (std::is_same_v<Type, Style>)
+					{
+						styles[value.name] = value.properties;
+						return true;
+					}
+					else
+					{
+						nodes.push_back(value);
+						return true;
+					}
+				};
+
+				if (!etl::visit(visitor, item))
 				{
 					return false;
 				}
@@ -469,28 +704,43 @@ _Comment    <- '//' (![\r\n] .)*
 		trx_delete_inline(m_bindings);
 	}
 
-	bool Document::load(StringView source)
+	bool Document::load(StringView source, const Path& path)
 	{
-		auto parser = Markup::Parser::instance();
 		Vector<Markup::Node> roots;
+		Markup::StyleMap styles;
 
-		if (!parser->parse(roots, source))
+		if (!Markup::load_items(roots, styles, source, path, 0))
 		{
 			return false;
 		}
 
 		clear();
+		m_elements.clear();
 
 		for (const Markup::Node& root : roots)
 		{
-			if (!create_elements(this, root))
+			if (!create_elements(this, this, root, styles))
 			{
 				clear();
+				m_elements.clear();
 				return false;
 			}
 		}
 
 		return true;
+	}
+
+	bool Document::load(const Path& path)
+	{
+		FileReader reader(path);
+
+		if (!reader.is_open())
+		{
+			trinex_error(Log::Editor, "Failed to open UI document '%s'", path.c_str());
+			return false;
+		}
+
+		return load(reader.read_string(), path);
 	}
 
 	Document& Document::open()
@@ -505,6 +755,16 @@ _Comment    <- '//' (![\r\n] .)*
 		return *this;
 	}
 
+	Document& Document::register_element(Name id, Element* element)
+	{
+		if (id.is_valid() && element)
+		{
+			m_elements[id] = element;
+		}
+
+		return *this;
+	}
+
 	bool Document::is_open() const
 	{
 		return m_open;
@@ -513,5 +773,11 @@ _Comment    <- '//' (![\r\n] .)*
 	bool Document::is_closed() const
 	{
 		return !m_open;
+	}
+
+	Element* Document::find_element(Name id) const
+	{
+		auto it = m_elements.find(id);
+		return it == m_elements.end() ? nullptr : it->second;
 	}
 }// namespace Trinex::UI

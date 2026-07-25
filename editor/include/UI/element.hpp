@@ -44,12 +44,13 @@ namespace Trinex::UI
 	private:
 		Element* m_owner     = nullptr;
 		Document* m_document = nullptr;
+		Name m_id;
 		Vector<Element*> m_childs;
 		Vector<Binding> m_bindings;
 		FlatMap<Name, EventListener> m_listeners;
 		u32 m_references = 1;
 
-		static Refl::Type* initialize_type(Refl::Type* type);
+		static Refl::Type* initialize_type(Refl::NativeType<Element>* type);
 
 	public:
 		static Element* create(Name name);
@@ -90,6 +91,7 @@ namespace Trinex::UI
 
 		inline Element* owner() const { return m_owner; }
 		inline Document* document() const { return m_document; }
+		inline const Name& id() const { return m_id; }
 		inline const Vector<Element*>& childs() const { return m_childs; }
 		inline u32 references() const { return m_references; }
 		inline const Vector<Binding>& bindings() const { return m_bindings; }
@@ -122,5 +124,7 @@ private:                                                                        
 		name::reflection();                                                                                                      \
 	}                                                                                                                            \
 	void name::initialize_reflection()
+
+#define trinex_ui_bind_property(name) reflection()->bind(#name, &This::name)
 
 }// namespace Trinex::UI

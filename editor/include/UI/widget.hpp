@@ -34,7 +34,6 @@ namespace Trinex::UI
 		virtual ~Widget();
 
 		Document* load_document(const Path& path);
-		Document* create_document(StringView source);
 		bool reload_document(Document* document);
 		Widget& add_document(Document* document);
 		Widget& remove_document(Document* document);

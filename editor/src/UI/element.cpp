@@ -6,8 +6,9 @@
 
 namespace Trinex::UI
 {
-	Refl::Type* Element::initialize_type(Refl::Type* type)
+	Refl::Type* Element::initialize_type(Refl::NativeType<Element>* type)
 	{
+		type->bind("id", &Element::m_id);
 		return type;
 	}
 

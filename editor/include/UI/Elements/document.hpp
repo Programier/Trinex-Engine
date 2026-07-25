@@ -1,5 +1,11 @@
 #pragma once
+#include <Core/etl/flat_map.hpp>
 #include <UI/element.hpp>
+
+namespace Trinex
+{
+	class Path;
+}
 
 namespace Trinex::UI
 {
@@ -9,17 +15,22 @@ namespace Trinex::UI
 
 	private:
 		Refl::NativeType<void>* m_bindings;
+		FlatMap<Name, Element*> m_elements;
 		bool m_open = false;
 
 	public:
 		Document();
 		~Document();
 
-		bool load(StringView source);
+		bool load(StringView source, const Path& path);
+		bool load(const Path& path);
+
 		Document& open();
 		Document& close();
+		Document& register_element(Name id, Element* element);
 		bool is_open() const;
 		bool is_closed() const;
+		Element* find_element(Name id) const;
 
 		inline Refl::NativeType<void>* bindings() const { return m_bindings; }
 	};
