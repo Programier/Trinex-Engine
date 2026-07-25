@@ -65,6 +65,7 @@ namespace Trinex::UI
 		Element* attach(StringView type);
 		Element& attach(Element* element);
 		Element& deattach(Element* element);
+		Element& clear();
 		Element& document(Document* document);
 
 		Element& update();

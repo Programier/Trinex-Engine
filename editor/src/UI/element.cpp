@@ -158,6 +158,19 @@ namespace Trinex::UI
 		return *this;
 	}
 
+	Element& Element::clear()
+	{
+		for (Element* child : m_childs)
+		{
+			child->m_owner = nullptr;
+			child->document(nullptr);
+			child->release();
+		}
+
+		m_childs.clear();
+		return *this;
+	}
+
 	Element& Element::document(Document* document)
 	{
 		m_document = document;
@@ -256,13 +269,6 @@ namespace Trinex::UI
 
 	Element::~Element()
 	{
-		for (Element* child : m_childs)
-		{
-			child->m_owner = nullptr;
-			child->document(nullptr);
-			child->release();
-		}
-
-		m_childs.clear();
+		clear();
 	}
 }// namespace Trinex::UI

@@ -1,5 +1,6 @@
 #include <Core/etl/algorithm.hpp>
 #include <Core/file_manager.hpp>
+#include <Core/filesystem/root_filesystem.hpp>
 #include <Core/reflection/class.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <UI/Elements/document.hpp>
@@ -97,9 +98,14 @@ namespace Trinex::UI
 	{
 		opened_clients().erase(class_instance());
 
-		for (Document* document : m_documents)
+		for (DocumentEntry& entry : m_documents)
 		{
-			document->release();
+			if (entry.watch_id != 0)
+			{
+				rootfs()->unwatch(entry.watch_id);
+			}
+
+			entry.document->release();
 		}
 
 		m_documents.clear();
@@ -142,8 +148,10 @@ namespace Trinex::UI
 
 			update(dt);
 
-			for (Document* document : m_documents)
+			for (DocumentEntry& entry : m_documents)
 			{
+				Document* document = entry.document;
+
 				if (document->is_open())
 				{
 					document->update();
@@ -166,12 +174,37 @@ namespace Trinex::UI
 			return nullptr;
 		}
 
-		return create_document(reader.read_string());
+		Document* document = create_document(reader.read_string());
+
+		if (document == nullptr)
+		{
+			return nullptr;
+		}
+
+		for (DocumentEntry& entry : m_documents)
+		{
+			if (entry.document == document)
+			{
+				entry.path     = path;
+				entry.watch_id = rootfs()->watch(
+				        path, [this, document](const VFS::FileWatchEvent&) { reload_document(document); },
+				        VFS::FileWatchEventType::Modified, false);
+				break;
+			}
+		}
+
+		return document;
 	}
 
 	Document* Client::create_document(StringView source)
 	{
-		Document* document = UI::create_document(source);
+		Document* document = trx_new Document();
+
+		if (!document->load(source))
+		{
+			document->release();
+			return nullptr;
+		}
 
 		if (document)
 		{
@@ -182,12 +215,41 @@ namespace Trinex::UI
 		return document;
 	}
 
+	bool Client::reload_document(Document* document)
+	{
+		for (DocumentEntry& entry : m_documents)
+		{
+			if (entry.document != document)
+			{
+				continue;
+			}
+
+			if (entry.path.empty())
+			{
+				return false;
+			}
+
+			FileReader reader(entry.path);
+
+			if (!reader.is_open())
+			{
+				trinex_error(Log::Editor, "Failed to reload UI document '%s'", entry.path.c_str());
+				return false;
+			}
+
+			document->load(reader.read_string());
+			return true;
+		}
+
+		return false;
+	}
+
 	Client& Client::add_document(Document* document)
 	{
 		if (document)
 		{
 			document->add_reference();
-			m_documents.push_back(document);
+			m_documents.push_back({.document = document});
 		}
 
 		return *this;
@@ -195,10 +257,16 @@ namespace Trinex::UI
 
 	Client& Client::remove_document(Document* document)
 	{
-		auto it = etl::find(m_documents.begin(), m_documents.end(), document);
+		auto it = etl::find_if(m_documents.begin(), m_documents.end(),
+		                       [document](const DocumentEntry& entry) { return entry.document == document; });
 
 		if (it != m_documents.end())
 		{
+			if (it->watch_id != 0)
+			{
+				rootfs()->unwatch(it->watch_id);
+			}
+
 			m_documents.erase(it);
 			document->release();
 		}

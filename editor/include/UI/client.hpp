@@ -15,9 +15,15 @@ namespace Trinex::UI
 		trinex_class(Client, ViewportClient);
 
 	private:
+		struct DocumentEntry {
+			Document* document = nullptr;
+			Path path;
+			Identifier watch_id = 0;
+		};
+
 		Context* m_ctx             = nullptr;
 		RenderViewport* m_viewport = nullptr;
-		Vector<Document*> m_documents;
+		Vector<DocumentEntry> m_documents;
 
 	public:
 		MenuBar menu_bar;
@@ -32,6 +38,7 @@ namespace Trinex::UI
 
 		Document* load_document(const Path& path);
 		Document* create_document(StringView source);
+		bool reload_document(Document* document);
 		Client& add_document(Document* document);
 		Client& remove_document(Document* document);
 
@@ -41,6 +48,5 @@ namespace Trinex::UI
 
 		inline Context* context() const { return m_ctx; }
 		inline RenderViewport* viewport() const { return m_viewport; }
-		inline const Vector<Document*>& documents() const { return m_documents; }
 	};
 }// namespace Trinex::UI

@@ -469,6 +469,30 @@ _Comment    <- '//' (![\r\n] .)*
 		trx_delete_inline(m_bindings);
 	}
 
+	bool Document::load(StringView source)
+	{
+		auto parser = Markup::Parser::instance();
+		Vector<Markup::Node> roots;
+
+		if (!parser->parse(roots, source))
+		{
+			return false;
+		}
+
+		clear_childs();
+
+		for (const Markup::Node& root : roots)
+		{
+			if (!create_elements(this, root))
+			{
+				clear_childs();
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	Document& Document::open()
 	{
 		m_open = true;
@@ -489,34 +513,5 @@ _Comment    <- '//' (![\r\n] .)*
 	bool Document::is_closed() const
 	{
 		return !m_open;
-	}
-
-	Document* create_document(StringView source)
-	{
-		auto parser = Markup::Parser::instance();
-		Vector<Markup::Node> roots;
-
-		if (parser->parse(roots, source))
-		{
-			Document* document = trx_new Document();
-
-			bool success = true;
-			for (const Markup::Node& root : roots)
-			{
-				if (!create_elements(document, root))
-				{
-					success = false;
-					break;
-				}
-			}
-
-			if (success)
-				return document;
-
-			document->release();
-			return nullptr;
-		}
-
-		return nullptr;
 	}
 }// namespace Trinex::UI

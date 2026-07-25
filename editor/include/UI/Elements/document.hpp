@@ -15,6 +15,7 @@ namespace Trinex::UI
 		Document();
 		~Document();
 
+		bool load(StringView source);
 		Document& open();
 		Document& close();
 		bool is_open() const;
