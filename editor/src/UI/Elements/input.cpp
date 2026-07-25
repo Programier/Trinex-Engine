@@ -1,8 +1,8 @@
 #include <UI/Elements/input.hpp>
-#include <UI/api.hpp>
 #include <UI/reflection.hpp>
 #include <algorithm>
 #include <cstring>
+#include <imgui.h>
 
 namespace Trinex::UI
 {
@@ -15,7 +15,7 @@ namespace Trinex::UI
 
 	Element::UpdateFlags InputFloat::on_begin_update()
 	{
-		return item_state_flags(readback_if(UI::input(label, &value, format.c_str())));
+		return item_state_flags(readback_if(ImGui::InputFloat(label.c_str(), &value, 0.0f, 0.0f, format.c_str())));
 	}
 
 	trinex_implement_ui_element(InputInt)
@@ -26,7 +26,7 @@ namespace Trinex::UI
 
 	Element::UpdateFlags InputInt::on_begin_update()
 	{
-		return item_state_flags(readback_if(UI::input(label, &value)));
+		return item_state_flags(readback_if(ImGui::InputInt(label.c_str(), &value)));
 	}
 
 	trinex_implement_ui_element(InputText)
@@ -42,8 +42,8 @@ namespace Trinex::UI
 		const usize size  = std::min(value.size(), sizeof(buffer) - 1);
 		std::memcpy(buffer, value.data(), size);
 
-		const bool changed =
-		        hint.empty() ? UI::input(label, buffer, sizeof(buffer)) : UI::input(label, hint, buffer, sizeof(buffer));
+		const bool changed = hint.empty() ? ImGui::InputText(label.c_str(), buffer, sizeof(buffer))
+		                                  : ImGui::InputTextWithHint(label.c_str(), hint.c_str(), buffer, sizeof(buffer));
 
 		if (changed)
 		{

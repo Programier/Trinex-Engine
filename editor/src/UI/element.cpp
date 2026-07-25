@@ -1,8 +1,8 @@
 #include <Core/etl/algorithm.hpp>
 #include <UI/Elements/document.hpp>
-#include <UI/api.hpp>
 #include <UI/element.hpp>
 #include <UI/reflection.hpp>
+#include <imgui.h>
 
 namespace Trinex::UI
 {
@@ -21,17 +21,17 @@ namespace Trinex::UI
 
 	Element::UpdateFlags Element::item_state_flags(UpdateFlags flags)
 	{
-		if (UI::is_item_hovered())
+		if (ImGui::IsItemHovered())
 		{
 			flags |= UpdateFlags::Hovered;
 		}
 
-		if (UI::is_item_active())
+		if (ImGui::IsItemActive())
 		{
 			flags |= UpdateFlags::Active;
 		}
 
-		if (UI::is_item_focused())
+		if (ImGui::IsItemFocused())
 		{
 			flags |= UpdateFlags::Focused;
 		}
@@ -315,7 +315,7 @@ namespace Trinex::UI
 			}
 		}
 
-		UI::push_id(this);
+		ImGui::PushID(this);
 		{
 			auto flags = on_begin_update();
 			update_style_state(flags);
@@ -347,7 +347,7 @@ namespace Trinex::UI
 			if (flags & UpdateFlags::End)
 				on_end_update();
 		}
-		UI::pop_id();
+		ImGui::PopID();
 
 		return *this;
 	}

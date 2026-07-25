@@ -30,7 +30,7 @@ namespace Trinex
 		EditorClient& attach(class RenderViewport* viewport) override;
 		EditorClient& deattach(class RenderViewport* viewport) override;
 
-		EditorClient& setup_dockspace(UI::DockLayout& layout) override;
+		//EditorClient& setup_dockspace(UI::DockLayout& layout) override;
 		EditorClient& select(Object* object) override;
 		EditorClient& update(float dt) override;
 	};

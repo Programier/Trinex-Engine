@@ -1,6 +1,6 @@
 #include <UI/Elements/text.hpp>
-#include <UI/api.hpp>
 #include <UI/reflection.hpp>
+#include <imgui.h>
 
 namespace Trinex::UI
 {
@@ -12,7 +12,14 @@ namespace Trinex::UI
 
 	Element::UpdateFlags Text::on_begin_update()
 	{
-		UI::text(text);
+		if (color.w > 0.0f)
+		{
+			ImGui::TextColored(ImVec4(color.x, color.y, color.z, color.w), "%s", text.c_str());
+		}
+		else
+		{
+			ImGui::TextUnformatted(text.c_str());
+		}
 		return UpdateFlags::Undefined;
 	}
 }// namespace Trinex::UI

@@ -1,16 +1,12 @@
 #include <UI/Elements/layout.hpp>
-#include <UI/api.hpp>
 #include <UI/reflection.hpp>
+#include <imgui.h>
 
 namespace Trinex::UI
 {
-	static PanelOptions panel_options(Size size, bool border, bool background)
+	static ImVec2 to_imgui_size(Size size)
 	{
-		PanelOptions options;
-		options.size       = size;
-		options.border     = border;
-		options.background = background;
-		return options;
+		return ImVec2(size.width.value, size.height.value);
 	}
 
 	trinex_implement_ui_element(Panel)
@@ -23,11 +19,12 @@ namespace Trinex::UI
 
 	Element::UpdateFlags Panel::on_begin_update()
 	{
-		UI::push_id(this);
-		const bool visible = UI::begin_panel(id.empty() ? "##Panel" : id, panel_options(size, border, background));
+		ImGui::PushID(this);
+		const bool visible = ImGui::BeginChild(id.empty() ? "##Panel" : id.c_str(), to_imgui_size(size), border);
 		if (!visible)
 		{
-			UI::pop_id();
+			ImGui::EndChild();
+			ImGui::PopID();
 			return UpdateFlags::Undefined;
 		}
 		return UpdateFlags::Default;
@@ -35,8 +32,8 @@ namespace Trinex::UI
 
 	Element& Panel::on_end_update()
 	{
-		UI::end_panel();
-		UI::pop_id();
+		ImGui::EndChild();
+		ImGui::PopID();
 		return *this;
 	}
 
@@ -50,11 +47,13 @@ namespace Trinex::UI
 
 	Element::UpdateFlags GroupPanel::on_begin_update()
 	{
-		UI::push_id(this);
-		const bool visible = UI::begin_group_panel(label, panel_options(size, border, background));
+		ImGui::PushID(this);
+		ImGui::TextUnformatted(label.c_str());
+		const bool visible = ImGui::BeginChild("##GroupPanel", to_imgui_size(size), border);
 		if (!visible)
 		{
-			UI::pop_id();
+			ImGui::EndChild();
+			ImGui::PopID();
 			return UpdateFlags::Undefined;
 		}
 		return UpdateFlags::Default;
@@ -62,8 +61,8 @@ namespace Trinex::UI
 
 	Element& GroupPanel::on_end_update()
 	{
-		UI::end_group_panel();
-		UI::pop_id();
+		ImGui::EndChild();
+		ImGui::PopID();
 		return *this;
 	}
 
@@ -71,13 +70,13 @@ namespace Trinex::UI
 
 	Element::UpdateFlags Group::on_begin_update()
 	{
-		UI::begin_group();
+		ImGui::BeginGroup();
 		return UpdateFlags::Default;
 	}
 
 	Element& Group::on_end_update()
 	{
-		UI::end_group();
+		ImGui::EndGroup();
 		return *this;
 	}
 
@@ -90,21 +89,13 @@ namespace Trinex::UI
 
 	Element::UpdateFlags Horizontal::on_begin_update()
 	{
-		if (id.empty())
-		{
-			UI::begin_horizontal(this, size, align);
-		}
-		else
-		{
-			UI::begin_horizontal(id, size, align);
-		}
-
+		ImGui::BeginGroup();
 		return UpdateFlags::Default;
 	}
 
 	Element& Horizontal::on_end_update()
 	{
-		UI::end_horizontal();
+		ImGui::EndGroup();
 		return *this;
 	}
 
@@ -117,21 +108,13 @@ namespace Trinex::UI
 
 	Element::UpdateFlags Vertical::on_begin_update()
 	{
-		if (id.empty())
-		{
-			UI::begin_vertical(this, size, align);
-		}
-		else
-		{
-			UI::begin_vertical(id, size, align);
-		}
-
+		ImGui::BeginGroup();
 		return UpdateFlags::Default;
 	}
 
 	Element& Vertical::on_end_update()
 	{
-		UI::end_vertical();
+		ImGui::EndGroup();
 		return *this;
 	}
 
@@ -142,13 +125,13 @@ namespace Trinex::UI
 
 	Element::UpdateFlags Disabled::on_begin_update()
 	{
-		UI::begin_disabled(disabled);
+		ImGui::BeginDisabled(disabled);
 		return UpdateFlags::Default;
 	}
 
 	Element& Disabled::on_end_update()
 	{
-		UI::end_disabled();
+		ImGui::EndDisabled();
 		return *this;
 	}
 
@@ -161,11 +144,12 @@ namespace Trinex::UI
 
 	Element::UpdateFlags ScrollArea::on_begin_update()
 	{
-		UI::push_id(this);
-		const bool visible = UI::begin_scroll_area(id.empty() ? "##ScrollArea" : id, size, border);
+		ImGui::PushID(this);
+		const bool visible = ImGui::BeginChild(id.empty() ? "##ScrollArea" : id.c_str(), to_imgui_size(size), border);
 		if (!visible)
 		{
-			UI::pop_id();
+			ImGui::EndChild();
+			ImGui::PopID();
 			return UpdateFlags::Undefined;
 		}
 		return UpdateFlags::Default;
@@ -173,8 +157,8 @@ namespace Trinex::UI
 
 	Element& ScrollArea::on_end_update()
 	{
-		UI::end_scroll_area();
-		UI::pop_id();
+		ImGui::EndChild();
+		ImGui::PopID();
 		return *this;
 	}
 
@@ -186,20 +170,21 @@ namespace Trinex::UI
 
 	Element::UpdateFlags AnimatedArea::on_begin_update()
 	{
-		UI::push_id(this);
-		const bool opened = UI::begin_animated_area(id.empty() ? "##AnimatedArea" : id, visible);
+		ImGui::PushID(this);
+		const bool opened = visible;
 		if (!opened)
 		{
-			UI::pop_id();
+			ImGui::PopID();
 			return UpdateFlags::Undefined;
 		}
+		ImGui::BeginGroup();
 		return UpdateFlags::Default;
 	}
 
 	Element& AnimatedArea::on_end_update()
 	{
-		UI::end_animated_area();
-		UI::pop_id();
+		ImGui::EndGroup();
+		ImGui::PopID();
 		return *this;
 	}
 
@@ -207,7 +192,7 @@ namespace Trinex::UI
 
 	Element::UpdateFlags Separator::on_begin_update()
 	{
-		UI::separator();
+		ImGui::Separator();
 		return UpdateFlags::Undefined;
 	}
 
@@ -218,7 +203,7 @@ namespace Trinex::UI
 
 	Element::UpdateFlags Spacing::on_begin_update()
 	{
-		UI::spacing(amount);
+		ImGui::Dummy(ImVec2(0.0f, amount.value));
 		return UpdateFlags::Undefined;
 	}
 
@@ -226,7 +211,7 @@ namespace Trinex::UI
 
 	Element::UpdateFlags NewLine::on_begin_update()
 	{
-		UI::new_line();
+		ImGui::NewLine();
 		return UpdateFlags::Undefined;
 	}
 
@@ -238,7 +223,7 @@ namespace Trinex::UI
 
 	Element::UpdateFlags SameLine::on_begin_update()
 	{
-		UI::same_line(offset, spacing);
+		ImGui::SameLine(offset, spacing);
 		return UpdateFlags::Undefined;
 	}
 
@@ -249,13 +234,13 @@ namespace Trinex::UI
 
 	Element::UpdateFlags Indent::on_begin_update()
 	{
-		UI::indent(amount);
+		ImGui::Indent(amount.value);
 		return UpdateFlags::Default;
 	}
 
 	Element& Indent::on_end_update()
 	{
-		UI::unindent(amount);
+		ImGui::Unindent(amount.value);
 		return *this;
 	}
 
@@ -266,7 +251,7 @@ namespace Trinex::UI
 
 	Element::UpdateFlags Dummy::on_begin_update()
 	{
-		UI::dummy(size);
+		ImGui::Dummy(to_imgui_size(size));
 		return UpdateFlags::Undefined;
 	}
 
@@ -278,7 +263,7 @@ namespace Trinex::UI
 
 	Element::UpdateFlags Spring::on_begin_update()
 	{
-		UI::spring(weight, spacing);
+		ImGui::Dummy(ImVec2(spacing, 0.0f));
 		return UpdateFlags::Undefined;
 	}
 }// namespace Trinex::UI

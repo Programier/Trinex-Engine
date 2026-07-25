@@ -1,9 +1,9 @@
 #pragma once
 #include <Core/etl/flat_map.hpp>
+#include <Core/etl/function.hpp>
 #include <Core/etl/string.hpp>
 #include <Core/etl/vector.hpp>
 #include <Core/types/name.hpp>
-#include <UI/style.hpp>
 #include <UI/style_sheet.hpp>
 #include <UI/types.hpp>
 
@@ -22,6 +22,8 @@ namespace Trinex::UI
 	class Element
 	{
 	public:
+		using EventListener = Function<void(Event* event)>;
+
 		struct UpdateFlags {
 			enum Enum : u16
 			{

@@ -1,6 +1,6 @@
 #include <UI/Elements/button.hpp>
-#include <UI/api.hpp>
 #include <UI/reflection.hpp>
+#include <imgui.h>
 
 namespace Trinex::UI
 {
@@ -12,7 +12,7 @@ namespace Trinex::UI
 
 	Element::UpdateFlags Button::on_begin_update()
 	{
-		const bool clicked = UI::button(label);
+		const bool clicked = ImGui::Button(label.c_str());
 
 		if (clicked)
 		{

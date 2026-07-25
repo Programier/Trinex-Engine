@@ -1,5 +1,5 @@
-#include "internal.hpp"
 #include <Core/base_engine.hpp>
+#include <Core/math/math.hpp>
 #include <Core/profiler.hpp>
 #include <Engine/Render/pipelines.hpp>
 #include <Graphics/pipeline_library.hpp>
@@ -11,7 +11,9 @@
 #include <RHI/initializers.hpp>
 #include <RHI/rhi.hpp>
 #include <RHI/static_sampler.hpp>
+#include <UI/client.hpp>
 #include <Window/window.hpp>
+#include <imgui.h>
 
 namespace Trinex::RenderBackend
 {
@@ -460,15 +462,14 @@ namespace Trinex::RenderBackend
 			platform_io.Renderer_DestroyWindow = destroy_window;
 		}
 
-		static class RenderingListener : public UI::ContextListener
+		static class RenderingListener : public UI::ClientListener
 		{
 
 		public:
-			RenderingListener() : UI::ContextListener(1) {}
+			RenderingListener() : UI::ClientListener(1) {}
 
-			RenderingListener& on_create(UI::Context* context) override
+			RenderingListener& on_create(UI::Client* client) override
 			{
-				ImGui::SetCurrentContext(context->context);
 				ImGuiIO& io = ImGui::GetIO();
 				IMGUI_CHECKVERSION();
 				IM_ASSERT(io.BackendRendererUserData == nullptr && "Already initialized a renderer backend!");
@@ -491,9 +492,8 @@ namespace Trinex::RenderBackend
 				return *this;
 			}
 
-			RenderingListener& on_destroy(UI::Context* context) override
+			RenderingListener& on_destroy(UI::Client* client) override
 			{
-				ImGui::SetCurrentContext(context->context);
 				ImGuiTrinexData* bd = backend_data();
 				IM_ASSERT(bd != nullptr && "No renderer backend to shutdown, or already shutdown?");
 				ImGuiIO& io = ImGui::GetIO();
@@ -511,9 +511,9 @@ namespace Trinex::RenderBackend
 				return *this;
 			}
 
-			RenderingListener& on_render(UI::Context* context) override
+			RenderingListener& on_render(UI::Client* client) override
 			{
-				auto viewport           = context->window->render_viewport();
+				auto viewport           = client->viewport();
 				RHISwapchain* swapchain = viewport->swapchain();
 
 				RHIContext* ctx = RHIContextPool::global_instance()->begin();
@@ -548,226 +548,5 @@ namespace Trinex::RenderBackend
 				return *this;
 			}
 		} s_listener;
-
 	}// namespace
 }// namespace Trinex::RenderBackend
-
-namespace Trinex::UI
-{
-	struct PaintCallbackArgs {
-		PaintFunction function = nullptr;
-		void* userdata         = nullptr;
-		Vector2f pos;
-		Vector2f size;
-		PaintFlags flags;
-	};
-
-	static void paint_callback(const ImDrawList*, const ImDrawCmd* cmd)
-	{
-		auto bd   = RenderBackend::backend_data();
-		auto args = static_cast<const PaintCallbackArgs*>(cmd->UserCallbackData);
-
-		trinex_assert(bd && bd->context);
-		trinex_assert(args && args->function);
-
-		if (args->flags & PaintFlags::SetupViewport)
-			bd->context->viewport(RHIRegion(args->size, args->pos));
-		else
-			bd->context->viewport(RHIRegion());
-
-		if (args->flags & PaintFlags::SetupScissor)
-			bd->context->scissor(RHIRegion(args->size, args->pos));
-		else
-			bd->context->scissor(RHIRegion());
-
-		args->function(bd->context, bd->layer, args->userdata);
-	}
-
-	static void add_paint_callback(ImDrawList* list, ImGuiViewport* vp, Vec2 pos, Vec2 size, PaintFunction function,
-	                               const PaintOptions& options)
-	{
-		if (list == nullptr || vp == nullptr || function == nullptr)
-			return;
-
-		const Vec2 viewport_pos(vp->Pos.x, vp->Pos.y);
-		const Vec2 viewport_size(vp->Size.x, vp->Size.y);
-
-		PaintCallbackArgs callback_args = {
-		        .function = function,
-		        .userdata = memory_copy(options.userdata, options.userdata_size),
-		        .pos      = (pos - viewport_pos) / viewport_size,
-		        .size     = size / viewport_size,
-		        .flags    = options.flags,
-		};
-
-		if (options.flags & PaintFlags::PushFront)
-		{
-			void* callback_userdata = memory_copy(&callback_args, sizeof(callback_args));
-
-			ImDrawCmd reset_cmd;
-			reset_cmd.UserCallback           = ImDrawCallback_ResetRenderState;
-			reset_cmd.UserCallbackData       = nullptr;
-			reset_cmd.UserCallbackDataSize   = 0;
-			reset_cmd.UserCallbackDataOffset = -1;
-
-			ImDrawCmd callback_cmd;
-			callback_cmd.UserCallback           = paint_callback;
-			callback_cmd.UserCallbackData       = callback_userdata;
-			callback_cmd.UserCallbackDataSize   = 0;
-			callback_cmd.UserCallbackDataOffset = -1;
-
-			list->CmdBuffer.insert(list->CmdBuffer.Data, reset_cmd);
-			list->CmdBuffer.insert(list->CmdBuffer.Data, callback_cmd);
-			return;
-		}
-
-		list->AddCallback(paint_callback, &callback_args, sizeof(callback_args));
-		list->AddCallback(ImDrawCallback_ResetRenderState, nullptr);
-	}
-
-	static void composite_layers(RenderBackend::ImGuiTrinexData* bd, RHITexture* src, LayerOptions* options)
-	{
-		if (options->composite_mode == LayerCompositeMode::Undefined)
-			return;
-
-		bd->context->barrier(src, RHIAccess::SRVGraphics);
-		bd->context->scissor(RHIRegion());
-
-		if (options->composite_mode == LayerCompositeMode::Custom)
-		{
-			if (options->composite_pass)
-			{
-				LayerCompositeContext ctx;
-				ctx.context     = bd->context;
-				ctx.destination = bd->layer;
-				ctx.source      = src;
-				ctx.opacity     = options->opacity;
-
-				bd->context->barrier(src, RHIAccess::SRVGraphics);
-				options->composite_pass->execute(ctx);
-			}
-
-			return;
-		}
-
-		RenderBackend::begin_rendering(bd);
-
-		switch (options->composite_mode)
-		{
-			case LayerCompositeMode::Copy: bd->context->blending_state(RHIBlendingState::opaque()); break;
-			case LayerCompositeMode::Additive: bd->context->blending_state(RHIBlendingState::additive()); break;
-			default: bd->context->blending_state(RHIBlendingState::translucent()); break;
-		}
-
-		Pipelines::Passthrow::Args args = {
-		        .color_scale = {1.f, 1.f, 1.f, options->opacity},
-		};
-
-		Pipelines::Passthrow::passthrow(bd->context, src->as_srv(), args);
-
-		if (options->composite_mode != LayerCompositeMode::AlphaBlend)
-		{
-			bd->context->blending_state(RHIBlendingState::translucent());
-		}
-	}
-
-	static void push_layer_callback(const ImDrawList* list, const ImDrawCmd* cmd)
-	{
-		auto context = active_context();
-		auto bd      = RenderBackend::backend_data();
-		auto options = static_cast<const UI::LayerOptions*>(cmd->UserCallbackData);
-		auto pool    = RHITexturePool::global_instance();
-
-		context->stack.push<RHITexture*>(bd->layer);
-		bd->layer = pool->acquire(RHISurfaceFormat::RGBA8, bd->layer->size(), RHITextureFlags::ColorAttachment);
-
-		bd->flags |= RenderBackend::RenderFlags::IsTargetDirty;
-
-		if (options->flags & LayerFlags::ClearOnPush)
-		{
-			bd->flags |= RenderBackend::RenderFlags::ClearLayer;
-			bd->clear_color = options->clear_color;
-		}
-
-		bd->context->push_debug_stage("Layer Rendering");
-	}
-
-	static void pop_layer_callback(const ImDrawList*, const ImDrawCmd* cmd)
-	{
-		auto context = active_context();
-		auto bd      = RenderBackend::backend_data();
-		auto options = static_cast<UI::LayerOptions*>(cmd->UserCallbackData);
-		auto pool    = RHITexturePool::global_instance();
-
-		RHITexture* layer = bd->layer;
-
-		bd->layer = *context->stack.pop<RHITexture*>();
-		bd->flags |= RenderBackend::RenderFlags::IsTargetDirty;
-
-		RenderBackend::end_rendering(bd);
-		bd->context->pop_debug_stage();
-
-		if (options->flags & LayerFlags::CompositeOnPop)
-		{
-			composite_layers(bd, layer, options);
-		}
-
-		pool->release(layer);
-	}
-
-	void paint(Vec2 pos, Size size, PaintFunction function, const PaintOptions& options)
-	{
-		ImGuiWindow* window = ImGui::GetCurrentWindow();
-
-		if (function == nullptr)
-			return;
-
-		ImGuiViewport* viewport = nullptr;
-		ImDrawList* list        = resolve_draw_list(options.draw_list, window, viewport);
-		add_paint_callback(list, viewport, pos, resolve(size), function, options);
-	}
-
-	void paint(Size size, PaintFunction function, const PaintOptions& options)
-	{
-		ImGuiWindow* window = ImGui::GetCurrentWindow();
-		Vec2 pos            = to_vec(ImGui::GetItemRectMin());
-		paint(pos, size, function, options);
-	}
-
-	void paint(PaintFunction function, const PaintOptions& options)
-	{
-		ImGuiWindow* window = ImGui::GetCurrentWindow();
-		ImGuiViewport* vp   = window ? window->Viewport : ImGui::GetMainViewport();
-
-		Vec2 pos  = to_vec(vp->Pos);
-		Vec2 size = to_vec(vp->Size);
-		paint(pos, size, function, options);
-	}
-
-	bool begin_layer(const LayerOptions& options)
-	{
-		Context* context = active_context();
-		ImDrawList* list = ImGui::GetWindowDrawList();
-
-		if (list == nullptr || context == nullptr)
-			return false;
-
-		context->stack.push<LayerOptions>(options);
-		list->AddCallback(push_layer_callback, const_cast<LayerOptions*>(&options), sizeof(options));
-		return true;
-	}
-
-	void end_layer()
-	{
-		Context* context = active_context();
-		ImDrawList* list = ImGui::GetWindowDrawList();
-
-		if (list == nullptr || context == nullptr)
-			return;
-
-		LayerOptions* options = context->stack.pop<LayerOptions>();
-
-		list->AddCallback(pop_layer_callback, options, sizeof(LayerOptions));
-		list->AddCallback(ImDrawCallback_ResetRenderState);
-	}
-}// namespace Trinex::UI

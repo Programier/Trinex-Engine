@@ -1,6 +1,6 @@
 #include <UI/Elements/label.hpp>
-#include <UI/api.hpp>
 #include <UI/reflection.hpp>
+#include <imgui.h>
 
 namespace Trinex::UI
 {
@@ -12,7 +12,7 @@ namespace Trinex::UI
 
 	Element::UpdateFlags Label::on_begin_update()
 	{
-		UI::label(label, value);
+		ImGui::LabelText(label.c_str(), "%s", value.c_str());
 		return UpdateFlags::Undefined;
 	}
 }// namespace Trinex::UI

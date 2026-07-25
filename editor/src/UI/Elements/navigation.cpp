@@ -1,6 +1,6 @@
 #include <UI/Elements/navigation.hpp>
-#include <UI/api.hpp>
 #include <UI/reflection.hpp>
+#include <imgui.h>
 
 namespace Trinex::UI
 {
@@ -14,25 +14,9 @@ namespace Trinex::UI
 		return Element::item_state_flags(Element::readback_if(clicked));
 	}
 
-	static HeaderOptions header_options(StringView icon, StringView right_text, bool default_open, bool disabled)
+	static ImVec2 to_imgui_size(Size size)
 	{
-		HeaderOptions options;
-		options.icon         = icon;
-		options.right_text   = right_text;
-		options.default_open = default_open;
-		options.disabled     = disabled;
-		return options;
-	}
-
-	static TreeNodeOptions tree_options(StringView icon, StringView badge, bool default_open, bool selected, bool leaf)
-	{
-		TreeNodeOptions options;
-		options.icon         = icon;
-		options.badge        = badge;
-		options.default_open = default_open;
-		options.selected     = selected;
-		options.leaf         = leaf;
-		return options;
+		return ImVec2(size.width.value, size.height.value);
 	}
 
 	trinex_implement_ui_element(CollapsingHeader)
@@ -46,17 +30,17 @@ namespace Trinex::UI
 
 	Element::UpdateFlags CollapsingHeader::on_begin_update()
 	{
-		if (UI::begin_collapsing_header(label, header_options(icon, right_text, default_open, disabled)))
+		ImGuiTreeNodeFlags flags = default_open ? ImGuiTreeNodeFlags_DefaultOpen : 0;
+		if (ImGui::CollapsingHeader(label.c_str(), flags))
 		{
 			return UpdateFlags::Default;
 		}
 
-		return UpdateFlags::End;
+		return UpdateFlags::Undefined;
 	}
 
 	Element& CollapsingHeader::on_end_update()
 	{
-		UI::end_collapsing_header();
 		return *this;
 	}
 
@@ -71,17 +55,17 @@ namespace Trinex::UI
 
 	Element::UpdateFlags SectionHeader::on_begin_update()
 	{
-		if (UI::begin_section_header(label, header_options(icon, right_text, default_open, disabled)))
+		ImGuiTreeNodeFlags flags = default_open ? ImGuiTreeNodeFlags_DefaultOpen : 0;
+		if (ImGui::CollapsingHeader(label.c_str(), flags))
 		{
 			return UpdateFlags::Default;
 		}
 
-		return UpdateFlags::End;
+		return UpdateFlags::Undefined;
 	}
 
 	Element& SectionHeader::on_end_update()
 	{
-		UI::end_section_header();
 		return *this;
 	}
 
@@ -96,7 +80,13 @@ namespace Trinex::UI
 
 	Element::UpdateFlags TreeNode::on_begin_update()
 	{
-		if (UI::tree_node(label, tree_options(icon, badge, default_open, selected, false)))
+		ImGuiTreeNodeFlags flags = default_open ? ImGuiTreeNodeFlags_DefaultOpen : 0;
+		if (selected)
+		{
+			flags |= ImGuiTreeNodeFlags_Selected;
+		}
+
+		if (ImGui::TreeNodeEx(label.c_str(), flags))
 		{
 			return UpdateFlags::Default;
 		}
@@ -106,7 +96,7 @@ namespace Trinex::UI
 
 	Element& TreeNode::on_end_update()
 	{
-		UI::tree_pop();
+		ImGui::TreePop();
 		return *this;
 	}
 
@@ -121,8 +111,7 @@ namespace Trinex::UI
 
 	Element::UpdateFlags TreeLeaf::on_begin_update()
 	{
-		return handle_click(this, UI::selectable_tree_item(label, selected, tree_options(icon, badge, false, selected, true)),
-		                    on_click);
+		return handle_click(this, ImGui::Selectable(label.c_str(), selected), on_click);
 	}
 
 	trinex_implement_ui_element(TabBar)
@@ -132,19 +121,20 @@ namespace Trinex::UI
 
 	Element::UpdateFlags TabBar::on_begin_update()
 	{
-		UI::push_id(this);
-		if (UI::begin_tab_bar(id.empty() ? "##TabBar" : id))
+		ImGui::PushID(this);
+		if (ImGui::BeginTabBar(id.empty() ? "##TabBar" : id.c_str()))
 		{
 			return UpdateFlags::Default;
 		}
 
-		return UpdateFlags::End;
+		ImGui::PopID();
+		return UpdateFlags::Undefined;
 	}
 
 	Element& TabBar::on_end_update()
 	{
-		UI::end_tab_bar();
-		UI::pop_id();
+		ImGui::EndTabBar();
+		ImGui::PopID();
 		return *this;
 	}
 
@@ -158,7 +148,14 @@ namespace Trinex::UI
 
 	Element::UpdateFlags Tab::on_begin_update()
 	{
-		return handle_click(this, UI::tab(label, selected, size), on_click);
+		bool open = true;
+		const bool visible = ImGui::BeginTabItem(label.c_str(), &open);
+		const bool clicked = ImGui::IsItemClicked();
+		if (visible)
+		{
+			ImGui::EndTabItem();
+		}
+		return handle_click(this, clicked, on_click);
 	}
 
 	trinex_implement_ui_element(SidebarItem)
@@ -172,7 +169,7 @@ namespace Trinex::UI
 
 	Element::UpdateFlags SidebarItem::on_begin_update()
 	{
-		return handle_click(this, UI::sidebar_item(label, selected, icon, badge), on_click);
+		return handle_click(this, ImGui::Selectable(label.c_str(), selected), on_click);
 	}
 
 	trinex_implement_ui_element(NavItem)
@@ -185,7 +182,7 @@ namespace Trinex::UI
 
 	Element::UpdateFlags NavItem::on_begin_update()
 	{
-		return handle_click(this, UI::nav_item(label, selected, icon), on_click);
+		return handle_click(this, ImGui::Selectable(label.c_str(), selected), on_click);
 	}
 
 	trinex_implement_ui_element(Breadcrumb)
@@ -197,6 +194,11 @@ namespace Trinex::UI
 
 	Element::UpdateFlags Breadcrumb::on_begin_update()
 	{
-		return handle_click(this, UI::breadcrumb(label, current), on_click);
+		if (!current)
+		{
+			ImGui::TextUnformatted("/");
+			ImGui::SameLine();
+		}
+		return handle_click(this, ImGui::Selectable(label.c_str(), current, 0, to_imgui_size(Size(0.0f, 0.0f))), on_click);
 	}
 }// namespace Trinex::UI

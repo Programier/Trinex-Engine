@@ -1,9 +1,9 @@
-#include "../internal.hpp"
 #include <Core/etl/string.hpp>
 #include <Core/etl/utility.hpp>
 #include <Core/etl/variant.hpp>
 #include <Core/etl/vector.hpp>
 #include <Core/file_manager.hpp>
+#include <Core/types/path.hpp>
 #include <UI/Elements/document.hpp>
 #include <UI/reflection.hpp>
 #include <peglib.h>

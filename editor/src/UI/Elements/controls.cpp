@@ -1,9 +1,14 @@
 #include <UI/Elements/controls.hpp>
-#include <UI/api.hpp>
 #include <UI/reflection.hpp>
+#include <imgui.h>
 
 namespace Trinex::UI
 {
+	static ImVec2 to_imgui_size(Size size)
+	{
+		return ImVec2(size.width.value, size.height.value);
+	}
+
 	static Element::UpdateFlags handle_click(Element* element, bool clicked, Name event)
 	{
 		if (clicked)
@@ -22,7 +27,7 @@ namespace Trinex::UI
 
 	Element::UpdateFlags SmallButton::on_begin_update()
 	{
-		return handle_click(this, UI::small_button(label), on_click);
+		return handle_click(this, ImGui::SmallButton(label.c_str()), on_click);
 	}
 
 	trinex_implement_ui_element(IconButton)
@@ -35,9 +40,8 @@ namespace Trinex::UI
 
 	Element::UpdateFlags IconButton::on_begin_update()
 	{
-		ButtonOptions options;
-		options.size = size;
-		return handle_click(this, UI::icon_button(icon, label, options), on_click);
+		const String text = icon.empty() ? label : icon + " " + label;
+		return handle_click(this, ImGui::Button(text.c_str(), to_imgui_size(size)), on_click);
 	}
 
 	trinex_implement_ui_element(GhostButton)
@@ -49,7 +53,7 @@ namespace Trinex::UI
 
 	Element::UpdateFlags GhostButton::on_begin_update()
 	{
-		return handle_click(this, UI::ghost_button(label, size), on_click);
+		return handle_click(this, ImGui::Button(label.c_str(), to_imgui_size(size)), on_click);
 	}
 
 	trinex_implement_ui_element(DangerButton)
@@ -61,7 +65,12 @@ namespace Trinex::UI
 
 	Element::UpdateFlags DangerButton::on_begin_update()
 	{
-		return handle_click(this, UI::danger_button(label, size), on_click);
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.55f, 0.12f, 0.12f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.70f, 0.16f, 0.16f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.45f, 0.08f, 0.08f, 1.0f));
+		const bool clicked = ImGui::Button(label.c_str(), to_imgui_size(size));
+		ImGui::PopStyleColor(3);
+		return handle_click(this, clicked, on_click);
 	}
 
 	trinex_implement_ui_element(InvisibleButton)
@@ -73,9 +82,7 @@ namespace Trinex::UI
 
 	Element::UpdateFlags InvisibleButton::on_begin_update()
 	{
-		ButtonOptions options;
-		options.size = size;
-		return handle_click(this, UI::invisible_button(label, options), on_click);
+		return handle_click(this, ImGui::InvisibleButton(label.c_str(), to_imgui_size(size)), on_click);
 	}
 
 	trinex_implement_ui_element(RadioButton)
@@ -88,7 +95,7 @@ namespace Trinex::UI
 
 	Element::UpdateFlags RadioButton::on_begin_update()
 	{
-		return handle_click(this, UI::radio_button(label, &value, option), on_click);
+		return handle_click(this, ImGui::RadioButton(label.c_str(), &value, option), on_click);
 	}
 
 	trinex_implement_ui_element(Selectable)
@@ -101,7 +108,7 @@ namespace Trinex::UI
 
 	Element::UpdateFlags Selectable::on_begin_update()
 	{
-		return handle_click(this, UI::selectable(label, selected, SelectableFlags::Undefined, size), on_click);
+		return handle_click(this, ImGui::Selectable(label.c_str(), selected, 0, to_imgui_size(size)), on_click);
 	}
 
 	trinex_implement_ui_element(ProgressBar)
@@ -113,7 +120,7 @@ namespace Trinex::UI
 
 	Element::UpdateFlags ProgressBar::on_begin_update()
 	{
-		UI::progress_bar(value, size, overlay);
+		ImGui::ProgressBar(value, to_imgui_size(size), overlay.empty() ? nullptr : overlay.c_str());
 		return UpdateFlags::Undefined;
 	}
 
@@ -127,9 +134,9 @@ namespace Trinex::UI
 
 	Element::UpdateFlags Spinner::on_begin_update()
 	{
-		UI::push_id(this);
-		UI::spinner(id.empty() ? "##Spinner" : id, radius, thickness, color);
-		UI::pop_id();
+		ImGui::PushID(this);
+		ImGui::TextUnformatted(id.empty() ? "..." : id.c_str());
+		ImGui::PopID();
 		return UpdateFlags::Undefined;
 	}
 
@@ -142,6 +149,7 @@ namespace Trinex::UI
 
 	Element::UpdateFlags ColorEdit::on_begin_update()
 	{
-		return item_state_flags(readback_if(UI::color_edit(label, &color, alpha)));
+		int flags = alpha ? 0 : ImGuiColorEditFlags_NoAlpha;
+		return item_state_flags(readback_if(ImGui::ColorEdit4(label.c_str(), &color.x, flags)));
 	}
 }// namespace Trinex::UI

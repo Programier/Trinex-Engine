@@ -1,4 +1,3 @@
-#include "internal.hpp"
 #include <Core/base_engine.hpp>
 #include <Core/etl/flat_set.hpp>
 #include <Core/etl/templates.hpp>
@@ -9,9 +8,11 @@
 #include <Input/input_codes.hpp>
 #include <Input/input_events.hpp>
 #include <Platform/platform.hpp>
+#include <UI/client.hpp>
 #include <Window/config.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
+#include <imgui.h>
 
 namespace Trinex
 {
@@ -654,15 +655,15 @@ namespace Trinex
 				}
 			}
 
-
-			static class PlatformListener : public UI::ContextListener
+			static class PlatformListener : public UI::ClientListener
 			{
 			public:
-				PlatformListener() : UI::ContextListener(0) {}
+				PlatformListener() : UI::ClientListener(0) {}
 
-				ContextListener& on_create(UI::Context* context) override
+				ClientListener& on_create(UI::Client* client) override
 				{
-					s_window_mapping[context->window].insert(context->context);
+					auto window = client->viewport()->window();
+					s_window_mapping[window].insert(client->context());
 
 					ImGuiIO& io            = ImGui::GetIO();
 					io.BackendPlatformName = "imgui_impl_trinex";
@@ -675,11 +676,11 @@ namespace Trinex
 
 					if ((io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) &&
 					    (io.BackendFlags & ImGuiBackendFlags_PlatformHasViewports))
-						init_platform_interface(context->window);
+						init_platform_interface(window);
 					return *this;
 				}
 
-				ContextListener& on_destroy(UI::Context* context) override
+				ClientListener& on_destroy(UI::Client* client) override
 				{
 					ImGui::DestroyPlatformWindows();
 
@@ -688,13 +689,13 @@ namespace Trinex
 					IM_DELETE(reinterpret_cast<ImGuiTrinexWindowData*>(io.BackendPlatformUserData));
 					io.BackendPlatformUserData = nullptr;
 
-					s_window_mapping.erase(context->window);
+					s_window_mapping.erase(client->viewport()->window());
 					return *this;
 				}
 
-				ContextListener& on_begin_frame(UI::Context* context) override
+				ClientListener& on_begin_frame(UI::Client* client) override
 				{
-					Window* window = context->window;
+					Window* window = client->viewport()->window();
 
 					ImGuiIO& io = ImGui::GetIO();
 					auto bd     = backend_data();

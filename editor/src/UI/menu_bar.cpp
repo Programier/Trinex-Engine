@@ -1,6 +1,6 @@
 #include <Core/localization.hpp>
-#include <UI/api.hpp>
 #include <UI/menu_bar.hpp>
+#include <imgui.h>
 
 namespace Trinex::UI
 {
@@ -195,10 +195,10 @@ namespace Trinex::UI
 					enabled = menu->is_enabled();
 				}
 
-				if (UI::begin_menu(localization->localize(menu->name).c_str(), enabled))
+				if (ImGui::BeginMenu(localization->localize(menu->name).c_str(), enabled))
 				{
 					menu->actions();
-					UI::end_menu();
+					ImGui::EndMenu();
 				}
 			}
 		}

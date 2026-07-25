@@ -1,6 +1,6 @@
 #include <UI/Elements/window.hpp>
-#include <UI/api.hpp>
 #include <UI/reflection.hpp>
+#include <imgui.h>
 
 namespace Trinex::UI
 {
@@ -14,7 +14,7 @@ namespace Trinex::UI
 		if (title.empty())
 			return UpdateFlags::Undefined;
 
-		if (UI::begin_window(title))
+		if (ImGui::Begin(title.c_str()))
 			return UpdateFlags::Default;
 
 		return UpdateFlags::End;
@@ -22,7 +22,7 @@ namespace Trinex::UI
 
 	Element& Window::on_end_update()
 	{
-		UI::end_window();
+		ImGui::End();
 		return *this;
 	}
 }// namespace Trinex::UI

@@ -4,11 +4,11 @@
 #include <Core/reflection/class.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <UI/Elements/document.hpp>
-#include <UI/api.hpp>
 #include <UI/client.hpp>
 #include <Window/config.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
+#include <imgui.h>
 
 namespace Trinex::UI
 {
@@ -88,8 +88,20 @@ namespace Trinex::UI
 	Client& Client::attach(class RenderViewport* viewport)
 	{
 		Super::attach(viewport);
-		m_ctx      = UI::create_context(viewport->window());
+
 		m_viewport = viewport;
+		m_ctx      = ImGui::CreateContext();
+
+		ImGui::SetCurrentContext(m_ctx);
+		ClientListener::for_each<&ClientListener::on_create>(this);
+
+		auto& io = ImGui::GetIO();
+
+		io.Fonts->Build();
+		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+		io.IniFilename = nullptr;
+		io.LogFilename = nullptr;
+
 		opened_clients().insert({class_instance(), this});
 		return *this;
 	}
@@ -110,10 +122,14 @@ namespace Trinex::UI
 
 		m_documents.clear();
 
-		Super::deattach(viewport);
-		UI::destroy_context(m_ctx);
+		ImGui::SetCurrentContext(m_ctx);
+		ClientListener::reverse_for_each<&ClientListener::on_destroy>(this);
+
+		ImGui::DestroyContext(m_ctx);
 		m_ctx      = nullptr;
 		m_viewport = nullptr;
+
+		Super::deattach(viewport);
 		return *this;
 	}
 
@@ -121,45 +137,56 @@ namespace Trinex::UI
 	{
 		Super::update(viewport, dt);
 
-		if (UI::begin_frame(m_ctx))
+		ImGui::SetCurrentContext(m_ctx);
+		ClientListener::for_each<&ClientListener::on_begin_frame>(this);
+		ImGui::NewFrame();
+
+
+		//DockLayoutOptions options = {};
+
+		// if (UI::begin_viewport_dockspace(options))
+		// {
+		// 	DockLayout layout;
+		// 	if (layout.begin(options.id, options.size, options.flags))
+		// 	{
+		// 		setup_dockspace(layout);
+		// 		layout.end();
+		// 	}
+
+		// 	UI::end_viewport_dockspace();
+		// }
+
+		// if (!menu_bar.is_empty())
+		// {
+		// 	if (UI::begin_main_menu_bar())
+		// 	{
+		// 		menu_bar.render();
+		// 		UI::end_main_menu_bar();
+		// 	}
+		// }
+
+		update(dt);
+
+		for (DocumentEntry& entry : m_documents)
 		{
-			DockLayoutOptions options = {};
+			Document* document = entry.document;
 
-			if (UI::begin_viewport_dockspace(options))
+			if (document->is_open())
 			{
-				DockLayout layout;
-				if (layout.begin(options.id, options.size, options.flags))
-				{
-					setup_dockspace(layout);
-					layout.end();
-				}
-
-				UI::end_viewport_dockspace();
+				document->update();
 			}
-
-			if (!menu_bar.is_empty())
-			{
-				if (UI::begin_main_menu_bar())
-				{
-					menu_bar.render();
-					UI::end_main_menu_bar();
-				}
-			}
-
-			update(dt);
-
-			for (DocumentEntry& entry : m_documents)
-			{
-				Document* document = entry.document;
-
-				if (document->is_open())
-				{
-					document->update();
-				}
-			}
-
-			UI::end_frame();
 		}
+
+		ClientListener::for_each<&ClientListener::on_end_frame>(this);
+
+		ImGui::Render();
+
+		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			ImGui::UpdatePlatformWindows();
+		}
+
+		ClientListener::for_each<&ClientListener::on_render>(this);
 
 		return *this;
 	}
@@ -247,12 +274,60 @@ namespace Trinex::UI
 		return *this;
 	}
 
-	Client& Client::setup_dockspace(DockLayout& layout)
+	// Client& Client::setup_dockspace(DockLayout& layout)
+	// {
+	// 	return *this;
+	// }
+
+	Client& Client::select(Object* object)
 	{
 		return *this;
 	}
 
-	Client& Client::select(Object* object)
+	trinex_implement_registry(ClientListener);
+
+	bool ClientListener::m_dirty = false;
+
+	ClientListener::ClientListener(u64 sort_index) : m_sort_index(sort_index)
+	{
+		m_dirty = true;
+	}
+
+	ClientListener* ClientListener::update_state(ClientListener*& value)
+	{
+		if (m_dirty)
+		{
+			ClientListener::sort([](ClientListener* first, ClientListener* second) -> bool {
+				return first->m_sort_index < second->m_sort_index;
+			});
+
+			m_dirty = false;
+		}
+
+		return value;
+	}
+
+	ClientListener& ClientListener::on_create(Client* client)
+	{
+		return *this;
+	}
+
+	ClientListener& ClientListener::on_destroy(Client* client)
+	{
+		return *this;
+	}
+
+	ClientListener& ClientListener::on_begin_frame(Client* client)
+	{
+		return *this;
+	}
+
+	ClientListener& ClientListener::on_end_frame(Client* client)
+	{
+		return *this;
+	}
+
+	ClientListener& ClientListener::on_render(Client* client)
 	{
 		return *this;
 	}
