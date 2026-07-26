@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/etl/flat_map.hpp>
+#include <Core/etl/function.hpp>
 #include <Core/types/name.hpp>
 #include <UI/types.hpp>
 
@@ -15,13 +16,28 @@ namespace Trinex::UI::Refl
 	template<typename T>
 	class NativeType;
 
-	struct AssignHistory {
-		const AssignHistory* prev;
-		void* dst            = nullptr;
-		const Type* dst_type = nullptr;
+	struct PropertyRef {
+		void* address     = nullptr;
+		const Type* type  = nullptr;
+		const Name* field = nullptr;
+		u64 fields        = 0;
+	};
 
-		const void* src      = nullptr;
-		const Type* src_type = nullptr;
+	struct ConstPropertyRef {
+		const void* address = nullptr;
+		const Type* type    = nullptr;
+		const Name* field   = nullptr;
+		u64 fields          = 0;
+	};
+
+	struct ValueRef {
+		void* address    = nullptr;
+		const Type* type = nullptr;
+	};
+
+	struct ConstValueRef {
+		const void* address = nullptr;
+		const Type* type    = nullptr;
 	};
 
 	class Property
@@ -48,12 +64,10 @@ namespace Trinex::UI::Refl
 	public:
 		inline Property(Type* owner = nullptr, Flags flags = Flags::Markup) : m_owner(owner), m_flags(flags) {}
 
-		virtual bool assign(void* object, const void* src, const Type* src_type, Flags mask,
-		                    const AssignHistory* history = nullptr);
+		virtual bool store(void* object, const FunctionRef<bool(void*, Type*)>& writer)            = 0;
+		virtual bool load(const void* object, const FunctionRef<bool(const void*, Type*)>& loader) = 0;
 
-		virtual Type* type() const                             = 0;
-		virtual void* resolve(void* address)                   = 0;
-		virtual const void* resolve(const void* address) const = 0;
+		virtual Type* type() const = 0;
 		inline Type* owner() const { return m_owner; }
 		inline Flags flags() const { return m_flags; }
 		virtual ~Property() {}
@@ -71,8 +85,18 @@ namespace Trinex::UI::Refl
 		{}
 
 		Type* type() const override { return NativeType<Field>::instance(); }
-		void* resolve(void* address) override { return &(static_cast<Instance*>(address)->*m_property); }
-		const void* resolve(const void* address) const override { return &(static_cast<const Instance*>(address)->*m_property); }
+
+		bool store(void* object, const FunctionRef<bool(void*, Type*)>& writer) override
+		{
+			Field* field = &(static_cast<Instance*>(object)->*m_property);
+			return writer(field, NativeType<Field>::instance());
+		}
+
+		bool load(const void* object, const FunctionRef<bool(const void*, Type*)>& loader) override
+		{
+			const Field* field = &(static_cast<const Instance*>(object)->*m_property);
+			return loader(field, NativeType<Field>::instance());
+		}
 	};
 
 	template<typename Field>
@@ -87,17 +111,23 @@ namespace Trinex::UI::Refl
 		{}
 
 		Type* type() const override { return NativeType<Field>::instance(); }
-		void* resolve(void* address) override { return m_property; }
-		const void* resolve(const void* address) const override { return m_property; }
+
+		bool store(void* object, const FunctionRef<bool(void*, Type*)>& writer) override
+		{
+			return writer(m_property, NativeType<Field>::instance());
+		}
+
+		bool load(const void* object, const FunctionRef<bool(const void*, Type*)>& loader) override
+		{
+			return loader(m_property, NativeType<Field>::instance());
+		}
 	};
 
-	template<typename Value, typename Instance, typename Getter = Value (Instance::*)() const>
+	template<typename Field, typename Instance, typename Getter = Field (Instance::*)() const>
 	class MethodProperty final : public Property
 	{
 	public:
-		static_assert(etl::is_trivially_destructible_v<Value>);
-
-		using Setter = bool (Instance::*)(Value);
+		using Setter = bool (Instance::*)(Field);
 
 	private:
 		Getter m_getter;
@@ -108,49 +138,33 @@ namespace Trinex::UI::Refl
 		    : Property(owner, flags), m_getter(getter), m_setter(setter)
 		{}
 
-		Type* type() const override { return NativeType<Value>::instance(); }
+		Type* type() const override { return NativeType<Field>::instance(); }
 
-		void* resolve(void* address) override
+		bool store(void* object, const FunctionRef<bool(void*, Type*)>& writer) override
 		{
-			if (address == nullptr)
-				return nullptr;
+			Field field;
 
-			return trx_frame_new Value((static_cast<Instance*>(address)->*m_getter)());
+			if (writer(&field, NativeType<Field>::instance()))
+			{
+				return (static_cast<Instance*>(object)->*m_setter)(field);
+			}
+
+			return false;
 		}
 
-		const void* resolve(const void* address) const override
+		bool load(const void* object, const FunctionRef<bool(const void*, Type*)>& loader) override
 		{
-			if (address == nullptr)
-				return nullptr;
-
-			return trx_frame_new Value((static_cast<Instance*>(address)->*m_getter)());
-		}
-
-		bool assign(void* object, const void* src, const Type* src_type, Flags mask,
-		            const AssignHistory* history = nullptr) override
-		{
-			if ((flags() & mask) == Flags::Undefined)
-				return true;
-
-			if (object == nullptr || src == nullptr || src_type == nullptr)
-				return false;
-
-			Value value;
-			if (!type()->assign(&value, src, src_type, mask, history))
-				return false;
-
-			return (static_cast<Instance*>(object)->*m_setter)(value);
+			Field field = (static_cast<const Instance*>(object)->*m_getter)();
+			return loader(&field, NativeType<Field>::instance());
 		}
 	};
 
-	template<typename Value>
+	template<typename Field>
 	class FunctionProperty final : public Property
 	{
 	public:
-		static_assert(etl::is_trivially_destructible_v<Value>);
-
-		using Getter = Value (*)();
-		using Setter = bool (*)(Value);
+		using Getter = Field (*)();
+		using Setter = bool (*)(Field);
 
 	private:
 		Getter m_getter;
@@ -161,32 +175,31 @@ namespace Trinex::UI::Refl
 		    : Property(owner, flags), m_getter(getter), m_setter(setter)
 		{}
 
-		Type* type() const override { return NativeType<Value>::instance(); }
+		Type* type() const override { return NativeType<Field>::instance(); }
 
-		void* resolve(void* address) override { return trx_frame_new Value(m_getter()); }
-		const void* resolve(const void* address) const override { return trx_frame_new Value(m_getter()); }
-
-		bool assign(void* object, const void* src, const Type* src_type, Flags mask,
-		            const AssignHistory* history = nullptr) override
+		bool store(void* object, const FunctionRef<bool(void*, Type*)>& writer) override
 		{
-			if ((flags() & mask) == Flags::Undefined)
-				return true;
+			Field field;
 
-			if (src == nullptr || src_type == nullptr)
-				return false;
+			if (writer(&field, NativeType<Field>::instance()))
+			{
+				return m_setter(field);
+			}
 
-			Value value;
-			if (!type()->assign(&value, src, src_type, mask, history))
-				return false;
+			return false;
+		}
 
-			return m_setter(value);
+		bool load(const void* object, const FunctionRef<bool(const void*, Type*)>& loader) override
+		{
+			Field field = m_getter();
+			return loader(&field, NativeType<Field>::instance());
 		}
 	};
 
 	class Type
 	{
 	public:
-		using Resolver = bool (*)(void* dst, const void* src, Property::Flags mask, const AssignHistory* history);
+		using Resolver = bool (*)(void* dst, const void* src, Property::Flags mask);
 
 	private:
 		Type* m_parent;
@@ -199,24 +212,22 @@ namespace Trinex::UI::Refl
 		virtual ~Type();
 
 		Type& bind(Name name, Property* prop);
-		bool binding_path_resolver(void* dst, const void* src, Property::Flags mask, const AssignHistory* history);
+		bool binding_path_resolver(void* dst, const void* src, Property::Flags mask);
 
 	public:
 		virtual void* factory() const       = 0;
 		virtual Type& destroy(void* object) = 0;
 		virtual Name name() const           = 0;
 
-		Pair<void*, const Type*> resolve(void* address, const Name* names, usize count = 1) const;
+		static bool assign(const ValueRef& dst, const ConstValueRef& src, Property::Flags mask);
+		static bool assign(const ValueRef& dst, const ConstPropertyRef& src, Property::Flags mask);
+		static bool assign(const PropertyRef& dst, const ConstValueRef& src, Property::Flags mask);
+		static bool assign(const PropertyRef& dst, const ConstPropertyRef& src, Property::Flags mask);
 
-		bool assign(void* object, Name property, const void* src, const Type* type, Property::Flags mask,
-		            const AssignHistory* history = nullptr) const;
-		bool assign(void* dst, const void* src, const Type* type, Property::Flags mask,
-		            const AssignHistory* history = nullptr) const;
 		virtual bool assign(void* dst, const void* src) const = 0;
 
 		Property* property(Name name) const;
 		inline Type* parent() const { return m_parent; }
-		inline Pair<void*, const Type*> resolve(void* address, const Name& name) { return resolve(address, &name, 1); }
 
 		Type& bind(Type* type, Resolver resolver);
 
@@ -263,8 +274,8 @@ namespace Trinex::UI::Refl
 			                             ? static_cast<Type*>(this)
 			                             : static_cast<Type*>(NativeType<Markup::BindingPath>::instance());
 
-			Type::bind(binding_path, [](void* dst, const void* src, Property::Flags mask, const AssignHistory* history) -> bool {
-				return NativeType<T>::instance()->binding_path_resolver(dst, src, mask, history);
+			Type::bind(binding_path, [](void* dst, const void* src, Property::Flags mask) -> bool {
+				return NativeType<T>::instance()->binding_path_resolver(dst, src, mask);
 			});
 		}
 

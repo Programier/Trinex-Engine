@@ -59,6 +59,16 @@ namespace Trinex::UI
 			Markup::BindingPath path;
 		};
 
+		class CurrentScope
+		{
+		private:
+			Element* m_previous;
+
+		public:
+			CurrentScope(Element* element);
+			~CurrentScope();
+		};
+
 	private:
 		Element* m_owner     = nullptr;
 		Document* m_document = nullptr;
@@ -93,6 +103,7 @@ namespace Trinex::UI
 		static Element* create(Name name);
 		static Refl::Type* reflection();
 		static Element* cast(void* src, const Refl::Type* type);
+		static Element* current();
 
 		Element& bind(void* value, const Refl::Type* type, const Markup::BindingPath& path);
 		Element& bind(Name event, EventListener listener);

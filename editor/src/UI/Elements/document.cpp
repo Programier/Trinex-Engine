@@ -72,7 +72,7 @@ _Comment    <- '//' (![\r\n] .)*
 		struct Node;
 
 		struct Property {
-			String name;
+			Name name;
 			ValueDesc value;
 			SourceLocation location;
 		};
@@ -729,7 +729,21 @@ _Comment    <- '//' (![\r\n] .)*
 			auto type = element->type();
 
 			auto visitor = [&]<typename T>(const T& value) -> bool {
-				if (!type->assign(element, prop.name, &value, UI::Refl::NativeType<T>::instance(), Refl::Property::Markup))
+				Element::CurrentScope current(element);
+
+				Refl::PropertyRef dst = {
+				        .address = element,
+				        .type    = type,
+				        .field   = &prop.name,
+				        .fields  = 1,
+				};
+
+				Refl::ConstValueRef src = {
+				        .address = &value,
+				        .type    = UI::Refl::NativeType<T>::instance(),
+				};
+
+				if (!Refl::Type::assign(dst, src, Refl::Property::Markup))
 				{
 					trinex_error(Log::Editor, "Failed to assign property '%s' of element '%s' at %u:%u", prop.name.c_str(),
 					             node.type.c_str(), prop.location.line, prop.location.column);

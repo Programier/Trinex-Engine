@@ -6,26 +6,6 @@
 
 namespace Trinex::UI::Refl
 {
-	bool Property::assign(void* object, const void* src, const Type* src_type, Flags mask, const AssignHistory* history)
-	{
-		if ((flags() & mask) == Flags::Undefined)
-			return true;
-
-		if (object == nullptr || src == nullptr || src_type == nullptr)
-		{
-			return false;
-		}
-
-		AssignHistory frame;
-		frame.prev     = history;
-		frame.dst      = object;
-		frame.dst_type = owner();
-		frame.src      = src;
-		frame.src_type = src_type;
-
-		return type()->assign(resolve(object), src, src_type, mask, &frame);
-	}
-
 	Type::Type(Type* parent) : m_parent(parent)
 	{
 		if (parent)
@@ -44,17 +24,12 @@ namespace Trinex::UI::Refl
 		m_properties.clear();
 	}
 
-	bool Type::binding_path_resolver(void* dst, const void* src, Property::Flags mask, const AssignHistory* history)
+	bool Type::binding_path_resolver(void* dst, const void* src, Property::Flags mask)
 	{
-		while (history)
+		if (Element* element = Element::current())
 		{
-			if (auto element = Element::cast(history->dst, history->dst_type))
-			{
-				element->bind(dst, this, *static_cast<const Markup::BindingPath*>(src));
-				return true;
-			}
-
-			history = history->prev;
+			element->bind(dst, this, *static_cast<const Markup::BindingPath*>(src));
+			return true;
 		}
 
 		return false;
@@ -87,51 +62,142 @@ namespace Trinex::UI::Refl
 		return *this;
 	}
 
-	Pair<void*, const Type*> Type::resolve(void* address, const Name* names, usize count) const
+	bool Type::assign(const ValueRef& dst, const ConstValueRef& src, Property::Flags mask)
 	{
-		if (address == nullptr)
-			return {nullptr, nullptr};
+		if (dst.type == src.type)
+			return dst.type->assign(dst.address, src.address);
 
-		const Type* self = this;
+		auto it = dst.type->m_resolvers.find(src.type);
 
-		for (usize i = 0; i < count; ++i)
+		if (it != dst.type->m_resolvers.end())
 		{
-			Property* prop = self->property(names[i]);
-
-			if (prop == nullptr)
-				return {nullptr, nullptr};
-
-			address = prop->resolve(address);
-			self    = prop->type();
-		}
-
-		return {address, self};
-	}
-
-	bool Type::assign(void* object, Name name, const void* src, const Type* type, Property::Flags mask,
-	                  const AssignHistory* history) const
-	{
-		if (Property* prop = property(name))
-		{
-			return prop->assign(object, src, type, mask, history);
+			return it->second(dst.address, src.address, mask);
 		}
 
 		return false;
 	}
 
-	bool Type::assign(void* dst, const void* src, const Type* type, Property::Flags mask, const AssignHistory* history) const
+	bool Type::assign(const ValueRef& dst, const ConstPropertyRef& src, Property::Flags mask)
 	{
-		if (this == type)
-			return assign(dst, src);
-
-		auto it = m_resolvers.find(type);
-
-		if (it != m_resolvers.end())
+		if (src.field)
 		{
-			return it->second(dst, src, mask, history);
+			if (Property* prop = src.type->property(*src.field))
+			{
+				if ((prop->flags() & mask) == Property::Undefined)
+				{
+					return false;
+				}
+
+				return prop->load(src.address, [&](const void* address, Type* type) -> bool {
+					if (src.fields > 1)
+					{
+						ConstPropertyRef child = {
+						        .address = address,
+						        .type    = type,
+						        .field   = src.field + 1,
+						        .fields  = src.fields - 1,
+						};
+
+						return Type::assign(dst, child, mask);
+					}
+					else
+					{
+						ConstValueRef child = {
+						        .address = address,
+						        .type    = type,
+						};
+
+						return Type::assign(dst, child, mask);
+					}
+				});
+			}
+
+			return false;
 		}
 
-		return false;
+		return assign(dst, ConstValueRef{.address = src.address, .type = src.type}, mask);
+	}
+
+	bool Type::assign(const PropertyRef& dst, const ConstValueRef& src, Property::Flags mask)
+	{
+		if (dst.field)
+		{
+			if (Property* prop = dst.type->property(*dst.field))
+			{
+				if ((prop->flags() & mask) == Property::Undefined)
+				{
+					return false;
+				}
+
+				return prop->store(dst.address, [&](void* address, Type* type) -> bool {
+					if (dst.fields > 1)
+					{
+						PropertyRef child = {
+						        .address = address,
+						        .type    = type,
+						        .field   = dst.field + 1,
+						        .fields  = dst.fields - 1,
+						};
+
+						return Type::assign(child, src, mask);
+					}
+					else
+					{
+						ValueRef child = {
+						        .address = address,
+						        .type    = type,
+						};
+
+						return Type::assign(child, src, mask);
+					}
+				});
+			}
+
+			return false;
+		}
+
+		return assign(ValueRef{.address = dst.address, .type = dst.type}, src, mask);
+	}
+
+	bool Type::assign(const PropertyRef& dst, const ConstPropertyRef& src, Property::Flags mask)
+	{
+		if (dst.field)
+		{
+			if (Property* prop = dst.type->property(*dst.field))
+			{
+				if ((prop->flags() & mask) == Property::Undefined)
+				{
+					return false;
+				}
+
+				return prop->store(dst.address, [&](void* address, Type* type) -> bool {
+					if (dst.fields > 1)
+					{
+						PropertyRef child = {
+						        .address = address,
+						        .type    = type,
+						        .field   = dst.field + 1,
+						        .fields  = dst.fields - 1,
+						};
+
+						return Type::assign(child, src, mask);
+					}
+					else
+					{
+						ValueRef child = {
+						        .address = address,
+						        .type    = type,
+						};
+
+						return Type::assign(child, src, mask);
+					}
+				});
+			}
+
+			return false;
+		}
+
+		return assign(ValueRef{.address = dst.address, .type = dst.type}, src, mask);
 	}
 
 	Property* Type::property(Name name) const
@@ -160,26 +226,26 @@ namespace Trinex::UI::Refl
 	}
 
 	template<typename Dst, typename Src>
-	static bool static_cast_resolver(void* dst, const void* src, Property::Flags mask, const AssignHistory* history)
+	static bool static_cast_resolver(void* dst, const void* src, Property::Flags mask)
 	{
 		*static_cast<Dst*>(dst) = static_cast<Dst>(*static_cast<const Src*>(src));
 		return true;
 	}
 
 	template<typename Dst, typename Src>
-	static bool copy_resolver(void* dst, const void* src, Property::Flags mask, const AssignHistory* history)
+	static bool copy_resolver(void* dst, const void* src, Property::Flags mask)
 	{
 		*static_cast<Dst*>(dst) = *static_cast<const Src*>(src);
 		return true;
 	}
 
-	static bool string_to_bool(void* dst, const void* src, Property::Flags mask, const AssignHistory* history)
+	static bool string_to_bool(void* dst, const void* src, Property::Flags mask)
 	{
 		const String& value = *static_cast<const String*>(src);
 		return Strings::boolean_of(value, *static_cast<bool*>(dst));
 	}
 
-	static bool string_to_i32(void* dst, const void* src, Property::Flags mask, const AssignHistory* history)
+	static bool string_to_i32(void* dst, const void* src, Property::Flags mask)
 	{
 		const String& value = *static_cast<const String*>(src);
 		i64 result;
@@ -193,7 +259,7 @@ namespace Trinex::UI::Refl
 		return false;
 	}
 
-	static bool string_to_f32(void* dst, const void* src, Property::Flags mask, const AssignHistory* history)
+	static bool string_to_f32(void* dst, const void* src, Property::Flags mask)
 	{
 		const String& value = *static_cast<const String*>(src);
 		f64 result;
@@ -208,49 +274,58 @@ namespace Trinex::UI::Refl
 	}
 
 	template<typename StringType = String>
-	static bool bool_to_string(void* dst, const void* src, Property::Flags mask, const AssignHistory* history)
+	static bool bool_to_string(void* dst, const void* src, Property::Flags mask)
 	{
 		*static_cast<StringType*>(dst) = *static_cast<const bool*>(src) ? "true" : "false";
 		return true;
 	}
 
 	template<typename Src, typename StringType = String>
-	static bool number_to_string(void* dst, const void* src, Property::Flags mask, const AssignHistory* history)
+	static bool number_to_string(void* dst, const void* src, Property::Flags mask)
 	{
 		*static_cast<StringType*>(dst) = Strings::format("{}", *static_cast<const Src*>(src));
 		return true;
 	}
 
 	template<typename StringType = String>
-	static bool identifier_to_string(void* dst, const void* src, Property::Flags mask, const AssignHistory* history)
+	static bool identifier_to_string(void* dst, const void* src, Property::Flags mask)
 	{
 		*static_cast<StringType*>(dst) = *static_cast<const Markup::Identifier*>(src);
 		return true;
 	}
 
-	static bool value_to_f32(f32& dst, Property::Flags mask, const Markup::ValueDesc& src)
+	static bool parse_value(const ValueRef& dst, const Markup::ValueDesc& src, Property::Flags mask)
 	{
 		auto visitor = [&]<typename T>(const T& value) -> bool {
-			return NativeType<f32>::instance()->assign(&dst, &value, NativeType<T>::instance(), mask);
+			Refl::ConstValueRef src = {
+			        .address = &value,
+			        .type    = NativeType<T>::instance(),
+			};
+			return Type::assign(dst, src, mask);
 		};
 
 		return etl::visit(visitor, src.value);
 	}
 
-	static bool f32_to_unit(void* dst, const void* src, Property::Flags mask, const AssignHistory* history)
+	static bool value_to_f32(f32& dst, const Markup::ValueDesc& src, Property::Flags mask)
+	{
+		return parse_value({.address = &dst, .type = NativeType<f32>::instance()}, src, mask);
+	}
+
+	static bool f32_to_unit(void* dst, const void* src, Property::Flags mask)
 	{
 		*static_cast<Unit*>(dst) = Unit(*static_cast<const f32*>(src));
 		return true;
 	}
 
-	static bool i32_to_unit(void* dst, const void* src, Property::Flags mask, const AssignHistory* history)
+	static bool i32_to_unit(void* dst, const void* src, Property::Flags mask)
 	{
 		*static_cast<Unit*>(dst) = Unit(static_cast<f32>(*static_cast<const i32*>(src)));
 		return true;
 	}
 
 	template<typename VectorType>
-	static bool container_to_vec2(void* dst, const void* src, Property::Flags mask, const AssignHistory* history)
+	static bool container_to_vec2(void* dst, const void* src, Property::Flags mask)
 	{
 		const auto& values = *static_cast<const Markup::Container*>(src);
 
@@ -260,7 +335,7 @@ namespace Trinex::UI::Refl
 		}
 
 		VectorType result;
-		if (!value_to_f32(result.x, mask, values[0]) || !value_to_f32(result.y, mask, values[1]))
+		if (!value_to_f32(result.x, values[0], mask) || !value_to_f32(result.y, values[1], mask))
 		{
 			return false;
 		}
@@ -270,7 +345,7 @@ namespace Trinex::UI::Refl
 	}
 
 	template<typename VectorType>
-	static bool container_to_vec3(void* dst, const void* src, Property::Flags mask, const AssignHistory* history)
+	static bool container_to_vec3(void* dst, const void* src, Property::Flags mask)
 	{
 		const auto& values = *static_cast<const Markup::Container*>(src);
 
@@ -280,8 +355,8 @@ namespace Trinex::UI::Refl
 		}
 
 		VectorType result;
-		if (!value_to_f32(result.x, mask, values[0]) || !value_to_f32(result.y, mask, values[1]) ||
-		    !value_to_f32(result.z, mask, values[2]))
+		if (!value_to_f32(result.x, values[0], mask) || !value_to_f32(result.y, values[1], mask) ||
+		    !value_to_f32(result.z, values[2], mask))
 		{
 			return false;
 		}
@@ -291,7 +366,7 @@ namespace Trinex::UI::Refl
 	}
 
 	template<typename VectorType>
-	static bool container_to_vec4(void* dst, const void* src, Property::Flags mask, const AssignHistory* history)
+	static bool container_to_vec4(void* dst, const void* src, Property::Flags mask)
 	{
 		const auto& values = *static_cast<const Markup::Container*>(src);
 
@@ -301,8 +376,8 @@ namespace Trinex::UI::Refl
 		}
 
 		VectorType result;
-		if (!value_to_f32(result.x, mask, values[0]) || !value_to_f32(result.y, mask, values[1]) ||
-		    !value_to_f32(result.z, mask, values[2]) || !value_to_f32(result.w, mask, values[3]))
+		if (!value_to_f32(result.x, values[0], mask) || !value_to_f32(result.y, values[1], mask) ||
+		    !value_to_f32(result.z, values[2], mask) || !value_to_f32(result.w, values[3], mask))
 		{
 			return false;
 		}
@@ -311,11 +386,11 @@ namespace Trinex::UI::Refl
 		return true;
 	}
 
-	static bool container_to_size(void* dst, const void* src, Property::Flags mask, const AssignHistory* history)
+	static bool container_to_size(void* dst, const void* src, Property::Flags mask)
 	{
 		Vec2 result;
 
-		if (!container_to_vec2<Vec2>(&result, src, mask, history))
+		if (!container_to_vec2<Vec2>(&result, src, mask))
 		{
 			return false;
 		}
@@ -323,6 +398,7 @@ namespace Trinex::UI::Refl
 		*static_cast<Size*>(dst) = Size(result);
 		return true;
 	}
+
 
 	trinex_on_pre_init()
 	{
@@ -358,6 +434,41 @@ namespace Trinex::UI::Refl
 		NativeType<ImVec2>::instance()->bind<Markup::Container>(container_to_vec2<ImVec2>);
 		NativeType<ImVec4>::instance()->bind<Markup::Container>(container_to_vec4<ImVec4>);
 		NativeType<Size>::instance()->bind<Markup::Container>(container_to_size);
+
+		NativeType<Vec2>::instance()->bind("x", &Vec2::x);
+		NativeType<Vec2>::instance()->bind("r", &Vec2::x);
+		NativeType<Vec2>::instance()->bind("y", &Vec2::y);
+		NativeType<Vec2>::instance()->bind("g", &Vec2::y);
+
+		NativeType<Vec3>::instance()->bind("x", &Vec3::x);
+		NativeType<Vec3>::instance()->bind("r", &Vec3::x);
+		NativeType<Vec3>::instance()->bind("y", &Vec3::y);
+		NativeType<Vec3>::instance()->bind("g", &Vec3::y);
+		NativeType<Vec3>::instance()->bind("z", &Vec3::z);
+		NativeType<Vec3>::instance()->bind("b", &Vec3::z);
+
+		NativeType<Vec4>::instance()->bind("x", &Vec4::x);
+		NativeType<Vec4>::instance()->bind("r", &Vec4::x);
+		NativeType<Vec4>::instance()->bind("y", &Vec4::y);
+		NativeType<Vec4>::instance()->bind("g", &Vec4::y);
+		NativeType<Vec4>::instance()->bind("z", &Vec4::z);
+		NativeType<Vec4>::instance()->bind("b", &Vec4::z);
+		NativeType<Vec4>::instance()->bind("w", &Vec4::w);
+		NativeType<Vec4>::instance()->bind("a", &Vec4::w);
+
+		NativeType<ImVec2>::instance()->bind("x", &ImVec2::x);
+		NativeType<ImVec2>::instance()->bind("r", &ImVec2::x);
+		NativeType<ImVec2>::instance()->bind("y", &ImVec2::y);
+		NativeType<ImVec2>::instance()->bind("g", &ImVec2::y);
+
+		NativeType<ImVec4>::instance()->bind("x", &ImVec4::x);
+		NativeType<ImVec4>::instance()->bind("r", &ImVec4::x);
+		NativeType<ImVec4>::instance()->bind("y", &ImVec4::y);
+		NativeType<ImVec4>::instance()->bind("g", &ImVec4::y);
+		NativeType<ImVec4>::instance()->bind("z", &ImVec4::z);
+		NativeType<ImVec4>::instance()->bind("b", &ImVec4::z);
+		NativeType<ImVec4>::instance()->bind("w", &ImVec4::w);
+		NativeType<ImVec4>::instance()->bind("a", &ImVec4::w);
 
 
 		trinex_ui_bind_type_name(bool);

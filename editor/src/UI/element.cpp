@@ -7,6 +7,8 @@
 
 namespace Trinex::UI
 {
+	static thread_local Element* s_current = nullptr;
+
 	Refl::Type* Element::initialize_type(Refl::NativeType<Element>* type)
 	{
 		type->bind("id", &Element::m_id);
@@ -59,6 +61,21 @@ namespace Trinex::UI
 		}
 
 		return nullptr;
+	}
+
+	Element* Element::current()
+	{
+		return s_current;
+	}
+
+	Element::CurrentScope::CurrentScope(Element* element) : m_previous(s_current)
+	{
+		s_current = element;
+	}
+
+	Element::CurrentScope::~CurrentScope()
+	{
+		s_current = m_previous;
 	}
 
 	Element* Element::create(Name name)
@@ -234,7 +251,21 @@ namespace Trinex::UI
 		auto type = element->type();
 
 		auto visitor = [&]<typename T>(const T& value) -> bool {
-			return type->assign(element, property.name, &value, UI::Refl::NativeType<T>::instance(), Refl::Property::Style);
+			Element::CurrentScope current(element);
+
+			Refl::PropertyRef dst = {
+			        .address = element,
+			        .type    = type,
+			        .field   = &property.name,
+			        .fields  = 1,
+			};
+
+			Refl::ConstValueRef src = {
+			        .address = &value,
+			        .type    = UI::Refl::NativeType<T>::instance(),
+			};
+
+			return Refl::Type::assign(dst, src, Refl::Property::Style);
 		};
 
 		return etl::visit(visitor, property.value.value);
@@ -291,9 +322,7 @@ namespace Trinex::UI
 
 	Element& Element::update()
 	{
-		auto resolve_binding = [this](const Binding& binding) {
-			return document()->bindings()->resolve(document(), binding.path.data(), binding.path.size());
-		};
+		CurrentScope current(this);
 
 		apply_styles();
 
@@ -302,9 +331,19 @@ namespace Trinex::UI
 			if (!(binding.path.mode & Markup::BindingPath::Mode::Read))
 				continue;
 
-			auto resolve = resolve_binding(binding);
+			Refl::PropertyRef dst = {
+			        .address = binding.value,
+			        .type    = binding.type,
+			};
 
-			if (!binding.type->assign(binding.value, resolve.first, resolve.second, Refl::Property::Markup))
+			Refl::ConstPropertyRef src = {
+			        .address = document(),
+			        .type    = document()->bindings(),
+			        .field   = binding.path.data(),
+			        .fields  = binding.path.size(),
+			};
+
+			if (!Refl::Type::assign(dst, src, Refl::Property::Markup))
 			{
 				trinex_error(Log::Editor, "Failed to update binding");
 			}
@@ -324,10 +363,19 @@ namespace Trinex::UI
 					if (!(binding.path.mode & Markup::BindingPath::Mode::Write))
 						continue;
 
-					auto resolve = resolve_binding(binding);
+					Refl::PropertyRef dst = {
+					        .address = document(),
+					        .type    = document()->bindings(),
+					        .field   = binding.path.data(),
+					        .fields  = binding.path.size(),
+					};
 
-					if (resolve.second == nullptr ||
-					    !resolve.second->assign(resolve.first, binding.value, binding.type, Refl::Property::Markup))
+					Refl::ConstValueRef src = {
+					        .address = binding.value,
+					        .type    = binding.type,
+					};
+
+					if (!Refl::Type::assign(dst, src, Refl::Property::Markup))
 					{
 						trinex_error(Log::Editor, "Failed to update binding");
 					}
