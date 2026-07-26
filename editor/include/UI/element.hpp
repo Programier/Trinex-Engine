@@ -85,7 +85,6 @@ namespace Trinex::UI
 		Vec2 inner_spacing;
 		f32 alpha = 1.f;
 		f32 indent;
-		f32 align;
 		Vec4 text_color          = {0.80f, 0.80f, 0.80f, 1.00f};
 		Vec4 border_color        = {0.12f, 0.12f, 0.18f, 0.50f};
 		Vec4 border_shadow_color = {0.00f, 0.00f, 0.00f, 0.00f};

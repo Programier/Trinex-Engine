@@ -12,7 +12,6 @@ namespace Trinex::UI
 
 	trinex_implement_ui_element(Panel)
 	{
-		reflection()->bind("id", &This::id);
 		reflection()->bind("size", &This::size);
 		reflection()->bind("border", &This::border);
 		reflection()->bind("background", &This::background);
@@ -42,7 +41,7 @@ namespace Trinex::UI
 	Element::UpdateFlags Panel::on_begin_update()
 	{
 		ImGui::PushID(this);
-		const bool visible = ImGui::BeginChild(id.empty() ? "##Panel" : id.c_str(), to_imgui_size(size), border);
+		const bool visible = ImGui::BeginChild(id().is_valid() ? id().c_str() : "##Panel", to_imgui_size(size), border);
 		if (!visible)
 		{
 			ImGui::EndChild();
@@ -125,7 +124,6 @@ namespace Trinex::UI
 
 	trinex_implement_ui_element(Horizontal)
 	{
-		reflection()->bind("id", &This::id);
 		reflection()->bind("size", &This::size);
 		reflection()->bind("align", &This::align);
 	}
@@ -144,7 +142,6 @@ namespace Trinex::UI
 
 	trinex_implement_ui_element(Vertical)
 	{
-		reflection()->bind("id", &This::id);
 		reflection()->bind("size", &This::size);
 		reflection()->bind("align", &This::align);
 	}
@@ -180,7 +177,6 @@ namespace Trinex::UI
 
 	trinex_implement_ui_element(ScrollArea)
 	{
-		reflection()->bind("id", &This::id);
 		reflection()->bind("size", &This::size);
 		reflection()->bind("border", &This::border);
 		trinex_ui_bind_property(padding);
@@ -215,7 +211,7 @@ namespace Trinex::UI
 	Element::UpdateFlags ScrollArea::on_begin_update()
 	{
 		ImGui::PushID(this);
-		const bool visible = ImGui::BeginChild(id.empty() ? "##ScrollArea" : id.c_str(), to_imgui_size(size), border);
+		const bool visible = ImGui::BeginChild(id().is_valid() ? id().c_str() : "##ScrollArea", to_imgui_size(size), border);
 		if (!visible)
 		{
 			ImGui::EndChild();
@@ -234,7 +230,6 @@ namespace Trinex::UI
 
 	trinex_implement_ui_element(AnimatedArea)
 	{
-		reflection()->bind("id", &This::id);
 		reflection()->bind("visible", &This::visible);
 	}
 
@@ -315,12 +310,11 @@ namespace Trinex::UI
 	trinex_implement_ui_element(SameLine)
 	{
 		reflection()->bind("offset", &This::offset);
-		reflection()->bind("spacing", &This::spacing);
 	}
 
 	Element::UpdateFlags SameLine::on_begin_update()
 	{
-		ImGui::SameLine(offset, spacing);
+		ImGui::SameLine(offset);
 		return UpdateFlags::Undefined;
 	}
 
@@ -355,12 +349,11 @@ namespace Trinex::UI
 	trinex_implement_ui_element(Spring)
 	{
 		reflection()->bind("weight", &This::weight);
-		reflection()->bind("spacing", &This::spacing);
 	}
 
 	Element::UpdateFlags Spring::on_begin_update()
 	{
-		ImGui::Dummy(ImVec2(spacing, 0.0f));
+		ImGui::Spring(weight);
 		return UpdateFlags::Undefined;
 	}
 }// namespace Trinex::UI

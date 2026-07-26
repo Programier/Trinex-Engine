@@ -192,7 +192,6 @@ namespace Trinex::UI
 
 	trinex_implement_ui_element(TabBar)
 	{
-		reflection()->bind("id", &This::id);
 		trinex_ui_bind_property(border_size);
 		trinex_ui_bind_property(overline_size);
 	}
@@ -214,7 +213,7 @@ namespace Trinex::UI
 	Element::UpdateFlags TabBar::on_begin_update()
 	{
 		ImGui::PushID(this);
-		if (ImGui::BeginTabBar(id.empty() ? "##TabBar" : id.c_str()))
+		if (ImGui::BeginTabBar(id().is_valid() ? id().c_str() : "##TabBar"))
 		{
 			return UpdateFlags::Default;
 		}
@@ -270,7 +269,7 @@ namespace Trinex::UI
 
 	Element::UpdateFlags Tab::on_begin_update()
 	{
-		bool open = true;
+		bool open          = true;
 		const bool visible = ImGui::BeginTabItem(label.c_str(), &open);
 		const bool clicked = ImGui::IsItemClicked();
 		if (visible)

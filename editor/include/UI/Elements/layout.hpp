@@ -8,7 +8,6 @@ namespace Trinex::UI
 		trinex_ui_element(Panel, Element);
 
 	public:
-		String id;
 		Size size             = Size(0.0f, 0.0f);
 		bool border           = true;
 		bool background       = true;
@@ -57,7 +56,6 @@ namespace Trinex::UI
 		trinex_ui_element(Horizontal, Element);
 
 	public:
-		String id;
 		ImVec2 size = ImVec2(0.0f, 0.0f);
 		f32 align   = -1.0f;
 
@@ -70,7 +68,6 @@ namespace Trinex::UI
 		trinex_ui_element(Vertical, Element);
 
 	public:
-		String id;
 		ImVec2 size = ImVec2(0.0f, 0.0f);
 		f32 align   = -1.0f;
 
@@ -94,7 +91,6 @@ namespace Trinex::UI
 		trinex_ui_element(ScrollArea, Element);
 
 	public:
-		String id;
 		Size size                 = Size(0.0f, 0.0f);
 		bool border               = false;
 		Vec2 padding              = {8.0f, 8.0f};
@@ -115,7 +111,6 @@ namespace Trinex::UI
 		trinex_ui_element(AnimatedArea, Element);
 
 	public:
-		String id;
 		bool visible = true;
 
 		UpdateFlags on_begin_update() override;
@@ -161,9 +156,7 @@ namespace Trinex::UI
 		trinex_ui_element(SameLine, Element);
 
 	public:
-		f32 offset  = 0.0f;
-		f32 spacing = -1.0f;
-
+		f32 offset = 0.0f;
 		UpdateFlags on_begin_update() override;
 	};
 
@@ -193,8 +186,7 @@ namespace Trinex::UI
 		trinex_ui_element(Spring, Element);
 
 	public:
-		f32 weight  = 1.0f;
-		f32 spacing = -1.0f;
+		f32 weight = 1.0f;
 
 		UpdateFlags on_begin_update() override;
 	};

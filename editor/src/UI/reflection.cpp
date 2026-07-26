@@ -23,7 +23,13 @@ namespace Trinex::UI::Refl
 		return type()->assign(resolve(object), src, src_type, &frame);
 	}
 
-	Type::Type(Type* parent) : m_parent(parent) {}
+	Type::Type(Type* parent) : m_parent(parent)
+	{
+		if (parent)
+		{
+			parent->m_childs.push_back(this);
+		}
+	}
 
 	Type::~Type()
 	{
@@ -53,7 +59,20 @@ namespace Trinex::UI::Refl
 
 	Type& Type::bind(Name name, Property* prop)
 	{
-		trinex_assert(!m_properties.contains(name));
+		struct DownCastChecker {
+			static void check(Type* type, Name name)
+			{
+				for (Type* child : type->m_childs)
+				{
+					trinex_assert(!child->m_properties.contains(name));
+					check(child, name);
+				}
+			}
+		};
+
+		trinex_assert(property(name) == nullptr);
+		DownCastChecker::check(this, name);
+
 		m_properties.insert({name, prop});
 		return *this;
 	}

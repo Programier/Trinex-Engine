@@ -23,12 +23,27 @@ namespace Trinex::UI::Refl
 
 	class Property
 	{
+	public:
+		struct Flags {
+			enum Enum : u8
+			{
+				Undefined = 0,
+				Markup    = 1 < 0,
+				Style     = 1 << 1,
+			};
+
+			trinex_bitfield_enum_struct(Flags, u8);
+		};
+
+		using enum Flags::Enum;
+
 	private:
 		Type* m_owner;
+		Flags m_flags;
 
 	protected:
 	public:
-		inline Property(Type* owner = nullptr) : m_owner(owner) {}
+		inline Property(Type* owner = nullptr, Flags flags = Flags::Markup) : m_owner(owner), m_flags(flags) {}
 
 		bool assign(void* object, const void* src, const Type* src_type, const AssignHistory* history = nullptr);
 
@@ -36,6 +51,7 @@ namespace Trinex::UI::Refl
 		virtual void* resolve(void* address)                   = 0;
 		virtual const void* resolve(const void* address) const = 0;
 		inline Type* owner() const { return m_owner; }
+		inline Flags flags() const { return m_flags; }
 		virtual ~Property() {}
 	};
 
@@ -46,7 +62,9 @@ namespace Trinex::UI::Refl
 		Field Instance::* m_property;
 
 	public:
-		MemberProperty(Field Instance::* property, Type* owner = nullptr) : Property(owner), m_property(property) {}
+		MemberProperty(Field Instance::* property, Type* owner = nullptr, Flags flags = Flags::Markup)
+		    : Property(owner, flags), m_property(property)
+		{}
 		Type* type() const override;
 
 		void* resolve(void* address) override { return &(static_cast<Instance*>(address)->*m_property); }
@@ -60,7 +78,9 @@ namespace Trinex::UI::Refl
 		Field* m_property;
 
 	public:
-		StaticProperty(Field* property, Type* owner = nullptr) : Property(owner), m_property(property) {}
+		StaticProperty(Field* property, Type* owner = nullptr, Flags flags = Flags::Markup)
+		    : Property(owner, flags), m_property(property)
+		{}
 		Type* type() const override;
 
 		void* resolve(void* address) override { return m_property; }
@@ -74,6 +94,7 @@ namespace Trinex::UI::Refl
 
 	private:
 		Type* m_parent;
+		Vector<Type*> m_childs;
 		FlatMap<Name, Property*> m_properties;
 		FlatMap<const Type*, Resolver> m_resolvers;
 

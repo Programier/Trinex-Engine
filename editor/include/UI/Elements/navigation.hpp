@@ -70,8 +70,8 @@ namespace Trinex::UI
 		String badge;
 		bool selected = false;
 		Name on_click;
-		f32 rounding    = 0.0f;
-		Vec2 text_align = {0.0f, 0.0f};
+		f32 rounding          = 0.0f;
+		Vec2 text_align       = {0.0f, 0.0f};
 		Vec4 background_color = {0.20f, 0.25f, 0.30f, 1.00f};
 
 		TreeLeaf& push_style() override;
@@ -84,8 +84,7 @@ namespace Trinex::UI
 		trinex_ui_element(TabBar, Element);
 
 	public:
-		String id;
-		f32 border_size  = 1.0f;
+		f32 border_size   = 1.0f;
 		f32 overline_size = 2.0f;
 
 		TabBar& push_style() override;
@@ -103,10 +102,10 @@ namespace Trinex::UI
 		bool selected = false;
 		Size size     = Size(0.0f, 0.0f);
 		Name on_click;
-		f32 rounding         = 4.0f;
-		f32 border_size      = 0.0f;
-		f32 min_width_base   = 0.0f;
-		f32 min_width_shrink = 0.0f;
+		f32 rounding          = 4.0f;
+		f32 border_size       = 0.0f;
+		f32 min_width_base    = 0.0f;
+		f32 min_width_shrink  = 0.0f;
 		Vec4 background_color = {0.11f, 0.15f, 0.17f, 1.00f};
 		Vec4 overline_color   = {0.26f, 0.59f, 0.98f, 1.00f};
 
@@ -125,8 +124,8 @@ namespace Trinex::UI
 		String badge;
 		bool selected = false;
 		Name on_click;
-		f32 rounding    = 0.0f;
-		Vec2 text_align = {0.0f, 0.0f};
+		f32 rounding          = 0.0f;
+		Vec2 text_align       = {0.0f, 0.0f};
 		Vec4 background_color = {0.20f, 0.25f, 0.30f, 1.00f};
 
 		SidebarItem& push_style() override;
@@ -143,8 +142,8 @@ namespace Trinex::UI
 		String icon;
 		bool selected = false;
 		Name on_click;
-		f32 rounding    = 0.0f;
-		Vec2 text_align = {0.0f, 0.0f};
+		f32 rounding          = 0.0f;
+		Vec2 text_align       = {0.0f, 0.0f};
 		Vec4 background_color = {0.20f, 0.25f, 0.30f, 1.00f};
 
 		NavItem& push_style() override;
@@ -160,8 +159,8 @@ namespace Trinex::UI
 		String label;
 		bool current = false;
 		Name on_click;
-		f32 rounding    = 0.0f;
-		Vec2 text_align = {0.0f, 0.0f};
+		f32 rounding          = 0.0f;
+		Vec2 text_align       = {0.0f, 0.0f};
 		Vec4 background_color = {0.20f, 0.25f, 0.30f, 1.00f};
 
 		Breadcrumb& push_style() override;
