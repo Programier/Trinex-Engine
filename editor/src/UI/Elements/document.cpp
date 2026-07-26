@@ -698,13 +698,13 @@ _Comment    <- '//' (![\r\n] .)*
 			return false;
 		}
 
-		static bool append_style_names(Vector<Name>& styles, const ValueDesc& desc)
+		static bool append_style_names(Element* element, const ValueDesc& desc, const Vector<Property>& properties)
 		{
 			Name name;
 
 			if (value_to_name(name, desc))
 			{
-				styles.push_back(name);
+				element->style(name);
 				return true;
 			}
 
@@ -712,7 +712,7 @@ _Comment    <- '//' (![\r\n] .)*
 			{
 				for (const ValueDesc& item : *list)
 				{
-					if (!append_style_names(styles, item))
+					if (!append_style_names(element, item, properties))
 					{
 						return false;
 					}
@@ -766,49 +766,33 @@ _Comment    <- '//' (![\r\n] .)*
 				return false;
 			}
 
-			Vector<Name> style_names;
-			Name element_id;
-
 			for (const Property& prop : node.properties)
 			{
-				if (prop.name == "class" || prop.name == "style")
+				if (prop.name == "style")
 				{
-					if (!append_style_names(style_names, prop.value))
+					if (!append_style_names(element, prop.value, node.properties))
 					{
 						trinex_error(Log::Editor, "Invalid style reference on element '%s' at %u:%u", node.type.c_str(),
 						             prop.location.line, prop.location.column);
 						return false;
 					}
 				}
-				else if (prop.name == "id")
+				else
 				{
-					value_to_name(element_id, prop.value);
+					if (!apply_property(element, node, prop))
+					{
+						trinex_error(Log::Editor, "Failed to apply property '%s' on element '%s' at %u:%u", prop.name.c_str(),
+						             node.type.c_str(), prop.location.line, prop.location.column);
+						return false;
+					}
 				}
 			}
 
-			for (const Name& style_name : style_names)
+			Name id = element->id();
+
+			if (id.is_valid())
 			{
-				element->style(style_name);
-			}
-
-			for (const Property& prop : node.properties)
-			{
-				if (prop.name == "class" || prop.name == "style")
-				{
-					continue;
-				}
-
-				element->inline_property(Detail::to_style_property(prop));
-
-				if (prop.name == "id" && !apply_property(element, node, prop))
-				{
-					return false;
-				}
-			}
-
-			if (element_id.is_valid())
-			{
-				document->register_element(element_id, element);
+				document->register_element(id, element);
 			}
 
 			for (const Node& child : node.children)

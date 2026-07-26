@@ -63,11 +63,9 @@ namespace Trinex::UI
 		Element* m_owner     = nullptr;
 		Document* m_document = nullptr;
 		Name m_id;
-		Name m_type_name;
 		Vector<Element*> m_childs;
 		Vector<Binding> m_bindings;
 		Vector<Name> m_styles;
-		Vector<StyleProperty> m_inline_properties;
 		StyleInstance m_style_instance;
 		StyleState m_style_state = StyleState::Undefined;
 		FlatMap<Name, EventListener> m_listeners;
@@ -141,10 +139,8 @@ namespace Trinex::UI
 		inline Element* owner() const { return m_owner; }
 		inline Document* document() const { return m_document; }
 		inline const Name& id() const { return m_id; }
-		inline const Name& type_name() const { return m_type_name; }
 		inline const Vector<Element*>& childs() const { return m_childs; }
 		inline const Vector<Name>& styles() const { return m_styles; }
-		inline const Vector<StyleProperty>& inline_properties() const { return m_inline_properties; }
 		inline StyleState style_state() const { return m_style_state; }
 		inline u32 references() const { return m_references; }
 		inline const Vector<Binding>& bindings() const { return m_bindings; }

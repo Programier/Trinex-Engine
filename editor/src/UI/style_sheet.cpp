@@ -475,7 +475,7 @@ namespace Trinex::UI
 			}
 		};
 
-		append_rules(element->type_name());
+		append_rules(element->type()->name());
 
 		for (auto type = element->type(); type; type = type->parent())
 		{
