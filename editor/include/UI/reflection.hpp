@@ -87,6 +87,7 @@ namespace Trinex::UI::Refl
 	public:
 		virtual void* factory() const       = 0;
 		virtual Type& destroy(void* object) = 0;
+		virtual Name name() const           = 0;
 
 		Pair<void*, const Type*> resolve(void* address, const Name* names, usize count = 1) const;
 
@@ -102,6 +103,9 @@ namespace Trinex::UI::Refl
 
 		template<typename Source>
 		Type& bind(Resolver resolver);
+
+		template<typename T>
+		inline static Name name_of = Name::undefined;
 
 		friend Document;
 	};
@@ -174,6 +178,8 @@ namespace Trinex::UI::Refl
 			}
 		}
 
+		Name name() const override { return Type::name_of<T>; }
+
 		bool assign(void* dst, const void* src) const override
 		{
 			if constexpr (etl::is_void_v<T>)
@@ -245,6 +251,7 @@ namespace Trinex::UI::Refl
 				return nullptr;
 
 			NativeType<T>* element = NativeType<T>::instance();
+			Type::name_of<T>       = name;
 			m_types.insert({name, element});
 			return element;
 		}
@@ -259,4 +266,6 @@ namespace Trinex::UI::Refl
 
 		inline const Container& types() const { return m_types; }
 	};
+
+#define trinex_ui_bind_type_name(name) Trinex::UI::Refl::Type::name_of<name> = #name
 }// namespace Trinex::UI::Refl

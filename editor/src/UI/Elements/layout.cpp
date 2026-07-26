@@ -1,6 +1,7 @@
 #include <UI/Elements/layout.hpp>
 #include <UI/reflection.hpp>
 #include <imgui.h>
+#include <imgui_stacklayout.h>
 
 namespace Trinex::UI
 {
@@ -131,13 +132,13 @@ namespace Trinex::UI
 
 	Element::UpdateFlags Horizontal::on_begin_update()
 	{
-		ImGui::BeginGroup();
-		return UpdateFlags::Default;
+		ImGui::BeginHorizontal(this, size, align);
+		return UpdateFlags::Childs | UpdateFlags::End;
 	}
 
 	Element& Horizontal::on_end_update(UpdateFlags flags)
 	{
-		ImGui::EndGroup();
+		ImGui::EndHorizontal();
 		return *this;
 	}
 
@@ -150,13 +151,13 @@ namespace Trinex::UI
 
 	Element::UpdateFlags Vertical::on_begin_update()
 	{
-		ImGui::BeginGroup();
-		return UpdateFlags::Default;
+		ImGui::BeginVertical(this, size, align);
+		return UpdateFlags::Childs | UpdateFlags::End;
 	}
 
 	Element& Vertical::on_end_update(UpdateFlags flags)
 	{
-		ImGui::EndGroup();
+		ImGui::EndVertical();
 		return *this;
 	}
 

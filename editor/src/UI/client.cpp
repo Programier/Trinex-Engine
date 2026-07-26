@@ -5,6 +5,7 @@
 #include <Graphics/render_viewport.hpp>
 #include <UI/Elements/document.hpp>
 #include <UI/client.hpp>
+#include <UI/theme.hpp>
 #include <Window/config.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
@@ -96,6 +97,8 @@ namespace Trinex::UI
 		ClientListener::for_each<&ClientListener::on_create>(this);
 
 		auto& io = ImGui::GetIO();
+
+		initialize_theme(m_ctx);
 
 		io.Fonts->Build();
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;

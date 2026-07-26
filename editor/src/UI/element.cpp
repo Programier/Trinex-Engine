@@ -23,7 +23,7 @@ namespace Trinex::UI
 
 	Refl::Type* Element::reflection()
 	{
-		static Refl::Type* s_type = initialize_type(Refl::NativeType<Element>::instance());
+		static Refl::Type* s_type = initialize_type(Refl::ElementRegistry::instance()->bind<Element>("Element"));
 		return s_type;
 	}
 

@@ -1,0 +1,331 @@
+style Element {
+	alpha: 1;
+	spacing: [10, 100];
+	inner_spacing: [7, 5];
+	indent: 14;
+	align: 0;
+	text_color: [0.86, 0.89, 0.92, 1.0];
+	border_color: [0.16, 0.20, 0.26, 0.86];
+	border_shadow_color: [0.0, 0.0, 0.0, 0.0];
+}
+
+style Window {
+	padding: [10, 10];
+	min_size: [240, 180];
+	title_align: [0.5, 0.5];
+	rounding: 6;
+	border_size: 1;
+	background_color: [0.045, 0.050, 0.062, 0.985];
+	title_color: [0.075, 0.085, 0.105, 1.0];
+	resize_grip_color: [0.24, 0.42, 0.58, 0.72];
+	border_color: [0.16, 0.20, 0.26, 0.9];
+}
+
+style Panel {
+	padding: [10, 10];
+	rounding: 6;
+	border_size: 1;
+	background_color: [0.065, 0.074, 0.090, 0.96];
+	border_color: [0.17, 0.21, 0.27, 0.85];
+}
+
+style GroupPanel {
+	padding: [10, 10];
+	rounding: 6;
+	border_size: 1;
+	background_color: [0.070, 0.078, 0.096, 0.94];
+	border_color: [0.20, 0.25, 0.32, 0.82];
+	text_color: [0.88, 0.91, 0.94, 1.0];
+}
+
+style ScrollArea {
+	padding: [8, 8];
+	rounding: 5;
+	border_size: 1;
+	background_color: [0.050, 0.057, 0.070, 0.82];
+	scrollbar_bg_color: [0.030, 0.034, 0.044, 0.70];
+	scrollbar_grab_color: [0.31, 0.40, 0.50, 0.92];
+	border_color: [0.14, 0.18, 0.23, 0.8];
+}
+
+style Separator {
+	size: 1;
+	text_border: 5;
+	text_align: [0.0, 0.5];
+	text_padding: [14, 4];
+	color: [0.18, 0.23, 0.30, 0.92];
+}
+
+style Text {
+	text_color: [0.86, 0.89, 0.92, 1.0];
+}
+
+style Framed {
+	color: [0.105, 0.118, 0.142, 1.0];
+	border_color: [0.19, 0.24, 0.31, 0.85];
+	text_color: [0.88, 0.91, 0.94, 1.0];
+}
+
+style Framed:hover {
+	color: [0.125, 0.144, 0.176, 1.0];
+	border_color: [0.28, 0.46, 0.62, 0.94];
+	transition: {
+		color: 0.14, OutCubic;
+		border_color: 0.14, OutCubic;
+	}
+}
+
+style InputFloat {
+	color: [0.095, 0.106, 0.130, 1.0];
+	border_color: [0.18, 0.22, 0.29, 0.88];
+	text_color: [0.88, 0.91, 0.94, 1.0];
+}
+
+style InputInt {
+	color: [0.095, 0.106, 0.130, 1.0];
+	border_color: [0.18, 0.22, 0.29, 0.88];
+	text_color: [0.88, 0.91, 0.94, 1.0];
+}
+
+style InputText {
+	color: [0.095, 0.106, 0.130, 1.0];
+	border_color: [0.18, 0.22, 0.29, 0.88];
+	text_color: [0.88, 0.91, 0.94, 1.0];
+	cursor_color: [0.36, 0.72, 0.96, 1.0];
+}
+
+style InputFloat:focus {
+	color: [0.115, 0.136, 0.168, 1.0];
+	border_color: [0.34, 0.62, 0.84, 1.0];
+}
+
+style InputInt:focus {
+	color: [0.115, 0.136, 0.168, 1.0];
+	border_color: [0.34, 0.62, 0.84, 1.0];
+}
+
+style InputText:focus {
+	color: [0.115, 0.136, 0.168, 1.0];
+	border_color: [0.34, 0.62, 0.84, 1.0];
+	cursor_color: [0.48, 0.82, 1.0, 1.0];
+	transition: {
+		color: 0.12, OutCubic;
+		border_color: 0.12, OutCubic;
+		cursor_color: 0.12, OutCubic;
+	}
+}
+
+style Button {
+	padding: [10, 6];
+	rounding: 5;
+	border_size: 1;
+	text_align: [0.5, 0.5];
+	color: [0.16, 0.29, 0.39, 1.0];
+	text_color: [0.94, 0.97, 1.0, 1.0];
+	border_color: [0.25, 0.45, 0.58, 0.82];
+	scale: [1, 1];
+	
+	transition: {
+		color: 0.16, OutCubic;
+		border_color: 0.16, OutCubic;
+		scale: 0.12, OutCubic;
+	}
+}
+
+style Button:hover {
+	color: [0.20, 0.38, 0.51, 1.0];
+	border_color: [0.38, 0.68, 0.86, 1.0];
+	scale: [1.015, 1.015];
+	transition: {
+		color: 0.14, OutCubic;
+		border_color: 0.14, OutCubic;
+		translate: 0.18, OutBack;
+		scale: 0.14, OutCubic;
+	}
+}
+
+style Button:active {
+	color: [0.12, 0.24, 0.33, 1.0];
+	border_color: [0.46, 0.78, 0.92, 1.0];
+	scale: [0.985, 0.985];
+}
+
+style Checkbox {
+	color: [0.095, 0.106, 0.130, 1.0];
+	check_color: [0.40, 0.78, 0.95, 1.0];
+	border_color: [0.19, 0.24, 0.31, 0.88];
+	text_color: [0.86, 0.89, 0.92, 1.0];
+	transition: {
+		color: 0.14, OutCubic;
+		check_color: 0.14, OutCubic;
+		border_color: 0.14, OutCubic;
+	}
+}
+
+style Checkbox:hover {
+	color: [0.125, 0.148, 0.180, 1.0];
+	check_color: [0.52, 0.86, 1.0, 1.0];
+	border_color: [0.32, 0.56, 0.72, 0.96];
+}
+
+style SliderFloat {
+	color: [0.095, 0.106, 0.130, 1.0];
+	grab_min_size: 14;
+	grab_rounding: 6;
+	grab_color: [0.36, 0.68, 0.88, 1.0];
+	border_color: [0.18, 0.22, 0.29, 0.86];
+	transition: {
+		color: 0.14, OutCubic;
+		grab_color: 0.14, OutCubic;
+		border_color: 0.14, OutCubic;
+	}
+}
+
+style SliderInt {
+	color: [0.095, 0.106, 0.130, 1.0];
+	grab_min_size: 14;
+	grab_rounding: 6;
+	grab_color: [0.36, 0.68, 0.88, 1.0];
+	border_color: [0.18, 0.22, 0.29, 0.86];
+	transition: {
+		color: 0.14, OutCubic;
+		grab_color: 0.14, OutCubic;
+		border_color: 0.14, OutCubic;
+	}
+}
+
+style SliderFloat:hover {
+	color: [0.120, 0.145, 0.178, 1.0];
+	grab_color: [0.55, 0.86, 1.0, 1.0];
+	border_color: [0.32, 0.56, 0.72, 0.96];
+}
+
+style SliderInt:hover {
+	color: [0.120, 0.145, 0.178, 1.0];
+	grab_color: [0.55, 0.86, 1.0, 1.0];
+	border_color: [0.32, 0.56, 0.72, 0.96];
+}
+
+style CollapsingHeader {
+	header_color: [0.105, 0.125, 0.155, 1.0];
+	text_color: [0.88, 0.91, 0.94, 1.0];
+	border_color: [0.18, 0.23, 0.30, 0.85];
+}
+
+style CollapsingHeader:hover {
+	header_color: [0.145, 0.185, 0.235, 1.0];
+	transition: {
+		header_color: 0.14, OutCubic;
+	}
+}
+
+style SectionHeader {
+	header_color: [0.095, 0.112, 0.138, 1.0];
+	text_color: [0.88, 0.91, 0.94, 1.0];
+}
+
+style SectionHeader:hover {
+	header_color: [0.135, 0.170, 0.215, 1.0];
+	transition: {
+		header_color: 0.14, OutCubic;
+	}
+}
+
+style TreeNode {
+	line_size: 1;
+	line_rounding: 2;
+	header_color: [0.070, 0.080, 0.098, 0.0];
+	line_color: [0.22, 0.29, 0.38, 0.82];
+	text_color: [0.84, 0.88, 0.91, 1.0];
+}
+
+style TreeNode:hover {
+	header_color: [0.145, 0.180, 0.230, 0.94];
+	line_color: [0.32, 0.52, 0.68, 0.95];
+	transition: {
+		header_color: 0.12, OutCubic;
+		line_color: 0.12, OutCubic;
+	}
+}
+
+style TreeLeaf {
+	rounding: 4;
+	text_align: [0, 0.5];
+	background_color: [0.070, 0.080, 0.098, 0.0];
+	text_color: [0.84, 0.88, 0.91, 1.0];
+	transition: {
+		background_color: 0.12, OutCubic;
+	}
+}
+
+style TreeLeaf:hover {
+	background_color: [0.145, 0.180, 0.230, 0.94];
+}
+
+style SidebarItem {
+	rounding: 5;
+	text_align: [0, 0.5];
+	background_color: [0.070, 0.080, 0.098, 0.0];
+	text_color: [0.84, 0.88, 0.91, 1.0];
+	transition: {
+		background_color: 0.12, OutCubic;
+	}
+}
+
+style SidebarItem:hover {
+	background_color: [0.16, 0.22, 0.28, 0.95];
+}
+
+style NavItem {
+	rounding: 5;
+	text_align: [0, 0.5];
+	background_color: [0.070, 0.080, 0.098, 0.0];
+	text_color: [0.84, 0.88, 0.91, 1.0];
+	transition: {
+		background_color: 0.12, OutCubic;
+	}
+}
+
+style NavItem:hover {
+	background_color: [0.16, 0.22, 0.28, 0.95];
+}
+
+style Breadcrumb {
+	rounding: 4;
+	text_align: [0.5, 0.5];
+	background_color: [0.070, 0.080, 0.098, 0.0];
+	text_color: [0.76, 0.82, 0.87, 1.0];
+	transition: {
+		background_color: 0.12, OutCubic;
+	}
+}
+
+style Breadcrumb:hover {
+	background_color: [0.15, 0.20, 0.26, 0.95];
+	text_color: [0.92, 0.96, 1.0, 1.0];
+}
+
+style TabBar {
+	border_size: 1;
+	overline_size: 2;
+	border_color: [0.13, 0.17, 0.22, 0.9];
+}
+
+style Tab {
+	rounding: 5;
+	border_size: 0;
+	min_width_base: 72;
+	min_width_shrink: 48;
+	background_color: [0.090, 0.105, 0.130, 1.0];
+	overline_color: [0.34, 0.68, 0.90, 1.0];
+	text_color: [0.82, 0.86, 0.90, 1.0];
+	transition: {
+		background_color: 0.12, OutCubic;
+		overline_color: 0.12, OutCubic;
+	}
+}
+
+style Tab:hover {
+	background_color: [0.145, 0.185, 0.235, 1.0];
+	overline_color: [0.50, 0.86, 1.0, 1.0];
+}

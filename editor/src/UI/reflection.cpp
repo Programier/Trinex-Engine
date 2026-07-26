@@ -334,5 +334,32 @@ namespace Trinex::UI::Refl
 		NativeType<ImVec2>::instance()->bind<Markup::Container>(container_to_vec2<ImVec2>);
 		NativeType<ImVec4>::instance()->bind<Markup::Container>(container_to_vec4<ImVec4>);
 		NativeType<Size>::instance()->bind<Markup::Container>(container_to_size);
+
+
+		trinex_ui_bind_type_name(bool);
+		trinex_ui_bind_type_name(i8);
+		trinex_ui_bind_type_name(i16);
+		trinex_ui_bind_type_name(i32);
+		trinex_ui_bind_type_name(i64);
+		trinex_ui_bind_type_name(u8);
+		trinex_ui_bind_type_name(u16);
+		trinex_ui_bind_type_name(u32);
+		trinex_ui_bind_type_name(u64);
+		trinex_ui_bind_type_name(f16);
+		trinex_ui_bind_type_name(f32);
+		trinex_ui_bind_type_name(f64);
+		trinex_ui_bind_type_name(String);
+		trinex_ui_bind_type_name(Name);
+		trinex_ui_bind_type_name(Unit);
+		trinex_ui_bind_type_name(Vec2);
+		trinex_ui_bind_type_name(Vec3);
+		trinex_ui_bind_type_name(Vec4);
+		trinex_ui_bind_type_name(ImVec2);
+		trinex_ui_bind_type_name(ImVec4);
+		trinex_ui_bind_type_name(Size);
+		trinex_ui_bind_type_name(Markup::Identifier);
+		trinex_ui_bind_type_name(Markup::BindingPath);
+		trinex_ui_bind_type_name(Markup::LocalizationKey);
+		trinex_ui_bind_type_name(Markup::Null);
 	}
 }// namespace Trinex::UI::Refl
