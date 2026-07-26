@@ -79,6 +79,8 @@ namespace Trinex::UI
 		static void push_style_var(ImGuiStyleVar var, f32 value);
 		static void push_style_var(ImGuiStyleVar var, const Vec2& value);
 		static void push_style_color(ImGuiCol color, const Vec4& value);
+		static void push_style_var(ImGuiStyleVar var, const ImVec2& value);
+		static void push_style_color(ImGuiCol color, const ImVec4& value);
 
 	public:
 		Vec2 spacing;

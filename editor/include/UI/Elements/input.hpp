@@ -1,11 +1,11 @@
 #pragma once
-#include <UI/Elements/frame.hpp>
+#include <UI/Elements/framed.hpp>
 
 namespace Trinex::UI
 {
-	class InputFloat : public Frame
+	class InputFloat : public Framed
 	{
-		trinex_ui_element(InputFloat, Frame);
+		trinex_ui_element(InputFloat, Framed);
 
 	public:
 		String label;
@@ -15,9 +15,9 @@ namespace Trinex::UI
 		UpdateFlags on_begin_update() override;
 	};
 
-	class InputInt : public Frame
+	class InputInt : public Framed
 	{
-		trinex_ui_element(InputInt, Frame);
+		trinex_ui_element(InputInt, Framed);
 
 	public:
 		String label;
@@ -26,16 +26,15 @@ namespace Trinex::UI
 		UpdateFlags on_begin_update() override;
 	};
 
-	class InputText : public Frame
+	class InputText : public Framed
 	{
-		trinex_ui_element(InputText, Frame);
+		trinex_ui_element(InputText, Framed);
 
 	public:
 		String label;
 		String hint;
 		String value;
-		Vec4 cursor_color      = {0.26f, 0.59f, 0.98f, 1.00f};
-		Vec4 selected_bg_color = {0.26f, 0.59f, 0.98f, 0.35f};
+		Vec4 cursor_color = {0.26f, 0.59f, 0.98f, 1.00f};
 
 		InputText& push_style() override;
 		InputText& pop_style() override;

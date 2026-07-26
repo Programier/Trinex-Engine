@@ -3,6 +3,7 @@
 #include <UI/element.hpp>
 #include <UI/reflection.hpp>
 #include <imgui.h>
+#include <imgui_internal.h>
 
 namespace Trinex::UI
 {
@@ -394,6 +395,16 @@ namespace Trinex::UI
 	void Element::push_style_color(ImGuiCol color, const Vec4& value)
 	{
 		ImGui::PushStyleColor(color, ImVec4{value.x, value.y, value.z, value.w});
+	}
+
+	void Element::push_style_var(ImGuiStyleVar var, const ImVec2& value)
+	{
+		ImGui::PushStyleVar(var, value);
+	}
+
+	void Element::push_style_color(ImGuiCol color, const ImVec4& value)
+	{
+		ImGui::PushStyleColor(color, value);
 	}
 
 	Element& Element::push_style()

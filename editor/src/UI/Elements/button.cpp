@@ -9,16 +9,16 @@ namespace Trinex::UI
 		reflection()->bind("label", &This::label);
 		reflection()->bind("on_click", &This::on_click);
 		trinex_ui_bind_property(text_align);
-		trinex_ui_bind_property(background_color);
+		trinex_ui_bind_property(color);
 	}
 
 	Button& Button::push_style()
 	{
 		Super::push_style();
 		push_style_var(ImGuiStyleVar_ButtonTextAlign, text_align);
-		push_style_color(ImGuiCol_Button, background_color);
-		push_style_color(ImGuiCol_ButtonHovered, background_color);
-		push_style_color(ImGuiCol_ButtonActive, background_color);
+		push_style_color(ImGuiCol_Button, color);
+		push_style_color(ImGuiCol_ButtonHovered, color);
+		push_style_color(ImGuiCol_ButtonActive, color);
 		return *this;
 	}
 

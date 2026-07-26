@@ -9,14 +9,13 @@ namespace Trinex::UI
 		reflection()->bind("label", &This::label);
 		reflection()->bind("value", &This::value);
 		trinex_ui_bind_property(check_color);
-		trinex_ui_bind_property(selected_bg_color);
 	}
 
 	Checkbox& Checkbox::push_style()
 	{
 		Super::push_style();
 		push_style_color(ImGuiCol_CheckMark, check_color);
-		push_style_color(ImGuiCol_CheckboxSelectedBg, selected_bg_color);
+		push_style_color(ImGuiCol_CheckboxSelectedBg, color);
 		return *this;
 	}
 
@@ -31,30 +30,4 @@ namespace Trinex::UI
 		return item_state_flags(readback_if(ImGui::Checkbox(label.c_str(), &value)));
 	}
 
-	trinex_implement_ui_element(Toggle)
-	{
-		reflection()->bind("label", &This::label);
-		reflection()->bind("value", &This::value);
-		trinex_ui_bind_property(check_color);
-		trinex_ui_bind_property(selected_bg_color);
-	}
-
-	Toggle& Toggle::push_style()
-	{
-		Super::push_style();
-		push_style_color(ImGuiCol_CheckMark, check_color);
-		push_style_color(ImGuiCol_CheckboxSelectedBg, selected_bg_color);
-		return *this;
-	}
-
-	Toggle& Toggle::pop_style()
-	{
-		ImGui::PopStyleColor(2);
-		return *Super::pop_style().as<This>();
-	}
-
-	Element::UpdateFlags Toggle::on_begin_update()
-	{
-		return item_state_flags(readback_if(ImGui::Checkbox(label.c_str(), &value)));
-	}
 }// namespace Trinex::UI
