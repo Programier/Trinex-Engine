@@ -10,13 +10,13 @@ namespace Trinex::UI
 	Refl::Type* Element::initialize_type(Refl::NativeType<Element>* type)
 	{
 		type->bind("id", &Element::m_id);
-		type->bind("alpha", &Element::alpha);
-		type->bind("spacing", &Element::spacing);
-		type->bind("inner_spacing", &Element::inner_spacing);
-		type->bind("indent", &Element::indent);
-		type->bind("text_color", &Element::text_color);
-		type->bind("border_color", &Element::border_color);
-		type->bind("border_shadow_color", &Element::border_shadow_color);
+		type->bind("alpha", &Element::alpha, Refl::Property::Style);
+		type->bind("spacing", &Element::spacing, Refl::Property::Style);
+		type->bind("inner_spacing", &Element::inner_spacing, Refl::Property::Style);
+		type->bind("indent", &Element::indent, Refl::Property::Style);
+		type->bind("text_color", &Element::text_color, Refl::Property::Style);
+		type->bind("border_color", &Element::border_color, Refl::Property::Style);
+		type->bind("border_shadow_color", &Element::border_shadow_color, Refl::Property::Style);
 		return type;
 	}
 
@@ -234,7 +234,7 @@ namespace Trinex::UI
 		auto type = element->type();
 
 		auto visitor = [&]<typename T>(const T& value) -> bool {
-			return type->assign(element, property.name, &value, UI::Refl::NativeType<T>::instance());
+			return type->assign(element, property.name, &value, UI::Refl::NativeType<T>::instance(), Refl::Property::Style);
 		};
 
 		return etl::visit(visitor, property.value.value);
@@ -304,7 +304,7 @@ namespace Trinex::UI
 
 			auto resolve = resolve_binding(binding);
 
-			if (!binding.type->assign(binding.value, resolve.first, resolve.second))
+			if (!binding.type->assign(binding.value, resolve.first, resolve.second, Refl::Property::Markup))
 			{
 				trinex_error(Log::Editor, "Failed to update binding");
 			}
@@ -326,7 +326,8 @@ namespace Trinex::UI
 
 					auto resolve = resolve_binding(binding);
 
-					if (resolve.second == nullptr || !resolve.second->assign(resolve.first, binding.value, binding.type))
+					if (resolve.second == nullptr ||
+					    !resolve.second->assign(resolve.first, binding.value, binding.type, Refl::Property::Markup))
 					{
 						trinex_error(Log::Editor, "Failed to update binding");
 					}

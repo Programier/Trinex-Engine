@@ -6,9 +6,9 @@ namespace Trinex::UI
 {
 	trinex_implement_ui_element(Checkbox)
 	{
-		reflection()->bind("label", &This::label);
-		reflection()->bind("value", &This::value);
-		trinex_ui_bind_property(check_color);
+		trinex_ui_bind_property(label, Markup);
+		trinex_ui_bind_property(value, Markup);
+		trinex_ui_bind_property(check_color, Style);
 	}
 
 	Checkbox& Checkbox::push_style()

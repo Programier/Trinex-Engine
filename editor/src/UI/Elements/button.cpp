@@ -6,10 +6,10 @@ namespace Trinex::UI
 {
 	trinex_implement_ui_element(Button)
 	{
-		reflection()->bind("label", &This::label);
-		reflection()->bind("on_click", &This::on_click);
-		trinex_ui_bind_property(text_align);
-		trinex_ui_bind_property(color);
+		trinex_ui_bind_property(label, Markup);
+		trinex_ui_bind_property(on_click, Markup);
+		trinex_ui_bind_property(text_align, Style);
+		trinex_ui_bind_property(color, Style);
 	}
 
 	Button& Button::push_style()

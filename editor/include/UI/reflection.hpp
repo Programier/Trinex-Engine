@@ -28,7 +28,7 @@ namespace Trinex::UI::Refl
 			enum Enum : u8
 			{
 				Undefined = 0,
-				Markup    = 1 < 0,
+				Markup    = 1 << 0,
 				Style     = 1 << 1,
 			};
 
@@ -45,7 +45,7 @@ namespace Trinex::UI::Refl
 	public:
 		inline Property(Type* owner = nullptr, Flags flags = Flags::Markup) : m_owner(owner), m_flags(flags) {}
 
-		bool assign(void* object, const void* src, const Type* src_type, const AssignHistory* history = nullptr);
+		bool assign(void* object, const void* src, const Type* src_type, Flags mask, const AssignHistory* history = nullptr);
 
 		virtual Type* type() const                             = 0;
 		virtual void* resolve(void* address)                   = 0;
@@ -90,7 +90,7 @@ namespace Trinex::UI::Refl
 	class Type
 	{
 	public:
-		using Resolver = bool (*)(void* dst, const void* src, const AssignHistory* history);
+		using Resolver = bool (*)(void* dst, const void* src, Property::Flags mask, const AssignHistory* history);
 
 	private:
 		Type* m_parent;
@@ -103,7 +103,7 @@ namespace Trinex::UI::Refl
 		virtual ~Type();
 
 		Type& bind(Name name, Property* prop);
-		bool binding_path_resolver(void* dst, const void* src, const AssignHistory* history);
+		bool binding_path_resolver(void* dst, const void* src, Property::Flags mask, const AssignHistory* history);
 
 	public:
 		virtual void* factory() const       = 0;
@@ -112,8 +112,10 @@ namespace Trinex::UI::Refl
 
 		Pair<void*, const Type*> resolve(void* address, const Name* names, usize count = 1) const;
 
-		bool assign(void* object, Name property, const void* src, const Type* type, const AssignHistory* history = nullptr) const;
-		bool assign(void* dst, const void* src, const Type* type, const AssignHistory* history = nullptr) const;
+		bool assign(void* object, Name property, const void* src, const Type* type, Property::Flags mask,
+		            const AssignHistory* history = nullptr) const;
+		bool assign(void* dst, const void* src, const Type* type, Property::Flags mask,
+		            const AssignHistory* history = nullptr) const;
 		virtual bool assign(void* dst, const void* src) const = 0;
 
 		Property* property(Name name) const;
@@ -162,8 +164,8 @@ namespace Trinex::UI::Refl
 			                             ? static_cast<Type*>(this)
 			                             : static_cast<Type*>(NativeType<Markup::BindingPath>::instance());
 
-			Type::bind(binding_path, [](void* dst, const void* src, const AssignHistory* history) -> bool {
-				return NativeType<T>::instance()->binding_path_resolver(dst, src, history);
+			Type::bind(binding_path, [](void* dst, const void* src, Property::Flags mask, const AssignHistory* history) -> bool {
+				return NativeType<T>::instance()->binding_path_resolver(dst, src, mask, history);
 			});
 		}
 
@@ -219,16 +221,16 @@ namespace Trinex::UI::Refl
 
 		template<typename Field, typename Instance = T>
 		    requires(etl::is_class_v<Instance>)
-		NativeType& bind(Name name, Field Instance::* field)
+		NativeType& bind(Name name, Field Instance::* field, typename Property::Flags flags = Property::Markup)
 		{
-			Type::bind(name, trx_new MemberProperty(field, this));
+			Type::bind(name, trx_new MemberProperty(field, this, flags));
 			return *this;
 		}
 
 		template<typename Field>
-		NativeType& bind(Name name, Field* field)
+		NativeType& bind(Name name, Field* field, typename Property::Flags flags = Property::Markup)
 		{
-			Type::bind(name, trx_new StaticProperty(field, this));
+			Type::bind(name, trx_new StaticProperty(field, this, flags));
 			return *this;
 		}
 

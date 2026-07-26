@@ -5,14 +5,14 @@ namespace Trinex::UI
 {
 	trinex_implement_ui_element(FramedGeometry)
 	{
-		trinex_ui_bind_property(padding);
-		trinex_ui_bind_property(rounding);
-		trinex_ui_bind_property(border_size);
+		trinex_ui_bind_property(padding, Style);
+		trinex_ui_bind_property(rounding, Style);
+		trinex_ui_bind_property(border_size, Style);
 	}
 
 	trinex_implement_ui_element(Framed)
 	{
-		trinex_ui_bind_property(color);
+		trinex_ui_bind_property(color, Style);
 	}
 
 	FramedGeometry& FramedGeometry::push_style()

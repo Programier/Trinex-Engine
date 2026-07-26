@@ -6,8 +6,8 @@ namespace Trinex::UI
 {
 	trinex_implement_ui_element(Text)
 	{
-		trinex_ui_bind_property(text);
-		trinex_ui_bind_property(color);
+		trinex_ui_bind_property(text, Markup);
+		trinex_ui_bind_property(color, Style);
 	}
 
 	Element::UpdateFlags Text::on_begin_update()

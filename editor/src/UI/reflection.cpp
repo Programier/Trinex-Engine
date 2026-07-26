@@ -6,8 +6,11 @@
 
 namespace Trinex::UI::Refl
 {
-	bool Property::assign(void* object, const void* src, const Type* src_type, const AssignHistory* history)
+	bool Property::assign(void* object, const void* src, const Type* src_type, Flags mask, const AssignHistory* history)
 	{
+		if ((flags() & mask) == Flags::Undefined)
+			return true;
+
 		if (object == nullptr || src == nullptr || src_type == nullptr)
 		{
 			return false;
@@ -20,7 +23,7 @@ namespace Trinex::UI::Refl
 		frame.src      = src;
 		frame.src_type = src_type;
 
-		return type()->assign(resolve(object), src, src_type, &frame);
+		return type()->assign(resolve(object), src, src_type, mask, &frame);
 	}
 
 	Type::Type(Type* parent) : m_parent(parent)
@@ -41,7 +44,7 @@ namespace Trinex::UI::Refl
 		m_properties.clear();
 	}
 
-	bool Type::binding_path_resolver(void* dst, const void* src, const AssignHistory* history)
+	bool Type::binding_path_resolver(void* dst, const void* src, Property::Flags mask, const AssignHistory* history)
 	{
 		while (history)
 		{
@@ -105,17 +108,18 @@ namespace Trinex::UI::Refl
 		return {address, self};
 	}
 
-	bool Type::assign(void* object, Name name, const void* src, const Type* type, const AssignHistory* history) const
+	bool Type::assign(void* object, Name name, const void* src, const Type* type, Property::Flags mask,
+	                  const AssignHistory* history) const
 	{
 		if (Property* prop = property(name))
 		{
-			return prop->assign(object, src, type, history);
+			return prop->assign(object, src, type, mask, history);
 		}
 
 		return false;
 	}
 
-	bool Type::assign(void* dst, const void* src, const Type* type, const AssignHistory* history) const
+	bool Type::assign(void* dst, const void* src, const Type* type, Property::Flags mask, const AssignHistory* history) const
 	{
 		if (this == type)
 			return assign(dst, src);
@@ -124,7 +128,7 @@ namespace Trinex::UI::Refl
 
 		if (it != m_resolvers.end())
 		{
-			return it->second(dst, src, history);
+			return it->second(dst, src, mask, history);
 		}
 
 		return false;
@@ -156,26 +160,26 @@ namespace Trinex::UI::Refl
 	}
 
 	template<typename Dst, typename Src>
-	static bool static_cast_resolver(void* dst, const void* src, const AssignHistory* history)
+	static bool static_cast_resolver(void* dst, const void* src, Property::Flags mask, const AssignHistory* history)
 	{
 		*static_cast<Dst*>(dst) = static_cast<Dst>(*static_cast<const Src*>(src));
 		return true;
 	}
 
 	template<typename Dst, typename Src>
-	static bool copy_resolver(void* dst, const void* src, const AssignHistory* history)
+	static bool copy_resolver(void* dst, const void* src, Property::Flags mask, const AssignHistory* history)
 	{
 		*static_cast<Dst*>(dst) = *static_cast<const Src*>(src);
 		return true;
 	}
 
-	static bool string_to_bool(void* dst, const void* src, const AssignHistory* history)
+	static bool string_to_bool(void* dst, const void* src, Property::Flags mask, const AssignHistory* history)
 	{
 		const String& value = *static_cast<const String*>(src);
 		return Strings::boolean_of(value, *static_cast<bool*>(dst));
 	}
 
-	static bool string_to_i32(void* dst, const void* src, const AssignHistory* history)
+	static bool string_to_i32(void* dst, const void* src, Property::Flags mask, const AssignHistory* history)
 	{
 		const String& value = *static_cast<const String*>(src);
 		i64 result;
@@ -189,7 +193,7 @@ namespace Trinex::UI::Refl
 		return false;
 	}
 
-	static bool string_to_f32(void* dst, const void* src, const AssignHistory* history)
+	static bool string_to_f32(void* dst, const void* src, Property::Flags mask, const AssignHistory* history)
 	{
 		const String& value = *static_cast<const String*>(src);
 		f64 result;
@@ -204,49 +208,49 @@ namespace Trinex::UI::Refl
 	}
 
 	template<typename StringType = String>
-	static bool bool_to_string(void* dst, const void* src, const AssignHistory* history)
+	static bool bool_to_string(void* dst, const void* src, Property::Flags mask, const AssignHistory* history)
 	{
 		*static_cast<StringType*>(dst) = *static_cast<const bool*>(src) ? "true" : "false";
 		return true;
 	}
 
 	template<typename Src, typename StringType = String>
-	static bool number_to_string(void* dst, const void* src, const AssignHistory* history)
+	static bool number_to_string(void* dst, const void* src, Property::Flags mask, const AssignHistory* history)
 	{
 		*static_cast<StringType*>(dst) = Strings::format("{}", *static_cast<const Src*>(src));
 		return true;
 	}
 
 	template<typename StringType = String>
-	static bool identifier_to_string(void* dst, const void* src, const AssignHistory* history)
+	static bool identifier_to_string(void* dst, const void* src, Property::Flags mask, const AssignHistory* history)
 	{
 		*static_cast<StringType*>(dst) = *static_cast<const Markup::Identifier*>(src);
 		return true;
 	}
 
-	static bool value_to_f32(f32& dst, const Markup::ValueDesc& src)
+	static bool value_to_f32(f32& dst, Property::Flags mask, const Markup::ValueDesc& src)
 	{
 		auto visitor = [&]<typename T>(const T& value) -> bool {
-			return NativeType<f32>::instance()->assign(&dst, &value, NativeType<T>::instance());
+			return NativeType<f32>::instance()->assign(&dst, &value, NativeType<T>::instance(), mask);
 		};
 
 		return etl::visit(visitor, src.value);
 	}
 
-	static bool f32_to_unit(void* dst, const void* src, const AssignHistory* history)
+	static bool f32_to_unit(void* dst, const void* src, Property::Flags mask, const AssignHistory* history)
 	{
 		*static_cast<Unit*>(dst) = Unit(*static_cast<const f32*>(src));
 		return true;
 	}
 
-	static bool i32_to_unit(void* dst, const void* src, const AssignHistory* history)
+	static bool i32_to_unit(void* dst, const void* src, Property::Flags mask, const AssignHistory* history)
 	{
 		*static_cast<Unit*>(dst) = Unit(static_cast<f32>(*static_cast<const i32*>(src)));
 		return true;
 	}
 
 	template<typename VectorType>
-	static bool container_to_vec2(void* dst, const void* src, const AssignHistory* history)
+	static bool container_to_vec2(void* dst, const void* src, Property::Flags mask, const AssignHistory* history)
 	{
 		const auto& values = *static_cast<const Markup::Container*>(src);
 
@@ -256,7 +260,7 @@ namespace Trinex::UI::Refl
 		}
 
 		VectorType result;
-		if (!value_to_f32(result.x, values[0]) || !value_to_f32(result.y, values[1]))
+		if (!value_to_f32(result.x, mask, values[0]) || !value_to_f32(result.y, mask, values[1]))
 		{
 			return false;
 		}
@@ -266,7 +270,7 @@ namespace Trinex::UI::Refl
 	}
 
 	template<typename VectorType>
-	static bool container_to_vec3(void* dst, const void* src, const AssignHistory* history)
+	static bool container_to_vec3(void* dst, const void* src, Property::Flags mask, const AssignHistory* history)
 	{
 		const auto& values = *static_cast<const Markup::Container*>(src);
 
@@ -276,7 +280,8 @@ namespace Trinex::UI::Refl
 		}
 
 		VectorType result;
-		if (!value_to_f32(result.x, values[0]) || !value_to_f32(result.y, values[1]) || !value_to_f32(result.z, values[2]))
+		if (!value_to_f32(result.x, mask, values[0]) || !value_to_f32(result.y, mask, values[1]) ||
+		    !value_to_f32(result.z, mask, values[2]))
 		{
 			return false;
 		}
@@ -286,7 +291,7 @@ namespace Trinex::UI::Refl
 	}
 
 	template<typename VectorType>
-	static bool container_to_vec4(void* dst, const void* src, const AssignHistory* history)
+	static bool container_to_vec4(void* dst, const void* src, Property::Flags mask, const AssignHistory* history)
 	{
 		const auto& values = *static_cast<const Markup::Container*>(src);
 
@@ -296,8 +301,8 @@ namespace Trinex::UI::Refl
 		}
 
 		VectorType result;
-		if (!value_to_f32(result.x, values[0]) || !value_to_f32(result.y, values[1]) || !value_to_f32(result.z, values[2]) ||
-		    !value_to_f32(result.w, values[3]))
+		if (!value_to_f32(result.x, mask, values[0]) || !value_to_f32(result.y, mask, values[1]) ||
+		    !value_to_f32(result.z, mask, values[2]) || !value_to_f32(result.w, mask, values[3]))
 		{
 			return false;
 		}
@@ -306,11 +311,11 @@ namespace Trinex::UI::Refl
 		return true;
 	}
 
-	static bool container_to_size(void* dst, const void* src, const AssignHistory* history)
+	static bool container_to_size(void* dst, const void* src, Property::Flags mask, const AssignHistory* history)
 	{
 		Vec2 result;
 
-		if (!container_to_vec2<Vec2>(&result, src, history))
+		if (!container_to_vec2<Vec2>(&result, src, mask, history))
 		{
 			return false;
 		}

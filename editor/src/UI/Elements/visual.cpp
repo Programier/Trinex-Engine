@@ -6,10 +6,10 @@ namespace Trinex::UI
 {
 	trinex_implement_ui_element(Visual)
 	{
-		trinex_ui_bind_property(pivot);
-		trinex_ui_bind_property(translate);
-		trinex_ui_bind_property(scale);
-		trinex_ui_bind_property(rotate);
+		trinex_ui_bind_property(pivot, Style);
+		trinex_ui_bind_property(translate, Style);
+		trinex_ui_bind_property(scale, Style);
+		trinex_ui_bind_property(rotate, Style);
 	}
 
 

@@ -11,9 +11,9 @@ namespace Trinex::UI
 		reflection()->bind("min", &This::min);
 		reflection()->bind("max", &This::max);
 		reflection()->bind("format", &This::format);
-		trinex_ui_bind_property(grab_min_size);
-		trinex_ui_bind_property(grab_rounding);
-		trinex_ui_bind_property(grab_color);
+		trinex_ui_bind_property(grab_min_size, Style);
+		trinex_ui_bind_property(grab_rounding, Style);
+		trinex_ui_bind_property(grab_color, Style);
 	}
 
 	SliderFloat& SliderFloat::push_style()
@@ -45,9 +45,9 @@ namespace Trinex::UI
 		reflection()->bind("min", &This::min);
 		reflection()->bind("max", &This::max);
 		reflection()->bind("format", &This::format);
-		trinex_ui_bind_property(grab_min_size);
-		trinex_ui_bind_property(grab_rounding);
-		trinex_ui_bind_property(grab_color);
+		trinex_ui_bind_property(grab_min_size, Style);
+		trinex_ui_bind_property(grab_rounding, Style);
+		trinex_ui_bind_property(grab_color, Style);
 	}
 
 	SliderInt& SliderInt::push_style()

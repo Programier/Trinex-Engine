@@ -26,7 +26,7 @@ namespace Trinex::UI
 		reflection()->bind("right_text", &This::right_text);
 		reflection()->bind("default_open", &This::default_open);
 		reflection()->bind("disabled", &This::disabled);
-		trinex_ui_bind_property(header_color);
+		trinex_ui_bind_property(header_color, Style);
 	}
 
 	CollapsingHeader& CollapsingHeader::push_style()
@@ -67,7 +67,7 @@ namespace Trinex::UI
 		reflection()->bind("right_text", &This::right_text);
 		reflection()->bind("default_open", &This::default_open);
 		reflection()->bind("disabled", &This::disabled);
-		trinex_ui_bind_property(header_color);
+		trinex_ui_bind_property(header_color, Style);
 	}
 
 	SectionHeader& SectionHeader::push_style()
@@ -108,10 +108,10 @@ namespace Trinex::UI
 		reflection()->bind("badge", &This::badge);
 		reflection()->bind("default_open", &This::default_open);
 		reflection()->bind("selected", &This::selected);
-		trinex_ui_bind_property(line_size);
-		trinex_ui_bind_property(line_rounding);
-		trinex_ui_bind_property(header_color);
-		trinex_ui_bind_property(line_color);
+		trinex_ui_bind_property(line_size, Style);
+		trinex_ui_bind_property(line_rounding, Style);
+		trinex_ui_bind_property(header_color, Style);
+		trinex_ui_bind_property(line_color, Style);
 	}
 
 	TreeNode& TreeNode::push_style()
@@ -162,9 +162,9 @@ namespace Trinex::UI
 		reflection()->bind("badge", &This::badge);
 		reflection()->bind("selected", &This::selected);
 		reflection()->bind("on_click", &This::on_click);
-		trinex_ui_bind_property(rounding);
-		trinex_ui_bind_property(text_align);
-		trinex_ui_bind_property(background_color);
+		trinex_ui_bind_property(rounding, Style);
+		trinex_ui_bind_property(text_align, Style);
+		trinex_ui_bind_property(background_color, Style);
 	}
 
 	TreeLeaf& TreeLeaf::push_style()
@@ -192,8 +192,8 @@ namespace Trinex::UI
 
 	trinex_implement_ui_element(TabBar)
 	{
-		trinex_ui_bind_property(border_size);
-		trinex_ui_bind_property(overline_size);
+		trinex_ui_bind_property(border_size, Style);
+		trinex_ui_bind_property(overline_size, Style);
 	}
 
 	TabBar& TabBar::push_style()
@@ -235,12 +235,12 @@ namespace Trinex::UI
 		reflection()->bind("selected", &This::selected);
 		reflection()->bind("size", &This::size);
 		reflection()->bind("on_click", &This::on_click);
-		trinex_ui_bind_property(rounding);
-		trinex_ui_bind_property(border_size);
-		trinex_ui_bind_property(min_width_base);
-		trinex_ui_bind_property(min_width_shrink);
-		trinex_ui_bind_property(background_color);
-		trinex_ui_bind_property(overline_color);
+		trinex_ui_bind_property(rounding, Style);
+		trinex_ui_bind_property(border_size, Style);
+		trinex_ui_bind_property(min_width_base, Style);
+		trinex_ui_bind_property(min_width_shrink, Style);
+		trinex_ui_bind_property(background_color, Style);
+		trinex_ui_bind_property(overline_color, Style);
 	}
 
 	Tab& Tab::push_style()
@@ -286,9 +286,9 @@ namespace Trinex::UI
 		reflection()->bind("badge", &This::badge);
 		reflection()->bind("selected", &This::selected);
 		reflection()->bind("on_click", &This::on_click);
-		trinex_ui_bind_property(rounding);
-		trinex_ui_bind_property(text_align);
-		trinex_ui_bind_property(background_color);
+		trinex_ui_bind_property(rounding, Style);
+		trinex_ui_bind_property(text_align, Style);
+		trinex_ui_bind_property(background_color, Style);
 	}
 
 	SidebarItem& SidebarItem::push_style()
@@ -320,9 +320,9 @@ namespace Trinex::UI
 		reflection()->bind("icon", &This::icon);
 		reflection()->bind("selected", &This::selected);
 		reflection()->bind("on_click", &This::on_click);
-		trinex_ui_bind_property(rounding);
-		trinex_ui_bind_property(text_align);
-		trinex_ui_bind_property(background_color);
+		trinex_ui_bind_property(rounding, Style);
+		trinex_ui_bind_property(text_align, Style);
+		trinex_ui_bind_property(background_color, Style);
 	}
 
 	NavItem& NavItem::push_style()
@@ -353,9 +353,9 @@ namespace Trinex::UI
 		reflection()->bind("label", &This::label);
 		reflection()->bind("current", &This::current);
 		reflection()->bind("on_click", &This::on_click);
-		trinex_ui_bind_property(rounding);
-		trinex_ui_bind_property(text_align);
-		trinex_ui_bind_property(background_color);
+		trinex_ui_bind_property(rounding, Style);
+		trinex_ui_bind_property(text_align, Style);
+		trinex_ui_bind_property(background_color, Style);
 	}
 
 	Breadcrumb& Breadcrumb::push_style()

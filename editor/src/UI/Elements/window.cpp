@@ -6,15 +6,15 @@ namespace Trinex::UI
 {
 	trinex_implement_ui_element(Window)
 	{
-		trinex_ui_bind_property(title);
-		trinex_ui_bind_property(padding);
-		trinex_ui_bind_property(min_size);
-		trinex_ui_bind_property(title_align);
-		trinex_ui_bind_property(rounding);
-		trinex_ui_bind_property(border_size);
-		trinex_ui_bind_property(background_color);
-		trinex_ui_bind_property(title_color);
-		trinex_ui_bind_property(resize_grip_color);
+		trinex_ui_bind_property(title, Markup);
+		trinex_ui_bind_property(padding, Style);
+		trinex_ui_bind_property(min_size, Style);
+		trinex_ui_bind_property(title_align, Style);
+		trinex_ui_bind_property(rounding, Style);
+		trinex_ui_bind_property(border_size, Style);
+		trinex_ui_bind_property(background_color, Style);
+		trinex_ui_bind_property(title_color, Style);
+		trinex_ui_bind_property(resize_grip_color, Style);
 	}
 
 	Window& Window::push_style()

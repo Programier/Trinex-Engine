@@ -15,10 +15,10 @@ namespace Trinex::UI
 		reflection()->bind("size", &This::size);
 		reflection()->bind("border", &This::border);
 		reflection()->bind("background", &This::background);
-		trinex_ui_bind_property(padding);
-		trinex_ui_bind_property(rounding);
-		trinex_ui_bind_property(border_size);
-		trinex_ui_bind_property(background_color);
+		trinex_ui_bind_property(padding, Style);
+		trinex_ui_bind_property(rounding, Style);
+		trinex_ui_bind_property(border_size, Style);
+		trinex_ui_bind_property(background_color, Style);
 	}
 
 	Panel& Panel::push_style()
@@ -64,10 +64,10 @@ namespace Trinex::UI
 		reflection()->bind("size", &This::size);
 		reflection()->bind("border", &This::border);
 		reflection()->bind("background", &This::background);
-		trinex_ui_bind_property(padding);
-		trinex_ui_bind_property(rounding);
-		trinex_ui_bind_property(border_size);
-		trinex_ui_bind_property(background_color);
+		trinex_ui_bind_property(padding, Style);
+		trinex_ui_bind_property(rounding, Style);
+		trinex_ui_bind_property(border_size, Style);
+		trinex_ui_bind_property(background_color, Style);
 	}
 
 	GroupPanel& GroupPanel::push_style()
@@ -179,12 +179,12 @@ namespace Trinex::UI
 	{
 		reflection()->bind("size", &This::size);
 		reflection()->bind("border", &This::border);
-		trinex_ui_bind_property(padding);
-		trinex_ui_bind_property(rounding);
-		trinex_ui_bind_property(border_size);
-		trinex_ui_bind_property(background_color);
-		trinex_ui_bind_property(scrollbar_bg_color);
-		trinex_ui_bind_property(scrollbar_grab_color);
+		trinex_ui_bind_property(padding, Style);
+		trinex_ui_bind_property(rounding, Style);
+		trinex_ui_bind_property(border_size, Style);
+		trinex_ui_bind_property(background_color, Style);
+		trinex_ui_bind_property(scrollbar_bg_color, Style);
+		trinex_ui_bind_property(scrollbar_grab_color, Style);
 	}
 
 	ScrollArea& ScrollArea::push_style()
@@ -255,11 +255,11 @@ namespace Trinex::UI
 
 	trinex_implement_ui_element(Separator)
 	{
-		trinex_ui_bind_property(size);
-		trinex_ui_bind_property(text_border);
-		trinex_ui_bind_property(text_align);
-		trinex_ui_bind_property(text_padding);
-		trinex_ui_bind_property(color);
+		trinex_ui_bind_property(size, Style);
+		trinex_ui_bind_property(text_border, Style);
+		trinex_ui_bind_property(text_align, Style);
+		trinex_ui_bind_property(text_padding, Style);
+		trinex_ui_bind_property(color, Style);
 	}
 
 	Separator& Separator::push_style()

@@ -3,7 +3,6 @@ style Element {
 	spacing: [10, 10];
 	inner_spacing: [7, 5];
 	indent: 14;
-	align: 0;
 	text_color: [0.86, 0.89, 0.92, 1.0];
 	border_color: [0.16, 0.20, 0.26, 0.86];
 	border_shadow_color: [0.0, 0.0, 0.0, 0.0];

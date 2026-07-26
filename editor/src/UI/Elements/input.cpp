@@ -34,7 +34,7 @@ namespace Trinex::UI
 		reflection()->bind("label", &This::label);
 		reflection()->bind("hint", &This::hint);
 		reflection()->bind("value", &This::value);
-		trinex_ui_bind_property(cursor_color);
+		trinex_ui_bind_property(cursor_color, Style);
 	}
 
 	InputText& InputText::push_style()

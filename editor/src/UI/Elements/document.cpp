@@ -729,7 +729,7 @@ _Comment    <- '//' (![\r\n] .)*
 			auto type = element->type();
 
 			auto visitor = [&]<typename T>(const T& value) -> bool {
-				if (!type->assign(element, prop.name, &value, UI::Refl::NativeType<T>::instance()))
+				if (!type->assign(element, prop.name, &value, UI::Refl::NativeType<T>::instance(), Refl::Property::Markup))
 				{
 					trinex_error(Log::Editor, "Failed to assign property '%s' of element '%s' at %u:%u", prop.name.c_str(),
 					             node.type.c_str(), prop.location.line, prop.location.column);
