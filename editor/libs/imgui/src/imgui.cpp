@@ -4220,13 +4220,6 @@ void ImGui::GetAllocatorFunctions(ImGuiMemAllocFunc* p_alloc_func, ImGuiMemFreeF
     *p_user_data = GImAllocatorUserData;
 }
 
-void ImGui::SetItemAddCallback(ImGuiItemAddCallback custom_callback, void* custom_callback_user_data)
-{
-    ImGuiContext& g = *GImGui;
-    g.ItemAddCallback = custom_callback;
-    g.ItemAddCallbackUserData = custom_callback_user_data;
-}
-
 ImGuiContext* ImGui::CreateContext(ImFontAtlas* shared_font_atlas)
 {
     ImGuiContext* prev_ctx = GetCurrentContext();
@@ -4293,8 +4286,6 @@ ImGuiContext::ImGuiContext(ImFontAtlas* shared_font_atlas)
         IO.Fonts->OwnerContext = this;
     WithinEndChildID = WithinEndPopupID = 0;
     TestEngine = NULL;
-    ItemAddCallback = NULL;
-    ItemAddCallbackUserData = NULL;
 
     InputEventsNextMouseSource = ImGuiMouseSource_Mouse;
     InputEventsNextEventId = 1;
@@ -5214,6 +5205,128 @@ void ImGui::SetLastItemData(ImGuiID item_id, ImGuiItemFlags item_flags, ImGuiIte
     g.LastItemData.ItemFlags = item_flags;
     g.LastItemData.StatusFlags = status_flags;
     g.LastItemData.Rect = g.LastItemData.NavRect = item_rect;
+}
+
+static ImVec2 ImGuiTransformPoint(const ImGuiTransform& transform, const ImVec2& pivot, const ImVec2& pos, float cos_a, float sin_a)
+{
+    ImVec2 p((pos.x - pivot.x) * transform.Scale.x, (pos.y - pivot.y) * transform.Scale.y);
+    if (transform.Rotation != 0.0f)
+        p = ImRotate(p, cos_a, sin_a);
+    return ImVec2(p.x + pivot.x + transform.Translation.x, p.y + pivot.y + transform.Translation.y);
+}
+
+static ImRect ImGuiTransformRect(const ImGuiTransform& transform, const ImVec2& pivot, const ImRect& rect, float cos_a, float sin_a)
+{
+    ImVec2 p0 = ImGuiTransformPoint(transform, pivot, rect.Min, cos_a, sin_a);
+    ImVec2 p1 = ImGuiTransformPoint(transform, pivot, ImVec2(rect.Max.x, rect.Min.y), cos_a, sin_a);
+    ImVec2 p2 = ImGuiTransformPoint(transform, pivot, rect.Max, cos_a, sin_a);
+    ImVec2 p3 = ImGuiTransformPoint(transform, pivot, ImVec2(rect.Min.x, rect.Max.y), cos_a, sin_a);
+    ImRect result(p0, p0);
+    result.Add(p1);
+    result.Add(p2);
+    result.Add(p3);
+    return result;
+}
+
+void ImGui::BeginTransform(const ImGuiTransform& transform, ImGuiTransformFlags flags)
+{
+    ImGuiContext& g = *GImGui;
+    ImGuiWindow* window = g.CurrentWindow;
+    IM_ASSERT(window != NULL);
+
+    ImGuiTransformStackData data;
+    data.Transform = transform;
+    data.Flags = flags;
+    data.Window = window;
+    data.DrawList = window->DrawList;
+    data.VtxBufferStart = window->DrawList->VtxBuffer.Size;
+    data.LastItemDataBackup = g.LastItemData;
+    data.StackDepth = g.TransformStack.Size;
+    g.TransformStack.push_back(data);
+}
+
+void ImGui::EndTransform()
+{
+    ImGuiContext& g = *GImGui;
+    IM_ASSERT(g.TransformStack.Size > 0 && "EndTransform() called without matching BeginTransform()");
+
+    ImGuiTransformStackData data = g.TransformStack.back();
+    IM_ASSERT(data.StackDepth == g.TransformStack.Size - 1 && "Mismatched BeginTransform()/EndTransform() order");
+    g.TransformStack.pop_back();
+
+    ImGuiWindow* window = g.CurrentWindow;
+    IM_ASSERT(window == data.Window && "BeginTransform()/EndTransform() must be called in the same ImGui window");
+    IM_ASSERT(window != NULL && window->DrawList == data.DrawList && "BeginTransform()/EndTransform() must use the same ImDrawList");
+
+    const bool is_identity =
+        data.Transform.Translation.x == 0.0f &&
+        data.Transform.Translation.y == 0.0f &&
+        data.Transform.Scale.x == 1.0f &&
+        data.Transform.Scale.y == 1.0f &&
+        data.Transform.Rotation == 0.0f;
+    if (data.Flags == ImGuiTransformFlags_None || is_identity)
+        return;
+
+    ImDrawList* draw_list = data.DrawList;
+    const int vtx_begin = data.VtxBufferStart;
+    const int vtx_end = draw_list->VtxBuffer.Size;
+    ImRect bounds;
+    bool has_bounds = false;
+    for (int n = vtx_begin; n < vtx_end; n++)
+    {
+        const ImVec2& pos = draw_list->VtxBuffer[n].pos;
+        if (!has_bounds)
+        {
+            bounds = ImRect(pos, pos);
+            has_bounds = true;
+        }
+        else
+        {
+            bounds.Add(pos);
+        }
+    }
+    if (!has_bounds)
+        return;
+
+    const ImVec2 pivot(
+        bounds.Min.x + (bounds.Max.x - bounds.Min.x) * data.Transform.Pivot.x,
+        bounds.Min.y + (bounds.Max.y - bounds.Min.y) * data.Transform.Pivot.y);
+    const float cos_a = (data.Transform.Rotation != 0.0f) ? ImCos(data.Transform.Rotation) : 1.0f;
+    const float sin_a = (data.Transform.Rotation != 0.0f) ? ImSin(data.Transform.Rotation) : 0.0f;
+
+    if (data.Flags & ImGuiTransformFlags_Render)
+        for (int n = vtx_begin; n < vtx_end; n++)
+            draw_list->VtxBuffer[n].pos = ImGuiTransformPoint(data.Transform, pivot, draw_list->VtxBuffer[n].pos, cos_a, sin_a);
+
+    if (data.Flags & ImGuiTransformFlags_HitBox)
+    {
+        const bool last_item_changed =
+            g.LastItemData.ID != data.LastItemDataBackup.ID ||
+            g.LastItemData.Rect.Min.x != data.LastItemDataBackup.Rect.Min.x ||
+            g.LastItemData.Rect.Min.y != data.LastItemDataBackup.Rect.Min.y ||
+            g.LastItemData.Rect.Max.x != data.LastItemDataBackup.Rect.Max.x ||
+            g.LastItemData.Rect.Max.y != data.LastItemDataBackup.Rect.Max.y;
+        if (last_item_changed)
+        {
+            g.LastItemData.Rect = ImGuiTransformRect(data.Transform, pivot, g.LastItemData.Rect, cos_a, sin_a);
+            g.LastItemData.NavRect = ImGuiTransformRect(data.Transform, pivot, g.LastItemData.NavRect, cos_a, sin_a);
+            if (g.LastItemData.StatusFlags & ImGuiItemStatusFlags_HasDisplayRect)
+                g.LastItemData.DisplayRect = ImGuiTransformRect(data.Transform, pivot, g.LastItemData.DisplayRect, cos_a, sin_a);
+
+            if (IsMouseHoveringRect(g.LastItemData.Rect.Min, g.LastItemData.Rect.Max))
+            {
+                g.LastItemData.StatusFlags |= ImGuiItemStatusFlags_HoveredRect;
+                if (g.LastItemData.ID != 0)
+                    ItemHoverable(g.LastItemData.Rect, g.LastItemData.ID, g.LastItemData.ItemFlags);
+            }
+            else
+            {
+                g.LastItemData.StatusFlags &= ~ImGuiItemStatusFlags_HoveredRect;
+                if (g.HoveredId == g.LastItemData.ID)
+                    SetHoveredID(0);
+            }
+        }
+    }
 }
 
 static void ImGui::SetLastItemDataForWindow(ImGuiWindow* window, const ImRect& rect)
@@ -11733,6 +11846,7 @@ static void ImGui::ErrorCheckEndFrameSanityChecks()
     IM_ASSERT((key_mods == 0 || g.IO.KeyMods == key_mods) && "Mismatching io.KeyCtrl/io.KeyShift/io.KeyAlt/io.KeySuper vs io.KeyMods");
     IM_UNUSED(key_mods);
 
+    IM_ASSERT(g.TransformStack.Size == 0 && "Forgot to call ImGui::EndTransform()");
     IM_ASSERT(g.CurrentWindowStack.Size == 1);
     IM_ASSERT(g.CurrentWindowStack[0].Window->IsFallbackWindow);
 }
@@ -12042,10 +12156,6 @@ bool ImGui::ItemAdd(const ImRect& bb, ImGuiID id, const ImRect* nav_bb_arg, ImGu
     g.LastItemData.ItemFlags = g.CurrentItemFlags | g.NextItemData.ItemFlags | extra_flags;
     g.LastItemData.StatusFlags = ImGuiItemStatusFlags_None;
     // Note: we don't copy 'g.NextItemData.SelectionUserData' to an hypothetical g.LastItemData.SelectionUserData: since the former is not cleared.
-
-    // Hot path callback: fires before nav handling, clipping and early-out so it can observe every submitted item.
-    if (g.ItemAddCallback != NULL) IM_UNLIKELY 
-        g.ItemAddCallback(&g, g.ItemAddCallbackUserData, id, g.LastItemData.Rect.Min, g.LastItemData.Rect.Max, g.LastItemData.NavRect.Min, g.LastItemData.NavRect.Max, g.LastItemData.ItemFlags);
 
     if (id != 0)
     {

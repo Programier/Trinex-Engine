@@ -1429,6 +1429,17 @@ struct ImGuiLastItemData
     ImGuiLastItemData()     { memset((void*)this, 0, sizeof(*this)); }
 };
 
+struct ImGuiTransformStackData
+{
+    ImGuiTransform          Transform;
+    ImGuiTransformFlags     Flags;
+    ImGuiWindow*            Window;
+    ImDrawList*             DrawList;
+    int                     VtxBufferStart;
+    ImGuiLastItemData       LastItemDataBackup;
+    int                     StackDepth;
+};
+
 // Store data emitted by TreeNode() for usage by TreePop()
 // - To implement ImGuiTreeNodeFlags_NavLeftJumpsToParent: store the minimum amount of data
 //   which we can't infer in TreePop(), to perform the equivalent of NavApplyItemToResult().
@@ -2533,8 +2544,6 @@ struct ImGuiContext
     // Item/widgets state and tracking information
     ImGuiID                 DebugDrawIdConflictsId;             // Set when we detect multiple items with the same identifier
     ImGuiID                 DebugHookIdInfoId;                  // Will call core hooks: DebugHookIdInfo() from GetID functions, used by ID Stack Tool [next HoveredId/ActiveId to not pull in an extra cache-line]
-    ImGuiItemAddCallback    ItemAddCallback;                    // Called from ItemAdd() hot path.
-    void*                   ItemAddCallbackUserData;
     ImGuiID                 HoveredId;                          // Hovered widget, filled during the frame
     ImGuiID                 HoveredIdPreviousFrame;
     int                     HoveredIdPreviousFrameItemCount;    // Count numbers of items using the same ID as last frame's hovered id
@@ -2600,6 +2609,7 @@ struct ImGuiContext
     ImVector<ImGuiPopupData>        OpenPopupStack;             // Which popups are open (persistent)
     ImVector<ImGuiPopupData>        BeginPopupStack;            // Which level of BeginPopup() we are in (reset every frame)
     ImVector<ImGuiTreeNodeStackData>TreeNodeStack;              // Stack for TreeNode()
+    ImVector<ImGuiTransformStackData> TransformStack;           // Stack for BeginTransform()/EndTransform()
 
     // Viewports
     ImVector<ImGuiViewportP*> Viewports;                        // Active viewports (always 1+, and generally 1 unless multi-viewports are enabled). Each viewports hold their copy of ImDrawData.

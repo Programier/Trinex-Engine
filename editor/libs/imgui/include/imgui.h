@@ -268,6 +268,7 @@ typedef int ImGuiTabItemFlags;      // -> enum ImGuiTabItemFlags_    // Flags: f
 typedef int ImGuiTableFlags;        // -> enum ImGuiTableFlags_      // Flags: For BeginTable()
 typedef int ImGuiTableColumnFlags;  // -> enum ImGuiTableColumnFlags_// Flags: For TableSetupColumn()
 typedef int ImGuiTableRowFlags;     // -> enum ImGuiTableRowFlags_   // Flags: For TableNextRow()
+typedef int ImGuiTransformFlags;    // -> enum ImGuiTransformFlags_   // Flags: for BeginTransform()
 typedef int ImGuiTreeNodeFlags;     // -> enum ImGuiTreeNodeFlags_   // Flags: for TreeNode(), TreeNodeEx(), CollapsingHeader()
 typedef int ImGuiViewportFlags;     // -> enum ImGuiViewportFlags_   // Flags: for ImGuiViewport
 typedef int ImGuiWindowFlags;       // -> enum ImGuiWindowFlags_     // Flags: for Begin(), BeginChild()
@@ -309,6 +310,26 @@ struct ImVec2
 #endif
 };
 
+struct ImGuiTransform
+{
+    ImVec2 Translation = ImVec2(0.0f, 0.0f);
+    ImVec2 Scale = ImVec2(1.0f, 1.0f);
+    float Rotation = 0.0f;
+    ImVec2 Pivot = ImVec2(0.5f, 0.5f);
+};
+
+// Flags for ImGui::BeginTransform()
+enum ImGuiTransformFlags_
+{
+    ImGuiTransformFlags_None   = 0,
+    ImGuiTransformFlags_Render = 1 << 0,
+    ImGuiTransformFlags_HitBox = 1 << 1,
+
+    ImGuiTransformFlags_All =
+        ImGuiTransformFlags_Render |
+        ImGuiTransformFlags_HitBox,
+};
+
 // ImVec4: 4D vector used to store clipping rectangles, colors etc. [Compile-time configurable type]
 struct ImVec4
 {
@@ -319,8 +340,6 @@ struct ImVec4
     IM_VEC4_CLASS_EXTRA     // Define additional constructors and implicit cast operators in imconfig.h to convert back and forth between your math types and ImVec4.
 #endif
 };
-
-typedef void    (*ImGuiItemAddCallback)(ImGuiContext* ctx, void* user_data, ImGuiID id, ImVec2 bb_min, ImVec2 bb_max, ImVec2 nav_bb_min, ImVec2 nav_bb_max, ImGuiItemFlags item_flags); // Hot path callback for ImGui::SetItemAddCallback().
 IM_MSVC_RUNTIME_CHECKS_RESTORE
 
 //-----------------------------------------------------------------------------
@@ -411,6 +430,8 @@ namespace ImGui
     IMGUI_API void          EndFrame();                                 // ends the Dear ImGui frame. automatically called by Render(). If you don't need to render data (skipping rendering) you may call EndFrame() without Render()... but you'll have wasted CPU already! If you don't need to render, better to not create any windows and not call NewFrame() at all!
     IMGUI_API void          Render();                                   // ends the Dear ImGui frame, finalize the draw data. You can then get call GetDrawData().
     IMGUI_API ImDrawData*   GetDrawData();                              // valid after Render() and until the next call to NewFrame(). Call ImGui_ImplXXXX_RenderDrawData() function in your Renderer Backend to render.
+    IMGUI_API void          BeginTransform(const ImGuiTransform& transform, ImGuiTransformFlags flags = ImGuiTransformFlags_Render);
+    IMGUI_API void          EndTransform();
 
     // Demo, Debug, Information
     IMGUI_API void          ShowDemoWindow(bool* p_open = NULL);        // create Demo window. demonstrate most ImGui features. call this to learn about the library! try to make it always available in your application!
@@ -1193,7 +1214,6 @@ namespace ImGui
     //   for each static/DLL boundary you are calling from. Read "Context and Memory Allocators" section of imgui.cpp for more details.
     IMGUI_API void          SetAllocatorFunctions(ImGuiMemAllocFunc alloc_func, ImGuiMemFreeFunc free_func, void* user_data = NULL);
     IMGUI_API void          GetAllocatorFunctions(ImGuiMemAllocFunc* p_alloc_func, ImGuiMemFreeFunc* p_free_func, void** p_user_data);
-    IMGUI_API void          SetItemAddCallback(ImGuiItemAddCallback custom_callback = NULL, void* custom_callback_user_data = NULL); // Called from ItemAdd() hot path. Keep callback lightweight.
     IMGUI_API void*         MemAlloc(size_t size);
     IMGUI_API void          MemFree(void* ptr);
 
