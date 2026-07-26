@@ -220,6 +220,7 @@ namespace Trinex::UI
 		if (name.is_valid())
 		{
 			m_styles.push_back(name);
+			m_style_instance.clear();
 		}
 
 		return *this;
@@ -251,16 +252,19 @@ namespace Trinex::UI
 	{
 		if (document() && document()->style_sheet())
 		{
-			const ComputedStyle style = m_style_instance.update(document()->style_sheet()->resolve(this, m_style_state));
+			auto source = [this](const StyleRuleVisitor& visitor) {
+				document()->style_sheet()->resolve(this, m_style_state, visitor);
+			};
 
-			for (const StyleProperty& property : style.properties)
-			{
+			auto apply = [this](const StyleProperty& property) {
 				if (!assign_style_property(this, property))
 				{
 					trinex_error(Log::Editor, "Failed to assign style property '%s' of element '%s' at %u:%u",
 					             property.name.c_str(), type_name().c_str(), property.location.line, property.location.column);
 				}
-			}
+			};
+
+			m_style_instance.update(document()->style_sheet()->revision(), m_style_state, source, apply);
 		}
 
 		for (const StyleProperty& property : m_inline_properties)

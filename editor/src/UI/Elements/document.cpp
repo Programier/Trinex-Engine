@@ -859,7 +859,7 @@ _Comment    <- '//' (![\r\n] .)*
 					}
 					else if constexpr (std::is_same_v<Type, Style>)
 					{
-						styles.add_rule(value.selector, value.properties, value.transitions, value.location);
+						styles.add_rule(value.selector, value.properties, value.transitions);
 						return true;
 					}
 					else

@@ -1,6 +1,6 @@
 style Element {
 	alpha: 1;
-	spacing: [10, 100];
+	spacing: [10, 10];
 	inner_spacing: [7, 5];
 	indent: 14;
 	align: 0;

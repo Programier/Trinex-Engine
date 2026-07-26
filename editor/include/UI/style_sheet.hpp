@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/etl/flat_map.hpp>
+#include <Core/etl/function.hpp>
 #include <Core/etl/variant.hpp>
 #include <UI/types.hpp>
 #include <imgui.h>
@@ -46,14 +47,12 @@ namespace Trinex::UI
 		StyleSelector selector;
 		Vector<StyleProperty> properties;
 		Vector<StyleTransition> transitions;
-		Markup::SourceLocation location;
 		u32 order = 0;
 	};
 
-	struct ComputedStyle {
-		Vector<StyleProperty> properties;
-		Vector<StyleTransition> transitions;
-	};
+	using StylePropertyVisitor = FunctionRef<void(const StyleProperty&)>;
+	using StyleRuleVisitor     = FunctionRef<void(const StyleRule&)>;
+	using StyleRuleSource      = FunctionRef<void(const StyleRuleVisitor&)>;
 
 	struct StyleAnimationTrack {
 		StyleValue from;
@@ -71,9 +70,13 @@ namespace Trinex::UI
 		FlatMap<Name, StyleValue> m_values;
 		FlatMap<Name, StyleValue> m_targets;
 		FlatMap<Name, StyleAnimationTrack> m_tracks;
+		Vector<StyleProperty> m_properties;
+		Vector<StyleTransition> m_transitions;
+		u32 m_revision     = 0;
+		StyleState m_state = StyleState::Undefined;
 
 	public:
-		ComputedStyle update(const ComputedStyle& style);
+		StyleInstance& update(usize revision, StyleState state, const StyleRuleSource& source, const StylePropertyVisitor& apply);
 		StyleInstance& clear();
 	};
 
@@ -82,13 +85,15 @@ namespace Trinex::UI
 	private:
 		Vector<StyleRule> m_rules;
 		FlatMap<Name, Vector<usize>> m_named_rules;
+		u32 m_revision = 0;
 
 	public:
 		StyleSheet& clear();
 		StyleSheet& add_rule(const StyleSelector& selector, const Vector<StyleProperty>& properties,
-		                     const Vector<StyleTransition>& transitions = {}, const Markup::SourceLocation& location = {});
-		ComputedStyle resolve(const Element* element, StyleState states = StyleState::Undefined) const;
+		                     const Vector<StyleTransition>& transitions = {});
+		void resolve(const Element* element, StyleState states, const StyleRuleVisitor& visitor) const;
 
 		inline const Vector<StyleRule>& rules() const { return m_rules; }
+		inline u32 revision() const { return m_revision; }
 	};
 }// namespace Trinex::UI

@@ -1,3 +1,6 @@
+#include <Core/etl/algorithm.hpp>
+#include <Core/etl/allocator.hpp>
+#include <Core/etl/vector.hpp>
 #include <Core/math/math.hpp>
 #include <UI/element.hpp>
 #include <UI/reflection.hpp>
@@ -278,7 +281,8 @@ namespace Trinex::UI
 		              Math::lerp(from_vec4.z, to_vec4.z, t), Math::lerp(from_vec4.w, to_vec4.w, t));
 	}
 
-	static const StyleTransition* find_transition(const Vector<StyleTransition>& transitions, Name property)
+	template<typename AllocatorType>
+	static const StyleTransition* find_transition(const Vector<StyleTransition, AllocatorType>& transitions, Name property)
 	{
 		for (const StyleTransition& transition : transitions)
 		{
@@ -291,7 +295,8 @@ namespace Trinex::UI
 		return nullptr;
 	}
 
-	static bool has_later_property(const Vector<StyleProperty>& properties, usize index)
+	template<typename AllocatorType>
+	static bool has_later_property(const Vector<StyleProperty, AllocatorType>& properties, usize index)
 	{
 		for (usize next = index + 1; next < properties.size(); ++next)
 		{
@@ -309,27 +314,53 @@ namespace Trinex::UI
 		m_values.clear();
 		m_targets.clear();
 		m_tracks.clear();
+		m_properties.clear();
+		m_transitions.clear();
+		m_revision = 0;
+		m_state    = StyleState::Undefined;
 		return *this;
 	}
 
-	ComputedStyle StyleInstance::update(const ComputedStyle& style)
+	StyleInstance& StyleInstance::update(usize revision, StyleState state, const StyleRuleSource& source,
+	                                     const StylePropertyVisitor& apply)
 	{
-		ComputedStyle result;
-		result.transitions = style.transitions;
+		const bool rebuild = m_revision != revision || m_state != state;
 
+		if (rebuild)
+		{
+			m_properties.clear();
+			m_transitions.clear();
+
+			source([this](const StyleRule& rule) {
+				for (const StyleProperty& property : rule.properties)
+				{
+					m_properties.push_back(property);
+				}
+
+				for (const StyleTransition& transition : rule.transitions)
+				{
+					m_transitions.push_back(transition);
+				}
+			});
+
+			m_revision = revision;
+			m_state    = state;
+		}
+
+		StackByteAllocator::Mark mark;
 		const f32 dt = Math::max(0.0f, ImGui::GetIO().DeltaTime);
 
-		for (usize index = 0; index < style.properties.size(); ++index)
+		for (usize index = 0; index < m_properties.size(); ++index)
 		{
-			const StyleProperty& property = style.properties[index];
+			const StyleProperty& property = m_properties[index];
 
 			StyleValue target;
-			const StyleTransition* transition = find_transition(style.transitions, property.name);
+			const StyleTransition* transition = find_transition(m_transitions, property.name);
 
-			if (has_later_property(style.properties, index) || transition == nullptr || transition->duration <= 0.0f ||
+			if (has_later_property(m_properties, index) || transition == nullptr || transition->duration <= 0.0f ||
 			    !style_value(target, property.value))
 			{
-				result.properties.push_back(property);
+				apply(property);
 				continue;
 			}
 
@@ -341,7 +372,7 @@ namespace Trinex::UI
 			{
 				stored_target = target;
 				current       = target;
-				result.properties.push_back(property);
+				apply(property);
 				continue;
 			}
 
@@ -375,27 +406,28 @@ namespace Trinex::UI
 
 				StyleProperty animated = property;
 				animated.value         = value_desc(current, property.location);
-				result.properties.push_back(animated);
+				apply(animated);
 			}
 			else
 			{
 				current = stored_target;
-				result.properties.push_back(property);
+				apply(property);
 			}
 		}
 
-		return result;
+		return *this;
 	}
 
 	StyleSheet& StyleSheet::clear()
 	{
 		m_rules.clear();
 		m_named_rules.clear();
+		++m_revision;
 		return *this;
 	}
 
 	StyleSheet& StyleSheet::add_rule(const StyleSelector& selector, const Vector<StyleProperty>& properties,
-	                                 const Vector<StyleTransition>& transitions, const Markup::SourceLocation& location)
+	                                 const Vector<StyleTransition>& transitions)
 	{
 		const usize index = m_rules.size();
 
@@ -403,71 +435,79 @@ namespace Trinex::UI
 		rule.selector    = selector;
 		rule.properties  = properties;
 		rule.transitions = transitions;
-		rule.location    = location;
 		rule.order       = static_cast<u32>(index);
 
 		m_named_rules[selector.name].push_back(index);
+		++m_revision;
 		return *this;
 	}
 
-	static bool style_matches(const Element* element, const StyleSelector& selector, StyleState states)
+	static bool state_matches(const StyleSelector& selector, StyleState states)
 	{
-		if (element == nullptr || !selector.name.is_valid())
+		return (selector.states & states) == selector.states;
+	}
+
+	void StyleSheet::resolve(const Element* element, StyleState states, const StyleRuleVisitor& visitor) const
+	{
+		StackVector<usize> candidates;
+
+		if (element == nullptr)
 		{
-			return false;
+			return;
 		}
 
-		if ((selector.states & states) != selector.states)
-		{
-			return false;
-		}
+		auto append_rules = [this, &candidates](Name name) {
+			if (!name.is_valid())
+			{
+				return;
+			}
 
-		if (element->type_name() == selector.name)
-		{
-			return true;
-		}
+			auto it = m_named_rules.find(name);
+
+			if (it == m_named_rules.end())
+			{
+				return;
+			}
+
+			for (usize index : it->second)
+			{
+				candidates.push_back(index);
+			}
+		};
+
+		append_rules(element->type_name());
 
 		for (auto type = element->type(); type; type = type->parent())
 		{
-			if (type->name() == selector.name)
-			{
-				return true;
-			}
+			append_rules(type->name());
 		}
 
 		for (const Name& style : element->styles())
 		{
-			if (style == selector.name)
-			{
-				return true;
-			}
+			append_rules(style);
 		}
 
-		return false;
-	}
+		etl::sort(candidates.begin(), candidates.end(),
+		          [this](usize first, usize second) { return m_rules[first].order < m_rules[second].order; });
 
-	ComputedStyle StyleSheet::resolve(const Element* element, StyleState states) const
-	{
-		ComputedStyle result;
+		usize prev_index = static_cast<usize>(-1);
 
-		for (const StyleRule& rule : m_rules)
+		for (usize index : candidates)
 		{
-			if (!style_matches(element, rule.selector, states))
+			if (index == prev_index)
 			{
 				continue;
 			}
 
-			for (const StyleProperty& property : rule.properties)
+			prev_index            = index;
+			const StyleRule& rule = m_rules[index];
+
+			if (!state_matches(rule.selector, states))
 			{
-				result.properties.push_back(property);
+				continue;
 			}
 
-			for (const StyleTransition& transition : rule.transitions)
-			{
-				result.transitions.push_back(transition);
-			}
+			visitor(rule);
 		}
-
-		return result;
 	}
 }// namespace Trinex::UI
