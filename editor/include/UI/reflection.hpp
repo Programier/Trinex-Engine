@@ -12,6 +12,9 @@ namespace Trinex::UI::Refl
 {
 	class Type;
 
+	template<typename T>
+	class NativeType;
+
 	struct AssignHistory {
 		const AssignHistory* prev;
 		void* dst            = nullptr;
@@ -45,7 +48,8 @@ namespace Trinex::UI::Refl
 	public:
 		inline Property(Type* owner = nullptr, Flags flags = Flags::Markup) : m_owner(owner), m_flags(flags) {}
 
-		bool assign(void* object, const void* src, const Type* src_type, Flags mask, const AssignHistory* history = nullptr);
+		virtual bool assign(void* object, const void* src, const Type* src_type, Flags mask,
+		                    const AssignHistory* history = nullptr);
 
 		virtual Type* type() const                             = 0;
 		virtual void* resolve(void* address)                   = 0;
@@ -65,8 +69,8 @@ namespace Trinex::UI::Refl
 		MemberProperty(Field Instance::* property, Type* owner = nullptr, Flags flags = Flags::Markup)
 		    : Property(owner, flags), m_property(property)
 		{}
-		Type* type() const override;
 
+		Type* type() const override { return NativeType<Field>::instance(); }
 		void* resolve(void* address) override { return &(static_cast<Instance*>(address)->*m_property); }
 		const void* resolve(const void* address) const override { return &(static_cast<const Instance*>(address)->*m_property); }
 	};
@@ -81,10 +85,102 @@ namespace Trinex::UI::Refl
 		StaticProperty(Field* property, Type* owner = nullptr, Flags flags = Flags::Markup)
 		    : Property(owner, flags), m_property(property)
 		{}
-		Type* type() const override;
 
+		Type* type() const override { return NativeType<Field>::instance(); }
 		void* resolve(void* address) override { return m_property; }
 		const void* resolve(const void* address) const override { return m_property; }
+	};
+
+	template<typename Value, typename Instance, typename Getter = Value (Instance::*)() const>
+	class MethodProperty final : public Property
+	{
+	public:
+		static_assert(etl::is_trivially_destructible_v<Value>);
+
+		using Setter = bool (Instance::*)(Value);
+
+	private:
+		Getter m_getter;
+		Setter m_setter;
+
+	public:
+		MethodProperty(Getter getter, Setter setter, Type* owner = nullptr, Flags flags = Flags::Markup)
+		    : Property(owner, flags), m_getter(getter), m_setter(setter)
+		{}
+
+		Type* type() const override { return NativeType<Value>::instance(); }
+
+		void* resolve(void* address) override
+		{
+			if (address == nullptr)
+				return nullptr;
+
+			return trx_frame_new Value((static_cast<Instance*>(address)->*m_getter)());
+		}
+
+		const void* resolve(const void* address) const override
+		{
+			if (address == nullptr)
+				return nullptr;
+
+			return trx_frame_new Value((static_cast<Instance*>(address)->*m_getter)());
+		}
+
+		bool assign(void* object, const void* src, const Type* src_type, Flags mask,
+		            const AssignHistory* history = nullptr) override
+		{
+			if ((flags() & mask) == Flags::Undefined)
+				return true;
+
+			if (object == nullptr || src == nullptr || src_type == nullptr)
+				return false;
+
+			Value value;
+			if (!type()->assign(&value, src, src_type, mask, history))
+				return false;
+
+			return (static_cast<Instance*>(object)->*m_setter)(value);
+		}
+	};
+
+	template<typename Value>
+	class FunctionProperty final : public Property
+	{
+	public:
+		static_assert(etl::is_trivially_destructible_v<Value>);
+
+		using Getter = Value (*)();
+		using Setter = bool (*)(Value);
+
+	private:
+		Getter m_getter;
+		Setter m_setter;
+
+	public:
+		FunctionProperty(Getter getter, Setter setter, Type* owner = nullptr, Flags flags = Flags::Markup)
+		    : Property(owner, flags), m_getter(getter), m_setter(setter)
+		{}
+
+		Type* type() const override { return NativeType<Value>::instance(); }
+
+		void* resolve(void* address) override { return trx_frame_new Value(m_getter()); }
+		const void* resolve(const void* address) const override { return trx_frame_new Value(m_getter()); }
+
+		bool assign(void* object, const void* src, const Type* src_type, Flags mask,
+		            const AssignHistory* history = nullptr) override
+		{
+			if ((flags() & mask) == Flags::Undefined)
+				return true;
+
+			if (src == nullptr || src_type == nullptr)
+				return false;
+
+			Value value;
+			if (!type()->assign(&value, src, src_type, mask, history))
+				return false;
+
+			return m_setter(value);
+		}
 	};
 
 	class Type
@@ -125,7 +221,10 @@ namespace Trinex::UI::Refl
 		Type& bind(Type* type, Resolver resolver);
 
 		template<typename Source>
-		Type& bind(Resolver resolver);
+		Type& bind(Resolver resolver)
+		{
+			return Type::bind(NativeType<Source>::instance(), resolver);
+		}
 
 		template<typename T>
 		inline static Name name_of = Name::undefined;
@@ -220,7 +319,7 @@ namespace Trinex::UI::Refl
 		using Type::bind;
 
 		template<typename Field, typename Instance = T>
-		    requires(etl::is_class_v<Instance>)
+		    requires(etl::is_class_v<Instance> && !etl::is_function_v<Field>)
 		NativeType& bind(Name name, Field Instance::* field, typename Property::Flags flags = Property::Markup)
 		{
 			Type::bind(name, trx_new MemberProperty(field, this, flags));
@@ -228,33 +327,40 @@ namespace Trinex::UI::Refl
 		}
 
 		template<typename Field>
+		    requires(!etl::is_function_v<Field>)
 		NativeType& bind(Name name, Field* field, typename Property::Flags flags = Property::Markup)
 		{
 			Type::bind(name, trx_new StaticProperty(field, this, flags));
 			return *this;
 		}
 
+		template<typename Value, typename Instance>
+		    requires(etl::is_class_v<Instance>)
+		NativeType& bind(Name name, Value (Instance::*getter)() const, bool (Instance::*setter)(Value),
+		                 Property::Flags flags = Property::Markup)
+		{
+			Type::bind(name, trx_new MethodProperty(getter, setter, this, flags));
+			return *this;
+		}
+
+		template<typename Value, typename Instance>
+		    requires(etl::is_class_v<Instance>)
+		NativeType& bind(Name name, Value (Instance::*getter)(), bool (Instance::*setter)(Value),
+		                 Property::Flags flags = Property::Markup)
+		{
+			Type::bind(name, trx_new MethodProperty(getter, setter, this, flags));
+			return *this;
+		}
+
+		template<typename Value>
+		NativeType& bind(Name name, Value (*getter)(), bool (*setter)(Value), typename Property::Flags flags = Property::Markup)
+		{
+			Type::bind(name, trx_new FunctionProperty(getter, setter, this, flags));
+			return *this;
+		}
+
 		friend Document;
 	};
-
-	template<typename Field, typename Instance>
-	Type* MemberProperty<Field, Instance>::type() const
-	{
-		return NativeType<Field>::instance();
-	}
-
-	template<typename Field>
-	Type* StaticProperty<Field>::type() const
-	{
-		return NativeType<Field>::instance();
-	}
-
-	template<typename Source>
-	Type& Type::bind(Resolver resolver)
-	{
-		Type::bind(NativeType<Source>::instance(), resolver);
-		return *this;
-	}
 
 	class ElementRegistry final
 	{

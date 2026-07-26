@@ -186,5 +186,7 @@ private:                                                                        
 	void name::initialize_reflection()
 
 #define trinex_ui_bind_property(name, type) reflection()->bind(#name, &This::name, Trinex::UI::Refl::Property::type)
+#define trinex_ui_bind_virtual_property(name, type)                                                                              \
+	reflection()->bind(#name, &This::name, &This::name, Trinex::UI::Refl::Property::type)
 
 }// namespace Trinex::UI
