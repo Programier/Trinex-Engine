@@ -8,9 +8,9 @@ namespace Trinex::UI
 		trinex_ui_element(FramedGeometry, Visual);
 
 	public:
-		ImVec2 padding  = {4.0f, 3.0f};
-		f32 rounding    = 0.0f;
-		f32 border_size = 0.0f;
+		Size padding     = Size(4.0f, 3.0f);
+		Unit rounding    = Unit(0.0f);
+		Unit border_size = Unit(0.0f);
 		
 		FramedGeometry& push_style() override;
 		FramedGeometry& pop_style() override;

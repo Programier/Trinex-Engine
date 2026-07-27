@@ -14,11 +14,6 @@ namespace Trinex::UI
 		return Element::item_state_flags(Element::readback_if(clicked));
 	}
 
-	static ImVec2 to_imgui_size(Size size)
-	{
-		return ImVec2(size.width.value, size.height.value);
-	}
-
 	trinex_implement_ui_element(CollapsingHeader)
 	{
 		reflection()->bind("label", &This::label);
@@ -383,6 +378,6 @@ namespace Trinex::UI
 			ImGui::TextUnformatted("/");
 			ImGui::SameLine();
 		}
-		return handle_click(this, ImGui::Selectable(label.c_str(), current, 0, to_imgui_size(Size(0.0f, 0.0f))), on_click);
+		return handle_click(this, ImGui::Selectable(label.c_str(), current, 0, resolve(Size(0.0f, 0.0f))), on_click);
 	}
 }// namespace Trinex::UI

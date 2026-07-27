@@ -85,6 +85,8 @@ namespace Trinex::UI
 
 	protected:
 		static void push_style_var(ImGuiStyleVar var, f32 value);
+		static void push_style_var(ImGuiStyleVar var, Unit value);
+		static void push_style_var(ImGuiStyleVar var, Size value);
 		static void push_style_var(ImGuiStyleVar var, const Vec2& value);
 		static void push_style_color(ImGuiCol color, const Vec4& value);
 		static void push_style_var(ImGuiStyleVar var, const ImVec2& value);
@@ -104,6 +106,8 @@ namespace Trinex::UI
 		static Refl::Type* reflection();
 		static Element* cast(void* src, const Refl::Type* type);
 		static Element* current();
+		static f32 resolve(Unit unit, Axis axis);
+		static ImVec2 resolve(Size size);
 
 		Element& bind(void* value, const Refl::Type* type, const Markup::BindingPath& path);
 		Element& bind(Name event, EventListener listener);

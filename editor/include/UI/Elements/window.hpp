@@ -10,11 +10,11 @@ namespace Trinex::UI
 	public:
 		String title;
 
-		Vec2 padding     = {0.f, 0.f};
-		Vec2 min_size    = {200.f, 200.f};
+		Size padding     = Size(0.0f, 0.0f);
+		Size min_size    = Size(200.0f, 200.0f);
 		Vec2 title_align = {0.5f, 0.5f};
-		f32 rounding     = 0.f;
-		f32 border_size  = 0.f;
+		Unit rounding    = Unit(0.0f);
+		Unit border_size = Unit(0.0f);
 		Vec4 background_color  = {0.06f, 0.06f, 0.10f, 0.94f};
 		Vec4 title_color       = {0.09f, 0.09f, 0.09f, 1.00f};
 		Vec4 resize_grip_color = {0.20f, 0.25f, 0.30f, 0.94f};

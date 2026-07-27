@@ -134,7 +134,7 @@ style Button {
 style Button:hover {
 	color: [0.20, 0.38, 0.51, 1.0];
 	border_color: [0.38, 0.68, 0.86, 1.0];
-	scale: [1.09, 1.09];
+	scale: [1.025, 1.025];
 	transition: {
 		color: 0.14, OutCubic;
 		border_color: 0.14, OutCubic;
@@ -146,7 +146,7 @@ style Button:hover {
 style Button:active {
 	color: [0.12, 0.24, 0.33, 1.0];
 	border_color: [0.46, 0.78, 0.92, 1.0];
-	scale: [0.985, 0.985];
+	scale: [0.975, 0.975];
 }
 
 style Checkbox {

@@ -312,6 +312,11 @@ namespace Trinex::UI::Refl
 		return parse_value({.address = &dst, .type = NativeType<f32>::instance()}, src, mask);
 	}
 
+	static bool value_to_unit(Unit& dst, const Markup::ValueDesc& src, Property::Flags mask)
+	{
+		return parse_value({.address = &dst, .type = NativeType<Unit>::instance()}, src, mask);
+	}
+
 	static bool f32_to_unit(void* dst, const void* src, Property::Flags mask)
 	{
 		*static_cast<Unit*>(dst) = Unit(*static_cast<const f32*>(src));
@@ -321,6 +326,75 @@ namespace Trinex::UI::Refl
 	static bool i32_to_unit(void* dst, const void* src, Property::Flags mask)
 	{
 		*static_cast<Unit*>(dst) = Unit(static_cast<f32>(*static_cast<const i32*>(src)));
+		return true;
+	}
+
+	static bool name_to_unit_type(Unit::Type& dst, Name name)
+	{
+		if (name == "px")
+			dst = Unit::Px;
+		else if (name == "rem")
+			dst = Unit::Rem;
+		else if (name == "percent" || name == "%")
+			dst = Unit::Percent;
+		else if (name == "fill")
+			dst = Unit::Fill;
+		else
+			return false;
+
+		return true;
+	}
+
+	static bool name_to_unit(void* dst, const void* src, Property::Flags mask)
+	{
+		Unit::Type type;
+
+		if (!name_to_unit_type(type, *static_cast<const Name*>(src)))
+		{
+			return false;
+		}
+
+		*static_cast<Unit*>(dst) = Unit(type, type == Unit::Fill ? 1.0f : 0.0f);
+		return true;
+	}
+
+	static bool string_to_unit(void* dst, const void* src, Property::Flags mask)
+	{
+		Name name = *static_cast<const String*>(src);
+		return name_to_unit(dst, &name, mask);
+	}
+
+	static bool identifier_to_unit(void* dst, const void* src, Property::Flags mask)
+	{
+		Name name = *static_cast<const Markup::Identifier*>(src);
+		return name_to_unit(dst, &name, mask);
+	}
+
+	static bool name_to_unit_type(void* dst, const void* src, Property::Flags mask)
+	{
+		return name_to_unit_type(*static_cast<Unit::Type*>(dst), *static_cast<const Name*>(src));
+	}
+
+	static bool string_to_unit_type(void* dst, const void* src, Property::Flags mask)
+	{
+		return name_to_unit_type(*static_cast<Unit::Type*>(dst), *static_cast<const String*>(src));
+	}
+
+	static bool identifier_to_unit_type(void* dst, const void* src, Property::Flags mask)
+	{
+		return name_to_unit_type(*static_cast<Unit::Type*>(dst), *static_cast<const Markup::Identifier*>(src));
+	}
+
+	static bool i32_to_unit_type(void* dst, const void* src, Property::Flags mask)
+	{
+		const i32 value = *static_cast<const i32*>(src);
+
+		if (value < Unit::Px || value > Unit::Fill)
+		{
+			return false;
+		}
+
+		*static_cast<Unit::Type*>(dst) = static_cast<Unit::Type>(value);
 		return true;
 	}
 
@@ -388,16 +462,102 @@ namespace Trinex::UI::Refl
 
 	static bool container_to_size(void* dst, const void* src, Property::Flags mask)
 	{
-		Vec2 result;
+		const auto& values = *static_cast<const Markup::Container*>(src);
 
-		if (!container_to_vec2<Vec2>(&result, src, mask))
+		if (values.size() != 2)
 		{
 			return false;
 		}
 
-		*static_cast<Size*>(dst) = Size(result);
+		Size result;
+		if (!value_to_unit(result.width, values[0], mask) || !value_to_unit(result.height, values[1], mask))
+		{
+			return false;
+		}
+
+		*static_cast<Size*>(dst) = result;
 		return true;
 	}
+
+	static Vec4 to_vec4(const Vec2& value)
+	{
+		return Vec4(value.x, value.y, 0.0f, 1.0f);
+	}
+
+	static Vec4 to_vec4(const Vec3& value)
+	{
+		return Vec4(value.x, value.y, value.z, 1.0f);
+	}
+
+	static Vec4 to_vec4(const Vec4& value)
+	{
+		return value;
+	}
+
+	static Vec4 to_vec4(const ImVec2& value)
+	{
+		return Vec4(value.x, value.y, 0.0f, 1.0f);
+	}
+
+	static Vec4 to_vec4(const ImVec4& value)
+	{
+		return Vec4(value.x, value.y, value.z, value.w);
+	}
+
+	static Vec4 to_vec4(const Size& value)
+	{
+		return Vec4(value.width.value, value.height.value, 0.0f, 1.0f);
+	}
+
+	template<typename Dst, typename Src>
+	static bool vector_resolver(void* dst, const void* src, Property::Flags mask)
+	{
+		const Vec4 value = to_vec4(*static_cast<const Src*>(src));
+
+		if constexpr (std::is_same_v<Dst, Vec2>)
+		{
+			*static_cast<Dst*>(dst) = Vec2(value.x, value.y);
+		}
+		else if constexpr (std::is_same_v<Dst, Vec3>)
+		{
+			*static_cast<Dst*>(dst) = Vec3(value.x, value.y, value.z);
+		}
+		else if constexpr (std::is_same_v<Dst, Vec4>)
+		{
+			*static_cast<Dst*>(dst) = value;
+		}
+		else if constexpr (std::is_same_v<Dst, ImVec2>)
+		{
+			*static_cast<Dst*>(dst) = ImVec2(value.x, value.y);
+		}
+		else if constexpr (std::is_same_v<Dst, ImVec4>)
+		{
+			*static_cast<Dst*>(dst) = ImVec4(value.x, value.y, value.z, value.w);
+		}
+		else if constexpr (std::is_same_v<Dst, Size>)
+		{
+			*static_cast<Dst*>(dst) = Size(value.x, value.y);
+		}
+
+		return true;
+	}
+
+	template<typename Dst, typename Src>
+	static void bind_vector_resolver()
+	{
+		if constexpr (!std::is_same_v<Dst, Src>)
+		{
+			NativeType<Dst>::instance()->template bind<Src>(vector_resolver<Dst, Src>);
+		}
+	}
+
+	template<typename Dst, typename Types>
+	struct VectorResolverBinder;
+
+	template<typename Dst, typename... Src>
+	struct VectorResolverBinder<Dst, TypesList<Src...>> {
+		static void bind() { (bind_vector_resolver<Dst, Src>(), ...); }
+	};
 
 	template<typename DstType>
 	static bool object_to_type(void* dst, const void* src, Property::Flags mask)
@@ -460,6 +620,14 @@ namespace Trinex::UI::Refl
 
 		NativeType<Unit>::instance()->bind<f32>(f32_to_unit);
 		NativeType<Unit>::instance()->bind<i32>(i32_to_unit);
+		NativeType<Unit>::instance()->bind<Name>(name_to_unit);
+		NativeType<Unit>::instance()->bind<String>(string_to_unit);
+		NativeType<Unit>::instance()->bind<Markup::Identifier>(identifier_to_unit);
+		NativeType<Unit::Type>::instance()->bind<Name>(name_to_unit_type);
+		NativeType<Unit::Type>::instance()->bind<String>(string_to_unit_type);
+		NativeType<Unit::Type>::instance()->bind<Markup::Identifier>(identifier_to_unit_type);
+		NativeType<Unit::Type>::instance()->bind<i32>(i32_to_unit_type);
+		NativeType<Unit>::instance()->bind<Markup::Object>(object_to_type<Unit>);
 		NativeType<Vec2>::instance()->bind<Markup::Container>(container_to_vec2<Vec2>);
 		NativeType<Vec3>::instance()->bind<Markup::Container>(container_to_vec3<Vec3>);
 		NativeType<Vec4>::instance()->bind<Markup::Container>(container_to_vec4<Vec4>);
@@ -472,6 +640,13 @@ namespace Trinex::UI::Refl
 		NativeType<ImVec2>::instance()->bind<Markup::Object>(object_to_type<ImVec2>);
 		NativeType<ImVec4>::instance()->bind<Markup::Object>(object_to_type<ImVec4>);
 		NativeType<Size>::instance()->bind<Markup::Object>(object_to_type<Size>);
+
+		using VectorTypesList = TypesList<Vec2, Vec3, Vec4, ImVec2, ImVec4, Size>;
+		VectorTypesList::for_each([]<typename Dst>() { VectorResolverBinder<Dst, VectorTypesList>::bind(); });
+
+		NativeType<Unit>::instance()->bind("type", &Unit::type);
+		NativeType<Unit>::instance()->bind("unit", &Unit::type);
+		NativeType<Unit>::instance()->bind("value", &Unit::value);
 
 		NativeType<Vec2>::instance()->bind("x", &Vec2::x);
 		NativeType<Vec2>::instance()->bind("r", &Vec2::x);
@@ -529,6 +704,7 @@ namespace Trinex::UI::Refl
 		trinex_ui_bind_type_name(String);
 		trinex_ui_bind_type_name(Name);
 		trinex_ui_bind_type_name(Unit);
+		trinex_ui_bind_type_name(Unit::Type);
 		trinex_ui_bind_type_name(Vec2);
 		trinex_ui_bind_type_name(Vec3);
 		trinex_ui_bind_type_name(Vec4);

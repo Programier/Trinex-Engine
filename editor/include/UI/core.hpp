@@ -58,18 +58,17 @@ namespace Trinex::UI
 		enum Type : u8
 		{
 			Px,
-			Dp,
 			Rem,
 			Percent,
 			Fill,
 		};
 
-		Type type = Dp;
+		Type type = Px;
 		f32 value = 0.0f;
 
 		constexpr Unit() = default;
 		constexpr Unit(Type type, f32 value = 0.0f) : type(type), value(value) {}
-		constexpr Unit(f32 value) : type(Dp), value(value) {}
+		constexpr Unit(f32 value) : type(Px), value(value) {}
 	};
 
 	struct Size {
@@ -180,7 +179,7 @@ namespace Trinex::UI
 
 		using Container = Vector<struct ValueDesc>;
 		using Object    = Vector<struct ObjectField>;
-		using Value     = Variant<Null, bool, i32, f32, String, LocalizationKey, BindingPath, Identifier, Container, Object>;
+		using Value = Variant<Null, bool, i32, f32, String, Unit, LocalizationKey, BindingPath, Identifier, Container, Object>;
 
 		struct ValueDesc {
 			Value value;

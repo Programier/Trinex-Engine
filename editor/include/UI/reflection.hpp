@@ -142,6 +142,11 @@ namespace Trinex::UI::Refl
 
 		bool store(void* object, const FunctionRef<bool(void*, Type*)>& writer) override
 		{
+			if (m_setter == nullptr)
+			{
+				return false;
+			}
+
 			Field field;
 
 			if (writer(&field, NativeType<Field>::instance()))
@@ -179,6 +184,11 @@ namespace Trinex::UI::Refl
 
 		bool store(void* object, const FunctionRef<bool(void*, Type*)>& writer) override
 		{
+			if (m_setter == nullptr)
+			{
+				return false;
+			}
+
 			Field field;
 
 			if (writer(&field, NativeType<Field>::instance()))

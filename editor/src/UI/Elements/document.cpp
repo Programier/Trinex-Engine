@@ -3,6 +3,7 @@
 #include <Core/etl/variant.hpp>
 #include <Core/etl/vector.hpp>
 #include <Core/file_manager.hpp>
+#include <Core/string_functions.hpp>
 #include <Core/types/path.hpp>
 #include <UI/Elements/document.hpp>
 #include <UI/reflection.hpp>
@@ -37,6 +38,7 @@ PropertyPath   <- Identifier ('.' Identifier)*
 Value <- Localization
        / Binding
        / String
+       / UnitLiteral
        / Float
        / Integer
        / Boolean
@@ -60,6 +62,7 @@ StringChar <- !['"\\] .
 
 Float   <- < [+-]? ([0-9]+ '.' [0-9]* / '.' [0-9]+ / [0-9]+ [eE] [+-]? [0-9]+) ([eE] [+-]? [0-9]+)? >
 Integer <- < [+-]? [0-9]+ >
+UnitLiteral <- < [+-]? ([0-9]+ '.' [0-9]* / '.' [0-9]+ / [0-9]+) ('px' / 'rem' / '%' / 'fill') > { no_whitespace }
 Boolean <- < 'true' / 'false' >
 Null    <- < 'null' >
 
@@ -232,6 +235,40 @@ _Comment    <- '//' (![\r\n] .)*
 				return false;
 			}
 
+			inline bool parse_unit_literal(Unit& unit, StringView token)
+			{
+				struct Suffix {
+					StringView text;
+					Unit::Type type;
+				};
+
+				const Suffix suffixes[] = {
+				        {.text = "fill", .type = Unit::Fill},
+				        {.text = "rem", .type = Unit::Rem  },
+				        {.text = "px",   .type = Unit::Px   },
+				        {.text = "%",    .type = Unit::Percent},
+				};
+
+				for (const Suffix& suffix : suffixes)
+				{
+					if (token.size() <= suffix.text.size() || token.substr(token.size() - suffix.text.size()) != suffix.text)
+					{
+						continue;
+					}
+
+					f64 value = 0.0;
+					if (!Strings::floating_of(token.substr(0, token.size() - suffix.text.size()), value))
+					{
+						return false;
+					}
+
+					unit = Unit(suffix.type, static_cast<f32>(value));
+					return true;
+				}
+
+				return false;
+			}
+
 			inline Ease ease_of(const Name& name)
 			{
 				if (name == "Linear")
@@ -398,6 +435,20 @@ _Comment    <- '//' (![\r\n] .)*
 				m_parser["Float"] = [](const peg::SemanticValues& values) {
 					return ValueDesc{
 					        .value    = Value{values.token_to_number<f32>()},
+					        .location = Detail::location_of(values),
+					};
+				};
+
+				m_parser["UnitLiteral"] = [](const peg::SemanticValues& values) {
+					Unit unit;
+
+					if (!Detail::parse_unit_literal(unit, values.token()))
+					{
+						throw std::runtime_error("Invalid unit literal");
+					}
+
+					return ValueDesc{
+					        .value    = Value{unit},
 					        .location = Detail::location_of(values),
 					};
 				};

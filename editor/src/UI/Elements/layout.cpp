@@ -5,11 +5,6 @@
 
 namespace Trinex::UI
 {
-	static ImVec2 to_imgui_size(Size size)
-	{
-		return ImVec2(size.width.value, size.height.value);
-	}
-
 	trinex_implement_ui_element(Panel)
 	{
 		reflection()->bind("size", &This::size);
@@ -41,7 +36,7 @@ namespace Trinex::UI
 	Element::UpdateFlags Panel::on_begin_update()
 	{
 		ImGui::PushID(this);
-		const bool visible = ImGui::BeginChild(id().is_valid() ? id().c_str() : "##Panel", to_imgui_size(size), border);
+		const bool visible = ImGui::BeginChild(id().is_valid() ? id().c_str() : "##Panel", resolve(size), border);
 		if (!visible)
 		{
 			ImGui::EndChild();
@@ -91,7 +86,7 @@ namespace Trinex::UI
 	{
 		ImGui::PushID(this);
 		ImGui::TextUnformatted(label.c_str());
-		const bool visible = ImGui::BeginChild("##GroupPanel", to_imgui_size(size), border);
+		const bool visible = ImGui::BeginChild("##GroupPanel", resolve(size), border);
 		if (!visible)
 		{
 			ImGui::EndChild();
@@ -130,7 +125,7 @@ namespace Trinex::UI
 
 	Element::UpdateFlags Horizontal::on_begin_update()
 	{
-		ImGui::BeginHorizontal(this, size, align);
+		ImGui::BeginHorizontal(this, resolve(size), align);
 		return UpdateFlags::Childs | UpdateFlags::End;
 	}
 
@@ -148,7 +143,7 @@ namespace Trinex::UI
 
 	Element::UpdateFlags Vertical::on_begin_update()
 	{
-		ImGui::BeginVertical(this, size, align);
+		ImGui::BeginVertical(this, resolve(size), align);
 		return UpdateFlags::Childs | UpdateFlags::End;
 	}
 
@@ -211,7 +206,7 @@ namespace Trinex::UI
 	Element::UpdateFlags ScrollArea::on_begin_update()
 	{
 		ImGui::PushID(this);
-		const bool visible = ImGui::BeginChild(id().is_valid() ? id().c_str() : "##ScrollArea", to_imgui_size(size), border);
+		const bool visible = ImGui::BeginChild(id().is_valid() ? id().c_str() : "##ScrollArea", resolve(size), border);
 		if (!visible)
 		{
 			ImGui::EndChild();
@@ -295,7 +290,7 @@ namespace Trinex::UI
 
 	Element::UpdateFlags Spacing::on_begin_update()
 	{
-		ImGui::Dummy(ImVec2(0.0f, amount.value));
+		ImGui::Dummy(ImVec2(0.0f, resolve(amount, Axis::Y)));
 		return UpdateFlags::Undefined;
 	}
 
@@ -314,7 +309,7 @@ namespace Trinex::UI
 
 	Element::UpdateFlags SameLine::on_begin_update()
 	{
-		ImGui::SameLine(offset);
+		ImGui::SameLine(resolve(offset, Axis::X));
 		return UpdateFlags::Undefined;
 	}
 
@@ -325,13 +320,13 @@ namespace Trinex::UI
 
 	Element::UpdateFlags Indent::on_begin_update()
 	{
-		ImGui::Indent(amount.value);
+		ImGui::Indent(resolve(amount, Axis::X));
 		return UpdateFlags::Default;
 	}
 
 	Element& Indent::on_end_update(UpdateFlags flags)
 	{
-		ImGui::Unindent(amount.value);
+		ImGui::Unindent(resolve(amount, Axis::X));
 		return *this;
 	}
 
@@ -342,7 +337,7 @@ namespace Trinex::UI
 
 	Element::UpdateFlags Dummy::on_begin_update()
 	{
-		ImGui::Dummy(to_imgui_size(size));
+		ImGui::Dummy(resolve(size));
 		return UpdateFlags::Undefined;
 	}
 

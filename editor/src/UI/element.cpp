@@ -68,6 +68,27 @@ namespace Trinex::UI
 		return s_current;
 	}
 
+	f32 Element::resolve(Unit unit, Axis axis)
+	{
+		switch (unit.type)
+		{
+			case Unit::Percent:
+			{
+				const ImVec2 available = ImGui::GetContentRegionAvail();
+				return (axis == Axis::X ? available.x : available.y) * unit.value * 0.01f;
+			}
+			case Unit::Fill: return -1.0f;
+			case Unit::Rem: return ImGui::GetFontSize() * unit.value;
+			case Unit::Px:
+			default: return unit.value;
+		}
+	}
+
+	ImVec2 Element::resolve(Size size)
+	{
+		return ImVec2(resolve(size.width, Axis::X), resolve(size.height, Axis::Y));
+	}
+
 	Element::CurrentScope::CurrentScope(Element* element) : m_previous(s_current)
 	{
 		s_current = element;
@@ -119,6 +140,32 @@ namespace Trinex::UI
 	{
 		auto predicate = [value](const Binding& binding) { return binding.value == value; };
 		return etl::find_if(m_bindings.begin(), m_bindings.end(), predicate) - m_bindings.begin();
+	}
+
+	static String binding_path_to_string(const Markup::BindingPath& path)
+	{
+		String result;
+
+		for (const Name& field : path)
+		{
+			if (!result.empty())
+			{
+				result.push_back('.');
+			}
+
+			result += field.c_str();
+		}
+
+		return result.empty() ? "<empty>" : result;
+	}
+
+	static void log_failed_binding_update(const Element* element, const Element::Binding& binding, const char* direction)
+	{
+		const String path = binding_path_to_string(binding.path);
+
+		trinex_error(Log::Editor, "Failed to update %s binding '%s' for element '%s' (id: '%s', value type: '%s')", direction,
+		             path.c_str(), element->type()->name().c_str(), element->id().is_valid() ? element->id().c_str() : "",
+		             binding.type ? binding.type->name().c_str() : "<null>");
 	}
 
 	bool Element::dispatch(Name name)
@@ -346,7 +393,7 @@ namespace Trinex::UI
 
 			if (!Refl::Type::assign(dst, src, Refl::Property::Markup))
 			{
-				trinex_error(Log::Editor, "Failed to update binding");
+				log_failed_binding_update(this, binding, "read");
 			}
 		}
 
@@ -378,7 +425,7 @@ namespace Trinex::UI
 
 					if (!Refl::Type::assign(dst, src, Refl::Property::Markup))
 					{
-						trinex_error(Log::Editor, "Failed to update binding");
+						log_failed_binding_update(this, binding, "write");
 					}
 				}
 			}
@@ -422,6 +469,16 @@ namespace Trinex::UI
 	void Element::push_style_var(ImGuiStyleVar var, f32 value)
 	{
 		ImGui::PushStyleVar(var, value);
+	}
+
+	void Element::push_style_var(ImGuiStyleVar var, Unit value)
+	{
+		ImGui::PushStyleVar(var, resolve(value, Axis::X));
+	}
+
+	void Element::push_style_var(ImGuiStyleVar var, Size value)
+	{
+		ImGui::PushStyleVar(var, resolve(value));
 	}
 
 	void Element::push_style_var(ImGuiStyleVar var, const Vec2& value)
