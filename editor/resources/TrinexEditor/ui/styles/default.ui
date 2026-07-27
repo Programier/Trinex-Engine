@@ -18,6 +18,12 @@ style Window {
 	title_color: [0.075, 0.085, 0.105, 1.0];
 	resize_grip_color: [0.24, 0.42, 0.58, 0.72];
 	border_color: [0.16, 0.20, 0.26, 0.9];
+	tab.rounding: 3px;
+	tab.border_size: 1px;
+	tab.min_width_base: 88px;
+	tab.min_width_shrink: 54px;
+	tab.background_color: [0.055, 0.063, 0.073, 1.0];
+	tab.overline_color: [0.20, 0.48, 0.72, 0.95];
 }
 
 style Panel {

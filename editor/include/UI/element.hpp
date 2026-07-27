@@ -11,6 +11,7 @@
 namespace Trinex::UI
 {
 	class Document;
+	struct TabStyle;
 
 	namespace Refl
 	{
@@ -22,6 +23,8 @@ namespace Trinex::UI
 
 	class Element
 	{
+		friend struct TabStyle;
+
 	public:
 		using EventListener = Function<void(Event* event)>;
 

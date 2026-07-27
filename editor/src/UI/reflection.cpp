@@ -219,6 +219,20 @@ namespace Trinex::UI::Refl
 		return nullptr;
 	}
 
+	bool Type::is_a(Refl::Type* type) const
+	{
+		const Type* self = this;
+
+		do
+		{
+			if (self == type)
+				return self;
+			self = self->parent();
+		} while (self);
+
+		return false;
+	}
+
 	ElementRegistry* ElementRegistry::instance()
 	{
 		static ElementRegistry registry;

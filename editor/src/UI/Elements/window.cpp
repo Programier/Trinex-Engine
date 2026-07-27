@@ -7,6 +7,7 @@ namespace Trinex::UI
 	trinex_implement_ui_element(Window)
 	{
 		trinex_ui_bind_property(title, Markup);
+		trinex_ui_bind_property(tab, Style);
 		trinex_ui_bind_property(padding, Style);
 		trinex_ui_bind_property(min_size, Style);
 		trinex_ui_bind_property(title_align, Style);
@@ -34,11 +35,15 @@ namespace Trinex::UI
 		push_style_color(ImGuiCol_ResizeGripHovered, resize_grip_color);
 		push_style_color(ImGuiCol_ResizeGripActive, resize_grip_color);
 
+		tab.push();
+
 		return *this;
 	}
 
 	Window& Window::pop_style()
 	{
+		tab.pop();
+
 		ImGui::PopStyleColor(7);
 		ImGui::PopStyleVar(5);
 		return *Super::pop_style().as<This>();
@@ -46,12 +51,10 @@ namespace Trinex::UI
 
 	Element::UpdateFlags Window::on_begin_update()
 	{
-		if (title.empty())
-			return UpdateFlags::Undefined;
-
 		UpdateFlags flags = UpdateFlags::End;
+		const char* name  = title.empty() ? "###Window" : title.c_str();
 
-		if (ImGui::Begin(title.c_str()))
+		if (ImGui::Begin(name))
 		{
 			flags |= UpdateFlags::Childs;
 

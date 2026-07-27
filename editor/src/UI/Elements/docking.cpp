@@ -12,12 +12,19 @@ namespace Trinex::UI
 
 	static ImGuiDir to_imgui_dir(Name dir)
 	{
-		if (dir == "left")
+		static Name left   = "left";
+		static Name up     = "up";
+		static Name top    = "top";
+		static Name down   = "down";
+		static Name bottom = "bottom";
+
+		if (dir == left)
 			return ImGuiDir_Left;
-		if (dir == "up" || dir == "top")
+		if (dir == up || dir == top)
 			return ImGuiDir_Up;
-		if (dir == "down" || dir == "bottom")
+		if (dir == down || dir == bottom)
 			return ImGuiDir_Down;
+
 		return ImGuiDir_Right;
 	}
 
@@ -25,12 +32,12 @@ namespace Trinex::UI
 	{
 		bool result = true;
 
-		if (element->type() == DockSplit::reflection())
+		if (element->type()->is_a<DockSplit>())
 		{
 			result &= element->as<DockSplit>()->build(space);
 		}
 
-		if (element->type() == DockWindow::reflection())
+		if (element->type()->is_a<DockWindow>())
 		{
 			result &= element->as<DockWindow>()->build(space);
 		}
@@ -97,8 +104,14 @@ namespace Trinex::UI
 
 	Element::UpdateFlags DockSpace::on_begin_update()
 	{
+		UpdateFlags result = Super::on_begin_update();
+		if (!(result & UpdateFlags::Childs))
+		{
+			return result;
+		}
+
 		const char* name = id().is_valid() ? id().c_str() : "##DockSpace";
-		const u32 root = ImGui::GetID(name);
+		const u32 root   = ImGui::GetID(name);
 
 		bind_dock("main", root);
 		if (id().is_valid())
@@ -119,7 +132,12 @@ namespace Trinex::UI
 			build_layout(dock_size);
 		}
 
-		return UpdateFlags::Childs;
+		return result;
+	}
+
+	Element& DockSpace::on_end_update(UpdateFlags flags)
+	{
+		return Super::on_end_update(flags);
 	}
 
 	trinex_implement_ui_element(DockSplit)
@@ -143,13 +161,34 @@ namespace Trinex::UI
 			return false;
 		}
 
+		if (!from.is_valid())
+		{
+			Element* element = owner();
+
+			while (element)
+			{
+				if (element->type()->is_a<DockSplit>())
+				{
+					auto super = element->as<DockSplit>();
+					if (super->remainder.is_valid())
+					{
+						from = super->remainder;
+						break;
+					}
+				}
+
+				element = element->owner();
+			}
+		}
+
 		const u32 source = space->require_dock(from);
+
 		if (source == 0)
 		{
 			return false;
 		}
 
-		u32 child_dock = 0;
+		u32 child_dock     = 0;
 		u32 remainder_dock = 0;
 		ImGui::DockBuilderSplitNode(source, to_imgui_dir(dir), ratio, &child_dock, &remainder_dock);
 		space->bind_dock(from.is_valid() ? from : Name("main"), remainder_dock);

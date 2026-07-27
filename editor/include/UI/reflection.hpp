@@ -237,6 +237,8 @@ namespace Trinex::UI::Refl
 		virtual bool assign(void* dst, const void* src) const = 0;
 
 		Property* property(Name name) const;
+		bool is_a(Refl::Type* type) const;
+
 		inline Type* parent() const { return m_parent; }
 
 		Type& bind(Type* type, Resolver resolver);
@@ -245,6 +247,12 @@ namespace Trinex::UI::Refl
 		Type& bind(Resolver resolver)
 		{
 			return Type::bind(NativeType<Source>::instance(), resolver);
+		}
+
+		template<typename T>
+		bool is_a() const
+		{
+			return is_a(NativeType<T>::instance());
 		}
 
 		template<typename T>

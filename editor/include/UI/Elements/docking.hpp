@@ -1,14 +1,14 @@
 #pragma once
 #include <Core/etl/flat_map.hpp>
-#include <UI/element.hpp>
+#include <UI/Elements/window.hpp>
 
 struct ImVec2;
 
 namespace Trinex::UI
 {
-	class DockSpace : public Element
+	class DockSpace : public Window
 	{
-		trinex_ui_element(DockSpace, Element);
+		trinex_ui_element(DockSpace, Window);
 
 	private:
 		FlatMap<Name, u32> m_docks;
@@ -20,11 +20,12 @@ namespace Trinex::UI
 		DockSpace& build_layout(ImVec2 size);
 
 	public:
-		Size size = Size(0.0f, 0.0f);
-		i32 flags = 0;
+		Size size    = Size(0.0f, 0.0f);
+		i32 flags    = 0;
 		bool rebuild = false;
 
 		UpdateFlags on_begin_update() override;
+		Element& on_end_update(UpdateFlags flags) override;
 
 		friend class DockSplit;
 		friend class DockWindow;
@@ -36,7 +37,7 @@ namespace Trinex::UI
 
 	public:
 		Name from;
-		Name dir = "right";
+		Name dir  = "right";
 		f32 ratio = 0.5f;
 		Name child;
 		Name remainder;
