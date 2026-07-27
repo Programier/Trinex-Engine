@@ -23,7 +23,7 @@ namespace Trinex::UI
 	};
 
 	struct StyleProperty {
-		Name name;
+		Markup::PropertyPath path;
 		Markup::ValueDesc value;
 		Markup::SourceLocation location;
 	};

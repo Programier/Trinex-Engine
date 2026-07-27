@@ -243,7 +243,7 @@ namespace Trinex::UI
 
 	static bool assign_style_property(Element* element, const StyleProperty& property)
 	{
-		if (property.name == "transition")
+		if (property.path.size() == 1 && property.path.front() == "transition")
 		{
 			return true;
 		}
@@ -256,8 +256,8 @@ namespace Trinex::UI
 			Refl::PropertyRef dst = {
 			        .address = element,
 			        .type    = type,
-			        .field   = &property.name,
-			        .fields  = 1,
+			        .field   = property.path.data(),
+			        .fields  = property.path.size(),
 			};
 
 			Refl::ConstValueRef src = {
@@ -283,7 +283,8 @@ namespace Trinex::UI
 				if (!assign_style_property(this, property))
 				{
 					trinex_error(Log::Editor, "Failed to assign style property '%s' of element '%s' at %u:%u",
-					             property.name.c_str(), type()->name().c_str(), property.location.line, property.location.column);
+					             property.path.empty() ? "" : property.path.front().c_str(), type()->name().c_str(),
+					             property.location.line, property.location.column);
 				}
 			};
 

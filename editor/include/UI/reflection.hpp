@@ -363,11 +363,34 @@ namespace Trinex::UI::Refl
 			return *this;
 		}
 
+		template<typename Value, typename Instance>
+		    requires(etl::is_class_v<Instance>)
+		NativeType& bind(Name name, Value (Instance::*getter)() const, Property::Flags flags = Property::Markup)
+		{
+			bool (Instance::*setter)(Value) = nullptr;
+			return bind(name, getter, setter, flags);
+		}
+
+		template<typename Value, typename Instance>
+		    requires(etl::is_class_v<Instance>)
+		NativeType& bind(Name name, Value (Instance::*getter)(), Property::Flags flags = Property::Markup)
+		{
+			bool (Instance::*setter)(Value) = nullptr;
+			return bind(name, getter, setter, flags);
+		}
+
 		template<typename Value>
 		NativeType& bind(Name name, Value (*getter)(), bool (*setter)(Value), typename Property::Flags flags = Property::Markup)
 		{
 			Type::bind(name, trx_new FunctionProperty(getter, setter, this, flags));
 			return *this;
+		}
+
+		template<typename Value>
+		NativeType& bind(Name name, Value (*getter)(), typename Property::Flags flags = Property::Markup)
+		{
+			bool (*setter)(Value) = nullptr;
+			return bind(name, getter, setter, flags);
 		}
 
 		friend Document;

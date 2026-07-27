@@ -39,7 +39,8 @@ namespace Trinex
 		fs->mount("[shaders]:/TrinexEditor", "[exec]:/resources/TrinexEditor/shaders");
 		fs->mount("[scripts]:/TrinexEditor", "[exec]:/resources/TrinexEditor/scripts");
 		fs->mount("[fonts]:/TrinexEditor", "[exec]:/resources/TrinexEditor/fonts");
-		fs->mount("[ui]:/TrinexEditor", "[exec]:/resources/TrinexEditor/ui");
+		fs->mount("[ui]:/TrinexEditor", "/home/programier/Projects/Trinex-Engine/editor/resources/TrinexEditor/ui/",
+		          VFS::FileSystem::Native);
 
 		Settings::engine_class                        = "Trinex::EditorEngine";
 		Settings::Rendering::force_keep_cpu_resources = true;

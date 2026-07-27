@@ -167,6 +167,10 @@ namespace Trinex::UI
 			Mode mode = Mode::Read;
 		};
 
+		struct PropertyPath : public Vector<Name> {
+			using Vector::Vector;
+		};
+
 		struct Identifier : public String {
 			using String::String;
 		};
@@ -175,11 +179,19 @@ namespace Trinex::UI
 		};
 
 		using Container = Vector<struct ValueDesc>;
-		using Value     = Variant<Null, bool, i32, f32, String, LocalizationKey, BindingPath, Identifier, Container>;
+		using Object    = Vector<struct ObjectField>;
+		using Value     = Variant<Null, bool, i32, f32, String, LocalizationKey, BindingPath, Identifier, Container, Object>;
 
 		struct ValueDesc {
 			Value value;
 			SourceLocation location;
 		};
+
+		struct ObjectField {
+			Name name;
+			ValueDesc value;
+			SourceLocation location;
+		};
+
 	}// namespace Markup
 }// namespace Trinex::UI

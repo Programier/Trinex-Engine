@@ -399,6 +399,38 @@ namespace Trinex::UI::Refl
 		return true;
 	}
 
+	template<typename DstType>
+	static bool object_to_type(void* dst, const void* src, Property::Flags mask)
+	{
+		const auto& object = *static_cast<const Markup::Object*>(src);
+
+		for (const Markup::ObjectField& field : object)
+		{
+			PropertyRef dst_ref = {
+			        .address = dst,
+			        .type    = NativeType<DstType>::instance(),
+			        .field   = &field.name,
+			        .fields  = 1,
+			};
+
+			auto visitor = [&]<typename Value>(const Value& value) -> bool {
+				ConstValueRef src_ref = {
+				        .address = &value,
+				        .type    = NativeType<Value>::instance(),
+				};
+
+				return Type::assign(dst_ref, src_ref, mask);
+			};
+
+			if (!etl::visit(visitor, field.value.value))
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 
 	trinex_on_pre_init()
 	{
@@ -434,6 +466,12 @@ namespace Trinex::UI::Refl
 		NativeType<ImVec2>::instance()->bind<Markup::Container>(container_to_vec2<ImVec2>);
 		NativeType<ImVec4>::instance()->bind<Markup::Container>(container_to_vec4<ImVec4>);
 		NativeType<Size>::instance()->bind<Markup::Container>(container_to_size);
+		NativeType<Vec2>::instance()->bind<Markup::Object>(object_to_type<Vec2>);
+		NativeType<Vec3>::instance()->bind<Markup::Object>(object_to_type<Vec3>);
+		NativeType<Vec4>::instance()->bind<Markup::Object>(object_to_type<Vec4>);
+		NativeType<ImVec2>::instance()->bind<Markup::Object>(object_to_type<ImVec2>);
+		NativeType<ImVec4>::instance()->bind<Markup::Object>(object_to_type<ImVec4>);
+		NativeType<Size>::instance()->bind<Markup::Object>(object_to_type<Size>);
 
 		NativeType<Vec2>::instance()->bind("x", &Vec2::x);
 		NativeType<Vec2>::instance()->bind("r", &Vec2::x);
@@ -470,6 +508,11 @@ namespace Trinex::UI::Refl
 		NativeType<ImVec4>::instance()->bind("w", &ImVec4::w);
 		NativeType<ImVec4>::instance()->bind("a", &ImVec4::w);
 
+		NativeType<Size>::instance()->bind("x", &Size::width);
+		NativeType<Size>::instance()->bind("width", &Size::width);
+		NativeType<Size>::instance()->bind("y", &Size::height);
+		NativeType<Size>::instance()->bind("height", &Size::height);
+
 
 		trinex_ui_bind_type_name(bool);
 		trinex_ui_bind_type_name(i8);
@@ -496,5 +539,6 @@ namespace Trinex::UI::Refl
 		trinex_ui_bind_type_name(Markup::BindingPath);
 		trinex_ui_bind_type_name(Markup::LocalizationKey);
 		trinex_ui_bind_type_name(Markup::Null);
+		trinex_ui_bind_type_name(Markup::Object);
 	}
 }// namespace Trinex::UI::Refl

@@ -296,11 +296,30 @@ namespace Trinex::UI
 	}
 
 	template<typename AllocatorType>
+	static bool same_path(const Vector<Name, AllocatorType>& lhs, const Vector<Name, AllocatorType>& rhs)
+	{
+		if (lhs.size() != rhs.size())
+		{
+			return false;
+		}
+
+		for (usize index = 0; index < lhs.size(); ++index)
+		{
+			if (lhs[index] != rhs[index])
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	template<typename AllocatorType>
 	static bool has_later_property(const Vector<StyleProperty, AllocatorType>& properties, usize index)
 	{
 		for (usize next = index + 1; next < properties.size(); ++next)
 		{
-			if (properties[next].name == properties[index].name)
+			if (same_path(properties[next].path, properties[index].path))
 			{
 				return true;
 			}
@@ -353,9 +372,10 @@ namespace Trinex::UI
 		for (usize index = 0; index < m_properties.size(); ++index)
 		{
 			const StyleProperty& property = m_properties[index];
+			const Name property_name      = property.path.empty() ? Name::undefined : property.path.front();
 
 			StyleValue target;
-			const StyleTransition* transition = find_transition(m_transitions, property.name);
+			const StyleTransition* transition = find_transition(m_transitions, property_name);
 
 			if (has_later_property(m_properties, index) || transition == nullptr || transition->duration <= 0.0f ||
 			    !style_value(target, property.value))
@@ -364,9 +384,9 @@ namespace Trinex::UI
 				continue;
 			}
 
-			const bool initialized    = m_targets.contains(property.name);
-			StyleValue& stored_target = m_targets[property.name];
-			StyleValue& current       = m_values[property.name];
+			const bool initialized    = m_targets.contains(property_name);
+			StyleValue& stored_target = m_targets[property_name];
+			StyleValue& current       = m_values[property_name];
 
 			if (!initialized)
 			{
@@ -378,7 +398,7 @@ namespace Trinex::UI
 
 			if (!same_value(stored_target, target))
 			{
-				StyleAnimationTrack& track = m_tracks[property.name];
+				StyleAnimationTrack& track = m_tracks[property_name];
 				track.from                 = current;
 				track.to                   = target;
 				track.elapsed              = 0.0f;
@@ -389,7 +409,7 @@ namespace Trinex::UI
 				stored_target              = target;
 			}
 
-			StyleAnimationTrack& track = m_tracks[property.name];
+			StyleAnimationTrack& track = m_tracks[property_name];
 
 			if (track.active)
 			{

@@ -31,7 +31,8 @@ Node           <- Identifier '{' Member* '}'
 Member         <- PropertyMember / NodeMember
 PropertyMember <- Property
 NodeMember     <- Node
-Property       <- Identifier ':' Value ';'?
+Property       <- PropertyPath ':' Value ';'?
+PropertyPath   <- Identifier ('.' Identifier)*
 
 Value <- Localization
        / Binding
@@ -40,6 +41,7 @@ Value <- Localization
        / Integer
        / Boolean
        / Null
+       / Object
        / List
        / IdentifierValue
 
@@ -48,6 +50,8 @@ Binding      <- '$' Identifier ('.' Identifier)* BindingMode?
 BindingMode  <- ':' < 'rw' / 'wr' / 'r' / 'w' >
 
 List <- '[' (Value (',' Value)*)? ']'
+Object <- '{' (ObjectField (',' ObjectField)*)? ','? '}'
+ObjectField <- Identifier ':' Value
 
 String     <- < '"' (Escape / StringChar)* '"' > { no_whitespace }
 Escape     <- '\\' ['"\\nrt]
@@ -72,7 +76,7 @@ _Comment    <- '//' (![\r\n] .)*
 		struct Node;
 
 		struct Property {
-			Name name;
+			PropertyPath path;
 			ValueDesc value;
 			SourceLocation location;
 		};
@@ -179,7 +183,7 @@ _Comment    <- '//' (![\r\n] .)*
 			inline StyleProperty to_style_property(const Property& property)
 			{
 				return StyleProperty{
-				        .name     = property.name,
+				        .path     = property.path,
 				        .value    = property.value,
 				        .location = property.location,
 				};
@@ -411,6 +415,18 @@ _Comment    <- '//' (![\r\n] .)*
 
 			void configure_value_actions()
 			{
+				m_parser["PropertyPath"] = [](const peg::SemanticValues& values) {
+					PropertyPath path;
+					path.reserve(values.size());
+
+					for (const std::any& value : values)
+					{
+						path.emplace_back(Detail::any_ref<Identifier>(value));
+					}
+
+					return path;
+				};
+
 				m_parser["List"] = [](const peg::SemanticValues& values) {
 					Container list;
 					list.reserve(values.size());
@@ -423,6 +439,28 @@ _Comment    <- '//' (![\r\n] .)*
 					return ValueDesc{.value = std::move(list), .location = Detail::location_of(values)};
 				};
 
+				m_parser["ObjectField"] = [](const peg::SemanticValues& values) {
+					const auto& identifier = Detail::any_ref<Identifier>(values[0]);
+
+					return ObjectField{
+					        .name     = identifier,
+					        .value    = Detail::any_ref<ValueDesc>(values[1]),
+					        .location = Detail::location_of(values),
+					};
+				};
+
+				m_parser["Object"] = [](const peg::SemanticValues& values) {
+					Object object;
+					object.reserve(values.size());
+
+					for (const std::any& item : values)
+					{
+						object.emplace_back(Detail::any_ref<ObjectField>(item));
+					}
+
+					return ValueDesc{.value = std::move(object), .location = Detail::location_of(values)};
+				};
+
 				m_parser["Value"]  = [](const peg::SemanticValues& values) { return Detail::any_ref<ValueDesc>(values[0]); };
 				m_parser["Member"] = [](const peg::SemanticValues& values) -> std::any { return values[0]; };
 			}
@@ -430,10 +468,8 @@ _Comment    <- '//' (![\r\n] .)*
 			void configure_tree_actions()
 			{
 				m_parser["Property"] = [](const peg::SemanticValues& values) {
-					const auto& identifier = Detail::any_ref<Identifier>(values[0]);
-
 					return Property{
-					        .name     = identifier,
+					        .path     = Detail::any_ref<PropertyPath>(values[0]),
 					        .value    = Detail::any_ref<ValueDesc>(values[1]),
 					        .location = Detail::location_of(values),
 					};
@@ -724,6 +760,12 @@ _Comment    <- '//' (![\r\n] .)*
 			return false;
 		}
 
+		static const Name& property_name(const Property& prop)
+		{
+			static const Name undefined = Name::undefined;
+			return prop.path.empty() ? undefined : prop.path.front();
+		}
+
 		static bool apply_property(Element* element, const Node& node, const Property& prop)
 		{
 			auto type = element->type();
@@ -734,8 +776,8 @@ _Comment    <- '//' (![\r\n] .)*
 				Refl::PropertyRef dst = {
 				        .address = element,
 				        .type    = type,
-				        .field   = &prop.name,
-				        .fields  = 1,
+				        .field   = prop.path.data(),
+				        .fields  = prop.path.size(),
 				};
 
 				Refl::ConstValueRef src = {
@@ -745,8 +787,8 @@ _Comment    <- '//' (![\r\n] .)*
 
 				if (!Refl::Type::assign(dst, src, Refl::Property::Markup))
 				{
-					trinex_error(Log::Editor, "Failed to assign property '%s' of element '%s' at %u:%u", prop.name.c_str(),
-					             node.type.c_str(), prop.location.line, prop.location.column);
+					trinex_error(Log::Editor, "Failed to assign property '%s' of element '%s' at %u:%u",
+					             property_name(prop).c_str(), node.type.c_str(), prop.location.line, prop.location.column);
 					return false;
 				}
 
@@ -782,7 +824,7 @@ _Comment    <- '//' (![\r\n] .)*
 
 			for (const Property& prop : node.properties)
 			{
-				if (prop.name == "style")
+				if (prop.path.size() == 1 && prop.path.front() == "style")
 				{
 					if (!append_style_names(element, prop.value, node.properties))
 					{
@@ -795,8 +837,8 @@ _Comment    <- '//' (![\r\n] .)*
 				{
 					if (!apply_property(element, node, prop))
 					{
-						trinex_error(Log::Editor, "Failed to apply property '%s' on element '%s' at %u:%u", prop.name.c_str(),
-						             node.type.c_str(), prop.location.line, prop.location.column);
+						trinex_error(Log::Editor, "Failed to apply property '%s' on element '%s' at %u:%u",
+						             property_name(prop).c_str(), node.type.c_str(), prop.location.line, prop.location.column);
 						return false;
 					}
 				}
@@ -884,6 +926,8 @@ _Comment    <- '//' (![\r\n] .)*
 	{
 		document(this);
 		m_bindings = trx_new Refl::NativeType<void>();
+
+		m_bindings->bind("imgui", &ImGui::GetCurrentContext, Refl::Property::Markup);
 	}
 
 	Document::~Document()
