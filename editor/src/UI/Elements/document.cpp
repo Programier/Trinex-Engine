@@ -50,7 +50,8 @@ Binding      <- '$' Identifier ('.' Identifier)* BindingMode?
 BindingMode  <- ':' < 'rw' / 'wr' / 'r' / 'w' >
 
 List <- '[' (Value (',' Value)*)? ']'
-Object <- '{' (ObjectField (',' ObjectField)*)? ','? '}'
+Object <- '{' (ObjectField ObjectSep?)* '}'
+ObjectSep <- ',' / ';'
 ObjectField <- Identifier ':' Value
 
 String     <- < '"' (Escape / StringChar)* '"' > { no_whitespace }
@@ -455,7 +456,10 @@ _Comment    <- '//' (![\r\n] .)*
 
 					for (const std::any& item : values)
 					{
-						object.emplace_back(Detail::any_ref<ObjectField>(item));
+						if (const auto* field = std::any_cast<ObjectField>(&item))
+						{
+							object.emplace_back(*field);
+						}
 					}
 
 					return ValueDesc{.value = std::move(object), .location = Detail::location_of(values)};
@@ -717,6 +721,24 @@ _Comment    <- '//' (![\r\n] .)*
 			return Path(owner_path.base_path()) / include_path;
 		}
 
+		static void add_dependency(Vector<Path>& dependencies, const Path& path)
+		{
+			if (path.empty())
+			{
+				return;
+			}
+
+			for (const Path& dependency : dependencies)
+			{
+				if (dependency.path() == path.path())
+				{
+					return;
+				}
+			}
+
+			dependencies.push_back(path);
+		}
+
 		static bool value_to_name(Name& name, const ValueDesc& desc)
 		{
 			if (const auto* identifier = etl::get_if<Identifier>(&desc.value))
@@ -862,13 +884,16 @@ _Comment    <- '//' (![\r\n] .)*
 			return true;
 		}
 
-		static bool load_items(Vector<Node>& nodes, StyleMap& styles, StringView source, const Path& path, u32 depth)
+		static bool load_items(Vector<Node>& nodes, StyleMap& styles, Vector<Path>& dependencies, StringView source,
+		                       const Path& path, u32 depth)
 		{
 			if (depth > 32)
 			{
 				trinex_error(Log::Editor, "Markup include depth exceeded while loading '%s'", path.c_str());
 				return false;
 			}
+
+			add_dependency(dependencies, path);
 
 			auto parser = Parser::instance();
 			Vector<DocumentItem> items;
@@ -895,7 +920,7 @@ _Comment    <- '//' (![\r\n] .)*
 							return false;
 						}
 
-						return load_items(nodes, styles, reader.read_string(), include_path, depth + 1);
+						return load_items(nodes, styles, dependencies, reader.read_string(), include_path, depth + 1);
 					}
 					else if constexpr (std::is_same_v<Type, Style>)
 					{
@@ -939,8 +964,9 @@ _Comment    <- '//' (![\r\n] .)*
 	{
 		Vector<Markup::Node> roots;
 		Markup::StyleMap styles;
+		Vector<Path> dependencies;
 
-		if (!Markup::load_items(roots, styles, source, path, 0))
+		if (!Markup::load_items(roots, styles, dependencies, source, path, 0))
 		{
 			return false;
 		}
@@ -948,6 +974,7 @@ _Comment    <- '//' (![\r\n] .)*
 		clear();
 		m_elements.clear();
 		m_style_sheet = etl::move(styles);
+		m_dependencies = etl::move(dependencies);
 
 		for (const Markup::Node& root : roots)
 		{
@@ -955,6 +982,7 @@ _Comment    <- '//' (![\r\n] .)*
 			{
 				clear();
 				m_elements.clear();
+				m_dependencies.clear();
 				return false;
 			}
 		}

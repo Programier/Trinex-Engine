@@ -19,7 +19,7 @@ namespace Trinex::UI
 		struct DocumentEntry {
 			Document* document = nullptr;
 			Path path;
-			Identifier watch_id = 0;
+			Vector<Identifier> watch_ids;
 		};
 
 		ImGuiContext* m_ctx        = nullptr;
@@ -42,6 +42,11 @@ namespace Trinex::UI
 		Client& add_document(Document* document);
 		Client& remove_document(Document* document);
 
+	private:
+		Client& clear_document_watches(DocumentEntry& entry);
+		Client& refresh_document_watches(DocumentEntry& entry);
+
+	public:
 		//virtual Client& setup_dockspace(DockLayout& layout);
 		virtual Client& select(Object* object);
 		virtual Client& update(float dt);

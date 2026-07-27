@@ -134,7 +134,7 @@ style Button {
 style Button:hover {
 	color: [0.20, 0.38, 0.51, 1.0];
 	border_color: [0.38, 0.68, 0.86, 1.0];
-	scale: [1.015, 1.015];
+	scale: [1.09, 1.09];
 	transition: {
 		color: 0.14, OutCubic;
 		border_color: 0.14, OutCubic;

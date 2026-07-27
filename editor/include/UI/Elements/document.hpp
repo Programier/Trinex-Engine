@@ -1,12 +1,7 @@
 #pragma once
 #include <Core/etl/flat_map.hpp>
-#include <Core/etl/stack.hpp>
+#include <Core/types/path.hpp>
 #include <UI/element.hpp>
-
-namespace Trinex
-{
-	class Path;
-}
 
 namespace Trinex::UI
 {
@@ -18,6 +13,7 @@ namespace Trinex::UI
 		Refl::NativeType<void>* m_bindings;
 		FlatMap<Name, Element*> m_elements;
 		StyleSheet m_style_sheet;
+		Vector<Path> m_dependencies;
 		bool m_open = false;
 
 	public:
@@ -37,5 +33,6 @@ namespace Trinex::UI
 		inline Refl::NativeType<void>* bindings() const { return m_bindings; }
 		inline StyleSheet* style_sheet() { return &m_style_sheet; }
 		inline const StyleSheet* style_sheet() const { return &m_style_sheet; }
+		inline const Vector<Path>& dependencies() const { return m_dependencies; }
 	};
 }// namespace Trinex::UI

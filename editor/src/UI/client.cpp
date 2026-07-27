@@ -115,11 +115,7 @@ namespace Trinex::UI
 
 		for (DocumentEntry& entry : m_documents)
 		{
-			if (entry.watch_id != 0)
-			{
-				rootfs()->unwatch(entry.watch_id);
-			}
-
+			clear_document_watches(entry);
 			entry.document->release();
 		}
 
@@ -211,10 +207,8 @@ namespace Trinex::UI
 		{
 			if (entry.document == document)
 			{
-				entry.path     = path;
-				entry.watch_id = rootfs()->watch(
-				        path, [this, document](const VFS::FileWatchEvent&) { reload_document(document); },
-				        VFS::FileWatchEventType::Modified, false);
+				entry.path = path;
+				refresh_document_watches(entry);
 				break;
 			}
 		}
@@ -236,7 +230,13 @@ namespace Trinex::UI
 				return false;
 			}
 
-			return document->load(entry.path);
+			if (!document->load(entry.path))
+			{
+				return false;
+			}
+
+			refresh_document_watches(entry);
+			return true;
 		}
 
 		return false;
@@ -260,13 +260,55 @@ namespace Trinex::UI
 
 		if (it != m_documents.end())
 		{
-			if (it->watch_id != 0)
-			{
-				rootfs()->unwatch(it->watch_id);
-			}
+			clear_document_watches(*it);
 
 			m_documents.erase(it);
 			document->release();
+		}
+
+		return *this;
+	}
+
+	Client& Client::clear_document_watches(DocumentEntry& entry)
+	{
+		for (Identifier watch_id : entry.watch_ids)
+		{
+			rootfs()->unwatch(watch_id);
+		}
+
+		entry.watch_ids.clear();
+		return *this;
+	}
+
+	Client& Client::refresh_document_watches(DocumentEntry& entry)
+	{
+		clear_document_watches(entry);
+
+		if (entry.document == nullptr)
+		{
+			return *this;
+		}
+
+		auto callback = [this, document = entry.document](const VFS::FileWatchEvent&) {
+			for (const DocumentEntry& current : m_documents)
+			{
+				if (current.document == document)
+				{
+					reload_document(document);
+					return;
+				}
+			}
+		};
+
+		const Vector<Path>& dependencies = entry.document->dependencies();
+		for (const Path& dependency : dependencies)
+		{
+			const Identifier watch_id = rootfs()->watch(dependency, callback, VFS::FileWatchEventType::Modified, false);
+
+			if (watch_id != 0)
+			{
+				entry.watch_ids.push_back(watch_id);
+			}
 		}
 
 		return *this;
