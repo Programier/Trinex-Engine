@@ -135,9 +135,28 @@ namespace Trinex::UI
 		return result;
 	}
 
-	Element& DockSpace::on_end_update(UpdateFlags flags)
+	trinex_implement_ui_element(DockSpaceOverViewport) {}
+
+	Element::UpdateFlags DockSpaceOverViewport::on_begin_update()
 	{
-		return Super::on_end_update(flags);
+		const char* name             = id().is_valid() ? id().c_str() : "##DockSpaceOverViewport";
+		const u32 dockspace_id       = ImGui::GetID(name);
+		ImGuiViewport* viewport      = ImGui::GetMainViewport();
+		ImGuiDockNodeFlags img_flags = static_cast<ImGuiDockNodeFlags>(flags);
+		const u32 root               = ImGui::DockSpaceOverViewport(dockspace_id, viewport, img_flags);
+
+		bind_dock("main", root);
+		if (id().is_valid())
+		{
+			bind_dock(id(), root);
+		}
+
+		if (!m_built || rebuild)
+		{
+			build_layout(viewport->WorkSize);
+		}
+
+		return UpdateFlags::Childs;
 	}
 
 	trinex_implement_ui_element(DockSplit)

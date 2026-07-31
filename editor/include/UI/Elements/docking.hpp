@@ -10,7 +10,7 @@ namespace Trinex::UI
 	{
 		trinex_ui_element(DockSpace, Window);
 
-	private:
+	protected:
 		FlatMap<Name, u32> m_docks;
 		bool m_built = false;
 
@@ -25,10 +25,17 @@ namespace Trinex::UI
 		bool rebuild = false;
 
 		UpdateFlags on_begin_update() override;
-		Element& on_end_update(UpdateFlags flags) override;
 
 		friend class DockSplit;
 		friend class DockWindow;
+	};
+
+	class DockSpaceOverViewport : public DockSpace
+	{
+		trinex_ui_element(DockSpaceOverViewport, DockSpace);
+
+	public:
+		UpdateFlags on_begin_update() override;
 	};
 
 	class DockSplit : public Element

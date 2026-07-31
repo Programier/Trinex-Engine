@@ -24,17 +24,6 @@ namespace Trinex::UI::Refl
 		m_properties.clear();
 	}
 
-	bool Type::binding_path_resolver(void* dst, const void* src, Property::Flags mask)
-	{
-		if (Element* element = Element::current())
-		{
-			element->bind(dst, this, *static_cast<const Markup::BindingPath*>(src));
-			return true;
-		}
-
-		return false;
-	}
-
 	Type& Type::bind(Name name, Property* prop)
 	{
 		struct DownCastChecker {
@@ -72,6 +61,47 @@ namespace Trinex::UI::Refl
 		if (it != dst.type->m_resolvers.end())
 		{
 			return it->second(dst.address, src.address, mask);
+		}
+
+		if (src.type == NativeType<Markup::Object>::instance())
+		{
+			const auto& object = *static_cast<const Markup::Object*>(src.address);
+
+			for (const Markup::ObjectField& field : object)
+			{
+				PropertyRef dst_ref = {
+				        .address = dst.address,
+				        .type    = dst.type,
+				        .field   = &field.name,
+				        .fields  = 1,
+				};
+
+				auto visitor = [&]<typename Value>(const Value& value) -> bool {
+					ConstValueRef src_ref = {
+					        .address = &value,
+					        .type    = NativeType<Value>::instance(),
+					};
+
+					return Type::assign(dst_ref, src_ref, mask);
+				};
+
+				if (!etl::visit(visitor, field.value.value))
+				{
+					return false;
+				}
+			}
+
+			return true;
+		}
+		else if (src.type == NativeType<Markup::BindingPath>::instance())
+		{
+			if (Element* element = Element::current())
+			{
+				element->bind(dst.address, dst.type, *static_cast<const Markup::BindingPath*>(src.address));
+				return true;
+			}
+
+			return false;
 		}
 
 		return false;
@@ -641,19 +671,12 @@ namespace Trinex::UI::Refl
 		NativeType<Unit::Type>::instance()->bind<String>(string_to_unit_type);
 		NativeType<Unit::Type>::instance()->bind<Markup::Identifier>(identifier_to_unit_type);
 		NativeType<Unit::Type>::instance()->bind<i32>(i32_to_unit_type);
-		NativeType<Unit>::instance()->bind<Markup::Object>(object_to_type<Unit>);
 		NativeType<Vec2>::instance()->bind<Markup::Container>(container_to_vec2<Vec2>);
 		NativeType<Vec3>::instance()->bind<Markup::Container>(container_to_vec3<Vec3>);
 		NativeType<Vec4>::instance()->bind<Markup::Container>(container_to_vec4<Vec4>);
 		NativeType<ImVec2>::instance()->bind<Markup::Container>(container_to_vec2<ImVec2>);
 		NativeType<ImVec4>::instance()->bind<Markup::Container>(container_to_vec4<ImVec4>);
 		NativeType<Size>::instance()->bind<Markup::Container>(container_to_size);
-		NativeType<Vec2>::instance()->bind<Markup::Object>(object_to_type<Vec2>);
-		NativeType<Vec3>::instance()->bind<Markup::Object>(object_to_type<Vec3>);
-		NativeType<Vec4>::instance()->bind<Markup::Object>(object_to_type<Vec4>);
-		NativeType<ImVec2>::instance()->bind<Markup::Object>(object_to_type<ImVec2>);
-		NativeType<ImVec4>::instance()->bind<Markup::Object>(object_to_type<ImVec4>);
-		NativeType<Size>::instance()->bind<Markup::Object>(object_to_type<Size>);
 
 		using VectorTypesList = TypesList<Vec2, Vec3, Vec4, ImVec2, ImVec4, Size>;
 		VectorTypesList::for_each([]<typename Dst>() { VectorResolverBinder<Dst, VectorTypesList>::bind(); });
@@ -663,39 +686,24 @@ namespace Trinex::UI::Refl
 		NativeType<Unit>::instance()->bind("value", &Unit::value);
 
 		NativeType<Vec2>::instance()->bind("x", &Vec2::x);
-		NativeType<Vec2>::instance()->bind("r", &Vec2::x);
 		NativeType<Vec2>::instance()->bind("y", &Vec2::y);
-		NativeType<Vec2>::instance()->bind("g", &Vec2::y);
 
 		NativeType<Vec3>::instance()->bind("x", &Vec3::x);
-		NativeType<Vec3>::instance()->bind("r", &Vec3::x);
 		NativeType<Vec3>::instance()->bind("y", &Vec3::y);
-		NativeType<Vec3>::instance()->bind("g", &Vec3::y);
 		NativeType<Vec3>::instance()->bind("z", &Vec3::z);
-		NativeType<Vec3>::instance()->bind("b", &Vec3::z);
 
 		NativeType<Vec4>::instance()->bind("x", &Vec4::x);
-		NativeType<Vec4>::instance()->bind("r", &Vec4::x);
 		NativeType<Vec4>::instance()->bind("y", &Vec4::y);
-		NativeType<Vec4>::instance()->bind("g", &Vec4::y);
 		NativeType<Vec4>::instance()->bind("z", &Vec4::z);
-		NativeType<Vec4>::instance()->bind("b", &Vec4::z);
 		NativeType<Vec4>::instance()->bind("w", &Vec4::w);
-		NativeType<Vec4>::instance()->bind("a", &Vec4::w);
 
 		NativeType<ImVec2>::instance()->bind("x", &ImVec2::x);
-		NativeType<ImVec2>::instance()->bind("r", &ImVec2::x);
 		NativeType<ImVec2>::instance()->bind("y", &ImVec2::y);
-		NativeType<ImVec2>::instance()->bind("g", &ImVec2::y);
 
 		NativeType<ImVec4>::instance()->bind("x", &ImVec4::x);
-		NativeType<ImVec4>::instance()->bind("r", &ImVec4::x);
 		NativeType<ImVec4>::instance()->bind("y", &ImVec4::y);
-		NativeType<ImVec4>::instance()->bind("g", &ImVec4::y);
 		NativeType<ImVec4>::instance()->bind("z", &ImVec4::z);
-		NativeType<ImVec4>::instance()->bind("b", &ImVec4::z);
 		NativeType<ImVec4>::instance()->bind("w", &ImVec4::w);
-		NativeType<ImVec4>::instance()->bind("a", &ImVec4::w);
 
 		NativeType<Size>::instance()->bind("x", &Size::width);
 		NativeType<Size>::instance()->bind("width", &Size::width);

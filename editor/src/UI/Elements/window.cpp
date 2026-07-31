@@ -16,6 +16,19 @@ namespace Trinex::UI
 		trinex_ui_bind_property(background_color, Style);
 		trinex_ui_bind_property(title_color, Style);
 		trinex_ui_bind_property(resize_grip_color, Style);
+
+		{
+			auto getter = +[](const Window* window) -> ImGuiWindowFlags_ {
+				return static_cast<ImGuiWindowFlags_>(window->window_flags);
+			};
+
+			auto setter = +[](Window* window, ImGuiWindowFlags_ flags) -> bool {
+				window->window_flags = flags;
+				return true;
+			};
+
+			reflection()->bind("window_flags", getter, setter);
+		}
 	}
 
 	Window& Window::push_style()
@@ -54,7 +67,7 @@ namespace Trinex::UI
 		UpdateFlags flags = UpdateFlags::End;
 		const char* name  = title.empty() ? "###Window" : title.c_str();
 
-		if (ImGui::Begin(name))
+		if (ImGui::Begin(name, nullptr, window_flags))
 		{
 			flags |= UpdateFlags::Childs;
 

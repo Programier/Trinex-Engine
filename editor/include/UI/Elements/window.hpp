@@ -22,6 +22,8 @@ namespace Trinex::UI
 		Vec4 title_color       = {0.09f, 0.09f, 0.09f, 1.00f};
 		Vec4 resize_grip_color = {0.20f, 0.25f, 0.30f, 0.94f};
 
+		ImGuiWindowFlags window_flags = 0;
+
 	public:
 		Window& push_style() override;
 		Window& pop_style() override;

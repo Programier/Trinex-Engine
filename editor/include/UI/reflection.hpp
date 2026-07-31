@@ -147,7 +147,7 @@ namespace Trinex::UI::Refl
 				return false;
 			}
 
-			Field field;
+			Field field = m_getter ? (static_cast<const Instance*>(object)->*m_getter)() : Field();
 
 			if (writer(&field, NativeType<Field>::instance()))
 			{
@@ -159,6 +159,9 @@ namespace Trinex::UI::Refl
 
 		bool load(const void* object, const FunctionRef<bool(const void*, Type*)>& loader) override
 		{
+			if (m_getter == nullptr)
+				return false;
+
 			Field field = (static_cast<const Instance*>(object)->*m_getter)();
 			return loader(&field, NativeType<Field>::instance());
 		}
@@ -189,7 +192,7 @@ namespace Trinex::UI::Refl
 				return false;
 			}
 
-			Field field;
+			Field field = m_getter ? m_getter() : Field();
 
 			if (writer(&field, NativeType<Field>::instance()))
 			{
@@ -201,7 +204,53 @@ namespace Trinex::UI::Refl
 
 		bool load(const void* object, const FunctionRef<bool(const void*, Type*)>& loader) override
 		{
+			if (m_getter == nullptr)
+				return false;
+
 			Field field = m_getter();
+			return loader(&field, NativeType<Field>::instance());
+		}
+	};
+
+	template<typename Field, typename Instance>
+	class ExternalMethodProperty final : public Property
+	{
+	public:
+		using Getter = Field (*)(const Instance* object);
+		using Setter = bool (*)(Instance* object, Field);
+
+	private:
+		Getter m_getter;
+		Setter m_setter;
+
+	public:
+		ExternalMethodProperty(Getter getter, Setter setter, Type* owner = nullptr, Flags flags = Flags::Markup)
+		    : Property(owner, flags), m_getter(getter), m_setter(setter)
+		{}
+
+		Type* type() const override { return NativeType<Field>::instance(); }
+
+		bool store(void* object, const FunctionRef<bool(void*, Type*)>& writer) override
+		{
+			if (m_setter == nullptr)
+				return false;
+
+			Field field = m_getter ? m_getter(static_cast<Instance*>(object)) : Field();
+
+			if (writer(&field, NativeType<Field>::instance()))
+			{
+				return m_setter(static_cast<Instance*>(object), field);
+			}
+
+			return false;
+		}
+
+		bool load(const void* object, const FunctionRef<bool(const void*, Type*)>& loader) override
+		{
+			if (m_getter == nullptr)
+				return false;
+
+			Field field = m_getter(static_cast<const Instance*>(object));
 			return loader(&field, NativeType<Field>::instance());
 		}
 	};
@@ -222,7 +271,6 @@ namespace Trinex::UI::Refl
 		virtual ~Type();
 
 		Type& bind(Name name, Property* prop);
-		bool binding_path_resolver(void* dst, const void* src, Property::Flags mask);
 
 	public:
 		virtual void* factory() const       = 0;
@@ -286,16 +334,7 @@ namespace Trinex::UI::Refl
 		}
 
 	private:
-		NativeType(Type* parent = nullptr) : Type(parent)
-		{
-			Type* binding_path = etl::is_same_v<T, Markup::BindingPath>
-			                             ? static_cast<Type*>(this)
-			                             : static_cast<Type*>(NativeType<Markup::BindingPath>::instance());
-
-			Type::bind(binding_path, [](void* dst, const void* src, Property::Flags mask) -> bool {
-				return NativeType<T>::instance()->binding_path_resolver(dst, src, mask);
-			});
-		}
+		NativeType(Type* parent = nullptr) : Type(parent) {}
 
 	public:
 		static NativeType* instance()
@@ -347,8 +386,8 @@ namespace Trinex::UI::Refl
 		using Type::assign;
 		using Type::bind;
 
-		template<typename Field, typename Instance = T>
-		    requires(etl::is_class_v<Instance> && !etl::is_function_v<Field>)
+		template<typename Field, typename Instance>
+		    requires(etl::is_same_v<Instance, T>)
 		NativeType& bind(Name name, Field Instance::* field, typename Property::Flags flags = Property::Markup)
 		{
 			Type::bind(name, trx_new MemberProperty(field, this, flags));
@@ -356,7 +395,6 @@ namespace Trinex::UI::Refl
 		}
 
 		template<typename Field>
-		    requires(!etl::is_function_v<Field>)
 		NativeType& bind(Name name, Field* field, typename Property::Flags flags = Property::Markup)
 		{
 			Type::bind(name, trx_new StaticProperty(field, this, flags));
@@ -364,7 +402,7 @@ namespace Trinex::UI::Refl
 		}
 
 		template<typename Value, typename Instance>
-		    requires(etl::is_class_v<Instance>)
+		    requires(etl::is_same_v<Instance, T>)
 		NativeType& bind(Name name, Value (Instance::*getter)() const, bool (Instance::*setter)(Value),
 		                 Property::Flags flags = Property::Markup)
 		{
@@ -373,7 +411,7 @@ namespace Trinex::UI::Refl
 		}
 
 		template<typename Value, typename Instance>
-		    requires(etl::is_class_v<Instance>)
+		    requires(etl::is_same_v<Instance, T>)
 		NativeType& bind(Name name, Value (Instance::*getter)(), bool (Instance::*setter)(Value),
 		                 Property::Flags flags = Property::Markup)
 		{
@@ -382,7 +420,7 @@ namespace Trinex::UI::Refl
 		}
 
 		template<typename Value, typename Instance>
-		    requires(etl::is_class_v<Instance>)
+		    requires(etl::is_same_v<Instance, T>)
 		NativeType& bind(Name name, Value (Instance::*getter)() const, Property::Flags flags = Property::Markup)
 		{
 			bool (Instance::*setter)(Value) = nullptr;
@@ -390,7 +428,7 @@ namespace Trinex::UI::Refl
 		}
 
 		template<typename Value, typename Instance>
-		    requires(etl::is_class_v<Instance>)
+		    requires(etl::is_same_v<Instance, T>)
 		NativeType& bind(Name name, Value (Instance::*getter)(), Property::Flags flags = Property::Markup)
 		{
 			bool (Instance::*setter)(Value) = nullptr;
@@ -408,6 +446,21 @@ namespace Trinex::UI::Refl
 		NativeType& bind(Name name, Value (*getter)(), typename Property::Flags flags = Property::Markup)
 		{
 			bool (*setter)(Value) = nullptr;
+			return bind(name, getter, setter, flags);
+		}
+
+		template<typename Value>
+		NativeType& bind(Name name, Value (*getter)(const T* object), bool (*setter)(T* object, Value),
+		                 typename Property::Flags flags = Property::Markup)
+		{
+			Type::bind(name, trx_new ExternalMethodProperty(getter, setter, this, flags));
+			return *this;
+		}
+
+		template<typename Value>
+		NativeType& bind(Name name, Value (*getter)(const T* object), typename Property::Flags flags = Property::Markup)
+		{
+			bool (*setter)(T*, Value) = nullptr;
 			return bind(name, getter, setter, flags);
 		}
 
