@@ -635,6 +635,39 @@ namespace Trinex::UI::Refl
 		return true;
 	}
 
+	static bool container_to_imvec2_vector(void* dst, const void* src, Property::Flags mask)
+	{
+		const auto& container = *static_cast<const Markup::Container*>(src);
+		auto& vector          = *static_cast<Vector<ImVec2>*>(dst);
+
+		Vector<ImVec2> result;
+		result.reserve(container.size());
+
+		for (const Markup::ValueDesc& value : container)
+		{
+			ImVec2 point;
+
+			auto visitor = [&]<typename Value>(const Value& entry) -> bool {
+				ConstValueRef src_ref = {
+				        .address = &entry,
+				        .type    = NativeType<Value>::instance(),
+				};
+
+				return Type::assign(ValueRef{.address = &point, .type = NativeType<ImVec2>::instance()}, src_ref, mask);
+			};
+
+			if (!etl::visit(visitor, value.value))
+			{
+				return false;
+			}
+
+			result.push_back(point);
+		}
+
+		vector = etl::move(result);
+		return true;
+	}
+
 
 	trinex_on_pre_init()
 	{
@@ -677,6 +710,7 @@ namespace Trinex::UI::Refl
 		NativeType<ImVec2>::instance()->bind<Markup::Container>(container_to_vec2<ImVec2>);
 		NativeType<ImVec4>::instance()->bind<Markup::Container>(container_to_vec4<ImVec4>);
 		NativeType<Size>::instance()->bind<Markup::Container>(container_to_size);
+		NativeType<Vector<ImVec2>>::instance()->bind<Markup::Container>(container_to_imvec2_vector);
 
 		using VectorTypesList = TypesList<Vec2, Vec3, Vec4, ImVec2, ImVec4, Size>;
 		VectorTypesList::for_each([]<typename Dst>() { VectorResolverBinder<Dst, VectorTypesList>::bind(); });
@@ -710,6 +744,8 @@ namespace Trinex::UI::Refl
 		NativeType<Size>::instance()->bind("y", &Size::height);
 		NativeType<Size>::instance()->bind("height", &Size::height);
 
+		NativeType<Texture>::instance()->bind("texture", &Texture::texture);
+		NativeType<Texture>::instance()->bind("sampler", &Texture::sampler);
 
 		trinex_ui_bind_type_name(bool);
 		trinex_ui_bind_type_name(i8);
@@ -733,6 +769,8 @@ namespace Trinex::UI::Refl
 		trinex_ui_bind_type_name(ImVec2);
 		trinex_ui_bind_type_name(ImVec4);
 		trinex_ui_bind_type_name(Size);
+		trinex_ui_bind_type_name(Texture);
+		trinex_ui_bind_type_name(Vector<ImVec2>);
 		trinex_ui_bind_type_name(Markup::Identifier);
 		trinex_ui_bind_type_name(Markup::BindingPath);
 		trinex_ui_bind_type_name(Markup::LocalizationKey);
