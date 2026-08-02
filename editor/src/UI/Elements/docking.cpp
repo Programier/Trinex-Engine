@@ -53,8 +53,7 @@ namespace Trinex::UI
 	trinex_implement_ui_element(DockSpace)
 	{
 		reflection()->bind("size", &This::size);
-		reflection()->bind("flags", &This::flags);
-		reflection()->bind("rebuild", &This::rebuild);
+		reflection()->bind("flags", &This::docking_flags);
 	}
 
 	DockSpace& DockSpace::bind_dock(Name name, u32 dock)
@@ -87,7 +86,7 @@ namespace Trinex::UI
 		}
 
 		ImGui::DockBuilderRemoveNode(root);
-		ImGui::DockBuilderAddNode(root, static_cast<ImGuiDockNodeFlags>(flags) | ImGuiDockNodeFlags_DockSpace);
+		ImGui::DockBuilderAddNode(root, docking_flags | ImGuiDockNodeFlags_DockSpace);
 		ImGui::DockBuilderSetNodeSize(root, size);
 
 		bind_dock("main", root);
@@ -97,8 +96,7 @@ namespace Trinex::UI
 		}
 
 		ImGui::DockBuilderFinish(root);
-		m_built = true;
-		rebuild = false;
+
 		return *this;
 	}
 
@@ -125,9 +123,9 @@ namespace Trinex::UI
 			dock_size = ImGui::GetContentRegionAvail();
 		}
 
-		ImGui::DockSpace(root, dock_size, static_cast<ImGuiDockNodeFlags>(flags));
+		ImGui::DockSpace(root, dock_size, docking_flags);
 
-		if (!m_built || rebuild)
+		if (ImGui::IsWindowAppearing())
 		{
 			build_layout(dock_size);
 		}
@@ -139,11 +137,10 @@ namespace Trinex::UI
 
 	Element::UpdateFlags DockSpaceOverViewport::on_begin_update()
 	{
-		const char* name             = id().is_valid() ? id().c_str() : "##DockSpaceOverViewport";
-		const u32 dockspace_id       = ImGui::GetID(name);
-		ImGuiViewport* viewport      = ImGui::GetMainViewport();
-		ImGuiDockNodeFlags img_flags = static_cast<ImGuiDockNodeFlags>(flags);
-		const u32 root               = ImGui::DockSpaceOverViewport(dockspace_id, viewport, img_flags);
+		const char* name        = id().is_valid() ? id().c_str() : "##DockSpaceOverViewport";
+		const u32 dockspace_id  = ImGui::GetID(name);
+		ImGuiViewport* viewport = ImGui::GetMainViewport();
+		const u32 root          = ImGui::DockSpaceOverViewport(dockspace_id, viewport, docking_flags);
 
 		bind_dock("main", root);
 		if (id().is_valid())
@@ -151,7 +148,7 @@ namespace Trinex::UI
 			bind_dock(id(), root);
 		}
 
-		if (!m_built || rebuild)
+		if (ImGui::IsWindowAppearing())
 		{
 			build_layout(viewport->WorkSize);
 		}
@@ -209,6 +206,7 @@ namespace Trinex::UI
 
 		u32 child_dock     = 0;
 		u32 remainder_dock = 0;
+
 		ImGui::DockBuilderSplitNode(source, to_imgui_dir(dir), ratio, &child_dock, &remainder_dock);
 		space->bind_dock(from.is_valid() ? from : Name("main"), remainder_dock);
 		space->bind_dock(child, child_dock);

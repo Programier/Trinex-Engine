@@ -13,6 +13,9 @@ namespace Trinex::UI
 		Color color;
 
 	public:
+		Text& push_style() override;
+		Text& pop_style() override;
+		
 		UpdateFlags on_begin_update() override;
 	};
 }// namespace Trinex::UI

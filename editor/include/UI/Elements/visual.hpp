@@ -119,7 +119,7 @@ namespace Trinex::UI
 		trinex_ui_element(DrawText, DrawNode);
 
 	public:
-		Vec2 pos      = {0.0f, 0.0f};
+		Vec2 pos = {0.0f, 0.0f};
 		String text;
 		Vec4 color    = {1.0f, 1.0f, 1.0f, 1.0f};
 		f32 font_size = 0.0f;
@@ -132,12 +132,13 @@ namespace Trinex::UI
 		trinex_ui_element(Image, DrawNode);
 
 	public:
-		Texture texture;
-		Vec2 min    = {0.0f, 0.0f};
-		Vec2 max    = {0.0f, 0.0f};
-		Vec2 uv_min = {0.0f, 0.0f};
-		Vec2 uv_max = {1.0f, 1.0f};
-		Vec4 color  = {1.0f, 1.0f, 1.0f, 1.0f};
+		RHITexture* texture = nullptr;
+		RHISampler* sampler = nullptr;
+		Vec2 min            = {0.0f, 0.0f};
+		Vec2 max            = {0.0f, 0.0f};
+		Vec2 uv_min         = {0.0f, 0.0f};
+		Vec2 uv_max         = {1.0f, 1.0f};
+		Vec4 color          = {1.0f, 1.0f, 1.0f, 1.0f};
 
 		UpdateFlags on_begin_update() override;
 	};

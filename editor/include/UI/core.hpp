@@ -81,16 +81,6 @@ namespace Trinex::UI
 		constexpr Size(const Vec2& size) : width(size.x), height(size.y) {}
 	};
 
-	struct Texture {
-		RHITexture* texture = nullptr;
-		RHISampler* sampler = nullptr;
-
-		inline Texture(RHITexture* texture = nullptr, RHISampler* sampler = nullptr) : texture(texture), sampler(sampler) {}
-
-		inline bool operator==(const Texture& rhs) const { return texture == rhs.texture && sampler == rhs.sampler; }
-		inline bool operator!=(const Texture& rhs) const { return texture != rhs.texture || sampler != rhs.sampler; }
-	};
-
 	struct Event {
 		struct Flags {
 			enum Enum : u8

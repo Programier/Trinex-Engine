@@ -744,9 +744,6 @@ namespace Trinex::UI::Refl
 		NativeType<Size>::instance()->bind("y", &Size::height);
 		NativeType<Size>::instance()->bind("height", &Size::height);
 
-		NativeType<Texture>::instance()->bind("texture", &Texture::texture);
-		NativeType<Texture>::instance()->bind("sampler", &Texture::sampler);
-
 		trinex_ui_bind_type_name(bool);
 		trinex_ui_bind_type_name(i8);
 		trinex_ui_bind_type_name(i16);
@@ -769,7 +766,8 @@ namespace Trinex::UI::Refl
 		trinex_ui_bind_type_name(ImVec2);
 		trinex_ui_bind_type_name(ImVec4);
 		trinex_ui_bind_type_name(Size);
-		trinex_ui_bind_type_name(Texture);
+		trinex_ui_bind_type_name(RHITexture);
+		trinex_ui_bind_type_name(RHISampler);
 		trinex_ui_bind_type_name(Vector<ImVec2>);
 		trinex_ui_bind_type_name(Markup::Identifier);
 		trinex_ui_bind_type_name(Markup::BindingPath);

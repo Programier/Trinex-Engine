@@ -12,7 +12,6 @@ namespace Trinex::UI
 
 	protected:
 		FlatMap<Name, u32> m_docks;
-		bool m_built = false;
 
 		DockSpace& bind_dock(Name name, u32 dock);
 		u32 find_dock(Name name) const;
@@ -20,9 +19,8 @@ namespace Trinex::UI
 		DockSpace& build_layout(ImVec2 size);
 
 	public:
-		Size size    = Size(0.0f, 0.0f);
-		i32 flags    = 0;
-		bool rebuild = false;
+		Size size                        = Size(0.0f, 0.0f);
+		ImGuiDockNodeFlags docking_flags = 0;
 
 		UpdateFlags on_begin_update() override;
 

@@ -93,12 +93,12 @@ namespace Trinex::UI
 		if (filled)
 		{
 			ImGui::GetWindowDrawList()->AddRectFilled(draw_pos(this, min), draw_pos(this, max), to_color(color), rounding,
-			                                         static_cast<ImDrawFlags>(flags));
+			                                          static_cast<ImDrawFlags>(flags));
 		}
 		else
 		{
 			ImGui::GetWindowDrawList()->AddRect(draw_pos(this, min), draw_pos(this, max), to_color(color), rounding,
-			                                   static_cast<ImDrawFlags>(flags), thickness);
+			                                    static_cast<ImDrawFlags>(flags), thickness);
 		}
 
 		return UpdateFlags::Childs;
@@ -143,12 +143,12 @@ namespace Trinex::UI
 		if (filled)
 		{
 			ImGui::GetWindowDrawList()->AddTriangleFilled(draw_pos(this, p1), draw_pos(this, p2), draw_pos(this, p3),
-			                                             to_color(color));
+			                                              to_color(color));
 		}
 		else
 		{
-			ImGui::GetWindowDrawList()->AddTriangle(draw_pos(this, p1), draw_pos(this, p2), draw_pos(this, p3),
-			                                       to_color(color), thickness);
+			ImGui::GetWindowDrawList()->AddTriangle(draw_pos(this, p1), draw_pos(this, p2), draw_pos(this, p3), to_color(color),
+			                                        thickness);
 		}
 
 		return UpdateFlags::Childs;
@@ -201,8 +201,8 @@ namespace Trinex::UI
 
 	Element::UpdateFlags Bezier::on_begin_update()
 	{
-		ImGui::GetWindowDrawList()->AddBezierCubic(draw_pos(this, p1), draw_pos(this, p2), draw_pos(this, p3),
-		                                          draw_pos(this, p4), to_color(color), thickness, segments);
+		ImGui::GetWindowDrawList()->AddBezierCubic(draw_pos(this, p1), draw_pos(this, p2), draw_pos(this, p3), draw_pos(this, p4),
+		                                           to_color(color), thickness, segments);
 		return UpdateFlags::Childs;
 	}
 
@@ -231,6 +231,7 @@ namespace Trinex::UI
 	trinex_implement_ui_element(Image)
 	{
 		trinex_ui_bind_property(texture, Markup);
+		trinex_ui_bind_property(sampler, Markup);
 		trinex_ui_bind_property(min, Markup);
 		trinex_ui_bind_property(max, Markup);
 		trinex_ui_bind_property(uv_min, Markup);
@@ -240,10 +241,10 @@ namespace Trinex::UI
 
 	Element::UpdateFlags Image::on_begin_update()
 	{
-		if (texture.texture)
+		if (texture)
 		{
-			ImGui::GetWindowDrawList()->AddImage(ImTextureID(texture.texture, texture.sampler), draw_pos(this, min), draw_pos(this, max),
-			                                    to_imgui(uv_min), to_imgui(uv_max), to_color(color));
+			ImGui::GetWindowDrawList()->AddImage(ImTextureID(texture, sampler), draw_pos(this, min), draw_pos(this, max),
+			                                     to_imgui(uv_min), to_imgui(uv_max), to_color(color));
 		}
 
 		return UpdateFlags::Childs;
