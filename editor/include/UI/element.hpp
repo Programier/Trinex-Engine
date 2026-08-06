@@ -8,6 +8,13 @@
 #include <UI/types.hpp>
 #include <imgui.h>
 
+
+namespace Trinex
+{
+	template<usize segment_size>
+	class Stack;
+}
+
 namespace Trinex::UI
 {
 	class Document;
@@ -26,6 +33,7 @@ namespace Trinex::UI
 		friend struct TabStyle;
 
 	public:
+		using ScopeStack    = Stack<512>;
 		using EventListener = Function<void(Event* event)>;
 
 		struct UpdateFlags {
@@ -111,6 +119,7 @@ namespace Trinex::UI
 		static Element* current();
 		static f32 resolve(Unit unit, Axis axis);
 		static ImVec2 resolve(Size size);
+		static ScopeStack* stack();
 
 		Element& bind(void* value, const Refl::Type* type, const Markup::BindingPath& path);
 		Element& bind(Name event, EventListener listener);
@@ -128,13 +137,13 @@ namespace Trinex::UI
 		Element& apply_styles();
 		Element& update_style_state(UpdateFlags flags);
 
-		Element& update();
+		Element& update(ScopeStack* stack = nullptr);
 
 		u32 add_reference();
 		u32 release();
 
-		virtual Element& push_style();
-		virtual Element& pop_style();
+		virtual Element& push_scope();
+		virtual Element& pop_scope();
 
 		virtual UpdateFlags on_begin_update();
 		virtual Element& on_end_update(UpdateFlags flags);

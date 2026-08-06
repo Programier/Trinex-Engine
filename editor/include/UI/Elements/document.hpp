@@ -16,6 +16,7 @@ namespace Trinex::UI
 		Vector<Path> m_dependencies;
 		bool m_open = false;
 
+
 	public:
 		Document();
 		~Document();

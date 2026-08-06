@@ -15,8 +15,8 @@ namespace Trinex::UI
 		bool disabled     = false;
 		Vec4 header_color = {0.20f, 0.25f, 0.30f, 1.00f};
 
-		CollapsingHeader& push_style() override;
-		CollapsingHeader& pop_style() override;
+		CollapsingHeader& push_scope() override;
+		CollapsingHeader& pop_scope() override;
 		UpdateFlags on_begin_update() override;
 		Element& on_end_update(UpdateFlags flags) override;
 	};
@@ -33,8 +33,8 @@ namespace Trinex::UI
 		bool disabled     = false;
 		Vec4 header_color = {0.20f, 0.25f, 0.30f, 1.00f};
 
-		SectionHeader& push_style() override;
-		SectionHeader& pop_style() override;
+		SectionHeader& push_scope() override;
+		SectionHeader& pop_scope() override;
 		UpdateFlags on_begin_update() override;
 		Element& on_end_update(UpdateFlags flags) override;
 	};
@@ -47,15 +47,15 @@ namespace Trinex::UI
 		String label;
 		String icon;
 		String badge;
-		bool default_open = false;
-		bool selected     = false;
-		Unit line_size    = Unit(1.0f);
+		bool default_open  = false;
+		bool selected      = false;
+		Unit line_size     = Unit(1.0f);
 		Unit line_rounding = Unit(0.0f);
-		Vec4 header_color = {0.20f, 0.25f, 0.30f, 1.00f};
-		Vec4 line_color   = {0.12f, 0.12f, 0.18f, 0.85f};
+		Vec4 header_color  = {0.20f, 0.25f, 0.30f, 1.00f};
+		Vec4 line_color    = {0.12f, 0.12f, 0.18f, 0.85f};
 
-		TreeNode& push_style() override;
-		TreeNode& pop_style() override;
+		TreeNode& push_scope() override;
+		TreeNode& pop_scope() override;
 		UpdateFlags on_begin_update() override;
 		Element& on_end_update(UpdateFlags flags) override;
 	};
@@ -74,8 +74,8 @@ namespace Trinex::UI
 		Vec2 text_align       = {0.0f, 0.0f};
 		Vec4 background_color = {0.20f, 0.25f, 0.30f, 1.00f};
 
-		TreeLeaf& push_style() override;
-		TreeLeaf& pop_style() override;
+		TreeLeaf& push_scope() override;
+		TreeLeaf& pop_scope() override;
 		UpdateFlags on_begin_update() override;
 	};
 
@@ -84,11 +84,11 @@ namespace Trinex::UI
 		trinex_ui_element(TabBar, Element);
 
 	public:
-		Unit border_size  = Unit(1.0f);
+		Unit border_size   = Unit(1.0f);
 		Unit overline_size = Unit(2.0f);
 
-		TabBar& push_style() override;
-		TabBar& pop_style() override;
+		TabBar& push_scope() override;
+		TabBar& pop_scope() override;
 		UpdateFlags on_begin_update() override;
 		Element& on_end_update(UpdateFlags flags) override;
 	};
@@ -109,8 +109,8 @@ namespace Trinex::UI
 		Vec4 background_color = {0.11f, 0.15f, 0.17f, 1.00f};
 		Vec4 overline_color   = {0.26f, 0.59f, 0.98f, 1.00f};
 
-		Tab& push_style() override;
-		Tab& pop_style() override;
+		Tab& push_scope() override;
+		Tab& pop_scope() override;
 		UpdateFlags on_begin_update() override;
 	};
 
@@ -128,8 +128,8 @@ namespace Trinex::UI
 		Vec2 text_align       = {0.0f, 0.0f};
 		Vec4 background_color = {0.20f, 0.25f, 0.30f, 1.00f};
 
-		SidebarItem& push_style() override;
-		SidebarItem& pop_style() override;
+		SidebarItem& push_scope() override;
+		SidebarItem& pop_scope() override;
 		UpdateFlags on_begin_update() override;
 	};
 
@@ -146,8 +146,8 @@ namespace Trinex::UI
 		Vec2 text_align       = {0.0f, 0.0f};
 		Vec4 background_color = {0.20f, 0.25f, 0.30f, 1.00f};
 
-		NavItem& push_style() override;
-		NavItem& pop_style() override;
+		NavItem& push_scope() override;
+		NavItem& pop_scope() override;
 		UpdateFlags on_begin_update() override;
 	};
 
@@ -163,8 +163,8 @@ namespace Trinex::UI
 		Vec2 text_align       = {0.0f, 0.0f};
 		Vec4 background_color = {0.20f, 0.25f, 0.30f, 1.00f};
 
-		Breadcrumb& push_style() override;
-		Breadcrumb& pop_style() override;
+		Breadcrumb& push_scope() override;
+		Breadcrumb& pop_scope() override;
 		UpdateFlags on_begin_update() override;
 	};
 }// namespace Trinex::UI

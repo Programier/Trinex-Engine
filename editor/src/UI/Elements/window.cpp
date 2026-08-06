@@ -31,9 +31,9 @@ namespace Trinex::UI
 		}
 	}
 
-	Window& Window::push_style()
+	Window& Window::push_scope()
 	{
-		Super::push_style();
+		Super::push_scope();
 
 		push_style_var(ImGuiStyleVar_WindowPadding, padding);
 		push_style_var(ImGuiStyleVar_WindowMinSize, min_size);
@@ -53,13 +53,13 @@ namespace Trinex::UI
 		return *this;
 	}
 
-	Window& Window::pop_style()
+	Window& Window::pop_scope()
 	{
 		tab.pop();
 
 		ImGui::PopStyleColor(7);
 		ImGui::PopStyleVar(5);
-		return *Super::pop_style().as<This>();
+		return *Super::pop_scope().as<This>();
 	}
 
 	Element::UpdateFlags Window::on_begin_update()

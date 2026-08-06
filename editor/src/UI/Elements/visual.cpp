@@ -43,9 +43,9 @@ namespace Trinex::UI
 		reflection()->bind("offset", &This::offset, Refl::Property::Markup | Refl::Property::Style);
 	}
 
-	Visual& Visual::push_style()
+	Visual& Visual::push_scope()
 	{
-		Super::push_style();
+		Super::push_scope();
 
 		ImGui::BeginTransform({
 		        .Translation = translate,
@@ -57,10 +57,10 @@ namespace Trinex::UI
 		return *this;
 	}
 
-	Visual& Visual::pop_style()
+	Visual& Visual::pop_scope()
 	{
 		ImGui::EndTransform();
-		return *Super::pop_style().as<This>();
+		return *Super::pop_scope().as<This>();
 	}
 
 	trinex_implement_ui_element(Line)

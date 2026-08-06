@@ -36,8 +36,8 @@ namespace Trinex::UI
 		String value;
 		Vec4 cursor_color = {0.26f, 0.59f, 0.98f, 1.00f};
 
-		InputText& push_style() override;
-		InputText& pop_style() override;
+		InputText& push_scope() override;
+		InputText& pop_scope() override;
 		UpdateFlags on_begin_update() override;
 	};
 }// namespace Trinex::UI

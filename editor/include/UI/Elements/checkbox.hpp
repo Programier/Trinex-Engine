@@ -7,13 +7,18 @@ namespace Trinex::UI
 	{
 		trinex_ui_element(Checkbox, Framed);
 
+	private:
+		f32 m_check_progress = -1.0f;
+
 	public:
 		String label;
-		bool value       = false;
-		Vec4 check_color = {0.28f, 0.59f, 0.92f, 1.00f};
+		bool value                   = false;
+		Vec4 check_color             = {0.28f, 0.59f, 0.92f, 1.00f};
+		f32 check_animation_duration = 0.12f;
+		Ease check_animation_ease    = Ease::OutCubic;
 
-		Checkbox& push_style() override;
-		Checkbox& pop_style() override;
+		Checkbox& push_scope() override;
+		Checkbox& pop_scope() override;
 		UpdateFlags on_begin_update() override;
 	};
 }// namespace Trinex::UI

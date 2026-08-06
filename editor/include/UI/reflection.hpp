@@ -372,7 +372,7 @@ namespace Trinex::UI::Refl
 
 		bool assign(void* dst, const void* src) const override
 		{
-			if constexpr (etl::is_void_v<T>)
+			if constexpr (etl::is_void_v<T> || !etl::is_copy_assignable_v<T>)
 			{
 				return false;
 			}

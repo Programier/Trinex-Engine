@@ -16,9 +16,9 @@ namespace Trinex::UI
 		trinex_ui_bind_property(background_color, Style);
 	}
 
-	Panel& Panel::push_style()
+	Panel& Panel::push_scope()
 	{
-		Super::push_style();
+		Super::push_scope();
 		push_style_var(ImGuiStyleVar_WindowPadding, padding);
 		push_style_var(ImGuiStyleVar_ChildRounding, rounding);
 		push_style_var(ImGuiStyleVar_ChildBorderSize, border_size);
@@ -26,11 +26,11 @@ namespace Trinex::UI
 		return *this;
 	}
 
-	Panel& Panel::pop_style()
+	Panel& Panel::pop_scope()
 	{
 		ImGui::PopStyleColor();
 		ImGui::PopStyleVar(3);
-		return *Super::pop_style().as<This>();
+		return *Super::pop_scope().as<This>();
 	}
 
 	Element::UpdateFlags Panel::on_begin_update()
@@ -65,9 +65,9 @@ namespace Trinex::UI
 		trinex_ui_bind_property(background_color, Style);
 	}
 
-	GroupPanel& GroupPanel::push_style()
+	GroupPanel& GroupPanel::push_scope()
 	{
-		Super::push_style();
+		Super::push_scope();
 		push_style_var(ImGuiStyleVar_WindowPadding, padding);
 		push_style_var(ImGuiStyleVar_ChildRounding, rounding);
 		push_style_var(ImGuiStyleVar_ChildBorderSize, border_size);
@@ -75,11 +75,11 @@ namespace Trinex::UI
 		return *this;
 	}
 
-	GroupPanel& GroupPanel::pop_style()
+	GroupPanel& GroupPanel::pop_scope()
 	{
 		ImGui::PopStyleColor();
 		ImGui::PopStyleVar(3);
-		return *Super::pop_style().as<This>();
+		return *Super::pop_scope().as<This>();
 	}
 
 	Element::UpdateFlags GroupPanel::on_begin_update()
@@ -182,9 +182,9 @@ namespace Trinex::UI
 		trinex_ui_bind_property(scrollbar_grab_color, Style);
 	}
 
-	ScrollArea& ScrollArea::push_style()
+	ScrollArea& ScrollArea::push_scope()
 	{
-		Super::push_style();
+		Super::push_scope();
 		push_style_var(ImGuiStyleVar_WindowPadding, padding);
 		push_style_var(ImGuiStyleVar_ChildRounding, rounding);
 		push_style_var(ImGuiStyleVar_ChildBorderSize, border_size);
@@ -196,11 +196,11 @@ namespace Trinex::UI
 		return *this;
 	}
 
-	ScrollArea& ScrollArea::pop_style()
+	ScrollArea& ScrollArea::pop_scope()
 	{
 		ImGui::PopStyleColor(5);
 		ImGui::PopStyleVar(3);
-		return *Super::pop_style().as<This>();
+		return *Super::pop_scope().as<This>();
 	}
 
 	Element::UpdateFlags ScrollArea::on_begin_update()
@@ -257,9 +257,9 @@ namespace Trinex::UI
 		trinex_ui_bind_property(color, Style);
 	}
 
-	Separator& Separator::push_style()
+	Separator& Separator::push_scope()
 	{
-		Super::push_style();
+		Super::push_scope();
 		push_style_var(ImGuiStyleVar_SeparatorSize, size);
 		push_style_var(ImGuiStyleVar_SeparatorTextBorderSize, text_border);
 		push_style_var(ImGuiStyleVar_SeparatorTextAlign, text_align);
@@ -270,11 +270,11 @@ namespace Trinex::UI
 		return *this;
 	}
 
-	Separator& Separator::pop_style()
+	Separator& Separator::pop_scope()
 	{
 		ImGui::PopStyleColor(3);
 		ImGui::PopStyleVar(4);
-		return *Super::pop_style().as<This>();
+		return *Super::pop_scope().as<This>();
 	}
 
 	Element::UpdateFlags Separator::on_begin_update()

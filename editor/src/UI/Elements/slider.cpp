@@ -16,9 +16,9 @@ namespace Trinex::UI
 		trinex_ui_bind_property(grab_color, Style);
 	}
 
-	SliderFloat& SliderFloat::push_style()
+	SliderFloat& SliderFloat::push_scope()
 	{
-		Super::push_style();
+		Super::push_scope();
 		push_style_var(ImGuiStyleVar_GrabMinSize, grab_min_size);
 		push_style_var(ImGuiStyleVar_GrabRounding, grab_rounding);
 		push_style_color(ImGuiCol_SliderGrab, grab_color);
@@ -26,11 +26,11 @@ namespace Trinex::UI
 		return *this;
 	}
 
-	SliderFloat& SliderFloat::pop_style()
+	SliderFloat& SliderFloat::pop_scope()
 	{
 		ImGui::PopStyleColor(2);
 		ImGui::PopStyleVar(2);
-		return *Super::pop_style().as<This>();
+		return *Super::pop_scope().as<This>();
 	}
 
 	Element::UpdateFlags SliderFloat::on_begin_update()
@@ -50,9 +50,9 @@ namespace Trinex::UI
 		trinex_ui_bind_property(grab_color, Style);
 	}
 
-	SliderInt& SliderInt::push_style()
+	SliderInt& SliderInt::push_scope()
 	{
-		Super::push_style();
+		Super::push_scope();
 		push_style_var(ImGuiStyleVar_GrabMinSize, grab_min_size);
 		push_style_var(ImGuiStyleVar_GrabRounding, grab_rounding);
 		push_style_color(ImGuiCol_SliderGrab, grab_color);
@@ -60,11 +60,11 @@ namespace Trinex::UI
 		return *this;
 	}
 
-	SliderInt& SliderInt::pop_style()
+	SliderInt& SliderInt::pop_scope()
 	{
 		ImGui::PopStyleColor(2);
 		ImGui::PopStyleVar(2);
-		return *Super::pop_style().as<This>();
+		return *Super::pop_scope().as<This>();
 	}
 
 	Element::UpdateFlags SliderInt::on_begin_update()

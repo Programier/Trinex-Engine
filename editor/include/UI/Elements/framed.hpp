@@ -12,8 +12,8 @@ namespace Trinex::UI
 		Unit rounding    = Unit(0.0f);
 		Unit border_size = Unit(0.0f);
 		
-		FramedGeometry& push_style() override;
-		FramedGeometry& pop_style() override;
+		FramedGeometry& push_scope() override;
+		FramedGeometry& pop_scope() override;
 	};
 
 	class Framed : public Visual
@@ -23,7 +23,7 @@ namespace Trinex::UI
 	public:
 		ImVec4 color = {0.20f, 0.20f, 0.25f, 0.94f};
 
-		Framed& push_style() override;
-		Framed& pop_style() override;
+		Framed& push_scope() override;
+		Framed& pop_scope() override;
 	};
 }// namespace Trinex::UI

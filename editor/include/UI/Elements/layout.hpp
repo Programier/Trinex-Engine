@@ -16,8 +16,8 @@ namespace Trinex::UI
 		Unit border_size      = Unit(1.0f);
 		Vec4 background_color = {0.00f, 0.00f, 0.00f, 0.00f};
 
-		Panel& push_style() override;
-		Panel& pop_style() override;
+		Panel& push_scope() override;
+		Panel& pop_scope() override;
 		UpdateFlags on_begin_update() override;
 		Element& on_end_update(UpdateFlags flags) override;
 	};
@@ -36,8 +36,8 @@ namespace Trinex::UI
 		Unit border_size      = Unit(1.0f);
 		Vec4 background_color = {0.00f, 0.00f, 0.00f, 0.00f};
 
-		GroupPanel& push_style() override;
-		GroupPanel& pop_style() override;
+		GroupPanel& push_scope() override;
+		GroupPanel& pop_scope() override;
 		UpdateFlags on_begin_update() override;
 		Element& on_end_update(UpdateFlags flags) override;
 	};
@@ -100,8 +100,8 @@ namespace Trinex::UI
 		Vec4 scrollbar_bg_color   = {0.02f, 0.02f, 0.02f, 0.53f};
 		Vec4 scrollbar_grab_color = {0.31f, 0.31f, 0.31f, 1.00f};
 
-		ScrollArea& push_style() override;
-		ScrollArea& pop_style() override;
+		ScrollArea& push_scope() override;
+		ScrollArea& pop_scope() override;
 		UpdateFlags on_begin_update() override;
 		Element& on_end_update(UpdateFlags flags) override;
 	};
@@ -128,8 +128,8 @@ namespace Trinex::UI
 		Size text_padding = Size(20.0f, 3.0f);
 		Vec4 color        = {0.12f, 0.12f, 0.18f, 0.85f};
 
-		Separator& push_style() override;
-		Separator& pop_style() override;
+		Separator& push_scope() override;
+		Separator& pop_scope() override;
 		UpdateFlags on_begin_update() override;
 	};
 

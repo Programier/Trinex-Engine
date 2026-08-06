@@ -9,12 +9,13 @@ namespace Trinex::UI
 
 	public:
 		String label;
+		Size size = Size(0.0f, 0.0f);
 		Name on_click;
 		ImVec2 text_align = {0.5f, 0.5f};
 		ImVec4 color      = {0.20f, 0.25f, 0.30f, 0.94f};
 
-		Button& push_style() override;
-		Button& pop_style() override;
+		Button& push_scope() override;
+		Button& pop_scope() override;
 		UpdateFlags on_begin_update() override;
 	};
 }// namespace Trinex::UI

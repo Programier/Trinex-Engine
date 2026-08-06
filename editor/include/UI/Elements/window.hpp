@@ -25,8 +25,8 @@ namespace Trinex::UI
 		ImGuiWindowFlags window_flags = 0;
 
 	public:
-		Window& push_style() override;
-		Window& pop_style() override;
+		Window& push_scope() override;
+		Window& pop_scope() override;
 
 		UpdateFlags on_begin_update() override;
 		Element& on_end_update(UpdateFlags flags) override;

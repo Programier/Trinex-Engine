@@ -13,8 +13,8 @@ namespace Trinex::UI
 		ImVec2 scale     = {1.f, 1.f};
 		f32 rotate       = 0.f;
 
-		Visual& push_style() override;
-		Visual& pop_style() override;
+		Visual& push_scope() override;
+		Visual& pop_scope() override;
 	};
 
 	class DrawNode : public Visual

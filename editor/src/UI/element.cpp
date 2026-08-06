@@ -1,4 +1,5 @@
 #include <Core/etl/algorithm.hpp>
+#include <Core/etl/stack.hpp>
 #include <UI/Elements/document.hpp>
 #include <UI/element.hpp>
 #include <UI/reflection.hpp>
@@ -87,6 +88,12 @@ namespace Trinex::UI
 	ImVec2 Element::resolve(Size size)
 	{
 		return ImVec2(resolve(size.width, Axis::X), resolve(size.height, Axis::Y));
+	}
+
+	Element::ScopeStack* Element::stack()
+	{
+		static thread_local ScopeStack dummy;
+		return &dummy;
 	}
 
 	Element::CurrentScope::CurrentScope(Element* element) : m_previous(s_current)
@@ -368,9 +375,15 @@ namespace Trinex::UI
 		return *this;
 	}
 
-	Element& Element::update()
+	Element& Element::update(ScopeStack* stack)
 	{
 		CurrentScope current(this);
+
+		if (stack == nullptr)
+		{
+			static thread_local ScopeStack dummy;
+			stack = &dummy;
+		}
 
 		apply_styles();
 
@@ -399,7 +412,8 @@ namespace Trinex::UI
 
 		ImGui::PushID(this);
 		{
-			push_style();
+			push_scope();
+
 			auto flags = on_begin_update();
 
 			update_style_state(flags);
@@ -434,14 +448,14 @@ namespace Trinex::UI
 			{
 				for (Element* child : m_childs)
 				{
-					child->update();
+					child->update(stack);
 				}
 			}
 
 			if (flags & UpdateFlags::End)
 				on_end_update(flags);
 
-			pop_style();
+			pop_scope();
 		}
 		ImGui::PopID();
 
@@ -501,7 +515,7 @@ namespace Trinex::UI
 		ImGui::PushStyleColor(color, value);
 	}
 
-	Element& Element::push_style()
+	Element& Element::push_scope()
 	{
 		push_style_var(ImGuiStyleVar_ItemSpacing, spacing);
 		push_style_var(ImGuiStyleVar_ItemInnerSpacing, inner_spacing);
@@ -513,7 +527,7 @@ namespace Trinex::UI
 		return *this;
 	}
 
-	Element& Element::pop_style()
+	Element& Element::pop_scope()
 	{
 		ImGui::PopStyleColor(3);
 		ImGui::PopStyleVar(4);

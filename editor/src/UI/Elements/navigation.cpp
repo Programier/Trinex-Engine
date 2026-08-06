@@ -24,19 +24,19 @@ namespace Trinex::UI
 		trinex_ui_bind_property(header_color, Style);
 	}
 
-	CollapsingHeader& CollapsingHeader::push_style()
+	CollapsingHeader& CollapsingHeader::push_scope()
 	{
-		Super::push_style();
+		Super::push_scope();
 		push_style_color(ImGuiCol_Header, header_color);
 		push_style_color(ImGuiCol_HeaderHovered, header_color);
 		push_style_color(ImGuiCol_HeaderActive, header_color);
 		return *this;
 	}
 
-	CollapsingHeader& CollapsingHeader::pop_style()
+	CollapsingHeader& CollapsingHeader::pop_scope()
 	{
 		ImGui::PopStyleColor(3);
-		return *Super::pop_style().as<This>();
+		return *Super::pop_scope().as<This>();
 	}
 
 	Element::UpdateFlags CollapsingHeader::on_begin_update()
@@ -65,19 +65,19 @@ namespace Trinex::UI
 		trinex_ui_bind_property(header_color, Style);
 	}
 
-	SectionHeader& SectionHeader::push_style()
+	SectionHeader& SectionHeader::push_scope()
 	{
-		Super::push_style();
+		Super::push_scope();
 		push_style_color(ImGuiCol_Header, header_color);
 		push_style_color(ImGuiCol_HeaderHovered, header_color);
 		push_style_color(ImGuiCol_HeaderActive, header_color);
 		return *this;
 	}
 
-	SectionHeader& SectionHeader::pop_style()
+	SectionHeader& SectionHeader::pop_scope()
 	{
 		ImGui::PopStyleColor(3);
-		return *Super::pop_style().as<This>();
+		return *Super::pop_scope().as<This>();
 	}
 
 	Element::UpdateFlags SectionHeader::on_begin_update()
@@ -109,9 +109,9 @@ namespace Trinex::UI
 		trinex_ui_bind_property(line_color, Style);
 	}
 
-	TreeNode& TreeNode::push_style()
+	TreeNode& TreeNode::push_scope()
 	{
-		Super::push_style();
+		Super::push_scope();
 		push_style_var(ImGuiStyleVar_TreeLinesSize, line_size);
 		push_style_var(ImGuiStyleVar_TreeLinesRounding, line_rounding);
 		push_style_color(ImGuiCol_Header, header_color);
@@ -121,11 +121,11 @@ namespace Trinex::UI
 		return *this;
 	}
 
-	TreeNode& TreeNode::pop_style()
+	TreeNode& TreeNode::pop_scope()
 	{
 		ImGui::PopStyleColor(4);
 		ImGui::PopStyleVar(2);
-		return *Super::pop_style().as<This>();
+		return *Super::pop_scope().as<This>();
 	}
 
 	Element::UpdateFlags TreeNode::on_begin_update()
@@ -162,9 +162,9 @@ namespace Trinex::UI
 		trinex_ui_bind_property(background_color, Style);
 	}
 
-	TreeLeaf& TreeLeaf::push_style()
+	TreeLeaf& TreeLeaf::push_scope()
 	{
-		Super::push_style();
+		Super::push_scope();
 		push_style_var(ImGuiStyleVar_SelectableRounding, rounding);
 		push_style_var(ImGuiStyleVar_SelectableTextAlign, text_align);
 		push_style_color(ImGuiCol_Header, background_color);
@@ -173,11 +173,11 @@ namespace Trinex::UI
 		return *this;
 	}
 
-	TreeLeaf& TreeLeaf::pop_style()
+	TreeLeaf& TreeLeaf::pop_scope()
 	{
 		ImGui::PopStyleColor(3);
 		ImGui::PopStyleVar(2);
-		return *Super::pop_style().as<This>();
+		return *Super::pop_scope().as<This>();
 	}
 
 	Element::UpdateFlags TreeLeaf::on_begin_update()
@@ -191,18 +191,18 @@ namespace Trinex::UI
 		trinex_ui_bind_property(overline_size, Style);
 	}
 
-	TabBar& TabBar::push_style()
+	TabBar& TabBar::push_scope()
 	{
-		Super::push_style();
+		Super::push_scope();
 		push_style_var(ImGuiStyleVar_TabBarBorderSize, border_size);
 		push_style_var(ImGuiStyleVar_TabBarOverlineSize, overline_size);
 		return *this;
 	}
 
-	TabBar& TabBar::pop_style()
+	TabBar& TabBar::pop_scope()
 	{
 		ImGui::PopStyleVar(2);
-		return *Super::pop_style().as<This>();
+		return *Super::pop_scope().as<This>();
 	}
 
 	Element::UpdateFlags TabBar::on_begin_update()
@@ -238,9 +238,9 @@ namespace Trinex::UI
 		trinex_ui_bind_property(overline_color, Style);
 	}
 
-	Tab& Tab::push_style()
+	Tab& Tab::push_scope()
 	{
-		Super::push_style();
+		Super::push_scope();
 		push_style_var(ImGuiStyleVar_TabRounding, rounding);
 		push_style_var(ImGuiStyleVar_TabBorderSize, border_size);
 		push_style_var(ImGuiStyleVar_TabMinWidthBase, min_width_base);
@@ -255,11 +255,11 @@ namespace Trinex::UI
 		return *this;
 	}
 
-	Tab& Tab::pop_style()
+	Tab& Tab::pop_scope()
 	{
 		ImGui::PopStyleColor(7);
 		ImGui::PopStyleVar(4);
-		return *Super::pop_style().as<This>();
+		return *Super::pop_scope().as<This>();
 	}
 
 	Element::UpdateFlags Tab::on_begin_update()
@@ -286,9 +286,9 @@ namespace Trinex::UI
 		trinex_ui_bind_property(background_color, Style);
 	}
 
-	SidebarItem& SidebarItem::push_style()
+	SidebarItem& SidebarItem::push_scope()
 	{
-		Super::push_style();
+		Super::push_scope();
 		push_style_var(ImGuiStyleVar_SelectableRounding, rounding);
 		push_style_var(ImGuiStyleVar_SelectableTextAlign, text_align);
 		push_style_color(ImGuiCol_Header, background_color);
@@ -297,11 +297,11 @@ namespace Trinex::UI
 		return *this;
 	}
 
-	SidebarItem& SidebarItem::pop_style()
+	SidebarItem& SidebarItem::pop_scope()
 	{
 		ImGui::PopStyleColor(3);
 		ImGui::PopStyleVar(2);
-		return *Super::pop_style().as<This>();
+		return *Super::pop_scope().as<This>();
 	}
 
 	Element::UpdateFlags SidebarItem::on_begin_update()
@@ -320,9 +320,9 @@ namespace Trinex::UI
 		trinex_ui_bind_property(background_color, Style);
 	}
 
-	NavItem& NavItem::push_style()
+	NavItem& NavItem::push_scope()
 	{
-		Super::push_style();
+		Super::push_scope();
 		push_style_var(ImGuiStyleVar_SelectableRounding, rounding);
 		push_style_var(ImGuiStyleVar_SelectableTextAlign, text_align);
 		push_style_color(ImGuiCol_Header, background_color);
@@ -331,11 +331,11 @@ namespace Trinex::UI
 		return *this;
 	}
 
-	NavItem& NavItem::pop_style()
+	NavItem& NavItem::pop_scope()
 	{
 		ImGui::PopStyleColor(3);
 		ImGui::PopStyleVar(2);
-		return *Super::pop_style().as<This>();
+		return *Super::pop_scope().as<This>();
 	}
 
 	Element::UpdateFlags NavItem::on_begin_update()
@@ -353,9 +353,9 @@ namespace Trinex::UI
 		trinex_ui_bind_property(background_color, Style);
 	}
 
-	Breadcrumb& Breadcrumb::push_style()
+	Breadcrumb& Breadcrumb::push_scope()
 	{
-		Super::push_style();
+		Super::push_scope();
 		push_style_var(ImGuiStyleVar_SelectableRounding, rounding);
 		push_style_var(ImGuiStyleVar_SelectableTextAlign, text_align);
 		push_style_color(ImGuiCol_Header, background_color);
@@ -364,11 +364,11 @@ namespace Trinex::UI
 		return *this;
 	}
 
-	Breadcrumb& Breadcrumb::pop_style()
+	Breadcrumb& Breadcrumb::pop_scope()
 	{
 		ImGui::PopStyleColor(3);
 		ImGui::PopStyleVar(2);
-		return *Super::pop_style().as<This>();
+		return *Super::pop_scope().as<This>();
 	}
 
 	Element::UpdateFlags Breadcrumb::on_begin_update()

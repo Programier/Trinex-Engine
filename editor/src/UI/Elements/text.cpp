@@ -11,9 +11,9 @@ namespace Trinex::UI
 		trinex_ui_bind_property(color, Style);
 	}
 
-	Text& Text::push_style()
+	Text& Text::push_scope()
 	{
-		Super::push_style();
+		Super::push_scope();
 		push_style_color(ImGuiCol_Text, color);
 		push_style_color(ImGuiCol_TextDisabled, color);
 		push_style_color(ImGuiCol_TextSelectedBg, color);
@@ -21,10 +21,10 @@ namespace Trinex::UI
 		return *this;
 	}
 
-	Text& Text::pop_style()
+	Text& Text::pop_scope()
 	{
 		ImGui::PopStyleColor(4);
-		return *Super::pop_style().as<This>();
+		return *Super::pop_scope().as<This>();
 	}
 
 	Element::UpdateFlags Text::on_begin_update()

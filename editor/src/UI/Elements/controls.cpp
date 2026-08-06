@@ -1,277 +1,201 @@
-// #include <UI/Elements/controls.hpp>
-// #include <UI/reflection.hpp>
-// #include <imgui.h>
+#include <Core/etl/stack.hpp>
+#include <UI/Elements/controls.hpp>
+#include <UI/Elements/document.hpp>
+#include <UI/reflection.hpp>
+#include <imgui.h>
 
-// namespace Trinex::UI
-// {
-// 	static ImVec2 to_imgui_size(Size size)
-// 	{
-// 		return ImVec2(size.width.value, size.height.value);
-// 	}
+namespace Trinex::UI
+{
+	static Element::UpdateFlags handle_click(Element* element, bool clicked, Name event)
+	{
+		if (clicked)
+		{
+			element->dispatch(event);
+		}
 
-// 	static Element::UpdateFlags handle_click(Element* element, bool clicked, Name event)
-// 	{
-// 		if (clicked)
-// 		{
-// 			element->dispatch(event);
-// 		}
+		return Element::item_state_flags(Element::readback_if(clicked));
+	}
 
-// 		return Element::item_state_flags(Element::readback_if(clicked));
-// 	}
+	trinex_implement_ui_element(SmallButton) {}
 
-// 	trinex_implement_ui_element(SmallButton)
-// 	{
-// 		reflection()->bind("label", &This::label);
-// 		reflection()->bind("on_click", &This::on_click);
-// 		trinex_ui_bind_property(text_align);
-// 		trinex_ui_bind_property(background_color);
-// 	}
+	Element::UpdateFlags SmallButton::on_begin_update()
+	{
+		const bool clicked = ImGui::SmallButton(label.c_str());
+		return handle_click(this, clicked, on_click);
+	}
 
-// 	SmallButton& SmallButton::push_style()
-// 	{
-// 		Super::push_style();
-// 		push_style_var(ImGuiStyleVar_ButtonTextAlign, text_align);
-// 		push_style_color(ImGuiCol_Button, background_color);
-// 		push_style_color(ImGuiCol_ButtonHovered, background_color);
-// 		push_style_color(ImGuiCol_ButtonActive, background_color);
-// 		return *this;
-// 	}
+	trinex_implement_ui_element(IconButton)
+	{
+		trinex_ui_bind_property(icon, Markup);
+	}
 
-// 	SmallButton& SmallButton::pop_style()
-// 	{
-// 		ImGui::PopStyleColor(3);
-// 		ImGui::PopStyleVar();
-// 		return *Super::pop_style().as<This>();
-// 	}
+	Element::UpdateFlags IconButton::on_begin_update()
+	{
+		const String text  = icon.empty() ? label : icon + " " + label;
+		const bool clicked = ImGui::Button(text.c_str(), resolve(size));
+		return handle_click(this, clicked, on_click);
+	}
 
-// 	Element::UpdateFlags SmallButton::on_begin_update()
-// 	{
-// 		return handle_click(this, ImGui::SmallButton(label.c_str()), on_click);
-// 	}
+	trinex_implement_ui_element(InvisibleButton)
+	{
+		trinex_ui_bind_property(label, Markup);
+		trinex_ui_bind_property(size, Markup);
+		trinex_ui_bind_property(on_click, Markup);
+	}
 
-// 	trinex_implement_ui_element(IconButton)
-// 	{
-// 		reflection()->bind("icon", &This::icon);
-// 		reflection()->bind("label", &This::label);
-// 		reflection()->bind("size", &This::size);
-// 		reflection()->bind("on_click", &This::on_click);
-// 		trinex_ui_bind_property(text_align);
-// 		trinex_ui_bind_property(background_color);
-// 	}
+	Element::UpdateFlags InvisibleButton::on_begin_update()
+	{
+		const bool clicked = ImGui::InvisibleButton(label.c_str(), resolve(size));
+		return handle_click(this, clicked, on_click);
+	}
 
-// 	IconButton& IconButton::push_style()
-// 	{
-// 		Super::push_style();
-// 		push_style_var(ImGuiStyleVar_ButtonTextAlign, text_align);
-// 		push_style_color(ImGuiCol_Button, background_color);
-// 		push_style_color(ImGuiCol_ButtonHovered, background_color);
-// 		push_style_color(ImGuiCol_ButtonActive, background_color);
-// 		return *this;
-// 	}
+	RadioGroup* RadioGroup::s_current = nullptr;
 
-// 	IconButton& IconButton::pop_style()
-// 	{
-// 		ImGui::PopStyleColor(3);
-// 		ImGui::PopStyleVar();
-// 		return *Super::pop_style().as<This>();
-// 	}
+	trinex_implement_ui_element(RadioGroup)
+	{
+		trinex_ui_bind_property(value, Markup);
+	}
 
-// 	Element::UpdateFlags IconButton::on_begin_update()
-// 	{
-// 		const String text = icon.empty() ? label : icon + " " + label;
-// 		return handle_click(this, ImGui::Button(text.c_str(), to_imgui_size(size)), on_click);
-// 	}
+	RadioGroup* RadioGroup::current()
+	{
+		return s_current;
+	}
 
-// 	trinex_implement_ui_element(GhostButton)
-// 	{
-// 		reflection()->bind("label", &This::label);
-// 		reflection()->bind("size", &This::size);
-// 		reflection()->bind("on_click", &This::on_click);
-// 		trinex_ui_bind_property(text_align);
-// 		trinex_ui_bind_property(background_color);
-// 	}
+	RadioGroup& RadioGroup::push_scope()
+	{
+		Super::push_scope();
+		stack()->push<RadioGroup*>(s_current);
+		s_current = this;
 
-// 	GhostButton& GhostButton::push_style()
-// 	{
-// 		Super::push_style();
-// 		push_style_var(ImGuiStyleVar_ButtonTextAlign, text_align);
-// 		push_style_color(ImGuiCol_Button, background_color);
-// 		push_style_color(ImGuiCol_ButtonHovered, background_color);
-// 		push_style_color(ImGuiCol_ButtonActive, background_color);
-// 		return *this;
-// 	}
+		return *this;
+	}
 
-// 	GhostButton& GhostButton::pop_style()
-// 	{
-// 		ImGui::PopStyleColor(3);
-// 		ImGui::PopStyleVar();
-// 		return *Super::pop_style().as<This>();
-// 	}
+	RadioGroup& RadioGroup::pop_scope()
+	{
+		s_current = *stack()->pop<RadioGroup*>();
+		return *Super::pop_scope().as<This>();
+	}
 
-// 	Element::UpdateFlags GhostButton::on_begin_update()
-// 	{
-// 		return handle_click(this, ImGui::Button(label.c_str(), to_imgui_size(size)), on_click);
-// 	}
+	Element::UpdateFlags RadioGroup::on_begin_update()
+	{
+		UpdateFlags result = UpdateFlags::Default | update_flags;
+		update_flags       = UpdateFlags::Undefined;
+		return result;
+	}
 
-// 	trinex_implement_ui_element(DangerButton)
-// 	{
-// 		reflection()->bind("label", &This::label);
-// 		reflection()->bind("size", &This::size);
-// 		reflection()->bind("on_click", &This::on_click);
-// 		trinex_ui_bind_property(text_align);
-// 		trinex_ui_bind_property(background_color);
-// 	}
+	trinex_implement_ui_element(RadioOption)
+	{
+		trinex_ui_bind_property(label, Markup);
+		trinex_ui_bind_property(option, Markup);
+		trinex_ui_bind_property(on_click, Markup);
+		trinex_ui_bind_property(check_color, Style);
+	}
 
-// 	DangerButton& DangerButton::push_style()
-// 	{
-// 		Super::push_style();
-// 		push_style_var(ImGuiStyleVar_ButtonTextAlign, text_align);
-// 		push_style_color(ImGuiCol_Button, background_color);
-// 		push_style_color(ImGuiCol_ButtonHovered, background_color);
-// 		push_style_color(ImGuiCol_ButtonActive, background_color);
-// 		return *this;
-// 	}
+	RadioOption& RadioOption::push_scope()
+	{
+		Super::push_scope();
+		push_style_color(ImGuiCol_CheckMark, check_color);
+		return *this;
+	}
 
-// 	DangerButton& DangerButton::pop_style()
-// 	{
-// 		ImGui::PopStyleColor(3);
-// 		ImGui::PopStyleVar();
-// 		return *Super::pop_style().as<This>();
-// 	}
+	RadioOption& RadioOption::pop_scope()
+	{
+		ImGui::PopStyleColor();
+		return *Super::pop_scope().as<This>();
+	}
 
-// 	Element::UpdateFlags DangerButton::on_begin_update()
-// 	{
-// 		const bool clicked = ImGui::Button(label.c_str(), to_imgui_size(size));
-// 		return handle_click(this, clicked, on_click);
-// 	}
+	Element::UpdateFlags RadioOption::on_begin_update()
+	{
+		RadioGroup* group = RadioGroup::current();
+		if (group == nullptr)
+		{
+			return item_state_flags();
+		}
 
-// 	trinex_implement_ui_element(InvisibleButton)
-// 	{
-// 		reflection()->bind("label", &This::label);
-// 		reflection()->bind("size", &This::size);
-// 		reflection()->bind("on_click", &This::on_click);
-// 	}
+		const bool clicked = ImGui::RadioButton(label.c_str(), group->value == option);
 
-// 	Element::UpdateFlags InvisibleButton::on_begin_update()
-// 	{
-// 		return handle_click(this, ImGui::InvisibleButton(label.c_str(), to_imgui_size(size)), on_click);
-// 	}
+		if (clicked)
+		{
+			group->value = option;
+			group->update_flags |= UpdateFlags::Readback;
+			dispatch(on_click);
+		}
 
-// 	trinex_implement_ui_element(RadioButton)
-// 	{
-// 		reflection()->bind("label", &This::label);
-// 		reflection()->bind("value", &This::value);
-// 		reflection()->bind("option", &This::option);
-// 		reflection()->bind("on_click", &This::on_click);
-// 		trinex_ui_bind_property(check_color);
-// 	}
+		return item_state_flags(readback_if(clicked));
+	}
 
-// 	RadioButton& RadioButton::push_style()
-// 	{
-// 		Super::push_style();
-// 		push_style_color(ImGuiCol_CheckMark, check_color);
-// 		return *this;
-// 	}
+	trinex_implement_ui_element(Selectable)
+	{
+		trinex_ui_bind_property(label, Markup);
+		trinex_ui_bind_property(selected, Markup);
+		trinex_ui_bind_property(size, Markup);
+		trinex_ui_bind_property(on_click, Markup);
+		trinex_ui_bind_property(rounding, Style);
+		trinex_ui_bind_property(text_align, Style);
+		trinex_ui_bind_property(background_color, Style);
+	}
 
-// 	RadioButton& RadioButton::pop_style()
-// 	{
-// 		ImGui::PopStyleColor();
-// 		return *Super::pop_style().as<This>();
-// 	}
+	Selectable& Selectable::push_scope()
+	{
+		Super::push_scope();
+		push_style_var(ImGuiStyleVar_SelectableRounding, rounding);
+		push_style_var(ImGuiStyleVar_SelectableTextAlign, text_align);
+		push_style_color(ImGuiCol_Header, background_color);
+		push_style_color(ImGuiCol_HeaderHovered, background_color);
+		push_style_color(ImGuiCol_HeaderActive, background_color);
+		return *this;
+	}
 
-// 	Element::UpdateFlags RadioButton::on_begin_update()
-// 	{
-// 		return handle_click(this, ImGui::RadioButton(label.c_str(), &value, option), on_click);
-// 	}
+	Selectable& Selectable::pop_scope()
+	{
+		ImGui::PopStyleColor(3);
+		ImGui::PopStyleVar(2);
+		return *Super::pop_scope().as<This>();
+	}
 
-// 	trinex_implement_ui_element(Selectable)
-// 	{
-// 		reflection()->bind("label", &This::label);
-// 		reflection()->bind("selected", &This::selected);
-// 		reflection()->bind("size", &This::size);
-// 		reflection()->bind("on_click", &This::on_click);
-// 		trinex_ui_bind_property(rounding);
-// 		trinex_ui_bind_property(text_align);
-// 		trinex_ui_bind_property(background_color);
-// 	}
+	Element::UpdateFlags Selectable::on_begin_update()
+	{
+		const bool clicked = ImGui::Selectable(label.c_str(), selected, 0, resolve(size));
+		return handle_click(this, clicked, on_click);
+	}
 
-// 	Selectable& Selectable::push_style()
-// 	{
-// 		Super::push_style();
-// 		push_style_var(ImGuiStyleVar_SelectableRounding, rounding);
-// 		push_style_var(ImGuiStyleVar_SelectableTextAlign, text_align);
-// 		push_style_color(ImGuiCol_Header, background_color);
-// 		push_style_color(ImGuiCol_HeaderHovered, background_color);
-// 		push_style_color(ImGuiCol_HeaderActive, background_color);
-// 		return *this;
-// 	}
+	trinex_implement_ui_element(ProgressBar)
+	{
+		trinex_ui_bind_property(value, Markup);
+		trinex_ui_bind_property(size, Markup);
+		trinex_ui_bind_property(overlay, Markup);
+		trinex_ui_bind_property(color, Style);
+	}
 
-// 	Selectable& Selectable::pop_style()
-// 	{
-// 		ImGui::PopStyleColor(3);
-// 		ImGui::PopStyleVar(2);
-// 		return *Super::pop_style().as<This>();
-// 	}
+	ProgressBar& ProgressBar::push_scope()
+	{
+		Super::push_scope();
+		push_style_color(ImGuiCol_PlotHistogram, color);
+		push_style_color(ImGuiCol_PlotHistogramHovered, color);
+		return *this;
+	}
 
-// 	Element::UpdateFlags Selectable::on_begin_update()
-// 	{
-// 		return handle_click(this, ImGui::Selectable(label.c_str(), selected, 0, to_imgui_size(size)), on_click);
-// 	}
+	ProgressBar& ProgressBar::pop_scope()
+	{
+		ImGui::PopStyleColor(2);
+		return *Super::pop_scope().as<This>();
+	}
 
-// 	trinex_implement_ui_element(ProgressBar)
-// 	{
-// 		reflection()->bind("value", &This::value);
-// 		reflection()->bind("size", &This::size);
-// 		reflection()->bind("overlay", &This::overlay);
-// 		trinex_ui_bind_property(color);
-// 	}
+	Element::UpdateFlags ProgressBar::on_begin_update()
+	{
+		ImGui::ProgressBar(value, resolve(size), overlay.empty() ? nullptr : overlay.c_str());
+		return item_state_flags();
+	}
 
-// 	ProgressBar& ProgressBar::push_style()
-// 	{
-// 		Super::push_style();
-// 		push_style_color(ImGuiCol_PlotHistogram, color);
-// 		push_style_color(ImGuiCol_PlotHistogramHovered, color);
-// 		return *this;
-// 	}
+	trinex_implement_ui_element(ColorEdit)
+	{
+		trinex_ui_bind_property(label, Markup);
+		trinex_ui_bind_property(value, Markup);
+	}
 
-// 	ProgressBar& ProgressBar::pop_style()
-// 	{
-// 		ImGui::PopStyleColor(2);
-// 		return *Super::pop_style().as<This>();
-// 	}
-
-// 	Element::UpdateFlags ProgressBar::on_begin_update()
-// 	{
-// 		ImGui::ProgressBar(value, to_imgui_size(size), overlay.empty() ? nullptr : overlay.c_str());
-// 		return UpdateFlags::Undefined;
-// 	}
-
-// 	trinex_implement_ui_element(Spinner)
-// 	{
-// 		reflection()->bind("id", &This::id);
-// 		reflection()->bind("radius", &This::radius);
-// 		reflection()->bind("thickness", &This::thickness);
-// 		reflection()->bind("color", &This::color);
-// 	}
-
-// 	Element::UpdateFlags Spinner::on_begin_update()
-// 	{
-// 		ImGui::PushID(this);
-// 		ImGui::TextUnformatted(id.empty() ? "..." : id.c_str());
-// 		ImGui::PopID();
-// 		return UpdateFlags::Undefined;
-// 	}
-
-// 	trinex_implement_ui_element(ColorEdit)
-// 	{
-// 		reflection()->bind("label", &This::label);
-// 		reflection()->bind("color", &This::color);
-// 		reflection()->bind("alpha", &This::alpha);
-// 	}
-
-// 	Element::UpdateFlags ColorEdit::on_begin_update()
-// 	{
-// 		int flags = alpha ? 0 : ImGuiColorEditFlags_NoAlpha;
-// 		return item_state_flags(readback_if(ImGui::ColorEdit4(label.c_str(), &color.x, flags)));
-// 	}
-// }// namespace Trinex::UI
+	Element::UpdateFlags ColorEdit::on_begin_update()
+	{
+		const bool edited = ImGui::ColorEdit4(label.c_str(), &value.x);
+		return item_state_flags(readback_if(edited));
+	}
+}// namespace Trinex::UI

@@ -15,9 +15,9 @@ namespace Trinex::UI
 		trinex_ui_bind_property(color, Style);
 	}
 
-	FramedGeometry& FramedGeometry::push_style()
+	FramedGeometry& FramedGeometry::push_scope()
 	{
-		Super::push_style();
+		Super::push_scope();
 
 		push_style_var(ImGuiStyleVar_FramePadding, padding);
 		push_style_var(ImGuiStyleVar_FrameRounding, rounding);
@@ -26,16 +26,16 @@ namespace Trinex::UI
 		return *this;
 	}
 
-	FramedGeometry& FramedGeometry::pop_style()
+	FramedGeometry& FramedGeometry::pop_scope()
 	{
 		ImGui::PopStyleVar(3);
-		return *Super::pop_style().as<This>();
+		return *Super::pop_scope().as<This>();
 	}
 
 
-	Framed& Framed::push_style()
+	Framed& Framed::push_scope()
 	{
-		Super::push_style();
+		Super::push_scope();
 
 		push_style_color(ImGuiCol_FrameBg, color);
 		push_style_color(ImGuiCol_FrameBgHovered, color);
@@ -44,10 +44,10 @@ namespace Trinex::UI
 		return *this;
 	}
 
-	Framed& Framed::pop_style()
+	Framed& Framed::pop_scope()
 	{
 		ImGui::PopStyleColor(3);
-		return *Super::pop_style().as<This>();
+		return *Super::pop_scope().as<This>();
 	}
 
 }// namespace Trinex::UI

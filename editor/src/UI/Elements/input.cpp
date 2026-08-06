@@ -37,18 +37,18 @@ namespace Trinex::UI
 		trinex_ui_bind_property(cursor_color, Style);
 	}
 
-	InputText& InputText::push_style()
+	InputText& InputText::push_scope()
 	{
-		Super::push_style();
+		Super::push_scope();
 		push_style_color(ImGuiCol_InputTextCursor, cursor_color);
 		push_style_color(ImGuiCol_TextSelectedBg, color);
 		return *this;
 	}
 
-	InputText& InputText::pop_style()
+	InputText& InputText::pop_scope()
 	{
 		ImGui::PopStyleColor(2);
-		return *Super::pop_style().as<This>();
+		return *Super::pop_scope().as<This>();
 	}
 
 	Element::UpdateFlags InputText::on_begin_update()
