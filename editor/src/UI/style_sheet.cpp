@@ -9,36 +9,6 @@
 
 namespace Trinex::UI
 {
-	static f32 apply_style_ease(f32 t, Ease mode)
-	{
-		t = Math::clamp(t, 0.0f, 1.0f);
-
-		switch (mode)
-		{
-			case Ease::Linear: return t;
-			case Ease::InQuad: return t * t;
-			case Ease::OutQuad: return 1.0f - (1.0f - t) * (1.0f - t);
-			case Ease::InOutQuad: return t < 0.5f ? 2.0f * t * t : 1.0f - Math::pow(-2.0f * t + 2.0f, 2.0f) * 0.5f;
-			case Ease::InCubic: return t * t * t;
-			case Ease::OutCubic: return 1.0f - Math::pow(1.0f - t, 3.0f);
-			case Ease::InOutCubic: return t < 0.5f ? 4.0f * t * t * t : 1.0f - Math::pow(-2.0f * t + 2.0f, 3.0f) * 0.5f;
-			case Ease::InExpo: return t == 0.0f ? 0.0f : Math::pow(2.0f, 10.0f * t - 10.0f);
-			case Ease::OutExpo: return t == 1.0f ? 1.0f : 1.0f - Math::pow(2.0f, -10.0f * t);
-			case Ease::InOutExpo:
-				if (t == 0.0f || t == 1.0f)
-					return t;
-				return t < 0.5f ? Math::pow(2.0f, 20.0f * t - 10.0f) * 0.5f : (2.0f - Math::pow(2.0f, -20.0f * t + 10.0f)) * 0.5f;
-			case Ease::OutBack:
-			{
-				const f32 c1 = 1.70158f;
-				const f32 c3 = c1 + 1.0f;
-				return 1.0f + c3 * Math::pow(t - 1.0f, 3.0f) + c1 * Math::pow(t - 1.0f, 2.0f);
-			}
-		}
-
-		return t;
-	}
-
 	static bool value_to_f32(f32& dst, const Markup::ValueDesc& src)
 	{
 		if (const auto* value = etl::get_if<f32>(&src.value))
@@ -416,7 +386,7 @@ namespace Trinex::UI
 				track.elapsed += dt;
 				const f32 time = Math::max(0.0f, track.elapsed - track.delay);
 				const f32 t    = track.duration <= 0.0f ? 1.0f : Math::clamp(time / track.duration, 0.0f, 1.0f);
-				current        = lerp_value(track.from, track.to, apply_style_ease(t, track.ease));
+				current        = lerp_value(track.from, track.to, Element::ease(t, track.ease));
 
 				if (t >= 1.0f)
 				{

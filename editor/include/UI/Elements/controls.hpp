@@ -56,11 +56,16 @@ namespace Trinex::UI
 	{
 		trinex_ui_element(RadioOption, Framed);
 
+	private:
+		f32 m_check_progress = -1.0f;
+
 	public:
 		String label;
 		i32 option = 0;
 		Name on_click;
 		Vec4 check_color = {0.28f, 0.59f, 0.92f, 1.00f};
+		f32 check_animation_duration = 0.12f;
+		Ease check_animation_ease    = Ease::OutCubic;
 
 		RadioOption& push_scope() override;
 		RadioOption& pop_scope() override;

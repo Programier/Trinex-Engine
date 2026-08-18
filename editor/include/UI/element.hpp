@@ -120,6 +120,7 @@ namespace Trinex::UI
 		static f32 resolve(Unit unit, Axis axis);
 		static ImVec2 resolve(Size size);
 		static ScopeStack* stack();
+		static f32 ease(f32 value, Ease mode);
 
 		Element& bind(void* value, const Refl::Type* type, const Markup::BindingPath& path);
 		Element& bind(Name event, EventListener listener);

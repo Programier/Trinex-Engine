@@ -207,27 +207,23 @@ namespace Trinex::UI
 
 	Element::UpdateFlags TabBar::on_begin_update()
 	{
-		ImGui::PushID(this);
 		if (ImGui::BeginTabBar(id().is_valid() ? id().c_str() : "##TabBar"))
 		{
-			return UpdateFlags::Default;
+			return UpdateFlags::Childs | UpdateFlags::End;
 		}
 
-		ImGui::PopID();
 		return UpdateFlags::Undefined;
 	}
 
 	Element& TabBar::on_end_update(UpdateFlags flags)
 	{
 		ImGui::EndTabBar();
-		ImGui::PopID();
 		return *this;
 	}
 
 	trinex_implement_ui_element(Tab)
 	{
 		reflection()->bind("label", &This::label);
-		reflection()->bind("selected", &This::selected);
 		reflection()->bind("size", &This::size);
 		reflection()->bind("on_click", &This::on_click);
 		trinex_ui_bind_property(rounding, Style);
@@ -264,14 +260,24 @@ namespace Trinex::UI
 
 	Element::UpdateFlags Tab::on_begin_update()
 	{
-		bool open          = true;
-		const bool visible = ImGui::BeginTabItem(label.c_str(), &open);
+		const bool visible = ImGui::BeginTabItem(label.c_str());
 		const bool clicked = ImGui::IsItemClicked();
+
+		UpdateFlags result = handle_click(this, clicked, on_click);
+		result |= readback_if(visible);
+
 		if (visible)
 		{
-			ImGui::EndTabItem();
+			result |= UpdateFlags::Childs | UpdateFlags::End | UpdateFlags::Selected;
 		}
-		return handle_click(this, clicked, on_click);
+
+		return result;
+	}
+
+	Element& Tab::on_end_update(UpdateFlags flags)
+	{
+		ImGui::EndTabItem();
+		return *this;
 	}
 
 	trinex_implement_ui_element(SidebarItem)

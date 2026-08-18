@@ -1,5 +1,6 @@
 #include <Core/etl/algorithm.hpp>
 #include <Core/etl/stack.hpp>
+#include <Core/math/math.hpp>
 #include <UI/Elements/document.hpp>
 #include <UI/element.hpp>
 #include <UI/reflection.hpp>
@@ -94,6 +95,36 @@ namespace Trinex::UI
 	{
 		static thread_local ScopeStack dummy;
 		return &dummy;
+	}
+
+	f32 Element::ease(f32 value, Ease mode)
+	{
+		const f32 t = Math::clamp(value, 0.0f, 1.0f);
+
+		switch (mode)
+		{
+			case Ease::Linear: return t;
+			case Ease::InQuad: return t * t;
+			case Ease::OutQuad: return 1.0f - (1.0f - t) * (1.0f - t);
+			case Ease::InOutQuad: return t < 0.5f ? 2.0f * t * t : 1.0f - Math::pow(-2.0f * t + 2.0f, 2.0f) * 0.5f;
+			case Ease::InCubic: return t * t * t;
+			case Ease::OutCubic: return 1.0f - Math::pow(1.0f - t, 3.0f);
+			case Ease::InOutCubic: return t < 0.5f ? 4.0f * t * t * t : 1.0f - Math::pow(-2.0f * t + 2.0f, 3.0f) * 0.5f;
+			case Ease::InExpo: return t == 0.0f ? 0.0f : Math::pow(2.0f, 10.0f * t - 10.0f);
+			case Ease::OutExpo: return t == 1.0f ? 1.0f : 1.0f - Math::pow(2.0f, -10.0f * t);
+			case Ease::InOutExpo:
+				if (t == 0.0f || t == 1.0f)
+					return t;
+				return t < 0.5f ? Math::pow(2.0f, 20.0f * t - 10.0f) * 0.5f : (2.0f - Math::pow(2.0f, -20.0f * t + 10.0f)) * 0.5f;
+			case Ease::OutBack:
+			{
+				const f32 c1 = 1.70158f;
+				const f32 c3 = c1 + 1.0f;
+				return 1.0f + c3 * Math::pow(t - 1.0f, 3.0f) + c1 * Math::pow(t - 1.0f, 2.0f);
+			}
+		}
+
+		return t;
 	}
 
 	Element::CurrentScope::CurrentScope(Element* element) : m_previous(s_current)

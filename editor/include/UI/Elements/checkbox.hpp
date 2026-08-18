@@ -3,9 +3,9 @@
 
 namespace Trinex::UI
 {
-	class Checkbox : public Framed
+	class CheckBox : public Framed
 	{
-		trinex_ui_element(Checkbox, Framed);
+		trinex_ui_element(CheckBox, Framed);
 
 	private:
 		f32 m_check_progress = -1.0f;
@@ -17,8 +17,8 @@ namespace Trinex::UI
 		f32 check_animation_duration = 0.12f;
 		Ease check_animation_ease    = Ease::OutCubic;
 
-		Checkbox& push_scope() override;
-		Checkbox& pop_scope() override;
+		CheckBox& push_scope() override;
+		CheckBox& pop_scope() override;
 		UpdateFlags on_begin_update() override;
 	};
 }// namespace Trinex::UI

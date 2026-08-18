@@ -6,37 +6,7 @@
 
 namespace Trinex::UI
 {
-	static f32 apply_ease(f32 t, Ease mode)
-	{
-		t = Math::clamp(t, 0.0f, 1.0f);
-
-		switch (mode)
-		{
-			case Ease::Linear: return t;
-			case Ease::InQuad: return t * t;
-			case Ease::OutQuad: return 1.0f - (1.0f - t) * (1.0f - t);
-			case Ease::InOutQuad: return t < 0.5f ? 2.0f * t * t : 1.0f - Math::pow(-2.0f * t + 2.0f, 2.0f) * 0.5f;
-			case Ease::InCubic: return t * t * t;
-			case Ease::OutCubic: return 1.0f - Math::pow(1.0f - t, 3.0f);
-			case Ease::InOutCubic: return t < 0.5f ? 4.0f * t * t * t : 1.0f - Math::pow(-2.0f * t + 2.0f, 3.0f) * 0.5f;
-			case Ease::InExpo: return t == 0.0f ? 0.0f : Math::pow(2.0f, 10.0f * t - 10.0f);
-			case Ease::OutExpo: return t == 1.0f ? 1.0f : 1.0f - Math::pow(2.0f, -10.0f * t);
-			case Ease::InOutExpo:
-				if (t == 0.0f || t == 1.0f)
-					return t;
-				return t < 0.5f ? Math::pow(2.0f, 20.0f * t - 10.0f) * 0.5f : (2.0f - Math::pow(2.0f, -20.0f * t + 10.0f)) * 0.5f;
-			case Ease::OutBack:
-			{
-				const f32 c1 = 1.70158f;
-				const f32 c3 = c1 + 1.0f;
-				return 1.0f + c3 * Math::pow(t - 1.0f, 3.0f) + c1 * Math::pow(t - 1.0f, 2.0f);
-			}
-		}
-
-		return t;
-	}
-
-	trinex_implement_ui_element(Checkbox)
+	trinex_implement_ui_element(CheckBox)
 	{
 		trinex_ui_bind_property(label, Markup);
 		trinex_ui_bind_property(value, Markup);
@@ -45,7 +15,7 @@ namespace Trinex::UI
 		trinex_ui_bind_property(check_animation_ease, Style);
 	}
 
-	Checkbox& Checkbox::push_scope()
+	CheckBox& CheckBox::push_scope()
 	{
 		Super::push_scope();
 		push_style_color(ImGuiCol_CheckMark, check_color);
@@ -53,13 +23,13 @@ namespace Trinex::UI
 		return *this;
 	}
 
-	Checkbox& Checkbox::pop_scope()
+	CheckBox& CheckBox::pop_scope()
 	{
 		ImGui::PopStyleColor(2);
 		return *Super::pop_scope().as<This>();
 	}
 
-	Element::UpdateFlags Checkbox::on_begin_update()
+	Element::UpdateFlags CheckBox::on_begin_update()
 	{
 		ImGuiWindow* window = ImGui::GetCurrentWindow();
 		if (window->SkipItems)
@@ -121,7 +91,8 @@ namespace Trinex::UI
 		                                                            : ImGuiCol_FrameBg);
 		ImGui::RenderFrame(check_bb.Min, check_bb.Max, bg_color, true, style.FrameRounding);
 
-		const f32 eased = apply_ease(m_check_progress, check_animation_ease);
+		const f32 eased = ease(m_check_progress, check_animation_ease);
+
 		if (eased > 0.0f)
 		{
 			const f32 pad        = Math::max(1.0f, Math::trunc(square_size / 6.0f));

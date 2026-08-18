@@ -99,8 +99,7 @@ namespace Trinex::UI
 
 	public:
 		String label;
-		bool selected = false;
-		Size size     = Size(0.0f, 0.0f);
+		Size size = Size(0.0f, 0.0f);
 		Name on_click;
 		Unit rounding         = Unit(4.0f);
 		Unit border_size      = Unit(0.0f);
@@ -112,6 +111,7 @@ namespace Trinex::UI
 		Tab& push_scope() override;
 		Tab& pop_scope() override;
 		UpdateFlags on_begin_update() override;
+		Element& on_end_update(UpdateFlags flags) override;
 	};
 
 	class SidebarItem : public Element
