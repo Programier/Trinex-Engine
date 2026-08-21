@@ -431,7 +431,6 @@ namespace Trinex
 	};
 
 	struct RHIContextInheritanceInfo {
-		RHIContext* primary              = nullptr;
 		RHISurfaceFormat colors[4]       = {RHISurfaceFormat::Undefined};
 		RHISurfaceFormat depth           = RHISurfaceFormat::Undefined;
 		RHIContextInheritanceFlags flags = RHIContextInheritanceFlags::Undefined;

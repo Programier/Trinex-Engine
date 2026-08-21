@@ -312,8 +312,8 @@ namespace ImGui
 		args.pos  = EngineVecFrom((ImGui::GetItemRectMin() - vp->Pos) / vp->Size);
 		args.size = EngineVecFrom(size / vp->Size);
 
-		ImDrawCallback viewport_setup = [](const ImDrawList* parent_list, const ImDrawCmd* cmd) {
-			Args* args = reinterpret_cast<Args*>(cmd->UserCallbackData);
+		ImDrawCallback viewport_setup = ImDrawCallbackFunc{
+
 		};
 
 		list->AddCallback(viewport_setup, &args, sizeof(args));

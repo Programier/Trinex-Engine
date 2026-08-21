@@ -126,6 +126,15 @@ namespace Trinex::RenderBackend
 
 			pipeline->setup(bd->context);
 			pipeline->bind(bd->context, Math::ortho(L, R, B, T, 0.f, 1.f));
+
+			ImGuiTrinexViewportData* vd = reinterpret_cast<ImGuiTrinexViewportData*>(draw_data->OwnerViewport->RendererUserData);
+
+			bd->context->bind_vertex_attribute(RHISemantic::Position, RHIVertexFormat::RG32F, 0, offsetof(ImDrawVert, pos));
+			bd->context->bind_vertex_attribute(RHISemantic::TexCoord0, RHIVertexFormat::RG32F, 0, offsetof(ImDrawVert, uv));
+			bd->context->bind_vertex_attribute(RHISemantic::Color, RHIVertexFormat::RGBA8, 0, offsetof(ImDrawVert, col));
+
+			bd->context->bind_vertex_buffer(vd->vertex_buffer, 0, sizeof(ImDrawVert), 0);
+			bd->context->bind_index_buffer(vd->index_buffer, RHIIndexFormat::UInt16);
 		}
 
 		static void destroy_texture(ImTextureData* tex)
@@ -346,13 +355,6 @@ namespace Trinex::RenderBackend
 			int global_vtx_offset = 0;
 			ImVec2 clip_off       = draw_data->DisplayPos;
 
-			ctx->bind_vertex_attribute(RHISemantic::Position, RHIVertexFormat::RG32F, 0, offsetof(ImDrawVert, pos));
-			ctx->bind_vertex_attribute(RHISemantic::TexCoord0, RHIVertexFormat::RG32F, 0, offsetof(ImDrawVert, uv));
-			ctx->bind_vertex_attribute(RHISemantic::Color, RHIVertexFormat::RGBA8, 0, offsetof(ImDrawVert, col));
-
-			ctx->bind_vertex_buffer(vd->vertex_buffer, 0, sizeof(ImDrawVert), 0);
-			ctx->bind_index_buffer(vd->index_buffer, RHIIndexFormat::UInt16);
-
 			trinex_rhi_pop_stage(ctx);
 			{
 				trinex_profile_cpu_n("Render");
@@ -365,8 +367,6 @@ namespace Trinex::RenderBackend
 
 					for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
 					{
-						begin_rendering(bd);
-
 						const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
 
 						if (pcmd->UserCallback != nullptr)
@@ -378,10 +378,21 @@ namespace Trinex::RenderBackend
 								setup_render_state(draw_data);
 							}
 							else
-								pcmd->UserCallback(cmd_list, pcmd);
+							{
+								ImDrawCallbackArgs args = {
+								        .ctx   = ctx,
+								        .color = bd->layer,
+								        .data  = draw_data,
+								        .list  = cmd_list,
+								        .cmd   = pcmd,
+								};
+
+								pcmd->UserCallback(args);
+							}
 						}
-						else if (bd->flags.all(RenderFlags::IsInRendering))
+						else
 						{
+							begin_rendering(bd);
 							ImVec2 clip_min(Math::max(pcmd->ClipRect.x - clip_off.x, 0.f),
 							                Math::max(pcmd->ClipRect.y - clip_off.y, 0.f));
 

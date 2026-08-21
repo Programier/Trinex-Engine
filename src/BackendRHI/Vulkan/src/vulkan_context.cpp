@@ -590,8 +590,6 @@ namespace Trinex
 			{
 				trinex_assert(inheritance);
 
-				VulkanContext* primary = static_cast<VulkanContext*>(inheritance->primary);
-
 				vk::CommandBufferBeginInfo begin_info;
 				vk::CommandBufferInheritanceInfo inherit;
 				vk::CommandBufferInheritanceRenderingInfoKHR inherit_rendering;
@@ -627,7 +625,6 @@ namespace Trinex
 				}
 
 				m_cmd->begin(begin_info);
-				copy_state(primary);
 			}
 			else
 			{

@@ -34,6 +34,13 @@ struct trinex_pipelineAttribute
 }
 
 [__AttributeUsage(_AttributeTargets.Struct)]
+struct trinex_stageAttribute
+{
+	string stage;
+	string function;
+}
+
+[__AttributeUsage(_AttributeTargets.Struct)]
 struct trinex_specializeAttribute
 {
 	string expr;

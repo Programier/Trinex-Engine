@@ -27,7 +27,7 @@ namespace Trinex
 			return nullptr;
 		}
 	}// namespace UI::Backend
-	
+
 	class TextureView : public GlobalPipelineLibrary
 	{
 	private:
@@ -350,9 +350,9 @@ namespace Trinex
 				args.size   = ImGui::EngineVecFrom(content);
 			}
 
-			ImDrawCallback callback = [](const ImDrawList* parent_list, const ImDrawCmd* cmd) {
-				TextureViewVisitor* args = reinterpret_cast<TextureViewVisitor*>(cmd->UserCallbackData);
-				std::visit(*args, args->client->m_texture);
+			ImDrawCallback callback = [](const ImDrawCallbackArgs& args) {
+				TextureViewVisitor* visitor = reinterpret_cast<TextureViewVisitor*>(args.cmd->UserCallbackData);
+				std::visit(*visitor, visitor->client->m_texture);
 			};
 
 			ImGui::Paint(content, callback, &args, sizeof(args));
