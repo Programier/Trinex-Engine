@@ -148,6 +148,8 @@ void Element::Update(float dp_ratio, Vector2f vp_dimensions)
 	for (size_t i = 0; i < children.size(); i++)
 		children[i]->Update(dp_ratio, vp_dimensions);
 
+	OnPostUpdate();
+	
 	if (!animations.empty() && IsVisible(true))
 	{
 		if (Context* ctx = GetContext())
@@ -195,7 +197,9 @@ void Element::Render()
 
 	meta->effects.RenderEffects(RenderStage::Enter);
 
-	if (ElementUtilities::SetClippingRegion(this))
+	const bool is_valid_clipping_region = ElementUtilities::SetClippingRegion(this);
+	
+	if (is_valid_clipping_region)
 	{
 		meta->background_border.Render(this);
 		meta->effects.RenderEffects(RenderStage::Decoration);
@@ -208,6 +212,11 @@ void Element::Render()
 
 	for (Element* element : stacking_context)
 		element->Render();
+	
+	if (is_valid_clipping_region)
+	{
+		OnPostRender();
+	}
 
 	ElementUtilities::ApplyTransform(*this);
 	meta->effects.RenderEffects(RenderStage::Exit);
@@ -1692,7 +1701,11 @@ void Element::ForceLocalStackingContext()
 
 void Element::OnUpdate() {}
 
+void Element::OnPostUpdate() {}
+
 void Element::OnRender() {}
+
+void Element::OnPostRender() {}
 
 void Element::OnResize() {}
 

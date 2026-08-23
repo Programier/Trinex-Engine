@@ -599,11 +599,15 @@ protected:
 
 	/// Forces the element to generate a local stacking context, regardless of the value of its z-index property.
 	void ForceLocalStackingContext();
-
-	/// Called during the update loop after children are updated.
+	
+	/// Called during the update loop before child elements are updated.
 	virtual void OnUpdate();
+	/// Called during the update loop after all child elements have been updated.
+	virtual void OnPostUpdate();
 	/// Called during render after backgrounds, borders, decorators, but before children, are rendered.
 	virtual void OnRender();
+	/// Called during render after all child elements have been rendered.
+	virtual void OnPostRender();
 	/// Called during update if the element size has been changed.
 	virtual void OnResize();
 	/// Called during a layout operation, when the element is being positioned and sized.

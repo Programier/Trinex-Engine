@@ -17,7 +17,7 @@ RenderInterface::~RenderInterface()
 		"or nullptr dereference when releasing render resources. Ensure that the render interface is destroyed *after* the call to Rml::Shutdown.");
 }
 
-void RenderInterface::Begin(Vector2i /*size*/) {}
+void RenderInterface::Begin(Rml::Vector2f /*size*/, Rml::Vector2f /*viewport_offset*/, Rml::Vector2f /*render_offset*/) {}
 
 void RenderInterface::End() {}
 

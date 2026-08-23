@@ -28,7 +28,7 @@ public:
 	virtual ~RenderInterface();
 
 	/// Called by RmlUi before rendering a complete context.
-	virtual void Begin(Vector2i size);
+	virtual void Begin(Rml::Vector2f size, Rml::Vector2f viewport_offset, Rml::Vector2f render_offset);
 	/// Called by RmlUi after rendering a complete context.
 	virtual void End();
 

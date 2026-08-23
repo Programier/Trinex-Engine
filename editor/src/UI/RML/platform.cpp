@@ -5,6 +5,7 @@
 #include <RmlUi/Core/SystemInterface.h>
 #include <imgui.h>
 
+#include <algorithm>
 #include <unordered_map>
 
 namespace Trinex::UI::RML::Backend
@@ -156,13 +157,13 @@ namespace Trinex::UI::RML::Backend
 		};
 	}// namespace
 
-	trinex_on_init()
+	trinex_on_pre_init()
 	{
 		static RMLSystemInterface interface;
 		Rml::SetSystemInterface(&interface);
 	}
 
-	trinex_on_shutdown()
+	trinex_on_post_shutdown()
 	{
 		Rml::SetSystemInterface(nullptr);
 	}
@@ -183,6 +184,60 @@ namespace Trinex::UI::RML::Backend
 		return state;
 	}
 
+	Rml::Rectanglei desktop_rect()
+	{
+		Rml::Vector2i min;
+		Rml::Vector2i max;
+		bool valid = false;
+
+		for (const ImGuiPlatformMonitor& monitor : ImGui::GetPlatformIO().Monitors)
+		{
+			const Rml::Vector2i pos  = {static_cast<int>(monitor.MainPos.x), static_cast<int>(monitor.MainPos.y)};
+			const Rml::Vector2i size = {static_cast<int>(monitor.MainSize.x), static_cast<int>(monitor.MainSize.y)};
+
+			if (!valid)
+			{
+				min   = pos;
+				max   = pos + size;
+				valid = true;
+			}
+			else
+			{
+				min.x = std::min(min.x, pos.x);
+				min.y = std::min(min.y, pos.y);
+				max.x = std::max(max.x, pos.x + size.x);
+				max.y = std::max(max.y, pos.y + size.y);
+			}
+		}
+
+		if (!valid)
+		{
+			ImGuiViewport* viewport = ImGui::GetMainViewport();
+			if (viewport)
+			{
+				min = {static_cast<int>(viewport->Pos.x), static_cast<int>(viewport->Pos.y)};
+				max = min + Rml::Vector2i(static_cast<int>(viewport->Size.x), static_cast<int>(viewport->Size.y));
+			}
+			else
+			{
+				const ImVec2 size = ImGui::GetIO().DisplaySize;
+				max               = {static_cast<int>(size.x), static_cast<int>(size.y)};
+			}
+		}
+
+		return Rml::Rectanglei::FromPositionSize(min, max - min);
+	}
+
+	void update_context_dimensions(Rml::Context* context)
+	{
+		if (context == nullptr)
+			return;
+
+		const Rml::Vector2i size = desktop_rect().Size();
+		if (context->GetDimensions() != size)
+			context->SetDimensions(size);
+	}
+
 	void forget_context(Rml::Context* context)
 	{
 		s_context_states.erase(context);
@@ -193,10 +248,11 @@ namespace Trinex::UI::RML::Backend
 		if (context == nullptr || !ImGui::GetCurrentContext())
 			return true;
 
-		ContextState& state = context_state(context);
-		const ImGuiIO& io   = ImGui::GetIO();
-		const int modifiers = key_modifier_state();
-		bool not_consumed   = true;
+		const Rml::Vector2i context_origin = desktop_rect().TopLeft();
+		ContextState& state                = context_state(context);
+		const ImGuiIO& io                  = ImGui::GetIO();
+		const int modifiers                = key_modifier_state();
+		bool not_consumed                  = true;
 
 		const ImVec2 mouse_pos  = ImGui::GetMousePos();
 		const bool mouse_inside = mouse_pos.x >= viewport_origin.x && mouse_pos.y >= viewport_origin.y &&
@@ -205,8 +261,8 @@ namespace Trinex::UI::RML::Backend
 
 		if (mouse_inside)
 		{
-			const int x = static_cast<int>(mouse_pos.x - viewport_origin.x);
-			const int y = static_cast<int>(mouse_pos.y - viewport_origin.y);
+			const int x = static_cast<int>(mouse_pos.x) - context_origin.x;
+			const int y = static_cast<int>(mouse_pos.y) - context_origin.y;
 			not_consumed &= context->ProcessMouseMove(x, y, modifiers);
 		}
 		else if (state.mouse_inside)

@@ -189,6 +189,10 @@ namespace Trinex
 		bitfield ^= mask;                                                                                                        \
 		return mask;                                                                                                             \
 	}                                                                                                                            \
+	constexpr inline struct_type set(underlying_type mask, bool value) noexcept                                                  \
+	{                                                                                                                            \
+		return value ? set(mask) : remove(mask);                                                                                 \
+	}                                                                                                                            \
 	union                                                                                                                        \
 	{                                                                                                                            \
 		underlying_type bitfield;                                                                                                \

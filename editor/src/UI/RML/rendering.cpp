@@ -10,9 +10,9 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
-#define rml_stub_log() 
+#define rml_stub_log()
 
-namespace Trinex::UI::RML::Backend
+namespace Trinex::UI
 {
 	namespace
 	{
@@ -186,13 +186,32 @@ namespace Trinex::UI::RML::Backend
 		{
 		private:
 			RHIContext* m_context = nullptr;
-			Matrix4f m_projection;
-			Matrix4f m_transform;
 
-			struct Viewport {
-				Vector2u size;
-				Vector2u pos;
-			} m_viewport;
+			struct RenderFlags {
+				enum Enum : u8
+				{
+					Undefined        = 0,
+					IsInRendering    = 1 << 0,
+					IsScissorEnabled = 1 << 1,
+					IsScissorDirty   = 1 << 2,
+				};
+
+				trinex_bitfield_enum_struct(RenderFlags, u8);
+			};
+
+
+			struct StackEntry {
+				ImDrawList* draw_list;
+				Matrix4f projection;
+				Matrix4f transform;
+				Rml::Vector2f viewport_offset;
+				Rml::Vector2f viewport_size;
+				Rml::Vector2f render_offset;
+				Rml::Rectanglei scissor;
+				RenderFlags flags = RenderFlags::Undefined;
+			};
+
+			Vector<StackEntry> m_stack;
 
 		public:
 			RHIContext* context()
@@ -205,19 +224,110 @@ namespace Trinex::UI::RML::Backend
 				return m_context;
 			}
 
-		public:
-			void Begin(Rml::Vector2i size) override
+			RMLRenderInterface& begin_rendering()
 			{
-				m_viewport.pos.x = ImGui::GetCursorScreenPos().x;
-				m_viewport.pos.y = ImGui::GetCursorScreenPos().y;
-				m_viewport.size  = {size.x, size.y};
-				m_projection     = Math::ortho(0, m_viewport.size.x, m_viewport.size.y, 0, 0.f, 1.f);
-				m_transform      = m_projection;
+				auto& entry = m_stack.back();
+
+				if (!(entry.flags & RenderFlags::IsInRendering))
+				{
+					entry.flags.set(RenderFlags::IsInRendering);
+
+					entry.draw_list->AddCallback(ImDrawCallbackFunc {
+						args.ctx->barrier(args.color, RHIAccess::RTV);
+
+						RHIRenderingInfo info;
+						info.colors[0].view = args.color->as_rtv();
+						args.ctx->begin_rendering(info);
+					});
+				}
+
+				return *this;
+			}
+
+			RMLRenderInterface& end_rendering()
+			{
+				auto& entry = m_stack.back();
+
+				if (entry.flags & RenderFlags::IsInRendering)
+				{
+					entry.flags.remove(RenderFlags::IsInRendering);
+					entry.draw_list->AddCallback(ImDrawCallbackFunc { args.ctx->end_rendering(); });
+				}
+				return *this;
+			}
+
+			RMLRenderInterface& flush_scissor()
+			{
+				auto& entry = m_stack.back();
+
+				if (!entry.flags.any(RenderFlags::IsScissorDirty))
+					return *this;
+
+				entry.flags.remove(RenderFlags::IsScissorDirty);
+
+				if (entry.flags.any(RenderFlags::IsScissorEnabled))
+				{
+					struct Instance {
+						Rml::Rectanglei scissor;
+						Rml::Vector2f viewport_offset;
+						Rml::Vector2f viewport_size;
+						Rml::Vector2f render_offset;
+					};
+
+					Instance instance;
+					instance.scissor         = entry.scissor;
+					instance.viewport_offset = entry.viewport_offset;
+					instance.viewport_size   = entry.viewport_size;
+					instance.render_offset   = entry.render_offset;
+
+					auto scissor_callback = ImDrawCallbackFunc
+					{
+						Instance* instance               = static_cast<Instance*>(args.cmd->UserCallbackData);
+						const Rml::Vector2f scissor_pos  = Rml::Vector2f(instance->scissor.TopLeft()) + instance->render_offset;
+						const Rml::Vector2f scissor_size = Rml::Vector2f(instance->scissor.Size());
+
+						RHIRegion scissor;
+						scissor.pos.x  = (scissor_pos.x - instance->viewport_offset.x) / instance->viewport_size.x;
+						scissor.pos.y  = (scissor_pos.y - instance->viewport_offset.y) / instance->viewport_size.y;
+						scissor.size.x = scissor_size.x / instance->viewport_size.x;
+						scissor.size.y = scissor_size.y / instance->viewport_size.y;
+						args.ctx->scissor(scissor);
+					};
+
+					entry.draw_list->AddCallback(scissor_callback, &instance, sizeof(instance));
+				}
+				else
+				{
+					entry.draw_list->AddCallback(ImDrawCallbackFunc { args.ctx->scissor({}); });
+				}
+
+				return *this;
+			}
+
+			inline RMLRenderInterface& on_rendering()
+			{
+				begin_rendering();
+				flush_scissor();
+				return *this;
+			}
+
+		public:
+			void Begin(Rml::Vector2f size, Rml::Vector2f viewport_offset, Rml::Vector2f render_offset) override
+			{
+				const bool is_fallback = ImGui::GetCurrentWindowRead()->IsFallbackWindow;
+
+				auto& entry           = m_stack.emplace_back();
+				entry.draw_list       = is_fallback ? ImGui::GetBackgroundDrawList() : ImGui::GetWindowDrawList();
+				entry.projection      = Math::ortho(viewport_offset.x, viewport_offset.x + size.x, viewport_offset.y + size.y,
+				                                    viewport_offset.y, 0.f, 1.f);
+				entry.transform       = entry.projection;
+				entry.viewport_offset = viewport_offset;
+				entry.viewport_size   = {static_cast<float>(size.x), static_cast<float>(size.y)};
+				entry.render_offset   = render_offset;
 
 				auto callback = ImDrawCallbackFunc
 				{
-					RHIContext* ctx    = args.ctx;
-					Viewport* viewport = static_cast<Viewport*>(args.cmd->UserCallbackData);
+					RHIContext* ctx = args.ctx;
 
 					ctx->push_debug_stage("RML");
 
@@ -226,36 +336,31 @@ namespace Trinex::UI::RML::Backend
 					ctx->bind_vertex_attribute(RHISemantic::TexCoord0, RHIVertexFormat::RG32F, 0,
 					                           offsetof(Rml::Vertex, tex_coord));
 
-					RHIRenderingInfo info;
-					info.colors[0].view = args.color->as_rtv();
-
-					ctx->begin_rendering(info);
-
-					Vector2f window  = {args.data->DisplaySize.x, args.data->DisplaySize.y};
-					RHIRegion region = RHIRegion(Vector2f(viewport->size) / window, Vector2f(viewport->pos) / window);
-
-					ctx->viewport(region);
-					ctx->scissor(region);
+					ctx->viewport({});
+					ctx->scissor({});
 					ctx->blending_state(RHIBlendingState::alpha_composite());
 				};
 
-				ImGui::GetWindowDrawList()->AddCallback(callback, &m_viewport, sizeof(m_viewport));
+				entry.draw_list->AddCallback(callback);
 			}
 
 			void End() override
 			{
-				if (m_context)
+				trinex_assert(!m_stack.empty());
+
+				end_rendering();
+
+				auto& entry = m_stack.back();
+
+				if (m_stack.size() == 1 && m_context)
 				{
 					RHIContextPool::global_instance()->end(m_context);
 					m_context = nullptr;
 				}
 
-				ImGui::GetWindowDrawList()->AddCallback(ImDrawCallbackFunc {
-					args.ctx->end_rendering();
-					args.ctx->pop_debug_stage();
-				});
-
-				ImGui::GetWindowDrawList()->AddCallback(ImDrawCallback_ResetRenderState);
+				entry.draw_list->AddCallback(ImDrawCallbackFunc { args.ctx->pop_debug_stage(); });
+				entry.draw_list->AddCallback(ImDrawCallback_ResetRenderState);
+				m_stack.pop_back();
 			}
 
 			Rml::CompiledGeometryHandle CompileGeometry(Rml::Span<const Rml::Vertex> vertices,
@@ -267,19 +372,22 @@ namespace Trinex::UI::RML::Backend
 			void RenderGeometry(Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation,
 			                    Rml::TextureHandle texture) override
 			{
+				on_rendering();
+
 				struct Instance {
 					RMLGeometry* geometry;
 					RMLTexture* texture;
 					Matrix4f transform;
 					Rml::Vector2f translation;
-				} instance;
+				};
 
+				auto& entry = m_stack.back();
+
+				Instance instance;
 				instance.geometry    = RMLGeometry::from(geometry);
 				instance.texture     = RMLTexture::from(texture);
-				instance.transform   = m_transform;
-				instance.translation = translation;
-
-				auto list = ImGui::GetWindowDrawList();
+				instance.transform   = entry.transform;
+				instance.translation = translation + entry.render_offset;
 
 				auto callback = ImDrawCallbackFunc
 				{
@@ -301,7 +409,7 @@ namespace Trinex::UI::RML::Backend
 					ctx->draw_indexed(RHITopology::TriangleList, instance->geometry->count(), 0, 0);
 				};
 
-				list->AddCallback(callback, &instance, sizeof(instance));
+				entry.draw_list->AddCallback(callback, &instance, sizeof(instance));
 			}
 
 			void ReleaseGeometry(Rml::CompiledGeometryHandle geometry) override { trx_delete RMLGeometry::from(geometry); }
@@ -337,14 +445,21 @@ namespace Trinex::UI::RML::Backend
 
 			void EnableScissorRegion(bool enable) override
 			{
-				rml_stub_log();
-				(void) enable;
+				auto& flags = m_stack.back().flags;
+
+				if (flags.set(RenderFlags::IsScissorEnabled, enable) == RenderFlags::IsScissorEnabled)
+				{
+					flags.set(RenderFlags::IsScissorDirty);
+				}
 			}
 
 			void SetScissorRegion(Rml::Rectanglei region) override
 			{
-				rml_stub_log();
-				(void) region;
+				auto& entry   = m_stack.back();
+				entry.scissor = region;
+
+				if (entry.flags.any(RenderFlags::IsScissorEnabled))
+					entry.flags.set(RenderFlags::IsScissorDirty);
 			}
 		};
 	}// namespace
@@ -359,6 +474,6 @@ namespace Trinex::UI::RML::Backend
 	{
 		Rml::SetRenderInterface(nullptr);
 	}
-}// namespace Trinex::UI::RML::Backend
+}// namespace Trinex::UI
 
 #undef rml_stub_log

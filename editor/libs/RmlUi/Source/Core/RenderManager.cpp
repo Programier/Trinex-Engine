@@ -43,7 +43,7 @@ RenderManager::~RenderManager()
 
 void RenderManager::BeginRender()
 {
-	render_interface->Begin(viewport_dimensions);
+	render_interface->Begin(Vector2f(viewport_dimensions), {0.f, 0.f}, {0.f, 0.f});
 }
 
 void RenderManager::EndRender()
