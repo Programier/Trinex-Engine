@@ -26,7 +26,7 @@ namespace Trinex
 				ImGuiTrinexWindowData() : time(engine_instance->time_seconds()), update_monitors(true) {}
 			};
 
-			struct ImGuiTrinexPlatformViewportData {
+			struct ImGuiTrinexViewportData {
 				Window* window    = nullptr;
 				ImGuiContext* ctx = nullptr;
 				bool owns_window  = false;
@@ -41,9 +41,9 @@ namespace Trinex
 				               : nullptr;
 			}
 
-			static ImGuiTrinexPlatformViewportData* viewport_data(ImGuiViewport* vp)
+			static ImGuiTrinexViewportData* viewport_data(ImGuiViewport* vp)
 			{
-				return vp ? reinterpret_cast<ImGuiTrinexPlatformViewportData*>(vp->PlatformUserData) : nullptr;
+				return vp ? reinterpret_cast<ImGuiTrinexViewportData*>(vp->PlatformUserData) : nullptr;
 			}
 
 			static ImVec2 trinex_to_imgui_pos(Window* window)
@@ -242,7 +242,7 @@ namespace Trinex
 				if (it == s_viewports.end())
 					return;
 
-				ImGuiTrinexPlatformViewportData* data = viewport_data(it->second);
+				ImGuiTrinexViewportData* data = viewport_data(it->second);
 
 				if (data && data->ctx)
 				{
@@ -253,7 +253,7 @@ namespace Trinex
 
 			static void imgui_sent_mouse_position(Trinex::Window* window, float x, float y)
 			{
-				auto& io = ImGui::GetIO();
+				auto& io   = ImGui::GetIO();
 				ImVec2 pos = mouse_to_imgui_pos(window, x, y);
 				io.AddMousePosEvent(pos.x, pos.y);
 			}
@@ -458,7 +458,7 @@ namespace Trinex
 
 			static FORCE_INLINE Trinex::Window* window_from(ImGuiViewport* vp)
 			{
-				ImGuiTrinexPlatformViewportData* data = viewport_data(vp);
+				ImGuiTrinexViewportData* data = viewport_data(vp);
 				return data ? data->window : nullptr;
 			}
 
@@ -486,20 +486,36 @@ namespace Trinex
 				auto parent_window =
 				        vp->ParentViewportId != 0 ? window_from(ImGui::FindViewportByID(vp->ParentViewportId)) : nullptr;
 				auto new_window   = Trinex::WindowManager::instance()->create_window(config, parent_window);
-				auto data         = IM_NEW(ImGuiTrinexPlatformViewportData)();
+				auto data         = IM_NEW(ImGuiTrinexViewportData)();
 				data->window      = new_window;
 				data->ctx         = ImGui::GetCurrentContext();
 				data->owns_window = true;
 
-				vp->PlatformHandle   = new_window;
-				vp->PlatformUserData = data;
+				vp->PlatformHandle      = new_window;
+				vp->PlatformUserData    = data;
 				s_viewports[new_window] = vp;
+
+				new_window->on_destroy.push([](Window* window) {
+					auto it = s_viewports.find(window);
+					if (it == s_viewports.end())
+						return;
+
+					ImGuiViewport* vp = it->second;
+					if (ImGuiTrinexViewportData* data = viewport_data(vp))
+					{
+						data->window      = nullptr;
+						data->owns_window = false;
+					}
+
+					vp->PlatformHandle = nullptr;
+					s_viewports.erase(it);
+				});
 			}
 
 			static void window_destroy(ImGuiViewport* vp)
 			{
-				ImGuiTrinexPlatformViewportData* data = viewport_data(vp);
-				Window* window                       = data ? data->window : nullptr;
+				ImGuiTrinexViewportData* data = viewport_data(vp);
+				Window* window                = data ? data->window : nullptr;
 
 				if (data && data->owns_window && window)
 				{
@@ -609,22 +625,22 @@ namespace Trinex
 
 			static void init_platform_interface(Trinex::Window* window)
 			{
-				ImGuiPlatformIO& platform_io            = ImGui::GetPlatformIO();
-				platform_io.Platform_CreateWindow       = window_create;
-				platform_io.Platform_DestroyWindow      = window_destroy;
-				platform_io.Platform_ShowWindow         = window_show;
-				platform_io.Platform_SetWindowPos       = set_window_pos;
-				platform_io.Platform_GetWindowPos       = get_window_pos;
-				platform_io.Platform_SetWindowSize      = set_window_size;
-				platform_io.Platform_GetWindowSize      = get_window_size;
+				ImGuiPlatformIO& platform_io                   = ImGui::GetPlatformIO();
+				platform_io.Platform_CreateWindow              = window_create;
+				platform_io.Platform_DestroyWindow             = window_destroy;
+				platform_io.Platform_ShowWindow                = window_show;
+				platform_io.Platform_SetWindowPos              = set_window_pos;
+				platform_io.Platform_GetWindowPos              = get_window_pos;
+				platform_io.Platform_SetWindowSize             = set_window_size;
+				platform_io.Platform_GetWindowSize             = get_window_size;
 				platform_io.Platform_GetWindowFramebufferScale = get_window_framebuffer_scale;
-				platform_io.Platform_SetWindowFocus     = set_window_focus;
-				platform_io.Platform_GetWindowFocus     = get_window_focus;
-				platform_io.Platform_GetWindowMinimized = get_window_minimized;
-				platform_io.Platform_SetWindowTitle     = set_window_title;
+				platform_io.Platform_SetWindowFocus            = set_window_focus;
+				platform_io.Platform_GetWindowFocus            = get_window_focus;
+				platform_io.Platform_GetWindowMinimized        = get_window_minimized;
+				platform_io.Platform_SetWindowTitle            = set_window_title;
 
 				ImGuiViewport* main_viewport    = ImGui::GetMainViewport();
-				auto data                       = IM_NEW(ImGuiTrinexPlatformViewportData)();
+				auto data                       = IM_NEW(ImGuiTrinexViewportData)();
 				data->window                    = window;
 				data->ctx                       = ImGui::GetCurrentContext();
 				data->owns_window               = false;
@@ -681,7 +697,7 @@ namespace Trinex
 				ClientListener& on_destroy(UI::Client* client) override
 				{
 					ImGui::DestroyPlatformWindows();
-					if (ImGuiTrinexPlatformViewportData* data = viewport_data(ImGui::GetMainViewport()))
+					if (ImGuiTrinexViewportData* data = viewport_data(ImGui::GetMainViewport()))
 					{
 						if (data->window)
 							s_viewports.erase(data->window);
