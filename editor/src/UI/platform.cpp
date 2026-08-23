@@ -1,8 +1,7 @@
 #include <Core/base_engine.hpp>
-#include <Core/etl/flat_set.hpp>
+#include <Core/etl/map.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/reflection/class.hpp>
-#include <Core/viewport_client.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Input/event_system.hpp>
 #include <Input/input_codes.hpp>
@@ -20,73 +19,61 @@ namespace Trinex
 	{
 		namespace WindowBackend
 		{
-			static Map<Trinex::Window*, FlatSet<ImGuiContext*>> s_window_mapping;
-
 			struct ImGuiTrinexWindowData {
-				Window* window;
 				float time;
 				bool update_monitors;
 
-				ImGuiTrinexWindowData() : window(nullptr), time(engine_instance->time_seconds()), update_monitors(true) {}
+				ImGuiTrinexWindowData() : time(engine_instance->time_seconds()), update_monitors(true) {}
 			};
 
-			class ImGuiViewportClient : public ViewportClient
-			{
-				trinex_class(ImGuiViewportClient, ViewportClient);
-				ImGuiViewport* m_viewport = nullptr;
-				ImGuiContext* m_context   = nullptr;
-
-			public:
-				inline ImGuiViewportClient& init(ImGuiViewport* viewport)
-				{
-					m_context = ImGui::GetCurrentContext();
-					return *this;
-				}
-
-				inline ImGuiContext* context() const { return m_context; }
-
-				ViewportClient& attach(class RenderViewport* viewport) override
-				{
-					// m_window = ImGuiWindow::current();
-					return *this;
-				}
-
-				ViewportClient& update(class RenderViewport* viewport, float dt) override
-				{
-					// ImGuiContextLock lock(m_window->context());
-
-					// RHISwapchain* swapchain = viewport->swapchain();
-
-					// auto bd = RenderBackend::backend_data();
-					// std::swap(viewport, bd->window);// Temporary set as main viewport
-
-					// RHIContext* ctx = RHIContextPool::global_instance()->begin_context();
-					// {
-					// 	RHITexture* texture = swapchain->as_texture();
-					// 	ctx->barrier(texture, RHIAccess::RTV);
-
-					// 	trinex_rhi_push_stage(ctx, "ImGuiViewportClient");
-					// 	UI::Backend::imgui_render(ctx, m_viewport->DrawData);
-					// 	trinex_rhi_pop_stage(ctx);
-
-					// 	ctx->barrier(texture, RHIAccess::PresentSrc);
-					// }
-					// RHIContextPool::global_instance()->end_context(ctx, swapchain->acquire_semaphore(),
-					//                                                swapchain->present_semaphore());
-					// RHI::instance()->present(swapchain);
-
-					// std::swap(viewport, bd->window);// Restore main viewport
-					return *this;
-				}
+			struct ImGuiTrinexPlatformViewportData {
+				Window* window    = nullptr;
+				ImGuiContext* ctx = nullptr;
+				bool owns_window  = false;
 			};
 
-			trinex_implement_class(Trinex::WindowBackend::ImGuiViewportClient, 0) {}
+			static Map<Window*, ImGuiViewport*> s_viewports;
 
 			static ImGuiTrinexWindowData* backend_data()
 			{
 				return ImGui::GetCurrentContext()
 				               ? reinterpret_cast<ImGuiTrinexWindowData*>(ImGui::GetIO().BackendPlatformUserData)
 				               : nullptr;
+			}
+
+			static ImGuiTrinexPlatformViewportData* viewport_data(ImGuiViewport* vp)
+			{
+				return vp ? reinterpret_cast<ImGuiTrinexPlatformViewportData*>(vp->PlatformUserData) : nullptr;
+			}
+
+			static ImVec2 trinex_to_imgui_pos(Window* window)
+			{
+				auto pos  = window->position();
+				auto info = Platform::monitor_info(window->monitor_index());
+				return {static_cast<float>(pos.x), static_cast<float>(info.size.y - (pos.y + window->size().y))};
+			}
+
+			static Vector2u imgui_to_trinex_pos(Window* window, ImVec2 pos)
+			{
+				auto info = Platform::monitor_info(window->monitor_index());
+				return {static_cast<u32>(pos.x), static_cast<u32>(info.size.y - (pos.y + window->size().y))};
+			}
+
+			static ImVec2 mouse_to_imgui_pos(Window* window, float x, float y)
+			{
+				if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+				{
+					auto pos = trinex_to_imgui_pos(window);
+					return {x + pos.x, window->size().y - y + pos.y};
+				}
+
+				return {x, window->size().y - y};
+			}
+
+			static float window_dpi_scale(Window* window)
+			{
+				float dpi = Platform::monitor_info(window->monitor_index()).dpi;
+				return dpi > 0.f ? dpi / 96.0f : 1.f;
 			}
 
 			static FORCE_INLINE Trinex::Window* window_from(Identifier window_id)
@@ -245,40 +232,35 @@ namespace Trinex
 			}
 
 			template<typename F>
-			static void for_each_context(Identifier window_id, F&& f)
+			static void with_window_context(Identifier window_id, F&& f)
 			{
 				Trinex::Window* window = window_from(window_id);
+				if (window == nullptr)
+					return;
 
-				if (window)
+				auto it = s_viewports.find(window);
+				if (it == s_viewports.end())
+					return;
+
+				ImGuiTrinexPlatformViewportData* data = viewport_data(it->second);
+
+				if (data && data->ctx)
 				{
-					auto& list = s_window_mapping[window];
-
-					for (ImGuiContext* ctx : list)
-					{
-						ImGuiContextSaver saver(ctx);
-						f(window);
-					}
+					ImGuiContextSaver saver(data->ctx);
+					f(window);
 				}
 			}
 
 			static void imgui_sent_mouse_position(Trinex::Window* window, float x, float y)
 			{
 				auto& io = ImGui::GetIO();
-				if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-				{
-					auto info = Platform::monitor_info(window->monitor_index());
-					auto pos  = window->position();
-					io.AddMousePosEvent(x + pos.x, info.size.y - (y + pos.y));
-				}
-				else
-				{
-					io.AddMousePosEvent(x, window->size().y - y);
-				}
+				ImVec2 pos = mouse_to_imgui_pos(window, x, y);
+				io.AddMousePosEvent(pos.x, pos.y);
 			}
 
 			static void on_mouse_move(Identifier window_id, const PointerEvent& data)
 			{
-				for_each_context(window_id, [&data](Trinex::Window* window) {
+				with_window_context(window_id, [&data](Trinex::Window* window) {
 					auto& io = ImGui::GetIO();
 					io.AddMouseSourceEvent(ImGuiMouseSource_Mouse);
 					imgui_sent_mouse_position(window, data.screen_position.x, data.screen_position.y);
@@ -291,7 +273,7 @@ namespace Trinex
 
 				if (imgui_button != -1)
 				{
-					for_each_context(window_id, [is_pressed, imgui_button](Trinex::Window*) {
+					with_window_context(window_id, [is_pressed, imgui_button](Trinex::Window*) {
 						auto& io = ImGui::GetIO();
 						io.AddMouseSourceEvent(ImGuiMouseSource_Mouse);
 						io.AddMouseButtonEvent(imgui_button, is_pressed);
@@ -301,7 +283,7 @@ namespace Trinex
 
 			static void on_mouse_wheel(Identifier window_id, const PointerEvent& data)
 			{
-				for_each_context(window_id, [&data](Trinex::Window*) {
+				with_window_context(window_id, [&data](Trinex::Window*) {
 					auto& io = ImGui::GetIO();
 					io.AddMouseSourceEvent(ImGuiMouseSource_Mouse);
 					io.AddMouseWheelEvent(data.wheel_delta.x, data.wheel_delta.y);
@@ -314,7 +296,7 @@ namespace Trinex
 
 				if (imgui_button != ImGuiKey_None)
 				{
-					for_each_context(window_id, [is_pressed, imgui_button](Trinex::Window*) {
+					with_window_context(window_id, [is_pressed, imgui_button](Trinex::Window*) {
 						auto& io = ImGui::GetIO();
 
 						if (is_in<ImGuiKey_LeftCtrl, ImGuiKey_RightCtrl>(imgui_button))
@@ -332,7 +314,7 @@ namespace Trinex
 
 			static void on_text_input(Identifier window_id, const TextInputEvent& data)
 			{
-				for_each_context(window_id, [&data](Trinex::Window*) {
+				with_window_context(window_id, [&data](Trinex::Window*) {
 					auto& io = ImGui::GetIO();
 					io.AddInputCharacter(static_cast<unsigned int>(data.codepoint));
 				});
@@ -340,30 +322,30 @@ namespace Trinex
 
 			static void on_window_close(Identifier window_id)
 			{
-				for_each_context(window_id, [](Trinex::Window* window) {
-					if (auto* vp = ImGui::FindViewportByPlatformHandle(window))
+				with_window_context(window_id, [](Trinex::Window* window) {
+					if (auto it = s_viewports.find(window); it != s_viewports.end())
 					{
-						vp->PlatformRequestClose = true;
+						it->second->PlatformRequestClose = true;
 					}
 				});
 			}
 
 			static void on_window_move(Identifier window_id)
 			{
-				for_each_context(window_id, [](Trinex::Window* window) {
-					if (auto* vp = ImGui::FindViewportByPlatformHandle(window))
+				with_window_context(window_id, [](Trinex::Window* window) {
+					if (auto it = s_viewports.find(window); it != s_viewports.end())
 					{
-						vp->PlatformRequestMove = true;
+						it->second->PlatformRequestMove = true;
 					}
 				});
 			}
 
 			static void on_window_resize(Identifier window_id)
 			{
-				for_each_context(window_id, [](Trinex::Window* window) {
-					if (auto* vp = ImGui::FindViewportByPlatformHandle(window))
+				with_window_context(window_id, [](Trinex::Window* window) {
+					if (auto it = s_viewports.find(window); it != s_viewports.end())
 					{
-						vp->PlatformRequestResize = true;
+						it->second->PlatformRequestResize = true;
 					}
 				});
 			}
@@ -476,7 +458,8 @@ namespace Trinex
 
 			static FORCE_INLINE Trinex::Window* window_from(ImGuiViewport* vp)
 			{
-				return reinterpret_cast<Trinex::Window*>(vp->PlatformHandle);
+				ImGuiTrinexPlatformViewportData* data = viewport_data(vp);
+				return data ? data->window : nullptr;
 			}
 
 			static void window_create(ImGuiViewport* vp)
@@ -500,35 +483,38 @@ namespace Trinex
 
 				config.client = "";
 
-				auto parent_window = window_from(ImGui::FindViewportByID(vp->ParentViewportId));
-				auto new_window    = Trinex::WindowManager::instance()->create_window(config, parent_window);
-
-				auto render_viewport = new_window->render_viewport();
-				auto client          = Object::new_instance<ImGuiViewportClient>();
-				client->init(vp);
-				render_viewport->client(client);
+				auto parent_window =
+				        vp->ParentViewportId != 0 ? window_from(ImGui::FindViewportByID(vp->ParentViewportId)) : nullptr;
+				auto new_window   = Trinex::WindowManager::instance()->create_window(config, parent_window);
+				auto data         = IM_NEW(ImGuiTrinexPlatformViewportData)();
+				data->window      = new_window;
+				data->ctx         = ImGui::GetCurrentContext();
+				data->owns_window = true;
 
 				vp->PlatformHandle   = new_window;
-				vp->PlatformUserData = reinterpret_cast<void*>(new_window->id());
-
-				new_window->on_destroy.push([vp](Window* window) {
-					vp->PlatformHandle   = nullptr;
-					vp->PlatformUserData = nullptr;
-				});
+				vp->PlatformUserData = data;
+				s_viewports[new_window] = vp;
 			}
 
 			static void window_destroy(ImGuiViewport* vp)
 			{
-				if (vp->ParentViewportId != 0)
+				ImGuiTrinexPlatformViewportData* data = viewport_data(vp);
+				Window* window                       = data ? data->window : nullptr;
+
+				if (data && data->owns_window && window)
 				{
-					Identifier id = reinterpret_cast<Identifier>(vp->PlatformUserData);
-					if (Trinex::Window* window = WindowManager::instance()->find(id))
-					{
-						WindowManager::instance()->destroy_window(window);
-					}
+					data->owns_window = false;
+					WindowManager::instance()->destroy_window(window);
 				}
 
-				vp->PlatformUserData = vp->PlatformHandle = nullptr;
+				if (window)
+					s_viewports.erase(window);
+
+				if (data)
+					IM_DELETE(data);
+
+				vp->PlatformUserData = nullptr;
+				vp->PlatformHandle   = nullptr;
 			}
 
 			static void window_show(ImGuiViewport* vp)
@@ -543,8 +529,7 @@ namespace Trinex
 			{
 				if (Trinex::Window* wd = window_from(vp))
 				{
-					auto info = Platform::monitor_info(wd->monitor_index());
-					wd->position({pos.x, info.size.y - (pos.y + wd->size().y)});
+					wd->position(imgui_to_trinex_pos(wd, pos));
 				}
 			}
 
@@ -552,10 +537,7 @@ namespace Trinex
 			{
 				if (Trinex::Window* wd = window_from(vp))
 				{
-					auto pos    = wd->position();
-					auto info   = Platform::monitor_info(wd->monitor_index());
-					float new_y = -pos.y + info.size.y - wd->size().y;
-					return {static_cast<float>(pos.x), static_cast<float>(new_y)};
+					return trinex_to_imgui_pos(wd);
 				}
 
 				return {0, 0};
@@ -578,6 +560,17 @@ namespace Trinex
 				}
 
 				return {0, 0};
+			}
+
+			static ImVec2 get_window_framebuffer_scale(ImGuiViewport* vp)
+			{
+				if (Trinex::Window* wd = window_from(vp))
+				{
+					float scale = window_dpi_scale(wd);
+					return {scale, scale};
+				}
+
+				return {1.f, 1.f};
 			}
 
 			static bool get_window_focus(ImGuiViewport* vp)
@@ -624,14 +617,20 @@ namespace Trinex
 				platform_io.Platform_GetWindowPos       = get_window_pos;
 				platform_io.Platform_SetWindowSize      = set_window_size;
 				platform_io.Platform_GetWindowSize      = get_window_size;
+				platform_io.Platform_GetWindowFramebufferScale = get_window_framebuffer_scale;
 				platform_io.Platform_SetWindowFocus     = set_window_focus;
 				platform_io.Platform_GetWindowFocus     = get_window_focus;
 				platform_io.Platform_GetWindowMinimized = get_window_minimized;
 				platform_io.Platform_SetWindowTitle     = set_window_title;
 
 				ImGuiViewport* main_viewport    = ImGui::GetMainViewport();
+				auto data                       = IM_NEW(ImGuiTrinexPlatformViewportData)();
+				data->window                    = window;
+				data->ctx                       = ImGui::GetCurrentContext();
+				data->owns_window               = false;
 				main_viewport->PlatformHandle   = window;
-				main_viewport->PlatformUserData = reinterpret_cast<void*>(window->id());
+				main_viewport->PlatformUserData = data;
+				s_viewports[window]             = main_viewport;
 			}
 
 			static void update_monitors()
@@ -663,7 +662,6 @@ namespace Trinex
 				ClientListener& on_create(UI::Client* client) override
 				{
 					auto window = client->viewport()->window();
-					s_window_mapping[window].insert(client->context());
 
 					ImGuiIO& io            = ImGui::GetIO();
 					io.BackendPlatformName = "imgui_impl_trinex";
@@ -683,13 +681,21 @@ namespace Trinex
 				ClientListener& on_destroy(UI::Client* client) override
 				{
 					ImGui::DestroyPlatformWindows();
+					if (ImGuiTrinexPlatformViewportData* data = viewport_data(ImGui::GetMainViewport()))
+					{
+						if (data->window)
+							s_viewports.erase(data->window);
+
+						IM_DELETE(data);
+						ImGui::GetMainViewport()->PlatformUserData = nullptr;
+						ImGui::GetMainViewport()->PlatformHandle   = nullptr;
+					}
 
 					ImGuiIO& io            = ImGui::GetIO();
 					io.BackendPlatformName = nullptr;
 					IM_DELETE(reinterpret_cast<ImGuiTrinexWindowData*>(io.BackendPlatformUserData));
 					io.BackendPlatformUserData = nullptr;
 
-					s_window_mapping.erase(client->viewport()->window());
 					return *this;
 				}
 

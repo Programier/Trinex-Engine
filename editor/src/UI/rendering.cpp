@@ -432,6 +432,41 @@ namespace Trinex::RenderBackend
 			bd->context = nullptr;
 			bd->layer   = nullptr;
 		}
+	}// namespace
+
+	namespace
+	{
+		static void render_viewport(RHIContext* ctx, RHISwapchain* swapchain, ImDrawData* draw_data)
+		{
+			if (ctx == nullptr || swapchain == nullptr || draw_data == nullptr)
+				return;
+
+			auto bd = backend_data();
+			if (bd == nullptr)
+				return;
+
+			auto dst  = swapchain->as_texture();
+			auto pool = RHITexturePool::global_instance();
+
+			RHITexture* layer = pool->acquire(RHISurfaceFormat::RGBA8, dst->size(), RHITextureFlags::ColorAttachment);
+
+			bd->layer   = layer;
+			bd->context = ctx;
+			bd->flags   = RenderFlags::Undefined;
+
+			ctx->barrier(layer, RHIAccess::TransferDst);
+			ctx->clear_rtv(layer->as_rtv(), 0.f, 0.f, 0.f, 1.f);
+
+			render(ctx, draw_data);
+
+			ctx->barrier(layer, RHIAccess::TransferSrc);
+			ctx->barrier(dst, RHIAccess::TransferDst);
+			ctx->copy(dst, layer, RHITextureRegion(layer->size()));
+
+			ctx->barrier(dst, RHIAccess::PresentSrc);
+
+			pool->release(layer);
+		}
 
 		static void destroy_device_objects()
 		{
@@ -466,11 +501,45 @@ namespace Trinex::RenderBackend
 			viewport->RendererUserData = nullptr;
 		}
 
+		static void render_window(ImGuiViewport* viewport, void*)
+		{
+			if (viewport == nullptr || viewport->DrawData == nullptr || viewport->PlatformHandle == nullptr)
+				return;
+
+			Window* window = reinterpret_cast<Window*>(viewport->PlatformHandle);
+			if (RenderViewport* render_viewport = window->render_viewport())
+			{
+				if (RHISwapchain* swapchain = render_viewport->swapchain())
+				{
+					RHIContext* ctx = RHIContextPool::global_instance()->begin();
+					{
+						RenderBackend::render_viewport(ctx, swapchain, viewport->DrawData);
+					}
+					RHIContextPool::global_instance()->end(ctx, swapchain->acquire_semaphore(), swapchain->present_semaphore());
+				}
+			}
+		}
+
+		static void swap_buffers(ImGuiViewport* viewport, void*)
+		{
+			if (viewport == nullptr || viewport->PlatformHandle == nullptr)
+				return;
+
+			Window* window = reinterpret_cast<Window*>(viewport->PlatformHandle);
+			if (RenderViewport* render_viewport = window->render_viewport())
+			{
+				if (RHISwapchain* swapchain = render_viewport->swapchain())
+					RHI::instance()->present(swapchain);
+			}
+		}
+
 		static void init_platform_interface()
 		{
 			ImGuiPlatformIO& platform_io       = ImGui::GetPlatformIO();
 			platform_io.Renderer_CreateWindow  = create_window;
 			platform_io.Renderer_DestroyWindow = destroy_window;
+			platform_io.Renderer_RenderWindow  = render_window;
+			platform_io.Renderer_SwapBuffers   = swap_buffers;
 		}
 
 		static class RenderingListener : public UI::ClientListener
@@ -529,32 +598,14 @@ namespace Trinex::RenderBackend
 
 				RHIContext* ctx = RHIContextPool::global_instance()->begin();
 				{
-					auto bd   = RenderBackend::backend_data();
-					auto dst  = swapchain->as_texture();
-					auto pool = RHITexturePool::global_instance();
-
-					RHITexture* layer = pool->acquire(RHISurfaceFormat::RGBA8, dst->size(), RHITextureFlags::ColorAttachment);
-
-					bd->layer   = layer;
-					bd->context = ctx;
-					bd->flags   = RenderFlags::Undefined;
-
-					ctx->barrier(layer, RHIAccess::TransferDst);
-					ctx->clear_rtv(layer->as_rtv(), 0.f, 0.f, 0.f, 1.f);
-
-					RenderBackend::render(ctx, ImGui::GetDrawData());
-
-					ctx->barrier(layer, RHIAccess::TransferSrc);
-					ctx->barrier(dst, RHIAccess::TransferDst);
-					ctx->copy(dst, layer, RHITextureRegion(layer->size()));
-
-					ctx->barrier(dst, RHIAccess::PresentSrc);
-
-					pool->release(layer);
+					RenderBackend::render_viewport(ctx, swapchain, ImGui::GetDrawData());
 				}
 
 				RHIContextPool::global_instance()->end(ctx, swapchain->acquire_semaphore(), swapchain->present_semaphore());
 				RHI::instance()->present(swapchain);
+
+				if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+					ImGui::RenderPlatformWindowsDefault();
 
 				return *this;
 			}

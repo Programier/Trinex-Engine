@@ -94,17 +94,17 @@ namespace Trinex::UI
 		m_ctx      = ImGui::CreateContext();
 
 		ImGui::SetCurrentContext(m_ctx);
-		ClientListener::for_each<&ClientListener::on_create>(this);
 
 		auto& io = ImGui::GetIO();
-
-		initialize_theme(m_ctx);
-
-		io.Fonts->Build();
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 		io.IniFilename = nullptr;
 		io.LogFilename = nullptr;
 
+		ClientListener::for_each<&ClientListener::on_create>(this);
+
+		initialize_theme(m_ctx);
+		io.Fonts->Build();
 		opened_clients().insert({class_instance(), this});
 		return *this;
 	}
