@@ -11,7 +11,6 @@
 #include <Input/event_system.hpp>
 #include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
-#include <Window/window_manager.hpp>
 #include <chrono>
 
 namespace Trinex

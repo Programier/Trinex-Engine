@@ -7,6 +7,7 @@
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/threading.hpp>
+#include <Core/window.hpp>
 #include <Editor/engine.hpp>
 #include <Engine/ActorComponents/camera_component.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
@@ -28,8 +29,6 @@
 #include <UI/imgui.hpp>
 #include <UI/theme.hpp>
 #include <Widgets/imgui_windows.hpp>
-#include <Window/window.hpp>
-#include <Window/window_manager.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui_internal.h>
 #include <imgui_stacklayout.h>
@@ -922,7 +921,7 @@ namespace Trinex
 		if (m_state.viewport.is_hovered && static_cast<MouseButton::Enum>(event.button) == MouseButton::Right)
 		{
 			m_camera_relative_mode = true;
-			WindowManager::instance()->mouse_relative_mode(true);
+			//WindowManager::instance()->mouse_relative_mode(true);
 		}
 	}
 
@@ -931,7 +930,7 @@ namespace Trinex
 		if (static_cast<MouseButton::Enum>(event.button) == MouseButton::Right)
 		{
 			m_camera_relative_mode = false;
-			WindowManager::instance()->mouse_relative_mode(false);
+			//WindowManager::instance()->mouse_relative_mode(false);
 			m_camera_move = {0, 0, 0};
 		}
 	}

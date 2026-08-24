@@ -1,6 +1,5 @@
 #pragma once
 #include <Core/engine_types.hpp>
-#include <Core/math/vector.hpp>
 
 namespace Trinex
 {
@@ -28,25 +27,26 @@ namespace Trinex
 	};
 
 	struct WindowAttribute {
-		enum Enum : EnumerateType
+		enum Enum : u16
 		{
-			None            = 0,
-			Resizable       = 1,
-			FullScreen      = 2,
-			Shown           = 3,
-			Hidden          = 4,
-			BorderLess      = 5,
-			MouseFocus      = 6,
-			InputFocus      = 7,
-			InputGrabbed    = 8,
-			Minimized       = 9,
-			Maximized       = 10,
-			MouseCapture    = 12,
-			MouseGrabbed    = 14,
-			KeyboardGrabbed = 15,
+			Undefined       = 0,
+			Resizable       = 1 << 0,
+			FullScreen      = 1 << 1,
+			Shown           = 1 << 2,
+			Hidden          = 1 << 3,
+			BorderLess      = 1 << 4,
+			MouseFocus      = 1 << 5,
+			InputFocus      = 1 << 6,
+			InputGrabbed    = 1 << 7,
+			Minimized       = 1 << 8,
+			Maximized       = 1 << 9,
+			MouseCapture    = 1 << 10,
+			MouseGrabbed    = 1 << 11,
+			KeyboardGrabbed = 1 << 12,
+			Vsync           = 1 << 13,
 		};
 
-		trinex_enum_struct(WindowAttribute);
+		trinex_bitfield_enum_struct(WindowAttribute, u16);
 		trinex_enum(WindowAttribute);
 	};
 

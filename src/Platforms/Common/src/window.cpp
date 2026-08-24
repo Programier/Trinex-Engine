@@ -1,42 +1,54 @@
+#include <Core/etl/array.hpp>
 #include <Core/reflection/struct.hpp>
+#include <Core/window.hpp>
 #include <Image/image.hpp>
 #include <Platform/platform.hpp>
 #include <RHI/rhi.hpp>
 #include <SDL_gamecontroller.h>
-#include <Window/config.hpp>
-#include <Window/window.hpp>
-#include <Window/window_manager.hpp>
 #include <sdl_window.hpp>
 
 
 namespace Trinex
 {
-	static const Map<WindowAttribute::Enum, SDL_WindowFlags> window_attributes = {
-	        {WindowAttribute::Resizable, SDL_WINDOW_RESIZABLE},
-	        {WindowAttribute::FullScreen, SDL_WINDOW_FULLSCREEN},
-	        {WindowAttribute::Shown, SDL_WINDOW_SHOWN},
-	        {WindowAttribute::Hidden, SDL_WINDOW_HIDDEN},
-	        {WindowAttribute::BorderLess, SDL_WINDOW_BORDERLESS},
-	        {WindowAttribute::MouseFocus, SDL_WINDOW_MOUSE_FOCUS},
-	        {WindowAttribute::InputFocus, SDL_WINDOW_INPUT_FOCUS},
-	        {WindowAttribute::InputGrabbed, SDL_WINDOW_INPUT_GRABBED},
-	        {WindowAttribute::Minimized, SDL_WINDOW_MINIMIZED},
-	        {WindowAttribute::Maximized, SDL_WINDOW_MAXIMIZED},
-	        {WindowAttribute::MouseCapture, SDL_WINDOW_MOUSE_CAPTURE},
-	        {WindowAttribute::MouseGrabbed, SDL_WINDOW_MOUSE_GRABBED},
-	        {WindowAttribute::KeyboardGrabbed, SDL_WINDOW_KEYBOARD_GRABBED}};
 
 
 #define has_flag(flag) static_cast<bool>(SDL_GetWindowFlags(m_window) & flag)
-	static u32 to_sdl_attrib(const Set<WindowAttribute::Enum>& attrib)
+
+	static u32 window_flags_of(WindowAttribute attributes)
 	{
-		u32 value = 0;
-		for (auto ell : attrib)
+		static auto map = []() {
+			Array<SDL_WindowFlags, 14> result;
+
+			auto bind = [&result](WindowAttribute attribute, SDL_WindowFlags flag) { result[attribute.index()] = flag; };
+			bind(WindowAttribute::Resizable, SDL_WINDOW_RESIZABLE);
+			bind(WindowAttribute::FullScreen, SDL_WINDOW_FULLSCREEN);
+			bind(WindowAttribute::Shown, SDL_WINDOW_SHOWN);
+			bind(WindowAttribute::Hidden, SDL_WINDOW_HIDDEN);
+			bind(WindowAttribute::BorderLess, SDL_WINDOW_BORDERLESS);
+			bind(WindowAttribute::MouseFocus, SDL_WINDOW_MOUSE_FOCUS);
+			bind(WindowAttribute::InputFocus, SDL_WINDOW_INPUT_FOCUS);
+			bind(WindowAttribute::InputGrabbed, SDL_WINDOW_INPUT_GRABBED);
+			bind(WindowAttribute::Minimized, SDL_WINDOW_MINIMIZED);
+			bind(WindowAttribute::Maximized, SDL_WINDOW_MAXIMIZED);
+			bind(WindowAttribute::MouseCapture, SDL_WINDOW_MOUSE_CAPTURE);
+			bind(WindowAttribute::MouseGrabbed, SDL_WINDOW_MOUSE_GRABBED);
+			bind(WindowAttribute::KeyboardGrabbed, SDL_WINDOW_KEYBOARD_GRABBED);
+
+			return result;
+		}();
+
+		u32 result = 0;
+
+		while (attributes)
 		{
-			value |= window_attributes.at(ell);
+			u32 index = attributes.index();
+			attributes.remove(1 << index);
+			result |= map[index];
 		}
-		return value;
+
+		return result;
 	}
+
 
 	static SDL_WindowFlags sdl_api()
 	{
@@ -55,10 +67,9 @@ namespace Trinex
 		return pos < 0 ? SDL_WINDOWPOS_CENTERED : pos;
 	}
 
-	WindowSDL* WindowSDL::sdl_initialize(const WindowConfig* info)
+	WindowSDL::WindowSDL(const WindowDesc* desc)
 	{
-		//m_vsync_status = info->vsync;
-		u32 attrib = to_sdl_attrib(info->attributes);
+		u32 attrib = window_flags_of(desc->attributes);
 
 		if ((attrib & SDL_WINDOW_SHOWN) != SDL_WINDOW_SHOWN && (attrib & SDL_WINDOW_HIDDEN) != SDL_WINDOW_HIDDEN)
 		{
@@ -69,11 +80,8 @@ namespace Trinex
 		SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0");
 #endif
 
-		m_api = sdl_api();
-
-		m_window = SDL_CreateWindow(info->title.c_str(), validate_pos(info->position.x), validate_pos(info->position.y),
-		                            static_cast<int>(info->size.x), static_cast<int>(info->size.y),
-		                            m_api | SDL_WINDOW_ALLOW_HIGHDPI | attrib);
+		m_window = SDL_CreateWindow(desc->title.c_str(), validate_pos(desc->pos.x), validate_pos(desc->pos.y), desc->size.x,
+		                            desc->size.y, sdl_api() | SDL_WINDOW_ALLOW_HIGHDPI | attrib);
 
 		{
 			i32 x, y;
@@ -84,7 +92,6 @@ namespace Trinex
 		m_id = static_cast<Identifier>(SDL_GetWindowID(m_window));
 
 		trinex_verify_fmt(m_window, "Failed to initialize window: %s", SDL_GetError());
-		return this;
 	}
 
 	WindowSDL& WindowSDL::width(f32 w)
@@ -382,8 +389,7 @@ namespace Trinex
 
 	bool WindowSDL::attribute(const WindowAttribute& attrib)
 	{
-		auto f = window_attributes.at(attrib);
-		return has_flag(f);
+		return has_flag(window_flags_of(attrib.first()));
 	}
 
 	WindowSDL& WindowSDL::cursor_mode(const CursorMode& mode)

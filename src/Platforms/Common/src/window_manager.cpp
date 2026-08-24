@@ -1,11 +1,10 @@
 #include <Core/base_engine.hpp>
 #include <Core/memory.hpp>
 #include <Core/threading.hpp>
+#include <Core/window.hpp>
 #include <Input/event_system.hpp>
 #include <Input/input_system.hpp>
 #include <Platform/platform.hpp>
-#include <Window/window.hpp>
-#include <Window/window_manager.hpp>
 #include <sdl_window.hpp>
 
 namespace Trinex::Platform
@@ -54,14 +53,14 @@ namespace Trinex::Platform
 			SDL_Quit();
 		}
 
-		ENGINE_EXPORT Window* create_window(const WindowConfig* config)
+		ENGINE_EXPORT Window* create_window(const WindowDesc* desc)
 		{
-			return (new WindowSDL())->sdl_initialize(config);
+			return trx_new WindowSDL(desc);
 		}
 
 		ENGINE_EXPORT void destroy_window(Window* window)
 		{
-			delete window;
+			trx_delete window;
 		}
 
 		ENGINE_EXPORT void mouse_relative_mode(bool flag)
@@ -230,7 +229,7 @@ namespace Trinex::Platform
 
 					case SDL_WINDOWEVENT_MOVED:
 					{
-						if (Window* window = Trinex::WindowManager::instance()->find(window_id))
+						if (Window* window = Trinex::Window::find(window_id))
 						{
 							auto info = Platform::monitor_info(window->monitor_index());
 							submit_window_event(window_id, WindowEventKind::Moved, x,
@@ -254,7 +253,7 @@ namespace Trinex::Platform
 						event.window.kind   = WindowEventKind::Resized;
 						event.window.size   = {static_cast<u32>(x), static_cast<u32>(y)};
 
-						if (WindowSDL* window = reinterpret_cast<WindowSDL*>(Trinex::WindowManager::instance()->find(window_id)))
+						if (WindowSDL* window = static_cast<WindowSDL*>(Trinex::Window::find(window_id)))
 						{
 							window->m_size.store({x, y});
 						}

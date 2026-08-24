@@ -4,11 +4,11 @@
 #include <Core/math/math.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/property.hpp>
+#include <Core/window.hpp>
 #include <Engine/ActorComponents/camera_component.hpp>
 #include <Engine/camera_view.hpp>
 #include <RHI/rhi.hpp>
 #include <ScriptEngine/script_binding.hpp>
-#include <Window/window.hpp>
 
 namespace Trinex
 {

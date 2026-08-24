@@ -2,15 +2,13 @@
 #include <Core/etl/map.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/reflection/class.hpp>
+#include <Core/window.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Input/event_system.hpp>
 #include <Input/input_codes.hpp>
 #include <Input/input_events.hpp>
 #include <Platform/platform.hpp>
 #include <UI/client.hpp>
-#include <Window/config.hpp>
-#include <Window/window.hpp>
-#include <Window/window_manager.hpp>
 #include <imgui.h>
 
 namespace Trinex
@@ -74,11 +72,6 @@ namespace Trinex
 			{
 				float dpi = Platform::monitor_info(window->monitor_index()).dpi;
 				return dpi > 0.f ? dpi / 96.0f : 1.f;
-			}
-
-			static FORCE_INLINE Trinex::Window* window_from(Identifier window_id)
-			{
-				return WindowManager::instance()->find(window_id);
 			}
 
 			struct ImGuiContextSaver {
@@ -234,7 +227,7 @@ namespace Trinex
 			template<typename F>
 			static void with_window_context(Identifier window_id, F&& f)
 			{
-				Trinex::Window* window = window_from(window_id);
+				Trinex::Window* window = Window::find(window_id);
 				if (window == nullptr)
 					return;
 
@@ -464,28 +457,26 @@ namespace Trinex
 
 			static void window_create(ImGuiViewport* vp)
 			{
-				WindowConfig config;
-				config.position.x = vp->Pos.x;
-				config.position.y = vp->Pos.y;
-				config.size.x     = vp->Size.x;
-				config.size.y     = vp->Size.y;
+				WindowDesc desc = {};
+				desc.pos.x      = vp->Pos.x;
+				desc.pos.y      = vp->Pos.y;
+				desc.size.x     = vp->Size.x;
+				desc.size.y     = vp->Size.y;
 
-				config.attributes = {WindowAttribute::Hidden};
+				desc.attributes = WindowAttribute::Hidden;
 
 				if (vp->Flags & ImGuiViewportFlags_NoDecoration)
 				{
-					config.attributes.insert(WindowAttribute::BorderLess);
+					desc.attributes.set(WindowAttribute::BorderLess);
 				}
 				else
 				{
-					config.attributes.insert(WindowAttribute::Resizable);
+					desc.attributes.set(WindowAttribute::Resizable);
 				}
-
-				config.client = "";
 
 				auto parent_window =
 				        vp->ParentViewportId != 0 ? window_from(ImGui::FindViewportByID(vp->ParentViewportId)) : nullptr;
-				auto new_window   = Trinex::WindowManager::instance()->create_window(config, parent_window);
+				auto new_window   = Trinex::Window::create(desc, parent_window);
 				auto data         = IM_NEW(ImGuiTrinexViewportData)();
 				data->window      = new_window;
 				data->ctx         = ImGui::GetCurrentContext();
@@ -520,7 +511,7 @@ namespace Trinex
 				if (data && data->owns_window && window)
 				{
 					data->owns_window = false;
-					WindowManager::instance()->destroy_window(window);
+					Window::destroy(window);
 				}
 
 				if (window)

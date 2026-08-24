@@ -12,6 +12,7 @@
 #include <Core/reflection/struct.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/threading.hpp>
+#include <Core/window.hpp>
 #include <Engine/project.hpp>
 #include <Engine/settings.hpp>
 #include <Engine/splash_screen.hpp>
@@ -22,9 +23,6 @@
 #include <RHI/rhi.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_module.hpp>
-#include <Window/config.hpp>
-#include <Window/window.hpp>
-#include <Window/window_manager.hpp>
 
 namespace Trinex
 {
@@ -116,9 +114,9 @@ namespace Trinex
 		initialize_graphics_api();
 
 		// Setup main window
-		WindowConfig config;
-		config.attributes.insert(WindowAttribute::Hidden);
-		WindowManager::instance()->create_window(config, nullptr)->hide();
+		WindowDesc desc;
+		desc.attributes.set(WindowAttribute::Hidden);
+		Window::create(desc);
 		return 0;
 	}
 
@@ -161,7 +159,7 @@ namespace Trinex
 		if (show_splash)
 			Trinex::hide_splash_screen();
 
-		if (Window* window = WindowManager::instance()->main_window())
+		if (Window* window = Window::main())
 		{
 			window->show();
 		}
@@ -180,11 +178,7 @@ namespace Trinex
 		LifeCycle::execute(LifeCycle::Shutdown);
 		engine_instance->terminate();
 
-		if (WindowManager::instance())
-			WindowManager::instance()->destroy_window(WindowManager::instance()->main_window());
-
-		if (WindowManager::instance())
-			trx_delete WindowManager::instance();
+		Window::destroy(Window::main());
 
 		GarbageCollector::destroy_all_objects();
 		RHI::destroy();

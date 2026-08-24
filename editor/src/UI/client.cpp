@@ -2,13 +2,11 @@
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/reflection/class.hpp>
+#include <Core/window.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <UI/Elements/document.hpp>
 #include <UI/client.hpp>
 #include <UI/theme.hpp>
-#include <Window/config.hpp>
-#include <Window/window.hpp>
-#include <Window/window_manager.hpp>
 #include <imgui.h>
 
 namespace Trinex::UI
@@ -32,10 +30,10 @@ namespace Trinex::UI
 			if (client_class == nullptr)
 				return nullptr;
 
-			WindowConfig config;
-			config.client = client_class->full_name();
+			WindowDesc desc;
+			desc.client = client_class->full_name();
 
-			if (Window* window = WindowManager::instance()->create_window(config))
+			if (Window* window = Window::create(desc))
 			{
 				return Object::instance_cast<Client>(window->render_viewport()->client());
 			}

@@ -1,6 +1,7 @@
 #include <Core/base_engine.hpp>
 #include <Core/math/math.hpp>
 #include <Core/profiler.hpp>
+#include <Core/window.hpp>
 #include <Engine/Render/pipelines.hpp>
 #include <Graphics/pipeline_library.hpp>
 #include <Graphics/render_pools.hpp>
@@ -12,7 +13,6 @@
 #include <RHI/rhi.hpp>
 #include <RHI/static_sampler.hpp>
 #include <UI/client.hpp>
-#include <Window/window.hpp>
 #include <imgui.h>
 
 namespace Trinex::RenderBackend

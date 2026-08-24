@@ -11,6 +11,16 @@ namespace Trinex
 	struct WindowConfig;
 	class Image;
 
+	struct WindowDesc {
+		String title  = "Trinex Engine";
+		String client = "";
+		Vector2u size = {1280, 720};
+		Vector2u pos  = {0, 0};
+
+		WindowAttribute attributes = WindowAttribute::Undefined;
+		i16 monitor                = -1;
+	};
+
 	class ENGINE_EXPORT Window
 	{
 	public:
@@ -27,7 +37,13 @@ namespace Trinex
 		Atomic<Vector2u> m_size;
 
 	public:
-		virtual void initialize(const WindowConfig&);
+		static Window* create(String title, Vector2u size, Window* parent = nullptr, Window* self = nullptr);
+		static Window* create(const WindowDesc& desc, Window* parent = nullptr, Window* self = nullptr);
+		static void destroy(Window* window);
+		static Window* find(Identifier id);
+		static Window* main();
+
+	public:
 		f32 width();
 		f32 height();
 		Vector2u size();
@@ -72,7 +88,6 @@ namespace Trinex
 
 		virtual ~Window();
 
-		friend class WindowManager;
 		friend class RenderViewport;
 	};
 }// namespace Trinex

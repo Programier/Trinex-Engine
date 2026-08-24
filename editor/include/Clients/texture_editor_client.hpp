@@ -1,6 +1,7 @@
 #pragma once
 #include <Clients/imgui_client.hpp>
 #include <Core/etl/variant.hpp>
+#include <Core/math/vector.hpp>
 
 namespace Trinex
 {

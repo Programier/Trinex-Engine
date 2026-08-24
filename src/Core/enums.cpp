@@ -6,7 +6,7 @@ namespace Trinex
 	trinex_implement_engine_enum(OperationSystemType, Refl::Enum::IsScriptable, Linux, Windows, Android);
 	trinex_implement_engine_enum(PhysicalSizeMetric, Refl::Enum::IsScriptable, Inch, Сentimeters);
 
-	trinex_implement_engine_enum(WindowAttribute, Refl::Enum::IsScriptable, None, Resizable, FullScreen, Shown, Hidden,
+	trinex_implement_engine_enum(WindowAttribute, Refl::Enum::IsScriptable, Undefined, Resizable, FullScreen, Shown, Hidden,
 	                             BorderLess, MouseFocus, InputFocus, InputGrabbed, Minimized, Maximized, MouseCapture,
 	                             MouseGrabbed, KeyboardGrabbed);
 

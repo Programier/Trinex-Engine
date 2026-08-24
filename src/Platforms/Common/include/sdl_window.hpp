@@ -1,7 +1,7 @@
 #pragma once
 
+#include <Core/window.hpp>
 #include <SDL.h>
-#include <Window/window.hpp>
 
 namespace Trinex
 {
@@ -16,7 +16,6 @@ namespace Trinex
 		SDL_Surface* m_cursor_icon = nullptr;
 		SDL_Cursor* m_cursor       = nullptr;
 
-		SDL_WindowFlags m_api;
 		SDL_Event m_event;
 
 		Identifier m_id;
@@ -25,7 +24,8 @@ namespace Trinex
 		using Window::size;
 		using Window::width;
 
-		WindowSDL* sdl_initialize(const WindowConfig* config);
+		WindowSDL(const WindowDesc* desc);
+
 		WindowSDL& width(f32 width) override;
 		WindowSDL& height(f32 height) override;
 		WindowSDL& size(const Vector2u& size) override;

@@ -10,6 +10,7 @@
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/threading.hpp>
+#include <Core/window.hpp>
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/render_pools.hpp>
@@ -27,9 +28,6 @@
 #include <RHI/static_sampler.hpp>
 #include <UI/imgui.hpp>
 #include <UI/theme.hpp>
-#include <Window/config.hpp>
-#include <Window/window.hpp>
-#include <Window/window_manager.hpp>
 #include <imgui.h>
 #include <imgui_internal.h>
 

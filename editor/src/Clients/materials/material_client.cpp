@@ -5,6 +5,7 @@
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/threading.hpp>
+#include <Core/window.hpp>
 #include <Engine/ActorComponents/camera_component.hpp>
 #include <Engine/ActorComponents/mesh_component.hpp>
 #include <Engine/Actors/static_mesh_actor.hpp>
@@ -19,7 +20,6 @@
 #include <RHI/rhi.hpp>
 #include <Widgets/mesh_preview.hpp>
 #include <Widgets/property_renderer.hpp>
-#include <Window/window.hpp>
 #include <imgui_internal.h>
 
 namespace Trinex

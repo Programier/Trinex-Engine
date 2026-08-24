@@ -3,12 +3,12 @@
 #include <Core/reflection/class.hpp>
 #include <Core/threading.hpp>
 #include <Core/viewport_client.hpp>
+#include <Core/window.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Input/event_system.hpp>
 #include <RHI/rhi.hpp>
-#include <Window/window.hpp>
 
 namespace Trinex
 {

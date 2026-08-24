@@ -1,7 +1,7 @@
+#include <Core/etl/string.hpp>
+#include <Core/etl/vector.hpp>
 #include <SDL.h>
 #include <SDL_vulkan.h>
-#include <Window/window.hpp>
-#include <Window/window_manager.hpp>
 
 namespace Trinex
 {

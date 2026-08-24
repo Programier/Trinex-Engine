@@ -6,15 +6,13 @@
 #include <Core/garbage_collector.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/threading.hpp>
+#include <Core/window.hpp>
 #include <Engine/splash_config.hpp>
 #include <Engine/splash_screen.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/texture.hpp>
 #include <Platform/platform.hpp>
 #include <RHI/rhi.hpp>
-#include <Window/config.hpp>
-#include <Window/window.hpp>
-#include <Window/window_manager.hpp>
 
 namespace Trinex
 {

@@ -96,6 +96,7 @@ namespace Trinex
 #define TRINEX_CONCAT_IMPL(x, y) x##y
 #define TRINEX_CONCAT(x, y) TRINEX_CONCAT_IMPL(x, y)
 
+
 #define constructor_template(name, ...) name(__VA_ARGS__)
 #define constructor_hpp(name, ...) name(__VA_ARGS__)
 #define constructor_cpp(name, ...) name::constructor_template(name, __VA_ARGS__)
@@ -125,6 +126,26 @@ namespace Trinex
 	scope_name::class_name& scope_name::class_name::operator=(scope_name::class_name&&)      = default;                          \
 	scope_name::class_name& scope_name::class_name::operator=(const scope_name::class_name&) = default;
 
+#define trinex_force_inline inline __attribute__((always_inline))
+#define trinex_inline inline
+#define trinex_noinline __attribute__((noinline))
+
+#define trinex_likely(x) __builtin_expect(!!(x), 1)
+#define trinex_unlikely(x) __builtin_expect(!!(x), 0)
+
+#define trinex_debug_break() __builtin_trap()
+
+#define trinex_function_name __PRETTY_FUNCTION__
+
+#define trinex_prefetch(ptr) __builtin_prefetch(ptr)
+
+#define trinex_bswap16(x) __builtin_bswap16(x)
+#define trinex_bswap32(x) __builtin_bswap32(x)
+#define trinex_bswap64(x) __builtin_bswap64(x)
+
+#define trinex_countr_zero(value) static_cast<Trinex::u32>(__builtin_ctzll(value))
+#define trinex_countl_zero(value) static_cast<Trinex::u32>(__builtin_clzll(value))
+#define trinex_popcount(value) static_cast<Trinex::u32>(__builtin_popcountll(value))
 
 #define trinex_enum_struct(struct_type)                                                                                          \
 	static constexpr bool is_enum          = true;                                                                               \
@@ -192,6 +213,25 @@ namespace Trinex
 	constexpr inline struct_type set(underlying_type mask, bool value) noexcept                                                  \
 	{                                                                                                                            \
 		return value ? set(mask) : remove(mask);                                                                                 \
+	}                                                                                                                            \
+	constexpr inline struct_type pop() noexcept                                                                                  \
+	{                                                                                                                            \
+		if (bitfield == 0)                                                                                                       \
+			return {};                                                                                                           \
+		const underlying_type first = bitfield & -bitfield;                                                                      \
+		bitfield &= bitfield - 1;                                                                                                \
+		return struct_type(first);                                                                                               \
+	}                                                                                                                            \
+	constexpr inline struct_type first() const noexcept                                                                          \
+	{                                                                                                                            \
+		if (bitfield == 0)                                                                                                       \
+			return {};                                                                                                           \
+		const underlying_type first = bitfield & -bitfield;                                                                      \
+		return struct_type(first);                                                                                               \
+	}                                                                                                                            \
+	constexpr inline u32 index() const noexcept                                                                                  \
+	{                                                                                                                            \
+		return trinex_countr_zero(bitfield);                                                                                     \
 	}                                                                                                                            \
 	union                                                                                                                        \
 	{                                                                                                                            \

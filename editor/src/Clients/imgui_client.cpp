@@ -5,6 +5,7 @@
 #include <Core/string_functions.hpp>
 #include <Core/threading.hpp>
 #include <Core/types/color.hpp>
+#include <Core/window.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <RHI/rhi.hpp>
 #include <ScriptEngine/script_binding.hpp>
@@ -12,9 +13,6 @@
 #include <ScriptEngine/script_engine.hpp>
 #include <UI/imgui.hpp>
 #include <UI/theme.hpp>
-#include <Window/config.hpp>
-#include <Window/window.hpp>
-#include <Window/window_manager.hpp>
 #include <imgui_internal.h>
 
 namespace Trinex
@@ -47,9 +45,9 @@ namespace Trinex
 
 	static ImGuiViewportClient* open_editor_client(Refl::Class* client)
 	{
-		WindowConfig new_config;
-		new_config.client = client->full_name();
-		auto window       = WindowManager::instance()->create_window(new_config);
+		WindowDesc desc;
+		desc.client = client->full_name();
+		auto window = Window::create(desc);
 		return Object::instance_cast<ImGuiViewportClient>(window->render_viewport()->client());
 	}
 

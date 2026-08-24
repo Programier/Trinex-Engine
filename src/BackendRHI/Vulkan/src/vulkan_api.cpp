@@ -5,11 +5,10 @@
 #include <Core/reflection/struct.hpp>
 #include <Core/threading.hpp>
 #include <Core/tickable.hpp>
+#include <Core/window.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/texture.hpp>
-#include <Window/config.hpp>
-#include <Window/window.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_bindless.hpp>
 #include <vulkan_buffer.hpp>

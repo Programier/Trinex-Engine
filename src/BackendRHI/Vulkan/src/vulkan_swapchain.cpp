@@ -1,11 +1,10 @@
 #include <Core/memory.hpp>
 #include <Core/profiler.hpp>
 #include <Core/threading.hpp>
+#include <Core/window.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/render_viewport.hpp>
-#include <Window/config.hpp>
-#include <Window/window.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_barriers.hpp>
 #include <vulkan_context.hpp>

@@ -8,7 +8,7 @@
 namespace Trinex
 {
 	class Window;
-	struct WindowConfig;
+	struct WindowDesc;
 	struct MonitorInfo;
 	struct Rect2D;
 	struct Event;
@@ -19,7 +19,7 @@ namespace Trinex
 	{
 		class FileSystem;
 		class FileWatcherBackend;
-	}
+	}// namespace VFS
 
 	namespace Platform
 	{
@@ -50,7 +50,7 @@ namespace Trinex
 			ENGINE_EXPORT void initialize();
 			ENGINE_EXPORT void terminate();
 
-			ENGINE_EXPORT Window* create_window(const WindowConfig* config);
+			ENGINE_EXPORT Window* create_window(const WindowDesc* config);
 			ENGINE_EXPORT void destroy_window(Window* interface);
 			ENGINE_EXPORT bool mouse_relative_mode();
 			ENGINE_EXPORT void mouse_relative_mode(bool flag);
