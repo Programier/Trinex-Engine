@@ -32,6 +32,7 @@ endif()
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/tlsf")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/cpp-peglib")
+set_target_properties(peglib PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 target_link_libraries(TrinexEngine PUBLIC fmt-header-only)
 target_link_libraries(TrinexEngine PUBLIC peglib)
