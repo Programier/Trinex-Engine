@@ -3,6 +3,8 @@
 #include <Core/etl/function.hpp>
 #include <Core/etl/span.hpp>
 #include <Core/etl/string.hpp>
+#include <Core/etl/tuple.hpp>
+#include <Core/etl/utility.hpp>
 
 namespace Trinex::Console
 {
@@ -360,6 +362,63 @@ namespace Trinex::Console
 		void* data() override { return &m_value; }
 	};
 
+	class ENGINE_EXPORT Command : public Entry
+	{
+	public:
+		using Callback = Function<ExecuteStatus(const ExecuteContext&)>;
+
+	private:
+		Callback m_callback;
+
+	public:
+		Command(StringView name, Callback callback, StringView description = "", EntryFlags flags = EntryFlags::Undefined);
+
+		template<typename... Args>
+		Command(StringView name, void (*callback)(Args...), StringView description = "", EntryFlags flags = EntryFlags::Undefined)
+		    : Command(name, bind(callback), description, flags)
+		{}
+
+		EntryType type() const override;
+		ExecuteStatus execute(const ExecuteContext& ctx) override;
+
+	private:
+		template<typename... Args>
+		static Callback bind(void (*callback)(Args...))
+		{
+			return [callback](const ExecuteContext& ctx) -> ExecuteStatus {
+				if (ctx.args.size() < sizeof...(Args))
+				{
+					return ExecuteStatus::MissingRequiredParameter;
+				}
+
+				if (ctx.args.size() > sizeof...(Args))
+				{
+					return ExecuteStatus::TooManyParameters;
+				}
+
+				return execute(callback, ctx, etl::index_sequence_for<Args...>());
+			};
+		}
+
+		template<typename... Args, usize... Indices>
+		static ExecuteStatus execute(void (*callback)(Args...), const ExecuteContext& ctx, etl::index_sequence<Indices...>)
+		{
+			Tuple<std::remove_cvref_t<Args>...> args;
+			ExecuteStatus status = ExecuteStatus::Success;
+
+			((status == ExecuteStatus::Success ? status = Entry::store(&etl::get<Indices>(args), &ctx.args[Indices]) : status),
+			 ...);
+
+			if (status != ExecuteStatus::Success)
+			{
+				return status;
+			}
+
+			callback(etl::get<Indices>(args)...);
+			return ExecuteStatus::Success;
+		}
+	};
+
 
 	ENGINE_EXPORT Entry* find(StringView name);
 	ENGINE_EXPORT usize find(StringView name, const FunctionRef<void(Entry*)>& action);
@@ -367,4 +426,10 @@ namespace Trinex::Console
 
 #define trinex_console_variable(type, var, name, ...)                                                                            \
 	Trinex::Console::Variable<type> var = Trinex::Console::Variable<type>(name __VA_OPT__(, ) __VA_ARGS__)
+
+#define trinex_console_command(name, ...)                                                                                        \
+	static void TRINEX_CONCAT(trinex_console_command_callback_, __LINE__)(__VA_ARGS__);                                          \
+	static Trinex::Console::Command TRINEX_CONCAT(trinex_console_command_entry_,                                                 \
+	                                              __LINE__)(#name, &TRINEX_CONCAT(trinex_console_command_callback_, __LINE__));  \
+	static void TRINEX_CONCAT(trinex_console_command_callback_, __LINE__)(__VA_ARGS__)
 }// namespace Trinex::Console

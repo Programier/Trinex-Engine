@@ -19,8 +19,7 @@ Assignment      <- EntryName '=' Value
 Invocation      <- EntryName '(' Newline* ArgumentList Newline* ')'
 Entry           <- EntryName
 ArgumentList    <- Argument (Newline* ',' Newline* Argument)* (Newline* ',')?
-Argument        <- NamedArgument / Value
-NamedArgument   <- Identifier '=' Value
+Argument        <- Value
 Value           <- Array / String / Boolean / Float / Integer / Bareword
 Array           <- '[' Newline* ValueList? Newline* ']'
 ValueList       <- Value (Newline* ',' Newline* Value)* (Newline* ',')?
@@ -82,7 +81,7 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 		};
 
 		Type type = Type::Entry;
-		String name;
+		StringView name;
 		ArgumentArray args;
 		StatementList statements;
 	};
@@ -212,9 +211,8 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 				return array;
 			};
 
-			m_parser["Value"]         = [](const peg::SemanticValues& values) { return any_ref<Argument>(values[0]); };
-			m_parser["NamedArgument"] = [](const peg::SemanticValues& values) { return any_ref<Argument>(values[1]); };
-			m_parser["Argument"]      = [](const peg::SemanticValues& values) { return any_ref<Argument>(values[0]); };
+			m_parser["Value"]    = [](const peg::SemanticValues& values) { return any_ref<Argument>(values[0]); };
+			m_parser["Argument"] = [](const peg::SemanticValues& values) { return any_ref<Argument>(values[0]); };
 
 			m_parser["ArgumentList"] = [](const peg::SemanticValues& values) {
 				ArgumentArray args;
@@ -231,14 +229,14 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 			m_parser["Entry"] = [](const peg::SemanticValues& values) {
 				return Statement{
 				        .type = Statement::Type::Entry,
-				        .name = any_ref<String>(values[0]),
+				        .name = any_ref<StringView>(values[0]),
 				};
 			};
 
 			m_parser["Assignment"] = [](const peg::SemanticValues& values) {
 				Statement statement;
 				statement.type = Statement::Type::Assignment;
-				statement.name = any_ref<String>(values[0]);
+				statement.name = any_ref<StringView>(values[0]);
 				statement.args.emplace_back(any_ref<Argument>(values[1]));
 				return statement;
 			};
@@ -246,7 +244,7 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 			m_parser["Invocation"] = [](const peg::SemanticValues& values) {
 				Statement statement;
 				statement.type = Statement::Type::Invocation;
-				statement.name = any_ref<String>(values[0]);
+				statement.name = any_ref<StringView>(values[0]);
 				statement.args = any_ref<ArgumentArray>(values[1]);
 				return statement;
 			};
@@ -254,7 +252,7 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 			m_parser["Scope"] = [](const peg::SemanticValues& values) {
 				Statement statement;
 				statement.type = Statement::Type::Scope;
-				statement.name = any_ref<String>(values[0]);
+				statement.name = any_ref<StringView>(values[0]);
 
 				if (values.size() > 1)
 				{
@@ -287,10 +285,10 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 				return any_ref<StatementList>(values[0]);
 			};
 
-			m_parser["EntryName"]    = [](const peg::SemanticValues& values) { return any_ref<String>(values[0]); };
-			m_parser["AbsoluteName"] = [](const peg::SemanticValues& values) { return String(values.token()); };
-			m_parser["RelativeName"] = [](const peg::SemanticValues& values) { return String(values.token()); };
-			m_parser["Identifier"]   = [](const peg::SemanticValues& values) { return String(values.token()); };
+			m_parser["EntryName"]    = [](const peg::SemanticValues& values) { return any_ref<StringView>(values[0]); };
+			m_parser["AbsoluteName"] = [](const peg::SemanticValues& values) { return StringView(values.token()); };
+			m_parser["RelativeName"] = [](const peg::SemanticValues& values) { return StringView(values.token()); };
+			m_parser["Identifier"]   = [](const peg::SemanticValues& values) { return StringView(values.token()); };
 		}
 
 	public:
@@ -642,6 +640,25 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 		return EntryType::Variable;
 	}
 
+	Command::Command(StringView name, Callback callback, StringView description, EntryFlags flags)
+	    : Entry(name, description, flags), m_callback(etl::move(callback))
+	{}
+
+	EntryType Command::type() const
+	{
+		return EntryType::Command;
+	}
+
+	ExecuteStatus Command::execute(const ExecuteContext& ctx)
+	{
+		if (!m_callback)
+		{
+			return ExecuteStatus::CommandHasNoCallback;
+		}
+
+		return m_callback(ctx);
+	}
+
 	Entry::Entry(StringView name, StringView description, EntryFlags flags)
 	    : m_name(name), m_description(description), m_flags(flags)
 	{
@@ -666,22 +683,5 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 	ENGINE_EXPORT ExecuteStatus execute(StringView source, String* output, ExecuteFlags flags)
 	{
 		return Interpreter::instance()->execute(source, output, flags);
-	}
-
-	trinex_console_variable(bool, test_enabled, "test.enabled", false);
-	trinex_console_variable(int, test_quality, "test.quality", 0);
-	trinex_console_variable(f32, test_scale, "test.scale", 1.0f);
-	trinex_console_variable(String, test_name, "test.name", "default");
-	trinex_console_variable(Vector<int>, test_values, "r.test.values");
-
-	trinex_on_pre_init()
-	{
-		execute("r.test.values(10)");
-
-		for (auto& value : test_values.value())
-		{
-			printf("%d\n", value);
-		}
-		exit(0);
 	}
 }// namespace Trinex::Console
