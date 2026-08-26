@@ -1,14 +1,406 @@
-#include <Core/assert.hpp>
 #include <Core/console.hpp>
 #include <Core/etl/algorithm.hpp>
 #include <Core/etl/flat_set.hpp>
+#include <Core/etl/utility.hpp>
 #include <Core/etl/variant.hpp>
 #include <Core/string_functions.hpp>
 
-#include <Core/math/vector.hpp>
+#include <any>
+#include <peglib.h>
 
 namespace Trinex::Console
 {
+	static constexpr const char* grammar = R"(
+Program         <- Separator* StatementList? Separator* !.
+StatementList   <- Statement (Separator+ Statement)*
+Statement       <- Scope / Assignment / Invocation / Entry
+Scope           <- EntryName '{' Separator* StatementList? Separator* '}'
+Assignment      <- EntryName '=' Value
+Invocation      <- EntryName '(' Newline* ArgumentList Newline* ')'
+Entry           <- EntryName
+ArgumentList    <- Argument (Newline* ',' Newline* Argument)* (Newline* ',')?
+Argument        <- NamedArgument / Value
+NamedArgument   <- Identifier '=' Value
+Value           <- Array / String / Boolean / Float / Integer / Bareword
+Array           <- '[' Newline* ValueList? Newline* ']'
+ValueList       <- Value (Newline* ',' Newline* Value)* (Newline* ',')?
+Boolean         <- < ('true' / 'false') ![A-Za-z0-9_-] >
+Float           <- < [+-]? ((([0-9]+ '.' [0-9]* / '.' [0-9]+) ([eE] [+-]? [0-9]+)?) / [0-9]+ [eE] [+-]? [0-9]+) >
+Integer         <- HexInteger / BinaryInteger / DecimalInteger
+HexInteger      <- < [+-]? '0x' [0-9a-fA-F]+ >
+BinaryInteger   <- < [+-]? '0b' [01]+ >
+DecimalInteger  <- < [+-]? [0-9]+ >
+String          <- DoubleString / SingleString
+DoubleString    <- < '"' (_Escape / [^"\\\r\n])* '"' >
+SingleString    <- < "'" (_Escape / [^'\\\r\n])* "'" >
+_Escape         <- '\\' [^\r\n]
+Bareword        <- < [A-Za-z_][A-Za-z0-9_./:\\-]* >
+EntryName       <- AbsoluteName / RelativeName
+AbsoluteName    <- < '.' NameBody >
+RelativeName    <- < NameBody >
+NameBody        <- IdentifierRaw ('.' IdentifierRaw)*
+Identifier      <- < IdentifierRaw >
+IdentifierRaw   <- [A-Za-z_][A-Za-z0-9_-]*
+Separator       <- ';' / Newline
+Newline         <- < '\r\n' / '\n' / '\r' >
+%whitespace     <- (_HSpace / _Comment)*
+_HSpace         <- [ \t]
+_Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
+)";
+
+	struct BareWord : public StringView {
+		using StringView::StringView;
+
+		BareWord(StringView view) : StringView(view) {}
+	};
+
+	struct Argument;
+
+	struct ArgumentArray : Vector<Argument> {
+		using Vector<Argument>::Vector;
+	};
+
+	struct Argument : public Variant<bool, i64, u64, f64, StringView, BareWord, ArgumentArray> {
+		using Super = Variant<bool, i64, u64, f64, StringView, BareWord, ArgumentArray>;
+
+		using Super::Super;
+	};
+
+	struct Statement;
+
+	struct StatementList : Vector<Statement> {
+		using Vector<Statement>::Vector;
+	};
+
+	struct Statement {
+		enum class Type
+		{
+			Entry,
+			Assignment,
+			Invocation,
+			Scope,
+		};
+
+		Type type = Type::Entry;
+		String name;
+		ArgumentArray args;
+		StatementList statements;
+	};
+
+	class Interpreter
+	{
+	private:
+		peg::parser m_parser;
+
+	private:
+		template<typename T>
+		static const T& any_ref(const std::any& value)
+		{
+			const T* result = std::any_cast<T>(&value);
+			if (result == nullptr)
+			{
+				throw std::runtime_error("Invalid console parser value");
+			}
+
+			return *result;
+		}
+
+		static StringView string_literal_value(StringView source)
+		{
+			if (source.length() < 2)
+			{
+				return "";
+			}
+
+			return source.substr(1, source.length() - 2);
+		}
+
+		static i64 parse_i64(StringView source)
+		{
+			String token(source);
+			return static_cast<i64>(std::strtoll(token.c_str(), nullptr, 0));
+		}
+
+		static u64 parse_u64_binary(StringView source)
+		{
+			bool negative = false;
+			usize index   = 0;
+
+			if (!source.empty() && (source[0] == '-' || source[0] == '+'))
+			{
+				negative = source[0] == '-';
+				index    = 1;
+			}
+
+			index += 2;
+
+			u64 result = 0;
+			for (; index < source.length(); ++index)
+			{
+				result = (result << 1) | static_cast<u64>(source[index] == '1');
+			}
+
+			return negative ? static_cast<u64>(-static_cast<i64>(result)) : result;
+		}
+
+		static Argument parse_integer(StringView source)
+		{
+			const bool negative = !source.empty() && source[0] == '-';
+			const usize offset  = (!source.empty() && (source[0] == '-' || source[0] == '+')) ? 1 : 0;
+
+			if (source.substr(offset).starts_with("0b"))
+			{
+				const u64 value = parse_u64_binary(source);
+				return negative ? Argument(static_cast<i64>(value)) : Argument(value);
+			}
+
+			if (negative)
+			{
+				return Argument(parse_i64(source));
+			}
+
+			String token(source);
+			return Argument(static_cast<u64>(std::strtoull(token.c_str(), nullptr, 0)));
+		}
+
+		static String resolve_name(StringView scope, StringView name)
+		{
+			if (name.starts_with("."))
+			{
+				return String(name.substr(1));
+			}
+
+			if (scope.empty())
+			{
+				return String(name);
+			}
+
+			return Strings::format("{}.{}", scope, name);
+		}
+
+	private:
+		Interpreter() : m_parser(grammar) { configure_actions(); }
+
+		void configure_actions()
+		{
+			m_parser["Boolean"] = [](const peg::SemanticValues& values) { return Argument(values.token() == "true"); };
+			m_parser["Float"]   = [](const peg::SemanticValues& values) { return Argument(values.token_to_number<f64>()); };
+			m_parser["Integer"] = [](const peg::SemanticValues& values) { return parse_integer(values.token()); };
+			m_parser["String"] = [](const peg::SemanticValues& values) { return Argument(string_literal_value(values.token())); };
+			m_parser["Bareword"] = [](const peg::SemanticValues& values) { return Argument(BareWord(values.token())); };
+
+			m_parser["Array"] = [](const peg::SemanticValues& values) {
+				ArgumentArray array;
+
+				if (!values.empty())
+				{
+					array = any_ref<ArgumentArray>(values[0]);
+				}
+
+				return Argument(array);
+			};
+
+			m_parser["ValueList"] = [](const peg::SemanticValues& values) {
+				ArgumentArray array;
+				array.reserve(values.size());
+
+				for (const std::any& value : values)
+				{
+					array.emplace_back(any_ref<Argument>(value));
+				}
+
+				return array;
+			};
+
+			m_parser["Value"]         = [](const peg::SemanticValues& values) { return any_ref<Argument>(values[0]); };
+			m_parser["NamedArgument"] = [](const peg::SemanticValues& values) { return any_ref<Argument>(values[1]); };
+			m_parser["Argument"]      = [](const peg::SemanticValues& values) { return any_ref<Argument>(values[0]); };
+
+			m_parser["ArgumentList"] = [](const peg::SemanticValues& values) {
+				ArgumentArray args;
+				args.reserve(values.size());
+
+				for (const std::any& value : values)
+				{
+					args.emplace_back(any_ref<Argument>(value));
+				}
+
+				return args;
+			};
+
+			m_parser["Entry"] = [](const peg::SemanticValues& values) {
+				return Statement{
+				        .type = Statement::Type::Entry,
+				        .name = any_ref<String>(values[0]),
+				};
+			};
+
+			m_parser["Assignment"] = [](const peg::SemanticValues& values) {
+				Statement statement;
+				statement.type = Statement::Type::Assignment;
+				statement.name = any_ref<String>(values[0]);
+				statement.args.emplace_back(any_ref<Argument>(values[1]));
+				return statement;
+			};
+
+			m_parser["Invocation"] = [](const peg::SemanticValues& values) {
+				Statement statement;
+				statement.type = Statement::Type::Invocation;
+				statement.name = any_ref<String>(values[0]);
+				statement.args = any_ref<ArgumentArray>(values[1]);
+				return statement;
+			};
+
+			m_parser["Scope"] = [](const peg::SemanticValues& values) {
+				Statement statement;
+				statement.type = Statement::Type::Scope;
+				statement.name = any_ref<String>(values[0]);
+
+				if (values.size() > 1)
+				{
+					statement.statements = any_ref<StatementList>(values[1]);
+				}
+
+				return statement;
+			};
+
+			m_parser["Statement"] = [](const peg::SemanticValues& values) { return any_ref<Statement>(values[0]); };
+
+			m_parser["StatementList"] = [](const peg::SemanticValues& values) {
+				StatementList statements;
+				statements.reserve(values.size());
+
+				for (const std::any& value : values)
+				{
+					statements.emplace_back(any_ref<Statement>(value));
+				}
+
+				return statements;
+			};
+
+			m_parser["Program"] = [](const peg::SemanticValues& values) {
+				if (values.empty())
+				{
+					return StatementList();
+				}
+
+				return any_ref<StatementList>(values[0]);
+			};
+
+			m_parser["EntryName"]    = [](const peg::SemanticValues& values) { return any_ref<String>(values[0]); };
+			m_parser["AbsoluteName"] = [](const peg::SemanticValues& values) { return String(values.token()); };
+			m_parser["RelativeName"] = [](const peg::SemanticValues& values) { return String(values.token()); };
+			m_parser["Identifier"]   = [](const peg::SemanticValues& values) { return String(values.token()); };
+		}
+
+	public:
+		static Interpreter* instance()
+		{
+			static thread_local Interpreter Interpreter;
+			return &Interpreter;
+		}
+
+		ExecuteStatus parse(StatementList& statements, StringView source)
+		{
+			if (source.empty())
+			{
+				return ExecuteStatus::EmptyInput;
+			}
+
+			StatementList result;
+			const bool success = m_parser.parse(source, result);
+
+			if (!success)
+			{
+				return ExecuteStatus::UnexpectedToken;
+			}
+
+			statements = etl::move(result);
+			return ExecuteStatus::Success;
+		}
+
+		ExecuteStatus execute(Entry* entry, const ExecuteContext& ctx, bool assignment)
+		{
+			if (entry == nullptr)
+			{
+				return ctx.flags.any(ExecuteFlags::IgnoreUnknown) ? ExecuteStatus::Success : ExecuteStatus::UnknownEntry;
+			}
+
+			if (entry->flags().any(EntryFlags::Hidden))
+			{
+				return ExecuteStatus::EntryUnavailable;
+			}
+
+			if (assignment && entry->flags().any(EntryFlags::ReadOnly))
+			{
+				return ExecuteStatus::ReadOnly;
+			}
+
+			if (entry->type() == EntryType::Variable && !assignment && !ctx.args.empty())
+			{
+				return ExecuteStatus::VariableCallSyntax;
+			}
+
+			if (entry->type() == EntryType::Command && assignment)
+			{
+				return ExecuteStatus::CommandCallSyntax;
+			}
+
+			return entry->execute(ctx);
+		}
+
+		ExecuteStatus execute(StringView scope, const Statement& statement, String* output, ExecuteFlags flags)
+		{
+			const String fullname = resolve_name(scope, statement.name);
+
+			if (statement.type == Statement::Type::Scope)
+			{
+				for (const Statement& child : statement.statements)
+				{
+					ExecuteStatus status = execute(fullname, child, output, flags);
+
+					if (status != ExecuteStatus::Success)
+					{
+						return status;
+					}
+				}
+
+				return ExecuteStatus::Success;
+			}
+
+			ExecuteContext ctx{
+			        .args   = Span<Argument>(const_cast<Argument*>(statement.args.data()), statement.args.size()),
+			        .output = output,
+			        .flags  = flags,
+			};
+
+			return execute(find(fullname), ctx, statement.type == Statement::Type::Assignment);
+		}
+
+		ExecuteStatus execute(StringView source, String* output, ExecuteFlags flags)
+		{
+			StatementList statements;
+			ExecuteStatus status = parse(statements, source);
+
+			if (status != ExecuteStatus::Success)
+			{
+				return status;
+			}
+
+			for (const Statement& statement : statements)
+			{
+				status = execute("", statement, output, flags);
+
+				if (status != ExecuteStatus::Success)
+				{
+					return status;
+				}
+			}
+
+			return ExecuteStatus::Success;
+		}
+	};
+
 	class Manager
 	{
 	private:
@@ -76,21 +468,6 @@ namespace Trinex::Console
 			static Manager manager;
 			return &manager;
 		}
-	};
-
-
-	struct BareWord : public StringView {
-		using StringView::StringView;
-	};
-
-	struct ArgumentArray : Vector<Argument> {
-		using Vector<Argument>::Vector;
-	};
-
-	struct Argument : public Variant<bool, i64, u64, f64, StringView, BareWord, ArgumentArray> {
-		using Super = Variant<bool, i64, u64, f64, StringView, BareWord, ArgumentArray>;
-
-		using Super::Super;
 	};
 
 	template<typename T>
@@ -226,31 +603,37 @@ namespace Trinex::Console
 
 	ExecuteStatus Entry::store(String* dst, bool* src)
 	{
+		(*dst) = (*src) ? "true" : "false";
 		return ExecuteStatus::Success;
 	}
 
 	ExecuteStatus Entry::store(String* dst, u64* src)
 	{
+		(*dst) = Strings::format("{}", *src);
 		return ExecuteStatus::Success;
 	}
 
 	ExecuteStatus Entry::store(String* dst, i64* src)
 	{
+		(*dst) = Strings::format("{}", *src);
 		return ExecuteStatus::Success;
 	}
 
 	ExecuteStatus Entry::store(String* dst, f64* src)
 	{
+		(*dst) = Strings::format("{}", *src);
 		return ExecuteStatus::Success;
 	}
 
 	ExecuteStatus Entry::store(String* dst, String* src)
 	{
+		(*dst) = *src;
 		return ExecuteStatus::Success;
 	}
 
 	ExecuteStatus Entry::store(String* dst, ArrayInterface* src)
 	{
+		(*dst) = Strings::format("<array:{}>", src->size());
 		return ExecuteStatus::Success;
 	}
 
@@ -270,35 +653,35 @@ namespace Trinex::Console
 		Manager::instance()->unbind(this);
 	}
 
-	Entry* Entry::find(StringView name)
+	ENGINE_EXPORT Entry* find(StringView name)
 	{
 		return Manager::instance()->find(name);
 	}
 
-	usize Entry::find(StringView name, const FunctionRef<void(Entry*)>& action)
+	ENGINE_EXPORT usize find(StringView name, const FunctionRef<void(Entry*)>& action)
 	{
 		return Manager::instance()->find(name, action);
 	}
 
+	ENGINE_EXPORT ExecuteStatus execute(StringView source, String* output, ExecuteFlags flags)
+	{
+		return Interpreter::instance()->execute(source, output, flags);
+	}
+
+	trinex_console_variable(bool, test_enabled, "test.enabled", false);
+	trinex_console_variable(int, test_quality, "test.quality", 0);
+	trinex_console_variable(f32, test_scale, "test.scale", 1.0f);
+	trinex_console_variable(String, test_name, "test.name", "default");
+	trinex_console_variable(Vector<int>, test_values, "r.test.values");
+
 	trinex_on_pre_init()
 	{
-		Variable<Vector3f> test = {
-		        "r.example.1",
-		};
-		Variable<int> test2 = {
-		        "r.example.2",
-		        10,
-		};
-		Variable<int> test3 = {
-		        "r.example.3",
-		        10,
-		};
-		Variable<int> test4 = {
-		        "r.test.3",
-		        10,
-		};
+		execute("r.test.values(10)");
 
-		Entry::find("r.example", [](Entry* entry) { printf("%s\n", entry->name().data()); });
+		for (auto& value : test_values.value())
+		{
+			printf("%d\n", value);
+		}
 		exit(0);
 	}
 }// namespace Trinex::Console

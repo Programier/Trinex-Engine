@@ -194,6 +194,35 @@ namespace Trinex::Console
 		static ExecuteStatus store(String* dst, String* src);
 		static ExecuteStatus store(String* dst, ArrayInterface* src);
 
+		template<etl::signed_integral T>
+		    requires(!etl::same_as<T, bool>)
+		static ExecuteStatus store(String* dst, T* src)
+		{
+			i64 value = static_cast<i64>(*src);
+			return store(dst, &value);
+		}
+
+		template<etl::unsigned_integral T>
+		    requires(!etl::same_as<T, bool>)
+		static ExecuteStatus store(String* dst, T* src)
+		{
+			u64 value = static_cast<u64>(*src);
+			return store(dst, &value);
+		}
+
+		template<etl::floating_point T>
+		static ExecuteStatus store(String* dst, T* src)
+		{
+			f64 value = static_cast<f64>(*src);
+			return store(dst, &value);
+		}
+
+		template<typename T>
+		static ExecuteStatus store(String*, T*)
+		{
+			return ExecuteStatus::ValueParseFailed;
+		}
+
 		template<typename DstType, typename SrcType>
 		static ExecuteStatus store(DstType* dst, const Argument* src)
 		{
@@ -228,14 +257,14 @@ namespace Trinex::Console
 		}
 
 		template<EmplaceBackContainer Container>
-		static ExecuteStatus store(Container* dst, Argument* src)
+		static ExecuteStatus store(Container* dst, const Argument* src)
 		{
 			EmplaceBackArray array(dst);
 			return store(static_cast<ArrayInterface*>(&array), src);
 		}
 
 		template<IndexedContainer Container>
-		static ExecuteStatus store(Container* dst, Argument* src)
+		static ExecuteStatus store(Container* dst, const Argument* src)
 		{
 			IndexedArray array(dst);
 			return store(static_cast<ArrayInterface*>(&array), src);
@@ -252,9 +281,6 @@ namespace Trinex::Console
 
 		virtual EntryType type() const                           = 0;
 		virtual ExecuteStatus execute(const ExecuteContext& ctx) = 0;
-
-		static Entry* find(StringView name);
-		static usize find(StringView name, const FunctionRef<void(Entry*)>& action);
 
 		inline StringView name() const { return m_name; }
 		inline StringView description() const { return m_description; }
@@ -282,6 +308,11 @@ namespace Trinex::Console
 		{
 			if (ctx.args.size() == 0)
 			{
+				if (ctx.output)
+				{
+					return Entry::store(ctx.output, &value());
+				}
+
 				return ExecuteStatus::Success;
 			}
 
@@ -328,6 +359,11 @@ namespace Trinex::Console
 		const void* data() const override { return &m_value; }
 		void* data() override { return &m_value; }
 	};
+
+
+	ENGINE_EXPORT Entry* find(StringView name);
+	ENGINE_EXPORT usize find(StringView name, const FunctionRef<void(Entry*)>& action);
+	ENGINE_EXPORT ExecuteStatus execute(StringView source, String* output = nullptr, ExecuteFlags flags = {});
 
 #define trinex_console_variable(type, var, name, ...)                                                                            \
 	Trinex::Console::Variable<type> var = Trinex::Console::Variable<type>(name __VA_OPT__(, ) __VA_ARGS__)
