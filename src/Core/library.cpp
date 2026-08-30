@@ -1,5 +1,4 @@
 #include <Core/base_engine.hpp>
-#include <Core/config_manager.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/etl/set.hpp>
 #include <Core/file_manager.hpp>

@@ -1,4 +1,3 @@
-#include <Core/config_manager.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Engine/project.hpp>
 #include <Platform/platform.hpp>

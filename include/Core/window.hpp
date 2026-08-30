@@ -19,6 +19,8 @@ namespace Trinex
 
 		WindowAttribute attributes = WindowAttribute::Undefined;
 		i16 monitor                = -1;
+
+		static ENGINE_EXPORT const WindowDesc& from_config();
 	};
 
 	class ENGINE_EXPORT Window

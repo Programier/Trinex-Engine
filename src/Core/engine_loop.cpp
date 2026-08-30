@@ -1,6 +1,5 @@
 #include <Core/arguments.hpp>
 #include <Core/base_engine.hpp>
-#include <Core/config_manager.hpp>
 #include <Core/constants.hpp>
 #include <Core/engine_loop.hpp>
 #include <Core/entry_point.hpp>
@@ -80,8 +79,6 @@ namespace Trinex
 		LifeCycle::execute(LifeCycle::PreInit);
 		Project::initialize();
 
-		ConfigManager::initialize();
-
 		// Load libraries
 		{
 			for (const String& plugin : Settings::plugins)
@@ -114,7 +111,7 @@ namespace Trinex
 		initialize_graphics_api();
 
 		// Setup main window
-		WindowDesc desc;
+		WindowDesc desc = WindowDesc::from_config();
 		desc.attributes.set(WindowAttribute::Hidden);
 		Window::create(desc);
 		return 0;

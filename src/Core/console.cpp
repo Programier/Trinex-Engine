@@ -3,7 +3,9 @@
 #include <Core/etl/flat_set.hpp>
 #include <Core/etl/utility.hpp>
 #include <Core/etl/variant.hpp>
+#include <Core/file_manager.hpp>
 #include <Core/string_functions.hpp>
+#include <Core/types/path.hpp>
 
 #include <any>
 #include <peglib.h>
@@ -16,7 +18,7 @@ StatementList   <- Statement (Separator+ Statement)*
 Statement       <- Scope / Assignment / Invocation / Entry
 Scope           <- EntryName '{' Separator* StatementList? Separator* '}'
 Assignment      <- EntryName '=' Value
-Invocation      <- EntryName '(' Newline* ArgumentList Newline* ')'
+Invocation      <- EntryName '(' Newline* ArgumentList? Newline* ')'
 Entry           <- EntryName
 ArgumentList    <- Argument (Newline* ',' Newline* Argument)* (Newline* ',')?
 Argument        <- Value
@@ -41,7 +43,7 @@ NameBody        <- IdentifierRaw ('.' IdentifierRaw)*
 Identifier      <- < IdentifierRaw >
 IdentifierRaw   <- [A-Za-z_][A-Za-z0-9_-]*
 Separator       <- ';' / Newline
-Newline         <- < '\r\n' / '\n' / '\r' >
+Newline         <- '\r\n' / '\n' / '\r'
 %whitespace     <- (_HSpace / _Comment)*
 _HSpace         <- [ \t]
 _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
@@ -102,6 +104,26 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 			}
 
 			return *result;
+		}
+
+		template<typename T>
+		static const T* any_ptr(const std::any& value)
+		{
+			return std::any_cast<T>(&value);
+		}
+
+		template<typename T>
+		static const T& first_ref(const peg::SemanticValues& values)
+		{
+			for (const std::any& value : values)
+			{
+				if (const T* result = any_ptr<T>(value))
+				{
+					return *result;
+				}
+			}
+
+			throw std::runtime_error("Invalid console parser value");
 		}
 
 		static StringView string_literal_value(StringView source)
@@ -177,6 +199,56 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 			return Strings::format("{}.{}", scope, name);
 		}
 
+		Entry* resolve_entry(StringView scope, StringView name, String* resolved_name = nullptr)
+		{
+			if (name.starts_with("."))
+			{
+				String candidate = String(name.substr(1));
+				Entry* entry     = find(candidate);
+
+				if (entry && resolved_name)
+				{
+					*resolved_name = etl::move(candidate);
+				}
+
+				return entry;
+			}
+
+			for (String current_scope(scope); !current_scope.empty();)
+			{
+				String candidate = Strings::format("{}.{}", current_scope, name);
+
+				if (Entry* entry = find(candidate))
+				{
+					if (resolved_name)
+					{
+						*resolved_name = etl::move(candidate);
+					}
+
+					return entry;
+				}
+
+				const usize position = current_scope.rfind('.');
+
+				if (position == String::npos)
+				{
+					break;
+				}
+
+				current_scope.resize(position);
+			}
+
+			String candidate = String(name);
+			Entry* entry     = find(candidate);
+
+			if (entry && resolved_name)
+			{
+				*resolved_name = etl::move(candidate);
+			}
+
+			return entry;
+		}
+
 	private:
 		Interpreter() : m_parser(grammar) { configure_actions(); }
 
@@ -193,7 +265,10 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 
 				if (!values.empty())
 				{
-					array = any_ref<ArgumentArray>(values[0]);
+					if (const ArgumentArray* result = any_ptr<ArgumentArray>(values[0]))
+					{
+						array = *result;
+					}
 				}
 
 				return Argument(array);
@@ -205,14 +280,17 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 
 				for (const std::any& value : values)
 				{
-					array.emplace_back(any_ref<Argument>(value));
+					if (const Argument* argument = any_ptr<Argument>(value))
+					{
+						array.emplace_back(*argument);
+					}
 				}
 
 				return array;
 			};
 
-			m_parser["Value"]    = [](const peg::SemanticValues& values) { return any_ref<Argument>(values[0]); };
-			m_parser["Argument"] = [](const peg::SemanticValues& values) { return any_ref<Argument>(values[0]); };
+			m_parser["Value"]    = [](const peg::SemanticValues& values) { return first_ref<Argument>(values); };
+			m_parser["Argument"] = [](const peg::SemanticValues& values) { return first_ref<Argument>(values); };
 
 			m_parser["ArgumentList"] = [](const peg::SemanticValues& values) {
 				ArgumentArray args;
@@ -220,7 +298,10 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 
 				for (const std::any& value : values)
 				{
-					args.emplace_back(any_ref<Argument>(value));
+					if (const Argument* argument = any_ptr<Argument>(value))
+					{
+						args.emplace_back(*argument);
+					}
 				}
 
 				return args;
@@ -229,40 +310,53 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 			m_parser["Entry"] = [](const peg::SemanticValues& values) {
 				return Statement{
 				        .type = Statement::Type::Entry,
-				        .name = any_ref<StringView>(values[0]),
+				        .name = first_ref<StringView>(values),
 				};
 			};
 
 			m_parser["Assignment"] = [](const peg::SemanticValues& values) {
 				Statement statement;
 				statement.type = Statement::Type::Assignment;
-				statement.name = any_ref<StringView>(values[0]);
-				statement.args.emplace_back(any_ref<Argument>(values[1]));
+				statement.name = first_ref<StringView>(values);
+				statement.args.emplace_back(first_ref<Argument>(values));
 				return statement;
 			};
 
 			m_parser["Invocation"] = [](const peg::SemanticValues& values) {
 				Statement statement;
 				statement.type = Statement::Type::Invocation;
-				statement.name = any_ref<StringView>(values[0]);
-				statement.args = any_ref<ArgumentArray>(values[1]);
+				statement.name = first_ref<StringView>(values);
+
+				for (const std::any& value : values)
+				{
+					if (const ArgumentArray* args = any_ptr<ArgumentArray>(value))
+					{
+						statement.args = *args;
+						break;
+					}
+				}
+
 				return statement;
 			};
 
 			m_parser["Scope"] = [](const peg::SemanticValues& values) {
 				Statement statement;
 				statement.type = Statement::Type::Scope;
-				statement.name = any_ref<StringView>(values[0]);
+				statement.name = first_ref<StringView>(values);
 
-				if (values.size() > 1)
+				for (const std::any& value : values)
 				{
-					statement.statements = any_ref<StatementList>(values[1]);
+					if (const StatementList* statements = any_ptr<StatementList>(value))
+					{
+						statement.statements = *statements;
+						break;
+					}
 				}
 
 				return statement;
 			};
 
-			m_parser["Statement"] = [](const peg::SemanticValues& values) { return any_ref<Statement>(values[0]); };
+			m_parser["Statement"] = [](const peg::SemanticValues& values) { return first_ref<Statement>(values); };
 
 			m_parser["StatementList"] = [](const peg::SemanticValues& values) {
 				StatementList statements;
@@ -270,7 +364,10 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 
 				for (const std::any& value : values)
 				{
-					statements.emplace_back(any_ref<Statement>(value));
+					if (const Statement* statement = any_ptr<Statement>(value))
+					{
+						statements.emplace_back(*statement);
+					}
 				}
 
 				return statements;
@@ -282,10 +379,10 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 					return StatementList();
 				}
 
-				return any_ref<StatementList>(values[0]);
+				return first_ref<StatementList>(values);
 			};
 
-			m_parser["EntryName"]    = [](const peg::SemanticValues& values) { return any_ref<StringView>(values[0]); };
+			m_parser["EntryName"]    = [](const peg::SemanticValues& values) { return first_ref<StringView>(values); };
 			m_parser["AbsoluteName"] = [](const peg::SemanticValues& values) { return StringView(values.token()); };
 			m_parser["RelativeName"] = [](const peg::SemanticValues& values) { return StringView(values.token()); };
 			m_parser["Identifier"]   = [](const peg::SemanticValues& values) { return StringView(values.token()); };
@@ -349,7 +446,7 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 
 		ExecuteStatus execute(StringView scope, const Statement& statement, String* output, ExecuteFlags flags)
 		{
-			const String fullname = resolve_name(scope, statement.name);
+			String fullname = resolve_name(scope, statement.name);
 
 			if (statement.type == Statement::Type::Scope)
 			{
@@ -372,7 +469,7 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 			        .flags  = flags,
 			};
 
-			return execute(find(fullname), ctx, statement.type == Statement::Type::Assignment);
+			return execute(resolve_entry(scope, statement.name, &fullname), ctx, statement.type == Statement::Type::Assignment);
 		}
 
 		ExecuteStatus execute(StringView source, String* output, ExecuteFlags flags)
@@ -683,5 +780,25 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 	ENGINE_EXPORT ExecuteStatus execute(StringView source, String* output, ExecuteFlags flags)
 	{
 		return Interpreter::instance()->execute(source, output, flags);
+	}
+
+	ENGINE_EXPORT ExecuteStatus execute_config(const Path& path)
+	{
+		FileReader reader(Path("[configs]:") / path);
+
+		if (!reader.is_open())
+		{
+			trinex_warning(Log::Engine, "Failed to load config '%s'", path.c_str());
+			return ExecuteStatus::FileOpenFailed;
+		}
+
+		const Console::ExecuteStatus status = Console::execute(reader.read_string());
+
+		if (status != Console::ExecuteStatus::Success)
+		{
+			trinex_warning(Log::Engine, "Failed to execute config '%s' with status %u", path.c_str(),
+			               static_cast<u32>(status.value));
+		}
+		return status;
 	}
 }// namespace Trinex::Console

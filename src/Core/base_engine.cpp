@@ -1,5 +1,4 @@
 #include <Core/base_engine.hpp>
-#include <Core/config_manager.hpp>
 #include <Core/etl/allocator.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/profiler.hpp>

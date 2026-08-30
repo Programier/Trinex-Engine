@@ -1,4 +1,4 @@
-#include <Core/config_manager.hpp>
+#include <Core/console.hpp>
 #include <Core/default_resources.hpp>
 #include <Core/etl/engine_resource.hpp>
 #include <Core/etl/templates.hpp>
@@ -35,7 +35,7 @@ namespace Trinex
 
 		fs->mount("[content]:/TrinexEditor", "[exec]:/resources/TrinexEditor");
 		fs->mount("[assets]:/TrinexEditor", "[exec]:/resources/TrinexEditor/assets");
-		fs->mount("[configs]:/editor", "[exec]:/resources/TrinexEditor/configs");
+		fs->mount("[configs]:/TrinexEditor", "[exec]:/resources/TrinexEditor/configs");
 		fs->mount("[shaders]:/TrinexEditor", "[exec]:/resources/TrinexEditor/shaders");
 		fs->mount("[scripts]:/TrinexEditor", "[exec]:/resources/TrinexEditor/scripts");
 		fs->mount("[fonts]:/TrinexEditor", "[exec]:/resources/TrinexEditor/fonts");
@@ -70,5 +70,6 @@ namespace Trinex
 	trinex_on_configs_init()
 	{
 		Trinex::Settings::Splash::font = "[content]:/TrinexEditor/fonts/Source Code Pro/SourceCodePro-Bold.ttf";
+		Console::execute_config("TrinexEditor/editor.config");
 	}
 }// namespace Trinex

@@ -1,4 +1,5 @@
 #include <Core/base_engine.hpp>
+#include <Core/console.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/reflection/class.hpp>
@@ -58,6 +59,18 @@ namespace Trinex
 	};
 
 	static WindowEventListener s_window_event_listener;
+	static WindowDesc s_config;
+
+	trinex_on_pre_init()
+	{
+		static Console::VariableRef title(&s_config.title, "window.title");
+		static Console::VariableRef client(&s_config.client, "window.client");
+		static Console::VariableRef size(&s_config.size, "window.size");
+		static Console::VariableRef pos(&s_config.pos, "window.pos");
+		static Console::VariableRef monitor(&s_config.monitor, "window.monitor");
+
+		// WindowAttribute attributes = WindowAttribute::Undefined;
+	}
 
 	struct WindowsState {
 		Window* main = nullptr;
@@ -93,6 +106,11 @@ namespace Trinex
 			return s_state;
 		}
 	};
+
+	ENGINE_EXPORT const WindowDesc& WindowDesc::from_config()
+	{
+		return s_config;
+	}
 
 	Window* Window::create(String title, Vector2u size, Window* parent, Window* self)
 	{

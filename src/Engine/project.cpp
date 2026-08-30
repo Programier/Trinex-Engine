@@ -1,4 +1,5 @@
 #include <Core/arguments.hpp>
+#include <Core/console.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/string_functions.hpp>
@@ -203,6 +204,17 @@ Engine::Project::shader_cache_dir = "{}";
 		apply_project_config();
 	}
 
+	static void initialize_configs()
+	{
+		Console::execute_config("engine.config");
+		Console::execute_config("platform.config");
+		Console::execute_config("game.config");
+		Console::execute_config("input.config");
+		Console::execute_config("user.config");
+
+		LifeCycle::execute(LifeCycle::ConfigsInit);
+	}
+
 	void Project::initialize()
 	{
 		bind_to_script_engine();
@@ -221,5 +233,7 @@ Engine::Project::shader_cache_dir = "{}";
 			trinex_error(Log::Engine, "Failed to initialize project. Using default project settins!");
 			setup_default_project();
 		}
+
+		initialize_configs();
 	}
 }// namespace Trinex

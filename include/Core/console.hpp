@@ -6,6 +6,11 @@
 #include <Core/etl/tuple.hpp>
 #include <Core/etl/utility.hpp>
 
+namespace Trinex
+{
+	class Path;
+}
+
 namespace Trinex::Console
 {
 	struct EntryType {
@@ -219,12 +224,6 @@ namespace Trinex::Console
 			return store(dst, &value);
 		}
 
-		template<typename T>
-		static ExecuteStatus store(String*, T*)
-		{
-			return ExecuteStatus::ValueParseFailed;
-		}
-
 		template<typename DstType, typename SrcType>
 		static ExecuteStatus store(DstType* dst, const Argument* src)
 		{
@@ -312,7 +311,7 @@ namespace Trinex::Console
 			{
 				if (ctx.output)
 				{
-					return Entry::store(ctx.output, &value());
+					//return Entry::store(ctx.output, &value());
 				}
 
 				return ExecuteStatus::Success;
@@ -423,6 +422,7 @@ namespace Trinex::Console
 	ENGINE_EXPORT Entry* find(StringView name);
 	ENGINE_EXPORT usize find(StringView name, const FunctionRef<void(Entry*)>& action);
 	ENGINE_EXPORT ExecuteStatus execute(StringView source, String* output = nullptr, ExecuteFlags flags = {});
+	ENGINE_EXPORT ExecuteStatus execute_config(const Path& path);
 
 #define trinex_console_variable(type, var, name, ...)                                                                            \
 	Trinex::Console::Variable<type> var = Trinex::Console::Variable<type>(name __VA_OPT__(, ) __VA_ARGS__)
