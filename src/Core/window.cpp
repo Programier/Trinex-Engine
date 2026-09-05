@@ -68,8 +68,7 @@ namespace Trinex
 		static Console::VariableRef size(&s_config.size, "window.size");
 		static Console::VariableRef pos(&s_config.pos, "window.pos");
 		static Console::VariableRef monitor(&s_config.monitor, "window.monitor");
-
-		// WindowAttribute attributes = WindowAttribute::Undefined;
+		static Console::VariableRef attributes(&s_config.attributes, "window.attributes");
 	}
 
 	struct WindowsState {
@@ -112,20 +111,19 @@ namespace Trinex
 		return s_config;
 	}
 
-	Window* Window::create(String title, Vector2u size, Window* parent, Window* self)
+	Window* Window::create(String title, Vector2u size, Window* parent)
 	{
 		WindowDesc desc = {
 		        .title = title,
 		        .size  = size,
 		};
 
-		return create(desc, parent, self);
+		return create(desc, parent);
 	}
 
-	Window* Window::create(const WindowDesc& desc, Window* parent, Window* self)
+	Window* Window::create(const WindowDesc& desc, Window* parent)
 	{
-		if (self == nullptr)
-			self = Platform::WindowManager::create_window(&desc);
+		Window* self = Platform::WindowManager::create_window(&desc);
 
 		if (self == nullptr)
 			return nullptr;
@@ -143,8 +141,16 @@ namespace Trinex
 
 		WindowsState::instance().windows[self->id()] = self;
 
+		const i32 interval      = desc.attributes.any(WindowAttribute::Vsync);
+		self->m_render_viewport = Object::new_instance<RenderViewport>("", nullptr, self, interval);
+
 		// Initialize client
 		//self->icon(load_image_icon());
+
+		if (!desc.client.empty())
+		{
+			self->create_client(desc.client);
+		}
 		return self;
 	}
 
@@ -175,7 +181,7 @@ namespace Trinex
 				}
 			}
 
-			window->on_destroy(window);
+			//window->on_destroy(window);
 			Platform::WindowManager::destroy_window(window);
 		}
 	}
@@ -393,10 +399,14 @@ namespace Trinex
 
 	Window& Window::create_client(const StringView& client_name)
 	{
-		ViewportClient* client = ViewportClient::create(client_name);
-		if (client)
+		if (auto vp = render_viewport())
 		{
-			render_viewport()->client(client);
+			ViewportClient* client = ViewportClient::create(client_name);
+
+			if (client)
+			{
+				vp->client(client);
+			}
 		}
 		return *this;
 	}

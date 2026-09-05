@@ -4,6 +4,7 @@
 #include <Core/etl/utility.hpp>
 #include <Core/etl/variant.hpp>
 #include <Core/file_manager.hpp>
+#include <Core/reflection/enum.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/types/path.hpp>
 
@@ -48,6 +49,11 @@ Newline         <- '\r\n' / '\n' / '\r'
 _HSpace         <- [ \t]
 _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 )";
+
+	struct EnumInfo {
+		u64* value;
+		Refl::Enum* refl;
+	};
 
 	struct BareWord : public StringView {
 		using StringView::StringView;
@@ -113,6 +119,20 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 		}
 
 		template<typename T>
+		static const T* first_ptr(const peg::SemanticValues& values)
+		{
+			for (const std::any& value : values)
+			{
+				if (const T* result = any_ptr<T>(value))
+				{
+					return result;
+				}
+			}
+
+			return nullptr;
+		}
+
+		template<typename T>
 		static const T& first_ref(const peg::SemanticValues& values)
 		{
 			for (const std::any& value : values)
@@ -123,7 +143,7 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 				}
 			}
 
-			throw std::runtime_error("Invalid console parser value");
+			trinex_unreachable();
 		}
 
 		static StringView string_literal_value(StringView source)
@@ -261,17 +281,12 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 			m_parser["Bareword"] = [](const peg::SemanticValues& values) { return Argument(BareWord(values.token())); };
 
 			m_parser["Array"] = [](const peg::SemanticValues& values) {
-				ArgumentArray array;
-
-				if (!values.empty())
+				if (auto result = first_ptr<ArgumentArray>(values))
 				{
-					if (const ArgumentArray* result = any_ptr<ArgumentArray>(values[0]))
-					{
-						array = *result;
-					}
+					return Argument(*result);
 				}
 
-				return Argument(array);
+				return Argument(ArgumentArray());
 			};
 
 			m_parser["ValueList"] = [](const peg::SemanticValues& values) {
@@ -327,13 +342,9 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 				statement.type = Statement::Type::Invocation;
 				statement.name = first_ref<StringView>(values);
 
-				for (const std::any& value : values)
+				if (auto result = first_ptr<ArgumentArray>(values))
 				{
-					if (const ArgumentArray* args = any_ptr<ArgumentArray>(value))
-					{
-						statement.args = *args;
-						break;
-					}
+					statement.args = *result;
 				}
 
 				return statement;
@@ -619,6 +630,23 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 	};
 
 	template<ArgumentString Src>
+	static inline ExecuteStatus (*s_type_convertor<EnumInfo, Src>)(EnumInfo*, const Src*) =
+	        [](EnumInfo* dst, const Src* src) -> ExecuteStatus {
+		StringView view = *src;
+
+		auto& entries = dst->refl->entries();
+
+		auto it = etl::find_if(entries.begin(), entries.end(),
+		                       [&view](const Refl::Enum::Entry& entry) -> bool { return entry.name == view; });
+
+		if (it == entries.end())
+			return ExecuteStatus::ValueParseFailed;
+
+		(*dst->value) = it->value;
+		return ExecuteStatus::Success;
+	};
+
+	template<ArgumentString Src>
 	static inline ExecuteStatus (*s_type_convertor<String, Src>)(String*, const Src*) =
 	        [](String* dst, const Src* src) -> ExecuteStatus {
 		*dst = *src;
@@ -641,6 +669,7 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 
 		trinex_unreachable();
 	};
+
 
 	template<typename T>
 	static ExecuteStatus store_internal(T* dst, const Argument* src)
@@ -691,6 +720,41 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 		else
 		{
 			return dst->append(src);
+		}
+
+		return ExecuteStatus::Success;
+	}
+
+	ExecuteStatus Entry::store_enum(u64* dst, const Argument* src, Refl::Enum* refl)
+	{
+		EnumInfo result = {
+		        .value = dst,
+		        .refl  = refl,
+		};
+
+		return store_internal(&result, src);
+	}
+
+	ExecuteStatus Entry::store_bitfield(u64* dst, const Argument* src, Refl::Enum* refl)
+	{
+		if (const ArgumentArray* array = etl::get_if<ArgumentArray>(src))
+		{
+			*dst = 0;
+
+			for (const Argument& argument : *array)
+			{
+				u64 tmp              = 0;
+				ExecuteStatus status = store_bitfield(&tmp, &argument, refl);
+
+				if (status != ExecuteStatus::Success)
+					return status;
+
+				*dst |= tmp;
+			}
+		}
+		else
+		{
+			return store_enum(dst, src, refl);
 		}
 
 		return ExecuteStatus::Success;

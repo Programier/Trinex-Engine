@@ -56,4 +56,19 @@ namespace Trinex::etl
 
 	template<typename T>
 	concept arithmetic = integral<T> || floating_point<T>;
+
+	template<typename T>
+	concept reflected_enum = requires {
+		typename std::remove_cvref_t<T>::Enum;
+		requires std::is_enum_v<typename std::remove_cvref_t<T>::Enum>;
+		requires std::remove_cvref_t<T>::is_enum;
+		requires std::remove_cvref_t<T>::is_enum_reflected;
+	};
+
+	template<typename T>
+	concept regular_reflected_enum = reflected_enum<T> && !std::remove_cvref_t<T>::is_bitfield_enum;
+
+	template<typename T>
+	concept bitfield_reflected_enum = reflected_enum<T> && std::remove_cvref_t<T>::is_bitfield_enum;
+
 }// namespace Trinex::etl

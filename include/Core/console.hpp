@@ -193,6 +193,8 @@ namespace Trinex::Console
 		static ExecuteStatus store(f64* dst, const Argument* src);
 		static ExecuteStatus store(String* dst, const Argument* src);
 		static ExecuteStatus store(ArrayInterface* dst, const Argument* src);
+		static ExecuteStatus store_enum(u64* dst, const Argument* src, Refl::Enum* refl);
+		static ExecuteStatus store_bitfield(u64* dst, const Argument* src, Refl::Enum* refl);
 
 		static ExecuteStatus store(String* dst, bool* src);
 		static ExecuteStatus store(String* dst, u64* src);
@@ -269,6 +271,30 @@ namespace Trinex::Console
 		{
 			IndexedArray array(dst);
 			return store(static_cast<ArrayInterface*>(&array), src);
+		}
+
+		template<etl::regular_reflected_enum EnumType>
+		static ExecuteStatus store(EnumType* value, const Argument* src)
+		{
+			u64 tmp              = value->value;
+			ExecuteStatus result = store_enum(&tmp, src, EnumType::static_reflection());
+
+			if (result == ExecuteStatus::Success)
+				value->value = tmp;
+
+			return result;
+		}
+
+		template<etl::bitfield_reflected_enum EnumType>
+		static ExecuteStatus store(EnumType* value, const Argument* src)
+		{
+			u64 tmp              = value->bitfield;
+			ExecuteStatus result = store_bitfield(&tmp, src, EnumType::static_reflection());
+
+			if (result == ExecuteStatus::Success)
+				value->bitfield = tmp;
+
+			return result;
 		}
 
 	private:

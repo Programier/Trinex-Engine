@@ -17,7 +17,7 @@ namespace Trinex
 		Vector2u size = {1280, 720};
 		Vector2u pos  = {0, 0};
 
-		WindowAttribute attributes = WindowAttribute::Undefined;
+		WindowAttribute attributes = WindowAttribute::Resizable | WindowAttribute::Shown | WindowAttribute::Vsync;
 		i16 monitor                = -1;
 
 		static ENGINE_EXPORT const WindowDesc& from_config();
@@ -39,8 +39,8 @@ namespace Trinex
 		Atomic<Vector2u> m_size;
 
 	public:
-		static Window* create(String title, Vector2u size, Window* parent = nullptr, Window* self = nullptr);
-		static Window* create(const WindowDesc& desc, Window* parent = nullptr, Window* self = nullptr);
+		static Window* create(String title, Vector2u size, Window* parent = nullptr);
+		static Window* create(const WindowDesc& desc, Window* parent = nullptr);
 		static void destroy(Window* window);
 		static Window* find(Identifier id);
 		static Window* main();

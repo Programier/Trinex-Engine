@@ -77,18 +77,10 @@ namespace Trinex
 		ScriptEngine::initialize();
 
 		LifeCycle::execute(LifeCycle::PreInit);
-		Project::initialize();
-
-		// Load libraries
-		{
-			for (const String& plugin : Settings::plugins)
-			{
-				Library().load(plugin);
-			}
-		}
-
 		LifeCycle::execute(LifeCycle::ReflectionInit);
 		Refl::Object::load_reflection();
+
+		Project::initialize();
 
 		Refl::Class* engine_class = Refl::Class::static_find(Settings::engine_class, Refl::FindFlags::IsRequired);
 		engine_instance           = Object::instance_cast<BaseEngine>(engine_class->create_object());
