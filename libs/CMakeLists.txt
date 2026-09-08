@@ -22,10 +22,6 @@ set_target_properties(asmjit PROPERTIES COMPILE_OPTIONS "-fPIC")
 add_subdirectory(fmt EXCLUDE_FROM_ALL)
 set_target_properties(fmt PROPERTIES COMPILE_OPTIONS "-fPIC")
 
-if (WIN32 OR LINUX)
-    add_subdirectory(SDL)
-endif()
-
 if (TRINEX_WITH_TRACY_PROFILER)
     add_subdirectory(tracy)
 endif()

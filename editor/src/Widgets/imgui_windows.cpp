@@ -453,7 +453,9 @@ namespace Trinex
 		auto* actor_class = Refl::Class::static_find("Trinex::Actor", Refl::FindFlags::IsRequired);
 		m_root            = trx_new Node();
 		build_tree(m_root, actor_class);
-		m_monitor_size = Platform::monitor_info().size;
+		Platform::MonitorInfo monitor_info;
+		Platform::DisplaySystem::instance()->monitor_info(0, &monitor_info);
+		m_monitor_size = monitor_info.size;
 	}
 
 	ImGuiSpawnNewActor::~ImGuiSpawnNewActor()

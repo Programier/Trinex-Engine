@@ -6,7 +6,6 @@
 #include <Core/etl/templates.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/garbage_collector.hpp>
-#include <Core/library.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/struct.hpp>
 #include <Core/string_functions.hpp>
@@ -43,7 +42,7 @@ namespace Trinex
 	static void initialize_filesystem()
 	{
 		auto vfs      = VFS::RootFS::instance();
-		auto exec_dir = Platform::find_exec_directory();
+		auto exec_dir = Platform::System::instance()->executable_directory();
 
 		vfs->mount("[exec]:", exec_dir, VFS::FileSystem::Native);
 
@@ -171,7 +170,6 @@ namespace Trinex
 
 		GarbageCollector::destroy_all_objects();
 		RHI::destroy();
-		Library::close_all();
 
 		GarbageCollector::destroy(engine_instance);
 		engine_instance = nullptr;

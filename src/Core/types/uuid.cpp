@@ -104,7 +104,7 @@ namespace Trinex
 	UUID UUID::generate()
 	{
 		UUID uuid;
-		Platform::create_uuid(uuid);
+		Platform::System::instance()->create_uuid(&uuid);
 		return uuid;
 	}
 

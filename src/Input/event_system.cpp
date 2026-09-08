@@ -703,7 +703,7 @@ namespace Trinex
 
 	EventSystem& EventSystem::update(float dt)
 	{
-		Platform::EventSystem::pool_events();
+		Platform::EventLoop::instance()->poll_events();
 		return *this;
 	}
 

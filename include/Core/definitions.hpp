@@ -129,6 +129,7 @@ namespace Trinex
 #define trinex_force_inline inline __attribute__((always_inline))
 #define trinex_inline inline
 #define trinex_noinline __attribute__((noinline))
+#define trinex_weak __attribute__((weak))
 
 #define trinex_likely(x) __builtin_expect(!!(x), 1)
 #define trinex_unlikely(x) __builtin_expect(!!(x), 0)

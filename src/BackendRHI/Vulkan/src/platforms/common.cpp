@@ -1,30 +1,40 @@
 #include <Core/etl/string.hpp>
 #include <Core/etl/vector.hpp>
-#include <SDL.h>
-#include <SDL_vulkan.h>
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_vulkan.h>
+#include <vulkan_api.hpp>
 
 namespace Trinex
 {
 	VkSurfaceKHR create_vulkan_surface(void* native_window, VkInstance instance)
 	{
-		SDL_Window* window   = reinterpret_cast<SDL_Window*>(native_window);
-		VkSurfaceKHR surface = {};
-		SDL_Vulkan_CreateSurface(window, static_cast<VkInstance>(instance), &surface);
+		SDL_Window* window = reinterpret_cast<SDL_Window*>(native_window);
+
+		VkSurfaceKHR surface = VK_NULL_HANDLE;
+
+		if (!SDL_Vulkan_CreateSurface(window, instance, nullptr, &surface))
+		{
+			return VK_NULL_HANDLE;
+		}
+
 		return surface;
 	}
 
 	void load_required_extensions(void* native_window, Vector<String>& required_extensions)
 	{
-		SDL_Window* window = reinterpret_cast<SDL_Window*>(native_window);
-		unsigned int count = 0;
-		SDL_Vulkan_GetInstanceExtensions(window, &count, nullptr);
+		Uint32 count                  = 0;
+		const char* const* extensions = SDL_Vulkan_GetInstanceExtensions(&count);
 
-		Vector<const char*> extentions(count, nullptr);
-		SDL_Vulkan_GetInstanceExtensions(window, &count, extentions.data());
-
-		for (const char* extention : extentions)
+		if (!extensions)
 		{
-			required_extensions.push_back(extention);
+			return;
+		}
+
+		required_extensions.reserve(required_extensions.size() + count);
+
+		for (Uint32 i = 0; i < count; ++i)
+		{
+			required_extensions.emplace_back(extensions[i]);
 		}
 	}
 }// namespace Trinex

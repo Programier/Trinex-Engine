@@ -1,66 +1,47 @@
 #pragma once
-#include <Core/enums.hpp>
-#include <Core/etl/pair.hpp>
-#include <Core/etl/string.hpp>
-#include <Core/etl/vector.hpp>
-#include <Core/math/vector.hpp>
+#include <Platform/clipboard.hpp>
+#include <Platform/dialogs.hpp>
+#include <Platform/display.hpp>
+#include <Platform/events.hpp>
+#include <Platform/file_watcher.hpp>
+#include <Platform/filesystem.hpp>
+#include <Platform/input.hpp>
+#include <Platform/library.hpp>
+#include <Platform/memory.hpp>
+#include <Platform/process.hpp>
+#include <Platform/resource_ptr.hpp>
+#include <Platform/system.hpp>
+#include <Platform/threading.hpp>
+#include <Platform/window.hpp>
 
-namespace Trinex
+namespace Trinex::Platform
 {
-	class Window;
-	struct WindowDesc;
-	struct MonitorInfo;
-	struct Rect2D;
-	struct Event;
-	class Path;
-	class UUID;
-
-	namespace VFS
+	class ENGINE_EXPORT Context
 	{
-		class FileSystem;
-		class FileWatcherBackend;
-	}// namespace VFS
+	private:
+		static Context* s_instance;
 
-	namespace Platform
-	{
-		struct ENGINE_EXPORT MonitorInfo {
-			Vector2u pos;
-			Vector2u size;
-			float dpi;
-		};
+	public:
+		static Context* instance();
 
-		ENGINE_EXPORT OperationSystemType system_type();
-		ENGINE_EXPORT const char* system_name();
-		ENGINE_EXPORT Path find_exec_directory();
-		ENGINE_EXPORT bool create_uuid(UUID& uuid);
-		ENGINE_EXPORT usize monitors_count();
-		ENGINE_EXPORT MonitorInfo monitor_info(usize monitor_index = 0);
+		Context();
+		virtual ~Context();
 
-		namespace EventSystem
-		{
-			ENGINE_EXPORT void pool_events();
-			ENGINE_EXPORT void wait_for_events();
-		}// namespace EventSystem
+		virtual System* system()                = 0;
+		virtual Memory* memory()                = 0;
+		virtual DisplaySystem* display_system() = 0;
+		virtual WindowSystem* window_system()   = 0;
+		virtual InputSystem* input_system()     = 0;
+		virtual EventLoop* event_loop()         = 0;
+		virtual FileSystem* filesystem()        = 0;
+		virtual FileWatcher* file_watcher()     = 0;
+		virtual LibraryLoader* library_loader() = 0;
+		virtual ProcessSystem* process_system() = 0;
+		virtual ThreadSystem* thread_system()   = 0;
+		virtual Clipboard* clipboard()          = 0;
+		virtual DialogSystem* dialogs()         = 0;
 
-		ENGINE_EXPORT VFS::FileSystem* create_filesystem(const Path& mount, const Path& path);
-		ENGINE_EXPORT VFS::FileWatcherBackend* create_file_watcher();
-
-		namespace WindowManager
-		{
-			ENGINE_EXPORT void initialize();
-			ENGINE_EXPORT void terminate();
-
-			ENGINE_EXPORT Window* create_window(const WindowDesc* config);
-			ENGINE_EXPORT void destroy_window(Window* interface);
-			ENGINE_EXPORT bool mouse_relative_mode();
-			ENGINE_EXPORT void mouse_relative_mode(bool flag);
-		}// namespace WindowManager
-
-		namespace LibraryLoader
-		{
-			ENGINE_EXPORT void* load_library(const String& name);
-			ENGINE_EXPORT void close_library(void* handle);
-			ENGINE_EXPORT void* find_function(void* handle, const String& name);
-		}// namespace LibraryLoader
-	}// namespace Platform
-}// namespace Trinex
+		FORCE_INLINE SystemType system_type() const { return const_cast<Context*>(this)->system()->system_type(); }
+		FORCE_INLINE const String* name() const { return const_cast<Context*>(this)->system()->name(); }
+	};
+}// namespace Trinex::Platform

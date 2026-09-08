@@ -1,5 +1,0 @@
-set(PLATFORM_LINUX_SOURCES_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
-file(GLOB TRINEX_PLATFORM_LINUX_SRC "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
-
-target_sources(TrinexEngine PRIVATE ${TRINEX_PLATFORM_LINUX_SRC})
-target_link_libraries(TrinexEngine PUBLIC dl)

@@ -70,7 +70,7 @@ endif()
 
 # Compile modules
 add_subdirectory(${TRINEX_ENGINE_ROOT}/libs/)
-add_subdirectory(${TRINEX_ENGINE_SRC}/Platforms)
+add_subdirectory(${TRINEX_ENGINE_SRC}/Platform)
 add_subdirectory(${TRINEX_ENGINE_SRC}/BackendRHI)
 
 if(TRINEX_WITH_EDITOR)

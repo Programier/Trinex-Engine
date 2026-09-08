@@ -1,6 +1,0 @@
-if(WIN32 OR LINUX)
-    file(GLOB TRINEX_PLATFORM_COMMON_SRC "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
-    target_include_directories(TrinexEngine PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../include)
-    target_sources(TrinexEngine PRIVATE ${TRINEX_PLATFORM_COMMON_SRC})
-    target_link_libraries(TrinexEngine PRIVATE SDL2::SDL2-static)
-endif()

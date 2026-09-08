@@ -78,8 +78,6 @@ namespace Trinex
 		static WindowsState& instance()
 		{
 			static WindowsState s_state = []() {
-				Platform::WindowManager::initialize();
-
 				if (EventSystem* event_system = EventSystem::instance())
 				{
 					event_system->dispatcher().add_listener(EventTypeIds::Window, &s_window_event_listener);
@@ -93,8 +91,6 @@ namespace Trinex
 						Window* window = windows.begin()->second;
 						Window::destroy(window);
 					}
-
-					Platform::WindowManager::terminate();
 				});
 
 
@@ -123,7 +119,7 @@ namespace Trinex
 
 	Window* Window::create(const WindowDesc& desc, Window* parent)
 	{
-		Window* self = Platform::WindowManager::create_window(&desc);
+		Window* self = Platform::WindowSystem::instance()->create_window(&desc);
 
 		if (self == nullptr)
 			return nullptr;
@@ -182,7 +178,7 @@ namespace Trinex
 			}
 
 			//window->on_destroy(window);
-			Platform::WindowManager::destroy_window(window);
+			Platform::WindowSystem::instance()->destroy_window(window);
 		}
 	}
 

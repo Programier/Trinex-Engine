@@ -120,8 +120,8 @@ namespace Trinex::VFS
 
 	RootFS::RootFS()
 	{
-		m_root_native_file_system = Platform::create_filesystem("", "");
-		m_file_watcher            = Platform::create_file_watcher();
+		// m_root_native_file_system = Platform::create_filesystem("", "");
+		// m_file_watcher            = Platform::create_file_watcher();
 	}
 
 	RootFS::~RootFS()
@@ -219,8 +219,8 @@ namespace Trinex::VFS
 
 		auto& file_system = m_file_systems[mount_point];
 
-		if (type == Native)
-			file_system = Platform::create_filesystem(mount_point, path);
+		// if (type == Native)
+		// 	file_system = Platform::create_filesystem(mount_point, path);
 
 		vfs_log("Mounted '%s' to '%s'", file_system->path().c_str(), mount_point.c_str());
 		return true;

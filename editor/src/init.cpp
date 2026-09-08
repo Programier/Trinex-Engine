@@ -4,7 +4,6 @@
 #include <Core/etl/templates.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/garbage_collector.hpp>
-#include <Core/library.hpp>
 #include <Core/memory.hpp>
 #include <Core/package.hpp>
 #include <Core/reflection/class.hpp>
