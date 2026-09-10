@@ -15,16 +15,8 @@ namespace Trinex::Platform
 
 		FORCE_INLINE explicit operator bool() const { return success; }
 	};
-
-	struct Version {
-		u32 major = 0;
-		u32 minor = 0;
-		u32 patch = 0;
-		u32 build = 0;
-	};
-
-	struct EnvironmentVariable {
-		String name;
-		String value;
+	
+	struct EnvironmentVariable{
+		
 	};
 }// namespace Trinex::Platform

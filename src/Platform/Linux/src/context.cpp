@@ -52,11 +52,6 @@ namespace Trinex::Platform
 		return nullptr;
 	}
 
-	ProcessSystem* LinuxContext::process_system()
-	{
-		return nullptr;
-	}
-
 	ThreadSystem* LinuxContext::thread_system()
 	{
 		return nullptr;

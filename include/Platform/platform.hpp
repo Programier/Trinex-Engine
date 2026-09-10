@@ -40,8 +40,5 @@ namespace Trinex::Platform
 		virtual ThreadSystem* thread_system()   = 0;
 		virtual Clipboard* clipboard()          = 0;
 		virtual DialogSystem* dialogs()         = 0;
-
-		FORCE_INLINE SystemType system_type() const { return const_cast<Context*>(this)->system()->system_type(); }
-		FORCE_INLINE const String* name() const { return const_cast<Context*>(this)->system()->name(); }
 	};
 }// namespace Trinex::Platform

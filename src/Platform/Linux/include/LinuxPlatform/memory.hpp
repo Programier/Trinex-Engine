@@ -19,7 +19,7 @@ namespace Trinex::Platform
 		bool lock(void* address, usize size) override;
 		bool unlock(void* address, usize size) override;
 		usize page_size() const override;
-		usize allocation_granularity() const override;
+		usize granularity() const override;
 		MemoryInfo info() const override;
 	};
 }// namespace Trinex::Platform

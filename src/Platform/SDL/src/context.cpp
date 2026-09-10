@@ -2,6 +2,7 @@
 #include <SDLPlatform/clipboard.hpp>
 #include <SDLPlatform/context.hpp>
 #include <SDLPlatform/library.hpp>
+#include <SDLPlatform/process.hpp>
 
 namespace Trinex::Platform
 {
@@ -23,5 +24,10 @@ namespace Trinex::Platform
 	LibraryLoader* SDLContext::library_loader()
 	{
 		return SDLLibraryLoader::instance();
+	}
+
+	ProcessSystem* SDLContext::process_system()
+	{
+		return SDLProcessSystem::instance();
 	}
 }// namespace Trinex::Platform

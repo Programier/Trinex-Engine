@@ -11,5 +11,6 @@ namespace Trinex::Platform
 
 		Clipboard* clipboard() override;
 		LibraryLoader* library_loader() override;
+		ProcessSystem* process_system() override;
 	};
 }// namespace Trinex::Platform

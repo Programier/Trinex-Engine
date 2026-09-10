@@ -97,6 +97,17 @@ namespace Trinex
 		trinex_bitfield_enum_struct(SerializationFlags, EnumerateType);
 	};
 
+	struct IOWhence {
+		enum Enum : u8
+		{
+			Current = 0,
+			Begin   = 1,
+			End     = 2,
+		};
+
+		trinex_enum_struct(IOWhence);
+	};
+
 	struct BufferSeekDir {
 		enum Enum : EnumerateType
 		{

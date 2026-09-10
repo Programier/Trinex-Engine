@@ -1,6 +1,5 @@
 #pragma once
 #include <Core/etl/string.hpp>
-#include <Core/etl/vector.hpp>
 #include <Core/types/path.hpp>
 #include <Core/types/uuid.hpp>
 #include <Platform/enums.hpp>
@@ -11,15 +10,12 @@ namespace Trinex::Platform
 	struct SystemInfo {
 		SystemType type           = SystemType::Unknown;
 		Architecture architecture = Architecture::Unknown;
-		Version version;
-		String name;
-		String display_name;
-		String kernel_name;
-		String kernel_version;
-		String computer_name;
-		String user_name;
-		u32 page_size              = 0;
-		u32 allocation_granularity = 0;
+		const char* name;
+		const char* display_name;
+		const char* kernel_name;
+		const char* kernel_version;
+		const char* computer_name;
+		const char* user_name;
 	};
 
 	struct CPUInfo {
@@ -42,17 +38,17 @@ namespace Trinex::Platform
 
 		virtual ~System() = default;
 
-		virtual SystemType system_type() const                      = 0;
-		virtual const String* name() const                          = 0;
-		virtual const SystemInfo* system_info() const               = 0;
-		virtual const CPUInfo* cpu_info() const                     = 0;
-		virtual Path executable_path() const                        = 0;
-		virtual Path executable_directory() const                   = 0;
-		virtual Path current_directory() const                      = 0;
-		virtual bool current_directory(const Path* path)            = 0;
-		virtual String environment(StringView name) const           = 0;
-		virtual bool environment(StringView name, StringView value) = 0;
-		virtual bool remove_environment(StringView name)            = 0;
-		virtual bool create_uuid(UUID* out)                         = 0;
+		virtual SystemType system_type() const           = 0;
+		virtual const char* name() const                 = 0;
+		virtual const SystemInfo& system_info() const    = 0;
+		virtual const CPUInfo& cpu_info() const          = 0;
+		virtual const char* executable_path() const      = 0;
+		virtual const char* executable_directory() const = 0;
+		virtual const char* current_directory() const    = 0;
+		virtual bool current_directory(const Path* path) = 0;
+
+		virtual const char* environment(const char* name) const                            = 0;
+		virtual bool environment(const char* name, const char* value, bool replace = true) = 0;
+		virtual bool create_uuid(UUID* out)                                                = 0;
 	};
 }// namespace Trinex::Platform

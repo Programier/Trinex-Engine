@@ -2,6 +2,10 @@
 
 namespace Trinex::Platform
 {
+	ProcessSystem::~ProcessSystem() {}
+
+	Process::~Process() {}
+
 	LibraryLoader::~LibraryLoader() {}
 
 	Context::Context() {}

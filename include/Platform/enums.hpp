@@ -176,19 +176,16 @@ namespace Trinex::Platform
 		trinex_bitfield_enum_struct(FileWatchEventType, u32);
 	};
 
-	struct ProcessFlags {
-		enum Enum : u16
+	struct ProcessIO {
+		enum Enum : u8
 		{
-			Undefined          = 0,
-			Detached           = BIT(0),
-			HiddenWindow       = BIT(1),
-			RedirectStdIn      = BIT(2),
-			RedirectStdOut     = BIT(3),
-			RedirectStdErr     = BIT(4),
-			InheritEnvironment = BIT(5),
+			Undefined   = 0,
+			Inherited   = 1,
+			Application = 2,
+			Redirect    = 3,
 		};
 
-		trinex_bitfield_enum_struct(ProcessFlags, u16);
+		trinex_enum_struct(ProcessIO);
 	};
 
 	struct ThreadPriority {

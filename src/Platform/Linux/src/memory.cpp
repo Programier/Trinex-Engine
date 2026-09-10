@@ -177,7 +177,7 @@ namespace Trinex::Platform
 		return size;
 	}
 
-	usize LinuxMemory::allocation_granularity() const
+	usize LinuxMemory::granularity() const
 	{
 		return page_size();
 	}

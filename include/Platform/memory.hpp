@@ -29,7 +29,7 @@ namespace Trinex::Platform
 		virtual bool lock(void* address, usize size)                                                                         = 0;
 		virtual bool unlock(void* address, usize size)                                                                       = 0;
 		virtual usize page_size() const                                                                                      = 0;
-		virtual usize allocation_granularity() const                                                                         = 0;
+		virtual usize granularity() const                                                                                    = 0;
 		virtual MemoryInfo info() const                                                                                      = 0;
 	};
 }// namespace Trinex::Platform

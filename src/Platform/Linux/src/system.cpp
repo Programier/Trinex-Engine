@@ -1,12 +1,16 @@
+#include <Core/etl/string.hpp>
+#include <Core/etl/vector.hpp>
 #include <Core/types/uuid.hpp>
 #include <LinuxPlatform/system.hpp>
 #include <cstdlib>
 #include <fstream>
 #include <linux/random.h>
-#include <sstream>
+#include <pwd.h>
 #include <sys/random.h>
+#include <sys/types.h>
 #include <sys/utsname.h>
 #include <unistd.h>
+
 
 namespace Trinex::Platform
 {
@@ -33,15 +37,6 @@ namespace Trinex::Platform
 		}
 
 		return {};
-	}
-
-	static Version parse_kernel_version(const String& value)
-	{
-		Version version;
-		std::istringstream stream(value);
-		char dot = 0;
-		stream >> version.major >> dot >> version.minor >> dot >> version.patch;
-		return version;
 	}
 
 	static CPUFeature parse_cpu_features(const String& flags)
@@ -82,45 +77,7 @@ namespace Trinex::Platform
 #endif
 	}
 
-	LinuxSystem::LinuxSystem()
-	{
-		utsname uts = {};
-		uname(&uts);
-
-		m_name                               = "Linux";
-		m_system_info.type                   = SystemType::Linux;
-		m_system_info.architecture           = current_architecture();
-		m_system_info.name                   = m_name;
-		m_system_info.kernel_name            = uts.sysname;
-		m_system_info.kernel_version         = uts.release;
-		m_system_info.version                = parse_kernel_version(m_system_info.kernel_version);
-		m_system_info.computer_name          = uts.nodename;
-		m_system_info.page_size              = static_cast<u32>(sysconf(_SC_PAGESIZE));
-		m_system_info.allocation_granularity = m_system_info.page_size;
-
-		if (const char* user = getenv("USER"))
-			m_system_info.user_name = user;
-
-		m_system_info.display_name = read_file_line("/etc/os-release", "PRETTY_NAME=");
-		if (m_system_info.display_name.size() >= 2 && m_system_info.display_name.front() == '"' &&
-		    m_system_info.display_name.back() == '"')
-		{
-			m_system_info.display_name = m_system_info.display_name.substr(1, m_system_info.display_name.size() - 2);
-		}
-
-		m_cpu_info.vendor       = read_file_line("/proc/cpuinfo", "vendor_id");
-		m_cpu_info.brand        = read_file_line("/proc/cpuinfo", "model name");
-		m_cpu_info.architecture = m_system_info.architecture;
-		String cpu_features     = read_file_line("/proc/cpuinfo", "flags");
-
-		if (cpu_features.empty())
-			cpu_features = read_file_line("/proc/cpuinfo", "Features");
-
-		m_cpu_info.features        = parse_cpu_features(cpu_features);
-		m_cpu_info.logical_cores   = static_cast<u32>(sysconf(_SC_NPROCESSORS_ONLN));
-		m_cpu_info.physical_cores  = m_cpu_info.logical_cores;
-		m_cpu_info.cache_line_size = 64;
-	}
+	LinuxSystem::LinuxSystem() {}
 
 	LinuxSystem* LinuxSystem::instance()
 	{
@@ -133,38 +90,138 @@ namespace Trinex::Platform
 		return SystemType::Linux;
 	}
 
-	const String* LinuxSystem::name() const
+	const char* LinuxSystem::name() const
 	{
-		return &m_name;
+		return "Linux";
 	}
 
-	const SystemInfo* LinuxSystem::system_info() const
+	const SystemInfo& LinuxSystem::system_info() const
 	{
-		return &m_system_info;
+		static SystemInfo info = []() -> SystemInfo {
+			static utsname uts = {};
+			uname(&uts);
+
+			static String display_name = read_file_line("/etc/os-release", "PRETTY_NAME=");
+			if (display_name.size() >= 2 && display_name.front() == '"' && display_name.back() == '"')
+				display_name = display_name.substr(1, display_name.size() - 2);
+
+			SystemInfo info;
+			info.type           = SystemType::Linux;
+			info.architecture   = current_architecture();
+			info.name           = "Linux";
+			info.kernel_name    = uts.sysname;
+			info.kernel_version = uts.release;
+			info.computer_name  = uts.nodename;
+			info.display_name   = display_name.c_str();
+
+			info.user_name = []() -> const char* {
+				passwd pwd{};
+				passwd* result = nullptr;
+
+				size_t size = 16384;
+				Vector<char> buffer(size);
+
+				for (;;)
+				{
+					const int error = getpwuid_r(getuid(), &pwd, buffer.data(), buffer.size(), &result);
+
+					if (error == 0 && result)
+					{
+						static String username = pwd.pw_name;
+						return username.c_str();
+					}
+
+					if (error != ERANGE)
+						return "Unknown";
+
+					buffer.resize(buffer.size() * 2);
+				}
+			}();
+
+			return info;
+		}();
+
+		return info;
 	}
 
-	const CPUInfo* LinuxSystem::cpu_info() const
+	const CPUInfo& LinuxSystem::cpu_info() const
 	{
-		return &m_cpu_info;
+		static CPUInfo info = []() -> CPUInfo {
+			static String vendor = read_file_line("/proc/cpuinfo", "vendor_id");
+			static String brand  = read_file_line("/proc/cpuinfo", "model name");
+
+			String cpu_features = read_file_line("/proc/cpuinfo", "flags");
+			if (cpu_features.empty())
+				cpu_features = read_file_line("/proc/cpuinfo", "Features");
+
+			CPUInfo info;
+			info.vendor          = vendor.c_str();
+			info.brand           = brand.c_str();
+			info.architecture    = instance()->system_info().architecture;
+			info.features        = parse_cpu_features(cpu_features);
+			info.logical_cores   = static_cast<u32>(sysconf(_SC_NPROCESSORS_ONLN));
+			info.physical_cores  = info.logical_cores;
+			info.cache_line_size = 64;
+
+			return info;
+		}();
+
+		return info;
 	}
 
-	Path LinuxSystem::executable_path() const
+	const char* LinuxSystem::executable_path() const
 	{
-		char buffer[PATH_MAX] = {};
-		const ssize_t size    = readlink("/proc/self/exe", buffer, sizeof(buffer) - 1);
-		return size > 0 ? Path(StringView(buffer, static_cast<usize>(size))) : Path();
+		static const char* path = []() -> const char* {
+			static String path;
+			path.resize(256);
+
+			for (;;)
+			{
+				const ssize_t length = ::readlink("/proc/self/exe", path.data(), path.size());
+
+				if (length < 0)
+					return {};
+
+				if (static_cast<usize>(length) < path.size())
+				{
+					path.resize(static_cast<usize>(length));
+					return path.c_str();
+				}
+
+				path.resize(path.size() * 2);
+			}
+		}();
+
+		return path;
 	}
 
-	Path LinuxSystem::executable_directory() const
+	const char* LinuxSystem::executable_directory() const
 	{
-		Path path = executable_path();
-		return path.parent();
+		static const char* directory = []() -> const char* {
+			static String path = instance()->executable_path();
+
+			if (path.empty())
+				return "";
+
+			const usize pos = path.find_last_of('/');
+
+			if (pos == String::npos)
+				return ".";
+
+			if (pos == 0)
+				return "/";
+
+			path.resize(pos);
+			return path.c_str();
+		}();
+
+		return directory;
 	}
 
-	Path LinuxSystem::current_directory() const
+	const char* LinuxSystem::current_directory() const
 	{
-		char buffer[PATH_MAX] = {};
-		return getcwd(buffer, sizeof(buffer)) ? Path(buffer) : Path();
+		static thread_local char buffer[PATH_MAX];
+		return getcwd(buffer, PATH_MAX);
 	}
 
 	bool LinuxSystem::current_directory(const Path* path)
@@ -172,25 +229,21 @@ namespace Trinex::Platform
 		return path && chdir(path->c_str()) == 0;
 	}
 
-	String LinuxSystem::environment(StringView name) const
+	const char* LinuxSystem::environment(const char* name) const
 	{
-		const String variable(name);
-		if (const char* value = getenv(variable.c_str()))
-			return value;
-		return {};
+		return getenv(name);
 	}
 
-	bool LinuxSystem::environment(StringView name, StringView value)
+	bool LinuxSystem::environment(const char* name, const char* value, bool replace)
 	{
-		const String variable(name);
-		const String variable_value(value);
-		return setenv(variable.c_str(), variable_value.c_str(), 1) == 0;
-	}
-
-	bool LinuxSystem::remove_environment(StringView name)
-	{
-		const String variable(name);
-		return unsetenv(variable.c_str()) == 0;
+		if (value == nullptr)
+		{
+			return unsetenv(value) == 0;
+		}
+		else
+		{
+			return setenv(name, value, replace) == 0;
+		}
 	}
 
 	bool LinuxSystem::create_uuid(UUID* out)
