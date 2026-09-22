@@ -16,5 +16,20 @@ namespace Trinex
 		virtual u64 offset() const                                         = 0;
 		virtual usize read(void* buffer, usize size)                       = 0;
 		virtual usize write(const void* buffer, usize size)                = 0;
+		virtual bool flush()                                               = 0;
+
+		template<typename T>
+		bool read(T& value)
+		{
+			u8* data = reinterpret_cast<u8*>(&value);
+			return read(data, sizeof(data)) == sizeof(data);
+		}
+
+		template<typename T>
+		u64 write(const T& value)
+		{
+			const u8* data = reinterpret_cast<const u8*>(&value);
+			return write(data, sizeof(data)) == sizeof(data);
+		}
 	};
 }// namespace Trinex

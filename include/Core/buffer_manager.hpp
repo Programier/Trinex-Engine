@@ -16,10 +16,10 @@ namespace Trinex
 		usize size();
 		BufferWriter& position(WritePos pos);
 
-		virtual bool write(const u8* data, usize size)                                             = 0;
-		virtual WritePos position()                                                                = 0;
-		virtual BufferWriter& offset(PosOffset offset, BufferSeekDir dir = BufferSeekDir::Current) = 0;
-		virtual bool is_open() const                                                               = 0;
+		virtual bool write(const u8* data, usize size)                                   = 0;
+		virtual WritePos position()                                                      = 0;
+		virtual BufferWriter& offset(PosOffset offset, IOWhence dir = IOWhence::Current) = 0;
+		virtual bool is_open() const                                                     = 0;
 
 		template<typename... T>
 		FORCE_INLINE bool write_primitives(const T&... value)
@@ -41,10 +41,10 @@ namespace Trinex
 		usize size();
 		BufferReader& position(ReadPos pos);
 
-		virtual bool read(u8* data, usize size)                                                    = 0;
-		virtual ReadPos position()                                                                 = 0;
-		virtual BufferReader& offset(PosOffset offset, BufferSeekDir dir = BufferSeekDir::Current) = 0;
-		virtual bool is_open() const                                                               = 0;
+		virtual bool read(u8* data, usize size)                                          = 0;
+		virtual ReadPos position()                                                       = 0;
+		virtual BufferReader& offset(PosOffset offset, IOWhence dir = IOWhence::Current) = 0;
+		virtual bool is_open() const                                                     = 0;
 
 		template<typename... T>
 		FORCE_INLINE bool read_primitives(T&... value)
@@ -89,11 +89,11 @@ namespace Trinex
 		using VectorWriterBase::position;
 		FORCE_INLINE WritePos position() override { return m_write_pos; }
 
-		FORCE_INLINE VectorWriter& offset(PosOffset offset, BufferSeekDir dir = BufferSeekDir::Current) override
+		FORCE_INLINE VectorWriter& offset(PosOffset offset, IOWhence dir = IOWhence::Current) override
 		{
-			if (dir == BufferSeekDir::Begin)
+			if (dir == IOWhence::Begin)
 				m_write_pos = 0;
-			else if (dir == BufferSeekDir::End)
+			else if (dir == IOWhence::End)
 				m_write_pos = m_buffer->size() * sizeof(T);
 
 			m_write_pos += offset;
@@ -130,11 +130,11 @@ namespace Trinex
 		using VectorReaderBase::position;
 		FORCE_INLINE ReadPos position() override { return m_read_pos; }
 
-		FORCE_INLINE VectorReader& offset(PosOffset offset, BufferSeekDir dir = BufferSeekDir::Current) override
+		FORCE_INLINE VectorReader& offset(PosOffset offset, IOWhence dir = IOWhence::Current) override
 		{
-			if (dir == BufferSeekDir::Begin)
+			if (dir == IOWhence::Begin)
 				m_read_pos = 0;
-			else if (dir == BufferSeekDir::End)
+			else if (dir == IOWhence::End)
 				m_read_pos = m_buffer->size() * sizeof(T);
 
 			m_read_pos += offset;

@@ -27,14 +27,14 @@ namespace Trinex::Platform
 	class ENGINE_EXPORT File : public Object
 	{
 	public:
-		virtual FilePosition rseek(FileOffset offset, BufferSeekDir dir) = 0;
-		virtual FilePosition rpos()                                      = 0;
-		virtual FilePosition wseek(FileOffset offset, BufferSeekDir dir) = 0;
-		virtual FilePosition wpos()                                      = 0;
-		virtual usize read(void* buffer, usize size)                     = 0;
-		virtual usize write(const void* buffer, usize size)              = 0;
-		virtual bool flush()                                             = 0;
-		virtual u64 size() const                                         = 0;
+		virtual FilePosition rseek(FileOffset offset, IOWhence dir) = 0;
+		virtual FilePosition rpos()                                 = 0;
+		virtual FilePosition wseek(FileOffset offset, IOWhence dir) = 0;
+		virtual FilePosition wpos()                                 = 0;
+		virtual usize read(void* buffer, usize size)                = 0;
+		virtual usize write(const void* buffer, usize size)         = 0;
+		virtual bool flush()                                        = 0;
+		virtual u64 size() const                                    = 0;
 	};
 
 	class ENGINE_EXPORT DirectoryIterator : public Object

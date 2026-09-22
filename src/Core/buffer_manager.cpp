@@ -9,7 +9,7 @@ namespace Trinex
 			return 0;
 
 		auto current_pos = position();
-		offset(0, BufferSeekDir::End);
+		offset(0, IOWhence::End);
 		usize size = position();
 		position(current_pos);
 		return size;
@@ -17,7 +17,7 @@ namespace Trinex
 
 	BufferWriter& BufferWriter::position(WritePos pos)
 	{
-		return offset(pos, BufferSeekDir::Begin);
+		return offset(pos, IOWhence::Begin);
 	}
 
 	usize BufferReader::size()
@@ -26,7 +26,7 @@ namespace Trinex
 			return 0;
 
 		auto current_pos = position();
-		offset(0, BufferSeekDir::End);
+		offset(0, IOWhence::End);
 		usize size = position();
 		position(current_pos);
 		return size;
@@ -34,7 +34,7 @@ namespace Trinex
 
 	BufferReader& BufferReader::position(ReadPos pos)
 	{
-		return offset(pos, BufferSeekDir::Begin);
+		return offset(pos, IOWhence::Begin);
 	}
 
 

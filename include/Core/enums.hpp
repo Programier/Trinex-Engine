@@ -108,17 +108,6 @@ namespace Trinex
 		trinex_enum_struct(IOWhence);
 	};
 
-	struct BufferSeekDir {
-		enum Enum : EnumerateType
-		{
-			Current = 0,
-			Begin   = 1,
-			End     = 2,
-		};
-
-		trinex_enum_struct(BufferSeekDir);
-	};
-
 	struct FileOpenMode {
 		enum Enum : u8
 		{
@@ -130,8 +119,6 @@ namespace Trinex
 
 		trinex_bitfield_enum_struct(FileOpenMode, u8);
 	};
-
-	using FileSeekDir = BufferSeekDir;
 
 	struct SplashTextType {
 		enum Enum : EnumerateType

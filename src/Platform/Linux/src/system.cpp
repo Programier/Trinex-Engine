@@ -4,6 +4,7 @@
 #include <LinuxPlatform/system.hpp>
 #include <cstdlib>
 #include <fstream>
+#include <linux/limits.h>
 #include <linux/random.h>
 #include <pwd.h>
 #include <sys/random.h>

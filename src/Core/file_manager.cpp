@@ -55,14 +55,14 @@ namespace Trinex
 	{
 		if (!is_open())
 			return 0;
-		return m_file->wpos();
+		return m_file->offset();
 	}
 
-	FileWriter& FileWriter::offset(PosOffset offset, BufferSeekDir dir)
+	FileWriter& FileWriter::offset(PosOffset offset, IOWhence dir)
 	{
 		if (is_open())
 		{
-			m_file->wseek(offset, dir);
+			m_file->offset(offset, dir);
 		}
 		return *this;
 	}
@@ -134,15 +134,15 @@ namespace Trinex
 	{
 		if (!is_open())
 			return 0;
-		return m_file->rpos();
+		return m_file->offset();
 	}
 
 
-	FileReader& FileReader::offset(PosOffset offset, BufferSeekDir dir)
+	FileReader& FileReader::offset(PosOffset offset, IOWhence dir)
 	{
 		if (is_open())
 		{
-			m_file->rseek(offset, dir);
+			m_file->offset(offset, dir);
 		}
 
 		return *this;

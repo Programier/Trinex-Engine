@@ -32,7 +32,7 @@ namespace Trinex
 
 		bool write(const u8* data, usize size) override;
 		WritePos position() override;
-		FileWriter& offset(PosOffset offset, BufferSeekDir dir = BufferSeekDir::Current) override;
+		FileWriter& offset(PosOffset offset, IOWhence dir = IOWhence::Current) override;
 		bool is_open() const override;
 
 		~FileWriter();
@@ -58,7 +58,7 @@ namespace Trinex
 
 		bool read(u8* data, usize size) override;
 		ReadPos position() override;
-		FileReader& offset(PosOffset offset, BufferSeekDir dir = BufferSeekDir::Current) override;
+		FileReader& offset(PosOffset offset, IOWhence dir = IOWhence::Current) override;
 		bool is_open() const override;
 
 		String read_string(usize len = -1);
