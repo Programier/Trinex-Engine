@@ -1,7 +1,5 @@
 #pragma once
 
-#pragma once
-
 #include <concepts>
 
 namespace Trinex::etl
