@@ -1,24 +1,18 @@
 #pragma once
-#include <Core/enums.hpp>
 #include <Core/etl/string.hpp>
 #include <Core/etl/type_traits.hpp>
+#include <Core/stream.hpp>
 
 namespace Trinex
 {
-	class BufferReader;
-	class BufferWriter;
+	class Stream;
 
 	class ENGINE_EXPORT Archive
 	{
 	private:
-		union
-		{
-			BufferReader* m_reader;
-			BufferWriter* m_writer;
-		};
-
-		bool m_is_saving      = false;
-		bool m_process_status = true;
+		Ref<Stream> m_stream;
+		IOMode m_mode;
+		ArchiveFlags m_flags;
 
 		template<typename Type>
 		static auto address_of(Type& value)
@@ -36,21 +30,21 @@ namespace Trinex
 		bool serialize_struct(Refl::Struct* self, void* obj);
 
 	public:
-		SerializationFlags flags;
-
 		Archive();
-		Archive(BufferReader* reader);
-		Archive(BufferWriter* writer);
-		Archive(const Archive&) = delete;
-		Archive(Archive&&);
-		Archive& operator=(const Archive&) = delete;
-		Archive& operator=(Archive&&);
+		Archive(class PathView file, IOMode mode, ArchiveFlags flags = ArchiveFlags::Undefined);
+		Archive(Ref<Stream> stream, IOMode mode, ArchiveFlags flags = ArchiveFlags::Undefined);
+		Archive(void* memory, usize size, IOMode mode, ArchiveFlags flags = ArchiveFlags::Undefined);
+
+		template<StreamMemoryBlob Blob>
+		Archive(Blob& stream, IOMode mode, ArchiveFlags flags = ArchiveFlags::Undefined)
+		    : Archive(Ref<BufferStream<Blob>>::make(stream), mode, flags)
+		{}
+
+		trinex_non_copyable(Archive);
+		trinex_non_moveable(Archive);
 
 		bool is_saving() const;
 		bool is_reading() const;
-
-		BufferReader* reader() const;
-		BufferWriter* writer() const;
 
 		Archive& write_data(const u8* data, usize size);
 		Archive& read_data(u8* data, usize size);
@@ -67,7 +61,10 @@ namespace Trinex
 		bool serialize_object(Object*& object, StringView name = "", Object* owner = nullptr);
 		bool serialize_object_ref(Object*& object);
 
-		inline operator bool() { return m_process_status; }
+		inline Stream* stream() const { return m_stream.value(); }
+		inline IOMode mode() const { return m_mode; }
+		inline ArchiveFlags flags() const { return m_flags; }
+		inline operator bool() { return true; }
 
 		template<typename Type>
 		bool serialize(Type& value)
@@ -145,7 +142,7 @@ namespace Trinex
 			u32 size = end - begin;
 			serialize(size);
 
-			if (m_is_saving)
+			if (m_mode == IOMode::Write)
 			{
 				while (begin != end)
 				{

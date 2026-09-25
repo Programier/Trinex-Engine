@@ -1,7 +1,7 @@
+#include <Core/blob.hpp>
 #include <Core/constants.hpp>
 #include <Core/etl/templates.hpp>
-#include <Core/file_manager.hpp>
-#include <Core/filesystem/directory_iterator.hpp>
+#include <Core/filesystem/file.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/reflection/script_class.hpp>
 #include <Core/string_functions.hpp>
@@ -156,24 +156,26 @@ namespace Trinex
 	ScriptFolder& ScriptFolder::load_scripts()
 	{
 		unload_scripts();
+
 		auto fs = rootfs();
 
-		for (const auto& entry : VFS::DirectoryIterator(m_path))
-		{
-			if (rootfs()->is_file(entry))
+		fs->walk(m_path, [this](PathView path, const VFS::FileStat& stat) -> VFS::WalkResult {
+			if (stat.type == VFS::FileType::Regular)
 			{
-				if (entry.extension() == Constants::script_extension)
+				if (path.extension() == Constants::script_extension)
 				{
-					auto script = find_script(entry.filename(), true);
+					auto script = find_script(path.filename(), true);
 					if (script->load())
 						script->build();
 				}
 			}
-			else if (fs->is_dir(entry))
+			else if (stat.type == VFS::FileType::Directory)
 			{
-				find(entry.filename(), true)->load_scripts();
+				find(path.filename(), true)->load_scripts();
 			}
-		}
+
+			return VFS::WalkResult::Continue;
+		});
 
 		return *this;
 	}
@@ -369,15 +371,11 @@ namespace Trinex
 
 	bool Script::load()
 	{
-		FileReader reader(path());
-
-		if (reader.is_open())
+		if (auto buffer = rootfs()->map(path()))
 		{
-			String new_code(reader.size(), 0);
-
-			if (new_code.size() > 0 && reader.read(reinterpret_cast<u8*>(new_code.data()), new_code.size()))
+			if (!buffer->empty())
 			{
-				m_code = std::move(new_code);
+				m_code = buffer->as<String>();
 				return true;
 			}
 		}
@@ -387,11 +385,9 @@ namespace Trinex
 
 	bool Script::save() const
 	{
-		FileWriter writer(path());
-
-		if (writer.is_open())
+		if (auto file = rootfs()->open(path(), VFS::AccessFlags::Write))
 		{
-			if (writer.write(reinterpret_cast<const u8*>(m_code.c_str()), m_code.size()))
+			if (file->write(m_code.c_str(), m_code.size()))
 			{
 				m_is_dirty = false;
 				return true;

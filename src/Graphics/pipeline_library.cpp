@@ -1,4 +1,5 @@
-#include <Core/file_manager.hpp>
+#include <Core/blob.hpp>
+#include <Core/filesystem/root_filesystem.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/package.hpp>
 #include <Core/reflection/class.hpp>
@@ -169,31 +170,31 @@ namespace Trinex
 			}
 		}
 
-		const char* path = source_path();
+		Path path = source_path();
 
-		FileReader reader(path);
-
-		if (!reader.is_open())
+		if (auto buffer = rootfs()->map(path))
 		{
-			trinex_error(Log::Graphics, "Failed to open shader module '%s'", path);
+			String source = buffer->as<String>();
+
+			if (source.empty())
+			{
+				trinex_error(Log::Graphics, "Shader module '%s' is empty", path.c_str());
+				return false;
+			}
+
+			release_childs();
+
+			ShaderCompiler::StackEnvironment env;
+			env.add_source(source.c_str());
+			modify_compilation_env(&env);
+
+			return compiler->compile(&env, [this](const ShaderCompilationResult& result) { return compile_permutation(result); });
+		}
+		else
+		{
+			trinex_error(Log::Graphics, "Failed to open shader module '%s'", path.c_str());
 			return false;
 		}
-
-		const String source = reader.read_string();
-
-		if (source.empty())
-		{
-			trinex_error(Log::Graphics, "Shader module '%s' is empty", path);
-			return false;
-		}
-
-		release_childs();
-
-		ShaderCompiler::StackEnvironment env;
-		env.add_source(source.c_str());
-		modify_compilation_env(&env);
-
-		return compiler->compile(&env, [this](const ShaderCompilationResult& result) { return compile_permutation(result); });
 	}
 
 	Pipeline* GlobalPipelineLibrary::pipeline(Name permutation) const

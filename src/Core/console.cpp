@@ -1,9 +1,10 @@
+#include <Core/blob.hpp>
 #include <Core/console.hpp>
 #include <Core/etl/algorithm.hpp>
 #include <Core/etl/flat_set.hpp>
 #include <Core/etl/utility.hpp>
 #include <Core/etl/variant.hpp>
-#include <Core/file_manager.hpp>
+#include <Core/filesystem/root_filesystem.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/types/path.hpp>
@@ -848,21 +849,19 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 
 	ENGINE_EXPORT ExecuteStatus execute_config(const Path& path)
 	{
-		FileReader reader(Path("[configs]:") / path);
-
-		if (!reader.is_open())
+		if (auto data = rootfs()->map(Path("[configs]:") / path))
 		{
-			trinex_warning(Log::Engine, "Failed to load config '%s'", path.c_str());
-			return ExecuteStatus::FileOpenFailed;
+			const ExecuteStatus status = Console::execute(data->as<StringView>());
+
+			if (status != ExecuteStatus::Success)
+			{
+				trinex_warning(Log::Engine, "Failed to execute config '%s' with status %u", path.c_str(),
+				               static_cast<u32>(status.value));
+			}
+			return status;
 		}
 
-		const Console::ExecuteStatus status = Console::execute(reader.read_string());
-
-		if (status != Console::ExecuteStatus::Success)
-		{
-			trinex_warning(Log::Engine, "Failed to execute config '%s' with status %u", path.c_str(),
-			               static_cast<u32>(status.value));
-		}
-		return status;
+		trinex_warning(Log::Engine, "Failed to load config '%s'", path.c_str());
+		return ExecuteStatus::FileOpenFailed;
 	}
 }// namespace Trinex::Console

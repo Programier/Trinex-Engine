@@ -1,9 +1,9 @@
-#include <Core/file_manager.hpp>
+#include <Core/blob.hpp>
+#include <Core/filesystem/root_filesystem.hpp>
 #include <Core/math/math.hpp>
 #include <Engine/font.hpp>
 #include <Image/image.hpp>
 #include <freetype/freetype.h>
-
 
 namespace Trinex
 {
@@ -48,13 +48,12 @@ namespace Trinex
 
 	bool Font::load(const Path& path)
 	{
-		FileReader reader(path);
-
-		if (!reader.is_open())
-			return false;
-
-		Buffer buffer = reader.read_buffer();
-		return load(buffer);
+		if (auto blob = rootfs()->map(path))
+		{
+			return load(blob->data(), blob->size());
+		}
+		
+		return false;
 	}
 
 	bool Font::load(const Buffer& buffer)

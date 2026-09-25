@@ -1,12 +1,6 @@
-#include "vfs_log.hpp"
-#include <Core/filesystem/directory_iterator.hpp>
+#include <Core/blob.hpp>
 #include <Core/filesystem/file.hpp>
-#include <Core/filesystem/file_watcher.hpp>
-#include <Core/filesystem/redirector.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
-#include <Core/memory.hpp>
-#include <Core/types/path.hpp>
-#include <Platform/platform.hpp>
 
 namespace Trinex
 {
@@ -19,469 +13,130 @@ namespace Trinex
 
 namespace Trinex::VFS
 {
-	class FileSystemIterator : public DirectoryIteratorInterface
+	namespace
 	{
-	public:
-		Vector<DirectoryIteratorInterface*> m_iterators;
-		mutable usize m_index = 0;
-
-		bool next() override
+		class Redirector : public FileSystem
 		{
-			if (m_index < m_iterators.size())
+		public:
+			Path m_path;
+
+		public:
+			Redirector(const PathView& path) : m_path(path) {}
+
+			Ref<File> open(PathView path, AccessFlags flags) override { return rootfs()->open(m_path / path, flags); }
+			Ref<Blob> map(PathView path, AccessFlags flags) override { return rootfs()->map(m_path / path, flags); }
+			bool stat(PathView path, FileStat& out) const override { return rootfs()->stat(m_path / path, out); }
+
+			bool create_directory(PathView path) override { return rootfs()->create_directory(m_path / path); }
+			bool remove(PathView path) override { return rootfs()->remove(m_path / path); }
+			bool copy(PathView src, PathView dst) override { return rootfs()->copy(m_path / src, m_path / dst); }
+			bool move(PathView src, PathView dst) override { return rootfs()->move(m_path / src, m_path / dst); }
+
+			bool walk(PathView path, const WalkCallback& callback, WalkFlags flags = WalkFlags::Default) const override
 			{
-				if (m_iterators[m_index]->next())
-					return true;
-
-				++m_index;
-				return is_valid();
+				return rootfs()->walk(m_path / path, callback, flags);
 			}
-			return false;
-		}
-
-		const Path& path() override { return m_iterators[m_index]->path(); }
-
-		bool is_valid() const override
-		{
-			while (m_index < m_iterators.size())
-			{
-				DirectoryIteratorInterface* it = m_iterators[m_index];
-				if (it->is_valid())
-					return true;
-				++m_index;
-			}
-			return false;
-		}
-
-		DirectoryIteratorInterface* copy() override
-		{
-			FileSystemIterator* new_iterator = trx_new FileSystemIterator();
-			new_iterator->m_iterators.reserve(m_iterators.size() - m_index);
-
-			for (usize index = m_index, count = m_iterators.size(); index < count; ++index)
-			{
-				if (auto iterator = m_iterators[index])
-				{
-					new_iterator->m_iterators.push_back(iterator->copy());
-				}
-			}
-
-			return new_iterator;
-		}
-
-		Identifier id() const override { return m_iterators[m_index]->id(); }
-
-		bool is_equal(DirectoryIteratorInterface* interface) override
-		{
-			if (m_index < m_iterators.size())
-			{
-				return m_iterators[m_index]->is_equal(interface);
-			}
-			return false;
-		}
-
-		~FileSystemIterator()
-		{
-			for (auto* it : m_iterators)
-			{
-				trx_delete_inline(it);
-			}
-		}
-	};
-
-	class MountPointIterator : public DirectoryIteratorInterface
-	{
-	public:
-		Vector<FileSystem*> m_file_systems;
-		mutable usize m_index = 0;
-
-		bool next() override { return ++m_index < m_file_systems.size(); }
-		const Path& path() override { return m_file_systems[m_index]->mount_point(); }
-		bool is_valid() const override { return m_index < m_file_systems.size(); }
-
-		DirectoryIteratorInterface* copy() override
-		{
-			MountPointIterator* new_iterator = trx_new MountPointIterator();
-			new_iterator->m_file_systems.reserve(m_file_systems.size() - m_index);
-			for (usize index = m_index, count = m_file_systems.size(); index < count; ++index)
-				new_iterator->m_file_systems.push_back(m_file_systems[index]);
-			return new_iterator;
-		}
-
-		Identifier id() const override
-		{
-			static const u8 id = 0;
-			return reinterpret_cast<Identifier>(&id);
-		}
-
-		bool is_equal(DirectoryIteratorInterface* iterator) override { return false; }
-	};
+		};
+	}// namespace
 
 	RootFS* RootFS::s_instance = nullptr;
 
-	RootFS::RootFS()
+	Ref<File> RootFS::open(PathView path, AccessFlags flags)
 	{
-		// m_root_native_file_system = Platform::create_filesystem("", "");
-		// m_file_watcher            = Platform::create_file_watcher();
-	}
-
-	RootFS::~RootFS()
-	{
-		trx_delete_inline(m_file_watcher);
-		trx_delete_inline(m_root_native_file_system);
-
-		for (auto& [mount, fs] : m_file_systems)
+		if (FileSystem* fs = resolve(path))
 		{
-			trx_delete_inline(fs);
+			return fs->open(path, flags);
 		}
-	}
 
-	DirectoryIteratorInterface* RootFS::create_directory_iterator(const Path& path)
-	{
-		auto entry = find_filesystem(path);
-		if (entry.first)
-		{
-			DirectoryIteratorInterface* iterator = entry.first->create_directory_iterator(entry.second);
-
-			if (entry.second.empty())
-			{
-				FileSystemIterator* fs_iterator = trx_new FileSystemIterator();
-				fs_iterator->m_iterators.push_back(iterator);
-				iterator = fs_iterator;
-
-				MountPointIterator* mount_point_iterator = nullptr;
-
-				for (auto& [mount, fs] : filesystems())
-				{
-					if (mount.starts_with(entry.first->mount_point()) && mount != entry.first->mount_point().str())
-					{
-						if (mount_point_iterator == nullptr)
-							mount_point_iterator = trx_new MountPointIterator();
-						mount_point_iterator->m_file_systems.push_back(fs);
-					}
-				}
-
-				if (mount_point_iterator)
-					fs_iterator->m_iterators.push_back(mount_point_iterator);
-			}
-
-			return iterator;
-		}
 		return nullptr;
 	}
 
-	DirectoryIteratorInterface* RootFS::create_recursive_directory_iterator(const Path& path)
+	Ref<Blob> RootFS::map(PathView path, AccessFlags flags)
 	{
-		auto entry = find_filesystem(path);
-		if (entry.first)
+		if (FileSystem* fs = resolve(path))
 		{
-			DirectoryIteratorInterface* iterator = entry.first->create_recursive_directory_iterator(entry.second);
-
-			if (entry.second.empty())
-			{
-				FileSystemIterator* fs_iterator = trx_new FileSystemIterator();
-				fs_iterator->m_iterators.push_back(iterator);
-				iterator = fs_iterator;
-
-				for (auto& [mount, fs] : filesystems())
-				{
-					if (mount.starts_with(entry.first->mount_point()) && mount != entry.first->mount_point().str())
-						fs_iterator->m_iterators.push_back(fs->create_recursive_directory_iterator(""));
-				}
-			}
-
-			return iterator;
+			return fs->map(path, flags);
 		}
+
 		return nullptr;
 	}
 
-	bool RootFS::mount(const Path& mount_point, const Path& path)
+	bool RootFS::stat(PathView path, FileStat& out) const
 	{
-		if (m_file_systems.contains(mount_point))
+		if (FileSystem* fs = resolve(path))
 		{
-			vfs_error("Failed to create mount point '%s'. Mount point already exist!", mount_point.c_str());
-			return false;
+			return fs->stat(path, out);
 		}
 
-		auto& file_system = m_file_systems[mount_point];
-		file_system       = trx_new Redirector(mount_point, path);
+		return false;
+	}
 
-		vfs_log("Mounted '%s' to '%s'", file_system->path().c_str(), mount_point.c_str());
+	bool RootFS::create_directory(PathView path)
+	{
+		if (FileSystem* fs = resolve(path))
+		{
+			return fs->create_directory(path);
+		}
+
+		return false;
+	}
+
+	bool RootFS::remove(PathView path)
+	{
+		if (FileSystem* fs = resolve(path))
+		{
+			return fs->create_directory(path);
+		}
+
+		return false;
+	}
+
+	bool RootFS::copy(PathView src, PathView dst)
+	{
+		return false;
+	}
+
+	bool RootFS::move(PathView src, PathView dst)
+	{
+		return false;
+	}
+
+	bool RootFS::walk(PathView path, const WalkCallback& callback, WalkFlags flags) const
+	{
+		return false;
+	}
+
+	bool RootFS::mount(PathView point, PathView path)
+	{
+		auto ref = Ref<Redirector>::make(path);
+		return mount(point, ref.value());
+	}
+
+	bool RootFS::mount(PathView point, FileSystem* system)
+	{
+		if (system == nullptr)
+			return false;
+
+		if (m_file_systems.contains(point.path()))
+			return false;
+
+		m_file_systems.emplace(point, Ref<FileSystem>::retain(system));
 		return true;
 	}
 
-	bool RootFS::mount(const Path& mount_point, const Path& path, Type type)
+	bool RootFS::unmount(PathView point)
 	{
-		if (m_file_systems.contains(mount_point))
-		{
-			vfs_error("Failed to create mount point '%s'. Mount point already exist!", mount_point.c_str());
-			return false;
-		}
-
-		auto& file_system = m_file_systems[mount_point];
-
-		// if (type == Native)
-		// 	file_system = Platform::create_filesystem(mount_point, path);
-
-		vfs_log("Mounted '%s' to '%s'", file_system->path().c_str(), mount_point.c_str());
-		return true;
-	}
-
-	RootFS& RootFS::unmount(const Path& mount_point)
-	{
-		auto it = m_file_systems.find(mount_point);
+		auto it = m_file_systems.find(point);
 
 		if (it == m_file_systems.end())
-			return *this;
+			return false;
 
-		trx_delete_inline(it->second);
 		m_file_systems.erase(it);
-		return *this;
+		return true;
 	}
 
-	Pair<FileSystem*, Path> RootFS::find_filesystem(const Path& path) const
+	FileSystem* RootFS::resolve(PathView& path) const
 	{
-		static auto next_symbol_of = [](const Path& path, const String& fs_path) -> char {
-			if (fs_path.empty() || fs_path.back() == Path::separator)
-				return Path::separator;
-
-			if (path.length() <= fs_path.length())
-				return Path::separator;
-			return path.str()[fs_path.length()];
-		};
-
-		for (auto& [mount_point, fs] : m_file_systems)
-		{
-			if (path.path().starts_with(mount_point) &&
-			    (next_symbol_of(path, mount_point) == Path::separator || mount_point.empty()))
-			{
-				return {fs, path.relative(mount_point)};
-			}
-		}
-
-		return {m_root_native_file_system, path};
-	}
-
-	const Path& RootFS::path() const
-	{
-		static const Path p;
-		return p;
-	}
-
-	bool RootFS::is_read_only() const
-	{
-		return false;
-	}
-
-	File* RootFS::open(const Path& path, FileOpenMode mode)
-	{
-		auto entry = find_filesystem(path);
-		return entry.first->open(entry.second, mode);
-	}
-
-	RootFS& RootFS::close(File* file)
-	{
-		if (file)
-		{
-			file->filesystem()->close(file);
-		}
-		return *this;
-	}
-
-	bool RootFS::create_dir(const Path& path)
-	{
-		auto entry = find_filesystem(path);
-		if (entry.first)
-		{
-			return entry.first->create_dir(entry.second);
-		}
-		return false;
-	}
-
-	bool RootFS::remove(const Path& path)
-	{
-		auto entry = find_filesystem(path);
-		if (entry.first)
-		{
-			return entry.first->remove(entry.second);
-		}
-		return false;
-	}
-
-	bool RootFS::copy(const Path& src, const Path& dest)
-	{
-		auto entry1 = find_filesystem(src);
-		auto entry2 = find_filesystem(dest);
-
-		if (entry1.first && entry1.first == entry2.first)
-		{
-			return entry1.first->copy(entry1.second, entry2.second);
-		}
-		return false;
-	}
-
-	bool RootFS::rename(const Path& src, const Path& dest)
-	{
-		auto entry1 = find_filesystem(src);
-		auto entry2 = find_filesystem(dest);
-
-		if (entry1.first && entry1.first == entry2.first)
-		{
-			return entry1.first->rename(entry1.second, entry2.second);
-		}
-		return false;
-	}
-
-	bool RootFS::is_exist(const Path& path) const
-	{
-		auto entry = find_filesystem(path);
-		if (entry.first)
-		{
-			return entry.first->is_exist(entry.second);
-		}
-		return false;
-	}
-
-	bool RootFS::is_file(const Path& file) const
-	{
-		auto entry = find_filesystem(file);
-		if (entry.first)
-		{
-			return entry.first->is_file(entry.second);
-		}
-		return false;
-	}
-
-	bool RootFS::is_dir(const Path& dir) const
-	{
-		auto entry = find_filesystem(dir);
-		if (entry.first)
-		{
-			return entry.first->is_dir(entry.second);
-		}
-		return false;
-	}
-
-	RootFS::Type RootFS::type() const
-	{
-		return Type::Native;
-	}
-
-	Path RootFS::native_path(const Path& path) const
-	{
-		auto entry = find_filesystem(path);
-		if (entry.first)
-		{
-			return entry.first->native_path(entry.second);
-		}
-		return {};
-	}
-
-	FileSystem* RootFS::filesystem_of(const Path& path) const
-	{
-		return find_filesystem(path).first;
-	}
-
-	Identifier RootFS::watch(const Path& path, FileWatchCallback callback, FileWatchEventType event_mask, bool recursive)
-	{
-		if (!callback)
-			return 0;
-
-		if (m_file_watcher == nullptr)
-		{
-			vfs_warning("Platform file watcher is not available for '%s'", path.c_str());
-			return 0;
-		}
-
-		FileSystem* fs = filesystem_of(path);
-		if (fs == nullptr || fs->type() != FileSystem::Native)
-		{
-			vfs_warning("Can't watch non-native path '%s'", path.c_str());
-			return 0;
-		}
-
-		const Identifier watch_id = m_next_watch_id++;
-		const Path native         = native_path(path);
-
-		if (!m_file_watcher->watch(watch_id, path, native, recursive))
-		{
-			return 0;
-		}
-
-		WatchSubscription& watch = m_watch_subscriptions.emplace_back();
-		watch.id                 = watch_id;
-		watch.path               = path;
-		watch.event_mask         = event_mask;
-		watch.recursive          = recursive;
-		watch.callback           = std::move(callback);
-
-		return watch_id;
-	}
-
-	RootFS& RootFS::unwatch(Identifier watch_id)
-	{
-		if (m_file_watcher)
-		{
-			m_file_watcher->unwatch(watch_id);
-		}
-
-		for (auto it = m_watch_subscriptions.begin(); it != m_watch_subscriptions.end(); ++it)
-		{
-			if (it->id == watch_id)
-			{
-				m_watch_subscriptions.erase(it);
-				break;
-			}
-		}
-
-		return *this;
-	}
-
-	RootFS& RootFS::update(float dt)
-	{
-		Tickable::update(dt);
-
-		if (m_file_watcher == nullptr || m_watch_subscriptions.empty())
-			return *this;
-
-		Vector<FileWatchNotification> events;
-		m_file_watcher->poll(events);
-
-		for (const FileWatchNotification& event : events)
-		{
-			FileWatchCallback callback;
-
-			for (const auto& watch : m_watch_subscriptions)
-			{
-				if (watch.id == event.watch_id && watch.event_mask.all(event.type))
-				{
-					callback = watch.callback;
-					break;
-				}
-			}
-
-			if (callback)
-			{
-				callback(event);
-			}
-		}
-
-		return *this;
-	}
-
-	Vector<String> RootFS::mount_points() const
-	{
-		Vector<String> result;
-		result.reserve(m_file_systems.size());
-
-		for (auto& [name, fs] : m_file_systems)
-		{
-			result.push_back(name);
-		}
-		return result;
-	}
-
-	const RootFS::FileSystems& RootFS::filesystems() const
-	{
-		return m_file_systems;
+		return nullptr;
 	}
 }// namespace Trinex::VFS

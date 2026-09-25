@@ -1,5 +1,4 @@
 #include <Core/etl/algorithm.hpp>
-#include <Core/file_manager.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/window.hpp>

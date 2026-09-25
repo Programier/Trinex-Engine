@@ -86,15 +86,15 @@ namespace Trinex
 		trinex_enum(MessageBoxType);
 	};
 
-	struct SerializationFlags {
+	struct ArchiveFlags {
 		enum Enum : EnumerateType
 		{
-			None             = 0,
+			Undefined        = 0,
 			SkipObjectSearch = BIT(0),
 			IsCopyProcess    = BIT(1),
 		};
 
-		trinex_bitfield_enum_struct(SerializationFlags, EnumerateType);
+		trinex_bitfield_enum_struct(ArchiveFlags, EnumerateType);
 	};
 
 	struct IOWhence {
@@ -108,16 +108,14 @@ namespace Trinex
 		trinex_enum_struct(IOWhence);
 	};
 
-	struct FileOpenMode {
+	struct IOMode {
 		enum Enum : u8
 		{
-			Read      = BIT(0),
-			Write     = BIT(1),
-			ReadWrite = Read | Write,
-			Append    = BIT(2) | Write,
+			Read  = 0,
+			Write = 1,
 		};
 
-		trinex_bitfield_enum_struct(FileOpenMode, u8);
+		trinex_enum_struct(IOMode);
 	};
 
 	struct SplashTextType {

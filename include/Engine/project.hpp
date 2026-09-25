@@ -1,24 +1,22 @@
 #pragma once
-#include <Core/etl/string.hpp>
-#include <Core/export.hpp>
+#include <Core/types/path.hpp>
 
 namespace Trinex
 {
-	class Path;
 	struct ENGINE_EXPORT Project {
 		static String name;
 		static String version;
 
 		// Project structure definition
-		static String project_dir;
-		static String resources_dir;
-		static String configs_dir;
-		static String assets_dir;
-		static String scripts_dir;
-		static String shaders_dir;
-		static String localization_dir;
-		static String libraries_dir;
-		static String shader_cache_dir;
+		static Path project_dir;
+		static Path resources_dir;
+		static Path configs_dir;
+		static Path assets_dir;
+		static Path scripts_dir;
+		static Path shaders_dir;
+		static Path localization_dir;
+		static Path libraries_dir;
+		static Path shader_cache_dir;
 
 		static bool close_project();
 		static bool open_project(const String& config, const Path& root);

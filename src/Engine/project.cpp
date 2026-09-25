@@ -1,6 +1,6 @@
 #include <Core/arguments.hpp>
+#include <Core/blob.hpp>
 #include <Core/console.hpp>
-#include <Core/file_manager.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/string_functions.hpp>
 #include <Engine/project.hpp>
@@ -13,15 +13,15 @@ namespace Trinex
 	String Project::version;
 
 	// Project structure definition
-	String Project::project_dir;
-	String Project::resources_dir;
-	String Project::configs_dir;
-	String Project::assets_dir;
-	String Project::scripts_dir;
-	String Project::shaders_dir;
-	String Project::localization_dir;
-	String Project::libraries_dir;
-	String Project::shader_cache_dir;
+	Path Project::project_dir;
+	Path Project::resources_dir;
+	Path Project::configs_dir;
+	Path Project::assets_dir;
+	Path Project::scripts_dir;
+	Path Project::shaders_dir;
+	Path Project::localization_dir;
+	Path Project::libraries_dir;
+	Path Project::shader_cache_dir;
 
 	static void bind_to_script_engine()
 	{
@@ -70,15 +70,15 @@ namespace Trinex
 	{
 		auto rfs = rootfs();
 
-		rfs->create_dir(Project::project_dir);
-		rfs->create_dir(Project::resources_dir);
-		rfs->create_dir(Project::configs_dir);
-		rfs->create_dir(Project::assets_dir);
-		rfs->create_dir(Project::scripts_dir);
-		rfs->create_dir(Project::shaders_dir);
-		rfs->create_dir(Project::localization_dir);
-		rfs->create_dir(Project::libraries_dir);
-		rfs->create_dir(Project::shader_cache_dir);
+		rfs->create_directory(Project::project_dir);
+		rfs->create_directory(Project::resources_dir);
+		rfs->create_directory(Project::configs_dir);
+		rfs->create_directory(Project::assets_dir);
+		rfs->create_directory(Project::scripts_dir);
+		rfs->create_directory(Project::shaders_dir);
+		rfs->create_directory(Project::localization_dir);
+		rfs->create_directory(Project::libraries_dir);
+		rfs->create_directory(Project::shader_cache_dir);
 	}
 
 	static void rename_dirs_to_mount_points()
@@ -138,10 +138,12 @@ namespace Trinex
 
 	bool Project::open_project(const Path& project_file)
 	{
-		FileReader reader(project_file);
-		if (!reader.is_open())
-			return false;
-		return open_project(reader.read_string(), project_file.base_path());
+		if (auto blob = rootfs()->map(project_file))
+		{
+			return open_project(blob->as<String>(), project_file.base_path());
+		}
+
+		return false;
 	}
 
 	static constexpr inline const char* literal = R"(// Trinex Engine Project file
@@ -160,8 +162,9 @@ Engine::Project::shader_cache_dir = "{}";
 
 	String Project::to_string()
 	{
-		return Strings::format(literal, name, version, project_dir, resources_dir, configs_dir, assets_dir, scripts_dir,
-		                       shader_cache_dir, localization_dir, libraries_dir, shader_cache_dir);
+		return Strings::format(literal, name, version, project_dir.str(), resources_dir.str(), configs_dir.str(),
+		                       assets_dir.str(), scripts_dir.str(), shader_cache_dir.str(), localization_dir.str(),
+		                       libraries_dir.str(), shader_cache_dir.str());
 	}
 
 	static bool check_initialize(bool with_msg)

@@ -75,7 +75,7 @@ namespace Trinex
 		return find_child_object(Strings::parse_name_identifier(name)) != nullptr;
 	}
 
-	bool Package::save(BufferWriter* writer, SerializationFlags serialization_flags)
+	bool Package::save(Stream* stream, ArchiveFlags flags)
 	{
 		if (!is_serializable())
 		{
@@ -89,11 +89,11 @@ namespace Trinex
 		{
 			if (Package* sub_package = object->instance_cast<Package>())
 			{
-				result = sub_package->save(writer, serialization_flags);
+				result = sub_package->save(stream, flags);
 				continue;
 			}
 
-			object->save(writer, serialization_flags);
+			object->save(stream, flags);
 
 			if (result == false)
 			{

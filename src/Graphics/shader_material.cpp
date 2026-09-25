@@ -1,5 +1,6 @@
 #include <Core/archive.hpp>
-#include <Core/file_manager.hpp>
+#include <Core/blob.hpp>
+#include <Core/filesystem/root_filesystem.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/property.hpp>
 #include <Engine/project.hpp>
@@ -15,10 +16,11 @@ namespace Trinex
 
 	bool ShaderMaterial::shader_source(String& out_source)
 	{
-		FileReader reader(shader_path);
-		if (reader.is_open())
+		Path path = shader_path;
+
+		if (auto buffer = rootfs()->map(path))
 		{
-			out_source = reader.read_string();
+			out_source = buffer->as<StringView>();
 			return true;
 		}
 		return false;

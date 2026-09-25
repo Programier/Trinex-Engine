@@ -1,11 +1,12 @@
 #include <Core/archive.hpp>
 #include <Core/base_engine.hpp>
+#include <Core/blob.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/compressor.hpp>
 #include <Core/constants.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/file_flag.hpp>
-#include <Core/file_manager.hpp>
+#include <Core/filesystem/file.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/memory.hpp>
 #include <Core/object.hpp>
@@ -13,6 +14,7 @@
 #include <Core/package.hpp>
 #include <Core/pointer.hpp>
 #include <Core/reflection/class.hpp>
+#include <Core/stream.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/threading.hpp>
 #include <Engine/project.hpp>
@@ -576,50 +578,33 @@ namespace Trinex
 		return flags.all(Flags::IsDirty);
 	}
 
-	template<typename Type>
-	static Type* open_asset_file(const Object* object, bool create_dir = false)
+	bool Object::save(Stream* stream, ArchiveFlags flags)
 	{
-		Path path = Path(Project::assets_dir) / object->filepath();
-
-		if (create_dir)
+		if (stream == nullptr)
 		{
-			rootfs()->create_dir(path.base_path());
+			Path path = Path(Project::assets_dir) / filepath();
+
+			if (auto stream = rootfs()->open(path, VFS::AccessFlags::Write | VFS::AccessFlags::Recursive))
+			{
+				return save(stream.value(), flags);
+			}
+			else
+			{
+				trinex_error(Log::Core, "Failed to save object'%s': Failed to create file '%s'!", full_name().c_str(),
+				             path.c_str());
+
+				return false;
+			}
 		}
 
-		Type* value = trx_new Type(path);
-		if (value->is_open())
-		{
-			return value;
-		}
-
-		trx_delete value;
-
-		if constexpr (std::is_base_of_v<BufferReader, Type>)
-		{
-			trinex_error(Log::Core, "Failed to load object '%s': File '%s' not found!", object->full_name().c_str(),
-			             path.c_str());
-		}
-		else
-		{
-			trinex_error(Log::Core, "Failed to save object'%s': Failed to create file '%s'!", object->full_name().c_str(),
-			             path.c_str());
-		}
-
-		return nullptr;
-	}
-
-	bool Object::save(class BufferWriter* writer, SerializationFlags serialization_flags)
-	{
 		if (!flags.any(Flags::IsSerializable))
 		{
 			trinex_error(Log::Core, "Cannot save non-serializable package!");
 			return false;
 		}
 
-		Vector<u8> raw_buffer;
-		VectorWriter raw_writer = &raw_buffer;
-		Archive raw             = &raw_writer;
-		raw.flags               = serialization_flags;
+		Buffer buffer;
+		Archive raw = Archive(buffer, IOMode::Write, flags);
 
 		{
 			Object* self = this;
@@ -629,42 +614,26 @@ namespace Trinex
 			}
 		}
 
-		Vector<u8> compressed_buffer;
-		Compressor::compress(raw_buffer, compressed_buffer);
+		Vector<u8> compressed;
+		Compressor::compress(buffer, compressed);
 
-		bool need_destroy_writer = (writer == nullptr);
-
-		if (need_destroy_writer)
-		{
-			writer = open_asset_file<FileWriter>(this, true);
-		}
-
-		if (!writer)
-			return false;
-
-		Archive ar(writer);
+		Archive ar(retain_ref(stream), IOMode::Write);
 		FileFlag flag = FileFlag::asset_flag();
 		ar.serialize(flag);
-		ar.serialize(compressed_buffer);
-
-		if (need_destroy_writer)
-		{
-			trx_delete writer;
-		}
+		ar.serialize(compressed);
 
 		return ar;
 	}
 
-	ENGINE_EXPORT Object* Object::load_object(StringView fullname, class BufferReader* reader,
-	                                          SerializationFlags serialization_flags)
+	ENGINE_EXPORT Object* Object::load_object(StringView fullname, Stream* stream, ArchiveFlags serialization_flags)
 	{
-		if (reader == nullptr)
+		if (stream == nullptr)
 		{
-			trinex_error(Log::Core, "Cannot load object from nullptr buffer reader!");
+			trinex_error(Log::Core, "Cannot load object from nullptr buffer!");
 			return nullptr;
 		}
 
-		if (!(serialization_flags & SerializationFlags::SkipObjectSearch))
+		if (!(serialization_flags & ArchiveFlags::SkipObjectSearch))
 		{
 			if (Object* object = static_find_object(fullname))
 			{
@@ -672,7 +641,7 @@ namespace Trinex
 			}
 		}
 
-		Archive ar(reader);
+		Archive ar(retain_ref(stream), IOMode::Read);
 		FileFlag flag = FileFlag::asset_flag();
 		ar.serialize(flag);
 		if (flag != FileFlag::asset_flag())
@@ -690,8 +659,9 @@ namespace Trinex
 
 		Vector<u8> raw_data;
 		Compressor::decompress(compressed_buffer, raw_data);
-		VectorReader raw_reader = &raw_data;
-		Archive raw             = &raw_reader;
+		BufferStream raw_stream = raw_data;
+
+		Archive raw = Archive(retain_ref(&raw_stream), IOMode::Read);
 
 		Object* object = nullptr;
 
@@ -710,21 +680,20 @@ namespace Trinex
 		return object;
 	}
 
-	static Object* load_from_file_internal(const Path& path, StringView fullname, SerializationFlags flags)
+	static Object* load_from_file_internal(const Path& path, StringView fullname, ArchiveFlags flags)
 	{
-		FileReader reader(path);
-		if (reader.is_open())
+		if (auto file = rootfs()->open(path))
 		{
-			Object* object = Object::load_object(fullname, &reader, flags);
+			Object* object = Object::load_object(fullname, file.value(), flags);
 			return object;
 		}
 
 		return nullptr;
 	}
 
-	ENGINE_EXPORT Object* Object::load_object(StringView name, SerializationFlags flags)
+	ENGINE_EXPORT Object* Object::load_object(StringView name, ArchiveFlags flags)
 	{
-		if (!(flags & SerializationFlags::SkipObjectSearch))
+		if (!(flags & ArchiveFlags::SkipObjectSearch))
 		{
 			if (Object* object = static_find_object(name))
 				return object;
@@ -732,22 +701,22 @@ namespace Trinex
 
 		Path path = Path(Project::assets_dir) /
 		            Path(Strings::replace_all(name, Constants::name_separator, Path::sv_separator) + Constants::asset_extention);
-		return load_from_file_internal(path, name, flags | SerializationFlags::SkipObjectSearch);
+		return load_from_file_internal(path, name, flags | ArchiveFlags::SkipObjectSearch);
 	}
 
-	ENGINE_EXPORT Object* Object::load_object_from_file(const Path& path, SerializationFlags flags)
+	ENGINE_EXPORT Object* Object::load_object_from_file(const Path& path, ArchiveFlags flags)
 	{
 		String package_name = Strings::replace_all(path.base_path(), Path::sv_separator, Constants::name_separator);
 		StringView name     = path.stem();
 		String full_name    = package_name + Constants::name_separator + String(name);
 
-		if (!(flags & SerializationFlags::SkipObjectSearch))
+		if (!(flags & ArchiveFlags::SkipObjectSearch))
 		{
 			if (Object* object = static_find_object(full_name))
 				return object;
 		}
 
-		return load_from_file_internal(Path(Project::assets_dir) / path, full_name, flags | SerializationFlags::SkipObjectSearch);
+		return load_from_file_internal(Path(Project::assets_dir) / path, full_name, flags | ArchiveFlags::SkipObjectSearch);
 	}
 
 	bool Object::is_serializable() const
@@ -786,13 +755,13 @@ namespace Trinex
 
 	ENGINE_EXPORT Object* Object::copy_from(Object* src)
 	{
-		SerializationFlags flags = SerializationFlags::IsCopyProcess;
+		ArchiveFlags flags = ArchiveFlags::IsCopyProcess;
 
 		Buffer buffer;
 		{
-			VectorWriter writer(&buffer);
+			BufferStream stream = buffer;
 
-			if (!src->save(&writer, flags))
+			if (!src->save(&stream, flags))
 			{
 				trinex_error(Log::Core, "Failed to save object to buffer!");
 				return nullptr;
@@ -800,8 +769,8 @@ namespace Trinex
 		}
 
 		{
-			VectorReader reader(&buffer);
-			Object* new_object = Object::load_object("", &reader, flags);
+			BufferStream stream = buffer;
+			Object* new_object  = Object::load_object("", &stream, flags);
 
 			if (!new_object)
 			{

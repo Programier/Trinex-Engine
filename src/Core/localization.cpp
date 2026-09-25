@@ -1,6 +1,6 @@
+#include <Core/blob.hpp>
 #include <Core/constants.hpp>
-#include <Core/file_manager.hpp>
-#include <Core/filesystem/directory_iterator.hpp>
+#include <Core/filesystem/root_filesystem.hpp>
 #include <Core/localization.hpp>
 #include <Core/memory.hpp>
 #include <Core/object.hpp>
@@ -81,32 +81,31 @@ namespace Trinex
 	{
 		std::stringstream stream;
 
-		for (auto& entry : VFS::RecursiveDirectoryIterator(path))
-		{
+		rootfs()->walk(path, [&path, &out](PathView entry, const VFS::FileStat& stat) {
 			if (entry.extension() != Constants::translation_config_extension)
-				continue;
-			trinex_info(Log::Core, "Loading localization file '%s'", entry.c_str());
+				return VFS::WalkResult::Continue;
 
-			FileReader reader(entry);
-			if (!reader.is_open())
-				continue;
-
-			std::stringstream stream;
-			stream << reader.read_string();
-
-			String line;
-			while (std::getline(stream, line))
+			if (auto buffer = rootfs()->map(entry))
 			{
-				String key, value;
-				if (parse_string(line, key, value))
+				std::stringstream stream;
+				stream << buffer->as<StringView>();
+
+				String line;
+				while (std::getline(stream, line))
 				{
-					String p  = entry.relative(path);
-					key       = p.substr(0, p.length() - Constants::translation_config_extension.length()) + "/" + key;
-					u64 hash  = memory_hash(key.c_str(), key.length());
-					out[hash] = value;
+					String key, value;
+					if (parse_string(line, key, value))
+					{
+						String p  = entry.relative(path);
+						key       = p.substr(0, p.length() - Constants::translation_config_extension.length()) + "/" + key;
+						u64 hash  = memory_hash(key.c_str(), key.length());
+						out[hash] = value;
+					}
 				}
 			}
-		}
+
+			return VFS::WalkResult::Continue;
+		});
 	}
 
 	Localization& Localization::reload(bool clear, bool with_default)

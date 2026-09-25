@@ -8,7 +8,7 @@ namespace Trinex
 {
 	namespace
 	{
-		using Clock    = std::chrono::steady_clock;
+		using Clock    = std::chrono::system_clock;
 		using Duration = std::chrono::nanoseconds;
 
 		static auto s_start_point = Clock::now();
@@ -63,9 +63,16 @@ namespace Trinex
 		return operator=(value ? StringView(value) : StringView());
 	}
 
+	template<typename Clock>
+	static u64 clock_now()
+	{
+		using namespace std::chrono;
+		return duration_cast<microseconds>(Clock::now().time_since_epoch()).count();
+	}
+
 	Timestamp Timestamp::now()
 	{
-		return Timestamp(std::chrono::duration_cast<Duration>(Clock::now() - s_start_point).count());
+		return Timestamp(std::chrono::duration_cast<Duration>(Clock::now().time_since_epoch()).count());
 	}
 
 	Timestamp Timestamp::parse(StringView value)

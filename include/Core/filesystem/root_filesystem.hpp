@@ -3,71 +3,43 @@
 #include <Core/etl/singletone.hpp>
 #include <Core/filesystem/file_watcher.hpp>
 #include <Core/filesystem/filesystem.hpp>
-#include <Core/tickable.hpp>
 
 namespace Trinex::VFS
 {
-	class ENGINE_EXPORT RootFS : public Singletone<RootFS, FileSystem>, public Tickable
+	class ENGINE_EXPORT RootFS : public Singletone<RootFS, FileSystem>
 	{
 	public:
-		using FileSystems = TreeMap<String, FileSystem*, std::greater<String>>;
-
-		struct WatchSubscription {
-			Identifier id = 0;
-			Path path;
-			FileWatchEventType event_mask = FileWatchEventType::Any;
-			bool recursive                = false;
-			FileWatchCallback callback;
+		struct Greater {
+			using is_transparent = void;
+			bool operator()(StringView lhs, StringView rhs) const { return lhs > rhs; }
 		};
 
-	private:
-		FileSystems m_file_systems;
-		FileSystem* m_root_native_file_system;
-		FileWatcherBackend* m_file_watcher = nullptr;
-		Vector<WatchSubscription> m_watch_subscriptions;
-		Identifier m_next_watch_id = 1;
+		using FileSystems = TreeMap<String, Ref<FileSystem>, Greater>;
 
+	private:
 		static RootFS* s_instance;
+		FileSystems m_file_systems;
 
-	private:
-		RootFS();
-		~RootFS();
-
-	protected:
-		DirectoryIteratorInterface* create_directory_iterator(const Path& path) override;
-		DirectoryIteratorInterface* create_recursive_directory_iterator(const Path& path) override;
 
 	public:
-		bool mount(const Path& mount_point, const Path& path);
-		bool mount(const Path& mount_point, const Path& path, Type type);
-		RootFS& unmount(const Path& mount_point);
-		Pair<FileSystem*, Path> find_filesystem(const Path& path) const;
+		Ref<File> open(PathView path, AccessFlags flags = AccessFlags::Read) override;
+		Ref<Blob> map(PathView path, AccessFlags flags = AccessFlags::Read) override;
 
-		const Path& path() const override;
-		bool is_read_only() const override;
-		File* open(const Path& path, FileOpenMode mode) override;
-		RootFS& close(File* file) override;
-		bool create_dir(const Path& path) override;
-		bool remove(const Path& path) override;
-		bool copy(const Path& src, const Path& dest) override;
-		bool rename(const Path& src, const Path& dest) override;
-		bool is_exist(const Path& path) const override;
-		bool is_file(const Path& file) const override;
-		bool is_dir(const Path& dir) const override;
-		Type type() const override;
-		Path native_path(const Path& path) const override;
-		FileSystem* filesystem_of(const Path& path) const;
-		Identifier watch(const Path& path, FileWatchCallback callback, FileWatchEventType event_mask = FileWatchEventType::Any,
-		                 bool recursive = true);
-		RootFS& unwatch(Identifier watch_id);
-		RootFS& update(float dt) override;
-		bool pack_native_folder(const Path& native, const Path& virtual_fs, const StringView& password = {}) const;
-		Vector<String> mount_points() const;
-		const FileSystems& filesystems() const;
+		bool stat(PathView path, FileStat& out) const override;
+		bool create_directory(PathView path) override;
+		bool remove(PathView path) override;
+		bool copy(PathView src, PathView dst) override;
+		bool move(PathView src, PathView dst) override;
+		bool walk(PathView path, const WalkCallback& callback, WalkFlags flags = WalkFlags::Default) const override;
+		using FileSystem::walk;
+
+		bool mount(PathView point, PathView path);
+		bool mount(PathView point, FileSystem* system);
+		bool unmount(PathView point);
+
+		FileSystem* resolve(PathView& path) const;
 
 		friend class Singletone<RootFS, FileSystem>;
-		friend class DirectoryIterator;
-		friend class RecursiveDirectoryIterator;
 	};
 }// namespace Trinex::VFS
 

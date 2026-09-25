@@ -230,8 +230,8 @@ namespace Trinex
 		}
 		else
 		{
-			VectorReader reader = &m_state;
-			Archive archive     = &reader;
+			BufferStream reader = m_state;
+			Archive archive(retain_ref(&reader), IOMode::Read);
 			archive.serialize_object(instance, name, owner);
 		}
 
@@ -242,16 +242,16 @@ namespace Trinex
 	{
 		trinex_assert(instance);
 
-		Buffer state;
-		VectorWriter writer = &state;
-		Archive archive     = &writer;
+		// Buffer state;
+		// BufferStream writer = &state;
+		// Archive archive     = &writer;
 
-		if (archive.serialize_object(instance))
-		{
-			m_class = instance->class_instance();
-			m_state.swap(state);
-			return true;
-		}
+		// if (archive.serialize_object(instance))
+		// {
+		// 	m_class = instance->class_instance();
+		// 	m_state.swap(state);
+		// 	return true;
+		// }
 
 		return false;
 	}

@@ -2,7 +2,6 @@
 #include <Core/engine_types.hpp>
 #include <Core/enums.hpp>
 #include <Core/etl/function.hpp>
-#include <Core/etl/ref.hpp>
 #include <Core/etl/string.hpp>
 #include <Core/etl/type_traits.hpp>
 #include <Core/math/fwd.hpp>
@@ -114,32 +113,6 @@ namespace Trinex
 			return false;
 		}
 
-		template<typename T>
-		bool arg(u32 idx, RRef<T>& ref)
-		{
-			if constexpr (std::is_pointer_v<T>)
-			{
-				return arg_address(idx, ref.get(), false);
-			}
-			else
-			{
-				return arg_address(idx, ref.address(), false);
-			}
-		}
-
-		template<typename T>
-		bool arg(u32 idx, LRef<T> ref)
-		{
-			if constexpr (std::is_pointer_v<T>)
-			{
-				return arg_address(idx, ref.get(), false);
-			}
-			else
-			{
-				return arg_address(idx, ref.address(), false);
-			}
-		}
-
 		void* address_of_arg(u32 arg) const;
 
 		u8 return_byte() const;
@@ -158,8 +131,11 @@ namespace Trinex
 			if (!begin_execute(function))
 				return false;
 
-			u32 argument = 0;
-			(arg(argument++, args), ...);
+			if constexpr (sizeof...(Args) > 0)
+			{
+				u32 argument = 0;
+				(arg(argument++, args), ...);
+			}
 
 			return end_execute(return_value);
 		}
@@ -170,8 +146,11 @@ namespace Trinex
 			if (!begin_execute(function))
 				return false;
 
-			u32 argument = 0;
-			object(self), (arg(argument++, args), ...);
+			if constexpr (sizeof...(Args) > 0)
+			{
+				u32 argument = 0;
+				object(self), (arg(argument++, args), ...);
+			}
 
 			return end_execute(return_value);
 		}

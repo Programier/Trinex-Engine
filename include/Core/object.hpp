@@ -157,9 +157,10 @@ namespace Trinex
 		static void language(const StringView& new_language);
 		static const String& localize(const StringView& line);
 
-		static Object* load_object(StringView fullname, class BufferReader* reader, SerializationFlags flags = {});
-		static Object* load_object(StringView fullname, SerializationFlags flags = {});
-		static Object* load_object_from_file(const Path& path, SerializationFlags flags = {});
+		static Object* load_object(StringView fullname, class Blob* blob, ArchiveFlags flags = {});
+		static Object* load_object(StringView fullname, class Stream* stream, ArchiveFlags flags = {});
+		static Object* load_object(StringView fullname, ArchiveFlags flags = {});
+		static Object* load_object_from_file(const Path& path, ArchiveFlags flags = {});
 
 		virtual bool rename(StringView name, Object* new_owner = nullptr);
 		const Name& name() const;
@@ -185,7 +186,7 @@ namespace Trinex
 		virtual const Object& mark_dirty() const;
 		bool is_dirty() const;
 
-		virtual bool save(class BufferWriter* writer = nullptr, SerializationFlags flags = {});
+		virtual bool save(Stream* stream = nullptr, ArchiveFlags flags = {});
 
 		virtual Object& on_create();
 		virtual Object& on_destroy();

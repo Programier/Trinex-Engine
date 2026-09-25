@@ -4,7 +4,6 @@
 #include <Core/etl/flat_set.hpp>
 #include <Core/etl/span.hpp>
 #include <Core/etl/templates.hpp>
-#include <Core/file_manager.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/memory.hpp>
@@ -870,9 +869,9 @@ namespace Trinex
 		Super::on_create();
 
 		Path include_directories[] = {
-		        rootfs()->native_path(Project::shaders_dir),
-		        rootfs()->native_path("[shaders]:/TrinexEditor"),
-		        rootfs()->native_path("[shaders]:/TrinexEngine"),
+		        Project::shaders_dir,
+		        "[shaders]:/TrinexEditor",
+		        "[shaders]:/TrinexEngine",
 		};
 
 		SessionInitializer desc;

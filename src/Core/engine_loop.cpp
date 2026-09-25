@@ -44,7 +44,7 @@ namespace Trinex
 		auto vfs      = VFS::RootFS::instance();
 		auto exec_dir = Platform::System::instance()->executable_directory();
 
-		vfs->mount("[exec]:", exec_dir, VFS::FileSystem::Native);
+		//vfs->mount("[exec]:", exec_dir);
 
 		// Engine resources
 		vfs->mount("[assets]:/TrinexEngine", "[exec]:/resources/TrinexEngine/assets");

@@ -30,11 +30,8 @@ namespace Trinex
 		virtual void destroy() noexcept { trx_delete_inline(this); }
 
 	public:
-		RefCounted(const RefCounted&)            = delete;
-		RefCounted& operator=(const RefCounted&) = delete;
-
-		RefCounted(RefCounted&&)            = delete;
-		RefCounted& operator=(RefCounted&&) = delete;
+		trinex_non_copyable(RefCounted);
+		trinex_non_moveable(RefCounted);
 
 		void add_ref() noexcept;
 		void release() noexcept;
@@ -45,8 +42,6 @@ namespace Trinex
 
 		template<typename>
 		friend class WeakRef;
-
-		friend struct ByteAllocatorDeleter;
 	};
 
 	template<typename T>
@@ -161,6 +156,14 @@ namespace Trinex
 		}
 
 		[[nodiscard]]
+		T* detach() const noexcept
+		{
+			T* tmp = m_ptr;
+			m_ptr  = nullptr;
+			return tmp;
+		}
+
+		[[nodiscard]]
 		T* operator->() const noexcept
 		{
 			trinex_assert(m_ptr);
@@ -215,6 +218,9 @@ namespace Trinex
 		{
 			return adopt(trx_new T(args...));
 		}
+
+		template<typename>
+		friend class Ref;
 	};
 
 	template<typename T>
@@ -370,4 +376,18 @@ namespace Trinex
 		template<typename>
 		friend class WeakRef;
 	};
+
+	template<typename T>
+	[[nodiscard]]
+	inline Ref<T> adopt_ref(T* ptr) noexcept
+	{
+		return Ref<T>::adopt(ptr);
+	}
+
+	template<typename T>
+	[[nodiscard]]
+	inline Ref<T> retain_ref(T* ptr) noexcept
+	{
+		return Ref<T>::retain(ptr);
+	}
 }// namespace Trinex

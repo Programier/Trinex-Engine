@@ -371,7 +371,6 @@ namespace Trinex
 
 	ImGuiOpenFile& ImGuiOpenFile::pwd(const Path& path)
 	{
-		m_browser->SetPwd(rootfs()->native_path(path).str());
 		return *this;
 	}
 

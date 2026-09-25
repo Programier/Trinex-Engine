@@ -1,9 +1,12 @@
 #include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
+#include <Core/etl/span.hpp>
 #include <Core/object.hpp>
 #include <Core/package.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/struct.hpp>
+#include <Core/stream.hpp>
+#include <Core/types/path.hpp>
 
 namespace Trinex
 {
@@ -22,44 +25,18 @@ namespace Trinex
 		return instance;
 	}
 
-	Archive::Archive() : m_reader(nullptr), m_is_saving(false), m_process_status(false) {}
+	Archive::Archive() : m_stream(nullptr), m_mode(IOMode::Read), m_flags(ArchiveFlags::Undefined) {}
 
-	Archive::Archive(BufferReader* reader) : m_is_saving(false)
+	Archive::Archive(PathView file, IOMode mode, ArchiveFlags flags) {}
+
+	Archive::Archive(Ref<Stream> stream, IOMode mode, ArchiveFlags flags) : m_stream(stream), m_mode(mode), m_flags(flags)
 	{
-		trinex_assert(reader);
-
-		m_reader         = reader;
-		m_process_status = m_reader->is_open();
+		trinex_assert(stream);
 	}
 
-	Archive::Archive(BufferWriter* writer) : m_is_saving(true)
-	{
-		trinex_assert(writer);
-
-		m_writer         = writer;
-		m_process_status = m_writer->is_open();
-	}
-
-	Archive::Archive(Archive&& other)
-	{
-		(*this) = std::move(other);
-	}
-
-	Archive& Archive::operator=(Archive&& other)
-	{
-		if (this == &other)
-			return *this;
-
-		m_reader         = other.m_reader;
-		m_process_status = other.m_process_status;
-		m_is_saving      = other.m_is_saving;
-
-		other.m_process_status = false;
-		other.m_reader         = nullptr;
-		other.m_is_saving      = false;
-
-		return *this;
-	}
+	Archive::Archive(void* memory, usize size, IOMode mode, ArchiveFlags flags)
+	    : Archive(Ref<MemoryStream>::make(memory, size), mode, flags)
+	{}
 
 	bool Archive::serialize_struct(Refl::Struct* self, void* obj)
 	{
@@ -68,29 +45,19 @@ namespace Trinex
 
 	bool Archive::is_saving() const
 	{
-		return m_is_saving && m_writer;
+		return m_mode == IOMode::Write;
 	}
 
 	bool Archive::is_reading() const
 	{
-		return !m_is_saving && m_reader;
-	}
-
-	BufferReader* Archive::reader() const
-	{
-		return m_is_saving ? nullptr : m_reader;
-	}
-
-	BufferWriter* Archive::writer() const
-	{
-		return m_is_saving ? m_writer : nullptr;
+		return m_mode == IOMode::Read;
 	}
 
 	Archive& Archive::write_data(const u8* data, usize size)
 	{
 		if (is_saving())
 		{
-			m_writer->write(data, size);
+			stream()->write(data, size);
 		}
 
 		return *this;
@@ -100,7 +67,7 @@ namespace Trinex
 	{
 		if (is_reading())
 		{
-			m_reader->read(data, size);
+			stream()->read(data, size);
 		}
 
 		return *this;
@@ -122,43 +89,18 @@ namespace Trinex
 
 	usize Archive::position() const
 	{
-		if (is_saving())
-		{
-			return writer()->position();
-		}
-		else if (is_reading())
-		{
-			return reader()->position();
-		}
-
-		return 0;
+		return stream()->offset();
 	}
 
 	Archive& Archive::position(usize position)
 	{
-		if (is_saving())
-		{
-			writer()->position(position);
-		}
-		else if (is_reading())
-		{
-			reader()->position(position);
-		}
+		stream()->offset(position);
 		return *this;
 	}
 
 	bool Archive::is_open() const
 	{
-		if (is_saving())
-		{
-			return writer()->is_open();
-		}
-		else if (is_reading())
-		{
-			return reader()->is_open();
-		}
-
-		return false;
+		return m_stream != nullptr;
 	}
 
 	bool Archive::begin_chunk(u32& offset)

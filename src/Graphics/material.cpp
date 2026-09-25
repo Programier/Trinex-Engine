@@ -1,7 +1,6 @@
 #include <Core/archive.hpp>
 #include <Core/base_engine.hpp>
 #include <Core/default_resources.hpp>
-#include <Core/file_manager.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Core/reflection/property.hpp>
@@ -216,7 +215,7 @@ namespace Trinex
 				String name;
 				archive.serialize(name);
 
-				if (auto param = Object::load_object(name, archive.reader(), SerializationFlags::SkipObjectSearch))
+				if (auto param = Object::load_object(name, archive.stream(), ArchiveFlags::SkipObjectSearch))
 				{
 					param->owner(this);
 				}
@@ -228,7 +227,7 @@ namespace Trinex
 			{
 				String name = param->name().to_string();
 				archive.serialize(name);
-				param->save(archive.writer());
+				param->save(archive.stream());
 			}
 		}
 

@@ -57,9 +57,8 @@ namespace Trinex
 	{
 		if (size > 0)
 		{
-			Vector<u8> tmp(data, data + size);
-			VectorReader reader = &tmp;
-			return Object::load_object(name, &reader);
+			MemoryStream stream = MemoryStream(const_cast<u8*>(data), size);
+			return Object::load_object(name, &stream);
 		}
 
 		return nullptr;

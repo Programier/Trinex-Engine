@@ -6,6 +6,35 @@
 
 namespace Trinex
 {
+	static_assert(PathView::is_normalized(""));
+	static_assert(PathView::is_normalized("/"));
+	static_assert(PathView::is_normalized("foo"));
+	static_assert(PathView::is_normalized("foo/bar"));
+	
+	static_assert(PathView::is_normalized("/"));
+	static_assert(PathView::is_normalized("[foo]:"));
+	static_assert(PathView::is_normalized("[foo]:/bar"));
+
+	static_assert(PathView::is_normalized(".."));
+	static_assert(PathView::is_normalized("../foo"));
+	static_assert(PathView::is_normalized("../../foo"));
+	static_assert(PathView::is_normalized("../../foo/bar"));
+
+	static_assert(!PathView::is_normalized("./foo"));
+	static_assert(!PathView::is_normalized("foo/."));
+
+	static_assert(!PathView::is_normalized("foo/.."));
+	static_assert(!PathView::is_normalized("foo/../bar"));
+	static_assert(!PathView::is_normalized("../foo/.."));
+
+	static_assert(!PathView::is_normalized("/.."));
+	static_assert(!PathView::is_normalized("/foo/.."));
+	static_assert(!PathView::is_normalized("/foo/../bar"));
+
+	static_assert(!PathView::is_normalized("foo//bar"));
+	static_assert(!PathView::is_normalized("/foo//bar"));
+	static_assert(!PathView::is_normalized("foo/"));
+
 	const char Path::separator            = '/';
 	const StringView Path::sv_separator   = "/";
 	static constexpr const char* prev_dir = "../";
@@ -16,14 +45,117 @@ namespace Trinex
 		return hasher(p.m_path);
 	}
 
-	static FORCE_INLINE void simplify_path(String& path)
+	static void simplify_path(String& path)
 	{
-		static auto simplify_separators = [](char a, char b) { return a == b && a == Path::separator; };
-		auto end                        = std::unique(path.begin(), path.end(), simplify_separators);
-		path.erase(end, path.end());
+		if (path.empty())
+			return;
 
-		if (path.length() > 1 && path.back() == Path::separator)
-			path.pop_back();
+		constexpr char sep = Path::separator;
+
+		char* data       = path.data();
+		const usize size = path.size();
+
+		usize read  = 0;
+		usize write = 0;
+
+		const bool absolute = data[0] == sep;
+
+		// Preserve root.
+		if (absolute)
+		{
+			data[write++] = sep;
+
+			while (read < size && data[read] == sep) ++read;
+		}
+
+		auto append_component = [&](usize begin, usize length) {
+			if (write != 0 && data[write - 1] != sep)
+				data[write++] = sep;
+
+			// Most already-normalized paths hit write == begin,
+			// so no copy is performed.
+			if (write != begin)
+				std::memmove(data + write, data + begin, length);
+
+			write += length;
+		};
+
+		auto previous_component_begin = [&]() {
+			const usize limit = absolute ? 1 : 0;
+
+			usize begin = write;
+
+			while (begin > limit && data[begin - 1] != sep) --begin;
+
+			return begin;
+		};
+
+		auto pop_component = [&]() {
+			const usize limit = absolute ? 1 : 0;
+			usize begin       = previous_component_begin();
+
+			write = begin;
+
+			// Remove separator before the component.
+			if (write > limit && data[write - 1] == sep)
+				--write;
+		};
+
+		while (read < size)
+		{
+			// Skip repeated separators.
+			while (read < size && data[read] == sep) ++read;
+
+			if (read == size)
+				break;
+
+			const usize begin = read;
+
+			while (read < size && data[read] != sep) ++read;
+
+			const usize length = read - begin;
+
+			// "."
+			if (length == 1 && data[begin] == '.')
+				continue;
+
+			// ".."
+			if (length == 2 && data[begin] == '.' && data[begin + 1] == '.')
+			{
+				const usize limit = absolute ? 1 : 0;
+
+				if (write > limit)
+				{
+					const usize prev_begin = previous_component_begin();
+					const usize prev_size  = write - prev_begin;
+
+					// For relative paths:
+					// "../../foo" must preserve leading "..".
+					const bool previous_is_parent = prev_size == 2 && data[prev_begin] == '.' && data[prev_begin + 1] == '.';
+
+					if (!previous_is_parent)
+					{
+						pop_component();
+						continue;
+					}
+				}
+
+				if (!absolute)
+					append_component(begin, length);
+
+				// For absolute paths we clamp ".." at root:
+				// "/../../foo" -> "/foo"
+				continue;
+			}
+
+			append_component(begin, length);
+		}
+
+		// Keep "/" intact, remove trailing separator everywhere else.
+		if (write > 1 && data[write - 1] == sep)
+			--write;
+
+		path.resize(write);
 	}
 
 	static FORCE_INLINE usize filename_offset_of(StringView path)

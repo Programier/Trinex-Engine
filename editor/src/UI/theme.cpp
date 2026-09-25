@@ -1,5 +1,4 @@
 #include <Core/editor_config.hpp>
-#include <Core/file_manager.hpp>
 #include <Core/memory.hpp>
 #include <Core/types/path.hpp>
 #include <UI/imgui.hpp>
@@ -18,13 +17,14 @@ namespace Trinex::UI
 
 	static void register_font(const Path& path, const ImFontConfig& config, const ImWchar* range)
 	{
-		FileReader reader(path);
-		trinex_verify(reader.is_open());
+		trinex_unreachable();
+		// FileReader reader(path);
+		// trinex_verify(reader.is_open());
 
-		Buffer buffer = reader.read_buffer();
-		register_font(buffer, config, range, Settings::Editor::small_font_size);
-		register_font(buffer, config, range, Settings::Editor::normal_font_size);
-		register_font(buffer, config, range, Settings::Editor::large_font_size);
+		// Buffer buffer = reader.read_buffer();
+		// register_font(buffer, config, range, Settings::Editor::small_font_size);
+		// register_font(buffer, config, range, Settings::Editor::normal_font_size);
+		// register_font(buffer, config, range, Settings::Editor::large_font_size);
 	}
 
 	void initialize_theme(ImGuiContext* ctx)

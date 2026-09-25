@@ -1,4 +1,3 @@
-#include <Core/file_manager.hpp>
 #include <Core/group.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>

@@ -1,5 +1,5 @@
 #include <Core/archive.hpp>
-#include <Core/file_manager.hpp>
+#include <Core/blob.hpp>
 #include <Core/filesystem/file.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/types/path.hpp>
@@ -16,8 +16,10 @@ namespace Trinex
 
 	Image::Image(const Path& path)
 	{
-		Buffer buffer = FileReader(path).read_buffer();
-		load_from_memory(buffer.data(), buffer.size());
+		if (auto buffer = rootfs()->map(path))
+		{
+			load_from_memory(buffer->data(), buffer->size());
+		}
 	}
 
 	Image::Image(const Vector2u& size, u32 channels, const void* data) : m_size(size)
@@ -130,46 +132,41 @@ namespace Trinex
 
 	static void image_writer_func(void* context, void* data, int size)
 	{
-		VFS::File* file = static_cast<VFS::File*>(context);
+		Ref<VFS::File>& file = *static_cast<Ref<VFS::File>*>(context);
 		file->write(static_cast<u8*>(data), size);
 	}
 
 	bool Image::save(const Path& path)
 	{
 		StringView extension = path.extension();
-		VFS::File* file      = rootfs()->open(path, FileOpenMode::Write);
+		Ref<VFS::File> file  = rootfs()->open(path, VFS::AccessFlags::Write);
 
 		if (file == nullptr)
 			return false;
 
-		trinex_defer
-		{
-			rootfs()->close(file);
-		};
-
 		if (extension == ".png")
 		{
-			return stbi_write_png_to_func(image_writer_func, file, width(), height(), channels(), data(), width() * channels());
+			return stbi_write_png_to_func(image_writer_func, &file, width(), height(), channels(), data(), width() * channels());
 		}
 
 		if (extension == ".bmp")
 		{
-			return stbi_write_bmp_to_func(image_writer_func, file, width(), height(), channels(), data());
+			return stbi_write_bmp_to_func(image_writer_func, &file, width(), height(), channels(), data());
 		}
 
 		if (extension == ".tga")
 		{
-			return stbi_write_tga_to_func(image_writer_func, file, width(), height(), channels(), data());
+			return stbi_write_tga_to_func(image_writer_func, &file, width(), height(), channels(), data());
 		}
 
 		if (extension == ".hdr")
 		{
-			return stbi_write_tga_to_func(image_writer_func, file, width(), height(), channels(), data());
+			return stbi_write_tga_to_func(image_writer_func, &file, width(), height(), channels(), data());
 		}
 
 		if (extension == ".jpg" || extension == ".jpeg")
 		{
-			return stbi_write_jpg_to_func(image_writer_func, file, width(), height(), channels(), data(), 100);
+			return stbi_write_jpg_to_func(image_writer_func, &file, width(), height(), channels(), data(), 100);
 		}
 
 		return false;

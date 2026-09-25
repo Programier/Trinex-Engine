@@ -16,8 +16,89 @@ namespace Trinex
 		PathView& operator=(const StringView& path);
 
 	public:
+		static constexpr bool is_normalized(const char* path, usize size)
+		{
+			constexpr char sep = '/';
+
+			if (size == 0)
+				return true;
+
+			const bool absolute = path[0] == sep;
+
+			// Trailing separator is allowed only for "/".
+			if (size > 1)
+			{
+				if (path[size - 1] == sep)
+					return false;
+			}
+
+			bool has_regular_component = false;
+			usize i                    = 0;
+
+			// Skip root '/'.
+			if (absolute)
+				i = 1;
+
+			while (i < size)
+			{
+				// Repeated separator.
+				if (path[i] == sep)
+					return false;
+
+				const usize begin = i;
+
+				while (i < size && path[i] != sep) ++i;
+
+				const usize length = i - begin;
+
+				// "."
+				if (length == 1 && path[begin] == '.')
+					return false;
+
+				// ".."
+				if (length == 2 && path[begin] == '.' && path[begin + 1] == '.')
+				{
+					// Absolute paths cannot contain unresolved "..".
+					if (absolute)
+						return false;
+
+					// Once we have a normal component, ".." could collapse it,
+					// so the path isn't normalized.
+					if (has_regular_component)
+						return false;
+				}
+				else
+				{
+					has_regular_component = true;
+				}
+
+				// Skip exactly one separator.
+				if (i < size)
+					++i;
+			}
+
+			return true;
+		}
+
+		template<usize N>
+		    requires(N > 0)
+		static constexpr bool is_normalized(const char (&path)[N])
+		{
+			return is_normalized(path, N - 1);
+		}
+
+	public:
 		PathView();
 		PathView(const PathView&);
+
+		template<usize N>
+		    requires(N > 0)
+		consteval PathView(const char (&path)[N]) : m_path(path)
+		{
+			if (!is_normalized(path))
+				throw "Path must be normalized";
+		}
+
 		explicit PathView(const Path&);
 
 		PathView& operator=(const PathView&) = default;
@@ -107,7 +188,6 @@ namespace Trinex
 		FORCE_INLINE PathView stem() const { return view().stem(); }
 		FORCE_INLINE PathView base_path() const { return view().base_path(); }
 
-		FORCE_INLINE const String& path() const { return m_path; }
 		FORCE_INLINE const char* c_str() const { return m_path.c_str(); }
 		FORCE_INLINE const String& str() const { return m_path; }
 		FORCE_INLINE PathView parent() const { return PathView(*this).base_path(); }

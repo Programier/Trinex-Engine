@@ -1,8 +1,9 @@
+#include <Core/blob.hpp>
 #include <Core/etl/string.hpp>
 #include <Core/etl/utility.hpp>
 #include <Core/etl/variant.hpp>
 #include <Core/etl/vector.hpp>
-#include <Core/file_manager.hpp>
+#include <Core/filesystem/root_filesystem.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/types/path.hpp>
 #include <UI/Elements/document.hpp>
@@ -244,9 +245,9 @@ _Comment    <- '//' (![\r\n] .)*
 
 				const Suffix suffixes[] = {
 				        {.text = "fill", .type = Unit::Fill},
-				        {.text = "rem", .type = Unit::Rem  },
-				        {.text = "px",   .type = Unit::Px   },
-				        {.text = "%",    .type = Unit::Percent},
+				        {.text = "rem", .type = Unit::Rem},
+				        {.text = "px", .type = Unit::Px},
+				        {.text = "%", .type = Unit::Percent},
 				};
 
 				for (const Suffix& suffix : suffixes)
@@ -781,7 +782,7 @@ _Comment    <- '//' (![\r\n] .)*
 
 			for (const Path& dependency : dependencies)
 			{
-				if (dependency.path() == path.path())
+				if (dependency == path)
 				{
 					return;
 				}
@@ -962,16 +963,15 @@ _Comment    <- '//' (![\r\n] .)*
 					if constexpr (std::is_same_v<Type, Include>)
 					{
 						const Path include_path = resolve_include_path(path, value.path);
-						FileReader reader(include_path);
 
-						if (!reader.is_open())
+						if (auto blob = rootfs()->map(include_path))
 						{
-							trinex_error(Log::Editor, "Failed to include UI document '%s' at %u:%u", include_path.c_str(),
-							             value.location.line, value.location.column);
-							return false;
+							return load_items(nodes, styles, dependencies, blob->as<StringView>(), include_path, depth + 1);
 						}
 
-						return load_items(nodes, styles, dependencies, reader.read_string(), include_path, depth + 1);
+						trinex_error(Log::Editor, "Failed to include UI document '%s' at %u:%u", include_path.c_str(),
+						             value.location.line, value.location.column);
+						return false;
 					}
 					else if constexpr (std::is_same_v<Type, Style>)
 					{
@@ -1024,7 +1024,7 @@ _Comment    <- '//' (![\r\n] .)*
 
 		clear();
 		m_elements.clear();
-		m_style_sheet = etl::move(styles);
+		m_style_sheet  = etl::move(styles);
 		m_dependencies = etl::move(dependencies);
 
 		for (const Markup::Node& root : roots)
@@ -1043,15 +1043,14 @@ _Comment    <- '//' (![\r\n] .)*
 
 	bool Document::load(const Path& path)
 	{
-		FileReader reader(path);
-
-		if (!reader.is_open())
+		if (auto blob = rootfs()->map(path))
 		{
-			trinex_error(Log::Editor, "Failed to open UI document '%s'", path.c_str());
-			return false;
+			return load(blob->as<StringView>(), path);
 		}
 
-		return load(reader.read_string(), path);
+
+		trinex_error(Log::Editor, "Failed to open UI document '%s'", path.c_str());
+		return false;
 	}
 
 	Document& Document::open()
