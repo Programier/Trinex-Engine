@@ -30,7 +30,7 @@ namespace Trinex
 		using size_type       = typename container_type::size_type;
 		using difference_type = typename container_type::difference_type;
 
-	private:
+	protected:
 		template<typename LookupKey>
 		static constexpr bool is_lookup_key =
 		        std::is_convertible_v<const LookupKey&, key_type> ||
@@ -167,7 +167,11 @@ namespace Trinex
 		{
 			container_type::insert(container_type::end(), first, last);
 			sort();
-			container_type::erase(std::unique(container_type::begin(), container_type::end()), container_type::end());
+			Compare compare;
+			auto last_unique =
+			        std::unique(container_type::begin(), container_type::end(),
+			                    [&](const value_type& a, const value_type& b) { return !compare(a, b) && !compare(b, a); });
+			container_type::erase(last_unique, container_type::end());
 		}
 
 		template<typename LookupKey>
@@ -182,6 +186,7 @@ namespace Trinex
 
 		constexpr const_iterator erase(const_iterator it) { return container_type::erase(it); }
 		constexpr const_iterator erase(const_iterator from, const_iterator to) { return container_type::erase(from, to); }
+		constexpr const Vector<T, AllocatorType>& as_vector() const { return *this; }
 		constexpr const container_type& container() const { return *this; }
 	};
 
