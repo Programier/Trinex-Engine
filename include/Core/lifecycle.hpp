@@ -7,13 +7,18 @@ namespace Trinex::LifeCycle
 
 	enum Event
 	{
-		PreInit        = -7,
-		ReflectionInit = -6,
-		Init           = -5,
-		ConfigsInit    = -4,
-		ResourcesInit  = -3,
-		Shutdown       = -2,
-		PostShutdown   = -1,
+		PreInit          = -11,
+		ReflectionInit   = -10,
+		CoreRegistration = -9,
+		ConfigsInit      = -8,
+		CoreInit         = -7,
+		Init             = -6,
+		ResourcesInit    = -5,
+		PostInit         = -4,
+
+		PreShutdown  = -3,
+		Shutdown     = -2,
+		PostShutdown = -1,
 	};
 
 	struct Description {
@@ -75,8 +80,12 @@ namespace Trinex::LifeCycle
 
 #define trinex_on_pre_init(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Event::PreInit, __VA_ARGS__)
 #define trinex_on_reflection_init(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Event::ReflectionInit, __VA_ARGS__)
-#define trinex_on_init(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Event::Init, __VA_ARGS__)
+#define trinex_on_core_registration(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Event::CoreRegistration, __VA_ARGS__)
 #define trinex_on_configs_init(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Event::ConfigsInit, __VA_ARGS__)
+#define trinex_on_core_init(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Event::CoreInit, __VA_ARGS__)
+#define trinex_on_init(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Event::Init, __VA_ARGS__)
 #define trinex_on_resources_init(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Event::ResourcesInit, __VA_ARGS__)
+#define trinex_on_post_init(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Event::Post, __VA_ARGS__)
+#define trinex_on_pre_shutdown(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Event::PreShutdown, __VA_ARGS__)
 #define trinex_on_shutdown(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Event::Shutdown, __VA_ARGS__)
 #define trinex_on_post_shutdown(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Event::PostShutdown, __VA_ARGS__)

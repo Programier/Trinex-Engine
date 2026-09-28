@@ -10,7 +10,7 @@ namespace Trinex
 	static_assert(PathView::is_normalized("/"));
 	static_assert(PathView::is_normalized("foo"));
 	static_assert(PathView::is_normalized("foo/bar"));
-	
+
 	static_assert(PathView::is_normalized("/"));
 	static_assert(PathView::is_normalized("[foo]:"));
 	static_assert(PathView::is_normalized("[foo]:/bar"));
@@ -35,9 +35,9 @@ namespace Trinex
 	static_assert(!PathView::is_normalized("/foo//bar"));
 	static_assert(!PathView::is_normalized("foo/"));
 
-	const char Path::separator            = '/';
-	const StringView Path::sv_separator   = "/";
-	static constexpr const char* prev_dir = "../";
+	const char Path::separator          = '/';
+	const StringView Path::sv_separator = "/";
+
 
 	usize Path::Hash::operator()(const Path& p) const noexcept
 	{
@@ -158,90 +158,6 @@ namespace Trinex
 		path.resize(write);
 	}
 
-	static FORCE_INLINE usize filename_offset_of(StringView path)
-	{
-		const usize position = path.rfind(Path::separator);
-		return position == StringView::npos ? 0 : position + 1;
-	}
-
-	static FORCE_INLINE usize extension_offset_of(StringView filename)
-	{
-		const usize position = filename.rfind('.');
-		return position == StringView::npos ? filename.length() : position;
-	}
-
-	static FORCE_INLINE StringView filename_of(StringView view)
-	{
-		return view.substr(filename_offset_of(view));
-	}
-
-	static FORCE_INLINE StringView extension_of(StringView view)
-	{
-		StringView name      = filename_of(view);
-		const usize position = extension_offset_of(name);
-		return position == name.length() ? StringView() : name.substr(position);
-	}
-
-	static FORCE_INLINE StringView stem_of(StringView view)
-	{
-		StringView name = filename_of(view);
-		return name.substr(0, extension_offset_of(name));
-	}
-
-	static FORCE_INLINE StringView base_path_of(StringView view)
-	{
-		const usize position = view.rfind(Path::separator);
-		return position == StringView::npos ? StringView() : view.substr(0, position);
-	}
-
-	static Vector<StringView> split_sv_of(StringView view)
-	{
-		usize index   = 0;
-		usize current = 0;
-
-		Vector<StringView> result;
-
-		while ((current = view.find(Path::separator, index)) != StringView::npos)
-		{
-			result.push_back(view.substr(index, current - index));
-			index = current + 1;
-		}
-
-		if (index != view.length())
-			result.push_back(view.substr(index));
-
-		return result;
-	}
-
-	static Path relative_of(StringView self, StringView base)
-	{
-		if (base.empty())
-			return Path(self);
-
-		Vector<StringView> base_sv = split_sv_of(base);
-		Vector<StringView> self_sv = split_sv_of(self);
-
-		usize min_len = Math::min(base_sv.size(), self_sv.size());
-		usize index   = 0;
-
-		while (index < min_len && base_sv[index] == self_sv[index]) ++index;
-
-		String result;
-
-		for (usize i = index, count = base_sv.size(); i < count; ++i)
-		{
-			result += prev_dir;
-		}
-
-		for (usize i = index, count = self_sv.size(); i < count; ++i)
-		{
-			result += self_sv[i];
-			result.push_back(Path::separator);
-		}
-
-		return Path(result);
-	}
-
 	PathView::PathView() : m_path() {}
 
 	PathView::PathView(const PathView&) = default;
@@ -327,9 +243,35 @@ namespace Trinex
 		}
 	}
 
-	Path PathView::relative(PathView base) const
+	Path PathView::relative(PathView base)
 	{
-		return relative_of(m_path, base.m_path);
+		// Absolute and relative paths belong to different namespaces.
+		if (is_absolute() != base.is_absolute())
+			return {};
+
+		auto path_it  = components().begin();
+		auto path_end = components().end();
+
+		auto base_it  = base.components().begin();
+		auto base_end = base.components().end();
+
+		// Find common prefix.
+		while (path_it != path_end && base_it != base_end && *path_it == *base_it)
+		{
+			++path_it;
+			++base_it;
+		}
+
+		Path result;
+
+		// For every remaining component in base,
+		// we need to go one directory up.
+		for (; base_it != base_end; ++base_it) result /= PathView("..");
+
+		// Then append the unmatched part of this path.
+		for (; path_it != path_end; ++path_it) result /= *path_it;
+
+		return result;
 	}
 
 	Path PathView::operator/(PathView path) const
@@ -339,22 +281,261 @@ namespace Trinex
 
 	PathView PathView::filename() const
 	{
-		return filename_of(m_path);
+		if (empty() || m_path == "/")
+			return {};
+
+		usize begin = size();
+
+		while (begin > 0 && m_path[begin - 1] != '/') --begin;
+		return PathView(StringView(m_path.data() + begin, size() - begin));
 	}
 
 	PathView PathView::extension() const
 	{
-		return extension_of(m_path);
+		const PathView name = filename();
+
+		if (name.empty())
+			return {};
+
+		// "." / ".." shouldn't be treated as extensions.
+		// "." isn't valid in your normalized paths anyway,
+		// but ".." can exist in relative paths.
+		if (name == "." || name == "..")
+			return {};
+
+		for (usize i = name.size(); i > 0; --i)
+		{
+			if (name.m_path[i - 1] != '.')
+				continue;
+
+			const usize dot = i - 1;
+
+			// ".gitignore" => no extension
+			if (dot == 0)
+				return {};
+
+			return PathView(StringView(name.data() + dot, name.size() - dot));
+		}
+
+		return {};
 	}
 
 	PathView PathView::stem() const
 	{
-		return stem_of(m_path);
+		const PathView name = filename();
+
+		if (name.empty())
+			return {};
+
+		const PathView ext = name.extension();
+
+		if (ext.empty())
+			return name;
+
+		return PathView(StringView(name.data(), name.size() - ext.size()));
 	}
 
-	PathView PathView::base_path() const
+	PathView PathView::parent() const
 	{
-		return base_path_of(m_path);
+		if (empty())
+			return {};
+
+		if (m_path == "/")
+			return *this;
+
+		usize pos = size();
+
+		while (pos > 0 && m_path[pos - 1] != '/') --pos;
+
+		// No separator:
+		//
+		// "foo" -> ""
+		if (pos == 0)
+			return {};
+
+		// "/foo" -> "/"
+		if (pos == 1)
+			return PathView(StringView(m_path.data(), 1));
+
+		// "/foo/bar" -> "/foo"
+		// "foo/bar"  -> "foo"
+		return PathView(StringView(m_path.data(), pos - 1));
+	}
+
+	bool PathView::starts_with(PathView prefix) const
+	{
+		if (!m_path.starts_with(prefix.m_path))
+			return false;
+
+		if (size() == prefix.size())
+			return true;
+
+		if (prefix.empty())
+			return true;
+
+		if (prefix == "/")
+			return is_absolute();
+
+		return m_path[prefix.size()] == '/';
+	}
+
+	bool PathView::ends_with(PathView suffix) const
+	{
+		if (!m_path.ends_with(suffix.m_path))
+			return false;
+
+		if (size() == suffix.size())
+			return true;
+
+		if (suffix.empty())
+			return true;
+
+		const usize offset = size() - suffix.size();
+
+		if (suffix[0] == '/')
+			return true;
+
+		return m_path[offset - 1] == '/';
+	}
+
+	bool PathView::is_parent_of(PathView other) const
+	{
+		if (!is_ancestor_of(other))
+			return false;
+
+		return component_count() + 1 == other.component_count();
+	}
+
+	bool PathView::is_child_of(PathView other) const
+	{
+		return other.is_parent_of(*this);
+	}
+
+	bool PathView::is_ancestor_of(PathView other) const
+	{
+		if (*this == other)
+			return false;
+
+		if (size() > other.size())
+			return false;
+
+		if (!other.m_path.starts_with(m_path))
+			return false;
+
+		// Exact same path.
+		if (size() == other.size())
+			return true;
+
+		// "/" is a prefix of every absolute path.
+		if (m_path == "/")
+			return other.is_absolute();
+
+		// Empty path is root of relative paths, if you want that semantic.
+		if (empty())
+			return other.is_relative();
+
+		// Must end at component boundary.
+		return other.m_path[size()] == '/';
+	}
+
+	usize PathView::component_count() const
+	{
+		if (empty() || m_path == "/")
+			return 0;
+
+		usize count = 1;
+
+		for (usize i = is_absolute() ? 1 : 0; i < size(); ++i)
+		{
+			if (m_path[i] == '/')
+				++count;
+		}
+
+		return count;
+	}
+
+	PathView PathView::root() const
+	{
+		return is_absolute() ? PathView("/") : PathView("");
+	}
+
+	PathView PathView::first_component() const
+	{
+		if (empty() || m_path == "/")
+			return {};
+
+		const usize begin = is_absolute() ? 1 : 0;
+
+		usize end = begin;
+
+		while (end < size() && m_path[end] != '/') ++end;
+
+		return PathView(StringView(m_path.data() + begin, end - begin));
+	}
+
+	PathView PathView::last_component() const
+	{
+		if (empty() || m_path == "/")
+			return {};
+
+		usize begin = size();
+
+		while (begin > 0 && m_path[begin - 1] != '/') --begin;
+
+		return PathView(StringView(m_path.data() + begin, size() - begin));
+	}
+
+	PathView PathView::remove_prefix(PathView prefix) const
+	{
+		if (!starts_with(prefix))
+			return *this;
+
+		if (prefix.empty())
+			return *this;
+
+		if (prefix.size() == size())
+			return {};
+
+		usize offset = prefix.size();
+
+		// "/foo/bar" - "/foo" -> "bar"
+		// "foo/bar"  - "foo"  -> "bar"
+		//
+		// But:
+		// "/foo/bar" - "/" -> "foo/bar"
+		if (m_path[offset] == '/')
+			++offset;
+
+		return PathView(StringView(m_path.data() + offset, m_path.size() - offset));
+	}
+
+	PathView PathView::remove_suffix(PathView suffix) const
+	{
+		if (!ends_with(suffix))
+			return *this;
+
+		if (suffix.empty())
+			return *this;
+
+		if (suffix.size() == size())
+			return {};
+
+		usize new_size = size() - suffix.size();
+
+		// "/foo/bar" - "bar"
+		// new_size points AFTER "/foo/", so remove separator too.
+		//
+		// "/foo/bar" - "/bar"
+		// suffix already contains separator, so keep "/foo".
+		if (suffix[0] != '/')
+			--new_size;
+
+		// Special case:
+		// "/foo" - "foo" -> "/"
+		if (new_size == 0 && is_absolute())
+			new_size = 1;
+
+		return PathView(StringView(m_path.data(), new_size));
 	}
 
 	Path& Path::on_path_changed()
@@ -468,16 +649,6 @@ namespace Trinex
 
 		m_path += path.str();
 		return on_path_changed();
-	}
-
-	PathView Path::split(PathView& remainder, i32 pos) const
-	{
-		return PathView(*this).split(remainder, pos);
-	}
-
-	Path Path::relative(const Path& base) const
-	{
-		return relative_of(m_path, base.str());
 	}
 
 	bool Path::serialize(Archive& ar)

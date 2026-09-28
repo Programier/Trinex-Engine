@@ -24,7 +24,12 @@ namespace Trinex::VFS
 			Redirector(const PathView& path) : m_path(path) {}
 
 			Ref<File> open(PathView path, AccessFlags flags) override { return rootfs()->open(m_path / path, flags); }
-			Ref<Blob> map(PathView path, AccessFlags flags) override { return rootfs()->map(m_path / path, flags); }
+
+			Ref<Blob> map(PathView path, AccessFlags flags, usize offset, usize size) override
+			{
+				return rootfs()->map(m_path / path, flags, offset, size);
+			}
+
 			bool stat(PathView path, FileStat& out) const override { return rootfs()->stat(m_path / path, out); }
 
 			bool create_directory(PathView path) override { return rootfs()->create_directory(m_path / path); }
@@ -51,11 +56,11 @@ namespace Trinex::VFS
 		return nullptr;
 	}
 
-	Ref<Blob> RootFS::map(PathView path, AccessFlags flags)
+	Ref<Blob> RootFS::map(PathView path, AccessFlags flags, usize offset, usize size)
 	{
 		if (FileSystem* fs = resolve(path))
 		{
-			return fs->map(path, flags);
+			return fs->map(path, flags, offset, size);
 		}
 
 		return nullptr;
@@ -108,11 +113,10 @@ namespace Trinex::VFS
 
 	bool RootFS::mount(PathView point, PathView path)
 	{
-		auto ref = Ref<Redirector>::make(path);
-		return mount(point, ref.value());
+		return mount(point, Ref<Redirector>::make(path));
 	}
 
-	bool RootFS::mount(PathView point, FileSystem* system)
+	bool RootFS::mount(PathView point, Ref<FileSystem> system)
 	{
 		if (system == nullptr)
 			return false;
@@ -120,7 +124,7 @@ namespace Trinex::VFS
 		if (m_file_systems.contains(point.path()))
 			return false;
 
-		m_file_systems.emplace(point, Ref<FileSystem>::retain(system));
+		m_file_systems.insert({String(point.str()), etl::move(system)});
 		return true;
 	}
 
@@ -137,6 +141,16 @@ namespace Trinex::VFS
 
 	FileSystem* RootFS::resolve(PathView& path) const
 	{
+		auto& container = m_file_systems.container();
+
+		for (auto& [mount, fs] : container)
+		{
+			if (path.starts_with(Path(mount)))
+			{
+				return fs.value();
+			}
+		}
+
 		return nullptr;
 	}
 }// namespace Trinex::VFS

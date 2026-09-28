@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/etl/concepts.hpp>
 #include <Core/etl/string.hpp>
 #include <Core/etl/type_traits.hpp>
 #include <Core/stream.hpp>
@@ -43,28 +44,32 @@ namespace Trinex
 		trinex_non_copyable(Archive);
 		trinex_non_moveable(Archive);
 
-		bool is_saving() const;
-		bool is_reading() const;
-
-		Archive& write_data(const u8* data, usize size);
-		Archive& read_data(u8* data, usize size);
-		Archive& serialize_memory(u8* data, usize size);
-
-		usize position() const;
-		Archive& position(usize position);
-		bool is_open() const;
-
-		bool begin_chunk(u32& offset);
-		bool end_chunk(u32 offset);
-
-		bool serialize_string(String& value);
-		bool serialize_object(Object*& object, StringView name = "", Object* owner = nullptr);
-		bool serialize_object_ref(Object*& object);
-
+		inline bool is_saving() const { return m_mode == IOMode::Write; }
+		inline bool is_reading() const { return m_mode == IOMode::Read; }
 		inline Stream* stream() const { return m_stream.value(); }
 		inline IOMode mode() const { return m_mode; }
 		inline ArchiveFlags flags() const { return m_flags; }
 		inline operator bool() { return true; }
+
+		Archive& write(const void* data, usize size);
+		Archive& read(void* data, usize size);
+		Archive& serialize_memory(void* data, usize size);
+
+		usize position() const;
+		Archive& position(usize position);
+
+		bool begin_chunk(u32& offset);
+		bool end_chunk(u32 offset);
+
+		bool serialize_object(Object*& object, StringView name = "", Object* owner = nullptr);
+		bool serialize_object_ref(Object*& object);
+
+		template<typename... Args>
+		Archive& operator()(Args&... args)
+		{
+			serialize(args...);
+			return *this;
+		}
 
 		template<typename Type>
 		bool serialize(Type& value)
@@ -91,11 +96,11 @@ namespace Trinex
 
 				if (is_reading())
 				{
-					read_data(data, size);
+					read(data, size);
 				}
 				else if (is_saving())
 				{
-					write_data(data, size);
+					write(data, size);
 				}
 			}
 
@@ -286,10 +291,4 @@ namespace Trinex
 			return *this;
 		}
 	};
-
-	template<>
-	inline bool Archive::serialize<String>(String& value)
-	{
-		return serialize_string(value);
-	}
 }// namespace Trinex

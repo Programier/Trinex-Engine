@@ -45,6 +45,18 @@ namespace Trinex
 	};
 
 	template<typename T>
+	class ExternalLifetime : public T
+	{
+	protected:
+		using T::T;
+
+		void destroy() noexcept final override
+		{
+			trinex_unreachable_msg("Externally-owned RefCounted object reached zero references");
+		}
+	};
+
+	template<typename T>
 	class Ref
 	{
 	private:

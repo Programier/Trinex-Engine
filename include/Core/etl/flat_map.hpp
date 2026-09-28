@@ -1,8 +1,9 @@
 #pragma once
+#include <Core/etl/algorithm.hpp>
 #include <Core/etl/functional.hpp>
 #include <Core/etl/pair.hpp>
 #include <Core/etl/vector.hpp>
-#include <algorithm>
+#include <type_traits>
 
 namespace Trinex
 {
@@ -29,9 +30,18 @@ namespace Trinex
 		using difference_type        = typename container_type::difference_type;
 
 	private:
+		template<typename LookupKey>
+		static constexpr bool is_lookup_key =
+		        std::is_convertible_v<const LookupKey&, key_type> ||
+		        (requires { typename Compare::is_transparent; } &&
+		         requires(Compare compare, const key_type& key, const LookupKey& lookup_key) {
+			         compare(key, lookup_key);
+			         compare(lookup_key, key);
+		         });
+
 		constexpr void sort()
 		{
-			std::sort(container_type::begin(), container_type::end(),
+			etl::sort(container_type::begin(), container_type::end(),
 			          [](const value_type& a, const value_type& b) { return Compare()(a.first, b.first); });
 		}
 
@@ -102,7 +112,7 @@ namespace Trinex
 
 			if (it == end())
 			{
-				auto insert_it = std::lower_bound(begin(), end(), key, [&](const value_type& elem, const key_type& val) {
+				auto insert_it = etl::lower_bound(begin(), end(), key, [&](const value_type& elem, const key_type& val) {
 					return Compare()(elem.first, val);
 				});
 
@@ -129,32 +139,43 @@ namespace Trinex
 		constexpr void clear() { container_type::clear(); }
 		constexpr void swap(FlatMap& other) { container_type::swap(other); }
 
-		constexpr const_iterator find(const key_type& key) const
+		template<typename LookupKey>
+		    requires(is_lookup_key<LookupKey>)
+		constexpr const_iterator find(const LookupKey& key) const
 		{
-			auto it = std::lower_bound(begin(), end(), key,
-			                           [&](const value_type& elem, const key_type& val) { return Compare()(elem.first, val); });
+			auto it = etl::lower_bound(begin(), end(), key,
+			                           [&](const value_type& elem, const LookupKey& val) { return Compare()(elem.first, val); });
 			if (it != end() && !Compare()(key, it->first))
 				return it;
 			return end();
 		}
 
-		constexpr const_iterator lower_bound(const key_type& key) const
+		template<typename LookupKey>
+		    requires(is_lookup_key<LookupKey>)
+		constexpr const_iterator lower_bound(const LookupKey& key) const
 		{
-			return std::lower_bound(begin(), end(), key,
-			                        [&](const value_type& elem, const key_type& val) { return Compare()(elem.first, val); });
+			return etl::lower_bound(begin(), end(), key,
+			                        [&](const value_type& elem, const LookupKey& val) { return Compare()(elem.first, val); });
 		}
 
-		constexpr const_iterator upper_bound(const key_type& key) const
+		template<typename LookupKey>
+		    requires(is_lookup_key<LookupKey>)
+		constexpr const_iterator upper_bound(const LookupKey& key) const
 		{
-			return std::upper_bound(begin(), end(), key,
-			                        [&](const value_type& elem, const key_type& val) { return Compare()(elem.first, val); });
+			return etl::upper_bound(begin(), end(), key,
+			                        [&](const LookupKey& val, const value_type& elem) { return Compare()(val, elem.first); });
 		}
 
-		constexpr bool contains(const key_type& key) const { return find(key) != end(); }
+		template<typename LookupKey>
+		    requires(is_lookup_key<LookupKey>)
+		constexpr bool contains(const LookupKey& key) const
+		{
+			return find(key) != end();
+		}
 
 		constexpr Pair<iterator, bool> insert(const value_type& value)
 		{
-			auto it = std::lower_bound(begin(), end(), value.first,
+			auto it = etl::lower_bound(begin(), end(), value.first,
 			                           [&](const value_type& elem, const key_type& val) { return Compare()(elem.first, val); });
 			if (it == end() || Compare()(value.first, it->first))
 				return {container_type::insert(it, value), true};
@@ -166,12 +187,14 @@ namespace Trinex
 		{
 			container_type::insert(container_type::end(), first, last);
 			sort();
-			auto last_unique = std::unique(container_type::begin(), container_type::end(),
+			auto last_unique = etl::unique(container_type::begin(), container_type::end(),
 			                               [](const value_type& a, const value_type& b) { return a.first == b.first; });
 			container_type::erase(last_unique, container_type::end());
 		}
 
-		constexpr const_iterator erase(const key_type& key)
+		template<typename LookupKey>
+		    requires(is_lookup_key<LookupKey>)
+		constexpr const_iterator erase(const LookupKey& key)
 		{
 			auto it = find(key);
 			if (it != end())
@@ -181,6 +204,8 @@ namespace Trinex
 
 		constexpr const_iterator erase(const_iterator it) { return container_type::erase(it); }
 		constexpr const_iterator erase(const_iterator first, const_iterator last) { return container_type::erase(first, last); }
+
+		constexpr const container_type& container() const { return *this; }
 	};
 
 }// namespace Trinex

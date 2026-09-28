@@ -43,17 +43,7 @@ namespace Trinex
 		return self->serialize(obj, *this);
 	}
 
-	bool Archive::is_saving() const
-	{
-		return m_mode == IOMode::Write;
-	}
-
-	bool Archive::is_reading() const
-	{
-		return m_mode == IOMode::Read;
-	}
-
-	Archive& Archive::write_data(const u8* data, usize size)
+	Archive& Archive::write(const void* data, usize size)
 	{
 		if (is_saving())
 		{
@@ -63,7 +53,7 @@ namespace Trinex
 		return *this;
 	}
 
-	Archive& Archive::read_data(u8* data, usize size)
+	Archive& Archive::read(void* data, usize size)
 	{
 		if (is_reading())
 		{
@@ -73,16 +63,16 @@ namespace Trinex
 		return *this;
 	}
 
-	Archive& Archive::serialize_memory(u8* data, usize size)
+	Archive& Archive::serialize_memory(void* data, usize size)
 	{
 		if (is_reading())
 		{
-			return read_data(data, size);
+			return read(data, size);
 		}
 
 		if (is_saving())
 		{
-			return write_data(data, size);
+			return write(data, size);
 		}
 		return *this;
 	}
@@ -96,11 +86,6 @@ namespace Trinex
 	{
 		stream()->offset(position);
 		return *this;
-	}
-
-	bool Archive::is_open() const
-	{
-		return m_stream != nullptr;
 	}
 
 	bool Archive::begin_chunk(u32& offset)
@@ -125,23 +110,6 @@ namespace Trinex
 			position(offset);
 		}
 
-		return *this;
-	}
-
-	bool Archive::serialize_string(String& str)
-	{
-		usize size = str.length();
-		serialize(size);
-
-		if (is_reading())
-		{
-			str.resize(size);
-			read_data(reinterpret_cast<u8*>(str.data()), size);
-		}
-		else if (is_saving())
-		{
-			write_data(reinterpret_cast<u8*>(str.data()), size);
-		}
 		return *this;
 	}
 
@@ -207,7 +175,7 @@ namespace Trinex
 			String name = object ? object->full_name() : "";
 			usize size  = name.length();
 			serialize(size);
-			write_data(reinterpret_cast<const u8*>(name.data()), size);
+			write(reinterpret_cast<const u8*>(name.data()), size);
 		}
 		else if (is_reading())
 		{
@@ -215,7 +183,7 @@ namespace Trinex
 			usize size;
 			serialize(size);
 			name.resize(size);
-			read_data(reinterpret_cast<u8*>(name.data()), size);
+			read(reinterpret_cast<u8*>(name.data()), size);
 
 			if (name.empty())
 			{

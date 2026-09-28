@@ -16,6 +16,89 @@ namespace Trinex
 		PathView& operator=(const StringView& path);
 
 	public:
+		class ComponentIterator
+		{
+		private:
+			StringView m_path;
+			usize m_begin = 0;
+			usize m_end   = 0;
+
+			inline void find_end()
+			{
+				m_end = m_begin;
+				while (m_end < m_path.size() && m_path[m_end] != '/') ++m_end;
+			}
+
+		public:
+			ComponentIterator() = default;
+
+			inline ComponentIterator(StringView path, usize begin) : m_path(path), m_begin(begin)
+			{
+				if (m_begin < m_path.size() && m_begin == 0 && m_path[0] == '/')
+					++m_begin;
+
+				if (m_begin >= m_path.size())
+				{
+					m_begin = m_path.size();
+					m_end   = m_path.size();
+					return;
+				}
+
+				find_end();
+			}
+
+			inline PathView operator*() const { return PathView(StringView(m_path.data() + m_begin, m_end - m_begin)); }
+
+			inline ComponentIterator& operator++()
+			{
+				if (m_end >= m_path.size())
+				{
+					m_begin = m_path.size();
+					m_end   = m_path.size();
+					return *this;
+				}
+
+				m_begin = m_end + 1;
+
+				if (m_begin >= m_path.size())
+				{
+					m_begin = m_path.size();
+					m_end   = m_path.size();
+					return *this;
+				}
+
+				find_end();
+				return *this;
+			}
+
+			inline bool operator==(const ComponentIterator& other) const
+			{
+				return m_path.data() == other.m_path.data() && m_begin == other.m_begin;
+			}
+
+			inline bool operator!=(const ComponentIterator& other) const { return !(*this == other); }
+		};
+
+		class ComponentsView
+		{
+		private:
+			StringView m_path;
+
+		public:
+			explicit ComponentsView(StringView path) : m_path(path) {}
+
+			inline ComponentIterator begin() const
+			{
+				if (m_path.empty() || m_path == "/")
+					return end();
+
+				return ComponentIterator(m_path, 0);
+			}
+
+			inline ComponentIterator end() const { return ComponentIterator(m_path, m_path.size()); }
+		};
+
+	public:
 		static constexpr bool is_normalized(const char* path, usize size)
 		{
 			constexpr char sep = '/';
@@ -106,30 +189,49 @@ namespace Trinex
 		Path operator/(PathView path) const;
 
 		PathView split(PathView& remainder, i32 splitter = 1) const;
-		Path relative(PathView base) const;
+		Path relative(PathView base);
 
 		PathView extension() const;
 		PathView filename() const;
 		PathView stem() const;
-		PathView base_path() const;
+		PathView parent() const;
 
-		FORCE_INLINE StringView path() const { return m_path; }
-		FORCE_INLINE const char* data() const { return m_path.data(); }
-		FORCE_INLINE StringView str() const { return m_path; }
-		FORCE_INLINE PathView parent() const { return PathView(base_path()); }
-		FORCE_INLINE usize length() const { return m_path.length(); }
+		bool starts_with(PathView prefix) const;
+		bool ends_with(PathView suffix) const;
 
-		FORCE_INLINE bool empty() const { return length() == 0; }
-		FORCE_INLINE bool has_extension() const { return !extension().empty(); }
-		FORCE_INLINE bool starts_with(StringView path) const { return m_path.starts_with(path); }
+		bool is_parent_of(PathView other) const;
+		bool is_child_of(PathView other) const;
+		bool is_ancestor_of(PathView other) const;
 
-		FORCE_INLINE operator StringView() const { return str(); }
-		FORCE_INLINE bool operator==(StringView path) const { return m_path == path; }
-		FORCE_INLINE bool operator!=(StringView path) const { return m_path != path; }
-		FORCE_INLINE bool operator<(StringView path) const { return m_path < path; }
-		FORCE_INLINE bool operator>(StringView path) const { return m_path > path; }
-		FORCE_INLINE bool operator<=(StringView path) const { return m_path <= path; }
-		FORCE_INLINE bool operator>=(StringView path) const { return m_path >= path; }
+		usize component_count() const;
+
+		PathView root() const;
+		PathView first_component() const;
+		PathView last_component() const;
+
+		PathView remove_prefix(PathView prefix) const;
+		PathView remove_suffix(PathView suffix) const;
+
+		inline bool is_descendant_of(PathView other) const { return other.is_ancestor_of(*this); }
+		inline bool is_absolute() const { return !empty() && m_path[0] == '/'; }
+		inline bool is_relative() const { return !is_absolute(); }
+		inline ComponentsView components() const { return ComponentsView(m_path); }
+		inline StringView path() const { return m_path; }
+		inline const char* data() const { return m_path.data(); }
+		inline StringView str() const { return m_path; }
+		inline usize length() const { return m_path.length(); }
+		inline usize size() const { return m_path.size(); }
+
+		inline bool empty() const { return length() == 0; }
+
+		inline operator StringView() const { return str(); }
+		inline bool operator==(StringView path) const { return m_path == path; }
+		inline bool operator!=(StringView path) const { return m_path != path; }
+		inline bool operator<(StringView path) const { return m_path < path; }
+		inline bool operator>(StringView path) const { return m_path > path; }
+		inline bool operator<=(StringView path) const { return m_path <= path; }
+		inline bool operator>=(StringView path) const { return m_path >= path; }
+		inline char operator[](u32 index) const { return m_path[index]; }
 	};
 
 	class ENGINE_EXPORT Path final
@@ -180,34 +282,54 @@ namespace Trinex
 			return p += view;
 		}
 
-		PathView split(PathView& remainder, i32 splitter = 1) const;
-		Path relative(const Path& base) const;
+		inline PathView split(PathView& remainder, i32 splitter = 1) const { return view().split(remainder, splitter); }
+		inline Path relative(PathView base) const { return view().relative(base); }
 
-		FORCE_INLINE PathView extension() const { return view().extension(); }
-		FORCE_INLINE PathView filename() const { return view().filename(); }
-		FORCE_INLINE PathView stem() const { return view().stem(); }
-		FORCE_INLINE PathView base_path() const { return view().base_path(); }
+		inline PathView extension() const { return view().extension(); }
+		inline PathView filename() const { return view().filename(); }
+		inline PathView stem() const { return view().stem(); }
+		inline PathView parent() const { return view().parent(); }
 
-		FORCE_INLINE const char* c_str() const { return m_path.c_str(); }
-		FORCE_INLINE const String& str() const { return m_path; }
-		FORCE_INLINE PathView parent() const { return PathView(*this).base_path(); }
-		FORCE_INLINE usize length() const { return m_path.length(); }
+		inline bool is_parent_of(PathView other) const { return view().is_parent_of(other); }
+		inline bool is_child_of(PathView other) const { return view().is_child_of(other); }
+		inline bool is_ancestor_of(PathView other) const { return view().is_ancestor_of(other); }
+		inline bool is_descendant_of(PathView other) const { return view().is_descendant_of(other); }
+		inline bool is_absolute() const { return view().is_absolute(); }
+		inline bool is_relative() const { return view().is_relative(); }
 
-		FORCE_INLINE bool empty() const { return length() == 0; }
-		FORCE_INLINE bool has_extension() const { return !extension().empty(); }
-		FORCE_INLINE bool starts_with(StringView path) const { return m_path.starts_with(path); }
+		inline usize component_count() const { return view().component_count(); }
+		inline PathView::ComponentsView components() const { return view().components(); }
+		inline StringView path() const { return m_path; }
+		inline const char* data() const { return m_path.data(); }
 
-		FORCE_INLINE operator const String&() const { return str(); }
-		FORCE_INLINE operator StringView() const { return str(); }
-		FORCE_INLINE operator PathView() const { return PathView(*this); }
-		FORCE_INLINE PathView view() const { return PathView(*this); }
+		inline PathView root() const { return view().root(); }
+		inline PathView first_component() const { return view().first_component(); }
+		inline PathView last_component() const { return view().last_component(); }
 
-		FORCE_INLINE bool operator==(StringView path) const { return m_path == path; }
-		FORCE_INLINE bool operator!=(StringView path) const { return m_path != path; }
-		FORCE_INLINE bool operator<(StringView path) const { return m_path < path; }
-		FORCE_INLINE bool operator>(StringView path) const { return m_path > path; }
-		FORCE_INLINE bool operator<=(StringView path) const { return m_path <= path; }
-		FORCE_INLINE bool operator>=(StringView path) const { return m_path >= path; }
+		inline PathView remove_prefix(PathView prefix) const { return view().remove_prefix(prefix); }
+		inline PathView remove_suffix(PathView suffix) const { return view().remove_suffix(suffix); }
+
+		inline const char* c_str() const { return m_path.c_str(); }
+		inline const String& str() const { return m_path; }
+		inline usize length() const { return m_path.length(); }
+		inline usize size() const { return m_path.size(); }
+
+		inline bool empty() const { return length() == 0; }
+		inline bool starts_with(StringView path) const { return m_path.starts_with(path); }
+		inline bool ends_with(StringView path) const { return m_path.ends_with(path); }
+
+		inline operator const String&() const { return str(); }
+		inline operator StringView() const { return str(); }
+		inline operator PathView() const { return PathView(*this); }
+		inline PathView view() const { return PathView(*this); }
+
+		inline bool operator==(StringView path) const { return m_path == path; }
+		inline bool operator!=(StringView path) const { return m_path != path; }
+		inline bool operator<(StringView path) const { return m_path < path; }
+		inline bool operator>(StringView path) const { return m_path > path; }
+		inline bool operator<=(StringView path) const { return m_path <= path; }
+		inline bool operator>=(StringView path) const { return m_path >= path; }
+		inline char operator[](u32 index) const { return m_path[index]; }
 
 		bool serialize(Archive& ar);
 	};

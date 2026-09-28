@@ -9,7 +9,6 @@ namespace Trinex
 	public:
 		virtual ~Stream() = default;
 
-		virtual bool seekable() const = 0;
 		virtual bool readable() const = 0;
 		virtual bool writable() const = 0;
 
@@ -45,7 +44,6 @@ namespace Trinex
 		virtual bool resize(usize size) = 0;
 
 	public:
-		bool seekable() const override;
 		bool readable() const override;
 		bool flush() override;
 

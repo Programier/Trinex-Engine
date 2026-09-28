@@ -32,10 +32,6 @@ namespace Trinex::Platform
 	static Sint64 SDLCALL file_seek(void* userdata, Sint64 offset, SDL_IOWhence whence)
 	{
 		Stream* stream = static_cast<Stream*>(userdata);
-
-		if (!stream->seekable())
-			return -1;
-
 		IOWhence dir;
 
 		switch (whence)

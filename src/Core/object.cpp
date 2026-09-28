@@ -706,7 +706,7 @@ namespace Trinex
 
 	ENGINE_EXPORT Object* Object::load_object_from_file(const Path& path, ArchiveFlags flags)
 	{
-		String package_name = Strings::replace_all(path.base_path(), Path::sv_separator, Constants::name_separator);
+		String package_name = Strings::replace_all(path.parent(), Path::sv_separator, Constants::name_separator);
 		StringView name     = path.stem();
 		String full_name    = package_name + Constants::name_separator + String(name);
 

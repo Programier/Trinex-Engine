@@ -81,31 +81,31 @@ namespace Trinex
 	{
 		std::stringstream stream;
 
-		rootfs()->walk(path, [&path, &out](PathView entry, const VFS::FileStat& stat) {
-			if (entry.extension() != Constants::translation_config_extension)
-				return VFS::WalkResult::Continue;
+		// rootfs()->walk(path, [&path, &out](PathView entry, const VFS::FileStat& stat) {
+		// 	if (entry.extension() != Constants::translation_config_extension)
+		// 		return VFS::WalkResult::Continue;
 
-			if (auto buffer = rootfs()->map(entry))
-			{
-				std::stringstream stream;
-				stream << buffer->as<StringView>();
+		// 	if (auto buffer = rootfs()->map(entry))
+		// 	{
+		// 		std::stringstream stream;
+		// 		stream << buffer->as<StringView>();
 
-				String line;
-				while (std::getline(stream, line))
-				{
-					String key, value;
-					if (parse_string(line, key, value))
-					{
-						String p  = entry.relative(path);
-						key       = p.substr(0, p.length() - Constants::translation_config_extension.length()) + "/" + key;
-						u64 hash  = memory_hash(key.c_str(), key.length());
-						out[hash] = value;
-					}
-				}
-			}
+		// 		String line;
+		// 		while (std::getline(stream, line))
+		// 		{
+		// 			String key, value;
+		// 			if (parse_string(line, key, value))
+		// 			{
+		// 				//String p  = entry.relative(path);
+		// 				key       = p.substr(0, p.length() - Constants::translation_config_extension.length()) + "/" + key;
+		// 				u64 hash  = memory_hash(key.c_str(), key.length());
+		// 				out[hash] = value;
+		// 			}
+		// 		}
+		// 	}
 
-			return VFS::WalkResult::Continue;
-		});
+		// 	return VFS::WalkResult::Continue;
+		// });
 	}
 
 	Localization& Localization::reload(bool clear, bool with_default)

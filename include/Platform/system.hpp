@@ -45,6 +45,8 @@ namespace Trinex::Platform
 		virtual const char* executable_path() const      = 0;
 		virtual const char* executable_directory() const = 0;
 		virtual const char* current_directory() const    = 0;
+		virtual const char* temp_directory() const       = 0;
+		virtual const char* user_directory() const       = 0;
 		virtual bool current_directory(const Path* path) = 0;
 
 		virtual const char* environment(const char* name) const                            = 0;

@@ -4,7 +4,6 @@
 #include <Platform/display.hpp>
 #include <Platform/events.hpp>
 #include <Platform/file_watcher.hpp>
-#include <Platform/filesystem.hpp>
 #include <Platform/input.hpp>
 #include <Platform/library.hpp>
 #include <Platform/memory.hpp>
@@ -33,7 +32,6 @@ namespace Trinex::Platform
 		virtual WindowSystem* window_system()   = 0;
 		virtual InputSystem* input_system()     = 0;
 		virtual EventLoop* event_loop()         = 0;
-		virtual FileSystem* filesystem()        = 0;
 		virtual FileWatcher* file_watcher()     = 0;
 		virtual LibraryLoader* library_loader() = 0;
 		virtual ProcessSystem* process_system() = 0;

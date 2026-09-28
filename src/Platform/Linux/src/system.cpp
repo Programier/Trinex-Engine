@@ -230,6 +230,16 @@ namespace Trinex::Platform
 		return path && chdir(path->c_str()) == 0;
 	}
 
+	const char* LinuxSystem::temp_directory() const
+	{
+		return executable_directory();
+	}
+
+	const char* LinuxSystem::user_directory() const
+	{
+		return executable_directory();
+	}
+
 	const char* LinuxSystem::environment(const char* name) const
 	{
 		return getenv(name);

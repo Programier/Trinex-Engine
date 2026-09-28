@@ -4,6 +4,7 @@
 #include <Core/etl/pair.hpp>
 #include <Core/etl/vector.hpp>
 #include <algorithm>
+#include <type_traits>
 
 namespace Trinex
 {
@@ -30,6 +31,15 @@ namespace Trinex
 		using difference_type = typename container_type::difference_type;
 
 	private:
+		template<typename LookupKey>
+		static constexpr bool is_lookup_key =
+		        std::is_convertible_v<const LookupKey&, key_type> ||
+		        (requires { typename Compare::is_transparent; } &&
+		         requires(Compare compare, const key_type& key, const LookupKey& lookup_key) {
+			         compare(key, lookup_key);
+			         compare(lookup_key, key);
+		         });
+
 		constexpr void sort() { std::sort(container_type::begin(), container_type::end(), Compare()); }
 
 	public:
@@ -109,26 +119,37 @@ namespace Trinex
 		constexpr void swap(FlatSet& other) { container_type::swap(other); }
 
 
-		constexpr const_iterator find(const T& value) const
+		template<typename LookupKey>
+		    requires(is_lookup_key<LookupKey>)
+		constexpr const_iterator find(const LookupKey& value) const
 		{
 			Compare compare;
 			auto it = std::lower_bound(begin(), end(), value, compare);
 			return (it != end() && !compare(value, *it)) ? it : end();
 		}
 
-		constexpr const_iterator lower_bound(const T& value) const
+		template<typename LookupKey>
+		    requires(is_lookup_key<LookupKey>)
+		constexpr const_iterator lower_bound(const LookupKey& value) const
 		{
 			Compare compare;
 			return std::lower_bound(begin(), end(), value, compare);
 		}
 
-		constexpr const_iterator upper_bound(const T& value) const
+		template<typename LookupKey>
+		    requires(is_lookup_key<LookupKey>)
+		constexpr const_iterator upper_bound(const LookupKey& value) const
 		{
 			Compare compare;
 			return std::upper_bound(begin(), end(), value, compare);
 		}
 
-		constexpr bool contains(const T& value) const { return find(value) != end(); }
+		template<typename LookupKey>
+		    requires(is_lookup_key<LookupKey>)
+		constexpr bool contains(const LookupKey& value) const
+		{
+			return find(value) != end();
+		}
 
 		constexpr Pair<iterator, bool> insert(const T& value)
 		{
@@ -149,7 +170,9 @@ namespace Trinex
 			container_type::erase(std::unique(container_type::begin(), container_type::end()), container_type::end());
 		}
 
-		constexpr const_iterator erase(const T& value)
+		template<typename LookupKey>
+		    requires(is_lookup_key<LookupKey>)
+		constexpr const_iterator erase(const LookupKey& value)
 		{
 			auto it = find(value);
 			if (it != end())
@@ -159,7 +182,7 @@ namespace Trinex
 
 		constexpr const_iterator erase(const_iterator it) { return container_type::erase(it); }
 		constexpr const_iterator erase(const_iterator from, const_iterator to) { return container_type::erase(from, to); }
-		constexpr const Vector<T, AllocatorType>& as_vector() const { return *this; }
+		constexpr const container_type& container() const { return *this; }
 	};
 
 

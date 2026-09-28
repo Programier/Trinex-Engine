@@ -42,11 +42,6 @@ namespace Trinex::Platform
 		return Context::instance()->event_loop();
 	}
 
-	FileSystem* FileSystem::instance()
-	{
-		return Context::instance()->filesystem();
-	}
-
 	FileWatcher* FileWatcher::instance()
 	{
 		return Context::instance()->file_watcher();
@@ -76,4 +71,6 @@ namespace Trinex::Platform
 	{
 		return Context::instance()->dialogs();
 	}
+	
+	
 }// namespace Trinex::Platform

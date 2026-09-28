@@ -770,7 +770,7 @@ _Comment    <- '//' (![\r\n] .)*
 				return include_path;
 			}
 
-			return Path(owner_path.base_path()) / include_path;
+			return Path(owner_path.parent()) / include_path;
 		}
 
 		static void add_dependency(Vector<Path>& dependencies, const Path& path)

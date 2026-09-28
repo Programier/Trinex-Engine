@@ -230,7 +230,7 @@ namespace Trinex::Refl
 
 			Vector<usize> offsets(count + 1, 0);
 			auto start_pos = ar.position();
-			ar.write_data(reinterpret_cast<const u8*>(offsets.data()), offsets.size() * sizeof(usize));
+			ar.write(offsets.data(), offsets.size() * sizeof(usize));
 
 			count = 0;
 			for (auto& prop : properties)
@@ -246,7 +246,7 @@ namespace Trinex::Refl
 			offsets[count] = end_pos - start_pos;
 
 			ar.position(start_pos);
-			ar.write_data(reinterpret_cast<const u8*>(offsets.data()), offsets.size() * sizeof(usize));
+			ar.write(offsets.data(), offsets.size() * sizeof(usize));
 			ar.position(end_pos);
 		}
 		else if (ar.is_reading())
@@ -256,7 +256,7 @@ namespace Trinex::Refl
 
 			Vector<usize> offsets(count + 1, 0);
 			auto start_pos = ar.position();
-			ar.read_data(reinterpret_cast<u8*>(offsets.data()), offsets.size() * sizeof(usize));
+			ar.read(offsets.data(), offsets.size() * sizeof(usize));
 
 			Name name;
 

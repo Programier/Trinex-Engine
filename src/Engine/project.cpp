@@ -140,7 +140,7 @@ namespace Trinex
 	{
 		if (auto blob = rootfs()->map(project_file))
 		{
-			return open_project(blob->as<String>(), project_file.base_path());
+			return open_project(blob->as<String>(), project_file.parent());
 		}
 
 		return false;

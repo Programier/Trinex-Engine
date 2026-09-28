@@ -18,6 +18,8 @@ namespace Trinex::Platform
 		const char* executable_path() const override;
 		const char* executable_directory() const override;
 		const char* current_directory() const override;
+		const char* temp_directory() const override;
+		const char* user_directory() const override;
 		bool current_directory(const Path* path) override;
 		const char* environment(const char* name) const override;
 		bool environment(const char* name, const char* value, bool replace = true) override;

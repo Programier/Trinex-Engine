@@ -1,3 +1,4 @@
+#include <Core/archive.hpp>
 #include <Core/etl/templates.hpp>
 #include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_engine.hpp>
@@ -51,5 +52,21 @@ namespace Trinex
 		                 overload_of<StringView::size_type(char, StringView::size_type)>(&StringView::find_last_of));
 		registrar.method("uint64 find_last_of(StringView, uint64 = 0) const",
 		                 overload_of<StringView::size_type(StringView, StringView::size_type)>(&StringView::find_last_of));
+	}
+
+	ENGINE_EXPORT void serialize(class Archive& ar, String& string)
+	{
+		usize size = string.length();
+		ar(size);
+
+		if (ar.is_reading())
+		{
+			string.resize(size);
+			ar.read(string.data(), size);
+		}
+		else if (ar.is_saving())
+		{
+			ar.write(string.data(), size);
+		}
 	}
 }// namespace Trinex

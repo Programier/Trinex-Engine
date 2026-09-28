@@ -64,7 +64,7 @@ namespace Trinex
 		{
 			if (u8* data = map(RHIMappingAccess::Write))
 			{
-				const bool status = ar.read_data(data, buffer_size);
+				const bool status = ar.read(data, buffer_size);
 				unmap();
 				return status;
 			}
@@ -72,7 +72,7 @@ namespace Trinex
 			StackByteAllocator::Mark mark;
 			u8* data = StackByteAllocator::allocate(buffer_size);
 
-			if (!ar.read_data(data, buffer_size))
+			if (!ar.read(data, buffer_size))
 			{
 				return false;
 			}
@@ -90,7 +90,7 @@ namespace Trinex
 		{
 			if (u8* data = map(RHIMappingAccess::Read))
 			{
-				const bool status = ar.write_data(data, buffer_size);
+				const bool status = ar.write(data, buffer_size);
 				unmap();
 				return status;
 			}
@@ -108,7 +108,7 @@ namespace Trinex
 			RHI::instance()->idle();
 
 			const u8* data    = buffer->map(RHIMappingAccess::Read);
-			const bool status = ar.write_data(data, buffer_size);
+			const bool status = ar.write(data, buffer_size);
 			buffer->unmap();
 
 			RHIBufferPool::global_instance()->release(buffer);

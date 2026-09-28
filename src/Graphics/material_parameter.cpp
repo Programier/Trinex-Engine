@@ -49,9 +49,9 @@ namespace Trinex::MaterialParameters
 	bool PrimitiveBase::serialize_internal(Archive& ar, void* data, usize size)
 	{
 		if (ar.is_reading())
-			ar.read_data(reinterpret_cast<u8*>(data), size);
+			ar.read(reinterpret_cast<u8*>(data), size);
 		else
-			ar.write_data(reinterpret_cast<const u8*>(data), size);
+			ar.write(reinterpret_cast<const u8*>(data), size);
 		return ar;
 	}
 

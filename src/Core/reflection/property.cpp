@@ -295,7 +295,7 @@ namespace Trinex::Refl
 		if (ar.is_reading())
 		{
 			String name;
-			ar.serialize_string(name);
+			ar(name);
 
 			Object* obj = nullptr;
 
@@ -321,7 +321,8 @@ namespace Trinex::Refl
 			{
 				name = obj->full_name().c_str();
 			}
-			ar.serialize_string(name);
+
+			ar(name);
 		}
 		return true;
 	}

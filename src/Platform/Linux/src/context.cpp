@@ -42,11 +42,6 @@ namespace Trinex::Platform
 		return nullptr;
 	}
 
-	FileSystem* LinuxContext::filesystem()
-	{
-		return nullptr;
-	}
-
 	FileWatcher* LinuxContext::file_watcher()
 	{
 		return nullptr;

@@ -20,9 +20,9 @@ namespace Trinex::VFS
 		using WalkCallback = FunctionRef<WalkResult(PathView path, const FileStat& stat)>;
 
 	public:
-		virtual Ref<File> open(PathView path, AccessFlags flags = AccessFlags::Read) = 0;
-		virtual Ref<Blob> map(PathView path, AccessFlags flags = AccessFlags::Read)  = 0;
-		virtual bool stat(PathView path, FileStat& out) const                        = 0;
+		virtual Ref<File> open(PathView path, AccessFlags flags = AccessFlags::Read)                                          = 0;
+		virtual Ref<Blob> map(PathView path, AccessFlags flags = AccessFlags::Read, usize offset = 0, usize size = ~usize(0)) = 0;
+		virtual bool stat(PathView path, FileStat& out) const                                                                 = 0;
 
 		virtual bool create_directory(PathView path)  = 0;
 		virtual bool remove(PathView path)            = 0;

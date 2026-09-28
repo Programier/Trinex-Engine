@@ -12,7 +12,7 @@ namespace Trinex
 
 	const Vector<Actor*>& EditorEngine::selected_actors() const
 	{
-		return m_selected_actors.as_vector();
+		return m_selected_actors.container();
 	}
 
 	EditorEngine& EditorEngine::select(Actor* actor)

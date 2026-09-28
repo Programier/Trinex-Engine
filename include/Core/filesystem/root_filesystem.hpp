@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/etl/map.hpp>
+#include <Core/etl/flat_map.hpp>
 #include <Core/etl/singletone.hpp>
 #include <Core/filesystem/file_watcher.hpp>
 #include <Core/filesystem/filesystem.hpp>
@@ -14,7 +14,7 @@ namespace Trinex::VFS
 			bool operator()(StringView lhs, StringView rhs) const { return lhs > rhs; }
 		};
 
-		using FileSystems = TreeMap<String, Ref<FileSystem>, Greater>;
+		using FileSystems = FlatMap<String, Ref<FileSystem>, Greater>;
 
 	private:
 		static RootFS* s_instance;
@@ -23,7 +23,7 @@ namespace Trinex::VFS
 
 	public:
 		Ref<File> open(PathView path, AccessFlags flags = AccessFlags::Read) override;
-		Ref<Blob> map(PathView path, AccessFlags flags = AccessFlags::Read) override;
+		Ref<Blob> map(PathView path, AccessFlags flags = AccessFlags::Read, usize offset = 0, usize size = ~usize(0)) override;
 
 		bool stat(PathView path, FileStat& out) const override;
 		bool create_directory(PathView path) override;
@@ -34,7 +34,7 @@ namespace Trinex::VFS
 		using FileSystem::walk;
 
 		bool mount(PathView point, PathView path);
-		bool mount(PathView point, FileSystem* system);
+		bool mount(PathView point, Ref<FileSystem> system);
 		bool unmount(PathView point);
 
 		FileSystem* resolve(PathView& path) const;

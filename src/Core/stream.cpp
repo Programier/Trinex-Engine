@@ -4,11 +4,6 @@
 
 namespace Trinex
 {
-	bool BlobStream::seekable() const
-	{
-		return true;
-	}
-
 	bool BlobStream::readable() const
 	{
 		return true;
