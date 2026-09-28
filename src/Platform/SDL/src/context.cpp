@@ -2,6 +2,7 @@
 #include <SDLPlatform/clipboard.hpp>
 #include <SDLPlatform/context.hpp>
 #include <SDLPlatform/library.hpp>
+#include <SDLPlatform/monitor.hpp>
 #include <SDLPlatform/process.hpp>
 #include <SDLPlatform/threading.hpp>
 
@@ -35,5 +36,10 @@ namespace Trinex::Platform
 	ThreadSystem* SDLContext::thread_system()
 	{
 		return SDLThreadSystem::instance();
+	}
+
+	MonitorSystem* SDLContext::monitor_system()
+	{
+		return SDLMonitorSystem::instance();
 	}
 }// namespace Trinex::Platform

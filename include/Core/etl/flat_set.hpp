@@ -1,9 +1,9 @@
 #pragma once
 
+#include <Core/etl/algorithm.hpp>
 #include <Core/etl/functional.hpp>
 #include <Core/etl/pair.hpp>
 #include <Core/etl/vector.hpp>
-#include <algorithm>
 #include <type_traits>
 
 namespace Trinex

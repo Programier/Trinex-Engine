@@ -47,16 +47,16 @@ namespace Trinex
 			static ImVec2 trinex_to_imgui_pos(Window* window)
 			{
 				auto pos = window->position();
-				Platform::MonitorInfo info;
-				Platform::DisplaySystem::instance()->monitor_info(window->monitor_index(), &info);
-				return {static_cast<float>(pos.x), static_cast<float>(info.size.y - (pos.y + window->size().y))};
+				Platform::Monitor info;
+				Platform::MonitorSystem::instance()->monitor(window->monitor_index(), &info);
+				return {static_cast<float>(pos.x), static_cast<float>(info.mode.resolution.y - (pos.y + window->size().y))};
 			}
 
 			static Vector2u imgui_to_trinex_pos(Window* window, ImVec2 pos)
 			{
-				Platform::MonitorInfo info;
-				Platform::DisplaySystem::instance()->monitor_info(window->monitor_index(), &info);
-				return {static_cast<u32>(pos.x), static_cast<u32>(info.size.y - (pos.y + window->size().y))};
+				Platform::Monitor info;
+				Platform::MonitorSystem::instance()->monitor(window->monitor_index(), &info);
+				return {static_cast<u32>(pos.x), static_cast<u32>(info.mode.resolution.y - (pos.y + window->size().y))};
 			}
 
 			static ImVec2 mouse_to_imgui_pos(Window* window, float x, float y)
@@ -68,14 +68,6 @@ namespace Trinex
 				}
 
 				return {x, window->size().y - y};
-			}
-
-			static float window_dpi_scale(Window* window)
-			{
-				Platform::MonitorInfo info;
-				Platform::DisplaySystem::instance()->monitor_info(window->monitor_index(), &info);
-				float dpi = info.dpi;
-				return dpi > 0.f ? dpi / 96.0f : 1.f;
 			}
 
 			struct ImGuiContextSaver {
@@ -575,12 +567,6 @@ namespace Trinex
 
 			static ImVec2 get_window_framebuffer_scale(ImGuiViewport* vp)
 			{
-				if (Trinex::Window* wd = window_from(vp))
-				{
-					float scale = window_dpi_scale(wd);
-					return {scale, scale};
-				}
-
 				return {1.f, 1.f};
 			}
 
@@ -651,19 +637,16 @@ namespace Trinex
 				platform_io.Monitors.resize(0);
 				bd->update_monitors = false;
 
-				usize display_count = Platform::DisplaySystem::instance()->monitors_count();
-				for (usize n = 0; n < display_count; n++)
-				{
+				Platform::MonitorSystem::instance()->for_each_monitor([&](const Platform::Monitor& info) {
 					ImGuiPlatformMonitor monitor;
-					Platform::MonitorInfo info;
-					Platform::DisplaySystem::instance()->monitor_info(n, &info);
-					monitor.WorkPos = monitor.MainPos = ImVec2(info.pos.x, info.pos.y);
-					monitor.WorkSize = monitor.MainSize = ImVec2(info.size.x, info.size.y);
-					monitor.DpiScale                    = info.dpi / 96.0f;
 
-					monitor.PlatformHandle = reinterpret_cast<void*>(n);
+					monitor.WorkPos = monitor.MainPos = ImVec2(info.work_position.x, info.work_position.y);
+					monitor.WorkSize = monitor.MainSize = ImVec2(info.work_size.x, info.work_size.y);
+					monitor.DpiScale                    = 1.f;
+
+					monitor.PlatformHandle = nullptr;
 					platform_io.Monitors.push_back(monitor);
-				}
+				});
 			}
 
 			static class PlatformListener : public UI::ClientListener

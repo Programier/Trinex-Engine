@@ -22,11 +22,6 @@ namespace Trinex::Platform
 		return LinuxMemory::instance();
 	}
 
-	DisplaySystem* LinuxContext::display_system()
-	{
-		return nullptr;
-	}
-
 	WindowSystem* LinuxContext::window_system()
 	{
 		return nullptr;

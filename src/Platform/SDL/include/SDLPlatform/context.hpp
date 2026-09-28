@@ -13,5 +13,6 @@ namespace Trinex::Platform
 		LibraryLoader* library_loader() override;
 		ProcessSystem* process_system() override;
 		ThreadSystem* thread_system() override;
+		MonitorSystem* monitor_system() override;
 	};
 }// namespace Trinex::Platform

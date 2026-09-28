@@ -1,11 +1,11 @@
 #pragma once
 #include <Platform/clipboard.hpp>
 #include <Platform/dialogs.hpp>
-#include <Platform/display.hpp>
 #include <Platform/events.hpp>
 #include <Platform/input.hpp>
 #include <Platform/library.hpp>
 #include <Platform/memory.hpp>
+#include <Platform/monitor.hpp>
 #include <Platform/process.hpp>
 #include <Platform/system.hpp>
 #include <Platform/threading.hpp>
@@ -26,7 +26,7 @@ namespace Trinex::Platform
 
 		virtual System* system()                = 0;
 		virtual Memory* memory()                = 0;
-		virtual DisplaySystem* display_system() = 0;
+		virtual MonitorSystem* monitor_system() = 0;
 		virtual WindowSystem* window_system()   = 0;
 		virtual InputSystem* input_system()     = 0;
 		virtual EventLoop* event_loop()         = 0;

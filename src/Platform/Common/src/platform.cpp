@@ -22,9 +22,9 @@ namespace Trinex::Platform
 		return Context::instance()->memory();
 	}
 
-	DisplaySystem* DisplaySystem::instance()
+	MonitorSystem* MonitorSystem::instance()
 	{
-		return Context::instance()->display_system();
+		return Context::instance()->monitor_system();
 	}
 
 	WindowSystem* WindowSystem::instance()
@@ -66,6 +66,6 @@ namespace Trinex::Platform
 	{
 		return Context::instance()->dialogs();
 	}
-	
-	
+
+
 }// namespace Trinex::Platform

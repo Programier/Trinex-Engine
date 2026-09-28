@@ -311,9 +311,9 @@ namespace Trinex
 		String new_title = Strings::format("Trinex Editor [{} RHI]", RHI::instance()->info.name.c_str());
 		wd->title(new_title);
 
-		Platform::MonitorInfo monitor_info;
-		Platform::DisplaySystem::instance()->monitor_info(wd->monitor_index(), &monitor_info);
-		wd->size(monitor_info.size);
+		Platform::Monitor monitor_info;
+		Platform::MonitorSystem::instance()->monitor(wd->monitor_index(), &monitor_info);
+		wd->size(monitor_info.mode.resolution);
 		m_world = Object::new_instance<World>("World");
 
 		m_scene_view.state(&m_scene_view_state);
