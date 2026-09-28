@@ -191,15 +191,25 @@ namespace Trinex::Platform
 	struct ThreadPriority {
 		enum Enum : u8
 		{
-			Lowest = 0,
-			BelowNormal,
-			Normal,
-			AboveNormal,
-			Highest,
-			TimeCritical,
+			Low      = 0,
+			Normal   = 1,
+			High     = 2,
+			Critical = 3,
 		};
 
 		trinex_enum_struct(ThreadPriority);
+	};
+
+	struct ThreadState {
+		enum Enum : u8
+		{
+			Undefined = 0,
+			Alive     = 1,
+			Detached  = 2,
+			Complete  = 3,
+		};
+
+		trinex_enum_struct(ThreadState);
 	};
 
 	struct DialogResult {

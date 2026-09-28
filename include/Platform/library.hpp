@@ -1,6 +1,6 @@
 #pragma once
+#include <Core/ref_counted.hpp>
 #include <Platform/enums.hpp>
-#include <Platform/object.hpp>
 
 namespace Trinex::Platform
 {
@@ -16,10 +16,9 @@ namespace Trinex::Platform
 		FORCE_INLINE explicit operator bool() const { return address != nullptr; }
 	};
 
-	class ENGINE_EXPORT Library
+	class ENGINE_EXPORT Library : public RefCounted
 	{
 	public:
-		virtual ~Library()                           = default;
 		virtual LibrarySymbol find(const char* name) = 0;
 
 		template<typename T>
@@ -36,7 +35,6 @@ namespace Trinex::Platform
 
 		virtual ~LibraryLoader();
 
-		virtual Library* load(const char* path)         = 0;
-		virtual LibraryLoader& unload(Library* library) = 0;
+		virtual Ref<Library> load(const char* path) = 0;
 	};
 }// namespace Trinex::Platform

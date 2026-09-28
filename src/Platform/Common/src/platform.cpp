@@ -42,11 +42,6 @@ namespace Trinex::Platform
 		return Context::instance()->event_loop();
 	}
 
-	FileWatcher* FileWatcher::instance()
-	{
-		return Context::instance()->file_watcher();
-	}
-
 	LibraryLoader* LibraryLoader::instance()
 	{
 		return Context::instance()->library_loader();

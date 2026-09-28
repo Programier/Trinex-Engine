@@ -22,7 +22,6 @@ namespace Trinex::Platform
 	public:
 		static SDLLibraryLoader* instance();
 
-		SDLLibrary* load(const char* path) override;
-		SDLLibraryLoader& unload(Library* library) override;
+		Ref<Library> load(const char* path) override;
 	};
 }// namespace Trinex::Platform

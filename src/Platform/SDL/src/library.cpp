@@ -24,22 +24,13 @@ namespace Trinex::Platform
 		return &loader;
 	}
 
-	SDLLibrary* SDLLibraryLoader::load(const char* path)
+	Ref<Library> SDLLibraryLoader::load(const char* path)
 	{
 		if (auto handle = SDL_LoadObject(path))
 		{
-			return trx_new SDLLibrary(handle);
+			return Ref<SDLLibrary>::make(handle);
 		}
 
 		return nullptr;
-	}
-
-	SDLLibraryLoader& SDLLibraryLoader::unload(Library* library)
-	{
-		if (library)
-		{
-			trx_delete library;
-		}
-		return *this;
 	}
 }// namespace Trinex::Platform

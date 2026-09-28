@@ -42,16 +42,6 @@ namespace Trinex::Platform
 		return nullptr;
 	}
 
-	FileWatcher* LinuxContext::file_watcher()
-	{
-		return nullptr;
-	}
-
-	ThreadSystem* LinuxContext::thread_system()
-	{
-		return nullptr;
-	}
-
 	DialogSystem* LinuxContext::dialogs()
 	{
 		return nullptr;

@@ -14,8 +14,6 @@ namespace Trinex::Platform
 		WindowSystem* window_system() override;
 		InputSystem* input_system() override;
 		EventLoop* event_loop() override;
-		FileWatcher* file_watcher() override;
-		ThreadSystem* thread_system() override;
 		DialogSystem* dialogs() override;
 	};
 }// namespace Trinex::Platform

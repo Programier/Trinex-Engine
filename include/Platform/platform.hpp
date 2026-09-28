@@ -3,12 +3,10 @@
 #include <Platform/dialogs.hpp>
 #include <Platform/display.hpp>
 #include <Platform/events.hpp>
-#include <Platform/file_watcher.hpp>
 #include <Platform/input.hpp>
 #include <Platform/library.hpp>
 #include <Platform/memory.hpp>
 #include <Platform/process.hpp>
-#include <Platform/resource_ptr.hpp>
 #include <Platform/system.hpp>
 #include <Platform/threading.hpp>
 #include <Platform/window.hpp>
@@ -32,7 +30,6 @@ namespace Trinex::Platform
 		virtual WindowSystem* window_system()   = 0;
 		virtual InputSystem* input_system()     = 0;
 		virtual EventLoop* event_loop()         = 0;
-		virtual FileWatcher* file_watcher()     = 0;
 		virtual LibraryLoader* library_loader() = 0;
 		virtual ProcessSystem* process_system() = 0;
 		virtual ThreadSystem* thread_system()   = 0;
