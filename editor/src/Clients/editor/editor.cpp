@@ -307,12 +307,11 @@ namespace Trinex
 	{
 		Super::attach(viewport);
 
-		auto wd          = window()->window();
-		String new_title = Strings::format("Trinex Editor [{} RHI]", RHI::instance()->info.name.c_str());
-		wd->title(new_title);
+		auto wd = window()->window();
+		wd->title(Strings::format("Trinex Editor [{} RHI]", RHI::instance()->info.name.c_str()).c_str());
 
 		Platform::Monitor monitor_info;
-		Platform::MonitorSystem::instance()->monitor(wd->monitor_index(), &monitor_info);
+		Platform::MonitorSystem::instance()->monitor(wd->monitor(), &monitor_info);
 		wd->size(monitor_info.mode.resolution);
 		m_world = Object::new_instance<World>("World");
 

@@ -363,7 +363,7 @@ namespace Trinex
 	vk::SurfaceKHR VulkanAPI::create_surface(Window* window)
 	{
 		extern VkSurfaceKHR create_vulkan_surface(void* native_window, VkInstance instance);
-		return create_vulkan_surface(window->native_window(), m_instance.instance);
+		return create_vulkan_surface(window->native_handle(), m_instance.instance);
 	}
 
 	vk::Extent2D VulkanAPI::surface_size(const vk::SurfaceKHR& surface) const

@@ -48,14 +48,14 @@ namespace Trinex
 			{
 				auto pos = window->position();
 				Platform::Monitor info;
-				Platform::MonitorSystem::instance()->monitor(window->monitor_index(), &info);
+				Platform::MonitorSystem::instance()->monitor(window->monitor(), &info);
 				return {static_cast<float>(pos.x), static_cast<float>(info.mode.resolution.y - (pos.y + window->size().y))};
 			}
 
 			static Vector2u imgui_to_trinex_pos(Window* window, ImVec2 pos)
 			{
 				Platform::Monitor info;
-				Platform::MonitorSystem::instance()->monitor(window->monitor_index(), &info);
+				Platform::MonitorSystem::instance()->monitor(window->monitor(), &info);
 				return {static_cast<u32>(pos.x), static_cast<u32>(info.mode.resolution.y - (pos.y + window->size().y))};
 			}
 
@@ -463,7 +463,7 @@ namespace Trinex
 
 				if (vp->Flags & ImGuiViewportFlags_NoDecoration)
 				{
-					desc.attributes.set(WindowAttribute::BorderLess);
+					desc.attributes.set(WindowAttribute::Borderless);
 				}
 				else
 				{
@@ -574,7 +574,7 @@ namespace Trinex
 			{
 				if (Trinex::Window* wd = window_from(vp))
 				{
-					return wd->focused();
+					return wd->attributes(WindowAttribute::InputFocus);
 				}
 				return false;
 			}
@@ -583,7 +583,7 @@ namespace Trinex
 			{
 				if (Trinex::Window* wd = window_from(vp))
 				{
-					wd->focus();
+					wd->raise();
 				}
 			}
 
@@ -599,7 +599,7 @@ namespace Trinex
 			{
 				if (Trinex::Window* wd = window_from(vp))
 				{
-					return wd->is_iconify();
+					return wd->attributes(WindowAttribute::Minimized);
 				}
 				return false;
 			}

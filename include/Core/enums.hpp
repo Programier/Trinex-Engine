@@ -27,27 +27,85 @@ namespace Trinex
 	};
 
 	struct WindowAttribute {
-		enum Enum : u16
+		enum Enum : u64
 		{
-			Undefined       = 0,
-			Resizable       = 1 << 0,
-			FullScreen      = 1 << 1,
-			Shown           = 1 << 2,
-			Hidden          = 1 << 3,
-			BorderLess      = 1 << 4,
-			MouseFocus      = 1 << 5,
-			InputFocus      = 1 << 6,
-			InputGrabbed    = 1 << 7,
-			Minimized       = 1 << 8,
-			Maximized       = 1 << 9,
-			MouseCapture    = 1 << 10,
-			MouseGrabbed    = 1 << 11,
-			KeyboardGrabbed = 1 << 12,
-			Vsync           = 1 << 13,
+			Undefined = 0,
+
+			Fullscreen = 1ull << 0,
+			Hidden     = 1ull << 1,
+			Borderless = 1ull << 2,
+			Resizable  = 1ull << 3,
+
+			Minimized = 1ull << 4,
+			Maximized = 1ull << 5,
+			Occluded  = 1ull << 6,
+
+			InputFocus = 1ull << 7,
+			MouseFocus = 1ull << 8,
+
+			MouseGrabbed      = 1ull << 9,
+			KeyboardGrabbed   = 1ull << 10,
+			MouseCapture      = 1ull << 11,
+			MouseRelativeMode = 1ull << 12,
+
+			AlwaysOnTop      = 1ull << 13,
+			HighPixelDensity = 1ull << 14,
+			Transparent      = 1ull << 15,
+			NotFocusable     = 1ull << 16,
+
+			Modal     = 1ull << 17,
+			Utility   = 1ull << 18,
+			Tooltip   = 1ull << 19,
+			PopupMenu = 1ull << 20,
+
+			External = 1ull << 21,
+
+			OpenGL = 1ull << 22,
+			Vulkan = 1ull << 23,
+			Metal  = 1ull << 24,
+
+			// State controlled by the window manager / OS.
+			ReadOnly = Occluded | InputFocus | MouseFocus | MouseCapture,
+
+			// Can be directly changed at runtime.
+			ReadWrite = Fullscreen | Hidden | Borderless | Resizable | MouseGrabbed | KeyboardGrabbed | MouseRelativeMode |
+			            AlwaysOnTop | NotFocusable | Modal,
+
+			// Runtime state changed through commands:
+			// minimize(), maximize(), restore().
+			Command = Minimized | Maximized,
+
+			// Determined when the window is created.
+			CreateOnly = HighPixelDensity | Transparent | Utility | Tooltip | PopupMenu | External | OpenGL | Vulkan | Metal,
+
+			// Rendering backend.
+			Graphics = OpenGL | Vulkan | Metal,
+
+			// Input-related state.
+			Input = InputFocus | MouseFocus | MouseGrabbed | KeyboardGrabbed | MouseCapture | MouseRelativeMode,
+
+			// Window presentation/state.
+			State = Fullscreen | Hidden | Minimized | Maximized | Occluded,
+
+			// Window configuration/decorations.
+			Configuration = Borderless | Resizable | AlwaysOnTop | NotFocusable | Modal,
+
+			// Special window roles.
+			Role = Utility | Tooltip | PopupMenu,
+
+			// Can potentially change after creation.
+			Runtime = ReadOnly | ReadWrite | Command,
+
+			// Can be changed by the application after creation.
+			Mutable = ReadWrite | Command,
+
+			// Cannot be directly changed by Window API.
+			Immutable = ReadOnly | CreateOnly,
+
+			All = ReadOnly | ReadWrite | Command | CreateOnly,
 		};
 
-		trinex_bitfield_enum_struct(WindowAttribute, u16);
-		trinex_enum(WindowAttribute);
+		trinex_bitfield_enum_struct(WindowAttribute, u64);
 	};
 
 	struct CursorMode {

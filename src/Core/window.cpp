@@ -68,7 +68,7 @@ namespace Trinex
 		static Console::VariableRef size(&s_config.size, "window.size");
 		static Console::VariableRef pos(&s_config.pos, "window.pos");
 		static Console::VariableRef monitor(&s_config.monitor, "window.monitor");
-		static Console::VariableRef attributes(&s_config.attributes, "window.attributes");
+		//static Console::VariableRef attributes(&s_config.attributes, "window.attributes");
 	}
 
 	struct WindowsState {
@@ -107,7 +107,7 @@ namespace Trinex
 		return s_config;
 	}
 
-	Window* Window::create(String title, Vector2u size, Window* parent)
+	Window* Window::create(const char* title, Vector2u size, Window* parent)
 	{
 		WindowDesc desc = {
 		        .title = title,
@@ -137,7 +137,7 @@ namespace Trinex
 
 		WindowsState::instance().windows[self->id()] = self;
 
-		const i32 interval      = desc.attributes.any(WindowAttribute::Vsync);
+		const i32 interval      = 1;
 		self->m_render_viewport = Object::new_instance<RenderViewport>("", nullptr, self, interval);
 
 		// Initialize client
@@ -182,7 +182,7 @@ namespace Trinex
 		}
 	}
 
-	Window* Window::find(Identifier id)
+	Window* Window::find(u32 id)
 	{
 		auto it = WindowsState::instance().windows.find(id);
 
@@ -195,176 +195,6 @@ namespace Trinex
 	Window* Window::main()
 	{
 		return WindowsState::instance().main;
-	}
-
-	f32 Window::width()
-	{
-		return m_size.load().x;
-	}
-
-	Window& Window::width(f32 width)
-	{
-		return *this;
-	}
-
-	f32 Window::height()
-	{
-		return m_size.load().y;
-	}
-
-	Window& Window::height(f32 height)
-	{
-		return *this;
-	}
-
-	Vector2u Window::size()
-	{
-		return m_size.load();
-	}
-
-	Window& Window::size(const Vector2u& size)
-	{
-		return *this;
-	}
-
-	String Window::title()
-	{
-		return "Trinex Engine Window";
-	}
-
-	Window& Window::title(const String& title)
-	{
-		return *this;
-	}
-
-	Vector2u Window::position()
-	{
-		return {0, 0};
-	}
-
-	Window& Window::position(const Vector2u& position)
-	{
-		return *this;
-	}
-
-	bool Window::resizable()
-	{
-		return false;
-	}
-
-	Window& Window::resizable(bool value)
-	{
-		return *this;
-	}
-
-	Window& Window::focus()
-	{
-		return *this;
-	}
-
-	bool Window::focused()
-	{
-		return false;
-	}
-
-	Window& Window::show()
-	{
-		return *this;
-	}
-
-	Window& Window::hide()
-	{
-		return *this;
-	}
-
-	bool Window::is_visible()
-	{
-		return false;
-	}
-
-	bool Window::is_iconify()
-	{
-		return false;
-	}
-
-	Window& Window::iconify()
-	{
-		return *this;
-	}
-
-	bool Window::is_restored()
-	{
-		return false;
-	}
-
-	Window& Window::restore()
-	{
-		return *this;
-	}
-
-	Window& Window::opacity(float value)
-	{
-		return *this;
-	}
-
-	float Window::opacity()
-	{
-		return 1.f;
-	}
-
-	Window& Window::icon(const Image& image)
-	{
-		return *this;
-	}
-
-	Window& Window::cursor(const Image& image, Vector2i hotspot)
-	{
-		return *this;
-	}
-
-	Window& Window::attribute(const WindowAttribute& attrib, bool value)
-	{
-		return *this;
-	}
-
-	bool Window::attribute(const WindowAttribute& attrib)
-	{
-		return false;
-	}
-
-	Window& Window::cursor_mode(const CursorMode& mode)
-	{
-		return *this;
-	}
-
-	CursorMode Window::cursor_mode()
-	{
-		return CursorMode::Normal;
-	}
-
-	bool Window::support_orientation(Orientation orientation)
-	{
-		return false;
-	}
-
-	Orientation Window::orientation()
-	{
-		return Orientation::Landscape;
-	}
-
-	Identifier Window::id()
-	{
-		return reinterpret_cast<Identifier>(this);
-	}
-
-	void* Window::native_window()
-	{
-		return nullptr;
-	}
-
-	usize Window::monitor_index()
-	{
-		return 0;
 	}
 
 	RenderViewport* Window::render_viewport() const
