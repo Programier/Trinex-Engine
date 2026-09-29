@@ -29,14 +29,15 @@ namespace Trinex
 		struct Entry {
 			String name;
 			u64 hash;
+			u32 next = 0xFFFFFFFF;
 		};
 
 		struct HashFunction {
-			FORCE_INLINE u64 operator()(const Name& name) const { return name.m_index; }
+			inline u64 operator()(const Name& name) const { return name.m_id; }
 		};
 
 		struct Less {
-			FORCE_INLINE bool operator()(const Name& x, const Name& y) const
+			inline bool operator()(const Name& x, const Name& y) const
 			{
 				return std::less<String>()(x.to_string(), y.to_string());
 			}
@@ -45,58 +46,55 @@ namespace Trinex
 		static ENGINE_EXPORT Name none;
 
 	private:
-		u32 m_index;
-		Name& init(const StringView& view);
+		u32 m_id;
+		Name& assign(const StringView& view);
 
 	public:
-		Name();
-		Name(const Name&);
-		Name(Name&&);
-		Name& operator=(const Name&);
-		Name& operator=(Name&&);
+		Name() : m_id(0xFFFFFFFF) {}
+		Name(const Name&)            = default;
+		Name(Name&&)                 = default;
+		Name& operator=(const Name&) = default;
+		Name& operator=(Name&&)      = default;
 
-		Name(const char* name);
-		Name(const char* name, usize len);
-		Name(const String& name);
-		Name(const StringView& name);
+		Name(const char* name) : Name(StringView(name)) {}
+		Name(const char* name, usize len) : Name(StringView(name, len)) {}
+		Name(const String& name) : Name(StringView(name)) {}
+		Name(StringView name) { assign(name); }
 
-		Name& operator=(const char* name);
-		Name& operator=(const String& name);
-		Name& operator=(const StringView& name);
-
-		static Name find_name(const StringView& name);
-		static usize static_count();
+		inline Name& operator=(const char* name) { return assign(name); }
+		inline Name& operator=(const String& name) { return assign(name); }
+		inline Name& operator=(const StringView& name) { return assign(name); }
 
 		u64 hash() const;
-		bool operator==(const StringView& name) const;
-		bool operator!=(const StringView& name) const;
-		bool operator==(const char* name) const;
-		bool operator!=(const char* name) const;
-		bool operator==(const String& name) const;
-		bool operator!=(const String& name) const;
+		inline bool operator==(const String& name) const { return equals(name); }
+		inline bool operator!=(const String& name) const { return !equals(name); }
+		inline bool operator==(const StringView& name) const { return equals(name); }
+		inline bool operator!=(const StringView& name) const { return !equals(name); }
+		inline bool operator==(const char* name) const { return equals(name); }
+		inline bool operator!=(const char* name) const { return !equals(name); }
 
-		bool equals(const String& name) const;
-		bool equals(const char* name) const;
-		bool equals(const char* name, usize len) const;
+		inline bool equals(const char* name) const { return equals(StringView(name)); }
+		inline bool equals(const char* name, usize len) const { return equals(StringView(name, len)); }
+		inline bool equals(const Name& name) const { return *this == name; }
+		inline bool equals(const String& name) const { return equals(StringView(name)); }
 		bool equals(const StringView& name) const;
-		bool equals(const Name& name) const;
 
 		const String& to_string() const;
-		const char* c_str() const;
+		inline const char* c_str() const { return to_string().c_str(); }
 		const Name& to_string(String& out) const;
-		operator const String&() const;
-		operator StringView() const;
+		inline operator const String&() const { return to_string(); }
+		inline operator StringView() const { return StringView(to_string()); }
 
-		inline bool is_valid() const { return m_index != 0xFFFFFFFF; }
-		inline u32 index() const { return m_index; }
+		inline bool is_valid() const { return m_id != 0xFFFFFFFF; }
+		inline u32 id() const { return m_id; }
 		inline usize length() const { return to_string().length(); }
 
-		inline bool operator==(const Name& name) const { return name.m_index == m_index; }
-		inline bool operator!=(const Name& name) const { return name.m_index != m_index; }
-		inline bool operator<(const Name& name) const { return m_index < name.m_index; }
-		inline bool operator<=(const Name& name) const { return m_index <= name.m_index; }
-		inline bool operator>(const Name& name) const { return m_index > name.m_index; }
-		inline bool operator>=(const Name& name) const { return m_index >= name.m_index; }
+		inline bool operator==(const Name& name) const { return name.m_id == m_id; }
+		inline bool operator!=(const Name& name) const { return name.m_id != m_id; }
+		inline bool operator<(const Name& name) const { return m_id < name.m_id; }
+		inline bool operator<=(const Name& name) const { return m_id <= name.m_id; }
+		inline bool operator>(const Name& name) const { return m_id > name.m_id; }
+		inline bool operator>=(const Name& name) const { return m_id >= name.m_id; }
 
 		bool serialize(class Archive& ar);
 	};

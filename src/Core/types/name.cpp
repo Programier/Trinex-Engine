@@ -6,6 +6,7 @@
 #include <Core/memory.hpp>
 #include <Core/types/name.hpp>
 #include <ScriptEngine/script_binding.hpp>
+#include <cstring>
 
 namespace Trinex
 {
@@ -36,9 +37,9 @@ namespace Trinex
 		return entries;
 	}
 
-	static MultiMap<u64, usize>& name_index_map()
+	static Map<u64, u32>& name_index_map()
 	{
-		static MultiMap<u64, usize> indices;
+		static Map<u64, u32> indices;
 		return indices;
 	}
 
@@ -50,180 +51,179 @@ namespace Trinex
 
 	static FORCE_INLINE void push_new_name(const char* name, usize len, u64 hash)
 	{
-		name_index_map().insert({hash, name_entries().size()});
-		name_entries().push_back(Name::Entry{String(name, len), hash});
+		Map<u64, u32>& indices = name_index_map();
+		const u32 index        = static_cast<u32>(name_entries().size());
+		const auto it          = indices.find(hash);
+		const u32 next         = it == indices.end() ? 0xFFFFFFFF : it->second;
+
+		if (it == indices.end())
+		{
+			indices.insert({hash, index});
+		}
+		else
+		{
+			it->second = index;
+		}
+
+		name_entries().push_back(Name::Entry{String(name, len), hash, next});
 	}
 
 	ENGINE_EXPORT Name Name::none;
 
-	Name Name::find_name(const StringView& name)
+	static constexpr u32 invalid_name_index = 0xFFFFFFFF;
+	static constexpr usize cache_size       = 64;
+
+	struct NameCacheEntry {
+		const char* data = nullptr;
+		usize length     = 0;
+		u64 hash         = 0;
+		u32 index        = invalid_name_index;
+	};
+
+	struct NameCache {
+		NameCacheEntry by_data[cache_size];
+		NameCacheEntry by_hash[cache_size];
+	};
+
+	static NameCache& name_cache()
 	{
-		Name out_name;
-		u64 hash = memory_hash(name.data(), name.length(), 0);
+		static thread_local NameCache cache;
+		return cache;
+	}
 
+	static FORCE_INLINE usize data_cache_slot(const StringView& view)
+	{
+		return ((reinterpret_cast<usize>(view.data()) >> 4) ^ view.length()) & (cache_size - 1);
+	}
+
+	static FORCE_INLINE usize hash_cache_slot(u64 hash, usize length)
+	{
+		return (hash ^ (hash >> 32) ^ length) & (cache_size - 1);
+	}
+
+	static FORCE_INLINE bool cached_name_matches(const NameCacheEntry& cache, const StringView& view)
+	{
+		if (cache.index == invalid_name_index || cache.length != view.length() || cache.index >= name_entries().size())
+		{
+			return false;
+		}
+
+		const String& string = name_entries()[cache.index].name;
+		return string.length() == view.length() && std::memcmp(string.data(), view.data(), view.length()) == 0;
+	}
+
+	static FORCE_INLINE bool find_cached_name(const StringView& view, u32& index)
+	{
+		NameCacheEntry& cache = name_cache().by_data[data_cache_slot(view)];
+
+		if (cache.data == view.data() && cached_name_matches(cache, view))
+		{
+			index = cache.index;
+			return true;
+		}
+
+		return false;
+	}
+
+	static FORCE_INLINE bool find_cached_name(const StringView& view, u64 hash, u32& index)
+	{
+		NameCacheEntry& cache = name_cache().by_hash[hash_cache_slot(hash, view.length())];
+
+		if (cache.hash == hash && cached_name_matches(cache, view))
+		{
+			index = cache.index;
+			return true;
+		}
+
+		return false;
+	}
+
+	static FORCE_INLINE void cache_name(const StringView& view, u64 hash, u32 index)
+	{
+		NameCacheEntry cache{view.data(), view.length(), hash, index};
+		name_cache().by_data[data_cache_slot(view)]                = cache;
+		name_cache().by_hash[hash_cache_slot(hash, view.length())] = cache;
+	}
+
+	static FORCE_INLINE bool find_name_index(const StringView& view, u64 hash, u32& out_index)
+	{
 		Vector<Name::Entry>& name_table = name_entries();
+		Map<u64, u32>& indices          = name_index_map();
+		const auto head                 = indices.find(hash);
 
-		out_name.m_index = name_table.size();
+		if (head == indices.end())
+		{
+			return false;
+		}
 
-		for (usize index = 0; index < out_name.m_index; ++index)
+		for (u32 index = head->second; index != invalid_name_index; index = name_table[index].next)
 		{
 			const Name::Entry& entry = name_table[index];
 
-			if (entry.hash == hash)
+			if (entry.name == view)
 			{
-				out_name.m_index = index;
-				return out_name;
+				out_index = index;
+				return true;
 			}
 		}
 
-		out_name.m_index = 0xFFFFFFFF;
-		return out_name;
+		return false;
 	}
 
-	usize Name::static_count()
-	{
-		return name_entries().size();
-	}
-
-	Name& Name::init(const StringView& view)
+	Name& Name::assign(const StringView& view)
 	{
 		if (view.empty())
 		{
-			m_index = 0xFFFFFFFF;
+			m_id = invalid_name_index;
+			return *this;
+		}
+
+		if (find_cached_name(view, m_id))
+		{
 			return *this;
 		}
 
 		u64 hash                        = memory_hash(view.data(), view.length(), 0);
 		Vector<Name::Entry>& name_table = name_entries();
-		MultiMap<u64, usize>& indices   = name_index_map();
 
-		m_index = name_table.size();
-
-		auto range = indices.equal_range(hash);
-
-		while (range.first != range.second)
+		if (find_cached_name(view, hash, m_id))
 		{
-			usize index = range.first->second;
-
-			if (name_table[index].name == view)
-			{
-				m_index = index;
-				return *this;
-			}
-
-			++range.first;
+			return *this;
 		}
 
+		if (find_name_index(view, hash, m_id))
+		{
+			cache_name(view, hash, m_id);
+			return *this;
+		}
+
+		m_id = static_cast<u32>(name_table.size());
 		push_new_name(view.data(), view.length(), hash);
+		cache_name(view, hash, m_id);
 		return *this;
 	}
 
-	Name::Name() : m_index(0xFFFFFFFF) {}
-
-	Name::Name(const char* name) : Name(StringView(name)) {}
-
-	Name::Name(const char* name, usize len) : Name(StringView(name, len)) {}
-
-	Name::Name(const String& name) : Name(StringView(name)) {}
-
-	Name::Name(const StringView& name)
-	{
-		init(name);
-	}
-
-	Name& Name::operator=(const char* name)
-	{
-		return init(name);
-	}
-
-	Name& Name::operator=(const String& name)
-	{
-		return init(name);
-	}
-
-	Name& Name::operator=(const StringView& name)
-	{
-		return init(name);
-	}
-
-	Name::Name(const Name&) = default;
-	Name::Name(Name&&)      = default;
-
-	Name& Name::operator=(const Name&) = default;
-	Name& Name::operator=(Name&&)      = default;
-
 	u64 Name::hash() const
 	{
-		return is_valid() ? name_entries()[m_index].hash : Constants::invalid_hash;
-	}
-
-	bool Name::operator==(const StringView& name) const
-	{
-		return equals(name);
-	}
-
-	bool Name::operator!=(const StringView& name) const
-	{
-		return !equals(name);
-	}
-
-	bool Name::operator==(const char* name) const
-	{
-		return equals(name);
-	}
-
-	bool Name::operator!=(const char* name) const
-	{
-		return !equals(name);
-	}
-
-	bool Name::operator==(const String& name) const
-	{
-		return equals(name);
-	}
-
-	bool Name::operator!=(const String& name) const
-	{
-		return !equals(name);
-	}
-
-	bool Name::equals(const String& name) const
-	{
-		return equals(StringView(name));
-	}
-
-	bool Name::equals(const char* name) const
-	{
-		return equals(StringView(name));
-	}
-
-	bool Name::equals(const char* name, usize len) const
-	{
-		return equals(StringView(name, len));
+		return is_valid() ? name_entries()[m_id].hash : Constants::invalid_hash;
 	}
 
 	bool Name::equals(const StringView& name) const
 	{
 		if (is_valid())
 		{
-			const String& str = name_entries()[m_index].name;
+			const String& str = name_entries()[m_id].name;
 			return str == name;
 		}
 
 		return false;
 	}
 
-	bool Name::equals(const Name& name) const
-	{
-		name.equals("Hello");
-		return *this == name;
-	}
-
 	const Name& Name::to_string(String& out) const
 	{
 		if (is_valid())
 		{
-			out += name_entries()[m_index].name;
+			out += name_entries()[m_id].name;
 		}
 
 		return *this;
@@ -233,25 +233,10 @@ namespace Trinex
 	{
 		if (is_valid())
 		{
-			return name_entries()[m_index].name;
+			return name_entries()[m_id].name;
 		}
 
 		return default_string();
-	}
-
-	const char* Name::c_str() const
-	{
-		return to_string().c_str();
-	}
-
-	Name::operator StringView() const
-	{
-		return StringView(to_string());
-	}
-
-	Name::operator const String&() const
-	{
-		return to_string();
 	}
 
 	bool Name::serialize(class Archive& ar)
@@ -286,7 +271,6 @@ namespace Trinex
 		registrar.behaviour(ScriptClassBehave::Construct, "void f(const StringView&)",
 		                    ScriptBinding::Helpers::constructor<Name, const StringView&>, ScriptCallConv::CDeclObjFirst);
 
-		registrar.static_function("Name find_name(const StringView&)", overload_of<Name(const StringView&)>(Name::find_name));
 		registrar.method("bool is_valid() const", &Name::is_valid);
 		registrar.method("uint64 hash() const", &Name::hash);
 		registrar.method("const string& to_string() const", overload_of<const String&()>(&Name::to_string));

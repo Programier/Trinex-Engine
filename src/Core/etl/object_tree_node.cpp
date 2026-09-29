@@ -8,7 +8,7 @@ namespace Trinex
 {
 	static bool predicate(const Object* object, Identifier id)
 	{
-		return object->name().index() < id;
+		return object->name().id() < id;
 	}
 
 	bool ObjectTreeNodeStatics::lower_bound(iterator begin, iterator end, iterator& out, Object* object, Refl::Class* check_class)
@@ -18,7 +18,7 @@ namespace Trinex
 			return false;
 		}
 
-		Identifier id = object->name().index();
+		Identifier id = object->name().id();
 		out           = std::lower_bound(begin, end, id, predicate);
 		return true;
 	}
@@ -40,7 +40,7 @@ namespace Trinex
 
 	Object* ObjectTreeNodeStatics::find(const_iterator begin, const_iterator end, Name name)
 	{
-		Identifier id = name.index();
+		Identifier id = name.id();
 		auto place    = std::lower_bound(begin, end, id, predicate);
 
 		if (place != end)
