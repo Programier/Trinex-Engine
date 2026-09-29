@@ -223,11 +223,11 @@ namespace Trinex
 			template<typename F>
 			static void with_window_context(Identifier window_id, F&& f)
 			{
-				Trinex::Window* window = Window::find(window_id);
+				Ref<Trinex::Window> window = Window::find(window_id);
 				if (window == nullptr)
 					return;
 
-				auto it = s_viewports.find(window);
+				auto it = s_viewports.find(window.value());
 				if (it == s_viewports.end())
 					return;
 
@@ -236,7 +236,7 @@ namespace Trinex
 				if (data && data->ctx)
 				{
 					ImGuiContextSaver saver(data->ctx);
-					f(window);
+					f(window.value());
 				}
 			}
 
@@ -507,7 +507,7 @@ namespace Trinex
 				if (data && data->owns_window && window)
 				{
 					data->owns_window = false;
-					Window::destroy(window);
+					window->release();
 				}
 
 				if (window)

@@ -32,47 +32,45 @@ namespace Trinex
 
 	private:
 		Pointer<class RenderViewport> m_render_viewport;
-		Window* m_parent_window = nullptr;
-		Vector<Window*> m_childs;
-
 
 	public:
 		static Window* create(const char* title, Vector2u size, Window* parent = nullptr);
 		static Window* create(const WindowDesc& desc, Window* parent = nullptr);
-		static void destroy(Window* window);
-		static Window* find(u32 id);
-		static Window* main();
+		static Ref<Window> find(u32 id);
 
 	public:
 		virtual u32 monitor() const = 0;
 		virtual u32 id() const      = 0;
 
-		virtual Vector2u size() const       = 0;
-		virtual Window& size(Vector2u size) = 0;
+		virtual Ref<Window> parent() const  = 0;
+		virtual bool parent(Window* window) = 0;
 
-		virtual Vector2i position() const           = 0;
-		virtual Window& position(Vector2i position) = 0;
+		virtual Vector2u size() const    = 0;
+		virtual bool size(Vector2u size) = 0;
 
-		virtual const char* title() const        = 0;
-		virtual Window& title(const char* title) = 0;
+		virtual Vector2i position() const        = 0;
+		virtual bool position(Vector2i position) = 0;
+
+		virtual const char* title() const     = 0;
+		virtual bool title(const char* title) = 0;
 
 		virtual WindowAttribute attributes(WindowAttribute mask = WindowAttribute::All) const = 0;
 		virtual WindowAttribute attributes(WindowAttribute mask, bool status)                 = 0;
 
-		virtual Vector2u minimum_size() const       = 0;
-		virtual Window& minimum_size(Vector2u size) = 0;
+		virtual Vector2u minimum_size() const    = 0;
+		virtual bool minimum_size(Vector2u size) = 0;
 
-		virtual Vector2u maximum_size() const       = 0;
-		virtual Window& maximum_size(Vector2u size) = 0;
+		virtual Vector2u maximum_size() const    = 0;
+		virtual bool maximum_size(Vector2u size) = 0;
 
 		virtual f32 density() const = 0;
 
 		virtual bool raise()   = 0;
 		virtual bool restore() = 0;
 
-		virtual f32 opacity() const              = 0;
-		virtual Window& opacity(f32 opacity)     = 0;
-		virtual Window& icon(const Image& image) = 0;
+		virtual f32 opacity() const           = 0;
+		virtual bool opacity(f32 opacity)     = 0;
+		virtual bool icon(const Image& image) = 0;
 
 		virtual void* native_handle() const = 0;
 
@@ -85,12 +83,7 @@ namespace Trinex
 		inline bool maximize() { return attributes(WindowAttribute::Maximized, true); }
 
 		RenderViewport* render_viewport() const;
-		Window* parent_window() const;
-		const Vector<Window*>& child_windows() const;
-
 		Window& create_client(const StringView& client_name);
-
-		virtual ~Window();
 
 		friend class RenderViewport;
 	};

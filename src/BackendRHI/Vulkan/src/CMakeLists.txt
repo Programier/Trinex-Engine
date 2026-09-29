@@ -13,6 +13,6 @@ endif()
 if(ANDROID)
     target_sources(TrinexEngine PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/platforms/android.cpp)
 else()
-    target_sources(TrinexEngine PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/platforms/common.cpp)
+    target_sources(TrinexEngine PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/platforms/SDL.cpp)
 endif()
 

@@ -146,11 +146,6 @@ namespace Trinex
 
 		if (show_splash)
 			Trinex::hide_splash_screen();
-
-		if (Window* window = Window::main())
-		{
-			window->show();
-		}
 	}
 
 	void EngineLoop::update()
@@ -165,8 +160,6 @@ namespace Trinex
 
 		LifeCycle::execute(LifeCycle::Shutdown);
 		engine_instance->terminate();
-
-		Window::destroy(Window::main());
 
 		GarbageCollector::destroy_all_objects();
 		RHI::destroy();

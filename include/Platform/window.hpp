@@ -1,9 +1,6 @@
 #pragma once
 #include <Core/enums.hpp>
-#include <Core/etl/string.hpp>
-#include <Core/etl/vector.hpp>
-#include <Core/math/vector.hpp>
-#include <Platform/types.hpp>
+#include <Core/ref_counted.hpp>
 
 namespace Trinex
 {
@@ -20,11 +17,8 @@ namespace Trinex::Platform
 
 		virtual ~WindowSystem() = default;
 
-		virtual Window* create_window(const Trinex::WindowDesc* desc) = 0;
-		virtual void destroy_window(Window* window)                   = 0;
-		virtual Window* main_window() const                           = 0;
-		virtual Window* find_window(Identifier id) const              = 0;
-		virtual bool mouse_relative_mode() const                      = 0;
-		virtual WindowSystem* mouse_relative_mode(bool enabled)       = 0;
+		virtual Ref<Window> create(const char* title, u32 width, u32 height, WindowAttribute flags) = 0;
+		virtual Ref<Window> grabbed() const                                                         = 0;
+		virtual Ref<Window> find(u32 id) const                                                      = 0;
 	};
 }// namespace Trinex::Platform

@@ -6,6 +6,7 @@
 #include <SDLPlatform/monitor.hpp>
 #include <SDLPlatform/process.hpp>
 #include <SDLPlatform/threading.hpp>
+#include <SDLPlatform/window.hpp>
 
 namespace Trinex::Platform
 {
@@ -47,5 +48,10 @@ namespace Trinex::Platform
 	DialogSystem* SDLContext::dialog_system()
 	{
 		return SDLDialogSystem::instance();
+	}
+
+	WindowSystem* SDLContext::window_system()
+	{
+		return SDLWindowSystem::instance();
 	}
 }// namespace Trinex::Platform

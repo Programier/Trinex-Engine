@@ -168,7 +168,7 @@ namespace Trinex
 		}
 
 		[[nodiscard]]
-		T* detach() const noexcept
+		T* detach() noexcept
 		{
 			T* tmp = m_ptr;
 			m_ptr  = nullptr;

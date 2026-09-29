@@ -51,7 +51,8 @@ namespace Trinex::Asserts
 
 #define trinex_failure() ::Trinex::Asserts::report_failure(nullptr, __FILE__, __LINE__, __func__)
 #define trinex_failure_msg(message) ::Trinex::Asserts::report_failure(nullptr, __FILE__, __LINE__, __func__, message)
-#define trinex_failure_fmt(message) ::Trinex::Asserts::report_failure(nullptr, __FILE__, __LINE__, __func__, format, ##__VA_)
+#define trinex_failure_fmt(format, ...)                                                                                          \
+	::Trinex::Asserts::report_failure_fmt(nullptr, __FILE__, __LINE__, __func__, format, ##__VA_ARGS__)
 
 #else
 #define trinex_assert(condition) ((void) 0)

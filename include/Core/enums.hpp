@@ -60,10 +60,6 @@ namespace Trinex
 
 			External = 1ull << 21,
 
-			OpenGL = 1ull << 22,
-			Vulkan = 1ull << 23,
-			Metal  = 1ull << 24,
-
 			// State controlled by the window manager / OS.
 			ReadOnly = Occluded | InputFocus | MouseFocus | MouseCapture,
 
@@ -76,10 +72,7 @@ namespace Trinex
 			Command = Minimized | Maximized,
 
 			// Determined when the window is created.
-			CreateOnly = HighPixelDensity | Transparent | Utility | Tooltip | PopupMenu | External | OpenGL | Vulkan | Metal,
-
-			// Rendering backend.
-			Graphics = OpenGL | Vulkan | Metal,
+			CreateOnly = HighPixelDensity | Transparent | Utility | Tooltip | PopupMenu | External,
 
 			// Input-related state.
 			Input = InputFocus | MouseFocus | MouseGrabbed | KeyboardGrabbed | MouseCapture | MouseRelativeMode,

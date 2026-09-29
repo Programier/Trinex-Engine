@@ -19,7 +19,7 @@ namespace Trinex
 			if (payload == nullptr)
 				return {};
 
-			Window* window = Window::find(event.header.window_id);
+			Ref<Window> window = Window::find(event.header.window_id);
 
 			if (window == nullptr)
 				return {};
@@ -37,17 +37,6 @@ namespace Trinex
 
 				case WindowEventKind::CloseRequested:
 				{
-					if (Window::main() == window)
-					{
-						engine_instance->request_exit();
-					}
-
-					logic_thread()->add_task(Task(Task::High, [id = window->id()]() {
-						if (auto* window = Window::find(id))
-						{
-							Window::destroy(window);
-						}
-					}));
 					break;
 				}
 
@@ -72,9 +61,6 @@ namespace Trinex
 	}
 
 	struct WindowsState {
-		Window* main = nullptr;
-		Map<Identifier, Window*> windows;
-
 		static WindowsState& instance()
 		{
 			static WindowsState s_state = []() {
@@ -82,17 +68,6 @@ namespace Trinex
 				{
 					event_system->dispatcher().add_listener(EventTypeIds::Window, &s_window_event_listener);
 				}
-
-				LifeCycle::on_post_shutdown([]() {
-					auto& windows = WindowsState::instance().windows;
-
-					while (!windows.empty())
-					{
-						Window* window = windows.begin()->second;
-						Window::destroy(window);
-					}
-				});
-
 
 				WindowsState state;
 				return state;
@@ -119,26 +94,14 @@ namespace Trinex
 
 	Window* Window::create(const WindowDesc& desc, Window* parent)
 	{
-		Window* self = Platform::WindowSystem::instance()->create_window(&desc);
+		Ref<Window> self;//Platform::WindowSystem::instance()->create(desc);
 
 		if (self == nullptr)
 			return nullptr;
 
-		parent = parent ? parent : WindowsState::instance().main;
-
-		if (parent)
-		{
-			parent->m_childs.push_back(self);
-			self->m_parent_window = parent;
-		}
-
-		if (WindowsState::instance().main == nullptr)
-			WindowsState::instance().main = self;
-
-		WindowsState::instance().windows[self->id()] = self;
 
 		const i32 interval      = 1;
-		self->m_render_viewport = Object::new_instance<RenderViewport>("", nullptr, self, interval);
+		self->m_render_viewport = Object::new_instance<RenderViewport>("", nullptr, self.value(), interval);
 
 		// Initialize client
 		//self->icon(load_image_icon());
@@ -147,54 +110,12 @@ namespace Trinex
 		{
 			self->create_client(desc.client);
 		}
-		return self;
+		return self.detach();
 	}
 
-	void Window::destroy(Window* window)
+	Ref<Window> Window::find(u32 id)
 	{
-		if (window)
-		{
-			if (window == WindowsState::instance().main)
-				WindowsState::instance().main = nullptr;
-
-			WindowsState::instance().windows.erase(window->id());
-
-			while (!window->m_childs.empty())
-			{
-				destroy(window->m_childs.back());
-			}
-
-			if (window->m_parent_window)
-			{
-				auto& childs = window->m_parent_window->m_childs;
-				for (usize i = 0, count = childs.size(); i < count; i++)
-				{
-					if (childs[i] == window)
-					{
-						childs.erase(childs.begin() + i);
-						break;
-					}
-				}
-			}
-
-			//window->on_destroy(window);
-			Platform::WindowSystem::instance()->destroy_window(window);
-		}
-	}
-
-	Window* Window::find(u32 id)
-	{
-		auto it = WindowsState::instance().windows.find(id);
-
-		if (it == WindowsState::instance().windows.end())
-			return nullptr;
-
-		return it->second;
-	}
-
-	Window* Window::main()
-	{
-		return WindowsState::instance().main;
+		return Platform::WindowSystem::instance()->find(id);
 	}
 
 	RenderViewport* Window::render_viewport() const
@@ -202,26 +123,16 @@ namespace Trinex
 		return m_render_viewport;
 	}
 
-	Window* Window::parent_window() const
-	{
-		return m_parent_window;
-	}
-
-	const Vector<Window*>& Window::child_windows() const
-	{
-		return m_childs;
-	}
-
-	Window::~Window()
-	{
-		if (m_render_viewport)
-		{
-			RenderViewport* viewport = m_render_viewport;
-			m_render_viewport        = nullptr;
-			viewport->client(nullptr);
-			GarbageCollector::destroy(viewport);
-		}
-	}
+	// Window::~Window()
+	// {
+	// 	if (m_render_viewport)
+	// 	{
+	// 		RenderViewport* viewport = m_render_viewport;
+	// 		m_render_viewport        = nullptr;
+	// 		viewport->client(nullptr);
+	// 		GarbageCollector::destroy(viewport);
+	// 	}
+	// }
 
 	Window& Window::create_client(const StringView& client_name)
 	{

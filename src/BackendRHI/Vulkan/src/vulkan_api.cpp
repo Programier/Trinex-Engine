@@ -360,12 +360,6 @@ namespace Trinex
 		return find_present_mode(present_modes, {vk::PresentModeKHR::eFifo, vk::PresentModeKHR::eFifoRelaxed});
 	}
 
-	vk::SurfaceKHR VulkanAPI::create_surface(Window* window)
-	{
-		extern VkSurfaceKHR create_vulkan_surface(void* native_window, VkInstance instance);
-		return create_vulkan_surface(window->native_handle(), m_instance.instance);
-	}
-
 	vk::Extent2D VulkanAPI::surface_size(const vk::SurfaceKHR& surface) const
 	{
 		return vk::check_result(m_physical_device.getSurfaceCapabilitiesKHR(surface)).currentExtent;

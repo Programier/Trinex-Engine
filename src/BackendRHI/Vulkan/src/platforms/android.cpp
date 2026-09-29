@@ -25,10 +25,4 @@ namespace Trinex
 
 		return surface;
 	}
-
-	void load_required_extensions(void* native_window, Vector<String>& required_extensions)
-	{
-		required_extensions.push_back("VK_KHR_surface");
-		required_extensions.push_back("VK_KHR_android_surface");
-	}
 }// namespace Trinex

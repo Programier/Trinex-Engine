@@ -3,6 +3,22 @@
 
 namespace Trinex
 {
+	struct RHIBackend {
+		enum Enum : u8
+		{
+			Undefined = 0,
+			Vulkan    = 1,
+			DirectX11 = 2,
+			DirectX12 = 3,
+			Metal     = 4,
+			OpenGL    = 5,
+			OpenGLES  = 6,
+			WebGPU    = 7,
+		};
+
+		trinex_enum_struct(RHIBackend);
+	};
+
 	struct RHIShaderParameterType {
 		enum Enum : EnumerateType
 		{
