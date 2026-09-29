@@ -2,6 +2,7 @@
 #include <Core/etl/vector.hpp>
 #include <Core/types/uuid.hpp>
 #include <LinuxPlatform/system.hpp>
+#include <RHI/enums.hpp>
 #include <cstdlib>
 #include <fstream>
 #include <linux/limits.h>
@@ -225,9 +226,9 @@ namespace Trinex::Platform
 		return getcwd(buffer, PATH_MAX);
 	}
 
-	bool LinuxSystem::current_directory(const Path* path)
+	bool LinuxSystem::current_directory(const char* path)
 	{
-		return path && chdir(path->c_str()) == 0;
+		return path && chdir(path) == 0;
 	}
 
 	const char* LinuxSystem::temp_directory() const
@@ -238,6 +239,11 @@ namespace Trinex::Platform
 	const char* LinuxSystem::user_directory() const
 	{
 		return executable_directory();
+	}
+
+	RHIBackend LinuxSystem::graphics_backend() const
+	{
+		return RHIBackend::Vulkan;
 	}
 
 	const char* LinuxSystem::environment(const char* name) const

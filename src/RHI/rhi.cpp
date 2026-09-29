@@ -7,7 +7,7 @@
 namespace Trinex
 {
 	RHI* RHI::s_rhi = nullptr;
-	
+
 	RHI* RHI::create(const char* name)
 	{
 		auto decl = Strings::format("Trinex::TRINEX_RHI::{}", Strings::to_upper(name));

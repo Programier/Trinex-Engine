@@ -20,7 +20,8 @@ namespace Trinex::Platform
 		const char* current_directory() const override;
 		const char* temp_directory() const override;
 		const char* user_directory() const override;
-		bool current_directory(const Path* path) override;
+		bool current_directory(const char* path) override;
+		RHIBackend graphics_backend() const override;
 		const char* environment(const char* name) const override;
 		bool environment(const char* name, const char* value, bool replace = true) override;
 		bool create_uuid(UUID* out) override;

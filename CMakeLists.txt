@@ -50,7 +50,6 @@ set(TRINEX_SOURCE_DIRECTORIES
     "${TRINEX_ENGINE_SRC}/ScriptEngine/"
     "${TRINEX_ENGINE_SRC}/Input/"
     "${TRINEX_ENGINE_SRC}/Engine/"
-    "${TRINEX_ENGINE_SRC}/RHI/"
     "${TRINEX_ENGINE_SRC}/EntryPoints/"
 )
 
@@ -71,7 +70,7 @@ endif()
 # Compile modules
 add_subdirectory(${TRINEX_ENGINE_ROOT}/libs/)
 add_subdirectory(${TRINEX_ENGINE_SRC}/Platform)
-add_subdirectory(${TRINEX_ENGINE_SRC}/BackendRHI)
+add_subdirectory(${TRINEX_ENGINE_SRC}/RHI)
 
 if(TRINEX_WITH_EDITOR)
     add_subdirectory(${TRINEX_ENGINE_ROOT}/editor)

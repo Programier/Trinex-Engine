@@ -3,7 +3,11 @@
 #include <Core/types/path.hpp>
 #include <Core/types/uuid.hpp>
 #include <Platform/enums.hpp>
-#include <Platform/types.hpp>
+
+namespace Trinex
+{
+	struct RHIBackend;
+}
 
 namespace Trinex::Platform
 {
@@ -47,7 +51,8 @@ namespace Trinex::Platform
 		virtual const char* current_directory() const    = 0;
 		virtual const char* temp_directory() const       = 0;
 		virtual const char* user_directory() const       = 0;
-		virtual bool current_directory(const Path* path) = 0;
+		virtual bool current_directory(const char* path) = 0;
+		virtual RHIBackend graphics_backend() const      = 0;
 
 		virtual const char* environment(const char* name) const                            = 0;
 		virtual bool environment(const char* name, const char* value, bool replace = true) = 0;
