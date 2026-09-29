@@ -36,9 +36,4 @@ namespace Trinex::Platform
 	{
 		return nullptr;
 	}
-
-	DialogSystem* LinuxContext::dialogs()
-	{
-		return nullptr;
-	}
 }// namespace Trinex::Platform

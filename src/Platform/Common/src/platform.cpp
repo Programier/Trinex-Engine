@@ -64,7 +64,7 @@ namespace Trinex::Platform
 
 	DialogSystem* DialogSystem::instance()
 	{
-		return Context::instance()->dialogs();
+		return Context::instance()->dialog_system();
 	}
 
 

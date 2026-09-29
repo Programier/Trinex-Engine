@@ -33,7 +33,7 @@ namespace Trinex::Platform
 		virtual LibraryLoader* library_loader() = 0;
 		virtual ProcessSystem* process_system() = 0;
 		virtual ThreadSystem* thread_system()   = 0;
+		virtual DialogSystem* dialog_system()   = 0;
 		virtual Clipboard* clipboard()          = 0;
-		virtual DialogSystem* dialogs()         = 0;
 	};
 }// namespace Trinex::Platform

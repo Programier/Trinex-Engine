@@ -14,5 +14,6 @@ namespace Trinex::Platform
 		ProcessSystem* process_system() override;
 		ThreadSystem* thread_system() override;
 		MonitorSystem* monitor_system() override;
+		DialogSystem* dialog_system() override;
 	};
 }// namespace Trinex::Platform

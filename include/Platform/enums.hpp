@@ -212,7 +212,7 @@ namespace Trinex::Platform
 		trinex_enum_struct(ThreadState);
 	};
 
-	struct DialogResult {
+	struct DialogStatus {
 		enum Enum : u8
 		{
 			Undefined = 0,
@@ -222,47 +222,6 @@ namespace Trinex::Platform
 			Failed,
 		};
 
-		trinex_enum_struct(DialogResult);
-	};
-
-	struct DialogOption {
-		enum Enum : u16
-		{
-			Undefined          = 0,
-			AllowMultiple      = BIT(0),
-			DirectoryOnly      = BIT(1),
-			FileMustExist      = BIT(2),
-			DirectoryMustExist = BIT(3),
-			ShowHidden         = BIT(4),
-			OverwritePrompt    = BIT(5),
-			Modal              = BIT(6),
-		};
-
-		trinex_bitfield_enum_struct(DialogOption, u16);
-	};
-
-	struct NotificationType {
-		enum Enum : u8
-		{
-			Message = 0,
-			Info,
-			Warning,
-			Error,
-			Success,
-		};
-
-		trinex_enum_struct(NotificationType);
-	};
-
-	struct NotificationPriority {
-		enum Enum : u8
-		{
-			Low = 0,
-			Normal,
-			High,
-			Critical,
-		};
-
-		trinex_enum_struct(NotificationPriority);
+		trinex_enum_struct(DialogStatus);
 	};
 }// namespace Trinex::Platform

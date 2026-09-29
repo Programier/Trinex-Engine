@@ -1,6 +1,7 @@
 #include <SDL3/SDL_init.h>
 #include <SDLPlatform/clipboard.hpp>
 #include <SDLPlatform/context.hpp>
+#include <SDLPlatform/dialog.hpp>
 #include <SDLPlatform/library.hpp>
 #include <SDLPlatform/monitor.hpp>
 #include <SDLPlatform/process.hpp>
@@ -41,5 +42,10 @@ namespace Trinex::Platform
 	MonitorSystem* SDLContext::monitor_system()
 	{
 		return SDLMonitorSystem::instance();
+	}
+
+	DialogSystem* SDLContext::dialog_system()
+	{
+		return SDLDialogSystem::instance();
 	}
 }// namespace Trinex::Platform

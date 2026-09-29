@@ -1,7 +1,5 @@
 #pragma once
-#include <Core/etl/string.hpp>
-#include <Core/etl/vector.hpp>
-#include <Core/types/path.hpp>
+#include <Core/etl/function.hpp>
 #include <Platform/enums.hpp>
 
 namespace Trinex
@@ -11,32 +9,19 @@ namespace Trinex
 
 namespace Trinex::Platform
 {
-	struct FileDialogFilter {
-		String name;
-		Vector<String> extensions;
+	struct DialogFileFilter {
+		const char* name    = nullptr;
+		const char* pattern = nullptr;
 	};
 
-	struct FileDialogDesc {
-		String title;
-		Path default_path;
-		String default_name;
-		Vector<FileDialogFilter> filters;
-		DialogOption options = DialogOption::FileMustExist;
-		Window* parent       = nullptr;
+	struct DialogResult {
+		DialogStatus status;
+		const char* const* paths = nullptr;
+		usize count              = 0;
+		i32 filter               = -1;
 	};
 
-	struct FileDialogResult {
-		DialogResult result = DialogResult::Undefined;
-		Vector<Path> paths;
-	};
-
-	struct MessageDialogDesc {
-		String title;
-		String message;
-		NotificationType type = NotificationType::Message;
-		Window* parent        = nullptr;
-		DialogOption options  = DialogOption::Modal;
-	};
+	using DialogCallback = Function<void(const DialogResult& result)>;
 
 	class ENGINE_EXPORT DialogSystem
 	{
@@ -45,9 +30,14 @@ namespace Trinex::Platform
 
 		virtual ~DialogSystem() = default;
 
-		virtual FileDialogResult open_file(const FileDialogDesc* desc)        = 0;
-		virtual FileDialogResult save_file(const FileDialogDesc* desc)        = 0;
-		virtual FileDialogResult select_directory(const FileDialogDesc* desc) = 0;
-		virtual DialogResult show_message(const MessageDialogDesc* desc)      = 0;
+		virtual DialogSystem& open_file(const DialogCallback& callback, const char* location = nullptr, Window* parent = nullptr,
+		                                const DialogFileFilter* filters = nullptr, usize filter_count = 0,
+		                                bool multiple = false) = 0;
+
+		virtual DialogSystem& save_file(const DialogCallback& callback, const char* location = nullptr, Window* parent = nullptr,
+		                                const DialogFileFilter* filters = nullptr, usize filter_count = 0) = 0;
+
+		virtual DialogSystem& open_directory(const DialogCallback& callback, const char* location = nullptr,
+		                                     bool multiple = false, Window* parent = nullptr) = 0;
 	};
 }// namespace Trinex::Platform
