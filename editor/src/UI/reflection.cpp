@@ -1,4 +1,5 @@
 #include <Core/etl/templates.hpp>
+#include <Core/etl/utility.hpp>
 #include <Core/string_functions.hpp>
 #include <UI/element.hpp>
 #include <UI/reflection.hpp>

@@ -4,26 +4,16 @@
 
 namespace Trinex
 {
-	template<typename Tag, typename Base>
-	struct RHIResourceHandle : Storage<8, alignof(Base)> {
-		static_assert(sizeof(Base) == 8 || sizeof(Base) == 4);
-
-		constexpr RHIResourceHandle() : Storage<8, alignof(Base)>({0}) {}
-		constexpr RHIResourceHandle(Base init) : Storage<8, alignof(Base)>({0}) { value<0>() = init; }
+	template<typename Tag>
+	struct RHIResourceHandle : Storage<8, 8> {
+		constexpr RHIResourceHandle() : Storage<8, 8>({0}) {}
+		constexpr RHIResourceHandle(u64 value) : Storage<8, 8>({0}) { as<u64>() = value; }
 		constexpr RHIResourceHandle(const RHIResourceHandle&)            = default;
 		constexpr RHIResourceHandle& operator=(const RHIResourceHandle&) = default;
 
-		template<usize idx = 0>
-		Base& value()
-		{
-			return Storage<8, alignof(Base)>::template as<Base, idx>();
-		}
-
-		template<usize idx = 0>
-		const Base& value() const
-		{
-			return Storage<8, alignof(Base)>::template as<Base, idx>();
-		}
+		using Storage<8, 8>::as;
+		using Storage<8, 8>::construct;
+		using Storage<8, 8>::destroy;
 	};
 
 	enum class DescriptorTag
@@ -34,6 +24,6 @@ namespace Trinex
 	{
 	};
 
-	using RHIDescriptor    = RHIResourceHandle<DescriptorTag, u32>;
-	using RHIDeviceAddress = RHIResourceHandle<DeviceAddressTag, u64>;
+	using RHIDescriptor    = RHIResourceHandle<DescriptorTag>;
+	using RHIDeviceAddress = RHIResourceHandle<DeviceAddressTag>;
 }// namespace Trinex

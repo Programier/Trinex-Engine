@@ -369,7 +369,7 @@ private:
 		template<typename T>
 		using enum_detector =
 		        std::enable_if_t<std::is_enum_v<typename T::Enum> && T::is_enum && !T::is_bitfield_enum && T::is_enum_reflected>;
-		trinex_refl_prop_type_filter(is_detected_v<enum_detector, T> && sizeof(T) <= sizeof(EnumerateType));
+		trinex_refl_prop_type_filter(etl::is_detected_v<enum_detector, T> && sizeof(T) <= sizeof(EnumerateType));
 
 	public:
 		using PrimitiveProperty::PrimitiveProperty;
@@ -464,7 +464,7 @@ private:
 		template<typename T>
 		using refl_detector = std::enable_if_t<std::is_same_v<decltype(T::static_reflection()), Struct*>>;
 
-		trinex_refl_prop_type_filter(std::is_class_v<T>&& is_detected_v<refl_detector, T>);
+		trinex_refl_prop_type_filter(etl::is_class_v<T>&& etl::is_detected_v<refl_detector, T>);
 
 	public:
 		using Property::Property;
@@ -585,7 +585,7 @@ private:
 		template<typename T>
 		using enum_detector =
 		        std::enable_if_t<std::is_enum_v<typename T::Enum> && T::is_enum && T::is_bitfield_enum && T::is_enum_reflected>;
-		trinex_refl_prop_type_filter(is_detected_v<enum_detector, T> && sizeof(T) <= sizeof(EnumerateType));
+		trinex_refl_prop_type_filter(etl::is_detected_v<enum_detector, T> && sizeof(T) <= sizeof(EnumerateType));
 
 	public:
 		using Property::Property;

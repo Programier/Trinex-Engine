@@ -1,4 +1,3 @@
-#include <Core/demangle.hpp>
 #include <Core/stacktrace.hpp>
 #include <sstream>
 
@@ -34,7 +33,7 @@ namespace Trinex
 				FunctionInfo& func_info = m_callstack[i - skip];
 				func_info.filename      = info.dli_fname ? info.dli_fname : "Unknown File";
 				func_info.func_address  = info.dli_saddr;
-				func_info.symbol_name   = info.dli_sname ? Demangle::decode_name(info.dli_sname) : "Unknown Func";
+				func_info.symbol_name   = info.dli_sname ? info.dli_sname : "Unknown Func";
 			}
 		}
 

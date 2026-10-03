@@ -175,12 +175,12 @@ namespace Trinex::Bindings::GLM
 	{
 		ScriptBinding::Class reg = exiting_class<T>();
 
-		if constexpr (is_detected_v<Detectors::bind_generic_detector, T, BinderType>)
+		if constexpr (etl::is_detected_v<Detectors::bind_generic_detector, T, BinderType>)
 		{
 			BinderType::template bind_generic<T>(&reg);
 		}
 
-		if constexpr (is_detected_v<Detectors::bind_detector, T, BinderType>)
+		if constexpr (etl::is_detected_v<Detectors::bind_detector, T, BinderType>)
 		{
 			BinderType::template bind<T>(&reg);
 		}

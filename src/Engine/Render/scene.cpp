@@ -68,7 +68,7 @@ namespace Trinex
 		{
 			RHIBufferFlags flags = RHIBufferFlags::DeviceAddress | RHIBufferFlags::TransferDst |
 			                       RHIBufferFlags::ByteAddressBuffer | RHIBufferFlags::ShaderResource;
-			m_gpu_heap = RHI::instance()->create_buffer(m_cpu_heap.size(), flags);
+			m_gpu_heap           = RHI::instance()->create_buffer(m_cpu_heap.size(), flags);
 		}
 
 		if (m_commands.empty())
@@ -118,7 +118,7 @@ namespace Trinex
 				auto src = map(data);
 				auto dst = map(chunk->address);
 
-				etl::memcpy(dst, src, chunk->capacity * sizeof(u32));
+				std::memcpy(dst, src, chunk->capacity * sizeof(u32));
 				free(data);
 			}
 

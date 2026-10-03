@@ -343,3 +343,5 @@ public:                                                                         
 #define trinex_this_return(x)                                                                                                    \
 	x;                                                                                                                           \
 	return *this
+
+#define trinex_launder __builtin_launder

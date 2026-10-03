@@ -1,5 +1,6 @@
 #include <Core/etl/algorithm.hpp>
 #include <Core/etl/stack.hpp>
+#include <Core/etl/utility.hpp>
 #include <Core/math/math.hpp>
 #include <UI/Elements/document.hpp>
 #include <UI/element.hpp>

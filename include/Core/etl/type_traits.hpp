@@ -1,131 +1,150 @@
 #pragma once
-#include <concepts>
 #include <type_traits>
 
-namespace Trinex
+namespace Trinex::etl
 {
-	namespace etl
-	{
-		using namespace std;
-	}
+	using std::bool_constant;
+	using std::common_type_t;
+	using std::conditional_t;
+	using std::decay_t;
+	using std::extent_v;
+	using std::false_type;
+	using std::integral_constant;
+	using std::invoke_result_t;
+	using std::is_aggregate_v;
+	using std::is_arithmetic_v;
+	using std::is_array_v;
+	using std::is_base_of_v;
+	using std::is_class_v;
+	using std::is_const_v;
+	using std::is_constructible_v;
+	using std::is_convertible_v;
+	using std::is_copy_assignable_v;
+	using std::is_copy_constructible_v;
+	using std::is_default_constructible_v;
+	using std::is_empty_v;
+	using std::is_enum_v;
+	using std::is_final_v;
+	using std::is_function_v;
+	using std::is_integral_v;
+	using std::is_invocable;
+	using std::is_invocable_r;
+	using std::is_invocable_r_v;
+	using std::is_invocable_v;
+	using std::is_lvalue_reference_v;
+	using std::is_member_function_pointer_v;
+	using std::is_member_object_pointer_v;
+	using std::is_member_pointer_v;
+	using std::is_move_assignable_v;
+	using std::is_move_constructible_v;
+	using std::is_nothrow_constructible_v;
+	using std::is_nothrow_copy_constructible_v;
+	using std::is_nothrow_default_constructible_v;
+	using std::is_nothrow_destructible_v;
+	using std::is_nothrow_invocable_v;
+	using std::is_nothrow_move_constructible_v;
+	using std::is_pointer_v;
+	using std::is_reference_v;
+	using std::is_same_v;
+	using std::is_signed_v;
+	using std::is_trivially_destructible_v;
+	using std::is_void_v;
+	using std::remove_const_t;
+	using std::remove_cvref_t;
+	using std::remove_pointer_t;
+	using std::remove_reference_t;
+	using std::true_type;
+	using std::type_identity;
+	using std::underlying_type_t;
 
 	class Archive;
 	class Object;
-	class SingletoneBase;
+
+	// ============================================================================
+	// Basic utilities
+	// ============================================================================
+
+	template<typename...>
+	inline constexpr bool always_false_v = false;
+
+
+	// ============================================================================
+	// Object traits
+	// ============================================================================
 
 	template<typename T>
-	struct is_valid_type : std::true_type {
+	struct is_object_type : std::is_base_of<Object, std::remove_cvref_t<T>> {
 	};
 
 	template<typename T>
-	inline constexpr bool is_valid_type_v = is_valid_type<T>::value;
+	inline constexpr bool is_object_type_v = is_object_type<T>::value;
+
 
 	template<typename T>
-	using is_object_based = std::is_base_of<Object, T>;
-
-	template<typename T>
-	inline constexpr bool is_object_based_v = is_object_based<T>::value;
+	concept object_type = is_object_type_v<T>;
 
 
-	template<typename Type>
-	struct is_function_reference : std::false_type {
-	};
-
-	template<typename Type, typename... Args>
-	struct is_function_reference<Type (&)(Args...)> : std::true_type {
-	};
-
-	template<typename Type>
-	constexpr bool is_function_reference_v = is_function_reference<Type>::value;
-
-	template<typename T>
-	struct is_string_literal : std::false_type {
-	};
-
-	template<std::size_t N>
-	struct is_string_literal<const char (&)[N]> : std::true_type {
-	};
-
-	template<std::size_t N>
-	struct is_string_literal<const wchar_t (&)[N]> : std::true_type {
-	};
-
-	template<typename T>
-	constexpr bool is_string_literal_v = is_string_literal<T>::value;
+	// ============================================================================
+	// Super
+	// ============================================================================
 
 	template<typename T, typename = void>
-	struct has_super_type : std::false_type {
+	struct has_super : std::false_type {
 	};
 
 	template<typename T>
-	struct has_super_type<T, std::void_t<typename T::Super>> : std::true_type {
+	struct has_super<T, std::void_t<typename std::remove_cvref_t<T>::Super>> : std::true_type {
 	};
 
 	template<typename T>
-	inline constexpr bool has_super_type_v = has_super_type<T>::value;
+	inline constexpr bool has_super_v = has_super<T>::value;
 
-	template<template<class...> class, typename...>
-	struct is_detected : std::false_type {
+
+	template<typename T>
+	using super_t = typename std::remove_cvref_t<T>::Super;
+
+
+	template<typename T>
+	concept object_with_super = object_type<T> && has_super_v<T>;
+
+
+	// ============================================================================
+	// Detection
+	// ============================================================================
+
+	template<template<typename...> typename Op, typename... Args>
+	concept detected = requires { typename Op<Args...>; };
+
+
+	template<template<typename...> typename Op, typename... Args>
+	struct is_detected : std::bool_constant<detected<Op, Args...>> {
 	};
 
-	template<template<class...> class Op, typename... Args>
-	    requires(is_valid_type_v<Op<Args...>>)
-	struct is_detected<Op, Args...> : std::true_type {
-	};
-
-	template<template<class...> class Op, typename... Args>
+	template<template<typename...> typename Op, typename... Args>
 	inline constexpr bool is_detected_v = is_detected<Op, Args...>::value;
 
-	template<typename T, typename = void>
-	struct is_incomplete : std::true_type {
+
+	template<typename T, typename... Ts>
+	struct is_any_of : std::disjunction<std::is_same<T, Ts>...> {
 	};
 
-	template<typename T>
-	struct is_incomplete<T, std::void_t<decltype(sizeof(T))>> : std::false_type {
+	template<typename T, typename... Ts>
+	inline constexpr bool is_any_of_v = is_any_of<T, Ts...>::value;
+
+
+	template<typename T, template<typename...> typename Template>
+	struct is_specialization_of_impl : std::false_type {
 	};
 
-	template<typename T>
-	inline constexpr bool is_incomplete_v = is_incomplete<T>::value;
+	template<template<typename...> typename Template, typename... Args>
+	struct is_specialization_of_impl<Template<Args...>, Template> : std::true_type {
+	};
 
-	namespace Concepts
-	{
-		template<typename T>
-		concept is_byte = std::is_integral_v<T> && sizeof(T) == sizeof(u8);
 
-		template<typename T>
-		concept is_word = std::is_integral_v<T> && sizeof(T) == sizeof(u16);
+	template<typename T, template<typename...> typename Template>
+	struct is_specialization_of : is_specialization_of_impl<std::remove_cvref_t<T>, Template> {
+	};
 
-		template<typename T>
-		concept is_dword = std::is_integral_v<T> && sizeof(T) == sizeof(u32);
-
-		template<typename T>
-		concept is_qword = std::is_integral_v<T> && sizeof(T) == sizeof(u64);
-
-		template<typename T>
-		concept is_float = std::is_same_v<T, float>;
-
-		template<typename T>
-		concept is_double = std::is_same_v<T, double> || std::is_same_v<T, long double>;
-
-		template<typename T>
-		concept struct_with_custom_allocation = requires(T* mem) {
-			{ T::static_constructor() } -> std::same_as<T*>;
-			{ T::static_destructor(mem) };
-		};
-
-		template<typename T, typename... Args>
-		concept is_serializable = requires(T* obj, Args&&... args, Trinex::Archive& ar) {
-			{ obj->serialize(ar, std::forward<Args>(args)...) } -> std::same_as<bool>;
-		};
-
-		template<typename T>
-		concept is_reflected_struct = requires(T* obj) {
-			{ obj->static_reflection() } -> std::same_as<Trinex::Refl::Struct*>;
-		};
-
-		template<typename T>
-		concept is_reflected_class = requires(T* obj) {
-			{ obj->static_reflection() } -> std::same_as<Trinex::Refl::Class*>;
-		};
-	}// namespace Concepts
-}// namespace Trinex
+	template<typename T, template<typename...> typename Template>
+	inline constexpr bool is_specialization_of_v = is_specialization_of<T, Template>::value;
+}// namespace Trinex::etl

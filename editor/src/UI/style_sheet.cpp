@@ -1,5 +1,6 @@
 #include <Core/etl/algorithm.hpp>
 #include <Core/etl/allocator.hpp>
+#include <Core/etl/utility.hpp>
 #include <Core/etl/vector.hpp>
 #include <Core/math/math.hpp>
 #include <UI/element.hpp>

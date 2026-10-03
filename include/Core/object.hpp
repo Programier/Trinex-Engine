@@ -242,19 +242,19 @@ namespace Trinex
 		}
 
 		template<typename Type>
-		typename std::enable_if<is_object_based<Type>::value, bool>::type is_instance_of() const
+		typename std::enable_if<etl::is_object_type<Type>::value, bool>::type is_instance_of() const
 		{
 			return private_check_instance(Type::static_reflection());
 		}
 
 		template<typename Type>
-		typename std::enable_if<!is_object_based<Type>::value, bool>::type is_instance_of() const
+		typename std::enable_if<!etl::is_object_type<Type>::value, bool>::type is_instance_of() const
 		{
 			return false;
 		}
 
 		template<typename Type>
-		typename std::enable_if<is_object_based<Type>::value, const Type*>::type instance_cast() const
+		typename std::enable_if<etl::is_object_type<Type>::value, const Type*>::type instance_cast() const
 		{
 			if (!is_instance_of<Type>())
 				return nullptr;
@@ -262,7 +262,7 @@ namespace Trinex
 		}
 
 		template<typename Type>
-		typename std::enable_if<is_object_based<Type>::value, Type*>::type instance_cast()
+		typename std::enable_if<etl::is_object_type<Type>::value, Type*>::type instance_cast()
 		{
 			if (!is_instance_of<Type>())
 				return nullptr;
@@ -270,13 +270,13 @@ namespace Trinex
 		}
 
 		template<typename Type>
-		typename std::enable_if<!is_object_based<Type>::value, const Type*>::type instance_cast() const
+		typename std::enable_if<!etl::is_object_type<Type>::value, const Type*>::type instance_cast() const
 		{
 			return nullptr;
 		}
 
 		template<typename Type>
-		typename std::enable_if<!is_object_based<Type>::value, Type*>::type instance_cast()
+		typename std::enable_if<!etl::is_object_type<Type>::value, Type*>::type instance_cast()
 		{
 			return nullptr;
 		}

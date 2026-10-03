@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/etl/concepts.hpp>
 #include <Core/etl/set.hpp>
 #include <Core/etl/type_traits.hpp>
 #include <Core/reflection/scoped_type.hpp>
@@ -125,7 +126,7 @@ namespace Trinex::Refl
 		using initializer_detector = decltype(F::static_initialize_struct());
 
 		inline static Struct* super_of()
-		    requires(has_super_type_v<T> && !std::is_same_v<typename T::Super, void> && !std::is_base_of_v<Object, T>)
+		    requires(etl::has_super_v<T> && !std::is_same_v<typename T::Super, void> && !std::is_base_of_v<Object, T>)
 		{
 			return T::Super::static_reflection();
 		}
@@ -144,7 +145,7 @@ namespace Trinex::Refl
 
 		void* create_struct() override
 		{
-			if constexpr (Concepts::struct_with_custom_allocation<T>)
+			if constexpr (etl::struct_with_custom_allocation<T>)
 			{
 				return T::static_constructor();
 			}
@@ -163,7 +164,7 @@ namespace Trinex::Refl
 
 		NativeStruct& destroy_struct(void* mem) override
 		{
-			if constexpr (Concepts::struct_with_custom_allocation<T>)
+			if constexpr (etl::struct_with_custom_allocation<T>)
 			{
 				T::static_destructor(reinterpret_cast<T*>(mem));
 			}
@@ -182,7 +183,7 @@ namespace Trinex::Refl
 		{
 			Base::initialize();
 
-			if constexpr (is_detected_v<initializer_detector, T>)
+			if constexpr (etl::is_detected_v<initializer_detector, T>)
 			{
 				T::static_initialize_struct();
 			}
@@ -195,7 +196,7 @@ namespace Trinex::Refl
 
 		bool serialize(void* object, Archive& ar) override
 		{
-			if constexpr (Concepts::is_serializable<T>)
+			if constexpr (etl::is_serializable<T>)
 			{
 				return reinterpret_cast<T*>(object)->serialize(ar);
 			}

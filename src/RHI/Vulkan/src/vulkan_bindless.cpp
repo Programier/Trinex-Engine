@@ -78,7 +78,7 @@ namespace Trinex
 				pool_size[type].setDescriptorCount(m_bindings[type].descriptorCount);
 
 				m_free[i].clear();
-				m_last[i].reinterpret<u64>() = 0;
+				m_last[i].as<u64>() = 0;
 			}
 
 			vk::DescriptorPoolCreateInfo info(flags, 1, HeapsCount, pool_size);
@@ -106,10 +106,10 @@ namespace Trinex
 			return descriptor;
 		}
 
-		trinex_assert_fmt(m_last[type].reinterpret<u64>() < m_bindings[type].descriptorCount,
-		                  "Cannot allocate descriptor in heap '%s'", heap_name(type));
+		trinex_assert_fmt(m_last[type].as<u64>() < m_bindings[type].descriptorCount, "Cannot allocate descriptor in heap '%s'",
+		                  heap_name(type));
 
-		return m_last[type].value()++;
+		return m_last[type].as<u64>()++;
 	}
 
 	RHIDescriptor VulkanDescriptorHeap::allocate(vk::Sampler sampler)
@@ -117,7 +117,7 @@ namespace Trinex
 		RHIDescriptor descriptor = allocate(Sampler);
 
 		vk::DescriptorImageInfo image_info(sampler, {}, vk::ImageLayout::eUndefined);
-		vk::WriteDescriptorSet write(m_descriptor_set, Sampler, descriptor.value(), vk::DescriptorType::eSampler, image_info);
+		vk::WriteDescriptorSet write(m_descriptor_set, Sampler, descriptor.as<u32>(), vk::DescriptorType::eSampler, image_info);
 		VulkanAPI::instance()->m_device.updateDescriptorSets(write, {});
 		return descriptor;
 	}
@@ -129,14 +129,14 @@ namespace Trinex
 		if (heap == SampledImage)
 		{
 			vk::DescriptorImageInfo image_info({}, view, vk::ImageLayout::eShaderReadOnlyOptimal);
-			vk::WriteDescriptorSet write(m_descriptor_set, heap, descriptor.value(), vk::DescriptorType::eSampledImage,
+			vk::WriteDescriptorSet write(m_descriptor_set, heap, descriptor.as<u32>(), vk::DescriptorType::eSampledImage,
 			                             image_info);
 			VulkanAPI::instance()->m_device.updateDescriptorSets(write, {});
 		}
 		else if (heap == StorageImage)
 		{
 			vk::DescriptorImageInfo image_info({}, view, vk::ImageLayout::eGeneral);
-			vk::WriteDescriptorSet write(m_descriptor_set, heap, descriptor.value(), vk::DescriptorType::eStorageImage,
+			vk::WriteDescriptorSet write(m_descriptor_set, heap, descriptor.as<u32>(), vk::DescriptorType::eStorageImage,
 			                             image_info);
 			VulkanAPI::instance()->m_device.updateDescriptorSets(write, {});
 		}
@@ -154,7 +154,7 @@ namespace Trinex
 		vk::DescriptorType descriptor_type = static_descriptor_type(heap);
 
 		vk::DescriptorBufferInfo buffer_info(buffer->buffer(), 0, buffer->size());
-		vk::WriteDescriptorSet write(m_descriptor_set, heap, descriptor.value(), descriptor_type, {}, buffer_info, {});
+		vk::WriteDescriptorSet write(m_descriptor_set, heap, descriptor.as<u32>(), descriptor_type, {}, buffer_info, {});
 		VulkanAPI::instance()->m_device.updateDescriptorSets(write, {});
 
 		return descriptor;

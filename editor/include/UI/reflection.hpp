@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/etl/flat_map.hpp>
 #include <Core/etl/function.hpp>
+#include <Core/etl/type_traits.hpp>
 #include <Core/types/name.hpp>
 #include <UI/types.hpp>
 

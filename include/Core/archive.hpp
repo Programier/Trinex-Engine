@@ -7,6 +7,7 @@
 namespace Trinex
 {
 	class Stream;
+	class Object;
 
 	class ENGINE_EXPORT Archive
 	{
@@ -76,16 +77,16 @@ namespace Trinex
 		{
 			using DecayType = std::decay_t<std::remove_pointer_t<Type>>;
 
-			if constexpr (Concepts::is_serializable<DecayType>)
+			if constexpr (etl::is_serializable<DecayType>)
 			{
 				return address_of(value)->serialize(*this);
 			}
-			else if constexpr (Concepts::is_serializable<Serializer<DecayType>, DecayType&>)
+			else if constexpr (etl::is_serializable<Serializer<DecayType>, DecayType&>)
 			{
 				Serializer<DecayType> serializer;
 				return serializer.serialize(*this, *address_of(value));
 			}
-			else if constexpr (Concepts::is_reflected_struct<DecayType>)
+			else if constexpr (etl::is_reflected_struct<DecayType>)
 			{
 				return serialize_struct(DecayType::static_reflection(), address_of(value));
 			}
