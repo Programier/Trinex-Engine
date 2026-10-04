@@ -345,3 +345,4 @@ public:                                                                         
 	return *this
 
 #define trinex_launder __builtin_launder
+#define trinex_address_of __builtin_addressof

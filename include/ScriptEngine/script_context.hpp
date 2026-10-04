@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/engine_types.hpp>
 #include <Core/enums.hpp>
-#include <Core/etl/function.hpp>
+#include <Core/etl/delegate.hpp>
 #include <Core/etl/string.hpp>
 #include <Core/etl/type_traits.hpp>
 #include <Core/math/fwd.hpp>
@@ -19,7 +19,7 @@ namespace Trinex
 	class ENGINE_EXPORT ScriptContext
 	{
 		asIScriptContext* m_context           = nullptr;
-		Function<void(void*)> m_line_callback = {};
+		Delegate<void(void*)> m_line_callback = {};
 
 		void initialize_callbacks();
 		void release_context();
@@ -162,7 +162,7 @@ namespace Trinex
 		String exception_string() const;
 		bool will_exception_be_caught() const;
 
-		bool line_callback(const Function<void(void*)>& function, void* userdata = nullptr);
+		bool line_callback(const Delegate<void(void*)>& function, void* userdata = nullptr);
 		bool line_callback(const ScriptFunction& function);
 		ScriptContext& clear_line_callback();
 

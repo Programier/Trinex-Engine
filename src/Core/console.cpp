@@ -549,7 +549,7 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 			return entry;
 		}
 
-		usize find(StringView name, const FunctionRef<void(Entry*)>& action) const
+		usize find(StringView name, const DelegateRef<void(Entry*)>& action) const
 		{
 			auto it = etl::lower_bound(m_entries.begin(), m_entries.end(), name,
 			                           [](const Entry* entry, StringView name) { return entry->name() < name; });
@@ -837,7 +837,7 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 		return Manager::instance()->find(name);
 	}
 
-	ENGINE_EXPORT usize find(StringView name, const FunctionRef<void(Entry*)>& action)
+	ENGINE_EXPORT usize find(StringView name, const DelegateRef<void(Entry*)>& action)
 	{
 		return Manager::instance()->find(name, action);
 	}

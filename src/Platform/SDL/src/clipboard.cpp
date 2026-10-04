@@ -80,7 +80,7 @@ namespace Trinex::Platform
 		return SDL_ClearClipboardData();
 	}
 
-	bool SDLClipboard::load(const FunctionRef<void(const u8*, usize)>& func, const char* mime)
+	bool SDLClipboard::load(const DelegateRef<void(const u8*, usize)>& func, const char* mime)
 	{
 		update();
 

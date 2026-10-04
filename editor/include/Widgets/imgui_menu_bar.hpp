@@ -10,7 +10,7 @@ namespace Trinex
 		struct Menu {
 			ImGuiMenuBar* const bar;
 			const String name;
-			Function<bool()> is_enabled;
+			Delegate<bool()> is_enabled;
 			CallBacks<void()> actions;
 
 		private:

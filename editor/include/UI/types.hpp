@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/etl/function.hpp>
+#include <Core/etl/delegate.hpp>
 #include <Core/etl/registry.hpp>
 #include <Core/etl/string.hpp>
 #include <Core/etl/type_traits.hpp>
@@ -10,7 +10,6 @@
 
 namespace Trinex::UI
 {
-
 
 
 }// namespace Trinex::UI

@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/etl/function.hpp>
+#include <Core/etl/delegate.hpp>
 #include <Platform/enums.hpp>
 
 namespace Trinex
@@ -21,7 +21,7 @@ namespace Trinex::Platform
 		i32 filter               = -1;
 	};
 
-	using DialogCallback = Function<void(const DialogResult& result)>;
+	using DialogCallback = Delegate<void(const DialogResult& result)>;
 
 	class ENGINE_EXPORT DialogSystem
 	{

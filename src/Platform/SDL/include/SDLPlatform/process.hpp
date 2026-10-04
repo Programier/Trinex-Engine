@@ -19,7 +19,7 @@ namespace Trinex::Platform
 
 		bool kill(bool force) override;
 		bool wait(bool block, i32* exitcode) override;
-		i32 read(const FunctionRef<void(const u8* data, usize size, i32 code)>& func) override;
+		i32 read(const DelegateRef<void(const u8* data, usize size, i32 code)>& func) override;
 
 		Stream* stdin() const override;
 		Stream* stdout() const override;

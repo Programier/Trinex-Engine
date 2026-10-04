@@ -1,6 +1,6 @@
 #pragma once
+#include <Core/etl/delegate.hpp>
 #include <Core/etl/flat_map.hpp>
-#include <Core/etl/function.hpp>
 #include <Core/etl/type_traits.hpp>
 #include <Core/types/name.hpp>
 #include <UI/types.hpp>
@@ -65,8 +65,8 @@ namespace Trinex::UI::Refl
 	public:
 		inline Property(Type* owner = nullptr, Flags flags = Flags::Markup) : m_owner(owner), m_flags(flags) {}
 
-		virtual bool store(void* object, const FunctionRef<bool(void*, Type*)>& writer)            = 0;
-		virtual bool load(const void* object, const FunctionRef<bool(const void*, Type*)>& loader) = 0;
+		virtual bool store(void* object, const DelegateRef<bool(void*, Type*)>& writer)            = 0;
+		virtual bool load(const void* object, const DelegateRef<bool(const void*, Type*)>& loader) = 0;
 
 		virtual Type* type() const = 0;
 		inline Type* owner() const { return m_owner; }
@@ -87,13 +87,13 @@ namespace Trinex::UI::Refl
 
 		Type* type() const override { return NativeType<Field>::instance(); }
 
-		bool store(void* object, const FunctionRef<bool(void*, Type*)>& writer) override
+		bool store(void* object, const DelegateRef<bool(void*, Type*)>& writer) override
 		{
 			Field* field = &(static_cast<Instance*>(object)->*m_property);
 			return writer(field, NativeType<Field>::instance());
 		}
 
-		bool load(const void* object, const FunctionRef<bool(const void*, Type*)>& loader) override
+		bool load(const void* object, const DelegateRef<bool(const void*, Type*)>& loader) override
 		{
 			const Field* field = &(static_cast<const Instance*>(object)->*m_property);
 			return loader(field, NativeType<Field>::instance());
@@ -113,12 +113,12 @@ namespace Trinex::UI::Refl
 
 		Type* type() const override { return NativeType<Field>::instance(); }
 
-		bool store(void* object, const FunctionRef<bool(void*, Type*)>& writer) override
+		bool store(void* object, const DelegateRef<bool(void*, Type*)>& writer) override
 		{
 			return writer(m_property, NativeType<Field>::instance());
 		}
 
-		bool load(const void* object, const FunctionRef<bool(const void*, Type*)>& loader) override
+		bool load(const void* object, const DelegateRef<bool(const void*, Type*)>& loader) override
 		{
 			return loader(m_property, NativeType<Field>::instance());
 		}
@@ -141,7 +141,7 @@ namespace Trinex::UI::Refl
 
 		Type* type() const override { return NativeType<Field>::instance(); }
 
-		bool store(void* object, const FunctionRef<bool(void*, Type*)>& writer) override
+		bool store(void* object, const DelegateRef<bool(void*, Type*)>& writer) override
 		{
 			if (m_setter == nullptr)
 			{
@@ -158,7 +158,7 @@ namespace Trinex::UI::Refl
 			return false;
 		}
 
-		bool load(const void* object, const FunctionRef<bool(const void*, Type*)>& loader) override
+		bool load(const void* object, const DelegateRef<bool(const void*, Type*)>& loader) override
 		{
 			if (m_getter == nullptr)
 				return false;
@@ -186,7 +186,7 @@ namespace Trinex::UI::Refl
 
 		Type* type() const override { return NativeType<Field>::instance(); }
 
-		bool store(void* object, const FunctionRef<bool(void*, Type*)>& writer) override
+		bool store(void* object, const DelegateRef<bool(void*, Type*)>& writer) override
 		{
 			if (m_setter == nullptr)
 			{
@@ -203,7 +203,7 @@ namespace Trinex::UI::Refl
 			return false;
 		}
 
-		bool load(const void* object, const FunctionRef<bool(const void*, Type*)>& loader) override
+		bool load(const void* object, const DelegateRef<bool(const void*, Type*)>& loader) override
 		{
 			if (m_getter == nullptr)
 				return false;
@@ -231,7 +231,7 @@ namespace Trinex::UI::Refl
 
 		Type* type() const override { return NativeType<Field>::instance(); }
 
-		bool store(void* object, const FunctionRef<bool(void*, Type*)>& writer) override
+		bool store(void* object, const DelegateRef<bool(void*, Type*)>& writer) override
 		{
 			if (m_setter == nullptr)
 				return false;
@@ -246,7 +246,7 @@ namespace Trinex::UI::Refl
 			return false;
 		}
 
-		bool load(const void* object, const FunctionRef<bool(const void*, Type*)>& loader) override
+		bool load(const void* object, const DelegateRef<bool(const void*, Type*)>& loader) override
 		{
 			if (m_getter == nullptr)
 				return false;

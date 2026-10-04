@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/etl/function.hpp>
+#include <Core/etl/delegate.hpp>
 #include <Core/etl/vector.hpp>
 #include <Core/object.hpp>
 #include <RHI/structures.hpp>
@@ -69,7 +69,7 @@ namespace Trinex
 		trinex_class(ShaderCompiler, Object);
 
 	public:
-		using CompileCallback = Function<bool(const ShaderCompilationResult&)>;
+		using CompileCallback = Delegate<bool(const ShaderCompilationResult&)>;
 
 	public:
 		template<template<class T> typename AllocatorType = Allocator>

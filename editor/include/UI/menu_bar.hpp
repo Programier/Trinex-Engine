@@ -11,7 +11,7 @@ namespace Trinex::UI
 		struct Menu {
 			MenuBar* const bar;
 			const String name;
-			Function<bool()> is_enabled;
+			Delegate<bool()> is_enabled;
 			CallBacks<void()> actions;
 
 		private:
@@ -28,10 +28,10 @@ namespace Trinex::UI
 			FORCE_INLINE Menu* prev() const { return m_prev; }
 			FORCE_INLINE bool is_root() const { return name.empty(); }
 			FORCE_INLINE void destroy() { bar->destroy(this); }
-			Menu& enabled(Function<bool()> callback);
+			Menu& enabled(Delegate<bool()> callback);
 			Menu& enabled(bool value);
-			Menu& add_action(const Function<void()>& action);
-			Menu& add_action(Function<void()>&& action);
+			Menu& add_action(const Delegate<void()>& action);
+			Menu& add_action(Delegate<void()>&& action);
 			Menu& clear_actions();
 
 			friend class MenuBar;
@@ -57,8 +57,8 @@ namespace Trinex::UI
 
 		Menu* create(StringView name, Menu* before = nullptr);
 		Menu& menu(StringView name, Menu* before = nullptr);
-		Menu& menu(StringView name, const Function<void()>& action, Menu* before = nullptr);
-		Menu& menu(StringView name, Function<void()>&& action, Menu* before = nullptr);
+		Menu& menu(StringView name, const Delegate<void()>& action, Menu* before = nullptr);
+		Menu& menu(StringView name, Delegate<void()>&& action, Menu* before = nullptr);
 		Menu* find(StringView name) const;
 		bool place_before(Menu* src, Menu* before);
 		bool place_after(Menu* src, Menu* after);

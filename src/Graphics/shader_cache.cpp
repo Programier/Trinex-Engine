@@ -1,6 +1,6 @@
 #include <Core/archive.hpp>
 #include <Core/constants.hpp>
-#include <Core/etl/function.hpp>
+#include <Core/etl/delegate.hpp>
 #include <Core/filesystem/file.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/lifecycle.hpp>
@@ -56,7 +56,7 @@ namespace Trinex
 		                       Constants::shader_extention);
 	}
 
-	static bool open_stream(const Path& path, VFS::AccessFlags flags, const FunctionRef<bool(Archive& ar)>& process)
+	static bool open_stream(const Path& path, VFS::AccessFlags flags, const DelegateRef<bool(Archive& ar)>& process)
 	{
 		if (flags & VFS::AccessFlags::Write)
 			flags |= VFS::AccessFlags::Recursive;

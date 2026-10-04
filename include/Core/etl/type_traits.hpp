@@ -49,6 +49,8 @@ namespace Trinex::etl
 	using std::is_signed_v;
 	using std::is_trivially_destructible_v;
 	using std::is_void_v;
+	using std::is_volatile;
+	using std::is_volatile_v;
 	using std::remove_const_t;
 	using std::remove_cvref_t;
 	using std::remove_pointer_t;

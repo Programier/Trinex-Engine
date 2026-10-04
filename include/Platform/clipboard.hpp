@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/etl/function.hpp>
+#include <Core/etl/delegate.hpp>
 #include <Core/etl/string.hpp>
 #include <Core/etl/vector.hpp>
 #include <Core/types/path.hpp>
@@ -17,7 +17,7 @@ namespace Trinex::Platform
 		virtual const char* mime_type(usize idx = 0) const = 0;
 
 		virtual bool clear()                                                                           = 0;
-		virtual bool load(const FunctionRef<void(const u8*, usize)>& func, const char* mime = nullptr) = 0;
+		virtual bool load(const DelegateRef<void(const u8*, usize)>& func, const char* mime = nullptr) = 0;
 		virtual bool store(const void* data, usize size, const char* mime)                             = 0;
 	};
 }// namespace Trinex::Platform

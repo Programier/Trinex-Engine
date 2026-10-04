@@ -28,13 +28,13 @@ namespace Trinex
 		{
 		public:
 			using PropertiesMap = TreeMap<String, Vector<Refl::Property*>>;
-			using RendererFunc  = Function<bool(PropertyRenderer* renderer, Refl::Property* prop, bool read_only)>;
+			using RendererFunc  = Delegate<bool(PropertyRenderer* renderer, Refl::Property* prop, bool read_only)>;
 
 			class Context
 			{
 			public:
-				using BeginRenderingFunc = Function<bool(PropertyRenderer* renderer)>;
-				using EndRenderingFunc   = Function<void(PropertyRenderer* renderer, bool)>;
+				using BeginRenderingFunc = Delegate<bool(PropertyRenderer* renderer)>;
+				using EndRenderingFunc   = Delegate<void(PropertyRenderer* renderer, bool)>;
 
 			private:
 				Map<const Refl::ClassInfo*, RendererFunc> m_renderers;

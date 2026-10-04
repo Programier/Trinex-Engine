@@ -166,7 +166,7 @@ namespace Trinex::Platform
 		return SDL_WaitProcess(m_process, block, exitcode);
 	}
 
-	i32 SDLProcess::read(const FunctionRef<void(const u8* data, usize size, i32 code)>& func)
+	i32 SDLProcess::read(const DelegateRef<void(const u8* data, usize size, i32 code)>& func)
 	{
 		size_t size;
 		int code = -1;

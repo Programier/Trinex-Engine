@@ -911,7 +911,7 @@ namespace Trinex::UI
 
 			if (ImGui::IconButton(ICON_LC_MOUSE_POINTER "##Select"))
 			{
-				Function<void(const Path&)> callback = [renderer, value, &str](const Path& path) {
+				Delegate<void(const Path&)> callback = [renderer, value, &str](const Path& path) {
 					*value = path;
 					renderer->propagate_property_event();
 					str = value->str();

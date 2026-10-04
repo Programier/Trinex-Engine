@@ -1,24 +1,24 @@
 #pragma once
 #include <Core/engine_types.hpp>
-#include <Core/etl/function.hpp>
+#include <Core/etl/delegate.hpp>
 #include <Core/etl/vector.hpp>
 
 namespace Trinex
 {
 	template<typename Signature>
-	using CallBack = Function<Signature>;
+	using CallBack = Delegate<Signature>;
 
 	template<typename Signature>
 	class CallBacks final
 	{
 	private:
 		struct FuncNode {
-			Function<Signature> function;
+			Delegate<Signature> function;
 			FuncNode* prev = nullptr;
 			FuncNode* next = nullptr;
 
-			FORCE_INLINE FuncNode(const Function<Signature>& func) : function(func) {}
-			FORCE_INLINE FuncNode(Function<Signature>&& func) : function(std::move(func)) {}
+			FORCE_INLINE FuncNode(const Delegate<Signature>& func) : function(func) {}
+			FORCE_INLINE FuncNode(Delegate<Signature>&& func) : function(std::move(func)) {}
 		};
 
 		FuncNode* m_head = nullptr;
@@ -72,8 +72,8 @@ namespace Trinex
 			bool operator!=(const basic_iterator& other) const noexcept { return m_current != other.m_current; }
 		};
 
-		using iterator       = basic_iterator<FuncNode, Function<Signature>>;
-		using const_iterator = basic_iterator<const FuncNode, const Function<Signature>>;
+		using iterator       = basic_iterator<FuncNode, Delegate<Signature>>;
+		using const_iterator = basic_iterator<const FuncNode, const Delegate<Signature>>;
 
 
 		FORCE_INLINE CallBacks() = default;
@@ -88,10 +88,10 @@ namespace Trinex
 		const_iterator cend() const noexcept { return const_iterator(nullptr); }
 
 		inline bool empty() const { return m_head == nullptr; }
-		inline Identifier push(const Function<Signature>& callback) { return push(trx_new FuncNode(callback)); }
-		inline Identifier push(Function<Signature>&& callback) { return push(trx_new FuncNode(std::move(callback))); }
-		inline Identifier operator+=(const Function<Signature>& func) { return push(func); }
-		inline Identifier operator+=(Function<Signature>&& func) { return push(func); }
+		inline Identifier push(const Delegate<Signature>& callback) { return push(trx_new FuncNode(callback)); }
+		inline Identifier push(Delegate<Signature>&& callback) { return push(trx_new FuncNode(std::move(callback))); }
+		inline Identifier operator+=(const Delegate<Signature>& func) { return push(func); }
+		inline Identifier operator+=(Delegate<Signature>&& func) { return push(func); }
 
 		CallBacks& operator=(const CallBacks& callbacks)
 		{

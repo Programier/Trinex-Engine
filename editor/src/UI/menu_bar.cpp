@@ -4,7 +4,7 @@
 
 namespace Trinex::UI
 {
-	MenuBar::Menu& MenuBar::Menu::enabled(Function<bool()> callback)
+	MenuBar::Menu& MenuBar::Menu::enabled(Delegate<bool()> callback)
 	{
 		is_enabled = std::move(callback);
 		return *this;
@@ -15,13 +15,13 @@ namespace Trinex::UI
 		return enabled([value]() { return value; });
 	}
 
-	MenuBar::Menu& MenuBar::Menu::add_action(const Function<void()>& action)
+	MenuBar::Menu& MenuBar::Menu::add_action(const Delegate<void()>& action)
 	{
 		actions.push(action);
 		return *this;
 	}
 
-	MenuBar::Menu& MenuBar::Menu::add_action(Function<void()>&& action)
+	MenuBar::Menu& MenuBar::Menu::add_action(Delegate<void()>&& action)
 	{
 		actions.push(std::move(action));
 		return *this;
@@ -119,12 +119,12 @@ namespace Trinex::UI
 		return *create(name, before);
 	}
 
-	MenuBar::Menu& MenuBar::menu(StringView name, const Function<void()>& action, Menu* before)
+	MenuBar::Menu& MenuBar::menu(StringView name, const Delegate<void()>& action, Menu* before)
 	{
 		return menu(name, before).add_action(action);
 	}
 
-	MenuBar::Menu& MenuBar::menu(StringView name, Function<void()>&& action, Menu* before)
+	MenuBar::Menu& MenuBar::menu(StringView name, Delegate<void()>&& action, Menu* before)
 	{
 		return menu(name, before).add_action(std::move(action));
 	}

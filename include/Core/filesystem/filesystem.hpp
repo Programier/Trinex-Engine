@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/enums.hpp>
-#include <Core/etl/function.hpp>
+#include <Core/etl/delegate.hpp>
 #include <Core/filesystem/types.hpp>
 #include <Core/ref_counted.hpp>
 #include <Core/types/path.hpp>
@@ -17,7 +17,7 @@ namespace Trinex::VFS
 	class ENGINE_EXPORT FileSystem : public RefCounted
 	{
 	public:
-		using WalkCallback = FunctionRef<WalkResult(PathView path, const FileStat& stat)>;
+		using WalkCallback = DelegateRef<WalkResult(PathView path, const FileStat& stat)>;
 
 	public:
 		virtual Ref<File> open(PathView path, AccessFlags flags = AccessFlags::Read)                                          = 0;

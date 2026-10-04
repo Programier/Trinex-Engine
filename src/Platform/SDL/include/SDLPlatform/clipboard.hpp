@@ -23,7 +23,7 @@ namespace Trinex::Platform
 		const char* mime_type(usize idx = 0) const override;
 
 		bool clear() override;
-		bool load(const FunctionRef<void(const u8*, usize)>& func, const char* mime = nullptr) override;
+		bool load(const DelegateRef<void(const u8*, usize)>& func, const char* mime = nullptr) override;
 		bool store(const void* data, usize size, const char* mime) override;
 	};
 }// namespace Trinex::Platform

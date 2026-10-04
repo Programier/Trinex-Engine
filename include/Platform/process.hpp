@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/etl/function.hpp>
+#include <Core/etl/delegate.hpp>
 #include <Platform/enums.hpp>
 #include <Platform/types.hpp>
 
@@ -32,7 +32,7 @@ namespace Trinex::Platform
 
 		virtual bool kill(bool force)                                                         = 0;
 		virtual bool wait(bool block, i32* exitcode)                                          = 0;
-		virtual i32 read(const FunctionRef<void(const u8* data, usize size, i32 code)>& func) = 0;
+		virtual i32 read(const DelegateRef<void(const u8* data, usize size, i32 code)>& func) = 0;
 
 		virtual Stream* stdin() const    = 0;
 		virtual Stream* stdout() const   = 0;

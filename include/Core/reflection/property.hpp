@@ -73,8 +73,8 @@ private:
 			Inline            = BIT(4),
 		};
 
-		using ChangeListener = Function<void(const PropertyChangedEvent&)>;
-		using RenderFunction = Function<bool(PropertyRenderer&, Property&, void*)>;
+		using ChangeListener = Delegate<void(const PropertyChangedEvent&)>;
+		using RenderFunction = Delegate<bool(PropertyRenderer&, Property&, void*)>;
 
 		template<typename T>
 		static Property* null_property()
@@ -984,8 +984,8 @@ private:
 			Enum* enum_instance() const override { return T::static_reflection(); }
 		};
 
-		using CallbackGetter = Function<Any(const void*)>;
-		using CallbackSetter = Function<void(void*, const Any&)>;
+		using CallbackGetter = Delegate<Any(const void*)>;
+		using CallbackSetter = Delegate<void(void*, const Any&)>;
 
 		template<typename Getter, typename Enable>
 		struct GetterBinding {

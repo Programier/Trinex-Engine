@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/etl/concepts.hpp>
-#include <Core/etl/function.hpp>
+#include <Core/etl/delegate.hpp>
 #include <Core/etl/span.hpp>
 #include <Core/etl/string.hpp>
 #include <Core/etl/tuple.hpp>
@@ -390,7 +390,7 @@ namespace Trinex::Console
 	class ENGINE_EXPORT Command : public Entry
 	{
 	public:
-		using Callback = Function<ExecuteStatus(const ExecuteContext&)>;
+		using Callback = Delegate<ExecuteStatus(const ExecuteContext&)>;
 
 	private:
 		Callback m_callback;
@@ -446,7 +446,7 @@ namespace Trinex::Console
 
 
 	ENGINE_EXPORT Entry* find(StringView name);
-	ENGINE_EXPORT usize find(StringView name, const FunctionRef<void(Entry*)>& action);
+	ENGINE_EXPORT usize find(StringView name, const DelegateRef<void(Entry*)>& action);
 	ENGINE_EXPORT ExecuteStatus execute(StringView source, String* output = nullptr, ExecuteFlags flags = {});
 	ENGINE_EXPORT ExecuteStatus execute_config(const Path& path);
 

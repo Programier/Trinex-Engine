@@ -464,7 +464,7 @@ namespace Trinex
 		return is_valid() && m_context->WillExceptionBeCaught();
 	}
 
-	bool ScriptContext::line_callback(const Function<void(void*)>& function, void* userdata)
+	bool ScriptContext::line_callback(const Delegate<void(void*)>& function, void* userdata)
 	{
 		if (!is_valid())
 			return false;
@@ -497,8 +497,7 @@ namespace Trinex
 
 	ScriptContext& ScriptContext::clear_line_callback()
 	{
-		Function<void(void*)> tmp = {};
-		m_line_callback.swap(tmp);
+		m_line_callback.reset();
 
 		if (m_context)
 		{

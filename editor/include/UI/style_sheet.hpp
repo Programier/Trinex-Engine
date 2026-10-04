@@ -1,6 +1,6 @@
 #pragma once
+#include <Core/etl/delegate.hpp>
 #include <Core/etl/flat_map.hpp>
-#include <Core/etl/function.hpp>
 #include <Core/etl/variant.hpp>
 #include <UI/types.hpp>
 #include <imgui.h>
@@ -50,9 +50,9 @@ namespace Trinex::UI
 		u32 order = 0;
 	};
 
-	using StylePropertyVisitor = FunctionRef<void(const StyleProperty&)>;
-	using StyleRuleVisitor     = FunctionRef<void(const StyleRule&)>;
-	using StyleRuleSource      = FunctionRef<void(const StyleRuleVisitor&)>;
+	using StylePropertyVisitor = DelegateRef<void(const StyleProperty&)>;
+	using StyleRuleVisitor     = DelegateRef<void(const StyleRule&)>;
+	using StyleRuleSource      = DelegateRef<void(const StyleRuleVisitor&)>;
 
 	struct StyleAnimationTrack {
 		StyleValue from;
