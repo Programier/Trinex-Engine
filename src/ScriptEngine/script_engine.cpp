@@ -455,7 +455,7 @@ namespace Trinex
 		return remove_config_group(group.c_str());
 	}
 
-	ScriptEngine& ScriptEngine::garbage_collect(BitMask flags, usize iterations)
+	ScriptEngine& ScriptEngine::garbage_collect(GarbageCollectFlags flags, usize iterations)
 	{
 		ScriptEngineData::instance()->engine->GarbageCollect(flags, iterations);
 		return instance();

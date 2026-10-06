@@ -55,9 +55,9 @@ namespace Trinex::Refl
 		void destroy_derived_structs();
 
 		template<typename T>
-		static consteval BitMask native_type_flags()
+		static consteval Flags native_type_flags()
 		{
-			BitMask mask = Flags::IsNative;
+			Flags mask = Flags::IsNative;
 
 			if constexpr (std::is_final_v<T>)
 			{
@@ -84,7 +84,7 @@ namespace Trinex::Refl
 		Struct& register_subobject(Object* subobject) override;
 
 	public:
-		Struct(Struct* parent = nullptr, BitMask flags = 0);
+		Struct(Struct* parent = nullptr, Flags flags = 0);
 
 		virtual void* create_struct();
 		virtual Struct& destroy_struct(void* obj);
@@ -136,9 +136,9 @@ namespace Trinex::Refl
 		NativeStruct& register_scriptable_instance() override { return *this; }
 
 	public:
-		NativeStruct(Struct* parent, BitMask flags = 0) : Base(parent, flags | Struct::native_type_flags<T>()) {}
+		NativeStruct(Struct* parent, Struct::Flags flags = 0) : Base(parent, flags | Struct::native_type_flags<T>()) {}
 
-		static Struct* create(StringView decl, BitMask flags = 0)
+		static Struct* create(StringView decl, Struct::Flags flags = 0)
 		{
 			return Object::new_instance<NativeStruct<T, Base>>(decl, super_of(), flags);
 		}

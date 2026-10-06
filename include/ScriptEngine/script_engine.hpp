@@ -47,13 +47,19 @@ namespace Trinex
 		static ScriptEngine& destroy_script_object(void*, const ScriptTypeInfo& info);
 
 	public:
-		enum GarbageCollectFlags
-		{
-			FullCycle      = 1,
-			OneStep        = 2,
-			DestroyGarbage = 4,
-			DetectGarbage  = 8
+		struct GarbageCollectFlags {
+			enum Enum : u8
+			{
+				FullCycle      = 1,
+				OneStep        = 2,
+				DestroyGarbage = 4,
+				DetectGarbage  = 8
+			};
+
+			trinex_bitfield_enum_struct(GarbageCollectFlags, u8);
 		};
+
+		using enum GarbageCollectFlags::Enum;
 
 		static bool exception_on_error;
 		static CallBacks<void()> on_terminate;
@@ -103,7 +109,7 @@ namespace Trinex
 		static bool remove_config_group(const char* group);
 		static bool remove_config_group(const String& group);
 
-		static ScriptEngine& garbage_collect(BitMask flags = GarbageCollectFlags::FullCycle, usize iterations = 1);
+		static ScriptEngine& garbage_collect(GarbageCollectFlags flags = GarbageCollectFlags::FullCycle, usize iterations = 1);
 
 		static u32 object_type_count();
 		static ScriptTypeInfo object_type_by_index(u32 index);

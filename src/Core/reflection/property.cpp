@@ -12,7 +12,7 @@ namespace Trinex::Refl
 {
 	trinex_implement_reflect_type(Trinex::Refl::Property)
 	{
-		using T = Property::Flag;
+		using T = Property::Flags;
 
 		ScriptBinding::Enum e("Trinex::Refl::Property::Flag");
 		e.value("property", 0);
@@ -51,7 +51,7 @@ namespace Trinex::Refl
 		object->on_property_changed(event);
 	}
 
-	Property::Property(BitMask flags) : m_flags(flags) {}
+	Property::Property(Flags flags) : m_flags(flags) {}
 
 	const String& Property::property_name(const void* context)
 	{
@@ -73,7 +73,7 @@ namespace Trinex::Refl
 		return renderer.render_default(*this, context);
 	}
 
-	Property& Property::item_flags(BitMask flags)
+	Property& Property::item_flags(Flags flags)
 	{
 		if (auto* array = Refl::Object::instance_cast<ArrayProperty>(this))
 		{
@@ -113,13 +113,13 @@ namespace Trinex::Refl
 		return ar;
 	}
 
-	VectorProperty& VectorProperty::element_flags(BitMask flags)
+	VectorProperty& VectorProperty::element_flags(Flags flags)
 	{
 		m_element_property_flags = flags;
 		return *this;
 	}
 
-	MatrixProperty& MatrixProperty::row_flags(BitMask flags)
+	MatrixProperty& MatrixProperty::row_flags(Flags flags)
 	{
 		m_row_property_flags = flags;
 		return *this;
@@ -262,7 +262,7 @@ namespace Trinex::Refl
 		return ar;
 	}
 
-	ArrayProperty& ArrayProperty::element_flags(BitMask flags)
+	ArrayProperty& ArrayProperty::element_flags(Flags flags)
 	{
 		m_element_property_flags = flags;
 		return *this;

@@ -16,7 +16,7 @@ namespace Trinex::Refl
 		r.static_function("Struct@ static_require(StringView name, int flags = 0)", Struct::static_require<Struct>);
 	}
 
-	Struct::Struct(Struct* parent, BitMask flags) : flags(flags), m_parent(parent)
+	Struct::Struct(Struct* parent, Flags flags) : flags(flags), m_parent(parent)
 	{
 		if (parent)
 		{

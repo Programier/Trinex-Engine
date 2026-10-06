@@ -21,7 +21,7 @@ namespace Trinex::Refl
 		Trinex::Object* object_constructor(StringView name, Trinex::Object* owner, bool scriptable) override;
 
 	public:
-		ScriptClass(Class* parent, Script* script, const ScriptTypeInfo& info, BitMask flags = 0);
+		ScriptClass(Class* parent, Script* script, const ScriptTypeInfo& info, Struct::Flags flags = 0);
 		ScriptClass& destroy_object(Trinex::Object* object) override;
 		Script* script() const;
 		usize size() const override;

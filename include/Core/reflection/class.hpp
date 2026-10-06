@@ -38,7 +38,7 @@ namespace Trinex
 			Class& initialize() override;
 
 		public:
-			Class(Class* parent = nullptr, BitMask flags = 0);
+			Class(Class* parent = nullptr, Struct::Flags flags = 0);
 
 			Class* parent() const;
 
@@ -115,9 +115,9 @@ namespace Trinex
 			}
 
 		public:
-			NativeClass(Class* parent = nullptr, BitMask flags = 0) : Class(parent, flags) {}
+			NativeClass(Class* parent = nullptr, Struct::Flags flags = 0) : Class(parent, flags) {}
 
-			static Class* create(StringView decl, BitMask flags = 0)
+			static Class* create(StringView decl, Struct::Flags flags = 0)
 			{
 				Class* parent = nullptr;
 

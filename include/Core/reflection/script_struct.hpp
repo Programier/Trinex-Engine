@@ -17,7 +17,7 @@ namespace Trinex::Refl
 		Script* m_script;
 
 	public:
-		ScriptStruct(ScriptStruct* parent, Script* script, const ScriptTypeInfo& info, BitMask flags = 0);
+		ScriptStruct(ScriptStruct* parent, Script* script, const ScriptTypeInfo& info, Struct::Flags flags = 0);
 		void* create_struct() override;
 		ScriptStruct& destroy_struct(void* obj) override;
 		Script* script() const;

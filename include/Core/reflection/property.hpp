@@ -64,15 +64,21 @@ private:
 		trinex_reflect_type(Property, Object);
 
 	public:
-		enum Flag
-		{
-			IsReadOnly        = BIT(0),
-			IsTransient       = BIT(1),
-			IsHidden          = BIT(2),
-			InlineSingleField = BIT(3),
-			Inline            = BIT(4),
+		struct Flags {
+			enum Enum : u8
+			{
+				Undefined         = 0,
+				IsReadOnly        = BIT(0),
+				IsTransient       = BIT(1),
+				IsHidden          = BIT(2),
+				InlineSingleField = BIT(3),
+				Inline            = BIT(4),
+			};
+
+			trinex_bitfield_enum_struct(Flags, u8);
 		};
 
+		using enum Flags::Enum;
 		using ChangeListener = Delegate<void(const PropertyChangedEvent&)>;
 		using RenderFunction = Delegate<bool(PropertyRenderer&, Property&, void*)>;
 
@@ -86,40 +92,40 @@ private:
 		}
 
 		template<typename T>
-		static Property* create_element(BitMask flags = 0);
+		static Property* create_element(Flags flags = 0);
 
 		template<typename T, typename Instance>
-		static auto create(StringView name, T Instance::* prop, Object* owner = nullptr, BitMask flags = 0)
+		static auto create(StringView name, T Instance::* prop, Object* owner = nullptr, Flags flags = 0)
 		    requires(!std::is_function_v<T>);
 
 		template<typename T>
-		static auto create(StringView name, T* prop, Object* owner = nullptr, BitMask flags = 0)
+		static auto create(StringView name, T* prop, Object* owner = nullptr, Flags flags = 0)
 		    requires(!std::is_function_v<T>);
 
 		template<typename Ret, typename Instance>
-		static auto create(StringView name, Ret (Instance::*getter)() const, Object* owner = nullptr, BitMask flags = IsReadOnly);
+		static auto create(StringView name, Ret (Instance::*getter)() const, Object* owner = nullptr, Flags flags = IsReadOnly);
 
 		template<typename Ret, typename Instance, typename SetterRet, typename SetterArg>
 		static auto create(StringView name, Ret (Instance::*getter)() const, SetterRet (Instance::*setter)(SetterArg),
-		                   Object* owner = nullptr, BitMask flags = 0);
+		                   Object* owner = nullptr, Flags flags = 0);
 
 		template<typename Ret>
-		static auto create(StringView name, Ret (*getter)(), Object* owner = nullptr, BitMask flags = IsReadOnly);
+		static auto create(StringView name, Ret (*getter)(), Object* owner = nullptr, Flags flags = IsReadOnly);
 
 		template<typename Ret, typename SetterRet, typename SetterArg>
 		static auto create(StringView name, Ret (*getter)(), SetterRet (*setter)(SetterArg), Object* owner = nullptr,
-		                   BitMask flags = 0);
+		                   Flags flags = 0);
 
 		template<typename Getter, typename Setter>
-		static auto create(StringView name, Getter getter, Setter setter, Object* owner = nullptr, BitMask flags = 0)
+		static auto create(StringView name, Getter getter, Setter setter, Object* owner = nullptr, Flags flags = 0)
 		    requires(Detail::GetterBinding<std::decay_t<Getter>, void>::is_supported);
 
 		template<typename Getter>
-		static auto create(StringView name, Getter getter, Object* owner = nullptr, BitMask flags = IsReadOnly)
+		static auto create(StringView name, Getter getter, Object* owner = nullptr, Flags flags = IsReadOnly)
 		    requires(Detail::GetterBinding<std::decay_t<Getter>, void>::is_supported);
 
 	protected:
-		BitMask m_flags = 0;
+		Flags m_flags = 0;
 		RenderFunction m_render_function;
 
 		template<usize size>
@@ -129,12 +135,12 @@ private:
 
 		static void trigger_object_event(const PropertyChangedEvent& event);
 
-		inline bool check_flag(BitMask mask) const { return (m_flags & mask) == mask; }
+		inline bool check_flag(Flags mask) const { return (m_flags & mask) == mask; }
 
 	public:
-		Property(BitMask flags = 0);
+		Property(Flags flags = 0);
 
-		inline BitMask flags() const { return m_flags; }
+		inline Flags flags() const { return m_flags; }
 		inline bool is_read_only() const { return check_flag(IsReadOnly); }
 		inline bool is_transient() const { return check_flag(IsTransient); }
 		inline bool is_hidden() const { return check_flag(IsHidden); }
@@ -150,7 +156,7 @@ private:
 		virtual bool render(PropertyRenderer& renderer, void* context);
 		virtual const String& property_name(const void* context);
 		virtual Property& on_property_changed(const PropertyChangedEvent& event);
-		virtual Property& item_flags(BitMask flags);
+		virtual Property& item_flags(Flags flags);
 		Property& render_function(RenderFunction function);
 
 		static void register_layout(ScriptBinding::Class& r, ClassInfo* info, DownCast downcast);
@@ -282,12 +288,12 @@ private:
 		trinex_refl_prop_type_filter(IsVector<T>::value);
 
 	protected:
-		BitMask m_element_property_flags = 0;
+		Flags m_element_property_flags = 0;
 
 	public:
 		using PrimitiveProperty::PrimitiveProperty;
 
-		VectorProperty& element_flags(BitMask flags);
+		VectorProperty& element_flags(Flags flags);
 		virtual usize length() const               = 0;
 		virtual Property* element_property() const = 0;
 		virtual usize element_size() const         = 0;
@@ -324,12 +330,12 @@ private:
 		trinex_refl_prop_type_filter(IsMatrix<T>::value);
 
 	protected:
-		BitMask m_row_property_flags = 0;
+		Flags m_row_property_flags = 0;
 
 	public:
 		using PrimitiveProperty::PrimitiveProperty;
 
-		MatrixProperty& row_flags(BitMask flags);
+		MatrixProperty& row_flags(Flags flags);
 		virtual usize columns() const          = 0;
 		virtual usize rows() const             = 0;
 		virtual Property* row_property() const = 0;
@@ -497,14 +503,14 @@ private:
 		trinex_refl_prop_type_filter(IsArray<T>::value);
 
 	protected:
-		BitMask m_element_property_flags = 0;
+		Flags m_element_property_flags = 0;
 
 	public:
 		using Property::Property;
 
 		bool serialize(void* object, Archive& ar) override;
 
-		ArrayProperty& element_flags(BitMask flags);
+		ArrayProperty& element_flags(Flags flags);
 		virtual const String& index_name(const void* object, usize index) const;
 		virtual Property* element_property() const = 0;
 		virtual usize element_size() const         = 0;
@@ -669,7 +675,7 @@ private:
 
 			Accessor m_accessor;
 
-			PropertyStorage(Accessor accessor, BitMask flags = 0) : Super(flags), m_accessor(std::move(accessor)) {}
+			PropertyStorage(Accessor accessor, Property::Flags flags = 0) : Super(flags), m_accessor(std::move(accessor)) {}
 
 			void* address(void* context) override { return m_accessor.address(context); }
 			const void* address(const void* context) const override { return m_accessor.address(context); }
@@ -1084,7 +1090,7 @@ private:
 			CallbackGetter m_getter;
 			CallbackSetter m_setter;
 
-			CallbackPropertyBase(CallbackGetter getter, CallbackSetter setter, BitMask flags)
+			CallbackPropertyBase(CallbackGetter getter, CallbackSetter setter, Flags flags)
 			    : VirtualProperty(flags | (setter ? 0 : Property::IsReadOnly)), m_getter(std::move(getter)),
 			      m_setter(std::move(setter))
 			{}
@@ -1105,7 +1111,7 @@ private:
 		class CallbackProperty : public CallbackPropertyBase
 		{
 		public:
-			CallbackProperty(CallbackGetter getter, CallbackSetter setter, BitMask flags)
+			CallbackProperty(CallbackGetter getter, CallbackSetter setter, Flags flags)
 			    : CallbackPropertyBase(std::move(getter), std::move(setter), flags)
 			{}
 
@@ -1117,7 +1123,7 @@ private:
 
 		template<typename Value>
 		inline auto create_callback_property(Object* owner, StringView name, CallbackGetter getter, CallbackSetter setter,
-		                                     BitMask flags)
+		                                     Property::Flags flags)
 		{
 			using PropType = CallbackProperty<Value>;
 			return Object::new_instance<PropType>(owner, name, std::move(getter), std::move(setter), flags);
@@ -1125,7 +1131,7 @@ private:
 	}// namespace Detail
 
 	template<typename T, typename Instance>
-	inline auto Property::create(StringView name, T Instance::* prop, Object* owner, BitMask flags)
+	inline auto Property::create(StringView name, T Instance::* prop, Object* owner, Flags flags)
 	    requires(!std::is_function_v<T>)
 	{
 		using Accessor = Detail::MemberAccessor<T, Instance>;
@@ -1134,7 +1140,7 @@ private:
 	}
 
 	template<typename T>
-	inline Property* Property::create_element(BitMask flags)
+	inline Property* Property::create_element(Property::Flags flags)
 	{
 		using PropType = Detail::PropertyImpl<Detail::ContextAccessor<T>>;
 
@@ -1147,7 +1153,7 @@ private:
 	}
 
 	template<typename T>
-	inline auto Property::create(StringView name, T* prop, Object* owner, BitMask flags)
+	inline auto Property::create(StringView name, T* prop, Object* owner, Property::Flags flags)
 	    requires(!std::is_function_v<T>)
 	{
 		using Accessor = Detail::StaticAccessor<T>;
@@ -1156,32 +1162,33 @@ private:
 	}
 
 	template<typename Ret, typename Instance>
-	inline auto Property::create(StringView name, Ret (Instance::*getter)() const, Object* owner, BitMask flags)
+	inline auto Property::create(StringView name, Ret (Instance::*getter)() const, Object* owner, Property::Flags flags)
 	{
 		return create<Ret (Instance::*)() const>(name, getter, owner, flags);
 	}
 
 	template<typename Ret, typename Instance, typename SetterRet, typename SetterArg>
 	inline auto Property::create(StringView name, Ret (Instance::*getter)() const, SetterRet (Instance::*setter)(SetterArg),
-	                             Object* owner, BitMask flags)
+	                             Object* owner, Property::Flags flags)
 	{
 		return create<Ret (Instance::*)() const, SetterRet (Instance::*)(SetterArg)>(name, getter, setter, owner, flags);
 	}
 
 	template<typename Ret>
-	inline auto Property::create(StringView name, Ret (*getter)(), Object* owner, BitMask flags)
+	inline auto Property::create(StringView name, Ret (*getter)(), Object* owner, Property::Flags flags)
 	{
 		return create<Ret (*)()>(name, getter, owner, flags);
 	}
 
 	template<typename Ret, typename SetterRet, typename SetterArg>
-	inline auto Property::create(StringView name, Ret (*getter)(), SetterRet (*setter)(SetterArg), Object* owner, BitMask flags)
+	inline auto Property::create(StringView name, Ret (*getter)(), SetterRet (*setter)(SetterArg), Object* owner,
+	                             Property::Flags flags)
 	{
 		return create<Ret (*)(), SetterRet (*)(SetterArg)>(name, getter, setter, owner, flags);
 	}
 
 	template<typename Getter, typename Setter>
-	inline auto Property::create(StringView name, Getter getter, Setter setter, Object* owner, BitMask flags)
+	inline auto Property::create(StringView name, Getter getter, Setter setter, Object* owner, Property::Flags flags)
 	    requires(Detail::GetterBinding<std::decay_t<Getter>, void>::is_supported)
 	{
 		using GetterBinding = Detail::GetterBinding<std::decay_t<Getter>, void>;
@@ -1195,7 +1202,7 @@ private:
 	}
 
 	template<typename Getter>
-	inline auto Property::create(StringView name, Getter getter, Object* owner, BitMask flags)
+	inline auto Property::create(StringView name, Getter getter, Object* owner, Property::Flags flags)
 	    requires(Detail::GetterBinding<std::decay_t<Getter>, void>::is_supported)
 	{
 		using GetterBinding = Detail::GetterBinding<std::decay_t<Getter>, void>;

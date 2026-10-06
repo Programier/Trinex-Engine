@@ -567,7 +567,7 @@ namespace Trinex
 
 		if (modifiers)
 		{
-			(*modifiers) = static_cast<BitMask>(script_modifiers);
+			(*modifiers) = script_modifiers;
 		}
 
 		return result;

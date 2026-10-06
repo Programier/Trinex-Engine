@@ -62,7 +62,7 @@ namespace Trinex::Refl
 		Enum* m_enum_instance;
 
 	public:
-		inline ScriptEnumProperty(usize offset, Enum* enum_instance, BitMask flags = 0)
+		inline ScriptEnumProperty(usize offset, Enum* enum_instance, Property::Flags flags = 0)
 		    : ScriptProperty<EnumProperty>(offset, flags), m_enum_instance(enum_instance)
 		{}
 

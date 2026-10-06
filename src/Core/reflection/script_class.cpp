@@ -1,6 +1,6 @@
 #include <Core/reflection/script_class.hpp>
-#include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script.hpp>
+#include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_function.hpp>
@@ -15,7 +15,7 @@ namespace Trinex::Refl
 		return instance_cast<ScriptClass>(self) != nullptr;
 	}
 
-	ScriptClass::ScriptClass(Class* parent, Script* script, const ScriptTypeInfo& info, BitMask flags)
+	ScriptClass::ScriptClass(Class* parent, Script* script, const ScriptTypeInfo& info, Struct::Flags flags)
 	    : Class(parent, flags | IsScriptable), m_script(script)
 	{
 		ScriptEngine::register_class(info.type_id(), this);

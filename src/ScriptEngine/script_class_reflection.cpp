@@ -62,10 +62,10 @@ namespace Trinex
 	static void register_flags_meta(Refl::Property* prop, const String& meta)
 	{
 		struct Accessor : public Refl::Property {
-			static void add_flag(Refl::Property* prop, BitMask mask)
+			static void add_flag(Refl::Property* prop, Refl::Property::Flags mask)
 			{
-				constexpr BitMask Property::* address = &Accessor::m_flags;
-				auto& flags                           = prop->*address;
+				constexpr auto address = &Accessor::m_flags;
+				auto& flags            = prop->*address;
 				flags |= mask;
 			}
 		};

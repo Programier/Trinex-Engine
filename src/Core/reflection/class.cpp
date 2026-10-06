@@ -26,7 +26,7 @@ namespace Trinex::Refl
 		return vector;
 	}
 
-	Class::Class(Class* parent, BitMask flags) : Struct(parent, flags)
+	Class::Class(Class* parent, Struct::Flags flags) : Struct(parent, flags)
 	{
 		m_singletone_object = nullptr;
 
@@ -78,11 +78,11 @@ namespace Trinex::Refl
 				        Strings::format(R"({}@ f(Trinex::StringView name = "", Trinex::Object owner = null))", full_name());
 
 				registrar.behaviour(ScriptClassBehave::Construct, "void f()", &Class::script_object_constructor_default,
-				                 ScriptCallConv::ThisCall_ObjFirst, this);
+				                    ScriptCallConv::ThisCall_ObjFirst, this);
 
 				registrar.behaviour(ScriptClassBehave::Construct,
-				                 R"(void f(Trinex::StringView name = "", Trinex::Object owner = null))",
-				                 &Class::script_object_constructor, ScriptCallConv::ThisCall_ObjFirst, this);
+				                    R"(void f(Trinex::StringView name = "", Trinex::Object owner = null))",
+				                    &Class::script_object_constructor, ScriptCallConv::ThisCall_ObjFirst, this);
 
 				registrar.behaviour(ScriptClassBehave::Factory, factory.c_str(), script_object_factory(), ScriptCallConv::CDecl);
 			}

@@ -25,7 +25,6 @@ namespace Trinex
 	using usize = u64;
 	using isize = i64;
 
-	using BitMask       = usize;
 	using Identifier    = std::uint64_t;
 	using EnumerateType = std::uint32_t;
 
