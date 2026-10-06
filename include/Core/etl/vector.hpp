@@ -1,7 +1,7 @@
 #pragma once
+#include <Core/etl/algorithm.hpp>
 #include <Core/etl/allocator.hpp>
 #include <Core/etl/archive_predef.hpp>
-#include <algorithm>
 #include <iterator>
 #include <limits>
 #include <memory>

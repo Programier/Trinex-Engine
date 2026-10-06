@@ -114,10 +114,12 @@ namespace Trinex
 		using base_type::cend;
 		using base_type::clear;
 		using base_type::contains;
+		using base_type::count;
 		using base_type::crbegin;
 		using base_type::crend;
 		using base_type::empty;
 		using base_type::end;
+		using base_type::equal_range;
 		using base_type::erase;
 		using base_type::find;
 		using base_type::insert;

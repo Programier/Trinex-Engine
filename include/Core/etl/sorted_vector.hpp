@@ -8,7 +8,7 @@
 namespace Trinex
 {
 	template<typename T, typename Compare = Less<T>, typename AllocatorType = Allocator<T>>
-	class FlatSet : protected Vector<T, AllocatorType>
+	class SortedVector : protected Vector<T, AllocatorType>
 	{
 	public:
 		using container_type = Vector<T, AllocatorType>;
@@ -39,99 +39,83 @@ namespace Trinex
 			         compare(lookup_key, key);
 		         });
 
-		static constexpr bool equivalent(const value_type& a, const value_type& b, Compare compare = Compare())
-		{
-			return !compare(a, b) && !compare(b, a);
-		}
-
-		constexpr void sort_and_unique()
-		{
-			Compare compare;
-
-			etl::sort(container_type::begin(), container_type::end(), compare);
-
-			auto last_unique =
-			        etl::unique(container_type::begin(), container_type::end(),
-			                    [&](const value_type& a, const value_type& b) { return !compare(a, b) && !compare(b, a); });
-
-			container_type::erase(last_unique, container_type::end());
-		}
+		constexpr void sort() { etl::sort(container_type::begin(), container_type::end(), Compare()); }
 
 	public:
-		FlatSet() = default;
+		SortedVector() = default;
 
-		constexpr FlatSet(const AllocatorType& allocator) noexcept : container_type(allocator) {}
+		constexpr SortedVector(const AllocatorType& allocator) noexcept : container_type(allocator) {}
 
-		constexpr explicit FlatSet(size_type n) : container_type(n) { sort_and_unique(); }
+		constexpr explicit SortedVector(size_type n) : container_type(n) { sort(); }
 
-		constexpr explicit FlatSet(size_type n, const AllocatorType& allocator) : container_type(n, allocator)
+		constexpr explicit SortedVector(size_type n, const AllocatorType& allocator) : container_type(n, allocator) { sort(); }
+
+		constexpr SortedVector(size_type n, const value_type& value) : container_type(n, value) {}
+
+		constexpr SortedVector(size_type n, const value_type& value, const AllocatorType& allocator)
+		    : container_type(n, value, allocator)
+		{}
+
+		template<class InputIterator, typename = container_type::template RequireInputIter<InputIterator>>
+		constexpr SortedVector(InputIterator first, InputIterator last) : container_type(first, last)
 		{
-			sort_and_unique();
-		}
-
-		constexpr FlatSet(size_type n, const value_type& v) : container_type(n, v) { sort_and_unique(); }
-
-		constexpr FlatSet(size_type n, const value_type& v, const AllocatorType& allocator) : container_type(n, v, allocator)
-		{
-			sort_and_unique();
+			sort();
 		}
 
 		template<class InputIterator, typename = container_type::template RequireInputIter<InputIterator>>
-		constexpr FlatSet(InputIterator first, InputIterator last) : container_type(first, last)
-		{
-			sort_and_unique();
-		}
-
-		template<class InputIterator, typename = container_type::template RequireInputIter<InputIterator>>
-		constexpr FlatSet(InputIterator first, InputIterator last, const AllocatorType& allocator)
+		constexpr SortedVector(InputIterator first, InputIterator last, const AllocatorType& allocator)
 		    : container_type(first, last, allocator)
 		{
-			sort_and_unique();
+			sort();
 		}
 
-		constexpr FlatSet(std::initializer_list<T> list) : container_type(list.begin(), list.end()) { sort_and_unique(); }
+		constexpr SortedVector(std::initializer_list<T> list) : container_type(list.begin(), list.end()) { sort(); }
 
-		constexpr FlatSet(std::initializer_list<T> list, const AllocatorType& allocator)
+		constexpr SortedVector(std::initializer_list<T> list, const AllocatorType& allocator)
 		    : container_type(list.begin(), list.end(), allocator)
 		{
-			sort_and_unique();
+			sort();
 		}
 
-		constexpr FlatSet(const FlatSet& other) : container_type(other.begin(), other.end(), other.allocator()) {}
+		constexpr SortedVector(const SortedVector& other) : container_type(other.begin(), other.end(), other.allocator()) {}
 
-		constexpr FlatSet(const FlatSet& other, const AllocatorType& allocator)
+		constexpr SortedVector(const SortedVector& other, const AllocatorType& allocator)
 		    : container_type(other.begin(), other.end(), allocator)
 		{}
 
-		constexpr FlatSet(FlatSet&& other) : container_type(etl::move(other)) {}
+		constexpr SortedVector(SortedVector&& other) : container_type(etl::move(other)) {}
 
-		constexpr FlatSet(FlatSet&& other, const AllocatorType& allocator) : container_type(etl::move(other), allocator) {}
+		constexpr SortedVector(SortedVector&& other, const AllocatorType& allocator) : container_type(etl::move(other), allocator)
+		{}
 
-		constexpr FlatSet& operator=(const FlatSet& other)
+		constexpr SortedVector& operator=(const SortedVector& other)
 		{
 			container_type::operator=(other);
 			return *this;
 		}
 
-		constexpr FlatSet& operator=(FlatSet&& other)
+		constexpr SortedVector& operator=(SortedVector&& other)
 		{
 			container_type::operator=(etl::move(other));
 			return *this;
 		}
 
-		constexpr FlatSet& operator=(std::initializer_list<T> list)
+		constexpr SortedVector& operator=(std::initializer_list<T> list)
 		{
 			container_type::assign(list.begin(), list.end());
-			sort_and_unique();
+			sort();
 			return *this;
 		}
 
 		constexpr const_iterator begin() const { return container_type::cbegin(); }
 		constexpr const_iterator end() const { return container_type::cend(); }
+
 		constexpr const_iterator cbegin() const { return container_type::cbegin(); }
 		constexpr const_iterator cend() const { return container_type::cend(); }
+
 		constexpr const_reverse_iterator rbegin() const { return container_type::crbegin(); }
 		constexpr const_reverse_iterator rend() const { return container_type::crend(); }
+
 		constexpr const_reverse_iterator crbegin() const { return container_type::crbegin(); }
 		constexpr const_reverse_iterator crend() const { return container_type::crend(); }
 
@@ -139,10 +123,12 @@ namespace Trinex
 		constexpr size_type size() const { return container_type::size(); }
 		constexpr size_type capacity() const { return container_type::capacity(); }
 		constexpr size_type max_size() const { return container_type::max_size(); }
-		constexpr void reserve(size_type size) { container_type::reserve(size); }
-		constexpr void clear() { container_type::clear(); }
-		constexpr void swap(FlatSet& other) { container_type::swap(other); }
 
+		constexpr void reserve(size_type size) { container_type::reserve(size); }
+
+		constexpr void clear() { container_type::clear(); }
+
+		constexpr void swap(SortedVector& other) { container_type::swap(other); }
 
 		template<typename LookupKey>
 		    requires(is_lookup_key<LookupKey>)
@@ -152,14 +138,10 @@ namespace Trinex
 
 			auto it = etl::lower_bound(begin(), end(), value, compare);
 
-			return (it != end() && !compare(value, *it)) ? it : end();
-		}
+			if (it != end() && !compare(value, *it) && !compare(*it, value))
+				return it;
 
-		template<typename LookupKey>
-		    requires(is_lookup_key<LookupKey>)
-		constexpr size_type count(const LookupKey& value) const
-		{
-			return contains(value) ? 1 : 0;
+			return end();
 		}
 
 		template<typename LookupKey>
@@ -167,6 +149,14 @@ namespace Trinex
 		constexpr bool contains(const LookupKey& value) const
 		{
 			return find(value) != end();
+		}
+
+		template<typename LookupKey>
+		    requires(is_lookup_key<LookupKey>)
+		constexpr size_type count(const LookupKey& value) const
+		{
+			auto range = equal_range(value);
+			return static_cast<size_type>(range.second - range.first);
 		}
 
 		template<typename LookupKey>
@@ -191,53 +181,70 @@ namespace Trinex
 			return {range.first, range.second};
 		}
 
-		constexpr Pair<iterator, bool> insert(const T& value)
+		constexpr iterator insert(const value_type& value)
 		{
-			Compare compare;
+			auto it = etl::upper_bound(begin(), end(), value, Compare());
+			return container_type::insert(it, value);
+		}
 
-			auto it = etl::lower_bound(begin(), end(), value, compare);
-
-			if (it == end() || compare(value, *it))
-			{
-				return {container_type::insert(it, value), true};
-			}
-			return {it, false};
+		constexpr iterator insert(value_type&& value)
+		{
+			auto it = etl::upper_bound(begin(), end(), value, Compare());
+			return container_type::insert(it, etl::move(value));
 		}
 
 		template<class InputIterator, typename = container_type::template RequireInputIter<InputIterator>>
 		constexpr void insert(InputIterator first, InputIterator last)
 		{
 			container_type::insert(container_type::end(), first, last);
-			sort_and_unique();
+			sort();
+		}
+
+		template<typename... Args>
+		constexpr iterator emplace(Args&&... args)
+		{
+			value_type value(std::forward<Args>(args)...);
+			auto it = etl::upper_bound(begin(), end(), value, Compare());
+			return container_type::insert(it, etl::move(value));
 		}
 
 		template<typename LookupKey>
 		    requires(is_lookup_key<LookupKey>)
-		constexpr const_iterator erase(const LookupKey& value)
+		constexpr size_type erase(const LookupKey& value)
 		{
-			auto it = find(value);
-			if (it != end())
-				return container_type::erase(it);
-			return end();
+			auto range = equal_range(value);
+
+			if (range.first == range.second)
+				return 0;
+
+			const size_type count = static_cast<size_type>(range.second - range.first);
+
+			container_type::erase(range.first, range.second);
+
+			return count;
 		}
 
 		constexpr const_iterator erase(const_iterator it) { return container_type::erase(it); }
-		constexpr const_iterator erase(const_iterator from, const_iterator to) { return container_type::erase(from, to); }
-		constexpr const Vector<T, AllocatorType>& as_vector() const { return *this; }
+
+		constexpr const_iterator erase(const_iterator first, const_iterator last) { return container_type::erase(first, last); }
+
+		constexpr const container_type& as_vector() const { return *this; }
+
 		constexpr const container_type& container() const { return *this; }
 	};
 
 
 	template<typename T, typename Compare = Less<T>, typename AllocatorType = Allocator<T>, typename ArchiveType>
-	inline bool trinex_serialize_flat_set(ArchiveType& ar, FlatSet<T, Compare, AllocatorType>& set)
+	inline bool trinex_serialize_sorted_vector(ArchiveType& ar, SortedVector<T, Compare, AllocatorType>& vector)
 	    requires(is_complete_archive_type<ArchiveType>)
 	{
-		const Vector<T, AllocatorType>& vector = set.as_vector();
-		return ar.serialize_vector(const_cast<Vector<T, AllocatorType>&>(vector));
+		const Vector<T, AllocatorType>& container = vector.as_vector();
+		const bool result                         = ar.serialize_vector(const_cast<Vector<T, AllocatorType>&>(container));
+		return result;
 	}
 
 	template<typename T, typename C, typename A>
-	struct Serializer<FlatSet<T, C, A>> {
-		bool serialize(Archive& ar, FlatSet<T, C, A>& set) { return trinex_serialize_flat_set(ar, set); }
+	struct Serializer<SortedVector<T, C, A>> {
+		bool serialize(Archive& ar, SortedVector<T, C, A>& vector) { return trinex_serialize_sorted_vector(ar, vector); }
 	};
 }// namespace Trinex

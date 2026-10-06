@@ -482,10 +482,28 @@ namespace Trinex
 			Node* next;
 			DelegateType delegate;
 
-			explicit Node(DelegateType delegate) noexcept : next(nullptr), delegate(delegate) {}
+			explicit Node(const DelegateType& delegate) : next(nullptr), delegate(delegate) {}
+			explicit Node(DelegateType&& delegate) noexcept(etl::is_nothrow_move_constructible_v<DelegateType>)
+			    : next(nullptr), delegate(etl::move(delegate))
+			{}
 		};
 
 	private:
+		static Node* clone(const Node* tail)
+		{
+			if (!tail)
+				return nullptr;
+
+			Node* result = nullptr;
+
+			for (const Node* node = tail->next; node != tail; node = node->next)
+			{
+				append(result, trx_new Node(node->delegate));
+			}
+
+			return result;
+		}
+
 		static void append(Node*& tail, Node* node) noexcept
 		{
 			if (!tail)
@@ -681,16 +699,47 @@ namespace Trinex
 
 	public:
 		constexpr MulticastDelegate() noexcept = default;
+		MulticastDelegate(const MulticastDelegate& other) : m_tail(clone(other.m_tail)) {}
 
-		MulticastDelegate(const MulticastDelegate&) = delete;
 
-		MulticastDelegate& operator=(const MulticastDelegate&) = delete;
+		MulticastDelegate& operator=(const MulticastDelegate& other)
+		{
+			if (this == &other)
+				return *this;
 
-		MulticastDelegate(MulticastDelegate&&) = delete;
+			Node* tail = clone(other.m_tail);
+			clear();
 
-		MulticastDelegate& operator=(MulticastDelegate&&) = delete;
+			m_tail = tail;
+			return *this;
+		}
 
-		~MulticastDelegate() { destroy(m_tail); }
+		MulticastDelegate(MulticastDelegate&& other) noexcept
+		{
+			trinex_assert(other.m_broadcast == nullptr);
+
+			m_tail       = other.m_tail;
+			other.m_tail = nullptr;
+		}
+
+		MulticastDelegate& operator=(MulticastDelegate&& other) noexcept
+		{
+			if (this == &other)
+				return *this;
+
+			trinex_assert(other.m_broadcast == nullptr);
+			clear();
+
+			m_tail       = other.m_tail;
+			other.m_tail = nullptr;
+			return *this;
+		}
+
+		~MulticastDelegate()
+		{
+			trinex_assert(m_broadcast == nullptr);
+			destroy(m_tail);
+		}
 
 	public:
 		Handle add(DelegateType delegate)

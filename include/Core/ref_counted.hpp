@@ -202,9 +202,9 @@ namespace Trinex
 		}
 
 		[[nodiscard]]
-		bool operator==(null) const noexcept
+		bool operator==(const T* ptr) const noexcept
 		{
-			return m_ptr == nullptr;
+			return m_ptr == ptr;
 		}
 
 		[[nodiscard]]
@@ -380,9 +380,9 @@ namespace Trinex
 		}
 
 		[[nodiscard]]
-		bool operator==(null) const noexcept
+		bool operator==(const T* ptr) const noexcept
 		{
-			return value() == nullptr;
+			return value() == ptr;
 		}
 
 		template<typename>
