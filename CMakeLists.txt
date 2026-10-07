@@ -69,6 +69,7 @@ endif()
 
 # Compile modules
 add_subdirectory(${TRINEX_ENGINE_ROOT}/libs/)
+add_subdirectory(${TRINEX_ENGINE_ROOT}/tools/)
 add_subdirectory(${TRINEX_ENGINE_SRC}/Platform)
 add_subdirectory(${TRINEX_ENGINE_SRC}/RHI)
 
