@@ -89,6 +89,7 @@ namespace Trinex
 		inline u32 id() const { return m_id; }
 		inline usize length() const { return to_string().length(); }
 
+		inline operator bool() const { return is_valid(); }
 		inline bool operator==(const Name& name) const { return name.m_id == m_id; }
 		inline bool operator!=(const Name& name) const { return name.m_id != m_id; }
 		inline bool operator<(const Name& name) const { return m_id < name.m_id; }

@@ -20,44 +20,6 @@ namespace Trinex
 			static_assert(offset % alignof(T) == 0, "Offset is not properly aligned for T");
 		}
 
-		template<usize offset, typename T, typename... Rest>
-		static consteval usize packed_size_impl()
-		{
-			constexpr usize current = align_up(offset, alignof(T));
-			constexpr usize next    = current + sizeof(T);
-
-			if constexpr (sizeof...(Rest) == 0)
-				return next;
-			else
-				return packed_size_impl<next, Rest...>();
-		}
-
-		template<usize index, usize offset, typename T, typename... Rest>
-		static consteval usize packed_offset_impl()
-		{
-			constexpr usize current = align_up(offset, alignof(T));
-
-			if constexpr (index == 0)
-			{
-				return current;
-			}
-			else
-			{
-				static_assert(sizeof...(Rest) > 0, "Type index out of bounds");
-				return packed_offset_impl<index - 1, current + sizeof(T), Rest...>();
-			}
-		}
-
-		template<usize index, typename T, typename... Rest>
-		struct TypeAtImpl {
-			using type = typename TypeAtImpl<index - 1, Rest...>::type;
-		};
-
-		template<typename T, typename... Rest>
-		struct TypeAtImpl<0, T, Rest...> {
-			using type = T;
-		};
-
 	public:
 		template<typename T, usize offset = 0>
 		T* ptr()
