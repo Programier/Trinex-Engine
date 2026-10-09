@@ -37,7 +37,7 @@ namespace Reflector
 		{
 			Token token;
 			token.type   = type;
-			token.value  = std::string(source.substr(begin, end - begin));
+			token.value  = source.substr(begin, end - begin);
 			token.offset = begin;
 			token.length = end - begin;
 			token.line   = line;
@@ -73,7 +73,7 @@ namespace Reflector
 
 	}// namespace
 
-	std::vector<Token> Tokenizer::tokenize(std::string_view source) const
+	std::vector<Token> tokenize(std::string_view source)
 	{
 		std::vector<Token> tokens;
 		std::size_t line   = 1;
@@ -98,8 +98,16 @@ namespace Reflector
 			if (line_start && c == '#')
 			{
 				auto end = offset + 1;
-				while (end < source.size() && source[end] != '\n')
+				while (end < source.size())
 				{
+					if (source[end] == '\n')
+					{
+						auto previous = end;
+						if (previous > offset && source[previous - 1] == '\r')
+							--previous;
+						if (previous == offset || source[previous - 1] != '\\')
+							break;
+					}
 					++end;
 				}
 				tokens.push_back(make_token(TokenType::Preprocessor, source, offset, end, token_line, token_column));

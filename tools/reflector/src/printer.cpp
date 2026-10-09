@@ -1,310 +1,217 @@
+#include <initializer_list>
+#include <iomanip>
 #include <model.hpp>
 #include <ostream>
 #include <printer.hpp>
+#include <utility>
 
 namespace Reflector
 {
 	namespace
 	{
-		void print_annotation(std::ostream& stream, const Annotation& annotation)
+		void print_type(std::ostream& stream, const TypeInfo& type)
 		{
-			stream << annotation.name << '(' << annotation.arguments << ") @ " << annotation.line << ':' << annotation.column;
-			if (!annotation.metadata.empty())
+			if (type.flags & TypeInfo::Const)
+				stream << "const ";
+			if (type.flags & TypeInfo::Volatile)
+				stream << "volatile ";
+			stream << type.name;
+			if (type.flags & TypeInfo::Template)
 			{
-				stream << " metadata=[";
-				for (std::size_t i = 0; i < annotation.metadata.size(); ++i)
+				stream << '<';
+				for (std::size_t i = 0; i < type.templates.size(); ++i)
 				{
-					const auto& metadata = annotation.metadata[i];
-					if (i > 0)
-					{
+					if (i)
 						stream << ", ";
-					}
-					if (!metadata.name.empty())
-					{
-						stream << metadata.name << '=';
-					}
-					stream << metadata.value;
+					const auto& argument = type.templates[i];
+					if (argument.flags & TypeInfo::TemplateArgument::Type)
+						print_type(stream, argument.type);
+					else
+						stream << argument.value;
+					if (argument.flags & TypeInfo::TemplateArgument::PackExpansion)
+						stream << "...";
 				}
-				stream << ']';
+				stream << '>';
+			}
+			// Function/member-pointer declarators already contain their pointer spelling.
+			if ((type.flags & TypeInfo::Pointer) && type.name.find('*') == std::string::npos)
+			{
+				stream << '*';
+				if (type.flags & TypeInfo::PointerConst)
+					stream << " const";
+				if (type.flags & TypeInfo::PointerVolatile)
+					stream << " volatile";
+			}
+			if (type.flags & TypeInfo::Reference)
+				stream << '&';
+			if (type.flags & TypeInfo::RValueRef)
+				stream << "&&";
+		}
+
+		void print_flags(std::ostream& stream, std::uint8_t flags,
+		                 std::initializer_list<std::pair<std::uint8_t, std::string_view>> names)
+		{
+			stream << unsigned(flags) << " [";
+			bool first = true;
+			for (const auto& [flag, name] : names)
+			{
+				if (!(flags & flag))
+					continue;
+				if (!first)
+					stream << ", ";
+				stream << name;
+				first = false;
+			}
+			if (first)
+				stream << "none";
+			stream << "]\n";
+		}
+
+		void print_type_details(std::ostream& stream, const TypeInfo& type, std::size_t depth, std::string_view label)
+		{
+			const std::string indent(depth * 2, ' ');
+			stream << indent << label << ":\n";
+			stream << indent << "  name: " << std::quoted(type.name) << '\n';
+			stream << indent << "  flags: ";
+			print_flags(stream, type.flags,
+			            {{TypeInfo::Const, "const"},
+			             {TypeInfo::Volatile, "volatile"},
+			             {TypeInfo::Reference, "reference"},
+			             {TypeInfo::RValueRef, "rvalue_ref"},
+			             {TypeInfo::Template, "template"},
+			             {TypeInfo::Pointer, "pointer"},
+			             {TypeInfo::PointerConst, "pointer_const"},
+			             {TypeInfo::PointerVolatile, "pointer_volatile"}});
+			stream << indent << "  template_arguments: " << type.templates.size() << '\n';
+			for (std::size_t i = 0; i < type.templates.size(); ++i)
+			{
+				const auto& argument = type.templates[i];
+				stream << indent << "    [" << i << "] flags: ";
+				using Argument = TypeInfo::TemplateArgument;
+				print_flags(stream, argument.flags,
+				            {{Argument::Type, "type"},
+				             {Argument::Value, "value"},
+				             {Argument::Template, "template"},
+				             {Argument::PackExpansion, "pack_expansion"}});
+				if (argument.flags & Argument::Type)
+					print_type_details(stream, argument.type, depth + 3, "type");
+				if (argument.flags & (Argument::Value | Argument::Template))
+					stream << indent << "      value: " << std::quoted(argument.value) << '\n';
 			}
 		}
 
-		const char* access_name(Access access)
+		const char* kind_name(ObjectKind kind)
 		{
-			switch (access)
+			switch (kind)
 			{
-				case Access::Global: return "global";
-				case Access::Private: return "private";
-				case Access::Protected: return "protected";
-				case Access::Public: return "public";
+				case ObjectKind::Object: return "object";
+				case ObjectKind::Enum: return "enum";
+				case ObjectKind::Scope: return "scope";
+				case ObjectKind::Namespace: return "namespace";
+				case ObjectKind::Struct: return "struct";
+				case ObjectKind::Class: return "class";
+				case ObjectKind::Module: return "module";
+				case ObjectKind::Function: return "function";
+				case ObjectKind::Property: return "property";
 			}
 			return "unknown";
 		}
-
-		void print_type_info(std::ostream& stream, const TypeInfo& type_info, const char* indent)
-		{
-			if (type_info.raw.empty())
-			{
-				return;
-			}
-
-			stream << indent << "  type info: " << type_info.qualified_name;
-			if (!type_info.name.empty() && type_info.name != type_info.qualified_name)
-			{
-				stream << " name=" << type_info.name;
-			}
-			if (!type_info.namespaces.empty())
-			{
-				stream << " namespaces=";
-				for (std::size_t i = 0; i < type_info.namespaces.size(); ++i)
-				{
-					if (i > 0)
-					{
-						stream << "::";
-					}
-					stream << type_info.namespaces[i];
-				}
-			}
-			if (!type_info.template_arguments.empty())
-			{
-				stream << " template_args=" << type_info.template_arguments.size();
-			}
-			if (type_info.pointer_depth > 0)
-			{
-				stream << " pointer_depth=" << static_cast<unsigned int>(type_info.pointer_depth);
-			}
-			if (type_info.flags != TypeFlag_None)
-			{
-				stream << " flags=" << type_info.flags;
-			}
-			stream << '\n';
-		}
-
-		void print_property(std::ostream& stream, const Property& property, const char* indent)
-		{
-			stream << indent << "property " << property.name << '\n';
-			stream << indent << "  full name: " << property.full_name << '\n';
-			stream << indent << "  owner: " << (property.owner.empty() ? "<global>" : property.owner) << '\n';
-			if (!property.attributes.empty())
-			{
-				stream << indent << "  attributes: " << property.attributes << '\n';
-			}
-			if (!property.engine_macros.empty())
-			{
-				stream << indent << "  engine macros: " << property.engine_macros << '\n';
-			}
-			stream << indent << "  type: " << property.type << '\n';
-			print_type_info(stream, property.type_info, indent);
-			stream << indent << "  access: " << access_name(property.access) << '\n';
-			stream << indent << "  line: " << property.line << '\n';
-			stream << indent << "  flags:";
-			if (property.flags & PropertyFlag_Static)
-			{
-				stream << " static";
-			}
-			if (property.flags & PropertyFlag_Const)
-			{
-				stream << " const";
-			}
-			if (property.flags & PropertyFlag_Constexpr)
-			{
-				stream << " constexpr";
-			}
-			if (property.flags & PropertyFlag_Mutable)
-			{
-				stream << " mutable";
-			}
-			if (property.flags & PropertyFlag_Pointer)
-			{
-				stream << " pointer";
-			}
-			if (property.flags & PropertyFlag_Reference)
-			{
-				stream << " reference";
-			}
-			stream << '\n';
-			if (!property.default_value.empty())
-			{
-				stream << indent << "  default: " << property.default_value << '\n';
-			}
-			stream << indent << "  declaration: " << property.declaration << '\n';
-			stream << indent << "  annotation: ";
-			print_annotation(stream, property.annotation);
-			stream << '\n';
-		}
-
-		void print_function(std::ostream& stream, const Function& function, const char* indent)
-		{
-			stream << indent << "function " << function.name << '\n';
-			stream << indent << "  full name: " << function.full_name << '\n';
-			stream << indent << "  owner: " << (function.owner.empty() ? "<global>" : function.owner) << '\n';
-			if (!function.template_prefix.empty())
-			{
-				stream << indent << "  template: " << function.template_prefix << '\n';
-			}
-			if (!function.attributes.empty())
-			{
-				stream << indent << "  attributes: " << function.attributes << '\n';
-			}
-			if (!function.engine_macros.empty())
-			{
-				stream << indent << "  engine macros: " << function.engine_macros << '\n';
-			}
-			stream << indent << "  return: " << (function.return_type.empty() ? "<constructor/destructor>" : function.return_type)
-			       << '\n';
-			print_type_info(stream, function.return_type_info, indent);
-			stream << indent << "  access: " << access_name(function.access) << '\n';
-			stream << indent << "  line: " << function.line << '\n';
-			stream << indent << "  parameters: " << function.parsed_parameters.size() << '\n';
-			for (const auto& parameter : function.parsed_parameters)
-			{
-				stream << indent << "    - " << (parameter.name.empty() ? "<unnamed>" : parameter.name) << ": " << parameter.type;
-				if (!parameter.default_value.empty())
-				{
-					stream << " = " << parameter.default_value;
-				}
-				if (!parameter.type_info.name.empty())
-				{
-					stream << " [" << parameter.type_info.qualified_name << ']';
-				}
-				stream << '\n';
-			}
-			stream << indent << "  qualifiers: " << (function.qualifiers.empty() ? "<none>" : function.qualifiers) << '\n';
-			stream << indent << "  flags:";
-			if (function.flags & FunctionFlag_Static)
-			{
-				stream << " static";
-			}
-			if (function.flags & FunctionFlag_Virtual)
-			{
-				stream << " virtual";
-			}
-			if (function.flags & FunctionFlag_Const)
-			{
-				stream << " const";
-			}
-			if (function.flags & FunctionFlag_Constexpr)
-			{
-				stream << " constexpr";
-			}
-			if (function.flags & FunctionFlag_Inline)
-			{
-				stream << " inline";
-			}
-			if (function.flags & FunctionFlag_Noexcept)
-			{
-				stream << " noexcept";
-			}
-			if (function.flags & FunctionFlag_Override)
-			{
-				stream << " override";
-			}
-			if (function.flags & FunctionFlag_Final)
-			{
-				stream << " final";
-			}
-			if (function.flags & FunctionFlag_PureVirtual)
-			{
-				stream << " pure_virtual";
-			}
-			if (function.flags & FunctionFlag_Constructor)
-			{
-				stream << " constructor";
-			}
-			if (function.flags & FunctionFlag_Destructor)
-			{
-				stream << " destructor";
-			}
-			if (function.flags & FunctionFlag_Operator)
-			{
-				stream << " operator";
-			}
-			stream << '\n';
-			stream << indent << "  declaration: " << function.declaration << '\n';
-			stream << indent << "  annotation: ";
-			print_annotation(stream, function.annotation);
-			stream << '\n';
-		}
-
 	}// namespace
 
-	void print(std::ostream& stream, const TranslationUnit& unit)
+	void print(std::ostream& stream, const Object* object, std::size_t depth)
 	{
-		stream << "source: " << unit.source_name << '\n';
-		stream << "types: " << unit.types.size() << '\n';
+		if (object == nullptr)
+			return;
 
-		for (const auto& type : unit.types)
+		const std::string indent(depth * 2, ' ');
+		stream << indent << kind_name(object->kind()) << ' ' << object->name;
+		if (auto* property = dynamic_cast<const Property*>(object))
 		{
-			stream << "  " << type.kind << ' ' << type.name << '\n';
-			stream << "    full name: " << type.full_name << '\n';
-			stream << "    scope: " << (type.scope.empty() ? "<global>" : type.scope) << '\n';
-			if (!type.template_prefix.empty())
+			stream << ": ";
+			print_type(stream, property->type);
+			if (!property->value.empty())
+				stream << " = " << property->value;
+			stream << " flags=" << unsigned(property->flags);
+		}
+		else if (auto* function = dynamic_cast<const Function*>(object))
+		{
+			stream << '(';
+			for (std::size_t i = 0; i < function->args.size(); ++i)
 			{
-				stream << "    template: " << type.template_prefix << '\n';
+				if (i)
+					stream << ", ";
+				const auto& argument = function->args[i];
+				print_type(stream, argument.type);
+				if (!argument.name.empty())
+					stream << ' ' << argument.name;
+				if (!argument.value.empty())
+					stream << " = " << argument.value;
 			}
-			if (!type.attributes.empty())
+			if (function->flags & Function::Variadic)
+				stream << (function->args.empty() ? "..." : ", ...");
+			stream << ") -> ";
+			print_type(stream, function->type);
+			stream << " flags=" << function->flags;
+		}
+		stream << " access=" << unsigned(object->access) << '\n';
+		if (auto* property = dynamic_cast<const Property*>(object))
+			print_type_details(stream, property->type, depth + 1, "type");
+		else if (auto* function = dynamic_cast<const Function*>(object))
+		{
+			print_type_details(stream, function->type, depth + 1, "return");
+			stream << indent << "  args: " << function->args.size() << '\n';
+			for (std::size_t i = 0; i < function->args.size(); ++i)
 			{
-				stream << "    attributes: " << type.attributes << '\n';
-			}
-			if (!type.engine_macros.empty())
-			{
-				stream << "    engine macros: " << type.engine_macros << '\n';
-			}
-			stream << "    line: " << type.line << '\n';
-			if (!type.bases.empty())
-			{
-				stream << "    bases: " << type.bases << '\n';
-			}
-			stream << "    annotation: ";
-			print_annotation(stream, type.annotation);
-			stream << '\n';
-			if (!type.enum_values.empty())
-			{
-				stream << "    enum values: " << type.enum_values.size() << '\n';
-				for (const auto& value : type.enum_values)
+				const auto& argument = function->args[i];
+				stream << indent << "    [" << i << "] name: " << std::quoted(argument.name) << '\n';
+				stream << indent << "      default: ";
+				if (argument.value.empty())
 				{
-					stream << "      - " << value << '\n';
+					stream << "<none>\n";
+				}
+				else
+				{
+					stream << std::quoted(argument.value) << '\n';
+				}
+				print_type_details(stream, argument.type, depth + 3, "type");
+			}
+		}
+
+		for (const auto& metadata : object->metadata)
+		{
+			stream << indent << "  metadata: " << metadata.name << '=' << metadata.value << '\n';
+		}
+
+		if (auto* enumeration = dynamic_cast<const Enum*>(object))
+		{
+			for (const auto& value : enumeration->values)
+			{
+				stream << indent << "  " << value.name << " = " << value.value << '\n';
+				for (const auto& metadata : value.metadata)
+					stream << indent << "    metadata: " << metadata.name << '=' << metadata.value << '\n';
+			}
+		}
+
+		if (auto* structure = dynamic_cast<const Struct*>(object))
+		{
+			stream << indent << "  flags=" << unsigned(structure->flags) << '\n';
+			for (const auto& base : structure->bases)
+			{
+				stream << indent << "  base: ";
+				print_type(stream, base.type);
+				stream << " access=" << unsigned(base.access) << " flags=" << unsigned(base.flags) << '\n';
+			}
+		}
+
+		if (auto* scope = dynamic_cast<const Scope*>(object))
+		{
+			for (const auto& child : scope->objects)
+			{
+				if (child)
+				{
+					print(stream, child, depth + 1);
 				}
 			}
-			if (!type.nested_types.empty())
-			{
-				stream << "    nested types: " << type.nested_types.size() << '\n';
-				for (const auto& nested_type : type.nested_types)
-				{
-					stream << "      " << nested_type.kind << ' ' << nested_type.name << " -> " << nested_type.full_name << '\n';
-				}
-			}
-			stream << "    properties: " << type.properties.size() << '\n';
-
-			for (const auto& property : type.properties)
-			{
-				print_property(stream, property, "    ");
-			}
-
-			stream << "    functions: " << type.functions.size() << '\n';
-			for (const auto& function : type.functions)
-			{
-				print_function(stream, function, "    ");
-			}
-		}
-
-		stream << "global properties: " << unit.properties.size() << '\n';
-		for (const auto& property : unit.properties)
-		{
-			print_property(stream, property, "  ");
-		}
-
-		stream << "global functions: " << unit.functions.size() << '\n';
-		for (const auto& function : unit.functions)
-		{
-			print_function(stream, function, "  ");
-		}
-
-		for (const auto& diagnostic : unit.diagnostics)
-		{
-			stream << "diagnostic: " << (diagnostic.severity == DiagnosticSeverity::Error ? "error" : "warning") << " ["
-			       << diagnostic.line << ':' << diagnostic.column << "] " << diagnostic.message << '\n';
 		}
 	}
-
 }// namespace Reflector

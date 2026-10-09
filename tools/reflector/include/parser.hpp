@@ -1,13 +1,9 @@
 #pragma once
-#include <string_view>
+#include <model.hpp>
+#include <tokenizer.hpp>
 
 namespace Reflector
 {
-	class TranslationUnit;
-
-	class Parser
-	{
-	public:
-		TranslationUnit parse(std::string_view source, std::string_view source_name = "<memory>");
-	};
+	// Returns an owning tree on success, or nullptr on any parse error.
+	Module* parse(std::string_view source, std::string_view source_name = "<memory>");
 }// namespace Reflector

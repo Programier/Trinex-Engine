@@ -1,16 +1,34 @@
 #pragma once
-
 #include <cstdint>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace Reflector
 {
-	enum class DiagnosticSeverity : std::uint8_t
-	{
-		Error,
-		Warning,
-	};
+#define trinex_reflector_type(type, super)                                                                                       \
+	using This  = type;                                                                                                          \
+	using Super = super;                                                                                                         \
+	ObjectKind kind() const override;                                                                                            \
+	virtual bool is_a(ObjectKind kind) const override;                                                                           \
+	virtual void serialize(Archive& ar) override
+
+#define trinex_implement_reflector_type(type, ...)                                                                               \
+	ObjectKind type::kind() const                                                                                                \
+	{                                                                                                                            \
+		return ObjectKind::type;                                                                                                 \
+	}                                                                                                                            \
+	bool type::is_a(ObjectKind kind) const                                                                                       \
+	{                                                                                                                            \
+		if (kind == ObjectKind::type)                                                                                            \
+			return true;                                                                                                         \
+		return Super::is_a(kind);                                                                                                \
+	}                                                                                                                            \
+	void type::serialize(Archive& ar)                                                                                            \
+	{                                                                                                                            \
+		Super::serialize(ar);                                                                                                    \
+		ar(__VA_ARGS__);                                                                                                         \
+	}
 
 	enum class Access : std::uint8_t
 	{
@@ -20,54 +38,23 @@ namespace Reflector
 		Public,
 	};
 
-	enum PropertyFlags : std::uint16_t
+	enum class ObjectKind : std::uint8_t
 	{
-		PropertyFlag_None      = 0,
-		PropertyFlag_Static    = 1 << 0,
-		PropertyFlag_Const     = 1 << 1,
-		PropertyFlag_Constexpr = 1 << 2,
-		PropertyFlag_Mutable   = 1 << 3,
-		PropertyFlag_Pointer   = 1 << 4,
-		PropertyFlag_Reference = 1 << 5,
+		Object    = 0,
+		Enum      = 1,
+		Scope     = 2,
+		Namespace = 3,
+		Struct    = 4,
+		Class     = 5,
+		Module    = 6,
+		Function  = 7,
+		Property  = 8,
 	};
 
-	enum TypeFlags : std::uint16_t
+	enum class DiagnosticSeverity : std::uint8_t
 	{
-		TypeFlag_None      = 0,
-		TypeFlag_Const     = 1 << 0,
-		TypeFlag_Volatile  = 1 << 1,
-		TypeFlag_Pointer   = 1 << 2,
-		TypeFlag_Reference = 1 << 3,
-		TypeFlag_RValueRef = 1 << 4,
-		TypeFlag_Template  = 1 << 5,
-	};
-
-	struct TypeInfo {
-		std::string raw;
-		std::string name;
-		std::string qualified_name;
-		std::vector<std::string> namespaces;
-		std::vector<TypeInfo> template_arguments;
-		std::uint16_t flags        = TypeFlag_None;
-		std::uint8_t pointer_depth = 0;
-	};
-
-	enum FunctionFlags : std::uint16_t
-	{
-		FunctionFlag_None        = 0,
-		FunctionFlag_Static      = 1 << 0,
-		FunctionFlag_Virtual     = 1 << 1,
-		FunctionFlag_Const       = 1 << 2,
-		FunctionFlag_Constexpr   = 1 << 3,
-		FunctionFlag_Inline      = 1 << 4,
-		FunctionFlag_Noexcept    = 1 << 5,
-		FunctionFlag_Override    = 1 << 6,
-		FunctionFlag_Final       = 1 << 7,
-		FunctionFlag_PureVirtual = 1 << 8,
-		FunctionFlag_Constructor = 1 << 9,
-		FunctionFlag_Destructor  = 1 << 10,
-		FunctionFlag_Operator    = 1 << 11,
-		FunctionFlag_Template    = 1 << 12,
+		Error,
+		Warning,
 	};
 
 	struct Diagnostic {
@@ -77,87 +64,217 @@ namespace Reflector
 		std::size_t column = 0;
 	};
 
-	struct Annotation {
+	class Archive;
+	class Object;
+	class Enum;
+	class Scope;
+	class Namespace;
+	class Struct;
+	class Class;
+	class Module;
+	class Function;
+	class Property;
+
+	struct Metadata {
+		std::string name;
+		std::string value;
+
+		template<typename Ar>
+		void serialize(Ar& ar)
+		{
+			ar(name, value);
+		}
+	};
+
+	struct TypeInfo {
+		struct TemplateArgument;
+
+		static constexpr inline std::uint8_t Const           = 1 << 0;
+		static constexpr inline std::uint8_t Volatile        = 1 << 1;
+		static constexpr inline std::uint8_t Reference       = 1 << 2;
+		static constexpr inline std::uint8_t RValueRef       = 1 << 3;
+		static constexpr inline std::uint8_t Template        = 1 << 4;
+		static constexpr inline std::uint8_t Pointer         = 1 << 5;
+		static constexpr inline std::uint8_t PointerConst    = 1 << 6;
+		static constexpr inline std::uint8_t PointerVolatile = 1 << 7;
+
+		// Pointer represents exactly one indirection (including a decayed array).
+		// Const/Volatile qualify the pointee; PointerConst/PointerVolatile qualify the pointer.
+
+		std::string name;
+		std::vector<TemplateArgument> templates;
+		std::uint8_t flags = 0;
+
+		template<typename Ar>
+		void serialize(Ar& ar)
+		{
+			ar(name, templates, flags);
+		}
+	};
+
+	struct TypeInfo::TemplateArgument {
+		static constexpr inline std::uint8_t Type          = 1 << 0;
+		static constexpr inline std::uint8_t Value         = 1 << 1;
+		static constexpr inline std::uint8_t Template      = 1 << 2;
+		static constexpr inline std::uint8_t PackExpansion = 1 << 3;
+
+		// Exactly one of Type/Value/Template; PackExpansion adds ... after the argument.
+		TypeInfo type;    // Type argument, including nested template arguments and qualifiers.
+		std::string value;// C++ expression for Value, qualified template name for Template.
+		std::uint8_t flags = Type;
+
+		template<typename Ar>
+		void serialize(Ar& ar)
+		{
+			ar(type, value, flags);
+		}
+	};
+
+	class Object
+	{
+	public:
+		// Non-owning link to the parent scope.
+		Object* owner    = nullptr;
+		std::string name = "";
+		Access access    = Access::Global;
+		std::vector<Metadata> metadata;
+
+	public:
+		static Object* create(ObjectKind kind);
+		virtual Object* find(std::string_view name, ObjectKind kind);
+		virtual ObjectKind kind() const;
+		virtual bool is_a(ObjectKind kind) const;
+		virtual void serialize(Archive& ar);
+		virtual ~Object();
+	};
+
+	class Enum : public Object
+	{
+	public:
+		struct Value {
+			std::string name;
+			std::int64_t value;
+			std::vector<Metadata> metadata;
+
+			template<typename Ar>
+			void serialize(Ar& ar)
+			{
+				ar(name, value, metadata);
+			}
+		};
+
+		std::vector<Value> values = {};
+
+	public:
+		trinex_reflector_type(Enum, Object);
+	};
+
+	class Scope : public Object
+	{
+	public:
+		std::vector<Object*> objects;
+
+	public:
+		trinex_reflector_type(Scope, Object);
+		Object* find(std::string_view name, ObjectKind kind) override;
+		~Scope();
+	};
+
+	class Struct : public Scope
+	{
+	public:
+		static constexpr inline std::uint8_t Final = 1 << 0;
+
+		struct Base {
+			static constexpr inline std::uint8_t Virtual = 1 << 0;
+
+			TypeInfo type;
+			Access access      = Access::Public;
+			std::uint8_t flags = 0;
+		};
+
+		std::vector<Base> bases;
+		std::uint8_t flags = 0;
+
+	public:
+		trinex_reflector_type(Struct, Scope);
+	};
+
+	class Class : public Struct
+	{
+	public:
+		trinex_reflector_type(Class, Struct);
+	};
+
+	class Namespace : public Scope
+	{
+	public:
+		trinex_reflector_type(Namespace, Scope);
+	};
+
+	class Module : public Scope
+	{
+	public:
+		trinex_reflector_type(Module, Scope);
+	};
+
+	class Function : public Object
+	{
+	public:
+		static constexpr inline std::uint32_t Static      = 1 << 0;
+		static constexpr inline std::uint32_t Const       = 1 << 1;
+		static constexpr inline std::uint32_t Volatile    = 1 << 2;
+		static constexpr inline std::uint32_t Constexpr   = 1 << 3;
+		static constexpr inline std::uint32_t Virtual     = 1 << 4;
+		static constexpr inline std::uint32_t Inline      = 1 << 5;
+		static constexpr inline std::uint32_t Noexcept    = 1 << 6;
+		static constexpr inline std::uint32_t Override    = 1 << 7;
+		static constexpr inline std::uint32_t Final       = 1 << 8;
+		static constexpr inline std::uint32_t PureVirtual = 1 << 9;
+		static constexpr inline std::uint32_t Constructor = 1 << 10;
+		static constexpr inline std::uint32_t Destructor  = 1 << 11;
+		static constexpr inline std::uint32_t Operator    = 1 << 12;
+		static constexpr inline std::uint32_t Template    = 1 << 13;
+		static constexpr inline std::uint32_t Variadic    = 1 << 14;
+		static constexpr inline std::uint32_t Reference   = 1 << 15;
+		static constexpr inline std::uint32_t RValueRef   = 1 << 16;
+
 		struct Argument {
+			TypeInfo type;
 			std::string name;
 			std::string value;
+
+			template<typename Ar>
+			void serialize(Ar& ar)
+			{
+				ar(type, name, value);
+			}
 		};
 
-		std::string name;
-		std::string arguments;
-		std::size_t line   = 0;
-		std::size_t column = 0;
-		std::vector<Argument> metadata;
+		TypeInfo type;
+		std::vector<Argument> args;
+		std::uint32_t flags = 0;
+
+	public:
+		trinex_reflector_type(Function, Object);
 	};
 
-	struct Property {
-		Annotation annotation;
-		std::string name;
-		std::string type;
-		TypeInfo type_info;
-		std::string owner;
-		std::string full_name;
-		Access access = Access::Global;
-		std::string default_value;
-		std::string attributes;
-		std::string declaration;
-		std::string engine_macros;
-		std::uint64_t line;
-		std::uint16_t flags = PropertyFlag_None;
+	class Property : public Object
+	{
+	public:
+		static constexpr inline std::uint8_t Static    = 1 << 0;
+		static constexpr inline std::uint8_t Constexpr = 1 << 1;
+		static constexpr inline std::uint8_t Mutable   = 1 << 2;
+		static constexpr inline std::uint8_t Inline    = 1 << 3;
+		static constexpr inline std::uint8_t Bitfield  = 1 << 4;
+
+		TypeInfo type;
+		std::string value;
+		std::uint8_t flags = 0;
+
+	public:
+		trinex_reflector_type(Property, Object);
 	};
 
-	struct Function {
-		struct Parameter {
-			std::string name;
-			std::string type;
-			TypeInfo type_info;
-			std::string default_value;
-			std::string declaration;
-		};
-
-		Annotation annotation;
-		std::string name;
-		std::string owner;
-		std::string full_name;
-		std::string return_type;
-		TypeInfo return_type_info;
-		std::string parameters;
-		std::string qualifiers;
-		std::string attributes;
-		std::string declaration;
-		std::string template_prefix;
-		std::string engine_macros;
-		std::vector<Parameter> parsed_parameters;
-
-		Access access       = Access::Global;
-		std::uint64_t line  = 0;
-		std::uint16_t flags = FunctionFlag_None;
-	};
-
-	struct Type {
-		Annotation annotation;
-		std::string kind;
-		std::string name;
-		std::string scope;
-		std::string full_name;
-		std::string bases;
-		std::string attributes;
-		std::string declaration;
-		std::string engine_macros;
-		std::string template_prefix;
-		std::vector<Type> nested_types;
-		std::vector<Property> properties;
-		std::vector<Function> functions;
-		std::vector<std::string> enum_values;
-		TypeFlags flags = TypeFlag_None;
-		std::size_t line;
-	};
-
-	struct TranslationUnit {
-		std::string source_name;
-		std::vector<Type> types;
-		std::vector<Property> properties;
-		std::vector<Function> functions;
-		std::vector<Diagnostic> diagnostics;
-	};
+	void serialize(Archive& ar, Object*& object);
 }// namespace Reflector
