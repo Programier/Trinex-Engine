@@ -12,4 +12,4 @@ endif()
 # endif()
 
 file(GLOB RHI_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
-target_sources(TrinexEngine PRIVATE ${RHI_SOURCES})
+trinex_sources(TrinexEngine PRIVATE ${RHI_SOURCES})

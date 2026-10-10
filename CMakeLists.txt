@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.8)
 cmake_policy(SET CMP0079 NEW)
 
 project(TrinexEngine LANGUAGES C CXX ASM)
@@ -20,6 +20,8 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 set(TRINEX_ENGINE_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 set(TRINEX_ENGINE_SRC "${TRINEX_ENGINE_ROOT}/src")
 set(TRINEX_ENGINE_INCLUDE "${TRINEX_ENGINE_ROOT}/include")
+
+include("${TRINEX_ENGINE_ROOT}/cmake/trinex.cmake")
 
 # Setup install directory
 set(TRINEX_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/Engine" CACHE STRING "Install directory")
@@ -60,16 +62,27 @@ foreach(dir ${TRINEX_SOURCE_DIRECTORIES})
     list(APPEND TRINEX_SOURCE_FILES ${TRINEX_DIRECTORY_SOURCES})
 endforeach()
 
+# Compile tools required by engine targets.
+add_subdirectory(${TRINEX_ENGINE_ROOT}/tools/)
+
 # Compile Trinex Engine
+set(TRINEX_REFLECTION_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/reflection")
 if(TRINEX_AS_EXECUTABLE AND NOT ANDROID)
-    add_executable(TrinexEngine ${TRINEX_SOURCE_FILES})
+    trinex_executable(TrinexEngine
+        SOURCES ${TRINEX_SOURCE_FILES}
+        REFLECTION_ROOT "${TRINEX_ENGINE_ROOT}"
+        REFLECTION_OUTPUT "${TRINEX_REFLECTION_OUTPUT_DIR}"
+    )
 else()
-    add_library(TrinexEngine SHARED ${TRINEX_SOURCE_FILES})
+    trinex_library(TrinexEngine SHARED
+        SOURCES ${TRINEX_SOURCE_FILES}
+        REFLECTION_ROOT "${TRINEX_ENGINE_ROOT}"
+        REFLECTION_OUTPUT "${TRINEX_REFLECTION_OUTPUT_DIR}"
+    )
 endif()
 
 # Compile modules
 add_subdirectory(${TRINEX_ENGINE_ROOT}/libs/)
-add_subdirectory(${TRINEX_ENGINE_ROOT}/tools/)
 add_subdirectory(${TRINEX_ENGINE_SRC}/Platform)
 add_subdirectory(${TRINEX_ENGINE_SRC}/RHI)
 
@@ -78,12 +91,12 @@ if(TRINEX_WITH_EDITOR)
 endif()
 
 # Trinex Engine compile options
-target_include_directories(TrinexEngine PUBLIC ${TRINEX_ENGINE_ROOT}/include)
-target_link_libraries(TrinexEngine PUBLIC freetype asmjit lz4_static stb_library)
+trinex_reflection_directories(TrinexEngine PUBLIC ${TRINEX_ENGINE_ROOT}/include)
+trinex_link_libraries(TrinexEngine PUBLIC freetype asmjit lz4_static stb_library)
 
-target_compile_definitions(TrinexEngine PRIVATE -DENABLE_ENGINE_EXPORTS=1)
+trinex_compile_definitions(TrinexEngine PRIVATE -DENABLE_ENGINE_EXPORTS=1)
 
-target_compile_options(TrinexEngine PUBLIC
+trinex_compile_options(TrinexEngine PUBLIC
     $<$<COMPILE_LANGUAGE:CXX>:
         $<$<CXX_COMPILER_ID:GNU,Clang>:-include ${TRINEX_ENGINE_INCLUDE}/Core/preincluded.hpp>
         $<$<CXX_COMPILER_ID:MSVC>:/FI${TRINEX_ENGINE_INCLUDE}/Core/preincluded.hpp>
@@ -92,50 +105,50 @@ target_compile_options(TrinexEngine PUBLIC
 
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    target_compile_definitions(TrinexEngine PUBLIC -DTRINEX_DEBUG_BUILD=1)
-    target_compile_definitions(TrinexEngine PUBLIC -DTRINEX_RELEASE_BUILD=0)
+    trinex_compile_definitions(TrinexEngine PUBLIC -DTRINEX_DEBUG_BUILD=1)
+    trinex_compile_definitions(TrinexEngine PUBLIC -DTRINEX_RELEASE_BUILD=0)
 else()
-    target_compile_definitions(TrinexEngine PUBLIC -DTRINEX_DEBUG_BUILD=0)
-    target_compile_definitions(TrinexEngine PUBLIC -DTRINEX_RELEASE_BUILD=1)
+    trinex_compile_definitions(TrinexEngine PUBLIC -DTRINEX_DEBUG_BUILD=0)
+    trinex_compile_definitions(TrinexEngine PUBLIC -DTRINEX_RELEASE_BUILD=1)
 endif()
 
-target_compile_options(TrinexEngine PRIVATE "-Wall")
-target_compile_options(TrinexEngine PRIVATE "-Wno-unknown-pragmas")
-target_compile_options(TrinexEngine PRIVATE "-Wmismatched-tags")
-target_compile_options(TrinexEngine PUBLIC "-fno-rtti")
+trinex_compile_options(TrinexEngine PRIVATE "-Wall")
+trinex_compile_options(TrinexEngine PRIVATE "-Wno-unknown-pragmas")
+trinex_compile_options(TrinexEngine PRIVATE "-Wmismatched-tags")
+trinex_compile_options(TrinexEngine PUBLIC "-fno-rtti")
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
-    target_compile_options(TrinexEngine PRIVATE "-O3")
-    target_compile_options(TrinexEngine PRIVATE "-finline-functions")
-    target_compile_options(TrinexEngine PRIVATE "-funroll-loops")
-    target_compile_options(TrinexEngine PRIVATE "-fomit-frame-pointer")
+    trinex_compile_options(TrinexEngine PRIVATE "-O3")
+    trinex_compile_options(TrinexEngine PRIVATE "-finline-functions")
+    trinex_compile_options(TrinexEngine PRIVATE "-funroll-loops")
+    trinex_compile_options(TrinexEngine PRIVATE "-fomit-frame-pointer")
 else()
-    target_compile_options(TrinexEngine PRIVATE "-g")
+    trinex_compile_options(TrinexEngine PRIVATE "-g")
     
     if(TRINEX_WITH_ADDRESS_SANITIZER)
-        target_compile_options(TrinexEngine PRIVATE 
-            -fsanitize=address 
-            -fno-omit-frame-pointer 
-            -fno-sanitize=all 
+        trinex_compile_options(TrinexEngine PRIVATE
+            -fsanitize=address
+            -fno-omit-frame-pointer
+            -fno-sanitize=all
         )
     
-        target_link_options(TrinexEngine PRIVATE 
-            -fsanitize=address 
+        target_link_options(TrinexEngine PRIVATE
+            -fsanitize=address
             -Wl,-rpath,$ORIGIN
         )
     
-        set_target_properties(TrinexEngine PROPERTIES
+        trinex_set_properties(TrinexEngine PROPERTIES
             LINK_DEPENDS_NO_SANITIZE 1
             LINK_FLAGS_RELEASE "-Wl,--no-as-needed"
         )
     
-        target_compile_definitions(TrinexEngine PUBLIC -DTRINEX_WITH_ADDRESS_SANITIZER=1)
+        trinex_compile_definitions(TrinexEngine PUBLIC -DTRINEX_WITH_ADDRESS_SANITIZER=1)
     endif()
 endif()
 
 if(TRINEX_AS_EXECUTABLE)
-    install(TARGETS TrinexEngine DESTINATION ${TRINEX_INSTALL_DIR})
+    trinex_install(TARGETS TrinexEngine DESTINATION ${TRINEX_INSTALL_DIR})
 else()
-    install(TARGETS TrinexEngine DESTINATION ${TRINEX_LIBRARIES_INSTALL_DIR})
+    trinex_install(TARGETS TrinexEngine DESTINATION ${TRINEX_LIBRARIES_INSTALL_DIR})
 endif()
-install(DIRECTORY resources DESTINATION ${TRINEX_INSTALL_DIR})
+trinex_install(DIRECTORY resources DESTINATION ${TRINEX_INSTALL_DIR})
