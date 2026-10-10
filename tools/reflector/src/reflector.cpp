@@ -39,6 +39,32 @@ namespace Reflector
 		int (Reflector::*action)(std::span<std::string_view>);
 	};
 
+	static fs::path generated_header_path(const fs::path& output, const fs::path& header)
+	{
+		auto path = output / "include" / header;
+		path.replace_extension(".generated.hpp");
+		return path;
+	}
+
+	static fs::path generated_source_path(const fs::path& output, const fs::path& header)
+	{
+		auto path = output / "src" / header;
+		path.replace_extension(".generated.cpp");
+		return path;
+	}
+
+	static bool remove_generated_file(const fs::path& path)
+	{
+		std::error_code error;
+		fs::remove(path, error);
+		if (error)
+		{
+			std::cerr << "Error: Failed to remove generated file '" << path << "': " << error.message() << '\n';
+			return false;
+		}
+		return true;
+	}
+
 	Reflector::Reflector() {}
 
 	Reflector::~Reflector() {}
@@ -243,13 +269,13 @@ namespace Reflector
 		return true;
 	}
 
-	void Reflector::load_modules()
+	bool Reflector::load_modules()
 	{
 		std::ifstream file(m_output / "reflection.bin", std::ios::binary);
 
 		if (!file.is_open())
 		{
-			return;
+			return true;
 		}
 
 		file.exceptions(std::ios::failbit | std::ios::badbit);
@@ -257,7 +283,7 @@ namespace Reflector
 
 		if (ar.load<Magic>() != Magic::magic())
 		{
-			return;
+			return true;
 		}
 
 		const std::uint64_t size = ar.load<std::uint64_t>();
@@ -270,30 +296,46 @@ namespace Reflector
 			const std::size_t object_start = file.tellg();
 			const std::string path         = ar.load<std::string>();
 
-			if (is_cache_valid(path, timestamp, size))
+			switch (cache_state(path, timestamp, size))
 			{
-				auto& entry = m_modules.emplace_back();
+				case CacheState::Valid:
+				{
+					auto& entry = m_modules.emplace_back();
 
-				file.seekg(object_start);
-				entry.module = new Module();
-				entry.module->serialize(ar);
-				entry.timestamp = timestamp;
-				entry.size      = size;
+					file.seekg(object_start);
+					entry.module = new Module();
+					entry.module->serialize(ar);
+					entry.timestamp = timestamp;
+					entry.size      = size;
 
-				assert(next == file.tellg());
-			}
-			else
-			{
-				file.seekg(next);
+					assert(next == file.tellg());
+					break;
+				}
+
+				case CacheState::Outdated:
+				{
+					file.seekg(next);
+					break;
+				}
+
+				case CacheState::Removed:
+				{
+					if (!remove_generated_file(generated_header_path(m_output, path)))
+						return false;
+
+					if (!remove_generated_file(generated_source_path(m_output, path)))
+						return false;
+
+					file.seekg(next);
+					break;
+				}
 			}
 		}
+		return true;
 	}
 
 	void Reflector::save_modules()
 	{
-		if (m_headers.empty())
-			return;
-
 		std::ofstream file(m_output / "reflection.bin", std::ios::binary | std::ios::trunc);
 
 		if (!file.is_open())
@@ -352,24 +394,28 @@ namespace Reflector
 				entry.size      = header.size;
 				entry.timestamp = header.timestamp;
 
-				// Generate header
-				generate_header(m_include / header.path, module);
+				generate_header(generated_header_path(m_output, header.path), module);
+
+				if (!header.directory->external)
+				{
+					generate_source(generated_source_path(m_output, header.path), module);
+				}
 			}
 		}
 	}
 
-	bool Reflector::is_cache_valid(std::string_view path, std::size_t timestamp, std::size_t size)
+	Reflector::CacheState Reflector::cache_state(const fs::path& path, std::uint64_t timestamp, std::uint64_t size)
 	{
 		auto it = m_headers.find(path);
 
 		if (it == m_headers.end())
-			return false;
+			return CacheState::Removed;
 
 		if (it->size != size || it->timestamp != timestamp)
-			return false;
+			return CacheState::Outdated;
 
 		m_headers.erase(it);
-		return true;
+		return CacheState::Valid;
 	}
 
 	int Reflector::execute(std::span<std::string_view> args)
@@ -394,7 +440,11 @@ namespace Reflector
 			return 1;
 		}
 
-		load_modules();
+		if (!load_modules())
+		{
+			report_duration();
+			return 1;
+		}
 		process();
 		save_modules();
 		report_duration();

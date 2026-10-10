@@ -13,6 +13,13 @@ namespace Reflector
 	class Reflector final
 	{
 	private:
+		enum class CacheState
+		{
+			Valid    = 0,
+			Outdated = 1,
+			Removed  = 2,
+		};
+
 		struct DirectoryInfo {
 			std::filesystem::path path;
 			bool external = false;
@@ -75,11 +82,11 @@ namespace Reflector
 
 		bool init(std::span<std::string_view> args);
 		bool collect_headers();
-		void load_modules();
+		bool load_modules();
 		void save_modules();
 		void process();
 
-		bool is_cache_valid(std::string_view path, std::size_t timestamp, std::size_t size);
+		CacheState cache_state(const std::filesystem::path& path, std::uint64_t timestamp, std::uint64_t size);
 
 	public:
 		static Reflector* instance();

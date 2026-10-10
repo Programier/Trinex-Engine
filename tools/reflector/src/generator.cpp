@@ -1,11 +1,48 @@
 #include <fstream>
 #include <generator.hpp>
 #include <iostream>
+#include <model.hpp>
 #include <stream.hpp>
 
 namespace Reflector
 {
 	namespace fs = std::filesystem;
+
+	static bool is_object_empty(const Object* object)
+	{
+		if (object == nullptr)
+			return true;
+
+		switch (object->kind())
+		{
+			case ObjectKind::Enum:
+			case ObjectKind::Struct:
+			case ObjectKind::Class:
+			case ObjectKind::Function:
+			case ObjectKind::Property: return false;
+
+			case ObjectKind::Object: return true;
+
+			case ObjectKind::Scope:
+			case ObjectKind::Namespace:
+			case ObjectKind::Module:
+			{
+				auto scope = dynamic_cast<const Scope*>(object);
+
+				for (Object* child : scope->objects)
+				{
+					if (!is_object_empty(child))
+					{
+						return false;
+					}
+				}
+
+				return true;
+			}
+
+			default: return true;
+		}
+	}
 
 	static void write_generated_header(CodeWriter* writer)
 	{
@@ -17,27 +54,14 @@ namespace Reflector
 		              "// ============================================================================\n\n");
 	}
 
-	bool generate_header(CodeWriter* writer, const Module* module)
+	static bool generate_header(CodeWriter* writer, const Module* module)
 	{
-		if (writer == nullptr)
-		{
-			std::cerr << "Error: Failed to generate header: CodeWriter is null.\n";
-			return false;
-		}
-
 		write_generated_header(writer);
-
 		return true;
 	}
 
-	bool generate_source(CodeWriter* writer, const Module* module)
+	static bool generate_source(CodeWriter* writer, const Module* module)
 	{
-		if (writer == nullptr)
-		{
-			std::cerr << "Error: Failed to generate source: CodeWriter is null.\n";
-			return false;
-		}
-
 		write_generated_header(writer);
 		return true;
 	}
@@ -81,6 +105,9 @@ namespace Reflector
 
 	bool generate_header(fs::path path, const Module* module)
 	{
+		if (is_object_empty(module))
+			return true;
+
 		CodeWriter header;
 
 		if (!generate_header(&header, module))
@@ -93,6 +120,9 @@ namespace Reflector
 
 	bool generate_source(fs::path path, const Module* module)
 	{
+		if (is_object_empty(module))
+			return true;
+
 		CodeWriter source;
 
 		if (!generate_header(&source, module))
