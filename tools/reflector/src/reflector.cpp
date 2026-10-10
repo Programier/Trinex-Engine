@@ -295,6 +295,8 @@ namespace Reflector
 
 			const std::size_t object_start = file.tellg();
 			const std::string path         = ar.load<std::string>();
+			const auto header              = m_headers.find(path);
+			const bool external            = header != m_headers.end() && header->directory->external;
 
 			switch (cache_state(path, timestamp, size))
 			{
@@ -309,6 +311,13 @@ namespace Reflector
 					entry.size      = size;
 
 					assert(next == file.tellg());
+
+					if (!external)
+					{
+						const fs::path source = generated_source_path(m_output, path);
+						if (!fs::exists(source) && !generate_source(source, entry.module))
+							return false;
+					}
 					break;
 				}
 

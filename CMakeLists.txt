@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.19)
 cmake_policy(SET CMP0079 NEW)
 
 project(TrinexEngine LANGUAGES C CXX ASM)
@@ -39,47 +39,34 @@ if(UNIX)
     add_compile_options(-fvisibility=hidden)
 endif()
 
-set(TRINEX_SOURCE_DIRECTORIES
-    "${TRINEX_ENGINE_SRC}/Window/"
-    "${TRINEX_ENGINE_SRC}/Event/"
-    "${TRINEX_ENGINE_SRC}/Image/"
-    "${TRINEX_ENGINE_SRC}/Graphics/"
-    "${TRINEX_ENGINE_SRC}/Core/"
-    "${TRINEX_ENGINE_SRC}/net/"
-    "${TRINEX_ENGINE_SRC}/LibLoader/"
-    "${TRINEX_ENGINE_SRC}/Sensors/"
-    "${TRINEX_ENGINE_SRC}/CommandLets/"
-    "${TRINEX_ENGINE_SRC}/ScriptEngine/"
-    "${TRINEX_ENGINE_SRC}/Input/"
-    "${TRINEX_ENGINE_SRC}/Engine/"
-    "${TRINEX_ENGINE_SRC}/EntryPoints/"
-)
-
-set(TRINEX_SOURCE_FILES)
-
-foreach(dir ${TRINEX_SOURCE_DIRECTORIES})
-    file(GLOB_RECURSE TRINEX_DIRECTORY_SOURCES CONFIGURE_DEPENDS ${dir}/*.cpp)
-    list(APPEND TRINEX_SOURCE_FILES ${TRINEX_DIRECTORY_SOURCES})
-endforeach()
-
 # Compile tools required by engine targets.
 add_subdirectory(${TRINEX_ENGINE_ROOT}/tools/)
 
 # Compile Trinex Engine
-set(TRINEX_REFLECTION_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/reflection")
 if(TRINEX_AS_EXECUTABLE AND NOT ANDROID)
     trinex_executable(TrinexEngine
-        SOURCES ${TRINEX_SOURCE_FILES}
         REFLECTION_ROOT "${TRINEX_ENGINE_ROOT}"
-        REFLECTION_OUTPUT "${TRINEX_REFLECTION_OUTPUT_DIR}"
+        REFLECTION_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/reflection"
     )
 else()
     trinex_library(TrinexEngine SHARED
-        SOURCES ${TRINEX_SOURCE_FILES}
         REFLECTION_ROOT "${TRINEX_ENGINE_ROOT}"
-        REFLECTION_OUTPUT "${TRINEX_REFLECTION_OUTPUT_DIR}"
+        REFLECTION_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/reflection"
     )
 endif()
+
+trinex_source_directories(TrinexEngine RECURSIVE
+    "${TRINEX_ENGINE_SRC}/Window/"
+    "${TRINEX_ENGINE_SRC}/Image/"
+    "${TRINEX_ENGINE_SRC}/Graphics/"
+    "${TRINEX_ENGINE_SRC}/Core/"
+    "${TRINEX_ENGINE_SRC}/Sensors/"
+    "${TRINEX_ENGINE_SRC}/ScriptEngine/"
+    "${TRINEX_ENGINE_SRC}/Input/"
+    "${TRINEX_ENGINE_SRC}/NewInput/"
+    "${TRINEX_ENGINE_SRC}/Engine/"
+    "${TRINEX_ENGINE_SRC}/EntryPoints/"
+)
 
 # Compile modules
 add_subdirectory(${TRINEX_ENGINE_ROOT}/libs/)

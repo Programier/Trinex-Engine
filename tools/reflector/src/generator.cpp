@@ -120,9 +120,6 @@ namespace Reflector
 
 	bool generate_source(fs::path path, const Module* module)
 	{
-		if (is_object_empty(module))
-			return true;
-
 		CodeWriter source;
 
 		if (!generate_header(&source, module))

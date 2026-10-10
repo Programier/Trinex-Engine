@@ -47,6 +47,35 @@ function(trinex_sources target)
     target_sources(${target} ${ARGN})
 endfunction()
 
+function(trinex_source_directories target)
+    cmake_parse_arguments(ARG "RECURSIVE" "" "" ${ARGN})
+
+    set(sources "")
+
+    foreach(directory IN LISTS ARG_UNPARSED_ARGUMENTS)
+        get_filename_component(directory "${directory}" ABSOLUTE
+            BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}"
+        )
+
+        if(NOT IS_DIRECTORY "${directory}")
+            message(FATAL_ERROR "Source directory does not exist: ${directory}")
+        endif()
+
+        if(ARG_RECURSIVE)
+            file(GLOB_RECURSE files CONFIGURE_DEPENDS "${directory}/*.cpp")
+        else()
+            file(GLOB files CONFIGURE_DEPENDS "${directory}/*.cpp")
+        endif()
+
+        list(APPEND sources ${files})
+    endforeach()
+
+    if(sources)
+        list(REMOVE_DUPLICATES sources)
+        target_sources(${target} PRIVATE ${sources})
+    endif()
+endfunction()
+
 function(trinex_set_properties target)
     set_target_properties(${target} ${ARGN})
 endfunction()
@@ -142,47 +171,65 @@ function(trinex_reflect target)
         set(ARG_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/reflection/${target}")
     endif()
 
-    add_custom_target(${target}Reflection
+    get_property(reflection_directories TARGET ${target} PROPERTY TRINEX_REFLECTION_DIRECTORIES)
+    get_property(include_directories TARGET ${target} PROPERTY TRINEX_REFLECTION_INCLUDE_DIRECTORIES)
+
+    set(reflection_headers)
+    set(reflection_sources)
+
+    foreach(directory IN LISTS reflection_directories)
+        get_filename_component(directory "${directory}" ABSOLUTE BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+
+        file(GLOB_RECURSE headers CONFIGURE_DEPENDS LIST_DIRECTORIES false "${directory}/*.hpp")
+        list(APPEND reflection_headers ${headers})
+
+        foreach(header IN LISTS headers)
+            file(RELATIVE_PATH relative_path "${directory}" "${header}")
+            string(REGEX REPLACE "\\.hpp$" ".generated.cpp" generated_source "${relative_path}")
+            list(APPEND reflection_sources "${ARG_OUTPUT}/src/${generated_source}")
+        endforeach()
+    endforeach()
+
+    list(REMOVE_DUPLICATES reflection_headers)
+    list(REMOVE_DUPLICATES reflection_sources)
+
+    file(MAKE_DIRECTORY "${ARG_OUTPUT}")
+    string(REPLACE ";" "\n" reflection_inputs "${reflection_headers}")
+    file(GENERATE OUTPUT "${ARG_OUTPUT}/reflection-inputs.txt" CONTENT "${reflection_inputs}\n")
+
+    add_custom_command(
+        OUTPUT "${ARG_OUTPUT}/reflection.bin" ${reflection_sources}
         COMMAND $<TARGET_FILE:TrinexReflector>
             --root "${ARG_ROOT}"
             --output "${ARG_OUTPUT}"
-            --scan-dirs $<TARGET_PROPERTY:${target},TRINEX_REFLECTION_DIRECTORIES>
-            --include-dirs $<TARGET_PROPERTY:${target},TRINEX_REFLECTION_INCLUDE_DIRS>
-        DEPENDS TrinexReflector
+            --scan-dirs ${reflection_directories}
+            --include-dirs ${include_directories}
+        DEPENDS TrinexReflector "${ARG_OUTPUT}/reflection-inputs.txt" ${reflection_headers}
         WORKING_DIRECTORY "${ARG_ROOT}"
         COMMENT "Generating ${target} reflection code"
         COMMAND_EXPAND_LISTS
         VERBATIM
     )
 
+    add_custom_target(${target}Reflection DEPENDS "${ARG_OUTPUT}/reflection.bin" ${reflection_sources})
+
+    trinex_include_directories(${target} PRIVATE "${ARG_OUTPUT}/include")
+    target_sources(${target} PRIVATE ${reflection_sources})
     add_dependencies(${target} ${target}Reflection)
-    target_include_directories(${target} PUBLIC "${ARG_OUTPUT}/include")
 endfunction()
 
 function(trinex_library target)
-    cmake_parse_arguments(ARG "NO_REFLECTION" "REFLECTION_ROOT;REFLECTION_OUTPUT"
-                          "SOURCES" ${ARGN})
+    cmake_parse_arguments(ARG "" "REFLECTION_ROOT;REFLECTION_OUTPUT" "SOURCES" ${ARGN})
 
     add_library(${target} ${ARG_UNPARSED_ARGUMENTS} ${ARG_SOURCES})
-
-    if(NOT ARG_NO_REFLECTION)
-        trinex_reflect(${target}
-            ROOT "${ARG_REFLECTION_ROOT}"
-            OUTPUT "${ARG_REFLECTION_OUTPUT}"
-        )
-    endif()
+    cmake_language(EVAL CODE
+        "cmake_language(DEFER CALL trinex_reflect [=[${target}]=] ROOT [=[${ARG_REFLECTION_ROOT}]=] OUTPUT [=[${ARG_REFLECTION_OUTPUT}]=])")
 endfunction()
 
 function(trinex_executable target)
-    cmake_parse_arguments(ARG "NO_REFLECTION" "REFLECTION_ROOT;REFLECTION_OUTPUT"
-                          "SOURCES" ${ARGN})
+    cmake_parse_arguments(ARG "" "REFLECTION_ROOT;REFLECTION_OUTPUT" "SOURCES" ${ARGN})
 
     add_executable(${target} ${ARG_UNPARSED_ARGUMENTS} ${ARG_SOURCES})
-
-    if(NOT ARG_NO_REFLECTION)
-        trinex_reflect(${target}
-            ROOT "${ARG_REFLECTION_ROOT}"
-            OUTPUT "${ARG_REFLECTION_OUTPUT}"
-        )
-    endif()
+    cmake_language(EVAL CODE
+        "cmake_language(DEFER CALL trinex_reflect [=[${target}]=] ROOT [=[${ARG_REFLECTION_ROOT}]=] OUTPUT [=[${ARG_REFLECTION_OUTPUT}]=])")
 endfunction()
