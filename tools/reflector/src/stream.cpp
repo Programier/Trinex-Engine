@@ -1,143 +1,75 @@
-#include <ostream>
+#include <cassert>
 #include <stream.hpp>
 
 namespace Reflector
 {
-	namespace
+	CodeWriter::Indentation::Indentation(CodeWriter& writer) : m_writer(writer), m_previous_level(writer.indent_level())
 	{
-		class CodeStreamBuf final : public std::streambuf
-		{
-		public:
-			explicit CodeStreamBuf(std::streambuf* destination, std::size_t indent_size = 4)
-			    : m_destination(destination), m_indent_size(indent_size)
-			{}
-
-			void indent() noexcept { ++m_indent; }
-
-			void unindent() noexcept
-			{
-				if (m_indent > 0)
-					--m_indent;
-			}
-
-			std::size_t indent_level() const noexcept { return m_indent; }
-
-			void indent_size(std::size_t size) noexcept { m_indent_size = size; }
-
-		protected:
-			int_type overflow(int_type ch) override
-			{
-				if (traits_type::eq_int_type(ch, traits_type::eof()))
-					return traits_type::not_eof(ch);
-
-				const char c = traits_type::to_char_type(ch);
-
-				if (m_line_start && c != '\n')
-				{
-					const std::size_t count = m_indent * m_indent_size;
-
-					for (std::size_t i = 0; i < count; ++i)
-					{
-						if (traits_type::eq_int_type(m_destination->sputc(' '), traits_type::eof()))
-						{
-							return traits_type::eof();
-						}
-					}
-
-					m_line_start = false;
-				}
-
-				if (traits_type::eq_int_type(m_destination->sputc(c), traits_type::eof()))
-				{
-					return traits_type::eof();
-				}
-
-				if (c == '\n')
-					m_line_start = true;
-
-				return traits_type::to_int_type(c);
-			}
-
-			std::streamsize xsputn(const char* data, std::streamsize count) override
-			{
-				std::streamsize written = 0;
-
-				for (; written < count; ++written)
-				{
-					if (traits_type::eq_int_type(overflow(traits_type::to_int_type(data[written])), traits_type::eof()))
-					{
-						break;
-					}
-				}
-
-				return written;
-			}
-
-			int sync() override { return m_destination->pubsync(); }
-
-		private:
-			std::streambuf* m_destination = nullptr;
-
-			std::size_t m_indent      = 0;
-			std::size_t m_indent_size = 4;
-
-			bool m_line_start = true;
-		};
-
-		class CodeStream final : public std::ostream
-		{
-		public:
-			explicit CodeStream(std::ostream& destination, std::size_t indent_size = 4)
-			    : std::ostream(nullptr), m_destination(destination), m_buffer(destination.rdbuf(), indent_size)
-			{
-				this->init(&m_buffer);
-
-				// Preserve formatting configuration.
-				this->copyfmt(destination);
-			}
-
-			CodeStream(const CodeStream&)            = delete;
-			CodeStream& operator=(const CodeStream&) = delete;
-
-			~CodeStream() override { flush(); }
-
-			void indent() noexcept { m_buffer.indent(); }
-
-			void unindent() noexcept { m_buffer.unindent(); }
-
-			std::size_t indent_level() const noexcept { return m_buffer.indent_level(); }
-
-			void indent_size(std::size_t size) noexcept { m_buffer.indent_size(size); }
-
-			std::ostream& destination() noexcept { return m_destination; }
-
-		private:
-			std::ostream& m_destination;
-			CodeStreamBuf m_buffer;
-		};
-	}// namespace
-
-	std::unique_ptr<std::ostream> code_stream(std::ostream& stream)
-	{
-		return std::make_unique<CodeStream>(stream);
+		m_writer.indent();
 	}
 
-	std::ostream& indent(std::ostream& stream)
+	CodeWriter::Indentation::~Indentation()
 	{
-		if (CodeStream* code = dynamic_cast<CodeStream*>(&stream))
-		{
-			code->indent();
-		}
-
-		return stream;
+		while (m_writer.indent_level() > m_previous_level) m_writer.unindent();
 	}
 
-	std::ostream& unindent(std::ostream& stream)
+	CodeWriter::CodeWriter(std::string_view indent) : m_indent(indent) {}
+
+	CodeWriter& CodeWriter::write(std::string_view text)
 	{
-		if (CodeStream* code = dynamic_cast<CodeStream*>(&stream))
+		for (std::size_t index = 0; index < text.size(); ++index)
 		{
-			code->unindent();
+			char character = text[index];
+			if (character == '\r')
+			{
+				if (index + 1 < text.size() && text[index + 1] == '\n')
+					++index;
+				character = '\n';
+			}
+
+			if (m_line_start && character != '\n')
+			{
+				for (std::size_t level = 0; level < m_indent_level; ++level) m_text += m_indent;
+				m_line_start = false;
+			}
+
+			m_text += character;
+			if (character == '\n')
+				m_line_start = true;
 		}
-		return stream;
+		return *this;
+	}
+
+	CodeWriter& CodeWriter::line(std::string_view text)
+	{
+		return write(text).write("\n");
+	}
+
+	CodeWriter& CodeWriter::indent()
+	{
+		++m_indent_level;
+		return *this;
+	}
+
+	CodeWriter& CodeWriter::unindent()
+	{
+		assert(m_indent_level > 0);
+		--m_indent_level;
+		return *this;
+	}
+
+	std::size_t CodeWriter::indent_level() const noexcept
+	{
+		return m_indent_level;
+	}
+
+	CodeWriter::Indentation CodeWriter::scoped_indent()
+	{
+		return Indentation(*this);
+	}
+
+	std::string_view CodeWriter::text() const noexcept
+	{
+		return m_text;
 	}
 }// namespace Reflector

@@ -1,14 +1,14 @@
-#include <algorithm>
 #include <archive.hpp>
 #include <cassert>
+#include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <generator.hpp>
 #include <iostream>
 #include <model.hpp>
 #include <parser.hpp>
 #include <printer.hpp>
 #include <reflector.hpp>
-
 
 namespace fs = std::filesystem;
 
@@ -121,7 +121,6 @@ namespace Reflector
 		return 0;
 	}
 
-
 	bool Reflector::init(std::span<std::string_view> args)
 	{
 		m_directories.clear();
@@ -199,28 +198,49 @@ namespace Reflector
 				return false;
 			}
 		}
+
+		m_include = m_output / "include";
+		m_sources = m_output / "src";
 		return true;
 	}
 
-	void Reflector::collect_headers()
+	bool Reflector::collect_headers()
 	{
 		for (const DirectoryInfo& dir : m_directories)
 		{
-			if (!fs::exists(dir.path) || !fs::is_directory(dir.path))
+			if (!fs::is_directory(dir.path))
 				continue;
 
 			for (const auto& entry : fs::recursive_directory_iterator(dir.path, fs::directory_options::skip_permission_denied))
 			{
-				if (entry.is_regular_file() && entry.path().extension() == ".hpp")
+				if (!entry.is_regular_file() || entry.path().extension() != ".hpp")
+					continue;
+
+				const fs::path& path = entry.path();
+				fs::path relative    = fs::relative(path, dir.path);
+
+				if (auto it = m_headers.find(relative); it != m_headers.end())
 				{
-					HeaderInfo& info = m_headers.emplace_back();
-					info.path        = fs::relative(entry.path());
-					info.size        = fs::file_size(entry.path());
-					info.timestamp   = entry.last_write_time().time_since_epoch().count();
-					info.external    = dir.external;
+					const fs::path first  = fs::relative(it->directory->path / it->path);
+					const fs::path second = fs::relative(path);
+
+					std::cerr << "Error: Duplicate header path: " << relative << '\n'
+					          << "  First:  " << first << '\n'
+					          << "  Second: " << second << '\n';
+
+					return false;
 				}
+
+				HeaderInfo info;
+				info.path      = std::move(relative);
+				info.directory = &dir;
+				info.size      = entry.file_size();
+				info.timestamp = entry.last_write_time().time_since_epoch().count();
+				m_headers.insert(std::move(info));
 			}
 		}
+
+		return true;
 	}
 
 	void Reflector::load_modules()
@@ -305,10 +325,10 @@ namespace Reflector
 
 	void Reflector::process()
 	{
-		for (HeaderInfo& header : m_headers)
+		for (const HeaderInfo& header : m_headers)
 		{
-			std::cout << "Generating reflection for '" << header.path << "'" << std::endl;
-			std::ifstream file(header.path, std::ios::binary | std::ios::ate);
+			std::cout << "Generating reflection for " << header.path << std::endl;
+			std::ifstream file(header.directory->path / header.path, std::ios::binary | std::ios::ate);
 
 			if (!file.is_open())
 				continue;
@@ -331,13 +351,16 @@ namespace Reflector
 				entry.module    = module;
 				entry.size      = header.size;
 				entry.timestamp = header.timestamp;
+
+				// Generate header
+				generate_header(m_include / header.path, module);
 			}
 		}
 	}
 
 	bool Reflector::is_cache_valid(std::string_view path, std::size_t timestamp, std::size_t size)
 	{
-		auto it = std::find_if(m_headers.begin(), m_headers.end(), [path](const HeaderInfo& info) { return info.path == path; });
+		auto it = m_headers.find(path);
 
 		if (it == m_headers.end())
 			return false;
@@ -345,22 +368,36 @@ namespace Reflector
 		if (it->size != size || it->timestamp != timestamp)
 			return false;
 
-		if (it != std::prev(m_headers.end()))
-			std::swap(*it, m_headers.back());
-
-		m_headers.pop_back();
+		m_headers.erase(it);
 		return true;
 	}
 
 	int Reflector::execute(std::span<std::string_view> args)
 	{
-		if (!init(args))
-			return 1;
+		const auto begin     = std::chrono::steady_clock::now();
+		auto report_duration = [&] {
+			const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - begin);
+			const auto seconds  = std::chrono::duration_cast<std::chrono::seconds>(duration);
+			const auto milliseconds = duration - seconds;
+			std::cout << "Reflector completed in " << seconds.count() << " s " << milliseconds.count() << " ms\n";
+		};
 
-		collect_headers();
+		if (!init(args))
+		{
+			report_duration();
+			return 1;
+		}
+
+		if (!collect_headers())
+		{
+			report_duration();
+			return 1;
+		}
+
 		load_modules();
 		process();
 		save_modules();
+		report_duration();
 		return 0;
 	}
 }// namespace Reflector

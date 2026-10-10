@@ -1,6 +1,7 @@
 #include <model.hpp>
 #include <parser.hpp>
 #include <printer.hpp>
+#include <stream.hpp>
 
 #include <iostream>
 #include <memory>
@@ -22,6 +23,25 @@ namespace
 	T* find(Scope& scope, std::string_view name, ObjectKind kind)
 	{
 		return dynamic_cast<T*>(scope.find(name, kind));
+	}
+
+	bool test_code_writer()
+	{
+		CodeWriter writer("  ");
+		writer.line("namespace Test");
+		writer.line("{");
+		{
+			auto indentation = writer.scoped_indent();
+			writer.write("int value;\r\n\nfloat other;");
+			writer.line();
+		}
+		writer.line("}");
+		if (!expect(writer.text() == "namespace Test\n{\n  int value;\n\n  float other;\n}\n", "code writer formatting"))
+			return false;
+
+		writer.indent().indent().unindent();
+		return expect(writer.indent_level() == 1, "code writer indentation level") &&
+		       expect(writer.write("tail").text().ends_with("  tail"), "code writer writes after indentation changes");
 	}
 
 	bool test_preprocessor_continuations()
@@ -395,6 +415,7 @@ int main()
 	std::cerr.setstate(std::ios::failbit);
 
 	bool success = true;
+	success      = test_code_writer() && success;
 	success      = test_preprocessor_continuations() && success;
 	success      = test_namespace_context() && success;
 	success      = test_complex_declarations() && success;
