@@ -1,5 +1,5 @@
 #include <Core/archive.hpp>
-#include <Core/base_engine.hpp>
+#include <Core/engine.hpp>
 #include <Core/object.hpp>
 #include <Core/pointer.hpp>
 
@@ -10,7 +10,11 @@ namespace Trinex
 
 	static FORCE_INLINE bool can_update_reference()
 	{
-		return engine_instance && !engine_instance->is_shuting_down();
+		if (auto instance = Engine::instance())
+		{
+			return !instance->is_shuting_down();
+		}
+		return false;
 	}
 
 	PointerBase& PointerBase::add_reference(Object* object)

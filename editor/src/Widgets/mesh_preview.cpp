@@ -1,5 +1,5 @@
-#include <Core/base_engine.hpp>
 #include <Core/default_resources.hpp>
+#include <Core/engine.hpp>
 #include <Core/math/math.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/camera_component.hpp>
@@ -133,7 +133,7 @@ namespace Trinex
 		int steps      = ImGui::IsWindowHovered() ? -static_cast<int>(io.MouseWheel) : 0;
 		float fallback = s_default_zooms[steps < 0 ? 0 : 17];
 		m_target_zoom  = match_zoom(steps, fallback);
-		m_current_zoom = Math::lerp(m_current_zoom, m_target_zoom, engine_instance->delta_time() * m_lerp_speed);
+		m_current_zoom = Math::lerp(m_current_zoom, m_target_zoom, Engine::instance()->delta_time() * m_lerp_speed);
 		return *this;
 	}
 
@@ -158,7 +158,7 @@ namespace Trinex
 			});
 		}
 
-		m_current_location = Math::lerp(m_current_location, m_target_location, engine_instance->delta_time() * m_lerp_speed);
+		m_current_location = Math::lerp(m_current_location, m_target_location, Engine::instance()->delta_time() * m_lerp_speed);
 		return *this;
 	}
 

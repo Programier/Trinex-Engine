@@ -8,15 +8,13 @@
 
 namespace Trinex
 {
-	class ENGINE_EXPORT InputSystem : public RefCounted
+	class ENGINE_EXPORT InputSystem final
 	{
 	public:
 		// Return true to consume an event and stop its propagation.
 		using Listener = Delegate<bool(const InputEvent&)>;
 
 	private:
-		static InputSystem* s_instance;
-
 		struct DeviceBinding {
 			Ref<InputDevice> device;
 			DelegateHandle listener;
@@ -77,9 +75,13 @@ namespace Trinex
 		static InputActionPhase evaluate(const InputMapping& mapping, const InputEvent& event, const InputValue& value,
 		                                 MappingState& state);
 
-	public:
+	private:
 		InputSystem();
-		~InputSystem() override;
+		~InputSystem();
+
+	public:
+		trinex_non_copyable(InputSystem);
+		trinex_non_moveable(InputSystem);
 
 		static InputSystem* instance();
 

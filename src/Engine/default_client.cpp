@@ -8,7 +8,7 @@
 #include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 
-#include <Core/base_engine.hpp>
+#include <Core/engine.hpp>
 #include <Engine/Render/scene.hpp>
 #include <Engine/Render/scene_view.hpp>
 #include <Engine/camera_view.hpp>

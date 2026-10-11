@@ -1,4 +1,4 @@
-#include <Core/base_engine.hpp>
+#include <Core/engine.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/reflection/class.hpp>
@@ -19,7 +19,7 @@ namespace Trinex
 				float time;
 				bool update_monitors;
 
-				ImGuiTrinexWindowData() : time(engine_instance->time_seconds()), update_monitors(true) {}
+				ImGuiTrinexWindowData() : time(Engine::instance()->time_seconds()), update_monitors(true) {}
 			};
 
 			struct ImGuiTrinexViewportData {
@@ -79,7 +79,7 @@ namespace Trinex
 				~ImGuiContextSaver() { ImGui::SetCurrentContext(ctx); }
 			};
 
-			#if 0
+#if 0
 			static ImGuiMouseButton imgui_mouse_button_of(MouseButton button)
 			{
 				switch (button)
@@ -308,7 +308,7 @@ namespace Trinex
 				});
 			}
 
-			#endif
+#endif
 
 			template<typename F>
 			static void with_window_context(Identifier window_id, F&& f)
@@ -338,34 +338,57 @@ namespace Trinex
 
 			static ImGuiMouseButton imgui_mouse_button_of(EventCode code)
 			{
-				if (code == EventCode::MouseLeft) return ImGuiMouseButton_Left;
-				if (code == EventCode::MouseMiddle) return ImGuiMouseButton_Middle;
-				if (code == EventCode::MouseRight) return ImGuiMouseButton_Right;
+				if (code == EventCode::MouseLeft)
+					return ImGuiMouseButton_Left;
+				if (code == EventCode::MouseMiddle)
+					return ImGuiMouseButton_Middle;
+				if (code == EventCode::MouseRight)
+					return ImGuiMouseButton_Right;
 				return -1;
 			}
 
 			static ImGuiKey imgui_key_of(EventCode code)
 			{
-				if (code == EventCode::KeyA) return ImGuiKey_A;
-				if (code == EventCode::KeyC) return ImGuiKey_C;
-				if (code == EventCode::KeyV) return ImGuiKey_V;
-				if (code == EventCode::KeyX) return ImGuiKey_X;
-				if (code == EventCode::KeyZ) return ImGuiKey_Z;
-				if (code == EventCode::KeySpace) return ImGuiKey_Space;
-				if (code == EventCode::KeyEnter) return ImGuiKey_Enter;
-				if (code == EventCode::KeyTab) return ImGuiKey_Tab;
-				if (code == EventCode::KeyBackspace) return ImGuiKey_Backspace;
-				if (code == EventCode::KeyDelete) return ImGuiKey_Delete;
-				if (code == EventCode::KeyLeft) return ImGuiKey_LeftArrow;
-				if (code == EventCode::KeyRight) return ImGuiKey_RightArrow;
-				if (code == EventCode::KeyUp) return ImGuiKey_UpArrow;
-				if (code == EventCode::KeyDown) return ImGuiKey_DownArrow;
-				if (code == EventCode::KeyLeftControl) return ImGuiKey_LeftCtrl;
-				if (code == EventCode::KeyRightControl) return ImGuiKey_RightCtrl;
-				if (code == EventCode::KeyLeftShift) return ImGuiKey_LeftShift;
-				if (code == EventCode::KeyRightShift) return ImGuiKey_RightShift;
-				if (code == EventCode::KeyLeftAlt) return ImGuiKey_LeftAlt;
-				if (code == EventCode::KeyRightAlt) return ImGuiKey_RightAlt;
+				if (code == EventCode::KeyA)
+					return ImGuiKey_A;
+				if (code == EventCode::KeyC)
+					return ImGuiKey_C;
+				if (code == EventCode::KeyV)
+					return ImGuiKey_V;
+				if (code == EventCode::KeyX)
+					return ImGuiKey_X;
+				if (code == EventCode::KeyZ)
+					return ImGuiKey_Z;
+				if (code == EventCode::KeySpace)
+					return ImGuiKey_Space;
+				if (code == EventCode::KeyEnter)
+					return ImGuiKey_Enter;
+				if (code == EventCode::KeyTab)
+					return ImGuiKey_Tab;
+				if (code == EventCode::KeyBackspace)
+					return ImGuiKey_Backspace;
+				if (code == EventCode::KeyDelete)
+					return ImGuiKey_Delete;
+				if (code == EventCode::KeyLeft)
+					return ImGuiKey_LeftArrow;
+				if (code == EventCode::KeyRight)
+					return ImGuiKey_RightArrow;
+				if (code == EventCode::KeyUp)
+					return ImGuiKey_UpArrow;
+				if (code == EventCode::KeyDown)
+					return ImGuiKey_DownArrow;
+				if (code == EventCode::KeyLeftControl)
+					return ImGuiKey_LeftCtrl;
+				if (code == EventCode::KeyRightControl)
+					return ImGuiKey_RightCtrl;
+				if (code == EventCode::KeyLeftShift)
+					return ImGuiKey_LeftShift;
+				if (code == EventCode::KeyRightShift)
+					return ImGuiKey_RightShift;
+				if (code == EventCode::KeyLeftAlt)
+					return ImGuiKey_LeftAlt;
+				if (code == EventCode::KeyRightAlt)
+					return ImGuiKey_RightAlt;
 				return ImGuiKey_None;
 			}
 
@@ -436,7 +459,7 @@ namespace Trinex
 				});
 			}
 
-			#if 0
+#if 0
 			class ImGuiEventListener final : public EventListener
 			{
 			public:
@@ -543,7 +566,7 @@ namespace Trinex
 				}
 			}
 
-			#endif
+#endif
 
 			static InputListenerHandle m_listener;
 
@@ -552,7 +575,8 @@ namespace Trinex
 				const Identifier window_id = static_cast<Identifier>(event.window_id);
 				if (event.type == EventType::Press || event.type == EventType::Release || event.type == EventType::Repeat)
 				{
-					if (event.code == EventCode::MouseLeft || event.code == EventCode::MouseMiddle || event.code == EventCode::MouseRight)
+					if (event.code == EventCode::MouseLeft || event.code == EventCode::MouseMiddle ||
+					    event.code == EventCode::MouseRight)
 						on_mouse_button(window_id, event.code, event.type != EventType::Release);
 					else
 						on_keyboard_button(window_id, event.code, event.type != EventType::Release);
@@ -587,8 +611,8 @@ namespace Trinex
 			void enable_events()
 			{
 				if (!m_listener && InputSystem::instance())
-					m_listener = InputSystem::instance()->add_listener(
-					    nullptr, EventType::Undefined, EventCode::Undefined, on_input_event);
+					m_listener = InputSystem::instance()->add_listener(nullptr, EventType::Undefined, EventCode::Undefined,
+					                                                   on_input_event);
 			}
 
 			static FORCE_INLINE Trinex::Window* window_from(ImGuiViewport* vp)
@@ -858,7 +882,7 @@ namespace Trinex
 					if (bd->update_monitors)
 						update_monitors();
 
-					float current_time = engine_instance->time_seconds();
+					float current_time = Engine::instance()->time_seconds();
 					io.DeltaTime       = bd->time > 0.0 ? (current_time - bd->time) : (1.0f / 60.0f);
 					bd->time           = current_time;
 					return *this;

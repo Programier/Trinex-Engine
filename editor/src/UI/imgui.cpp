@@ -1,4 +1,3 @@
-#include <Core/base_engine.hpp>
 #include <Core/editor_resources.hpp>
 #include <Core/etl/engine_resource.hpp>
 #include <Core/etl/templates.hpp>

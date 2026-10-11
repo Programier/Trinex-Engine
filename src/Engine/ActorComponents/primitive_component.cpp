@@ -1,4 +1,3 @@
-#include <Core/base_engine.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/threading.hpp>

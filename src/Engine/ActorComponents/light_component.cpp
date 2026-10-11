@@ -1,4 +1,3 @@
-#include <Core/base_engine.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Core/reflection/property.hpp>

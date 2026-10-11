@@ -1,6 +1,6 @@
 #pragma once
-#include <Core/base_engine.hpp>
 #include <Core/callback.hpp>
+#include <Core/engine.hpp>
 #include <Core/etl/flat_set.hpp>
 
 namespace Trinex
@@ -9,9 +9,9 @@ namespace Trinex
 	class Level;
 	class World;
 
-	class EditorEngine : public BaseEngine
+	class EditorEngine : public Engine
 	{
-		trinex_class(EditorEngine, BaseEngine);
+		trinex_class(EditorEngine, Engine);
 
 	private:
 		FlatSet<Actor*> m_selected_actors;

@@ -1,5 +1,4 @@
 #include <Core/archive.hpp>
-#include <Core/base_engine.hpp>
 #include <Core/default_resources.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>

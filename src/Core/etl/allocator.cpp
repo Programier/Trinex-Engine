@@ -1,4 +1,3 @@
-#include <Core/base_engine.hpp>
 #include <Core/etl/allocator.hpp>
 #include <Core/etl/critical_section.hpp>
 #include <Core/etl/pair.hpp>

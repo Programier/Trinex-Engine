@@ -3,7 +3,7 @@
 
 namespace Trinex::Settings
 {
-	ENGINE_EXPORT String engine_class        = "Trinex::BaseEngine";
+	ENGINE_EXPORT String engine_class        = "Trinex::Engine";
 	ENGINE_EXPORT String default_language    = "eng";
 	ENGINE_EXPORT String current_language    = "eng";
 	ENGINE_EXPORT u32 num_threads            = 0;

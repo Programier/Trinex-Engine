@@ -1,5 +1,4 @@
 #include <Clients/material/material_client.hpp>
-#include <Core/base_engine.hpp>
 #include <Core/default_resources.hpp>
 #include <Core/localization.hpp>
 #include <Core/reflection/class.hpp>

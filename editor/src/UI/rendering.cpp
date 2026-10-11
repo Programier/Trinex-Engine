@@ -1,4 +1,3 @@
-#include <Core/base_engine.hpp>
 #include <Core/math/math.hpp>
 #include <Core/profiler.hpp>
 #include <Core/window.hpp>

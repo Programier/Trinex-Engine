@@ -1,6 +1,6 @@
 #include <Core/arguments.hpp>
-#include <Core/base_engine.hpp>
 #include <Core/constants.hpp>
+#include <Core/engine.hpp>
 #include <Core/engine_loop.hpp>
 #include <Core/entry_point.hpp>
 #include <Core/etl/templates.hpp>
@@ -60,7 +60,7 @@ namespace Trinex
 		Settings::Rendering::force_keep_cpu_resources = true;
 		result                                        = entry->execute();
 
-		engine_instance->request_exit();
+		Engine::instance()->request_exit();
 		return result;
 	}
 
@@ -80,13 +80,13 @@ namespace Trinex
 		Project::initialize();
 
 		Refl::Class* engine_class = Refl::Class::static_find(Settings::engine_class, Refl::FindFlags::IsRequired);
-		engine_instance           = Object::instance_cast<BaseEngine>(engine_class->create_object());
+		// engine_instance           = Object::instance_cast<Engine>(engine_class->create_object());
 
-		if (engine_instance == nullptr)
-		{
-			trinex_error(Log::Core, "Failed to create engine instance!");
-			return -1;
-		}
+		// if (engine_instance == nullptr)
+		// {
+		// 	trinex_error(Log::Core, "Failed to create engine instance!");
+		// 	return -1;
+		// }
 
 		ScriptEngine::load_scripts();
 
@@ -112,14 +112,14 @@ namespace Trinex
 
 		{
 			int result = preinit(argc, argv);
-			if (result != 0 || engine_instance->is_requesting_exit())
+			if (result != 0 || Engine::instance()->is_requesting_exit())
 				return;
 		}
 
 		const bool show_splash = Settings::Splash::show;
 
-		float wait_time = engine_instance->time_seconds();
-		engine_instance->init();
+		float wait_time = Engine::instance()->time_seconds();
+		Engine::instance()->init();
 
 		extern void load_default_resources();
 		load_default_resources();
@@ -135,7 +135,7 @@ namespace Trinex
 		LifeCycle::execute(LifeCycle::ResourcesInit);
 		LifeCycle::execute(LifeCycle::Init);
 
-		wait_time = 2.0f - (engine_instance->time_seconds() - wait_time);
+		wait_time = 2.0f - (Engine::instance()->time_seconds() - wait_time);
 
 		if (wait_time > 0.f)
 		{
@@ -148,7 +148,7 @@ namespace Trinex
 
 	void EngineLoop::update()
 	{
-		engine_instance->update();
+		Engine::instance()->update();
 		Thread::static_self()->execute();
 	}
 
@@ -157,13 +157,12 @@ namespace Trinex
 		trinex_info(Log::Core, "Terminate Engine");
 
 		LifeCycle::execute(LifeCycle::Shutdown);
-		engine_instance->terminate();
+		Engine::instance()->terminate();
 
 		GarbageCollector::destroy_all_objects();
 		RHI::destroy();
 
-		GarbageCollector::destroy(engine_instance);
-		engine_instance = nullptr;
+		GarbageCollector::destroy(Engine::instance());
 
 		LifeCycle::execute(LifeCycle::PostShutdown);
 		destroy_threads();

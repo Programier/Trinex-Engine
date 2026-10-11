@@ -4,23 +4,13 @@
 
 namespace Trinex
 {
-	InputSystem* InputSystem::s_instance = nullptr;
-
-	InputSystem::InputSystem()
-	{
-		trinex_assert(s_instance == nullptr);
-		s_instance = this;
-	}
-
-	InputSystem::~InputSystem()
-	{
-		if (s_instance == this)
-			s_instance = nullptr;
-	}
+	InputSystem::InputSystem() {}
+	InputSystem::~InputSystem() {}
 
 	InputSystem* InputSystem::instance()
 	{
-		return s_instance;
+		static InputSystem system;
+		return &system;
 	}
 
 	InputSystem& InputSystem::add_device(const Ref<InputDevice>& device)

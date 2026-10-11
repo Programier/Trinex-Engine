@@ -6,20 +6,22 @@
 
 namespace Trinex
 {
-	class ENGINE_EXPORT BaseEngine : public EngineResource<Object>
+	class ENGINE_EXPORT Engine : public EngineResource<Object>
 	{
-		trinex_class(BaseEngine, Object);
+		trinex_class(Engine, Object);
 
 		u64 m_frame_index;
 		float m_delta_time;
 		float m_prev_time;
-		Ref<InputSystem> m_input_system;
 
 		u8 m_is_requesting_exit : 1 = false;
 		u8 m_is_shutting_down : 1   = false;
 
 	public:
-		BaseEngine();
+		Engine();
+
+		static Engine* instance();
+		static i32 launch(int argc, char** argv);
 
 		virtual i32 init();
 		virtual i32 update();
@@ -28,9 +30,7 @@ namespace Trinex
 		virtual float max_tick_rate() const;
 		virtual float gamma() const;
 
-		virtual BaseEngine& request_exit();
-		InputSystem* input_system() const { return m_input_system.value(); }
-
+		virtual Engine& request_exit();
 		bool is_requesting_exit() const;
 
 		float time_seconds() const;
@@ -39,6 +39,4 @@ namespace Trinex
 		inline float delta_time() const { return m_delta_time; }
 		inline u64 frame_index() const { return m_frame_index; }
 	};
-
-	ENGINE_EXPORT extern BaseEngine* engine_instance;
 }// namespace Trinex

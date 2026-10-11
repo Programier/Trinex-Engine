@@ -1,4 +1,4 @@
-#include <Core/base_engine.hpp>
+#include <Core/engine.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/threading.hpp>
@@ -36,8 +36,8 @@ namespace Trinex
 		{
 			if (!s_viewport_input_listener && InputSystem::instance())
 			{
-				s_viewport_input_listener = InputSystem::instance()->add_listener(
-				    nullptr, EventType::Undefined, EventCode::Undefined, dispatch_viewport_input);
+				s_viewport_input_listener = InputSystem::instance()->add_listener(nullptr, EventType::Undefined,
+				                                                                  EventCode::Undefined, dispatch_viewport_input);
 			}
 		}
 	}// namespace

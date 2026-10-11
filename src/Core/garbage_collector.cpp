@@ -1,4 +1,4 @@
-#include <Core/base_engine.hpp>
+#include <Core/engine.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/math/math.hpp>
 #include <Core/object.hpp>
@@ -39,7 +39,9 @@ namespace Trinex
 		if (object == nullptr)
 			return;
 
-		if (engine_instance && !engine_instance->is_shuting_down())
+		auto engine = Engine::instance();
+
+		if (engine && !engine->is_shuting_down())
 		{
 			if (!object->is_noname())
 			{

@@ -1,4 +1,4 @@
-#include <Core/base_engine.hpp>
+#include <Core/engine.hpp>
 #include <Core/etl/allocator.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/profiler.hpp>
@@ -15,6 +15,7 @@ namespace Trinex
 {
 	namespace
 	{
+		static Engine* s_instance = nullptr;
 		FORCE_INLINE std::chrono::high_resolution_clock::time_point current_time_point()
 		{
 			return std::chrono::high_resolution_clock::now();
@@ -23,39 +24,48 @@ namespace Trinex
 		std::chrono::high_resolution_clock::time_point start_time;
 	}// namespace
 
-	trinex_implement_engine_class_default_init(BaseEngine, 0);
+	trinex_implement_engine_class_default_init(Engine, 0);
 
 
-	BaseEngine::BaseEngine()
+	Engine::Engine()
 	{
 		start_time    = current_time_point();
 		m_frame_index = 0;
 		m_prev_time   = 0.f;
-		m_input_system = Ref<InputSystem>::make();
 
 		flags.set(Flags::StandAlone);
 		flags.remove(Flags::IsAvailableForGC);
 
-		m_input_system->add_listener(nullptr, EventType::Quit, EventCode::Undefined,
-		                             [this](const InputEvent&) { return request_exit(), true; });
+		InputSystem::instance()->add_listener(nullptr, EventType::Quit, EventCode::Undefined,
+		                                      [this](const InputEvent&) { return request_exit(), true; });
 	}
 
-	i32 BaseEngine::init()
+	Engine* Engine::instance()
+	{
+		return s_instance;
+	}
+
+	i32 Engine::launch(int argc, char** argv)
 	{
 		return 0;
 	}
 
-	i32 BaseEngine::update()
+	i32 Engine::init()
+	{
+		return 0;
+	}
+
+	i32 Engine::update()
 	{
 		trinex_profile_frame_mark();
-		trinex_profile_cpu_n("BaseEngine::update");
+		trinex_profile_cpu_n("Engine::update");
 
 		auto current_time = time_seconds();
 
 		m_delta_time = current_time - m_prev_time;
 		m_prev_time  = current_time;
 		++m_frame_index;
-		m_input_system->begin_frame().update(m_delta_time);
+		InputSystem::instance()->begin_frame().update(m_delta_time);
 
 		GarbageCollector::update(m_delta_time);
 
@@ -86,47 +96,47 @@ namespace Trinex
 		return 0;
 	}
 
-	i32 BaseEngine::terminate()
+	i32 Engine::terminate()
 	{
 		m_is_shutting_down = true;
 		return 0;
 	}
 
-	StringView BaseEngine::application_name() const
+	StringView Engine::application_name() const
 	{
 		return "Trinex Example";
 	}
 
-	float BaseEngine::max_tick_rate() const
+	float Engine::max_tick_rate() const
 	{
 		return 60.f;
 	}
 
-	float BaseEngine::gamma() const
+	float Engine::gamma() const
 	{
 		return 1.f;
 	}
 
-	BaseEngine& BaseEngine::request_exit()
+	Engine& Engine::request_exit()
 	{
 		m_is_requesting_exit = true;
 		return *this;
 	}
 
-	bool BaseEngine::is_requesting_exit() const
+	bool Engine::is_requesting_exit() const
 	{
 		return m_is_requesting_exit;
 	}
 
-	bool BaseEngine::is_shuting_down() const
+	bool Engine::is_shuting_down() const
 	{
 		return m_is_shutting_down;
 	}
 
-	float BaseEngine::time_seconds() const
+	float Engine::time_seconds() const
 	{
 		return std::chrono::duration_cast<std::chrono::duration<float>>(current_time_point() - start_time).count();
 	}
 
-	ENGINE_EXPORT BaseEngine* engine_instance = nullptr;
+	ENGINE_EXPORT Engine* engine_instance = nullptr;
 }// namespace Trinex

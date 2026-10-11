@@ -1,5 +1,4 @@
 #include <Clients/texture_editor_client.hpp>
-#include <Core/base_engine.hpp>
 #include <Core/default_resources.hpp>
 #include <Core/editor_resources.hpp>
 #include <Core/reflection/class.hpp>

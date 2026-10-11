@@ -1,4 +1,4 @@
-#include <Core/base_engine.hpp>
+#include <Core/engine.hpp>
 #include <Core/math/math.hpp>
 #include <Engine/Render/scene.hpp>
 #include <Engine/Render/scene_view.hpp>
@@ -53,8 +53,8 @@ namespace Trinex
 			}
 		}
 
-		time       = engine_instance->time_seconds();
-		delta_time = engine_instance->delta_time();
+		time       = Engine::instance()->time_seconds();
+		delta_time = Engine::instance()->delta_time();
 		return *this;
 	}
 }// namespace Trinex
