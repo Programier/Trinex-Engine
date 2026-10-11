@@ -21,14 +21,4 @@ namespace Trinex::Platform
 	{
 		return LinuxMemory::instance();
 	}
-
-	InputSystem* LinuxContext::input_system()
-	{
-		return nullptr;
-	}
-
-	EventLoop* LinuxContext::event_loop()
-	{
-		return nullptr;
-	}
 }// namespace Trinex::Platform

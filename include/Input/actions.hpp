@@ -34,7 +34,7 @@ namespace Trinex
 
 	struct InputControl {
 		InputDeviceType device_type = InputDeviceType::Undefined;
-		u32 device_id               = 0;
+		InputDevice* device         = nullptr;
 		EventType type              = EventType::Undefined;
 		EventCode code              = EventCode::Undefined;
 	};

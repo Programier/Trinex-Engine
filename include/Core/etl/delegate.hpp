@@ -26,7 +26,14 @@ namespace Trinex
 		    : m_object(const_cast<void*>(static_cast<const void*>(__builtin_addressof(func)))),
 		      m_caller([](void* object, Args... args) -> R {
 			      using Fn = etl::remove_reference_t<F>;
-			      return (*static_cast<Fn*>(object))(static_cast<Args&&>(args)...);
+			      if constexpr (etl::is_void_v<R>)
+			      {
+				      (*static_cast<Fn*>(object))(static_cast<Args&&>(args)...);
+			      }
+			      else
+			      {
+				      return (*static_cast<Fn*>(object))(static_cast<Args&&>(args)...);
+			      }
 		      })
 		{}
 
@@ -57,6 +64,28 @@ namespace Trinex
 		mutable Context m_context = {};
 
 	protected:
+		template<typename T>
+		static void retain_context(T* object) noexcept
+		{
+			using ObjectType = etl::remove_cvref_t<T>;
+
+			if constexpr (etl::is_base_of_v<RefCounted, ObjectType>)
+			{
+				static_cast<RefCounted*>(const_cast<ObjectType*>(object))->add_ref();
+			}
+		}
+
+		template<typename T>
+		static void release_context(T* object) noexcept
+		{
+			using ObjectType = etl::remove_cvref_t<T>;
+
+			if constexpr (etl::is_base_of_v<RefCounted, ObjectType>)
+			{
+				static_cast<RefCounted*>(const_cast<ObjectType*>(object))->release();
+			}
+		}
+
 		template<typename... Args>
 		static void dummy(Args...)
 		{}
@@ -78,6 +107,36 @@ namespace Trinex
 		static void static_destroy_of(DelegateBase* self)
 		{
 			self->m_context.destroy<T>();
+		}
+
+		template<typename T>
+		static void context_copy_of(DelegateBase* self, const DelegateBase* src)
+		{
+			T* object = src->m_context.as<T*>();
+			self->m_context.construct<T*>(object);
+			retain_context(object);
+		}
+
+		template<typename T>
+		static void context_release_of(DelegateBase* self)
+		{
+			release_context(self->m_context.as<T*>());
+		}
+
+		template<typename Method, typename T>
+		static void method_context_copy_of(DelegateBase* self, const DelegateBase* src)
+		{
+			using MethodContext = PointerMethodContext<Method, T>;
+			auto context        = src->m_context.as<MethodContext>();
+			self->m_context.construct<MethodContext>(context);
+			retain_context(context.object);
+		}
+
+		template<typename Method, typename T>
+		static void method_context_release_of(DelegateBase* self)
+		{
+			using MethodContext = PointerMethodContext<Method, T>;
+			release_context(self->m_context.as<MethodContext>().object);
 		}
 
 		template<typename T>
@@ -123,7 +182,16 @@ namespace Trinex
 		static const ContextManager* static_function_manager()
 		{
 			static const ContextManager manager = {
-			        .invoke  = [](const Delegate*, Args... args) -> R { return func(etl::forward<Args>(args)...); },
+			        .invoke = [](const Delegate*, Args... args) -> R {
+				        if constexpr (etl::is_void_v<R>)
+				        {
+					        func(etl::forward<Args>(args)...);
+				        }
+				        else
+				        {
+					        return func(etl::forward<Args>(args)...);
+				        }
+			        },
 			        .copy    = DelegateBase::dummy,
 			        .move    = DelegateBase::dummy,
 			        .release = DelegateBase::dummy,
@@ -136,7 +204,14 @@ namespace Trinex
 		{
 			static const ContextManager manager = {
 			        .invoke = [](const Delegate* delegate, Args... args) -> R {
-				        return delegate->m_context.as<R (*)(Args...)>()(etl::forward<Args>(args)...);
+				        if constexpr (etl::is_void_v<R>)
+				        {
+					        delegate->m_context.as<R (*)(Args...)>()(etl::forward<Args>(args)...);
+				        }
+				        else
+				        {
+					        return delegate->m_context.as<R (*)(Args...)>()(etl::forward<Args>(args)...);
+				        }
 			        },
 			        .copy    = DelegateBase::static_copy_of<R (*)(Args...)>,
 			        .move    = DelegateBase::static_move_of<R (*)(Args...)>,
@@ -152,11 +227,18 @@ namespace Trinex
 			static const ContextManager manager = {
 			        .invoke = [](const Delegate* delegate, Args... args) -> R {
 				        T* object = delegate->m_context.as<T*>();
-				        return (object->*method)(etl::forward<Args>(args)...);
+				        if constexpr (etl::is_void_v<R>)
+				        {
+					        (object->*method)(etl::forward<Args>(args)...);
+				        }
+				        else
+				        {
+					        return (object->*method)(etl::forward<Args>(args)...);
+				        }
 			        },
-			        .copy    = DelegateBase::static_copy_of<T*>,
+			        .copy    = DelegateBase::context_copy_of<T>,
 			        .move    = DelegateBase::static_move_of<T*>,
-			        .release = DelegateBase::dummy,
+			        .release = DelegateBase::context_release_of<T>,
 			};
 
 			return &manager;
@@ -170,11 +252,18 @@ namespace Trinex
 			static const ContextManager manager = {
 			        .invoke = [](const Delegate* delegate, Args... args) -> R {
 				        auto [method, object] = delegate->m_context.as<MethodContext>();
-				        return (object->*method)(etl::forward<Args>(args)...);
+				        if constexpr (etl::is_void_v<R>)
+				        {
+					        (object->*method)(etl::forward<Args>(args)...);
+				        }
+				        else
+				        {
+					        return (object->*method)(etl::forward<Args>(args)...);
+				        }
 			        },
-			        .copy    = DelegateBase::static_copy_of<MethodContext>,
+			        .copy    = DelegateBase::method_context_copy_of<Method, T>,
 			        .move    = DelegateBase::static_move_of<MethodContext>,
-			        .release = DelegateBase::dummy,
+			        .release = DelegateBase::method_context_release_of<Method, T>,
 			};
 
 			return &manager;
@@ -186,7 +275,14 @@ namespace Trinex
 			static const ContextManager manager = {
 			        .invoke = [](const Delegate* delegate, Args... args) -> R {
 				        F& context = delegate->m_context.as<F>();
-				        return context(etl::forward<Args>(args)...);
+				        if constexpr (etl::is_void_v<R>)
+				        {
+					        context(etl::forward<Args>(args)...);
+				        }
+				        else
+				        {
+					        return context(etl::forward<Args>(args)...);
+				        }
 			        },
 			        .copy    = DelegateBase::static_copy_of<F>,
 			        .move    = DelegateBase::static_move_of<F>,
@@ -202,7 +298,14 @@ namespace Trinex
 			static const ContextManager manager = {
 			        .invoke = [](const Delegate* delegate, Args... args) -> R {
 				        F* context = delegate->m_context.as<F*>();
-				        return (*context)(etl::forward<Args>(args)...);
+				        if constexpr (etl::is_void_v<R>)
+				        {
+					        (*context)(etl::forward<Args>(args)...);
+				        }
+				        else
+				        {
+					        return (*context)(etl::forward<Args>(args)...);
+				        }
 			        },
 
 			        .copy    = DelegateBase::heap_copy_of<F>,
@@ -247,6 +350,39 @@ namespace Trinex
 		Delegate(F&& func)
 		{
 			bind(etl::forward<F>(func));
+		}
+
+		static Delegate from(FunctionPtr func) noexcept { return Delegate(func); }
+
+		template<auto func>
+		    requires(!etl::is_member_function_pointer_v<decltype(func)> && etl::is_invocable_r_v<R, decltype(func), Args...>)
+		static Delegate from() noexcept
+		{
+			return Delegate(DelegateTag<func>{});
+		}
+
+		template<auto method, typename T>
+		    requires(!etl::is_volatile_v<T> && etl::is_member_function_pointer_v<decltype(method)> &&
+		             etl::is_invocable_r_v<R, decltype(method), T&, Args...>)
+		static Delegate from(T* object) noexcept
+		{
+			return Delegate(object, DelegateTag<method>{});
+		}
+
+		template<typename T, typename Method>
+		    requires(etl::is_member_function_pointer_v<etl::decay_t<Method>> &&
+		             etl::is_invocable_r_v<R, etl::decay_t<Method>, T*, Args...>)
+		static Delegate from(T* object, Method&& method) noexcept
+		{
+			return Delegate(object, etl::forward<Method>(method));
+		}
+
+		template<typename F>
+		    requires(!etl::same_as<etl::decay_t<F>, Delegate> && !etl::is_member_function_pointer_v<etl::decay_t<F>> &&
+		             etl::is_invocable_r_v<R, etl::decay_t<F>&, Args...>)
+		static Delegate from(F&& func)
+		{
+			return Delegate(etl::forward<F>(func));
 		}
 
 		Delegate(const Delegate& other) : m_manager(other.m_manager)
@@ -380,6 +516,7 @@ namespace Trinex
 				return;
 			}
 
+			retain_context(object);
 			m_context.as<T*>() = object;
 			m_manager          = static_method_manager<method, T>();
 		}
@@ -395,6 +532,7 @@ namespace Trinex
 				return;
 			}
 
+			retain_context(object);
 			m_context.as<PointerMethodContext<Method, T>>() = {method, object};
 			m_manager                                       = pointer_method_manager<T, Method>();
 		}

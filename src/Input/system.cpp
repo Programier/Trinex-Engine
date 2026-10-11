@@ -25,9 +25,11 @@ namespace Trinex
 
 	InputSystem& InputSystem::add_device(const Ref<InputDevice>& device)
 	{
-		if (device && etl::find(m_devices.begin(), m_devices.end(), device) == m_devices.end())
+		if (device && etl::find(m_devices.begin(), m_devices.end(), device.value()) == m_devices.end())
 		{
-			m_devices.emplace_back(device);
+			auto& entry    = m_devices.emplace_back();
+			entry.device   = device;
+			entry.listener = device->on_event.add<&InputSystem::dispatch>(this);
 		}
 
 		return *this;
@@ -41,6 +43,7 @@ namespace Trinex
 
 		if (it != m_devices.end())
 		{
+			it->device->on_event.remove(it->listener);
 			m_devices.erase_unordered(it);
 		}
 
@@ -72,24 +75,6 @@ namespace Trinex
 		return *this;
 	}
 
-	InputDevice* InputSystem::device(u32 id)
-	{
-		return const_cast<InputDevice*>(static_cast<const InputSystem*>(this)->device(id));
-	}
-
-	const InputDevice* InputSystem::device(u32 id) const
-	{
-		for (const Ref<InputDevice>& device : m_devices)
-		{
-			if (device && device->id() == id)
-			{
-				return device.value();
-			}
-		}
-
-		return nullptr;
-	}
-
 	const InputEvent* InputSystem::state(const InputDevice* device, EventCode code) const
 	{
 		if (!device || !code)
@@ -110,10 +95,6 @@ namespace Trinex
 		return nullptr;
 	}
 
-	const InputEvent* InputSystem::state(u32 device_id, EventCode code) const
-	{
-		return state(device(device_id), code);
-	}
 
 	bool InputSystem::is_pressed(const InputDevice* device, EventCode code) const
 	{
@@ -122,16 +103,11 @@ namespace Trinex
 		                 (event->value.type == InputValueType::Boolean && event->value.is_active()));
 	}
 
-	bool InputSystem::is_pressed(u32 device_id, EventCode code) const
-	{
-		return is_pressed(device(device_id), code);
-	}
-
 	bool InputSystem::is_pressed(EventCode code) const
 	{
-		for (const Ref<InputDevice>& device : m_devices)
+		for (const DeviceBinding& device : m_devices)
 		{
-			if (is_pressed(device.value(), code))
+			if (is_pressed(device.device.value(), code))
 				return true;
 		}
 
@@ -148,16 +124,11 @@ namespace Trinex
 		return {};
 	}
 
-	InputValue InputSystem::value(u32 device_id, EventCode code) const
-	{
-		return value(device(device_id), code);
-	}
-
 	InputValue InputSystem::value(EventCode code) const
 	{
-		for (const Ref<InputDevice>& device : m_devices)
+		for (const DeviceBinding& device : m_devices)
 		{
-			if (InputValue result = value(device.value(), code); result.type != InputValueType::Undefined)
+			if (InputValue result = value(device.device.value(), code); result.type != InputValueType::Undefined)
 				return result;
 		}
 
@@ -392,7 +363,7 @@ namespace Trinex
 			}
 		}
 
-		return matching_type && (!control.device_id || (event.device && event.device->id() == control.device_id)) &&
+		return matching_type && (!control.device || (event.device && event.device == control.device)) &&
 		       (!control.type || control.type == event.type) && (!control.code || control.code == event.code);
 	}
 

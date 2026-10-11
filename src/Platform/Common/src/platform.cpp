@@ -37,11 +37,6 @@ namespace Trinex::Platform
 		return Context::instance()->input_system();
 	}
 
-	EventLoop* EventLoop::instance()
-	{
-		return Context::instance()->event_loop();
-	}
-
 	LibraryLoader* LibraryLoader::instance()
 	{
 		return Context::instance()->library_loader();

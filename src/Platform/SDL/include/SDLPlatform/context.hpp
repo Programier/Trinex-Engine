@@ -16,5 +16,7 @@ namespace Trinex::Platform
 		MonitorSystem* monitor_system() override;
 		DialogSystem* dialog_system() override;
 		WindowSystem* window_system() override;
+		InputSystem* input_system() override;
+		void update() override;
 	};
 }// namespace Trinex::Platform

@@ -2,6 +2,7 @@
 #include <SDLPlatform/clipboard.hpp>
 #include <SDLPlatform/context.hpp>
 #include <SDLPlatform/dialog.hpp>
+#include <SDLPlatform/input.hpp>
 #include <SDLPlatform/library.hpp>
 #include <SDLPlatform/monitor.hpp>
 #include <SDLPlatform/process.hpp>
@@ -12,7 +13,7 @@ namespace Trinex::Platform
 {
 	SDLContext::SDLContext()
 	{
-		SDL_Init(SDL_INIT_VIDEO);
+		SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD);
 	}
 
 	SDLContext::~SDLContext()
@@ -53,5 +54,15 @@ namespace Trinex::Platform
 	WindowSystem* SDLContext::window_system()
 	{
 		return SDLWindowSystem::instance();
+	}
+
+	InputSystem* SDLContext::input_system()
+	{
+		return SDLInputSystem::instance();
+	}
+
+	void SDLContext::update()
+	{
+		SDLInputSystem::instance()->update();
 	}
 }// namespace Trinex::Platform

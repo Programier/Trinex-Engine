@@ -10,7 +10,5 @@ namespace Trinex::Platform
 
 		System* system() override;
 		Memory* memory() override;
-		InputSystem* input_system() override;
-		EventLoop* event_loop() override;
 	};
 }// namespace Trinex::Platform

@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/etl/vector.hpp>
+#include <Core/ref_counted.hpp>
 
 namespace Trinex
 {
@@ -15,8 +16,10 @@ namespace Trinex::Platform
 
 		virtual ~InputSystem() = default;
 
-		virtual bool devices(Vector<InputDevice>* out) const  = 0;
+		virtual usize devices() const                        = 0;
+		virtual WeakRef<InputDevice> device(usize idx) const = 0;
+
 		virtual bool text_input_enabled() const               = 0;
-		virtual InputSystem* text_input_enabled(bool enabled) = 0;
+		virtual InputSystem& text_input_enabled(bool enabled) = 0;
 	};
 }// namespace Trinex::Platform

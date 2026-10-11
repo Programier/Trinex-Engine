@@ -1,7 +1,6 @@
 #pragma once
 #include <Platform/clipboard.hpp>
 #include <Platform/dialogs.hpp>
-#include <Platform/events.hpp>
 #include <Platform/input.hpp>
 #include <Platform/library.hpp>
 #include <Platform/memory.hpp>
@@ -29,11 +28,11 @@ namespace Trinex::Platform
 		virtual MonitorSystem* monitor_system() = 0;
 		virtual WindowSystem* window_system()   = 0;
 		virtual InputSystem* input_system()     = 0;
-		virtual EventLoop* event_loop()         = 0;
 		virtual LibraryLoader* library_loader() = 0;
 		virtual ProcessSystem* process_system() = 0;
 		virtual ThreadSystem* thread_system()   = 0;
 		virtual DialogSystem* dialog_system()   = 0;
 		virtual Clipboard* clipboard()          = 0;
+		virtual void update()                   = 0;
 	};
 }// namespace Trinex::Platform

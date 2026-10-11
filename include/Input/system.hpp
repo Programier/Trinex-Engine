@@ -17,6 +17,14 @@ namespace Trinex
 	private:
 		static InputSystem* s_instance;
 
+		struct DeviceBinding {
+			Ref<InputDevice> device;
+			DelegateHandle listener;
+
+			inline bool operator==(const InputDevice* other) const noexcept { return device == other; }
+			inline bool operator!=(const InputDevice* other) const noexcept { return device != other; }
+		};
+
 		struct ListenerBinding {
 			InputDevice* device;
 			EventType type;
@@ -26,10 +34,6 @@ namespace Trinex
 			mutable bool enabled = true;
 		};
 
-	private:
-		Vector<Ref<InputDevice>> m_devices;
-		Vector<ListenerBinding> m_listeners;
-		Vector<ListenerBinding> m_pending_listeners;
 		struct MappingState {
 			Ref<InputContext> context;
 			usize mapping_index  = 0;
@@ -50,6 +54,10 @@ namespace Trinex
 			bool blocks_lower_priority = false;
 		};
 
+	private:
+		Vector<DeviceBinding> m_devices;
+		Vector<ListenerBinding> m_listeners;
+		Vector<ListenerBinding> m_pending_listeners;
 		Vector<ActiveInputContext> m_contexts;
 		Vector<MappingState> m_mapping_states;
 		Vector<InputActionState> m_action_states;
@@ -77,16 +85,10 @@ namespace Trinex
 
 		InputSystem& add_device(const Ref<InputDevice>& device);
 		InputSystem& remove_device(const InputDevice* device);
-		const Vector<Ref<InputDevice>>& devices() const { return m_devices; }
-		InputDevice* device(u32 id);
-		const InputDevice* device(u32 id) const;
 		const InputEvent* state(const InputDevice* device, EventCode code) const;
-		const InputEvent* state(u32 device_id, EventCode code) const;
 		bool is_pressed(const InputDevice* device, EventCode code) const;
-		bool is_pressed(u32 device_id, EventCode code) const;
 		bool is_pressed(EventCode code) const;
 		InputValue value(const InputDevice* device, EventCode code) const;
-		InputValue value(u32 device_id, EventCode code) const;
 		InputValue value(EventCode code) const;
 
 		InputListenerHandle add_listener(InputDevice* device, EventType type, EventCode code, const Listener& listener);
