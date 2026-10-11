@@ -10,6 +10,7 @@
 #include <Engine/camera_view.hpp>
 #include <Graphics/editor_scene_renderer.hpp>
 #include <Graphics/render_viewport.hpp>
+#include <Input/types.hpp>
 #include <Widgets/imgui_windows.hpp>
 #include <Widgets/property_renderer.hpp>
 
@@ -21,8 +22,7 @@ namespace ImGuizmo
 
 namespace Trinex
 {
-	class EventListener;
-	struct PointerEvent;
+	struct InputEvent;
 
 	struct EditorState {
 		struct {
@@ -114,7 +114,7 @@ namespace Trinex
 	private:
 		Pointer<World> m_world;
 
-		EventListener* m_pointer_event_listener = nullptr;
+		InputListenerHandle m_input_listener;
 
 		Identifier m_on_actor_select_callback_id   = 0;
 		Identifier m_on_actor_unselect_callback_id = 0;
@@ -170,9 +170,10 @@ namespace Trinex
 		EditorClientOLD& select_actors(const Vector2f& uv);
 
 		// Inputs
-		void on_mouse_press(const PointerEvent& event);
-		void on_mouse_release(const PointerEvent& event);
-		void on_mouse_move(const PointerEvent& event);
+		bool on_input_event(const InputEvent& event);
+		void on_mouse_press(const InputEvent& event);
+		void on_mouse_release(const InputEvent& event);
+		void on_mouse_move(const InputEvent& event);
 
 		EditorClientOLD& select(Object* object) override;
 	};

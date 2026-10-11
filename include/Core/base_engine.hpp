@@ -2,6 +2,7 @@
 
 #include <Core/etl/engine_resource.hpp>
 #include <Core/object.hpp>
+#include <Input/system.hpp>
 
 namespace Trinex
 {
@@ -12,6 +13,7 @@ namespace Trinex
 		u64 m_frame_index;
 		float m_delta_time;
 		float m_prev_time;
+		Ref<InputSystem> m_input_system;
 
 		u8 m_is_requesting_exit : 1 = false;
 		u8 m_is_shutting_down : 1   = false;
@@ -27,6 +29,7 @@ namespace Trinex
 		virtual float gamma() const;
 
 		virtual BaseEngine& request_exit();
+		InputSystem* input_system() const { return m_input_system.value(); }
 
 		bool is_requesting_exit() const;
 

@@ -7,47 +7,10 @@
 #include <Core/viewport_client.hpp>
 #include <Core/window.hpp>
 #include <Graphics/render_viewport.hpp>
-#include <Input/event_system.hpp>
 #include <Platform/platform.hpp>
 
 namespace Trinex
 {
-	struct WindowEventListener final : EventListener {
-		EventDispatchResult on_event(RoutedEvent& event) override
-		{
-			auto* payload = reinterpret_cast<const WindowEvent*>(event.payload);
-			if (payload == nullptr)
-				return {};
-
-			Ref<Window> window = Window::find(event.header.window_id);
-
-			if (window == nullptr)
-				return {};
-
-			switch (payload->kind)
-			{
-				case WindowEventKind::Resized:
-				{
-					if (RenderViewport* viewport = window->render_viewport())
-					{
-						viewport->on_resize({payload->size.x, payload->size.y});
-					}
-					break;
-				}
-
-				case WindowEventKind::CloseRequested:
-				{
-					break;
-				}
-
-				default: break;
-			}
-
-			return {};
-		}
-	};
-
-	static WindowEventListener s_window_event_listener;
 	static WindowDesc s_config;
 
 	trinex_on_pre_init()
@@ -59,23 +22,6 @@ namespace Trinex
 		static Console::VariableRef monitor(&s_config.monitor, "window.monitor");
 		//static Console::VariableRef attributes(&s_config.attributes, "window.attributes");
 	}
-
-	struct WindowsState {
-		static WindowsState& instance()
-		{
-			static WindowsState s_state = []() {
-				if (EventSystem* event_system = EventSystem::instance())
-				{
-					event_system->dispatcher().add_listener(EventTypeIds::Window, &s_window_event_listener);
-				}
-
-				WindowsState state;
-				return state;
-			}();
-
-			return s_state;
-		}
-	};
 
 	ENGINE_EXPORT const WindowDesc& WindowDesc::from_config()
 	{

@@ -21,7 +21,7 @@
 #include <Graphics/texture.hpp>
 #include <ImGuizmo.h>
 #include <ImViewGuizmo.h>
-#include <Input/input_system.hpp>
+#include <Input/system.hpp>
 #include <Platform/platform.hpp>
 #include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
@@ -36,40 +36,6 @@
 
 namespace Trinex
 {
-	namespace
-	{
-		class EditorPointerListener final : public EventListener
-		{
-		private:
-			EditorClientOLD* m_owner = nullptr;
-
-		public:
-			explicit EditorPointerListener(EditorClientOLD* owner) : m_owner(owner) {}
-
-			EventDispatchResult on_event(RoutedEvent& event) override
-			{
-				if (m_owner == nullptr || m_owner->window() == nullptr || m_owner->window()->window() == nullptr)
-					return {};
-
-				if (event.header.window_id != m_owner->window()->window()->id())
-					return {};
-
-				auto* payload = reinterpret_cast<const PointerEvent*>(event.payload);
-				if (payload == nullptr)
-					return {};
-
-				switch (payload->kind)
-				{
-					case PointerEventKind::Moved: m_owner->on_mouse_move(*payload); break;
-					case PointerEventKind::ButtonPressed: m_owner->on_mouse_press(*payload); break;
-					case PointerEventKind::ButtonReleased: m_owner->on_mouse_release(*payload); break;
-					default: break;
-				}
-
-				return {};
-			}
-		};
-	}// namespace
 
 	EditorState::EditorState()
 	{
@@ -341,10 +307,10 @@ namespace Trinex
 		camera->location({0, 3.f, -3.f});
 		camera->look_at({0.f, 0.f, 0.f});
 
-		if (m_pointer_event_listener == nullptr)
+		if (!m_input_listener && InputSystem::instance())
 		{
-			m_pointer_event_listener = trx_new EditorPointerListener(this);
-			EventSystem::instance()->dispatcher().add_listener(EventTypeIds::Pointer, m_pointer_event_listener);
+			m_input_listener = InputSystem::instance()->add_listener(
+			    nullptr, EventType::Undefined, EventCode::Undefined, [this](const InputEvent& event) { return on_input_event(event); });
 		}
 		return *this;
 	}
@@ -358,15 +324,10 @@ namespace Trinex
 
 		m_world->stop_play();
 
-		if (m_pointer_event_listener)
+		if (m_input_listener && InputSystem::instance())
 		{
-			if (EventSystem* event_system = EventSystem::instance())
-			{
-				event_system->dispatcher().remove_listener(EventTypeIds::Pointer, m_pointer_event_listener);
-			}
-
-			trx_delete m_pointer_event_listener;
-			m_pointer_event_listener = nullptr;
+			InputSystem::instance()->remove_listener(m_input_listener);
+			m_input_listener.reset();
 		}
 
 		return *this;
@@ -546,7 +507,7 @@ namespace Trinex
 		render_viewport_window();
 
 		InputSystem* input        = InputSystem::instance();
-		const bool delete_pressed = input->is_scan_code_pressed_for_user(ScanCode::Delete);
+		const bool delete_pressed = input && input->is_pressed(EventCode::KeyDelete);
 
 		if (m_delete_was_pressed && !delete_pressed)
 		{
@@ -877,10 +838,10 @@ namespace Trinex
 			return;
 
 		InputSystem* input = InputSystem::instance();
-		move.z += input->is_scan_code_pressed_for_user(ScanCode::W) ? 1.f : 0.f;
-		move.x += input->is_scan_code_pressed_for_user(ScanCode::D) ? 1.f : 0.f;
-		move.z += input->is_scan_code_pressed_for_user(ScanCode::S) ? -1.f : 0.f;
-		move.x += input->is_scan_code_pressed_for_user(ScanCode::A) ? -1.f : 0.f;
+		move.z += input && input->is_pressed(EventCode::KeyW) ? 1.f : 0.f;
+		move.x += input && input->is_pressed(EventCode::KeyD) ? 1.f : 0.f;
+		move.z += input && input->is_pressed(EventCode::KeyS) ? -1.f : 0.f;
+		move.x += input && input->is_pressed(EventCode::KeyA) ? -1.f : 0.f;
 	}
 
 	EditorClientOLD& EditorClientOLD::update_camera()
@@ -916,18 +877,35 @@ namespace Trinex
 	}
 
 	// Inputs
-	void EditorClientOLD::on_mouse_press(const PointerEvent& event)
+	bool EditorClientOLD::on_input_event(const InputEvent& event)
 	{
-		if (m_state.viewport.is_hovered && static_cast<MouseButton::Enum>(event.button) == MouseButton::Right)
+		if (event.code == EventCode::MouseRight)
+		{
+			if (event.type == EventType::Press)
+				on_mouse_press(event);
+			else if (event.type == EventType::Release)
+				on_mouse_release(event);
+		}
+		else if (event.type == EventType::Axis && (event.code == EventCode::MouseDeltaX || event.code == EventCode::MouseDeltaY))
+		{
+			on_mouse_move(event);
+		}
+
+		return false;
+	}
+
+	void EditorClientOLD::on_mouse_press(const InputEvent& event)
+	{
+		if (m_state.viewport.is_hovered && event.code == EventCode::MouseRight)
 		{
 			m_camera_relative_mode = true;
 			//WindowManager::instance()->mouse_relative_mode(true);
 		}
 	}
 
-	void EditorClientOLD::on_mouse_release(const PointerEvent& event)
+	void EditorClientOLD::on_mouse_release(const InputEvent& event)
 	{
-		if (static_cast<MouseButton::Enum>(event.button) == MouseButton::Right)
+		if (event.code == EventCode::MouseRight)
 		{
 			m_camera_relative_mode = false;
 			//WindowManager::instance()->mouse_relative_mode(false);
@@ -947,12 +925,12 @@ namespace Trinex
 		out                = q_yaw * out * q_pitch;
 	}
 
-	void EditorClientOLD::on_mouse_move(const PointerEvent& event)
+	void EditorClientOLD::on_mouse_move(const InputEvent& event)
 	{
 		if (m_camera_relative_mode)
 		{
-			float pitch = calculate_y_rotation(event.delta.y, m_state.viewport.size.y);
-			float yaw   = -calculate_y_rotation(event.delta.x, m_state.viewport.size.x);
+			float pitch = calculate_y_rotation(event.value.axes.y, m_state.viewport.size.y);
+			float yaw   = -calculate_y_rotation(event.value.axes.x, m_state.viewport.size.x);
 
 			Quaternion rotation = camera->local_transform().rotation;
 			make_rotation_quat(yaw, pitch, rotation);

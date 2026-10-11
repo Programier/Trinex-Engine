@@ -4,9 +4,7 @@
 #include <Core/reflection/class.hpp>
 #include <Core/window.hpp>
 #include <Graphics/render_viewport.hpp>
-#include <Input/event_system.hpp>
-#include <Input/input_codes.hpp>
-#include <Input/input_events.hpp>
+#include <Input/system.hpp>
 #include <Platform/platform.hpp>
 #include <UI/client.hpp>
 #include <imgui.h>
@@ -81,6 +79,7 @@ namespace Trinex
 				~ImGuiContextSaver() { ImGui::SetCurrentContext(ctx); }
 			};
 
+			#if 0
 			static ImGuiMouseButton imgui_mouse_button_of(MouseButton button)
 			{
 				switch (button)
@@ -309,6 +308,104 @@ namespace Trinex
 				});
 			}
 
+			#endif
+
+			template<typename F>
+			static void with_window_context(Identifier window_id, F&& f)
+			{
+				Ref<Trinex::Window> window = Window::find(window_id);
+				if (window == nullptr)
+					return;
+
+				auto it = s_viewports.find(window.value());
+				if (it == s_viewports.end())
+					return;
+
+				ImGuiTrinexViewportData* data = viewport_data(it->second);
+				if (data && data->ctx)
+				{
+					ImGuiContextSaver saver(data->ctx);
+					f(window.value());
+				}
+			}
+
+			static void imgui_sent_mouse_position(Trinex::Window* window, float x, float y)
+			{
+				auto& io   = ImGui::GetIO();
+				ImVec2 pos = mouse_to_imgui_pos(window, x, y);
+				io.AddMousePosEvent(pos.x, pos.y);
+			}
+
+			static ImGuiMouseButton imgui_mouse_button_of(EventCode code)
+			{
+				if (code == EventCode::MouseLeft) return ImGuiMouseButton_Left;
+				if (code == EventCode::MouseMiddle) return ImGuiMouseButton_Middle;
+				if (code == EventCode::MouseRight) return ImGuiMouseButton_Right;
+				return -1;
+			}
+
+			static ImGuiKey imgui_key_of(EventCode code)
+			{
+				if (code == EventCode::KeyA) return ImGuiKey_A;
+				if (code == EventCode::KeyC) return ImGuiKey_C;
+				if (code == EventCode::KeyV) return ImGuiKey_V;
+				if (code == EventCode::KeyX) return ImGuiKey_X;
+				if (code == EventCode::KeyZ) return ImGuiKey_Z;
+				if (code == EventCode::KeySpace) return ImGuiKey_Space;
+				if (code == EventCode::KeyEnter) return ImGuiKey_Enter;
+				if (code == EventCode::KeyTab) return ImGuiKey_Tab;
+				if (code == EventCode::KeyBackspace) return ImGuiKey_Backspace;
+				if (code == EventCode::KeyDelete) return ImGuiKey_Delete;
+				if (code == EventCode::KeyLeft) return ImGuiKey_LeftArrow;
+				if (code == EventCode::KeyRight) return ImGuiKey_RightArrow;
+				if (code == EventCode::KeyUp) return ImGuiKey_UpArrow;
+				if (code == EventCode::KeyDown) return ImGuiKey_DownArrow;
+				if (code == EventCode::KeyLeftControl) return ImGuiKey_LeftCtrl;
+				if (code == EventCode::KeyRightControl) return ImGuiKey_RightCtrl;
+				if (code == EventCode::KeyLeftShift) return ImGuiKey_LeftShift;
+				if (code == EventCode::KeyRightShift) return ImGuiKey_RightShift;
+				if (code == EventCode::KeyLeftAlt) return ImGuiKey_LeftAlt;
+				if (code == EventCode::KeyRightAlt) return ImGuiKey_RightAlt;
+				return ImGuiKey_None;
+			}
+
+			static void on_mouse_button(Identifier window_id, EventCode code, bool is_pressed)
+			{
+				auto imgui_button = imgui_mouse_button_of(code);
+				if (imgui_button == -1)
+					return;
+
+				with_window_context(window_id, [is_pressed, imgui_button](Trinex::Window*) {
+					auto& io = ImGui::GetIO();
+					io.AddMouseSourceEvent(ImGuiMouseSource_Mouse);
+					io.AddMouseButtonEvent(imgui_button, is_pressed);
+				});
+			}
+
+			static void on_mouse_axis(Identifier window_id, const InputEvent& event)
+			{
+				with_window_context(window_id, [&event](Trinex::Window* window) {
+					auto& io = ImGui::GetIO();
+					io.AddMouseSourceEvent(ImGuiMouseSource_Mouse);
+					if (event.code == EventCode::MouseWheelX || event.code == EventCode::MouseWheelY)
+						io.AddMouseWheelEvent(event.value.axes.x, event.value.axes.y);
+					else
+						imgui_sent_mouse_position(window, event.value.axes.x, event.value.axes.y);
+				});
+			}
+
+			static void on_keyboard_button(Identifier window_id, EventCode code, bool is_pressed)
+			{
+				auto imgui_button = imgui_key_of(code);
+				if (imgui_button == ImGuiKey_None)
+					return;
+
+				with_window_context(window_id, [is_pressed, imgui_button](Trinex::Window*) {
+					auto& io = ImGui::GetIO();
+					io.AddKeyEvent(imgui_button, is_pressed);
+				});
+			}
+
 			static void on_window_close(Identifier window_id)
 			{
 				with_window_context(window_id, [](Trinex::Window* window) {
@@ -339,6 +436,7 @@ namespace Trinex
 				});
 			}
 
+			#if 0
 			class ImGuiEventListener final : public EventListener
 			{
 			public:
@@ -443,6 +541,54 @@ namespace Trinex
 					system->dispatcher().add_listener(EventTypeIds::Window, &m_listener);
 					m_listener_enabled = true;
 				}
+			}
+
+			#endif
+
+			static InputListenerHandle m_listener;
+
+			static bool on_input_event(const InputEvent& event)
+			{
+				const Identifier window_id = static_cast<Identifier>(event.window_id);
+				if (event.type == EventType::Press || event.type == EventType::Release || event.type == EventType::Repeat)
+				{
+					if (event.code == EventCode::MouseLeft || event.code == EventCode::MouseMiddle || event.code == EventCode::MouseRight)
+						on_mouse_button(window_id, event.code, event.type != EventType::Release);
+					else
+						on_keyboard_button(window_id, event.code, event.type != EventType::Release);
+				}
+				else if (event.type == EventType::Axis)
+				{
+					on_mouse_axis(window_id, event);
+				}
+				else if (event.type == EventType::WindowCloseRequested)
+				{
+					on_window_close(window_id);
+				}
+				else if (event.type == EventType::WindowMoved)
+				{
+					on_window_move(window_id);
+				}
+				else if (event.type == EventType::WindowResized)
+				{
+					on_window_resize(window_id);
+				}
+
+				return false;
+			}
+
+			void disable_events()
+			{
+				if (m_listener && InputSystem::instance())
+					InputSystem::instance()->remove_listener(m_listener);
+				m_listener.reset();
+			}
+
+			void enable_events()
+			{
+				if (!m_listener && InputSystem::instance())
+					m_listener = InputSystem::instance()->add_listener(
+					    nullptr, EventType::Undefined, EventCode::Undefined, on_input_event);
 			}
 
 			static FORCE_INLINE Trinex::Window* window_from(ImGuiViewport* vp)

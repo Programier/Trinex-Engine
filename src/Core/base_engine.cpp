@@ -7,7 +7,6 @@
 #include <Core/tickable.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/render_viewport.hpp>
-#include <Input/event_system.hpp>
 #include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 #include <chrono>
@@ -16,27 +15,11 @@ namespace Trinex
 {
 	namespace
 	{
-		class EngineQuitListener final : public EventListener
-		{
-		public:
-			EventDispatchResult on_event(RoutedEvent& event) override
-			{
-				if (event.header.type_id == EventTypeIds::Quit && engine_instance)
-				{
-					engine_instance->request_exit();
-					event.mark_handled();
-				}
-
-				return event.result;
-			}
-		};
-
 		FORCE_INLINE std::chrono::high_resolution_clock::time_point current_time_point()
 		{
 			return std::chrono::high_resolution_clock::now();
 		}
 
-		static EngineQuitListener quit_listener;
 		std::chrono::high_resolution_clock::time_point start_time;
 	}// namespace
 
@@ -48,14 +31,13 @@ namespace Trinex
 		start_time    = current_time_point();
 		m_frame_index = 0;
 		m_prev_time   = 0.f;
+		m_input_system = Ref<InputSystem>::make();
 
 		flags.set(Flags::StandAlone);
 		flags.remove(Flags::IsAvailableForGC);
 
-		if (EventSystem* system = EventSystem::instance())
-		{
-			system->dispatcher().add_listener(EventTypeIds::Quit, &quit_listener);
-		}
+		m_input_system->add_listener(nullptr, EventType::Quit, EventCode::Undefined,
+		                             [this](const InputEvent&) { return request_exit(), true; });
 	}
 
 	i32 BaseEngine::init()
@@ -73,6 +55,7 @@ namespace Trinex
 		m_delta_time = current_time - m_prev_time;
 		m_prev_time  = current_time;
 		++m_frame_index;
+		m_input_system->begin_frame().update(m_delta_time);
 
 		GarbageCollector::update(m_delta_time);
 

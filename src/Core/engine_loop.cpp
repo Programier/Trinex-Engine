@@ -15,8 +15,6 @@
 #include <Engine/settings.hpp>
 #include <Engine/splash_screen.hpp>
 #include <Graphics/render_viewport.hpp>
-#include <Input/event_system.hpp>
-#include <Input/input_system.hpp>
 #include <Platform/platform.hpp>
 #include <RHI/rhi.hpp>
 #include <ScriptEngine/script_engine.hpp>
