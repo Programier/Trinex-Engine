@@ -1,6 +1,5 @@
 #pragma once
 #include <Core/callback.hpp>
-#include <Core/etl/map.hpp>
 #include <ScriptEngine/enums.hpp>
 #include <ScriptEngine/script_diagnostics.hpp>
 #include <ScriptEngine/script_func_ptr.hpp>
@@ -42,9 +41,11 @@ namespace Trinex
 		using VariableToStringFunction = String (*)(const u8* object, i32 type_id, bool repr);
 
 	private:
+		class State;
+
 		static void terminate();
 		static asIScriptContext* new_context();
-		static ScriptEngine& destroy_script_object(void*, const ScriptTypeInfo& info);
+		static void destroy_script_object(void*, const ScriptTypeInfo& info);
 
 	public:
 		struct GarbageCollectFlags {
@@ -64,30 +65,27 @@ namespace Trinex
 		static bool exception_on_error;
 		static CallBacks<void()> on_terminate;
 
-		static ScriptEngine& initialize();
-		static ScriptEngine& instance();
 		static asIScriptEngine* engine();
-		static const ScriptEngine& release_context(asIScriptContext* context);
+		static void release_context(asIScriptContext* context);
 
-		static ScriptEngine& default_namespace(const String& name);
-		static ScriptEngine& default_namespace(const char* ns);
-		static StringView default_namespace();
+		static void default_namespace(const char* ns);
+		static const char* default_namespace();
 		static i32 register_property(const char* declaration, void* data);
 		static i32 register_property(const String& declaration, void* data);
 		static class ScriptFolder* scripts_folder();
-		static ScriptEngine& load_scripts();
-		static ScriptEngine& begin_diagnostics_capture(ScriptBuildResult* result);
-		static ScriptEngine& end_diagnostics_capture();
+		static void load_scripts();
+		static void begin_diagnostics_capture(ScriptBuildResult* result);
+		static void end_diagnostics_capture();
 
-		static ScriptEngine& register_class(i32 type_id, Refl::Class* self);
+		static void register_class(i32 type_id, Refl::Class* self);
 		static Refl::Class* find_class(i32 type_id);
-		static ScriptEngine& unregister_class(i32 type_id);
+		static void unregister_class(i32 type_id);
 
-		static ScriptEngine& bind_imports();
-		static ScriptEngine& register_funcdef(const char* declaration);
-		static ScriptEngine& register_funcdef(const String& declaration);
-		static ScriptEngine& register_typedef(const char* new_type_name, const char* type);
-		static ScriptEngine& register_typedef(const String& new_type_name, const String& type);
+		static void bind_imports();
+		static void register_funcdef(const char* declaration);
+		static void register_funcdef(const String& declaration);
+		static void register_typedef(const char* new_type_name, const char* type);
+		static void register_typedef(const String& new_type_name, const String& type);
 
 		static u32 global_function_count();
 		static ScriptFunction global_function_by_index(u32 index);
@@ -109,7 +107,7 @@ namespace Trinex
 		static bool remove_config_group(const char* group);
 		static bool remove_config_group(const String& group);
 
-		static ScriptEngine& garbage_collect(GarbageCollectFlags flags = GarbageCollectFlags::FullCycle, usize iterations = 1);
+		static void garbage_collect(GarbageCollectFlags flags = GarbageCollectFlags::FullCycle, usize iterations = 1);
 
 		static u32 object_type_count();
 		static ScriptTypeInfo object_type_by_index(u32 index);
@@ -130,8 +128,8 @@ namespace Trinex
 		static ScriptTypeInfo typedef_by_index(u32 index);
 
 		// Script modules
-		static ScriptEngine& discard_module(const char* module);
-		static ScriptEngine& discard_module(const String& module);
+		static void discard_module(const char* module);
+		static void discard_module(const String& module);
 		static u32 module_count();
 		static ScriptModule module_by_index(u32 index);
 		static ScriptModule module_by_name(const char* name, ScriptModuleLookup lookup = ScriptModuleLookup::OnlyIfExists);
@@ -177,8 +175,8 @@ namespace Trinex
 		                                        ScriptCallConv conv = ScriptCallConv::CDecl, void* auxiliary = nullptr);
 
 		// Variable to string
-		static ScriptEngine& register_custom_variable_parser(i32 type_id, VariableToStringFunction function);
-		static ScriptEngine& unregister_custom_variable(i32 type_id);
+		static void register_custom_variable_parser(i32 type_id, VariableToStringFunction function);
+		static void unregister_custom_variable(i32 type_id);
 		static VariableToStringFunction custom_variable_parser(i32 type_id);
 		static String to_string(const u8* object, i32 type_id, bool repr = false);
 

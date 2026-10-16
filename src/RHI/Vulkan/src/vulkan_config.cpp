@@ -23,15 +23,13 @@ namespace Trinex::VulkanConfig
 		reg.value("virtual_gpu", vkb::DeviceType::virtual_gpu);
 		reg.value("cpu", vkb::DeviceType::cpu);
 
-		auto& e = ScriptEngine::instance();
-
-		e.begin_config_group("engine/vulkan.config");
+		ScriptEngine::begin_config_group("engine/vulkan.config");
 		{
 			ScriptNamespaceScopedChanger changer("Trinex::Vulkan");
-			e.register_property("Trinex::VulkanGPU device_type", &device_type);
-			e.register_property("bool enable_validation", &enable_validation);
-			e.register_property("bool allow_any_gpu_type", &allow_any_gpu_type);
+			ScriptEngine::register_property("Trinex::VulkanGPU device_type", &device_type);
+			ScriptEngine::register_property("bool enable_validation", &enable_validation);
+			ScriptEngine::register_property("bool allow_any_gpu_type", &allow_any_gpu_type);
 		}
-		e.end_config_group();
+		ScriptEngine::end_config_group();
 	}
 }// namespace Trinex::VulkanConfig

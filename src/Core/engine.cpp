@@ -1,30 +1,19 @@
 #include <Core/engine.hpp>
-#include <Core/etl/allocator.hpp>
-#include <Core/garbage_collector.hpp>
-#include <Core/profiler.hpp>
 #include <Core/reflection/class.hpp>
-#include <Core/threading.hpp>
-#include <Core/tickable.hpp>
-#include <Engine/settings.hpp>
-#include <Graphics/render_viewport.hpp>
-#include <RHI/context.hpp>
-#include <RHI/rhi.hpp>
+#include <Platform/platform.hpp>
 #include <chrono>
 
 namespace Trinex
 {
-	namespace
-	{
-		static Engine* s_instance = nullptr;
-		FORCE_INLINE std::chrono::high_resolution_clock::time_point current_time_point()
-		{
-			return std::chrono::high_resolution_clock::now();
-		}
-
-		std::chrono::high_resolution_clock::time_point start_time;
-	}// namespace
-
 	trinex_implement_engine_class_default_init(Engine, 0);
+
+	static Engine* s_instance = nullptr;
+	FORCE_INLINE std::chrono::high_resolution_clock::time_point current_time_point()
+	{
+		return std::chrono::high_resolution_clock::now();
+	}
+
+	std::chrono::high_resolution_clock::time_point start_time;
 
 
 	Engine::Engine()
@@ -47,6 +36,31 @@ namespace Trinex
 
 	i32 Engine::launch(int argc, char** argv)
 	{
+		// PreInit -
+		// ReflectionInit
+		// CoreRegistration
+		// ConfigsInit
+		// CoreInit
+		// Init
+		// ResourcesInit
+		// PostInit
+		// PreShutdown
+		// Shutdown
+		// PostShutdown
+
+		// PRE INITIALIZATION STAGE
+		LifeCycle::execute(LifeCycle::PreInit);
+
+		// REFLECTION INITIALIZATION STAGE
+		LifeCycle::execute(LifeCycle::ReflectionInit);
+
+		trinex_info(Log::Core, "hello");
+
+		while (true)
+		{
+			Platform::Context::instance()->update();
+		}
+
 		return 0;
 	}
 
@@ -57,42 +71,7 @@ namespace Trinex
 
 	i32 Engine::update()
 	{
-		trinex_profile_frame_mark();
-		trinex_profile_cpu_n("Engine::update");
 
-		auto current_time = time_seconds();
-
-		m_delta_time = current_time - m_prev_time;
-		m_prev_time  = current_time;
-		++m_frame_index;
-		InputSystem::instance()->begin_frame().update(m_delta_time);
-
-		GarbageCollector::update(m_delta_time);
-
-		StackByteAllocator::reset();
-		FrameByteAllocator::reset();
-
-		Tickable::for_each_begin_frame(m_frame_index);
-		Tickable::for_each_update(m_delta_time);
-
-		if (RHI* rhi = RHI::instance())
-		{
-			rhi->update(m_delta_time);
-		}
-
-		if (!is_requesting_exit())
-		{
-			auto& viewports = RenderViewport::viewports();
-
-			for (usize i = 0; i < viewports.size(); ++i)
-			{
-				trinex_profile_cpu_n("RenderViewport::update");
-				auto viewport = viewports[i];
-				viewport->update(m_delta_time);
-			}
-		}
-
-		Tickable::for_each_end_frame(m_frame_index);
 		return 0;
 	}
 

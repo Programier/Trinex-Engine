@@ -1288,7 +1288,7 @@ namespace Trinex
 	static void register_functions()
 	{
 		ScriptNamespaceScopedChanger imgui("ImGui");
-		auto& e = ScriptEngine::instance();
+		auto e = ScriptEngine();
 
 		struct Custom {
 			static void Text(const String& str) { ImGui::Text("%s", str.c_str()); }

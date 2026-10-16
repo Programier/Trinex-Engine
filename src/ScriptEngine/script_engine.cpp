@@ -24,7 +24,9 @@ static constexpr bool enable_jit = false;
 
 namespace Trinex
 {
-	struct ScriptEngineData {
+	class ScriptEngine::State
+	{
+	public:
 		Vector<class Script*> scripts;
 		asIScriptEngine* engine      = nullptr;
 		asIJITCompiler* jit_compiler = nullptr;
@@ -34,69 +36,116 @@ namespace Trinex
 		Map<i32, Refl::Class*> classes_map;
 		ScriptBuildResult* diagnostics_result = nullptr;
 
-		static ScriptEngineData* instance()
+	private:
+		static void angel_script_callback(const asSMessageInfo* msg, void* param)
 		{
-			static ScriptEngineData data;
-			return &data;
-		}
-	};
+			State& data = State::instance();
 
-	static void angel_script_callback(const asSMessageInfo* msg, void* param)
-	{
-		ScriptEngineData* data = ScriptEngineData::instance();
-
-		if (data->diagnostics_result)
-		{
-			ScriptDiagnostic diagnostic;
-			diagnostic.section = msg->section ? msg->section : "";
-			diagnostic.row     = msg->row;
-			diagnostic.column  = msg->col;
-			diagnostic.message = msg->message ? msg->message : "";
-
-			switch (msg->type)
+			if (data.diagnostics_result)
 			{
-				case asMSGTYPE_WARNING: diagnostic.type = ScriptDiagnostic::Type::Warning; break;
-				case asMSGTYPE_INFORMATION: diagnostic.type = ScriptDiagnostic::Type::Info; break;
-				default: diagnostic.type = ScriptDiagnostic::Type::Error; break;
+				ScriptDiagnostic diagnostic;
+				diagnostic.section = msg->section ? msg->section : "";
+				diagnostic.row     = msg->row;
+				diagnostic.column  = msg->col;
+				diagnostic.message = msg->message ? msg->message : "";
+
+				switch (msg->type)
+				{
+					case asMSGTYPE_WARNING: diagnostic.type = ScriptDiagnostic::Type::Warning; break;
+					case asMSGTYPE_INFORMATION: diagnostic.type = ScriptDiagnostic::Type::Info; break;
+					default: diagnostic.type = ScriptDiagnostic::Type::Error; break;
+				}
+
+				data.diagnostics_result->diagnostics.push_back(std::move(diagnostic));
 			}
 
-			data->diagnostics_result->diagnostics.push_back(std::move(diagnostic));
-		}
-
-		if (msg->type == asMSGTYPE_WARNING)
-		{
-			trinex_warning(Log::Scripting, "%s (%d, %d): %s", msg->section, msg->row, msg->col, msg->message);
-		}
-		else if (msg->type == asMSGTYPE_INFORMATION)
-		{
-			trinex_info(Log::Scripting, "%s (%d, %d): %s", msg->section, msg->row, msg->col, msg->message);
-		}
-		else
-		{
-			if (ScriptEngine::exception_on_error)
+			if (msg->type == asMSGTYPE_WARNING)
 			{
-				//trinex_(Strings::format("{} ({}, {}): {}", msg->section, msg->row, msg->col, msg->message));
-				trinex_error(Log::Scripting, "%s (%d, %d): %s", msg->section, msg->row, msg->col, msg->message);
+				trinex_warning(Log::Scripting, "%s (%d, %d): %s", msg->section, msg->row, msg->col, msg->message);
+			}
+			else if (msg->type == asMSGTYPE_INFORMATION)
+			{
+				trinex_info(Log::Scripting, "%s (%d, %d): %s", msg->section, msg->row, msg->col, msg->message);
 			}
 			else
-				trinex_error(Log::Scripting, "%s (%d, %d): %s", msg->section, msg->row, msg->col, msg->message);
+			{
+				if (ScriptEngine::exception_on_error)
+				{
+					//trinex_(Strings::format("{} ({}, {}): {}", msg->section, msg->row, msg->col, msg->message));
+					trinex_error(Log::Scripting, "%s (%d, %d): %s", msg->section, msg->row, msg->col, msg->message);
+				}
+				else
+					trinex_error(Log::Scripting, "%s (%d, %d): %s", msg->section, msg->row, msg->col, msg->message);
+			}
 		}
-	}
 
-	static void angel_script_translate_exception(asIScriptContext* ctx, void*)
-	{
-		trinex_unreachable_msg(ctx->GetExceptionString());
-	}
+		static void angel_script_translate_exception(asIScriptContext* ctx, void*)
+		{
+			trinex_unreachable_msg(ctx->GetExceptionString());
+		}
 
-	static void* angel_script_allocate(usize size)
-	{
-		return ByteAllocator::allocate(size);
-	}
+		static void* angel_script_allocate(usize size) { return ByteAllocator::allocate(size); }
+		static void angel_script_deallocate(void* ptr) { ByteAllocator::deallocate(static_cast<unsigned char*>(ptr)); }
 
-	static void angel_script_deallocate(void* ptr)
-	{
-		ByteAllocator::deallocate(static_cast<unsigned char*>(ptr));
-	}
+	private:
+		State()
+		{
+			asSetGlobalMemoryFunctions(angel_script_allocate, angel_script_deallocate);
+
+			engine = asCreateScriptEngine(ANGELSCRIPT_VERSION);
+			trinex_info(Log::Scripting, "Created script engine [%p]", engine);
+
+			engine->SetEngineProperty(asEP_OPTIMIZE_BYTECODE, 1);
+			engine->SetEngineProperty(asEP_ALLOW_UNICODE_IDENTIFIERS, 1);
+			engine->SetEngineProperty(asEP_ALLOW_UNSAFE_REFERENCES, true);
+			engine->SetEngineProperty(asEP_ALLOW_IMPLICIT_HANDLE_TYPES, true);
+			engine->SetEngineProperty(asEP_FOREACH_SUPPORT, false);
+			engine->SetMessageCallback(asFUNCTION(angel_script_callback), 0, asCALL_CDECL);
+			engine->SetTranslateAppExceptionCallback(asFUNCTION(angel_script_translate_exception), nullptr, asCALL_CDECL);
+
+#if ARCH_X86_64 || ARCH_ARM
+			if constexpr (enable_jit)
+			{
+				trinex_info(Log::Scripting, "Enable JIT compiler!");
+				jit_compiler = trx_new PlatformJitCompiler();
+				engine->SetEngineProperty(asEP_INCLUDE_JIT_INSTRUCTIONS, true);
+				engine->SetJITCompiler(jit_compiler);
+			}
+#endif
+			LifeCycle::on_post_shutdown(ScriptEngine::terminate);
+
+			script_folder = trx_new ScriptFolder("[scripts]:");
+		}
+
+		~State()
+		{
+			if (engine)
+			{
+				on_terminate();
+
+				trx_delete_inline(script_folder);
+				script_folder = nullptr;
+				engine->Release();
+				engine = nullptr;
+			}
+
+			if (jit_compiler)
+			{
+				trx_delete jit_compiler;
+				jit_compiler = nullptr;
+			}
+		}
+
+
+	public:
+		static State& instance()
+		{
+			static State state;
+			return state;
+		}
+
+		asIScriptEngine* operator->() { return engine; }
+	};
 
 	bool ScriptEngine::exception_on_error = true;
 	CallBacks<void()> ScriptEngine::on_terminate;
@@ -119,79 +168,19 @@ namespace Trinex
 
 	ScriptNamespaceScopedChanger::~ScriptNamespaceScopedChanger()
 	{
-		ScriptEngine::default_namespace(m_prev_namespace);
+		ScriptEngine::default_namespace(m_prev_namespace.c_str());
 	}
 
-	ScriptEngine& ScriptEngine::initialize()
-	{
-		ScriptEngineData* data = ScriptEngineData::instance();
-
-		if (data->engine != nullptr)
-			return instance();
-
-		asSetGlobalMemoryFunctions(angel_script_allocate, angel_script_deallocate);
-
-		data->engine = asCreateScriptEngine(ANGELSCRIPT_VERSION);
-		trinex_info(Log::Scripting, "Created script engine [%p]", data->engine);
-
-		data->engine->SetEngineProperty(asEP_OPTIMIZE_BYTECODE, 1);
-		data->engine->SetEngineProperty(asEP_ALLOW_UNICODE_IDENTIFIERS, 1);
-		data->engine->SetEngineProperty(asEP_ALLOW_UNSAFE_REFERENCES, true);
-		data->engine->SetEngineProperty(asEP_ALLOW_IMPLICIT_HANDLE_TYPES, true);
-		data->engine->SetEngineProperty(asEP_FOREACH_SUPPORT, false);
-		data->engine->SetMessageCallback(asFUNCTION(angel_script_callback), 0, asCALL_CDECL);
-		data->engine->SetTranslateAppExceptionCallback(asFUNCTION(angel_script_translate_exception), nullptr, asCALL_CDECL);
-
-#if ARCH_X86_64 || ARCH_ARM
-		if constexpr (enable_jit)
-		{
-			trinex_info(Log::Scripting, "Enable JIT compiler!");
-			data->jit_compiler = trx_new PlatformJitCompiler();
-			data->engine->SetEngineProperty(asEP_INCLUDE_JIT_INSTRUCTIONS, true);
-			data->engine->SetJITCompiler(data->jit_compiler);
-		}
-#endif
-		LifeCycle::on_post_shutdown(ScriptEngine::terminate);
-
-		data->script_folder = trx_new ScriptFolder("[scripts]:");
-		return instance();
-	}
-
-	void ScriptEngine::terminate()
-	{
-		ScriptEngineData* data = ScriptEngineData::instance();
-
-		if (data->engine)
-		{
-			on_terminate();
-
-			trx_delete_inline(data->script_folder);
-			data->script_folder = nullptr;
-			data->engine->Release();
-			data->engine = nullptr;
-		}
-
-		if (data->jit_compiler)
-		{
-			trx_delete data->jit_compiler;
-			data->jit_compiler = nullptr;
-		}
-	}
-
-	ScriptEngine& ScriptEngine::instance()
-	{
-		static ScriptEngine engine;
-		return engine;
-	}
+	void ScriptEngine::terminate() {}
 
 	asIScriptEngine* ScriptEngine::engine()
 	{
-		return ScriptEngineData::instance()->engine;
+		return State::instance().engine;
 	}
 
 	asIScriptContext* ScriptEngine::new_context()
 	{
-		return ScriptEngineData::instance()->engine->RequestContext();
+		return State::instance()->RequestContext();
 	}
 
 	static asDWORD create_call_conv(ScriptCallConv conv)
@@ -214,8 +203,8 @@ namespace Trinex
 	ScriptFunction ScriptEngine::register_function(const char* declaration, ScriptFuncPtr* func, ScriptCallConv conv,
 	                                               void* auxiliary)
 	{
-		i32 id = ScriptEngineData::instance()->engine->RegisterGlobalFunction(declaration, *reinterpret_cast<asSFuncPtr*>(func),
-		                                                                      create_call_conv(conv), auxiliary);
+		i32 id = State::instance()->RegisterGlobalFunction(declaration, *reinterpret_cast<asSFuncPtr*>(func),
+		                                                   create_call_conv(conv), auxiliary);
 		trinex_verify(id >= 0);
 		if (id < 0)
 			return {};
@@ -228,31 +217,24 @@ namespace Trinex
 		return register_function(declaration.c_str(), func, conv, auxiliary);
 	}
 
-	const ScriptEngine& ScriptEngine::release_context(asIScriptContext* context)
+	void ScriptEngine::release_context(asIScriptContext* context)
 	{
-		ScriptEngineData::instance()->engine->ReturnContext(context);
-		return instance();
+		State::instance()->ReturnContext(context);
 	}
 
-	ScriptEngine& ScriptEngine::default_namespace(const String& name)
+	void ScriptEngine::default_namespace(const char* ns)
 	{
-		return default_namespace(name.c_str());
+		State::instance()->SetDefaultNamespace(ns);
 	}
 
-	ScriptEngine& ScriptEngine::default_namespace(const char* ns)
+	const char* ScriptEngine::default_namespace()
 	{
-		ScriptEngineData::instance()->engine->SetDefaultNamespace(ns);
-		return instance();
-	}
-
-	StringView ScriptEngine::default_namespace()
-	{
-		return ScriptEngineData::instance()->engine->GetDefaultNamespace();
+		return State::instance()->GetDefaultNamespace();
 	}
 
 	i32 ScriptEngine::register_property(const char* declaration, void* data)
 	{
-		i32 result = ScriptEngineData::instance()->engine->RegisterGlobalProperty(declaration, data);
+		i32 result = State::instance()->RegisterGlobalProperty(declaration, data);
 		trinex_verify(result >= 0);
 		return result;
 	}
@@ -264,41 +246,36 @@ namespace Trinex
 
 	class ScriptFolder* ScriptEngine::scripts_folder()
 	{
-		return ScriptEngineData::instance()->script_folder;
+		return State::instance().script_folder;
 	}
 
-	ScriptEngine& ScriptEngine::begin_diagnostics_capture(ScriptBuildResult* result)
+	void ScriptEngine::begin_diagnostics_capture(ScriptBuildResult* result)
 	{
-		ScriptEngineData::instance()->diagnostics_result = result;
+		State::instance().diagnostics_result = result;
 
 		if (result)
 		{
 			result->success = false;
 			result->diagnostics.clear();
 		}
-
-		return instance();
 	}
 
-	ScriptEngine& ScriptEngine::end_diagnostics_capture()
+	void ScriptEngine::end_diagnostics_capture()
 	{
-		ScriptEngineData::instance()->diagnostics_result = nullptr;
-		return instance();
+		State::instance().diagnostics_result = nullptr;
 	}
 
-	ScriptEngine& ScriptEngine::register_class(i32 type_id, Refl::Class* self)
+	void ScriptEngine::register_class(i32 type_id, Refl::Class* self)
 	{
 		if (self)
 		{
-			ScriptEngineData::instance()->classes_map[type_id] = self;
+			State::instance().classes_map[type_id] = self;
 		}
-
-		return instance();
 	}
 
 	Refl::Class* ScriptEngine::find_class(i32 type_id)
 	{
-		auto& map = ScriptEngineData::instance()->classes_map;
+		auto& map = State::instance().classes_map;
 		auto it   = map.find(type_id);
 
 		if (it == map.end())
@@ -307,65 +284,59 @@ namespace Trinex
 		return it->second;
 	}
 
-	ScriptEngine& ScriptEngine::unregister_class(i32 type_id)
+	void ScriptEngine::unregister_class(i32 type_id)
 	{
-		ScriptEngineData::instance()->classes_map.erase(type_id);
-		return instance();
+		State::instance().classes_map.erase(type_id);
 	}
 
-	ScriptEngine& ScriptEngine::bind_imports()
+	void ScriptEngine::bind_imports()
 	{
-		ScriptEngineData* data = ScriptEngineData::instance();
+		asIScriptEngine* engine = ScriptEngine::engine();
 
-		for (u32 i = 0, j = data->engine->GetModuleCount(); i < j; i++)
+		for (u32 i = 0, j = engine->GetModuleCount(); i < j; i++)
 		{
-			data->engine->GetModuleByIndex(i)->BindAllImportedFunctions();
+			engine->GetModuleByIndex(i)->BindAllImportedFunctions();
 		}
-
-		return instance();
 	}
 
-	ScriptEngine& ScriptEngine::register_funcdef(const char* declaration)
+	void ScriptEngine::register_funcdef(const char* declaration)
 	{
-		trinex_verify(ScriptEngineData::instance()->engine->RegisterFuncdef(declaration) >= 0);
-		return instance();
+		trinex_verify(State::instance()->RegisterFuncdef(declaration) >= 0);
 	}
 
-	ScriptEngine& ScriptEngine::register_funcdef(const String& declaration)
+	void ScriptEngine::register_funcdef(const String& declaration)
 	{
 		return register_funcdef(declaration.c_str());
 	}
 
-	ScriptEngine& ScriptEngine::register_typedef(const char* type, const char* declaration)
+	void ScriptEngine::register_typedef(const char* type, const char* declaration)
 	{
-		trinex_verify(ScriptEngineData::instance()->engine->RegisterTypedef(type, declaration) >= 0);
-		return instance();
+		trinex_verify(State::instance()->RegisterTypedef(type, declaration) >= 0);
 	}
 
-	ScriptEngine& ScriptEngine::register_typedef(const String& type, const String& declaration)
+	void ScriptEngine::register_typedef(const String& type, const String& declaration)
 	{
 		return register_typedef(type.c_str(), declaration.c_str());
 	}
 
-	ScriptEngine& ScriptEngine::destroy_script_object(void* object, const ScriptTypeInfo& info)
+	void ScriptEngine::destroy_script_object(void* object, const ScriptTypeInfo& info)
 	{
-		ScriptEngineData::instance()->engine->ReleaseScriptObject(object, info.info());
-		return instance();
+		State::instance()->ReleaseScriptObject(object, info.info());
 	}
 
 	u32 ScriptEngine::global_function_count()
 	{
-		return ScriptEngineData::instance()->engine->GetGlobalFunctionCount();
+		return State::instance()->GetGlobalFunctionCount();
 	}
 
 	ScriptFunction ScriptEngine::global_function_by_index(u32 index)
 	{
-		return ScriptFunction(ScriptEngineData::instance()->engine->GetGlobalFunctionByIndex(index));
+		return ScriptFunction(State::instance()->GetGlobalFunctionByIndex(index));
 	}
 
 	ScriptFunction ScriptEngine::global_function_by_decl(const char* declaration)
 	{
-		return ScriptFunction(ScriptEngineData::instance()->engine->GetGlobalFunctionByDecl(declaration));
+		return ScriptFunction(State::instance()->GetGlobalFunctionByDecl(declaration));
 	}
 
 	ScriptFunction ScriptEngine::global_function_by_decl(const String& declaration)
@@ -375,12 +346,12 @@ namespace Trinex
 
 	u32 ScriptEngine::global_property_count()
 	{
-		return ScriptEngineData::instance()->engine->GetGlobalPropertyCount();
+		return State::instance()->GetGlobalPropertyCount();
 	}
 
 	i32 ScriptEngine::global_property_index_by_name(const char* name)
 	{
-		return ScriptEngineData::instance()->engine->GetGlobalPropertyIndexByName(name);
+		return State::instance()->GetGlobalPropertyIndexByName(name);
 	}
 
 	i32 ScriptEngine::global_property_index_by_name(const String& name)
@@ -390,7 +361,7 @@ namespace Trinex
 
 	i32 ScriptEngine::global_property_index_by_decl(const char* declaration)
 	{
-		return ScriptEngineData::instance()->engine->GetGlobalPropertyIndexByDecl(declaration);
+		return State::instance()->GetGlobalPropertyIndexByDecl(declaration);
 	}
 
 	i32 ScriptEngine::global_property_index_by_decl(const String& declaration)
@@ -405,7 +376,7 @@ namespace Trinex
 		const char* c_name_space = nullptr;
 		const char* c_group      = nullptr;
 
-		bool result = ScriptEngineData::instance()->engine->GetGlobalPropertyByIndex(
+		bool result = State::instance()->GetGlobalPropertyByIndex(
 		                      index, name ? &c_name : nullptr, name_space ? &c_name_space : nullptr, type_id, is_const,
 		                      config_group ? &c_group : nullptr, reinterpret_cast<void**>(pointer)) >= 0;
 
@@ -432,7 +403,7 @@ namespace Trinex
 
 	bool ScriptEngine::begin_config_group(const char* group)
 	{
-		return ScriptEngineData::instance()->engine->BeginConfigGroup(group) >= 0;
+		return State::instance()->BeginConfigGroup(group) >= 0;
 	}
 
 	bool ScriptEngine::begin_config_group(const String& group)
@@ -442,12 +413,12 @@ namespace Trinex
 
 	bool ScriptEngine::end_config_group()
 	{
-		return ScriptEngineData::instance()->engine->EndConfigGroup() >= 0;
+		return State::instance()->EndConfigGroup() >= 0;
 	}
 
 	bool ScriptEngine::remove_config_group(const char* group)
 	{
-		return ScriptEngineData::instance()->engine->RemoveConfigGroup(group) >= 0;
+		return State::instance()->RemoveConfigGroup(group) >= 0;
 	}
 
 	bool ScriptEngine::remove_config_group(const String& group)
@@ -455,20 +426,19 @@ namespace Trinex
 		return remove_config_group(group.c_str());
 	}
 
-	ScriptEngine& ScriptEngine::garbage_collect(GarbageCollectFlags flags, usize iterations)
+	void ScriptEngine::garbage_collect(GarbageCollectFlags flags, usize iterations)
 	{
-		ScriptEngineData::instance()->engine->GarbageCollect(flags, iterations);
-		return instance();
+		State::instance()->GarbageCollect(flags, iterations);
 	}
 
 	u32 ScriptEngine::object_type_count()
 	{
-		return ScriptEngineData::instance()->engine->GetObjectTypeCount();
+		return State::instance()->GetObjectTypeCount();
 	}
 
 	ScriptTypeInfo ScriptEngine::object_type_by_index(u32 index)
 	{
-		return ScriptTypeInfo(ScriptEngineData::instance()->engine->GetObjectTypeByIndex(index));
+		return ScriptTypeInfo(State::instance()->GetObjectTypeByIndex(index));
 	}
 
 	bool ScriptEngine::exec_string(const String& line)
@@ -478,62 +448,61 @@ namespace Trinex
 
 	bool ScriptEngine::exec_string(const char* line)
 	{
-		return ExecuteString(ScriptEngineData::instance()->engine, line) >= 0;
+		return ExecuteString(State::instance().engine, line) >= 0;
 	}
 
 	// Enums
 	u32 ScriptEngine::enum_count()
 	{
-		return ScriptEngineData::instance()->engine->GetEnumCount();
+		return State::instance()->GetEnumCount();
 	}
 
 	ScriptTypeInfo ScriptEngine::enum_by_index(u32 index)
 	{
-		return ScriptTypeInfo(ScriptEngineData::instance()->engine->GetEnumByIndex(index));
+		return ScriptTypeInfo(State::instance()->GetEnumByIndex(index));
 	}
 
 	// Funcdefs
 	u32 ScriptEngine::funcdef_count()
 	{
-		return ScriptEngineData::instance()->engine->GetFuncdefCount();
+		return State::instance()->GetFuncdefCount();
 	}
 
 	ScriptTypeInfo ScriptEngine::funcdef_by_index(u32 index)
 	{
-		return ScriptTypeInfo(ScriptEngineData::instance()->engine->GetFuncdefByIndex(index));
+		return ScriptTypeInfo(State::instance()->GetFuncdefByIndex(index));
 	}
 
 	// Typedefs
 	u32 ScriptEngine::typedef_count()
 	{
-		return ScriptEngineData::instance()->engine->GetTypedefCount();
+		return State::instance()->GetTypedefCount();
 	}
 
 	ScriptTypeInfo ScriptEngine::typedef_by_index(u32 index)
 	{
-		return ScriptTypeInfo(ScriptEngineData::instance()->engine->GetTypedefByIndex(index));
+		return ScriptTypeInfo(State::instance()->GetTypedefByIndex(index));
 	}
 
 	// Script modules
-	ScriptEngine& ScriptEngine::discard_module(const char* module_name)
+	void ScriptEngine::discard_module(const char* module_name)
 	{
-		ScriptEngineData::instance()->engine->DiscardModule(module_name);
-		return instance();
+		State::instance()->DiscardModule(module_name);
 	}
 
-	ScriptEngine& ScriptEngine::discard_module(const String& module_name)
+	void ScriptEngine::discard_module(const String& module_name)
 	{
 		return discard_module(module_name.c_str());
 	}
 
 	u32 ScriptEngine::module_count()
 	{
-		return ScriptEngineData::instance()->engine->GetModuleCount();
+		return State::instance()->GetModuleCount();
 	}
 
 	ScriptModule ScriptEngine::module_by_index(u32 index)
 	{
-		return ScriptModule(ScriptEngineData::instance()->engine->GetModuleByIndex(index));
+		return ScriptModule(State::instance()->GetModuleByIndex(index));
 	}
 
 	ScriptModule ScriptEngine::module_by_name(const char* name, ScriptModuleLookup lookup)
@@ -547,18 +516,18 @@ namespace Trinex
 			case ScriptModuleLookup::CreateIfNotExists: flags = asGM_CREATE_IF_NOT_EXISTS; break;
 		}
 
-		return ScriptModule(ScriptEngineData::instance()->engine->GetModule(name, flags));
+		return ScriptModule(State::instance()->GetModule(name, flags));
 	}
 
 	// Script functions
 	i32 ScriptEngine::last_function_id()
 	{
-		return ScriptEngineData::instance()->engine->GetLastFunctionId();
+		return State::instance()->GetLastFunctionId();
 	}
 
 	ScriptFunction ScriptEngine::function_by_id(i32 func_id)
 	{
-		return ScriptFunction(ScriptEngineData::instance()->engine->GetFunctionById(func_id));
+		return ScriptFunction(State::instance()->GetFunctionById(func_id));
 	}
 
 	// Type identification
@@ -636,7 +605,7 @@ namespace Trinex
 
 	i32 ScriptEngine::type_id_by_decl(const char* decl)
 	{
-		return ScriptEngineData::instance()->engine->GetTypeIdByDecl(decl);
+		return State::instance()->GetTypeIdByDecl(decl);
 	}
 
 	i32 ScriptEngine::type_id_by_decl(const String& decl)
@@ -646,27 +615,27 @@ namespace Trinex
 
 	String ScriptEngine::type_declaration(int type_id, bool include_namespace)
 	{
-		return Strings::make_string(ScriptEngineData::instance()->engine->GetTypeDeclaration(type_id, include_namespace));
+		return Strings::make_string(State::instance()->GetTypeDeclaration(type_id, include_namespace));
 	}
 
 	i32 ScriptEngine::sizeof_primitive_type(int type_id)
 	{
-		return ScriptEngineData::instance()->engine->GetSizeOfPrimitiveType(type_id);
+		return State::instance()->GetSizeOfPrimitiveType(type_id);
 	}
 
 	ScriptTypeInfo ScriptEngine::type_info_by_id(int type_id)
 	{
-		return ScriptTypeInfo(ScriptEngineData::instance()->engine->GetTypeInfoById(type_id));
+		return ScriptTypeInfo(State::instance()->GetTypeInfoById(type_id));
 	}
 
 	ScriptTypeInfo ScriptEngine::type_info_by_name(const char* name)
 	{
-		return ScriptTypeInfo(ScriptEngineData::instance()->engine->GetTypeInfoByName(name));
+		return ScriptTypeInfo(State::instance()->GetTypeInfoByName(name));
 	}
 
 	ScriptTypeInfo ScriptEngine::type_info_by_decl(const char* decl)
 	{
-		return ScriptTypeInfo(ScriptEngineData::instance()->engine->GetTypeInfoByDecl(decl));
+		return ScriptTypeInfo(State::instance()->GetTypeInfoByDecl(decl));
 	}
 
 	ScriptTypeInfo ScriptEngine::type_info_by_name(const String& name)
@@ -750,27 +719,25 @@ namespace Trinex
 		return "Undefined";
 	}
 
-	ScriptEngine& ScriptEngine::register_custom_variable_parser(i32 type_id, VariableToStringFunction function)
+	void ScriptEngine::register_custom_variable_parser(i32 type_id, VariableToStringFunction function)
 	{
 		if (function == nullptr)
 			return unregister_custom_variable(type_id);
 
-		ScriptEngineData::instance()->parsers_map[type_id] = function;
-		return instance();
+		State::instance().parsers_map[type_id] = function;
 	}
 
-	ScriptEngine& ScriptEngine::unregister_custom_variable(i32 type_id)
+	void ScriptEngine::unregister_custom_variable(i32 type_id)
 	{
-		ScriptEngineData::instance()->parsers_map.erase(type_id);
-		return instance();
+		State::instance().parsers_map.erase(type_id);
 	}
 
 	ScriptEngine::VariableToStringFunction ScriptEngine::custom_variable_parser(i32 type_id)
 	{
-		ScriptEngineData* data = ScriptEngineData::instance();
+		State& state = State::instance();
 
-		auto it = data->parsers_map.find(type_id);
-		if (it != data->parsers_map.end())
+		auto it = state.parsers_map.find(type_id);
+		if (it != state.parsers_map.end())
 			return it->second;
 
 		return nullptr;
@@ -945,7 +912,7 @@ namespace Trinex
 
 	bool ScriptEngine::assign_script_object(void* dst, void* src, const ScriptTypeInfo& info)
 	{
-		return ScriptEngineData::instance()->engine->AssignScriptObject(dst, src, info.info()) >= 0;
+		return State::instance()->AssignScriptObject(dst, src, info.info()) >= 0;
 	}
 
 	static void variable_name_generic(asIScriptGeneric* generic)

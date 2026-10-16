@@ -1,4 +1,4 @@
-#include <Core/entry_point.hpp>
+#include <Core/entry.hpp>
 #include <Core/reflection/class.hpp>
 
 namespace Trinex

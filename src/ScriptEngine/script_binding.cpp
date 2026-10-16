@@ -8,19 +8,6 @@ namespace Trinex::ScriptBinding
 {
 	namespace
 	{
-		class ScopedNamespace final
-		{
-			String m_prev_namespace;
-
-		public:
-			ScopedNamespace(const String& namespace_name) : m_prev_namespace(ScriptEngine::default_namespace())
-			{
-				ScriptEngine::default_namespace(namespace_name);
-			}
-
-			~ScopedNamespace() { ScriptEngine::default_namespace(m_prev_namespace); }
-		};
-
 		static asDWORD create_call_conv(const FunctionPointer& func, ScriptCallConv conv, bool is_method = false)
 		{
 			if (conv == ScriptCallConv::Auto)
@@ -215,7 +202,7 @@ namespace Trinex::ScriptBinding
 	Class Class::create(const StringView& name, const ObjectTypeOptions& options)
 	{
 		Class binding(name);
-		ScopedNamespace ns(binding.m_namespace);
+		ScriptNamespaceScopedChanger ns(binding.m_namespace);
 
 		auto engine = ScriptEngine::engine();
 
@@ -253,7 +240,7 @@ namespace Trinex::ScriptBinding
 
 	ScriptTypeInfo Class::type_info() const
 	{
-		ScopedNamespace ns(m_namespace);
+		ScriptNamespaceScopedChanger ns(m_namespace);
 		return ScriptEngine::type_info_by_name(m_class_base.c_str());
 	}
 
@@ -265,7 +252,7 @@ namespace Trinex::ScriptBinding
 	Class& Class::behaviour(ScriptClassBehave behaviour, const char* decl, const FunctionPointer& func, ScriptCallConv conv,
 	                        void* auxiliary)
 	{
-		ScopedNamespace ns(m_namespace);
+		ScriptNamespaceScopedChanger ns(m_namespace);
 		auto engine = ScriptEngine::engine();
 
 		trinex_verify(engine->RegisterObjectBehaviour(m_class_base.c_str(), create_behaviour(behaviour), decl, func,
@@ -275,7 +262,7 @@ namespace Trinex::ScriptBinding
 
 	ScriptFunction Class::method(const char* decl, const FunctionPointer& func, ScriptCallConv conv, void* auxiliary)
 	{
-		ScopedNamespace ns(m_namespace);
+		ScriptNamespaceScopedChanger ns(m_namespace);
 		auto engine = ScriptEngine::engine();
 
 		trinex_verify(engine->RegisterObjectMethod(m_class_base.c_str(), decl, func, create_call_conv(func, conv, true),
@@ -285,7 +272,7 @@ namespace Trinex::ScriptBinding
 
 	Class& Class::static_function(const char* decl, const FunctionPointer& func, ScriptCallConv conv, void* auxiliary)
 	{
-		ScopedNamespace ns(m_class.c_str());
+		ScriptNamespaceScopedChanger ns(m_class.c_str());
 		auto engine = ScriptEngine::engine();
 
 		trinex_verify(engine->RegisterGlobalFunction(decl, func, create_call_conv(func, conv, false), auxiliary) >= 0);
@@ -294,7 +281,7 @@ namespace Trinex::ScriptBinding
 
 	Class& Class::property(const char* decl, usize offset)
 	{
-		ScopedNamespace ns(m_namespace);
+		ScriptNamespaceScopedChanger ns(m_namespace);
 		auto engine = ScriptEngine::engine();
 
 		trinex_verify(engine->RegisterObjectProperty(m_class_base.c_str(), decl, offset) >= 0);
@@ -303,7 +290,7 @@ namespace Trinex::ScriptBinding
 
 	Class& Class::static_property(const char* decl, void* property)
 	{
-		ScopedNamespace ns(m_class);
+		ScriptNamespaceScopedChanger ns(m_class);
 		auto engine = ScriptEngine::engine();
 
 		trinex_verify(engine->RegisterGlobalProperty(decl, property) >= 0);
@@ -342,7 +329,7 @@ namespace Trinex::ScriptBinding
 
 	Class& Class::funcdef(const String& decl)
 	{
-		ScopedNamespace ns(m_class);
+		ScriptNamespaceScopedChanger ns(m_class);
 		auto engine = ScriptEngine::engine();
 
 		trinex_verify(engine->RegisterFuncdef(decl.c_str()) >= 0);
@@ -354,7 +341,7 @@ namespace Trinex::ScriptBinding
 	{
 		if (init)
 		{
-			ScopedNamespace ns(m_namespace);
+			ScriptNamespaceScopedChanger ns(m_namespace);
 			auto engine = ScriptEngine::engine();
 
 			trinex_verify(engine->RegisterEnum(m_base.c_str()) >= 0);
@@ -367,7 +354,7 @@ namespace Trinex::ScriptBinding
 
 	Enum& Enum::value(const char* name, i64 enum_value)
 	{
-		ScopedNamespace ns(m_namespace);
+		ScriptNamespaceScopedChanger ns(m_namespace);
 		auto engine = ScriptEngine::engine();
 
 		trinex_verify(engine->RegisterEnumValue(m_base.c_str(), name, enum_value) >= 0);
@@ -376,7 +363,7 @@ namespace Trinex::ScriptBinding
 
 	ScriptTypeInfo Enum::type_info() const
 	{
-		ScopedNamespace ns(m_namespace);
+		ScriptNamespaceScopedChanger ns(m_namespace);
 		return ScriptEngine::type_info_by_name(m_base.c_str());
 	}
 
@@ -402,21 +389,21 @@ namespace Trinex::ScriptBinding
 
 	Namespace& Namespace::property(const char* decl, void* property)
 	{
-		ScopedNamespace ns(m_namespace);
+		ScriptNamespaceScopedChanger ns(m_namespace);
 		ScriptEngine::register_property(decl, property);
 		return *this;
 	}
 
 	Namespace& Namespace::func_def(const char* decl)
 	{
-		ScopedNamespace ns(m_namespace);
+		ScriptNamespaceScopedChanger ns(m_namespace);
 		ScriptEngine::register_funcdef(decl);
 		return *this;
 	}
 
 	Namespace& Namespace::type_def(const char* new_type_name, const char* type)
 	{
-		ScopedNamespace ns(m_namespace);
+		ScriptNamespaceScopedChanger ns(m_namespace);
 		ScriptEngine::register_typedef(new_type_name, type);
 		return *this;
 	}
@@ -440,7 +427,7 @@ namespace Trinex::ScriptBinding
 
 	Namespace& Namespace::function(const char* decl, const FunctionPointer& func, ScriptCallConv conv, void* auxiliary)
 	{
-		ScopedNamespace ns(m_namespace);
+		ScriptNamespaceScopedChanger ns(m_namespace);
 		auto engine = ScriptEngine::engine();
 
 		trinex_verify(engine->RegisterGlobalFunction(decl, func, create_call_conv(func, conv, false), auxiliary) >= 0);

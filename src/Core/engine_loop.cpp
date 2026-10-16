@@ -2,7 +2,7 @@
 #include <Core/constants.hpp>
 #include <Core/engine.hpp>
 #include <Core/engine_loop.hpp>
-#include <Core/entry_point.hpp>
+#include <Core/entry.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/garbage_collector.hpp>
@@ -71,7 +71,6 @@ namespace Trinex
 		Arguments arguments;
 		arguments.init(argc, argv);
 		initialize_filesystem();
-		ScriptEngine::initialize();
 
 		LifeCycle::execute(LifeCycle::PreInit);
 		LifeCycle::execute(LifeCycle::ReflectionInit);

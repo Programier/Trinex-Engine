@@ -79,11 +79,10 @@ namespace Trinex
 
 	trinex_on_pre_init({.after = {"Trinex::DefaultScriptAddons"}})
 	{
-		auto& e  = ScriptEngine::instance();
 		auto str = ScriptBinding::Class::existing("string");
 
 		str.method("string format(const ?& ...) const", string_fmt, ScriptCallConv::Generic);
-		e.register_function("void print(const ?& ...)", script_print, ScriptCallConv::Generic);
-		e.register_function("void printf(const string& fmt, const ?& ...)", script_printf, ScriptCallConv::Generic);
+		ScriptEngine::register_function("void print(const ?& ...)", script_print, ScriptCallConv::Generic);
+		ScriptEngine::register_function("void printf(const string& fmt, const ?& ...)", script_printf, ScriptCallConv::Generic);
 	}
 }// namespace Trinex

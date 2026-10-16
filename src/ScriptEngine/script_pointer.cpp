@@ -88,7 +88,7 @@ namespace Trinex
 	{
 		auto r         = ScriptBinding::Class::create("NullPtr", ScriptBinding::value_type<u8>(ScriptClassFlags::Pod));
 		static u8 null = 0;
-		ScriptEngine::instance().register_property("const NullPtr nullptr", &null);
+		ScriptEngine::register_property("const NullPtr nullptr", &null);
 	}
 
 	trinex_on_pre_init({.name = "Trinex::ScriptPointer"})

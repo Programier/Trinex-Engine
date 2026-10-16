@@ -11,18 +11,16 @@ namespace Trinex::Settings::Editor
 
 	trinex_on_pre_init()
 	{
-		auto& e = ScriptEngine::instance();
-
-		e.begin_config_group("editor/editor.config");
+		ScriptEngine::begin_config_group("editor/editor.config");
 		{
 			ScriptNamespaceScopedChanger changer("Trinex::Settings::Editor");
 
-			e.register_property("string font_path", &font_path);
-			e.register_property("float small_font_size", &small_font_size);
-			e.register_property("float normal_font_size", &normal_font_size);
-			e.register_property("float large_font_size", &large_font_size);
-			e.register_property("bool show_grid", &show_grid);
+			ScriptEngine::register_property("string font_path", &font_path);
+			ScriptEngine::register_property("float small_font_size", &small_font_size);
+			ScriptEngine::register_property("float normal_font_size", &normal_font_size);
+			ScriptEngine::register_property("float large_font_size", &large_font_size);
+			ScriptEngine::register_property("bool show_grid", &show_grid);
 		}
-		e.end_config_group();
+		ScriptEngine::end_config_group();
 	}
 }// namespace Trinex::Settings::Editor

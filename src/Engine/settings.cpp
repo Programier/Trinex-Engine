@@ -58,10 +58,9 @@ namespace Trinex::Settings
 		// LifeCycle::execute(LifeCycle::ReflectionInit, "Trinex::WindowAttribute");
 		// LifeCycle::execute(LifeCycle::ReflectionInit, "Trinex::Orientation");
 
-#define bind_value(type, name) e.register_property(#type " " #name, &name)
+#define bind_value(type, name) ScriptEngine::register_property(#type " " #name, &name)
 
-		auto& e = ScriptEngine::instance();
-		e.begin_config_group("engine/engine.config");
+		ScriptEngine::begin_config_group("engine/engine.config");
 
 		{
 			ScriptNamespaceScopedChanger changer("Trinex::Settings");
@@ -117,6 +116,6 @@ namespace Trinex::Settings
 			bind_value(int, game_name_text_size);
 		}
 
-		e.end_config_group();
+		ScriptEngine::end_config_group();
 	}
 }// namespace Trinex::Settings

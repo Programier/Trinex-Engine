@@ -64,7 +64,7 @@ trinex_source_directories(TrinexEngine RECURSIVE
     "${TRINEX_ENGINE_SRC}/ScriptEngine/"
     "${TRINEX_ENGINE_SRC}/Input/"
     "${TRINEX_ENGINE_SRC}/Engine/"
-    "${TRINEX_ENGINE_SRC}/EntryPoints/"
+    "${TRINEX_ENGINE_SRC}/Entry/"
 )
 
 # Compile modules

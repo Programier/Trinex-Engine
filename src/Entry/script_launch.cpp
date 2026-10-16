@@ -1,5 +1,5 @@
 #include <Core/arguments.hpp>
-#include <Core/entry_point.hpp>
+#include <Core/entry.hpp>
 #include <Core/etl/script_array.hpp>
 #include <Core/reflection/class.hpp>
 #include <ScriptEngine/script_context.hpp>

@@ -2,7 +2,6 @@
 
 #include <Core/object.hpp>
 
-
 namespace Trinex
 {
 	class ENGINE_EXPORT EntryPoint : public Object

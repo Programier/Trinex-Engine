@@ -773,9 +773,8 @@ namespace Trinex
 		return m_module.typedef_by_index(index);
 	}
 
-	ScriptEngine& ScriptEngine::load_scripts()
+	void ScriptEngine::load_scripts()
 	{
 		scripts_folder()->load_scripts();
-		return instance();
 	}
 }// namespace Trinex
