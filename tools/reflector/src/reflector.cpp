@@ -18,19 +18,29 @@ namespace Reflector
 	{
 	private:
 		static constexpr inline std::size_t size = 4;
-		char m_bytes[size]                       = {};
+
+		char m_bytes[size] = {};
+		std::uint8_t m_major;
+		std::uint8_t m_minor;
 
 	public:
 		constexpr Magic() = default;
-		constexpr Magic(const char (&str)[size + 1])
+		constexpr Magic(const char (&str)[size + 1], std::uint8_t major, std::uint8_t minor) : m_major(major), m_minor(minor)
 		{
-			for (std::size_t i = 0; i < size; ++i) m_bytes[i] = str[i];
+			for (std::size_t i = 0; i < size; ++i)
+			{
+				m_bytes[i] = str[i];
+			}
 		}
 
 		constexpr bool operator==(const Magic&) const = default;
 
-		static constexpr Magic magic() { return "TXFR"; }
-		void serialize(Archive& ar) { ar.memory(m_bytes, size); }
+		static constexpr Magic magic() { return Magic("TXFR", 1, 0); }
+		void serialize(Archive& ar)
+		{
+			ar.memory(m_bytes, size);
+			ar(m_major, m_minor);
+		}
 	};
 
 	struct CommandLineBinding {

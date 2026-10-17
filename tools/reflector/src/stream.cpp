@@ -91,7 +91,7 @@ namespace Reflector
 		return m_indent_level;
 	}
 
-	CodeWriter::Indentation CodeWriter::scoped_indent()
+	CodeWriter::Indentation CodeWriter::scope()
 	{
 		return Indentation(*this);
 	}

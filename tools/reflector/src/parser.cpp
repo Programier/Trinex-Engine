@@ -999,6 +999,7 @@ namespace Reflector
 			{
 				auto object          = std::make_unique<Property>();
 				object->metadata     = annotation.metadata;
+				object->line         = static_cast<std::uint32_t>(annotation.line);
 				object->access       = access;
 				auto declaration_end = find_top_level_equal(tokens, begin, end);
 				if (declaration_end < end)
@@ -1060,6 +1061,7 @@ namespace Reflector
 			{
 				auto object      = std::make_unique<Function>();
 				object->metadata = annotation.metadata;
+				object->line     = static_cast<std::uint32_t>(annotation.line);
 				object->access   = access;
 				if (is_template)
 				{
@@ -1246,6 +1248,7 @@ namespace Reflector
 
 				object->name     = current(cursor).value;
 				object->access   = access;
+				object->line     = static_cast<std::uint32_t>(annotation.line);
 				object->metadata = annotation.metadata;
 				++cursor.index;
 				auto* structure = dynamic_cast<Struct*>(object.get());
@@ -1349,6 +1352,7 @@ namespace Reflector
 					{
 						auto created  = new Namespace();
 						created->name = part;
+						created->line = static_cast<std::uint32_t>(tokens[start].line);
 						nested        = created;
 						attach(*owner, created);
 					}
@@ -1375,6 +1379,33 @@ namespace Reflector
 							cursor.index += 2;
 							continue;
 						}
+					}
+					if (current(cursor).value == "trinex_reflection_body")
+					{
+						if (!scope.is_a(ObjectKind::Struct))
+							return failure(current(cursor),
+							               "trinex_reflection_body is only valid inside a reflected struct or class");
+
+						auto& structure = static_cast<Struct&>(scope);
+						if (structure.body_line != 0)
+							return failure(current(cursor), "duplicate trinex_reflection_body");
+
+						const Token& macro = current(cursor);
+						++cursor.index;
+						if (cursor.index >= end || current(cursor).value != "(")
+							return failure(macro, "trinex_reflection_body must be invoked without arguments");
+
+						const auto close = matching_token(tokens, cursor.index);
+						if (close != cursor.index + 1)
+							return failure(macro, "trinex_reflection_body must be invoked without arguments");
+
+						cursor.index = close + 1;
+						if (cursor.index >= end || current(cursor).value != ";")
+							return failure(macro, "trinex_reflection_body must be followed by a semicolon");
+
+						++cursor.index;
+						structure.body_line = macro.line;
+						continue;
 					}
 					if (current(cursor).value == "namespace" || (current(cursor).value == "inline" && cursor.index + 1 < end &&
 					                                             tokens[cursor.index + 1].value == "namespace"))
@@ -1459,6 +1490,7 @@ namespace Reflector
 	{
 		auto module  = new Module();
 		module->name = source_name;
+		module->line = 1;
 
 		if (!ModuleParser(source).parse(*module))
 		{

@@ -7,7 +7,7 @@ namespace Reflector
 	trinex_implement_reflector_type(Enum, values);
 	trinex_implement_reflector_type(Scope, objects);
 	trinex_implement_reflector_type(Namespace);
-	trinex_implement_reflector_type(Struct);
+	trinex_implement_reflector_type(Struct, body_line);
 	trinex_implement_reflector_type(Class);
 	trinex_implement_reflector_type(Module);
 	trinex_implement_reflector_type(Function, type, args, flags);
@@ -61,7 +61,7 @@ namespace Reflector
 
 	void Object::serialize(Archive& ar)
 	{
-		ar(name, access, metadata);
+		ar(name, line, access, metadata);
 	}
 
 	Object::~Object() {}

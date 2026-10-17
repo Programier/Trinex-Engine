@@ -4,6 +4,7 @@
 #include <string>
 #include <string_view>
 #include <type_traits>
+#include <utility>
 
 namespace Reflector
 {
@@ -30,8 +31,13 @@ namespace Reflector
 	inline constexpr bool is_write_as<WriteAs<Executor>> = true;
 
 	template<typename T>
+	concept CodeWriterStringifiable = requires(T&& value) {
+		{ std::to_string(std::forward<T>(value)) } -> std::convertible_to<std::string>;
+	};
+
+	template<typename T>
 	concept CodeWriterLine = std::convertible_to<T, std::string_view> || std::convertible_to<T, const Object*> ||
-	                         is_write_as<std::remove_cvref_t<T>>;
+	                         is_write_as<std::remove_cvref_t<T>> || CodeWriterStringifiable<T>;
 
 	// An owned text buffer, independent of streams and files. No RTTI or implicit flushing.
 	// Implementation is deferred; this header defines the code formatting contract.
@@ -77,6 +83,18 @@ namespace Reflector
 		CodeWriter& write(const Object* object);
 		CodeWriter& line(const Object* object);
 
+		template<CodeWriterStringifiable T>
+		CodeWriter& write(T&& value)
+		{
+			return write(std::to_string(std::forward<T>(value)));
+		}
+
+		template<CodeWriterStringifiable T>
+		CodeWriter& line(T&& value)
+		{
+			return write(std::forward<T>(value)).line();
+		}
+
 		template<typename Executor>
 		CodeWriter& write(WriteAs<Executor> object)
 		{
@@ -109,7 +127,7 @@ namespace Reflector
 		// Unindenting at level zero is a programming error, not a silent no-op.
 		CodeWriter& unindent();
 		std::size_t indent_level() const noexcept;
-		[[nodiscard]] Indentation scoped_indent();
+		[[nodiscard]] Indentation scope();
 
 		// The returned view remains valid until the next mutation or destruction.
 		std::string_view text() const noexcept;

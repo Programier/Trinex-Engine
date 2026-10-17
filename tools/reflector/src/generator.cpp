@@ -9,7 +9,31 @@ namespace Reflector
 {
 	namespace fs = std::filesystem;
 
-	struct ObjectPathID {
+	struct AccessorPath {
+		static void execute(CodeWriter* writer, const Object* object)
+		{
+			if (object == nullptr || object->is_a(ObjectKind::Module))
+				return;
+
+			if (object->is_a(ObjectKind::Struct))
+			{
+				writer->write("Accessor", object->line);
+				return;
+			}
+
+			execute(writer, object->owner);
+			writer->write("::", object->name);
+		}
+	};
+
+	struct ResolvedPath {
+		static void execute(CodeWriter* writer, const Object* object)
+		{
+			writer->write(WriteAs<AccessorPath>(object->owner), "::", object->name);
+		}
+	};
+
+	struct ObjectID {
 		static bool execute(CodeWriter* writer, const Object* object)
 		{
 			if (object == nullptr)
@@ -149,16 +173,50 @@ namespace Reflector
 		              "// ============================================================================\n\n");
 	}
 
+	static void generate_accessor(CodeWriter* writer, const Scope* object)
+	{
+		writer->line("template<>");
+		writer->line("struct Accessor<", WriteAs<ResolvedPath>(object), ">");
+		writer->line("{");
+		{
+			auto scope = writer->scope();
+
+			for (Object* child : object->objects)
+			{
+				if (child->is_a(ObjectKind::Property) || child->is_a(ObjectKind::Function))
+				{
+					writer->write("static constexpr auto ", child->name, " = &");
+					writer->line(WriteAs<ResolvedPath>(object), "::", child->name, ";");
+				}
+				else if (child->is_a(ObjectKind::Struct))
+				{
+					writer->write("using ", child->name, " = ");
+					writer->line(WriteAs<ResolvedPath>(object), "::", child->name, ";");
+				}
+			}
+		}
+		writer->line("};\n");
+
+		writer->write("using Accessor", object->line);
+		writer->line(" = Accessor<", WriteAs<ResolvedPath>(object), ">;\n");
+	}
+
+	static void generate_property(CodeWriter* writer, const Property* object) {}
+
 	static void generate_struct(CodeWriter* writer, const Struct* object)
 	{
 		writer->line("template<>");
-		writer->line("FORCE_ENGINE_EXPORT const Type* type_of<", object, ">()");
+		writer->line("FORCE_ENGINE_EXPORT Struct* struct_of<", object, ">()");
 		writer->line("{");
 		{
-			auto indent = writer->scoped_indent();
-			writer->line("static NativeTypeVTable<", object, ", Struct::VTable> vtable;");
-			writer->line("static Struct type(\"" + object->name + "\", sizeof(", object, "), alignof(", object,
-			             "), Type::IsNative, nullptr, &vtable, ", WriteAs<OwnerReflection>(object), ");");
+			auto indent = writer->scope();
+			writer->line("using This = ", WriteAs<ResolvedPath>(object), ";\n");
+
+			writer->line("static NativeTypeVTable<This, Struct::VTable> vtable;");
+			writer->line("static Struct type(\"", object->name,
+			             "\", sizeof(This), alignof(This), "
+			             "Type::IsNative, nullptr, &vtable, ",
+			             WriteAs<OwnerReflection>(object), ");\n");
 
 			writer->line("return &type;");
 		}
@@ -167,22 +225,27 @@ namespace Reflector
 		writer->line();
 
 		writer->line("template<>");
-		writer->line("FORCE_ENGINE_EXPORT const Struct* struct_of<", object, ">()");
+		writer->line("FORCE_ENGINE_EXPORT Type* type_of<", object, ">()");
 		writer->line("{");
 		{
-			auto indent = writer->scoped_indent();
-			writer->line("return static_cast<const Struct*>(type_of<", object, ">());");
+			auto indent = writer->scope();
+			writer->line("return struct_of<", object, ">();");
 		}
-		writer->line("}");
-		writer->line();
+		writer->line("}\n");
 	}
 
 	static void generate_reflection(CodeWriter* writer, const Scope* scope)
 	{
 		for (const Object* object : scope->objects)
 		{
+			if (object->kind() == ObjectKind::Property)
+			{
+				generate_property(writer, static_cast<const Property*>(object));
+			}
+
 			if (object->kind() == ObjectKind::Struct)
 			{
+				generate_accessor(writer, static_cast<const Struct*>(object));
 				generate_struct(writer, static_cast<const Struct*>(object));
 			}
 
@@ -211,6 +274,41 @@ namespace Reflector
 		}
 	}
 
+	static void generate_reflection_body(CodeWriter* writer, const Module* module, const Struct* instance)
+	{
+		if (instance->body_line == 0)
+			return;
+
+		writer->line("#define trinex_reflection_", WriteAs<ObjectID>(module), "_", instance->body_line, " \\");
+		{
+			auto scope = writer->scope();
+			writer->line("public: \\");
+			{
+				auto scope = writer->scope();
+
+				writer->line("using This = ", instance->name, "; \\");
+				writer->line("friend struct ::Trinex::Refl::New::Accessor<", instance->name, ">; ");
+			}
+		}
+	}
+
+	static void generate_reflection_bodies(CodeWriter* writer, const Module* module, const Scope* scope)
+	{
+		for (const Object* object : scope->objects)
+		{
+			if (object->is_a(ObjectKind::Struct))
+			{
+				const Struct* instance = static_cast<const Struct*>(object);
+				generate_reflection_body(writer, module, instance);
+			}
+
+			if (object->is_a(ObjectKind::Scope))
+			{
+				generate_reflection_bodies(writer, module, static_cast<const Scope*>(object));
+			}
+		}
+	}
+
 	static bool generate_header(CodeWriter* writer, const Module* module)
 	{
 		write_generated_header(writer);
@@ -218,8 +316,10 @@ namespace Reflector
 		if (is_object_empty(module))
 			return true;
 
-		writer->write("#define trinex_reflection_file_id trinex_reflection_", WriteAs<ObjectPathID>(module));
+		writer->line("#include <Core/reflection/new/accessor.hpp>\n");
+		writer->line("#define trinex_reflection_file_id trinex_reflection_", WriteAs<ObjectID>(module));
 
+		generate_reflection_bodies(writer, module, module);
 		return true;
 	}
 
@@ -239,13 +339,13 @@ namespace Reflector
 		writer->line("namespace Trinex::Refl::New");
 		writer->line("{");
 		{
-			auto indent = writer->scoped_indent();
+			auto indent = writer->scope();
 			generate_reflection(writer, module);
 
 			writer->line("trinex_on_reflection_init()");
 			writer->line("{");
 			{
-				auto initialization_indent = writer->scoped_indent();
+				auto initialization_indent = writer->scope();
 				generate_reflection_initialization(writer, module);
 			}
 			writer->line("}");
@@ -290,6 +390,7 @@ namespace Reflector
 
 		return true;
 	}
+
 
 	bool generate_header(fs::path path, const Module* module)
 	{

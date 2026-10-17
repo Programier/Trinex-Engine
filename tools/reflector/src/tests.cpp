@@ -31,7 +31,7 @@ namespace
 		writer.line("namespace Test");
 		writer.line("{");
 		{
-			auto indentation = writer.scoped_indent();
+			auto indentation = writer.scope();
 			writer.write("int value;\r\n\nfloat other;");
 			writer.line();
 		}
@@ -50,8 +50,8 @@ namespace
 		{
 			const std::string directive = "  #define trinex_material_parameter(self, super) \\" + newline +
 			                              "\ttrinex_class(self, super); \\" + newline + "\t\\" + newline;
-			const std::string source = directive + newline + "trinex_property() int visible;";
-			const auto tokens = tokenize(source);
+			const std::string source    = directive + newline + "trinex_property() int visible;";
+			const auto tokens           = tokenize(source);
 			if (!expect(tokens[0].type == TokenType::Preprocessor &&
 			                    tokens[0].value.find("trinex_class(self, super);") != std::string_view::npos,
 			            "continued directive is a single token") ||
@@ -63,9 +63,9 @@ namespace
 			            "macro body is ignored without skipping the following declaration"))
 				return false;
 		}
-		for (const std::string_view source : {"#define MACRO trinex_class(self, super);",
-		                                     "#define MACRO \\\ntrinex_class(self, super);",
-		                                     "#define MACRO \\\ntrinex_class(self, super); \\"})
+		for (const std::string_view source :
+		     {"#define MACRO trinex_class(self, super);", "#define MACRO \\\ntrinex_class(self, super);",
+		      "#define MACRO \\\ntrinex_class(self, super); \\"})
 		{
 			std::unique_ptr<Module> module(parse(source));
 			if (!expect(module && module->objects.empty(), "directive at end of file is ignored"))
@@ -372,6 +372,41 @@ namespace Test {
 		return expect(enumeration->values.back().metadata.size() == 1, "enumerator metadata");
 	}
 
+	bool test_reflection_body()
+	{
+		std::unique_ptr<Module> module(parse(R"(
+trinex_struct() struct Test {
+	trinex_reflection_body();
+};
+trinex_class() class TestClass {
+	trinex_reflection_body();
+};
+)",
+		                                     "reflection_body.hpp"));
+		if (!expect(module != nullptr, "reflection body source parses successfully"))
+			return false;
+
+		auto* structure = find<Struct>(*module, "Test", ObjectKind::Struct);
+		auto* klass     = find<Class>(*module, "TestClass", ObjectKind::Class);
+		if (!expect(structure && klass, "reflected types with reflection bodies exist"))
+			return false;
+
+		if (!expect(structure->line == 2 && klass->line == 5 && structure->body_line == 3 && klass->body_line == 6,
+		            "reflection body source lines"))
+			return false;
+
+		for (std::string_view source :
+		     {"trinex_reflection_body();", "trinex_struct() struct Test { trinex_reflection_body(1); };",
+		      "trinex_struct() struct Test { trinex_reflection_body(); trinex_reflection_body(); };"})
+		{
+			std::unique_ptr<Module> invalid(parse(source));
+			if (!expect(invalid == nullptr, "invalid reflection body is rejected"))
+				return false;
+		}
+
+		return true;
+	}
+
 	bool test_errors_and_reuse()
 	{
 		std::unique_ptr<Module> valid(parse("trinex_struct() struct Good { trinex_property() int value; };", "good.hpp"));
@@ -424,6 +459,7 @@ int main()
 	success      = test_attributes_macros_and_nested_types() && success;
 	success      = test_template_arguments_and_flags() && success;
 	success      = test_enums() && success;
+	success      = test_reflection_body() && success;
 	success      = test_errors_and_reuse() && success;
 	if (!success)
 		return 1;

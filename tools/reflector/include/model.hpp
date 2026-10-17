@@ -136,8 +136,9 @@ namespace Reflector
 		// Non-owning link to the parent scope.
 		Object* owner    = nullptr;
 		std::string name = "";
-		Access access    = Access::Global;
 		std::vector<Metadata> metadata;
+		std::uint32_t line = 0;
+		Access access      = Access::Global;
 
 	public:
 		static Object* create(ObjectKind kind);
@@ -194,7 +195,8 @@ namespace Reflector
 		};
 
 		std::vector<Base> bases;
-		std::uint8_t flags = 0;
+		std::uint8_t flags    = 0;
+		std::size_t body_line = 0;
 
 	public:
 		trinex_reflector_type(Struct, Scope);
