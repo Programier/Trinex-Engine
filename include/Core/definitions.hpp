@@ -261,8 +261,11 @@ public:                                                                         
 	}
 
 #define trinex_reflection_body(...) TRINEX_CONCAT(TRINEX_CONCAT(trinex_reflection_file_id, _), __LINE__)
+#define trinex_struct(...)
+#define trinex_function(...)
+#define trinex_property(...)
 
-#define trinex_struct(struct_name, base_name)                                                                                    \
+#define trinex_old_struct(struct_name, base_name)                                                                                \
 protected:                                                                                                                       \
 	static Trinex::Refl::Struct* m_static_struct;                                                                                \
                                                                                                                                  \

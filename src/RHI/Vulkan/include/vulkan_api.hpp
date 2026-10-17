@@ -38,7 +38,7 @@ namespace Trinex
 
 	class VulkanAPI final : public RHI
 	{
-		trinex_struct(VulkanAPI, void);
+		trinex_old_struct(VulkanAPI, void);
 
 	public:
 		static VulkanAPI* static_constructor();

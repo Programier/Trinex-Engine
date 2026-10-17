@@ -19,7 +19,7 @@ namespace Trinex
 	};
 
 	struct ENGINE_EXPORT MeshSurface {
-		trinex_struct(MeshSurface, void);
+		trinex_old_struct(MeshSurface, void);
 
 		RHITopology topology = RHITopology::TriangleList;
 		u32 first_vertex     = 0;
@@ -52,7 +52,7 @@ namespace Trinex
 
 	public:
 		struct ENGINE_EXPORT LOD {
-			trinex_struct(LOD, void);
+			trinex_old_struct(LOD, void);
 
 			VertexBuffer<MeshVertexStream> vertex_stream;
 			VertexBuffer<MeshSurfaceStream> surface_stream;
@@ -77,7 +77,7 @@ namespace Trinex
 
 	public:
 		struct ENGINE_EXPORT LOD {
-			trinex_struct(LOD, void);
+			trinex_old_struct(LOD, void);
 			VertexBuffer<MeshVertexStream> vertex_stream;
 			VertexBuffer<MeshSurfaceStream> surface_stream;
 			VertexBuffer<MeshAnimationStream> animation_stream;

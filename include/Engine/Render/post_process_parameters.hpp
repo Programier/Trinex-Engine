@@ -4,10 +4,10 @@
 namespace Trinex
 {
 	struct PostProcessParameters final {
-		trinex_struct(PostProcessParameters, void);
+		trinex_old_struct(PostProcessParameters, void);
 
 		struct SSAO {
-			trinex_struct(SSAO, void);
+			trinex_old_struct(SSAO, void);
 
 			bool enabled    = false;
 			float intensity = 1.f;
@@ -21,7 +21,7 @@ namespace Trinex
 		};
 
 		struct Bloom {
-			trinex_struct(Bloom, void);
+			trinex_old_struct(Bloom, void);
 
 			bool enabled    = true;
 			float intensity = 1.f;

@@ -9,7 +9,7 @@ namespace Trinex
 	class Archive;
 
 	struct ENGINE_EXPORT Transform {
-		trinex_struct(Transform, void);
+		trinex_old_struct(Transform, void);
 
 	private:
 		Vector3f vector_of(const Vector3f& dir) const;

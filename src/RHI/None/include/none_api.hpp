@@ -9,7 +9,7 @@ namespace Trinex
 	class NoneApi : public RHI
 	{
 	public:
-		trinex_struct(NoneApi, void);
+		trinex_old_struct(NoneApi, void);
 		static NoneApi* static_constructor();
 		static void static_destructor(NoneApi* api);
 
