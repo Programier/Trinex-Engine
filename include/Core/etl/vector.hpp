@@ -2,6 +2,7 @@
 #include <Core/etl/algorithm.hpp>
 #include <Core/etl/allocator.hpp>
 #include <Core/etl/archive_predef.hpp>
+#include <Core/etl/initializer_list.hpp>
 #include <iterator>
 #include <limits>
 #include <memory>
@@ -491,11 +492,9 @@ namespace Trinex
 			range_initialize(first, last);
 		}
 
-		constexpr Vector(std::initializer_list<T> list) : Vector(list.begin(), list.end()) {}
+		constexpr Vector(InitializerList<T> list) : Vector(list.begin(), list.end()) {}
 
-		constexpr Vector(std::initializer_list<T> list, const AllocatorType& allocator)
-		    : Vector(list.begin(), list.end(), allocator)
-		{}
+		constexpr Vector(InitializerList<T> list, const AllocatorType& allocator) : Vector(list.begin(), list.end(), allocator) {}
 
 		constexpr Vector(const Vector& other) : Vector(other.begin(), other.end(), other.allocator()) {}
 
@@ -538,7 +537,7 @@ namespace Trinex
 			return *this;
 		}
 
-		constexpr Vector& operator=(std::initializer_list<T> list)
+		constexpr Vector& operator=(InitializerList<T> list)
 		{
 			assign(list.begin(), list.end());
 			return *this;
@@ -653,7 +652,7 @@ namespace Trinex
 			assign_aux(first, last, IteratorCategory<InputIterator>());
 		}
 
-		constexpr void assign(std::initializer_list<T> list) { assign(list.begin(), list.end()); }
+		constexpr void assign(InitializerList<T> list) { assign(list.begin(), list.end()); }
 
 		template<class... Args>
 		constexpr iterator emplace(const_iterator pos, Args&&... args)
@@ -680,7 +679,7 @@ namespace Trinex
 			return begin() + offset;
 		}
 
-		constexpr iterator insert(const_iterator pos, const std::initializer_list<value_type>& v)
+		constexpr iterator insert(const_iterator pos, const InitializerList<value_type>& v)
 		{
 			return insert(pos, v.begin(), v.end());
 		}

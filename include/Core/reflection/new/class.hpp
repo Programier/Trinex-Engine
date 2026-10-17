@@ -19,7 +19,8 @@ namespace Trinex::Refl::New
 		};
 
 	public:
-		Class(Name name, u32 size, u32 alignment, const Class* base = nullptr, u64 flags = 0, const VTable* vtable = nullptr);
+		Class(Name name, u32 size, u32 alignment, u64 flags = 0, const Class* base = nullptr, const VTable* vtable = nullptr,
+		      Object* owner = nullptr);
 		ObjectKind kind() const override;
 
 		inline const Class* base() const { return static_cast<const Class*>(Struct::base()); }

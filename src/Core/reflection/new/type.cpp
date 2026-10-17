@@ -2,8 +2,8 @@
 
 namespace Trinex::Refl::New
 {
-	Type::Type(Name name, u32 size, u32 alignment, u64 flags, const VTable* vtable)
-	    : Object(name, flags), m_size(size), m_alignment(alignment), m_vtable(vtable)
+	Type::Type(Name name, u32 size, u32 alignment, u64 flags, const VTable* vtable, Object* owner)
+	    : Object(name, flags, owner), m_size(size), m_alignment(alignment), m_vtable(vtable)
 	{}
 
 	ObjectKind Type::kind() const
@@ -86,27 +86,5 @@ namespace Trinex::Refl::New
 			return false;
 		result = m_vtable->compare(lhs, rhs);
 		return true;
-	}
-
-	bool Type::serialize(Archive& archive, void* value) const
-	{
-		return m_vtable != nullptr && value != nullptr && m_vtable->serialize(archive, value);
-	}
-
-	bool Type::serialize_array(Archive& archive, void* values, u32 count) const
-	{
-		if (count == 0)
-			return true;
-		return m_vtable != nullptr && values != nullptr && m_vtable->serialize(archive, values, count);
-	}
-
-	bool Type::to_string(const void* value, String& out) const
-	{
-		return m_vtable != nullptr && value != nullptr && m_vtable->to_string(value, out);
-	}
-
-	bool Type::from_string(void* value, StringView string) const
-	{
-		return m_vtable != nullptr && value != nullptr && m_vtable->from_string(value, string);
 	}
 }// namespace Trinex::Refl::New

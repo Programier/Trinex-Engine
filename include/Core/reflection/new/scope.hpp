@@ -30,6 +30,10 @@ namespace Trinex::Refl::New
 	public:
 		using Object::Object;
 
+		static Scope* root();
+		static Scope* create(InitializerList<Name> path);
+
+		ObjectKind kind() const override;
 		Object* find(Name name) const override;
 		const Vector<Ref<Object>>& members() const { return m_members.container(); }
 	};

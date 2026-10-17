@@ -1,4 +1,5 @@
 #include <cassert>
+#include <model.hpp>
 #include <stream.hpp>
 
 namespace Reflector
@@ -14,6 +15,17 @@ namespace Reflector
 	}
 
 	CodeWriter::CodeWriter(std::string_view indent) : m_indent(indent) {}
+
+	CodeWriter& CodeWriter::reserve(std::size_t size)
+	{
+		const std::size_t current_size = m_text.size();
+
+		if (m_text.capacity() - current_size >= size)
+			return *this;
+
+		m_text.reserve(current_size + size);
+		return *this;
+	}
 
 	CodeWriter& CodeWriter::write(std::string_view text)
 	{
@@ -43,6 +55,22 @@ namespace Reflector
 	CodeWriter& CodeWriter::line(std::string_view text)
 	{
 		return write(text).write("\n");
+	}
+
+	CodeWriter& CodeWriter::write(const Object* object)
+	{
+		if (object == nullptr || object->is_a(ObjectKind::Module))
+			return *this;
+
+		write(object->owner);
+		write("::");
+		write(object->name);
+		return *this;
+	}
+
+	CodeWriter& CodeWriter::line(const Object* object)
+	{
+		return write(object).write("\n");
 	}
 
 	CodeWriter& CodeWriter::indent()

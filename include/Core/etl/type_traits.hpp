@@ -22,6 +22,7 @@ namespace Trinex::etl
 	using std::is_copy_assignable_v;
 	using std::is_copy_constructible_v;
 	using std::is_default_constructible_v;
+	using std::is_destructible_v;
 	using std::is_empty_v;
 	using std::is_enum_v;
 	using std::is_final_v;
@@ -48,7 +49,9 @@ namespace Trinex::etl
 	using std::is_same_v;
 	using std::is_signed_v;
 	using std::is_trivially_destructible_v;
+	using std::is_trivially_copyable_v;
 	using std::is_void_v;
+	using std::is_swappable_v;
 	using std::is_volatile;
 	using std::is_volatile_v;
 	using std::remove_const_t;

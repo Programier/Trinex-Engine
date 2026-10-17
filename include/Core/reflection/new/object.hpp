@@ -4,8 +4,6 @@
 
 namespace Trinex::Refl::New
 {
-	class Scope;
-
 	enum class ObjectKind
 	{
 		Object   = 0,
@@ -16,6 +14,7 @@ namespace Trinex::Refl::New
 		Function = 5,
 		Field    = 6,
 		Property = 7,
+		Scope    = 8,
 	};
 
 	class Object : public RefCounted
@@ -41,7 +40,7 @@ namespace Trinex::Refl::New
 			Hidden     = 1ull << 58,
 		};
 
-		static Scope* root();
+		static Object* root();
 
 	public:
 		Object(Name name, u64 flags = 0, Object* owner = nullptr);

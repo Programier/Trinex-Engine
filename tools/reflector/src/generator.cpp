@@ -3,10 +3,105 @@
 #include <iostream>
 #include <model.hpp>
 #include <stream.hpp>
+#include <string>
 
 namespace Reflector
 {
 	namespace fs = std::filesystem;
+
+	struct ObjectPathID {
+		static bool execute(CodeWriter* writer, const Object* object)
+		{
+			if (object == nullptr)
+				return false;
+
+			if (execute(writer, object->owner))
+			{
+				writer->write("_");
+			}
+
+			if (object->is_a(ObjectKind::Module))
+			{
+				std::string path = object->name;
+
+				for (char& character : path)
+				{
+					if (character == '/' || character == '\\' || character == '.')
+						character = '_';
+				}
+
+				writer->write(path);
+			}
+			else
+			{
+				writer->write(object->name);
+			}
+
+			return true;
+		}
+	};
+
+	struct ObjectPath {
+		static bool execute_list(CodeWriter* writer, const Object* object)
+		{
+			if (object == nullptr || object->is_a(ObjectKind::Module))
+				return false;
+
+			if (execute_list(writer, object->owner))
+			{
+				writer->write(", ");
+			}
+
+			writer->write("\"", object->name, "\"");
+			return true;
+		}
+
+		static void execute(CodeWriter* writer, const Object* object)
+		{
+			writer->write("{");
+			execute_list(writer, object);
+			writer->write("}");
+		}
+	};
+
+	struct OwnerReflection {
+		static void execute(CodeWriter* writer, const Object* object)
+		{
+			if (object == nullptr || object->is_a(ObjectKind::Module))
+			{
+				return;
+			}
+
+			const Object* owner = object->owner;
+
+			if (object->owner == nullptr)
+			{
+			}
+
+			if (owner)
+			{
+				if (owner->is_a(ObjectKind::Struct))
+				{
+					writer->write("type_of<", owner, ">()");
+				}
+				else
+				{
+					if (owner->is_a(ObjectKind::Module))
+					{
+						writer->write("Object::root()");
+					}
+					else
+					{
+						writer->write("Scope::create(", WriteAs<ObjectPath>(owner), ")");
+					}
+				}
+			}
+			else
+			{
+				writer->write("Object::root()");
+			}
+		}
+	};
 
 	static bool is_object_empty(const Object* object)
 	{
@@ -54,15 +149,108 @@ namespace Reflector
 		              "// ============================================================================\n\n");
 	}
 
+	static void generate_struct(CodeWriter* writer, const Struct* object)
+	{
+		writer->line("template<>");
+		writer->line("FORCE_ENGINE_EXPORT const Type* type_of<", object, ">()");
+		writer->line("{");
+		{
+			auto indent = writer->scoped_indent();
+			writer->line("static NativeTypeVTable<", object, ", Struct::VTable> vtable;");
+			writer->line("static Struct type(\"" + object->name + "\", sizeof(", object, "), alignof(", object,
+			             "), Type::IsNative, nullptr, &vtable, ", WriteAs<OwnerReflection>(object), ");");
+
+			writer->line("return &type;");
+		}
+
+		writer->line("}");
+		writer->line();
+
+		writer->line("template<>");
+		writer->line("FORCE_ENGINE_EXPORT const Struct* struct_of<", object, ">()");
+		writer->line("{");
+		{
+			auto indent = writer->scoped_indent();
+			writer->line("return static_cast<const Struct*>(type_of<", object, ">());");
+		}
+		writer->line("}");
+		writer->line();
+	}
+
+	static void generate_reflection(CodeWriter* writer, const Scope* scope)
+	{
+		for (const Object* object : scope->objects)
+		{
+			if (object->kind() == ObjectKind::Struct)
+			{
+				generate_struct(writer, static_cast<const Struct*>(object));
+			}
+
+			if (object->is_a(ObjectKind::Scope))
+			{
+				generate_reflection(writer, static_cast<const Scope*>(object));
+			}
+		}
+	}
+
+	static void generate_reflection_initialization(CodeWriter* writer, const Scope* scope)
+	{
+		for (const Object* object : scope->objects)
+		{
+			if (object->kind() == ObjectKind::Struct)
+			{
+				writer->write("type_of<");
+				writer->write(object);
+				writer->write(">();\n");
+			}
+
+			if (object->is_a(ObjectKind::Scope))
+			{
+				generate_reflection_initialization(writer, static_cast<const Scope*>(object));
+			}
+		}
+	}
+
 	static bool generate_header(CodeWriter* writer, const Module* module)
 	{
 		write_generated_header(writer);
+
+		if (is_object_empty(module))
+			return true;
+
+		writer->write("#define trinex_reflection_file_id trinex_reflection_", WriteAs<ObjectPathID>(module));
+
 		return true;
 	}
 
 	static bool generate_source(CodeWriter* writer, const Module* module)
 	{
 		write_generated_header(writer);
+
+		if (is_object_empty(module))
+			return true;
+
+		writer->line("#include <", module->name, ">");
+		writer->line("#include <Core/reflection/new/of.hpp>");
+		writer->line("#include <Core/reflection/new/scope.hpp>");
+		writer->line("#include <Core/reflection/new/struct.hpp>");
+		writer->line("#include <Core/reflection/new/vtable.hpp>");
+		writer->line();
+		writer->line("namespace Trinex::Refl::New");
+		writer->line("{");
+		{
+			auto indent = writer->scoped_indent();
+			generate_reflection(writer, module);
+
+			writer->line("trinex_on_reflection_init()");
+			writer->line("{");
+			{
+				auto initialization_indent = writer->scoped_indent();
+				generate_reflection_initialization(writer, module);
+			}
+			writer->line("}");
+		}
+		writer->line("}");
 		return true;
 	}
 
@@ -122,7 +310,7 @@ namespace Reflector
 	{
 		CodeWriter source;
 
-		if (!generate_header(&source, module))
+		if (!generate_source(&source, module))
 		{
 			return false;
 		}

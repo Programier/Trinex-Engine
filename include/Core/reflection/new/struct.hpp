@@ -45,7 +45,9 @@ namespace Trinex::Refl::New
 			IsTrivial        = 1ull << 11,
 		};
 
-		Struct(Name name, u32 size, u32 alignment, const Struct* base = nullptr, u64 flags = 0, const VTable* vtable = nullptr);
+		Struct(Name name, u32 size, u32 alignment, u64 flags = 0, const Struct* base = nullptr, const VTable* vtable = nullptr,
+		       Object* owner = nullptr);
+
 		ObjectKind kind() const override;
 		Object* find(Name name) const override;
 		bool is_a(const Struct* other) const;

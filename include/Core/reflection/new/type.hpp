@@ -22,10 +22,6 @@ namespace Trinex::Refl::New
 
 			virtual bool equals(const void* lhs, const void* rhs) const = 0;
 			virtual i32 compare(const void* lhs, const void* rhs) const = 0;
-
-			virtual bool serialize(Archive& archive, void* value, usize count = 1) const = 0;
-			virtual bool to_string(const void* value, String& out) const                 = 0;
-			virtual bool from_string(void* value, StringView string) const               = 0;
 		};
 
 	private:
@@ -42,7 +38,7 @@ namespace Trinex::Refl::New
 			HasDefaultConstructor   = 1ull << 3,
 		};
 
-		Type(Name name, u32 size, u32 alignment, u64 flags = 0, const VTable* vtable = nullptr);
+		Type(Name name, u32 size, u32 alignment, u64 flags = 0, const VTable* vtable = nullptr, Object* owner = nullptr);
 		ObjectKind kind() const override;
 
 		inline u32 size() const { return m_size; }
@@ -65,9 +61,5 @@ namespace Trinex::Refl::New
 
 		bool equals(const void* lhs, const void* rhs) const;
 		bool compare(const void* lhs, const void* rhs, i32& result) const;
-		bool serialize(Archive& archive, void* value) const;
-		bool serialize_array(Archive& archive, void* values, u32 count) const;
-		bool to_string(const void* value, String& out) const;
-		bool from_string(void* value, StringView string) const;
 	};
 }// namespace Trinex::Refl::New

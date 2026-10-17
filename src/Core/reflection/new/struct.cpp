@@ -4,8 +4,8 @@
 
 namespace Trinex::Refl::New
 {
-	Struct::Struct(Name name, u32 size, u32 alignment, const Struct* base, u64 flags, const VTable* vtable)
-	    : Type(name, size, alignment, flags, vtable), m_base(retain_ref(base))
+	Struct::Struct(Name name, u32 size, u32 alignment, u64 flags, const Struct* base, const VTable* vtable, Object* owner)
+	    : Type(name, size, alignment, flags, vtable, owner), m_base(retain_ref(base))
 	{}
 
 	bool Struct::register_child(Object* object)
