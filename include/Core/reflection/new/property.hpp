@@ -16,7 +16,6 @@ namespace Trinex::Refl::New
 		};
 
 		Property(Name name, const Type* type, u64 flags = 0);
-		ObjectKind kind() const override;
 		inline bool is_read_only() const { return has_flags(IsReadOnly); }
 		inline bool is_transient() const { return has_flags(IsTransient); }
 		inline bool is_serialized() const { return has_flags(IsSerialized); }

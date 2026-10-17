@@ -48,7 +48,6 @@ namespace Trinex::Refl::New
 		Struct(Name name, u32 size, u32 alignment, u64 flags = 0, const Struct* base = nullptr, const VTable* vtable = nullptr,
 		       Object* owner = nullptr);
 
-		ObjectKind kind() const override;
 		Object* find(Name name) const override;
 		bool is_a(const Struct* other) const;
 

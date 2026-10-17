@@ -4,13 +4,8 @@
 namespace Trinex::Refl::New
 {
 	Function::Function(Name name, const Type* type, Vector<Parameter> args, u64 flags, const VTable* vtable)
-		: Object(name, flags), m_type(type), m_args(etl::move(args)), m_vtable(vtable)
+	    : Object(name, flags), m_type(type), m_args(etl::move(args)), m_vtable(vtable)
 	{}
-
-	ObjectKind Function::kind() const
-	{
-		return ObjectKind::Function;
-	}
 
 	Function::InvokeResult Function::invoke(void* context, const Argument* args, usize argument_count, void* return_value) const
 	{

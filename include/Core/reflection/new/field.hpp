@@ -14,14 +14,13 @@ namespace Trinex::Refl::New
 	public:
 		enum Flags : u64
 		{
-			IsConst    = 1ull << 0,
-			IsPointer  = 1ull << 1,
+			IsConst     = 1ull << 0,
+			IsPointer   = 1ull << 1,
 			IsReference = 1ull << 2,
 		};
 
 		Field(Name name, const Type* type, u64 flags = 0);
 
-		ObjectKind kind() const override;
 		inline const Type* type() const { return m_type; }
 		inline bool is_const() const { return has_flags(IsConst); }
 		inline bool is_pointer() const { return has_flags(IsPointer); }

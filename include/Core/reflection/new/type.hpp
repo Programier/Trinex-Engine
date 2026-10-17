@@ -39,7 +39,6 @@ namespace Trinex::Refl::New
 		};
 
 		Type(Name name, u32 size, u32 alignment, u64 flags = 0, const VTable* vtable = nullptr, Object* owner = nullptr);
-		ObjectKind kind() const override;
 
 		inline u32 size() const { return m_size; }
 		inline u32 alignment() const { return m_alignment; }

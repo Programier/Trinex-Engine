@@ -22,9 +22,7 @@ namespace Trinex::Refl::New
 			IsScoped   = 1ull << 9,
 		};
 
-		Enum(Name name, u32 size, u32 alignment, Vector<EnumValue> values = {}, u64 flags = 0,
-		     const VTable* vtable = nullptr);
-		ObjectKind kind() const override;
+		Enum(Name name, u32 size, u32 alignment, Vector<EnumValue> values = {}, u64 flags = 0, const VTable* vtable = nullptr);
 
 		const EnumValue* find_value(Name name) const;
 		inline const Vector<EnumValue>& values() const { return m_values; }

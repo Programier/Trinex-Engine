@@ -72,7 +72,6 @@ namespace Trinex::Refl::New
 
 	public:
 		Function(Name name, const Type* type, Vector<Parameter> args = {}, u64 flags = 0, const VTable* vtable = nullptr);
-		ObjectKind kind() const;
 
 		inline const Type* type() const { return m_type; }
 		inline const Vector<Parameter>& args() const { return m_args; }

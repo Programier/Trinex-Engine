@@ -48,9 +48,4 @@ namespace Trinex::Refl::New
 	{
 		return nullptr;
 	}
-
-	ObjectKind Object::kind() const
-	{
-		return ObjectKind::Object;
-	}
 }// namespace Trinex::Refl::New

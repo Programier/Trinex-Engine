@@ -40,11 +40,6 @@ namespace Trinex::Refl::New
 		return false;
 	}
 
-	ObjectKind Struct::kind() const
-	{
-		return ObjectKind::Struct;
-	}
-
 	Object* Struct::find(Name name) const
 	{
 		if (auto it = m_members.find(name); it != m_members.end())

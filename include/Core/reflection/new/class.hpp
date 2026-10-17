@@ -21,7 +21,6 @@ namespace Trinex::Refl::New
 	public:
 		Class(Name name, u32 size, u32 alignment, u64 flags = 0, const Class* base = nullptr, const VTable* vtable = nullptr,
 		      Object* owner = nullptr);
-		ObjectKind kind() const override;
 
 		inline const Class* base() const { return static_cast<const Class*>(Struct::base()); }
 		inline bool is_asset() const { return has_flags(IsAsset); }

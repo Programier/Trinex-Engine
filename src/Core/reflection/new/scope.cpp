@@ -59,8 +59,8 @@ namespace Trinex::Refl::New
 
 			if (Object* object = scope->find(entry))
 			{
-				if (object->kind() != ObjectKind::Scope)
-					return nullptr;
+				// if (object->kind() != ObjectKind::Scope)
+				// 	return nullptr;
 
 				scope = static_cast<Scope*>(object);
 				continue;
@@ -75,11 +75,6 @@ namespace Trinex::Refl::New
 		}
 
 		return scope;
-	}
-
-	ObjectKind Scope::kind() const
-	{
-		return ObjectKind::Scope;
 	}
 
 	Object* Scope::find(Name name) const

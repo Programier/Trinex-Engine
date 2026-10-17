@@ -4,20 +4,7 @@
 
 namespace Trinex::Refl::New
 {
-	enum class ObjectKind
-	{
-		Object   = 0,
-		Type     = 1,
-		Enum     = 2,
-		Struct   = 3,
-		Class    = 4,
-		Function = 5,
-		Field    = 6,
-		Property = 7,
-		Scope    = 8,
-	};
-
-	class Object : public RefCounted
+	class ENGINE_EXPORT Object : public RefCounted
 	{
 	private:
 		WeakRef<Object> m_owner;
@@ -44,11 +31,9 @@ namespace Trinex::Refl::New
 
 	public:
 		Object(Name name, u64 flags = 0, Object* owner = nullptr);
-
 		bool owner(Object* object);
 
 		virtual Object* find(Name name) const;
-		virtual ObjectKind kind() const;
 
 		inline Name name() const { return m_name; }
 		inline Ref<Object> owner() const { return m_owner.lock(); }

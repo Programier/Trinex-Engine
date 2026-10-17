@@ -6,11 +6,6 @@ namespace Trinex::Refl::New
 	    : Object(name, flags, owner), m_size(size), m_alignment(alignment), m_vtable(vtable)
 	{}
 
-	ObjectKind Type::kind() const
-	{
-		return ObjectKind::Type;
-	}
-
 	bool Type::construct(void* dst, usize count) const
 	{
 		if (m_vtable == nullptr || dst == nullptr)
