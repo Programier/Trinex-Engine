@@ -103,13 +103,13 @@ namespace Trinex
 
 	}// namespace
 
-	void RefCounted::add_ref() noexcept
+	void RefCounted::add_ref() const noexcept
 	{
 		const u32 previous = AtomicRef(m_ref_count).fetch_add(1, etl::memory_order_relaxed);
 		trinex_assert_msg(previous > 0, "add_ref() called on dead object");
 	}
 
-	void RefCounted::release() noexcept
+	void RefCounted::release() const noexcept
 	{
 		const u32 previous = AtomicRef(m_ref_count).fetch_sub(1, etl::memory_order_release);
 
@@ -119,11 +119,11 @@ namespace Trinex
 		{
 			etl::atomic_thread_fence(etl::memory_order_acquire);
 			release_weak_entry();
-			destroy();
+			const_cast<RefCounted*>(this)->destroy();
 		}
 	}
 
-	u32 RefCounted::references() noexcept
+	u32 RefCounted::references() const noexcept
 	{
 		return AtomicRef(m_ref_count).load(etl::memory_order_relaxed);
 	}
@@ -206,7 +206,7 @@ namespace Trinex
 		return nullptr;
 	}
 
-	void RefCounted::release_weak_entry() noexcept
+	void RefCounted::release_weak_entry() const noexcept
 	{
 		if (m_weak_index == WeakStorage::bad_link)
 			return;

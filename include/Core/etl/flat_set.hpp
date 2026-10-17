@@ -223,7 +223,6 @@ namespace Trinex
 
 		constexpr const_iterator erase(const_iterator it) { return container_type::erase(it); }
 		constexpr const_iterator erase(const_iterator from, const_iterator to) { return container_type::erase(from, to); }
-		constexpr const Vector<T, AllocatorType>& as_vector() const { return *this; }
 		constexpr const container_type& container() const { return *this; }
 	};
 
@@ -232,7 +231,7 @@ namespace Trinex
 	inline bool trinex_serialize_flat_set(ArchiveType& ar, FlatSet<T, Compare, AllocatorType>& set)
 	    requires(is_complete_archive_type<ArchiveType>)
 	{
-		const Vector<T, AllocatorType>& vector = set.as_vector();
+		const Vector<T, AllocatorType>& vector = set.container();
 		return ar.serialize_vector(const_cast<Vector<T, AllocatorType>&>(vector));
 	}
 

@@ -11,8 +11,8 @@ namespace Trinex
 	class ENGINE_EXPORT RefCounted
 	{
 	private:
-		u32 m_ref_count  = 1;
-		u32 m_weak_index = 0xFFFFFFFF;
+		mutable u32 m_ref_count  = 1;
+		mutable u32 m_weak_index = 0xFFFFFFFF;
 
 	private:
 		static WeakEntry* weak_entry(RefCounted* object) noexcept;
@@ -21,7 +21,7 @@ namespace Trinex
 		static RefCounted* weak_ptr(WeakEntry* entry) noexcept;
 		static RefCounted* lock_weak(WeakEntry* entry) noexcept;
 
-		void release_weak_entry() noexcept;
+		void release_weak_entry() const noexcept;
 
 	protected:
 		RefCounted() noexcept = default;
@@ -33,9 +33,9 @@ namespace Trinex
 		trinex_non_copyable(RefCounted);
 		trinex_non_moveable(RefCounted);
 
-		void add_ref() noexcept;
-		void release() noexcept;
-		u32 references() noexcept;
+		void add_ref() const noexcept;
+		void release() const noexcept;
+		u32 references() const noexcept;
 
 		template<typename>
 		friend class Ref;
