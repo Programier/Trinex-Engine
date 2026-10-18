@@ -40,32 +40,32 @@ namespace Trinex::UI
 	};
 
 	template<typename T>
-	static FORCE_INLINE T* prop_cast(Refl::Property* prop)
+	static inline T* prop_cast(Refl::Property* prop)
 	{
 		return Refl::Object::instance_cast<T>(prop);
 	}
 
 	template<typename T>
-	static FORCE_INLINE T* prop_cast_checked(Refl::Property* prop)
+	static inline T* prop_cast_checked(Refl::Property* prop)
 	{
 		auto res = prop_cast<T>(prop);
 		trinex_assert_msg(res, "Failed to cast property");
 		return res;
 	}
 
-	static FORCE_INLINE void push_props_id(const void* object, Refl::Property* prop)
+	static inline void push_props_id(const void* object, Refl::Property* prop)
 	{
 		ImGui::PushID(object);
 		ImGui::PushID(prop);
 	}
 
-	static FORCE_INLINE void pop_props_id()
+	static inline void pop_props_id()
 	{
 		ImGui::PopID();
 		ImGui::PopID();
 	}
 
-	static FORCE_INLINE bool has_only_one_property(Refl::Struct* self)
+	static inline bool has_only_one_property(Refl::Struct* self)
 	{
 		u32 count = 0;
 
@@ -78,7 +78,7 @@ namespace Trinex::UI
 		return count < 2;
 	}
 
-	static FORCE_INLINE usize properties_count(Refl::Struct* self)
+	static inline usize properties_count(Refl::Struct* self)
 	{
 		usize count = 0;
 

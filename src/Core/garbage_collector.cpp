@@ -29,7 +29,7 @@ namespace Trinex
 
 	CallBacks<void(Object*)> GarbageCollector::on_unreachable_check;
 
-	static FORCE_INLINE u32 get_max_objects_per_tick()
+	static inline u32 get_max_objects_per_tick()
 	{
 		return Math::max<u32>(1, Settings::gc_max_object_per_tick);
 	}

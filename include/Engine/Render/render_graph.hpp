@@ -27,7 +27,7 @@ namespace Trinex::RenderGraph
 	using RGMap = Map<Key, Value, Hash<Key>, std::equal_to<Key>, FrameAllocator<Pair<const Key, Value>>>;
 
 	template<typename T>
-	static FORCE_INLINE T* rg_allocate()
+	static inline T* rg_allocate()
 	{
 		return FrameAllocator<T>::allocate(1);
 	}

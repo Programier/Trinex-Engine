@@ -47,19 +47,19 @@ namespace Trinex
 			slang::SessionDesc session_desc;
 			slang::TargetDesc target_desc;
 
-			FORCE_INLINE void add_definition(const char* key, const char* value) { definitions.push_back({key, value}); }
-			FORCE_INLINE void add_search_path(const char* path) { search_paths.push_back(path); }
-			FORCE_INLINE void add_option(slang::CompilerOptionName name, bool v1, bool v2 = false)
+			inline void add_definition(const char* key, const char* value) { definitions.push_back({key, value}); }
+			inline void add_search_path(const char* path) { search_paths.push_back(path); }
+			inline void add_option(slang::CompilerOptionName name, bool v1, bool v2 = false)
 			{
 				add_option(name, v1 ? 1 : 0, v2 ? 1 : 0);
 			}
 
-			FORCE_INLINE void add_option(slang::CompilerOptionName name, u32 v1, u32 v2 = 0)
+			inline void add_option(slang::CompilerOptionName name, u32 v1, u32 v2 = 0)
 			{
 				add_option(name, static_cast<i32>(v1), static_cast<i32>(v2));
 			}
 
-			FORCE_INLINE void add_option(slang::CompilerOptionName name, i32 v1, i32 v2 = 0)
+			inline void add_option(slang::CompilerOptionName name, i32 v1, i32 v2 = 0)
 			{
 				slang::CompilerOptionEntry entry;
 				entry.name            = name;
@@ -69,7 +69,7 @@ namespace Trinex
 				options.push_back(entry);
 			}
 
-			FORCE_INLINE void add_option(slang::CompilerOptionName name, const char* v1, const char* v2 = nullptr)
+			inline void add_option(slang::CompilerOptionName name, const char* v1, const char* v2 = nullptr)
 			{
 				slang::CompilerOptionEntry entry;
 				entry.name               = name;
@@ -79,17 +79,17 @@ namespace Trinex
 				options.push_back(entry);
 			}
 
-			FORCE_INLINE void add_target_option(slang::CompilerOptionName name, bool v1, bool v2 = false)
+			inline void add_target_option(slang::CompilerOptionName name, bool v1, bool v2 = false)
 			{
 				add_target_option(name, v1 ? 1 : 0, v2 ? 1 : 0);
 			}
 
-			FORCE_INLINE void add_target_option(slang::CompilerOptionName name, u32 v1, u32 v2 = 0)
+			inline void add_target_option(slang::CompilerOptionName name, u32 v1, u32 v2 = 0)
 			{
 				add_target_option(name, static_cast<i32>(v1), static_cast<i32>(v2));
 			}
 
-			FORCE_INLINE void add_target_option(slang::CompilerOptionName name, i32 v1, i32 v2 = 0)
+			inline void add_target_option(slang::CompilerOptionName name, i32 v1, i32 v2 = 0)
 			{
 				slang::CompilerOptionEntry entry;
 				entry.name            = name;
@@ -99,7 +99,7 @@ namespace Trinex
 				target_options.push_back(entry);
 			}
 
-			FORCE_INLINE void add_target_option(slang::CompilerOptionName name, const char* v1, const char* v2 = nullptr)
+			inline void add_target_option(slang::CompilerOptionName name, const char* v1, const char* v2 = nullptr)
 			{
 				slang::CompilerOptionEntry entry;
 				entry.name               = name;
@@ -122,7 +122,7 @@ namespace Trinex
 
 		SLANG_ShaderCompiler();
 		~SLANG_ShaderCompiler();
-		
+
 		SLANG_ShaderCompiler& on_create() override;
 		virtual void initialize_context(SessionInitializer* session);
 		bool compile(const ShaderCompilationEnvironment* env, const CompileCallback& callback) override;

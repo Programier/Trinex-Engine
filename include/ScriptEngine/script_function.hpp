@@ -33,8 +33,8 @@ namespace Trinex
 
 	public:
 		ScriptFunction(asIScriptFunction* function = nullptr);
-		copy_constructors_hpp(ScriptFunction);
-
+		trinex_copyable(ScriptFunction);
+		trinex_moveable(ScriptFunction);
 
 		asIScriptFunction* function() const;
 		bool operator==(const ScriptFunction& func) const;

@@ -332,19 +332,19 @@ namespace Trinex
 	        })
 
 	template<typename EnumType>
-	FORCE_INLINE EnumerateType enum_value_of(EnumType value)
+	inline EnumerateType enum_value_of(EnumType value)
 	{
 		return static_cast<EnumerateType>(value);
 	}
 
 	template<typename Type, typename... Args>
-	FORCE_INLINE Type* static_constructor_of(Args&&... args)
+	inline Type* static_constructor_of(Args&&... args)
 	{
 		return new Type(std::forward<Args>(args)...);
 	}
 
 	template<typename Type, typename... Args>
-	FORCE_INLINE void* static_void_constructor_of(Args&&... args)
+	inline void* static_void_constructor_of(Args&&... args)
 	{
 		return new Type(std::forward<Args>(args)...);
 	}

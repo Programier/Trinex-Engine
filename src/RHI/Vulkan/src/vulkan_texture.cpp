@@ -47,7 +47,7 @@ namespace Trinex
 	}
 
 	template<typename Value>
-	static FORCE_INLINE void static_destroy_view(Vector<VulkanTexture::View<Value>>& views)
+	static inline void static_destroy_view(Vector<VulkanTexture::View<Value>>& views)
 	{
 		for (auto& view : views)
 		{
@@ -67,8 +67,7 @@ namespace Trinex
 		return desc;
 	}
 
-	FORCE_INLINE VulkanTexture::ViewDesc VulkanTexture::ViewDesc::from(const RHITextureDescSRV* view,
-	                                                                   const VulkanTexture* texture)
+	inline VulkanTexture::ViewDesc VulkanTexture::ViewDesc::from(const RHITextureDescSRV* view, const VulkanTexture* texture)
 	{
 		if (view == nullptr)
 			view = &default_value_of<RHITextureDescSRV>();
@@ -79,8 +78,7 @@ namespace Trinex
 		return desc;
 	}
 
-	FORCE_INLINE VulkanTexture::ViewDesc VulkanTexture::ViewDesc::from(const RHITextureDescUAV* view,
-	                                                                   const VulkanTexture* texture)
+	inline VulkanTexture::ViewDesc VulkanTexture::ViewDesc::from(const RHITextureDescUAV* view, const VulkanTexture* texture)
 	{
 		if (view == nullptr)
 			view = &default_value_of<RHITextureDescUAV>();
@@ -92,8 +90,7 @@ namespace Trinex
 		return desc;
 	}
 
-	FORCE_INLINE VulkanTexture::ViewDesc VulkanTexture::ViewDesc::from(const RHITextureDescRTV* view,
-	                                                                   const VulkanTexture* texture)
+	inline VulkanTexture::ViewDesc VulkanTexture::ViewDesc::from(const RHITextureDescRTV* view, const VulkanTexture* texture)
 	{
 		if (view == nullptr)
 			view = &default_value_of<RHITextureDescRTV>();
@@ -105,8 +102,7 @@ namespace Trinex
 		return desc;
 	}
 
-	FORCE_INLINE VulkanTexture::ViewDesc VulkanTexture::ViewDesc::from(const RHITextureDescDSV* view,
-	                                                                   const VulkanTexture* texture)
+	inline VulkanTexture::ViewDesc VulkanTexture::ViewDesc::from(const RHITextureDescDSV* view, const VulkanTexture* texture)
 	{
 		if (view == nullptr)
 			view = &default_value_of<RHITextureDescDSV>();

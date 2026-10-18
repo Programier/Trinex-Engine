@@ -14,7 +14,7 @@
 
 namespace Trinex
 {
-	static FORCE_INLINE bool build_shader(Shader* shader)
+	static inline bool build_shader(Shader* shader)
 	{
 		if (shader && !shader->source.empty())
 		{
@@ -24,7 +24,7 @@ namespace Trinex
 		return false;
 	}
 
-	static FORCE_INLINE void destroy_shader(Shader* shader)
+	static inline void destroy_shader(Shader* shader)
 	{
 		if (shader)
 		{

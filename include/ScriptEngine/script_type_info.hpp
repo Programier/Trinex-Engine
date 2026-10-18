@@ -19,7 +19,8 @@ namespace Trinex
 
 	public:
 		ScriptTypeInfo(asITypeInfo* info = nullptr);
-		copy_constructors_hpp(ScriptTypeInfo);
+		trinex_copyable(ScriptTypeInfo);
+		trinex_moveable(ScriptTypeInfo);
 
 		const ScriptTypeInfo& release() const;
 

@@ -615,7 +615,7 @@ namespace Trinex
 					                                                   on_input_event);
 			}
 
-			static FORCE_INLINE Trinex::Window* window_from(ImGuiViewport* vp)
+			static inline Trinex::Window* window_from(ImGuiViewport* vp)
 			{
 				ImGuiTrinexViewportData* data = viewport_data(vp);
 				return data ? data->window : nullptr;

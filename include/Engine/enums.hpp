@@ -7,13 +7,13 @@ namespace Trinex
 		enum Enum : EnumerateType
 		{
 			None              = 0,
-			Statistics        = BIT(1),
-			PointLights       = BIT(2),
-			SpotLights        = BIT(3),
-			DirectionalLights = BIT(4),
-			PostProcess       = BIT(5),
-			StaticMesh        = BIT(6),
-			PrimitiveBounds   = BIT(7),
+			Statistics        = trinex_bit(1),
+			PointLights       = trinex_bit(2),
+			SpotLights        = trinex_bit(3),
+			DirectionalLights = trinex_bit(4),
+			PostProcess       = trinex_bit(5),
+			StaticMesh        = trinex_bit(6),
+			PrimitiveBounds   = trinex_bit(7),
 
 			DefaultFlags = PointLights | SpotLights | DirectionalLights | StaticMesh | PostProcess,
 		};

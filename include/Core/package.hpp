@@ -16,8 +16,10 @@ namespace Trinex
 		Object* register_child(Object* object, u32& index) override;
 
 	public:
-		delete_copy_constructors(Package);
 		Package();
+
+		trinex_non_copyable(Package);
+		trinex_non_moveable(Package);
 
 		bool add_object(Object* object);
 		Package& remove_object(Object* object);

@@ -68,11 +68,11 @@ private:
 			enum Enum : u8
 			{
 				Undefined         = 0,
-				IsReadOnly        = BIT(0),
-				IsTransient       = BIT(1),
-				IsHidden          = BIT(2),
-				InlineSingleField = BIT(3),
-				Inline            = BIT(4),
+				IsReadOnly        = trinex_bit(0),
+				IsTransient       = trinex_bit(1),
+				IsHidden          = trinex_bit(2),
+				InlineSingleField = trinex_bit(3),
+				Inline            = trinex_bit(4),
 			};
 
 			trinex_bitfield_enum_struct(Flags, u8);

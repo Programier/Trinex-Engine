@@ -42,10 +42,11 @@ namespace Trinex
 		CallBacks<void()> on_close;
 
 		ImGuiWidget();
-		delete_copy_constructors(ImGuiWidget);
+		trinex_non_copyable(ImGuiWidget);
+		trinex_non_moveable(ImGuiWidget);
 
 		virtual bool render(RenderViewport* viewport) = 0;
-		FORCE_INLINE virtual ~ImGuiWidget(){};
+		inline virtual ~ImGuiWidget() {};
 	};
 
 	class ImGuiWidgetsList final
@@ -65,7 +66,8 @@ namespace Trinex
 
 	public:
 		ImGuiWidgetsList() = default;
-		delete_copy_constructors(ImGuiWidgetsList);
+		trinex_non_copyable(ImGuiWidgetsList);
+		trinex_non_moveable(ImGuiWidgetsList);
 
 		template<typename Type, typename... Args>
 		Type* create(Args&&... args)
@@ -136,7 +138,7 @@ struct ImGuiWindow;
 
 namespace ImGui
 {
-	FORCE_INLINE ImVec4 MakeHoveredColor(ImVec4 color)
+	inline ImVec4 MakeHoveredColor(ImVec4 color)
 	{
 		const float factor = 0.2f;
 
@@ -174,22 +176,22 @@ namespace ImGui
 	void PushIconFont();
 	bool IconButton(const char* icon, float size = 0.f, ImGuiButtonFlags flags = 0);
 
-	FORCE_INLINE ImVec2 ImVecFrom(const Trinex::Vector2f& vec)
+	inline ImVec2 ImVecFrom(const Trinex::Vector2f& vec)
 	{
 		return {vec.x, vec.y};
 	}
 
-	FORCE_INLINE ImVec4 ImVecFrom(const Trinex::Vector4f& vec)
+	inline ImVec4 ImVecFrom(const Trinex::Vector4f& vec)
 	{
 		return {vec.x, vec.y, vec.z, vec.w};
 	}
 
-	FORCE_INLINE Trinex::Vector2f EngineVecFrom(const ImVec2& vec)
+	inline Trinex::Vector2f EngineVecFrom(const ImVec2& vec)
 	{
 		return {vec.x, vec.y};
 	}
 
-	FORCE_INLINE Trinex::Vector4f EngineVecFrom(const ImVec4& vec)
+	inline Trinex::Vector4f EngineVecFrom(const ImVec4& vec)
 	{
 		return {vec.x, vec.y, vec.z, vec.w};
 	}

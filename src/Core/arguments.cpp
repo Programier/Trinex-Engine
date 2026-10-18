@@ -32,9 +32,6 @@ namespace Trinex
 		type = Type::Array;
 	}
 
-	default_copy_constructors_scoped_cpp(Arguments, Argument);
-
-
 	void Arguments::init(int argc, const char** argv)
 	{
 		m_argc = argc;

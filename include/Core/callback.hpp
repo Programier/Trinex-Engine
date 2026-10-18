@@ -17,13 +17,13 @@ namespace Trinex
 			FuncNode* prev = nullptr;
 			FuncNode* next = nullptr;
 
-			FORCE_INLINE FuncNode(const Delegate<Signature>& func) : function(func) {}
-			FORCE_INLINE FuncNode(Delegate<Signature>&& func) : function(std::move(func)) {}
+			inline FuncNode(const Delegate<Signature>& func) : function(func) {}
+			inline FuncNode(Delegate<Signature>&& func) : function(std::move(func)) {}
 		};
 
 		FuncNode* m_head = nullptr;
 
-		FORCE_INLINE Identifier push(FuncNode* func)
+		inline Identifier push(FuncNode* func)
 		{
 			if (m_head)
 			{
@@ -76,9 +76,9 @@ namespace Trinex
 		using const_iterator = basic_iterator<const FuncNode, const Delegate<Signature>>;
 
 
-		FORCE_INLINE CallBacks() = default;
-		FORCE_INLINE CallBacks(const CallBacks& callbacks) { (*this) = callbacks; }
-		FORCE_INLINE CallBacks(CallBacks&& callbacks) { (*this) = std::move(callbacks); }
+		inline CallBacks() = default;
+		inline CallBacks(const CallBacks& callbacks) { (*this) = callbacks; }
+		inline CallBacks(CallBacks&& callbacks) { (*this) = std::move(callbacks); }
 
 		iterator begin() noexcept { return iterator(m_head); }
 		iterator end() noexcept { return iterator(nullptr); }

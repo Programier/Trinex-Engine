@@ -309,8 +309,9 @@ namespace Trinex
 
 		if (!m_input_listener && InputSystem::instance())
 		{
-			m_input_listener = InputSystem::instance()->add_listener(
-			    nullptr, EventType::Undefined, EventCode::Undefined, [this](const InputEvent& event) { return on_input_event(event); });
+			m_input_listener =
+			        InputSystem::instance()->add_listener(nullptr, EventType::Undefined, EventCode::Undefined,
+			                                              [this](const InputEvent& event) { return on_input_event(event); });
 		}
 		return *this;
 	}
@@ -830,7 +831,7 @@ namespace Trinex
 		return *this;
 	}
 
-	static FORCE_INLINE void move_camera(Vector3f& move, bool relative_mode)
+	static inline void move_camera(Vector3f& move, bool relative_mode)
 	{
 		move = {0, 0, 0};
 
@@ -913,12 +914,12 @@ namespace Trinex
 		}
 	}
 
-	static FORCE_INLINE float calculate_y_rotation(float offset, float size)
+	static inline float calculate_y_rotation(float offset, float size)
 	{
 		return Math::radians(-offset * 75.f / size);
 	}
 
-	static FORCE_INLINE void make_rotation_quat(float yaw, float pitch, Quaternion& out)
+	static inline void make_rotation_quat(float yaw, float pitch, Quaternion& out)
 	{
 		Quaternion q_pitch = Math::angle_axis(pitch, Vector3f(1, 0, 0));
 		Quaternion q_yaw   = Math::angle_axis(yaw, Vector3f(0, 1, 0));

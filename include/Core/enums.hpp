@@ -141,8 +141,8 @@ namespace Trinex
 		enum Enum : EnumerateType
 		{
 			Undefined        = 0,
-			SkipObjectSearch = BIT(0),
-			IsCopyProcess    = BIT(1),
+			SkipObjectSearch = trinex_bit(0),
+			IsCopyProcess    = trinex_bit(1),
 		};
 
 		trinex_bitfield_enum_struct(ArchiveFlags, EnumerateType);

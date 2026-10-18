@@ -14,22 +14,22 @@ namespace Trinex::Refl
 			Name name;
 			EnumerateType value;
 
-			FORCE_INLINE Entry() : name(Name::none), value(0) {}
+			inline Entry() : name(Name::none), value(0) {}
 
 			template<typename EnumValue = EnumerateType>
-			FORCE_INLINE Entry(const Name& name, EnumValue value) : name(name), value(static_cast<EnumerateType>(value))
+			inline Entry(const Name& name, EnumValue value) : name(name), value(static_cast<EnumerateType>(value))
 			{}
 
 			template<typename EnumValue = EnumerateType>
-			FORCE_INLINE Entry(EnumValue value, const Name& name) : name(name), value(static_cast<EnumerateType>(value))
+			inline Entry(EnumValue value, const Name& name) : name(name), value(static_cast<EnumerateType>(value))
 			{}
 		};
 
 		enum Flags : u8
 		{
 			Undefined    = 0,
-			IsScriptable = BIT(0),
-			IsBitFlags   = BIT(1),
+			IsScriptable = trinex_bit(0),
+			IsBitFlags   = trinex_bit(1),
 		};
 
 	protected:

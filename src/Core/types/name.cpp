@@ -49,7 +49,7 @@ namespace Trinex
 		return default_name;
 	}
 
-	static FORCE_INLINE void push_new_name(const char* name, usize len, u64 hash)
+	static inline void push_new_name(const char* name, usize len, u64 hash)
 	{
 		Map<u64, u32>& indices = name_index_map();
 		const u32 index        = static_cast<u32>(name_entries().size());
@@ -91,17 +91,17 @@ namespace Trinex
 		return cache;
 	}
 
-	static FORCE_INLINE usize data_cache_slot(const StringView& view)
+	static inline usize data_cache_slot(const StringView& view)
 	{
 		return ((reinterpret_cast<usize>(view.data()) >> 4) ^ view.length()) & (cache_size - 1);
 	}
 
-	static FORCE_INLINE usize hash_cache_slot(u64 hash, usize length)
+	static inline usize hash_cache_slot(u64 hash, usize length)
 	{
 		return (hash ^ (hash >> 32) ^ length) & (cache_size - 1);
 	}
 
-	static FORCE_INLINE bool cached_name_matches(const NameCacheEntry& cache, const StringView& view)
+	static inline bool cached_name_matches(const NameCacheEntry& cache, const StringView& view)
 	{
 		if (cache.index == invalid_name_index || cache.length != view.length() || cache.index >= name_entries().size())
 		{
@@ -112,7 +112,7 @@ namespace Trinex
 		return string.length() == view.length() && std::memcmp(string.data(), view.data(), view.length()) == 0;
 	}
 
-	static FORCE_INLINE bool find_cached_name(const StringView& view, u32& index)
+	static inline bool find_cached_name(const StringView& view, u32& index)
 	{
 		NameCacheEntry& cache = name_cache().by_data[data_cache_slot(view)];
 
@@ -125,7 +125,7 @@ namespace Trinex
 		return false;
 	}
 
-	static FORCE_INLINE bool find_cached_name(const StringView& view, u64 hash, u32& index)
+	static inline bool find_cached_name(const StringView& view, u64 hash, u32& index)
 	{
 		NameCacheEntry& cache = name_cache().by_hash[hash_cache_slot(hash, view.length())];
 
@@ -138,14 +138,14 @@ namespace Trinex
 		return false;
 	}
 
-	static FORCE_INLINE void cache_name(const StringView& view, u64 hash, u32 index)
+	static inline void cache_name(const StringView& view, u64 hash, u32 index)
 	{
 		NameCacheEntry cache{view.data(), view.length(), hash, index};
 		name_cache().by_data[data_cache_slot(view)]                = cache;
 		name_cache().by_hash[hash_cache_slot(hash, view.length())] = cache;
 	}
 
-	static FORCE_INLINE bool find_name_index(const StringView& view, u64 hash, u32& out_index)
+	static inline bool find_name_index(const StringView& view, u64 hash, u32& out_index)
 	{
 		Vector<Name::Entry>& name_table = name_entries();
 		Map<u64, u32>& indices          = name_index_map();

@@ -43,13 +43,13 @@ namespace Trinex
 	{
 	private:
 		struct VarTraceEntry {
-			static constexpr usize exclude_scalar          = BIT(0);
-			static constexpr usize exclude_vector          = BIT(1);
-			static constexpr usize exclude_matrix          = BIT(2);
-			static constexpr usize exclude_resource        = BIT(3);
-			static constexpr usize exclude_sampler         = BIT(4);
-			static constexpr usize exclude_struct          = BIT(5);
-			static constexpr usize exclude_constant_buffer = BIT(6);
+			static constexpr usize exclude_scalar          = trinex_bit(0);
+			static constexpr usize exclude_vector          = trinex_bit(1);
+			static constexpr usize exclude_matrix          = trinex_bit(2);
+			static constexpr usize exclude_resource        = trinex_bit(3);
+			static constexpr usize exclude_sampler         = trinex_bit(4);
+			static constexpr usize exclude_struct          = trinex_bit(5);
+			static constexpr usize exclude_constant_buffer = trinex_bit(6);
 
 			String name;
 			slang::VariableLayoutReflection* var = nullptr;

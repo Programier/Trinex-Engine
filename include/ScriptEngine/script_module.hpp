@@ -18,7 +18,9 @@ namespace Trinex
 		asIScriptModule* m_module;
 
 	public:
-		copy_constructors_hpp(ScriptModule);
+		trinex_copyable(ScriptModule);
+		trinex_moveable(ScriptModule);
+
 		ScriptModule(asIScriptModule* module = nullptr);
 		ScriptModule(const char* name, ScriptModuleLookup lookup = ScriptModuleLookup::CreateIfNotExists);
 		ScriptModule(const String& name, ScriptModuleLookup lookup = ScriptModuleLookup::CreateIfNotExists);

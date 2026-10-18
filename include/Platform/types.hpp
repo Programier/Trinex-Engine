@@ -13,7 +13,7 @@ namespace Trinex::Platform
 		u32 error_code  = 0;
 		const char* api = nullptr;
 
-		FORCE_INLINE explicit operator bool() const { return success; }
+		inline explicit operator bool() const { return success; }
 	};
 	
 	struct EnvironmentVariable{

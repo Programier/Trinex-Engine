@@ -176,9 +176,8 @@ namespace Trinex::Strings
 		                                                   reinterpret_cast<const u8*>(needle), needle_len));
 	}
 
-
 	template<typename DelimiterType>
-	static FORCE_INLINE Vector<String> internal_split(const StringView& line, DelimiterType delimiter)
+	static inline Vector<String> internal_split(const StringView& line, DelimiterType delimiter)
 	{
 		Vector<String> tokens;
 		String token;

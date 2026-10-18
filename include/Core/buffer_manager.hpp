@@ -22,7 +22,7 @@ namespace Trinex
 		virtual bool is_open() const                                                     = 0;
 
 		template<typename... T>
-		FORCE_INLINE bool write_primitives(const T&... value)
+		inline bool write_primitives(const T&... value)
 		{
 			return (write(reinterpret_cast<const u8*>(&value), sizeof(T)), ...);
 		}
@@ -47,13 +47,13 @@ namespace Trinex
 		virtual bool is_open() const                                                     = 0;
 
 		template<typename... T>
-		FORCE_INLINE bool read_primitives(T&... value)
+		inline bool read_primitives(T&... value)
 		{
 			return (read(reinterpret_cast<u8*>(&value), sizeof(T)), ...);
 		}
 
 		template<typename T>
-		FORCE_INLINE T read_primitive()
+		inline T read_primitive()
 		{
 			T result;
 			trinex_verify(read_primitives(result));
@@ -87,9 +87,9 @@ namespace Trinex
 		VectorWriter(Vector<T>* buffer) : m_buffer(buffer) {}
 
 		using VectorWriterBase::position;
-		FORCE_INLINE WritePos position() override { return m_write_pos; }
+		inline WritePos position() override { return m_write_pos; }
 
-		FORCE_INLINE VectorWriter& offset(PosOffset offset, IOWhence dir = IOWhence::Current) override
+		inline VectorWriter& offset(PosOffset offset, IOWhence dir = IOWhence::Current) override
 		{
 			if (dir == IOWhence::Begin)
 				m_write_pos = 0;
@@ -128,9 +128,9 @@ namespace Trinex
 		VectorReader(const Vector<T>* buffer) : m_buffer(buffer) {}
 
 		using VectorReaderBase::position;
-		FORCE_INLINE ReadPos position() override { return m_read_pos; }
+		inline ReadPos position() override { return m_read_pos; }
 
-		FORCE_INLINE VectorReader& offset(PosOffset offset, IOWhence dir = IOWhence::Current) override
+		inline VectorReader& offset(PosOffset offset, IOWhence dir = IOWhence::Current) override
 		{
 			if (dir == IOWhence::Begin)
 				m_read_pos = 0;

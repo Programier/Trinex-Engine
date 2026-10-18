@@ -2,12 +2,12 @@
 
 namespace Trinex
 {
-	static FORCE_INLINE u64 rotl64(u64 x, i8 r)
+	static inline u64 rotl64(u64 x, i8 r)
 	{
 		return (x << r) | (x >> (64 - r));
 	}
 
-	static FORCE_INLINE u64 getblock64(const u8* p)
+	static inline u64 getblock64(const u8* p)
 	{
 		u64 result = 0;
 		result |= static_cast<u64>(p[0]) << 0;
@@ -21,7 +21,7 @@ namespace Trinex
 		return result;
 	}
 
-	static FORCE_INLINE u64 fmix64(u64 k)
+	static inline u64 fmix64(u64 k)
 	{
 		k ^= k >> 33;
 		k *= 0xff51afd7ed558ccdLLU;
@@ -32,7 +32,7 @@ namespace Trinex
 		return k;
 	}
 
-	static FORCE_INLINE u128 murmur_hash(const u8* data, const usize size, u128 seed)
+	static inline u128 murmur_hash(const u8* data, const usize size, u128 seed)
 	{
 		const usize nblocks = size / 16;
 

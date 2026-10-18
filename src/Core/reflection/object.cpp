@@ -111,7 +111,7 @@ namespace Trinex::Refl
 
 			{
 				ScriptBinding::Enum r("Trinex::Refl::FindFlags");
-				r.value("None", FindFlags::None);
+				r.value("None", FindFlags::Undefined);
 				r.value("CreateScope", FindFlags::CreateScope);
 				r.value("IsRequired", FindFlags::IsRequired);
 			}

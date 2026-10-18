@@ -9,7 +9,7 @@ namespace Trinex
 	if (m_as_array == nullptr)                                                                                                   \
 		return fail_ret;
 
-	static FORCE_INLINE asIScriptEngine* engine()
+	static inline asIScriptEngine* engine()
 	{
 		return ScriptEngine::engine();
 	}

@@ -44,15 +44,15 @@ namespace Trinex
 
 				/*  The object is kept around for editing even if is not referenced by anything.
                 The object is deleted at the end of the engine operation, or must be deleted manually */
-				StandAlone = BIT(0),
+				StandAlone = trinex_bit(0),
 
 				// The object is kept around for editing even if is not referenced by anything. The object must always be deleted manually
-				IsAvailableForGC = BIT(1),
+				IsAvailableForGC = trinex_bit(1),
 
-				IsSerializable = BIT(2),
-				IsUnreachable  = BIT(4),
-				IsEditable     = BIT(5),
-				IsDirty        = BIT(6),
+				IsSerializable = trinex_bit(2),
+				IsUnreachable  = trinex_bit(4),
+				IsEditable     = trinex_bit(5),
+				IsDirty        = trinex_bit(6),
 			};
 
 			trinex_bitfield_enum_struct(Flags, u32);
@@ -79,7 +79,7 @@ namespace Trinex
 		static void initialize_new_object(Object* object, StringView name, Object* owner);
 
 		template<typename T>
-		static FORCE_INLINE T* initialize_new_object_checked(T* object, StringView name, Object* owner)
+		static inline T* initialize_new_object_checked(T* object, StringView name, Object* owner)
 		{
 			if constexpr (std::is_base_of_v<Object, T>)
 			{
@@ -137,13 +137,14 @@ namespace Trinex
 		using Super = Object;
 
 		Object();
+		trinex_non_copyable(Object);
+		trinex_non_moveable(Object);
 
 		static Object* static_constructor();
 		static void static_initialize_class();
 		static class Refl::Class* static_reflection();
 		class Refl::Class* class_instance() const;
 
-		delete_copy_constructors(Object);
 		static String package_name_of(const StringView& name);
 		static String object_name_of(const StringView& name);
 		static StringView package_name_sv_of(const StringView& name);

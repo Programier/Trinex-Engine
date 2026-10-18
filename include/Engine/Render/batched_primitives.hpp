@@ -14,36 +14,35 @@ namespace Trinex
 	public:
 		struct ENGINE_EXPORT Vertex {
 		private:
-			ALIGNED(4) Vector3f m_position;
-			ALIGNED(4) Color m_color;
-			ALIGNED(4) float m_thickness;
+			alignas(4) Vector3f m_position;
+			alignas(4) Color m_color;
+			alignas(4) float m_thickness;
 
 		public:
-			FORCE_INLINE Vertex(const Vector3f& position = {0, 0, 0}, const Color& color = {255, 255, 255, 255},
-			                    float thickness = 1.f)
+			inline Vertex(const Vector3f& position = {0, 0, 0}, const Color& color = {255, 255, 255, 255}, float thickness = 1.f)
 			    : m_position(position), m_color(color), m_thickness(thickness)
 			{}
 
-			FORCE_INLINE Vertex(const Vector2f& position, const Color& color = {255, 255, 255, 255}, float thickness = 1.f)
+			inline Vertex(const Vector2f& position, const Color& color = {255, 255, 255, 255}, float thickness = 1.f)
 			    : m_position(position, 0.f), m_color(color), m_thickness(thickness)
 			{}
 
-			FORCE_INLINE const Vector3f& position() const { return m_position; }
-			FORCE_INLINE const Color& color() const { return m_color; }
-			FORCE_INLINE float thickness() const { return m_thickness; }
-			FORCE_INLINE Vertex& position(const Vector3f& position)
+			inline const Vector3f& position() const { return m_position; }
+			inline const Color& color() const { return m_color; }
+			inline float thickness() const { return m_thickness; }
+			inline Vertex& position(const Vector3f& position)
 			{
 				m_position = position;
 				return *this;
 			}
 
-			FORCE_INLINE Vertex& color(const Color& color)
+			inline Vertex& color(const Color& color)
 			{
 				m_color = color;
 				return *this;
 			}
 
-			FORCE_INLINE Vertex& thickness(float thickness)
+			inline Vertex& thickness(float thickness)
 			{
 				m_thickness = thickness;
 				return *this;
@@ -66,7 +65,8 @@ namespace Trinex
 
 	public:
 		BatchedLines();
-		delete_copy_constructors(BatchedLines);
+		trinex_non_copyable(BatchedLines);
+		trinex_non_moveable(BatchedLines);
 
 		BatchedLines& add_line(const Vertex& point1, const Vertex& point2);
 		BatchedLines& add_circle(const Vector3f& position, const Vector3f& normal, float radius,
@@ -93,7 +93,9 @@ namespace Trinex
 
 	public:
 		BatchedTriangles();
-		delete_copy_constructors(BatchedTriangles);
+		trinex_non_copyable(BatchedTriangles);
+		trinex_non_moveable(BatchedTriangles);
+
 		BatchedTriangles& clear();
 
 		BatchedTriangles& add_triangle(const Vector3f& point1, const Vector3f& point2, const Vector3f& point3,

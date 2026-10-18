@@ -20,7 +20,7 @@ namespace Trinex::Refl
 		return instance_cast<const Class>(this) != nullptr;
 	}
 
-	static FORCE_INLINE Vector<Class*>& get_asset_class_table()
+	static inline Vector<Class*>& get_asset_class_table()
 	{
 		static Vector<Class*> vector;
 		return vector;

@@ -9,12 +9,12 @@ namespace Trinex
 	{
 		static constexpr char hex_digits[] = "0123456789ABCDEF";
 
-		static FORCE_INLINE bool is_uuid_separator(char ch)
+		static inline bool is_uuid_separator(char ch)
 		{
 			return ch == '-' || ch == '{' || ch == '}';
 		}
 
-		static FORCE_INLINE i32 hex_value_of(char ch)
+		static inline i32 hex_value_of(char ch)
 		{
 			if (ch >= '0' && ch <= '9')
 				return ch - '0';
@@ -28,7 +28,7 @@ namespace Trinex
 			return -1;
 		}
 
-		static FORCE_INLINE usize compact_uuid(StringView value, char* out)
+		static inline usize compact_uuid(StringView value, char* out)
 		{
 			usize count = 0;
 

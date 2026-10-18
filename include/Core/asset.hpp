@@ -14,8 +14,9 @@ namespace Trinex
 		String uuid_string() const;
 
 	public:
-		delete_copy_constructors(Asset);
 		Asset();
+		trinex_non_copyable(Asset);
+		trinex_non_moveable(Asset);
 
 		const UUID& uuid() const;
 		UUID& uuid();

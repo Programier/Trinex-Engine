@@ -7,8 +7,7 @@ namespace Trinex
 {
 	PointerBase::PointerBase() = default;
 
-
-	static FORCE_INLINE bool can_update_reference()
+	static inline bool can_update_reference()
 	{
 		if (auto instance = Engine::instance())
 		{

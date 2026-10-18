@@ -1,18 +1,5 @@
 #pragma once
 
-namespace Trinex
-{
-	template<typename T>
-	struct TrinexDefer {
-	private:
-		T func;
-
-	public:
-		TrinexDefer(const T& f) : func(f) {}
-		~TrinexDefer() { func(); }
-	};
-}// namespace Trinex
-
 #if defined(_WIN32)
 #define PLATFORM_WINDOWS 1
 #else
@@ -35,7 +22,6 @@ namespace Trinex
 #error "Platform doesn't support!"
 #endif
 
-
 #if defined(arm) || defined(__arm__) || defined(__ARM_ARCH)
 #define ARCH_ARM 1
 #else
@@ -48,7 +34,6 @@ namespace Trinex
 #define ARCH_X86_64 0
 #endif
 
-
 #if __GNUC__
 #define TRINEX_GNU_COMPILER
 #elif __clang__
@@ -57,23 +42,12 @@ namespace Trinex
 #error "Compiler doesn't support!"
 #endif
 
-#define FILE_POS_INFO (String(__FILE__ ":") + std::to_string(__LINE__) + String(": ") + String(__PRETTY_FUNCTION__))
-
-#define not_implemented FILE_POS_INFO + String("\n\tError: Method or function is not implemented!")
-
-
-#define DISABLE_ALIGN __attribute((packed))
-#define ALIGNED(value) __attribute((aligned(value)))
-#define FORCE_INLINE __attribute__((always_inline)) inline
-#define INLINE_DEBUGGABLE inline
-
 #if PLATFORM_ANDROID
 #define ANDROID_API __ANDROID_API__
 #else
 #define ANDROID_API 0
 #endif
 
-#define TRINEX_EXTERNAL_LIB_INIT_FUNC(ReturnType) extern "C" FORCE_ENGINE_EXPORT ReturnType create_library_interface()
 #define STRUCT_OFFSET(StructClass, Member) (reinterpret_cast<size_t>(&reinterpret_cast<StructClass*>(0)->Member))
 
 #ifdef __cpp_rtti
@@ -82,71 +56,14 @@ namespace Trinex
 #define TRINEX_WITH_RTTI 0
 #endif
 
-#define BIT(index) (1ULL << (index))
-
-#define ARRAY_SIZE(array) (sizeof(array) / sizeof(array[0]))
-
 #define MAKE_ENTITY_FULL_NAME(entity_name, ...) #__VA_ARGS__ __VA_OPT__("::") #entity_name
 #define ENTITY_INITIALIZER_NAME(entity_name, ...) MAKE_ENTITY_FULL_NAME(entity_name, __VA_ARGS__)
 
 #define CONCAT_TYPE_AND_NAMESPACE(object_type, ...) __VA_ARGS__ __VA_OPT__(::) object_type
-#define HAS_INCLUDE(include_name) __has_include(<include_name>)
 
 #define TRINEX_WRAP_CODE(code) code
 #define TRINEX_CONCAT_IMPL(x, y) x##y
 #define TRINEX_CONCAT(x, y) TRINEX_CONCAT_IMPL(x, y)
-
-
-#define constructor_template(name, ...) name(__VA_ARGS__)
-#define constructor_hpp(name, ...) name(__VA_ARGS__)
-#define constructor_cpp(name, ...) name::constructor_template(name, __VA_ARGS__)
-
-#define delete_copy_constructors(class_name)                                                                                     \
-	class_name(const class_name&)            = delete;                                                                           \
-	class_name(class_name&&)                 = delete;                                                                           \
-	class_name& operator=(class_name&&)      = delete;                                                                           \
-	class_name& operator=(const class_name&) = delete
-
-#define copy_constructors_hpp(class_name)                                                                                        \
-	class_name(const class_name&);                                                                                               \
-	class_name(class_name&&);                                                                                                    \
-	class_name& operator=(class_name&&);                                                                                         \
-	class_name& operator=(const class_name&)
-
-
-#define default_copy_constructors_cpp(class_name)                                                                                \
-	class_name::class_name(const class_name&)            = default;                                                              \
-	class_name::class_name(class_name&&)                 = default;                                                              \
-	class_name& class_name::operator=(class_name&&)      = default;                                                              \
-	class_name& class_name::operator=(const class_name&) = default;
-
-#define default_copy_constructors_scoped_cpp(scope_name, class_name)                                                             \
-	scope_name::class_name::class_name(const scope_name::class_name&)                        = default;                          \
-	scope_name::class_name::class_name(scope_name::class_name&&)                             = default;                          \
-	scope_name::class_name& scope_name::class_name::operator=(scope_name::class_name&&)      = default;                          \
-	scope_name::class_name& scope_name::class_name::operator=(const scope_name::class_name&) = default;
-
-#define trinex_force_inline inline __attribute__((always_inline))
-#define trinex_inline inline
-#define trinex_noinline __attribute__((noinline))
-#define trinex_weak __attribute__((weak))
-
-#define trinex_likely(x) __builtin_expect(!!(x), 1)
-#define trinex_unlikely(x) __builtin_expect(!!(x), 0)
-
-#define trinex_debug_break() __builtin_trap()
-
-#define trinex_function_name __PRETTY_FUNCTION__
-
-#define trinex_prefetch(ptr) __builtin_prefetch(ptr)
-
-#define trinex_bswap16(x) __builtin_bswap16(x)
-#define trinex_bswap32(x) __builtin_bswap32(x)
-#define trinex_bswap64(x) __builtin_bswap64(x)
-
-#define trinex_countr_zero(value) static_cast<Trinex::u32>(__builtin_ctzll(value))
-#define trinex_countl_zero(value) static_cast<Trinex::u32>(__builtin_clzll(value))
-#define trinex_popcount(value) static_cast<Trinex::u32>(__builtin_popcountll(value))
 
 #define trinex_enum_struct(struct_type)                                                                                          \
 	static constexpr bool is_enum          = true;                                                                               \
@@ -175,7 +92,6 @@ namespace Trinex
 	}                                                                                                                            \
                                                                                                                                  \
 	Enum value
-
 
 #define trinex_bitfield_enum_struct(struct_type, underlying_type)                                                                \
 	static constexpr bool is_enum          = true;                                                                               \
@@ -240,31 +156,6 @@ namespace Trinex
 		Enum value;                                                                                                              \
 	}
 
-#define property_hpp(class_name, type, name, _default)                                                                           \
-private:                                                                                                                         \
-	type m_##name = _default;                                                                                                    \
-                                                                                                                                 \
-public:                                                                                                                          \
-	const type& name() const;                                                                                                    \
-	class_name& name(const type& value)
-
-#define property_cpp(_class, type, name)                                                                                         \
-	const type& _class::name() const                                                                                             \
-	{                                                                                                                            \
-		return m_##name;                                                                                                         \
-	}                                                                                                                            \
-                                                                                                                                 \
-	_class& _class::name(const type& value)                                                                                      \
-	{                                                                                                                            \
-		this->m_##name = value;                                                                                                  \
-		return *this;                                                                                                            \
-	}
-
-#define trinex_reflection_body(...) TRINEX_CONCAT(TRINEX_CONCAT(trinex_reflection_file_id, _), __LINE__)
-#define trinex_reflect(...)
-#define trinex_function(...)
-#define trinex_property(...)
-
 #define trinex_old_struct(struct_name, base_name)                                                                                \
 protected:                                                                                                                       \
 	static Trinex::Refl::Struct* m_static_struct;                                                                                \
@@ -288,40 +179,13 @@ public:                                                                         
 	}                                                                                                                            \
 	static void static_initialize_enum()
 
+#define trinex_copyable(class_name)                                                                                              \
+	class_name(const class_name&);                                                                                               \
+	class_name& operator=(const class_name&)
 
-#define declare_enum_operators(T)                                                                                                \
-	inline constexpr bool operator!(T a)                                                                                         \
-	{                                                                                                                            \
-		return !(__underlying_type(T)) a;                                                                                        \
-	}                                                                                                                            \
-	inline constexpr T operator~(T a)                                                                                            \
-	{                                                                                                                            \
-		return (T) ~(__underlying_type(T)) a;                                                                                    \
-	}                                                                                                                            \
-	inline constexpr T operator|(T a, T b)                                                                                       \
-	{                                                                                                                            \
-		return (T) ((__underlying_type(T)) a | (__underlying_type(T)) b);                                                        \
-	}                                                                                                                            \
-	inline constexpr T operator&(T a, T b)                                                                                       \
-	{                                                                                                                            \
-		return (T) ((__underlying_type(T)) a & (__underlying_type(T)) b);                                                        \
-	}                                                                                                                            \
-	inline constexpr T operator^(T a, T b)                                                                                       \
-	{                                                                                                                            \
-		return (T) ((__underlying_type(T)) a ^ (__underlying_type(T)) b);                                                        \
-	}                                                                                                                            \
-	inline T& operator|=(T& a, T b)                                                                                              \
-	{                                                                                                                            \
-		return a = (T) ((__underlying_type(T)) a | (__underlying_type(T)) b);                                                    \
-	}                                                                                                                            \
-	inline T& operator&=(T& a, T b)                                                                                              \
-	{                                                                                                                            \
-		return a = (T) ((__underlying_type(T)) a & (__underlying_type(T)) b);                                                    \
-	}                                                                                                                            \
-	inline T& operator^=(T& a, T b)                                                                                              \
-	{                                                                                                                            \
-		return a = (T) ((__underlying_type(T)) a ^ (__underlying_type(T)) b);                                                    \
-	}
+#define trinex_moveable(class_name)                                                                                              \
+	class_name(class_name&&);                                                                                                    \
+	class_name& operator=(class_name&&)
 
 #define trinex_default_copyable(class_name)                                                                                      \
 	inline class_name(const class_name&)            = default;                                                                   \
@@ -343,11 +207,40 @@ public:                                                                         
 	class_name(class_name&&)            = delete;                                                                                \
 	class_name& operator=(class_name&&) = delete
 
-#define trinex_defer Trinex::TrinexDefer TRINEX_CONCAT(trinex_engine_defer, __LINE__) = [&]()
-
 #define trinex_this_return(x)                                                                                                    \
 	x;                                                                                                                           \
 	return *this
 
+#define trinex_reflection_body(...) TRINEX_CONCAT(TRINEX_CONCAT(trinex_reflection_file_id, _), __LINE__)
+#define trinex_reflect(...)
+#define trinex_function(...)
+#define trinex_property(...)
+
+#define trinex_has_include(name) __has_include(<name>)
+
 #define trinex_launder __builtin_launder
 #define trinex_address_of __builtin_addressof
+
+#define trinex_likely(x) __builtin_expect(!!(x), 1)
+#define trinex_unlikely(x) __builtin_expect(!!(x), 0)
+
+#define trinex_debug_break() __builtin_trap()
+
+#define trinex_function_name __PRETTY_FUNCTION__
+
+#define trinex_prefetch(ptr) __builtin_prefetch(ptr)
+
+#define trinex_array_size(array) (sizeof(array) / sizeof(array[0]))
+#define trinex_bit(index) (1ULL << (index))
+
+#define trinex_bswap16(x) __builtin_bswap16(x)
+#define trinex_bswap32(x) __builtin_bswap32(x)
+#define trinex_bswap64(x) __builtin_bswap64(x)
+
+#define trinex_countr_zero(value) static_cast<Trinex::u32>(__builtin_ctzll(value))
+#define trinex_countl_zero(value) static_cast<Trinex::u32>(__builtin_clzll(value))
+#define trinex_popcount(value) static_cast<Trinex::u32>(__builtin_popcountll(value))
+
+#define trinex_force_inline inline __attribute__((always_inline))
+#define trinex_noinline __attribute__((noinline))
+#define trinex_weak __attribute__((weak))

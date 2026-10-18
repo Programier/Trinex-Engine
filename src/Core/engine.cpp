@@ -8,13 +8,13 @@ namespace Trinex
 	trinex_implement_engine_class_default_init(Engine, 0);
 
 	static Engine* s_instance = nullptr;
-	FORCE_INLINE std::chrono::high_resolution_clock::time_point current_time_point()
+
+	static inline std::chrono::high_resolution_clock::time_point current_time_point()
 	{
 		return std::chrono::high_resolution_clock::now();
 	}
 
-	std::chrono::high_resolution_clock::time_point start_time;
-
+	static std::chrono::high_resolution_clock::time_point start_time;
 
 	Engine::Engine()
 	{

@@ -10,7 +10,7 @@
 
 namespace Trinex
 {
-	static FORCE_INLINE Refl::Class* find_class(const Vector<Name>& hierarchy)
+	static inline Refl::Class* find_class(const Vector<Name>& hierarchy)
 	{
 		Refl::Class* instance = nullptr;
 

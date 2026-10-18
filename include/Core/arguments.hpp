@@ -32,6 +32,9 @@ namespace Trinex
 			Argument(const String& name, const StringView& value);
 			Argument(const String& name, const char* value);
 			Argument(const String& name, const ArrayType& value);
+			
+			trinex_default_copyable(Argument);
+			trinex_default_moveable(Argument);
 
 			template<typename T>
 			Argument(const String& name, const T& value) : Argument(name)
@@ -40,16 +43,14 @@ namespace Trinex
 				type = Type::UserData;
 			}
 
-			copy_constructors_hpp(Argument);
-
 			template<typename T>
-			FORCE_INLINE T get()
+			inline T get()
 			{
 				return data.cast<T>();
 			}
 
 			template<typename T>
-			FORCE_INLINE T get() const
+			inline T get() const
 			{
 				return data.cast<T>();
 			}

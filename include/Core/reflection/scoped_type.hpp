@@ -26,15 +26,15 @@ namespace Trinex::Refl
 			const ScopedType* const m_object;
 
 		public:
-			FORCE_INLINE Locker(const ScopedType* const object) : m_object(object) { m_object->lock(); }
+			inline Locker(const ScopedType* const object) : m_object(object) { m_object->lock(); }
 
 			~Locker() { m_object->unlock(); }
 		};
 
 		using Super::find;
-		Object* find(StringView name, FindFlags flags = FindFlags::None) override;
+		Object* find(StringView name, FindFlags flags = FindFlags::Undefined) override;
 		const Map<String, Object*>& childs() const;
 
-		FORCE_INLINE bool is_locked() const { return m_lock_count > 0; }
+		inline bool is_locked() const { return m_lock_count > 0; }
 	};
 }// namespace Trinex::Refl

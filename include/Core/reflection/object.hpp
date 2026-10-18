@@ -25,11 +25,16 @@ namespace Trinex::Refl
 		extern ENGINE_EXPORT Name renderer;
 	}// namespace Meta
 
-	enum class FindFlags
-	{
-		None        = 0,
-		CreateScope = BIT(0),
-		IsRequired  = BIT(1),
+
+	struct FindFlags {
+		enum Enum : u8
+		{
+			Undefined   = 0,
+			CreateScope = trinex_bit(0),
+			IsRequired  = trinex_bit(1),
+		};
+
+		trinex_bitfield_enum_struct(FindFlags, u8);
 	};
 
 	struct ENGINE_EXPORT ClassInfo {
@@ -60,7 +65,7 @@ namespace Trinex::Refl
 
 		void full_name(String& out) const;
 
-		FORCE_INLINE bool has_metadata(const Name& name) const { return find_metadata(name) != nullptr; }
+		inline bool has_metadata(const Name& name) const { return find_metadata(name) != nullptr; }
 
 		virtual Object& unregister_subobject(Object* subobject);
 		virtual Object& register_subobject(Object* subobject);
@@ -100,13 +105,13 @@ namespace Trinex::Refl
 		Object& metadata(const Name& name, const Any& any);
 		Object& remove_metadata(const Name& name);
 
-		virtual Object* find(StringView name, FindFlags flags = FindFlags::None);
+		virtual Object* find(StringView name, FindFlags flags = FindFlags::Undefined);
 		virtual ClassInfo* refl_class_info() const;
 
 		static ClassInfo* static_refl_class_info();
 		static Object* static_root();
-		static Object* static_find(StringView name, FindFlags flags = FindFlags::None);
-		static Object* static_require(StringView name, FindFlags flags = FindFlags::None);
+		static Object* static_find(StringView name, FindFlags flags = FindFlags::Undefined);
+		static Object* static_require(StringView name, FindFlags flags = FindFlags::Undefined);
 
 		static void load_reflection(Object* root = nullptr, bool force_recursive = false);
 		static bool destroy_instance(Object* object);
@@ -178,19 +183,19 @@ namespace Trinex::Refl
 		}
 
 		template<typename T>
-		static T* static_find(StringView name, FindFlags flags = FindFlags::None)
+		static T* static_find(StringView name, FindFlags flags = FindFlags::Undefined)
 		{
 			return instance_cast<T>(static_find(name, flags));
 		}
 
 		template<typename T>
-		T* find(StringView name, FindFlags flags = FindFlags::None)
+		T* find(StringView name, FindFlags flags = FindFlags::Undefined)
 		{
 			return instance_cast<T>(find(name, flags));
 		}
 
 		template<typename T>
-		static T* static_require(StringView name, FindFlags flags = FindFlags::None)
+		static T* static_require(StringView name, FindFlags flags = FindFlags::Undefined)
 		{
 			return instance_cast<T>(static_require(name, flags));
 		}
@@ -212,8 +217,6 @@ namespace Trinex::Refl
 		return Object::instance_cast<T>(object);
 	}
 
-	declare_enum_operators(FindFlags);
-
 #define trinex_reflect_type(name, base)                                                                                          \
 public:                                                                                                                          \
 	using This  = name;                                                                                                          \
@@ -223,15 +226,15 @@ public:                                                                         
 	static Trinex::Refl::ClassInfo* static_refl_class_info();                                                                    \
 	virtual Trinex::Refl::ClassInfo* refl_class_info() const override;                                                           \
                                                                                                                                  \
-	static name* static_find(StringView object_name, Trinex::Refl::FindFlags flags = Trinex::Refl::FindFlags::None);             \
-	static name* static_require(StringView object_name, Trinex::Refl::FindFlags flags = Trinex::Refl::FindFlags::None);          \
+	static name* static_find(StringView object_name, Trinex::Refl::FindFlags flags = Trinex::Refl::FindFlags::Undefined);        \
+	static name* static_require(StringView object_name, Trinex::Refl::FindFlags flags = Trinex::Refl::FindFlags::Undefined);     \
 	template<typename T>                                                                                                         \
-	static T* static_find(StringView object_name, Trinex::Refl::FindFlags flags = Trinex::Refl::FindFlags::None)                 \
+	static T* static_find(StringView object_name, Trinex::Refl::FindFlags flags = Trinex::Refl::FindFlags::Undefined)            \
 	{                                                                                                                            \
 		return Object::static_find<T>(object_name, flags);                                                                       \
 	}                                                                                                                            \
 	template<typename T>                                                                                                         \
-	static T* static_require(StringView object_name, Trinex::Refl::FindFlags flags = Trinex::Refl::FindFlags::None)              \
+	static T* static_require(StringView object_name, Trinex::Refl::FindFlags flags = Trinex::Refl::FindFlags::Undefined)         \
 	{                                                                                                                            \
 		return Object::static_require<T>(object_name, flags);                                                                    \
 	}                                                                                                                            \

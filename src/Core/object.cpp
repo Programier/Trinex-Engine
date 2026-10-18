@@ -488,7 +488,7 @@ namespace Trinex
 		return true;
 	}
 
-	static FORCE_INLINE Package* find_next_package(Package* package, StringView name, bool create)
+	static inline Package* find_next_package(Package* package, StringView name, bool create)
 	{
 		if (name.empty())
 			return package;

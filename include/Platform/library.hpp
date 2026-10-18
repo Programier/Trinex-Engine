@@ -13,7 +13,7 @@ namespace Trinex::Platform
 			return reinterpret_cast<T*>(address);
 		}
 
-		FORCE_INLINE explicit operator bool() const { return address != nullptr; }
+		inline explicit operator bool() const { return address != nullptr; }
 	};
 
 	class ENGINE_EXPORT Library : public RefCounted

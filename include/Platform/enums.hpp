@@ -58,20 +58,20 @@ namespace Trinex::Platform
 		enum Enum : u64
 		{
 			Undefined = 0,
-			SSE       = BIT(0),
-			SSE2      = BIT(1),
-			SSE3      = BIT(2),
-			SSSE3     = BIT(3),
-			SSE41     = BIT(4),
-			SSE42     = BIT(5),
-			AVX       = BIT(6),
-			AVX2      = BIT(7),
-			AVX512F   = BIT(8),
-			AES       = BIT(9),
-			SHA       = BIT(10),
-			FMA       = BIT(11),
-			NEON      = BIT(12),
-			CRC32     = BIT(13),
+			SSE       = trinex_bit(0),
+			SSE2      = trinex_bit(1),
+			SSE3      = trinex_bit(2),
+			SSSE3     = trinex_bit(3),
+			SSE41     = trinex_bit(4),
+			SSE42     = trinex_bit(5),
+			AVX       = trinex_bit(6),
+			AVX2      = trinex_bit(7),
+			AVX512F   = trinex_bit(8),
+			AES       = trinex_bit(9),
+			SHA       = trinex_bit(10),
+			FMA       = trinex_bit(11),
+			NEON      = trinex_bit(12),
+			CRC32     = trinex_bit(13),
 		};
 
 		trinex_bitfield_enum_struct(CPUFeature, u64);
@@ -81,9 +81,9 @@ namespace Trinex::Platform
 		enum Enum : u8
 		{
 			NoAccess         = 0,
-			Read             = BIT(0),
-			Write            = BIT(1),
-			Execute          = BIT(2),
+			Read             = trinex_bit(0),
+			Write            = trinex_bit(1),
+			Execute          = trinex_bit(2),
 			ReadWrite        = Read | Write,
 			ReadExecute      = Read | Execute,
 			ReadWriteExecute = Read | Write | Execute,
@@ -96,12 +96,12 @@ namespace Trinex::Platform
 		enum Enum : u8
 		{
 			Undefined      = 0,
-			LargePage      = BIT(0),
-			Shared         = BIT(1),
-			Stack          = BIT(2),
-			NoReserve      = BIT(3),
-			Populate       = BIT(4),
-			FixedNoReplace = BIT(5),
+			LargePage      = trinex_bit(0),
+			Shared         = trinex_bit(1),
+			Stack          = trinex_bit(2),
+			NoReserve      = trinex_bit(3),
+			Populate       = trinex_bit(4),
+			FixedNoReplace = trinex_bit(5),
 		};
 
 		trinex_bitfield_enum_struct(VirtualMemoryFlags, u8);
@@ -111,9 +111,9 @@ namespace Trinex::Platform
 		enum Enum : u8
 		{
 			Undefined = 0,
-			Read      = BIT(0),
-			Write     = BIT(1),
-			Execute   = BIT(2),
+			Read      = trinex_bit(0),
+			Write     = trinex_bit(1),
+			Execute   = trinex_bit(2),
 			ReadWrite = Read | Write,
 		};
 
@@ -124,9 +124,9 @@ namespace Trinex::Platform
 		enum Enum : u8
 		{
 			None   = 0,
-			Read   = BIT(0),
-			Write  = BIT(1),
-			Delete = BIT(2),
+			Read   = trinex_bit(0),
+			Write  = trinex_bit(1),
+			Delete = trinex_bit(2),
 			All    = Read | Write | Delete,
 		};
 
@@ -150,12 +150,12 @@ namespace Trinex::Platform
 		enum Enum : u16
 		{
 			Undefined  = 0,
-			File       = BIT(0),
-			Directory  = BIT(1),
-			Symlink    = BIT(2),
-			Hidden     = BIT(3),
-			ReadOnly   = BIT(4),
-			Executable = BIT(5),
+			File       = trinex_bit(0),
+			Directory  = trinex_bit(1),
+			Symlink    = trinex_bit(2),
+			Hidden     = trinex_bit(3),
+			ReadOnly   = trinex_bit(4),
+			Executable = trinex_bit(5),
 		};
 
 		trinex_bitfield_enum_struct(FileAttribute, u16);
@@ -165,11 +165,11 @@ namespace Trinex::Platform
 		enum Enum : u32
 		{
 			Undefined = 0,
-			Created   = BIT(0),
-			Removed   = BIT(1),
-			Modified  = BIT(2),
-			Renamed   = BIT(3),
-			Metadata  = BIT(4),
+			Created   = trinex_bit(0),
+			Removed   = trinex_bit(1),
+			Modified  = trinex_bit(2),
+			Renamed   = trinex_bit(3),
+			Metadata  = trinex_bit(4),
 			Any       = Created | Removed | Modified | Renamed | Metadata,
 		};
 

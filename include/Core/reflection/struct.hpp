@@ -28,12 +28,12 @@ namespace Trinex::Refl
 		struct Flags {
 			enum Enum : u8
 			{
-				IsAbstract      = BIT(0),
-				IsConstructible = BIT(1),
-				IsFinal         = BIT(2),
-				IsNative        = BIT(3),
-				IsScriptable    = BIT(4),
-				IsAsset         = BIT(5),
+				IsAbstract      = trinex_bit(0),
+				IsConstructible = trinex_bit(1),
+				IsFinal         = trinex_bit(2),
+				IsNative        = trinex_bit(3),
+				IsScriptable    = trinex_bit(4),
+				IsAsset         = trinex_bit(5),
 			};
 
 			trinex_bitfield_enum_struct(Flags, u8);

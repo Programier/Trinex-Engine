@@ -68,8 +68,8 @@ namespace Trinex::VisualMaterialGraph
 		Expression vector_length() const;
 		inline Expression to_floating() const { return convert(make_floating(type)); }
 
-		FORCE_INLINE bool is_valid() const { return type != RHIShaderParameterType::Undefined; }
-		FORCE_INLINE Expression& clear()
+		inline bool is_valid() const { return type != RHIShaderParameterType::Undefined; }
+		inline Expression& clear()
 		{
 			type = RHIShaderParameterType::Undefined;
 			value.clear();

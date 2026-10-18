@@ -22,7 +22,7 @@
 
 namespace Trinex
 {
-	static FORCE_INLINE vk::ShaderStageFlags parse_stages_flags(const RHIGraphicsPipelineDesc& desc)
+	static inline vk::ShaderStageFlags parse_stages_flags(const RHIGraphicsPipelineDesc& desc)
 	{
 		vk::ShaderStageFlags stages = vk::ShaderStageFlags(0);
 
@@ -44,7 +44,7 @@ namespace Trinex
 		return stages;
 	}
 
-	static FORCE_INLINE vk::ShaderStageFlags parse_stages_flags(const RHIMeshPipelineDesc& desc)
+	static inline vk::ShaderStageFlags parse_stages_flags(const RHIMeshPipelineDesc& desc)
 	{
 		vk::ShaderStageFlags stages = vk::ShaderStageFlags(0);
 
@@ -60,7 +60,7 @@ namespace Trinex
 		return stages;
 	}
 
-	static FORCE_INLINE vk::ShaderStageFlagBits shader_stage_of(RHIRayTracingShaderGroupType type)
+	static inline vk::ShaderStageFlagBits shader_stage_of(RHIRayTracingShaderGroupType type)
 	{
 		switch (type)
 		{
@@ -75,7 +75,7 @@ namespace Trinex
 		return shader->as<VulkanShader>()->module();
 	}
 
-	static FORCE_INLINE bool is_descriptor_dirty(VulkanContext* context, const VulkanPipelineLayout::Descriptor& descriptor)
+	static inline bool is_descriptor_dirty(VulkanContext* context, const VulkanPipelineLayout::Descriptor& descriptor)
 	{
 		switch (descriptor.type)
 		{

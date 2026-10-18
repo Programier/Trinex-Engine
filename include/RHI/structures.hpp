@@ -19,18 +19,18 @@ namespace Trinex
 		Vector2i size;
 		Vector2i pos;
 
-		FORCE_INLINE RHIRect(Vector2i size = {0, 0}, Vector2i pos = {0, 0}) : size(size), pos(pos) {}
-		FORCE_INLINE bool operator==(const RHIRect& v) const { return pos == v.pos && size == v.size; }
-		FORCE_INLINE bool operator!=(const RHIRect& v) const { return !((*this) == v); }
+		inline RHIRect(Vector2i size = {0, 0}, Vector2i pos = {0, 0}) : size(size), pos(pos) {}
+		inline bool operator==(const RHIRect& v) const { return pos == v.pos && size == v.size; }
+		inline bool operator!=(const RHIRect& v) const { return !((*this) == v); }
 	};
 
 	struct RHIRegion {
 		Vector2f size;
 		Vector2f pos;
 
-		FORCE_INLINE RHIRegion(Vector2f size = {1.f, 1.f}, Vector2f pos = {0.f, 0.f}) : size(size), pos(pos) {}
-		FORCE_INLINE bool operator==(const RHIRegion& v) const { return pos == v.pos && size == v.size; }
-		FORCE_INLINE bool operator!=(const RHIRegion& v) const { return !((*this) == v); }
+		inline RHIRegion(Vector2f size = {1.f, 1.f}, Vector2f pos = {0.f, 0.f}) : size(size), pos(pos) {}
+		inline bool operator==(const RHIRegion& v) const { return pos == v.pos && size == v.size; }
+		inline bool operator!=(const RHIRegion& v) const { return !((*this) == v); }
 	};
 
 	struct ENGINE_EXPORT RHIRange {
@@ -53,7 +53,7 @@ namespace Trinex
 		RHISemantic semantic;
 		u8 binding;
 
-		FORCE_INLINE RHIInputAttribute(RHISemantic semantic = RHISemantic::Position, u8 binding = 0)
+		inline RHIInputAttribute(RHISemantic semantic = RHISemantic::Position, u8 binding = 0)
 		    : semantic(semantic), binding(binding)
 		{}
 

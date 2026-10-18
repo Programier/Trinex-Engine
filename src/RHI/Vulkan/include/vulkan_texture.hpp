@@ -30,7 +30,7 @@ namespace Trinex
 			ViewDesc() : first_array_slice(0), array_size(~0), first_mip(0), mip_levels(~0), view_type(RHITextureType::Undefined)
 			{}
 
-			FORCE_INLINE void normalize(VulkanTexture* texture) {}
+			inline void normalize(VulkanTexture* texture) {}
 
 			template<typename T>
 			static ViewDesc from_base(const T* view, const VulkanTexture* texture);
@@ -40,8 +40,8 @@ namespace Trinex
 			static ViewDesc from(const RHITextureDescRTV* view, const VulkanTexture* texture);
 			static ViewDesc from(const RHITextureDescDSV* view, const VulkanTexture* texture);
 
-			FORCE_INLINE bool operator==(const ViewDesc& other) const noexcept { return id == other.id; }
-			FORCE_INLINE bool operator!=(const ViewDesc& other) const noexcept { return id != other.id; }
+			inline bool operator==(const ViewDesc& other) const noexcept { return id == other.id; }
+			inline bool operator!=(const ViewDesc& other) const noexcept { return id != other.id; }
 		};
 
 		static_assert(sizeof(ViewDesc) == sizeof(u64));

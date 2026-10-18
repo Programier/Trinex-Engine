@@ -18,8 +18,8 @@ namespace Trinex
 		enum Enum : EnumerateType
 		{
 			Disabled     = 0,
-			Test         = BIT(0),
-			Write        = BIT(1),
+			Test         = trinex_bit(0),
+			Write        = trinex_bit(1),
 			TestAndWrite = Test | Write,
 		};
 

@@ -25,40 +25,40 @@ namespace Trinex
 			Undefined = 0,
 
 			// Meta
-			META_Descriptor            = BIT(0),
-			META_UniformBuffer         = BIT(1),
-			META_Sampler               = BIT(2),
-			META_Texture               = BIT(3),
-			META_Buffer                = BIT(4),
-			META_StructuredBuffer      = BIT(5),
-			META_ByteAddressBuffer     = BIT(6),
-			META_AccelerationStructure = BIT(7),
+			META_Descriptor            = trinex_bit(0),
+			META_UniformBuffer         = trinex_bit(1),
+			META_Sampler               = trinex_bit(2),
+			META_Texture               = trinex_bit(3),
+			META_Buffer                = trinex_bit(4),
+			META_StructuredBuffer      = trinex_bit(5),
+			META_ByteAddressBuffer     = trinex_bit(6),
+			META_AccelerationStructure = trinex_bit(7),
 
-			META_Numeric = BIT(8),
-			META_Matrix  = BIT(9),
+			META_Numeric = trinex_bit(8),
+			META_Matrix  = trinex_bit(9),
 
-			META_RW    = BIT(10),
-			META_Array = BIT(11),
-			META_Cube  = BIT(12),
+			META_RW    = trinex_bit(10),
+			META_Array = trinex_bit(11),
+			META_Cube  = trinex_bit(12),
 
 			// Element type
-			META_Boolean     = BIT(13),
-			META_Integer     = BIT(14),
-			META_Floating    = BIT(15),
-			META_Unsigned    = BIT(16),
+			META_Boolean     = trinex_bit(13),
+			META_Integer     = trinex_bit(14),
+			META_Floating    = trinex_bit(15),
+			META_Unsigned    = trinex_bit(16),
 			META_ElementMask = META_Boolean | META_Integer | META_Floating | META_Unsigned,
 
 			// Dimensions
-			META_1R       = BIT(17),
-			META_2R       = BIT(18),
-			META_3R       = BIT(17) | BIT(18),
-			META_4R       = BIT(19),
+			META_1R       = trinex_bit(17),
+			META_2R       = trinex_bit(18),
+			META_3R       = trinex_bit(17) | trinex_bit(18),
+			META_4R       = trinex_bit(19),
 			META_RowsMask = META_1R | META_2R | META_3R | META_4R,
 
-			META_1C          = BIT(20),
-			META_2C          = BIT(21),
-			META_3C          = BIT(20) | BIT(21),
-			META_4C          = BIT(22),
+			META_1C          = trinex_bit(20),
+			META_2C          = trinex_bit(21),
+			META_3C          = trinex_bit(20) | trinex_bit(21),
+			META_4C          = trinex_bit(22),
 			META_ColumnsMask = META_1C | META_2C | META_3C | META_4C,
 
 			META_1D            = META_1R | META_1C,
@@ -67,15 +67,15 @@ namespace Trinex
 			META_4D            = META_4R | META_4C,
 			META_DimensionMask = META_1D | META_2D | META_3D | META_4D,
 
-			META_VaryingInput  = BIT(23),
-			META_VaryingOutput = BIT(24),
+			META_VaryingInput  = trinex_bit(23),
+			META_VaryingOutput = trinex_bit(24),
 			META_VaryingMask   = META_VaryingInput | META_VaryingOutput,
 
-			META_Color                    = BIT(25),
-			META_ExcludeMaterialParameter = BIT(26),
-			META_Concrete                 = BIT(27),
+			META_Color                    = trinex_bit(25),
+			META_ExcludeMaterialParameter = trinex_bit(26),
+			META_Concrete                 = trinex_bit(27),
 
-			META_Special0 = BIT(31),
+			META_Special0 = trinex_bit(31),
 			META_Any      = ~0U,
 
 			// Scalars
@@ -194,10 +194,10 @@ namespace Trinex
 		enum Enum : u8
 		{
 			Undefined          = 0,
-			ShaderResource     = BIT(0),
-			UnorderedAccess    = BIT(1),
-			RenderTarget       = BIT(2),
-			DepthStencilTarget = BIT(3),
+			ShaderResource     = trinex_bit(0),
+			UnorderedAccess    = trinex_bit(1),
+			RenderTarget       = trinex_bit(2),
+			DepthStencilTarget = trinex_bit(3),
 
 
 			ColorAttachment        = RenderTarget | ShaderResource,
@@ -213,23 +213,23 @@ namespace Trinex
 		enum Enum : u16
 		{
 			Undefined         = 0,
-			ShaderResource    = BIT(0),
-			UnorderedAccess   = BIT(1),
-			StructuredBuffer  = BIT(2),
-			ByteAddressBuffer = BIT(3),
+			ShaderResource    = trinex_bit(0),
+			UnorderedAccess   = trinex_bit(1),
+			StructuredBuffer  = trinex_bit(2),
+			ByteAddressBuffer = trinex_bit(3),
 
-			VertexBuffer        = BIT(4),
-			IndexBuffer         = BIT(5),
-			UniformBuffer       = BIT(6),
-			IndirectBuffer      = BIT(7),
-			TransferSrc         = BIT(8),
-			TransferDst         = BIT(9),
-			CPURead             = BIT(10),
-			CPUWrite            = BIT(11),
-			DeviceAddress       = BIT(12),
-			AccelerationStorage = BIT(13),
-			AccelerationInput   = BIT(14),
-			ShaderBindingTable  = BIT(15),
+			VertexBuffer        = trinex_bit(4),
+			IndexBuffer         = trinex_bit(5),
+			UniformBuffer       = trinex_bit(6),
+			IndirectBuffer      = trinex_bit(7),
+			TransferSrc         = trinex_bit(8),
+			TransferDst         = trinex_bit(9),
+			CPURead             = trinex_bit(10),
+			CPUWrite            = trinex_bit(11),
+			DeviceAddress       = trinex_bit(12),
+			AccelerationStorage = trinex_bit(13),
+			AccelerationInput   = trinex_bit(14),
+			ShaderBindingTable  = trinex_bit(15),
 		};
 
 		trinex_bitfield_enum_struct(RHIBufferFlags, u16);
@@ -270,28 +270,28 @@ namespace Trinex
 			Undefined = 0,
 
 			// Reading states
-			CPURead          = BIT(0),
-			AccelerationRead = BIT(1),
-			IndirectArgs     = BIT(2),
-			VertexBuffer     = BIT(3),
-			IndexBuffer      = BIT(4),
-			UniformBuffer    = BIT(5),
-			SRVCompute       = BIT(6),
-			SRVGraphics      = BIT(7),
-			TransferSrc      = BIT(8),
-			PresentSrc       = BIT(9),
-			RTVRead          = BIT(10),
-			DSVRead          = BIT(11),
+			CPURead          = trinex_bit(0),
+			AccelerationRead = trinex_bit(1),
+			IndirectArgs     = trinex_bit(2),
+			VertexBuffer     = trinex_bit(3),
+			IndexBuffer      = trinex_bit(4),
+			UniformBuffer    = trinex_bit(5),
+			SRVCompute       = trinex_bit(6),
+			SRVGraphics      = trinex_bit(7),
+			TransferSrc      = trinex_bit(8),
+			PresentSrc       = trinex_bit(9),
+			RTVRead          = trinex_bit(10),
+			DSVRead          = trinex_bit(11),
 
 			// Writing states
-			CPUWrite          = BIT(12),
-			AccelerationWrite = BIT(13),
-			UAVCompute        = BIT(14),
-			UAVGraphics       = BIT(15),
-			TransferDst       = BIT(16),
-			ResolveDst        = BIT(17),
-			RTVWrite          = BIT(18),
-			DSVWrite          = BIT(19),
+			CPUWrite          = trinex_bit(12),
+			AccelerationWrite = trinex_bit(13),
+			UAVCompute        = trinex_bit(14),
+			UAVGraphics       = trinex_bit(15),
+			TransferDst       = trinex_bit(16),
+			ResolveDst        = trinex_bit(17),
+			RTVWrite          = trinex_bit(18),
+			DSVWrite          = trinex_bit(19),
 
 			// Read-Write states
 			RTV = RTVRead | RTVWrite,
@@ -479,21 +479,21 @@ namespace Trinex
 			{
 				Undefined = 0,
 
-				Texture1D   = BIT(0),
-				Texture2D   = BIT(1),
-				Texture3D   = BIT(2),
-				TextureCube = BIT(3),
+				Texture1D   = trinex_bit(0),
+				Texture2D   = trinex_bit(1),
+				Texture3D   = trinex_bit(2),
+				TextureCube = trinex_bit(3),
 
-				RenderTarget   = BIT(4),
-				DepthStencil   = BIT(5),
-				TextureMipmaps = BIT(6),
+				RenderTarget   = trinex_bit(4),
+				DepthStencil   = trinex_bit(5),
+				TextureMipmaps = trinex_bit(6),
 
-				TextureLoad      = BIT(7),
-				TextureSample    = BIT(8),
-				TextureGather    = BIT(9),
-				TextureAtomics   = BIT(10),
-				TextureBlendable = BIT(11),
-				TextureStore     = BIT(12),
+				TextureLoad      = trinex_bit(7),
+				TextureSample    = trinex_bit(8),
+				TextureGather    = trinex_bit(9),
+				TextureAtomics   = trinex_bit(10),
+				TextureBlendable = trinex_bit(11),
+				TextureStore     = trinex_bit(12),
 			};
 
 			trinex_bitfield_enum_struct(Capabilities, EnumerateType);
@@ -953,8 +953,8 @@ namespace Trinex
 		enum Enum : u8
 		{
 			Undefined         = 0,
-			Opaque            = BIT(0),
-			NoDuplicateAnyHit = BIT(1),
+			Opaque            = trinex_bit(0),
+			NoDuplicateAnyHit = trinex_bit(1),
 		};
 
 		trinex_bitfield_enum_struct(RHIRayTracingGeometryFlags, u8);
@@ -964,12 +964,12 @@ namespace Trinex
 		enum Enum : u8
 		{
 			Undefined       = 0,
-			AllowUpdate     = BIT(0),
-			AllowCompaction = BIT(1),
-			PreferFastTrace = BIT(2),
-			PreferFastBuild = BIT(3),
-			MinimizeMemory  = BIT(4),
-			PerformUpdate   = BIT(5),
+			AllowUpdate     = trinex_bit(0),
+			AllowCompaction = trinex_bit(1),
+			PreferFastTrace = trinex_bit(2),
+			PreferFastBuild = trinex_bit(3),
+			MinimizeMemory  = trinex_bit(4),
+			PerformUpdate   = trinex_bit(5),
 		};
 
 		trinex_bitfield_enum_struct(RHIRayTracingAccelerationFlags, u8);
@@ -992,11 +992,11 @@ namespace Trinex
 		enum Enum : u8
 		{
 			Undefined                 = 0,
-			TriangleFacingCullDisable = BIT(0),
-			TriangleFlipFacing        = BIT(1),
-			TriangleFrontCCW          = BIT(2),
-			ForceOpaque               = BIT(3),
-			ForceNoOpaque             = BIT(4),
+			TriangleFacingCullDisable = trinex_bit(0),
+			TriangleFlipFacing        = trinex_bit(1),
+			TriangleFrontCCW          = trinex_bit(2),
+			ForceOpaque               = trinex_bit(3),
+			ForceNoOpaque             = trinex_bit(4),
 		};
 
 		trinex_bitfield_enum_struct(RHIRayTracingGeometryInstanceFlags, u8);

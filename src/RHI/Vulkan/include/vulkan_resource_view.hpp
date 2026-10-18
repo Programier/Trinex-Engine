@@ -55,8 +55,8 @@ namespace Trinex
 		~VulkanTextureSRV();
 		VulkanSRV& bind(VulkanContext* context, u8 index) override;
 
-		FORCE_INLINE VulkanTexture* texture() const { return m_texture; }
-		FORCE_INLINE vk::ImageView view() const { return m_view; }
+		inline VulkanTexture* texture() const { return m_texture; }
+		inline vk::ImageView view() const { return m_view; }
 	};
 
 	class VulkanTextureUAV : public VulkanUAV
@@ -73,8 +73,8 @@ namespace Trinex
 		~VulkanTextureUAV();
 		VulkanUAV& bind(VulkanContext* context, u8 index) override;
 
-		FORCE_INLINE VulkanTexture* texture() const { return m_texture; }
-		FORCE_INLINE vk::ImageView view() const { return m_view; }
+		inline VulkanTexture* texture() const { return m_texture; }
+		inline vk::ImageView view() const { return m_view; }
 	};
 
 	class VulkanTextureRTV : public VulkanRTV
@@ -94,14 +94,14 @@ namespace Trinex
 		{}
 		~VulkanTextureRTV();
 
-		FORCE_INLINE vk::Extent3D extent() const { return m_texture->extent(); }
-		FORCE_INLINE vk::Format format() const { return m_texture->format(); }
-		FORCE_INLINE vk::Image image() const { return m_texture->image(); }
-		FORCE_INLINE VulkanTexture* texture() const { return m_texture; }
-		FORCE_INLINE vk::ImageView view() const { return m_view; }
-		FORCE_INLINE u16 base_layer() const { return m_base_layer; }
-		FORCE_INLINE u16 layer_count() const { return m_layer_count; }
-		FORCE_INLINE u16 mip() const { return m_mip; }
+		inline vk::Extent3D extent() const { return m_texture->extent(); }
+		inline vk::Format format() const { return m_texture->format(); }
+		inline vk::Image image() const { return m_texture->image(); }
+		inline VulkanTexture* texture() const { return m_texture; }
+		inline vk::ImageView view() const { return m_view; }
+		inline u16 base_layer() const { return m_base_layer; }
+		inline u16 layer_count() const { return m_layer_count; }
+		inline u16 mip() const { return m_mip; }
 	};
 
 	class VulkanTextureDSV : public VulkanDSV
@@ -121,14 +121,14 @@ namespace Trinex
 		{}
 		~VulkanTextureDSV();
 
-		FORCE_INLINE vk::Extent3D extent() const { return m_texture->extent(); }
-		FORCE_INLINE vk::Format format() const { return m_texture->format(); }
-		FORCE_INLINE vk::Image image() const { return m_texture->image(); }
-		FORCE_INLINE VulkanTexture* texture() const { return m_texture; }
-		FORCE_INLINE vk::ImageView view() const { return m_view; }
-		FORCE_INLINE u16 base_layer() const { return m_base_layer; }
-		FORCE_INLINE u16 layer_count() const { return m_layer_count; }
-		FORCE_INLINE u16 mip() const { return m_mip; }
+		inline vk::Extent3D extent() const { return m_texture->extent(); }
+		inline vk::Format format() const { return m_texture->format(); }
+		inline vk::Image image() const { return m_texture->image(); }
+		inline VulkanTexture* texture() const { return m_texture; }
+		inline vk::ImageView view() const { return m_view; }
+		inline u16 base_layer() const { return m_base_layer; }
+		inline u16 layer_count() const { return m_layer_count; }
+		inline u16 mip() const { return m_mip; }
 	};
 
 	class VulkanBufferSRV : public VulkanSRV
@@ -138,7 +138,7 @@ namespace Trinex
 
 	public:
 		inline VulkanBufferSRV(VulkanBuffer* buffer) : m_buffer(buffer) {}
-		FORCE_INLINE VulkanBuffer* buffer() const { return m_buffer; };
+		inline VulkanBuffer* buffer() const { return m_buffer; };
 	};
 
 	class VulkanStorageBufferSRV : public VulkanBufferSRV
@@ -168,7 +168,7 @@ namespace Trinex
 		VulkanBufferUAV(VulkanBuffer* buffer);
 		~VulkanBufferUAV();
 
-		FORCE_INLINE VulkanBuffer* buffer() const { return m_buffer; };
+		inline VulkanBuffer* buffer() const { return m_buffer; };
 		VulkanUAV& bind(VulkanContext* context, u8 index) override;
 	};
 }// namespace Trinex

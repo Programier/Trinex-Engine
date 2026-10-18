@@ -10,11 +10,11 @@ namespace Trinex::VFS
 		enum Enum : u32
 		{
 			Undefined = 0,
-			Created   = BIT(0),
-			Removed   = BIT(1),
-			Modified  = BIT(2),
-			Renamed   = BIT(3),
-			Metadata  = BIT(4),
+			Created   = trinex_bit(0),
+			Removed   = trinex_bit(1),
+			Modified  = trinex_bit(2),
+			Renamed   = trinex_bit(3),
+			Metadata  = trinex_bit(4),
 			Any       = Created | Removed | Modified | Renamed | Metadata,
 		};
 

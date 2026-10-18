@@ -11,35 +11,35 @@ namespace Trinex
 	ENGINE_EXPORT u128 memory_hash(const void* memory, const usize size, u128 seed = 0);
 	ENGINE_EXPORT const u8* memory_search(const u8* haystack, usize haystack_len, const u8* needle, usize needle_len);
 
-	FORCE_INLINE constexpr usize align_memory(usize size, usize alignment)
+	inline constexpr usize align_memory(usize size, usize alignment)
 	{
 		return ((size) + (alignment - 1)) & (~(alignment - 1));
 	}
 
 	template<typename Type>
-	FORCE_INLINE Type align_memory(Type in, usize alignment)
+	inline Type align_memory(Type in, usize alignment)
 	{
 		return reinterpret_cast<Type>((reinterpret_cast<usize>(in) + (alignment - 1)) & (~(alignment - 1)));
 	}
 
-	FORCE_INLINE constexpr usize align_up(usize size, usize alignment)
+	inline constexpr usize align_up(usize size, usize alignment)
 	{
 		return (size + (alignment - 1)) & ~(alignment - 1);
 	}
 
-	FORCE_INLINE constexpr usize align_down(usize size, usize alignment)
+	inline constexpr usize align_down(usize size, usize alignment)
 	{
 		return size & ~(alignment - 1);
 	}
 
 	template<typename Type>
-	FORCE_INLINE Type* align_up_ptr(Type* in, usize alignment)
+	inline Type* align_up_ptr(Type* in, usize alignment)
 	{
 		return reinterpret_cast<Type*>(align_up(reinterpret_cast<usize>(in), alignment));
 	}
 
 	template<typename Type>
-	FORCE_INLINE Type* align_down_ptr(Type* in, usize alignment)
+	inline Type* align_down_ptr(Type* in, usize alignment)
 	{
 		return reinterpret_cast<Type*>(align_down(reinterpret_cast<usize>(in), alignment));
 	}

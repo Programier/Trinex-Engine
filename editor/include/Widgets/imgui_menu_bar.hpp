@@ -17,15 +17,15 @@ namespace Trinex
 			Menu* m_next = nullptr;
 			Menu* m_prev = nullptr;
 
-			FORCE_INLINE Menu(ImGuiMenuBar* bar, StringView name) : bar(bar), name(name) {}
-			FORCE_INLINE ~Menu() {}
+			inline Menu(ImGuiMenuBar* bar, StringView name) : bar(bar), name(name) {}
+			inline ~Menu() {}
 
 		public:
-			FORCE_INLINE bool place_before(Menu* before) { return bar->place_before(this, before); }
-			FORCE_INLINE bool place_after(Menu* after) { return bar->place_after(this, after); }
-			FORCE_INLINE Menu* next() const { return m_next; }
-			FORCE_INLINE Menu* prev() const { return m_prev; }
-			FORCE_INLINE void destroy() { bar->destroy(this); }
+			inline bool place_before(Menu* before) { return bar->place_before(this, before); }
+			inline bool place_after(Menu* after) { return bar->place_after(this, after); }
+			inline Menu* next() const { return m_next; }
+			inline Menu* prev() const { return m_prev; }
+			inline void destroy() { bar->destroy(this); }
 
 			friend class ImGuiMenuBar;
 		};
@@ -37,12 +37,14 @@ namespace Trinex
 		void remove(Menu* menu);
 
 	public:
-		FORCE_INLINE ImGuiMenuBar() = default;
-		delete_copy_constructors(ImGuiMenuBar);
+		inline ImGuiMenuBar() = default;
 
-		FORCE_INLINE bool is_empty() const { return m_first == nullptr; }
-		FORCE_INLINE Menu* first() const { return m_first; }
-		FORCE_INLINE Menu* last() const { return m_last; }
+		trinex_non_copyable(ImGuiMenuBar);
+		trinex_non_moveable(ImGuiMenuBar);
+
+		inline bool is_empty() const { return m_first == nullptr; }
+		inline Menu* first() const { return m_first; }
+		inline Menu* last() const { return m_last; }
 
 		Menu* create(StringView name, Menu* before = nullptr);
 		Menu* find(StringView name) const;

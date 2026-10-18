@@ -55,7 +55,7 @@ namespace Trinex
 			struct Flags {
 				enum Enum : u32
 				{
-					IsLast   = BIT(0),
+					IsLast   = trinex_bit(0),
 					UserMask = 0,
 				};
 

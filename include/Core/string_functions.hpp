@@ -19,12 +19,12 @@ namespace Trinex::Strings
 	ENGINE_EXPORT String make_sentence(String line);
 	ENGINE_EXPORT u64 hash_of(const StringView& str);
 
-	FORCE_INLINE StringView strip(const StringView& line, const StringView& chars = " \t\n\r")
+	inline StringView strip(const StringView& line, const StringView& chars = " \t\n\r")
 	{
 		return lstrip(rstrip(line, chars), chars);
 	}
 
-	FORCE_INLINE StringView strip(const StringView& line, bool (*callback)(char ch))
+	inline StringView strip(const StringView& line, bool (*callback)(char ch))
 	{
 		return lstrip(rstrip(line, callback), callback);
 	}
@@ -97,24 +97,24 @@ namespace Trinex::Strings
 		return join(elements, delimiter, callback);
 	}
 
-	static FORCE_INLINE String make_string(const StringView& view)
+	static inline String make_string(const StringView& view)
 	{
 		return String(view);
 	}
 
-	static FORCE_INLINE String make_string(const char* line)
+	static inline String make_string(const char* line)
 	{
 		if (line)
 			return line;
 		return "";
 	}
 
-	static FORCE_INLINE StringView make_string_view(const String& str)
+	static inline StringView make_string_view(const String& str)
 	{
 		return StringView(str);
 	}
 
-	static FORCE_INLINE StringView make_string_view(const char* line)
+	static inline StringView make_string_view(const char* line)
 	{
 		if (line)
 			return line;

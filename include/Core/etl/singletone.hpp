@@ -14,7 +14,7 @@ namespace Trinex
 	class Singletone : public Parent
 	{
 	public:
-		INLINE_DEBUGGABLE static Type* instance()
+		static Type* instance()
 		{
 			if (Type::s_instance == nullptr)
 			{

@@ -5,11 +5,11 @@ namespace Trinex::VFS
 	struct AccessFlags {
 		enum Enum : u8
 		{
-			Read      = BIT(0),
-			Write     = BIT(1),
+			Read      = trinex_bit(0),
+			Write     = trinex_bit(1),
 			ReadWrite = Read | Write,
-			Append    = BIT(2) | Write,
-			Recursive = BIT(3),
+			Append    = trinex_bit(2) | Write,
+			Recursive = trinex_bit(3),
 		};
 
 		trinex_bitfield_enum_struct(AccessFlags, u8);
@@ -30,9 +30,9 @@ namespace Trinex::VFS
 		enum Enum : u8
 		{
 			Undefined   = 0,
-			Files       = BIT(0),
-			Directories = BIT(1),
-			Recursive   = BIT(2),
+			Files       = trinex_bit(0),
+			Directories = trinex_bit(1),
+			Recursive   = trinex_bit(2),
 			Default     = Files | Directories,
 		};
 
