@@ -1,6 +1,6 @@
+#include <Core/reflection/new/native.hpp>
 #include <Core/reflection/new/of.hpp>
 #include <Core/reflection/new/type.hpp>
-#include <Core/reflection/new/vtable.hpp>
 
 namespace Trinex::Refl::New
 {
@@ -10,6 +10,12 @@ namespace Trinex::Refl::New
 		static NativeTypeVTable<T, Type::VTable> vtable;
 		static Type type(name, sizeof(T), alignof(T), 0, &vtable, Object::root());
 		return &type;
+	}
+
+	template<>
+	FORCE_ENGINE_EXPORT Type* type_of<void>()
+	{
+		return nullptr;
 	}
 
 	template<>

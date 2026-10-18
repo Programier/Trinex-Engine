@@ -65,11 +65,11 @@ namespace
 		for (const std::string newline : {"\n", "\r\n"})
 		{
 			const std::string directive = "  #define trinex_material_parameter(self, super) \\" + newline +
-			                              "\ttrinex_class(self, super); \\" + newline + "\t\\" + newline;
+			                              "\ttrinex_reflect(self, super); \\" + newline + "\t\\" + newline;
 			const std::string source    = directive + newline + "trinex_property() int visible;";
 			const auto tokens           = tokenize(source);
 			if (!expect(tokens[0].type == TokenType::Preprocessor &&
-			                    tokens[0].value.find("trinex_class(self, super);") != std::string_view::npos,
+			                    tokens[0].value.find("trinex_reflect(self, super);") != std::string_view::npos,
 			            "continued directive is a single token") ||
 			    !expect(tokens[1].value == "trinex_property" && tokens[1].line == 5 && tokens[1].column == 1,
 			            "declaration position after continued directive"))
@@ -80,8 +80,8 @@ namespace
 				return false;
 		}
 		for (const std::string_view source :
-		     {"#define MACRO trinex_class(self, super);", "#define MACRO \\\ntrinex_class(self, super);",
-		      "#define MACRO \\\ntrinex_class(self, super); \\"})
+		     {"#define MACRO trinex_reflect(self, super);", "#define MACRO \\\ntrinex_reflect(self, super);",
+		      "#define MACRO \\\ntrinex_reflect(self, super); \\"})
 		{
 			std::unique_ptr<Module> module(parse(source));
 			if (!expect(module && module->objects.empty(), "directive at end of file is ignored"))
@@ -94,7 +94,7 @@ namespace
 	{
 		std::unique_ptr<Module> module(parse(R"(
 namespace Engine::Gameplay {
-	trinex_class(DisplayName="Actor") class Actor {
+	trinex_reflect(DisplayName="Actor") class Actor {
 	public:
 		trinex_property(Category="State") int value;
 		trinex_function() void tick(float dt);
@@ -133,7 +133,7 @@ namespace { trinex_function() void local(); }
 	bool test_complex_declarations()
 	{
 		std::unique_ptr<Module> module(parse(R"(
-trinex_class() class Source {
+trinex_reflect() class Source {
 public:
 	trinex_property() std::vector<std::pair<int, float>>& value = GetValue();
 	trinex_property() int (*callback)(float);
@@ -242,7 +242,7 @@ trinex_function() auto trailing() -> int*;
 	{
 		std::unique_ptr<Module> module(parse(R"(
 namespace Engine {
-	trinex_class() class Box {
+	trinex_reflect() class Box {
 	public:
 		trinex_function() Box();
 		trinex_function() ~Box();
@@ -277,18 +277,18 @@ namespace Engine {
 	{
 		std::unique_ptr<Module> module(parse(R"(
 namespace Engine {
-	trinex_class() [[nodiscard]] class TRINEX_API Outer final : public virtual Base<int>, Other {
+	trinex_reflect() [[nodiscard]] class TRINEX_API Outer final : public virtual Base<int>, Other {
 		GENERATED_BODY()
 	public:
 		trinex_property() [[maybe_unused]] alignas(16) int value;
 		trinex_function() [[nodiscard]] FORCE_INLINE int get() const;
-		trinex_struct() struct Inner {
+		trinex_reflect() struct Inner {
 			trinex_property() int nested_value;
 		};
 	protected:
 		trinex_property() mutable int state;
 	private:
-		trinex_function() virtual void work() volatile && noexcept override final = 0;
+		trinex_function() virtual void work() volatile noexcept override final = 0;
 	};
 }
 )"));
@@ -309,16 +309,15 @@ namespace Engine {
 		       expect(outer->bases[1].access == Access::Private, "class default base access") &&
 		       expect(value->owner == inner && value->access == Access::Public, "nested ownership and struct access") &&
 		       expect(state->access == Access::Protected && state->flags == Property::Mutable, "member flags and access") &&
-		       expect(get->flags == (Function::Inline | Function::Const), "inline macro") &&
-		       expect(work->flags == (Function::Virtual | Function::Volatile | Function::RValueRef | Function::Noexcept |
-		                              Function::Override | Function::Final | Function::PureVirtual),
+		       expect(get->flags == Function::Const, "function qualifiers") &&
+		       expect(work->flags == (Function::Virtual | Function::Final | Function::PureVirtual),
 		              "function qualifiers");
 	}
 
 	bool test_template_arguments_and_flags()
 	{
 		std::unique_ptr<Module> module(parse(R"(
-trinex_struct() struct Data {
+trinex_reflect() struct Data {
 	trinex_property() std::array<std::vector<int>, 4> items;
 	trinex_property() Tuple<Ts...> pack;
 	trinex_property() Empty<> empty;
@@ -326,7 +325,7 @@ trinex_struct() struct Data {
 	trinex_property() unsigned int bits : 3 = 2;
 	trinex_property() int values[2] {1, 2};
 	trinex_function() static void log(const char* format, ...) noexcept(false);
-	trinex_function() const Data& get() & noexcept(true);
+	trinex_function() const Data& get() noexcept(true);
 	trinex_function() auto count() const -> const int&;
 };
 )"));
@@ -356,9 +355,9 @@ trinex_struct() struct Data {
 		       expect(values->value == "{1, 2}" && values->type.name == "int" && values->type.flags == TypeInfo::Pointer,
 		              "array initializer") &&
 		       expect(log->flags == (Function::Static | Function::Variadic), "noexcept false and variadic") &&
-		       expect(get->flags == (Function::Reference | Function::Noexcept) &&
+		       expect(get->flags == 0 &&
 		                      get->type.flags == (TypeInfo::Const | TypeInfo::Reference),
-		              "return vs function qualifiers") &&
+			      "return type qualifiers") &&
 		       expect(count->type.name == "int" && count->type.flags == (TypeInfo::Const | TypeInfo::Reference) &&
 		                      count->flags == Function::Const,
 		              "trailing return type");
@@ -390,10 +389,10 @@ namespace Test {
 	bool test_reflection_body()
 	{
 		std::unique_ptr<Module> module(parse(R"(
-trinex_struct() struct Test {
+trinex_reflect() struct Test {
 	trinex_reflection_body();
 };
-trinex_class() class TestClass {
+trinex_reflect() class TestClass {
 	trinex_reflection_body();
 };
 )",
@@ -411,8 +410,8 @@ trinex_class() class TestClass {
 			return false;
 
 		for (std::string_view source :
-		     {"trinex_reflection_body();", "trinex_struct() struct Test { trinex_reflection_body(1); };",
-		      "trinex_struct() struct Test { trinex_reflection_body(); trinex_reflection_body(); };"})
+		     {"trinex_reflection_body();", "trinex_reflect() struct Test { trinex_reflection_body(1); };",
+		      "trinex_reflect() struct Test { trinex_reflection_body(); trinex_reflection_body(); };"})
 		{
 			std::unique_ptr<Module> invalid(parse(source));
 			if (!expect(invalid == nullptr, "invalid reflection body is rejected"))
@@ -426,13 +425,13 @@ trinex_class() class TestClass {
 	{
 		std::unique_ptr<Module> module(parse(R"(
 namespace Engine {
-	trinex_struct() struct Example {
+	trinex_reflect() struct Example {
 		trinex_reflection_body();
 		trinex_function() int foo(int a, int b);
 	};
 
 	namespace Detail {
-		trinex_struct() struct Example2 : public Example {
+		trinex_reflect() struct Example2 : public Example {
 			trinex_reflection_body();
 			trinex_function() int foo(int a, int b);
 		};
@@ -455,9 +454,9 @@ namespace Engine {
 
 	bool test_module_linking()
 	{
-		std::unique_ptr<Module> definitions(parse("namespace Trinex { trinex_struct() struct Base {}; }", "definitions.hpp"));
+		std::unique_ptr<Module> definitions(parse("namespace Trinex { trinex_reflect() struct Base {}; }", "definitions.hpp"));
 		std::unique_ptr<Module> uses(parse(
-		        "namespace Trinex { trinex_struct() struct Test : public Base { trinex_property() Base value; }; }",
+		        "namespace Trinex { trinex_reflect() struct Test : public Base { trinex_property() Base value; }; }",
 		        "uses.hpp"));
 		if (!expect(definitions && uses, "linking sources parse successfully"))
 			return false;
@@ -472,14 +471,14 @@ namespace Engine {
 			return false;
 
 		std::unique_ptr<Module> enum_base(parse(
-		        "trinex_enum() enum Base {}; trinex_struct() struct Derived : Base {};", "enum_base.hpp"));
+		        "trinex_enum() enum Base {}; trinex_reflect() struct Derived : Base {};", "enum_base.hpp"));
 		modules = {enum_base.get()};
 		return expect(!link_modules(modules), "enum cannot be a base class");
 	}
 
 	bool test_type_index_cache()
 	{
-		std::unique_ptr<Module> definitions(parse("namespace Trinex { trinex_struct() struct Base {}; }", "definitions.hpp"));
+		std::unique_ptr<Module> definitions(parse("namespace Trinex { trinex_reflect() struct Base {}; }", "definitions.hpp"));
 		std::unique_ptr<Module> uses(parse("namespace Trinex { trinex_property() Base value; }", "uses.hpp"));
 		if (!expect(definitions && uses, "type index cache sources parse successfully"))
 			return false;
@@ -510,9 +509,21 @@ namespace Engine {
 		return expect(!uses->link(restored), "removed module invalidates only its exported types");
 	}
 
+	bool test_ref_qualified_functions()
+	{
+		for (std::string_view qualifier : {"&", "&&"})
+		{
+			const std::string source = "trinex_reflect() class Example { trinex_function() void method() " +
+			                           std::string(qualifier) + "; };";
+			if (!expect(parse(source, "ref_qualified.hpp") == nullptr, "ref-qualified method is rejected"))
+				return false;
+		}
+		return true;
+	}
+
 	bool test_errors_and_reuse()
 	{
-		std::unique_ptr<Module> valid(parse("trinex_struct() struct Good { trinex_property() int value; };", "good.hpp"));
+		std::unique_ptr<Module> valid(parse("trinex_reflect() struct Good { trinex_property() int value; };", "good.hpp"));
 		if (!expect(valid != nullptr, "valid source parses successfully"))
 			return false;
 		auto* good = find<Class>(*valid, "Good", ObjectKind::Class);
@@ -527,8 +538,8 @@ namespace Engine {
 		for (std::string_view source :
 		     {"trinex_function() int broken;", "trinex_property() int;",
 		      "trinex_enum() enum Bad { Unknown = External(), Following, Recovered = 8, Next };",
-		      "template <typename T> trinex_class() class Box {};", "template <typename T> trinex_function() T cast();",
-		      "trinex_class() class Broken {", "namespace Broken {", "trinex_property(", "trinex_function() void f(",
+		      "template <typename T> trinex_reflect() class Box {};", "template <typename T> trinex_function() T cast();",
+		      "trinex_reflect() class Broken {", "namespace Broken {", "trinex_property(", "trinex_function() void f(",
 		      "trinex_property() int value"})
 		{
 			std::unique_ptr<Module> invalid(parse(source, "bad.hpp"));
@@ -566,6 +577,7 @@ int main()
 	success      = test_class_linking() && success;
 	success      = test_module_linking() && success;
 	success      = test_type_index_cache() && success;
+	success      = test_ref_qualified_functions() && success;
 	success      = test_errors_and_reuse() && success;
 	if (!success)
 		return 1;

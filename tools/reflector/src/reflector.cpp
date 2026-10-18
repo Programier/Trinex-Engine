@@ -38,7 +38,7 @@ namespace Reflector
 
 		constexpr bool operator==(const Magic&) const = default;
 
-		static constexpr Magic magic() { return Magic("TXFR", 1, 2); }
+		static constexpr Magic magic() { return Magic("TXFR", 1, 0); }
 		void serialize(Archive& ar)
 		{
 			ar.memory(m_bytes, size);

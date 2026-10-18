@@ -3,6 +3,19 @@
 
 namespace Trinex::etl
 {
+
+	using std::add_const;
+	using std::add_const_t;
+	using std::add_cv;
+	using std::add_cv_t;
+	using std::add_lvalue_reference;
+	using std::add_lvalue_reference_t;
+	using std::add_pointer;
+	using std::add_pointer_t;
+	using std::add_rvalue_reference;
+	using std::add_rvalue_reference_t;
+	using std::add_volatile;
+	using std::add_volatile_t;
 	using std::bool_constant;
 	using std::common_type_t;
 	using std::conditional_t;
@@ -48,10 +61,10 @@ namespace Trinex::etl
 	using std::is_reference_v;
 	using std::is_same_v;
 	using std::is_signed_v;
-	using std::is_trivially_destructible_v;
-	using std::is_trivially_copyable_v;
-	using std::is_void_v;
 	using std::is_swappable_v;
+	using std::is_trivially_copyable_v;
+	using std::is_trivially_destructible_v;
+	using std::is_void_v;
 	using std::is_volatile;
 	using std::is_volatile_v;
 	using std::remove_const_t;

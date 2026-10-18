@@ -1,6 +1,8 @@
 #pragma once
 #include <Core/etl/concepts.hpp>
 
+#include <Core/ref_counted.generated.hpp>
+
 namespace Trinex
 {
 	struct WeakEntry;
@@ -8,8 +10,10 @@ namespace Trinex
 	template<typename>
 	class WeakRef;
 
-	class ENGINE_EXPORT RefCounted
+	trinex_reflect() class ENGINE_EXPORT RefCounted
 	{
+		trinex_reflection_body();
+
 	private:
 		mutable u32 m_ref_count  = 1;
 		mutable u32 m_weak_index = 0xFFFFFFFF;

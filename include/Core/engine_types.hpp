@@ -25,6 +25,9 @@ namespace Trinex
 	using usize = u64;
 	using isize = i64;
 
+	using uptr = std::uintptr_t;
+	using iptr = std::intptr_t;
+
 	using Identifier    = std::uint64_t;
 	using EnumerateType = std::uint32_t;
 

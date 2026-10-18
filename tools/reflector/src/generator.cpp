@@ -9,6 +9,12 @@ namespace Reflector
 {
 	namespace fs = std::filesystem;
 
+	using AccessorPathOf    = WriteAs<struct AccessorPath>;
+	using ResolvedPathOf    = WriteAs<struct ResolvedPath>;
+	using ObjectIDOf        = WriteAs<struct ObjectID>;
+	using ObjectPathOf      = WriteAs<struct ObjectPath>;
+	using OwnerReflectionOf = WriteAs<struct OwnerReflection>;
+
 	struct AccessorPath {
 		static void execute(CodeWriter* writer, const Object* object)
 		{
@@ -29,7 +35,7 @@ namespace Reflector
 	struct ResolvedPath {
 		static void execute(CodeWriter* writer, const Object* object)
 		{
-			writer->write(WriteAs<AccessorPath>(object->owner), "::", object->name);
+			writer->write(AccessorPathOf(object->owner), "::", object->name);
 		}
 	};
 
@@ -64,6 +70,7 @@ namespace Reflector
 			return true;
 		}
 	};
+
 
 	struct ObjectPath {
 		static bool execute_list(CodeWriter* writer, const Object* object)
@@ -116,7 +123,7 @@ namespace Reflector
 					}
 					else
 					{
-						writer->write("Scope::create(", WriteAs<ObjectPath>(owner), ")");
+						writer->write("Scope::create(", ObjectPathOf(owner), ")");
 					}
 				}
 			}
@@ -126,6 +133,7 @@ namespace Reflector
 			}
 		}
 	};
+
 
 	static bool is_object_empty(const Object* object)
 	{
@@ -175,7 +183,7 @@ namespace Reflector
 	static void generate_accessor(CodeWriter* writer, const Scope* object)
 	{
 		writer->line("template<>");
-		writer->line("struct Accessor<", WriteAs<ResolvedPath>(object), ">");
+		writer->line("struct Accessor<", ResolvedPathOf(object), ">");
 		writer->line("{");
 		{
 			auto scope = writer->scope();
@@ -185,43 +193,97 @@ namespace Reflector
 				if (child->is_a(ObjectKind::Property) || child->is_a(ObjectKind::Function))
 				{
 					writer->write("static constexpr auto ", child->name, " = &");
-					writer->line(WriteAs<ResolvedPath>(object), "::", child->name, ";");
+					writer->line(ResolvedPathOf(object), "::", child->name, ";");
 				}
 				else if (child->is_a(ObjectKind::Class))
 				{
 					writer->write("using ", child->name, " = ");
-					writer->line(WriteAs<ResolvedPath>(object), "::", child->name, ";");
+					writer->line(ResolvedPathOf(object), "::", child->name, ";");
 				}
 			}
 		}
 		writer->line("};\n");
 
 		writer->write("using Accessor", object->line);
-		writer->line(" = Accessor<", WriteAs<ResolvedPath>(object), ">;\n");
+		writer->line(" = Accessor<", ResolvedPathOf(object), ">;\n");
 	}
 
 	static void generate_property(CodeWriter* writer, const Property* object) {}
 
+	static void generate_function(CodeWriter* writer, const Function* object)
+	{
+		writer->line("template<>");
+		writer->line("FORCE_ENGINE_EXPORT Function* function_of<", ResolvedPathOf(object), ">()");
+		writer->line("{");
+		{
+			auto scope = writer->scope();
+			writer->line("using Native = NativeFunction<", ResolvedPathOf(object), ", Function>;\n");
+
+			writer->line("static Native func(\"", object->name, "\", nullptr, {}, ", object->flags, ", ",
+			             OwnerReflectionOf(object), ");");
+			writer->line("return &func;");
+		}
+		writer->line("}\n");
+	}
+
 	static void generate_class(CodeWriter* writer, const Class* object)
 	{
 		writer->line("template<>");
-		writer->line("FORCE_ENGINE_EXPORT Struct* struct_of<", object, ">()");
+		writer->line("FORCE_ENGINE_EXPORT Struct* struct_of<", ResolvedPathOf(object), ">()");
 		writer->line("{");
 		{
 			auto indent = writer->scope();
-			writer->line("using This = ", WriteAs<ResolvedPath>(object), ";\n");
+			writer->line("using This = ", ResolvedPathOf(object), ";\n");
 
-			writer->line("static NativeTypeVTable<This, Struct::VTable> vtable;");
-			writer->line("static Struct type(\"", object->name,
-			             "\", sizeof(This), alignof(This), "
-			             "Type::IsNative, nullptr, &vtable, ",
-			             WriteAs<OwnerReflection>(object), ");\n");
+			writer->line("if constexpr (etl::is_base_of_v<Trinex::RefCounted, This>)");
+			writer->line("{");
+			{
+				auto indent = writer->scope();
+				writer->line("static NativeClassVTable<This, Class::VTable> vtable;");
+				writer->line("static Class type(\"", object->name,
+				             "\", sizeof(This), alignof(This), "
+				             "Type::IsNative, nullptr, &vtable, ",
+				             OwnerReflectionOf(object), ");");
+				writer->line("return &type;");
+			}
+			writer->line("}");
+			writer->line("else");
+			writer->line("{");
+			{
+				auto indent = writer->scope();
+				writer->line("static NativeStructVTable<This, Struct::VTable> vtable;");
+				writer->line("static Struct type(\"", object->name,
+				             "\", sizeof(This), alignof(This), "
+				             "Type::IsNative, nullptr, &vtable, ",
+				             OwnerReflectionOf(object), ");");
 
-			writer->line("return &type;");
+				writer->line("return &type;");
+			}
+			writer->line("}");
 		}
+		writer->line("}\n");
 
-		writer->line("}");
-		writer->line();
+		writer->line("template<>");
+		writer->line("FORCE_ENGINE_EXPORT Class* class_of<", ResolvedPathOf(object), ">()");
+		writer->line("{");
+		{
+			auto indent = writer->scope();
+			writer->line("if constexpr (etl::is_base_of_v<Trinex::RefCounted, ", ResolvedPathOf(object), ">)");
+			writer->line("{");
+			{
+				auto indent = writer->scope();
+				writer->line("return static_cast<Class*>(struct_of<", ResolvedPathOf(object), ">());");
+			}
+			writer->line("}");
+			writer->line("else");
+			writer->line("{");
+			{
+				auto indent = writer->scope();
+				writer->line("return nullptr;");
+			}
+			writer->line("}");
+		}
+		writer->line("}\n");
 
 		writer->line("template<>");
 		writer->line("FORCE_ENGINE_EXPORT Type* type_of<", object, ">()");
@@ -237,12 +299,15 @@ namespace Reflector
 	{
 		for (const Object* object : scope->objects)
 		{
-			if (object->kind() == ObjectKind::Property)
+			if (object->is_a(ObjectKind::Property))
 			{
 				generate_property(writer, static_cast<const Property*>(object));
 			}
-
-			if (object->kind() == ObjectKind::Class)
+			else if (object->is_a(ObjectKind::Function))
+			{
+				generate_function(writer, static_cast<const Function*>(object));
+			}
+			else if (object->is_a(ObjectKind::Class))
 			{
 				generate_accessor(writer, static_cast<const Class*>(object));
 				generate_class(writer, static_cast<const Class*>(object));
@@ -278,7 +343,7 @@ namespace Reflector
 		if (instance->body_line == 0)
 			return;
 
-		writer->line("#define trinex_reflection_", WriteAs<ObjectID>(module), "_", instance->body_line, " \\");
+		writer->line("#define trinex_reflection_", ObjectIDOf(module), "_", instance->body_line, " \\");
 		{
 			auto scope = writer->scope();
 			writer->line("public: \\");
@@ -316,7 +381,7 @@ namespace Reflector
 			return true;
 
 		writer->line("#include <Core/reflection/new/accessor.hpp>\n");
-		writer->line("#define trinex_reflection_file_id trinex_reflection_", WriteAs<ObjectID>(module));
+		writer->line("#define trinex_reflection_file_id trinex_reflection_", ObjectIDOf(module));
 
 		generate_reflection_bodies(writer, module, module);
 		return true;
@@ -330,11 +395,23 @@ namespace Reflector
 			return true;
 
 		writer->line("#include <", module->name, ">");
+		writer->line("#include <Core/etl/type_traits.hpp>");
 		writer->line("#include <Core/reflection/new/of.hpp>");
 		writer->line("#include <Core/reflection/new/scope.hpp>");
-		writer->line("#include <Core/reflection/new/struct.hpp>");
-		writer->line("#include <Core/reflection/new/vtable.hpp>");
+		writer->line("#include <Core/reflection/new/class.hpp>");
+		writer->line("#include <Core/reflection/new/function.hpp>");
+		writer->line("#include <Core/reflection/new/native.hpp>");
 		writer->line();
+
+		writer->line("namespace Trinex");
+		writer->line("{");
+		{
+			auto scope = writer->scope();
+			writer->line("class RefCounted;");
+		}
+		writer->line("}");
+		writer->line();
+
 		writer->line("namespace Trinex::Refl::New");
 		writer->line("{");
 		{

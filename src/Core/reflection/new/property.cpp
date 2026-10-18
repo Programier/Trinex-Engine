@@ -3,5 +3,5 @@
 
 namespace Trinex::Refl::New
 {
-	Property::Property(Name name, const Type* type, u64 flags) : Field(name, type, flags) {}
+	Property::Property(Name name, Type* type, u64 flags, Object* owner) : Object(name, flags, owner), m_type(retain_ref(type)) {}
 }// namespace Trinex::Refl::New

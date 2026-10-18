@@ -1175,7 +1175,6 @@ namespace Reflector
 
 				if (is_template)
 				{
-					object->flags |= Function::Template;
 					return failure(annotation, "reflected template functions are not supported");
 				}
 
@@ -1255,18 +1254,6 @@ namespace Reflector
 					{
 						object->flags |= Function::Virtual;
 					}
-					if (tokens[i].value == "constexpr")
-					{
-						object->flags |= Function::Constexpr;
-					}
-					if (tokens[i].value == "inline")
-					{
-						object->flags |= Function::Inline;
-					}
-				}
-				if (contains_word(prefix.engine_macros, "FORCE_INLINE") || contains_word(prefix.engine_macros, "FORCEINLINE"))
-				{
-					object->flags |= Function::Inline;
 				}
 
 				for (auto i = close + 1; i < end; ++i)
@@ -1295,21 +1282,13 @@ namespace Reflector
 					{
 						object->flags |= Function::Const;
 					}
-					if (text == "volatile")
+					if (text == "&" || text == "&&")
 					{
-						object->flags |= Function::Volatile;
-					}
-					if (text == "&")
-					{
-						object->flags |= Function::Reference;
-					}
-					if (text == "&&")
-					{
-						object->flags |= Function::RValueRef;
+						return failure(annotation, "ref-qualified functions are not supported");
 					}
 					if (text == "override")
 					{
-						object->flags |= Function::Override | Function::Virtual;
+						object->flags |= Function::Virtual;
 					}
 					if (text == "final")
 					{
@@ -1319,27 +1298,8 @@ namespace Reflector
 					{
 						object->flags |= Function::PureVirtual | Function::Virtual;
 					}
-					if (text == "noexcept")
-					{
-						if (i + 1 < end && tokens[i + 1].value == "(")
-						{
-							const auto last  = matching_token(tokens, i + 1);
-							const auto value = EnumExpression(tokens, i + 2, last, {}).evaluate();
-							if (!value)
-							{
-								return failure(annotation, "unable to evaluate noexcept expression");
-							}
-							else if (*value)
-							{
-								object->flags |= Function::Noexcept;
-							}
-							i = last;
-						}
-						else
-						{
-							object->flags |= Function::Noexcept;
-						}
-					}
+					if (text == "noexcept" && i + 1 < end && tokens[i + 1].value == "(")
+						i = matching_token(tokens, i + 1);
 				}
 
 				if (close != open + 2 || tokens[open + 1].value != "void")
@@ -1691,9 +1651,8 @@ namespace Reflector
 
 					if (!parse_annotation(cursor, annotation))
 					{
-						if (tokens[start].value == "trinex_class" || tokens[start].value == "trinex_struct" ||
-						    tokens[start].value == "trinex_enum" || tokens[start].value == "trinex_function" ||
-						    tokens[start].value == "trinex_property")
+						if (tokens[start].value == "trinex_reflect" || tokens[start].value == "trinex_enum" ||
+						    tokens[start].value == "trinex_function" || tokens[start].value == "trinex_property")
 						{
 							return failure(tokens[start], "malformed reflection annotation");
 						}
@@ -1718,8 +1677,7 @@ namespace Reflector
 
 					const auto after     = consume_declaration_prefix(cursor);
 					prefix.engine_macros = append_raw(prefix.engine_macros, after.engine_macros);
-					if (annotation.name == "trinex_class" || annotation.name == "trinex_struct" ||
-					    annotation.name == "trinex_enum")
+					if (annotation.name == "trinex_reflect" || annotation.name == "trinex_enum")
 					{
 						if (!record(scope, cursor, annotation, end, access, !template_prefix.empty()))
 						{

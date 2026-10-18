@@ -31,6 +31,53 @@ namespace Reflector
 		return result;
 	}
 
+	static const Module* module_of(const Object* object)
+	{
+		while (object && !object->is_a(ObjectKind::Module)) object = object->owner;
+		return static_cast<const Module*>(object);
+	}
+
+	static const char* object_kind_name(ObjectKind kind)
+	{
+		switch (kind)
+		{
+			case ObjectKind::Object: return "object";
+			case ObjectKind::Enum: return "enum";
+			case ObjectKind::Scope: return "scope";
+			case ObjectKind::Namespace: return "namespace";
+			case ObjectKind::Class: return "class";
+			case ObjectKind::Module: return "module";
+			case ObjectKind::Function: return "function";
+			case ObjectKind::Property: return "property";
+		}
+		return "unknown";
+	}
+
+	static void link_error(const Object* context, std::string_view message)
+	{
+		const Module* module = module_of(context);
+		std::cerr << "Error";
+
+		if (module && !module->name.empty())
+			std::cerr << " [" << module->name;
+
+		if (context->line != 0)
+			std::cerr << (module && !module->name.empty() ? ":" : " [") << context->line;
+
+		if ((module && !module->name.empty()) || context->line != 0)
+			std::cerr << ']';
+
+		std::cerr << ": " << message << '\n';
+
+		const std::string name = qualified_name(context);
+		std::cerr << "  required by " << object_kind_name(context->kind());
+
+		if (!name.empty())
+			std::cerr << " '" << name << '\'';
+
+		std::cerr << '\n';
+	}
+
 	static bool link_type(const Object* context, const TypeInfo& type, const TypeIndex& type_index,
 	                      ObjectKind required_kind = ObjectKind::Object)
 	{
@@ -52,19 +99,14 @@ namespace Reflector
 
 		if (!object)
 		{
-			std::cerr << "Error";
-			if (context->line != 0)
-				std::cerr << " [" << context->line << ']';
-			std::cerr << ": unknown reflected type '" << type.name << "'\n";
+			link_error(context, "unknown reflected type '" + type.name + "'");
 			return false;
 		}
 
 		if (required_kind != ObjectKind::Object && object->kind != required_kind)
 		{
-			std::cerr << "Error";
-			if (context->line != 0)
-				std::cerr << " [" << context->line << ']';
-			std::cerr << ": reflected type '" << type.name << "' is not a class\n";
+			link_error(context, "reflected type '" + type.name + "' is not a " + object_kind_name(required_kind) + " (found " +
+			                            object_kind_name(object->kind) + ")");
 			return false;
 		}
 

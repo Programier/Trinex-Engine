@@ -247,21 +247,13 @@ namespace Reflector
 	public:
 		static constexpr inline std::uint32_t Static      = 1 << 0;
 		static constexpr inline std::uint32_t Const       = 1 << 1;
-		static constexpr inline std::uint32_t Volatile    = 1 << 2;
-		static constexpr inline std::uint32_t Constexpr   = 1 << 3;
-		static constexpr inline std::uint32_t Virtual     = 1 << 4;
-		static constexpr inline std::uint32_t Inline      = 1 << 5;
-		static constexpr inline std::uint32_t Noexcept    = 1 << 6;
-		static constexpr inline std::uint32_t Override    = 1 << 7;
-		static constexpr inline std::uint32_t Final       = 1 << 8;
-		static constexpr inline std::uint32_t PureVirtual = 1 << 9;
-		static constexpr inline std::uint32_t Constructor = 1 << 10;
-		static constexpr inline std::uint32_t Destructor  = 1 << 11;
-		static constexpr inline std::uint32_t Operator    = 1 << 12;
-		static constexpr inline std::uint32_t Template    = 1 << 13;
-		static constexpr inline std::uint32_t Variadic    = 1 << 14;
-		static constexpr inline std::uint32_t Reference   = 1 << 15;
-		static constexpr inline std::uint32_t RValueRef   = 1 << 16;
+		static constexpr inline std::uint32_t Virtual     = 1 << 2;
+		static constexpr inline std::uint32_t Final       = 1 << 3;
+		static constexpr inline std::uint32_t PureVirtual = 1 << 4;
+		static constexpr inline std::uint32_t Constructor = 1 << 5;
+		static constexpr inline std::uint32_t Destructor  = 1 << 6;
+		static constexpr inline std::uint32_t Operator    = 1 << 7;
+		static constexpr inline std::uint32_t Variadic    = 1 << 8;
 
 		struct Argument {
 			TypeInfo type;
