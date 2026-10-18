@@ -1,6 +1,8 @@
 add_library(TrinexReflectorCore STATIC src/parser.cpp src/printer.cpp src/tokenizer.cpp src/model.cpp src/generator.cpp src/stream.cpp src/reflector.cpp)
 target_compile_features(TrinexReflectorCore PRIVATE cxx_std_20)
 target_include_directories(TrinexReflectorCore PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+find_package(Threads REQUIRED)
+target_link_libraries(TrinexReflectorCore PRIVATE Threads::Threads)
 
 add_executable(TrinexReflector src/main.cpp)
 target_compile_features(TrinexReflector PRIVATE cxx_std_20)

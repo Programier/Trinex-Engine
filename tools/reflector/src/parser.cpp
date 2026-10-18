@@ -586,7 +586,6 @@ namespace Reflector
 			return true;
 		}
 
-
 		std::vector<Metadata> parse_annotation_metadata(std::string_view arguments)
 		{
 			auto tokens = tokenize(arguments);
@@ -1586,9 +1585,11 @@ namespace Reflector
 				}
 
 				Scope* owner = &scope;
+
 				for (const auto& part : parts)
 				{
 					Namespace* nested = nullptr;
+
 					for (const auto& child : owner->objects)
 					{
 						if (child->is_a(ObjectKind::Namespace) && child->name == part)
@@ -1596,6 +1597,7 @@ namespace Reflector
 							nested = static_cast<Namespace*>(child);
 						}
 					}
+
 					if (!nested)
 					{
 						auto created  = new Namespace();
@@ -1604,6 +1606,7 @@ namespace Reflector
 						nested        = created;
 						attach(*owner, created);
 					}
+
 					owner = nested;
 				}
 
@@ -1775,13 +1778,18 @@ namespace Reflector
 		};
 	}// namespace
 
+	bool parse(Module* module, std::string_view source)
+	{
+		return ModuleParser(source).parse(*module);
+	}
+
 	Module* parse(std::string_view source, std::string_view source_name)
 	{
 		auto module  = new Module();
 		module->name = source_name;
 		module->line = 1;
 
-		if (!ModuleParser(source).parse(*module))
+		if (!parse(module, source))
 		{
 			delete module;
 			return nullptr;

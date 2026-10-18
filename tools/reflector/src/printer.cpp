@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <initializer_list>
 #include <iomanip>
 #include <model.hpp>
@@ -212,5 +213,19 @@ namespace Reflector
 				}
 			}
 		}
+	}
+
+	void print(std::ostream& stream, const TypeIndex& index)
+	{
+		std::vector<std::pair<std::string_view, const TypeIndex::Entry*>> entries;
+		entries.reserve(index.m_types.size());
+		for (const auto& [name, entry] : index.m_types)
+			entries.emplace_back(name, &entry);
+
+		std::sort(entries.begin(), entries.end(), [](const auto& left, const auto& right) { return left.first < right.first; });
+
+		stream << "type_index: " << entries.size() << '\n';
+		for (const auto& [name, entry] : entries)
+			stream << "  " << kind_name(entry->kind) << ' ' << name << " module=" << std::quoted(entry->module) << '\n';
 	}
 }// namespace Reflector

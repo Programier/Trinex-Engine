@@ -198,7 +198,7 @@ function(trinex_reflect target)
     file(GENERATE OUTPUT "${ARG_OUTPUT}/reflection-inputs.txt" CONTENT "${reflection_inputs}\n")
 
     add_custom_command(
-        OUTPUT "${ARG_OUTPUT}/reflection.bin" ${reflection_sources}
+        OUTPUT "${ARG_OUTPUT}/reflection.bin"
         COMMAND $<TARGET_FILE:TrinexReflector>
             --root "${ARG_ROOT}"
             --output "${ARG_OUTPUT}"
@@ -211,9 +211,10 @@ function(trinex_reflect target)
         VERBATIM
     )
 
-    add_custom_target(${target}Reflection DEPENDS "${ARG_OUTPUT}/reflection.bin" ${reflection_sources})
+    add_custom_target(${target}Reflection DEPENDS "${ARG_OUTPUT}/reflection.bin")
 
     trinex_include_directories(${target} PRIVATE "${ARG_OUTPUT}/include")
+    set_source_files_properties(${reflection_sources} PROPERTIES GENERATED TRUE)
     target_sources(${target} PRIVATE ${reflection_sources})
     add_dependencies(${target} ${target}Reflection)
 endfunction()

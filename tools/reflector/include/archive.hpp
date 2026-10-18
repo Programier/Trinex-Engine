@@ -18,10 +18,12 @@ namespace Reflector
 		{ value.resize(size) } -> std::same_as<void>;
 	};
 
+	class Object;
 
 	class Archive
 	{
 	private:
+		Object* m_context   = nullptr;
 		std::ostream* m_out = nullptr;
 		std::istream* m_in  = nullptr;
 
@@ -53,6 +55,14 @@ namespace Reflector
 		explicit Archive(std::ostream& stream) : m_out(&stream) {}
 
 		explicit Archive(std::istream& stream) : m_in(&stream) {}
+
+		[[nodiscard]]
+		inline Object* context() const
+		{
+			return m_context;
+		}
+
+		inline void context(Object* ctx) { m_context = ctx; }
 
 		[[nodiscard]]
 		inline std::istream* reader() const noexcept

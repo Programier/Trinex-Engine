@@ -1,4 +1,6 @@
+#include <algorithm>
 #include <archive.hpp>
+#include <atomic>
 #include <cassert>
 #include <chrono>
 #include <filesystem>
@@ -9,6 +11,7 @@
 #include <parser.hpp>
 #include <printer.hpp>
 #include <reflector.hpp>
+#include <thread>
 
 namespace fs = std::filesystem;
 
@@ -35,7 +38,7 @@ namespace Reflector
 
 		constexpr bool operator==(const Magic&) const = default;
 
-		static constexpr Magic magic() { return Magic("TXFR", 1, 0); }
+		static constexpr Magic magic() { return Magic("TXFR", 1, 2); }
 		void serialize(Archive& ar)
 		{
 			ar.memory(m_bytes, size);
@@ -160,6 +163,9 @@ namespace Reflector
 	bool Reflector::init(std::span<std::string_view> args)
 	{
 		m_directories.clear();
+		m_requests.clear();
+		m_modules.clear();
+		m_type_index = {};
 		m_output.clear();
 
 		const CommandLineBinding bindings[] = {
@@ -240,8 +246,10 @@ namespace Reflector
 		return true;
 	}
 
-	bool Reflector::collect_headers()
+	bool Reflector::collect_compile_requests()
 	{
+		m_requests.reserve(8192);
+
 		for (const DirectoryInfo& dir : m_directories)
 		{
 			if (!fs::is_directory(dir.path))
@@ -255,24 +263,35 @@ namespace Reflector
 				const fs::path& path = entry.path();
 				fs::path relative    = fs::relative(path, dir.path);
 
-				if (auto it = m_headers.find(relative); it != m_headers.end())
-				{
-					const fs::path first  = fs::relative(it->directory->path / it->path);
-					const fs::path second = fs::relative(path);
+				CompileRequest request;
+				request.source    = path;
+				request.header    = std::move(relative);
+				request.external  = dir.external;
+				request.size      = entry.file_size();
+				request.timestamp = entry.last_write_time().time_since_epoch().count();
+				m_requests.push_back(std::move(request));
+			}
+		}
 
-					std::cerr << "Error: Duplicate header path: " << relative << '\n'
-					          << "  First:  " << first << '\n'
-					          << "  Second: " << second << '\n';
+		std::sort(m_requests.begin(), m_requests.end(),
+		          [](const CompileRequest& left, const CompileRequest& right) { return left.header < right.header; });
 
-					return false;
-				}
+		// Check for duplicates
+		for (std::size_t idx = 1, count = m_requests.size(); idx < count; ++idx)
+		{
+			auto& prev    = m_requests[idx - 1];
+			auto& current = m_requests[idx];
 
-				HeaderInfo info;
-				info.path      = std::move(relative);
-				info.directory = &dir;
-				info.size      = entry.file_size();
-				info.timestamp = entry.last_write_time().time_since_epoch().count();
-				m_headers.insert(std::move(info));
+			if (prev.header == current.header)
+			{
+				const fs::path first  = fs::relative(prev.source);
+				const fs::path second = fs::relative(current.source);
+
+				std::cerr << "Error: Duplicate header path: " << current.header << '\n'
+				          << "  First:  " << first << '\n'
+				          << "  Second: " << second << '\n';
+
+				return false;
 			}
 		}
 
@@ -296,6 +315,8 @@ namespace Reflector
 			return true;
 		}
 
+		m_type_index.serialize(ar);
+
 		const std::uint64_t size = ar.load<std::uint64_t>();
 
 		for (std::uint64_t idx = 0; idx < size; ++idx)
@@ -305,51 +326,37 @@ namespace Reflector
 
 			const std::size_t object_start = file.tellg();
 			const std::string path         = ar.load<std::string>();
-			const auto header              = m_headers.find(path);
-			const bool external            = header != m_headers.end() && header->directory->external;
 
-			switch (cache_state(path, timestamp, size))
+			if (CompileRequest* request = fetch_compile_request(path, timestamp, size))
 			{
-				case CacheState::Valid:
+				if (request->outdated)
+				{
+					file.seekg(next);
+				}
+				else
 				{
 					auto& entry = m_modules.emplace_back();
 
 					file.seekg(object_start);
 					entry.module = new Module();
 					entry.module->serialize(ar);
-					entry.timestamp = timestamp;
-					entry.size      = size;
+					entry.request = request;
 
 					assert(next == file.tellg());
-
-					if (!external)
-					{
-						const fs::path source = generated_source_path(m_output, path);
-						if (!fs::exists(source) && !generate_source(source, entry.module))
-							return false;
-					}
-					break;
-				}
-
-				case CacheState::Outdated:
-				{
-					file.seekg(next);
-					break;
-				}
-
-				case CacheState::Removed:
-				{
-					if (!remove_generated_file(generated_header_path(m_output, path)))
-						return false;
-
-					if (!remove_generated_file(generated_source_path(m_output, path)))
-						return false;
-
-					file.seekg(next);
-					break;
 				}
 			}
+			else
+			{
+				if (!remove_generated_file(generated_header_path(m_output, path)))
+					return false;
+
+				if (!remove_generated_file(generated_source_path(m_output, path)))
+					return false;
+
+				file.seekg(next);
+			}
 		}
+
 		return true;
 	}
 
@@ -365,11 +372,12 @@ namespace Reflector
 		file.exceptions(std::ios::failbit | std::ios::badbit);
 		Archive ar = Archive(file);
 		ar.store(Magic::magic());
+		m_type_index.serialize(ar);
 		ar.store(static_cast<std::uint64_t>(m_modules.size()));
 
 		for (ModuleInfo& info : m_modules)
 		{
-			ar(info.timestamp, info.size);
+			ar(info.request->timestamp, info.request->size);
 
 			const auto size_offset = file.tellp();
 			ar.store<std::uint64_t>(0);
@@ -384,62 +392,130 @@ namespace Reflector
 		file.close();
 	}
 
-	void Reflector::process()
+	bool Reflector::process()
 	{
-		for (const HeaderInfo& header : m_headers)
+		for (CompileRequest& request : m_requests)
 		{
-			std::cout << "Generating reflection for " << header.path << std::endl;
-			std::ifstream file(header.directory->path / header.path, std::ios::binary | std::ios::ate);
+			if (request.completed)
+				continue;
+
+			std::cout << "Parsing reflection for " << request.header << std::endl;
+			std::ifstream file(request.source, std::ios::binary | std::ios::ate);
 
 			if (!file.is_open())
-				continue;
+				return false;
 
 			const auto size = file.tellg();
 
 			if (size < 0)
-				continue;
+				return false;
 
 			std::string source(static_cast<std::size_t>(size), '\0');
 
 			file.seekg(0, std::ios::beg);
 
 			if (!file.read(source.data(), size))
-				continue;
+				return false;
 
-			if (Module* module = parse(source, header.path.string()))
+			if (auto module = parse(source, request.header.string()))
 			{
-				auto& entry     = m_modules.emplace_back();
-				entry.module    = module;
-				entry.size      = header.size;
-				entry.timestamp = header.timestamp;
-
-				generate_header(generated_header_path(m_output, header.path), module);
-
-				if (!header.directory->external)
+				if (!m_type_index.index_module(module))
 				{
-					generate_source(generated_source_path(m_output, header.path), module);
+					delete module;
+					return false;
 				}
+
+				request.completed = true;
+				m_modules.push_back({module, &request});
+			}
+			else
+			{
+				return false;
 			}
 		}
+
+		return true;
 	}
 
-	Reflector::CacheState Reflector::cache_state(const fs::path& path, std::uint64_t timestamp, std::uint64_t size)
+	bool Reflector::link_modules()
 	{
-		auto it = m_headers.find(path);
+		const std::size_t max_workers_count = std::max(1u, std::thread::hardware_concurrency());
 
-		if (it == m_headers.end())
-			return CacheState::Removed;
+		std::sort(m_modules.begin(), m_modules.end(),
+		          [](const ModuleInfo& left, const ModuleInfo& right) { return left.request->header < right.request->header; });
+
+		std::vector<unsigned char> results(m_modules.size(), true);
+		std::atomic_size_t next_module = 0;
+
+		auto worker = [&] {
+			for (std::size_t index = next_module.fetch_add(1); index < m_modules.size(); index = next_module.fetch_add(1))
+			{
+				results[index] = m_modules[index].module->link(m_type_index);
+			}
+		};
+
+		const std::size_t worker_count = std::min<std::size_t>(m_modules.size(), max_workers_count);
+		std::vector<std::jthread> workers;
+		workers.reserve(worker_count);
+
+		for (std::size_t worker_idx = 1; worker_idx < worker_count; ++worker_idx)
+		{
+			workers.emplace_back(worker);
+		}
+
+		worker();
+
+		bool result = true;
+		for (std::size_t index = 0; index < m_modules.size(); ++index)
+		{
+			result = results[index] && result;
+		}
+
+		return result;
+	}
+
+	bool Reflector::generate_modules()
+	{
+		for (const ModuleInfo& info : m_modules)
+		{
+			const fs::path header = generated_header_path(m_output, info.request->header);
+			if ((info.request->outdated || !fs::exists(header)) && !generate_header(header, info.module))
+				return false;
+
+			const fs::path source = generated_source_path(m_output, info.request->header);
+			if (!info.request->external && (info.request->outdated || !fs::exists(source)) &&
+			    !generate_source(source, info.module))
+				return false;
+		}
+		return true;
+	}
+
+	CompileRequest* Reflector::fetch_compile_request(const fs::path& path, std::uint64_t timestamp, std::uint64_t size)
+	{
+		auto compare = [](const CompileRequest& request, const std::filesystem::path& path) { return request.header < path; };
+		auto it      = std::lower_bound(m_requests.begin(), m_requests.end(), path, compare);
+
+		if (it == m_requests.end())
+		{
+			m_type_index.remove_module(path.string());
+			return nullptr;
+		}
 
 		if (it->size != size || it->timestamp != timestamp)
-			return CacheState::Outdated;
+		{
+			m_type_index.remove_module(path.string());
+			it->outdated = true;
+			return &(*it);
+		}
 
-		m_headers.erase(it);
-		return CacheState::Valid;
+		it->completed = true;
+		return &(*it);
 	}
 
 	int Reflector::execute(std::span<std::string_view> args)
 	{
-		const auto begin     = std::chrono::steady_clock::now();
+		const auto begin = std::chrono::steady_clock::now();
+
 		auto report_duration = [&] {
 			const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - begin);
 			const auto seconds  = std::chrono::duration_cast<std::chrono::seconds>(duration);
@@ -453,7 +529,7 @@ namespace Reflector
 			return 1;
 		}
 
-		if (!collect_headers())
+		if (!collect_compile_requests())
 		{
 			report_duration();
 			return 1;
@@ -464,7 +540,13 @@ namespace Reflector
 			report_duration();
 			return 1;
 		}
-		process();
+
+		if (!process() || !link_modules() || !generate_modules())
+		{
+			report_duration();
+			return 1;
+		}
+
 		save_modules();
 		report_duration();
 		return 0;

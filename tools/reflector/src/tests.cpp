@@ -1,3 +1,4 @@
+#include <archive.hpp>
 #include <model.hpp>
 #include <parser.hpp>
 #include <printer.hpp>
@@ -23,6 +24,21 @@ namespace
 	T* find(Scope& scope, std::string_view name, ObjectKind kind)
 	{
 		return dynamic_cast<T*>(scope.find(name, kind));
+	}
+
+	bool link_modules(const std::vector<Module*>& modules)
+	{
+		TypeIndex index;
+		for (Module* module : modules)
+		{
+			if (!index.index_module(module))
+				return false;
+		}
+
+		bool result = true;
+		for (Module* module : modules)
+			result = module->link(index) && result;
+		return result;
 	}
 
 	bool test_code_writer()
@@ -421,6 +437,7 @@ namespace Engine {
 			trinex_function() int foo(int a, int b);
 		};
 	}
+
 }
 )",
 		                                     "class_linking.hpp"));
@@ -430,7 +447,67 @@ namespace Engine {
 		}
 
 		auto* derived = find<Class>(*module, "Engine::Detail::Example2", ObjectKind::Class);
-		return expect(derived != nullptr && derived->link(), "base class resolves through enclosing namespaces");
+		TypeIndex index;
+		if (!index.index_module(module.get()))
+			return false;
+		return expect(derived != nullptr && derived->link(index), "base class resolves through enclosing namespaces");
+	}
+
+	bool test_module_linking()
+	{
+		std::unique_ptr<Module> definitions(parse("namespace Trinex { trinex_struct() struct Base {}; }", "definitions.hpp"));
+		std::unique_ptr<Module> uses(parse(
+		        "namespace Trinex { trinex_struct() struct Test : public Base { trinex_property() Base value; }; }",
+		        "uses.hpp"));
+		if (!expect(definitions && uses, "linking sources parse successfully"))
+			return false;
+
+		std::vector<Module*> modules = {definitions.get(), uses.get()};
+		if (!expect(link_modules(modules), "types resolve across compile requests"))
+			return false;
+
+		std::unique_ptr<Module> invalid(parse("trinex_property() Missing value;", "invalid.hpp"));
+		modules = {invalid.get()};
+		if (!expect(!link_modules(modules), "missing reflected types are reported"))
+			return false;
+
+		std::unique_ptr<Module> enum_base(parse(
+		        "trinex_enum() enum Base {}; trinex_struct() struct Derived : Base {};", "enum_base.hpp"));
+		modules = {enum_base.get()};
+		return expect(!link_modules(modules), "enum cannot be a base class");
+	}
+
+	bool test_type_index_cache()
+	{
+		std::unique_ptr<Module> definitions(parse("namespace Trinex { trinex_struct() struct Base {}; }", "definitions.hpp"));
+		std::unique_ptr<Module> uses(parse("namespace Trinex { trinex_property() Base value; }", "uses.hpp"));
+		if (!expect(definitions && uses, "type index cache sources parse successfully"))
+			return false;
+
+		TypeIndex index;
+		if (!index.index_module(definitions.get()))
+			return false;
+
+		std::ostringstream printed;
+		Reflector::print(printed, index);
+		if (!expect(printed.str() == "type_index: 1\n  class Trinex::Base module=\"definitions.hpp\"\n",
+		            "type index printer"))
+			return false;
+
+		std::stringstream stream;
+		Archive writer(static_cast<std::ostream&>(stream));
+		index.serialize(writer);
+
+		stream.seekg(0);
+		TypeIndex restored;
+		Archive reader(static_cast<std::istream&>(stream));
+		restored.serialize(reader);
+
+		if (!expect(uses->link(restored), "serialized type index resolves cached types"))
+			return false;
+
+		restored.remove_module("definitions.hpp");
+		return expect(!uses->link(restored), "removed module invalidates only its exported types");
 	}
 
 	bool test_errors_and_reuse()
@@ -487,6 +564,8 @@ int main()
 	success      = test_enums() && success;
 	success      = test_reflection_body() && success;
 	success      = test_class_linking() && success;
+	success      = test_module_linking() && success;
+	success      = test_type_index_cache() && success;
 	success      = test_errors_and_reuse() && success;
 	if (!success)
 		return 1;

@@ -1,7 +1,9 @@
 #pragma once
 #include <cstdint>
+#include <iosfwd>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <vector>
 
 namespace Reflector
@@ -27,7 +29,10 @@ namespace Reflector
 	void type::serialize(Archive& ar)                                                                                            \
 	{                                                                                                                            \
 		Super::serialize(ar);                                                                                                    \
+		Object* ctx = ar.context();                                                                                              \
+		ar.context(this);                                                                                                        \
 		ar(__VA_ARGS__);                                                                                                         \
+		ar.context(ctx);                                                                                                         \
 	}
 
 	enum class Access : std::uint8_t
@@ -50,19 +55,6 @@ namespace Reflector
 		Property  = 7,
 	};
 
-	enum class DiagnosticSeverity : std::uint8_t
-	{
-		Error,
-		Warning,
-	};
-
-	struct Diagnostic {
-		DiagnosticSeverity severity = DiagnosticSeverity::Error;
-		std::string message;
-		std::size_t line   = 0;
-		std::size_t column = 0;
-	};
-
 	class Archive;
 	class Object;
 	class Enum;
@@ -73,6 +65,33 @@ namespace Reflector
 	class Module;
 	class Function;
 	class Property;
+
+	class TypeIndex
+	{
+		friend void print(std::ostream& stream, const TypeIndex& index);
+
+	public:
+		struct Entry {
+			ObjectKind kind = ObjectKind::Object;
+			std::string module;
+
+			template<typename Ar>
+			void serialize(Ar& ar)
+			{
+				ar(kind, module);
+			}
+		};
+
+	private:
+		std::unordered_map<std::string, Entry> m_types;
+		std::unordered_map<std::string, std::vector<std::string>> m_modules;
+
+	public:
+		bool index_module(const Module* module);
+		void remove_module(std::string_view name);
+		const Entry* resolve(const Object* context, std::string_view name) const;
+		void serialize(Archive& ar);
+	};
 
 	struct Metadata {
 		std::string name;
@@ -143,7 +162,7 @@ namespace Reflector
 		static Object* create(ObjectKind kind);
 		virtual Object* find(std::string_view name, ObjectKind kind);
 		virtual ObjectKind kind() const;
-		virtual bool link();
+		virtual bool link(const TypeIndex& type_index);
 		virtual bool is_a(ObjectKind kind) const;
 		virtual void serialize(Archive& ar);
 		virtual ~Object();
@@ -178,7 +197,7 @@ namespace Reflector
 	public:
 		trinex_reflector_type(Scope, Object);
 		Object* find(std::string_view name, ObjectKind kind) override;
-		bool link() override;
+		bool link(const TypeIndex& type_index) override;
 		~Scope();
 	};
 
@@ -191,6 +210,12 @@ namespace Reflector
 		struct Base {
 			TypeInfo type;
 			Access access = Access::Public;
+
+			template<typename Ar>
+			void serialize(Ar& ar)
+			{
+				ar(type, access);
+			}
 		};
 
 		std::vector<Base> bases;
@@ -200,7 +225,7 @@ namespace Reflector
 	public:
 		trinex_reflector_type(Class, Scope);
 
-		bool link() override;
+		bool link(const TypeIndex& type_index) override;
 		inline bool is_struct() const { return flags & IsStruct; }
 		inline bool is_class() const { return !is_struct(); }
 	};
@@ -256,6 +281,7 @@ namespace Reflector
 
 	public:
 		trinex_reflector_type(Function, Object);
+		bool link(const TypeIndex& type_index) override;
 	};
 
 	class Property : public Object
@@ -273,6 +299,7 @@ namespace Reflector
 
 	public:
 		trinex_reflector_type(Property, Object);
+		bool link(const TypeIndex& type_index) override;
 	};
 
 	void serialize(Archive& ar, Object*& object);
