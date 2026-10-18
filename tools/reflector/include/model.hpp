@@ -44,11 +44,10 @@ namespace Reflector
 		Enum      = 1,
 		Scope     = 2,
 		Namespace = 3,
-		Struct    = 4,
-		Class     = 5,
-		Module    = 6,
-		Function  = 7,
-		Property  = 8,
+		Class     = 4,
+		Module    = 5,
+		Function  = 6,
+		Property  = 7,
 	};
 
 	enum class DiagnosticSeverity : std::uint8_t
@@ -144,6 +143,7 @@ namespace Reflector
 		static Object* create(ObjectKind kind);
 		virtual Object* find(std::string_view name, ObjectKind kind);
 		virtual ObjectKind kind() const;
+		virtual bool link();
 		virtual bool is_a(ObjectKind kind) const;
 		virtual void serialize(Archive& ar);
 		virtual ~Object();
@@ -178,20 +178,19 @@ namespace Reflector
 	public:
 		trinex_reflector_type(Scope, Object);
 		Object* find(std::string_view name, ObjectKind kind) override;
+		bool link() override;
 		~Scope();
 	};
 
-	class Struct : public Scope
+	class Class : public Scope
 	{
 	public:
-		static constexpr inline std::uint8_t Final = 1 << 0;
+		static constexpr inline std::uint8_t Final    = 1 << 0;
+		static constexpr inline std::uint8_t IsStruct = 1 << 1;
 
 		struct Base {
-			static constexpr inline std::uint8_t Virtual = 1 << 0;
-
 			TypeInfo type;
-			Access access      = Access::Public;
-			std::uint8_t flags = 0;
+			Access access = Access::Public;
 		};
 
 		std::vector<Base> bases;
@@ -199,13 +198,11 @@ namespace Reflector
 		std::size_t body_line = 0;
 
 	public:
-		trinex_reflector_type(Struct, Scope);
-	};
+		trinex_reflector_type(Class, Scope);
 
-	class Class : public Struct
-	{
-	public:
-		trinex_reflector_type(Class, Struct);
+		bool link() override;
+		inline bool is_struct() const { return flags & IsStruct; }
+		inline bool is_class() const { return !is_struct(); }
 	};
 
 	class Namespace : public Scope

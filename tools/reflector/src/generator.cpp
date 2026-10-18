@@ -15,7 +15,7 @@ namespace Reflector
 			if (object == nullptr || object->is_a(ObjectKind::Module))
 				return;
 
-			if (object->is_a(ObjectKind::Struct))
+			if (object->is_a(ObjectKind::Class))
 			{
 				writer->write("Accessor", object->line);
 				return;
@@ -104,7 +104,7 @@ namespace Reflector
 
 			if (owner)
 			{
-				if (owner->is_a(ObjectKind::Struct))
+				if (owner->is_a(ObjectKind::Class))
 				{
 					writer->write("type_of<", owner, ">()");
 				}
@@ -135,7 +135,6 @@ namespace Reflector
 		switch (object->kind())
 		{
 			case ObjectKind::Enum:
-			case ObjectKind::Struct:
 			case ObjectKind::Class:
 			case ObjectKind::Function:
 			case ObjectKind::Property: return false;
@@ -188,7 +187,7 @@ namespace Reflector
 					writer->write("static constexpr auto ", child->name, " = &");
 					writer->line(WriteAs<ResolvedPath>(object), "::", child->name, ";");
 				}
-				else if (child->is_a(ObjectKind::Struct))
+				else if (child->is_a(ObjectKind::Class))
 				{
 					writer->write("using ", child->name, " = ");
 					writer->line(WriteAs<ResolvedPath>(object), "::", child->name, ";");
@@ -203,7 +202,7 @@ namespace Reflector
 
 	static void generate_property(CodeWriter* writer, const Property* object) {}
 
-	static void generate_struct(CodeWriter* writer, const Struct* object)
+	static void generate_class(CodeWriter* writer, const Class* object)
 	{
 		writer->line("template<>");
 		writer->line("FORCE_ENGINE_EXPORT Struct* struct_of<", object, ">()");
@@ -243,10 +242,10 @@ namespace Reflector
 				generate_property(writer, static_cast<const Property*>(object));
 			}
 
-			if (object->kind() == ObjectKind::Struct)
+			if (object->kind() == ObjectKind::Class)
 			{
-				generate_accessor(writer, static_cast<const Struct*>(object));
-				generate_struct(writer, static_cast<const Struct*>(object));
+				generate_accessor(writer, static_cast<const Class*>(object));
+				generate_class(writer, static_cast<const Class*>(object));
 			}
 
 			if (object->is_a(ObjectKind::Scope))
@@ -260,7 +259,7 @@ namespace Reflector
 	{
 		for (const Object* object : scope->objects)
 		{
-			if (object->kind() == ObjectKind::Struct)
+			if (object->kind() == ObjectKind::Class)
 			{
 				writer->write("type_of<");
 				writer->write(object);
@@ -274,7 +273,7 @@ namespace Reflector
 		}
 	}
 
-	static void generate_reflection_body(CodeWriter* writer, const Module* module, const Struct* instance)
+	static void generate_reflection_body(CodeWriter* writer, const Module* module, const Class* instance)
 	{
 		if (instance->body_line == 0)
 			return;
@@ -296,9 +295,9 @@ namespace Reflector
 	{
 		for (const Object* object : scope->objects)
 		{
-			if (object->is_a(ObjectKind::Struct))
+			if (object->is_a(ObjectKind::Class))
 			{
-				const Struct* instance = static_cast<const Struct*>(object);
+				const Class* instance = static_cast<const Class*>(object);
 				generate_reflection_body(writer, module, instance);
 			}
 

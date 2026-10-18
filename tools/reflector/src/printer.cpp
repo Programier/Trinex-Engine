@@ -108,7 +108,6 @@ namespace Reflector
 				case ObjectKind::Enum: return "enum";
 				case ObjectKind::Scope: return "scope";
 				case ObjectKind::Namespace: return "namespace";
-				case ObjectKind::Struct: return "struct";
 				case ObjectKind::Class: return "class";
 				case ObjectKind::Module: return "module";
 				case ObjectKind::Function: return "function";
@@ -192,14 +191,14 @@ namespace Reflector
 			}
 		}
 
-		if (auto* structure = dynamic_cast<const Struct*>(object))
+		if (auto* structure = dynamic_cast<const Class*>(object))
 		{
 			stream << indent << "  flags=" << unsigned(structure->flags) << '\n';
 			for (const auto& base : structure->bases)
 			{
 				stream << indent << "  base: ";
 				print_type(stream, base.type);
-				stream << " access=" << unsigned(base.access) << " flags=" << unsigned(base.flags) << '\n';
+				stream << " access=" << unsigned(base.access) << '\n';
 			}
 		}
 

@@ -379,14 +379,18 @@ namespace Reflector
 			std::size_t begin = 0;
 			std::size_t end   = tokens.size() - 1;
 			if (begin == end)
+			{
 				return true;
+			}
 
 			std::size_t type_end      = end;
 			std::size_t pointer_depth = 0;
 			bool function_declarator  = false;
 			auto add_pointer          = [&] {
 				if (++pointer_depth > 1)
+				{
 					return false;
+				}
 				info.flags |= TypeInfo::Pointer;
 				return true;
 			};
@@ -406,7 +410,9 @@ namespace Reflector
 				{
 					const auto close = matching_token(tokens, i);
 					if (close == i)
+					{
 						return false;
+					}
 					if (i > 0 && (tokens[i - 1].value == "decltype" || tokens[i - 1].value == "typeof"))
 					{
 						i = close;
@@ -416,12 +422,18 @@ namespace Reflector
 					// depth and parameter types are validated under the same restrictions.
 					bool declarator_group = false;
 					for (auto j = i + 1; j < close; ++j)
+					{
 						declarator_group |= tokens[j].value == "*" || tokens[j].value == "&" || tokens[j].value == "&&";
+					}
 					if (declarator_group && close + 1 < end && (tokens[close + 1].value == "(" || tokens[close + 1].value == "["))
 					{
 						for (auto j = i + 1; j < close; ++j)
+						{
 							if (tokens[j].value == "*" && !add_pointer())
+							{
 								return false;
+							}
+						}
 						function_declarator = true;
 					}
 					else
@@ -430,7 +442,9 @@ namespace Reflector
 						{
 							Function::Argument argument;
 							if (!parse_argument(tokens, argument, spelling, first, last))
+							{
 								return false;
+							}
 						}
 						function_declarator = true;
 					}
@@ -440,18 +454,24 @@ namespace Reflector
 				if (token.value == "[")
 				{
 					if (!add_pointer())
+					{
 						return false;
+					}
 					type_end         = std::min(type_end, i);
 					const auto close = matching_token(tokens, i);
 					if (close == i)
+					{
 						return false;
+					}
 					i = close;
 					continue;
 				}
 				if (token.value == "*")
 				{
 					if (!add_pointer())
+					{
 						return false;
+					}
 					type_end = std::min(type_end, i);
 				}
 				else if (token.value == "&" || token.value == "&&")
@@ -460,7 +480,9 @@ namespace Reflector
 					type_end = std::min(type_end, i);
 				}
 				else if (pointer_depth && (token.value == "const" || token.value == "volatile"))
+				{
 					info.flags |= token.value == "const" ? TypeInfo::PointerConst : TypeInfo::PointerVolatile;
+				}
 			}
 			if (function_declarator)
 			{
@@ -469,11 +491,17 @@ namespace Reflector
 			}
 			end = type_end;
 			while (begin < end && (tokens[begin].value == "const" || tokens[begin].value == "volatile"))
+			{
 				info.flags |= tokens[begin++].value == "const" ? TypeInfo::Const : TypeInfo::Volatile;
+			}
 			while (begin < end && (tokens[end - 1].value == "const" || tokens[end - 1].value == "volatile"))
+			{
 				info.flags |= tokens[--end].value == "const" ? TypeInfo::Const : TypeInfo::Volatile;
+			}
 			if (begin == end)
+			{
 				return true;
+			}
 
 			std::size_t open = end;
 			for (auto i = begin; i < end; ++i)
@@ -494,7 +522,9 @@ namespace Reflector
 					TypeInfo component;
 					if (!parse_type_info(raw_between(spelling, tokens[begin], tokens[close + 1]), component) ||
 					    !parse_type_info(raw_between(spelling, tokens[close + 1], tokens[end]), component))
+					{
 						return false;
+					}
 				}
 				info.name = raw_between(spelling, tokens[begin], tokens[end]);
 				return true;
@@ -547,7 +577,9 @@ namespace Reflector
 				else
 				{
 					if (!parse_type_info(text, argument.type))
+					{
 						return false;
+					}
 				}
 				info.templates.push_back(std::move(argument));
 			}
@@ -775,7 +807,9 @@ namespace Reflector
 				Cursor cursor{source, &tokens, begin};
 				Annotation ignored;
 				if (!parse_annotation(cursor, ignored))
+				{
 					break;
+				}
 				begin = cursor.index;
 			}
 			const auto equals = find_top_level_equal(tokens, begin, end);
@@ -788,14 +822,18 @@ namespace Reflector
 			if (name != end &&
 			    (is_builtin(tokens[name].value) || name == begin || (name > begin && tokens[name - 1].value == "::") ||
 			     (name + 1 < end && (tokens[name + 1].value == "::" || tokens[name + 1].value == "<"))))
+			{
 				name = end;
+			}
 			if (name != end)
 			{
 				const auto spelling =
 				        strip_type_prefixes(declaration_without_token(source, tokens[begin], tokens[end], tokens[name]));
 				TypeInfo type;
 				if (!parse_type_info(spelling, type))
+				{
 					return false;
+				}
 				if (!type.name.empty())
 				{
 					argument.name = tokens[name].value;
@@ -818,36 +856,52 @@ namespace Reflector
 			std::optional<std::int64_t> primary()
 			{
 				if (index >= end)
+				{
 					return {};
+				}
 				const auto token = tokens[index++];
 				if (token.value == "(")
 				{
 					auto result = expression(0);
 					if (index >= end || tokens[index++].value != ")")
+					{
 						return {};
+					}
 					return result;
 				}
 				if (token.value == "+" || token.value == "-" || token.value == "~" || token.value == "!")
 				{
 					auto value = primary();
 					if (!value)
+					{
 						return {};
+					}
 					if (token.value == "-")
 					{
 						if (*value == std::numeric_limits<std::int64_t>::min())
+						{
 							return {};
+						}
 						return -*value;
 					}
 					if (token.value == "~")
+					{
 						return ~*value;
+					}
 					if (token.value == "!")
+					{
 						return !*value;
+					}
 					return value;
 				}
 				if (token.value == "true")
+				{
 					return 1;
+				}
 				if (token.value == "false")
+				{
 					return 0;
+				}
 				if (token.type == TokenType::Identifier)
 				{
 					auto name = std::string(token.value);
@@ -860,13 +914,19 @@ namespace Reflector
 					}
 					auto found = values.find(name);
 					if (found != values.end())
+					{
 						return found->second;
+					}
 					return {};
 				}
 				if (token.type == TokenType::Character && token.value.size() == 3)
+				{
 					return static_cast<unsigned char>(token.value[1]);
+				}
 				if (token.type != TokenType::Number)
+				{
 					return {};
+				}
 				try
 				{
 					std::size_t consumed = 0;
@@ -874,7 +934,9 @@ namespace Reflector
 					const auto text      = std::string(binary ? token.value.substr(2) : token.value);
 					const auto value     = std::stoll(text, &consumed, binary ? 2 : 0);
 					if (text.substr(consumed).find_first_not_of("uUlL") != std::string::npos)
+					{
 						return {};
+					}
 					return value;
 				}
 				catch (const std::exception&)
@@ -903,24 +965,32 @@ namespace Reflector
 					                 : (op == "*" || op == "/" || op == "%") ? 6
 					                                                         : -1;
 					if (precedence < minimum)
+					{
 						break;
+					}
 					index += length;
 					auto right = expression(precedence + 1);
 					if (!right)
+					{
 						return {};
+					}
 					std::int64_t result = 0;
 					if (op == "+")
 					{
 						if ((*right > 0 && *left > std::numeric_limits<std::int64_t>::max() - *right) ||
 						    (*right < 0 && *left < std::numeric_limits<std::int64_t>::min() - *right))
+						{
 							return {};
+						}
 						result = *left + *right;
 					}
 					else if (op == "-")
 					{
 						if ((*right < 0 && *left > std::numeric_limits<std::int64_t>::max() + *right) ||
 						    (*right > 0 && *left < std::numeric_limits<std::int64_t>::min() + *right))
+						{
 							return {};
+						}
 						result = *left - *right;
 					}
 					else if (op == "*")
@@ -928,29 +998,45 @@ namespace Reflector
 						const auto min = std::numeric_limits<std::int64_t>::min();
 						const auto max = std::numeric_limits<std::int64_t>::max();
 						if (*left > 0 && ((*right > 0 && *left > max / *right) || (*right < 0 && *right < min / *left)))
+						{
 							return {};
+						}
 						if (*left < 0 && ((*right > 0 && *left < min / *right) || (*right < 0 && *left < max / *right)))
+						{
 							return {};
+						}
 						result = *left * *right;
 					}
 					else if (op == "/" || op == "%")
 					{
 						if (*right == 0 || (*left == std::numeric_limits<std::int64_t>::min() && *right == -1))
+						{
 							return {};
+						}
 						result = op == "/" ? *left / *right : *left % *right;
 					}
 					else if (op == "|")
+					{
 						result = *left | *right;
+					}
 					else if (op == "^")
+					{
 						result = *left ^ *right;
+					}
 					else if (op == "&")
+					{
 						result = *left & *right;
+					}
 					else
 					{
 						if (*right < 0 || *right >= 63 || *left < 0)
+						{
 							return {};
+						}
 						if (op == "<<" && *left > (std::numeric_limits<std::int64_t>::max() >> *right))
+						{
 							return {};
+						}
 						result = op == "<<" ? *left << *right : *left >> *right;
 					}
 					left = result;
@@ -1002,8 +1088,12 @@ namespace Reflector
 				object->line         = static_cast<std::uint32_t>(annotation.line);
 				object->access       = access;
 				auto declaration_end = find_top_level_equal(tokens, begin, end);
+
 				if (declaration_end < end)
+				{
 					object->value = raw_between(source, tokens[declaration_end + 1], tokens[end]);
+				}
+
 				for (auto i = begin; i < declaration_end;)
 				{
 					if (tokens[i].value == ":")
@@ -1020,20 +1110,28 @@ namespace Reflector
 					}
 					i = skip_balanced(tokens, i);
 				}
+
 				const auto name = find_property_name(tokens, begin, declaration_end);
+
 				if (name == declaration_end || name == begin || is_builtin(tokens[name].value))
 				{
 					return failure(annotation, "reflected property has no parsed name");
 				}
+
 				if (split_token_ranges(tokens, begin, end, ",").size() > 1)
 				{
 					return failure(annotation, "multiple reflected declarators are not supported");
 				}
+
 				object->name = tokens[name].value;
+
 				if (!parse_type_info(strip_type_prefixes(declaration_without_token(source, tokens[begin], tokens[declaration_end],
 				                                                                   tokens[name])),
 				                     object->type))
+				{
 					return failure(annotation, "failed to parse property type");
+				}
+
 				for (auto i = begin; i < name; ++i)
 				{
 					if (is_template_argument_list(tokens, i))
@@ -1042,16 +1140,28 @@ namespace Reflector
 						continue;
 					}
 					if (tokens[i].value == "static")
+					{
 						object->flags |= Property::Static;
+					}
 					if (tokens[i].value == "constexpr")
+					{
 						object->flags |= Property::Constexpr;
+					}
 					if (tokens[i].value == "mutable")
+					{
 						object->flags |= Property::Mutable;
+					}
 					if (tokens[i].value == "inline")
+					{
 						object->flags |= Property::Inline;
+					}
 				}
+
 				if (object->type.name.empty())
+				{
 					return failure(annotation, "reflected property has no parsed type");
+				}
+
 				attach(scope, object.release());
 				return true;
 			}
@@ -1063,21 +1173,30 @@ namespace Reflector
 				object->metadata = annotation.metadata;
 				object->line     = static_cast<std::uint32_t>(annotation.line);
 				object->access   = access;
+
 				if (is_template)
 				{
 					object->flags |= Function::Template;
 					return failure(annotation, "reflected template functions are not supported");
 				}
+
 				auto open = find_parameter_list_open(tokens, begin, end);
+
 				if (open < end && open > begin && tokens[open - 1].value == "operator" &&
 				    matching_token(tokens, open) == open + 1 && open + 2 < end && tokens[open + 2].value == "(")
+				{
 					open += 2;
+				}
+
 				const auto close = open < end ? matching_token(tokens, open) : end;
+
 				if (open == end || open == begin || close == open || close >= end)
 				{
 					return failure(annotation, "failed to parse annotated function");
 				}
+
 				auto name = open - 1;
+
 				for (auto i = begin; i < open; ++i)
 				{
 					if (tokens[i].value == "operator")
@@ -1087,27 +1206,41 @@ namespace Reflector
 						break;
 					}
 				}
+
 				if (name > begin && tokens[name - 1].value == "~")
 				{
 					--name;
 					object->flags |= Function::Destructor;
 				}
+
 				object->name = raw_between(source, tokens[name], tokens[open]);
+
 				if (!parse_type_info(strip_type_prefixes(raw_between(source, tokens[begin], tokens[name])), object->type))
+				{
 					return failure(annotation, "failed to parse return type");
+				}
+
 				if (object->type.name.empty() && !(object->flags & (Function::Operator | Function::Destructor)))
 				{
-					if (dynamic_cast<Struct*>(&scope) && object->name == scope.name)
+					if (dynamic_cast<Class*>(&scope) && object->name == scope.name)
+					{
 						object->flags |= Function::Constructor;
+					}
 					else
+					{
 						return failure(annotation, "reflected function has no parsed return type");
+					}
 				}
+
 				if ((object->flags & Function::Operator) && object->type.name.empty() && name + 1 < open &&
 				    tokens[name + 1].type == TokenType::Identifier)
 				{
 					if (!parse_type_info(raw_between(source, tokens[name + 1], tokens[open]), object->type))
+					{
 						return failure(annotation, "failed to parse conversion type");
+					}
 				}
+
 				for (auto i = begin; i < name; ++i)
 				{
 					if (is_template_argument_list(tokens, i))
@@ -1116,16 +1249,27 @@ namespace Reflector
 						continue;
 					}
 					if (tokens[i].value == "static")
+					{
 						object->flags |= Function::Static;
+					}
 					if (tokens[i].value == "virtual")
+					{
 						object->flags |= Function::Virtual;
+					}
 					if (tokens[i].value == "constexpr")
+					{
 						object->flags |= Function::Constexpr;
+					}
 					if (tokens[i].value == "inline")
+					{
 						object->flags |= Function::Inline;
+					}
 				}
 				if (contains_word(prefix.engine_macros, "FORCE_INLINE") || contains_word(prefix.engine_macros, "FORCEINLINE"))
+				{
 					object->flags |= Function::Inline;
+				}
+
 				for (auto i = close + 1; i < end; ++i)
 				{
 					const auto& text = tokens[i].value;
@@ -1134,28 +1278,48 @@ namespace Reflector
 						auto type_end = i + 1;
 						while (type_end < end && tokens[type_end].value != "override" && tokens[type_end].value != "final" &&
 						       tokens[type_end].value != "=")
+						{
 							++type_end;
+						}
 						if (!parse_type_info(raw_between(source, tokens[i + 1], tokens[type_end]), object->type))
+						{
 							return failure(annotation, "failed to parse trailing return type");
+						}
 						i = type_end - 1;
 						continue;
 					}
 					if (text == ":")
+					{
 						break;// Constructor initializer list.
+					}
 					if (text == "const")
+					{
 						object->flags |= Function::Const;
+					}
 					if (text == "volatile")
+					{
 						object->flags |= Function::Volatile;
+					}
 					if (text == "&")
+					{
 						object->flags |= Function::Reference;
+					}
 					if (text == "&&")
+					{
 						object->flags |= Function::RValueRef;
+					}
 					if (text == "override")
+					{
 						object->flags |= Function::Override | Function::Virtual;
+					}
 					if (text == "final")
+					{
 						object->flags |= Function::Final;
+					}
 					if (text == "=" && i + 1 < end && tokens[i + 1].value == "0")
+					{
 						object->flags |= Function::PureVirtual | Function::Virtual;
+					}
 					if (text == "noexcept")
 					{
 						if (i + 1 < end && tokens[i + 1].value == "(")
@@ -1163,31 +1327,43 @@ namespace Reflector
 							const auto last  = matching_token(tokens, i + 1);
 							const auto value = EnumExpression(tokens, i + 2, last, {}).evaluate();
 							if (!value)
+							{
 								return failure(annotation, "unable to evaluate noexcept expression");
+							}
 							else if (*value)
+							{
 								object->flags |= Function::Noexcept;
+							}
 							i = last;
 						}
 						else
+						{
 							object->flags |= Function::Noexcept;
+						}
 					}
 				}
+
 				if (close != open + 2 || tokens[open + 1].value != "void")
 				{
 					for (const auto& [first, last] : split_token_ranges(tokens, open + 1, close, ","))
 					{
 						if (last == first + 3 && tokens[first].value == "." && tokens[first + 1].value == "." &&
 						    tokens[first + 2].value == ".")
+						{
 							object->flags |= Function::Variadic;
+						}
 						else
 						{
 							Function::Argument argument;
 							if (!parse_argument(tokens, argument, source, first, last))
+							{
 								return failure(annotation, "failed to parse function argument");
+							}
 							object->args.push_back(std::move(argument));
 						}
 					}
 				}
+
 				attach(scope, object.release());
 				return true;
 			}
@@ -1196,12 +1372,15 @@ namespace Reflector
 			{
 				std::unordered_map<std::string, std::int64_t> values;
 				std::optional<std::int64_t> next = 0;
+
 				for (const auto& [first, last] : split_token_ranges(tokens, begin, end, ","))
 				{
 					Cursor cursor{source, &tokens, first};
 					Annotation item_annotation;
 					if (tokens[first].value.starts_with("trinex_"))
+					{
 						parse_annotation(cursor, item_annotation);
+					}
 					const auto name = cursor.index;
 					if (name >= last || !is_identifier(tokens[name]))
 					{
@@ -1225,74 +1404,115 @@ namespace Reflector
 			            bool is_template)
 			{
 				const auto kind = current(cursor).value;
+
 				if (kind != "class" && kind != "struct" && kind != "enum")
 				{
 					return failure(annotation, "failed to parse annotated type");
 				}
+
 				++cursor.index;
+
 				if (kind == "enum" && (current(cursor).value == "class" || current(cursor).value == "struct"))
+				{
 					++cursor.index;
+				}
+
 				consume_declaration_prefix(cursor);
+
 				if (!is_identifier(current(cursor)))
 				{
 					return failure(annotation, "reflected type has no parsed name");
 				}
+
 				std::unique_ptr<Object> object;
 
-				if (kind == "class")
+				if (kind == "class" || kind == "struct")
+				{
 					object = std::make_unique<Class>();
-				else if (kind == "struct")
-					object = std::make_unique<Struct>();
+
+					if (kind == "struct")
+					{
+						static_cast<Class*>(object.get())->flags |= Class::IsStruct;
+					}
+				}
 				else
+				{
 					object = std::make_unique<Enum>();
+				}
 
 				object->name     = current(cursor).value;
 				object->access   = access;
 				object->line     = static_cast<std::uint32_t>(annotation.line);
 				object->metadata = annotation.metadata;
 				++cursor.index;
-				auto* structure = dynamic_cast<Struct*>(object.get());
+
+				auto* structure = dynamic_cast<Class*>(object.get());
+
 				if (is_template)
+				{
 					return failure(annotation, "reflected template classes are not supported: " + object->name);
+				}
+
 				if (current(cursor).value == "final" && structure)
 				{
-					structure->flags |= Struct::Final;
+					structure->flags |= Class::Final;
 					++cursor.index;
 				}
+
 				const auto bases_begin = current(cursor).value == ":" ? ++cursor.index : end;
-				while (cursor.index < end && current(cursor).value != "{" && current(cursor).value != ";") ++cursor.index;
+
+				while (cursor.index < end && current(cursor).value != "{" && current(cursor).value != ";")
+				{
+					++cursor.index;
+				}
+
 				if (cursor.index >= end)
 				{
 					return failure(annotation, "failed to parse annotated type body");
 				}
+
 				if (structure && bases_begin < cursor.index)
 				{
 					for (const auto& [first, last] : split_token_ranges(tokens, bases_begin, cursor.index, ","))
 					{
-						Struct::Base base;
+						Class::Base base;
 						base.access = kind == "class" ? Access::Private : Access::Public;
 						auto begin  = first;
 						while (begin < last)
 						{
 							const auto& word = tokens[begin].value;
-							if (word == "virtual")
-								base.flags |= Struct::Base::Virtual;
-							else if (word == "public")
+
+							if (word == "public")
+							{
 								base.access = Access::Public;
+							}
 							else if (word == "private")
+							{
 								base.access = Access::Private;
+							}
 							else if (word == "protected")
+							{
 								base.access = Access::Protected;
+							}
+							else if (word == "virtual")
+							{
+							}
 							else
+							{
 								break;
+							}
 							++begin;
 						}
 						if (!parse_type_info(raw_between(source, tokens[begin], tokens[last]), base.type))
+						{
 							return failure(annotation, "failed to parse base type");
+						}
 						structure->bases.push_back(std::move(base));
 					}
 				}
+
 				object->owner = &scope;
+
 				if (current(cursor).value == "{")
 				{
 					const auto close = matching_token(tokens, cursor.index);
@@ -1303,51 +1523,79 @@ namespace Reflector
 					if (structure)
 					{
 						if (!range(*structure, cursor.index + 1, close, kind == "class" ? Access::Private : Access::Public))
+						{
 							return false;
+						}
 					}
 					else if (!enumeration(static_cast<Enum&>(*object), annotation, cursor.index + 1, close))
+					{
 						return false;
+					}
 					cursor.index = close + 1;
 				}
+
 				if (current(cursor).value == ";")
+				{
 					++cursor.index;
+				}
 				attach(scope, object.release());
+
 				return true;
 			}
 
 			bool namespace_scope(Scope& scope, Cursor& cursor, std::size_t end)
 			{
 				auto index = cursor.index;
+
 				if (tokens[index].value == "inline")
+				{
 					++index;
+				}
+
 				const auto start = index++;
 				std::vector<std::string_view> parts;
+
 				while (index < end && tokens[index].value != "{" && tokens[index].value != "=" && tokens[index].value != ";")
 				{
 					if (is_identifier(tokens[index]))
+					{
 						parts.push_back(tokens[index].value);
+					}
 					++index;
 				}
+
 				if (index == end || tokens[index].value != "{")
 				{
-					while (index < end && tokens[index].value != ";") ++index;
+					while (index < end && tokens[index].value != ";")
+					{
+						++index;
+					}
 					cursor.index = index < end ? index + 1 : end;
 					return true;
 				}
+
 				const auto close = matching_token(tokens, index);
 				if (close == index || close > end)
 				{
 					return failure(tokens[start], "unclosed namespace body");
 				}
+
 				if (parts.empty())
+				{
 					parts.emplace_back();// Anonymous namespace is still a distinct scope.
+				}
+
 				Scope* owner = &scope;
 				for (const auto& part : parts)
 				{
 					Namespace* nested = nullptr;
 					for (const auto& child : owner->objects)
+					{
 						if (child->is_a(ObjectKind::Namespace) && child->name == part)
+						{
 							nested = static_cast<Namespace*>(child);
+						}
+					}
 					if (!nested)
 					{
 						auto created  = new Namespace();
@@ -1358,8 +1606,12 @@ namespace Reflector
 					}
 					owner = nested;
 				}
+
 				if (!range(*owner, index + 1, close, Access::Global))
+				{
 					return false;
+				}
+
 				cursor.index = close + 1;
 				return true;
 			}
@@ -1367,6 +1619,7 @@ namespace Reflector
 			bool range(Scope& scope, std::size_t begin, std::size_t end, Access access)
 			{
 				Cursor cursor{source, &tokens, begin};
+
 				while (cursor.index < end)
 				{
 					const auto start = cursor.index;
@@ -1380,43 +1633,59 @@ namespace Reflector
 							continue;
 						}
 					}
+
 					if (current(cursor).value == "trinex_reflection_body")
 					{
-						if (!scope.is_a(ObjectKind::Struct))
+						if (!scope.is_a(ObjectKind::Class))
+						{
 							return failure(current(cursor),
 							               "trinex_reflection_body is only valid inside a reflected struct or class");
+						}
 
-						auto& structure = static_cast<Struct&>(scope);
+						auto& structure = static_cast<Class&>(scope);
 						if (structure.body_line != 0)
+						{
 							return failure(current(cursor), "duplicate trinex_reflection_body");
+						}
 
 						const Token& macro = current(cursor);
 						++cursor.index;
 						if (cursor.index >= end || current(cursor).value != "(")
+						{
 							return failure(macro, "trinex_reflection_body must be invoked without arguments");
+						}
 
 						const auto close = matching_token(tokens, cursor.index);
 						if (close != cursor.index + 1)
+						{
 							return failure(macro, "trinex_reflection_body must be invoked without arguments");
+						}
 
 						cursor.index = close + 1;
 						if (cursor.index >= end || current(cursor).value != ";")
+						{
 							return failure(macro, "trinex_reflection_body must be followed by a semicolon");
+						}
 
 						++cursor.index;
 						structure.body_line = macro.line;
 						continue;
 					}
+
 					if (current(cursor).value == "namespace" || (current(cursor).value == "inline" && cursor.index + 1 < end &&
 					                                             tokens[cursor.index + 1].value == "namespace"))
 					{
 						if (!namespace_scope(scope, cursor, end))
+						{
 							return false;
+						}
 						continue;
 					}
+
 					auto template_prefix = consume_template_prefix(cursor);
 					auto prefix          = consume_declaration_prefix(cursor);
 					Annotation annotation;
+
 					if (!parse_annotation(cursor, annotation))
 					{
 						if (tokens[start].value == "trinex_class" || tokens[start].value == "trinex_struct" ||
@@ -1433,29 +1702,42 @@ namespace Reflector
 							cursor.index     = close > cursor.index ? close + 1 : end;
 						}
 						else
+						{
 							cursor.index = std::max(cursor.index, start + 1);
+						}
 						continue;
 					}
+
 					if (template_prefix.empty())
+					{
 						template_prefix = consume_template_prefix(cursor);
+					}
+
 					const auto after     = consume_declaration_prefix(cursor);
 					prefix.engine_macros = append_raw(prefix.engine_macros, after.engine_macros);
 					if (annotation.name == "trinex_class" || annotation.name == "trinex_struct" ||
 					    annotation.name == "trinex_enum")
 					{
 						if (!record(scope, cursor, annotation, end, access, !template_prefix.empty()))
+						{
 							return false;
+						}
 						cursor.index = std::max(cursor.index, start + 1);
 						continue;
 					}
+
 					if (annotation.name != "trinex_property" && annotation.name != "trinex_function")
+					{
 						continue;
+					}
+
 					const auto declaration_begin = cursor.index;
 					auto declaration_end         = std::min(find_statement_end(tokens, declaration_begin), end);
 					if (declaration_end == end)
 					{
 						return failure(annotation, "unterminated reflected declaration");
 					}
+
 					cursor.index = declaration_end + 1;
 					if (tokens[declaration_end].value == "{")
 					{
@@ -1466,16 +1748,23 @@ namespace Reflector
 						}
 						cursor.index = close + 1;
 						if (annotation.name == "trinex_property")
+						{
 							declaration_end = close + 1;
+						}
 					}
+
 					if (annotation.name == "trinex_property")
 					{
 						if (!property(scope, annotation, declaration_begin, declaration_end, access))
+						{
 							return false;
+						}
 					}
 					else if (!function(scope, annotation, declaration_begin, declaration_end, access, !template_prefix.empty(),
 					                   prefix))
+					{
 						return false;
+					}
 				}
 				return true;
 			}

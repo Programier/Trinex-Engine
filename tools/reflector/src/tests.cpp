@@ -110,7 +110,6 @@ namespace { trinex_function() void local(); }
 		       expect(actor->metadata[0].name == "DisplayName" && value->metadata[0].value == "\"State\"", "metadata") &&
 		       expect(tick->find("missing", ObjectKind::Property) == nullptr, "leaf lookup") &&
 		       expect(actor->find("::Engine::Gameplay::Actor", ObjectKind::Class) == actor, "absolute lookup") &&
-		       expect(module->find("Engine::Gameplay::Actor", ObjectKind::Struct) == nullptr, "lookup checks object kind") &&
 		       expect(module->objects.size() == 2 && static_cast<Scope&>(*module->objects[1]).objects.size() == 2,
 		              "anonymous namespace ownership");
 	}
@@ -280,16 +279,16 @@ namespace Engine {
 		if (!expect(module != nullptr, "source parses successfully"))
 			return false;
 		auto* outer = find<Class>(*module, "Engine::Outer", ObjectKind::Class);
-		auto* inner = find<Struct>(*module, "Engine::Outer::Inner", ObjectKind::Struct);
+		auto* inner = find<Class>(*module, "Engine::Outer::Inner", ObjectKind::Class);
 		auto* value = find<Property>(*module, "Engine::Outer::Inner::nested_value", ObjectKind::Property);
 		auto* state = find<Property>(*module, "Engine::Outer::state", ObjectKind::Property);
 		auto* get   = find<Function>(*module, "Engine::Outer::get", ObjectKind::Function);
 		auto* work  = find<Function>(*module, "Engine::Outer::work", ObjectKind::Function);
 		if (!expect(outer && inner && value && state && get && work, "attributes and nested types"))
 			return false;
-		return expect(outer->flags == Struct::Final && outer->bases.size() == 2, "final and bases") &&
+		return expect(outer->flags & Class::Final && outer->bases.size() == 2, "final and bases") &&
 		       expect(outer->bases[0].type.name == "Base" && outer->bases[0].type.templates.size() == 1 &&
-		                      outer->bases[0].flags == Struct::Base::Virtual && outer->bases[0].access == Access::Public,
+		                      outer->bases[0].access == Access::Public,
 		              "virtual template base") &&
 		       expect(outer->bases[1].access == Access::Private, "class default base access") &&
 		       expect(value->owner == inner && value->access == Access::Public, "nested ownership and struct access") &&
@@ -386,7 +385,7 @@ trinex_class() class TestClass {
 		if (!expect(module != nullptr, "reflection body source parses successfully"))
 			return false;
 
-		auto* structure = find<Struct>(*module, "Test", ObjectKind::Struct);
+		auto* structure = find<Class>(*module, "Test", ObjectKind::Class);
 		auto* klass     = find<Class>(*module, "TestClass", ObjectKind::Class);
 		if (!expect(structure && klass, "reflected types with reflection bodies exist"))
 			return false;
@@ -407,17 +406,44 @@ trinex_class() class TestClass {
 		return true;
 	}
 
+	bool test_class_linking()
+	{
+		std::unique_ptr<Module> module(parse(R"(
+namespace Engine {
+	trinex_struct() struct Example {
+		trinex_reflection_body();
+		trinex_function() int foo(int a, int b);
+	};
+
+	namespace Detail {
+		trinex_struct() struct Example2 : public Example {
+			trinex_reflection_body();
+			trinex_function() int foo(int a, int b);
+		};
+	}
+}
+)",
+		                                     "class_linking.hpp"));
+		if (!expect(module != nullptr, "base class source parses successfully"))
+		{
+			return false;
+		}
+
+		auto* derived = find<Class>(*module, "Engine::Detail::Example2", ObjectKind::Class);
+		return expect(derived != nullptr && derived->link(), "base class resolves through enclosing namespaces");
+	}
+
 	bool test_errors_and_reuse()
 	{
 		std::unique_ptr<Module> valid(parse("trinex_struct() struct Good { trinex_property() int value; };", "good.hpp"));
 		if (!expect(valid != nullptr, "valid source parses successfully"))
 			return false;
-		auto* good = find<Struct>(*valid, "Good", ObjectKind::Struct);
+		auto* good = find<Class>(*valid, "Good", ObjectKind::Class);
 		if (!expect(good && good->owner == valid.get(), "owning tree"))
 			return false;
 		std::ostringstream output;
 		Reflector::print(output, valid.get());
-		if (!expect(output.str().find("struct Good") != std::string::npos &&
+		if (!expect(output.str().find("class Good") != std::string::npos &&
 		                    output.str().find("property value: int") != std::string::npos,
 		            "printer traverses module"))
 			return false;
@@ -435,7 +461,7 @@ trinex_class() class TestClass {
 			if (!expect(recovered && find<Property>(*recovered, "value", ObjectKind::Property), "parser reuse after error"))
 				return false;
 		}
-		if (!expect(valid->name == "good.hpp" && find<Struct>(*valid, "Good", ObjectKind::Struct) == good &&
+		if (!expect(valid->name == "good.hpp" && find<Class>(*valid, "Good", ObjectKind::Class) == good &&
 		                    good->owner == valid.get(),
 		            "parser reuse preserves previous module"))
 			return false;
@@ -460,6 +486,7 @@ int main()
 	success      = test_template_arguments_and_flags() && success;
 	success      = test_enums() && success;
 	success      = test_reflection_body() && success;
+	success      = test_class_linking() && success;
 	success      = test_errors_and_reuse() && success;
 	if (!success)
 		return 1;

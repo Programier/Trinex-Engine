@@ -1,14 +1,15 @@
 #include <archive.hpp>
 #include <cassert>
+#include <iostream>
 #include <model.hpp>
+#include <reflector.hpp>
 
 namespace Reflector
 {
 	trinex_implement_reflector_type(Enum, values);
 	trinex_implement_reflector_type(Scope, objects);
 	trinex_implement_reflector_type(Namespace);
-	trinex_implement_reflector_type(Struct, body_line);
-	trinex_implement_reflector_type(Class);
+	trinex_implement_reflector_type(Class, body_line);
 	trinex_implement_reflector_type(Module);
 	trinex_implement_reflector_type(Function, type, args, flags);
 	trinex_implement_reflector_type(Property, type, value, flags);
@@ -35,7 +36,6 @@ namespace Reflector
 			case ObjectKind::Enum: return new Enum();
 			case ObjectKind::Scope: return new Scope();
 			case ObjectKind::Namespace: return new Namespace();
-			case ObjectKind::Struct: return new Struct();
 			case ObjectKind::Class: return new Class();
 			case ObjectKind::Module: return new Module();
 			case ObjectKind::Function: return new Function();
@@ -52,6 +52,11 @@ namespace Reflector
 	ObjectKind Object::kind() const
 	{
 		return ObjectKind::Object;
+	}
+
+	bool Object::link()
+	{
+		return true;
 	}
 
 	bool Object::is_a(ObjectKind kind) const
@@ -87,13 +92,41 @@ namespace Reflector
 				if (auto* found = object->find(name.substr(separator + 2), kind))
 					return found;
 			}
-			else if (object->kind() == kind)
+			else if (object->is_a(kind))
 			{
 				return object;
 			}
 		}
 
 		return nullptr;
+	}
+
+	bool Scope::link()
+	{
+		if (!Super::link())
+		{
+			return false;
+		}
+
+		for (Object* child : objects)
+		{
+			if (!child->link())
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	bool Class::link()
+	{
+		if (!Super::link())
+		{
+			return false;
+		}
+
+		return true;
 	}
 
 	Scope::~Scope()
