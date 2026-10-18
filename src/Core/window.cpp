@@ -23,7 +23,7 @@ namespace Trinex
 		//static Console::VariableRef attributes(&s_config.attributes, "window.attributes");
 	}
 
-	ENGINE_EXPORT const WindowDesc& WindowDesc::from_config()
+	trinex_api const WindowDesc& WindowDesc::from_config()
 	{
 		return s_config;
 	}

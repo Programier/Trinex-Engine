@@ -7,7 +7,7 @@
 
 namespace Trinex::Platform
 {
-	class ENGINE_EXPORT Clipboard
+	class trinex_api Clipboard
 	{
 	public:
 		static Clipboard* instance();

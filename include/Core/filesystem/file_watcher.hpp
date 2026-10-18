@@ -34,7 +34,7 @@ namespace Trinex::VFS
 		Identifier watch_id = 0;
 	};
 
-	class ENGINE_EXPORT FileWatcherBackend
+	class trinex_api FileWatcherBackend
 	{
 	public:
 		virtual ~FileWatcherBackend() = default;

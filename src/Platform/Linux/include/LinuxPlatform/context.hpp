@@ -3,7 +3,7 @@
 
 namespace Trinex::Platform
 {
-	class ENGINE_EXPORT LinuxContext : public SDLContext
+	class trinex_api LinuxContext : public SDLContext
 	{
 	public:
 		~LinuxContext() override;

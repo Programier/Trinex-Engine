@@ -211,6 +211,17 @@ public:                                                                         
 	x;                                                                                                                           \
 	return *this
 
+#if defined(_WIN32)
+#define trinex_export __declspec(dllexport)
+#define trinex_import __declspec(dllimport)
+#elif defined(__GNUC__) || defined(__clang__)
+#define trinex_export __attribute__((visibility("default")))
+#define trinex_import __attribute__((visibility("default")))
+#else
+#define trinex_export
+#define trinex_import
+#endif
+
 #define trinex_reflection_body(...) TRINEX_CONCAT(TRINEX_CONCAT(trinex_reflection_file_id, _), __LINE__)
 #define trinex_reflect(...)
 #define trinex_function(...)

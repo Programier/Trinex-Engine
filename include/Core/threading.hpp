@@ -8,7 +8,7 @@
 
 namespace Trinex
 {
-	class ENGINE_EXPORT Task final
+	class trinex_api Task final
 	{
 	public:
 		enum Priority : u8
@@ -109,7 +109,7 @@ namespace Trinex
 		friend class Thread;
 	};
 
-	class ENGINE_EXPORT Thread
+	class trinex_api Thread
 	{
 	public:
 		struct NoThread {
@@ -142,7 +142,7 @@ namespace Trinex
 		~Thread();
 	};
 
-	class ENGINE_EXPORT TaskGraph final
+	class trinex_api TaskGraph final
 	{
 	private:
 		class TaskGraphImpl* m_impl;
@@ -194,10 +194,10 @@ namespace Trinex
 		}
 	};
 
-	ENGINE_EXPORT void create_threads();
-	ENGINE_EXPORT void destroy_threads();
-	ENGINE_EXPORT Thread* logic_thread();
-	ENGINE_EXPORT Thread* this_thread();
+	trinex_api void create_threads();
+	trinex_api void destroy_threads();
+	trinex_api Thread* logic_thread();
+	trinex_api Thread* this_thread();
 
 	inline bool is_in_logic_thread()
 	{

@@ -9,7 +9,7 @@ namespace Trinex
 	class RenderScene;
 	class Renderer;
 
-	class ENGINE_EXPORT SceneView
+	class trinex_api SceneView
 	{
 	private:
 		CameraView m_camera_view;

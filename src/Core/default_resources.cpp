@@ -19,41 +19,41 @@ namespace Trinex
 	{
 		namespace Textures
 		{
-			ENGINE_EXPORT Texture2D* white                  = nullptr;
-			ENGINE_EXPORT Texture2D* black                  = nullptr;
-			ENGINE_EXPORT Texture2D* gray                   = nullptr;
-			ENGINE_EXPORT Texture2D* normal                 = nullptr;
-			ENGINE_EXPORT Texture2D* default_texture        = nullptr;
-			ENGINE_EXPORT TextureCube* default_texture_cube = nullptr;
-			ENGINE_EXPORT Texture2D* noise4x4               = nullptr;
-			ENGINE_EXPORT Texture2D* noise16x16             = nullptr;
-			ENGINE_EXPORT Texture2D* noise128x128           = nullptr;
-			ENGINE_EXPORT Texture3D* default_lut            = nullptr;
+			trinex_api Texture2D* white                  = nullptr;
+			trinex_api Texture2D* black                  = nullptr;
+			trinex_api Texture2D* gray                   = nullptr;
+			trinex_api Texture2D* normal                 = nullptr;
+			trinex_api Texture2D* default_texture        = nullptr;
+			trinex_api TextureCube* default_texture_cube = nullptr;
+			trinex_api Texture2D* noise4x4               = nullptr;
+			trinex_api Texture2D* noise16x16             = nullptr;
+			trinex_api Texture2D* noise128x128           = nullptr;
+			trinex_api Texture3D* default_lut            = nullptr;
 		}// namespace Textures
 
 		namespace Buffers
 		{
-			ENGINE_EXPORT PositionVertexBuffer* screen_quad = nullptr;
+			trinex_api PositionVertexBuffer* screen_quad = nullptr;
 		}
 
 		namespace Materials
 		{
-			ENGINE_EXPORT Material* sprite    = nullptr;
-			ENGINE_EXPORT Material* base_pass = nullptr;
+			trinex_api Material* sprite    = nullptr;
+			trinex_api Material* base_pass = nullptr;
 		}// namespace Materials
 
 		namespace Meshes
 		{
-			ENGINE_EXPORT StaticMesh* cube     = nullptr;
-			ENGINE_EXPORT StaticMesh* sphere   = nullptr;
-			ENGINE_EXPORT StaticMesh* cylinder = nullptr;
-			ENGINE_EXPORT StaticMesh* plane    = nullptr;
-			ENGINE_EXPORT StaticMesh* cone     = nullptr;
+			trinex_api StaticMesh* cube     = nullptr;
+			trinex_api StaticMesh* sphere   = nullptr;
+			trinex_api StaticMesh* cylinder = nullptr;
+			trinex_api StaticMesh* plane    = nullptr;
+			trinex_api StaticMesh* cone     = nullptr;
 		}// namespace Meshes
 
 	}// namespace DefaultResources
 
-	ENGINE_EXPORT Object* load_object_from_memory(const u8* data, usize size, const StringView& name)
+	trinex_api Object* load_object_from_memory(const u8* data, usize size, const StringView& name)
 	{
 		if (size > 0)
 		{

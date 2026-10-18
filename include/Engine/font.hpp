@@ -9,7 +9,7 @@ namespace Trinex
 	class Image;
 	class Path;
 
-	struct ENGINE_EXPORT FontConfig {
+	struct trinex_api FontConfig {
 		Vector2u image_size;
 		Color color;
 		Vector2u font_size;
@@ -18,7 +18,7 @@ namespace Trinex
 		FontConfig();
 	};
 
-	class ENGINE_EXPORT Font
+	class trinex_api Font
 	{
 		void* m_font = nullptr;
 

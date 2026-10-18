@@ -13,73 +13,73 @@ namespace Trinex::Refl::New
 	}
 
 	template<>
-	FORCE_ENGINE_EXPORT Type* type_of<void>()
+	trinex_api Type* type_of<void>()
 	{
 		return nullptr;
 	}
 
 	template<>
-	FORCE_ENGINE_EXPORT Type* type_of<bool>()
+	trinex_api Type* type_of<bool>()
 	{
 		return type_of_internal<bool>("bool");
 	}
 
 	template<>
-	FORCE_ENGINE_EXPORT Type* type_of<i8>()
+	trinex_api Type* type_of<i8>()
 	{
 		return type_of_internal<i8>("i8");
 	}
 
 	template<>
-	FORCE_ENGINE_EXPORT Type* type_of<u8>()
+	trinex_api Type* type_of<u8>()
 	{
 		return type_of_internal<u8>("u8");
 	}
 
 	template<>
-	FORCE_ENGINE_EXPORT Type* type_of<i16>()
+	trinex_api Type* type_of<i16>()
 	{
 		return type_of_internal<i16>("i16");
 	}
 
 	template<>
-	FORCE_ENGINE_EXPORT Type* type_of<u16>()
+	trinex_api Type* type_of<u16>()
 	{
 		return type_of_internal<u16>("u16");
 	}
 
 	template<>
-	FORCE_ENGINE_EXPORT Type* type_of<i32>()
+	trinex_api Type* type_of<i32>()
 	{
 		return type_of_internal<i32>("i32");
 	}
 
 	template<>
-	FORCE_ENGINE_EXPORT Type* type_of<u32>()
+	trinex_api Type* type_of<u32>()
 	{
 		return type_of_internal<u32>("u32");
 	}
 
 	template<>
-	FORCE_ENGINE_EXPORT Type* type_of<i64>()
+	trinex_api Type* type_of<i64>()
 	{
 		return type_of_internal<i64>("i64");
 	}
 
 	template<>
-	FORCE_ENGINE_EXPORT Type* type_of<u64>()
+	trinex_api Type* type_of<u64>()
 	{
 		return type_of_internal<u64>("u64");
 	}
 
 	template<>
-	FORCE_ENGINE_EXPORT Type* type_of<f32>()
+	trinex_api Type* type_of<f32>()
 	{
 		return type_of_internal<f32>("f32");
 	}
 
 	template<>
-	FORCE_ENGINE_EXPORT Type* type_of<f64>()
+	trinex_api Type* type_of<f64>()
 	{
 		return type_of_internal<f64>("f64");
 	}

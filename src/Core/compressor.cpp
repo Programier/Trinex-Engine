@@ -5,7 +5,7 @@
 namespace Trinex::Compressor
 {
 
-	ENGINE_EXPORT void compress(const Buffer& src, Buffer& dst)
+	trinex_api void compress(const Buffer& src, Buffer& dst)
 	{
 		int input_size = static_cast<int>(src.size());
 		int out_size   = LZ4_compressBound(input_size);
@@ -20,7 +20,7 @@ namespace Trinex::Compressor
 		(*reinterpret_cast<usize*>(dst.data())) = src.size();
 	}
 
-	ENGINE_EXPORT void decompress(const Buffer& src, Buffer& dst)
+	trinex_api void decompress(const Buffer& src, Buffer& dst)
 	{
 		int input_size = static_cast<int>(src.size() - sizeof(usize));
 		dst.resize(*reinterpret_cast<const usize*>(src.data()));

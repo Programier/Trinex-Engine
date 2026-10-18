@@ -35,7 +35,7 @@ namespace Trinex::Platform
 		u32 l3_cache_size         = 0;
 	};
 
-	class ENGINE_EXPORT System
+	class trinex_api System
 	{
 	public:
 		static System* instance();

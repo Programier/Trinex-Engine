@@ -16,7 +16,7 @@ namespace Trinex::Platform
 		inline explicit operator bool() const { return address != nullptr; }
 	};
 
-	class ENGINE_EXPORT Library : public RefCounted
+	class trinex_api Library : public RefCounted
 	{
 	public:
 		virtual LibrarySymbol find(const char* name) = 0;
@@ -28,7 +28,7 @@ namespace Trinex::Platform
 		}
 	};
 
-	class ENGINE_EXPORT LibraryLoader
+	class trinex_api LibraryLoader
 	{
 	public:
 		static LibraryLoader* instance();

@@ -3,7 +3,7 @@
 
 namespace Trinex
 {
-	class ENGINE_EXPORT RHIObject
+	class trinex_api RHIObject
 	{
 	private:
 		static void static_release_internal(RHIObject* object);

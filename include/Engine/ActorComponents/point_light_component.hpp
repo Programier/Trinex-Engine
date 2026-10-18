@@ -3,7 +3,7 @@
 
 namespace Trinex
 {
-	class ENGINE_EXPORT PointLightComponent : public LocalLightComponent
+	class trinex_api PointLightComponent : public LocalLightComponent
 	{
 		trinex_class(PointLightComponent, LocalLightComponent);
 

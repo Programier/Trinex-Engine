@@ -7,7 +7,7 @@
 
 namespace Trinex
 {
-	class ENGINE_EXPORT StaticMeshComponent : public MeshComponent
+	class trinex_api StaticMeshComponent : public MeshComponent
 	{
 		trinex_class(StaticMeshComponent, MeshComponent);
 

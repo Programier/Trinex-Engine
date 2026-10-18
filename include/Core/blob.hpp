@@ -3,7 +3,7 @@
 
 namespace Trinex
 {
-	class ENGINE_EXPORT Blob : public RefCounted
+	class trinex_api Blob : public RefCounted
 	{
 	public:
 		virtual ~Blob() = default;

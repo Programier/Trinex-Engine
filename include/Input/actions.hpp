@@ -21,7 +21,7 @@ namespace Trinex
 		trinex_enum_struct(InputActionPhase);
 	};
 
-	class ENGINE_EXPORT InputAction : public RefCounted
+	class trinex_api InputAction : public RefCounted
 	{
 		Name m_name;
 		InputValueType m_value_type;
@@ -39,13 +39,13 @@ namespace Trinex
 		EventCode code              = EventCode::Undefined;
 	};
 
-	class ENGINE_EXPORT InputModifier : public RefCounted
+	class trinex_api InputModifier : public RefCounted
 	{
 	public:
 		virtual InputValue apply(const InputEvent& event, const InputValue& value) const;
 	};
 
-	class ENGINE_EXPORT InputModifierScale final : public InputModifier
+	class trinex_api InputModifierScale final : public InputModifier
 	{
 		Vector3f m_scale;
 
@@ -54,7 +54,7 @@ namespace Trinex
 		InputValue apply(const InputEvent& event, const InputValue& value) const override;
 	};
 
-	class ENGINE_EXPORT InputModifierDeadZone final : public InputModifier
+	class trinex_api InputModifierDeadZone final : public InputModifier
 	{
 		f32 m_threshold;
 
@@ -63,7 +63,7 @@ namespace Trinex
 		InputValue apply(const InputEvent& event, const InputValue& value) const override;
 	};
 
-	class ENGINE_EXPORT InputModifierInvert final : public InputModifier
+	class trinex_api InputModifierInvert final : public InputModifier
 	{
 		bool m_x;
 		bool m_y;
@@ -74,7 +74,7 @@ namespace Trinex
 		InputValue apply(const InputEvent& event, const InputValue& value) const override;
 	};
 
-	class ENGINE_EXPORT InputModifierClamp final : public InputModifier
+	class trinex_api InputModifierClamp final : public InputModifier
 	{
 		Vector3f m_min;
 		Vector3f m_max;
@@ -84,7 +84,7 @@ namespace Trinex
 		InputValue apply(const InputEvent& event, const InputValue& value) const override;
 	};
 
-	class ENGINE_EXPORT InputModifierSwizzle final : public InputModifier
+	class trinex_api InputModifierSwizzle final : public InputModifier
 	{
 		u8 m_x;
 		u8 m_y;
@@ -102,33 +102,33 @@ namespace Trinex
 		Vector<InputTriggerState> children;
 	};
 
-	class ENGINE_EXPORT InputTrigger : public RefCounted
+	class trinex_api InputTrigger : public RefCounted
 	{
 	public:
 		virtual InputActionPhase evaluate(const InputEvent& event, const InputValue& value, InputTriggerState& state) const = 0;
 		virtual InputActionPhase update(f32, InputTriggerState&) const { return InputActionPhase::None; }
 	};
 
-	class ENGINE_EXPORT InputTriggerPressed final : public InputTrigger
+	class trinex_api InputTriggerPressed final : public InputTrigger
 	{
 	public:
 		InputActionPhase evaluate(const InputEvent& event, const InputValue& value, InputTriggerState& state) const override;
 	};
 
-	class ENGINE_EXPORT InputTriggerReleased final : public InputTrigger
+	class trinex_api InputTriggerReleased final : public InputTrigger
 	{
 	public:
 		InputActionPhase evaluate(const InputEvent& event, const InputValue& value, InputTriggerState& state) const override;
 	};
 
-	class ENGINE_EXPORT InputTriggerDown final : public InputTrigger
+	class trinex_api InputTriggerDown final : public InputTrigger
 	{
 	public:
 		InputActionPhase evaluate(const InputEvent& event, const InputValue& value, InputTriggerState& state) const override;
 		InputActionPhase update(f32 dt, InputTriggerState& state) const override;
 	};
 
-	class ENGINE_EXPORT InputTriggerHold final : public InputTrigger
+	class trinex_api InputTriggerHold final : public InputTrigger
 	{
 		f32 m_duration;
 
@@ -138,7 +138,7 @@ namespace Trinex
 		InputActionPhase update(f32 dt, InputTriggerState& state) const override;
 	};
 
-	class ENGINE_EXPORT InputTriggerThreshold final : public InputTrigger
+	class trinex_api InputTriggerThreshold final : public InputTrigger
 	{
 		f32 m_threshold;
 
@@ -148,7 +148,7 @@ namespace Trinex
 		InputActionPhase update(f32 dt, InputTriggerState& state) const override;
 	};
 
-	class ENGINE_EXPORT InputTriggerTap final : public InputTrigger
+	class trinex_api InputTriggerTap final : public InputTrigger
 	{
 		f32 m_max_duration;
 
@@ -158,7 +158,7 @@ namespace Trinex
 		InputActionPhase update(f32 dt, InputTriggerState& state) const override;
 	};
 
-	class ENGINE_EXPORT InputTriggerChord final : public InputTrigger
+	class trinex_api InputTriggerChord final : public InputTrigger
 	{
 		Vector<EventCode> m_codes;
 
@@ -167,7 +167,7 @@ namespace Trinex
 		InputActionPhase evaluate(const InputEvent& event, const InputValue& value, InputTriggerState& state) const override;
 	};
 
-	class ENGINE_EXPORT InputTriggerAll final : public InputTrigger
+	class trinex_api InputTriggerAll final : public InputTrigger
 	{
 		Vector<Ref<InputTrigger>> m_triggers;
 
@@ -177,7 +177,7 @@ namespace Trinex
 		InputActionPhase update(f32 dt, InputTriggerState& state) const override;
 	};
 
-	class ENGINE_EXPORT InputTriggerAny final : public InputTrigger
+	class trinex_api InputTriggerAny final : public InputTrigger
 	{
 		Vector<Ref<InputTrigger>> m_triggers;
 
@@ -196,7 +196,7 @@ namespace Trinex
 		bool block_lower_priority = false;
 	};
 
-	class ENGINE_EXPORT InputContext : public RefCounted
+	class trinex_api InputContext : public RefCounted
 	{
 		Name m_name;
 		Vector<InputMapping> m_mappings;

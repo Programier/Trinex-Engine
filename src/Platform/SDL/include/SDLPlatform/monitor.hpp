@@ -6,7 +6,7 @@
 
 namespace Trinex::Platform
 {
-	class ENGINE_EXPORT SDLMonitorSystem final : public MonitorSystem
+	class trinex_api SDLMonitorSystem final : public MonitorSystem
 	{
 	private:
 		struct SDLMonitorData {

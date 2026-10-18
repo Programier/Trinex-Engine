@@ -19,7 +19,7 @@
 
 namespace Trinex
 {
-	class ENGINE_EXPORT GeometryView : public GlobalPipelineLibrary
+	class trinex_api GeometryView : public GlobalPipelineLibrary
 	{
 		trinex_declare_pipeline(GeometryView, GlobalPipelineLibrary);
 

@@ -89,7 +89,7 @@ namespace Trinex::LifeCycle
 		list           = trx_new Handler{list, function, description.name, description.after};
 	}
 
-	ENGINE_EXPORT void execute(i32 event)
+	trinex_api void execute(i32 event)
 	{
 		Handler*& list = handlers()[event];
 

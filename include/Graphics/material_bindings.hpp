@@ -11,7 +11,7 @@ namespace Trinex
 	class RHISampler;
 	class RHIShaderResourceView;
 
-	class ENGINE_EXPORT MaterialBindings
+	class trinex_api MaterialBindings
 	{
 	public:
 		struct MemoryBlock {

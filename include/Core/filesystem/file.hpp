@@ -13,7 +13,7 @@ namespace Trinex::VFS
 	class FileSystem;
 	struct FileStat;
 
-	class ENGINE_EXPORT File : public Stream
+	class trinex_api File : public Stream
 	{
 	public:
 		virtual FileSystem* filesystem() const                          = 0;

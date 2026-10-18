@@ -3,7 +3,7 @@
 
 namespace Trinex
 {
-	struct ENGINE_EXPORT Plane {
+	struct trinex_api Plane {
 		Vector3f normal;
 		f32 offset;
 

@@ -153,7 +153,7 @@ namespace Reflector
 		bool is_export_macro(const Token& token)
 		{
 			return token.type == TokenType::Identifier &&
-			       (has_suffix(token.value, "_API") || has_suffix(token.value, "_EXPORT") || has_suffix(token.value, "_IMPORT"));
+			       (has_suffix(token.value, "_api") || has_suffix(token.value, "_export") || has_suffix(token.value, "_import"));
 		}
 
 		bool is_engine_macro(const Token& token)
@@ -162,7 +162,7 @@ namespace Reflector
 			{
 				return false;
 			}
-			return is_export_macro(token) || has_suffix(token.value, "_API") || has_suffix(token.value, "_INLINE") ||
+			return is_export_macro(token) || has_suffix(token.value, "_api") || has_suffix(token.value, "_INLINE") ||
 			       has_suffix(token.value, "_MACRO") || token.value == "GENERATED_BODY" ||
 			       token.value == "GENERATED_CLASS_BODY" || token.value == "FORCE_INLINE" || token.value == "FORCEINLINE";
 		}

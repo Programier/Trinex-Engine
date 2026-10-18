@@ -1,5 +1,4 @@
 #pragma once
-#include <Core/export.hpp>
 #include <array>
 #include <string_view>
 #include <type_traits>
@@ -9,7 +8,7 @@ namespace Trinex
 {
 	class Object;
 
-	struct ENGINE_EXPORT type_info_base {
+	struct trinex_api type_info_base {
 	protected:
 		template<std::size_t... indices>
 		static consteval auto substring_as_array(std::string_view str, std::index_sequence<indices...>)

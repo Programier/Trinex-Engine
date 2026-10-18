@@ -26,7 +26,7 @@ namespace Trinex
 		class Struct;
 	}
 
-	class ENGINE_EXPORT RHI
+	class trinex_api RHI
 	{
 	private:
 		static RHI* s_rhi;

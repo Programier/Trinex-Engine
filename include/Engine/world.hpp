@@ -5,7 +5,7 @@ namespace Trinex
 {
 	class RenderScene;
 
-	class ENGINE_EXPORT World : public LevelInstance
+	class trinex_api World : public LevelInstance
 	{
 		trinex_class(World, LevelInstance);
 

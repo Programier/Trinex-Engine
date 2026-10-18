@@ -131,22 +131,22 @@ namespace Trinex
 		return *this;
 	}
 
-	ENGINE_EXPORT const String& Object::language()
+	trinex_api const String& Object::language()
 	{
 		return Localization::instance()->language();
 	}
 
-	ENGINE_EXPORT void Object::language(const StringView& new_language)
+	trinex_api void Object::language(const StringView& new_language)
 	{
 		Localization::instance()->language(new_language);
 	}
 
-	ENGINE_EXPORT const String& Object::localize(const StringView& line)
+	trinex_api const String& Object::localize(const StringView& line)
 	{
 		return Localization::instance()->localize(line);
 	}
 
-	ENGINE_EXPORT const char* operator""_localized(const char* line, usize len)
+	trinex_api const char* operator""_localized(const char* line, usize len)
 	{
 		return Localization::instance()->localize(StringView(line, len)).c_str();
 	}

@@ -4,7 +4,7 @@
 
 namespace Trinex::Math
 {
-	ENGINE_EXPORT Plane normalize(const Plane& plane)
+	trinex_api Plane normalize(const Plane& plane)
 	{
 		const float length = Math::length(plane.normal);
 
@@ -17,52 +17,52 @@ namespace Trinex::Math
 		return plane;
 	}
 
-	ENGINE_EXPORT float distance(const Plane& plane, const Vector3f& point)
+	trinex_api float distance(const Plane& plane, const Vector3f& point)
 	{
 		return Math::dot(point, plane.normal) + plane.offset;
 	}
 
-	ENGINE_EXPORT float distance(const Plane& plane, const Box3f& box)
+	trinex_api float distance(const Plane& plane, const Box3f& box)
 	{
 		return Math::dot(plane.normal, box.center()) + Math::dot(abs(plane.normal), box.extents()) + plane.offset;
 	}
 
-	ENGINE_EXPORT Plane left_plane(const Matrix4f& projview)
+	trinex_api Plane left_plane(const Matrix4f& projview)
 	{
 		Vector4f row0 = Math::row(projview, 0);
 		Vector4f row3 = Math::row(projview, 3);
 		return Plane(row3 + row0);
 	}
 
-	ENGINE_EXPORT Plane right_plane(const Matrix4f& projview)
+	trinex_api Plane right_plane(const Matrix4f& projview)
 	{
 		Vector4f row0 = Math::row(projview, 0);
 		Vector4f row3 = Math::row(projview, 3);
 		return Plane(row3 - row0);
 	}
 
-	ENGINE_EXPORT Plane top_plane(const Matrix4f& projview)
+	trinex_api Plane top_plane(const Matrix4f& projview)
 	{
 		Vector4f row1 = Math::row(projview, 1);
 		Vector4f row3 = Math::row(projview, 3);
 		return Plane(row3 + row1);
 	}
 
-	ENGINE_EXPORT Plane bottom_plane(const Matrix4f& projview)
+	trinex_api Plane bottom_plane(const Matrix4f& projview)
 	{
 		Vector4f row1 = Math::row(projview, 1);
 		Vector4f row3 = Math::row(projview, 3);
 		return Plane(row3 - row1);
 	}
 
-	ENGINE_EXPORT Plane near_plane(const Matrix4f& projview)
+	trinex_api Plane near_plane(const Matrix4f& projview)
 	{
 		Vector4f row2 = Math::row(projview, 2);
 		Vector4f row3 = Math::row(projview, 3);
 		return Plane(row3 + row2);
 	}
 
-	ENGINE_EXPORT Plane far_plane(const Matrix4f& projview)
+	trinex_api Plane far_plane(const Matrix4f& projview)
 	{
 		Vector4f row2 = Math::row(projview, 2);
 		Vector4f row3 = Math::row(projview, 3);

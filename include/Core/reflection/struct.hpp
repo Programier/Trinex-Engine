@@ -13,7 +13,7 @@ namespace Trinex
 
 namespace Trinex::Refl
 {
-	class ENGINE_EXPORT Struct : public ScopedType
+	class trinex_api Struct : public ScopedType
 	{
 		trinex_reflect_type(Struct, ScopedType);
 

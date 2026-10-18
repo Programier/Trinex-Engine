@@ -12,7 +12,7 @@ namespace Trinex
 	class LevelInstance;
 	class RenderScene;
 
-	class ENGINE_EXPORT Actor : public Object
+	class trinex_api Actor : public Object
 	{
 		trinex_class(Actor, Object);
 

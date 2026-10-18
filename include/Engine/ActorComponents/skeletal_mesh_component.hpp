@@ -7,7 +7,7 @@ namespace Trinex
 {
 	class RHIBuffer;
 
-	class ENGINE_EXPORT SkeletalMeshComponent : public MeshComponent
+	class trinex_api SkeletalMeshComponent : public MeshComponent
 	{
 		trinex_class(SkeletalMeshComponent, MeshComponent);
 

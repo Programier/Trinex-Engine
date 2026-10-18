@@ -11,14 +11,14 @@ namespace Trinex
 	};
 }// namespace Trinex
 
-ENGINE_EXPORT void* operator new(std::size_t size, Trinex::ByteAllocatorTag) noexcept;
-ENGINE_EXPORT void* operator new(std::size_t size, Trinex::StackByteAllocatorTag) noexcept;
-ENGINE_EXPORT void* operator new(std::size_t size, Trinex::FrameByteAllocatorTag) noexcept;
+trinex_api void* operator new(std::size_t size, Trinex::ByteAllocatorTag) noexcept;
+trinex_api void* operator new(std::size_t size, Trinex::StackByteAllocatorTag) noexcept;
+trinex_api void* operator new(std::size_t size, Trinex::FrameByteAllocatorTag) noexcept;
 
-ENGINE_EXPORT void* operator new(std::size_t size, std::align_val_t align, Trinex::ByteAllocatorTag) noexcept;
-ENGINE_EXPORT void* operator new(std::size_t size, std::align_val_t align, Trinex::StackByteAllocatorTag) noexcept;
-ENGINE_EXPORT void* operator new(std::size_t size, std::align_val_t align, Trinex::FrameByteAllocatorTag) noexcept;
-ENGINE_EXPORT void operator delete(void* ptr, Trinex::ByteAllocatorTag) noexcept;
+trinex_api void* operator new(std::size_t size, std::align_val_t align, Trinex::ByteAllocatorTag) noexcept;
+trinex_api void* operator new(std::size_t size, std::align_val_t align, Trinex::StackByteAllocatorTag) noexcept;
+trinex_api void* operator new(std::size_t size, std::align_val_t align, Trinex::FrameByteAllocatorTag) noexcept;
+trinex_api void operator delete(void* ptr, Trinex::ByteAllocatorTag) noexcept;
 
 namespace Trinex
 {

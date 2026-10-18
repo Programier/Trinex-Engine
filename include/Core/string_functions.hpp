@@ -10,14 +10,14 @@ namespace Trinex::Strings
 {
 	using fmt::format;
 
-	ENGINE_EXPORT String c_style_format(const char* text, ...);
-	ENGINE_EXPORT StringView lstrip(const StringView& line, const StringView& chars = " \t\n\r");
-	ENGINE_EXPORT StringView rstrip(const StringView& line, const StringView& chars = " \t\n\r");
-	ENGINE_EXPORT StringView lstrip(const StringView& line, bool (*callback)(char ch));
-	ENGINE_EXPORT StringView rstrip(const StringView& line, bool (*callback)(char ch));
-	ENGINE_EXPORT String capitalize_words(const StringView& sentence);
-	ENGINE_EXPORT String make_sentence(String line);
-	ENGINE_EXPORT u64 hash_of(const StringView& str);
+	trinex_api String c_style_format(const char* text, ...);
+	trinex_api StringView lstrip(const StringView& line, const StringView& chars = " \t\n\r");
+	trinex_api StringView rstrip(const StringView& line, const StringView& chars = " \t\n\r");
+	trinex_api StringView lstrip(const StringView& line, bool (*callback)(char ch));
+	trinex_api StringView rstrip(const StringView& line, bool (*callback)(char ch));
+	trinex_api String capitalize_words(const StringView& sentence);
+	trinex_api String make_sentence(String line);
+	trinex_api u64 hash_of(const StringView& str);
 
 	inline StringView strip(const StringView& line, const StringView& chars = " \t\n\r")
 	{
@@ -29,41 +29,41 @@ namespace Trinex::Strings
 		return lstrip(rstrip(line, callback), callback);
 	}
 
-	ENGINE_EXPORT String replace_all(StringView line, StringView old, StringView new_line);
-	ENGINE_EXPORT u32 replace_symbol(String& str, char old_symbol, char new_symbol);
-	ENGINE_EXPORT u32 replace_symbol(char* str, char old_symbol, char new_symbol);
-	ENGINE_EXPORT u32 replace_symbol(char* str, char old_symbol, char new_symbol, u32 len);
-	ENGINE_EXPORT String to_lower(StringView line);
-	ENGINE_EXPORT String to_upper(StringView line);
+	trinex_api String replace_all(StringView line, StringView old, StringView new_line);
+	trinex_api u32 replace_symbol(String& str, char old_symbol, char new_symbol);
+	trinex_api u32 replace_symbol(char* str, char old_symbol, char new_symbol);
+	trinex_api u32 replace_symbol(char* str, char old_symbol, char new_symbol, u32 len);
+	trinex_api String to_lower(StringView line);
+	trinex_api String to_upper(StringView line);
 
-	ENGINE_EXPORT const char* strnstr(const char* haystack, usize haystack_len, const char* needle, usize needle_len);
-	ENGINE_EXPORT Vector<String> split(const StringView& line, char delimiter = ' ');
-	ENGINE_EXPORT Vector<String> split(const StringView& line, const StringView& delimiter);
+	trinex_api const char* strnstr(const char* haystack, usize haystack_len, const char* needle, usize needle_len);
+	trinex_api Vector<String> split(const StringView& line, char delimiter = ' ');
+	trinex_api Vector<String> split(const StringView& line, const StringView& delimiter);
 
-	ENGINE_EXPORT String namespace_of(const StringView& name);
-	ENGINE_EXPORT String class_name_of(const StringView& name);
-	ENGINE_EXPORT StringView namespace_sv_of(const StringView& name);
-	ENGINE_EXPORT StringView class_name_sv_of(const StringView& name);
-	ENGINE_EXPORT String concat_scoped_name(StringView scope, StringView name);
-	ENGINE_EXPORT StringView parse_name_identifier(StringView sentence, StringView* out = nullptr);
-	ENGINE_EXPORT StringView parse_token(StringView expression, StringView separator, StringView* out = nullptr);
+	trinex_api String namespace_of(const StringView& name);
+	trinex_api String class_name_of(const StringView& name);
+	trinex_api StringView namespace_sv_of(const StringView& name);
+	trinex_api StringView class_name_sv_of(const StringView& name);
+	trinex_api String concat_scoped_name(StringView scope, StringView name);
+	trinex_api StringView parse_name_identifier(StringView sentence, StringView* out = nullptr);
+	trinex_api StringView parse_token(StringView expression, StringView separator, StringView* out = nullptr);
 
-	ENGINE_EXPORT bool iequals(StringView first, StringView second);
+	trinex_api bool iequals(StringView first, StringView second);
 
-	ENGINE_EXPORT bool boolean_of(StringView text);
-	ENGINE_EXPORT i64 signed_of(StringView text);
-	ENGINE_EXPORT u64 unsigned_of(StringView text);
-	ENGINE_EXPORT f64 floating_of(StringView text);
-	ENGINE_EXPORT void* pointer_of(StringView text);
+	trinex_api bool boolean_of(StringView text);
+	trinex_api i64 signed_of(StringView text);
+	trinex_api u64 unsigned_of(StringView text);
+	trinex_api f64 floating_of(StringView text);
+	trinex_api void* pointer_of(StringView text);
 
-	ENGINE_EXPORT bool boolean_of(StringView text, bool& out);
-	ENGINE_EXPORT bool signed_of(StringView text, i64& out);
-	ENGINE_EXPORT bool unsigned_of(StringView text, u64& out);
-	ENGINE_EXPORT bool floating_of(StringView text, f64& out);
-	ENGINE_EXPORT bool pointer_of(StringView text, void*& out);
+	trinex_api bool boolean_of(StringView text, bool& out);
+	trinex_api bool signed_of(StringView text, i64& out);
+	trinex_api bool unsigned_of(StringView text, u64& out);
+	trinex_api bool floating_of(StringView text, f64& out);
+	trinex_api bool pointer_of(StringView text, void*& out);
 
-	ENGINE_EXPORT bool read_line(StringView& stream, StringView& out);
-	ENGINE_EXPORT bool read_line(StringView& stream, StringView& out, char separator);
+	trinex_api bool read_line(StringView& stream, StringView& out);
+	trinex_api bool read_line(StringView& stream, StringView& out, char separator);
 
 
 	template<typename Range, typename Value = typename Range::value_type, typename FormatFunction>

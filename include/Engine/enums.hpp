@@ -3,7 +3,7 @@
 
 namespace Trinex
 {
-	struct ENGINE_EXPORT ShowFlags {
+	struct trinex_api ShowFlags {
 		enum Enum : EnumerateType
 		{
 			None              = 0,
@@ -22,7 +22,7 @@ namespace Trinex
 		trinex_enum(ShowFlags);
 	};
 
-	struct ENGINE_EXPORT ViewMode {
+	struct trinex_api ViewMode {
 		enum Enum : EnumerateType
 		{
 			Lit         = 0,
@@ -42,7 +42,7 @@ namespace Trinex
 		trinex_enum(ViewMode);
 	};
 
-	struct ENGINE_EXPORT CameraProjectionMode {
+	struct trinex_api CameraProjectionMode {
 		enum Enum : EnumerateType
 		{
 			Perspective  = 0,

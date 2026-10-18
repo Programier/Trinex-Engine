@@ -54,7 +54,7 @@ namespace Trinex
 		                 overload_of<StringView::size_type(StringView, StringView::size_type)>(&StringView::find_last_of));
 	}
 
-	ENGINE_EXPORT void serialize(class Archive& ar, String& string)
+	trinex_api void serialize(class Archive& ar, String& string)
 	{
 		usize size = string.length();
 		ar(size);

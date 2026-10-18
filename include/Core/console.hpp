@@ -105,7 +105,7 @@ namespace Trinex::Console
 		ExecuteFlags flags = ExecuteFlags::Undefined;
 	};
 
-	class ENGINE_EXPORT Entry
+	class trinex_api Entry
 	{
 	protected:
 		class ArrayInterface
@@ -314,7 +314,7 @@ namespace Trinex::Console
 		inline EntryFlags flags() const { return m_flags; }
 	};
 
-	class ENGINE_EXPORT VariableEntry : public Entry
+	class trinex_api VariableEntry : public Entry
 	{
 	public:
 		using Entry::Entry;
@@ -387,7 +387,7 @@ namespace Trinex::Console
 		void* data() override { return &m_value; }
 	};
 
-	class ENGINE_EXPORT Command : public Entry
+	class trinex_api Command : public Entry
 	{
 	public:
 		using Callback = Delegate<ExecuteStatus(const ExecuteContext&)>;
@@ -445,10 +445,10 @@ namespace Trinex::Console
 	};
 
 
-	ENGINE_EXPORT Entry* find(StringView name);
-	ENGINE_EXPORT usize find(StringView name, const DelegateRef<void(Entry*)>& action);
-	ENGINE_EXPORT ExecuteStatus execute(StringView source, String* output = nullptr, ExecuteFlags flags = {});
-	ENGINE_EXPORT ExecuteStatus execute_config(const Path& path);
+	trinex_api Entry* find(StringView name);
+	trinex_api usize find(StringView name, const DelegateRef<void(Entry*)>& action);
+	trinex_api ExecuteStatus execute(StringView source, String* output = nullptr, ExecuteFlags flags = {});
+	trinex_api ExecuteStatus execute_config(const Path& path);
 
 #define trinex_console_variable(type, var, name, ...)                                                                            \
 	Trinex::Console::Variable<type> var = Trinex::Console::Variable<type>(name __VA_OPT__(, ) __VA_ARGS__)

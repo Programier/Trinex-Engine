@@ -9,7 +9,7 @@ namespace Trinex
 	class RHIStaticSamplerBase
 	{
 	protected:
-		static ENGINE_EXPORT void create(RHISampler*& sampler, RHISamplerFilter filter, RHISamplerAddressMode address_u,
+		static trinex_api void create(RHISampler*& sampler, RHISamplerFilter filter, RHISamplerAddressMode address_u,
 		                                 RHISamplerAddressMode address_v, RHISamplerAddressMode address_w, float mip_bias,
 		                                 float max_anisotropy, RHIBorderColor border_color, RHICompareFunc compare_func);
 	};

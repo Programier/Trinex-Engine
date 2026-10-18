@@ -17,7 +17,7 @@ namespace Trinex
 	class RHIContext;
 	class RHIBuffer;
 
-	class ENGINE_EXPORT RenderScene final
+	class trinex_api RenderScene final
 	{
 	public:
 		struct Geometry {

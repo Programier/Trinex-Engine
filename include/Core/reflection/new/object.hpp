@@ -4,7 +4,7 @@
 
 namespace Trinex::Refl::New
 {
-	class ENGINE_EXPORT Object : public RefCounted
+	class trinex_api Object : public RefCounted
 	{
 	private:
 		WeakRef<Object> m_owner;

@@ -5,7 +5,7 @@
 
 namespace Trinex
 {
-	class ENGINE_EXPORT BufferWriter
+	class trinex_api BufferWriter
 	{
 	public:
 		using Stream    = std::ostream;
@@ -31,7 +31,7 @@ namespace Trinex
 	};
 
 
-	class ENGINE_EXPORT BufferReader
+	class trinex_api BufferReader
 	{
 	public:
 		using ReadPos   = usize;
@@ -64,13 +64,13 @@ namespace Trinex
 	};
 
 
-	class ENGINE_EXPORT VectorWriterBase : public BufferWriter
+	class trinex_api VectorWriterBase : public BufferWriter
 	{
 	protected:
 		static void copy_data(u8* to, const u8* from, usize count);
 	};
 
-	class ENGINE_EXPORT VectorReaderBase : public BufferReader
+	class trinex_api VectorReaderBase : public BufferReader
 	{
 	protected:
 		static void copy_data(u8* to, const u8* from, usize count);

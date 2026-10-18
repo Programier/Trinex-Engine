@@ -4,7 +4,7 @@
 
 namespace Trinex
 {
-	class ENGINE_EXPORT Name
+	class trinex_api Name
 	{
 	public:
 		static const Name undefined;
@@ -43,7 +43,7 @@ namespace Trinex
 			}
 		};
 
-		static ENGINE_EXPORT Name none;
+		static trinex_api Name none;
 
 	private:
 		u32 m_id;

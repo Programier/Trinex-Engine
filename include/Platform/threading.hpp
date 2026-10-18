@@ -5,7 +5,7 @@
 
 namespace Trinex::Platform
 {
-	class ENGINE_EXPORT Thread : public RefCounted
+	class trinex_api Thread : public RefCounted
 	{
 	public:
 		virtual u64 id() const                  = 0;
@@ -16,7 +16,7 @@ namespace Trinex::Platform
 		virtual ThreadPriority priority() const = 0;
 	};
 
-	class ENGINE_EXPORT ThreadSystem
+	class trinex_api ThreadSystem
 	{
 	public:
 		static ThreadSystem* instance();

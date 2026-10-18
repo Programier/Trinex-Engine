@@ -17,39 +17,39 @@ namespace Trinex
 	{
 		namespace Textures
 		{
-			ENGINE_EXPORT extern Texture2D* white;
-			ENGINE_EXPORT extern Texture2D* black;
-			ENGINE_EXPORT extern Texture2D* gray;
-			ENGINE_EXPORT extern Texture2D* normal;
-			ENGINE_EXPORT extern Texture2D* default_texture;
-			ENGINE_EXPORT extern TextureCube* default_texture_cube;
-			ENGINE_EXPORT extern Texture2D* noise4x4;
-			ENGINE_EXPORT extern Texture2D* noise16x16;
-			ENGINE_EXPORT extern Texture2D* noise128x128;
-			ENGINE_EXPORT extern Texture3D* default_lut;
+			trinex_api extern Texture2D* white;
+			trinex_api extern Texture2D* black;
+			trinex_api extern Texture2D* gray;
+			trinex_api extern Texture2D* normal;
+			trinex_api extern Texture2D* default_texture;
+			trinex_api extern TextureCube* default_texture_cube;
+			trinex_api extern Texture2D* noise4x4;
+			trinex_api extern Texture2D* noise16x16;
+			trinex_api extern Texture2D* noise128x128;
+			trinex_api extern Texture3D* default_lut;
 		}// namespace Textures
 
 		namespace Buffers
 		{
-			ENGINE_EXPORT extern PositionVertexBuffer* screen_quad;
+			trinex_api extern PositionVertexBuffer* screen_quad;
 		}
 
 		namespace Materials
 		{
-			ENGINE_EXPORT extern Material* sprite;
-			ENGINE_EXPORT extern Material* base_pass;
+			trinex_api extern Material* sprite;
+			trinex_api extern Material* base_pass;
 		}// namespace Materials
 
 		namespace Meshes
 		{
-			ENGINE_EXPORT extern StaticMesh* cube;
-			ENGINE_EXPORT extern StaticMesh* sphere;
-			ENGINE_EXPORT extern StaticMesh* cylinder;
-			ENGINE_EXPORT extern StaticMesh* plane;
-			ENGINE_EXPORT extern StaticMesh* cone;
+			trinex_api extern StaticMesh* cube;
+			trinex_api extern StaticMesh* sphere;
+			trinex_api extern StaticMesh* cylinder;
+			trinex_api extern StaticMesh* plane;
+			trinex_api extern StaticMesh* cone;
 		}// namespace Meshes
 
 	}// namespace DefaultResources
 
-	ENGINE_EXPORT class Object* load_object_from_memory(const u8* data, usize size, const StringView& fullname);
+	trinex_api class Object* load_object_from_memory(const u8* data, usize size, const StringView& fullname);
 }// namespace Trinex

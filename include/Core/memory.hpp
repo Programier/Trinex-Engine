@@ -4,12 +4,12 @@
 
 namespace Trinex
 {
-	ENGINE_EXPORT void* memcpy_elements(void* dst, const void* src, usize element_size, usize element_count, usize dst_stride = 0,
+	trinex_api void* memcpy_elements(void* dst, const void* src, usize element_size, usize element_count, usize dst_stride = 0,
 	                                    usize src_stride = 0);
-	ENGINE_EXPORT void* memcpy_transform(void* dst, const void* src, usize element_count, usize dst_stride, usize src_stride,
+	trinex_api void* memcpy_transform(void* dst, const void* src, usize element_count, usize dst_stride, usize src_stride,
 	                                     void (*transform)(void* dst, const void* src));
-	ENGINE_EXPORT u128 memory_hash(const void* memory, const usize size, u128 seed = 0);
-	ENGINE_EXPORT const u8* memory_search(const u8* haystack, usize haystack_len, const u8* needle, usize needle_len);
+	trinex_api u128 memory_hash(const void* memory, const usize size, u128 seed = 0);
+	trinex_api const u8* memory_search(const u8* haystack, usize haystack_len, const u8* needle, usize needle_len);
 
 	inline constexpr usize align_memory(usize size, usize alignment)
 	{

@@ -3,7 +3,7 @@
 
 namespace Trinex::Platform
 {
-	class ENGINE_EXPORT SDLClipboard : public Clipboard
+	class trinex_api SDLClipboard : public Clipboard
 	{
 	private:
 		char** m_mime_types = nullptr;

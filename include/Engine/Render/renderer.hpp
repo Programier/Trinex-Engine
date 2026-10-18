@@ -21,7 +21,7 @@ namespace Trinex
 		class Pass;
 	}// namespace RenderGraph
 
-	class ENGINE_EXPORT Renderer
+	class trinex_api Renderer
 	{
 	public:
 		enum SurfaceType

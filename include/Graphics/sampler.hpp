@@ -7,7 +7,7 @@ namespace Trinex
 	struct RHISamplerDesc;
 	class RHISampler;
 
-	class ENGINE_EXPORT Sampler final
+	class trinex_api Sampler final
 	{
 		trinex_old_struct(Sampler, void);
 

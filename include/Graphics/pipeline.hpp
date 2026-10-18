@@ -13,7 +13,7 @@ namespace Trinex
 	class RHIPipeline;
 	class ShaderCompilationResult;
 
-	class ENGINE_EXPORT Pipeline : public Asset
+	class trinex_api Pipeline : public Asset
 	{
 		trinex_class(Pipeline, Asset);
 
@@ -42,7 +42,7 @@ namespace Trinex
 		inline RHIPipeline* handle() const { return m_pipeline; }
 	};
 
-	class ENGINE_EXPORT GraphicsPipeline : public Pipeline
+	class trinex_api GraphicsPipeline : public Pipeline
 	{
 		trinex_class(GraphicsPipeline, Pipeline);
 
@@ -82,7 +82,7 @@ namespace Trinex
 		bool serialize(class Archive& archive, Material* material = nullptr) override;
 	};
 
-	class ENGINE_EXPORT ComputePipeline : public Pipeline
+	class trinex_api ComputePipeline : public Pipeline
 	{
 		trinex_class(ComputePipeline, Pipeline);
 

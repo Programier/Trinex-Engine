@@ -7,7 +7,7 @@ struct SDL_Window;
 
 namespace Trinex::Platform
 {
-	class ENGINE_EXPORT SDLWindow final : public Window
+	class trinex_api SDLWindow final : public Window
 	{
 	private:
 		SDL_Window* m_window = nullptr;
@@ -54,7 +54,7 @@ namespace Trinex::Platform
 		void* native_handle() const override;
 	};
 
-	class ENGINE_EXPORT SDLWindowSystem : public WindowSystem
+	class trinex_api SDLWindowSystem : public WindowSystem
 	{
 	private:
 		FlatMap<u32, SDLWindow*> m_windows;

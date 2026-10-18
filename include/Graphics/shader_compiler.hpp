@@ -64,7 +64,7 @@ namespace Trinex
 		bool initialize_pipeline(class ComputePipeline* pipeline);
 	};
 
-	class ENGINE_EXPORT ShaderCompiler : public Object
+	class trinex_api ShaderCompiler : public Object
 	{
 		trinex_class(ShaderCompiler, Object);
 

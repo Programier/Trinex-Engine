@@ -1,5 +1,4 @@
 #pragma once
-#include <Core/export.hpp>
 #include <utility>
 
 namespace Trinex
@@ -26,14 +25,14 @@ namespace Trinex
 		}
 	};
 
-	struct ENGINE_EXPORT ByteAllocator : AllocatorBase {
+	struct trinex_api ByteAllocator : AllocatorBase {
 		static inline unsigned char* allocate(size_type size) { return allocate_aligned(size, 16); }
 		static unsigned char* allocate_aligned(size_type size, size_type align);
 		static void deallocate(unsigned char* ptr) noexcept;
 	};
 
-	struct ENGINE_EXPORT StackByteAllocator : AllocatorBase {
-		class ENGINE_EXPORT Mark final
+	struct trinex_api StackByteAllocator : AllocatorBase {
+		class trinex_api Mark final
 		{
 		private:
 			u128 m_location;
@@ -57,7 +56,7 @@ namespace Trinex
 		static void location(u128 value);
 	};
 
-	struct ENGINE_EXPORT FrameByteAllocator : AllocatorBase {
+	struct trinex_api FrameByteAllocator : AllocatorBase {
 		static inline unsigned char* allocate(size_type size) { return allocate_aligned(size, 16); }
 		static inline void deallocate(unsigned char*) noexcept {}
 		static unsigned char* allocate_aligned(size_type size, size_type align);

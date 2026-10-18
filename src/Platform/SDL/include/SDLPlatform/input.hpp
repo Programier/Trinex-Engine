@@ -26,7 +26,7 @@ namespace Trinex::Platform
 		void emit(InputEvent event);
 	};
 
-	class ENGINE_EXPORT SDLInputSystem : public InputSystem
+	class trinex_api SDLInputSystem : public InputSystem
 	{
 	private:
 		Vector<Ref<SDLInputDevice>> m_devices;

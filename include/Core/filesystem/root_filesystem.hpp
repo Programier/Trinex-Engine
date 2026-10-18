@@ -6,7 +6,7 @@
 
 namespace Trinex::VFS
 {
-	class ENGINE_EXPORT RootFS : public Singletone<RootFS, FileSystem>
+	class trinex_api RootFS : public Singletone<RootFS, FileSystem>
 	{
 	public:
 		struct Greater {
@@ -46,5 +46,5 @@ namespace Trinex::VFS
 
 namespace Trinex
 {
-	ENGINE_EXPORT VFS::RootFS* rootfs();
+	trinex_api VFS::RootFS* rootfs();
 }

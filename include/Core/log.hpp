@@ -2,7 +2,7 @@
 
 namespace Trinex::Log
 {
-	struct ENGINE_EXPORT Category {
+	struct trinex_api Category {
 		const char* name;
 		bool enabled;
 
@@ -26,7 +26,7 @@ namespace Trinex::Log
 		trinex_enum_struct(Level);
 	};
 
-	struct ENGINE_EXPORT Record {
+	struct trinex_api Record {
 		Category* category;
 		const char* file;
 		const char* func;
@@ -37,57 +37,57 @@ namespace Trinex::Log
 		Level level;
 	};
 
-	class ENGINE_EXPORT Listener
+	class trinex_api Listener
 	{
 	public:
 		virtual ~Listener()                                   = default;
 		virtual Listener& on_log_record(const Record& record) = 0;
 	};
 
-	ENGINE_EXPORT extern Category General;
-	ENGINE_EXPORT extern Category Core;
-	ENGINE_EXPORT extern Category Reflection;
-	ENGINE_EXPORT extern Category Platform;
-	ENGINE_EXPORT extern Category Engine;
-	ENGINE_EXPORT extern Category Graphics;
-	ENGINE_EXPORT extern Category FileSystem;
-	ENGINE_EXPORT extern Category Memory;
+	trinex_api extern Category General;
+	trinex_api extern Category Core;
+	trinex_api extern Category Reflection;
+	trinex_api extern Category Platform;
+	trinex_api extern Category Engine;
+	trinex_api extern Category Graphics;
+	trinex_api extern Category FileSystem;
+	trinex_api extern Category Memory;
 
-	ENGINE_EXPORT extern Category Assets;
-	ENGINE_EXPORT extern Category Renderer;
-	ENGINE_EXPORT extern Category RHI;
+	trinex_api extern Category Assets;
+	trinex_api extern Category Renderer;
+	trinex_api extern Category RHI;
 
-	ENGINE_EXPORT extern Category World;
-	ENGINE_EXPORT extern Category Actor;
-	ENGINE_EXPORT extern Category Physics;
-	ENGINE_EXPORT extern Category Audio;
-	ENGINE_EXPORT extern Category Input;
-	ENGINE_EXPORT extern Category Scripting;
-	ENGINE_EXPORT extern Category Editor;
+	trinex_api extern Category World;
+	trinex_api extern Category Actor;
+	trinex_api extern Category Physics;
+	trinex_api extern Category Audio;
+	trinex_api extern Category Input;
+	trinex_api extern Category Scripting;
+	trinex_api extern Category Editor;
 
-	ENGINE_EXPORT void debug(const char* file, u32 line, const char* func, const char* format, ...);
-	ENGINE_EXPORT void debug(const char* file, u32 line, const char* func, Category& category, const char* format, ...);
+	trinex_api void debug(const char* file, u32 line, const char* func, const char* format, ...);
+	trinex_api void debug(const char* file, u32 line, const char* func, Category& category, const char* format, ...);
 
-	ENGINE_EXPORT void info(const char* file, u32 line, const char* func, const char* format, ...);
-	ENGINE_EXPORT void info(const char* file, u32 line, const char* func, Category& category, const char* format, ...);
+	trinex_api void info(const char* file, u32 line, const char* func, const char* format, ...);
+	trinex_api void info(const char* file, u32 line, const char* func, Category& category, const char* format, ...);
 
-	ENGINE_EXPORT void warning(const char* file, u32 line, const char* func, const char* format, ...);
-	ENGINE_EXPORT void warning(const char* file, u32 line, const char* func, Category& category, const char* format, ...);
+	trinex_api void warning(const char* file, u32 line, const char* func, const char* format, ...);
+	trinex_api void warning(const char* file, u32 line, const char* func, Category& category, const char* format, ...);
 
-	ENGINE_EXPORT void error(const char* file, u32 line, const char* func, const char* format, ...);
-	ENGINE_EXPORT void error(const char* file, u32 line, const char* func, Category& category, const char* format, ...);
+	trinex_api void error(const char* file, u32 line, const char* func, const char* format, ...);
+	trinex_api void error(const char* file, u32 line, const char* func, Category& category, const char* format, ...);
 
-	ENGINE_EXPORT void critical(const char* file, u32 line, const char* func, const char* format, ...);
-	ENGINE_EXPORT void critical(const char* file, u32 line, const char* func, Category& category, const char* format, ...);
+	trinex_api void critical(const char* file, u32 line, const char* func, const char* format, ...);
+	trinex_api void critical(const char* file, u32 line, const char* func, Category& category, const char* format, ...);
 
-	ENGINE_EXPORT void enabled(bool enabled);
-	ENGINE_EXPORT bool enabled();
+	trinex_api void enabled(bool enabled);
+	trinex_api bool enabled();
 
-	ENGINE_EXPORT void minimum_level(Level level);
-	ENGINE_EXPORT Level minimum_level();
+	trinex_api void minimum_level(Level level);
+	trinex_api Level minimum_level();
 
-	ENGINE_EXPORT void add_listener(Listener* listener);
-	ENGINE_EXPORT void remove_listener(Listener* listener);
+	trinex_api void add_listener(Listener* listener);
+	trinex_api void remove_listener(Listener* listener);
 }// namespace Trinex::Log
 
 #if TRINEX_DEBUG_BUILD

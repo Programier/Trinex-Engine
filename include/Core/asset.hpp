@@ -5,7 +5,7 @@
 
 namespace Trinex
 {
-	class ENGINE_EXPORT Asset : public Object
+	class trinex_api Asset : public Object
 	{
 		trinex_class(Asset, Object);
 

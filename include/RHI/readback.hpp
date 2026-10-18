@@ -5,7 +5,7 @@ namespace Trinex
 	class RHIContext;
 	class RHIBuffer;
 
-	struct ENGINE_EXPORT RHIReadBackAllocation {
+	struct trinex_api RHIReadBackAllocation {
 		RHIBuffer* buffer = nullptr;
 		u8* data          = nullptr;
 		usize offset      = 0;
@@ -14,7 +14,7 @@ namespace Trinex
 		inline explicit operator bool() const { return buffer != nullptr && data != nullptr && size > 0; }
 	};
 
-	struct ENGINE_EXPORT RHIReadBackAllocatorStats {
+	struct trinex_api RHIReadBackAllocatorStats {
 		usize total_pages           = 0;
 		usize free_pages            = 0;
 		usize used_pages            = 0;
@@ -26,7 +26,7 @@ namespace Trinex
 		usize current_page_capacity = 0;
 	};
 
-	class ENGINE_EXPORT RHIReadBackAllocator final
+	class trinex_api RHIReadBackAllocator final
 	{
 	public:
 		static RHIReadBackAllocation allocate(RHIContext* context, usize size, usize alignment = 16);

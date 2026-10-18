@@ -28,7 +28,7 @@ namespace Trinex
 
 	namespace Pipelines
 	{
-		class ENGINE_EXPORT GaussianBlur : public GlobalPipelineLibrary
+		class trinex_api GaussianBlur : public GlobalPipelineLibrary
 		{
 			trinex_declare_pipeline(GaussianBlur, GlobalPipelineLibrary);
 
@@ -41,7 +41,7 @@ namespace Trinex
 			                 Vector2f size = {1.f, 1.f});
 		};
 
-		class ENGINE_EXPORT NoiseApplication : public GlobalPipelineLibrary
+		class trinex_api NoiseApplication : public GlobalPipelineLibrary
 		{
 			trinex_declare_pipeline(NoiseApplication, GlobalPipelineLibrary);
 
@@ -59,7 +59,7 @@ namespace Trinex
 			}
 		};
 
-		class ENGINE_EXPORT Blit2D : public GlobalPipelineLibrary
+		class trinex_api Blit2D : public GlobalPipelineLibrary
 		{
 			trinex_declare_pipeline(Blit2D, GlobalPipelineLibrary);
 
@@ -71,7 +71,7 @@ namespace Trinex
 			                 Swizzle swizzle = {}, RHISampler* sampler = nullptr);
 		};
 
-		class ENGINE_EXPORT Passthrow : public GlobalPipelineLibrary
+		class trinex_api Passthrow : public GlobalPipelineLibrary
 		{
 			trinex_declare_pipeline(Passthrow, GlobalPipelineLibrary);
 
@@ -92,7 +92,7 @@ namespace Trinex
 			static void passthrow(RHIContext* ctx, RHIShaderResourceView* src, const Args& args);
 		};
 
-		class ENGINE_EXPORT Downsample : public GlobalPipelineLibrary
+		class trinex_api Downsample : public GlobalPipelineLibrary
 		{
 			trinex_declare_pipeline(Downsample, GlobalPipelineLibrary);
 
@@ -104,7 +104,7 @@ namespace Trinex
 			                Vector2f size = {1.f, 1.f});
 		};
 
-		class ENGINE_EXPORT BloomExtract : public GlobalPipelineLibrary
+		class trinex_api BloomExtract : public GlobalPipelineLibrary
 		{
 			trinex_declare_pipeline(BloomExtract, GlobalPipelineLibrary);
 
@@ -116,7 +116,7 @@ namespace Trinex
 			             Vector2f offset = {0.f, 0.f}, Vector2f size = {1.f, 1.f});
 		};
 
-		class ENGINE_EXPORT BloomDownsample : public GlobalPipelineLibrary
+		class trinex_api BloomDownsample : public GlobalPipelineLibrary
 		{
 			trinex_declare_pipeline(BloomDownsample, GlobalPipelineLibrary);
 
@@ -127,7 +127,7 @@ namespace Trinex
 			void downsample(RHIContext* ctx, RHIShaderResourceView* src);
 		};
 
-		class ENGINE_EXPORT BloomUpsample : public GlobalPipelineLibrary
+		class trinex_api BloomUpsample : public GlobalPipelineLibrary
 		{
 			trinex_declare_pipeline(BloomUpsample, GlobalPipelineLibrary);
 
@@ -140,7 +140,7 @@ namespace Trinex
 		};
 
 
-		class ENGINE_EXPORT BatchedLines : public GlobalPipelineLibrary
+		class trinex_api BatchedLines : public GlobalPipelineLibrary
 		{
 			trinex_declare_pipeline(BatchedLines, GlobalPipelineLibrary);
 
@@ -153,12 +153,12 @@ namespace Trinex
 			inline const RHIShaderParameterInfo* viewport() const { return m_viewport; }
 		};
 
-		class ENGINE_EXPORT BatchedTriangles : public GlobalPipelineLibrary
+		class trinex_api BatchedTriangles : public GlobalPipelineLibrary
 		{
 			trinex_declare_pipeline(BatchedTriangles, GlobalPipelineLibrary);
 		};
 
-		class ENGINE_EXPORT DeferredLighting : public GlobalPipelineLibrary
+		class trinex_api DeferredLighting : public GlobalPipelineLibrary
 		{
 			trinex_declare_pipeline(DeferredLighting, GlobalPipelineLibrary);
 
@@ -178,7 +178,7 @@ namespace Trinex
 			const RHIShaderParameterInfo* shadows  = nullptr;
 		};
 
-		class ENGINE_EXPORT AmbientLight : public GlobalPipelineLibrary
+		class trinex_api AmbientLight : public GlobalPipelineLibrary
 		{
 			trinex_declare_pipeline(AmbientLight, GlobalPipelineLibrary);
 

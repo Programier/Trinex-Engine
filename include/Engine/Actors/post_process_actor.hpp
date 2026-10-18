@@ -5,7 +5,7 @@ namespace Trinex
 {
 	class PostProcessComponent;
 
-	class ENGINE_EXPORT PostProcessActor : public Actor
+	class trinex_api PostProcessActor : public Actor
 	{
 		trinex_class(PostProcessActor, Actor);
 

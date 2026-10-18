@@ -3,7 +3,7 @@
 
 namespace Trinex
 {
-	struct ENGINE_EXPORT Frustum {
+	struct trinex_api Frustum {
 		Plane left;
 		Plane right;
 		Plane top;

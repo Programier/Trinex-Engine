@@ -3,7 +3,7 @@
 
 namespace Trinex
 {
-	struct ENGINE_EXPORT Project {
+	struct trinex_api Project {
 		static String name;
 		static String version;
 

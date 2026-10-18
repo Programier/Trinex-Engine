@@ -2,7 +2,7 @@
 
 namespace Trinex::Platform
 {
-	class ENGINE_EXPORT LinuxMemory final : public Memory
+	class trinex_api LinuxMemory final : public Memory
 	{
 	private:
 		LinuxMemory();

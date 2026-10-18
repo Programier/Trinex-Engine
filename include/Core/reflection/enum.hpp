@@ -5,7 +5,7 @@
 
 namespace Trinex::Refl
 {
-	class ENGINE_EXPORT Enum : public Object
+	class trinex_api Enum : public Object
 	{
 		trinex_reflect_type(Enum, Object);
 

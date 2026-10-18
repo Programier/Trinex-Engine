@@ -33,7 +33,7 @@ public:                                                                         
 		return Trinex::RHIShaderParameterType::self;                                                                             \
 	}
 
-		class ENGINE_EXPORT Parameter : public Object
+		class trinex_api Parameter : public Object
 		{
 			trinex_class(Parameter, Object);
 
@@ -51,7 +51,7 @@ public:                                                                         
 			friend class Trinex::MaterialInterface;
 		};
 
-		class ENGINE_EXPORT PrimitiveBase : public Parameter
+		class trinex_api PrimitiveBase : public Parameter
 		{
 		protected:
 			PrimitiveBase& update(const PrimitiveRenderingContext* ctx, const void* data, usize size,
@@ -82,87 +82,87 @@ public:                                                                         
 			}
 		};
 
-		class ENGINE_EXPORT Bool : public Primitive<bool>
+		class trinex_api Bool : public Primitive<bool>
 		{
 			trinex_material_parameter(Bool, Parameter);
 		};
 
-		class ENGINE_EXPORT Int : public Primitive<i32>
+		class trinex_api Int : public Primitive<i32>
 		{
 			trinex_material_parameter(Int, Parameter);
 		};
 
-		class ENGINE_EXPORT UInt : public Primitive<u32>
+		class trinex_api UInt : public Primitive<u32>
 		{
 			trinex_material_parameter(UInt, Parameter);
 		};
 
-		class ENGINE_EXPORT Float : public Primitive<float>
+		class trinex_api Float : public Primitive<float>
 		{
 			trinex_material_parameter(Float, Parameter);
 		};
 
-		class ENGINE_EXPORT Bool2 : public Primitive<Vector2b>
+		class trinex_api Bool2 : public Primitive<Vector2b>
 		{
 			trinex_material_parameter(Bool2, Parameter);
 		};
 
-		class ENGINE_EXPORT Bool3 : public Primitive<Vector3b>
+		class trinex_api Bool3 : public Primitive<Vector3b>
 		{
 			trinex_material_parameter(Bool3, Parameter);
 		};
 
-		class ENGINE_EXPORT Bool4 : public Primitive<Vector4b>
+		class trinex_api Bool4 : public Primitive<Vector4b>
 		{
 			trinex_material_parameter(Bool4, Parameter);
 		};
 
-		class ENGINE_EXPORT Int2 : public Primitive<Vector2i>
+		class trinex_api Int2 : public Primitive<Vector2i>
 		{
 			trinex_material_parameter(Int2, Parameter);
 		};
 
-		class ENGINE_EXPORT Int3 : public Primitive<Vector3i>
+		class trinex_api Int3 : public Primitive<Vector3i>
 		{
 			trinex_material_parameter(Int3, Parameter);
 		};
 
-		class ENGINE_EXPORT Int4 : public Primitive<Vector4i>
+		class trinex_api Int4 : public Primitive<Vector4i>
 		{
 			trinex_material_parameter(Int4, Parameter);
 		};
 
-		class ENGINE_EXPORT UInt2 : public Primitive<Vector2u>
+		class trinex_api UInt2 : public Primitive<Vector2u>
 		{
 			trinex_material_parameter(UInt2, Parameter);
 		};
 
-		class ENGINE_EXPORT UInt3 : public Primitive<Vector3u>
+		class trinex_api UInt3 : public Primitive<Vector3u>
 		{
 			trinex_material_parameter(UInt3, Parameter);
 		};
 
-		class ENGINE_EXPORT UInt4 : public Primitive<Vector4u>
+		class trinex_api UInt4 : public Primitive<Vector4u>
 		{
 			trinex_material_parameter(UInt4, Parameter);
 		};
 
-		class ENGINE_EXPORT Float2 : public Primitive<Vector2f>
+		class trinex_api Float2 : public Primitive<Vector2f>
 		{
 			trinex_material_parameter(Float2, Parameter);
 		};
 
-		class ENGINE_EXPORT Float3 : public Primitive<Vector3f>
+		class trinex_api Float3 : public Primitive<Vector3f>
 		{
 			trinex_material_parameter(Float3, Parameter);
 		};
 
-		class ENGINE_EXPORT Float4 : public Primitive<Vector4f>
+		class trinex_api Float4 : public Primitive<Vector4f>
 		{
 			trinex_material_parameter(Float4, Parameter);
 		};
 
-		class ENGINE_EXPORT Float3x3 : public Primitive<Matrix3f>
+		class trinex_api Float3x3 : public Primitive<Matrix3f>
 		{
 			trinex_material_parameter(Float3x3, Parameter);
 
@@ -170,7 +170,7 @@ public:                                                                         
 			Float3x3() : Primitive<Matrix3f>(Matrix3f(1.f)) {}
 		};
 
-		class ENGINE_EXPORT Float4x4 : public Primitive<Matrix4f>
+		class trinex_api Float4x4 : public Primitive<Matrix4f>
 		{
 			trinex_material_parameter(Float4x4, Parameter);
 
@@ -179,7 +179,7 @@ public:                                                                         
 			Float4x4& apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info) override;
 		};
 
-		class ENGINE_EXPORT LocalToWorld : public Parameter
+		class trinex_api LocalToWorld : public Parameter
 		{
 			trinex_material_parameter(LocalToWorld, Parameter);
 
@@ -187,7 +187,7 @@ public:                                                                         
 			LocalToWorld& apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info) override;
 		};
 
-		class ENGINE_EXPORT Sampler : public Parameter
+		class trinex_api Sampler : public Parameter
 		{
 			trinex_material_parameter(Sampler, Parameter);
 
@@ -199,7 +199,7 @@ public:                                                                         
 			bool serialize(Archive& ar) override;
 		};
 
-		class ENGINE_EXPORT Sampler2D : public Parameter
+		class trinex_api Sampler2D : public Parameter
 		{
 			trinex_material_parameter(Sampler2D, Parameter);
 
@@ -212,7 +212,7 @@ public:                                                                         
 			bool serialize(Archive& ar) override;
 		};
 
-		class ENGINE_EXPORT Texture2D : public Parameter
+		class trinex_api Texture2D : public Parameter
 		{
 			trinex_material_parameter(Texture2D, Parameter);
 
@@ -224,7 +224,7 @@ public:                                                                         
 			bool serialize(Archive& ar) override;
 		};
 
-		class ENGINE_EXPORT Globals : public Parameter
+		class trinex_api Globals : public Parameter
 		{
 			trinex_material_parameter(Globals, Parameter);
 
@@ -232,7 +232,7 @@ public:                                                                         
 			Globals& apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info) override;
 		};
 
-		class ENGINE_EXPORT Surface : public Parameter
+		class trinex_api Surface : public Parameter
 		{
 			trinex_material_parameter(Surface, Parameter);
 
@@ -244,7 +244,7 @@ public:                                                                         
 			bool serialize(Archive& ar) override;
 		};
 
-		class ENGINE_EXPORT CombinedSurface : public Parameter
+		class trinex_api CombinedSurface : public Parameter
 		{
 			trinex_material_parameter(CombinedSurface, Parameter);
 

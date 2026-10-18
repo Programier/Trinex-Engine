@@ -4,7 +4,7 @@
 
 namespace Trinex
 {
-	class ENGINE_EXPORT Stream : public RefCounted
+	class trinex_api Stream : public RefCounted
 	{
 	public:
 		virtual ~Stream() = default;
@@ -33,7 +33,7 @@ namespace Trinex
 		}
 	};
 
-	class ENGINE_EXPORT BlobStream : public Stream
+	class trinex_api BlobStream : public Stream
 	{
 	private:
 		usize m_offset = 0;

@@ -4,10 +4,10 @@ namespace Trinex::Asserts
 {
 	using AssertHandler = void (*)(const char* condition, const char* file, int line, const char* function, const char* message);
 
-	ENGINE_EXPORT void assert_handler(AssertHandler handler);
-	[[noreturn]] ENGINE_EXPORT void report_failure(const char* condition, const char* file, int line, const char* function,
+	trinex_api void assert_handler(AssertHandler handler);
+	[[noreturn]] trinex_api void report_failure(const char* condition, const char* file, int line, const char* function,
 	                                               const char* message = nullptr);
-	[[noreturn]] ENGINE_EXPORT void report_failure_fmt(const char* condition, const char* file, int line, const char* function,
+	[[noreturn]] trinex_api void report_failure_fmt(const char* condition, const char* file, int line, const char* function,
 	                                                   const char* format = nullptr, ...);
 }// namespace Trinex::Asserts
 

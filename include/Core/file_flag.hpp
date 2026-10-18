@@ -4,7 +4,7 @@
 
 namespace Trinex
 {
-	struct ENGINE_EXPORT FileFlag final {
+	struct trinex_api FileFlag final {
 		union
 		{
 			usize data[2];

@@ -13,7 +13,7 @@ namespace Trinex
 
 	namespace Refl
 	{
-		class ENGINE_EXPORT Class : public Struct
+		class trinex_api Class : public Struct
 		{
 			trinex_reflect_type(Class, Struct);
 

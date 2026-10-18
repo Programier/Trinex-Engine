@@ -5,7 +5,7 @@ struct SDL_SharedObject;
 
 namespace Trinex::Platform
 {
-	class ENGINE_EXPORT SDLLibrary : public Library
+	class trinex_api SDLLibrary : public Library
 	{
 	private:
 		SDL_SharedObject* m_handle = nullptr;
@@ -17,7 +17,7 @@ namespace Trinex::Platform
 		LibrarySymbol find(const char* name) override;
 	};
 
-	class ENGINE_EXPORT SDLLibraryLoader : public LibraryLoader
+	class trinex_api SDLLibraryLoader : public LibraryLoader
 	{
 	public:
 		static SDLLibraryLoader* instance();

@@ -7,7 +7,7 @@ namespace Trinex
 	struct MeshVertexAttribute;
 	class MaterialInterface;
 
-	class ENGINE_EXPORT MeshComponent : public PrimitiveComponent
+	class trinex_api MeshComponent : public PrimitiveComponent
 	{
 		trinex_class(MeshComponent, PrimitiveComponent);
 

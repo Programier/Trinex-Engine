@@ -9,7 +9,7 @@ namespace Trinex
 
 namespace Trinex::Platform
 {
-	class ENGINE_EXPORT InputSystem
+	class trinex_api InputSystem
 	{
 	public:
 		static InputSystem* instance();

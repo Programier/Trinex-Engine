@@ -12,7 +12,7 @@ namespace Trinex
 	class ScriptEngine;
 	class ScriptObject;
 
-	class ENGINE_EXPORT ScriptFunction
+	class trinex_api ScriptFunction
 	{
 	public:
 		enum Type

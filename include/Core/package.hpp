@@ -6,7 +6,7 @@
 namespace Trinex
 {
 
-	class ENGINE_EXPORT Package : public ObjectTreeNode<Object, Object>
+	class trinex_api Package : public ObjectTreeNode<Object, Object>
 	{
 		trinex_class(Package, Object);
 

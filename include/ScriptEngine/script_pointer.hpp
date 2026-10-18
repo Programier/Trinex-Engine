@@ -5,7 +5,7 @@ class asITypeInfo;
 
 namespace Trinex
 {
-	class ENGINE_EXPORT ScriptPointer
+	class trinex_api ScriptPointer
 	{
 	private:
 		void* m_address = nullptr;

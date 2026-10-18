@@ -9,7 +9,7 @@ namespace Trinex
 	class Stream;
 	class Object;
 
-	class ENGINE_EXPORT Archive
+	class trinex_api Archive
 	{
 	private:
 		Ref<Stream> m_stream;

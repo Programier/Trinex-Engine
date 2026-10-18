@@ -3,7 +3,7 @@
 
 namespace Trinex::Platform
 {
-	class ENGINE_EXPORT LinuxSystem final : public System
+	class trinex_api LinuxSystem final : public System
 	{
 	private:
 		LinuxSystem();

@@ -59,7 +59,7 @@ private:
 		struct PropertyImpl;
 	}// namespace Detail
 
-	class ENGINE_EXPORT Property : public Object
+	class trinex_api Property : public Object
 	{
 		trinex_reflect_type(Property, Object);
 
@@ -188,7 +188,7 @@ private:
 		bool single_field    = false;
 	};
 
-	class ENGINE_EXPORT PropertyRenderer
+	class trinex_api PropertyRenderer
 	{
 	public:
 		virtual String label(Property& property, const void* context)                                                  = 0;
@@ -205,7 +205,7 @@ private:
 		virtual ~PropertyRenderer()                                                                                    = default;
 	};
 
-	class ENGINE_EXPORT RedirectorProperty : public Property
+	class trinex_api RedirectorProperty : public Property
 	{
 		trinex_reflect_type(RedirectorProperty, Property);
 
@@ -223,7 +223,7 @@ private:
 		bool serialize(void* object, Archive& ar) override;
 	};
 
-	class ENGINE_EXPORT PrimitiveProperty : public Property
+	class trinex_api PrimitiveProperty : public Property
 	{
 		trinex_reflect_type(PrimitiveProperty, Property);
 
@@ -232,7 +232,7 @@ private:
 		bool serialize(void* object, Archive& ar) override;
 	};
 
-	class ENGINE_EXPORT BooleanProperty : public PrimitiveProperty
+	class trinex_api BooleanProperty : public PrimitiveProperty
 	{
 		trinex_reflect_type(BooleanProperty, PrimitiveProperty);
 		trinex_refl_prop_type_filter(std::is_same_v<T, bool>);
@@ -243,7 +243,7 @@ private:
 		usize alignment() const override;
 	};
 
-	class ENGINE_EXPORT IntegerProperty : public PrimitiveProperty
+	class trinex_api IntegerProperty : public PrimitiveProperty
 	{
 		trinex_reflect_type(IntegerProperty, PrimitiveProperty);
 		trinex_refl_prop_type_filter(!std::is_same_v<T, bool> && std::is_integral_v<T> && !std::is_enum_v<T>);
@@ -254,7 +254,7 @@ private:
 		virtual bool is_signed() const = 0;
 	};
 
-	class ENGINE_EXPORT FloatProperty : public PrimitiveProperty
+	class trinex_api FloatProperty : public PrimitiveProperty
 	{
 		trinex_reflect_type(FloatProperty, PrimitiveProperty);
 		trinex_refl_prop_type_filter(std::is_floating_point_v<T>);
@@ -263,7 +263,7 @@ private:
 		using PrimitiveProperty::PrimitiveProperty;
 	};
 
-	class ENGINE_EXPORT AngleProperty : public PrimitiveProperty
+	class trinex_api AngleProperty : public PrimitiveProperty
 	{
 		trinex_reflect_type(AngleProperty, PrimitiveProperty);
 		trinex_refl_prop_type_filter(std::is_same_v<T, Angle>);
@@ -272,7 +272,7 @@ private:
 		using PrimitiveProperty::PrimitiveProperty;
 	};
 
-	class ENGINE_EXPORT VectorProperty : public PrimitiveProperty
+	class trinex_api VectorProperty : public PrimitiveProperty
 	{
 		trinex_reflect_type(VectorProperty, PrimitiveProperty);
 
@@ -314,7 +314,7 @@ private:
 		}
 	};
 
-	class ENGINE_EXPORT MatrixProperty : public PrimitiveProperty
+	class trinex_api MatrixProperty : public PrimitiveProperty
 	{
 		trinex_reflect_type(MatrixProperty, PrimitiveProperty);
 
@@ -357,7 +357,7 @@ private:
 		}
 	};
 
-	class ENGINE_EXPORT QuaternionProperty : public PrimitiveProperty
+	class trinex_api QuaternionProperty : public PrimitiveProperty
 	{
 		trinex_reflect_type(QuaternionProperty, PrimitiveProperty);
 
@@ -368,7 +368,7 @@ private:
 		using PrimitiveProperty::PrimitiveProperty;
 	};
 
-	class ENGINE_EXPORT EnumProperty : public PrimitiveProperty
+	class trinex_api EnumProperty : public PrimitiveProperty
 	{
 		trinex_reflect_type(EnumProperty, PrimitiveProperty);
 
@@ -385,7 +385,7 @@ private:
 		EnumProperty& value(void* context, EnumerateType value);
 	};
 
-	class ENGINE_EXPORT ColorProperty : public PrimitiveProperty
+	class trinex_api ColorProperty : public PrimitiveProperty
 	{
 		trinex_refl_prop_type_filter(std::is_same_v<T, Trinex::Color>);
 		trinex_reflect_type(ColorProperty, PrimitiveProperty);
@@ -394,7 +394,7 @@ private:
 		using PrimitiveProperty::PrimitiveProperty;
 	};
 
-	class ENGINE_EXPORT LinearColorProperty : public PrimitiveProperty
+	class trinex_api LinearColorProperty : public PrimitiveProperty
 	{
 		trinex_refl_prop_type_filter(std::is_same_v<T, Trinex::LinearColor>);
 		trinex_reflect_type(LinearColorProperty, PrimitiveProperty);
@@ -403,7 +403,7 @@ private:
 		using PrimitiveProperty::PrimitiveProperty;
 	};
 
-	class ENGINE_EXPORT StringProperty : public Property
+	class trinex_api StringProperty : public Property
 	{
 		trinex_reflect_type(StringProperty, Property);
 		trinex_refl_prop_type_filter(std::is_same_v<String, T>);
@@ -416,7 +416,7 @@ private:
 		usize alignment() const override;
 	};
 
-	class ENGINE_EXPORT NameProperty : public Property
+	class trinex_api NameProperty : public Property
 	{
 		trinex_reflect_type(NameProperty, Property);
 		trinex_refl_prop_type_filter(std::is_same_v<Name, T>);
@@ -427,7 +427,7 @@ private:
 		bool serialize(void* object, Archive& ar) override;
 	};
 
-	class ENGINE_EXPORT PathProperty : public Property
+	class trinex_api PathProperty : public Property
 	{
 		trinex_reflect_type(PathProperty, Property);
 		trinex_refl_prop_type_filter(std::is_same_v<Path, T>);
@@ -438,7 +438,7 @@ private:
 		bool serialize(void* object, Archive& ar) override;
 	};
 
-	class ENGINE_EXPORT ObjectProperty : public Property
+	class trinex_api ObjectProperty : public Property
 	{
 		trinex_reflect_type(ObjectProperty, Property);
 		trinex_refl_prop_type_filter(std::is_pointer_v<T>&& std::is_base_of_v<Trinex::Object, std::remove_pointer_t<T>>);
@@ -462,7 +462,7 @@ private:
 		virtual Class* class_instance() const = 0;
 	};
 
-	class ENGINE_EXPORT StructProperty : public Property
+	class trinex_api StructProperty : public Property
 	{
 		trinex_reflect_type(StructProperty, Property);
 
@@ -479,7 +479,7 @@ private:
 		virtual Struct* struct_instance() const = 0;
 	};
 
-	class ENGINE_EXPORT ArrayProperty : public Property
+	class trinex_api ArrayProperty : public Property
 	{
 		trinex_reflect_type(ArrayProperty, Property);
 
@@ -538,7 +538,7 @@ private:
 		}
 	};
 
-	class ENGINE_EXPORT ReflObjectProperty : public Property
+	class trinex_api ReflObjectProperty : public Property
 	{
 		trinex_reflect_type(ReflObjectProperty, Property);
 		trinex_refl_prop_type_filter(std::is_pointer_v<T>&& std::is_base_of_v<Trinex::Refl::Object, std::remove_pointer_t<T>>);
@@ -557,7 +557,7 @@ private:
 		virtual Refl::ClassInfo* info() const = 0;
 	};
 
-	class ENGINE_EXPORT SubClassProperty : public ReflObjectProperty
+	class trinex_api SubClassProperty : public ReflObjectProperty
 	{
 		trinex_reflect_type(SubClassProperty, ReflObjectProperty);
 
@@ -584,7 +584,7 @@ private:
 		virtual Refl::Class* base_class() const = 0;
 	};
 
-	class ENGINE_EXPORT FlagsProperty : public Property
+	class trinex_api FlagsProperty : public Property
 	{
 		trinex_reflect_type(FlagsProperty, Property);
 
@@ -599,7 +599,7 @@ private:
 		bool serialize(void* object, Archive& ar) override;
 	};
 
-	class ENGINE_EXPORT VirtualProperty : public Property
+	class trinex_api VirtualProperty : public Property
 	{
 		trinex_reflect_type(VirtualProperty, Property);
 

@@ -63,16 +63,16 @@ namespace Trinex::Math
 	using glm::transpose;
 	using glm::trunc;
 
-	ENGINE_EXPORT Plane normalize(const Plane& plane);
-	ENGINE_EXPORT float distance(const Plane& plane, const Vector3f& point);
-	ENGINE_EXPORT float distance(const Plane& plane, const Box3f& box);
+	trinex_api Plane normalize(const Plane& plane);
+	trinex_api float distance(const Plane& plane, const Vector3f& point);
+	trinex_api float distance(const Plane& plane, const Box3f& box);
 
-	ENGINE_EXPORT Plane left_plane(const Matrix4f& projview);
-	ENGINE_EXPORT Plane right_plane(const Matrix4f& projview);
-	ENGINE_EXPORT Plane top_plane(const Matrix4f& projview);
-	ENGINE_EXPORT Plane bottom_plane(const Matrix4f& projview);
-	ENGINE_EXPORT Plane near_plane(const Matrix4f& projview);
-	ENGINE_EXPORT Plane far_plane(const Matrix4f& projview);
+	trinex_api Plane left_plane(const Matrix4f& projview);
+	trinex_api Plane right_plane(const Matrix4f& projview);
+	trinex_api Plane top_plane(const Matrix4f& projview);
+	trinex_api Plane bottom_plane(const Matrix4f& projview);
+	trinex_api Plane near_plane(const Matrix4f& projview);
+	trinex_api Plane far_plane(const Matrix4f& projview);
 
 	inline Matrix4f ortho(float left, float right, float bottom, float top, float near, float far)
 	{

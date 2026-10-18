@@ -1,10 +1,9 @@
 #pragma once
-#include <Core/export.hpp>
 
 namespace Trinex
 {
 
-	class ENGINE_EXPORT RHIResourcePtrBase
+	class trinex_api RHIResourcePtrBase
 	{
 	protected:
 		static void release(void* object);

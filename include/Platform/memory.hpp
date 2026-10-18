@@ -13,7 +13,7 @@ namespace Trinex::Platform
 		u64 process_virtual    = 0;
 	};
 
-	class ENGINE_EXPORT Memory
+	class trinex_api Memory
 	{
 	public:
 		static Memory* instance();

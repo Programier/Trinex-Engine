@@ -10,13 +10,12 @@ namespace Trinex::Asserts
 		AssertHandler g_assert_handler = nullptr;
 	}// namespace
 
-	ENGINE_EXPORT void assert_handler(AssertHandler handler)
+	trinex_api void assert_handler(AssertHandler handler)
 	{
 		g_assert_handler = handler;
 	}
 
-	ENGINE_EXPORT void report_failure(const char* condition, const char* file, int line, const char* function,
-	                                  const char* message)
+	trinex_api void report_failure(const char* condition, const char* file, int line, const char* function, const char* message)
 	{
 		std::fprintf(stderr,
 		             "\n"
@@ -51,8 +50,8 @@ namespace Trinex::Asserts
 		std::abort();
 	}
 
-	ENGINE_EXPORT void report_failure_fmt(const char* condition, const char* file, int line, const char* function,
-	                                      const char* format, ...)
+	trinex_api void report_failure_fmt(const char* condition, const char* file, int line, const char* function,
+	                                   const char* format, ...)
 	{
 		if (format == nullptr)
 		{

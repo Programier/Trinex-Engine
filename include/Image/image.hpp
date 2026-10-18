@@ -10,7 +10,7 @@ namespace Trinex
 	class Path;
 	struct RHIColorFormat;
 
-	class ENGINE_EXPORT Image
+	class trinex_api Image
 	{
 	private:
 		Buffer m_data;

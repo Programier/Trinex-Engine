@@ -16,7 +16,7 @@ namespace Trinex
 	class RHITexture;
 	struct Color;
 
-	class ENGINE_EXPORT RenderViewport : public Object
+	class trinex_api RenderViewport : public Object
 	{
 		trinex_class(RenderViewport, Object);
 

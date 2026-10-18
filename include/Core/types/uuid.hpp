@@ -5,7 +5,7 @@ namespace Trinex
 {
 	class Archive;
 
-	class ENGINE_EXPORT UUID final
+	class trinex_api UUID final
 	{
 	public:
 		static inline constexpr usize byte_count = 16;

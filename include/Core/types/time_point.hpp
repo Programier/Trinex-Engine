@@ -5,7 +5,7 @@ namespace Trinex
 {
 	class Archive;
 
-	class ENGINE_EXPORT TimePoint final
+	class trinex_api TimePoint final
 	{
 	public:
 		static inline constexpr u64 invalid_value = ~static_cast<u64>(0);

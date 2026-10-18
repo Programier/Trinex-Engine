@@ -5,7 +5,7 @@ namespace Trinex
 {
 	class Thread;
 
-	class ENGINE_EXPORT Tickable : public Registry<Tickable>
+	class trinex_api Tickable : public Registry<Tickable>
 	{
 		trinex_registry(Tickable);
 
@@ -20,7 +20,7 @@ namespace Trinex
 		virtual bool is_tickable() const;
 	};
 
-	class ENGINE_EXPORT ThreadLocalTickable : public Registry<ThreadLocalTickable>
+	class trinex_api ThreadLocalTickable : public Registry<ThreadLocalTickable>
 	{
 		trinex_registry(ThreadLocalTickable);
 
@@ -28,7 +28,7 @@ namespace Trinex
 		Thread* m_thread = nullptr;
 
 	public:
-		class ENGINE_EXPORT CriticalSection final
+		class trinex_api CriticalSection final
 		{
 		public:
 			CriticalSection();

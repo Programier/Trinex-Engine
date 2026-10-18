@@ -25,7 +25,7 @@ namespace Trinex::LifeCycle
 		std::initializer_list<const char*> after = {};
 	};
 
-	class ENGINE_EXPORT Registrar
+	class trinex_api Registrar
 	{
 	public:
 		Registrar(i32 stage, Function function, const Description& description = {});
@@ -66,7 +66,7 @@ namespace Trinex::LifeCycle
 		return Registrar(PostShutdown, function, description);
 	}
 
-	ENGINE_EXPORT void execute(i32 stage);
+	trinex_api void execute(i32 stage);
 }// namespace Trinex::LifeCycle
 
 #define trinex_lifecycle_handler(stage_id, ...)                                                                                  \

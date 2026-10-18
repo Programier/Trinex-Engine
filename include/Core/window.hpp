@@ -20,10 +20,10 @@ namespace Trinex
 		WindowAttribute attributes = WindowAttribute::Resizable;
 		i16 monitor                = -1;
 
-		static ENGINE_EXPORT const WindowDesc& from_config();
+		static trinex_api const WindowDesc& from_config();
 	};
 
-	class ENGINE_EXPORT Window : public RefCounted
+	class trinex_api Window : public RefCounted
 	{
 	public:
 		using DestroyCallback = CallBack<void()>;

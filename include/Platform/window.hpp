@@ -10,7 +10,7 @@ namespace Trinex
 
 namespace Trinex::Platform
 {
-	class ENGINE_EXPORT WindowSystem
+	class trinex_api WindowSystem
 	{
 	public:
 		static WindowSystem* instance();

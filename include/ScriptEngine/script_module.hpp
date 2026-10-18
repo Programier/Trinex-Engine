@@ -12,7 +12,7 @@ namespace Trinex
 	class ScriptTypeInfo;
 	class ScriptObject;
 
-	class ENGINE_EXPORT ScriptModule
+	class trinex_api ScriptModule
 	{
 	private:
 		asIScriptModule* m_module;

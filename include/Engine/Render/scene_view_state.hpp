@@ -9,7 +9,7 @@ namespace Trinex
 	class RHIContext;
 	class SceneView;
 
-	class ENGINE_EXPORT SceneViewState
+	class trinex_api SceneViewState
 	{
 	private:
 		CameraView m_view;

@@ -22,7 +22,7 @@ namespace Trinex
 
 	class Script;
 
-	class ENGINE_EXPORT ScriptFolder final
+	class trinex_api ScriptFolder final
 	{
 	private:
 		TreeMap<String, Script*> m_scripts;
@@ -52,10 +52,10 @@ namespace Trinex
 		friend class Script;
 	};
 
-	class ENGINE_EXPORT Script final
+	class trinex_api Script final
 	{
 	public:
-		struct ENGINE_EXPORT ClassMetadata {
+		struct trinex_api ClassMetadata {
 			ScriptTypeInfo type_info;
 			TreeSet<String> class_metadata;
 			TreeMap<i32, TreeSet<String>> func_metadata_map;

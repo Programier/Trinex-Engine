@@ -11,7 +11,7 @@ namespace Trinex
 	class RHIBuffer;
 	class Archive;
 
-	class ENGINE_EXPORT VertexBufferBase
+	class trinex_api VertexBufferBase
 	{
 	private:
 		RHIResourcePtr<RHIBuffer> m_buffer;
@@ -109,7 +109,7 @@ namespace Trinex
 
 	// INDEX BUFFER IMPLEMENTATION
 
-	class ENGINE_EXPORT IndexBuffer
+	class trinex_api IndexBuffer
 	{
 	private:
 		RHIResourcePtr<RHIBuffer> m_buffer;

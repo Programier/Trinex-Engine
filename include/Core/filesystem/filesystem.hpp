@@ -14,7 +14,7 @@ namespace Trinex::VFS
 {
 	class File;
 
-	class ENGINE_EXPORT FileSystem : public RefCounted
+	class trinex_api FileSystem : public RefCounted
 	{
 	public:
 		using WalkCallback = DelegateRef<WalkResult(PathView path, const FileStat& stat)>;

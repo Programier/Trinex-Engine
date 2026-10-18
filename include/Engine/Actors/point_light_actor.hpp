@@ -5,7 +5,7 @@ namespace Trinex
 {
 	class PointLightComponent;
 
-	class ENGINE_EXPORT PointLightActor : public LightActor
+	class trinex_api PointLightActor : public LightActor
 	{
 		trinex_class(PointLightActor, LightActor);
 

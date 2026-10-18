@@ -6,7 +6,7 @@ namespace Trinex
 	class Archive;
 	class Path;
 
-	class ENGINE_EXPORT PathView final
+	class trinex_api PathView final
 	{
 	private:
 		StringView m_path;
@@ -234,14 +234,14 @@ namespace Trinex
 		inline char operator[](u32 index) const { return m_path[index]; }
 	};
 
-	class ENGINE_EXPORT Path final
+	class trinex_api Path final
 	{
 	private:
 		String m_path;
 		Path& on_path_changed();
 
 	public:
-		struct ENGINE_EXPORT Hash {
+		struct trinex_api Hash {
 			usize operator()(const Path& p) const noexcept;
 		};
 

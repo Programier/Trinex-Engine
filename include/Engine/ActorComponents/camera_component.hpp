@@ -7,7 +7,7 @@ namespace Trinex
 {
 	struct CameraView;
 
-	class ENGINE_EXPORT CameraComponent : public SceneComponent
+	class trinex_api CameraComponent : public SceneComponent
 	{
 		trinex_class(CameraComponent, SceneComponent);
 

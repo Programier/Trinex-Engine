@@ -213,7 +213,7 @@ namespace Reflector
 	static void generate_function(CodeWriter* writer, const Function* object)
 	{
 		writer->line("template<>");
-		writer->line("FORCE_ENGINE_EXPORT Function* function_of<", ResolvedPathOf(object), ">()");
+		writer->line("trinex_export Function* function_of<", ResolvedPathOf(object), ">()");
 		writer->line("{");
 		{
 			auto scope = writer->scope();
@@ -229,7 +229,7 @@ namespace Reflector
 	static void generate_class(CodeWriter* writer, const Class* object)
 	{
 		writer->line("template<>");
-		writer->line("FORCE_ENGINE_EXPORT Struct* struct_of<", ResolvedPathOf(object), ">()");
+		writer->line("trinex_export Struct* struct_of<", ResolvedPathOf(object), ">()");
 		writer->line("{");
 		{
 			auto indent = writer->scope();
@@ -264,7 +264,7 @@ namespace Reflector
 		writer->line("}\n");
 
 		writer->line("template<>");
-		writer->line("FORCE_ENGINE_EXPORT Class* class_of<", ResolvedPathOf(object), ">()");
+		writer->line("trinex_export Class* class_of<", ResolvedPathOf(object), ">()");
 		writer->line("{");
 		{
 			auto indent = writer->scope();
@@ -286,7 +286,7 @@ namespace Reflector
 		writer->line("}\n");
 
 		writer->line("template<>");
-		writer->line("FORCE_ENGINE_EXPORT Type* type_of<", object, ">()");
+		writer->line("trinex_export Type* type_of<", object, ">()");
 		writer->line("{");
 		{
 			auto indent = writer->scope();

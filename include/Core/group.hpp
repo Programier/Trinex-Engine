@@ -5,7 +5,7 @@
 
 namespace Trinex
 {
-	class ENGINE_EXPORT Group final
+	class trinex_api Group final
 	{
 		Vector<Refl::Struct*> m_structs;
 

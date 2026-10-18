@@ -10,11 +10,11 @@ namespace Trinex::Refl
 {
 	namespace Meta
 	{
-		ENGINE_EXPORT Name display_name = "display_name";
-		ENGINE_EXPORT Name tooltip      = "tooltip";
-		ENGINE_EXPORT Name description  = "description";
-		ENGINE_EXPORT Name group        = "group";
-		ENGINE_EXPORT Name renderer     = "renderer";
+		trinex_api Name display_name = "display_name";
+		trinex_api Name tooltip      = "tooltip";
+		trinex_api Name description  = "description";
+		trinex_api Name group        = "group";
+		trinex_api Name renderer     = "renderer";
 	}// namespace Meta
 
 	static Set<Object*> m_instances;

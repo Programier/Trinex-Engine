@@ -12,7 +12,7 @@ namespace Trinex
 	struct RHIBlendingState;
 	struct RHIRasterizerState;
 
-	class ENGINE_EXPORT RenderPass
+	class trinex_api RenderPass
 	{
 	private:
 		static RenderPass* s_head;
@@ -90,7 +90,7 @@ private:
 	namespace RenderPasses
 	{
 		// Generic render pass with only depth buffer
-		// class ENGINE_EXPORT Depth : public RenderPass
+		// class trinex_api Depth : public RenderPass
 		// {
 		// 	trinex_render_pass(Depth, RenderPass);
 		// 	bool is_material_compatible(const Material* material) override;
@@ -98,7 +98,7 @@ private:
 		// };
 
 		// Generic render pass with four color attachments
-		class ENGINE_EXPORT Geometry : public RenderPass
+		class trinex_api Geometry : public RenderPass
 		{
 			trinex_render_pass(Geometry, RenderPass);
 
@@ -110,7 +110,7 @@ private:
 			bool blending_state(RHIBlendingState& state) override;
 		};
 
-		// class ENGINE_EXPORT Translucent : public RenderPass
+		// class trinex_api Translucent : public RenderPass
 		// {
 		// 	trinex_render_pass(Translucent, RenderPass);
 

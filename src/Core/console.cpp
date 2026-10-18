@@ -832,22 +832,22 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 		Manager::instance()->unbind(this);
 	}
 
-	ENGINE_EXPORT Entry* find(StringView name)
+	trinex_api Entry* find(StringView name)
 	{
 		return Manager::instance()->find(name);
 	}
 
-	ENGINE_EXPORT usize find(StringView name, const DelegateRef<void(Entry*)>& action)
+	trinex_api usize find(StringView name, const DelegateRef<void(Entry*)>& action)
 	{
 		return Manager::instance()->find(name, action);
 	}
 
-	ENGINE_EXPORT ExecuteStatus execute(StringView source, String* output, ExecuteFlags flags)
+	trinex_api ExecuteStatus execute(StringView source, String* output, ExecuteFlags flags)
 	{
 		return Interpreter::instance()->execute(source, output, flags);
 	}
 
-	ENGINE_EXPORT ExecuteStatus execute_config(const Path& path)
+	trinex_api ExecuteStatus execute_config(const Path& path)
 	{
 		if (auto data = rootfs()->map(Path("[configs]:") / path))
 		{

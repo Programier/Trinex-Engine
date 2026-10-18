@@ -116,7 +116,7 @@ namespace Trinex
 		return (u128(h1) << 64) | h2;
 	}
 
-	ENGINE_EXPORT u128 memory_hash(const void* memory, const usize size, u128 seed)
+	trinex_api u128 memory_hash(const void* memory, const usize size, u128 seed)
 	{
 		return murmur_hash(static_cast<const u8*>(memory), size, seed);
 	}

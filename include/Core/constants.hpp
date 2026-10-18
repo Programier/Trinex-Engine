@@ -5,7 +5,7 @@
 
 namespace Trinex
 {
-	struct ENGINE_EXPORT Constants {
+	struct trinex_api Constants {
 		static const u32 processor_count;
 		static const Vector3f OX;
 		static const Vector3f OY;

@@ -14,7 +14,7 @@ namespace Trinex
 		RHITextureFlags flags = RHITextureFlags::ShaderResource;
 	};
 
-	struct ENGINE_EXPORT RHISamplerDesc {
+	struct trinex_api RHISamplerDesc {
 		RHISamplerFilter filter;
 		RHISamplerAddressMode address_u;
 		RHISamplerAddressMode address_v;
@@ -70,13 +70,13 @@ namespace Trinex
 		usize parameters_count                          = 0;
 	};
 
-	struct ENGINE_EXPORT RHIComputePipelineDesc {
+	struct trinex_api RHIComputePipelineDesc {
 		RHIShader* compute_shader                       = nullptr;
 		const struct RHIShaderParameterInfo* parameters = nullptr;
 		usize parameters_count                          = 0;
 	};
 
-	struct ENGINE_EXPORT RHIRayTracingShaderGroup {
+	struct trinex_api RHIRayTracingShaderGroup {
 		union
 		{
 			RHIShader* general = nullptr;
@@ -92,7 +92,7 @@ namespace Trinex
 		RHIRayTracingShaderGroupType type = RHIRayTracingShaderGroupType::GeneralRayGen;
 	};
 
-	struct ENGINE_EXPORT RHIRayTracingPipelineDesc {
+	struct trinex_api RHIRayTracingPipelineDesc {
 		RHIRayTracingShaderGroup* groups = nullptr;
 		u64 groups_count                 = 0;
 

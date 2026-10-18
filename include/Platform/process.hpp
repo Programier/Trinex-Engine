@@ -25,7 +25,7 @@ namespace Trinex::Platform
 		bool detached = false;
 	};
 
-	class ENGINE_EXPORT Process
+	class trinex_api Process
 	{
 	public:
 		virtual ~Process();
@@ -41,7 +41,7 @@ namespace Trinex::Platform
 		virtual bool is_detached() const = 0;
 	};
 
-	class ENGINE_EXPORT ProcessSystem
+	class trinex_api ProcessSystem
 	{
 	public:
 		static ProcessSystem* instance();

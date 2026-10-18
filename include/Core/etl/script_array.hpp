@@ -19,7 +19,7 @@ namespace Trinex
 		fail_ret;                                                                                                                \
 	}
 
-	class ENGINE_EXPORT ScriptArrayBase
+	class trinex_api ScriptArrayBase
 	{
 	public:
 		using size_type       = usize;

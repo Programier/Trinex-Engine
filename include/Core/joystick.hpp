@@ -5,7 +5,7 @@
 
 namespace Trinex
 {
-	class ENGINE_EXPORT Joystick
+	class trinex_api Joystick
 	{
 	private:
 		static TreeMap<Identifier, Joystick*> m_joysticks;

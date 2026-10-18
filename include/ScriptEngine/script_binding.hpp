@@ -20,7 +20,7 @@ namespace Trinex
 
 	namespace ScriptBinding
 	{
-		class ENGINE_EXPORT FunctionPointer
+		class trinex_api FunctionPointer
 		{
 		private:
 			using FunctionPtr = void (*)();
@@ -64,12 +64,12 @@ namespace Trinex
 		};
 
 
-		struct ENGINE_EXPORT ObjectTypeOptions {
+		struct trinex_api ObjectTypeOptions {
 			usize size             = 0;
 			ScriptClassFlags flags = 0;
 		};
 
-		struct ENGINE_EXPORT Helpers {
+		struct trinex_api Helpers {
 			template<typename T, typename... Args>
 			static void constructor(T* memory, Args... args)
 			{
@@ -90,8 +90,8 @@ namespace Trinex
 			}
 		};
 
-		ENGINE_EXPORT ObjectTypeOptions value_type(usize size, ScriptClassFlags flags = 0);
-		ENGINE_EXPORT ObjectTypeOptions reference_type(usize size = 0, ScriptClassFlags flags = ScriptClassFlags::NoCount);
+		trinex_api ObjectTypeOptions value_type(usize size, ScriptClassFlags flags = 0);
+		trinex_api ObjectTypeOptions reference_type(usize size = 0, ScriptClassFlags flags = ScriptClassFlags::NoCount);
 
 		template<typename T>
 		ObjectTypeOptions value_type(ScriptClassFlags flags = 0)
@@ -136,7 +136,7 @@ namespace Trinex
 			return reference_type(sizeof(T), flags);
 		}
 
-		class ENGINE_EXPORT Class
+		class trinex_api Class
 		{
 			String m_class;
 			String m_class_base;
@@ -204,7 +204,7 @@ namespace Trinex
 			}
 		};
 
-		class ENGINE_EXPORT Enum
+		class trinex_api Enum
 		{
 			String m_base;
 			String m_namespace;
@@ -227,7 +227,7 @@ namespace Trinex
 			}
 		};
 
-		class ENGINE_EXPORT Namespace
+		class trinex_api Namespace
 		{
 		private:
 			String m_namespace;
@@ -261,7 +261,7 @@ namespace Trinex
 			}
 		};
 
-		ENGINE_EXPORT Namespace global();
-		ENGINE_EXPORT Namespace in(const StringView& namespace_name);
+		trinex_api Namespace global();
+		trinex_api Namespace in(const StringView& namespace_name);
 	}// namespace ScriptBinding
 }// namespace Trinex

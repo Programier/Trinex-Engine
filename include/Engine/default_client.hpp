@@ -11,7 +11,7 @@ namespace Trinex
 	class RHIContext;
 
 	// This viewport can be used for testing something
-	class ENGINE_EXPORT DefaultClient : public ViewportClient
+	class trinex_api DefaultClient : public ViewportClient
 	{
 		trinex_class(DefaultClient, ViewportClient);
 

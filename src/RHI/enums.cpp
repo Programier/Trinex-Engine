@@ -56,7 +56,7 @@ namespace Trinex
 		return *this;
 	}
 
-	ENGINE_EXPORT RHIShaderParameterType RHIShaderParameterType::make_numeric(RHIShaderParameterType base, u8 len)
+	trinex_api RHIShaderParameterType RHIShaderParameterType::make_numeric(RHIShaderParameterType base, u8 len)
 	{
 		base = base.element_type();
 
@@ -69,7 +69,7 @@ namespace Trinex
 		return base | (size << 17) | (size << 20);
 	}
 
-	ENGINE_EXPORT RHIShaderParameterType RHIShaderParameterType::make_matrix(RHIShaderParameterType base, u8 rows, u8 columns)
+	trinex_api RHIShaderParameterType RHIShaderParameterType::make_matrix(RHIShaderParameterType base, u8 rows, u8 columns)
 	{
 		base = base.element_type();
 

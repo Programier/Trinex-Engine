@@ -1,13 +1,12 @@
 #pragma once
 
 #include <Core/etl/hash.hpp>
-#include <Core/export.hpp>
 
 namespace Trinex
 {
 	class Object;
 
-	class ENGINE_EXPORT PointerBase
+	class trinex_api PointerBase
 	{
 	protected:
 		PointerBase& add_reference(Object* object);

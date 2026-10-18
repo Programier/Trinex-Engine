@@ -6,7 +6,7 @@ namespace Trinex
 {
 	class Object;
 
-	class ENGINE_EXPORT ObjectTreeNodeStatics
+	class trinex_api ObjectTreeNodeStatics
 	{
 	private:
 		using iterator       = Object**;

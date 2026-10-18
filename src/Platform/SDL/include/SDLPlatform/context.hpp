@@ -3,7 +3,7 @@
 
 namespace Trinex::Platform
 {
-	class ENGINE_EXPORT SDLContext : public CommonContext
+	class trinex_api SDLContext : public CommonContext
 	{
 	public:
 		SDLContext();

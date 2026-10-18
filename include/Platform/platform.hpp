@@ -12,7 +12,7 @@
 
 namespace Trinex::Platform
 {
-	class ENGINE_EXPORT Context
+	class trinex_api Context
 	{
 	private:
 		static Context* s_instance;

@@ -2,7 +2,7 @@
 
 namespace Trinex
 {
-	class ENGINE_EXPORT EngineLoop
+	class trinex_api EngineLoop
 	{
 		i32 preinit(i32 argc, const char** argv);
 

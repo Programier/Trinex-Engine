@@ -220,17 +220,30 @@ function(trinex_reflect target)
 endfunction()
 
 function(trinex_library target)
-    cmake_parse_arguments(ARG "" "REFLECTION_ROOT;REFLECTION_OUTPUT" "SOURCES" ${ARGN})
+    cmake_parse_arguments(ARG "" "API;REFLECTION_ROOT;REFLECTION_OUTPUT" "SOURCES" ${ARGN})
+
+    if(NOT ARG_API)
+        message(FATAL_ERROR "trinex_library '${target}' requires an API macro name")
+    endif()
 
     add_library(${target} ${ARG_UNPARSED_ARGUMENTS} ${ARG_SOURCES})
+    target_compile_definitions(${target}
+        PRIVATE "${ARG_API}=trinex_export"
+        INTERFACE "${ARG_API}=trinex_import"
+    )
     cmake_language(EVAL CODE
         "cmake_language(DEFER CALL trinex_reflect [=[${target}]=] ROOT [=[${ARG_REFLECTION_ROOT}]=] OUTPUT [=[${ARG_REFLECTION_OUTPUT}]=])")
 endfunction()
 
 function(trinex_executable target)
-    cmake_parse_arguments(ARG "" "REFLECTION_ROOT;REFLECTION_OUTPUT" "SOURCES" ${ARGN})
+    cmake_parse_arguments(ARG "" "API;REFLECTION_ROOT;REFLECTION_OUTPUT" "SOURCES" ${ARGN})
 
     add_executable(${target} ${ARG_UNPARSED_ARGUMENTS} ${ARG_SOURCES})
+    
+    if(ARG_API)
+	target_compile_definitions(${target} PRIVATE "${ARG_API}=trinex_export")
+    endif()
+    
     cmake_language(EVAL CODE
         "cmake_language(DEFER CALL trinex_reflect [=[${target}]=] ROOT [=[${ARG_REFLECTION_ROOT}]=] OUTPUT [=[${ARG_REFLECTION_OUTPUT}]=])")
 endfunction()

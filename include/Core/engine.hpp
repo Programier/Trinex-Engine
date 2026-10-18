@@ -6,7 +6,7 @@
 
 namespace Trinex
 {
-	class ENGINE_EXPORT Engine : public EngineResource<Object>
+	class trinex_api Engine : public EngineResource<Object>
 	{
 		trinex_class(Engine, Object);
 

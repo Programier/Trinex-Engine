@@ -13,10 +13,10 @@ namespace Trinex
 	class Object;
 	class Path;
 
-	ENGINE_EXPORT const char* operator""_localized(const char* line, usize len);
+	trinex_api const char* operator""_localized(const char* line, usize len);
 
 	// Head of all classes in the Engine
-	class ENGINE_EXPORT Object : private asIScriptObject
+	class trinex_api Object : private asIScriptObject
 	{
 	public:
 		template<typename NativeType>
@@ -200,7 +200,7 @@ namespace Trinex
 		Object* owner() const;
 		bool owner(Object* new_owner);
 
-		static ENGINE_EXPORT Object* copy_from(Object* src);
+		static trinex_api Object* copy_from(Object* src);
 
 		static Object* static_new_instance(Refl::Class* object_class, StringView name = "", Object* owner = nullptr);
 		static Object* static_new_placement_instance(void* place, Refl::Class* object_class, StringView name = "",

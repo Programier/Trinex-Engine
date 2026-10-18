@@ -9,7 +9,7 @@ namespace Trinex
 	class RenderSurface;
 	struct LightRenderParameters;
 
-	struct ENGINE_EXPORT LightUnits {
+	struct trinex_api LightUnits {
 		enum Enum : EnumerateType
 		{
 			Unitless = 0,
@@ -22,7 +22,7 @@ namespace Trinex
 		trinex_enum(LightUnits);
 	};
 
-	class ENGINE_EXPORT LightComponent : public SceneComponent
+	class trinex_api LightComponent : public SceneComponent
 	{
 		trinex_class(LightComponent, SceneComponent);
 

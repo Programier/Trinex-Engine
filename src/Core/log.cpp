@@ -105,36 +105,36 @@ namespace Trinex::Log
 		}
 	}// namespace
 
-	ENGINE_EXPORT Category General    = {"General", true};
-	ENGINE_EXPORT Category Core       = {"Core", true};
-	ENGINE_EXPORT Category Reflection = {"Reflection", true};
-	ENGINE_EXPORT Category Platform   = {"Platform", true};
-	ENGINE_EXPORT Category Engine     = {"Engine", true};
-	ENGINE_EXPORT Category Graphics   = {"Graphics", true};
-	ENGINE_EXPORT Category FileSystem = {"FileSystem", true};
-	ENGINE_EXPORT Category Memory     = {"Memory", true};
+	trinex_api Category General    = {"General", true};
+	trinex_api Category Core       = {"Core", true};
+	trinex_api Category Reflection = {"Reflection", true};
+	trinex_api Category Platform   = {"Platform", true};
+	trinex_api Category Engine     = {"Engine", true};
+	trinex_api Category Graphics   = {"Graphics", true};
+	trinex_api Category FileSystem = {"FileSystem", true};
+	trinex_api Category Memory     = {"Memory", true};
 
-	ENGINE_EXPORT Category Assets   = {"Assets", true};
-	ENGINE_EXPORT Category Renderer = {"Renderer", true};
-	ENGINE_EXPORT Category RHI      = {"RHI", true};
+	trinex_api Category Assets   = {"Assets", true};
+	trinex_api Category Renderer = {"Renderer", true};
+	trinex_api Category RHI      = {"RHI", true};
 
-	ENGINE_EXPORT Category World     = {"World", true};
-	ENGINE_EXPORT Category Actor     = {"Actor", true};
-	ENGINE_EXPORT Category Physics   = {"Physics", true};
-	ENGINE_EXPORT Category Audio     = {"Audio", true};
-	ENGINE_EXPORT Category Input     = {"Input", true};
-	ENGINE_EXPORT Category Scripting = {"Scripting", true};
-	ENGINE_EXPORT Category Editor    = {"Editor", true};
+	trinex_api Category World     = {"World", true};
+	trinex_api Category Actor     = {"Actor", true};
+	trinex_api Category Physics   = {"Physics", true};
+	trinex_api Category Audio     = {"Audio", true};
+	trinex_api Category Input     = {"Input", true};
+	trinex_api Category Scripting = {"Scripting", true};
+	trinex_api Category Editor    = {"Editor", true};
 
 #define trinex_implement_log_function(name, level)                                                                               \
-	ENGINE_EXPORT void name(const char* file, u32 line, const char* func, const char* format, ...)                               \
+	trinex_api void name(const char* file, u32 line, const char* func, const char* format, ...)                                  \
 	{                                                                                                                            \
 		va_list args;                                                                                                            \
 		va_start(args, format);                                                                                                  \
 		vlog(Level::level, General, file, line, func, format, args);                                                             \
 		va_end(args);                                                                                                            \
 	}                                                                                                                            \
-	ENGINE_EXPORT void name(const char* file, u32 line, const char* func, Category& category, const char* format, ...)           \
+	trinex_api void name(const char* file, u32 line, const char* func, Category& category, const char* format, ...)              \
 	{                                                                                                                            \
 		va_list args;                                                                                                            \
 		va_start(args, format);                                                                                                  \
@@ -149,27 +149,27 @@ namespace Trinex::Log
 	trinex_implement_log_function(critical, Critical);
 
 
-	ENGINE_EXPORT void enabled(bool value)
+	trinex_api void enabled(bool value)
 	{
 		LoggerState::lock([&](LoggerState* state) { state->enabled = value; });
 	}
 
-	ENGINE_EXPORT bool enabled()
+	trinex_api bool enabled()
 	{
 		return LoggerState::lock([](LoggerState* state) { return state->enabled; });
 	}
 
-	ENGINE_EXPORT void minimum_level(Level level)
+	trinex_api void minimum_level(Level level)
 	{
 		LoggerState::lock([&](LoggerState* state) { state->minimum_level = level; });
 	}
 
-	ENGINE_EXPORT Level minimum_level()
+	trinex_api Level minimum_level()
 	{
 		return LoggerState::lock([](LoggerState* state) { return state->minimum_level; });
 	}
 
-	ENGINE_EXPORT void add_listener(Listener* listener)
+	trinex_api void add_listener(Listener* listener)
 	{
 		if (listener == nullptr)
 			return;
@@ -182,7 +182,7 @@ namespace Trinex::Log
 		});
 	}
 
-	ENGINE_EXPORT void remove_listener(Listener* listener)
+	trinex_api void remove_listener(Listener* listener)
 	{
 		if (listener == nullptr)
 			return;

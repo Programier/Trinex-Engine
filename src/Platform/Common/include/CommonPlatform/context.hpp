@@ -3,7 +3,7 @@
 
 namespace Trinex::Platform
 {
-	class ENGINE_EXPORT CommonContext : public Context
+	class trinex_api CommonContext : public Context
 	{
 	public:
 		~CommonContext() override;

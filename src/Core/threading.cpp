@@ -784,17 +784,17 @@ namespace Trinex
 		~MainThread() {}
 	};
 
-	ENGINE_EXPORT Thread* logic_thread()
+	trinex_api Thread* logic_thread()
 	{
 		return s_logic_thread;
 	}
 
-	ENGINE_EXPORT Thread* this_thread()
+	trinex_api Thread* this_thread()
 	{
 		return Thread::static_self();
 	}
 
-	ENGINE_EXPORT void create_threads()
+	trinex_api void create_threads()
 	{
 		if (s_logic_thread == nullptr)
 		{
@@ -812,7 +812,7 @@ namespace Trinex
 		}
 	}
 
-	ENGINE_EXPORT void destroy_threads()
+	trinex_api void destroy_threads()
 	{
 		destroy_thread(s_logic_thread);
 	}

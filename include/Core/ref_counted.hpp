@@ -10,7 +10,7 @@ namespace Trinex
 	template<typename>
 	class WeakRef;
 
-	trinex_reflect() class ENGINE_EXPORT RefCounted
+	trinex_reflect() class trinex_api RefCounted
 	{
 		trinex_reflection_body();
 

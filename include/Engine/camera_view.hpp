@@ -6,7 +6,7 @@
 
 namespace Trinex
 {
-	struct ENGINE_EXPORT CameraView {
+	struct trinex_api CameraView {
 		Frustum frustum;
 		Matrix4f projection;
 		Matrix4f view;

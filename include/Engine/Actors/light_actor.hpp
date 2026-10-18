@@ -4,7 +4,7 @@
 
 namespace Trinex
 {
-	class ENGINE_EXPORT LightActor : public Actor
+	class trinex_api LightActor : public Actor
 	{
 		trinex_class(LightActor, Actor);
 

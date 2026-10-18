@@ -20,7 +20,7 @@ namespace Trinex
 	class RenderPass;
 	class ShaderCompiler;
 
-	class ENGINE_EXPORT MaterialInterface : public ObjectTreeNode<Object, MaterialParameters::Parameter>
+	class trinex_api MaterialInterface : public ObjectTreeNode<Object, MaterialParameters::Parameter>
 	{
 		trinex_class(MaterialInterface, Object);
 
@@ -49,7 +49,7 @@ namespace Trinex
 		bool serialize(Archive& archive) override;
 	};
 
-	class ENGINE_EXPORT Material : public MaterialInterface
+	class trinex_api Material : public MaterialInterface
 	{
 		trinex_class(Material, MaterialInterface);
 
@@ -88,7 +88,7 @@ namespace Trinex
 		friend class MaterialInstance;
 	};
 
-	class ENGINE_EXPORT MaterialInstance : public MaterialInterface
+	class trinex_api MaterialInstance : public MaterialInterface
 	{
 		trinex_class(MaterialInstance, MaterialInterface);
 

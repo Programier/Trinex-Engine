@@ -16,7 +16,7 @@ namespace Trinex
 	class ScriptFunction;
 	class ScriptObject;
 
-	class ENGINE_EXPORT ScriptContext
+	class trinex_api ScriptContext
 	{
 		asIScriptContext* m_context           = nullptr;
 		Delegate<void(void*)> m_line_callback = {};

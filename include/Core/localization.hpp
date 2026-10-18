@@ -6,7 +6,7 @@
 
 namespace Trinex
 {
-	class ENGINE_EXPORT Localization : public Singletone<Localization, EmptySingletoneParent>
+	class trinex_api Localization : public Singletone<Localization, EmptySingletoneParent>
 	{
 	private:
 		static Localization* s_instance;

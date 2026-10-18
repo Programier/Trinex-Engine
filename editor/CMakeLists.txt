@@ -7,7 +7,10 @@ else()
     set(TRINEX_EDITOR_TARGET TrinexEngineEditor)
     
     if(ANDROID)
-        trinex_library(TrinexEngineEditor SHARED ${TRINEX_ENGINE_EDITOR_SOURCES})
+        trinex_library(TrinexEngineEditor SHARED
+            API trinex_editor_api
+            ${TRINEX_ENGINE_EDITOR_SOURCES}
+        )
     else()
         trinex_executable(TrinexEngineEditor ${TRINEX_ENGINE_EDITOR_SOURCES})
     endif()

@@ -8,7 +8,7 @@ namespace Trinex
 {
 	class ShaderCompilationResult;
 
-	struct ENGINE_EXPORT GraphicsShaderCache {
+	struct trinex_api GraphicsShaderCache {
 		Vector<RHIShaderParameterInfo> parameters;
 		Vector<RHIInputAttribute> vertex_attributes;
 		Buffer vertex;
@@ -25,7 +25,7 @@ namespace Trinex
 		bool serialize(Archive& ar);
 	};
 
-	struct ENGINE_EXPORT ComputeShaderCache {
+	struct trinex_api ComputeShaderCache {
 		Vector<RHIShaderParameterInfo> parameters;
 
 		Buffer compute;
@@ -38,7 +38,7 @@ namespace Trinex
 		bool serialize(Archive& ar);
 	};
 
-	struct ENGINE_EXPORT PipelineLibraryCache {
+	struct trinex_api PipelineLibraryCache {
 		enum Type : u8
 		{
 			Unknown  = 0,
@@ -57,13 +57,13 @@ namespace Trinex
 		bool serialize(Archive& ar);
 	};
 
-	struct ENGINE_EXPORT PipelineLibraryCacheIndexEntry {
+	struct trinex_api PipelineLibraryCacheIndexEntry {
 		PipelineLibraryCache::Type type = PipelineLibraryCache::Unknown;
 		u128 shader_hash                = 0;
 		bool serialize(Archive& ar);
 	};
 
-	struct ENGINE_EXPORT PipelineLibraryCacheManifest {
+	struct trinex_api PipelineLibraryCacheManifest {
 		Map<String, PipelineLibraryCacheIndexEntry> entries;
 		String rhi_name;
 		bool is_loaded = false;

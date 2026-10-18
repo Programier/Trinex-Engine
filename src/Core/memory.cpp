@@ -3,8 +3,8 @@
 
 namespace Trinex
 {
-	ENGINE_EXPORT void* memcpy_elements(void* dst, const void* src, usize element_size, usize element_count, usize dst_stride,
-	                                    usize src_stride)
+	trinex_api void* memcpy_elements(void* dst, const void* src, usize element_size, usize element_count, usize dst_stride,
+	                                 usize src_stride)
 	{
 		if (src_stride == 0)
 			src_stride = element_size;
@@ -30,8 +30,8 @@ namespace Trinex
 		return dst;
 	}
 
-	ENGINE_EXPORT void* memcpy_transform(void* dst, const void* src, usize element_count, usize dst_stride, usize src_stride,
-	                                     void (*transform)(void* dst, const void* src))
+	trinex_api void* memcpy_transform(void* dst, const void* src, usize element_count, usize dst_stride, usize src_stride,
+	                                  void (*transform)(void* dst, const void* src))
 	{
 		auto* d = static_cast<u8*>(dst);
 		auto* s = static_cast<const u8*>(src);
@@ -46,7 +46,7 @@ namespace Trinex
 		return dst;
 	}
 
-	ENGINE_EXPORT const u8* memory_search(const u8* haystack, usize haystack_len, const u8* needle, usize needle_len)
+	trinex_api const u8* memory_search(const u8* haystack, usize haystack_len, const u8* needle, usize needle_len)
 	{
 		if (needle_len > haystack_len)
 		{

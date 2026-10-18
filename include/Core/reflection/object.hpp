@@ -18,11 +18,11 @@ namespace Trinex::Refl
 {
 	namespace Meta
 	{
-		extern ENGINE_EXPORT Name display_name;
-		extern ENGINE_EXPORT Name tooltip;
-		extern ENGINE_EXPORT Name description;
-		extern ENGINE_EXPORT Name group;
-		extern ENGINE_EXPORT Name renderer;
+		extern trinex_api Name display_name;
+		extern trinex_api Name tooltip;
+		extern trinex_api Name description;
+		extern trinex_api Name group;
+		extern trinex_api Name renderer;
 	}// namespace Meta
 
 
@@ -37,7 +37,7 @@ namespace Trinex::Refl
 		trinex_bitfield_enum_struct(FindFlags, u8);
 	};
 
-	struct ENGINE_EXPORT ClassInfo {
+	struct trinex_api ClassInfo {
 		const Name class_name;
 		const ClassInfo* const parent;
 
@@ -45,7 +45,7 @@ namespace Trinex::Refl
 		bool is_a(const ClassInfo* const info) const;
 	};
 
-	class ENGINE_EXPORT Object
+	class trinex_api Object
 	{
 	private:
 		using MetaData       = Map<Name, Any, Name::HashFunction>;

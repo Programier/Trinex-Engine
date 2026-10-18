@@ -9,7 +9,7 @@ namespace Trinex
 
 namespace Trinex::Refl
 {
-	class ENGINE_EXPORT ScriptEnum : public Enum
+	class trinex_api ScriptEnum : public Enum
 	{
 		trinex_reflect_type(ScriptEnum, Enum);
 

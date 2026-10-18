@@ -7,7 +7,7 @@
 namespace Trinex
 {
 	class RHIShader;
-	class ENGINE_EXPORT Shader : public Asset
+	class trinex_api Shader : public Asset
 	{
 		trinex_class(Shader, Asset);
 

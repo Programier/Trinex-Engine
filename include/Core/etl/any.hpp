@@ -1,21 +1,20 @@
 #pragma once
 #include <Core/etl/type_info.hpp>
-#include <Core/export.hpp>
 #include <memory>
 #include <type_traits>
 
 namespace Trinex
 {
-	class ENGINE_EXPORT Any
+	class trinex_api Any
 	{
 	private:
-		class ENGINE_EXPORT bad_any_cast : public std::bad_cast
+		class trinex_api bad_any_cast : public std::bad_cast
 		{
 		public:
 			const char* what() const noexcept override;
 		};
 
-		union ENGINE_EXPORT Storage
+		union trinex_api Storage
 		{
 			using stack_storage_t = typename std::aligned_storage<2 * sizeof(void*), std::alignment_of<void*>::value>::type;
 			void* dynamic;
@@ -29,7 +28,7 @@ namespace Trinex
 		        bool, std::is_nothrow_move_constructible<T>::value && sizeof(T) <= sizeof(Storage::stack) &&
 		                      std::alignment_of<T>::value <= std::alignment_of<Storage::stack_storage_t>::value>::value;
 
-		struct ENGINE_EXPORT Manager {
+		struct trinex_api Manager {
 			void (*destroy)(Storage&) noexcept;
 			void (*copy)(const Storage& src, Storage& dest);
 			void (*move)(Storage& src, Storage& dest) noexcept;

@@ -41,6 +41,6 @@ namespace Trinex
 		alignas(4) float time;
 		alignas(4) float delta_time;
 
-		ENGINE_EXPORT GlobalShaderParameters& update(const class SceneView* scene_view);
+		trinex_api GlobalShaderParameters& update(const class SceneView* scene_view);
 	};
 }// namespace Trinex

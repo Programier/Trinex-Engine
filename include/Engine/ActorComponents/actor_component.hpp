@@ -6,7 +6,7 @@ namespace Trinex
 	class Actor;
 	class ScriptFunction;
 
-	class ENGINE_EXPORT ActorComponent : public Object
+	class trinex_api ActorComponent : public Object
 	{
 		trinex_class(ActorComponent, Object);
 

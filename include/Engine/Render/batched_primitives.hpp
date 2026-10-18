@@ -9,10 +9,10 @@ namespace Trinex
 	class Renderer;
 	class RHIContext;
 
-	class ENGINE_EXPORT BatchedLines final
+	class trinex_api BatchedLines final
 	{
 	public:
-		struct ENGINE_EXPORT Vertex {
+		struct trinex_api Vertex {
 		private:
 			alignas(4) Vector3f m_position;
 			alignas(4) Color m_color;
@@ -85,7 +85,7 @@ namespace Trinex
 		inline bool is_empty() const { return m_first == nullptr; }
 	};
 
-	class ENGINE_EXPORT BatchedTriangles final
+	class trinex_api BatchedTriangles final
 	{
 		PositionVertexBuffer m_position_buffer;
 		ColorVertexBuffer m_color_buffer;

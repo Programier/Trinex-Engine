@@ -4,7 +4,7 @@
 
 namespace Trinex
 {
-	ENGINE_EXPORT VFS::RootFS* rootfs()
+	trinex_api VFS::RootFS* rootfs()
 	{
 		return VFS::RootFS::instance();
 	}

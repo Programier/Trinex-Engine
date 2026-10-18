@@ -18,7 +18,7 @@ namespace Trinex
 		inline bool operator<(const MeshVertexAttribute& attribute) const { return semantic < attribute.semantic; }
 	};
 
-	struct ENGINE_EXPORT MeshSurface {
+	struct trinex_api MeshSurface {
 		trinex_old_struct(MeshSurface, void);
 
 		RHITopology topology = RHITopology::TriangleList;
@@ -46,12 +46,12 @@ namespace Trinex
 		u8 weights[4];
 	};
 
-	class ENGINE_EXPORT StaticMesh : public Asset
+	class trinex_api StaticMesh : public Asset
 	{
 		trinex_class(StaticMesh, Asset);
 
 	public:
-		struct ENGINE_EXPORT LOD {
+		struct trinex_api LOD {
 			trinex_old_struct(LOD, void);
 
 			VertexBuffer<MeshVertexStream> vertex_stream;
@@ -71,12 +71,12 @@ namespace Trinex
 		bool serialize(Archive& ar) override;
 	};
 
-	class ENGINE_EXPORT SkeletalMesh : public Asset
+	class trinex_api SkeletalMesh : public Asset
 	{
 		trinex_class(SkeletalMesh, Asset);
 
 	public:
-		struct ENGINE_EXPORT LOD {
+		struct trinex_api LOD {
 			trinex_old_struct(LOD, void);
 			VertexBuffer<MeshVertexStream> vertex_stream;
 			VertexBuffer<MeshSurfaceStream> surface_stream;

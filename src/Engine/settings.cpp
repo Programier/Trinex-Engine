@@ -3,53 +3,53 @@
 
 namespace Trinex::Settings
 {
-	ENGINE_EXPORT String engine_class        = "Trinex::Engine";
-	ENGINE_EXPORT String default_language    = "eng";
-	ENGINE_EXPORT String current_language    = "eng";
-	ENGINE_EXPORT u32 num_threads            = 0;
-	ENGINE_EXPORT i32 lz4_compression_level  = 0;
-	ENGINE_EXPORT i32 gc_max_object_per_tick = 1;
-	ENGINE_EXPORT i32 fps_limit              = 60;
-	ENGINE_EXPORT float screen_percentage    = 1.f;
-	ENGINE_EXPORT Vector<String> languages   = {"eng"};
-	ENGINE_EXPORT Vector<String> systems;
-	ENGINE_EXPORT Vector<String> plugins;
-	ENGINE_EXPORT bool debug_shaders = false;
+	trinex_api String engine_class        = "Trinex::Engine";
+	trinex_api String default_language    = "eng";
+	trinex_api String current_language    = "eng";
+	trinex_api u32 num_threads            = 0;
+	trinex_api i32 lz4_compression_level  = 0;
+	trinex_api i32 gc_max_object_per_tick = 1;
+	trinex_api i32 fps_limit              = 60;
+	trinex_api float screen_percentage    = 1.f;
+	trinex_api Vector<String> languages   = {"eng"};
+	trinex_api Vector<String> systems;
+	trinex_api Vector<String> plugins;
+	trinex_api bool debug_shaders = false;
 
 	namespace Rendering
 	{
 #if PLATFORM_WINDOWS
-		ENGINE_EXPORT String rhi = "D3D12";
+		trinex_api String rhi = "D3D12";
 #else
-		ENGINE_EXPORT String rhi = "Vulkan";
+		trinex_api String rhi = "Vulkan";
 #endif
-		ENGINE_EXPORT bool force_keep_cpu_resources = false;
-		ENGINE_EXPORT u32 shadow_map_size           = 1024;
-		ENGINE_EXPORT float anisotropy              = 8.f;
+		trinex_api bool force_keep_cpu_resources = false;
+		trinex_api u32 shadow_map_size           = 1024;
+		trinex_api float anisotropy              = 8.f;
 	}// namespace Rendering
 
 	namespace Window
 	{
-		ENGINE_EXPORT String title                       = "Trinex Engine";
-		ENGINE_EXPORT String client                      = "Trinex::DefaultClient";
-		ENGINE_EXPORT i32 size_x                         = 1280;
-		ENGINE_EXPORT i32 size_y                         = 720;
-		ENGINE_EXPORT i32 pos_x                          = -1;
-		ENGINE_EXPORT i32 pos_y                          = -1;
-		ENGINE_EXPORT bool vsync                         = true;
-		ENGINE_EXPORT Vector<WindowAttribute> attributes = {WindowAttribute::Resizable};
-		ENGINE_EXPORT Vector<Orientation> orientations;
+		trinex_api String title                       = "Trinex Engine";
+		trinex_api String client                      = "Trinex::DefaultClient";
+		trinex_api i32 size_x                         = 1280;
+		trinex_api i32 size_y                         = 720;
+		trinex_api i32 pos_x                          = -1;
+		trinex_api i32 pos_y                          = -1;
+		trinex_api bool vsync                         = true;
+		trinex_api Vector<WindowAttribute> attributes = {WindowAttribute::Resizable};
+		trinex_api Vector<Orientation> orientations;
 	}// namespace Window
 
 	namespace Splash
 	{
-		ENGINE_EXPORT bool show               = true;
-		ENGINE_EXPORT String image            = "resources/splash/splash.png";
-		ENGINE_EXPORT String font             = "";
-		ENGINE_EXPORT i32 startup_text_size   = 14;
-		ENGINE_EXPORT i32 version_text_size   = 14;
-		ENGINE_EXPORT i32 copyright_text_size = 14;
-		ENGINE_EXPORT i32 game_name_text_size = 32;
+		trinex_api bool show               = true;
+		trinex_api String image            = "resources/splash/splash.png";
+		trinex_api String font             = "";
+		trinex_api i32 startup_text_size   = 14;
+		trinex_api i32 version_text_size   = 14;
+		trinex_api i32 copyright_text_size = 14;
+		trinex_api i32 game_name_text_size = 32;
 	}// namespace Splash
 
 

@@ -23,7 +23,7 @@ namespace Trinex::Platform
 
 	using DialogCallback = Delegate<void(const DialogResult& result)>;
 
-	class ENGINE_EXPORT DialogSystem
+	class trinex_api DialogSystem
 	{
 	public:
 		static DialogSystem* instance();

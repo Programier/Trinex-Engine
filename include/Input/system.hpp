@@ -8,7 +8,7 @@
 
 namespace Trinex
 {
-	class ENGINE_EXPORT InputSystem final
+	class trinex_api InputSystem final
 	{
 	public:
 		// Return true to consume an event and stop its propagation.

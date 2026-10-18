@@ -3,7 +3,7 @@
 
 namespace Trinex::Refl
 {
-	class ENGINE_EXPORT ScopedType : public Object
+	class trinex_api ScopedType : public Object
 	{
 		trinex_reflect_type(ScopedType, Object);
 

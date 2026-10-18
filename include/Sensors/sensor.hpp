@@ -5,7 +5,7 @@
 
 //namespace Trinex
 //{
-//    struct ENGINE_EXPORT Sensor
+//    struct trinex_api Sensor
 //    {
 //        // Static variables
 //        static uint_t m_sensor_count;
@@ -38,10 +38,10 @@
 //        Sensor& update();
 //        ~Sensor();
 
-//        static ENGINE_EXPORT uint_t sensors_count();
-//        static ENGINE_EXPORT const Vector<std::string>& sensor_list();
-//        static ENGINE_EXPORT uint_t id_of(const std::string& sensor_name);
-//        static ENGINE_EXPORT void update_sensors_info();
+//        static trinex_api uint_t sensors_count();
+//        static trinex_api const Vector<std::string>& sensor_list();
+//        static trinex_api uint_t id_of(const std::string& sensor_name);
+//        static trinex_api void update_sensors_info();
 //        friend class Init;
 //    };
 //}

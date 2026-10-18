@@ -5,7 +5,7 @@ namespace Trinex
 {
 	class Object;
 
-	class ENGINE_EXPORT ObjectCreateListener : public Registry<ObjectCreateListener>
+	class trinex_api ObjectCreateListener : public Registry<ObjectCreateListener>
 	{
 		trinex_registry(ObjectCreateListener);
 
@@ -19,7 +19,7 @@ namespace Trinex
 		}
 	};
 
-	class ENGINE_EXPORT ObjectDestroyListener : public Registry<ObjectDestroyListener>
+	class trinex_api ObjectDestroyListener : public Registry<ObjectDestroyListener>
 	{
 		trinex_registry(ObjectDestroyListener);
 

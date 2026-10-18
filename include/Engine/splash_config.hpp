@@ -3,7 +3,7 @@
 
 namespace Trinex
 {
-	struct ENGINE_EXPORT SplashConfig {
+	struct trinex_api SplashConfig {
 		Path image_path;
 		Path font_path;
 		i32 startup_text_size;

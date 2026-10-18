@@ -8,7 +8,7 @@ namespace Trinex
 {
 	class Archive;
 
-	struct ENGINE_EXPORT Transform {
+	struct trinex_api Transform {
 		trinex_old_struct(Transform, void);
 
 	private:

@@ -11,7 +11,7 @@ namespace Trinex
 	class RHITexture;
 	class Sampler;
 
-	struct ENGINE_EXPORT Texture2DMip {
+	struct trinex_api Texture2DMip {
 		Vector2u size;
 		Buffer data;
 
@@ -19,7 +19,7 @@ namespace Trinex
 		bool serialize(Archive& ar);
 	};
 
-	struct ENGINE_EXPORT Texture3DMip {
+	struct trinex_api Texture3DMip {
 		Vector3u size;
 		Buffer data;
 
@@ -27,7 +27,7 @@ namespace Trinex
 		bool serialize(Archive& ar);
 	};
 
-	struct ENGINE_EXPORT TextureCubeMip {
+	struct trinex_api TextureCubeMip {
 		Vector2u size;
 		Buffer data;
 
@@ -36,7 +36,7 @@ namespace Trinex
 	};
 
 
-	class ENGINE_EXPORT Texture : public Asset
+	class trinex_api Texture : public Asset
 	{
 		trinex_class(Texture, Asset);
 
@@ -48,7 +48,7 @@ namespace Trinex
 		RHITexture* handle() const;
 	};
 
-	class ENGINE_EXPORT Texture2D : public Texture
+	class trinex_api Texture2D : public Texture
 	{
 		trinex_class(Texture2D, Texture);
 
@@ -63,7 +63,7 @@ namespace Trinex
 		bool serialize(Archive& archive) override;
 	};
 
-	class ENGINE_EXPORT Texture3D : public Texture
+	class trinex_api Texture3D : public Texture
 	{
 		trinex_class(Texture2D, Texture);
 
@@ -79,7 +79,7 @@ namespace Trinex
 		bool serialize(Archive& archive) override;
 	};
 
-	class ENGINE_EXPORT TextureCube : public Texture
+	class trinex_api TextureCube : public Texture
 	{
 		trinex_class(TextureCube, Texture);
 

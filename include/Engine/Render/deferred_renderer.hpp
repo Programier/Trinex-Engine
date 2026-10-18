@@ -19,7 +19,7 @@ namespace Trinex
 	struct LightRenderRanges;
 	struct Swizzle;
 
-	class ENGINE_EXPORT DeferredRenderer : public Renderer
+	class trinex_api DeferredRenderer : public Renderer
 	{
 	private:
 		RHIBuffer* m_clusters_buffer                 = nullptr;

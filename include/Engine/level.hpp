@@ -9,7 +9,7 @@ namespace Trinex
 	class Level;
 	class Actor;
 
-	class ENGINE_EXPORT LevelInstance : public Object
+	class trinex_api LevelInstance : public Object
 	{
 		trinex_class(LevelInstance, Object);
 
@@ -71,7 +71,7 @@ namespace Trinex
 		inline const Vector<class Actor*>& actors() const { return m_actors; }
 	};
 
-	class ENGINE_EXPORT Level : public Object
+	class trinex_api Level : public Object
 	{
 		trinex_class(Level, Object);
 

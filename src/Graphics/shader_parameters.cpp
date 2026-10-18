@@ -8,7 +8,7 @@
 
 namespace Trinex
 {
-	ENGINE_EXPORT GlobalShaderParameters& GlobalShaderParameters::update(const SceneView* scene_view)
+	trinex_api GlobalShaderParameters& GlobalShaderParameters::update(const SceneView* scene_view)
 	{
 		if (scene_view)
 		{

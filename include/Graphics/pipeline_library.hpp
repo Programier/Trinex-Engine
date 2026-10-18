@@ -16,7 +16,7 @@ namespace Trinex
 	struct PipelineLibraryCache;
 	struct RHIShaderParameterInfo;
 
-	class ENGINE_EXPORT PipelineLibrary : public ObjectTreeNode<Asset, Pipeline>
+	class trinex_api PipelineLibrary : public ObjectTreeNode<Asset, Pipeline>
 	{
 		trinex_class(PipelineLibrary, Asset);
 
@@ -30,7 +30,7 @@ namespace Trinex
 		ComputePipeline* find_compute_pipeline(const Name& key) const;
 	};
 
-	class ENGINE_EXPORT GlobalPipelineLibrary : public PipelineLibrary
+	class trinex_api GlobalPipelineLibrary : public PipelineLibrary
 	{
 		trinex_class(GlobalPipelineLibrary, PipelineLibrary);
 

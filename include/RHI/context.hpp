@@ -16,11 +16,11 @@ namespace Trinex
 	class RHIPipeline;
 	class RHIPipelineStatistics;
 
-	class ENGINE_EXPORT RHICommandHandle : public RHIObject
+	class trinex_api RHICommandHandle : public RHIObject
 	{
 	};
 
-	class ENGINE_EXPORT RHIContext : public RHIObject
+	class trinex_api RHIContext : public RHIObject
 	{
 	public:
 		virtual RHIContext& begin(const RHIContextInheritanceInfo* inheritance = nullptr) = 0;

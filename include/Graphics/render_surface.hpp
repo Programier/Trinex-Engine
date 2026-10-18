@@ -12,7 +12,7 @@ namespace Trinex
 	class RHIDepthStencilView;
 	class RHITexture;
 
-	class ENGINE_EXPORT RenderSurface : public Asset
+	class trinex_api RenderSurface : public Asset
 	{
 		trinex_class(RenderSurface, Asset);
 

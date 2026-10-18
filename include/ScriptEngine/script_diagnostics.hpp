@@ -4,7 +4,7 @@
 
 namespace Trinex
 {
-	struct ENGINE_EXPORT ScriptDiagnostic {
+	struct trinex_api ScriptDiagnostic {
 		enum class Type : u8
 		{
 			Info,
@@ -19,7 +19,7 @@ namespace Trinex
 		String message   = {};
 	};
 
-	struct ENGINE_EXPORT ScriptBuildResult {
+	struct trinex_api ScriptBuildResult {
 		bool success = false;
 		Vector<ScriptDiagnostic> diagnostics;
 

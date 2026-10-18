@@ -5,7 +5,7 @@
 
 namespace Trinex
 {
-	class ENGINE_EXPORT UserData final
+	class trinex_api UserData final
 	{
 	private:
 		TreeMap<Identifier, Any> m_userdata;

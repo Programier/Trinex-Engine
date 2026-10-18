@@ -4,7 +4,7 @@
 
 namespace Trinex
 {
-	struct ENGINE_EXPORT WorldEnvironment {
+	struct trinex_api WorldEnvironment {
 		LinearColor ambient_color = LinearColor(0.05, 0.05, 0.05, 1.f);
 	};
 }// namespace Trinex

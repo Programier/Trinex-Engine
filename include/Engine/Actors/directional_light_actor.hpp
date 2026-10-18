@@ -3,7 +3,7 @@
 
 namespace Trinex
 {
-	class ENGINE_EXPORT DirectionalLightActor : public LightActor
+	class trinex_api DirectionalLightActor : public LightActor
 	{
 		trinex_class(DirectionalLightActor, LightActor);
 

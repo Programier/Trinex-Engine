@@ -164,10 +164,10 @@ namespace Trinex
 		trinex_bitfield_enum_struct(RHIShaderParameterType, EnumerateType);
 		trinex_enum(RHIShaderParameterType);
 
-		ENGINE_EXPORT static RHIShaderParameterType make_numeric(RHIShaderParameterType base, u8 len = 1);
-		ENGINE_EXPORT static RHIShaderParameterType make_matrix(RHIShaderParameterType base, u8 rows = 4, u8 columns = 4);
+		trinex_api static RHIShaderParameterType make_numeric(RHIShaderParameterType base, u8 len = 1);
+		trinex_api static RHIShaderParameterType make_matrix(RHIShaderParameterType base, u8 rows = 4, u8 columns = 4);
 
-		ENGINE_EXPORT RHIShaderParameterType element_type();
+		trinex_api RHIShaderParameterType element_type();
 
 		inline constexpr bool is_numeric() const { return (value & META_Numeric); }
 		inline constexpr bool is_matrix() const { return (value & META_Matrix) == META_Matrix; }
@@ -473,7 +473,7 @@ namespace Trinex
 		inline usize stride() const { return value << 1; }
 	};
 
-	struct ENGINE_EXPORT RHIColorFormat {
+	struct trinex_api RHIColorFormat {
 		struct Capabilities {
 			enum Enum : EnumerateType
 			{

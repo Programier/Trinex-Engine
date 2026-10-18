@@ -17,7 +17,7 @@ namespace Trinex
 	class RHIContext;
 	class RHISemaphore;
 
-	class ENGINE_EXPORT RHIFencePool final
+	class trinex_api RHIFencePool final
 	{
 	private:
 		struct FenceEntry {
@@ -41,7 +41,7 @@ namespace Trinex
 		RHIFencePool& release(RHIFence* fence);
 	};
 
-	class ENGINE_EXPORT RHIBufferPool final
+	class trinex_api RHIBufferPool final
 	{
 	private:
 		struct BufferEntry {
@@ -66,7 +66,7 @@ namespace Trinex
 		RHIBufferPool& release(RHIBuffer* buffer);
 	};
 
-	class ENGINE_EXPORT RHITexturePool final
+	class trinex_api RHITexturePool final
 	{
 	private:
 		struct Key {
@@ -81,7 +81,7 @@ namespace Trinex
 			inline bool operator==(const Key& key) const = default;
 		};
 
-		struct ENGINE_EXPORT Hasher {
+		struct trinex_api Hasher {
 			u64 operator()(const Key& key) const;
 		};
 
@@ -110,7 +110,7 @@ namespace Trinex
 		RHITexturePool& release(RHITexture* surface);
 	};
 
-	class ENGINE_EXPORT RenderSurfacePool final
+	class trinex_api RenderSurfacePool final
 	{
 	private:
 		struct SurfaceEntry {
@@ -133,7 +133,7 @@ namespace Trinex
 		RenderSurfacePool& release(RenderSurface* surface);
 	};
 
-	class ENGINE_EXPORT RHITimestampPool final
+	class trinex_api RHITimestampPool final
 	{
 	private:
 		struct TimestampEntry {
@@ -152,7 +152,7 @@ namespace Trinex
 		RHITimestampPool& release(RHITimestamp* timestamp);
 	};
 
-	class ENGINE_EXPORT RHIPipelineStatisticsPool final
+	class trinex_api RHIPipelineStatisticsPool final
 	{
 	private:
 		struct StatsEntry {
@@ -171,7 +171,7 @@ namespace Trinex
 		RHIPipelineStatisticsPool& release(RHIPipelineStatistics* stats);
 	};
 
-	class ENGINE_EXPORT RHIContextPool final
+	class trinex_api RHIContextPool final
 	{
 	private:
 		struct ContextEntry {

@@ -4,7 +4,7 @@
 
 namespace Trinex
 {
-	class ENGINE_EXPORT EntryPoint : public Object
+	class trinex_api EntryPoint : public Object
 	{
 		trinex_class(EntryPoint, Object);
 

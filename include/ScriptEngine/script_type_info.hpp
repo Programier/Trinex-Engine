@@ -10,7 +10,7 @@ namespace Trinex
 	class ScriptModule;
 	class ScriptFunction;
 
-	class ENGINE_EXPORT ScriptTypeInfo
+	class trinex_api ScriptTypeInfo
 	{
 	private:
 		mutable asITypeInfo* m_info = nullptr;

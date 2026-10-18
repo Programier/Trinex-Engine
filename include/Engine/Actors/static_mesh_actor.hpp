@@ -4,7 +4,7 @@
 
 namespace Trinex
 {
-	class ENGINE_EXPORT StaticMeshActor : public Actor
+	class trinex_api StaticMeshActor : public Actor
 	{
 		trinex_class(StaticMeshActor, Actor);
 

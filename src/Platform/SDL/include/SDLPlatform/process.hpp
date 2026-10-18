@@ -5,7 +5,7 @@ struct SDL_Process;
 
 namespace Trinex::Platform
 {
-	class ENGINE_EXPORT SDLProcess : public Process
+	class trinex_api SDLProcess : public Process
 	{
 	private:
 		SDL_Process* m_process = nullptr;
@@ -29,7 +29,7 @@ namespace Trinex::Platform
 		bool is_detached() const override;
 	};
 
-	class ENGINE_EXPORT SDLProcessSystem : public ProcessSystem
+	class trinex_api SDLProcessSystem : public ProcessSystem
 	{
 	private:
 		SDLProcessSystem();

@@ -33,12 +33,12 @@ namespace Trinex
 		inline bool operator!=(const RHIRegion& v) const { return !((*this) == v); }
 	};
 
-	struct ENGINE_EXPORT RHIRange {
+	struct trinex_api RHIRange {
 		u64 first = 0;
 		u64 count = ~0U;
 	};
 
-	struct ENGINE_EXPORT RHIShaderParameterInfo {
+	struct trinex_api RHIShaderParameterInfo {
 		Name name;
 		u32 size                    = 0;
 		u32 offset                  = 0;
@@ -173,7 +173,7 @@ namespace Trinex
 		};
 	};
 
-	struct ENGINE_EXPORT RHIDepthStencilState final {
+	struct trinex_api RHIDepthStencilState final {
 		trinex_default_comparable(RHIDepthStencilState);
 
 		struct Depth {
@@ -229,7 +229,7 @@ namespace Trinex
 		constexpr inline bool is_enabled() const { return depth.is_enabled() || stencil.is_enabled(); }
 	};
 
-	struct ENGINE_EXPORT RHIBlendingState final {
+	struct trinex_api RHIBlendingState final {
 		trinex_default_comparable(RHIBlendingState);
 
 		static constexpr RHIBlendingState opaque(RHIColorComponent write_mask = RHIColorComponent::RGBA)

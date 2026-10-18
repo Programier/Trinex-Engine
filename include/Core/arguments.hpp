@@ -7,7 +7,7 @@
 
 namespace Trinex
 {
-	class ENGINE_EXPORT Arguments
+	class trinex_api Arguments
 	{
 	public:
 		using StringType = String;
@@ -21,7 +21,7 @@ namespace Trinex
 			UserData,
 		};
 
-		struct ENGINE_EXPORT Argument {
+		struct trinex_api Argument {
 			String name;
 			Type type;
 			Any data;

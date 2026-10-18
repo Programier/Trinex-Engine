@@ -37,7 +37,7 @@ namespace Trinex
 		bool is_active() const { return axes.x != 0.f || axes.y != 0.f || axes.z != 0.f; }
 	};
 
-	struct ENGINE_EXPORT InputDeviceType : private Name {
+	struct trinex_api InputDeviceType : private Name {
 		using Name::c_str;
 		using Name::hash;
 		using Name::id;
@@ -61,7 +61,7 @@ namespace Trinex
 		inline bool operator!=(const InputDeviceType& other) const { return Name::operator!=(other); }
 	};
 
-	struct ENGINE_EXPORT EventType : private Name {
+	struct trinex_api EventType : private Name {
 		using Name::c_str;
 		using Name::hash;
 		using Name::id;
@@ -136,7 +136,7 @@ namespace Trinex
 		inline bool operator!=(const EventType& other) const { return Name::operator!=(other); }
 	};
 
-	struct ENGINE_EXPORT EventCode : private Name {
+	struct trinex_api EventCode : private Name {
 
 	public:
 		using Name::c_str;

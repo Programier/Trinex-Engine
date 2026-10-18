@@ -27,7 +27,7 @@ namespace Trinex::Platform
 		bool primary     = false;// Whether this is the primary monitor.
 	};
 
-	class ENGINE_EXPORT MonitorSystem
+	class trinex_api MonitorSystem
 	{
 	public:
 		static MonitorSystem* instance();

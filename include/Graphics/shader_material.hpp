@@ -4,7 +4,7 @@
 
 namespace Trinex
 {
-	class ENGINE_EXPORT ShaderMaterial : public Material
+	class trinex_api ShaderMaterial : public Material
 	{
 		trinex_class(ShaderMaterial, Material);
 

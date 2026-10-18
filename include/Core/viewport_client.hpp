@@ -4,7 +4,7 @@
 
 namespace Trinex
 {
-	class ENGINE_EXPORT ViewportClient : public Object
+	class trinex_api ViewportClient : public Object
 	{
 		trinex_class(ViewportClient, Object);
 

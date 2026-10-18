@@ -68,7 +68,7 @@ namespace Trinex
 		name_entries().push_back(Name::Entry{String(name, len), hash, next});
 	}
 
-	ENGINE_EXPORT Name Name::none;
+	trinex_api Name Name::none;
 
 	static constexpr u32 invalid_name_index = 0xFFFFFFFF;
 	static constexpr usize cache_size       = 64;

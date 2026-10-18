@@ -9,7 +9,7 @@ namespace Trinex
 
 namespace Trinex::Refl
 {
-	class ENGINE_EXPORT ScriptStruct : public Struct
+	class trinex_api ScriptStruct : public Struct
 	{
 		trinex_reflect_type(ScriptStruct, Struct);
 

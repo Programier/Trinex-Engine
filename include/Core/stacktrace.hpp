@@ -5,7 +5,7 @@
 
 namespace Trinex
 {
-	class ENGINE_EXPORT StackTrace final
+	class trinex_api StackTrace final
 	{
 	public:
 		struct FunctionInfo {

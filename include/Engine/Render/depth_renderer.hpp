@@ -5,7 +5,7 @@ namespace Trinex
 {
 	struct CameraView;
 
-	class ENGINE_EXPORT DepthRenderer : public Renderer
+	class trinex_api DepthRenderer : public Renderer
 	{
 	private:
 		DepthRenderer& render_depth(RHIContext* ctx);
@@ -14,7 +14,7 @@ namespace Trinex
 		DepthRenderer(const SceneView& view, ViewMode mode = ViewMode::Lit);
 	};
 
-	class ENGINE_EXPORT DepthCubeRenderer : public Renderer
+	class trinex_api DepthCubeRenderer : public Renderer
 	{
 	private:
 		RHITexture* m_cubemap = nullptr;

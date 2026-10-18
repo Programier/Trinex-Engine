@@ -23,7 +23,7 @@ namespace Trinex
 	class ScriptFunction;
 	class ScriptExecutionContext;
 
-	class ENGINE_EXPORT ScriptNamespaceScopedChanger final
+	class trinex_api ScriptNamespaceScopedChanger final
 	{
 		String m_prev_namespace;
 
@@ -35,7 +35,7 @@ namespace Trinex
 		~ScriptNamespaceScopedChanger();
 	};
 
-	class ENGINE_EXPORT ScriptEngine
+	class trinex_api ScriptEngine
 	{
 	public:
 		using VariableToStringFunction = String (*)(const u8* object, i32 type_id, bool repr);

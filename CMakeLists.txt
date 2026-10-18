@@ -45,11 +45,13 @@ add_subdirectory(${TRINEX_ENGINE_ROOT}/tools/)
 # Compile Trinex Engine
 if(TRINEX_AS_EXECUTABLE AND NOT ANDROID)
     trinex_executable(TrinexEngine
+	API trinex_api
         REFLECTION_ROOT "${TRINEX_ENGINE_ROOT}"
         REFLECTION_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/reflection"
     )
 else()
     trinex_library(TrinexEngine SHARED
+        API trinex_api
         REFLECTION_ROOT "${TRINEX_ENGINE_ROOT}"
         REFLECTION_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/reflection"
     )
@@ -79,8 +81,6 @@ endif()
 # Trinex Engine compile options
 trinex_reflection_directories(TrinexEngine PUBLIC ${TRINEX_ENGINE_ROOT}/include)
 trinex_link_libraries(TrinexEngine PUBLIC freetype asmjit lz4_static stb_library)
-
-trinex_compile_definitions(TrinexEngine PRIVATE -DENABLE_ENGINE_EXPORTS=1)
 
 trinex_compile_options(TrinexEngine PUBLIC
     $<$<COMPILE_LANGUAGE:CXX>:

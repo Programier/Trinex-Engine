@@ -4,7 +4,7 @@
 
 namespace Trinex
 {
-	class ENGINE_EXPORT PostProcessComponent : public SceneComponent
+	class trinex_api PostProcessComponent : public SceneComponent
 	{
 		trinex_class(PostProcessComponent, SceneComponent);
 

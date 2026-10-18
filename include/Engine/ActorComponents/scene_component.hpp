@@ -5,7 +5,7 @@
 
 namespace Trinex
 {
-	class ENGINE_EXPORT SceneComponent : public ActorComponent
+	class trinex_api SceneComponent : public ActorComponent
 	{
 		trinex_class(SceneComponent, ActorComponent);
 

@@ -36,7 +36,7 @@ namespace Trinex::RenderGraph
 	class Resource;
 	class Pass;
 
-	class ENGINE_EXPORT Graph
+	class trinex_api Graph
 	{
 	public:
 		class Plugin
@@ -108,7 +108,7 @@ namespace Trinex::RenderGraph
 		friend Pass;
 	};
 
-	class ENGINE_EXPORT Pass
+	class trinex_api Pass
 	{
 	public:
 		struct ResourceRef {

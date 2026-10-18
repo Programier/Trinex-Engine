@@ -44,12 +44,12 @@ namespace Trinex::VisualMaterialGraph
 		static RHIShaderParameterType make_floating(RHIShaderParameterType self);
 		static RHIShaderParameterType vector_clamp(RHIShaderParameterType self, u8 min, u8 max);
 
-		ENGINE_EXPORT static RHIShaderParameterType make_numeric(RHIShaderParameterType base, u8 len = 1)
+		static RHIShaderParameterType make_numeric(RHIShaderParameterType base, u8 len = 1)
 		{
 			return RHIShaderParameterType::make_numeric(base, len);
 		}
 
-		ENGINE_EXPORT static RHIShaderParameterType make_matrix(RHIShaderParameterType base, u8 rows = 4, u8 columns = 4)
+		static RHIShaderParameterType make_matrix(RHIShaderParameterType base, u8 rows = 4, u8 columns = 4)
 		{
 			return RHIShaderParameterType::make_matrix(base, rows, columns);
 		}

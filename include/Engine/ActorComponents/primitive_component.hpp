@@ -13,7 +13,7 @@ namespace Trinex
 
 	struct PrimitiveRenderingContext;
 
-	class ENGINE_EXPORT PrimitiveComponent : public SceneComponent
+	class trinex_api PrimitiveComponent : public SceneComponent
 	{
 		trinex_class(PrimitiveComponent, SceneComponent);
 

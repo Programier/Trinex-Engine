@@ -11,7 +11,7 @@
 
 namespace Trinex::Strings
 {
-	ENGINE_EXPORT String c_style_format(const char* text, ...)
+	trinex_api String c_style_format(const char* text, ...)
 	{
 		va_list args;
 		va_start(args, text);
@@ -22,27 +22,27 @@ namespace Trinex::Strings
 		return buffer;
 	}
 
-	ENGINE_EXPORT StringView lstrip(const StringView& line, const StringView& chars)
+	trinex_api StringView lstrip(const StringView& line, const StringView& chars)
 	{
 		StringView::size_type start = line.find_first_not_of(chars);
 		return (start == StringView::npos) ? "" : line.substr(start, line.size() - start);
 		return line;
 	}
 
-	ENGINE_EXPORT StringView rstrip(const StringView& line, const StringView& chars)
+	trinex_api StringView rstrip(const StringView& line, const StringView& chars)
 	{
 		StringView::size_type end = line.find_last_not_of(chars);
 		return end == StringView::npos ? "" : line.substr(0, end + 1);
 	}
 
-	ENGINE_EXPORT StringView lstrip(const StringView& line, bool (*callback)(char ch))
+	trinex_api StringView lstrip(const StringView& line, bool (*callback)(char ch))
 	{
 		StringView::size_type pos = 0;
 		while (pos < line.size() && callback(line[pos])) pos++;
 		return line.substr(pos, line.length() - pos);
 	}
 
-	ENGINE_EXPORT StringView rstrip(const StringView& line, bool (*callback)(char ch))
+	trinex_api StringView rstrip(const StringView& line, bool (*callback)(char ch))
 	{
 		StringView::size_type pos = line.size() - 1;
 		while (pos > 0 && callback(line[pos])) pos--;
@@ -51,7 +51,7 @@ namespace Trinex::Strings
 		return line.substr(0, pos + 1);
 	}
 
-	ENGINE_EXPORT String capitalize_words(const StringView& sentence)
+	trinex_api String capitalize_words(const StringView& sentence)
 	{
 		std::regex word_regex(R"(\b[^\W\d_]*([A-Za-z])[^\W\d_]*\b)");
 		String result = String(sentence);
@@ -70,7 +70,7 @@ namespace Trinex::Strings
 		return result;
 	}
 
-	ENGINE_EXPORT String make_sentence(String line)
+	trinex_api String make_sentence(String line)
 	{
 		String temp = std::regex_replace(line, std::regex(R"(^[msgkp]_)"), "");
 		temp        = std::regex_replace(temp, std::regex("([a-z])([A-Z0-9])"), "$1 $2");
@@ -79,7 +79,7 @@ namespace Trinex::Strings
 		return capitalize_words(temp);
 	}
 
-	ENGINE_EXPORT u64 hash_of(const StringView& str)
+	trinex_api u64 hash_of(const StringView& str)
 	{
 		return memory_hash(str.data(), str.length(), 0);
 	}
@@ -101,7 +101,7 @@ namespace Trinex::Strings
 		return result;
 	}
 
-	ENGINE_EXPORT u32 replace_symbol(String& str, char old_symbol, char new_symbol)
+	trinex_api u32 replace_symbol(String& str, char old_symbol, char new_symbol)
 	{
 		u32 count = 0;
 
@@ -117,7 +117,7 @@ namespace Trinex::Strings
 		return count;
 	}
 
-	ENGINE_EXPORT u32 replace_symbol(char* str, char old_symbol, char new_symbol)
+	trinex_api u32 replace_symbol(char* str, char old_symbol, char new_symbol)
 	{
 		u32 count = 0;
 
@@ -135,7 +135,7 @@ namespace Trinex::Strings
 		return count;
 	}
 
-	ENGINE_EXPORT u32 replace_symbol(char* str, char old_symbol, char new_symbol, u32 len)
+	trinex_api u32 replace_symbol(char* str, char old_symbol, char new_symbol, u32 len)
 	{
 		u32 count = 0;
 
@@ -154,7 +154,7 @@ namespace Trinex::Strings
 		return count;
 	}
 
-	ENGINE_EXPORT String to_lower(StringView line)
+	trinex_api String to_lower(StringView line)
 	{
 		String result;
 		result.resize(line.size());
@@ -162,7 +162,7 @@ namespace Trinex::Strings
 		return result;
 	}
 
-	ENGINE_EXPORT String to_upper(StringView line)
+	trinex_api String to_upper(StringView line)
 	{
 		String result;
 		result.resize(line.size());
@@ -170,7 +170,7 @@ namespace Trinex::Strings
 		return result;
 	}
 
-	ENGINE_EXPORT const char* strnstr(const char* haystack, usize haystack_len, const char* needle, usize needle_len)
+	trinex_api const char* strnstr(const char* haystack, usize haystack_len, const char* needle, usize needle_len)
 	{
 		return reinterpret_cast<const char*>(memory_search(reinterpret_cast<const u8*>(haystack), haystack_len,
 		                                                   reinterpret_cast<const u8*>(needle), needle_len));
@@ -195,27 +195,27 @@ namespace Trinex::Strings
 		return tokens;
 	}
 
-	ENGINE_EXPORT Vector<String> split(const StringView& line, char delimiter)
+	trinex_api Vector<String> split(const StringView& line, char delimiter)
 	{
 		return internal_split<char>(line, delimiter);
 	}
 
-	ENGINE_EXPORT Vector<String> split(const StringView& line, const StringView& delimiter)
+	trinex_api Vector<String> split(const StringView& line, const StringView& delimiter)
 	{
 		return internal_split<const StringView&>(line, delimiter);
 	}
 
-	ENGINE_EXPORT String namespace_of(const StringView& name)
+	trinex_api String namespace_of(const StringView& name)
 	{
 		return String(namespace_sv_of(name));
 	}
 
-	ENGINE_EXPORT String class_name_of(const StringView& name)
+	trinex_api String class_name_of(const StringView& name)
 	{
 		return String(class_name_sv_of(name));
 	}
 
-	ENGINE_EXPORT StringView namespace_sv_of(const StringView& name)
+	trinex_api StringView namespace_sv_of(const StringView& name)
 	{
 		auto index = name.find_last_of("::");
 		if (index == String::npos)
@@ -225,7 +225,7 @@ namespace Trinex::Strings
 		return name.substr(0, index);
 	}
 
-	ENGINE_EXPORT StringView class_name_sv_of(const StringView& name)
+	trinex_api StringView class_name_sv_of(const StringView& name)
 	{
 		auto pos = name.find_last_of("::");
 		if (pos == String::npos)
@@ -236,19 +236,19 @@ namespace Trinex::Strings
 		return name.substr(pos + 1, name.length() - pos + 1);
 	}
 
-	ENGINE_EXPORT String concat_scoped_name(StringView scope, StringView name)
+	trinex_api String concat_scoped_name(StringView scope, StringView name)
 	{
 		if (scope.empty())
 			return String(name);
 		return format("{}::{}", scope, name);
 	}
 
-	ENGINE_EXPORT StringView parse_name_identifier(StringView sentence, StringView* out)
+	trinex_api StringView parse_name_identifier(StringView sentence, StringView* out)
 	{
 		return parse_token(sentence, Constants::name_separator, out);
 	}
 
-	ENGINE_EXPORT StringView parse_token(StringView expression, StringView separator, StringView* out)
+	trinex_api StringView parse_token(StringView expression, StringView separator, StringView* out)
 	{
 		auto pos = expression.find(separator);
 
@@ -282,42 +282,42 @@ namespace Trinex::Strings
 		                  [](char ca, char cb) { return std::tolower(ca) == std::tolower(cb); });
 	}
 
-	ENGINE_EXPORT bool boolean_of(StringView text)
+	trinex_api bool boolean_of(StringView text)
 	{
 		bool result = false;
 		boolean_of(text, result);
 		return result;
 	}
 
-	ENGINE_EXPORT i64 signed_of(StringView text)
+	trinex_api i64 signed_of(StringView text)
 	{
 		i64 result = 0;
 		signed_of(text, result);
 		return result;
 	}
 
-	ENGINE_EXPORT u64 unsigned_of(StringView text)
+	trinex_api u64 unsigned_of(StringView text)
 	{
 		u64 result = 0;
 		unsigned_of(text, result);
 		return result;
 	}
 
-	ENGINE_EXPORT f64 floating_of(StringView text)
+	trinex_api f64 floating_of(StringView text)
 	{
 		f64 result = 0.0;
 		floating_of(text, result);
 		return result;
 	}
 
-	ENGINE_EXPORT void* pointer_of(StringView text)
+	trinex_api void* pointer_of(StringView text)
 	{
 		void* result = nullptr;
 		pointer_of(text, result);
 		return result;
 	}
 
-	ENGINE_EXPORT bool boolean_of(StringView text, bool& out)
+	trinex_api bool boolean_of(StringView text, bool& out)
 	{
 		if (iequals(text, "true"))
 		{
@@ -340,7 +340,7 @@ namespace Trinex::Strings
 		return true;
 	}
 
-	ENGINE_EXPORT bool signed_of(StringView text, i64& out)
+	trinex_api bool signed_of(StringView text, i64& out)
 	{
 		const char* begin = text.data();
 		const char* end   = begin + text.size();
@@ -356,7 +356,7 @@ namespace Trinex::Strings
 		return true;
 	}
 
-	ENGINE_EXPORT bool unsigned_of(StringView text, u64& out)
+	trinex_api bool unsigned_of(StringView text, u64& out)
 	{
 		const char* begin = text.data();
 		const char* end   = begin + text.size();
@@ -372,7 +372,7 @@ namespace Trinex::Strings
 		return true;
 	}
 
-	ENGINE_EXPORT bool floating_of(StringView text, f64& out)
+	trinex_api bool floating_of(StringView text, f64& out)
 	{
 		const char* begin = text.data();
 		const char* end   = begin + text.size();
@@ -388,7 +388,7 @@ namespace Trinex::Strings
 		return true;
 	}
 
-	ENGINE_EXPORT bool pointer_of(StringView text, void*& out)
+	trinex_api bool pointer_of(StringView text, void*& out)
 	{
 		const char* begin = text.data();
 		const char* end   = begin + text.size();
@@ -415,7 +415,7 @@ namespace Trinex::Strings
 		return true;
 	}
 
-	ENGINE_EXPORT bool read_line(StringView& stream, StringView& out)
+	trinex_api bool read_line(StringView& stream, StringView& out)
 	{
 		if (stream.empty())
 			return false;
@@ -428,7 +428,7 @@ namespace Trinex::Strings
 		return true;
 	}
 
-	ENGINE_EXPORT bool read_line(StringView& stream, StringView& out, char separator)
+	trinex_api bool read_line(StringView& stream, StringView& out, char separator)
 	{
 		usize pos = stream.find(separator);
 

@@ -15,13 +15,13 @@ namespace Trinex
 	struct RHITextureType;
 	struct RHIMappingAccess;
 
-	class ENGINE_EXPORT RHITimestamp : public RHIObject
+	class trinex_api RHITimestamp : public RHIObject
 	{
 	public:
 		virtual float milliseconds() = 0;
 	};
 
-	class ENGINE_EXPORT RHIPipelineStatistics : public RHIObject
+	class trinex_api RHIPipelineStatistics : public RHIObject
 	{
 	public:
 		u64 vertices                                = 0;
@@ -38,51 +38,51 @@ namespace Trinex
 		virtual RHIPipelineStatistics& fetch() = 0;
 	};
 
-	class ENGINE_EXPORT RHIFence : public RHIObject
+	class trinex_api RHIFence : public RHIObject
 	{
 	public:
 		virtual bool is_signaled() = 0;
 		virtual void reset()       = 0;
 	};
 
-	class ENGINE_EXPORT RHISemaphore : public RHIObject
+	class trinex_api RHISemaphore : public RHIObject
 	{
 	public:
 	};
 
-	class ENGINE_EXPORT RHIShaderResourceView
+	class trinex_api RHIShaderResourceView
 	{
 	public:
 		virtual ~RHIShaderResourceView() {}
 		virtual RHIDescriptor descriptor() const = 0;
 	};
 
-	class ENGINE_EXPORT RHIUnorderedAccessView
+	class trinex_api RHIUnorderedAccessView
 	{
 	public:
 		virtual ~RHIUnorderedAccessView() {}
 		virtual RHIDescriptor descriptor() const = 0;
 	};
 
-	class ENGINE_EXPORT RHIRenderTargetView
+	class trinex_api RHIRenderTargetView
 	{
 	public:
 		virtual ~RHIRenderTargetView() {}
 	};
 
-	class ENGINE_EXPORT RHIDepthStencilView
+	class trinex_api RHIDepthStencilView
 	{
 	public:
 		virtual ~RHIDepthStencilView() {}
 	};
 
-	class ENGINE_EXPORT RHISampler : public RHIObject
+	class trinex_api RHISampler : public RHIObject
 	{
 	public:
 		virtual RHIDescriptor descriptor() const = 0;
 	};
 
-	class ENGINE_EXPORT RHITexture : public RHIObject
+	class trinex_api RHITexture : public RHIObject
 	{
 	public:
 		virtual Vector3u size() const                                             = 0;
@@ -92,7 +92,7 @@ namespace Trinex
 		virtual RHIUnorderedAccessView* as_uav(RHITextureDescUAV* desc = nullptr) = 0;
 	};
 
-	class ENGINE_EXPORT RHITextureView : public RHITexture
+	class trinex_api RHITextureView : public RHITexture
 	{
 	private:
 		RHITexture* m_texture;
@@ -118,15 +118,15 @@ namespace Trinex
 		RHIUnorderedAccessView* as_uav(RHITextureDescUAV* desc = nullptr) override;
 	};
 
-	class ENGINE_EXPORT RHIShader : public RHIObject
+	class trinex_api RHIShader : public RHIObject
 	{
 	};
 
-	class ENGINE_EXPORT RHIPipeline : public RHIObject
+	class trinex_api RHIPipeline : public RHIObject
 	{
 	};
 
-	class ENGINE_EXPORT RHIBuffer : public RHIObject
+	class trinex_api RHIBuffer : public RHIObject
 	{
 	public:
 		bool serialize(Archive& ar);
@@ -139,7 +139,7 @@ namespace Trinex
 		virtual RHIUnorderedAccessView* as_uav(RHIBufferViewType view, RHIColorFormat format = RHIColorFormat::Undefined) = 0;
 	};
 
-	class ENGINE_EXPORT RHISwapchain : public RHIObject
+	class trinex_api RHISwapchain : public RHIObject
 	{
 	public:
 		virtual void present_interval(u32 interval) = 0;
@@ -151,7 +151,7 @@ namespace Trinex
 		virtual RHITexture* as_texture()          = 0;
 	};
 
-	class ENGINE_EXPORT RHIAccelerationStructure : public RHIObject
+	class trinex_api RHIAccelerationStructure : public RHIObject
 	{
 	public:
 	};

@@ -3,7 +3,7 @@
 
 namespace Trinex
 {
-	class ENGINE_EXPORT HandleBase
+	class trinex_api HandleBase
 	{
 	protected:
 		static u64 generate();

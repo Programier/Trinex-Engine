@@ -176,17 +176,17 @@ namespace Trinex
 		return m_class;
 	}
 
-	ENGINE_EXPORT String Object::package_name_of(const StringView& name)
+	trinex_api String Object::package_name_of(const StringView& name)
 	{
 		return String(package_name_sv_of(name));
 	}
 
-	ENGINE_EXPORT String Object::object_name_of(const StringView& name)
+	trinex_api String Object::object_name_of(const StringView& name)
 	{
 		return String(object_name_sv_of(name));
 	}
 
-	ENGINE_EXPORT StringView Object::package_name_sv_of(const StringView& name)
+	trinex_api StringView Object::package_name_sv_of(const StringView& name)
 	{
 		auto index = name.find_last_of(Constants::name_separator);
 		if (index == String::npos)
@@ -196,7 +196,7 @@ namespace Trinex
 		return name.substr(0, index);
 	}
 
-	ENGINE_EXPORT StringView Object::object_name_sv_of(const StringView& name)
+	trinex_api StringView Object::object_name_sv_of(const StringView& name)
 	{
 		auto pos = name.find_last_of(Constants::name_separator);
 		if (pos == String::npos)
@@ -208,7 +208,7 @@ namespace Trinex
 		return name.substr(pos, name.length() - pos);
 	}
 
-	ENGINE_EXPORT const Vector<Object*>& Object::static_root_objects()
+	trinex_api const Vector<Object*>& Object::static_root_objects()
 	{
 		return s_root_objects;
 	}
@@ -371,12 +371,12 @@ namespace Trinex
 		return !m_name.is_valid();
 	}
 
-	ENGINE_EXPORT const Package* root_package()
+	trinex_api const Package* root_package()
 	{
 		return s_root_package;
 	}
 
-	ENGINE_EXPORT Object* Object::static_find_object(StringView object_name)
+	trinex_api Object* Object::static_find_object(StringView object_name)
 	{
 		return s_root_package->find_child_object(object_name);
 	}
@@ -624,7 +624,7 @@ namespace Trinex
 		return ar;
 	}
 
-	ENGINE_EXPORT Object* Object::load_object(StringView fullname, Stream* stream, ArchiveFlags serialization_flags)
+	trinex_api Object* Object::load_object(StringView fullname, Stream* stream, ArchiveFlags serialization_flags)
 	{
 		if (stream == nullptr)
 		{
@@ -690,7 +690,7 @@ namespace Trinex
 		return nullptr;
 	}
 
-	ENGINE_EXPORT Object* Object::load_object(StringView name, ArchiveFlags flags)
+	trinex_api Object* Object::load_object(StringView name, ArchiveFlags flags)
 	{
 		if (!(flags & ArchiveFlags::SkipObjectSearch))
 		{
@@ -703,7 +703,7 @@ namespace Trinex
 		return load_from_file_internal(path, name, flags | ArchiveFlags::SkipObjectSearch);
 	}
 
-	ENGINE_EXPORT Object* Object::load_object_from_file(const Path& path, ArchiveFlags flags)
+	trinex_api Object* Object::load_object_from_file(const Path& path, ArchiveFlags flags)
 	{
 		String package_name = Strings::replace_all(path.parent(), Path::sv_separator, Constants::name_separator);
 		StringView name     = path.stem();
@@ -752,7 +752,7 @@ namespace Trinex
 		return true;
 	}
 
-	ENGINE_EXPORT Object* Object::copy_from(Object* src)
+	trinex_api Object* Object::copy_from(Object* src)
 	{
 		ArchiveFlags flags = ArchiveFlags::IsCopyProcess;
 
