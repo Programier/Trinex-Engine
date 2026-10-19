@@ -123,4 +123,13 @@ namespace Trinex::etl
 	concept is_reflected_class = requires(T* obj) {
 		{ obj->static_reflection() } -> std::same_as<Trinex::Refl::Class*>;
 	};
+
+	template<typename T1, typename T2>
+	concept ordered_comparable_with = requires(const T1& lhs, const T2& rhs) {
+		{ lhs < rhs } -> etl::convertible_to<bool>;
+		{ lhs > rhs } -> etl::convertible_to<bool>;
+	};
+
+	template<typename T>
+	concept ordered_comparable = ordered_comparable_with<T, T>;
 }// namespace Trinex::etl

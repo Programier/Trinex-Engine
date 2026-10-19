@@ -18,21 +18,6 @@ namespace Trinex::Refl::New
 			trinex_default_copyable(VTable);
 			trinex_default_moveable(VTable);
 
-			void construct(void* dst, usize count = 1) const override;
-			void destruct(void* value, usize count = 1) const override;
-			void copy_construct(void* dst, const void* src, usize count = 1) const override;
-			void move_construct(void* dst, void* src, usize count = 1) const override;
-			void copy_assign(void* dst, const void* src, usize count = 1) const override;
-			void move_assign(void* dst, void* src, usize count = 1) const override;
-			void swap(void* lhs, void* rhs, usize count = 1) const override;
-			void relocate(void* dst, void* src, usize count = 1) const override;
-
-			bool equals(const void* lhs, const void* rhs) const override;
-			i32 compare(const void* lhs, const void* rhs) const override;
-
-			usize size(const void* container) const override;
-			void clear(void* container) const override;
-
 			inline Type* argument() const { return m_argument.value(); }
 		};
 

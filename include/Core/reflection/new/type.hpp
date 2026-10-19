@@ -6,22 +6,17 @@ namespace Trinex::Refl::New
 	class trinex_api Type : public Object
 	{
 	public:
-		class VTable
-		{
-		public:
-			virtual ~VTable() = default;
-
-			virtual void construct(void* dst, usize count = 1) const                       = 0;
-			virtual void destruct(void* value, usize count = 1) const                      = 0;
-			virtual void copy_construct(void* dst, const void* src, usize count = 1) const = 0;
-			virtual void move_construct(void* dst, void* src, usize count = 1) const       = 0;
-			virtual void copy_assign(void* dst, const void* src, usize count = 1) const    = 0;
-			virtual void move_assign(void* dst, void* src, usize count = 1) const          = 0;
-			virtual void swap(void* lhs, void* rhs, usize count = 1) const                 = 0;
-			virtual void relocate(void* dst, void* src, usize count = 1) const             = 0;
-
-			virtual bool equals(const void* lhs, const void* rhs) const = 0;
-			virtual i32 compare(const void* lhs, const void* rhs) const = 0;
+		struct VTable {
+			void (*construct)(const void* vtable, void* dst, usize count)                       = nullptr;
+			void (*destruct)(const void* vtable, void* value, usize count)                      = nullptr;
+			void (*copy_construct)(const void* vtable, void* dst, const void* src, usize count) = nullptr;
+			void (*move_construct)(const void* vtable, void* dst, void* src, usize count)       = nullptr;
+			void (*copy_assign)(const void* vtable, void* dst, const void* src, usize count)    = nullptr;
+			void (*move_assign)(const void* vtable, void* dst, void* src, usize count)          = nullptr;
+			void (*swap)(const void* vtable, void* lhs, void* rhs, usize count)                 = nullptr;
+			void (*relocate)(const void* vtable, void* dst, void* src, usize count)             = nullptr;
+			bool (*equals)(const void* vtable, const void* lhs, const void* rhs)                = nullptr;
+			i32 (*compare)(const void* vtable, const void* lhs, const void* rhs)                = nullptr;
 		};
 
 	private:

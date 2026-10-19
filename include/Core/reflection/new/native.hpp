@@ -6,113 +6,113 @@
 
 namespace Trinex::Refl::New
 {
-	template<typename T, typename Parent>
-	class NativeTypeVTable : public Parent
+	struct InstantiateTag;
+
+	template<typename T, typename VTable>
+	class NativeTypeVTable : public VTable
 	{
 	public:
-		void construct(void* dst, usize count = 1) const override
+		template<typename... Args>
+		NativeTypeVTable(Args&&... args) : VTable(etl::forward<Args>(args)...)
 		{
+			auto& vtable = static_cast<VTable&>(*this);
+
 			if constexpr (etl::is_default_constructible_v<T>)
-			{
-				T* values = static_cast<T*>(dst);
-				for (usize index = 0; index < count; ++index) etl::construct_at(values + index);
-			}
-			else
-			{
-				trinex_unreachable();
-			}
-		}
+				vtable.construct = &NativeTypeVTable::construct<InstantiateTag>;
 
-		void destruct(void* value, usize count = 1) const override
-		{
 			if constexpr (etl::is_destructible_v<T>)
-			{
-				T* values = static_cast<T*>(value);
-				while (count != 0) etl::destroy_at(values + --count);
-			}
-			else
-			{
-				trinex_unreachable();
-			}
-		}
+				vtable.destruct = &NativeTypeVTable::destruct<InstantiateTag>;
 
-		void copy_construct(void* dst, const void* src, usize count = 1) const override
-		{
 			if constexpr (etl::is_copy_constructible_v<T>)
-			{
-				T* destination  = static_cast<T*>(dst);
-				const T* source = static_cast<const T*>(src);
-				for (usize index = 0; index < count; ++index) etl::construct_at(destination + index, source[index]);
-			}
-			else
-			{
-				trinex_unreachable();
-			}
-		}
+				vtable.copy_construct = &NativeTypeVTable::copy_construct<InstantiateTag>;
 
-		void move_construct(void* dst, void* src, usize count = 1) const override
-		{
 			if constexpr (etl::is_move_constructible_v<T>)
-			{
-				T* destination = static_cast<T*>(dst);
-				T* source      = static_cast<T*>(src);
-				for (usize index = 0; index < count; ++index) etl::construct_at(destination + index, etl::move(source[index]));
-			}
-			else
-			{
-				trinex_unreachable();
-			}
-		}
+				vtable.move_construct = &NativeTypeVTable::move_construct<InstantiateTag>;
 
-		void copy_assign(void* dst, const void* src, usize count = 1) const override
-		{
 			if constexpr (etl::is_copy_assignable_v<T>)
-			{
-				T* destination  = static_cast<T*>(dst);
-				const T* source = static_cast<const T*>(src);
-				for (usize index = 0; index < count; ++index)
-				{
-					destination[index] = source[index];
-				}
-			}
-			else
-			{
-				trinex_unreachable();
-			}
-		}
+				vtable.copy_assign = &NativeTypeVTable::copy_assign<InstantiateTag>;
 
-		void move_assign(void* dst, void* src, usize count = 1) const override
-		{
 			if constexpr (etl::is_move_assignable_v<T>)
-			{
-				T* destination = static_cast<T*>(dst);
-				T* source      = static_cast<T*>(src);
-				for (usize index = 0; index < count; ++index)
-				{
-					destination[index] = etl::move(source[index]);
-				}
-			}
-			else
-			{
-				trinex_unreachable();
-			}
-		}
+				vtable.move_assign = &NativeTypeVTable::move_assign<InstantiateTag>;
 
-		void swap(void* lhs, void* rhs, usize count = 1) const override
-		{
 			if constexpr (etl::is_swappable_v<T>)
+				vtable.swap = &NativeTypeVTable::swap<InstantiateTag>;
+
+			if constexpr ((etl::is_trivially_copyable_v<T> && etl::is_trivially_destructible_v<T>) ||
+			              (etl::is_move_constructible_v<T> && etl::is_destructible_v<T>) )
+				vtable.relocate = &NativeTypeVTable::relocate<InstantiateTag>;
+
+			if constexpr (etl::equality_comparable<T>)
+				vtable.equals = &NativeTypeVTable::equals<InstantiateTag>;
+
+			if constexpr (etl::ordered_comparable<T>)
 			{
-				T* left  = static_cast<T*>(lhs);
-				T* right = static_cast<T*>(rhs);
-				for (usize index = 0; index < count; ++index) etl::swap(left[index], right[index]);
-			}
-			else
-			{
-				trinex_unreachable();
+				vtable.compare = &NativeTypeVTable::compare<InstantiateTag>;
 			}
 		}
 
-		void relocate(void* dst, void* src, usize count = 1) const override
+		template<typename Instancing>
+		static void construct(const void*, void* dst, usize count)
+		{
+			T* values = static_cast<T*>(dst);
+			for (usize index = 0; index < count; ++index) etl::construct_at(values + index);
+		}
+
+		template<typename Instancing>
+		static void destruct(const void*, void* value, usize count)
+		{
+			T* values = static_cast<T*>(value);
+			while (count != 0) etl::destroy_at(values + --count);
+		}
+
+		template<typename Instancing>
+		static void copy_construct(const void*, void* dst, const void* src, usize count)
+		{
+			T* destination  = static_cast<T*>(dst);
+			const T* source = static_cast<const T*>(src);
+			for (usize index = 0; index < count; ++index) etl::construct_at(destination + index, source[index]);
+		}
+
+		template<typename Instancing>
+		static void move_construct(const void*, void* dst, void* src, usize count)
+		{
+			T* destination = static_cast<T*>(dst);
+			T* source      = static_cast<T*>(src);
+			for (usize index = 0; index < count; ++index) etl::construct_at(destination + index, etl::move(source[index]));
+		}
+
+		template<typename Instancing>
+		static void copy_assign(const void*, void* dst, const void* src, usize count)
+		{
+			T* destination  = static_cast<T*>(dst);
+			const T* source = static_cast<const T*>(src);
+			for (usize index = 0; index < count; ++index)
+			{
+				destination[index] = source[index];
+			}
+		}
+
+		template<typename Instancing>
+		static void move_assign(const void*, void* dst, void* src, usize count)
+		{
+			T* destination = static_cast<T*>(dst);
+			T* source      = static_cast<T*>(src);
+			for (usize index = 0; index < count; ++index)
+			{
+				destination[index] = etl::move(source[index]);
+			}
+		}
+
+		template<typename Instancing>
+		static void swap(const void*, void* lhs, void* rhs, usize count)
+		{
+			T* left  = static_cast<T*>(lhs);
+			T* right = static_cast<T*>(rhs);
+			for (usize index = 0; index < count; ++index) etl::swap(left[index], right[index]);
+		}
+
+		template<typename Instancing>
+		static void relocate(const void*, void* dst, void* src, usize count)
 		{
 			if constexpr (etl::is_trivially_copyable_v<T> && etl::is_trivially_destructible_v<T>)
 			{
@@ -125,37 +125,20 @@ namespace Trinex::Refl::New
 				for (usize index = 0; index < count; ++index) etl::construct_at(destination + index, etl::move(source[index]));
 				while (count != 0) etl::destroy_at(source + --count);
 			}
-			else
-			{
-				trinex_unreachable();
-			}
 		}
 
-		bool equals(const void* lhs, const void* rhs) const override
+		template<typename Instancing>
+		static bool equals(const void*, const void* lhs, const void* rhs)
 		{
-			if constexpr (requires(const T& left, const T& right) {
-				              { left == right } -> etl::convertible_to<bool>;
-			              })
-				return *static_cast<const T*>(lhs) == *static_cast<const T*>(rhs);
-			else
-				return false;
+			return *static_cast<const T*>(lhs) == *static_cast<const T*>(rhs);
 		}
 
-		i32 compare(const void* lhs, const void* rhs) const override
+		template<typename Instancing>
+		static i32 compare(const void*, const void* lhs, const void* rhs)
 		{
-			if constexpr (requires(const T& left, const T& right) {
-				              { left < right } -> etl::convertible_to<bool>;
-				              { right < left } -> etl::convertible_to<bool>;
-			              })
-			{
-				const T& left  = *static_cast<const T*>(lhs);
-				const T& right = *static_cast<const T*>(rhs);
-				return left < right ? -1 : right < left ? 1 : 0;
-			}
-			else
-			{
-				return 0;
-			}
+			const T& left  = *static_cast<const T*>(lhs);
+			const T& right = *static_cast<const T*>(rhs);
+			return left < right ? -1 : right < left ? 1 : 0;
 		}
 	};
 

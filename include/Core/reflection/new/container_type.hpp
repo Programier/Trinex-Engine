@@ -6,11 +6,9 @@ namespace Trinex::Refl::New
 	class trinex_api ContainerType : public TemplateType
 	{
 	public:
-		class VTable : public TemplateType::VTable
-		{
-		public:
-			virtual usize size(const void* container) const = 0;
-			virtual void clear(void* container) const       = 0;
+		struct VTable : public TemplateType::VTable {
+			usize (*size)(const void* vtable, const void* container) = nullptr;
+			void (*clear)(const void* vtable, void* container)       = nullptr;
 		};
 
 	public:

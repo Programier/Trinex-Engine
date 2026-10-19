@@ -8,19 +8,19 @@ namespace Trinex::Refl::New
 
 	bool ContainerType::size(const void* container, usize& result) const
 	{
-		if (container == nullptr || vtable() == nullptr)
+		if (container == nullptr || vtable()->size == nullptr)
 			return false;
 
-		result = vtable()->size(container);
+		result = vtable()->size(vtable(), container);
 		return true;
 	}
 
 	bool ContainerType::clear(void* container) const
 	{
-		if (container == nullptr || vtable() == nullptr)
+		if (container == nullptr || vtable()->clear == nullptr)
 			return false;
 
-		vtable()->clear(container);
+		vtable()->clear(vtable(), container);
 		return true;
 	}
 }// namespace Trinex::Refl::New
