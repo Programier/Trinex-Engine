@@ -8,7 +8,7 @@ namespace Trinex::Refl::New
 	class Property;
 	class Function;
 
-	class Struct : public Type
+	class trinex_api Struct : public Type
 	{
 	public:
 		class VTable : public Type::VTable

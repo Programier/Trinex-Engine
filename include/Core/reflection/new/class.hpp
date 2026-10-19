@@ -4,7 +4,7 @@
 
 namespace Trinex::Refl::New
 {
-	class Class final : public Struct
+	class trinex_api Class final : public Struct
 	{
 	public:
 		class VTable : public Struct::VTable

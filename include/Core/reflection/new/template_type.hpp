@@ -1,0 +1,22 @@
+#pragma once
+
+#include <Core/reflection/new/type.hpp>
+
+namespace Trinex::Refl::New
+{
+	class trinex_api TemplateType : public Type
+	{
+	public:
+		class VTable : public Type::VTable
+		{
+		};
+
+	public:
+		TemplateType(Name name, u32 size, u32 alignment, u64 flags = 0, const VTable* vtable = nullptr, Object* owner = nullptr);
+
+		virtual usize argument_count() const;
+		virtual Type* argument(usize index) const;
+
+		inline const VTable* vtable() const { return static_cast<const VTable*>(Type::vtable()); }
+	};
+}// namespace Trinex::Refl::New

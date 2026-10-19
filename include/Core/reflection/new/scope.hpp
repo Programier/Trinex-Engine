@@ -5,7 +5,7 @@
 
 namespace Trinex::Refl::New
 {
-	class Scope : public Object
+	class trinex_api Scope : public Object
 	{
 	private:
 		struct Compare {

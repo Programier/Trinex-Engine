@@ -5,7 +5,7 @@
 
 namespace Trinex::Refl::New
 {
-	class Function : public Object
+	class trinex_api Function : public Object
 	{
 	public:
 		enum Flags : u64

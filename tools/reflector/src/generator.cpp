@@ -229,7 +229,7 @@ namespace Reflector
 	static void generate_class(CodeWriter* writer, const Class* object)
 	{
 		writer->line("template<>");
-		writer->line("trinex_export Struct* struct_of<", ResolvedPathOf(object), ">()");
+		writer->line("trinex_export Struct* StructOf<", ResolvedPathOf(object), ">::resolve()");
 		writer->line("{");
 		{
 			auto indent = writer->scope();
@@ -264,7 +264,7 @@ namespace Reflector
 		writer->line("}\n");
 
 		writer->line("template<>");
-		writer->line("trinex_export Class* class_of<", ResolvedPathOf(object), ">()");
+		writer->line("trinex_export Class* ClassOf<", ResolvedPathOf(object), ">::resolve()");
 		writer->line("{");
 		{
 			auto indent = writer->scope();
@@ -286,7 +286,7 @@ namespace Reflector
 		writer->line("}\n");
 
 		writer->line("template<>");
-		writer->line("trinex_export Type* type_of<", object, ">()");
+		writer->line("trinex_export Type* TypeOf<", object, ">::resolve()");
 		writer->line("{");
 		{
 			auto indent = writer->scope();

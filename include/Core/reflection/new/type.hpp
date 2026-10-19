@@ -3,7 +3,7 @@
 
 namespace Trinex::Refl::New
 {
-	class Type : public Object
+	class trinex_api Type : public Object
 	{
 	public:
 		class VTable

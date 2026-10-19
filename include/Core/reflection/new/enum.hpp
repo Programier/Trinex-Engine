@@ -10,7 +10,7 @@ namespace Trinex::Refl::New
 		i64 value;
 	};
 
-	class Enum final : public Type
+	class trinex_api Enum final : public Type
 	{
 	private:
 		Vector<EnumValue> m_values;
