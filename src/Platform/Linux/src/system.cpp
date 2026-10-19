@@ -1,5 +1,5 @@
 #include <Core/etl/string.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/types/uuid.hpp>
 #include <LinuxPlatform/system.hpp>
 #include <RHI/enums.hpp>
@@ -121,7 +121,7 @@ namespace Trinex::Platform
 				passwd* result = nullptr;
 
 				size_t size = 16384;
-				Vector<char> buffer(size);
+				Array<char> buffer(size);
 
 				for (;;)
 				{

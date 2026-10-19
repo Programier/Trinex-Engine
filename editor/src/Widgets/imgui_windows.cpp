@@ -190,7 +190,7 @@ namespace Trinex
 
 	static const char* get_asset_class_name_default(void* userdata, int index)
 	{
-		return (*reinterpret_cast<Vector<Refl::Class*>*>(userdata))[index]->name().c_str();
+		return (*reinterpret_cast<Array<Refl::Class*>*>(userdata))[index]->name().c_str();
 	}
 
 	bool ImGuiCreateNewAsset::render(class RenderViewport* viewport)
@@ -363,7 +363,7 @@ namespace Trinex
 		return *this;
 	}
 
-	ImGuiOpenFile& ImGuiOpenFile::type_filters(const Vector<String>& type_filters)
+	ImGuiOpenFile& ImGuiOpenFile::type_filters(const Array<String>& type_filters)
 	{
 		m_browser->SetTypeFilters(std::vector<std::string>(type_filters.begin(), type_filters.end()));
 		return *this;

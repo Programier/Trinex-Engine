@@ -2,16 +2,16 @@
 
 #include <Core/etl/functional.hpp>
 #include <Core/etl/pair.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <type_traits>
 
 namespace Trinex
 {
 	template<typename T, typename Compare = Less<T>, typename AllocatorType = Allocator<T>>
-	class FlatSet : protected Vector<T, AllocatorType>
+	class FlatSet : protected Array<T, AllocatorType>
 	{
 	public:
-		using container_type = Vector<T, AllocatorType>;
+		using container_type = Array<T, AllocatorType>;
 		using key_type       = T;
 		using key_compare    = Compare;
 		using value_compare  = Compare;
@@ -231,8 +231,8 @@ namespace Trinex
 	inline bool trinex_serialize_flat_set(ArchiveType& ar, FlatSet<T, Compare, AllocatorType>& set)
 	    requires(is_complete_archive_type<ArchiveType>)
 	{
-		const Vector<T, AllocatorType>& vector = set.container();
-		return ar.serialize_vector(const_cast<Vector<T, AllocatorType>&>(vector));
+		const Array<T, AllocatorType>& vector = set.container();
+		return ar.serialize_vector(const_cast<Array<T, AllocatorType>&>(vector));
 	}
 
 	template<typename T, typename C, typename A>

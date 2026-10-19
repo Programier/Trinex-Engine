@@ -52,7 +52,7 @@ namespace Trinex
 
 			using Struct::is_a;
 			const ScriptTypeInfo& find_valid_script_type_info() const;
-			static const Vector<Class*>& asset_classes();
+			static const Array<Class*>& asset_classes();
 			static void register_layout(ScriptBinding::Class& r, ClassInfo* info, DownCast downcast);
 
 			template<typename Type>

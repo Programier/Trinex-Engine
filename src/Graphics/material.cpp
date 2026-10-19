@@ -178,7 +178,7 @@ namespace Trinex
 		return instance_cast<Parameter>(find_child_object(name));
 	}
 
-	const Vector<Parameter*>& MaterialInterface::parameters() const
+	const Array<Parameter*>& MaterialInterface::parameters() const
 	{
 		return m_childs;
 	}

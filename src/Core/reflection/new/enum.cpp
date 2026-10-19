@@ -2,7 +2,7 @@
 
 namespace Trinex::Refl::New
 {
-	Enum::Enum(Name name, u32 size, u32 alignment, Vector<EnumValue> values, u64 flags, const VTable* vtable)
+	Enum::Enum(Name name, u32 size, u32 alignment, Array<EnumValue> values, u64 flags, const VTable* vtable)
 	    : Type(name, size, alignment, flags, vtable), m_values(etl::move(values))
 	{}
 

@@ -10,7 +10,7 @@ namespace Trinex
 		trinex_class(World, LevelInstance);
 
 	private:
-		Vector<LevelInstance*> m_levels;
+		Array<LevelInstance*> m_levels;
 		LevelInstance* m_active;
 		RenderScene* m_scene = nullptr;
 
@@ -32,7 +32,7 @@ namespace Trinex
 		World& active_level(LevelInstance* instance);
 
 		inline LevelInstance* active_level() const { return m_active; }
-		inline const Vector<LevelInstance*>& levels() const { return m_levels; }
+		inline const Array<LevelInstance*>& levels() const { return m_levels; }
 		inline RenderScene* scene() const { return m_scene; }
 	};
 }// namespace Trinex

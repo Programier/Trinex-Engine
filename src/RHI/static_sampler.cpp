@@ -1,4 +1,4 @@
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/threading.hpp>
 #include <RHI/initializers.hpp>
 #include <RHI/rhi.hpp>
@@ -6,7 +6,7 @@
 
 namespace Trinex
 {
-	static Vector<RHISampler*> s_static_samplers;
+	static Array<RHISampler*> s_static_samplers;
 
 	void RHIStaticSamplerBase::create(RHISampler*& sampler, RHISamplerFilter filter, RHISamplerAddressMode address_u,
 	                                  RHISamplerAddressMode address_v, RHISamplerAddressMode address_w, float mip_bias,

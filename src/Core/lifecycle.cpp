@@ -10,7 +10,7 @@ namespace Trinex::LifeCycle
 			Handler* next;
 			Function function;
 			const char* name;
-			Vector<const char*> dependencies;
+			Array<const char*> dependencies;
 		};
 
 		struct PendingHandlers {

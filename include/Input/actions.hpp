@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/etl/delegate.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/ref_counted.hpp>
 #include <Input/types.hpp>
 
@@ -99,7 +99,7 @@ namespace Trinex
 		bool active      = false;
 		f32 elapsed      = 0.f;
 		InputValue value = {};
-		Vector<InputTriggerState> children;
+		Array<InputTriggerState> children;
 	};
 
 	class trinex_api InputTrigger : public RefCounted
@@ -160,29 +160,29 @@ namespace Trinex
 
 	class trinex_api InputTriggerChord final : public InputTrigger
 	{
-		Vector<EventCode> m_codes;
+		Array<EventCode> m_codes;
 
 	public:
-		explicit InputTriggerChord(const Vector<EventCode>& codes) : m_codes(codes) {}
+		explicit InputTriggerChord(const Array<EventCode>& codes) : m_codes(codes) {}
 		InputActionPhase evaluate(const InputEvent& event, const InputValue& value, InputTriggerState& state) const override;
 	};
 
 	class trinex_api InputTriggerAll final : public InputTrigger
 	{
-		Vector<Ref<InputTrigger>> m_triggers;
+		Array<Ref<InputTrigger>> m_triggers;
 
 	public:
-		explicit InputTriggerAll(const Vector<Ref<InputTrigger>>& triggers) : m_triggers(triggers) {}
+		explicit InputTriggerAll(const Array<Ref<InputTrigger>>& triggers) : m_triggers(triggers) {}
 		InputActionPhase evaluate(const InputEvent& event, const InputValue& value, InputTriggerState& state) const override;
 		InputActionPhase update(f32 dt, InputTriggerState& state) const override;
 	};
 
 	class trinex_api InputTriggerAny final : public InputTrigger
 	{
-		Vector<Ref<InputTrigger>> m_triggers;
+		Array<Ref<InputTrigger>> m_triggers;
 
 	public:
-		explicit InputTriggerAny(const Vector<Ref<InputTrigger>>& triggers) : m_triggers(triggers) {}
+		explicit InputTriggerAny(const Array<Ref<InputTrigger>>& triggers) : m_triggers(triggers) {}
 		InputActionPhase evaluate(const InputEvent& event, const InputValue& value, InputTriggerState& state) const override;
 		InputActionPhase update(f32 dt, InputTriggerState& state) const override;
 	};
@@ -190,8 +190,8 @@ namespace Trinex
 	struct InputMapping {
 		Ref<InputAction> action;
 		InputControl control;
-		Vector<Ref<InputModifier>> modifiers;
-		Vector<Ref<InputTrigger>> triggers;
+		Array<Ref<InputModifier>> modifiers;
+		Array<Ref<InputTrigger>> triggers;
 		bool consume              = false;
 		bool block_lower_priority = false;
 	};
@@ -199,7 +199,7 @@ namespace Trinex
 	class trinex_api InputContext : public RefCounted
 	{
 		Name m_name;
-		Vector<InputMapping> m_mappings;
+		Array<InputMapping> m_mappings;
 		u64 m_revision = 0;
 		bool m_enabled = true;
 
@@ -211,7 +211,7 @@ namespace Trinex
 		InputContext& enabled(bool value);
 		InputContext& add_mapping(const InputMapping& mapping);
 		InputContext& remove_mapping(const InputAction* action);
-		const Vector<InputMapping>& mappings() const { return m_mappings; }
+		const Array<InputMapping>& mappings() const { return m_mappings; }
 	};
 
 	struct InputActionEvent {

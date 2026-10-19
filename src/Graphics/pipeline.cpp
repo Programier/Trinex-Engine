@@ -131,7 +131,7 @@ namespace Trinex
 		return it == end ? nullptr : it;
 	}
 
-	Pipeline& Pipeline::parameters(const Vector<RHIShaderParameterInfo>& parameters)
+	Pipeline& Pipeline::parameters(const Array<RHIShaderParameterInfo>& parameters)
 	{
 		using Info   = RHIShaderParameterInfo;
 		m_parameters = parameters;

@@ -2,7 +2,7 @@
 #include <Core/etl/critical_section.hpp>
 #include <Core/etl/deque.hpp>
 #include <Core/etl/scope_variable.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/math/math.hpp>
 #include <Core/memory.hpp>
 #include <Core/threading.hpp>
@@ -45,7 +45,7 @@ namespace Trinex
 		usize m_data_size = 0;
 
 		TaskQueue* m_queue = nullptr;
-		Vector<Task> m_dependents;
+		Array<Task> m_dependents;
 
 		Atomic<u32> m_dependencies = 0;
 		Atomic<u32> m_refs         = 1;
@@ -510,7 +510,7 @@ namespace Trinex
 	class TaskGraphImpl : public TaskQueue
 	{
 	private:
-		Vector<Thread*> m_workers;
+		Array<Thread*> m_workers;
 		Deque<Task::TaskImpl*> m_tasks[3];
 
 		std::mutex m_mutex;

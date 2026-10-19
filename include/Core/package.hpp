@@ -24,7 +24,7 @@ namespace Trinex
 		bool add_object(Object* object);
 		Package& remove_object(Object* object);
 
-		const Vector<Object*>& objects() const;
+		const Array<Object*>& objects() const;
 		bool contains_object(const Object* object) const;
 		bool contains_object(const StringView& name) const;
 		Package* find_package(StringView child, bool create = false);

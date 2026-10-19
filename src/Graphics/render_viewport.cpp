@@ -15,7 +15,7 @@ namespace Trinex
 	trinex_implement_engine_class(RenderViewport, Refl::Class::IsScriptable) {}
 
 	static RenderViewport* m_current_render_viewport = nullptr;
-	Vector<RenderViewport*> RenderViewport::m_viewports;
+	Array<RenderViewport*> RenderViewport::m_viewports;
 
 	namespace
 	{
@@ -120,7 +120,7 @@ namespace Trinex
 		return m_current_render_viewport;
 	}
 
-	const Vector<RenderViewport*>& RenderViewport::viewports()
+	const Array<RenderViewport*>& RenderViewport::viewports()
 	{
 		return m_viewports;
 	}

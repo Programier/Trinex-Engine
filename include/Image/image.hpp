@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/enums.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/math/vector.hpp>
 #include <Core/types/color.hpp>
 

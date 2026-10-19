@@ -3,7 +3,7 @@
 #include <Core/enums.hpp>
 #include <Core/etl/atomic.hpp>
 #include <Core/etl/type_traits.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/types/name.hpp>
 #include <angelscript_object.h>
 
@@ -149,8 +149,8 @@ namespace Trinex
 		static String object_name_of(const StringView& name);
 		static StringView package_name_sv_of(const StringView& name);
 		static StringView object_name_sv_of(const StringView& name);
-		static const Vector<Object*>& static_root_objects();
-		static const Vector<Object*>& static_objects();
+		static const Array<Object*>& static_root_objects();
+		static const Array<Object*>& static_objects();
 		static Package* root_package();
 		static bool static_validate_object_name(StringView name, String* msg = nullptr);
 

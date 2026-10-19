@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/types/name.hpp>
 
 namespace Trinex
@@ -20,7 +20,7 @@ namespace Trinex
 		class DataHolder : public Super
 		{
 		public:
-			using Container = Vector<Element*>;
+			using Container = Array<Element*>;
 
 		protected:
 			Container m_childs;

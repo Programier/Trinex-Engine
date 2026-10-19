@@ -89,7 +89,7 @@ namespace Trinex::UI
 		trinex_ui_element(Polyline, DrawNode);
 
 	public:
-		Vector<ImVec2> points;
+		Array<ImVec2> points;
 		Vec4 color    = {1.0f, 1.0f, 1.0f, 1.0f};
 		i32 flags     = 0;
 		f32 thickness = 1.0f;

@@ -1,6 +1,6 @@
 #include <Core/etl/atomic.hpp>
 #include <Core/etl/critical_section.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/ref_counted.hpp>
 
 namespace Trinex
@@ -31,7 +31,7 @@ namespace Trinex
 
 		private:
 			CriticalSection m_lock;
-			Vector<Page*> m_pages;
+			Array<Page*> m_pages;
 			u32 m_size = 0;
 			u32 m_free = bad_link;
 

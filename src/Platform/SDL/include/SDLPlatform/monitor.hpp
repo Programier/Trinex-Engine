@@ -11,7 +11,7 @@ namespace Trinex::Platform
 	private:
 		struct SDLMonitorData {
 			SDL_DisplayID id = 0;
-			Vector<MonitorMode> modes;
+			Array<MonitorMode> modes;
 		};
 
 		struct Compare {

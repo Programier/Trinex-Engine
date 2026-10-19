@@ -2,7 +2,7 @@
 #include <Core/constants.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/etl/templates.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/memory.hpp>
 #include <Core/types/name.hpp>
 #include <ScriptEngine/script_binding.hpp>
@@ -31,9 +31,9 @@ namespace Trinex
 	declare_name(direction);
 	declare_name(mask);
 
-	static Vector<Name::Entry>& name_entries()
+	static Array<Name::Entry>& name_entries()
 	{
-		static Vector<Name::Entry> entries;
+		static Array<Name::Entry> entries;
 		return entries;
 	}
 
@@ -147,7 +147,7 @@ namespace Trinex
 
 	static inline bool find_name_index(const StringView& view, u64 hash, u32& out_index)
 	{
-		Vector<Name::Entry>& name_table = name_entries();
+		Array<Name::Entry>& name_table = name_entries();
 		Map<u64, u32>& indices          = name_index_map();
 		const auto head                 = indices.find(hash);
 
@@ -184,7 +184,7 @@ namespace Trinex
 		}
 
 		u64 hash                        = memory_hash(view.data(), view.length(), 0);
-		Vector<Name::Entry>& name_table = name_entries();
+		Array<Name::Entry>& name_table = name_entries();
 
 		if (find_cached_name(view, hash, m_id))
 		{

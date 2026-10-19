@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <vulkan_headers.hpp>
 
 namespace Trinex
@@ -8,7 +8,7 @@ namespace Trinex
 	{
 	private:
 		vk::QueryPool m_pool;
-		Vector<u64> m_free;
+		Array<u64> m_free;
 		u64 m_index = 0;
 
 	public:
@@ -39,15 +39,15 @@ namespace Trinex
 		        vk::QueryPipelineStatisticFlagBits::eTessellationEvaluationShaderInvocations |
 		        vk::QueryPipelineStatisticFlagBits::eTessellationControlShaderPatches;
 
-		Vector<VulkanQueryPool*> m_timestamp_pools;
-		Vector<VulkanQueryPool*> m_occlusion_pools;
-		Vector<VulkanQueryPool*> m_statistics_pools;
+		Array<VulkanQueryPool*> m_timestamp_pools;
+		Array<VulkanQueryPool*> m_occlusion_pools;
+		Array<VulkanQueryPool*> m_statistics_pools;
 
 		vk::QueryPoolCreateInfo m_timestamp_info;
 		vk::QueryPoolCreateInfo m_occlustion_info;
 		vk::QueryPoolCreateInfo m_statistics_info;
 
-		static VulkanQueryPool* find_pool(Vector<VulkanQueryPool*>& pool, const vk::QueryPoolCreateInfo& info);
+		static VulkanQueryPool* find_pool(Array<VulkanQueryPool*>& pool, const vk::QueryPoolCreateInfo& info);
 
 	public:
 		VulkanQueryPoolManager();

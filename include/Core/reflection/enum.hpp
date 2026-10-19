@@ -35,12 +35,12 @@ namespace Trinex::Refl
 	protected:
 		TreeMap<Name, usize> m_entries_by_name;
 		TreeMap<EnumerateType, usize> m_entries_by_value;
-		Vector<Entry> m_entries;
+		Array<Entry> m_entries;
 		ScriptTypeInfo m_info;
 		u8 m_flags;
 
 		const Entry* create_entry(void* registrar, const Name& name, EnumerateType value);
-		Enum& register_enum_with_entries(const Vector<Enum::Entry>& entries);
+		Enum& register_enum_with_entries(const Array<Enum::Entry>& entries);
 		static StringView extract_enum_value_name(StringView full_name);
 
 	public:
@@ -51,7 +51,7 @@ namespace Trinex::Refl
 		    requires(std::is_enum_v<EnumType> && sizeof(EnumType) <= sizeof(EnumerateType))
 		{
 			auto name_of = extract_enum_value_name;
-			auto entries = Vector<Enum::Entry>{Entry(name_of(value_info<enum_values>::name()), enum_values)...};
+			auto entries = Array<Enum::Entry>{Entry(name_of(value_info<enum_values>::name()), enum_values)...};
 			return &Object::new_instance<Enum>(name, flags)->register_enum_with_entries(entries);
 		}
 
@@ -60,7 +60,7 @@ namespace Trinex::Refl
 		const Entry* entry(EnumerateType value) const;
 		const Entry* entry(const Name& name) const;
 		const Entry* create_entry(const Name& name, EnumerateType value);
-		const Vector<Enum::Entry>& entries() const;
+		const Array<Enum::Entry>& entries() const;
 
 		inline bool is_scriptable() const { return m_flags & IsScriptable; }
 		inline bool is_bit_flags() const { return m_flags & IsBitFlags; }

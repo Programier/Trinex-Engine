@@ -21,7 +21,7 @@ namespace Trinex
 
 	struct trinex_api ScriptBuildResult {
 		bool success = false;
-		Vector<ScriptDiagnostic> diagnostics;
+		Array<ScriptDiagnostic> diagnostics;
 
 		bool has_errors() const
 		{

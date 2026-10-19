@@ -29,7 +29,7 @@ namespace Trinex
 {
 	static constexpr u32 s_cascades_per_directional_light = 4;
 
-	static void find_light_range(FrameVector<LightComponent*>& lights, u32 light_type, LightRenderRanges::LightRange& range,
+	static void find_light_range(FrameArray<LightComponent*>& lights, u32 light_type, LightRenderRanges::LightRange& range,
 	                             u32 search_offset = 0)
 	{
 		if (lights.size() <= search_offset)

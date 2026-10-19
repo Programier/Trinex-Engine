@@ -45,7 +45,7 @@ namespace Trinex
 
 		vk::PipelineInputAssemblyStateCreateInfo m_input_assembly;
 		vk::PipelineRasterizationStateCreateInfo m_rasterizer;
-		Vector<vk::PipelineShaderStageCreateInfo> m_stages;
+		Array<vk::PipelineShaderStageCreateInfo> m_stages;
 
 		FlatMap<u128, vk::Pipeline> m_pipelines;
 
@@ -80,7 +80,7 @@ namespace Trinex
 		};
 
 		vk::PipelineRasterizationStateCreateInfo m_rasterizer;
-		Vector<vk::PipelineShaderStageCreateInfo> m_stages;
+		Array<vk::PipelineShaderStageCreateInfo> m_stages;
 
 		FlatMap<u128, vk::Pipeline> m_pipelines;
 

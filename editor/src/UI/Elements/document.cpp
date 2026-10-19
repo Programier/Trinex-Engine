@@ -2,7 +2,7 @@
 #include <Core/etl/string.hpp>
 #include <Core/etl/utility.hpp>
 #include <Core/etl/variant.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/types/path.hpp>
@@ -92,21 +92,21 @@ _Comment    <- '//' (![\r\n] .)*
 		};
 
 		struct TransitionBlock {
-			Vector<StyleTransition> transitions;
+			Array<StyleTransition> transitions;
 			SourceLocation location;
 		};
 
 		struct Style {
 			StyleSelector selector;
-			Vector<StyleProperty> properties;
-			Vector<StyleTransition> transitions;
+			Array<StyleProperty> properties;
+			Array<StyleTransition> transitions;
 			SourceLocation location;
 		};
 
 		struct Node {
 			String type;
-			Vector<Property> properties;
-			Vector<Node> children;
+			Array<Property> properties;
+			Array<Node> children;
 			SourceLocation location;
 		};
 
@@ -723,7 +723,7 @@ _Comment    <- '//' (![\r\n] .)*
 				};
 
 				m_parser["Document"] = [](const peg::SemanticValues& values) {
-					Vector<DocumentItem> items;
+					Array<DocumentItem> items;
 					items.reserve(values.size());
 
 					for (const std::any& value : values)
@@ -742,14 +742,14 @@ _Comment    <- '//' (![\r\n] .)*
 				return &parser;
 			}
 
-			bool parse(Vector<DocumentItem>& items, StringView source)
+			bool parse(Array<DocumentItem>& items, StringView source)
 			{
 				if (source.empty())
 				{
 					return false;
 				}
 
-				Vector<DocumentItem> result;
+				Array<DocumentItem> result;
 
 				const bool success = m_parser.parse(source, result);
 
@@ -773,7 +773,7 @@ _Comment    <- '//' (![\r\n] .)*
 			return Path(owner_path.parent()) / include_path;
 		}
 
-		static void add_dependency(Vector<Path>& dependencies, const Path& path)
+		static void add_dependency(Array<Path>& dependencies, const Path& path)
 		{
 			if (path.empty())
 			{
@@ -808,7 +808,7 @@ _Comment    <- '//' (![\r\n] .)*
 			return false;
 		}
 
-		static bool append_style_names(Element* element, const ValueDesc& desc, const Vector<Property>& properties)
+		static bool append_style_names(Element* element, const ValueDesc& desc, const Array<Property>& properties)
 		{
 			Name name;
 
@@ -872,7 +872,7 @@ _Comment    <- '//' (![\r\n] .)*
 			return etl::visit(visitor, prop.value.value);
 		}
 
-		static bool apply_properties(Element* element, const Node& node, const Vector<Property>& properties)
+		static bool apply_properties(Element* element, const Node& node, const Array<Property>& properties)
 		{
 			for (const Property& prop : properties)
 			{
@@ -936,7 +936,7 @@ _Comment    <- '//' (![\r\n] .)*
 			return true;
 		}
 
-		static bool load_items(Vector<Node>& nodes, StyleMap& styles, Vector<Path>& dependencies, StringView source,
+		static bool load_items(Array<Node>& nodes, StyleMap& styles, Array<Path>& dependencies, StringView source,
 		                       const Path& path, u32 depth)
 		{
 			if (depth > 32)
@@ -948,7 +948,7 @@ _Comment    <- '//' (![\r\n] .)*
 			add_dependency(dependencies, path);
 
 			auto parser = Parser::instance();
-			Vector<DocumentItem> items;
+			Array<DocumentItem> items;
 
 			if (!parser->parse(items, source))
 			{
@@ -1013,9 +1013,9 @@ _Comment    <- '//' (![\r\n] .)*
 
 	bool Document::load(StringView source, const Path& path)
 	{
-		Vector<Markup::Node> roots;
+		Array<Markup::Node> roots;
 		Markup::StyleMap styles;
-		Vector<Path> dependencies;
+		Array<Path> dependencies;
 
 		if (!Markup::load_items(roots, styles, dependencies, source, path, 0))
 		{

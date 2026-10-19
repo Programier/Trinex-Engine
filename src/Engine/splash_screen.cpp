@@ -1,4 +1,4 @@
-#include <Core/etl/array.hpp>
+#include <Core/etl/static_array.hpp>
 #include <Core/etl/engine_resource.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/reflection/class.hpp>

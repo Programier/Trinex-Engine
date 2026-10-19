@@ -231,7 +231,7 @@ namespace Trinex
 		        .rgba;
 	}
 
-	static Box3f calculate_bounds(const Vector<ProceduralVertex>& vertices)
+	static Box3f calculate_bounds(const Array<ProceduralVertex>& vertices)
 	{
 		if (vertices.empty())
 			return {};
@@ -248,8 +248,8 @@ namespace Trinex
 		return {min, max};
 	}
 
-	static StaticMesh* create_mesh(Package* package, const char* name, const Vector<ProceduralVertex>& vertices,
-	                               const Vector<u32>& indices)
+	static StaticMesh* create_mesh(Package* package, const char* name, const Array<ProceduralVertex>& vertices,
+	                               const Array<u32>& indices)
 	{
 		StaticMesh* mesh = Object::new_instance<StaticMesh>(name, package);
 		mesh->flags |= Object::Flags::StandAlone;
@@ -273,8 +273,8 @@ namespace Trinex
 			surface.vertices_count = vertices.size();
 		}
 
-		Vector<MeshVertexStream> positions;
-		Vector<MeshSurfaceStream> surface_stream;
+		Array<MeshVertexStream> positions;
+		Array<MeshSurfaceStream> surface_stream;
 		positions.reserve(vertices.size());
 		surface_stream.reserve(vertices.size());
 
@@ -296,20 +296,20 @@ namespace Trinex
 		return mesh;
 	}
 
-	static void add_triangle(Vector<u32>& indices, u32 a, u32 b, u32 c)
+	static void add_triangle(Array<u32>& indices, u32 a, u32 b, u32 c)
 	{
 		indices.push_back(a);
 		indices.push_back(b);
 		indices.push_back(c);
 	}
 
-	static void add_quad_indices(Vector<u32>& indices, u32 a, u32 b, u32 c, u32 d)
+	static void add_quad_indices(Array<u32>& indices, u32 a, u32 b, u32 c, u32 d)
 	{
 		add_triangle(indices, a, b, c);
 		add_triangle(indices, a, c, d);
 	}
 
-	static void append_quad(Vector<ProceduralVertex>& vertices, Vector<u32>& indices, const Vector3f& origin,
+	static void append_quad(Array<ProceduralVertex>& vertices, Array<u32>& indices, const Vector3f& origin,
 	                        const Vector3f& axis_x, const Vector3f& axis_y, const Vector3f& normal)
 	{
 		const u32 base = vertices.size();
@@ -325,8 +325,8 @@ namespace Trinex
 
 	static StaticMesh* generate_plane(Package* package)
 	{
-		Vector<ProceduralVertex> vertices;
-		Vector<u32> indices;
+		Array<ProceduralVertex> vertices;
+		Array<u32> indices;
 
 		append_quad(vertices, indices, {-0.5f, 0.f, -0.5f}, {1.f, 0.f, 0.f}, {0.f, 0.f, 1.f}, {0.f, 1.f, 0.f});
 		return create_mesh(package, "Plane", vertices, indices);
@@ -334,8 +334,8 @@ namespace Trinex
 
 	static StaticMesh* generate_cube(Package* package)
 	{
-		Vector<ProceduralVertex> vertices;
-		Vector<u32> indices;
+		Array<ProceduralVertex> vertices;
+		Array<u32> indices;
 
 		append_quad(vertices, indices, {-0.5f, -0.5f, 0.5f}, {1.f, 0.f, 0.f}, {0.f, 1.f, 0.f}, {0.f, 0.f, 1.f});
 		append_quad(vertices, indices, {0.5f, -0.5f, -0.5f}, {-1.f, 0.f, 0.f}, {0.f, 1.f, 0.f}, {0.f, 0.f, -1.f});
@@ -349,8 +349,8 @@ namespace Trinex
 
 	static StaticMesh* generate_uv_sphere(Package* package, u32 segments = 32, u32 rings = 16)
 	{
-		Vector<ProceduralVertex> vertices;
-		Vector<u32> indices;
+		Array<ProceduralVertex> vertices;
+		Array<u32> indices;
 		const float pi = std::numbers::pi_v<float>;
 
 		for (u32 ring = 0; ring <= rings; ++ring)
@@ -391,8 +391,8 @@ namespace Trinex
 
 	static StaticMesh* generate_cylinder(Package* package, u32 segments = 32)
 	{
-		Vector<ProceduralVertex> vertices;
-		Vector<u32> indices;
+		Array<ProceduralVertex> vertices;
+		Array<u32> indices;
 		const float pi = std::numbers::pi_v<float>;
 
 		for (u32 segment = 0; segment <= segments; ++segment)
@@ -448,8 +448,8 @@ namespace Trinex
 
 	static StaticMesh* generate_cone(Package* package, u32 segments = 32)
 	{
-		Vector<ProceduralVertex> vertices;
-		Vector<u32> indices;
+		Array<ProceduralVertex> vertices;
+		Array<u32> indices;
 		const float pi = std::numbers::pi_v<float>;
 		const Vector3f apex(0.f, 0.5f, 0.f);
 

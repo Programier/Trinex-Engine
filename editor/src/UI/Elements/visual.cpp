@@ -170,7 +170,7 @@ namespace Trinex::UI
 			return UpdateFlags::Childs;
 		}
 
-		Vector<ImVec2> resolved;
+		Array<ImVec2> resolved;
 		resolved.reserve(points.size());
 		for (const ImVec2& point : points)
 		{

@@ -1,7 +1,7 @@
 #include <Core/etl/algorithm.hpp>
 #include <Core/etl/allocator.hpp>
 #include <Core/etl/utility.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/math/math.hpp>
 #include <UI/element.hpp>
 #include <UI/reflection.hpp>
@@ -253,7 +253,7 @@ namespace Trinex::UI
 	}
 
 	template<typename AllocatorType>
-	static const StyleTransition* find_transition(const Vector<StyleTransition, AllocatorType>& transitions, Name property)
+	static const StyleTransition* find_transition(const Array<StyleTransition, AllocatorType>& transitions, Name property)
 	{
 		for (const StyleTransition& transition : transitions)
 		{
@@ -267,7 +267,7 @@ namespace Trinex::UI
 	}
 
 	template<typename AllocatorType>
-	static bool same_path(const Vector<Name, AllocatorType>& lhs, const Vector<Name, AllocatorType>& rhs)
+	static bool same_path(const Array<Name, AllocatorType>& lhs, const Array<Name, AllocatorType>& rhs)
 	{
 		if (lhs.size() != rhs.size())
 		{
@@ -286,7 +286,7 @@ namespace Trinex::UI
 	}
 
 	template<typename AllocatorType>
-	static bool has_later_property(const Vector<StyleProperty, AllocatorType>& properties, usize index)
+	static bool has_later_property(const Array<StyleProperty, AllocatorType>& properties, usize index)
 	{
 		for (usize next = index + 1; next < properties.size(); ++next)
 		{
@@ -417,8 +417,8 @@ namespace Trinex::UI
 		return *this;
 	}
 
-	StyleSheet& StyleSheet::add_rule(const StyleSelector& selector, const Vector<StyleProperty>& properties,
-	                                 const Vector<StyleTransition>& transitions)
+	StyleSheet& StyleSheet::add_rule(const StyleSelector& selector, const Array<StyleProperty>& properties,
+	                                 const Array<StyleTransition>& transitions)
 	{
 		const usize index = m_rules.size();
 
@@ -440,7 +440,7 @@ namespace Trinex::UI
 
 	void StyleSheet::resolve(const Element* element, StyleState states, const StyleRuleVisitor& visitor) const
 	{
-		StackVector<usize> candidates;
+		StackArray<usize> candidates;
 
 		if (element == nullptr)
 		{

@@ -1,7 +1,7 @@
 #include <Core/default_resources.hpp>
 #include <Core/etl/optional.hpp>
 #include <Core/etl/variant.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/importer.hpp>
 #include <Core/math/math.hpp>
 #include <Core/memory.hpp>
@@ -106,9 +106,9 @@ namespace Trinex::Importer
 
 		Matrix4f m_transform;
 
-		Vector<Pointer<MaterialInstance>> m_materials;
-		Vector<Pointer<Texture2D>> m_textures;
-		Vector<Optional<MeshInfo>> m_meshes;
+		Array<Pointer<MaterialInstance>> m_materials;
+		Array<Pointer<Texture2D>> m_textures;
+		Array<Optional<MeshInfo>> m_meshes;
 
 	private:
 		static Matrix4f make_matrix(const tinygltf::Node& node)
@@ -264,7 +264,7 @@ namespace Trinex::Importer
 			        .rgba;
 		}
 
-		static u16 find_material_index(Vector<MaterialInterface*>& materials, MaterialInterface* material)
+		static u16 find_material_index(Array<MaterialInterface*>& materials, MaterialInterface* material)
 		{
 			u16 index = 0;
 
@@ -513,7 +513,7 @@ namespace Trinex::Importer
 			auto& lod = mesh->lods.emplace_back();
 			lod.surfaces.resize(primitives);
 
-			StackVector<Accessors> accessors(primitives);
+			StackArray<Accessors> accessors(primitives);
 
 			u64 accessor_mask  = 0;
 			usize vertex_count = 0;

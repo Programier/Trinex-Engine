@@ -73,7 +73,7 @@ namespace Trinex
 		}
 	}
 
-	void Renderer::sort_lights(FrameVector<LightComponent*>& visible_lights)
+	void Renderer::sort_lights(FrameArray<LightComponent*>& visible_lights)
 	{
 		std::sort(visible_lights.begin(), visible_lights.end(), [](LightComponent* a, LightComponent* b) -> bool {
 			auto a_type = a->light_type();

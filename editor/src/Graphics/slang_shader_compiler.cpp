@@ -140,7 +140,7 @@ namespace Trinex
 	public:
 		using TypeDetector = RHIShaderParameterType(slang::VariableLayoutReflection*, u32, u32, u32,
 		                                            slang::TypeReflection::ScalarType);
-		static Vector<TypeDetector*> type_detectors;
+		static Array<TypeDetector*> type_detectors;
 
 		static inline StringView parse_string_attribute(slang::UserAttribute* attribute, u32 index)
 		{
@@ -245,7 +245,7 @@ namespace Trinex
 					}
 				}
 			}
-			else if (var.kind == slang::TypeReflection::Kind::Vector || var.kind == slang::TypeReflection::Kind::Scalar)
+			else if (var.kind == slang::TypeReflection::Kind::Array || var.kind == slang::TypeReflection::Kind::Scalar)
 			{
 				RHIInputAttribute attribute;
 
@@ -369,12 +369,12 @@ namespace Trinex
 
 		bool parse_shader_parameter(const VarTraceEntry& param)
 		{
-			if (is_in<slang::TypeReflection::Kind::Scalar, slang::TypeReflection::Kind::Vector,
+			if (is_in<slang::TypeReflection::Kind::Scalar, slang::TypeReflection::Kind::Array,
 			          slang::TypeReflection::Kind::Matrix>(param.kind))
 			{
 				if (param.kind == slang::TypeReflection::Kind::Scalar && param.is_excluded(VarTraceEntry::exclude_scalar))
 					return true;
-				if (param.kind == slang::TypeReflection::Kind::Vector && param.is_excluded(VarTraceEntry::exclude_vector))
+				if (param.kind == slang::TypeReflection::Kind::Array && param.is_excluded(VarTraceEntry::exclude_vector))
 					return true;
 				if (param.kind == slang::TypeReflection::Kind::Matrix && param.is_excluded(VarTraceEntry::exclude_matrix))
 					return true;
@@ -582,7 +582,7 @@ namespace Trinex
 		}
 	};
 
-	Vector<ReflectionParser::TypeDetector*> ReflectionParser::type_detectors;
+	Array<ReflectionParser::TypeDetector*> ReflectionParser::type_detectors;
 
 	struct TypeDetector {
 		using Scalar = slang::TypeReflection::ScalarType;
@@ -666,8 +666,8 @@ namespace Trinex
 
 		struct SlangShaderPermutation {
 			Name name;
-			Vector<String> specialization_args;
-			Vector<SlangShaderStageEntry> stage_entries;
+			Array<String> specialization_args;
+			Array<SlangShaderStageEntry> stage_entries;
 		};
 
 		static inline void hash_string(HashBuilder& builder, StringView value)
@@ -759,7 +759,7 @@ namespace Trinex
 			return nullptr;
 		}
 
-		static bool collect_permutations_from_decl(slang::DeclReflection* decl, Vector<SlangShaderPermutation>& out)
+		static bool collect_permutations_from_decl(slang::DeclReflection* decl, Array<SlangShaderPermutation>& out)
 		{
 			if (decl == nullptr)
 				return true;
@@ -920,11 +920,11 @@ namespace Trinex
 	bool SLANG_ShaderCompiler::compile(const ShaderCompilationEnvironment* env, const CompileCallback& callback)
 	{
 		StackByteAllocator::Mark mark;
-		StackVector<slang::IComponentType*> components;
-		StackVector<slang::IModule*> source_modules;
-		StackVector<Slang::ComPtr<slang::IMetadata>> metadata;
-		StackVector<slang::SpecializationArg> specialization_args;
-		Vector<SlangShaderPermutation> permutations;
+		StackArray<slang::IComponentType*> components;
+		StackArray<slang::IModule*> source_modules;
+		StackArray<Slang::ComPtr<slang::IMetadata>> metadata;
+		StackArray<slang::SpecializationArg> specialization_args;
+		Array<SlangShaderPermutation> permutations;
 
 		components.reserve(env->sources_count() + env->modules_count() + 12);
 		source_modules.reserve(env->sources_count());
@@ -1038,7 +1038,7 @@ namespace Trinex
 				info->selected_entry_name = stage_entry.entry_name.c_str();
 			}
 
-			StackVector<slang::IComponentType*> permutation_components = components;
+			StackArray<slang::IComponentType*> permutation_components = components;
 			const usize module_count                                   = permutation_components.size();
 
 			for (auto& info : shader_infos)

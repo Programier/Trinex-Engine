@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Engine/Render/batched_primitives.hpp>
 #include <Engine/Render/scene_view.hpp>
 
@@ -54,7 +54,7 @@ namespace Trinex
 		static RHISurfaceFormat surface_format_of(SurfaceType type);
 		static RHITextureFlags surface_flags_of(SurfaceType type);
 		static const char* surface_name_of(SurfaceType type);
-		static void sort_lights(FrameVector<LightComponent*>& visible_lights);
+		static void sort_lights(FrameArray<LightComponent*>& visible_lights);
 
 	public:
 		BatchedLines lines;

@@ -53,7 +53,7 @@ namespace Trinex
 		String new_asset_name;
 		int current_index = 0;
 
-		Vector<Refl::Class*> m_filtered_classes;
+		Array<Refl::Class*> m_filtered_classes;
 
 	public:
 		CallBacks<bool(class Refl::Class*)> filters;
@@ -115,7 +115,7 @@ namespace Trinex
 		ImGuiOpenFile& clear_selected();
 		ImGuiOpenFile& current_type_filter_index(i32 index);
 		ImGuiOpenFile& input_name(StringView input);
-		ImGuiOpenFile& type_filters(const Vector<String>& type_filters);
+		ImGuiOpenFile& type_filters(const Array<String>& type_filters);
 		ImGuiOpenFile& pwd(const Path& path);
 		bool render(RenderViewport* viewport) override;
 		virtual const char* name() const;

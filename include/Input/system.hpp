@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/etl/delegate.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/ref_counted.hpp>
 #include <Input/actions.hpp>
 #include <Input/device.hpp>
@@ -38,7 +38,7 @@ namespace Trinex
 			u64 context_revision = 0;
 			InputDevice* device  = nullptr;
 			InputEvent last_event;
-			Vector<InputTriggerState> triggers;
+			Array<InputTriggerState> triggers;
 		};
 
 		struct ActionListenerBinding {
@@ -53,13 +53,13 @@ namespace Trinex
 		};
 
 	private:
-		Vector<DeviceBinding> m_devices;
-		Vector<ListenerBinding> m_listeners;
-		Vector<ListenerBinding> m_pending_listeners;
-		Vector<ActiveInputContext> m_contexts;
-		Vector<MappingState> m_mapping_states;
-		Vector<InputActionState> m_action_states;
-		Vector<ActionListenerBinding> m_action_listeners;
+		Array<DeviceBinding> m_devices;
+		Array<ListenerBinding> m_listeners;
+		Array<ListenerBinding> m_pending_listeners;
+		Array<ActiveInputContext> m_contexts;
+		Array<MappingState> m_mapping_states;
+		Array<InputActionState> m_action_states;
+		Array<ActionListenerBinding> m_action_listeners;
 		u32 m_dispatch_depth = 0;
 
 		static bool matches(const ListenerBinding& binding, const InputEvent& event);

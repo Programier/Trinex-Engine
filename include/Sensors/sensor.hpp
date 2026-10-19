@@ -9,13 +9,13 @@
 //    {
 //        // Static variables
 //        static uint_t m_sensor_count;
-//        static Vector<std::string> m_sensor_names;
+//        static Array<std::string> m_sensor_names;
 
 //        // Non static variables
 //        uint_t m_ID;
 //        std::string m_sensor_name;
 //        SmartPointer<void> m_sensor = nullptr;
-//        Vector<float> m_data = {0.f, 0.f, 0.f};
+//        Array<float> m_data = {0.f, 0.f, 0.f};
 
 //    public:
 //        Sensor();
@@ -34,12 +34,12 @@
 
 //        Sensor& data_size(const std::size_t& size);
 //        std::size_t data_size() const;
-//        const Vector<float>& data() const;
+//        const Array<float>& data() const;
 //        Sensor& update();
 //        ~Sensor();
 
 //        static trinex_api uint_t sensors_count();
-//        static trinex_api const Vector<std::string>& sensor_list();
+//        static trinex_api const Array<std::string>& sensor_list();
 //        static trinex_api uint_t id_of(const std::string& sensor_name);
 //        static trinex_api void update_sensors_info();
 //        friend class Init;

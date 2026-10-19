@@ -20,7 +20,7 @@
 namespace Trinex
 {
 	template<typename Value>
-	static inline Value* static_as_view(VulkanTexture* texture, Vector<VulkanTexture::View<Value>>& views,
+	static inline Value* static_as_view(VulkanTexture* texture, Array<VulkanTexture::View<Value>>& views,
 	                                    const VulkanTexture::ViewDesc& desc, vk::ImageAspectFlags aspect)
 	{
 		for (auto& view : views)
@@ -47,7 +47,7 @@ namespace Trinex
 	}
 
 	template<typename Value>
-	static inline void static_destroy_view(Vector<VulkanTexture::View<Value>>& views)
+	static inline void static_destroy_view(Array<VulkanTexture::View<Value>>& views)
 	{
 		for (auto& view : views)
 		{

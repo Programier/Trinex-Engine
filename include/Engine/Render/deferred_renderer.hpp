@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Engine/Render/renderer.hpp>
 
 namespace Trinex
@@ -28,9 +28,9 @@ namespace Trinex
 		LightRenderRanges* m_light_ranges            = nullptr;
 		PostProcessParameters* m_post_process_params = nullptr;
 
-		FrameVector<PrimitiveComponent*> m_visible_primitives;
-		FrameVector<LightComponent*> m_visible_lights;
-		FrameVector<PostProcessComponent*> m_visible_post_processes;
+		FrameArray<PrimitiveComponent*> m_visible_primitives;
+		FrameArray<LightComponent*> m_visible_lights;
+		FrameArray<PostProcessComponent*> m_visible_post_processes;
 
 	private:
 		DeferredRenderer& register_debug_lines();
@@ -64,9 +64,9 @@ namespace Trinex
 		RHIBuffer* lights_buffer();
 		RHIBuffer* shadow_buffer();
 
-		inline const FrameVector<PrimitiveComponent*>& visible_primitives() const { return m_visible_primitives; }
-		inline const FrameVector<LightComponent*>& visible_lights() const { return m_visible_lights; }
-		inline const FrameVector<PostProcessComponent*> visible_post_processes() const { return m_visible_post_processes; }
+		inline const FrameArray<PrimitiveComponent*>& visible_primitives() const { return m_visible_primitives; }
+		inline const FrameArray<LightComponent*>& visible_lights() const { return m_visible_lights; }
+		inline const FrameArray<PostProcessComponent*> visible_post_processes() const { return m_visible_post_processes; }
 		inline const PostProcessParameters* post_process_parameters() const { return m_post_process_params; }
 	};
 }// namespace Trinex

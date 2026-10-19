@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/engine_types.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <dx12_headers.hpp>
 
 namespace Trinex
@@ -10,7 +10,7 @@ namespace Trinex
 	class D3D12DescritorHeap
 	{
 		ComPtr<ID3D12DescriptorHeap> m_heap;
-		Vector<uint32_t> m_free_offsets;
+		Array<uint32_t> m_free_offsets;
 		uint32_t m_count;
 		uint32_t m_allocated;
 		uint32_t m_descriptor_size;
@@ -63,13 +63,13 @@ namespace Trinex
 
 	class D3D12DescritorManager
 	{
-		Vector<D3D12DescritorHeap*> m_rtv_heaps;
-		Vector<D3D12DescritorHeap*> m_dsv_heaps;
-		Vector<D3D12DescritorHeap*> m_sampler_heaps;
-		Vector<D3D12DescritorHeap*> m_resource_heaps;
+		Array<D3D12DescritorHeap*> m_rtv_heaps;
+		Array<D3D12DescritorHeap*> m_dsv_heaps;
+		Array<D3D12DescritorHeap*> m_sampler_heaps;
+		Array<D3D12DescritorHeap*> m_resource_heaps;
 		size_t m_heaps = 0;
 
-		D3D12Descriptor allocate(Vector<D3D12DescritorHeap*>& heaps, const D3D12_DESCRIPTOR_HEAP_DESC& desc);
+		D3D12Descriptor allocate(Array<D3D12DescritorHeap*>& heaps, const D3D12_DESCRIPTOR_HEAP_DESC& desc);
 
 	public:
 		~D3D12DescritorManager();

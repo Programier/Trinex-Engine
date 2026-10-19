@@ -1,5 +1,5 @@
 #include <Core/etl/critical_section.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/log.hpp>
 #include <Core/types/timestamp.hpp>
 #include <cstdarg>
@@ -12,7 +12,7 @@ namespace Trinex::Log
 		struct LoggerState {
 			CriticalSectionRecursive critical_section;
 
-			Vector<Listener*> listeners;
+			Array<Listener*> listeners;
 			Level minimum_level = Level::Info;
 			bool enabled        = true;
 			usize sequence      = 0;
@@ -64,7 +64,7 @@ namespace Trinex::Log
 		static void vlog(Level level, Category& category, const char* file, u32 line, const char* func, const char* format,
 		                 va_list args)
 		{
-			Vector<Listener*> listeners;
+			Array<Listener*> listeners;
 			usize sequence = 0;
 
 			const bool should_log = LoggerState::lock([&](LoggerState* state) {

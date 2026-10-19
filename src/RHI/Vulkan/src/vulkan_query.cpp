@@ -78,7 +78,7 @@ namespace Trinex
 
 	VulkanQueryPoolManager::~VulkanQueryPoolManager()
 	{
-		auto destroy_pool = [](Vector<VulkanQueryPool*>& pools) {
+		auto destroy_pool = [](Array<VulkanQueryPool*>& pools) {
 			for (VulkanQueryPool* pool : pools)
 			{
 				trx_delete pool;
@@ -90,7 +90,7 @@ namespace Trinex
 		destroy_pool(m_statistics_pools);
 	}
 
-	VulkanQueryPool* VulkanQueryPoolManager::find_pool(Vector<VulkanQueryPool*>& pools, const vk::QueryPoolCreateInfo& info)
+	VulkanQueryPool* VulkanQueryPoolManager::find_pool(Array<VulkanQueryPool*>& pools, const vk::QueryPoolCreateInfo& info)
 	{
 		for (VulkanQueryPool* pool : pools)
 		{

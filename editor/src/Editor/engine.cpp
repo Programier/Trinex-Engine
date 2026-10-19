@@ -10,7 +10,7 @@ namespace Trinex
 		return instance_cast<EditorEngine>(Engine::instance());
 	}
 
-	const Vector<Actor*>& EditorEngine::selected_actors() const
+	const Array<Actor*>& EditorEngine::selected_actors() const
 	{
 		return m_selected_actors.container();
 	}

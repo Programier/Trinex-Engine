@@ -12,7 +12,7 @@ namespace Trinex
 		trinex_class(MeshComponent, PrimitiveComponent);
 
 	private:
-		Vector<MaterialInterface*> m_material_overrides;
+		Array<MaterialInterface*> m_material_overrides;
 
 	public:
 		virtual MaterialInterface* material(usize index) const;

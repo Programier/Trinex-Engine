@@ -20,7 +20,7 @@ namespace Trinex
 		trinex_class(VisualMaterialEditorClient, MaterialEditorClient);
 
 	private:
-		Vector<VisualMaterialGraph::Node*> m_selected_nodes;
+		Array<VisualMaterialGraph::Node*> m_selected_nodes;
 		ax::NodeEditor::EditorContext* m_context = nullptr;
 		Pointer<VisualMaterial> m_material;
 

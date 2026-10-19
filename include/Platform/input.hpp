@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/ref_counted.hpp>
 
 namespace Trinex

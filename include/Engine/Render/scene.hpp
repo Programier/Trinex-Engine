@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/math/box.hpp>
 #include <Core/math/matrix.hpp>
 #include <Engine/enviroment.hpp>
@@ -88,13 +88,13 @@ namespace Trinex
 			inline bool operator<(const Command& other) const { return begin < other.begin; }
 		};
 
-		Vector<u8> m_cpu_heap;
+		Array<u8> m_cpu_heap;
 		RHIBuffer* m_gpu_heap = nullptr;
 
 		tlsf::Allocator m_heap_allocator;
-		Vector<Command> m_commands;
+		Array<Command> m_commands;
 
-		Vector<Chunk> m_chunks;
+		Array<Chunk> m_chunks;
 
 	private:
 		void* heap_allocator(usize size);
@@ -147,6 +147,6 @@ namespace Trinex
 		}
 
 		inline RHIBuffer* heap() const { return m_gpu_heap; }
-		inline const Vector<Chunk>& chunks() const { return m_chunks; }
+		inline const Array<Chunk>& chunks() const { return m_chunks; }
 	};
 }// namespace Trinex

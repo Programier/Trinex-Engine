@@ -121,7 +121,7 @@ namespace Trinex
 
 	bool Image::resize(const Vector2u& size)
 	{
-		Vector<u8> resized_image(size.x * size.y * channels(), 0);
+		Array<u8> resized_image(size.x * size.y * channels(), 0);
 
 		stbir_resize_uint8_linear(m_data.data(), width(), height(), width() * channels(), resized_image.data(), size.x, size.y,
 		                          size.x * channels(), STBIR_RGBA);

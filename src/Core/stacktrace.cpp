@@ -42,7 +42,7 @@ namespace Trinex
 	}
 #endif
 
-	const Vector<StackTrace::FunctionInfo>& StackTrace::callstack() const
+	const Array<StackTrace::FunctionInfo>& StackTrace::callstack() const
 	{
 		return m_callstack;
 	}

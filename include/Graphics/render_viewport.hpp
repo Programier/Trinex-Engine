@@ -21,7 +21,7 @@ namespace Trinex
 		trinex_class(RenderViewport, Object);
 
 	private:
-		static Vector<RenderViewport*> m_viewports;
+		static Array<RenderViewport*> m_viewports;
 
 		class Window* m_window;
 		RHIResourcePtr<class RHISwapchain> m_swapchain;
@@ -45,6 +45,6 @@ namespace Trinex
 		inline float aspect() const { return static_cast<float>(m_size.x) / static_cast<float>(m_size.y); }
 
 		static RenderViewport* current();
-		static const Vector<RenderViewport*>& viewports();
+		static const Array<RenderViewport*>& viewports();
 	};
 }// namespace Trinex

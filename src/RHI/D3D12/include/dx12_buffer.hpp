@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/etl/set.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Graphics/rhi.hpp>
 #include <dx12_destroyable.hpp>
 #include <dx12_headers.hpp>
@@ -53,7 +53,7 @@ namespace Trinex
 		};
 
 		Set<D3D12UploadBuffer*> m_allocated;
-		Vector<Entry> m_free;
+		Array<Entry> m_free;
 
 		D3D12UploadBufferManager& return_buffer(D3D12UploadBuffer* buffer);
 

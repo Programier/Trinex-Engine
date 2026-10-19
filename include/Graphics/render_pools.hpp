@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/engine_types.hpp>
 #include <Core/etl/map.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/math/fwd.hpp>
 #include <Core/pointer.hpp>
 #include <RHI/enums.hpp>
@@ -25,8 +25,8 @@ namespace Trinex
 			RHIFence* fence = nullptr;
 		};
 
-		Vector<FenceEntry> m_pool;
-		Vector<RHIFence*> m_transient_fences;
+		Array<FenceEntry> m_pool;
+		Array<RHIFence*> m_transient_fences;
 
 	private:
 		RHIFencePool& flush_transient();
@@ -49,9 +49,9 @@ namespace Trinex
 			RHIBuffer* buffer = nullptr;
 		};
 
-		Map<Identifier, Vector<BufferEntry>> m_pools;
+		Map<Identifier, Array<BufferEntry>> m_pools;
 		Map<RHIBuffer*, Identifier> m_buffer_id;
-		Vector<RHIBuffer*> m_transient_buffers;
+		Array<RHIBuffer*> m_transient_buffers;
 
 	private:
 		RHIBufferPool& flush_transient();
@@ -90,9 +90,9 @@ namespace Trinex
 			RHITexture* surface = nullptr;
 		};
 
-		Map<Key, Vector<SurfaceEntry>, Hasher> m_pools;
+		Map<Key, Array<SurfaceEntry>, Hasher> m_pools;
 		Map<RHITexture*, Key> m_surface_id;
-		Vector<RHITexture*> m_transient_textures;
+		Array<RHITexture*> m_transient_textures;
 
 	private:
 		RHITexturePool& flush_transient();
@@ -118,8 +118,8 @@ namespace Trinex
 			Pointer<RenderSurface> surface;
 		};
 
-		Map<Identifier, Vector<SurfaceEntry>> m_pools;
-		Vector<RenderSurface*> m_transient_surfaces;
+		Map<Identifier, Array<SurfaceEntry>> m_pools;
+		Array<RenderSurface*> m_transient_surfaces;
 
 	private:
 		RenderSurfacePool& flush_transient();
@@ -141,7 +141,7 @@ namespace Trinex
 			RHITimestamp* timestamp = nullptr;
 		};
 
-		Vector<TimestampEntry> m_pool;
+		Array<TimestampEntry> m_pool;
 
 	public:
 		static RHITimestampPool* global_instance();
@@ -160,7 +160,7 @@ namespace Trinex
 			RHIPipelineStatistics* stats = nullptr;
 		};
 
-		Vector<StatsEntry> m_pool;
+		Array<StatsEntry> m_pool;
 
 	public:
 		static RHIPipelineStatisticsPool* global_instance();
@@ -179,9 +179,9 @@ namespace Trinex
 			RHIContext* context = nullptr;
 		};
 
-		Map<Identifier, Vector<ContextEntry>> m_pools;
+		Map<Identifier, Array<ContextEntry>> m_pools;
 		Map<RHIContext*, Identifier> m_context_id;
-		Vector<RHIContext*> m_transient;
+		Array<RHIContext*> m_transient;
 
 	private:
 		RHIContextPool& flush_transient();

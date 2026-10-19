@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/callback.hpp>
 #include <Core/enums.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/types/path.hpp>
 
 namespace Trinex::VFS
@@ -41,6 +41,6 @@ namespace Trinex::VFS
 
 		virtual bool watch(Identifier watch_id, const Path& virtual_path, const Path& native_path, bool recursive) = 0;
 		virtual void unwatch(Identifier watch_id)                                                                  = 0;
-		virtual void poll(Vector<FileWatchNotification>& events)                                                   = 0;
+		virtual void poll(Array<FileWatchNotification>& events)                                                   = 0;
 	};
 }// namespace Trinex::VFS

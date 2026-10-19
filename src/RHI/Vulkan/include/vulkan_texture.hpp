@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/etl/set.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <RHI/rhi.hpp>
 #include <vk_mem_alloc.h>
 #include <vulkan_destroyable.hpp>
@@ -53,10 +53,10 @@ namespace Trinex
 		};
 
 	protected:
-		Vector<View<class VulkanTextureSRV>> m_srv;
-		Vector<View<class VulkanTextureUAV>> m_uav;
-		Vector<View<class VulkanTextureRTV>> m_rtv;
-		Vector<View<class VulkanTextureDSV>> m_dsv;
+		Array<View<class VulkanTextureSRV>> m_srv;
+		Array<View<class VulkanTextureUAV>> m_uav;
+		Array<View<class VulkanTextureRTV>> m_rtv;
+		Array<View<class VulkanTextureDSV>> m_dsv;
 
 		VmaAllocation m_allocation = VK_NULL_HANDLE;
 		RHITextureFlags m_flags;

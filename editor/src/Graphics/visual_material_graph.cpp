@@ -33,8 +33,8 @@ namespace Trinex::VisualMaterialGraph
 		r.method("OutputPin@ new_output(const string& name, RHIShaderParameterType type) final", method2);
 		r.method("InputPin@ new_input(const string& name, RHIShaderParameterType type, RHIShaderParameterType default_type) final",method3);
 		r.method("OutputPin@ new_output(const string& name, RHIShaderParameterType type, RHIShaderParameterType default_type) final", method4);
-		r.method("const Vector<InputPin@>& inputs() const final", &This::inputs);
-		r.method("const Vector<OutputPin@>& outputs() const final", &This::outputs);
+		r.method("const Array<InputPin@>& inputs() const final", &This::inputs);
+		r.method("const Array<OutputPin@>& outputs() const final", &This::outputs);
 		// clang-format on
 
 		ScriptEngine::on_terminate.push([]() {

@@ -33,7 +33,7 @@ namespace Trinex
 		~VulkanSwapchainTexture() { m_image = vk::Image(); }
 	};
 
-	static void initialize_semaphores(Vector<RHIResourcePtr<VulkanSemaphore>>& semaphores, usize size)
+	static void initialize_semaphores(Array<RHIResourcePtr<VulkanSemaphore>>& semaphores, usize size)
 	{
 		semaphores.resize(size);
 

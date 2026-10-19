@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/etl/critical_section.hpp>
 #include <Core/etl/deque.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <RHI/context.hpp>
 #include <vulkan_headers.hpp>
 #include <vulkan_thread_local.hpp>
@@ -29,8 +29,8 @@ namespace Trinex
 	class VulkanResourceState
 	{
 	private:
-		Vector<T> m_resources;
-		Vector<u8> m_dirty_flags;
+		Array<T> m_resources;
+		Array<u8> m_dirty_flags;
 
 		void resize(usize index)
 		{
@@ -100,8 +100,8 @@ namespace Trinex
 	private:
 		class VulkanFence* m_fence = nullptr;
 		class VulkanCommandBufferManager* m_manager;
-		Vector<UniformBuffer> m_uniform_buffers;
-		Vector<RHIObject*> m_transient_resources;
+		Array<UniformBuffer> m_uniform_buffers;
+		Array<RHIObject*> m_transient_resources;
 		State m_state = State::Unused;
 		const RHIContextFlags m_flags;
 

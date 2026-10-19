@@ -11,7 +11,7 @@ namespace Trinex
 {
 	trinex_implement_class_default_init(Trinex::ShaderCompiler, 0);
 
-	static Vector<ShaderCompiler*> s_shader_compilers;
+	static Array<ShaderCompiler*> s_shader_compilers;
 
 	bool ShaderCompilationResult::initialize_pipeline(class GraphicsPipeline* pipeline)
 	{

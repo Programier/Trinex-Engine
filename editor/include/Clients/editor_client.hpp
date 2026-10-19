@@ -81,21 +81,21 @@ namespace Trinex
 			private:
 				struct Frame {
 					RHIFence* fence;
-					Vector<TimingQuery> queries;
+					Array<TimingQuery> queries;
 
 					void clear();
 					~Frame();
 				};
 
 				Deque<Frame> m_frames;
-				Vector<TimingResult> m_timings;
+				Array<TimingResult> m_timings;
 
 			public:
 				void update();
 				void submit();
 
-				Vector<TimingQuery>& new_frame();
-				inline const Vector<TimingResult>& last_frame() const { return m_timings; }
+				Array<TimingQuery>& new_frame();
+				inline const Array<TimingResult>& last_frame() const { return m_timings; }
 			} timings;
 
 			inline void update()

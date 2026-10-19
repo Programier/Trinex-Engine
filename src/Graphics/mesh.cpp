@@ -60,7 +60,7 @@ namespace Trinex
 	}
 
 	template<typename Type>
-	static void serialize_buffers(Archive& ar, Vector<Type>& buffers)
+	static void serialize_buffers(Archive& ar, Array<Type>& buffers)
 	{
 		usize size = buffers.size();
 		ar.serialize(size);

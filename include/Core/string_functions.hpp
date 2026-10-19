@@ -2,7 +2,7 @@
 #include <Core/engine_types.hpp>
 #include <Core/etl/pair.hpp>
 #include <Core/etl/string.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <fmt/format.h>
 #include <numeric>
 
@@ -37,8 +37,8 @@ namespace Trinex::Strings
 	trinex_api String to_upper(StringView line);
 
 	trinex_api const char* strnstr(const char* haystack, usize haystack_len, const char* needle, usize needle_len);
-	trinex_api Vector<String> split(const StringView& line, char delimiter = ' ');
-	trinex_api Vector<String> split(const StringView& line, const StringView& delimiter);
+	trinex_api Array<String> split(const StringView& line, char delimiter = ' ');
+	trinex_api Array<String> split(const StringView& line, const StringView& delimiter);
 
 	trinex_api String namespace_of(const StringView& name);
 	trinex_api String class_name_of(const StringView& name);

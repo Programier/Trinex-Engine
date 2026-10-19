@@ -639,9 +639,9 @@ namespace Trinex::UI::Refl
 	static bool container_to_imvec2_vector(void* dst, const void* src, Property::Flags mask)
 	{
 		const auto& container = *static_cast<const Markup::Container*>(src);
-		auto& vector          = *static_cast<Vector<ImVec2>*>(dst);
+		auto& vector          = *static_cast<Array<ImVec2>*>(dst);
 
-		Vector<ImVec2> result;
+		Array<ImVec2> result;
 		result.reserve(container.size());
 
 		for (const Markup::ValueDesc& value : container)
@@ -711,7 +711,7 @@ namespace Trinex::UI::Refl
 		NativeType<ImVec2>::instance()->bind<Markup::Container>(container_to_vec2<ImVec2>);
 		NativeType<ImVec4>::instance()->bind<Markup::Container>(container_to_vec4<ImVec4>);
 		NativeType<Size>::instance()->bind<Markup::Container>(container_to_size);
-		NativeType<Vector<ImVec2>>::instance()->bind<Markup::Container>(container_to_imvec2_vector);
+		NativeType<Array<ImVec2>>::instance()->bind<Markup::Container>(container_to_imvec2_vector);
 
 		using VectorTypesList = TypesList<Vec2, Vec3, Vec4, ImVec2, ImVec4, Size>;
 		VectorTypesList::for_each([]<typename Dst>() { VectorResolverBinder<Dst, VectorTypesList>::bind(); });
@@ -769,7 +769,7 @@ namespace Trinex::UI::Refl
 		trinex_ui_bind_type_name(Size);
 		trinex_ui_bind_type_name(RHITexture);
 		trinex_ui_bind_type_name(RHISampler);
-		trinex_ui_bind_type_name(Vector<ImVec2>);
+		trinex_ui_bind_type_name(Array<ImVec2>);
 		trinex_ui_bind_type_name(Markup::Identifier);
 		trinex_ui_bind_type_name(Markup::BindingPath);
 		trinex_ui_bind_type_name(Markup::LocalizationKey);

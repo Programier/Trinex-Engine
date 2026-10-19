@@ -87,7 +87,7 @@ namespace Trinex
 		return m_parent;
 	}
 
-	const Vector<Group*>& Group::childs() const
+	const Array<Group*>& Group::childs() const
 	{
 		return m_childs;
 	}
@@ -97,7 +97,7 @@ namespace Trinex
 		return m_name;
 	}
 
-	const Vector<Refl::Struct*>& Group::structs() const
+	const Array<Refl::Struct*>& Group::structs() const
 	{
 		return m_structs;
 	}

@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/etl/map.hpp>
 #include <Core/etl/set.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/object.hpp>
 #include <Core/string_functions.hpp>
 #include <RHI/enums.hpp>
@@ -104,7 +104,7 @@ namespace Trinex::VisualMaterialGraph
 		Set<String> m_var_names;
 
 		Set<Node*> m_temp_nodes;
-		Vector<String> m_locals;
+		Array<String> m_locals;
 
 		Node* m_current_node = nullptr;
 		String next_var_name() const;
@@ -231,8 +231,8 @@ namespace Trinex::VisualMaterialGraph
 		trinex_class(Node, Object);
 
 	private:
-		Vector<InputPin*> m_inputs;
-		Vector<OutputPin*> m_outputs;
+		Array<InputPin*> m_inputs;
+		Array<OutputPin*> m_outputs;
 		u16 m_id = 0;
 
 		Expression script_compile(OutputPin* pin, Compiler& compiler);
@@ -267,8 +267,8 @@ namespace Trinex::VisualMaterialGraph
 		virtual Node& post_compile(VisualMaterial* material);
 
 		inline u16 id() const { return m_id; }
-		inline const Vector<InputPin*>& inputs() const { return m_inputs; }
-		inline const Vector<OutputPin*>& outputs() const { return m_outputs; }
+		inline const Array<InputPin*>& inputs() const { return m_inputs; }
+		inline const Array<OutputPin*>& outputs() const { return m_outputs; }
 
 		~Node();
 	};

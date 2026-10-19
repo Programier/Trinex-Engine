@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <dx12_headers.hpp>
 
 
@@ -11,7 +11,7 @@ namespace Trinex
 	{
 		struct Entry {
 			Entry* m_next;
-			Vector<RHIObject*> m_pending_destroy;
+			Array<RHIObject*> m_pending_destroy;
 			ComPtr<ID3D12CommandAllocator> m_allocator;
 			ComPtr<ID3D12Fence> m_fence;
 			uint64_t m_last_signaled;

@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/etl/critical_section.hpp>
 #include <Core/etl/map.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <RHI/rhi.hpp>
 #include <vulkan_definitions.hpp>
 #include <vulkan_destroyable.hpp>

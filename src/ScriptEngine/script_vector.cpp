@@ -1,4 +1,3 @@
-#include <Core/engine_types.hpp>
 #include <Core/etl/templates.hpp>
 #include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_context.hpp>
@@ -12,12 +11,12 @@ namespace Trinex
 	class ScriptVector
 	{
 	public:
-		struct Instance : public Vector<u8> {
-			using Vector::Vector;
+		struct Instance : public Array<u8> {
+			using Array::Array;
 
-			using Vector::m_end;
-			using Vector::m_finish;
-			using Vector::m_start;
+			using Array::m_end;
+			using Array::m_finish;
+			using Array::m_start;
 		};
 
 		static Instance* m_self;
@@ -857,7 +856,7 @@ namespace Trinex
 		if constexpr (alignof(void*) == 8)
 			flags |= ScriptClassFlags::AppClassAlign8;
 
-		auto r = ScriptBinding::Class::create("Trinex::Vector<T>", ScriptBinding::value_type<ScriptVector::Instance>(flags));
+		auto r = ScriptBinding::Class::create("Trinex::Array<T>", ScriptBinding::value_type<ScriptVector::Instance>(flags));
 
 		r.behaviour(ScriptClassBehave::TemplateCallback, "bool f(int &in, bool&out)", template_callback, ScriptCallConv::CDecl);
 
@@ -865,9 +864,9 @@ namespace Trinex
 		r.behaviour(ScriptClassBehave::Construct, "void f(int&, uint64) explicit", T::constructor_sz);
 		r.behaviour(ScriptClassBehave::Construct, "void f(int&, uint64, const T& v)", T::constructor_sz_v);
 		r.behaviour(ScriptClassBehave::ListConstruct, "void f(int&, int&in) { repeat T }", T::constructor_lst);
-		r.behaviour(ScriptClassBehave::Construct, "void f(int&, const Vector<T>&)", T::copy_constructor);
+		r.behaviour(ScriptClassBehave::Construct, "void f(int&, const Array<T>&)", T::copy_constructor);
 		r.behaviour(ScriptClassBehave::Destruct, "void f()", T::destructor, ScriptCallConv::Generic);
-		r.method("Vector<T>& opAssign(const Vector<T>&)", T::opAssign, ScriptCallConv::Generic);
+		r.method("Array<T>& opAssign(const Array<T>&)", T::opAssign, ScriptCallConv::Generic);
 		r.method("T& opIndex(uint64 i)", T::at, ScriptCallConv::Generic);
 		r.method("const T& opIndex(uint64 i) const", T::at, ScriptCallConv::Generic);
 		r.method("T& at(uint64 i)", T::at, ScriptCallConv::Generic);
@@ -885,7 +884,7 @@ namespace Trinex
 		r.method("void resize(uint64 new_size)", T::resize, ScriptCallConv::Generic);
 		r.method("void resize(uint64 new_size, const T& v)", T::resize_v, ScriptCallConv::Generic);
 		r.method("void assign(uint64 new_size, const T& v)", T::assign_nv, ScriptCallConv::Generic);
-		r.method("void insert(uint64 pos, const Vector<T>& v)", T::insert_pvec, ScriptCallConv::Generic);
+		r.method("void insert(uint64 pos, const Array<T>& v)", T::insert_pvec, ScriptCallConv::Generic);
 		r.method("void insert(uint64 pos, const T& v)", T::insert_pv, ScriptCallConv::Generic);
 		r.method("void insert(uint64 pos, uint64 n, const T& v)", T::insert_pnv, ScriptCallConv::Generic);
 		r.method("void push_back(const T& v)", T::push_back, ScriptCallConv::Generic);

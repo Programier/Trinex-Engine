@@ -67,7 +67,7 @@ namespace Trinex
 		return *this;
 	}
 
-	static void destroy_heaps(Vector<D3D12DescritorHeap*>& heaps)
+	static void destroy_heaps(Array<D3D12DescritorHeap*>& heaps)
 	{
 		for (D3D12DescritorHeap* heap : heaps)
 		{
@@ -84,7 +84,7 @@ namespace Trinex
 		destroy_heaps(m_resource_heaps);
 	}
 
-	D3D12Descriptor D3D12DescritorManager::allocate(Vector<D3D12DescritorHeap*>& heaps, const D3D12_DESCRIPTOR_HEAP_DESC& desc)
+	D3D12Descriptor D3D12DescritorManager::allocate(Array<D3D12DescritorHeap*>& heaps, const D3D12_DESCRIPTOR_HEAP_DESC& desc)
 	{
 		for (D3D12DescritorHeap* heap : heaps)
 		{

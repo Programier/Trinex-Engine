@@ -1,5 +1,5 @@
 #include <Core/archive.hpp>
-#include <Core/etl/array.hpp>
+#include <Core/etl/static_array.hpp>
 #include <Core/etl/atomic.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/memory.hpp>
@@ -31,7 +31,7 @@ namespace Trinex
 	using SamplersMap = Map<RHISamplerDesc, class SamplerImpl*, SamplerInitializerHash>;
 
 	static SamplersMap s_samplers;
-	static Array<SamplerImpl*, 3> s_default_samplers;
+	static StaticArray<SamplerImpl*, 3> s_default_samplers;
 	static SamplerImpl* s_first_sampler = nullptr;
 	static SamplerImpl* s_last_sampler  = nullptr;
 	static bool s_gc_disabled           = false;

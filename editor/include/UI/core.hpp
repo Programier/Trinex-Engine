@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/etl/variant.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/math/vector.hpp>
 #include <Core/types/name.hpp>
 
@@ -134,12 +134,12 @@ namespace Trinex::UI
 			u32 column = 0;
 		};
 
-		struct LocalizationKey : public Vector<Name> {
-			using Vector::Vector;
+		struct LocalizationKey : public Array<Name> {
+			using Array::Array;
 		};
 
 
-		struct BindingPath : public Vector<Name> {
+		struct BindingPath : public Array<Name> {
 			struct Mode {
 				enum Enum : u8
 				{
@@ -152,12 +152,12 @@ namespace Trinex::UI
 				trinex_bitfield_enum_struct(Mode, u8);
 			};
 
-			using Vector::Vector;
+			using Array::Array;
 			Mode mode = Mode::Read;
 		};
 
-		struct PropertyPath : public Vector<Name> {
-			using Vector::Vector;
+		struct PropertyPath : public Array<Name> {
+			using Array::Array;
 		};
 
 		struct Identifier : public String {
@@ -167,8 +167,8 @@ namespace Trinex::UI
 		struct Null {
 		};
 
-		using Container = Vector<struct ValueDesc>;
-		using Object    = Vector<struct ObjectField>;
+		using Container = Array<struct ValueDesc>;
+		using Object    = Array<struct ObjectField>;
 		using Value = Variant<Null, bool, i32, f32, String, Unit, LocalizationKey, BindingPath, Identifier, Container, Object>;
 
 		struct ValueDesc {

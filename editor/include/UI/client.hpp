@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/etl/registry.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/types/path.hpp>
 #include <Core/viewport_client.hpp>
 #include <UI/menu_bar.hpp>
@@ -19,12 +19,12 @@ namespace Trinex::UI
 		struct DocumentEntry {
 			Document* document = nullptr;
 			Path path;
-			Vector<Identifier> watch_ids;
+			Array<Identifier> watch_ids;
 		};
 
 		ImGuiContext* m_ctx        = nullptr;
 		RenderViewport* m_viewport = nullptr;
-		Vector<DocumentEntry> m_documents;
+		Array<DocumentEntry> m_documents;
 
 	public:
 		MenuBar menu_bar;

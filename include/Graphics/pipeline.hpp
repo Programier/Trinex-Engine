@@ -24,14 +24,14 @@ namespace Trinex
 		RHIResourcePtr<RHIPipeline> m_pipeline;
 
 	private:
-		Vector<RHIShaderParameterInfo> m_parameters;
+		Array<RHIShaderParameterInfo> m_parameters;
 
 	public:
 		bool add_parameter(const RHIShaderParameterInfo& parameter, bool replace = false);
 		bool remove_parameter(const Name& name);
 		const RHIShaderParameterInfo* find_parameter(const Name& name) const;
-		Pipeline& parameters(const Vector<RHIShaderParameterInfo>& parameters);
-		inline const Vector<RHIShaderParameterInfo>& parameters() const { return m_parameters; }
+		Pipeline& parameters(const Array<RHIShaderParameterInfo>& parameters);
+		inline const Array<RHIShaderParameterInfo>& parameters() const { return m_parameters; }
 
 		class Material* material() const;
 		virtual bool serialize(Archive& ar) final override;
@@ -47,7 +47,7 @@ namespace Trinex
 		trinex_class(GraphicsPipeline, Pipeline);
 
 	public:
-		Vector<RHIInputAttribute> vertex_attributes;
+		Array<RHIInputAttribute> vertex_attributes;
 
 	private:
 		Shader* m_vertex_shader               = nullptr;

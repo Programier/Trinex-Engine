@@ -31,7 +31,7 @@ namespace Trinex
 			using CheckStages = bool (*)(ShaderInfo*);
 
 			slang::IModule* module = nullptr;
-			Vector<slang::IComponentType*> component_types;
+			Array<slang::IComponentType*> component_types;
 			SLANG_ShaderCompiler* const compiler;
 			Context* const prev_ctx;
 
@@ -39,10 +39,10 @@ namespace Trinex
 		};
 
 		struct SessionInitializer {
-			Vector<const char*, FrameAllocator<const char*>> search_paths;
-			Vector<slang::PreprocessorMacroDesc, FrameAllocator<slang::PreprocessorMacroDesc>> definitions;
-			Vector<slang::CompilerOptionEntry, FrameAllocator<slang::CompilerOptionEntry>> options;
-			Vector<slang::CompilerOptionEntry, FrameAllocator<slang::CompilerOptionEntry>> target_options;
+			Array<const char*, FrameAllocator<const char*>> search_paths;
+			Array<slang::PreprocessorMacroDesc, FrameAllocator<slang::PreprocessorMacroDesc>> definitions;
+			Array<slang::CompilerOptionEntry, FrameAllocator<slang::CompilerOptionEntry>> options;
+			Array<slang::CompilerOptionEntry, FrameAllocator<slang::CompilerOptionEntry>> target_options;
 
 			slang::SessionDesc session_desc;
 			slang::TargetDesc target_desc;

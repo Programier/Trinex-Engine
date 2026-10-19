@@ -1315,7 +1315,7 @@ namespace Trinex
 				return ImGui::RadioButton(label.c_str(), &value, v_button);
 			}
 
-			static bool Combo(const String& label, int& current_item, const Vector<String>& items, int height_in_items)
+			static bool Combo(const String& label, int& current_item, const Array<String>& items, int height_in_items)
 			{
 				StackByteAllocator::Mark mark;
 
@@ -1500,7 +1500,7 @@ namespace Trinex
 		// e.register_function("bool ImageButton(const string& str_id, ImTextureID user_texture_id, const ImVec2 & image_size, const ImVec2 & uv0, const ImVec2 & uv1, const ImVec4 & bg_col, const ImVec4 & tint_col)", ImBinder<overload_of<bool, const char *, ImTextureID, const ImVec2 &, const ImVec2 &, const ImVec2 &, const ImVec4 &, const ImVec4 &>(&ImGui::ImageButton)>::bind());
 		e.register_function("bool BeginCombo(const string& label, const string& preview_value, int flags = 0)", ImBinder<overload_of<bool(const char *, const char *, ImGuiComboFlags)>(&ImGui::BeginCombo)>::bind());
 		e.register_function("void EndCombo()", ImBinder<overload_of<void()>(&ImGui::EndCombo)>::bind());
-		e.register_function("bool Combo(const string &in label, int &inout current_item, const Trinex::Vector<string> &in items, int popup_max_height_in_items = -1)", Custom::Combo);
+		e.register_function("bool Combo(const string &in label, int &inout current_item, const Trinex::Array<string> &in items, int popup_max_height_in_items = -1)", Custom::Combo);
 		e.register_function("bool Combo(const string& label, int& current_item, const string& items_separated_by_zeros, int popup_max_height_in_items = -1)", Custom::Combo2);
 		e.register_function("bool DragFloat(const string& label, float& v, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const string& format = \"%.3f\", int flags = 0)", ImBinder<ImGui::DragFloat, ImArg<1, float[1]>>::bind());
 		e.register_function("bool DragFloat2(const string& label, ImVec2& v, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const string& format = \"%.3f\", int flags = 0)", ImBinder<ImGui::DragFloat2, ImArg<1, float[2]>>::bind());

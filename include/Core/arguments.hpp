@@ -3,7 +3,7 @@
 #include <Core/etl/any.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/etl/string.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 
 namespace Trinex
 {
@@ -11,7 +11,7 @@ namespace Trinex
 	{
 	public:
 		using StringType = String;
-		using ArrayType  = Vector<StringType>;
+		using ArrayType  = Array<StringType>;
 
 		enum class Type
 		{

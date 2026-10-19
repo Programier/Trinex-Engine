@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 
 namespace Trinex
 {
@@ -11,7 +11,7 @@ namespace Trinex
 		static_assert(alignof(T) >= alignof(Index));
 		static_assert(std::is_trivially_destructible_v<T> && std::is_standard_layout_v<T>);
 
-		using Container       = Vector<T, AllocatorType>;
+		using Container       = Array<T, AllocatorType>;
 		using value_type      = T;
 		using reference       = T&;
 		using const_reference = const T&;
@@ -74,7 +74,7 @@ namespace Trinex
 		}
 
 		const Container& container() const { return m_container; }
-		const VectorStorage& storage() const { return m_container.storage(); }
+		const ArrayStorage& storage() const { return m_container.storage(); }
 
 		constexpr pointer data() noexcept { return m_container.data(); }
 		constexpr const_pointer data() const noexcept { return m_container.data(); }

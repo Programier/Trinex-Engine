@@ -23,7 +23,7 @@ namespace Trinex
 	public:
 		static EditorEngine* instance();
 
-		const Vector<Actor*>& selected_actors() const;
+		const Array<Actor*>& selected_actors() const;
 		EditorEngine& select(Actor* actor);
 		EditorEngine& unselect(Actor* actor);
 		EditorEngine& unselect(Level* level);

@@ -21,7 +21,7 @@
 //    */
 
 //    uint_t Sensor::m_sensor_count              = 0;
-//    Vector<std::string> Sensor::m_sensor_names = {};
+//    Array<std::string> Sensor::m_sensor_names = {};
 
 //    // Static methods implementation
 
@@ -30,7 +30,7 @@
 //        return m_sensor_count;
 //    }
 
-//    const Vector<std::string>& Sensor::sensor_list()
+//    const Array<std::string>& Sensor::sensor_list()
 //    {
 //        return Sensor::m_sensor_names;
 //    }
@@ -144,7 +144,7 @@
 //        return *this;
 //    }
 
-//    const Vector<float>& Sensor::data() const
+//    const Array<float>& Sensor::data() const
 //    {
 //        return m_data;
 //    }

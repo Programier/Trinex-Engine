@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/viewport_client.hpp>
 #include <RHI/types.hpp>
 
@@ -18,7 +18,7 @@ namespace Trinex
 	private:
 		World* m_world;
 		RHIBuffer* m_scene;
-		Vector<RHIObject*> m_resources;
+		Array<RHIObject*> m_resources;
 
 	private:
 		RHIBuffer* create_buffer(RHIContext* ctx, const void* data, usize size);

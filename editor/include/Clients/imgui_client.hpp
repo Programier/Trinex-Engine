@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/callback.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/pointer.hpp>
 #include <Core/viewport_client.hpp>
 #include <Widgets/imgui_menu_bar.hpp>

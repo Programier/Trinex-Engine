@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/enums.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <ostream>
 
 namespace Trinex
@@ -80,11 +80,11 @@ namespace Trinex
 	class VectorWriter : public VectorWriterBase
 	{
 	private:
-		Vector<T>* m_buffer;
+		Array<T>* m_buffer;
 		WritePos m_write_pos = 0;
 
 	public:
-		VectorWriter(Vector<T>* buffer) : m_buffer(buffer) {}
+		VectorWriter(Array<T>* buffer) : m_buffer(buffer) {}
 
 		using VectorWriterBase::position;
 		inline WritePos position() override { return m_write_pos; }
@@ -121,11 +121,11 @@ namespace Trinex
 	class VectorReader : public VectorReaderBase
 	{
 	private:
-		const Vector<T>* m_buffer;
+		const Array<T>* m_buffer;
 		ReadPos m_read_pos = 0;
 
 	public:
-		VectorReader(const Vector<T>* buffer) : m_buffer(buffer) {}
+		VectorReader(const Array<T>* buffer) : m_buffer(buffer) {}
 
 		using VectorReaderBase::position;
 		inline ReadPos position() override { return m_read_pos; }

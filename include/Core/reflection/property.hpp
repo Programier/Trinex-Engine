@@ -489,7 +489,7 @@ private:
 		};
 
 		template<typename T, typename Alloc>
-		struct IsArray<Trinex::Vector<T, Alloc>> : std::true_type {
+		struct IsArray<Trinex::Array<T, Alloc>> : std::true_type {
 		};
 
 		template<typename T>
@@ -497,7 +497,7 @@ private:
 		};
 
 		template<typename T>
-		struct IsScriptableArray<Trinex::Vector<T>> : std::true_type {
+		struct IsScriptableArray<Trinex::Array<T>> : std::true_type {
 		};
 
 		trinex_refl_prop_type_filter(IsArray<T>::value);

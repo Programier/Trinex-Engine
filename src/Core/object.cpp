@@ -38,8 +38,8 @@ namespace Trinex
 
 	static Package* s_root_package = nullptr;
 
-	static Vector<Object*> s_root_objects;
-	static Vector<Object*> s_objects;
+	static Array<Object*> s_root_objects;
+	static Array<Object*> s_objects;
 
 	static void create_default_package()
 	{
@@ -208,12 +208,12 @@ namespace Trinex
 		return name.substr(pos, name.length() - pos);
 	}
 
-	trinex_api const Vector<Object*>& Object::static_root_objects()
+	trinex_api const Array<Object*>& Object::static_root_objects()
 	{
 		return s_root_objects;
 	}
 
-	const Vector<Object*>& Object::static_objects()
+	const Array<Object*>& Object::static_objects()
 	{
 		return s_objects;
 	}
@@ -613,7 +613,7 @@ namespace Trinex
 			}
 		}
 
-		Vector<u8> compressed;
+		Array<u8> compressed;
 		Compressor::compress(buffer, compressed);
 
 		Archive ar(retain_ref(stream), IOMode::Write);
@@ -649,14 +649,14 @@ namespace Trinex
 			return nullptr;
 		}
 
-		Vector<u8> compressed_buffer;
+		Array<u8> compressed_buffer;
 		if (!(ar.serialize(compressed_buffer)))
 		{
 			trinex_error(Log::Core, "Failed to read compressed buffer!");
 			return nullptr;
 		}
 
-		Vector<u8> raw_data;
+		Array<u8> raw_data;
 		Compressor::decompress(compressed_buffer, raw_data);
 		BufferStream raw_stream = raw_data;
 

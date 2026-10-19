@@ -11,7 +11,7 @@ namespace Trinex::Refl
 
 	Enum::Enum(u8 flags) : m_flags(flags) {}
 
-	Enum& Enum::register_enum_with_entries(const Vector<Enum::Entry>& entries)
+	Enum& Enum::register_enum_with_entries(const Array<Enum::Entry>& entries)
 	{
 		String name = full_name();
 
@@ -100,7 +100,7 @@ namespace Trinex::Refl
 		return create_entry(&registrar, name, value);
 	}
 
-	const Vector<Enum::Entry>& Enum::entries() const
+	const Array<Enum::Entry>& Enum::entries() const
 	{
 		return m_entries;
 	}

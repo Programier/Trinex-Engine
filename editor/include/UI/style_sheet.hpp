@@ -45,8 +45,8 @@ namespace Trinex::UI
 
 	struct StyleRule {
 		StyleSelector selector;
-		Vector<StyleProperty> properties;
-		Vector<StyleTransition> transitions;
+		Array<StyleProperty> properties;
+		Array<StyleTransition> transitions;
 		u32 order = 0;
 	};
 
@@ -70,8 +70,8 @@ namespace Trinex::UI
 		FlatMap<Name, StyleValue> m_values;
 		FlatMap<Name, StyleValue> m_targets;
 		FlatMap<Name, StyleAnimationTrack> m_tracks;
-		Vector<StyleProperty> m_properties;
-		Vector<StyleTransition> m_transitions;
+		Array<StyleProperty> m_properties;
+		Array<StyleTransition> m_transitions;
 		u32 m_revision     = 0;
 		StyleState m_state = StyleState::Undefined;
 
@@ -83,17 +83,17 @@ namespace Trinex::UI
 	class StyleSheet
 	{
 	private:
-		Vector<StyleRule> m_rules;
-		FlatMap<Name, Vector<usize>> m_named_rules;
+		Array<StyleRule> m_rules;
+		FlatMap<Name, Array<usize>> m_named_rules;
 		u32 m_revision = 0;
 
 	public:
 		StyleSheet& clear();
-		StyleSheet& add_rule(const StyleSelector& selector, const Vector<StyleProperty>& properties,
-		                     const Vector<StyleTransition>& transitions = {});
+		StyleSheet& add_rule(const StyleSelector& selector, const Array<StyleProperty>& properties,
+		                     const Array<StyleTransition>& transitions = {});
 		void resolve(const Element* element, StyleState states, const StyleRuleVisitor& visitor) const;
 
-		inline const Vector<StyleRule>& rules() const { return m_rules; }
+		inline const Array<StyleRule>& rules() const { return m_rules; }
 		inline u32 revision() const { return m_revision; }
 	};
 }// namespace Trinex::UI

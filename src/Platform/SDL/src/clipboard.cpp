@@ -5,7 +5,7 @@ namespace Trinex::Platform
 {
 	struct ClipboardPayload {
 		String mime;
-		Vector<u8> data;
+		Array<u8> data;
 	};
 
 	static const void* SDLCALL clipboard_data_callback(void* userdata, const char* mime_type, size_t* size)

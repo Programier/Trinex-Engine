@@ -203,7 +203,7 @@ namespace Trinex
 
 	void GarbageCollector::destroy_all_objects()
 	{
-		auto& objects = const_cast<Vector<Object*>&>(Object::static_objects());
+		auto& objects = const_cast<Array<Object*>&>(Object::static_objects());
 
 		usize index = 0;
 

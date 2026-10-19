@@ -130,7 +130,7 @@ namespace Trinex::Refl
 		return level;
 	}
 
-	Vector<Name> Struct::hierarchy(usize offset) const
+	Array<Name> Struct::hierarchy(usize offset) const
 	{
 		usize level = abstraction_level();
 		if (offset >= level)
@@ -138,7 +138,7 @@ namespace Trinex::Refl
 
 		level -= offset;
 
-		Vector<Name> result;
+		Array<Name> result;
 		result.reserve(level);
 
 		const Struct* current = this;
@@ -182,7 +182,7 @@ namespace Trinex::Refl
 		return current != nullptr;
 	}
 
-	const Vector<Property*>& Struct::properties() const
+	const Array<Property*>& Struct::properties() const
 	{
 		return m_properties;
 	}
@@ -204,9 +204,9 @@ namespace Trinex::Refl
 		return nullptr;
 	}
 
-	static Vector<Property*> collect_serializable_properties(Refl::Struct* self)
+	static Array<Property*> collect_serializable_properties(Refl::Struct* self)
 	{
-		Vector<Property*> result;
+		Array<Property*> result;
 		result.reserve(20);
 
 		for (auto& prop : self->properties())
@@ -228,7 +228,7 @@ namespace Trinex::Refl
 			usize count = properties.size();
 			ar.serialize(count);
 
-			Vector<usize> offsets(count + 1, 0);
+			Array<usize> offsets(count + 1, 0);
 			auto start_pos = ar.position();
 			ar.write(offsets.data(), offsets.size() * sizeof(usize));
 
@@ -254,7 +254,7 @@ namespace Trinex::Refl
 			usize count = 0;
 			ar.serialize(count);
 
-			Vector<usize> offsets(count + 1, 0);
+			Array<usize> offsets(count + 1, 0);
 			auto start_pos = ar.position();
 			ar.read(offsets.data(), offsets.size() * sizeof(usize));
 
@@ -375,13 +375,13 @@ namespace Trinex::Refl
 		using T = Struct;
 		r.method("uint64 size() const", &T::size);
 		r.method("uint64 abstraction_level() const", &T::parent);
-		r.method("Vector<Name> hierarchy(uint64 offset = 0) const", &T::hierarchy);
+		r.method("Array<Name> hierarchy(uint64 offset = 0) const", &T::hierarchy);
 		r.method("bool is_asset() const", &T::is_asset);
 		r.method("bool is_native() const", &T::is_native);
 		r.method("bool is_class() const", &T::is_class);
 		r.method("bool is_scriptable() const", &T::is_scriptable);
 		r.method("bool is_a(const Struct@ other) const", is_a_scriptable);
-		r.method("const Vector<Property@>& properties() const", &T::properties);
+		r.method("const Array<Property@>& properties() const", &T::properties);
 		r.method("Property find_property(StringView name)", &T::find_property);
 	}
 }// namespace Trinex::Refl

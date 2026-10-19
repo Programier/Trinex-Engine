@@ -27,7 +27,7 @@ namespace Trinex
 		class PropertyRenderer
 		{
 		public:
-			using PropertiesMap = TreeMap<String, Vector<Refl::Property*>>;
+			using PropertiesMap = TreeMap<String, Array<Refl::Property*>>;
 			using RendererFunc  = Delegate<bool(PropertyRenderer* renderer, Refl::Property* prop, bool read_only)>;
 
 			class Context
@@ -76,8 +76,8 @@ namespace Trinex
 				bool active;
 			};
 
-			Vector<StringView> m_names_stack;
-			Vector<ContextEntry> m_context_stack;
+			Array<StringView> m_names_stack;
+			Array<ContextEntry> m_context_stack;
 			Refl::PropertyChangedEvent* m_event = nullptr;
 
 		public:

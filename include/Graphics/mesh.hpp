@@ -58,14 +58,14 @@ namespace Trinex
 			VertexBuffer<MeshSurfaceStream> surface_stream;
 
 			IndexBuffer indices;
-			Vector<MeshSurface> surfaces;
+			Array<MeshSurface> surfaces;
 
 			bool serialize(Archive& ar);
 		};
 
-		Vector<MaterialInterface*> materials;
+		Array<MaterialInterface*> materials;
 		Box3f bounds;
-		Vector<LOD> lods;
+		Array<LOD> lods;
 
 		StaticMesh& rebuild() override;
 		bool serialize(Archive& ar) override;
@@ -83,14 +83,14 @@ namespace Trinex
 			VertexBuffer<MeshAnimationStream> animation_stream;
 
 			IndexBuffer indices;
-			Vector<MeshSurface> surfaces;
+			Array<MeshSurface> surfaces;
 
 			bool serialize(Archive& ar);
 		};
 
-		Vector<MaterialInterface*> materials;
+		Array<MaterialInterface*> materials;
 		Box3f bounds = {};
-		Vector<LOD> lods;
+		Array<LOD> lods;
 		u32 bones = 0;
 
 		SkeletalMesh& rebuild() override;

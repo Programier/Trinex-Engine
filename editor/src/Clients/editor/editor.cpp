@@ -155,7 +155,7 @@ namespace Trinex
 		}
 	}
 
-	Vector<EditorClientOLD::Stats::TimingQuery>& EditorClientOLD::Stats::Timings::new_frame()
+	Array<EditorClientOLD::Stats::TimingQuery>& EditorClientOLD::Stats::Timings::new_frame()
 	{
 		if (!m_frames.empty())
 		{
@@ -411,10 +411,10 @@ namespace Trinex
 
 			class Plugin : public RenderGraph::Graph::Plugin
 			{
-				Vector<Stats::TimingQuery>& m_frame;
+				Array<Stats::TimingQuery>& m_frame;
 
 			public:
-				Plugin(Vector<Stats::TimingQuery>& frame) : m_frame(frame) {}
+				Plugin(Array<Stats::TimingQuery>& frame) : m_frame(frame) {}
 
 				Plugin& on_pass_begin(RenderGraph::Pass* pass, RHIContext* ctx)
 				{

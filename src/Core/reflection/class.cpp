@@ -20,9 +20,9 @@ namespace Trinex::Refl
 		return instance_cast<const Class>(this) != nullptr;
 	}
 
-	static inline Vector<Class*>& get_asset_class_table()
+	static inline Array<Class*>& get_asset_class_table()
 	{
-		static Vector<Class*> vector;
+		static Array<Class*> vector;
 		return vector;
 	}
 
@@ -156,7 +156,7 @@ namespace Trinex::Refl
 		return m_singletone_object;
 	}
 
-	const Vector<Class*>& Class::asset_classes()
+	const Array<Class*>& Class::asset_classes()
 	{
 		return get_asset_class_table();
 	}

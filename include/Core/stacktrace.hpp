@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/engine_types.hpp>
 #include <Core/etl/string.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 
 namespace Trinex
 {
@@ -15,11 +15,11 @@ namespace Trinex
 		};
 
 	private:
-		Vector<FunctionInfo> m_callstack;
+		Array<FunctionInfo> m_callstack;
 
 	public:
 		StackTrace(u32 skip = 1);
-		const Vector<FunctionInfo>& callstack() const;
+		const Array<FunctionInfo>& callstack() const;
 		String to_string(bool with_filename = false, const char* line_sep = "\n") const;
 	};
 }// namespace Trinex

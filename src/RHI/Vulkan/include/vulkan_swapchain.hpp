@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <RHI/resource_ptr.hpp>
 #include <RHI/rhi.hpp>
 #include <VkBootstrap.h>
@@ -22,9 +22,9 @@ namespace Trinex
 			SurfaceLost = -2,
 		};
 
-		Vector<VulkanTexture*> m_backbuffers;
-		Vector<RHIResourcePtr<VulkanSemaphore>> m_image_present_semaphores;
-		Vector<RHIResourcePtr<VulkanSemaphore>> m_render_finished_semaphores;
+		Array<VulkanTexture*> m_backbuffers;
+		Array<RHIResourcePtr<VulkanSemaphore>> m_image_present_semaphores;
+		Array<RHIResourcePtr<VulkanSemaphore>> m_render_finished_semaphores;
 
 		vk::SurfaceKHR m_surface;
 		vk::PresentModeKHR m_present_mode;

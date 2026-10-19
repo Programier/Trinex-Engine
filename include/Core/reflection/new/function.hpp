@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/reflection/new/property.hpp>
 
 namespace Trinex::Refl::New
@@ -23,15 +23,15 @@ namespace Trinex::Refl::New
 
 	private:
 		Ref<Property> m_result;
-		Vector<Ref<Property>> m_args;
+		Array<Ref<Property>> m_args;
 		u64 m_size;
 		u64 m_alignment;
 
 	public:
-		Function(Name name, Property* result = nullptr, Vector<Ref<Property>> args = {}, u64 flags = 0, Object* owner = nullptr);
+		Function(Name name, Property* result = nullptr, Array<Ref<Property>> args = {}, u64 flags = 0, Object* owner = nullptr);
 
 		inline Property* result() const { return m_result.value(); }
-		inline const Vector<Ref<Property>>& args() const { return m_args; }
+		inline const Array<Ref<Property>>& args() const { return m_args; }
 
 		inline u64 size() const { return m_size; }
 		inline u64 alignment() const { return m_alignment; }

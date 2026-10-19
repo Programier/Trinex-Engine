@@ -53,7 +53,7 @@ namespace Trinex
 		trinex_class(Texture2D, Texture);
 
 	public:
-		Vector<Texture2DMip> mips;
+		Array<Texture2DMip> mips;
 		RHIColorFormat format;
 
 		Texture2D& rebuild() override;
@@ -68,7 +68,7 @@ namespace Trinex
 		trinex_class(Texture2D, Texture);
 
 	public:
-		Vector<Texture3DMip> mips;
+		Array<Texture3DMip> mips;
 		RHIColorFormat format;
 
 		Texture3D& rebuild() override;
@@ -84,7 +84,7 @@ namespace Trinex
 		trinex_class(TextureCube, Texture);
 
 	public:
-		Vector<TextureCubeMip> mips;
+		Array<TextureCubeMip> mips;
 		RHIColorFormat format;
 
 		TextureCube& rebuild() override;

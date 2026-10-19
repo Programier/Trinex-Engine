@@ -34,7 +34,7 @@ namespace Trinex
 
 	public:
 		Parameter* find_parameter(const Name& name) const;
-		const Vector<Parameter*>& parameters() const;
+		const Array<Parameter*>& parameters() const;
 
 		template<typename T>
 		T* find_parameter(const Name& name) const

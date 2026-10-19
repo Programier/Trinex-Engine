@@ -683,7 +683,7 @@ namespace Trinex
 	// 	// 	NodesSet m_nodes;
 
 	// 	// 	const int_t context_size = ed::GetSelectedObjectCount();
-	// 	// 	Vector<ed::NodeId> nodes(context_size);
+	// 	// 	Array<ed::NodeId> nodes(context_size);
 	// 	// 	int_t nodes_count = ed::GetSelectedNodes(nodes.data(), context_size);
 
 	// 	// 	for (int_t i = 0; i < nodes_count; ++i)
@@ -699,7 +699,7 @@ namespace Trinex
 	// 	// 	NodesSet m_nodes;
 
 	// 	// 	const int_t context_size = ed::GetSelectedObjectCount();
-	// 	// 	Vector<ed::NodeId> nodes(context_size);
+	// 	// 	Array<ed::NodeId> nodes(context_size);
 
 	// 	// 	int_t nodes_count = ed::GetSelectedNodes(nodes.data(), context_size);
 	// 	// 	m_nodes.reserve(nodes_count);

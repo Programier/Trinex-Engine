@@ -1,4 +1,4 @@
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/reflection/new/array_type.hpp>
 
 
@@ -45,7 +45,7 @@ namespace Trinex::Refl::New
 	void VTable::clear(void* container) const {}
 
 	ArrayType::ArrayType(Name name, Type* argument, Object* owner)
-	    : ContainerType(name, sizeof(Vector<i32>), alignof(Vector<i32>)), m_vtable(argument)
+	    : ContainerType(name, sizeof(Array<i32>), alignof(Array<i32>)), m_vtable(argument)
 	{}
 
 	Type* ArrayType::argument(usize idx) const

@@ -52,7 +52,7 @@ namespace Trinex::Refl::New
 		bool is_a(const Struct* other) const;
 
 		inline const Struct* base() const { return m_base.value(); }
-		inline const Vector<Ref<Object>>& members() const { return m_members.container(); }
+		inline const Array<Ref<Object>>& members() const { return m_members.container(); }
 		inline const VTable* vtable() const { return static_cast<const VTable*>(Type::vtable()); }
 		inline bool is_abstract() const { return has_flags(IsAbstract); }
 		inline bool is_final() const { return has_flags(IsFinal); }

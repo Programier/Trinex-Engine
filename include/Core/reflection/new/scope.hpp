@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/etl/flat_set.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/reflection/new/object.hpp>
 
 namespace Trinex::Refl::New
@@ -34,6 +34,6 @@ namespace Trinex::Refl::New
 		static Scope* create(InitializerList<Name> path);
 
 		Object* find(Name name) const override;
-		const Vector<Ref<Object>>& members() const { return m_members.container(); }
+		const Array<Ref<Object>>& members() const { return m_members.container(); }
 	};
 }// namespace Trinex::Refl::New

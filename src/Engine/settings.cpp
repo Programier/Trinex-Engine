@@ -11,9 +11,9 @@ namespace Trinex::Settings
 	trinex_api i32 gc_max_object_per_tick = 1;
 	trinex_api i32 fps_limit              = 60;
 	trinex_api float screen_percentage    = 1.f;
-	trinex_api Vector<String> languages   = {"eng"};
-	trinex_api Vector<String> systems;
-	trinex_api Vector<String> plugins;
+	trinex_api Array<String> languages   = {"eng"};
+	trinex_api Array<String> systems;
+	trinex_api Array<String> plugins;
 	trinex_api bool debug_shaders = false;
 
 	namespace Rendering
@@ -37,8 +37,8 @@ namespace Trinex::Settings
 		trinex_api i32 pos_x                          = -1;
 		trinex_api i32 pos_y                          = -1;
 		trinex_api bool vsync                         = true;
-		trinex_api Vector<WindowAttribute> attributes = {WindowAttribute::Resizable};
-		trinex_api Vector<Orientation> orientations;
+		trinex_api Array<WindowAttribute> attributes = {WindowAttribute::Resizable};
+		trinex_api Array<Orientation> orientations;
 	}// namespace Window
 
 	namespace Splash
@@ -72,10 +72,10 @@ namespace Trinex::Settings
 			bind_value(int, lz4_compression_level);
 			bind_value(int, gc_max_object_per_tick);
 			bind_value(float, fps_limit);
-			bind_value(Trinex::Vector<string>, languages);
-			bind_value(Trinex::Vector<string>, systems);
-			bind_value(Trinex::Vector<string>, plugins);
-			bind_value(Trinex::Vector<string>, debug_shaders);
+			bind_value(Trinex::Array<string>, languages);
+			bind_value(Trinex::Array<string>, systems);
+			bind_value(Trinex::Array<string>, plugins);
+			bind_value(Trinex::Array<string>, debug_shaders);
 		}
 
 		{
@@ -99,8 +99,8 @@ namespace Trinex::Settings
 			bind_value(int, pos_x);
 			bind_value(int, pos_y);
 			bind_value(bool, vsync);
-			// bind_value(Trinex::Vector<Trinex::WindowAttribute>, attributes);
-			// bind_value(Trinex::Vector<Trinex::Orientation>, orientations);
+			// bind_value(Trinex::Array<Trinex::WindowAttribute>, attributes);
+			// bind_value(Trinex::Array<Trinex::Orientation>, orientations);
 		}
 
 		{

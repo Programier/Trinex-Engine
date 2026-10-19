@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Core/engine_types.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <RHI/rhi.hpp>
 #include <vulkan_destroyable.hpp>
 #include <vulkan_headers.hpp>

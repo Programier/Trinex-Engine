@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/etl/critical_section.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <RHI/rhi.hpp>
 #include <vulkan_headers.hpp>
 
@@ -46,7 +46,7 @@ namespace Trinex
 
 		CriticalSection m_criticals[HeapsCount];
 		vk::DescriptorSetLayoutBinding m_bindings[HeapsCount];
-		Vector<RHIDescriptor> m_free[HeapsCount];
+		Array<RHIDescriptor> m_free[HeapsCount];
 		Descriptor m_last[HeapsCount] = {{0}};
 
 		vk::DescriptorSetLayout m_descriptor_set_layout;

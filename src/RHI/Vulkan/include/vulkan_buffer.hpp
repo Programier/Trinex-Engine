@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/etl/flat_map.hpp>
 #include <Core/etl/set.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <RHI/rhi.hpp>
 #include <vk_mem_alloc.h>
 #include <vulkan_destroyable.hpp>

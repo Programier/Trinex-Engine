@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/etl/delegate.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/object.hpp>
 #include <RHI/structures.hpp>
 
@@ -55,8 +55,8 @@ namespace Trinex
 		} shaders;
 
 		struct Reflection {
-			Vector<RHIInputAttribute> vertex_attributes;
-			Vector<RHIShaderParameterInfo> parameters;
+			Array<RHIInputAttribute> vertex_attributes;
+			Array<RHIShaderParameterInfo> parameters;
 		} reflection;
 
 	public:
@@ -76,9 +76,9 @@ namespace Trinex
 		class Environment : public ShaderCompilationEnvironment
 		{
 		private:
-			Vector<const char*, AllocatorType<const char*>> m_modules;
-			Vector<const char*, AllocatorType<const char*>> m_sources;
-			Vector<const char*, AllocatorType<const char*>> m_specialization_args;
+			Array<const char*, AllocatorType<const char*>> m_modules;
+			Array<const char*, AllocatorType<const char*>> m_sources;
+			Array<const char*, AllocatorType<const char*>> m_specialization_args;
 
 		public:
 			ShaderCompilationEnvironment& add_module(const char* module) override

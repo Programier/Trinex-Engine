@@ -1,15 +1,15 @@
 #pragma once
 #include <Core/engine_types.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/types/name.hpp>
 
 namespace Trinex
 {
 	class trinex_api Group final
 	{
-		Vector<Refl::Struct*> m_structs;
+		Array<Refl::Struct*> m_structs;
 
-		Vector<Group*> m_childs;
+		Array<Group*> m_childs;
 		Group* m_parent = nullptr;
 		Name m_name;
 
@@ -24,9 +24,9 @@ namespace Trinex
 		static Group* find(const char* name, usize len, bool create = false);
 
 		Group* parent() const;
-		const Vector<Group*>& childs() const;
+		const Array<Group*>& childs() const;
 		const Name& name() const;
-		const Vector<class Refl::Struct*>& structs() const;
+		const Array<class Refl::Struct*>& structs() const;
 		Group& add_struct(class Refl::Struct*);
 		Group& remove_struct(class Refl::Struct*);
 

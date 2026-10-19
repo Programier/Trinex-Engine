@@ -297,7 +297,7 @@ namespace Trinex::UI
 			}
 		};
 
-		const Vector<Path>& dependencies = entry.document->dependencies();
+		const Array<Path>& dependencies = entry.document->dependencies();
 		for (const Path& dependency : dependencies)
 		{
 			const Identifier watch_id = rootfs()->watch(dependency, callback, VFS::FileWatchEventType::Modified, false);

@@ -90,7 +90,7 @@ namespace Trinex
 
 	void Arguments::push_array_argument(const String& name, const String& argument)
 	{
-		Vector<String> data = {};
+		Array<String> data = {};
 
 		static std::regex regex("\\b(?:'([^']+)'|\"([^\"]+)\"|([^,]+))\\b");
 

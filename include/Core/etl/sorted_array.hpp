@@ -1,17 +1,17 @@
 #pragma once
 
+#include <Core/etl/array.hpp>
 #include <Core/etl/functional.hpp>
 #include <Core/etl/pair.hpp>
-#include <Core/etl/vector.hpp>
 #include <type_traits>
 
 namespace Trinex
 {
 	template<typename T, typename Compare = Less<T>, typename AllocatorType = Allocator<T>>
-	class SortedVector : protected Vector<T, AllocatorType>
+	class SortedArray : protected Array<T, AllocatorType>
 	{
 	public:
-		using container_type = Vector<T, AllocatorType>;
+		using container_type = Array<T, AllocatorType>;
 		using key_type       = T;
 		using key_compare    = Compare;
 		using value_compare  = Compare;
@@ -42,65 +42,65 @@ namespace Trinex
 		constexpr void sort() { etl::sort(container_type::begin(), container_type::end(), Compare()); }
 
 	public:
-		SortedVector() = default;
+		SortedArray() = default;
 
-		constexpr SortedVector(const AllocatorType& allocator) noexcept : container_type(allocator) {}
+		constexpr SortedArray(const AllocatorType& allocator) noexcept : container_type(allocator) {}
 
-		constexpr explicit SortedVector(size_type n) : container_type(n) { sort(); }
+		constexpr explicit SortedArray(size_type n) : container_type(n) { sort(); }
 
-		constexpr explicit SortedVector(size_type n, const AllocatorType& allocator) : container_type(n, allocator) { sort(); }
+		constexpr explicit SortedArray(size_type n, const AllocatorType& allocator) : container_type(n, allocator) { sort(); }
 
-		constexpr SortedVector(size_type n, const value_type& value) : container_type(n, value) {}
+		constexpr SortedArray(size_type n, const value_type& value) : container_type(n, value) {}
 
-		constexpr SortedVector(size_type n, const value_type& value, const AllocatorType& allocator)
+		constexpr SortedArray(size_type n, const value_type& value, const AllocatorType& allocator)
 		    : container_type(n, value, allocator)
 		{}
 
 		template<class InputIterator, typename = container_type::template RequireInputIter<InputIterator>>
-		constexpr SortedVector(InputIterator first, InputIterator last) : container_type(first, last)
+		constexpr SortedArray(InputIterator first, InputIterator last) : container_type(first, last)
 		{
 			sort();
 		}
 
 		template<class InputIterator, typename = container_type::template RequireInputIter<InputIterator>>
-		constexpr SortedVector(InputIterator first, InputIterator last, const AllocatorType& allocator)
+		constexpr SortedArray(InputIterator first, InputIterator last, const AllocatorType& allocator)
 		    : container_type(first, last, allocator)
 		{
 			sort();
 		}
 
-		constexpr SortedVector(std::initializer_list<T> list) : container_type(list.begin(), list.end()) { sort(); }
+		constexpr SortedArray(std::initializer_list<T> list) : container_type(list.begin(), list.end()) { sort(); }
 
-		constexpr SortedVector(std::initializer_list<T> list, const AllocatorType& allocator)
+		constexpr SortedArray(std::initializer_list<T> list, const AllocatorType& allocator)
 		    : container_type(list.begin(), list.end(), allocator)
 		{
 			sort();
 		}
 
-		constexpr SortedVector(const SortedVector& other) : container_type(other.begin(), other.end(), other.allocator()) {}
+		constexpr SortedArray(const SortedArray& other) : container_type(other.begin(), other.end(), other.allocator()) {}
 
-		constexpr SortedVector(const SortedVector& other, const AllocatorType& allocator)
+		constexpr SortedArray(const SortedArray& other, const AllocatorType& allocator)
 		    : container_type(other.begin(), other.end(), allocator)
 		{}
 
-		constexpr SortedVector(SortedVector&& other) : container_type(etl::move(other)) {}
+		constexpr SortedArray(SortedArray&& other) : container_type(etl::move(other)) {}
 
-		constexpr SortedVector(SortedVector&& other, const AllocatorType& allocator) : container_type(etl::move(other), allocator)
+		constexpr SortedArray(SortedArray&& other, const AllocatorType& allocator) : container_type(etl::move(other), allocator)
 		{}
 
-		constexpr SortedVector& operator=(const SortedVector& other)
+		constexpr SortedArray& operator=(const SortedArray& other)
 		{
 			container_type::operator=(other);
 			return *this;
 		}
 
-		constexpr SortedVector& operator=(SortedVector&& other)
+		constexpr SortedArray& operator=(SortedArray&& other)
 		{
 			container_type::operator=(etl::move(other));
 			return *this;
 		}
 
-		constexpr SortedVector& operator=(std::initializer_list<T> list)
+		constexpr SortedArray& operator=(std::initializer_list<T> list)
 		{
 			container_type::assign(list.begin(), list.end());
 			sort();
@@ -128,7 +128,7 @@ namespace Trinex
 
 		constexpr void clear() { container_type::clear(); }
 
-		constexpr void swap(SortedVector& other) { container_type::swap(other); }
+		constexpr void swap(SortedArray& other) { container_type::swap(other); }
 
 		template<typename LookupKey>
 		    requires(is_lookup_key<LookupKey>)
@@ -235,16 +235,16 @@ namespace Trinex
 
 
 	template<typename T, typename Compare = Less<T>, typename AllocatorType = Allocator<T>, typename ArchiveType>
-	inline bool trinex_serialize_sorted_vector(ArchiveType& ar, SortedVector<T, Compare, AllocatorType>& vector)
+	inline bool trinex_serialize_sorted_array(ArchiveType& ar, SortedArray<T, Compare, AllocatorType>& vector)
 	    requires(is_complete_archive_type<ArchiveType>)
 	{
-		const Vector<T, AllocatorType>& container = vector.as_vector();
-		const bool result                         = ar.serialize_vector(const_cast<Vector<T, AllocatorType>&>(container));
+		const Array<T, AllocatorType>& container = vector.as_vector();
+		const bool result                        = ar.serialize_vector(const_cast<Array<T, AllocatorType>&>(container));
 		return result;
 	}
 
 	template<typename T, typename C, typename A>
-	struct Serializer<SortedVector<T, C, A>> {
-		bool serialize(Archive& ar, SortedVector<T, C, A>& vector) { return trinex_serialize_sorted_vector(ar, vector); }
+	struct Serializer<SortedArray<T, C, A>> {
+		bool serialize(Archive& ar, SortedArray<T, C, A>& vector) { return trinex_serialize_sorted_array(ar, vector); }
 	};
 }// namespace Trinex

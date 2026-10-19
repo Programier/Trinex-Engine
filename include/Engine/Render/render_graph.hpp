@@ -1,10 +1,10 @@
 #pragma once
 #include <Core/engine_types.hpp>
 #include <Core/etl/allocator.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/etl/set.hpp>
 #include <Core/etl/type_traits.hpp>
-#include <Core/etl/vector.hpp>
 #include <RHI/enums.hpp>
 
 namespace Trinex
@@ -18,7 +18,7 @@ namespace Trinex
 namespace Trinex::RenderGraph
 {
 	template<typename T>
-	using RGVector = Vector<T, FrameAllocator<T>>;
+	using RGArray = Array<T, FrameAllocator<T>>;
 
 	template<typename Key>
 	using RGSet = Set<Key, Hash<Key>, std::equal_to<Key>, FrameAllocator<Key>>;
@@ -52,7 +52,7 @@ namespace Trinex::RenderGraph
 	private:
 		struct Node {
 			Pass* pass;
-			RGVector<Node*> dependencies;
+			RGArray<Node*> dependencies;
 
 			inline Node() : pass(nullptr) { dependencies.reserve(8); }
 
@@ -65,7 +65,7 @@ namespace Trinex::RenderGraph
 
 		RGMap<void*, Resource*> m_resource_map;
 		RGSet<RHIObject*> m_outputs;
-		RGVector<Plugin*> m_plugins;
+		RGArray<Plugin*> m_plugins;
 
 	private:
 		Node* build_graph(Pass* writer);
@@ -90,7 +90,7 @@ namespace Trinex::RenderGraph
 		Pass& add_pass(const char* name = "Unnamed pass");
 		bool execute(RHIContext* context);
 
-		inline const RGVector<Plugin*> plugins() const { return m_plugins; }
+		inline const RGArray<Plugin*> plugins() const { return m_plugins; }
 		inline Graph& add_plugin(Plugin* plugin)
 		{
 			m_plugins.push_back(plugin);
@@ -149,8 +149,8 @@ namespace Trinex::RenderGraph
 		const char* m_name;
 		Graph::Node* m_node;
 
-		RGVector<const ResourceRef*> m_resources;
-		RGVector<Task*> m_tasks;
+		RGArray<const ResourceRef*> m_resources;
+		RGArray<Task*> m_tasks;
 
 		Pass(class Graph* graph, const char* name = "Unnamed pass");
 		Pass& add_resource(RenderGraph::Resource* resource, RHIAccess access, RHIAccess initial);
@@ -193,8 +193,8 @@ namespace Trinex::RenderGraph
 
 		inline class Graph* graph() const { return m_graph; }
 		inline const char* name() const { return m_name; }
-		inline const RGVector<const ResourceRef*>& resources() const { return m_resources; }
-		inline const RGVector<Task*>& tasks() const { return m_tasks; }
+		inline const RGArray<const ResourceRef*>& resources() const { return m_resources; }
+		inline const RGArray<Task*>& tasks() const { return m_tasks; }
 		inline bool is_empty() const { return m_tasks.empty(); }
 
 		friend class Graph;

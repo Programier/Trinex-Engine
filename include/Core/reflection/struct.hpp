@@ -45,7 +45,7 @@ namespace Trinex::Refl
 		ScriptTypeInfo script_type_info;
 
 	private:
-		Vector<Property*> m_properties;
+		Array<Property*> m_properties;
 		Set<Struct*> m_derived_structs;
 		mutable Struct* m_parent = nullptr;
 
@@ -94,7 +94,7 @@ namespace Trinex::Refl
 
 		Struct* parent() const;
 		usize abstraction_level() const;
-		Vector<Name> hierarchy(usize offset = 0) const;
+		Array<Name> hierarchy(usize offset = 0) const;
 		const Set<Struct*>& derived_structs() const;
 		bool is_asset() const;
 		bool is_native() const;
@@ -104,7 +104,7 @@ namespace Trinex::Refl
 		using Super::is_a;
 		bool is_a(const Struct* other) const;
 
-		const Vector<Property*>& properties() const;
+		const Array<Property*>& properties() const;
 		Property* find_property(StringView name);
 		bool serialize_properties(void* object, Archive& ar);
 		bool has_properties(bool recursive = true) const;

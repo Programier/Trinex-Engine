@@ -1,7 +1,7 @@
 #include <Core/etl/allocator.hpp>
 #include <Core/etl/critical_section.hpp>
 #include <Core/etl/pair.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/math/math.hpp>
 #include <Core/memory.hpp>
 #include <Core/threading.hpp>
@@ -14,7 +14,7 @@ namespace Trinex
 		struct TempAllocatorData;
 
 		struct TempAllocatorSync {
-			Vector<TempAllocatorData*> stacks;
+			Array<TempAllocatorData*> stacks;
 			CriticalSection critical_section;
 
 			inline void lock() { critical_section.lock(); }

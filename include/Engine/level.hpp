@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/object.hpp>
 #include <Core/pointer.hpp>
 
@@ -15,7 +15,7 @@ namespace Trinex
 
 	private:
 		Pointer<Level> m_level;
-		Vector<Actor*> m_actors;
+		Array<Actor*> m_actors;
 		bool m_is_playing;
 		bool m_is_visible;
 
@@ -68,7 +68,7 @@ namespace Trinex
 		inline bool is_visible() const { return m_is_visible; }
 		inline LevelInstance& is_visible(bool visible) { trinex_this_return(m_is_visible = visible); }
 		inline bool is_playing() const { return m_is_playing; }
-		inline const Vector<class Actor*>& actors() const { return m_actors; }
+		inline const Array<class Actor*>& actors() const { return m_actors; }
 	};
 
 	class trinex_api Level : public Object

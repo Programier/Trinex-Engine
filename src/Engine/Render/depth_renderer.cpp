@@ -27,7 +27,7 @@ namespace Trinex
 	{
 		Frustum frustum = scene_view().camera_view().projview;
 
-		FrameVector<PrimitiveComponent*> components /*= scene()->collect_visible_primitives(frustum)*/;
+		FrameArray<PrimitiveComponent*> components /*= scene()->collect_visible_primitives(frustum)*/;
 		ctx->begin_rendering(scene_depth_target()->as_dsv());
 		{
 			for (PrimitiveComponent* component : components)
@@ -79,7 +79,7 @@ namespace Trinex
 #endif
 
 		Frustum frustum = scene_view().camera_view().projview;
-		FrameVector<PrimitiveComponent*> components /*= scene()->collect_visible_primitives(frustum)*/;
+		FrameArray<PrimitiveComponent*> components /*= scene()->collect_visible_primitives(frustum)*/;
 
 		RHITextureDescDSV view;
 		view.base_slice  = face;

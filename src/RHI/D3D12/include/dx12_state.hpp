@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <dx12_buffer.hpp>
 #include <dx12_headers.hpp>
 #include <dx12_resource_view.hpp>

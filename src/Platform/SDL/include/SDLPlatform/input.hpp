@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/etl/string.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Input/device.hpp>
 #include <Platform/input.hpp>
 
@@ -12,7 +12,7 @@ namespace Trinex::Platform
 		InputDeviceType m_type;
 		u64 m_id;
 		String m_name;
-		Vector<InputEvent> m_state;
+		Array<InputEvent> m_state;
 
 	public:
 		SDLInputDevice(InputDeviceType type, u64 id, String name);
@@ -29,7 +29,7 @@ namespace Trinex::Platform
 	class trinex_api SDLInputSystem : public InputSystem
 	{
 	private:
-		Vector<Ref<SDLInputDevice>> m_devices;
+		Array<Ref<SDLInputDevice>> m_devices;
 
 	public:
 		static SDLInputSystem* instance();

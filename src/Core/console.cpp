@@ -64,8 +64,8 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 
 	struct Argument;
 
-	struct ArgumentArray : Vector<Argument> {
-		using Vector<Argument>::Vector;
+	struct ArgumentArray : Array<Argument> {
+		using Array<Argument>::Array;
 	};
 
 	struct Argument : public Variant<bool, i64, u64, f64, StringView, BareWord, ArgumentArray> {
@@ -76,8 +76,8 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 
 	struct Statement;
 
-	struct StatementList : Vector<Statement> {
-		using Vector<Statement>::Vector;
+	struct StatementList : Array<Statement> {
+		using Array<Statement>::Array;
 	};
 
 	struct Statement {

@@ -2,7 +2,7 @@
 #include <Core/engine_types.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/etl/type_traits.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/string_functions.hpp>
 
 //#include <Core/math/vector.hpp>
@@ -505,15 +505,15 @@ namespace Trinex::Bindings::GLM
 
 			if constexpr (is_matrix_v<T>)
 			{
-				using Vector = typename T::col_type;
-				bind_func(reg, "opAddAssign", opAddAssign<T, const Vector&>);
-				bind_func(reg, "opSubAssign", opSubAssign<T, const Vector&>);
-				bind_func(reg, "opMulAssign", opMulAssign<T, const Vector&>);
-				bind_func(reg, "opDivAssign", opDivAssign<T, const Vector&>);
-				bind_func(reg, "opMul", opMul<T, const Vector&>);
+				using Array = typename T::col_type;
+				bind_func(reg, "opAddAssign", opAddAssign<T, const Array&>);
+				bind_func(reg, "opSubAssign", opSubAssign<T, const Array&>);
+				bind_func(reg, "opMulAssign", opMulAssign<T, const Array&>);
+				bind_func(reg, "opDivAssign", opDivAssign<T, const Array&>);
+				bind_func(reg, "opMul", opMul<T, const Array&>);
 
 				if constexpr (std::is_floating_point_v<Value>)
-					bind_func(reg, "opDiv", opDiv<T, const Vector&>);
+					bind_func(reg, "opDiv", opDiv<T, const Array&>);
 			}
 		}
 	};
@@ -663,145 +663,145 @@ namespace Trinex::Bindings::GLM
 	// VECTOR BINDINGS
 
 	struct Vector1_Binder {
-		template<typename Vector>
+		template<typename Array>
 		static void bind_generic(ScriptBinding::Class* reg)
 		{
-			String x = make_property<Vector>("x");
-			String r = make_property<Vector>("r");
-			String s = make_property<Vector>("s");
+			String x = make_property<Array>("x");
+			String r = make_property<Array>("r");
+			String s = make_property<Array>("s");
 
-			reg->property(x.c_str(), &Vector::x);
-			reg->property(r.c_str(), &Vector::r);
-			reg->property(s.c_str(), &Vector::s);
+			reg->property(x.c_str(), &Array::x);
+			reg->property(r.c_str(), &Array::r);
+			reg->property(s.c_str(), &Array::s);
 
-			reg->static_function("int32 length()", &length_of<Vector>);
-			bind_constructor<Vector, typename Vector::value_type>(reg);
+			reg->static_function("int32 length()", &length_of<Array>);
+			bind_constructor<Array, typename Array::value_type>(reg);
 
-			Operators<typename Vector::value_type>::template bind_ops<Vector>(reg);
+			Operators<typename Array::value_type>::template bind_ops<Array>(reg);
 		}
 
-		template<typename Vector>
+		template<typename Array>
 		static void bind(ScriptBinding::Class* reg)
 		{
-			register_upcast<typename Vector::value_type>(reg);
+			register_upcast<typename Array::value_type>(reg);
 		}
 	};
 
 	struct Vector2_Binder {
-		template<typename Vector>
+		template<typename Array>
 		static void bind_generic(ScriptBinding::Class* reg)
 		{
-			Vector1_Binder::bind_generic<Vector>(reg);
+			Vector1_Binder::bind_generic<Array>(reg);
 
-			String y = make_property<Vector>("y");
-			String g = make_property<Vector>("g");
-			String t = make_property<Vector>("t");
+			String y = make_property<Array>("y");
+			String g = make_property<Array>("g");
+			String t = make_property<Array>("t");
 
-			reg->property(y.c_str(), &Vector::y);
-			reg->property(g.c_str(), &Vector::g);
-			reg->property(t.c_str(), &Vector::t);
+			reg->property(y.c_str(), &Array::y);
+			reg->property(g.c_str(), &Array::g);
+			reg->property(t.c_str(), &Array::t);
 
-			register_upcast<typename up_cast<Vector>::Type>(reg);
+			register_upcast<typename up_cast<Array>::Type>(reg);
 		}
 
-		template<typename Vector>
+		template<typename Array>
 		static void bind(ScriptBinding::Class* reg)
 		{
-			static_assert(Vector::length() == 2);
-			using Vec1 = typename Vector::value_type;
-			bind_constructor<Vector, Vec1, Vec1>(reg);
+			static_assert(Array::length() == 2);
+			using Vec1 = typename Array::value_type;
+			bind_constructor<Array, Vec1, Vec1>(reg);
 		}
 	};
 
 	struct Vector3_Binder {
 	private:
-		template<typename Vector, typename Redirect>
+		template<typename Array, typename Redirect>
 		static void bind_with_redirection(ScriptBinding::Class* reg)
 		{
-			using Vec1 = typename Vector::value_type;
-			using Vec2 = const redirect<typename up_cast<Vector>::Type, Redirect>::Type&;
+			using Vec1 = typename Array::value_type;
+			using Vec2 = const redirect<typename up_cast<Array>::Type, Redirect>::Type&;
 
-			bind_constructor<Vector, Vec1, Vec2>(reg);
-			bind_constructor<Vector, Vec2, Vec1>(reg);
+			bind_constructor<Array, Vec1, Vec2>(reg);
+			bind_constructor<Array, Vec2, Vec1>(reg);
 
 			if constexpr (std::is_same_v<Redirect, Vec1>)
-				bind_constructor<Vector, Vec1, Vec1, Vec1>(reg);
+				bind_constructor<Array, Vec1, Vec1, Vec1>(reg);
 		}
 
 	public:
-		template<typename Vector>
+		template<typename Array>
 		static void bind_generic(ScriptBinding::Class* reg)
 		{
-			Vector2_Binder::bind_generic<Vector>(reg);
+			Vector2_Binder::bind_generic<Array>(reg);
 
-			String z = make_property<Vector>("z");
-			String b = make_property<Vector>("b");
-			String p = make_property<Vector>("p");
+			String z = make_property<Array>("z");
+			String b = make_property<Array>("b");
+			String p = make_property<Array>("p");
 
-			reg->property(z.c_str(), &Vector::z);
-			reg->property(b.c_str(), &Vector::b);
-			reg->property(p.c_str(), &Vector::p);
+			reg->property(z.c_str(), &Array::z);
+			reg->property(b.c_str(), &Array::b);
+			reg->property(p.c_str(), &Array::p);
 
-			register_upcast<typename up_cast<Vector, 2>::Type>(reg);
+			register_upcast<typename up_cast<Array, 2>::Type>(reg);
 		}
 
-		template<typename Vector>
+		template<typename Array>
 		static void bind(ScriptBinding::Class* reg)
 		{
-			static_assert(Vector::length() == 3);
+			static_assert(Array::length() == 3);
 
-			bind_with_redirection<Vector, bool>(reg);
-			bind_with_redirection<Vector, i32>(reg);
-			bind_with_redirection<Vector, u32>(reg);
-			bind_with_redirection<Vector, float>(reg);
+			bind_with_redirection<Array, bool>(reg);
+			bind_with_redirection<Array, i32>(reg);
+			bind_with_redirection<Array, u32>(reg);
+			bind_with_redirection<Array, float>(reg);
 		}
 	};
 
 	struct Vector4_Binder {
 	private:
-		template<typename Vector, typename Redirect>
+		template<typename Array, typename Redirect>
 		static void bind_with_redirection(ScriptBinding::Class* reg)
 		{
-			using Vec3 = const redirect<typename up_cast<Vector>::Type, Redirect>::Type&;
-			using Vec2 = const redirect<typename up_cast<Vector, 2>::Type, Redirect>::Type&;
-			using Vec1 = typename Vector::value_type;
+			using Vec3 = const redirect<typename up_cast<Array>::Type, Redirect>::Type&;
+			using Vec2 = const redirect<typename up_cast<Array, 2>::Type, Redirect>::Type&;
+			using Vec1 = typename Array::value_type;
 
 			if constexpr (std::is_same_v<Vec1, Redirect>)
-				bind_constructor<Vector, Vec1, Vec1, Vec1, Vec1>(reg);
+				bind_constructor<Array, Vec1, Vec1, Vec1, Vec1>(reg);
 
-			bind_constructor<Vector, Vec1, Vec1, Vec2>(reg);
-			bind_constructor<Vector, Vec1, Vec2, Vec1>(reg);
-			bind_constructor<Vector, Vec2, Vec1, Vec1>(reg);
-			bind_constructor<Vector, Vec2, Vec2>(reg);
-			bind_constructor<Vector, Vec3, Vec1>(reg);
-			bind_constructor<Vector, Vec1, Vec3>(reg);
+			bind_constructor<Array, Vec1, Vec1, Vec2>(reg);
+			bind_constructor<Array, Vec1, Vec2, Vec1>(reg);
+			bind_constructor<Array, Vec2, Vec1, Vec1>(reg);
+			bind_constructor<Array, Vec2, Vec2>(reg);
+			bind_constructor<Array, Vec3, Vec1>(reg);
+			bind_constructor<Array, Vec1, Vec3>(reg);
 		}
 
 	public:
-		template<typename Vector>
+		template<typename Array>
 		static void bind_generic(ScriptBinding::Class* reg)
 		{
-			Vector3_Binder::bind_generic<Vector>(reg);
+			Vector3_Binder::bind_generic<Array>(reg);
 
-			String w = make_property<Vector>("w");
-			String a = make_property<Vector>("a");
-			String q = make_property<Vector>("q");
+			String w = make_property<Array>("w");
+			String a = make_property<Array>("a");
+			String q = make_property<Array>("q");
 
-			reg->property(w.c_str(), &Vector::w);
-			reg->property(a.c_str(), &Vector::a);
-			reg->property(q.c_str(), &Vector::q);
+			reg->property(w.c_str(), &Array::w);
+			reg->property(a.c_str(), &Array::a);
+			reg->property(q.c_str(), &Array::q);
 
-			register_upcast<typename up_cast<Vector, 3>::Type>(reg);
+			register_upcast<typename up_cast<Array, 3>::Type>(reg);
 		}
 
-		template<typename Vector>
+		template<typename Array>
 		static void bind(ScriptBinding::Class* reg)
 		{
-			static_assert(Vector::length() == 4);
-			bind_with_redirection<Vector, bool>(reg);
-			bind_with_redirection<Vector, i32>(reg);
-			bind_with_redirection<Vector, u32>(reg);
-			bind_with_redirection<Vector, float>(reg);
+			static_assert(Array::length() == 4);
+			bind_with_redirection<Array, bool>(reg);
+			bind_with_redirection<Array, i32>(reg);
+			bind_with_redirection<Array, u32>(reg);
+			bind_with_redirection<Array, float>(reg);
 		}
 	};
 

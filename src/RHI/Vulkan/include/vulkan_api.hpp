@@ -1,10 +1,10 @@
 #pragma once
-#include <Core/etl/array.hpp>
 #include <Core/etl/atomic.hpp>
 #include <Core/etl/constexpr_string.hpp>
 #include <Core/etl/deque.hpp>
 #include <Core/etl/map.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/static_array.hpp>
+#include <Core/etl/array.hpp>
 
 #include <RHI/rhi.hpp>
 #include <VkBootstrap.h>
@@ -66,8 +66,8 @@ namespace Trinex
 		Atomic<u64> m_frame;
 
 		Deque<Garbage> m_garbage;
-		Vector<VulkanExtention> m_device_extensions;
-		Vector<class VulkanThreadLocal*> m_thread_locals;
+		Array<VulkanExtention> m_device_extensions;
+		Array<class VulkanThreadLocal*> m_thread_locals;
 
 		VulkanQueryPoolManager* m_query_pool_manager;
 		VulkanPipelineLayoutManager* m_pipeline_layout_manager;
@@ -120,7 +120,7 @@ namespace Trinex
 		friend class VulkanThreadLocal;
 
 	public:
-		inline const Vector<VulkanExtention>& extensions() const { return m_device_extensions; }
+		inline const Array<VulkanExtention>& extensions() const { return m_device_extensions; }
 		inline bool is_extension_enabled(usize index) const { return m_device_extensions[index].enabled; }
 
 		template<ConstexprString ext>

@@ -52,7 +52,7 @@ namespace Trinex
 
 	private:
 		Pointer<SceneComponent> m_root_component;
-		Vector<ActorComponent*> m_components;
+		Array<ActorComponent*> m_components;
 		u32 m_default_components_count;
 
 		bool m_is_playing : 1;
@@ -98,7 +98,7 @@ namespace Trinex
 		RenderScene* scene() const;
 		bool serialize(Archive& ar) override;
 
-		inline const Vector<class ActorComponent*>& components() const { return m_components; }
+		inline const Array<class ActorComponent*>& components() const { return m_components; }
 		inline u32 default_components_count() const { return m_default_components_count; }
 
 		friend class World;

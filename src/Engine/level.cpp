@@ -53,7 +53,7 @@ namespace Trinex
 		script_level_spawn_actor_t = r.method(signatures[4], scriptable_spawn_actor_t, ScriptCallConv::Generic);
 
 		r.method("bool is_playing() const final", &LevelInstance::is_playing);
-		r.method("const Vector<Actor@>& actors() const final", &LevelInstance::actors);
+		r.method("const Array<Actor@>& actors() const final", &LevelInstance::actors);
 
 		ScriptEngine::on_terminate.push([]() {
 			script_level_update.release();

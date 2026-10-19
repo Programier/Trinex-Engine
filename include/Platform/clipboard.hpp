@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/etl/delegate.hpp>
 #include <Core/etl/string.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/types/path.hpp>
 #include <Platform/enums.hpp>
 

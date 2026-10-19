@@ -10,7 +10,7 @@
 
 namespace Trinex
 {
-	static inline Refl::Class* find_class(const Vector<Name>& hierarchy)
+	static inline Refl::Class* find_class(const Array<Name>& hierarchy)
 	{
 		Refl::Class* instance = nullptr;
 
@@ -123,7 +123,7 @@ namespace Trinex
 		}
 		else
 		{
-			Vector<Name> hierarchy;
+			Array<Name> hierarchy;
 			serialize(hierarchy);
 
 			Refl::Class* self = find_class(hierarchy);

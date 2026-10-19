@@ -60,7 +60,7 @@ namespace Trinex
 		return *this;
 	}
 
-	const Vector<Object*>& Package::objects() const
+	const Array<Object*>& Package::objects() const
 	{
 		return childs();
 	}

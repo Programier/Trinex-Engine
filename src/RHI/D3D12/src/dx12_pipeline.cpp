@@ -1,5 +1,5 @@
 #include <Core/etl/allocator.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/exception.hpp>
 #include <Core/memory.hpp>
 #include <Graphics/pipeline.hpp>

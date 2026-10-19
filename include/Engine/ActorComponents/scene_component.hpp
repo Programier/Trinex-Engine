@@ -17,7 +17,7 @@ namespace Trinex
 		bool m_is_visible : 1;
 
 		Pointer<SceneComponent> m_parent = nullptr;
-		Vector<Pointer<SceneComponent>> m_childs;
+		Array<Pointer<SceneComponent>> m_childs;
 
 	protected:
 		void script_on_transform_changed();
@@ -57,7 +57,7 @@ namespace Trinex
 		SceneComponent& look_at(const Vector3f& location, const Vector3f& up = {0.f, 1.f, 0.f});
 
 		inline SceneComponent* parent() const { return m_parent.ptr(); }
-		inline const Vector<Pointer<SceneComponent>>& childs() const { return m_childs; }
+		inline const Array<Pointer<SceneComponent>>& childs() const { return m_childs; }
 
 		virtual SceneComponent& on_transform_changed();
 		SceneComponent& on_property_changed(const Refl::PropertyChangedEvent& event) override;

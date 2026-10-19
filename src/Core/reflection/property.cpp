@@ -270,7 +270,7 @@ namespace Trinex::Refl
 
 	const String& ArrayProperty::index_name(const void* object, usize index) const
 	{
-		static Vector<String> index_names;
+		static Array<String> index_names;
 
 		while (index >= index_names.size())
 		{

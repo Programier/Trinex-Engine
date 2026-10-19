@@ -177,9 +177,9 @@ namespace Trinex::Strings
 	}
 
 	template<typename DelimiterType>
-	static inline Vector<String> internal_split(const StringView& line, DelimiterType delimiter)
+	static inline Array<String> internal_split(const StringView& line, DelimiterType delimiter)
 	{
-		Vector<String> tokens;
+		Array<String> tokens;
 		String token;
 
 		usize start = 0;
@@ -195,12 +195,12 @@ namespace Trinex::Strings
 		return tokens;
 	}
 
-	trinex_api Vector<String> split(const StringView& line, char delimiter)
+	trinex_api Array<String> split(const StringView& line, char delimiter)
 	{
 		return internal_split<char>(line, delimiter);
 	}
 
-	trinex_api Vector<String> split(const StringView& line, const StringView& delimiter)
+	trinex_api Array<String> split(const StringView& line, const StringView& delimiter)
 	{
 		return internal_split<const StringView&>(line, delimiter);
 	}

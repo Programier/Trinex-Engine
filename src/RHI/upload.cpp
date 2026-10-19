@@ -1,7 +1,7 @@
 #include <Core/etl/algorithm.hpp>
 #include <Core/etl/critical_section.hpp>
 #include <Core/etl/map.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/lifecycle.hpp>
 #include <Core/math/math.hpp>
 #include <Core/memory.hpp>
@@ -76,7 +76,7 @@ namespace Trinex
 
 	private:
 		Trinex::CriticalSection m_critical;
-		Vector<RHIUploadAllocatorPage*> m_pages;
+		Array<RHIUploadAllocatorPage*> m_pages;
 		RHIUploadAllocatorPage* m_page = nullptr;
 		RHIUploadAllocatorPage* m_free = nullptr;
 

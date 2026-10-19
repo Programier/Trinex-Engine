@@ -1,4 +1,4 @@
-#include <Core/etl/array.hpp>
+#include <Core/etl/static_array.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/stacktrace.hpp>
 #include <Core/string_functions.hpp>
@@ -27,7 +27,7 @@ namespace Trinex
 	class ScriptEngine::State
 	{
 	public:
-		Vector<class Script*> scripts;
+		Array<class Script*> scripts;
 		asIScriptEngine* engine      = nullptr;
 		asIJITCompiler* jit_compiler = nullptr;
 		ScriptFolder* script_folder  = nullptr;
@@ -758,13 +758,13 @@ namespace Trinex
 	}
 
 	template<bool repr>
-	static Array<const char*, 6> static_object_to_string_operator_names()
+	static StaticArray<const char*, 6> static_object_to_string_operator_names()
 	{
 		return {"const string& opRepr() const", "string& opRepr() const", "string opRepr() const", nullptr, nullptr, nullptr};
 	}
 
 	template<>
-	Array<const char*, 6> static_object_to_string_operator_names<false>()
+	StaticArray<const char*, 6> static_object_to_string_operator_names<false>()
 	{
 		return {"const string& opConv() const",     "string& opConv() const",     "string opConv() const",
 		        "const string& opImplConv() const", "string& opImplConv() const", "string opImplConv() const"};
@@ -780,7 +780,7 @@ namespace Trinex
 		if (it != func_map.end())
 			return it->second;
 
-		Array<const char*, 6> funcs = static_object_to_string_operator_names<repr>();
+		StaticArray<const char*, 6> funcs = static_object_to_string_operator_names<repr>();
 
 		for (const char* name : funcs)
 		{

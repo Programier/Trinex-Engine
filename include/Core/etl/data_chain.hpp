@@ -28,7 +28,7 @@ namespace Trinex
 		using ConstNodePtrAllocator = typename AllocatorType::template rebind<const Node*>::other;
 
 	private:
-		Vector<Node*, NodePtrAllocator> m_chunks;
+		Array<Node*, NodePtrAllocator> m_chunks;
 		FlatSet<const Node*, NodeCompare, ConstNodePtrAllocator> m_storage;
 
 	private:

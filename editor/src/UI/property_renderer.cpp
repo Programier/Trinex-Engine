@@ -1231,8 +1231,8 @@ namespace Trinex::UI
 			{
 				auto& enum_entries = prop->enum_instance()->entries();
 
-				userdata               = Vector<Entry>();
-				Vector<Entry>& entries = userdata.cast<Vector<Entry>&>();
+				userdata               = Array<Entry>();
+				Array<Entry>& entries = userdata.cast<Array<Entry>&>();
 				entries.reserve(enum_entries.size());
 
 				for (auto& entry : enum_entries)
@@ -1244,7 +1244,7 @@ namespace Trinex::UI
 				}
 			}
 
-			Vector<Entry>& entries = userdata.cast<Vector<Entry>&>();
+			Array<Entry>& entries = userdata.cast<Array<Entry>&>();
 
 			ImGui::Indent();
 			{

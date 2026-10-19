@@ -6,7 +6,7 @@
 #if PLATFORM_LINUX
 #include <pthread.h>
 #elif PLATFORM_WINDOWS
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <windows.h>
 #endif
 
@@ -177,7 +177,7 @@ namespace Trinex::Platform
 
 			if (size > 0)
 			{
-				Vector<wchar_t> buffer(size);
+				Array<wchar_t> buffer(size);
 				MultiByteToWideChar(CP_UTF8, 0, name, -1, buffer.data(), size);
 				SetThreadDescription(GetCurrentThread(), buffer.data());
 			}

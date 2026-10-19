@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/etl/map.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/types/name.hpp>
 #include <RHI/structures.hpp>
 
@@ -9,8 +9,8 @@ namespace Trinex
 	class ShaderCompilationResult;
 
 	struct trinex_api GraphicsShaderCache {
-		Vector<RHIShaderParameterInfo> parameters;
-		Vector<RHIInputAttribute> vertex_attributes;
+		Array<RHIShaderParameterInfo> parameters;
+		Array<RHIInputAttribute> vertex_attributes;
 		Buffer vertex;
 		Buffer tessellation_control;
 		Buffer tessellation;
@@ -26,7 +26,7 @@ namespace Trinex
 	};
 
 	struct trinex_api ComputeShaderCache {
-		Vector<RHIShaderParameterInfo> parameters;
+		Array<RHIShaderParameterInfo> parameters;
 
 		Buffer compute;
 

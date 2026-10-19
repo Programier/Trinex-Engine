@@ -2,7 +2,7 @@
 #include <Core/etl/delegate.hpp>
 #include <Core/etl/flat_map.hpp>
 #include <Core/etl/string.hpp>
-#include <Core/etl/vector.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/types/name.hpp>
 #include <UI/style_sheet.hpp>
 #include <UI/types.hpp>
@@ -84,9 +84,9 @@ namespace Trinex::UI
 		Element* m_owner     = nullptr;
 		Document* m_document = nullptr;
 		Name m_id;
-		Vector<Element*> m_childs;
-		Vector<Binding> m_bindings;
-		Vector<Name> m_styles;
+		Array<Element*> m_childs;
+		Array<Binding> m_bindings;
+		Array<Name> m_styles;
 		StyleInstance m_style_instance;
 		StyleState m_style_state = StyleState::Undefined;
 		FlatMap<Name, EventListener> m_listeners;
@@ -166,11 +166,11 @@ namespace Trinex::UI
 		inline Element* owner() const { return m_owner; }
 		inline Document* document() const { return m_document; }
 		inline const Name& id() const { return m_id; }
-		inline const Vector<Element*>& childs() const { return m_childs; }
-		inline const Vector<Name>& styles() const { return m_styles; }
+		inline const Array<Element*>& childs() const { return m_childs; }
+		inline const Array<Name>& styles() const { return m_styles; }
 		inline StyleState style_state() const { return m_style_state; }
 		inline u32 references() const { return m_references; }
-		inline const Vector<Binding>& bindings() const { return m_bindings; }
+		inline const Array<Binding>& bindings() const { return m_bindings; }
 
 		template<typename T>
 		inline T* as()

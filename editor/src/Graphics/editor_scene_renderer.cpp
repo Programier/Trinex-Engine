@@ -32,7 +32,7 @@ namespace Trinex
 		{
 			Vector2u size            = scene_view().view_size();
 			const Matrix4f& projview = scene_view().camera_view().projview;
-			FrameVector<PrimitiveComponent*> primitives /*= scene()->collect_visible_primitives(projview)*/;
+			FrameArray<PrimitiveComponent*> primitives /*= scene()->collect_visible_primitives(projview)*/;
 
 			auto pool    = RHITexturePool::global_instance();
 			auto surface = pool->acquire_transient(RHISurfaceFormat::RG32UI, size, RHITextureFlags::RenderTarget);
@@ -216,7 +216,7 @@ namespace Trinex
 
 	EditorRenderer& EditorRenderer::render_primitives(Actor* const* actors, usize count)
 	{
-		FrameVector<LightComponent*> lights = visible_lights();
+		FrameArray<LightComponent*> lights = visible_lights();
 
 		auto editor = EditorEngine::instance();
 

@@ -263,7 +263,7 @@ namespace Trinex::UI::Refl
 
 	private:
 		Type* m_parent;
-		Vector<Type*> m_childs;
+		Array<Type*> m_childs;
 		FlatMap<Name, Property*> m_properties;
 		FlatMap<const Type*, Resolver> m_resolvers;
 
