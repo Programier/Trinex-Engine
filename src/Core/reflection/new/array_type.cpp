@@ -12,7 +12,7 @@ namespace Trinex::Refl::New
 	}
 
 	ArrayType::ArrayType(Name name, Type* argument, Object* owner)
-	    : ContainerType(name, sizeof(Array<i32>), alignof(Array<i32>)), m_vtable(argument)
+	    : ContainerType(name, sizeof(Array<i32>), alignof(Array<i32>), 0, &m_vtable, owner), m_vtable(argument)
 	{}
 
 	Type* ArrayType::argument(usize idx) const
