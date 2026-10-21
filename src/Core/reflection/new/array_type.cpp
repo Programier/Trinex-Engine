@@ -1,6 +1,7 @@
 #include <Core/etl/array.hpp>
 #include <Core/reflection/new/array_type.hpp>
-
+#include <Core/reflection/new/of.hpp>
+#include <Core/reflection/new/scope.hpp>
 
 namespace Trinex::Refl::New
 {
@@ -15,6 +16,23 @@ namespace Trinex::Refl::New
 	    : ContainerType(name, sizeof(Array<i32>), alignof(Array<i32>), 0, &m_vtable, owner), m_vtable(argument)
 	{}
 
+	ArrayType* ArrayType::from(Type* type)
+	{
+		if (type == nullptr)
+			return nullptr;
+
+		Scope* scope = Scope::trinex();
+
+		const Name name = "Array<" + type->name().to_string() + ">";
+
+		if (Object* object = scope->find(name))
+		{
+			return static_cast<ArrayType*>(object);
+		}
+
+		return Ref<ArrayType>::make(name, type, Scope::trinex()).value();
+	}
+
 	Type* ArrayType::argument(usize idx) const
 	{
 		if (idx == 0)
@@ -23,5 +41,10 @@ namespace Trinex::Refl::New
 		}
 
 		return nullptr;
+	}
+
+	trinex_api Type* array_type_of(Type* type)
+	{
+		return ArrayType::from(type);
 	}
 }// namespace Trinex::Refl::New

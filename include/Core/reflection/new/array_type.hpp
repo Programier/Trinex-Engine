@@ -27,6 +27,8 @@ namespace Trinex::Refl::New
 	public:
 		ArrayType(Name name, Type* argument, Object* owner = nullptr);
 
+		static ArrayType* from(Type* type);
+
 		Type* argument(usize idx) const override;
 
 		inline Type* argument() const { return m_vtable.argument(); }

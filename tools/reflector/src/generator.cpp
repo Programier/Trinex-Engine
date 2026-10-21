@@ -208,7 +208,21 @@ namespace Reflector
 		writer->line(" = Accessor<", ResolvedPathOf(object), ">;\n");
 	}
 
-	static void generate_property(CodeWriter* writer, const Property* object) {}
+	static void generate_property(CodeWriter* writer, const Property* object)
+	{
+		writer->line("template<>");
+		writer->line("trinex_export Property* property_of<", ResolvedPathOf(object), ">()");
+		writer->line("{");
+		{
+			auto scope = writer->scope();
+			writer->line("using Native = NativeMemberProperty<", ResolvedPathOf(object), ", Property>;\n");
+
+			writer->line("static Native prop(\"", object->name, "\", type_of<Native::Type>(), 0, ", OwnerReflectionOf(object),
+			             ");");
+			writer->line("return &prop;");
+		}
+		writer->line("}\n");
+	}
 
 	static void generate_function(CodeWriter* writer, const Function* object)
 	{
@@ -324,11 +338,13 @@ namespace Reflector
 	{
 		for (const Object* object : scope->objects)
 		{
-			if (object->kind() == ObjectKind::Class)
+			switch (object->kind())
 			{
-				writer->write("type_of<");
-				writer->write(object);
-				writer->write(">();\n");
+				case ObjectKind::Class: writer->line("type_of<", ResolvedPathOf(object), ">();"); break;
+				case ObjectKind::Property: writer->line("property_of<", ResolvedPathOf(object), ">();"); break;
+				case ObjectKind::Function: writer->line("function_of<", ResolvedPathOf(object), ">();"); break;
+
+				default: break;
 			}
 
 			if (object->is_a(ObjectKind::Scope))

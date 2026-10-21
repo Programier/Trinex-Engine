@@ -45,6 +45,12 @@ namespace Trinex::Refl::New
 		return &scope;
 	}
 
+	Scope* Scope::trinex()
+	{
+		static Ref<Scope> scope = retain_ref(create({"Trinex"}));
+		return scope.value();
+	}
+
 	Scope* Scope::create(InitializerList<Name> path)
 	{
 		Scope* scope = root();

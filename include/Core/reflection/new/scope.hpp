@@ -31,6 +31,7 @@ namespace Trinex::Refl::New
 		using Object::Object;
 
 		static Scope* root();
+		static Scope* trinex();
 		static Scope* create(InitializerList<Name> path);
 
 		Object* find(Name name) const override;

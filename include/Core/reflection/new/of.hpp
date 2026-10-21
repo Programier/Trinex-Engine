@@ -1,5 +1,11 @@
 #pragma once
 
+namespace Trinex
+{
+	template<typename T, typename AllocatorType>
+	class Array;
+}
+
 namespace Trinex::Refl::New
 {
 	class Type;
@@ -9,6 +15,10 @@ namespace Trinex::Refl::New
 	class Function;
 	class Property;
 
+	// Kept as a free functions so this header does not need to include others headers
+	trinex_api Type* pointer_type_of(Type* type);
+	trinex_api Type* array_type_of(Type* type);
+
 	// clang-format off
 	template<typename T> struct reflected_type { using type = T; };
 	template<typename T> struct reflected_type<T&> : reflected_type<T> {};
@@ -16,15 +26,29 @@ namespace Trinex::Refl::New
 	template<typename T> struct reflected_type<const T> : reflected_type<T> {};
 	template<typename T> struct reflected_type<volatile T> : reflected_type<T> {};
 	template<typename T> struct reflected_type<const volatile T> : reflected_type<T> {};
-	template<typename T> struct reflected_type<T*> { using type = T; };
-	template<typename T> struct reflected_type<const T*> { using type = T; };
-	template<typename T> struct reflected_type<volatile T*> { using type = T; };
-	template<typename T> struct reflected_type<const volatile T*> { using type = T; };
 	// clang-format on
 
 	template<typename T>
 	struct TypeOf {
 		static Type* resolve();
+	};
+
+	template<typename T>
+	struct TypeOf<T*> {
+		static Type* resolve()
+		{
+			static Type* type = pointer_type_of(TypeOf<typename reflected_type<T>::type>::resolve());
+			return type;
+		}
+	};
+
+	template<typename T, typename AllocatorType>
+	struct TypeOf<::Trinex::Array<T, AllocatorType>> {
+		static Type* resolve()
+		{
+			static Type* type = array_type_of(TypeOf<typename reflected_type<T>::type>::resolve());
+			return type;
+		}
 	};
 
 	template<typename T>

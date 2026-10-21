@@ -272,4 +272,93 @@ namespace Trinex::Refl::New
 		using Base = NativeFunction<NativeMethodInvoker<func>::invoke, Parent>;
 		using Base::Base;
 	};
+
+	template<auto member, typename Base>
+	class NativeMemberProperty;
+
+	template<typename Class, typename T, T Class::* member, typename Base>
+	class NativeMemberProperty<member, Base> : public Base
+	{
+	public:
+		using Base::Base;
+		using Type = T;
+
+		void* address(void* context) override
+		{
+			if (context == nullptr)
+				return nullptr;
+
+			if constexpr (etl::is_const_v<T>)
+				return nullptr;
+
+			return &(static_cast<Class*>(context)->*member);
+		}
+
+		const void* load(const void* context, void* temporary = nullptr) override
+		{
+			(void) temporary;
+			return context == nullptr ? nullptr : &(static_cast<const Class*>(context)->*member);
+		}
+
+		void store(void* context, void* object) override
+		{
+			if constexpr (!etl::is_const_v<T>)
+			{
+				if (void* destination = address(context))
+					this->type()->copy_assign(destination, object);
+			}
+		}
+	};
+
+	template<typename T, T* property, typename Base>
+	class NativeMemberProperty<property, Base> : public Base
+	{
+	public:
+		using Base::Base;
+		using Type = T;
+
+		void* address(void*) override
+		{
+			if constexpr (etl::is_const_v<T>)
+				return nullptr;
+
+			return property;
+		}
+
+		const void* load(const void*, void* temporary = nullptr) override
+		{
+			(void) temporary;
+			return property;
+		}
+
+		void store(void*, void* object) override
+		{
+			if constexpr (!etl::is_const_v<T>)
+				this->type()->copy_assign(property, object);
+		}
+	};
+
+	template<u64 offset, typename Base>
+	class NativeOffsetProperty : public Base
+	{
+	public:
+		using Base::Base;
+
+		void* address(void* context) override
+		{
+			return context == nullptr ? nullptr : static_cast<void*>(static_cast<u8*>(context) + offset);
+		}
+
+		const void* load(const void* context, void* temporary = nullptr) override
+		{
+			(void) temporary;
+			return context == nullptr ? nullptr : static_cast<const void*>(static_cast<const u8*>(context) + offset);
+		}
+
+		void store(void* context, void* object) override
+		{
+			if (void* destination = address(context))
+				this->type()->copy_assign(destination, object);
+		}
+	};
 }// namespace Trinex::Refl::New

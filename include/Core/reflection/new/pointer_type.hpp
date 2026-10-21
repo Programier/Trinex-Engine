@@ -15,7 +15,9 @@ namespace Trinex::Refl::New
 	public:
 		PointerType(Name name, Type* type, Object* owner = nullptr);
 
+		static PointerType* from(Type* type);
+		static const VTable* vtable();
+
 		inline Type* type() const { return m_type.value(); }
-		inline const VTable* vtable() const { return static_cast<const VTable*>(Type::vtable()); }
 	};
 }// namespace Trinex::Refl::New
