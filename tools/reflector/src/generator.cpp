@@ -23,19 +23,19 @@ namespace Reflector
 
 			if (object->is_a(ObjectKind::Class))
 			{
-				writer->write("Accessor", object->line);
+				writer->write("Accessor$0", object->line);
 				return;
 			}
 
 			execute(writer, object->owner);
-			writer->write("::", object->name);
+			writer->write("::$0", object->name);
 		}
 	};
 
 	struct ResolvedPath {
 		static void execute(CodeWriter* writer, const Object* object)
 		{
-			writer->write(AccessorPathOf(object->owner), "::", object->name);
+			writer->write("$0::$1", AccessorPathOf(object->owner), object->name);
 		}
 	};
 
@@ -83,7 +83,7 @@ namespace Reflector
 				writer->write(", ");
 			}
 
-			writer->write("\"", object->name, "\"");
+			writer->write("\"$0\"", object->name);
 			return true;
 		}
 
@@ -113,7 +113,7 @@ namespace Reflector
 			{
 				if (owner->is_a(ObjectKind::Class))
 				{
-					writer->write("type_of<", owner, ">()");
+					writer->write("type_of<$0>()", owner);
 				}
 				else
 				{
@@ -123,7 +123,7 @@ namespace Reflector
 					}
 					else
 					{
-						writer->write("Scope::create(", ObjectPathOf(owner), ")");
+						writer->write("Scope::create($0)", ObjectPathOf(owner));
 					}
 				}
 			}
@@ -183,7 +183,7 @@ namespace Reflector
 	static void generate_accessor(CodeWriter* writer, const Scope* object)
 	{
 		writer->line("template<>");
-		writer->line("struct Accessor<", ResolvedPathOf(object), ">");
+		writer->line("struct Accessor<$0>", ResolvedPathOf(object));
 		writer->line("{");
 		{
 			auto scope = writer->scope();
@@ -192,33 +192,32 @@ namespace Reflector
 			{
 				if (child->is_a(ObjectKind::Property) || child->is_a(ObjectKind::Function))
 				{
-					writer->write("static constexpr auto ", child->name, " = &");
-					writer->line(ResolvedPathOf(object), "::", child->name, ";");
+					writer->write("static constexpr auto $0 = &", child->name);
+					writer->line("$0::$1;", ResolvedPathOf(object), child->name);
 				}
 				else if (child->is_a(ObjectKind::Class))
 				{
-					writer->write("using ", child->name, " = ");
-					writer->line(ResolvedPathOf(object), "::", child->name, ";");
+					writer->write("using $0 = ", child->name);
+					writer->line("$0::$1;", ResolvedPathOf(object), child->name);
 				}
 			}
 		}
 		writer->line("};\n");
 
-		writer->write("using Accessor", object->line);
-		writer->line(" = Accessor<", ResolvedPathOf(object), ">;\n");
+		writer->write("using Accessor$0", object->line);
+		writer->line(" = Accessor<$0>;\n", ResolvedPathOf(object));
 	}
 
 	static void generate_property(CodeWriter* writer, const Property* object)
 	{
 		writer->line("template<>");
-		writer->line("trinex_export Property* property_of<", ResolvedPathOf(object), ">()");
+		writer->line("trinex_export Property* property_of<$0>()", ResolvedPathOf(object));
 		writer->line("{");
 		{
 			auto scope = writer->scope();
-			writer->line("using Native = NativeMemberProperty<", ResolvedPathOf(object), ", Property>;\n");
+			writer->line("using Native = NativeMemberProperty<$0, Property>;\n", ResolvedPathOf(object));
 
-			writer->line("static Native prop(\"", object->name, "\", type_of<Native::Type>(), 0, ", OwnerReflectionOf(object),
-			             ");");
+			writer->line("static Native prop(\"$0\", type_of<Native::Type>(), 0, $1);", object->name, OwnerReflectionOf(object));
 			writer->line("return &prop;");
 		}
 		writer->line("}\n");
@@ -227,15 +226,52 @@ namespace Reflector
 	static void generate_function(CodeWriter* writer, const Function* object)
 	{
 		writer->line("template<>");
-		writer->line("trinex_export Function* function_of<", ResolvedPathOf(object), ">()");
+		writer->line("trinex_export Function* function_of<$0>()", ResolvedPathOf(object));
 		writer->line("{");
 		{
 			auto scope = writer->scope();
-			writer->line("using Native = NativeFunction<", ResolvedPathOf(object), ", Function>;\n");
+			writer->line("using Native = NativeFunction<$0, Function>;\n", ResolvedPathOf(object));
 
-			writer->line("static Native func(\"", object->name, "\", nullptr, {}, ", object->flags, ", ",
-			             OwnerReflectionOf(object), ");");
-			writer->line("return &func;");
+			writer->line("static Ref<Native> func = []()");
+			writer->line("{");
+			{
+				auto scope = writer->scope();
+
+				const bool has_result = object->type.name != "void" || (object->type.flags & TypeInfo::Pointer) ||
+				                        (object->type.flags & TypeInfo::Reference) || (object->type.flags & TypeInfo::RValueRef);
+
+				if (has_result)
+				{
+					writer->line("using Result = NativeOffsetProperty<Native::return_offset, Property>;");
+					writer->line("auto result =  Ref<Result>::make(\"return\", type_of<Native::ReturnType>());\n");
+				}
+
+				for (std::size_t index = 0; index < object->args.size(); ++index)
+				{
+					const Function::Argument& argument = object->args[index];
+					const std::string name             = argument.name.empty() ? "arg" + std::to_string(index) : argument.name;
+
+					writer->line("using Arg$0 = NativeOffsetProperty<Native::argument_offset<$0>(), Property>;", index);
+					writer->line("auto arg$0 = Ref<Arg$0>::make(\"$1\", type_of<Native::ArgumentType<$0>>());\n", index, name);
+				}
+
+				writer->write("Native* func = trx_new Native(\"$0\", ", object->name);
+				writer->write(has_result ? "result" : "nullptr");
+				writer->write(", {");
+
+				for (std::size_t index = 0; index < object->args.size(); ++index)
+				{
+					if (index != 0)
+						writer->write(", ");
+					writer->write("arg$0", index);
+				}
+
+				writer->line("}, $0, $1);", object->flags, OwnerReflectionOf(object));
+				writer->line("return retain_ref(func);");
+			}
+
+			writer->line("}();\n");
+			writer->line("return func.value();");
 		}
 		writer->line("}\n");
 	}
@@ -243,21 +279,19 @@ namespace Reflector
 	static void generate_class(CodeWriter* writer, const Class* object)
 	{
 		writer->line("template<>");
-		writer->line("trinex_export Struct* StructOf<", ResolvedPathOf(object), ">::resolve()");
+		writer->line("trinex_export Struct* StructOf<$0>::resolve()", ResolvedPathOf(object));
 		writer->line("{");
 		{
 			auto indent = writer->scope();
-			writer->line("using This = ", ResolvedPathOf(object), ";\n");
+			writer->line("using This = $0;\n", ResolvedPathOf(object));
 
 			writer->line("if constexpr (etl::is_base_of_v<Trinex::RefCounted, This>)");
 			writer->line("{");
 			{
 				auto indent = writer->scope();
 				writer->line("static NativeClassVTable<This, Class::VTable> vtable;");
-				writer->line("static Class type(\"", object->name,
-				             "\", sizeof(This), alignof(This), "
-				             "Type::IsNative, nullptr, &vtable, ",
-				             OwnerReflectionOf(object), ");");
+				writer->line("static Class type(\"$0\", sizeof(This), alignof(This), Type::IsNative, nullptr, &vtable, $1);",
+				             object->name, OwnerReflectionOf(object));
 				writer->line("return &type;");
 			}
 			writer->line("}");
@@ -266,10 +300,8 @@ namespace Reflector
 			{
 				auto indent = writer->scope();
 				writer->line("static NativeStructVTable<This, Struct::VTable> vtable;");
-				writer->line("static Struct type(\"", object->name,
-				             "\", sizeof(This), alignof(This), "
-				             "Type::IsNative, nullptr, &vtable, ",
-				             OwnerReflectionOf(object), ");");
+				writer->line("static Struct type(\"$0\", sizeof(This), alignof(This), Type::IsNative, nullptr, &vtable, $1);",
+				             object->name, OwnerReflectionOf(object));
 
 				writer->line("return &type;");
 			}
@@ -278,15 +310,15 @@ namespace Reflector
 		writer->line("}\n");
 
 		writer->line("template<>");
-		writer->line("trinex_export Class* ClassOf<", ResolvedPathOf(object), ">::resolve()");
+		writer->line("trinex_export Class* ClassOf<$0>::resolve()", ResolvedPathOf(object));
 		writer->line("{");
 		{
 			auto indent = writer->scope();
-			writer->line("if constexpr (etl::is_base_of_v<Trinex::RefCounted, ", ResolvedPathOf(object), ">)");
+			writer->line("if constexpr (etl::is_base_of_v<Trinex::RefCounted, $0>)", ResolvedPathOf(object));
 			writer->line("{");
 			{
 				auto indent = writer->scope();
-				writer->line("return static_cast<Class*>(struct_of<", ResolvedPathOf(object), ">());");
+				writer->line("return static_cast<Class*>(struct_of<$0>());", ResolvedPathOf(object));
 			}
 			writer->line("}");
 			writer->line("else");
@@ -300,11 +332,11 @@ namespace Reflector
 		writer->line("}\n");
 
 		writer->line("template<>");
-		writer->line("trinex_export Type* TypeOf<", object, ">::resolve()");
+		writer->line("trinex_export Type* TypeOf<$0>::resolve()", object);
 		writer->line("{");
 		{
 			auto indent = writer->scope();
-			writer->line("return struct_of<", object, ">();");
+			writer->line("return struct_of<$0>();", object);
 		}
 		writer->line("}\n");
 	}
@@ -340,9 +372,9 @@ namespace Reflector
 		{
 			switch (object->kind())
 			{
-				case ObjectKind::Class: writer->line("type_of<", ResolvedPathOf(object), ">();"); break;
-				case ObjectKind::Property: writer->line("property_of<", ResolvedPathOf(object), ">();"); break;
-				case ObjectKind::Function: writer->line("function_of<", ResolvedPathOf(object), ">();"); break;
+				case ObjectKind::Class: writer->line("type_of<$0>();", ResolvedPathOf(object)); break;
+				case ObjectKind::Property: writer->line("property_of<$0>();", ResolvedPathOf(object)); break;
+				case ObjectKind::Function: writer->line("function_of<$0>();", ResolvedPathOf(object)); break;
 
 				default: break;
 			}
@@ -359,15 +391,15 @@ namespace Reflector
 		if (instance->body_line == 0)
 			return;
 
-		writer->line("#define trinex_reflection_", ObjectIDOf(module), "_", instance->body_line, " \\");
+		writer->line("#define trinex_reflection_$0_$1 \\", ObjectIDOf(module), instance->body_line);
 		{
 			auto scope = writer->scope();
 			writer->line("public: \\");
 			{
 				auto scope = writer->scope();
 
-				writer->line("using This = ", instance->name, "; \\");
-				writer->line("friend struct ::Trinex::Refl::New::Accessor<", instance->name, ">; ");
+				writer->line("using This = $0; \\", instance->name);
+				writer->line("friend struct ::Trinex::Refl::New::Accessor<$0>; ", instance->name);
 			}
 		}
 	}
@@ -397,7 +429,7 @@ namespace Reflector
 			return true;
 
 		writer->line("#include <Core/reflection/new/accessor.hpp>\n");
-		writer->line("#define trinex_reflection_file_id trinex_reflection_", ObjectIDOf(module));
+		writer->line("#define trinex_reflection_file_id trinex_reflection_$0", ObjectIDOf(module));
 
 		generate_reflection_bodies(writer, module, module);
 		return true;
@@ -410,7 +442,7 @@ namespace Reflector
 		if (is_object_empty(module))
 			return true;
 
-		writer->line("#include <", module->name, ">");
+		writer->line("#include <$0>", module->name);
 		writer->line("#include <Core/etl/type_traits.hpp>");
 		writer->line("#include <Core/reflection/new/of.hpp>");
 		writer->line("#include <Core/reflection/new/scope.hpp>");

@@ -56,8 +56,12 @@ namespace
 			return false;
 
 		writer.indent().indent().unindent();
-		return expect(writer.indent_level() == 1, "code writer indentation level") &&
-		       expect(writer.write("tail").text().ends_with("  tail"), "code writer writes after indentation changes");
+		if (!expect(writer.write("tail").text().ends_with("  tail"), "code writer writes after indentation changes"))
+			return false;
+
+		CodeWriter formatted;
+		formatted.write("function_of<$0>($1)", "Actor", 42);
+		return expect(formatted.text() == "function_of<Actor>(42)", "code writer formats placeholders");
 	}
 
 	bool test_preprocessor_continuations()

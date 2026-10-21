@@ -176,6 +176,18 @@ namespace Trinex::Refl::New
 		struct Types {
 		};
 
+		template<usize Index, typename... Types>
+		struct ArgumentAt;
+
+		template<usize Index, typename Arg, typename... Rest>
+		struct ArgumentAt<Index, Arg, Rest...> : ArgumentAt<Index - 1, Rest...> {
+		};
+
+		template<typename Arg, typename... Rest>
+		struct ArgumentAt<0, Arg, Rest...> {
+			using Type = Arg;
+		};
+
 		template<typename Arg>
 		using Storage = etl::conditional_t<etl::is_reference_v<Arg>, etl::add_pointer_t<etl::remove_reference_t<Arg>>, Arg>;
 
@@ -214,6 +226,21 @@ namespace Trinex::Refl::New
 			return align_up(result, calculate_alignment());
 		}
 
+		template<usize index, typename Arg, typename... Rest>
+		static consteval u64 calculate_argument_offset(u64 offset = 0)
+		{
+			offset = align_up(offset, alignof(Storage<Arg>));
+
+			if constexpr (index == 0)
+			{
+				return offset;
+			}
+			else
+			{
+				return calculate_argument_offset<index - 1, Rest...>(offset + sizeof(Storage<Arg>));
+			}
+		}
+
 		template<typename Arg>
 		static decltype(auto) unpack(uptr address)
 		{
@@ -249,10 +276,21 @@ namespace Trinex::Refl::New
 
 	public:
 		using Parent::Parent;
+		using ReturnType = Ret;
+
+		template<usize Index>
+		using ArgumentType = typename ArgumentAt<Index, Args...>::Type;
 
 		static constexpr u64 alignment     = calculate_alignment();
 		static constexpr u64 return_offset = calculate_return_offset();
 		static constexpr u64 size          = calculate_size();
+
+		template<usize index>
+		static consteval u64 argument_offset()
+		{
+			static_assert(index < sizeof...(Args));
+			return calculate_argument_offset<index, Args...>();
+		}
 
 		void invoke(void* context) const override { call(reinterpret_cast<uptr>(context), Types<Args...>{}); }
 	};

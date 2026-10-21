@@ -28,7 +28,8 @@ namespace Trinex::Refl::New
 		u64 m_alignment;
 
 	public:
-		Function(Name name, Property* result = nullptr, Array<Ref<Property>> args = {}, u64 flags = 0, Object* owner = nullptr);
+		Function(Name name, Ref<Property> result = nullptr, Array<Ref<Property>> args = {}, u64 flags = 0,
+		         Object* owner = nullptr);
 
 		inline Property* result() const { return m_result.value(); }
 		inline const Array<Ref<Property>>& args() const { return m_args; }

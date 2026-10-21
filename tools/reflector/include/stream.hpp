@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <string>
 #include <string_view>
+#include <tuple>
 #include <type_traits>
 #include <utility>
 
@@ -39,6 +40,50 @@ namespace Reflector
 	concept CodeWriterLine = std::convertible_to<T, std::string_view> || std::convertible_to<T, const Object*> ||
 	                         is_write_as<std::remove_cvref_t<T>> || CodeWriterStringifiable<T>;
 
+	template<typename... Args>
+	class CodeWriterFormat final
+	{
+	private:
+		std::string_view m_text;
+
+		template<std::size_t Size>
+		static consteval void validate(const char (&text)[Size])
+		{
+			for (std::size_t index = 0; index + 1 < Size; ++index)
+			{
+				if (text[index] != '$')
+					continue;
+
+				++index;
+				if (text[index] == '$')
+					continue;
+
+				if (text[index] < '0' || text[index] > '9')
+					throw "CodeWriter format placeholders must use $N";
+
+				std::size_t argument = 0;
+				do
+				{
+					argument = argument * 10 + static_cast<std::size_t>(text[index] - '0');
+					++index;
+				} while (index + 1 < Size && text[index] >= '0' && text[index] <= '9');
+
+				if (argument >= sizeof...(Args))
+					throw "CodeWriter format placeholder index is out of range";
+				--index;
+			}
+		}
+
+	public:
+		template<std::size_t Size>
+		consteval CodeWriterFormat(const char (&text)[Size]) : m_text(text, Size - 1)
+		{
+			validate(text);
+		}
+
+		constexpr std::string_view text() const { return m_text; }
+	};
+
 	// An owned text buffer, independent of streams and files. No RTTI or implicit flushing.
 	// Implementation is deferred; this header defines the code formatting contract.
 	class CodeWriter final
@@ -66,6 +111,25 @@ namespace Reflector
 		std::string m_indent;
 		std::size_t m_indent_level = 0;
 		bool m_line_start          = true;
+
+		template<std::size_t Index = 0, typename Tuple>
+		bool write_format_argument(std::size_t index, Tuple&& args)
+		{
+			if constexpr (Index == std::tuple_size_v<std::remove_reference_t<Tuple>>)
+			{
+				return false;
+			}
+			else
+			{
+				if (index == Index)
+				{
+					write(std::get<Index>(std::forward<Tuple>(args)));
+					return true;
+				}
+
+				return write_format_argument<Index + 1>(index, std::forward<Tuple>(args));
+			}
+		}
 
 	public:
 		explicit CodeWriter(std::string_view indent = "\t");
@@ -109,24 +173,52 @@ namespace Reflector
 			return write(object).write("\n");
 		}
 
+		// Replaces $0, $1, ... with the corresponding argument. $$ emits a literal '$'.
 		template<CodeWriterLine... Args>
-		    requires(sizeof...(Args) > 1)
-		CodeWriter& write(Args... args)
+		CodeWriter& write(CodeWriterFormat<std::type_identity_t<Args>...> format, Args&&... args)
 		{
-			return (write(args), ...);
+			const std::string_view text = format.text();
+			auto values                 = std::forward_as_tuple(std::forward<Args>(args)...);
+
+			for (std::size_t index = 0; index < text.size();)
+			{
+				const std::size_t marker = text.find('$', index);
+				if (marker == std::string_view::npos)
+				{
+					write(text.substr(index));
+					break;
+				}
+
+				write(text.substr(index, marker - index));
+				index = marker + 1;
+				if (text[index] == '$')
+				{
+					write("$");
+					++index;
+					continue;
+				}
+
+				std::size_t argument = 0;
+				do
+				{
+					argument = argument * 10 + static_cast<std::size_t>(text[index] - '0');
+					++index;
+				} while (index < text.size() && text[index] >= '0' && text[index] <= '9');
+
+				write_format_argument(argument, values);
+			}
+
+			return *this;
 		}
 
 		template<CodeWriterLine... Args>
-		    requires(sizeof...(Args) > 1)
-		CodeWriter& line(Args... args)
+		CodeWriter& line(CodeWriterFormat<std::type_identity_t<Args>...> format, Args&&... args)
 		{
-			return (write(args), ...).write("\n");
+			return write(format, std::forward<Args>(args)...).write("\n");
 		}
 
 		CodeWriter& indent();
-		// Unindenting at level zero is a programming error, not a silent no-op.
 		CodeWriter& unindent();
-		std::size_t indent_level() const noexcept;
 		[[nodiscard]] Indentation scope();
 
 		// The returned view remains valid until the next mutation or destruction.

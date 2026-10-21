@@ -4,14 +4,14 @@
 
 namespace Reflector
 {
-	CodeWriter::Indentation::Indentation(CodeWriter& writer) : m_writer(writer), m_previous_level(writer.indent_level())
+	CodeWriter::Indentation::Indentation(CodeWriter& writer) : m_writer(writer), m_previous_level(writer.m_indent_level)
 	{
 		m_writer.indent();
 	}
 
 	CodeWriter::Indentation::~Indentation()
 	{
-		while (m_writer.indent_level() > m_previous_level) m_writer.unindent();
+		while (m_writer.m_indent_level > m_previous_level) m_writer.unindent();
 	}
 
 	CodeWriter::CodeWriter(std::string_view indent) : m_indent(indent) {}
@@ -84,11 +84,6 @@ namespace Reflector
 		assert(m_indent_level > 0);
 		--m_indent_level;
 		return *this;
-	}
-
-	std::size_t CodeWriter::indent_level() const noexcept
-	{
-		return m_indent_level;
 	}
 
 	CodeWriter::Indentation CodeWriter::scope()
