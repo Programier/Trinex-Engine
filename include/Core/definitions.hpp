@@ -255,3 +255,5 @@ public:                                                                         
 #define trinex_force_inline inline __attribute__((always_inline))
 #define trinex_noinline __attribute__((noinline))
 #define trinex_weak __attribute__((weak))
+#define trinex_nua [[no_unique_address]]
+#define trinex_is_base_of(Base, Derived) __is_base_of(Base, Derived)

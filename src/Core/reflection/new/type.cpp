@@ -12,7 +12,7 @@ namespace Trinex::Refl::New
 	{
 		if (m_vtable->construct == nullptr || dst == nullptr)
 			return false;
-		m_vtable->construct(m_vtable, dst, count);
+		m_vtable->construct(this, dst, count);
 		return true;
 	}
 
@@ -20,7 +20,7 @@ namespace Trinex::Refl::New
 	{
 		if (m_vtable->destruct == nullptr || value == nullptr)
 			return false;
-		m_vtable->destruct(m_vtable, value, count);
+		m_vtable->destruct(this, value, count);
 		return true;
 	}
 
@@ -28,7 +28,7 @@ namespace Trinex::Refl::New
 	{
 		if (m_vtable->copy_construct == nullptr || dst == nullptr || src == nullptr)
 			return false;
-		m_vtable->copy_construct(m_vtable, dst, src, count);
+		m_vtable->copy_construct(this, dst, src, count);
 		return true;
 	}
 
@@ -36,7 +36,7 @@ namespace Trinex::Refl::New
 	{
 		if (m_vtable->move_construct == nullptr || dst == nullptr || src == nullptr)
 			return false;
-		m_vtable->move_construct(m_vtable, dst, src, count);
+		m_vtable->move_construct(this, dst, src, count);
 		return true;
 	}
 
@@ -44,7 +44,7 @@ namespace Trinex::Refl::New
 	{
 		if (m_vtable->copy_assign == nullptr || dst == nullptr || src == nullptr)
 			return false;
-		m_vtable->copy_assign(m_vtable, dst, src, count);
+		m_vtable->copy_assign(this, dst, src, count);
 		return true;
 	}
 
@@ -52,7 +52,7 @@ namespace Trinex::Refl::New
 	{
 		if (m_vtable->move_assign == nullptr || dst == nullptr || src == nullptr)
 			return false;
-		m_vtable->move_assign(m_vtable, dst, src, count);
+		m_vtable->move_assign(this, dst, src, count);
 		return true;
 	}
 
@@ -60,7 +60,7 @@ namespace Trinex::Refl::New
 	{
 		if (m_vtable->swap == nullptr || lhs == nullptr || rhs == nullptr)
 			return false;
-		m_vtable->swap(m_vtable, lhs, rhs, count);
+		m_vtable->swap(this, lhs, rhs, count);
 		return true;
 	}
 
@@ -68,21 +68,37 @@ namespace Trinex::Refl::New
 	{
 		if (m_vtable->relocate == nullptr || dst == nullptr || src == nullptr)
 			return false;
-		m_vtable->relocate(m_vtable, dst, src, count);
+		m_vtable->relocate(this, dst, src, count);
 		return true;
 	}
 
 	bool Type::equals(const void* lhs, const void* rhs) const
 	{
 		return m_vtable != nullptr && m_vtable->equals != nullptr && lhs != nullptr && rhs != nullptr &&
-		       m_vtable->equals(m_vtable, lhs, rhs);
+		       m_vtable->equals(this, lhs, rhs);
 	}
 
 	bool Type::compare(const void* lhs, const void* rhs, i32& result) const
 	{
 		if (m_vtable->compare == nullptr || lhs == nullptr || rhs == nullptr)
 			return false;
-		result = m_vtable->compare(m_vtable, lhs, rhs);
+		result = m_vtable->compare(this, lhs, rhs);
 		return true;
+	}
+
+	bool Type::parse(void* self, StringView value) const
+	{
+		if (m_vtable->parse == nullptr || self == nullptr)
+			return false;
+
+		return m_vtable->parse(this, self, value);
+	}
+
+	bool Type::format(const void* self, String& value) const
+	{
+		if (m_vtable->format == nullptr || self == nullptr)
+			return false;
+
+		return m_vtable->format(this, self, value);
 	}
 }// namespace Trinex::Refl::New

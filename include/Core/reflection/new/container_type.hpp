@@ -7,8 +7,8 @@ namespace Trinex::Refl::New
 	{
 	public:
 		struct VTable : public TemplateType::VTable {
-			usize (*size)(const void* vtable, const void* container) = nullptr;
-			void (*clear)(const void* vtable, void* container)       = nullptr;
+			usize (*size)(const ContainerType* type, const void* container) = nullptr;
+			void (*clear)(const ContainerType* type, void* container)       = nullptr;
 		};
 
 	public:

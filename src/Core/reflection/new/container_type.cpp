@@ -11,7 +11,7 @@ namespace Trinex::Refl::New
 		if (container == nullptr || vtable()->size == nullptr)
 			return false;
 
-		result = vtable()->size(vtable(), container);
+		result = vtable()->size(this, container);
 		return true;
 	}
 
@@ -20,7 +20,7 @@ namespace Trinex::Refl::New
 		if (container == nullptr || vtable()->clear == nullptr)
 			return false;
 
-		vtable()->clear(vtable(), container);
+		vtable()->clear(this, container);
 		return true;
 	}
 }// namespace Trinex::Refl::New
