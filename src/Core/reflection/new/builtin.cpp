@@ -2,12 +2,77 @@
 #include <Core/reflection/new/of.hpp>
 #include <Core/reflection/new/type.hpp>
 
+
 namespace Trinex::Refl::New
 {
+	namespace Native
+	{
+		template<typename T, typename Value>
+		struct NumericFormatter {
+			static usize parse(const Type*, void* self, StringView value)
+			{
+				Value parsed = {};
+
+				if (usize count = Strings::parse(value, parsed))
+				{
+					*static_cast<T*>(self) = static_cast<T>(parsed);
+					return count;
+				}
+
+				return 0;
+			}
+
+			static bool format(const Type*, const void* self, String& value)
+			{
+				return Strings::format(value, static_cast<i64>(*static_cast<const T*>(self)));
+			}
+		};
+
+		template<>
+		struct TypeFormatter<i8> : NumericFormatter<i8, i64> {
+		};
+
+		template<>
+		struct TypeFormatter<i16> : NumericFormatter<i16, i64> {
+		};
+
+		template<>
+		struct TypeFormatter<i32> : NumericFormatter<i32, i64> {
+		};
+
+		template<>
+		struct TypeFormatter<i64> : NumericFormatter<i64, i64> {
+		};
+
+		template<>
+		struct TypeFormatter<u8> : NumericFormatter<u8, u64> {
+		};
+
+		template<>
+		struct TypeFormatter<u16> : NumericFormatter<u16, u64> {
+		};
+
+		template<>
+		struct TypeFormatter<u32> : NumericFormatter<u32, u64> {
+		};
+
+		template<>
+		struct TypeFormatter<u64> : NumericFormatter<u64, u64> {
+		};
+
+		template<>
+		struct TypeFormatter<f32> : NumericFormatter<f32, f64> {
+		};
+
+		template<>
+		struct TypeFormatter<f64> : NumericFormatter<f64, f64> {
+		};
+	}// namespace Native
+
 	template<typename T>
 	static Type* type_of_internal(Name name)
 	{
-		static NativeTypeVTable<T, Type::VTable> vtable;
+		static Native::TypeVTable<T, Type::VTable> vtable;
 		static Type type(name, sizeof(T), alignof(T), 0, &vtable, Object::root());
 		return &type;
 	}

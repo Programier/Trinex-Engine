@@ -17,7 +17,7 @@ namespace Trinex::Refl::New
 			void (*relocate)(const Type* type, void* dst, void* src, usize count)             = nullptr;
 			bool (*equals)(const Type* type, const void* lhs, const void* rhs)                = nullptr;
 			i32 (*compare)(const Type* type, const void* lhs, const void* rhs)                = nullptr;
-			bool (*parse)(const Type* type, void* self, StringView value)                     = nullptr;
+			usize (*parse)(const Type* type, void* self, StringView value)                    = nullptr;
 			bool (*format)(const Type* type, const void* self, String& value)                 = nullptr;
 		};
 
@@ -58,7 +58,7 @@ namespace Trinex::Refl::New
 		bool equals(const void* lhs, const void* rhs) const;
 		bool compare(const void* lhs, const void* rhs, i32& result) const;
 
-		bool parse(void* self, StringView value) const;
+		usize parse(void* self, StringView value) const;
 		bool format(const void* self, String& value) const;
 	};
 }// namespace Trinex::Refl::New

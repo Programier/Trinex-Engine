@@ -6,51 +6,9 @@
 #include <Core/string_functions.hpp>
 #include <regex>
 #include <stdarg.h>
-#include <string>
-
 
 namespace Trinex::Strings
 {
-	trinex_api String c_style_format(const char* text, ...)
-	{
-		va_list args;
-		va_start(args, text);
-
-		char buffer[1024];
-		std::vsprintf(buffer, text, args);
-		va_end(args);
-		return buffer;
-	}
-
-	trinex_api StringView lstrip(const StringView& line, const StringView& chars)
-	{
-		StringView::size_type start = line.find_first_not_of(chars);
-		return (start == StringView::npos) ? "" : line.substr(start, line.size() - start);
-		return line;
-	}
-
-	trinex_api StringView rstrip(const StringView& line, const StringView& chars)
-	{
-		StringView::size_type end = line.find_last_not_of(chars);
-		return end == StringView::npos ? "" : line.substr(0, end + 1);
-	}
-
-	trinex_api StringView lstrip(const StringView& line, bool (*callback)(char ch))
-	{
-		StringView::size_type pos = 0;
-		while (pos < line.size() && callback(line[pos])) pos++;
-		return line.substr(pos, line.length() - pos);
-	}
-
-	trinex_api StringView rstrip(const StringView& line, bool (*callback)(char ch))
-	{
-		StringView::size_type pos = line.size() - 1;
-		while (pos > 0 && callback(line[pos])) pos--;
-		if (pos == 0 && callback(line[pos]))
-			return "";
-		return line.substr(0, pos + 1);
-	}
-
 	trinex_api String capitalize_words(const StringView& sentence)
 	{
 		std::regex word_regex(R"(\b[^\W\d_]*([A-Za-z])[^\W\d_]*\b)");
@@ -174,35 +132,6 @@ namespace Trinex::Strings
 	{
 		return reinterpret_cast<const char*>(memory_search(reinterpret_cast<const u8*>(haystack), haystack_len,
 		                                                   reinterpret_cast<const u8*>(needle), needle_len));
-	}
-
-	template<typename DelimiterType>
-	static inline Array<String> internal_split(const StringView& line, DelimiterType delimiter)
-	{
-		Array<String> tokens;
-		String token;
-
-		usize start = 0;
-		usize end   = 0;
-
-		while ((end = line.find(delimiter, start)) != String::npos)
-		{
-			tokens.emplace_back(line.substr(start, end - start));
-			start = end + 1;
-		}
-
-		tokens.emplace_back(line.substr(start, end));
-		return tokens;
-	}
-
-	trinex_api Array<String> split(const StringView& line, char delimiter)
-	{
-		return internal_split<char>(line, delimiter);
-	}
-
-	trinex_api Array<String> split(const StringView& line, const StringView& delimiter)
-	{
-		return internal_split<const StringView&>(line, delimiter);
 	}
 
 	trinex_api String namespace_of(const StringView& name)

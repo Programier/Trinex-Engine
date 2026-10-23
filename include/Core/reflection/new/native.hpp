@@ -1,52 +1,71 @@
 #pragma once
 #include <Core/etl/concepts.hpp>
 #include <Core/etl/memory.hpp>
+#include <Core/etl/string.hpp>
 #include <Core/etl/type_traits.hpp>
 #include <Core/etl/utility.hpp>
 
-namespace Trinex::Refl::New
+namespace Trinex::Refl::New::Native
 {
+	template<typename T>
+	struct TypeFormatter {
+		template<typename Self>
+		static usize parse(const Self* type, void* self, StringView value)
+		{
+			return 0;
+		}
+
+		template<typename Self>
+		static bool format(const Self* type, const void* self, String& value)
+		{
+			return false;
+		}
+	};
+
 	template<typename T, typename VTable>
-	class NativeTypeVTable : public VTable
+	class TypeVTable : public VTable
 	{
 	public:
 		template<typename... Args>
-		NativeTypeVTable(Args&&... args) : VTable(etl::forward<Args>(args)...)
+		TypeVTable(Args&&... args) : VTable(etl::forward<Args>(args)...)
 		{
 			auto& vtable = static_cast<VTable&>(*this);
 
 			if constexpr (etl::is_default_constructible_v<T>)
-				vtable.construct = &NativeTypeVTable::construct;
+				vtable.construct = &TypeVTable::construct;
 
 			if constexpr (etl::is_destructible_v<T>)
-				vtable.destruct = &NativeTypeVTable::destruct;
+				vtable.destruct = &TypeVTable::destruct;
 
 			if constexpr (etl::is_copy_constructible_v<T>)
-				vtable.copy_construct = &NativeTypeVTable::copy_construct;
+				vtable.copy_construct = &TypeVTable::copy_construct;
 
 			if constexpr (etl::is_move_constructible_v<T>)
-				vtable.move_construct = &NativeTypeVTable::move_construct;
+				vtable.move_construct = &TypeVTable::move_construct;
 
 			if constexpr (etl::is_copy_assignable_v<T>)
-				vtable.copy_assign = &NativeTypeVTable::copy_assign;
+				vtable.copy_assign = &TypeVTable::copy_assign;
 
 			if constexpr (etl::is_move_assignable_v<T>)
-				vtable.move_assign = &NativeTypeVTable::move_assign;
+				vtable.move_assign = &TypeVTable::move_assign;
 
 			if constexpr (etl::is_swappable_v<T>)
-				vtable.swap = &NativeTypeVTable::swap;
+				vtable.swap = &TypeVTable::swap;
 
 			if constexpr ((etl::is_trivially_copyable_v<T> && etl::is_trivially_destructible_v<T>) ||
 			              (etl::is_move_constructible_v<T> && etl::is_destructible_v<T>) )
-				vtable.relocate = &NativeTypeVTable::relocate;
+				vtable.relocate = &TypeVTable::relocate;
 
 			if constexpr (etl::equality_comparable<T>)
-				vtable.equals = &NativeTypeVTable::equals;
+				vtable.equals = &TypeVTable::equals;
 
 			if constexpr (etl::ordered_comparable<T>)
 			{
-				vtable.compare = &NativeTypeVTable::compare;
+				vtable.compare = &TypeVTable::compare;
 			}
+
+			vtable.parse  = &TypeFormatter<T>::parse;
+			vtable.format = &TypeFormatter<T>::format;
 		}
 
 		template<typename Self>
@@ -141,33 +160,33 @@ namespace Trinex::Refl::New
 	};
 
 	template<typename T, typename Parent>
-	class NativeStructVTable : public NativeTypeVTable<T, Parent>
+	class StructVTable : public TypeVTable<T, Parent>
 	{
 	};
 
 	template<typename T, typename Parent>
-	class NativeClassVTable : public NativeStructVTable<T, Parent>
+	class ClassVTable : public StructVTable<T, Parent>
 	{
 	};
 
 	template<auto method>
-	struct NativeMethodInvoker;
+	struct MethodInvoker;
 
 	template<typename Class, typename Ret, typename... Args, Ret (Class::*method)(Args...)>
-	struct NativeMethodInvoker<method> {
+	struct MethodInvoker<method> {
 		static Ret invoke(Class* self, Args... args) { return (self->*method)(etl::forward<Args>(args)...); }
 	};
 
 	template<typename Class, typename Ret, typename... Args, Ret (Class::*method)(Args...) const>
-	struct NativeMethodInvoker<method> {
+	struct MethodInvoker<method> {
 		static Ret invoke(const Class* self, Args... args) { return (self->*method)(etl::forward<Args>(args)...); }
 	};
 
 	template<auto func, typename Parent>
-	class NativeFunction;
+	class Function;
 
 	template<typename Ret, typename... Args, Ret (*func)(Args...), typename Parent>
-	class NativeFunction<func, Parent> : public Parent
+	class Function<func, Parent> : public Parent
 	{
 	private:
 		template<typename...>
@@ -294,26 +313,26 @@ namespace Trinex::Refl::New
 	};
 
 	template<typename Class, typename Ret, typename... Args, Ret (Class::*func)(Args...), typename Parent>
-	class NativeFunction<func, Parent> : public NativeFunction<NativeMethodInvoker<func>::invoke, Parent>
+	class Function<func, Parent> : public Function<MethodInvoker<func>::invoke, Parent>
 	{
 	public:
-		using Base = NativeFunction<NativeMethodInvoker<func>::invoke, Parent>;
+		using Base = Function<MethodInvoker<func>::invoke, Parent>;
 		using Base::Base;
 	};
 
 	template<typename Class, typename Ret, typename... Args, Ret (Class::*func)(Args...) const, typename Parent>
-	class NativeFunction<func, Parent> : public NativeFunction<NativeMethodInvoker<func>::invoke, Parent>
+	class Function<func, Parent> : public Function<MethodInvoker<func>::invoke, Parent>
 	{
 	public:
-		using Base = NativeFunction<NativeMethodInvoker<func>::invoke, Parent>;
+		using Base = Function<MethodInvoker<func>::invoke, Parent>;
 		using Base::Base;
 	};
 
 	template<auto member, typename Base>
-	class NativeMemberProperty;
+	class MemberProperty;
 
 	template<typename Class, typename T, T Class::* member, typename Base>
-	class NativeMemberProperty<member, Base> : public Base
+	class MemberProperty<member, Base> : public Base
 	{
 	public:
 		using Base::Base;
@@ -347,7 +366,7 @@ namespace Trinex::Refl::New
 	};
 
 	template<typename T, T* property, typename Base>
-	class NativeMemberProperty<property, Base> : public Base
+	class MemberProperty<property, Base> : public Base
 	{
 	public:
 		using Base::Base;
@@ -375,7 +394,7 @@ namespace Trinex::Refl::New
 	};
 
 	template<u64 offset, typename Base>
-	class NativeOffsetProperty : public Base
+	class OffsetProperty : public Base
 	{
 	public:
 		using Base::Base;
@@ -397,4 +416,4 @@ namespace Trinex::Refl::New
 				this->type()->copy_assign(destination, object);
 		}
 	};
-}// namespace Trinex::Refl::New
+}// namespace Trinex::Refl::New::Native

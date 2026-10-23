@@ -86,10 +86,10 @@ namespace Trinex::Refl::New
 		return true;
 	}
 
-	bool Type::parse(void* self, StringView value) const
+	usize Type::parse(void* self, StringView value) const
 	{
 		if (m_vtable->parse == nullptr || self == nullptr)
-			return false;
+			return 0;
 
 		return m_vtable->parse(this, self, value);
 	}

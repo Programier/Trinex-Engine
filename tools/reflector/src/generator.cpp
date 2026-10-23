@@ -215,9 +215,9 @@ namespace Reflector
 		writer->line("{");
 		{
 			auto scope = writer->scope();
-			writer->line("using Native = NativeMemberProperty<$0, Property>;\n", ResolvedPathOf(object));
+			writer->line("using Prop = Native::MemberProperty<$0, Property>;\n", ResolvedPathOf(object));
 
-			writer->line("static Native prop(\"$0\", type_of<Native::Type>(), 0, $1);", object->name, OwnerReflectionOf(object));
+			writer->line("static Prop prop(\"$0\", type_of<Prop::Type>(), 0, $1);", object->name, OwnerReflectionOf(object));
 			writer->line("return &prop;");
 		}
 		writer->line("}\n");
@@ -230,9 +230,9 @@ namespace Reflector
 		writer->line("{");
 		{
 			auto scope = writer->scope();
-			writer->line("using Native = NativeFunction<$0, Function>;\n", ResolvedPathOf(object));
+			writer->line("using Func = Native::Function<$0, Function>;\n", ResolvedPathOf(object));
 
-			writer->line("static Ref<Native> func = []()");
+			writer->line("static Ref<Func> func = []()");
 			writer->line("{");
 			{
 				auto scope = writer->scope();
@@ -242,8 +242,8 @@ namespace Reflector
 
 				if (has_result)
 				{
-					writer->line("using Result = NativeOffsetProperty<Native::return_offset, Property>;");
-					writer->line("auto result =  Ref<Result>::make(\"return\", type_of<Native::ReturnType>());\n");
+					writer->line("using Result = Native::OffsetProperty<Func::return_offset, Property>;");
+					writer->line("auto result =  Ref<Result>::make(\"return\", type_of<Func::ReturnType>());\n");
 				}
 
 				for (std::size_t index = 0; index < object->args.size(); ++index)
@@ -251,11 +251,11 @@ namespace Reflector
 					const Function::Argument& argument = object->args[index];
 					const std::string name             = argument.name.empty() ? "arg" + std::to_string(index) : argument.name;
 
-					writer->line("using Arg$0 = NativeOffsetProperty<Native::argument_offset<$0>(), Property>;", index);
-					writer->line("auto arg$0 = Ref<Arg$0>::make(\"$1\", type_of<Native::ArgumentType<$0>>());\n", index, name);
+					writer->line("using Arg$0 = Native::OffsetProperty<Func::argument_offset<$0>(), Property>;", index);
+					writer->line("auto arg$0 = Ref<Arg$0>::make(\"$1\", type_of<Func::ArgumentType<$0>>());\n", index, name);
 				}
 
-				writer->write("Native* func = trx_new Native(\"$0\", ", object->name);
+				writer->write("Func* func = trx_new Func(\"$0\", ", object->name);
 				writer->write(has_result ? "result" : "nullptr");
 				writer->write(", {");
 
@@ -289,7 +289,7 @@ namespace Reflector
 			writer->line("{");
 			{
 				auto indent = writer->scope();
-				writer->line("static NativeClassVTable<This, Class::VTable> vtable;");
+				writer->line("static Native::ClassVTable<This, Class::VTable> vtable;");
 				writer->line("static Class type(\"$0\", sizeof(This), alignof(This), Type::IsNative, nullptr, &vtable, $1);",
 				             object->name, OwnerReflectionOf(object));
 				writer->line("return &type;");
@@ -299,7 +299,7 @@ namespace Reflector
 			writer->line("{");
 			{
 				auto indent = writer->scope();
-				writer->line("static NativeStructVTable<This, Struct::VTable> vtable;");
+				writer->line("static Native::StructVTable<This, Struct::VTable> vtable;");
 				writer->line("static Struct type(\"$0\", sizeof(This), alignof(This), Type::IsNative, nullptr, &vtable, $1);",
 				             object->name, OwnerReflectionOf(object));
 

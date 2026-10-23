@@ -31,7 +31,7 @@ namespace Trinex::Refl::New
 
 	const PointerType::VTable* PointerType::vtable()
 	{
-		static NativeTypeVTable<void*, VTable> vtable;
+		static Native::TypeVTable<void*, VTable> vtable;
 		return &vtable;
 	}
 
