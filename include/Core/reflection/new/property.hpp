@@ -5,7 +5,7 @@ namespace Trinex::Refl::New
 {
 	class Type;
 
-	class trinex_api Property : public Object
+	trinex_reflect() class trinex_api Property : public Object
 	{
 	public:
 		enum Flags : u64
@@ -29,6 +29,8 @@ namespace Trinex::Refl::New
 		virtual void* address(void* context)                                     = 0;
 		virtual const void* load(const void* context, void* temporary = nullptr) = 0;
 		virtual void store(void* context, void* object)                          = 0;
+
+		Class* reflection() const override { return class_of<Property>(); }
 
 		inline const Type* type() const { return m_type.value(); }
 		inline bool is_const() const { return has_flags(IsConst); }

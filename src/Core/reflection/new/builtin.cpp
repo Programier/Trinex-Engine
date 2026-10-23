@@ -24,7 +24,28 @@ namespace Trinex::Refl::New
 
 			static bool format(const Type*, const void* self, String& value)
 			{
-				return Strings::format(value, static_cast<i64>(*static_cast<const T*>(self)));
+				return Strings::format(value, static_cast<Value>(*static_cast<const T*>(self)));
+			}
+		};
+
+		template<>
+		struct TypeFormatter<bool> {
+			static usize parse(const Type*, void* self, StringView value)
+			{
+				bool parsed = false;
+
+				if (usize count = Strings::parse(value, parsed))
+				{
+					*static_cast<bool*>(self) = parsed;
+					return count;
+				}
+
+				return 0;
+			}
+
+			static bool format(const Type*, const void* self, String& value)
+			{
+				return Strings::format(value, *static_cast<const bool*>(self));
 			}
 		};
 

@@ -5,8 +5,16 @@
 #include <Core/etl/type_traits.hpp>
 #include <Core/etl/utility.hpp>
 
+namespace Trinex::Refl::New
+{
+	class Type;
+}
+
 namespace Trinex::Refl::New::Native
 {
+	trinex_api usize parse_struct(const Type* type, void* self, StringView value);
+	trinex_api bool format_struct(const Type* type, const void* self, String& value);
+
 	template<typename T>
 	struct TypeFormatter {
 		template<typename Self>
@@ -162,6 +170,15 @@ namespace Trinex::Refl::New::Native
 	template<typename T, typename Parent>
 	class StructVTable : public TypeVTable<T, Parent>
 	{
+	public:
+		using Super = TypeVTable<T, Parent>;
+
+		template<typename... Args>
+		StructVTable(Args&&... args) : Super(etl::forward<Args>(args)...)
+		{
+			this->parse  = &parse_struct;
+			this->format = &format_struct;
+		}
 	};
 
 	template<typename T, typename Parent>

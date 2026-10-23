@@ -4,7 +4,7 @@
 
 namespace Trinex::Refl::New
 {
-	class trinex_api Class final : public Struct
+	trinex_reflect() class trinex_api Class final : public Struct
 	{
 	public:
 		class VTable : public Struct::VTable
@@ -21,6 +21,8 @@ namespace Trinex::Refl::New
 	public:
 		Class(Name name, u32 size, u32 alignment, u64 flags = 0, const Class* base = nullptr, const VTable* vtable = nullptr,
 		      Object* owner = nullptr);
+
+		Class* reflection() const override { return class_of<Class>(); }
 
 		inline const Class* base() const { return static_cast<const Class*>(Struct::base()); }
 		inline bool is_asset() const { return has_flags(IsAsset); }

@@ -3,7 +3,7 @@
 
 namespace Trinex::Refl::New
 {
-	class trinex_api ContainerType : public TemplateType
+	trinex_reflect() class trinex_api ContainerType : public TemplateType
 	{
 	public:
 		struct VTable : public TemplateType::VTable {
@@ -16,6 +16,8 @@ namespace Trinex::Refl::New
 
 		bool size(const void* container, usize& result) const;
 		bool clear(void* container) const;
+
+		Class* reflection() const override { return class_of<ContainerType>(); }
 
 		inline const VTable* vtable() const { return static_cast<const VTable*>(Type::vtable()); }
 	};

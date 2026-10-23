@@ -10,11 +10,8 @@ namespace Trinex::Refl::New
 		i64 value;
 	};
 
-	class trinex_api Enum final : public Type
+	trinex_reflect() class trinex_api Enum final : public Type
 	{
-	private:
-		Array<EnumValue> m_values;
-
 	public:
 		enum Flags : u64
 		{
@@ -22,7 +19,13 @@ namespace Trinex::Refl::New
 			IsScoped   = 1ull << 9,
 		};
 
+	private:
+		Array<EnumValue> m_values;
+
+	public:
 		Enum(Name name, u32 size, u32 alignment, Array<EnumValue> values = {}, u64 flags = 0, const VTable* vtable = nullptr);
+
+		Class* reflection() const override { return class_of<Enum>(); }
 
 		const EnumValue* find_value(Name name) const;
 		inline const Array<EnumValue>& values() const { return m_values; }

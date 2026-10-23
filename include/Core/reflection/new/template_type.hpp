@@ -4,7 +4,7 @@
 
 namespace Trinex::Refl::New
 {
-	class trinex_api TemplateType : public Type
+	trinex_reflect() class trinex_api TemplateType : public Type
 	{
 	public:
 		class VTable : public Type::VTable
@@ -16,6 +16,8 @@ namespace Trinex::Refl::New
 
 		virtual usize argument_count() const;
 		virtual Type* argument(usize index) const;
+
+		Class* reflection() const override { return class_of<TemplateType>(); }
 
 		inline const VTable* vtable() const { return static_cast<const VTable*>(Type::vtable()); }
 	};

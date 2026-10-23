@@ -4,7 +4,7 @@
 
 namespace Trinex::Refl::New
 {
-	class trinex_api ArrayType : public ContainerType
+	trinex_reflect() class trinex_api ArrayType : public ContainerType
 	{
 	public:
 		class VTable : public ContainerType::VTable
@@ -30,6 +30,8 @@ namespace Trinex::Refl::New
 		static ArrayType* from(Type* type);
 
 		Type* argument(usize idx) const override;
+
+		Class* reflection() const override { return class_of<ArrayType>(); }
 
 		inline Type* argument() const { return m_vtable.argument(); }
 	};

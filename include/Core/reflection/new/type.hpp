@@ -3,7 +3,7 @@
 
 namespace Trinex::Refl::New
 {
-	class trinex_api Type : public Object
+	trinex_reflect() class trinex_api Type : public Object
 	{
 	public:
 		struct VTable {
@@ -37,15 +37,6 @@ namespace Trinex::Refl::New
 
 		Type(Name name, u32 size, u32 alignment, u64 flags = 0, const VTable* vtable = nullptr, Object* owner = nullptr);
 
-		inline u32 size() const { return m_size; }
-		inline u32 alignment() const { return m_alignment; }
-		inline const VTable* vtable() const { return m_vtable; }
-		inline bool has_vtable() const { return m_vtable != nullptr; }
-		inline bool is_native() const { return has_flags(IsNative); }
-		inline bool is_trivially_copyable() const { return has_flags(IsTriviallyCopyable); }
-		inline bool is_trivially_destructible() const { return has_flags(IsTriviallyDestructible); }
-		inline bool has_default_constructor() const { return has_flags(HasDefaultConstructor); }
-
 		bool construct(void* dst, usize count = 1) const;
 		bool destruct(void* value, usize count = 1) const;
 		bool copy_construct(void* dst, const void* src, usize count = 1) const;
@@ -60,5 +51,16 @@ namespace Trinex::Refl::New
 
 		usize parse(void* self, StringView value) const;
 		bool format(const void* self, String& value) const;
+
+		Class* reflection() const override { return class_of<Type>(); }
+		
+		inline u32 size() const { return m_size; }
+		inline u32 alignment() const { return m_alignment; }
+		inline const VTable* vtable() const { return m_vtable; }
+		inline bool has_vtable() const { return m_vtable != nullptr; }
+		inline bool is_native() const { return has_flags(IsNative); }
+		inline bool is_trivially_copyable() const { return has_flags(IsTriviallyCopyable); }
+		inline bool is_trivially_destructible() const { return has_flags(IsTriviallyDestructible); }
+		inline bool has_default_constructor() const { return has_flags(HasDefaultConstructor); }
 	};
 }// namespace Trinex::Refl::New

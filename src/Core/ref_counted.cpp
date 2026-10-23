@@ -1,6 +1,6 @@
+#include <Core/etl/array.hpp>
 #include <Core/etl/atomic.hpp>
 #include <Core/etl/critical_section.hpp>
-#include <Core/etl/array.hpp>
 #include <Core/ref_counted.hpp>
 
 namespace Trinex
@@ -40,8 +40,8 @@ namespace Trinex
 
 			static WeakStorage* instance()
 			{
-				static WeakStorage storage;
-				return &storage;
+				static WeakStorage* storage = new WeakStorage;
+				return storage;
 			}
 
 			WeakEntry* entry(u32 index)
@@ -118,9 +118,13 @@ namespace Trinex
 		if (previous == 1)
 		{
 			etl::atomic_thread_fence(etl::memory_order_acquire);
-			release_weak_entry();
 			const_cast<RefCounted*>(this)->destroy();
 		}
+	}
+
+	RefCounted::~RefCounted()
+	{
+		release_weak_entry();
 	}
 
 	u32 RefCounted::references() const noexcept

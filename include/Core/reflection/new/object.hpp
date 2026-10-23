@@ -1,10 +1,13 @@
 #pragma once
 #include <Core/ref_counted.hpp>
+#include <Core/reflection/new/of.hpp>
 #include <Core/types/name.hpp>
 
 namespace Trinex::Refl::New
 {
-	class trinex_api Object : public RefCounted
+	class Class;
+
+	trinex_reflect() class trinex_api Object : public RefCounted
 	{
 	private:
 		WeakRef<Object> m_owner;
@@ -31,9 +34,30 @@ namespace Trinex::Refl::New
 
 	public:
 		Object(Name name, u64 flags = 0, Object* owner = nullptr);
-		bool owner(Object* object);
 
+		virtual Class* reflection() const;
 		virtual Object* find(Name name) const;
+
+		bool owner(Object* object);
+		bool is(const Class* base) const;
+
+		template<typename T>
+		bool is() const
+		{
+			return is(class_of<T>());
+		}
+
+		template<typename T>
+		T* cast()
+		{
+			return is<T>() ? static_cast<T*>(this) : nullptr;
+		}
+
+		template<typename T>
+		const T* cast() const
+		{
+			return is<T>() ? static_cast<const T*>(this) : nullptr;
+		}
 
 		inline Name name() const { return m_name; }
 		inline Ref<Object> owner() const { return m_owner.lock(); }

@@ -1,11 +1,11 @@
 #pragma once
-#include <Core/etl/flat_set.hpp>
 #include <Core/etl/array.hpp>
+#include <Core/etl/flat_set.hpp>
 #include <Core/reflection/new/object.hpp>
 
 namespace Trinex::Refl::New
 {
-	class trinex_api Scope : public Object
+	trinex_reflect() class trinex_api Scope : public Object
 	{
 	private:
 		struct Compare {
@@ -21,6 +21,7 @@ namespace Trinex::Refl::New
 			}
 		};
 
+	private:
 		FlatSet<Ref<Object>, Compare> m_members;
 
 	protected:
@@ -35,6 +36,7 @@ namespace Trinex::Refl::New
 		static Scope* create(InitializerList<Name> path);
 
 		Object* find(Name name) const override;
-		const Array<Ref<Object>>& members() const { return m_members.container(); }
+		Class* reflection() const override { return class_of<Scope>(); }
+		inline const Array<Ref<Object>>& members() const { return m_members.container(); }
 	};
 }// namespace Trinex::Refl::New

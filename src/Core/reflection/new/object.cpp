@@ -1,3 +1,4 @@
+#include <Core/reflection/new/class.hpp>
 #include <Core/reflection/new/object.hpp>
 
 namespace Trinex::Refl::New
@@ -5,6 +6,16 @@ namespace Trinex::Refl::New
 	Object::Object(Name name, u64 flags, Object* owner) : m_flags(flags), m_name(name)
 	{
 		m_owner = owner && owner->register_child(this) ? owner : nullptr;
+	}
+
+	Class* Object::reflection() const
+	{
+		return class_of<Object>();
+	}
+
+	Object* Object::find(Name name) const
+	{
+		return nullptr;
 	}
 
 	bool Object::owner(Object* object)
@@ -34,6 +45,14 @@ namespace Trinex::Refl::New
 		return true;
 	}
 
+	bool Object::is(const Class* base) const
+	{
+		if (Class* instance = reflection())
+			return base && instance->is(base);
+
+		return false;
+	}
+
 	bool Object::register_child(Object* object)
 	{
 		return false;
@@ -42,10 +61,5 @@ namespace Trinex::Refl::New
 	bool Object::unregister_child(Object* object)
 	{
 		return false;
-	}
-
-	Object* Object::find(Name name) const
-	{
-		return nullptr;
 	}
 }// namespace Trinex::Refl::New

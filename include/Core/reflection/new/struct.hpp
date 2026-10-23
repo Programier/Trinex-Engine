@@ -8,7 +8,7 @@ namespace Trinex::Refl::New
 	class Property;
 	class Function;
 
-	class trinex_api Struct : public Type
+	trinex_reflect() class trinex_api Struct : public Type
 	{
 	public:
 		class VTable : public Type::VTable
@@ -29,6 +29,7 @@ namespace Trinex::Refl::New
 			}
 		};
 
+	private:
 		Ref<const Struct> m_base;
 		FlatSet<Ref<Object>, Compare> m_members;
 
@@ -49,7 +50,9 @@ namespace Trinex::Refl::New
 		       Object* owner = nullptr);
 
 		Object* find(Name name) const override;
-		bool is_a(const Struct* other) const;
+		bool is(const Struct* other) const;
+
+		Class* reflection() const override { return class_of<Struct>(); }
 
 		inline const Struct* base() const { return m_base.value(); }
 		inline const Array<Ref<Object>>& members() const { return m_members.container(); }

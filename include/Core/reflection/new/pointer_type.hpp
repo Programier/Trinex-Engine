@@ -3,7 +3,7 @@
 
 namespace Trinex::Refl::New
 {
-	class trinex_api PointerType : public Type
+	trinex_reflect() class trinex_api PointerType : public Type
 	{
 	public:
 		struct VTable : public Type::VTable {
@@ -17,6 +17,8 @@ namespace Trinex::Refl::New
 
 		static PointerType* from(Type* type);
 		static const VTable* vtable();
+
+		Class* reflection() const override { return class_of<PointerType>(); }
 
 		inline Type* type() const { return m_type.value(); }
 	};

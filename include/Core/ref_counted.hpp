@@ -30,7 +30,7 @@ namespace Trinex
 	protected:
 		RefCounted() noexcept = default;
 
-		virtual ~RefCounted() = default;
+		virtual ~RefCounted();
 		virtual void destroy() noexcept { trx_delete_inline(this); }
 
 	public:

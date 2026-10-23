@@ -5,7 +5,7 @@
 
 namespace Trinex::Refl::New
 {
-	class trinex_api Function : public Object
+	trinex_reflect() class trinex_api Function : public Object
 	{
 	public:
 		enum Flags : u64
@@ -30,6 +30,8 @@ namespace Trinex::Refl::New
 	public:
 		Function(Name name, Ref<Property> result = nullptr, Array<Ref<Property>> args = {}, u64 flags = 0,
 		         Object* owner = nullptr);
+
+		Class* reflection() const override { return class_of<Function>(); }
 
 		inline Property* result() const { return m_result.value(); }
 		inline const Array<Ref<Property>>& args() const { return m_args; }
