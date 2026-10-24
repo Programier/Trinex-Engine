@@ -33,8 +33,6 @@ namespace Trinex
 			Settings::Rendering::rhi = "None";
 			Settings::Splash::show   = false;
 		}
-
-		RHI::create(Settings::Rendering::rhi.c_str());
 	}
 
 	static void initialize_filesystem()
@@ -159,7 +157,6 @@ namespace Trinex
 		Engine::instance()->terminate();
 
 		GarbageCollector::destroy_all_objects();
-		RHI::destroy();
 
 		GarbageCollector::destroy(Engine::instance());
 

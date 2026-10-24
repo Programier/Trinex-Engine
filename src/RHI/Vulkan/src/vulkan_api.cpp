@@ -2,7 +2,6 @@
 
 #include <Core/memory.hpp>
 #include <Core/profiler.hpp>
-#include <Core/reflection/struct.hpp>
 #include <Core/threading.hpp>
 #include <Core/tickable.hpp>
 #include <Core/window.hpp>
@@ -28,12 +27,18 @@ VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
 namespace Trinex
 {
-	namespace TRINEX_RHI
+	static RHI* create_vulkan_api()
 	{
-		using VULKAN = VulkanAPI;
+		return trx_new VulkanAPI();
 	}
 
-	trinex_implement_struct_default_init(Trinex::TRINEX_RHI::VULKAN, 0);
+	static void destroy_vulkan_api(RHI* api)
+	{
+		trx_delete static_cast<VulkanAPI*>(api);
+	}
+
+	static RHI::Registry s_vulkan_api_registry(RHIBackend::Vulkan, create_vulkan_api, destroy_vulkan_api);
+
 
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
 	                                                     VkDebugUtilsMessageTypeFlagsEXT message_type,
@@ -184,25 +189,6 @@ namespace Trinex
 		return new_features;
 	}
 
-	VulkanAPI* VulkanAPI::static_constructor()
-	{
-		if (VulkanAPI::instance() == nullptr)
-		{
-			auto& info           = (trx_new VulkanAPI())->info;
-			info.name            = "Vulkan";
-			info.struct_instance = static_reflection();
-		}
-		return VulkanAPI::instance();
-	}
-
-	void VulkanAPI::static_destructor(VulkanAPI* vulkan)
-	{
-		if (vulkan)
-		{
-			trx_delete vulkan;
-		}
-	}
-
 	VulkanAPI::VulkanAPI()
 	{
 		auto array = make_extensions_array();
@@ -236,9 +222,8 @@ namespace Trinex
 		auto selected_device = initialize_physical_device();
 		m_physical_device    = vk::PhysicalDevice(selected_device.physical_device);
 
-		m_properties  = m_physical_device.getProperties();
-		m_features    = filter_features(m_physical_device.getFeatures());
-		info.renderer = m_properties.deviceName.data();
+		m_properties = m_physical_device.getProperties();
+		m_features   = filter_features(m_physical_device.getFeatures());
 		selected_device.enable_features_if_present(m_features);
 
 		if (is_raytracing_supported())
@@ -247,7 +232,7 @@ namespace Trinex
 			m_physical_device.getProperties2(&props);
 		}
 
-		trinex_info(Log::RHI, "Selected GPU '%s'", info.renderer.c_str());
+		trinex_info(Log::RHI, "Selected GPU '%s'", renderer());
 
 		// Initialize device
 		auto bootstrap_device = build_device(selected_device);

@@ -1,10 +1,10 @@
 #pragma once
+#include <Core/etl/array.hpp>
 #include <Core/etl/atomic.hpp>
 #include <Core/etl/constexpr_string.hpp>
 #include <Core/etl/deque.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/etl/static_array.hpp>
-#include <Core/etl/array.hpp>
 
 #include <RHI/rhi.hpp>
 #include <VkBootstrap.h>
@@ -38,13 +38,10 @@ namespace Trinex
 
 	class VulkanAPI final : public RHI
 	{
-		trinex_old_struct(VulkanAPI, void);
-
 	public:
-		static VulkanAPI* static_constructor();
-		static void static_destructor(VulkanAPI* vulkan);
-
 		static inline VulkanAPI* instance() { return static_cast<VulkanAPI*>(RHI::instance()); }
+		const char* name() const override { return "Vulkan"; }
+		const char* renderer() const override { return m_properties.deviceName.data(); }
 
 		// API DATA
 		vkb::Instance m_instance;

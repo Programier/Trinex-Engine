@@ -1,4 +1,3 @@
-#include <Core/reflection/struct.hpp>
 #include <none_api.hpp>
 
 namespace Trinex
@@ -18,35 +17,17 @@ namespace Trinex
 		void destroy() override { delete this; }
 	};
 
-	NoneApi* NoneApi::m_instance = nullptr;
-
-	NoneApi* NoneApi::static_constructor()
+	static RHI* create_none_api()
 	{
-		if (NoneApi::m_instance == nullptr)
-		{
-			NoneApi::m_instance                       = new NoneApi();
-			NoneApi::m_instance->info.name            = "None";
-			NoneApi::m_instance->info.renderer        = "None";
-			NoneApi::m_instance->info.struct_instance = static_reflection();
-		}
-		return NoneApi::m_instance;
+		return trx_new NoneApi();
 	}
 
-	void NoneApi::static_destructor(NoneApi* api)
+	static void destroy_none_api(RHI* api)
 	{
-		if (api == m_instance)
-		{
-			delete api;
-			m_instance = nullptr;
-		}
+		trx_delete static_cast<NoneApi*>(api);
 	}
 
-	namespace TRINEX_RHI
-	{
-		using NONE = NoneApi;
-	}
-
-	trinex_implement_struct_default_init(Trinex::TRINEX_RHI::NONE, 0);
+	static RHI::Registry s_none_api_registry(RHIBackend::Undefined, create_none_api, destroy_none_api);
 
 	struct NoneTimestamp : public NoneApiDestroyable<RHITimestamp> {
 		float milliseconds() override { return 0.f; }

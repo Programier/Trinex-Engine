@@ -4,7 +4,6 @@
 #include <Core/filesystem/file.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/lifecycle.hpp>
-#include <Core/reflection/struct.hpp>
 #include <Core/string_functions.hpp>
 #include <Engine/project.hpp>
 #include <Graphics/pipeline.hpp>
@@ -30,7 +29,7 @@ namespace Trinex
 	{
 		if (rhi_name.empty())
 		{
-			return RHI::instance()->info.struct_instance->name().to_string();
+			return RHI::instance()->name();
 		}
 		return rhi_name;
 	}

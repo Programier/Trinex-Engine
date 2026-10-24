@@ -242,9 +242,9 @@ namespace Trinex
 		menu_bar.create("")->actions.push([this]() {
 			ImGui::Text("FPS: %.2f\n", 1.f / m_dt.average());
 			ImGui::Spacing();
-			ImGui::Text("RHI: %s\n", RHI::instance()->info.name.c_str());
+			ImGui::Text("RHI: %s\n", RHI::instance()->name());
 			ImGui::Spacing();
-			ImGui::Text("GPU: %s\n", RHI::instance()->info.renderer.c_str());
+			ImGui::Text("GPU: %s\n", RHI::instance()->renderer());
 		});
 	}
 
@@ -274,7 +274,7 @@ namespace Trinex
 		Super::attach(viewport);
 
 		auto wd = window()->window();
-		wd->title(Strings::format("Trinex Editor [{} RHI]", RHI::instance()->info.name.c_str()).c_str());
+		wd->title(Strings::format("Trinex Editor [{} RHI]", RHI::instance()->name()).c_str());
 
 		Platform::Monitor monitor_info;
 		Platform::MonitorSystem::instance()->monitor(wd->monitor(), &monitor_info);

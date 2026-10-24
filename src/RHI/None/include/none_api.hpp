@@ -9,11 +9,8 @@ namespace Trinex
 	class NoneApi : public RHI
 	{
 	public:
-		trinex_old_struct(NoneApi, void);
-		static NoneApi* static_constructor();
-		static void static_destructor(NoneApi* api);
-
-		static NoneApi* m_instance;
+		const char* name() const override { return "None"; }
+		const char* renderer() const override { return "None"; }
 
 		NoneApi& update(float dt) override;
 		NoneApi& submit(const RHISubmitInfo& info) override;

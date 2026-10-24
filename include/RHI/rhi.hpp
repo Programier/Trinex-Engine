@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/etl/span.hpp>
+#include <Core/etl/string.hpp>
 #include <Core/types/color.hpp>
 #include <RHI/enums.hpp>
 #include <RHI/handles.hpp>
@@ -21,15 +22,17 @@ namespace Trinex
 	struct RHIComputePipelineDesc;
 	struct RHIRayTracingPipelineDesc;
 
-	namespace Refl
-	{
-		class Struct;
-	}
-
 	class trinex_api RHI
 	{
-	private:
-		static RHI* s_rhi;
+	public:
+		using CreateFunction  = RHI* (*) ();
+		using DestroyFunction = void (*)(RHI*);
+
+		class trinex_api Registry
+		{
+		public:
+			Registry(RHIBackend backend, CreateFunction create, DestroyFunction destroy);
+		};
 
 	public:
 		static constexpr usize s_max_srv             = 32;
@@ -38,19 +41,14 @@ namespace Trinex
 		static constexpr usize s_max_uniform_buffers = 8;
 		static constexpr usize s_max_vertex_buffers  = 8;
 
-		struct Info {
-			String name;
-			String renderer;
-			Refl::Struct* struct_instance = nullptr;
-		} info;
+		static RHI* instance();
+		static RHI* instance(RHIBackend backend);
 
-		static RHI* create(const char* name);
-		static void destroy();
-		static inline RHI* instance() { return s_rhi; }
+	public:
+		virtual ~RHI() = default;
 
-
-		RHI();
-		virtual ~RHI();
+		virtual const char* name() const     = 0;
+		virtual const char* renderer() const = 0;
 
 		virtual RHI& update(float dt)                  = 0;
 		virtual RHI& submit(const RHISubmitInfo& info) = 0;
