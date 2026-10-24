@@ -253,7 +253,8 @@ namespace Reflector
 				if (is_method)
 				{
 					writer->line("using Arg0 = Native::OffsetProperty<Func::argument_offset<0>(), Property>;");
-					writer->line("auto arg0 = Ref<Arg0>::make(\"this\", type_of<Func::ArgumentType<0>>());\n");
+					writer->line("auto arg0 = Ref<Arg0>::make(\"this\", type_of<Func::ArgumentType<0>>(), "
+					             "Property::IsThis);\n");
 				}
 
 				for (std::size_t index = 0; index < object->args.size(); ++index)

@@ -7,6 +7,9 @@
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/reflection/new/function.hpp>
 #include <Core/reflection/new/object.hpp>
+#include <Core/reflection/new/pointer_type.hpp>
+#include <Core/reflection/new/property.hpp>
+#include <Core/reflection/new/struct.hpp>
 #include <Core/reflection/new/type.hpp>
 #include <Core/types/path.hpp>
 
@@ -21,12 +24,15 @@ StatementList <- Statement (Separator+ Statement)*
 Statement <- Scope / Assignment / Invocation / Entry
 Scope <- EntryName '{' Separator* StatementList? Separator* '}'
 Assignment <- EntryName '=' Value
-Invocation <- EntryName '(' Newline* ArgumentList? Newline* ')'
+Invocation <- Call
 Entry <- EntryName
 ArgumentList <- Argument (Newline* ',' Newline* Argument)* (Newline* ',')?
 Argument <- Value
 Value <- Call / Reference / Literal
-Call <- EntryName '(' Newline* ArgumentList? Newline* ')'
+Call <- EntryName '(' Newline* ArgumentList? Newline* ')' Method* Member*
+Method <- '.' MemberName '(' Newline* ArgumentList? Newline* ')'
+Member <- '.' MemberName
+MemberName <- < IdentifierRaw >
 Reference <- < ('.'? NameBody) >
 Literal <- < (Array / Object / Group / String / Scalar) >
 Array <- '[' Newline* ValueList? Newline* ']'
@@ -58,6 +64,15 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		using Array<Argument>::Array;
 	};
 
+	struct Member {
+		StringView name;
+	};
+
+	struct Method {
+		StringView name;
+		Arguments arguments;
+	};
+
 	struct Argument {
 		enum class Kind : u8
 		{
@@ -69,6 +84,8 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		Kind kind = Kind::Literal;
 		StringView value;
 		Arguments arguments;
+		Array<Method> methods;
+		Array<StringView> members;
 	};
 
 	struct Statement;
@@ -86,6 +103,8 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		Type type = Type::Entry;
 		StringView name;
 		Arguments arguments;
+		Array<Method> methods;
+		Array<StringView> members;
 		Statements statements;
 	};
 
@@ -134,7 +153,20 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 				for (const std::any& value : values)
 					if (const Arguments* arguments = any_ptr<Arguments>(value))
 						argument.arguments = *arguments;
+					else if (const Method* method = any_ptr<Method>(value))
+						argument.methods.emplace_back(*method);
+					else if (const Member* member = any_ptr<Member>(value))
+						argument.members.emplace_back(member->name);
 				return argument;
+			};
+			m_parser["MemberName"] = [](const peg::SemanticValues& values) { return StringView(values.token()); };
+			m_parser["Member"]     = [](const peg::SemanticValues& values) { return Member{first_ref<StringView>(values)}; };
+			m_parser["Method"]     = [](const peg::SemanticValues& values) {
+				Method method{.name = first_ref<StringView>(values)};
+				for (const std::any& value : values)
+					if (const Arguments* arguments = any_ptr<Arguments>(value))
+						method.arguments = *arguments;
+				return method;
 			};
 			m_parser["Entry"] = [](const peg::SemanticValues& values) {
 				return Statement{.type = Statement::Type::Entry, .name = first_ref<StringView>(values)};
@@ -145,11 +177,12 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 				return statement;
 			};
 			m_parser["Invocation"] = [](const peg::SemanticValues& values) {
-				Statement statement{.type = Statement::Type::Invocation, .name = first_ref<StringView>(values)};
-				for (const std::any& value : values)
-					if (const Arguments* arguments = any_ptr<Arguments>(value))
-						statement.arguments = *arguments;
-				return statement;
+				const Argument& argument = first_ref<Argument>(values);
+				return Statement{.type      = Statement::Type::Invocation,
+				                 .name      = argument.value,
+				                 .arguments = argument.arguments,
+				                 .methods   = argument.methods,
+				                 .members   = argument.members};
 			};
 			m_parser["Scope"] = [](const peg::SemanticValues& values) {
 				Statement statement{.type = Statement::Type::Scope, .name = first_ref<StringView>(values)};
@@ -281,15 +314,73 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		return {};
 	}
 
+	static DynamicValue resolve_members(DynamicValue value, Span<const StringView> members)
+	{
+		for (StringView name : members)
+		{
+			Reflection::Property* property = nullptr;
+
+			for (const Reflection::Struct* type = value ? value.type()->cast<Reflection::Struct>() : nullptr; type != nullptr;
+			     type                           = type->base())
+			{
+				if (Reflection::Object* member = type->find(Name(name)))
+				{
+					property = member->cast<Reflection::Property>();
+					break;
+				}
+			}
+
+			if (property == nullptr)
+			{
+				trinex_warning(Log::Console, "Failed to find property '%.*s'", static_cast<int>(name.size()), name.data());
+				return {};
+			}
+
+			value = value_of(const_cast<Reflection::Type*>(property->type()), property->load(value.data()));
+			if (!value)
+				return {};
+		}
+
+		return value;
+	}
+
+	static DynamicValue resolve_reference(StringView scope, StringView name)
+	{
+		for (usize position = name.rfind('.'); position != StringView::npos && position != 0;
+		     position       = name.rfind('.', position - 1))
+		{
+			const Binding* binding = resolve_binding(scope, name.substr(0, position));
+			Reflection::Type* type = binding ? binding->reflection->cast<Reflection::Type>() : nullptr;
+			if (type == nullptr)
+				continue;
+
+			Array<StringView> members;
+			for (usize begin = position + 1; begin < name.size();)
+			{
+				const usize end = name.find('.', begin);
+				members.emplace_back(name.substr(begin, end - begin));
+				begin = end == StringView::npos ? name.size() : end + 1;
+			}
+
+			return resolve_members(value_of(type, binding->address), members);
+		}
+
+		return {};
+	}
+
 	static DynamicValue resolve_value(StringView scope, const Argument& argument, Reflection::Type* expected_type);
 
-	static DynamicValue execute_function(StringView scope, const Reflection::Function* function, Span<const Argument> arguments)
+	static DynamicValue execute_function(StringView scope, const Reflection::Function* function, Span<const Argument> arguments,
+	                                     void* self = nullptr)
 	{
 		const auto& parameters = function->args();
+		const bool has_self =
+		        !parameters.empty() && (parameters.front()->is_this() || parameters.front()->name().to_string() == "this");
+		const bool inject_self = self != nullptr && has_self;
 
-		if (arguments.size() != parameters.size())
+		if (arguments.size() + static_cast<usize>(inject_self) != parameters.size())
 		{
-			trinex_warning(Log::Console, "Command expects %zu arguments", parameters.size());
+			trinex_warning(Log::Console, "Command expects %zu arguments", parameters.size() - static_cast<usize>(inject_self));
 			return {};
 		}
 
@@ -303,12 +394,21 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 
 		bool success = !function->result() || construct(function->result());
 
-		for (usize index = 0; success && index < parameters.size(); ++index)
+		for (usize index = 0, argument_index = 0; success && index < parameters.size(); ++index)
 		{
 			Reflection::Property* parameter = parameters[index].value();
-			DynamicValue value = resolve_value(scope, arguments[index], const_cast<Reflection::Type*>(parameter->type()));
-			success            = value && value.type() == parameter->type() && construct(parameter) &&
-			                     parameter->type()->copy_assign(parameter->address(context), value.data());
+			if (index == 0 && inject_self)
+			{
+				success = self != nullptr && construct(parameter) &&
+				          parameter->type()->copy_assign(parameter->address(context), &self);
+			}
+			else
+			{
+				DynamicValue value =
+				        resolve_value(scope, arguments[argument_index++], const_cast<Reflection::Type*>(parameter->type()));
+				success = value && value.type() == parameter->type() && construct(parameter) &&
+				          parameter->type()->copy_assign(parameter->address(context), value.data());
+			}
 		}
 
 		if (success)
@@ -344,20 +444,79 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		return {};
 	}
 
+	static DynamicValue execute_method(StringView scope, Reflection::Type* type, void* address, StringView name,
+	                                   Span<const Argument> arguments)
+	{
+		if (Reflection::PointerType* pointer_type = type ? type->cast<Reflection::PointerType>() : nullptr)
+		{
+			address = address ? *static_cast<void**>(address) : nullptr;
+			type    = pointer_type->type();
+		}
+
+		Reflection::Function* function = nullptr;
+		for (const Reflection::Struct* struct_type = type ? type->cast<Reflection::Struct>() : nullptr; struct_type != nullptr;
+		     struct_type                           = struct_type->base())
+		{
+			if (Reflection::Object* member = struct_type->find(Name(name)))
+			{
+				function = member->cast<Reflection::Function>();
+				break;
+			}
+		}
+
+		if (function == nullptr)
+		{
+			trinex_warning(Log::Console, "Failed to find method '%.*s'", static_cast<int>(name.size()), name.data());
+			return {};
+		}
+
+		return execute_function(scope, function, arguments, address);
+	}
+
+	static DynamicValue execute_methods(StringView scope, DynamicValue value, Span<const Method> methods)
+	{
+		for (const Method& method : methods)
+		{
+			value = execute_method(scope, value.type(), value.data(), method.name, method.arguments);
+			if (!value)
+				return {};
+		}
+
+		return value;
+	}
+
+	static DynamicValue execute_reference_method(StringView scope, StringView name, Span<const Argument> arguments)
+	{
+		const usize position = name.rfind('.');
+		if (position == StringView::npos || position == 0)
+			return {};
+
+		const Binding* binding = resolve_binding(scope, name.substr(0, position));
+		Reflection::Type* type = binding ? binding->reflection->cast<Reflection::Type>() : nullptr;
+		return type ? execute_method(scope, type, binding->address, name.substr(position + 1), arguments) : DynamicValue();
+	}
+
 	static DynamicValue resolve_value(StringView scope, const Argument& argument, Reflection::Type* expected_type)
 	{
 		if (argument.kind == Argument::Kind::Literal)
 		{
 			DynamicValue result(expected_type);
-			return result && store(result.data(), expected_type, argument) ? result : DynamicValue();
+			return result && store(result.data(), expected_type, argument) ? resolve_members(etl::move(result), argument.members)
+			                                                               : DynamicValue();
 		}
 
 		const Binding* binding = resolve_binding(scope, argument.value);
 
 		if (binding == nullptr)
 		{
+			if (argument.kind == Argument::Kind::Call)
+				return execute_reference_method(scope, argument.value, argument.arguments);
+
 			if (argument.kind == Argument::Kind::Reference)
 			{
+				if (DynamicValue value = resolve_reference(scope, argument.value))
+					return resolve_members(etl::move(value), argument.members);
+
 				DynamicValue result(expected_type);
 				return result && store(result.data(), expected_type, argument) ? result : DynamicValue();
 			}
@@ -371,7 +530,9 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		{
 			if (Reflection::Function* function = binding->reflection->cast<Reflection::Function>())
 			{
-				return execute_function(scope, function, argument.arguments);
+				return resolve_members(
+				        execute_methods(scope, execute_function(scope, function, argument.arguments), argument.methods),
+				        argument.members);
 			}
 
 			trinex_warning(Log::Console, "Binding '%s' is not a command", binding->name.c_str());
@@ -379,13 +540,14 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		}
 
 		if (Reflection::Type* type = binding->reflection->cast<Reflection::Type>())
-			return value_of(type, binding->address);
+			return resolve_members(value_of(type, binding->address), argument.members);
 
 		trinex_warning(Log::Console, "Binding '%s' is not a value", binding->name.c_str());
 		return {};
 	}
 
-	static DynamicValue execute_statement(StringView scope, StringView name, Span<const Argument> arguments, ExecuteFlags flags,
+	static DynamicValue execute_statement(StringView scope, StringView name, Span<const Argument> arguments,
+	                                      Span<const Method> methods, Span<const StringView> members, ExecuteFlags flags,
 	                                      Statement::Type type)
 	{
 		const bool assignment  = type == Statement::Type::Assignment;
@@ -393,8 +555,21 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 
 		if (binding == nullptr)
 		{
+			if (!assignment)
+			{
+				if (DynamicValue value = execute_reference_method(scope, name, arguments))
+					return value;
+			}
+
+			if (!assignment && arguments.empty())
+			{
+				if (DynamicValue value = resolve_reference(scope, name))
+					return value;
+			}
+
 			if (!flags.any(ExecuteFlags::IgnoreUnknown))
 				trinex_warning(Log::Console, "Unknown console binding '%.*s'", static_cast<int>(name.size()), name.data());
+
 			return {};
 		}
 
@@ -418,7 +593,7 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 				return {};
 			}
 
-			return execute_function(scope, function, arguments);
+			return resolve_members(execute_methods(scope, execute_function(scope, function, arguments), methods), members);
 		}
 
 		Reflection::Type* value_type = binding->reflection->cast<Reflection::Type>();
@@ -466,7 +641,8 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 			return result;
 		}
 
-		return execute_statement(scope, statement.name, statement.arguments, flags, statement.type);
+		return execute_statement(scope, statement.name, statement.arguments, statement.methods, statement.members, flags,
+		                         statement.type);
 	}
 
 	trinex_api void bind(StringView name, void* address, Reflection::Type* reflection, StringView description, EntryFlags flags)
