@@ -394,12 +394,21 @@ namespace Reflector
 		writer->line("#define trinex_reflection_$0_$1 \\", ObjectIDOf(module), instance->body_line);
 		{
 			auto scope = writer->scope();
+
+			writer->line("private: \\");
+			{
+				auto scope = writer->scope();
+				writer->line("friend class ::Trinex::Refl::New::Binder<$0>; \\", instance->name);
+				writer->write("[[no_unique_address]] ::Trinex::Refl::New::Binder<$0> ", instance->name);
+				writer->line("m_triner_reflection_binder_$0 = this; \\", instance->body_line);
+			}
+
 			writer->line("public: \\");
 			{
 				auto scope = writer->scope();
 
 				writer->line("using This = $0; \\", instance->name);
-				writer->line("friend struct ::Trinex::Refl::New::Accessor<$0>; ", instance->name);
+				writer->line("friend struct ::Trinex::Refl::New::Accessor<$0>", instance->name);
 			}
 		}
 	}
@@ -428,7 +437,8 @@ namespace Reflector
 		if (is_object_empty(module))
 			return true;
 
-		writer->line("#include <Core/reflection/new/accessor.hpp>\n");
+		writer->line("#include <Core/reflection/new/accessor.hpp>");
+		writer->line("#include <Core/reflection/new/binder.hpp>\n");
 		writer->line("#define trinex_reflection_file_id trinex_reflection_$0", ObjectIDOf(module));
 
 		generate_reflection_bodies(writer, module, module);
