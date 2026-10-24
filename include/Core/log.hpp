@@ -49,6 +49,7 @@ namespace Trinex::Log
 	trinex_api extern Category Reflection;
 	trinex_api extern Category Platform;
 	trinex_api extern Category Engine;
+	trinex_api extern Category Console;
 	trinex_api extern Category Graphics;
 	trinex_api extern Category FileSystem;
 	trinex_api extern Category Memory;

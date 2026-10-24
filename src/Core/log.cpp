@@ -110,6 +110,7 @@ namespace Trinex::Log
 	trinex_api Category Reflection = {"Reflection", true};
 	trinex_api Category Platform   = {"Platform", true};
 	trinex_api Category Engine     = {"Engine", true};
+	trinex_api Category Console    = {"Console", true};
 	trinex_api Category Graphics   = {"Graphics", true};
 	trinex_api Category FileSystem = {"FileSystem", true};
 	trinex_api Category Memory     = {"Memory", true};

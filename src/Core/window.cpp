@@ -3,6 +3,7 @@
 #include <Core/etl/map.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/reflection/class.hpp>
+#include <Core/reflection/new/of.hpp>
 #include <Core/threading.hpp>
 #include <Core/viewport_client.hpp>
 #include <Core/window.hpp>
@@ -15,11 +16,11 @@ namespace Trinex
 
 	trinex_on_pre_init()
 	{
-		static Console::VariableRef title(&s_config.title, "window.title");
-		static Console::VariableRef client(&s_config.client, "window.client");
-		static Console::VariableRef size(&s_config.size, "window.size");
-		static Console::VariableRef pos(&s_config.pos, "window.pos");
-		static Console::VariableRef monitor(&s_config.monitor, "window.monitor");
+		Console::bind("window.title", &s_config.title, Refl::New::type_of<String>());
+		Console::bind("window.client", &s_config.client, Refl::New::type_of<String>());
+		Console::bind("window.size", &s_config.size, Refl::New::type_of<Vector2u>());
+		Console::bind("window.pos", &s_config.pos, Refl::New::type_of<Vector2u>());
+		Console::bind("window.monitor", &s_config.monitor, Refl::New::type_of<i16>());
 		//static Console::VariableRef attributes(&s_config.attributes, "window.attributes");
 	}
 

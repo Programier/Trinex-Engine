@@ -24,8 +24,8 @@ namespace Trinex::Refl::New
 	private:
 		Ref<Property> m_result;
 		Array<Ref<Property>> m_args;
-		u64 m_size;
-		u64 m_alignment;
+		u32 m_size;
+		u32 m_alignment;
 
 	public:
 		Function(Name name, Ref<Property> result = nullptr, Array<Ref<Property>> args = {}, u64 flags = 0,
@@ -36,8 +36,8 @@ namespace Trinex::Refl::New
 		inline Property* result() const { return m_result.value(); }
 		inline const Array<Ref<Property>>& args() const { return m_args; }
 
-		inline u64 size() const { return m_size; }
-		inline u64 alignment() const { return m_alignment; }
+		inline u32 size() const { return m_size; }
+		inline u32 alignment() const { return m_alignment; }
 
 		inline bool is_static() const { return has_flags(IsStatic); }
 		inline bool is_const() const { return has_flags(IsConst); }

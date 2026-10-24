@@ -237,6 +237,8 @@ namespace Reflector
 			{
 				auto scope = writer->scope();
 
+				const Object* owner   = object->owner;
+				const bool is_method  = owner && owner->is_a(ObjectKind::Class) && !(object->flags & Function::Static);
 				const bool has_result = object->type.name != "void" || (object->type.flags & TypeInfo::Pointer) ||
 				                        (object->type.flags & TypeInfo::Reference) || (object->type.flags & TypeInfo::RValueRef);
 
@@ -246,20 +248,30 @@ namespace Reflector
 					writer->line("auto result =  Ref<Result>::make(\"return\", type_of<Func::ReturnType>());\n");
 				}
 
+				const std::size_t arg_offset = is_method ? 1 : 0;
+
+				if (is_method)
+				{
+					writer->line("using Arg0 = Native::OffsetProperty<Func::argument_offset<0>(), Property>;");
+					writer->line("auto arg0 = Ref<Arg0>::make(\"this\", type_of<Func::ArgumentType<0>>());\n");
+				}
+
 				for (std::size_t index = 0; index < object->args.size(); ++index)
 				{
+					std::size_t arg                    = arg_offset + index;
 					const Function::Argument& argument = object->args[index];
 					const std::string name             = argument.name.empty() ? "arg" + std::to_string(index) : argument.name;
 
-					writer->line("using Arg$0 = Native::OffsetProperty<Func::argument_offset<$0>(), Property>;", index);
-					writer->line("auto arg$0 = Ref<Arg$0>::make(\"$1\", type_of<Func::ArgumentType<$0>>());\n", index, name);
+					writer->line("using Arg$0 = Native::OffsetProperty<Func::argument_offset<$0>(), Property>;", arg);
+					writer->line("auto arg$0 = Ref<Arg$0>::make(\"$1\", type_of<Func::ArgumentType<$0>>());\n", arg, name);
 				}
 
 				writer->write("Func* func = trx_new Func(\"$0\", ", object->name);
 				writer->write(has_result ? "result" : "nullptr");
 				writer->write(", {");
 
-				for (std::size_t index = 0; index < object->args.size(); ++index)
+
+				for (std::size_t index = 0, count = arg_offset + object->args.size(); index < count; ++index)
 				{
 					if (index != 0)
 						writer->write(", ");

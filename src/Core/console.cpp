@@ -1,12 +1,13 @@
 #include <Core/blob.hpp>
 #include <Core/console.hpp>
-#include <Core/etl/algorithm.hpp>
+#include <Core/etl/allocator.hpp>
 #include <Core/etl/flat_set.hpp>
+#include <Core/etl/span.hpp>
 #include <Core/etl/utility.hpp>
-#include <Core/etl/variant.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
-#include <Core/reflection/enum.hpp>
-#include <Core/string_functions.hpp>
+#include <Core/reflection/new/function.hpp>
+#include <Core/reflection/new/object.hpp>
+#include <Core/reflection/new/type.hpp>
 #include <Core/types/path.hpp>
 
 #include <any>
@@ -15,70 +16,63 @@
 namespace Trinex::Console
 {
 	static constexpr const char* grammar = R"(
-Program         <- Separator* StatementList? Separator* !.
-StatementList   <- Statement (Separator+ Statement)*
-Statement       <- Scope / Assignment / Invocation / Entry
-Scope           <- EntryName '{' Separator* StatementList? Separator* '}'
-Assignment      <- EntryName '=' Value
-Invocation      <- EntryName '(' Newline* ArgumentList? Newline* ')'
-Entry           <- EntryName
-ArgumentList    <- Argument (Newline* ',' Newline* Argument)* (Newline* ',')?
-Argument        <- Value
-Value           <- Array / String / Boolean / Float / Integer / Bareword
-Array           <- '[' Newline* ValueList? Newline* ']'
-ValueList       <- Value (Newline* ',' Newline* Value)* (Newline* ',')?
-Boolean         <- < ('true' / 'false') ![A-Za-z0-9_-] >
-Float           <- < [+-]? ((([0-9]+ '.' [0-9]* / '.' [0-9]+) ([eE] [+-]? [0-9]+)?) / [0-9]+ [eE] [+-]? [0-9]+) >
-Integer         <- HexInteger / BinaryInteger / DecimalInteger
-HexInteger      <- < [+-]? '0x' [0-9a-fA-F]+ >
-BinaryInteger   <- < [+-]? '0b' [01]+ >
-DecimalInteger  <- < [+-]? [0-9]+ >
-String          <- DoubleString / SingleString
-DoubleString    <- < '"' (_Escape / [^"\\\r\n])* '"' >
-SingleString    <- < "'" (_Escape / [^'\\\r\n])* "'" >
-_Escape         <- '\\' [^\r\n]
-Bareword        <- < [A-Za-z_][A-Za-z0-9_./:\\-]* >
-EntryName       <- AbsoluteName / RelativeName
-AbsoluteName    <- < '.' NameBody >
-RelativeName    <- < NameBody >
-NameBody        <- IdentifierRaw ('.' IdentifierRaw)*
-Identifier      <- < IdentifierRaw >
-IdentifierRaw   <- [A-Za-z_][A-Za-z0-9_-]*
-Separator       <- ';' / Newline
-Newline         <- '\r\n' / '\n' / '\r'
-%whitespace     <- (_HSpace / _Comment)*
-_HSpace         <- [ \t]
-_Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
+Program <- Separator* StatementList? Separator* !.
+StatementList <- Statement (Separator+ Statement)*
+Statement <- Scope / Assignment / Invocation / Entry
+Scope <- EntryName '{' Separator* StatementList? Separator* '}'
+Assignment <- EntryName '=' Value
+Invocation <- EntryName '(' Newline* ArgumentList? Newline* ')'
+Entry <- EntryName
+ArgumentList <- Argument (Newline* ',' Newline* Argument)* (Newline* ',')?
+Argument <- Value
+Value <- Call / Reference / Literal
+Call <- EntryName '(' Newline* ArgumentList? Newline* ')'
+Reference <- < ('.'? NameBody) >
+Literal <- < (Array / Object / Group / String / Scalar) >
+Array <- '[' Newline* ValueList? Newline* ']'
+ValueList <- Value (Newline* ',' Newline* Value)* (Newline* ',')?
+Object <- '{' ObjectElement* '}'
+ObjectElement <- Array / Object / Group / String / ![{}] .
+Group <- '(' GroupElement* ')'
+GroupElement <- Array / Object / Group / String / ![()] .
+String <- DoubleString / SingleString
+DoubleString <- '"' (_Escape / [^"\\\r\n])* '"'
+SingleString <- "'" (_Escape / [^'\\\r\n])* "'"
+_Escape <- '\\' [^\r\n]
+Scalar <- (!(',' / ')' / ';' / Newline) .)+
+EntryName <- AbsoluteName / RelativeName
+AbsoluteName <- < '.' NameBody >
+RelativeName <- < NameBody >
+NameBody <- IdentifierRaw ('.' IdentifierRaw)*
+IdentifierRaw <- [A-Za-z_][A-Za-z0-9_-]*
+Separator <- ';' / Newline
+Newline <- '\r\n' / '\n' / '\r'
+%whitespace <- (_HSpace / _Comment)*
+_HSpace <- [ \t]
+_Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 )";
-
-	struct EnumInfo {
-		u64* value;
-		Refl::Enum* refl;
-	};
-
-	struct BareWord : public StringView {
-		using StringView::StringView;
-
-		BareWord(StringView view) : StringView(view) {}
-	};
 
 	struct Argument;
 
-	struct ArgumentArray : Array<Argument> {
+	struct Arguments : Array<Argument> {
 		using Array<Argument>::Array;
 	};
 
-	struct Argument : public Variant<bool, i64, u64, f64, StringView, BareWord, ArgumentArray> {
-		using Super = Variant<bool, i64, u64, f64, StringView, BareWord, ArgumentArray>;
+	struct Argument {
+		enum class Kind : u8
+		{
+			Literal,
+			Reference,
+			Call,
+		};
 
-		using Super::Super;
+		Kind kind = Kind::Literal;
+		StringView value;
+		Arguments arguments;
 	};
 
 	struct Statement;
-
-	struct StatementList : Array<Statement> {
-		using Array<Statement>::Array;
-	};
+	using Statements = Array<Statement>;
 
 	struct Statement {
 		enum class Type
@@ -86,32 +80,19 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 			Entry,
 			Assignment,
 			Invocation,
-			Scope,
+			Scope
 		};
 
 		Type type = Type::Entry;
 		StringView name;
-		ArgumentArray args;
-		StatementList statements;
+		Arguments arguments;
+		Statements statements;
 	};
 
-	class Interpreter
+	class Parser
 	{
 	private:
 		peg::parser m_parser;
-
-	private:
-		template<typename T>
-		static const T& any_ref(const std::any& value)
-		{
-			const T* result = std::any_cast<T>(&value);
-			if (result == nullptr)
-			{
-				throw std::runtime_error("Invalid console parser value");
-			}
-
-			return *result;
-		}
 
 		template<typename T>
 		static const T* any_ptr(const std::any& value)
@@ -120,748 +101,426 @@ _Comment        <- '#'  (![\r\n] .)* / '//' (![\r\n] .)*
 		}
 
 		template<typename T>
-		static const T* first_ptr(const peg::SemanticValues& values)
-		{
-			for (const std::any& value : values)
-			{
-				if (const T* result = any_ptr<T>(value))
-				{
-					return result;
-				}
-			}
-
-			return nullptr;
-		}
-
-		template<typename T>
 		static const T& first_ref(const peg::SemanticValues& values)
 		{
 			for (const std::any& value : values)
 			{
 				if (const T* result = any_ptr<T>(value))
-				{
 					return *result;
-				}
 			}
 
 			trinex_unreachable();
 		}
 
-		static StringView string_literal_value(StringView source)
-		{
-			if (source.length() < 2)
-			{
-				return "";
-			}
-
-			return source.substr(1, source.length() - 2);
-		}
-
-		static i64 parse_i64(StringView source)
-		{
-			String token(source);
-			return static_cast<i64>(std::strtoll(token.c_str(), nullptr, 0));
-		}
-
-		static u64 parse_u64_binary(StringView source)
-		{
-			bool negative = false;
-			usize index   = 0;
-
-			if (!source.empty() && (source[0] == '-' || source[0] == '+'))
-			{
-				negative = source[0] == '-';
-				index    = 1;
-			}
-
-			index += 2;
-
-			u64 result = 0;
-			for (; index < source.length(); ++index)
-			{
-				result = (result << 1) | static_cast<u64>(source[index] == '1');
-			}
-
-			return negative ? static_cast<u64>(-static_cast<i64>(result)) : result;
-		}
-
-		static Argument parse_integer(StringView source)
-		{
-			const bool negative = !source.empty() && source[0] == '-';
-			const usize offset  = (!source.empty() && (source[0] == '-' || source[0] == '+')) ? 1 : 0;
-
-			if (source.substr(offset).starts_with("0b"))
-			{
-				const u64 value = parse_u64_binary(source);
-				return negative ? Argument(static_cast<i64>(value)) : Argument(value);
-			}
-
-			if (negative)
-			{
-				return Argument(parse_i64(source));
-			}
-
-			String token(source);
-			return Argument(static_cast<u64>(std::strtoull(token.c_str(), nullptr, 0)));
-		}
-
-		static String resolve_name(StringView scope, StringView name)
-		{
-			if (name.starts_with("."))
-			{
-				return String(name.substr(1));
-			}
-
-			if (scope.empty())
-			{
-				return String(name);
-			}
-
-			return Strings::format("{}.{}", scope, name);
-		}
-
-		Entry* resolve_entry(StringView scope, StringView name, String* resolved_name = nullptr)
-		{
-			if (name.starts_with("."))
-			{
-				String candidate = String(name.substr(1));
-				Entry* entry     = find(candidate);
-
-				if (entry && resolved_name)
-				{
-					*resolved_name = etl::move(candidate);
-				}
-
-				return entry;
-			}
-
-			for (String current_scope(scope); !current_scope.empty();)
-			{
-				String candidate = Strings::format("{}.{}", current_scope, name);
-
-				if (Entry* entry = find(candidate))
-				{
-					if (resolved_name)
-					{
-						*resolved_name = etl::move(candidate);
-					}
-
-					return entry;
-				}
-
-				const usize position = current_scope.rfind('.');
-
-				if (position == String::npos)
-				{
-					break;
-				}
-
-				current_scope.resize(position);
-			}
-
-			String candidate = String(name);
-			Entry* entry     = find(candidate);
-
-			if (entry && resolved_name)
-			{
-				*resolved_name = etl::move(candidate);
-			}
-
-			return entry;
-		}
-
-	private:
-		Interpreter() : m_parser(grammar) { configure_actions(); }
-
 		void configure_actions()
 		{
-			m_parser["Boolean"] = [](const peg::SemanticValues& values) { return Argument(values.token() == "true"); };
-			m_parser["Float"]   = [](const peg::SemanticValues& values) { return Argument(values.token_to_number<f64>()); };
-			m_parser["Integer"] = [](const peg::SemanticValues& values) { return parse_integer(values.token()); };
-			m_parser["String"] = [](const peg::SemanticValues& values) { return Argument(string_literal_value(values.token())); };
-			m_parser["Bareword"] = [](const peg::SemanticValues& values) { return Argument(BareWord(values.token())); };
-
-			m_parser["Array"] = [](const peg::SemanticValues& values) {
-				if (auto result = first_ptr<ArgumentArray>(values))
-				{
-					return Argument(*result);
-				}
-
-				return Argument(ArgumentArray());
-			};
-
-			m_parser["ValueList"] = [](const peg::SemanticValues& values) {
-				ArgumentArray array;
-				array.reserve(values.size());
-
-				for (const std::any& value : values)
-				{
-					if (const Argument* argument = any_ptr<Argument>(value))
-					{
-						array.emplace_back(*argument);
-					}
-				}
-
-				return array;
-			};
-
 			m_parser["Value"]    = [](const peg::SemanticValues& values) { return first_ref<Argument>(values); };
 			m_parser["Argument"] = [](const peg::SemanticValues& values) { return first_ref<Argument>(values); };
-
+			m_parser["Literal"]  = [](const peg::SemanticValues& values) {
+				return Argument{Argument::Kind::Literal, values.token()};
+			};
+			m_parser["Reference"] = [](const peg::SemanticValues& values) {
+				return Argument{Argument::Kind::Reference, values.token()};
+			};
 			m_parser["ArgumentList"] = [](const peg::SemanticValues& values) {
-				ArgumentArray args;
-				args.reserve(values.size());
-
+				Arguments arguments;
 				for (const std::any& value : values)
-				{
 					if (const Argument* argument = any_ptr<Argument>(value))
-					{
-						args.emplace_back(*argument);
-					}
-				}
-
-				return args;
+						arguments.emplace_back(*argument);
+				return arguments;
 			};
-
+			m_parser["Call"] = [](const peg::SemanticValues& values) {
+				Argument argument{.kind = Argument::Kind::Call, .value = first_ref<StringView>(values)};
+				for (const std::any& value : values)
+					if (const Arguments* arguments = any_ptr<Arguments>(value))
+						argument.arguments = *arguments;
+				return argument;
+			};
 			m_parser["Entry"] = [](const peg::SemanticValues& values) {
-				return Statement{
-				        .type = Statement::Type::Entry,
-				        .name = first_ref<StringView>(values),
-				};
+				return Statement{.type = Statement::Type::Entry, .name = first_ref<StringView>(values)};
 			};
-
 			m_parser["Assignment"] = [](const peg::SemanticValues& values) {
-				Statement statement;
-				statement.type = Statement::Type::Assignment;
-				statement.name = first_ref<StringView>(values);
-				statement.args.emplace_back(first_ref<Argument>(values));
+				Statement statement{.type = Statement::Type::Assignment, .name = first_ref<StringView>(values)};
+				statement.arguments.emplace_back(first_ref<Argument>(values));
 				return statement;
 			};
-
 			m_parser["Invocation"] = [](const peg::SemanticValues& values) {
-				Statement statement;
-				statement.type = Statement::Type::Invocation;
-				statement.name = first_ref<StringView>(values);
-
-				if (auto result = first_ptr<ArgumentArray>(values))
-				{
-					statement.args = *result;
-				}
-
+				Statement statement{.type = Statement::Type::Invocation, .name = first_ref<StringView>(values)};
+				for (const std::any& value : values)
+					if (const Arguments* arguments = any_ptr<Arguments>(value))
+						statement.arguments = *arguments;
 				return statement;
 			};
-
 			m_parser["Scope"] = [](const peg::SemanticValues& values) {
-				Statement statement;
-				statement.type = Statement::Type::Scope;
-				statement.name = first_ref<StringView>(values);
-
+				Statement statement{.type = Statement::Type::Scope, .name = first_ref<StringView>(values)};
 				for (const std::any& value : values)
-				{
-					if (const StatementList* statements = any_ptr<StatementList>(value))
-					{
+					if (const Statements* statements = any_ptr<Statements>(value))
 						statement.statements = *statements;
-						break;
-					}
-				}
-
 				return statement;
 			};
-
-			m_parser["Statement"] = [](const peg::SemanticValues& values) { return first_ref<Statement>(values); };
-
+			m_parser["Statement"]     = [](const peg::SemanticValues& values) { return first_ref<Statement>(values); };
 			m_parser["StatementList"] = [](const peg::SemanticValues& values) {
-				StatementList statements;
-				statements.reserve(values.size());
-
+				Statements statements;
 				for (const std::any& value : values)
-				{
 					if (const Statement* statement = any_ptr<Statement>(value))
-					{
 						statements.emplace_back(*statement);
-					}
-				}
-
 				return statements;
 			};
-
 			m_parser["Program"] = [](const peg::SemanticValues& values) {
-				if (values.empty())
-				{
-					return StatementList();
-				}
-
-				return first_ref<StatementList>(values);
+				return values.empty() ? Statements() : first_ref<Statements>(values);
 			};
-
 			m_parser["EntryName"]    = [](const peg::SemanticValues& values) { return first_ref<StringView>(values); };
 			m_parser["AbsoluteName"] = [](const peg::SemanticValues& values) { return StringView(values.token()); };
 			m_parser["RelativeName"] = [](const peg::SemanticValues& values) { return StringView(values.token()); };
-			m_parser["Identifier"]   = [](const peg::SemanticValues& values) { return StringView(values.token()); };
 		}
 
 	public:
-		static Interpreter* instance()
-		{
-			static thread_local Interpreter Interpreter;
-			return &Interpreter;
-		}
+		Parser() : m_parser(grammar) { configure_actions(); }
 
-		ExecuteStatus parse(StatementList& statements, StringView source)
+		bool parse(StringView source, Statements& statements)
 		{
 			if (source.empty())
 			{
-				return ExecuteStatus::EmptyInput;
+				trinex_warning(Log::Console, "Empty console input");
+				return false;
 			}
 
-			StatementList result;
-			const bool success = m_parser.parse(source, result);
-
-			if (!success)
+			if (!m_parser.parse(source, statements))
 			{
-				return ExecuteStatus::UnexpectedToken;
+				trinex_warning(Log::Console, "Failed to parse console input: %.*s", static_cast<int>(source.size()),
+				               source.data());
+				return {};
 			}
 
-			statements = etl::move(result);
-			return ExecuteStatus::Success;
+			return true;
+		}
+	};
+
+	struct Binding {
+		String name;
+		String description;
+		EntryFlags flags               = EntryFlags::Undefined;
+		void* address                  = nullptr;
+		Reflection::Object* reflection = nullptr;
+	};
+
+	struct BindingCompare {
+		using is_transparent = void;
+
+		bool operator()(const Binding& lhs, const Binding& rhs) const { return lhs.name < rhs.name; }
+		bool operator()(const Binding& lhs, StringView rhs) const { return lhs.name < rhs; }
+		bool operator()(StringView lhs, const Binding& rhs) const { return lhs < rhs.name; }
+	};
+
+	static FlatSet<Binding, BindingCompare>& bindings()
+	{
+		static FlatSet<Binding, BindingCompare> result;
+		return result;
+	}
+
+	static const Binding* find_binding(StringView name)
+	{
+		auto it = bindings().find(name);
+		return it == bindings().end() ? nullptr : &*it;
+	}
+
+	static String scope_name(StringView scope, StringView name)
+	{
+		if (name.starts_with('.'))
+			return String(name.substr(1));
+
+		String result(scope);
+		if (!result.empty())
+			result += '.';
+		result += name;
+		return result;
+	}
+
+	static const Binding* resolve_binding(StringView scope, StringView name)
+	{
+		if (name.starts_with('.'))
+			return find_binding(name.substr(1));
+
+		for (String current_scope(scope); !current_scope.empty();)
+		{
+			String candidate = current_scope;
+			candidate += '.';
+			candidate += name;
+
+			if (const Binding* binding = find_binding(candidate))
+				return binding;
+
+			const usize position = current_scope.rfind('.');
+			if (position == String::npos)
+				break;
+
+			current_scope.resize(position);
 		}
 
-		ExecuteStatus execute(Entry* entry, const ExecuteContext& ctx, bool assignment)
+		return find_binding(name);
+	}
+
+	static bool store(void* dst, const Reflection::Type* type, const Argument& argument)
+	{
+		if (dst != nullptr && type != nullptr && type->parse(dst, argument.value) == argument.value.size())
+			return true;
+
+		trinex_warning(Log::Console, "Failed to parse '%.*s' as '%s'", static_cast<int>(argument.value.size()),
+		               argument.value.data(), type ? type->name().to_string().c_str() : "<null>");
+		return false;
+	}
+
+	static DynamicValue value_of(Reflection::Type* type, const void* value)
+	{
+		DynamicValue result(type);
+
+		if (value != nullptr && result && type->copy_assign(result.data(), value))
+			return result;
+
+		trinex_warning(Log::Console, "Failed to create dynamic console value");
+		return {};
+	}
+
+	static DynamicValue resolve_value(StringView scope, const Argument& argument, Reflection::Type* expected_type);
+
+	static DynamicValue execute_function(StringView scope, const Reflection::Function* function, Span<const Argument> arguments)
+	{
+		const auto& parameters = function->args();
+
+		if (arguments.size() != parameters.size())
 		{
-			if (entry == nullptr)
-			{
-				return ctx.flags.any(ExecuteFlags::IgnoreUnknown) ? ExecuteStatus::Success : ExecuteStatus::UnknownEntry;
-			}
-
-			if (entry->flags().any(EntryFlags::Hidden))
-			{
-				return ExecuteStatus::EntryUnavailable;
-			}
-
-			if (assignment && entry->flags().any(EntryFlags::ReadOnly))
-			{
-				return ExecuteStatus::ReadOnly;
-			}
-
-			if (entry->type() == EntryType::Variable && !assignment && !ctx.args.empty())
-			{
-				return ExecuteStatus::VariableCallSyntax;
-			}
-
-			if (entry->type() == EntryType::Command && assignment)
-			{
-				return ExecuteStatus::CommandCallSyntax;
-			}
-
-			return entry->execute(ctx);
+			trinex_warning(Log::Console, "Command expects %zu arguments", parameters.size());
+			return {};
 		}
 
-		ExecuteStatus execute(StringView scope, const Statement& statement, String* output, ExecuteFlags flags)
+		void* context = ByteAllocator::allocate_aligned(function->size() == 0 ? 1 : function->size(), function->alignment());
+		Array<Reflection::Property*> constructed;
+
+		auto construct = [&constructed, context](Reflection::Property* property) {
+			void* value = property->address(context);
+			return value != nullptr && property->type()->construct(value) && (constructed.emplace_back(property), true);
+		};
+
+		bool success = !function->result() || construct(function->result());
+
+		for (usize index = 0; success && index < parameters.size(); ++index)
 		{
-			String fullname = resolve_name(scope, statement.name);
-
-			if (statement.type == Statement::Type::Scope)
-			{
-				for (const Statement& child : statement.statements)
-				{
-					ExecuteStatus status = execute(fullname, child, output, flags);
-
-					if (status != ExecuteStatus::Success)
-					{
-						return status;
-					}
-				}
-
-				return ExecuteStatus::Success;
-			}
-
-			ExecuteContext ctx{
-			        .args   = Span<Argument>(const_cast<Argument*>(statement.args.data()), statement.args.size()),
-			        .output = output,
-			        .flags  = flags,
-			};
-
-			return execute(resolve_entry(scope, statement.name, &fullname), ctx, statement.type == Statement::Type::Assignment);
+			Reflection::Property* parameter = parameters[index].value();
+			DynamicValue value = resolve_value(scope, arguments[index], const_cast<Reflection::Type*>(parameter->type()));
+			success            = value && value.type() == parameter->type() && construct(parameter) &&
+			                     parameter->type()->copy_assign(parameter->address(context), value.data());
 		}
 
-		ExecuteStatus execute(StringView source, String* output, ExecuteFlags flags)
+		if (success)
 		{
-			StatementList statements;
-			ExecuteStatus status = parse(statements, source);
+			function->invoke(context);
+			DynamicValue result;
+			if (function->result())
+				result = value_of(const_cast<Reflection::Type*>(function->result()->type()), function->result()->load(context));
 
-			if (status != ExecuteStatus::Success)
+			while (!constructed.empty())
 			{
-				return status;
+				Reflection::Property* property = constructed.back();
+				property->type()->destruct(property->address(context));
+				constructed.pop_back();
 			}
+
+			ByteAllocator::deallocate(static_cast<unsigned char*>(context));
+			return result;
+		}
+		else
+		{
+			trinex_warning(Log::Console, "Failed to prepare command arguments");
+		}
+
+		while (!constructed.empty())
+		{
+			Reflection::Property* property = constructed.back();
+			property->type()->destruct(property->address(context));
+			constructed.pop_back();
+		}
+
+		ByteAllocator::deallocate(static_cast<unsigned char*>(context));
+		return {};
+	}
+
+	static DynamicValue resolve_value(StringView scope, const Argument& argument, Reflection::Type* expected_type)
+	{
+		if (argument.kind == Argument::Kind::Literal)
+		{
+			DynamicValue result(expected_type);
+			return result && store(result.data(), expected_type, argument) ? result : DynamicValue();
+		}
+
+		const Binding* binding = resolve_binding(scope, argument.value);
+
+		if (binding == nullptr)
+		{
+			if (argument.kind == Argument::Kind::Reference)
+			{
+				DynamicValue result(expected_type);
+				return result && store(result.data(), expected_type, argument) ? result : DynamicValue();
+			}
+
+			trinex_warning(Log::Console, "Unknown command '%.*s'", static_cast<int>(argument.value.size()),
+			               argument.value.data());
+			return {};
+		}
+
+		if (argument.kind == Argument::Kind::Call)
+		{
+			if (Reflection::Function* function = binding->reflection->cast<Reflection::Function>())
+			{
+				return execute_function(scope, function, argument.arguments);
+			}
+
+			trinex_warning(Log::Console, "Binding '%s' is not a command", binding->name.c_str());
+			return {};
+		}
+
+		if (Reflection::Type* type = binding->reflection->cast<Reflection::Type>())
+			return value_of(type, binding->address);
+
+		trinex_warning(Log::Console, "Binding '%s' is not a value", binding->name.c_str());
+		return {};
+	}
+
+	static DynamicValue execute_statement(StringView scope, StringView name, Span<const Argument> arguments, ExecuteFlags flags,
+	                                      Statement::Type type)
+	{
+		const bool assignment  = type == Statement::Type::Assignment;
+		const Binding* binding = resolve_binding(scope, name);
+
+		if (binding == nullptr)
+		{
+			if (!flags.any(ExecuteFlags::IgnoreUnknown))
+				trinex_warning(Log::Console, "Unknown console binding '%.*s'", static_cast<int>(name.size()), name.data());
+			return {};
+		}
+
+		if (binding->flags.any(EntryFlags::Hidden))
+		{
+			trinex_warning(Log::Console, "Console binding '%s' is unavailable", binding->name.c_str());
+			return {};
+		}
+
+		if (assignment && binding->flags.any(EntryFlags::ReadOnly))
+		{
+			trinex_warning(Log::Console, "Console binding '%s' is read-only", binding->name.c_str());
+			return {};
+		}
+
+		if (Reflection::Function* function = binding->reflection->cast<Reflection::Function>())
+		{
+			if (assignment)
+			{
+				trinex_warning(Log::Console, "Command '%s' cannot be assigned", binding->name.c_str());
+				return {};
+			}
+
+			return execute_function(scope, function, arguments);
+		}
+
+		Reflection::Type* value_type = binding->reflection->cast<Reflection::Type>();
+
+		if (value_type == nullptr)
+		{
+			trinex_warning(Log::Console, "Binding '%s' has unsupported reflection", binding->name.c_str());
+			return {};
+		}
+
+		if (arguments.empty())
+		{
+			return value_of(value_type, binding->address);
+		}
+
+		if (!assignment || arguments.size() != 1)
+		{
+			trinex_warning(Log::Console, "Variable '%s' requires assignment with one value", binding->name.c_str());
+			return {};
+		}
+
+		DynamicValue value = resolve_value(scope, arguments[0], value_type);
+
+		if (!value || value.type() != value_type || !value_type->copy_assign(binding->address, value.data()))
+		{
+			trinex_warning(Log::Console, "Failed to assign '%s'", binding->name.c_str());
+			return {};
+		}
+
+		return value_of(value_type, binding->address);
+	}
+
+	static DynamicValue execute(StringView scope, const Statement& statement, ExecuteFlags flags)
+	{
+		if (statement.type == Statement::Type::Scope)
+		{
+			const String child_scope = scope_name(scope, statement.name);
+			DynamicValue result;
+
+			for (const Statement& child : statement.statements)
+			{
+				result = execute(child_scope, child, flags);
+			}
+
+			return result;
+		}
+
+		return execute_statement(scope, statement.name, statement.arguments, flags, statement.type);
+	}
+
+	trinex_api void bind(StringView name, void* address, Reflection::Type* reflection, StringView description, EntryFlags flags)
+	{
+		trinex_verify(address != nullptr && reflection != nullptr && !name.empty() && find_binding(name) == nullptr);
+		bindings().insert({String(name), String(description), flags, address, reflection});
+	}
+
+	trinex_api void bind(StringView name, Reflection::Function* function, StringView description, EntryFlags flags)
+	{
+		trinex_verify(function != nullptr && !name.empty() && find_binding(name) == nullptr);
+		bindings().insert({String(name), String(description), flags, nullptr, function});
+	}
+
+	trinex_api void bind(StringView name, void (*function)(void*), Reflection::Type* ret, Reflection::Type** args, usize count,
+	                     StringView description, EntryFlags flags)
+	{
+		trinex_verify(function != nullptr && !name.empty() && find_binding(name) == nullptr);
+	}
+
+	trinex_api void unbind(StringView name)
+	{
+		if (auto it = bindings().find(name); it != bindings().end())
+			bindings().erase(it);
+	}
+
+	trinex_api DynamicValue execute(StringView source, ExecuteFlags flags)
+	{
+		static thread_local Parser parser;
+
+		Statements statements;
+
+		if (parser.parse(source, statements))
+		{
+			DynamicValue result;
 
 			for (const Statement& statement : statements)
 			{
-				status = execute("", statement, output, flags);
-
-				if (status != ExecuteStatus::Success)
-				{
-					return status;
-				}
+				result = execute("", statement, flags);
 			}
 
-			return ExecuteStatus::Success;
-		}
-	};
-
-	class Manager
-	{
-	private:
-		struct Compare {
-			bool operator()(const Entry* first, const Entry* second) const { return first->name() < second->name(); }
-		};
-
-		FlatSet<Entry*, Compare> m_entries;
-
-	public:
-		Manager& bind(Entry* entry)
-		{
-			trinex_assert(find(entry->name()) == nullptr);
-			const bool inserted = m_entries.insert(entry).second;
-			trinex_assert(inserted);
-			return *this;
+			return result;
 		}
 
-		Manager& unbind(Entry* entry)
-		{
-			trinex_assert(find(entry->name()) == entry);
-			m_entries.erase(entry);
-			return *this;
-		}
-
-		Entry* find(StringView name) const
-		{
-			auto it = etl::lower_bound(m_entries.begin(), m_entries.end(), name,
-			                           [](const Entry* entry, StringView name) { return entry->name() < name; });
-
-			if (it == m_entries.end())
-				return nullptr;
-
-			Entry* entry = *it;
-
-			if (entry->name() != name)
-				return nullptr;
-
-			return entry;
-		}
-
-		usize find(StringView name, const DelegateRef<void(Entry*)>& action) const
-		{
-			auto it = etl::lower_bound(m_entries.begin(), m_entries.end(), name,
-			                           [](const Entry* entry, StringView name) { return entry->name() < name; });
-
-			usize count = 0;
-
-			for (; it != m_entries.end(); ++it)
-			{
-				Entry* entry = *it;
-
-				if (!entry->name().starts_with(name))
-					return count;
-
-				action(entry);
-				++count;
-			}
-
-			return count;
-		}
-
-		static Manager* instance()
-		{
-			static Manager manager;
-			return &manager;
-		}
-	};
-
-	template<typename T>
-	concept ArgumentString = etl::same_as<T, StringView> || etl::same_as<T, BareWord>;
-
-	template<typename Dst, typename Src>
-	static inline ExecuteStatus (*s_type_convertor)(Dst*, const Src*) =
-	        [](Dst*, const Src*) -> ExecuteStatus { return ExecuteStatus::ValueParseFailed; };
-
-	template<typename T>
-	static inline ExecuteStatus (*s_type_convertor<T, T>)(T*, const T*) = [](T* dst, const T* src) -> ExecuteStatus {
-		*dst = *src;
-		return ExecuteStatus::Success;
-	};
-
-	template<etl::arithmetic Dst, etl::arithmetic Src>
-	static inline ExecuteStatus (*s_type_convertor<Dst, Src>)(Dst*, const Src*) = [](Dst* dst, const Src* src) -> ExecuteStatus {
-		*dst = static_cast<Dst>(*src);
-		return ExecuteStatus::Success;
-	};
-
-	template<etl::arithmetic Dst, ArgumentString Src>
-	static inline ExecuteStatus (*s_type_convertor<Dst, Src>)(Dst*, const Src*) = [](Dst* dst, const Src* src) -> ExecuteStatus {
-		if constexpr (etl::same_as<Dst, bool>)
-		{
-			if (Strings::boolean_of(*src, *dst))
-				return ExecuteStatus::Success;
-
-			return ExecuteStatus::ValueParseFailed;
-		}
-		else if constexpr (etl::unsigned_integral<Dst>)
-		{
-			if (Strings::unsigned_of(*src, *dst))
-				return ExecuteStatus::Success;
-
-			return ExecuteStatus::ValueParseFailed;
-		}
-		else if constexpr (etl::signed_integral<Dst>)
-		{
-			if (Strings::signed_of(*src, *dst))
-				return ExecuteStatus::Success;
-
-			return ExecuteStatus::ValueParseFailed;
-		}
-		else if constexpr (etl::floating_point<Dst>)
-		{
-			if (Strings::floating_of(*src, *dst))
-				return ExecuteStatus::Success;
-
-			return ExecuteStatus::ValueParseFailed;
-		}
-
-		return ExecuteStatus::ValueParseFailed;
-	};
-
-	template<ArgumentString Src>
-	static inline ExecuteStatus (*s_type_convertor<EnumInfo, Src>)(EnumInfo*, const Src*) =
-	        [](EnumInfo* dst, const Src* src) -> ExecuteStatus {
-		StringView view = *src;
-
-		auto& entries = dst->refl->entries();
-
-		auto it = etl::find_if(entries.begin(), entries.end(),
-		                       [&view](const Refl::Enum::Entry& entry) -> bool { return entry.name == view; });
-
-		if (it == entries.end())
-			return ExecuteStatus::ValueParseFailed;
-
-		(*dst->value) = it->value;
-		return ExecuteStatus::Success;
-	};
-
-	template<ArgumentString Src>
-	static inline ExecuteStatus (*s_type_convertor<String, Src>)(String*, const Src*) =
-	        [](String* dst, const Src* src) -> ExecuteStatus {
-		*dst = *src;
-		return ExecuteStatus::Success;
-	};
-
-	template<etl::arithmetic Src>
-	static inline ExecuteStatus (*s_type_convertor<String, Src>)(String*, const Src*) =
-	        [](String* dst, const Src* src) -> ExecuteStatus {
-		if constexpr (etl::same_as<Src, bool>)
-		{
-			(*dst) = (*src) ? "true" : "false";
-			return ExecuteStatus::Success;
-		}
-		else
-		{
-			(*dst) = Strings::format("{}", *src);
-			return ExecuteStatus::Success;
-		}
-
-		trinex_unreachable();
-	};
-
-
-	template<typename T>
-	static ExecuteStatus store_internal(T* dst, const Argument* src)
-	{
-		auto visitor = [dst]<typename Src>(const Src& value) -> ExecuteStatus { return s_type_convertor<T, Src>(dst, &value); };
-		return etl::visit(visitor, *src);
+		return {};
 	}
 
-	ExecuteStatus Entry::store(bool* dst, const Argument* src)
-	{
-		return store_internal(dst, src);
-	}
-
-	ExecuteStatus Entry::store(u64* dst, const Argument* src)
-	{
-		return store_internal(dst, src);
-	}
-
-	ExecuteStatus Entry::store(i64* dst, const Argument* src)
-	{
-		return store_internal(dst, src);
-	}
-
-	ExecuteStatus Entry::store(f64* dst, const Argument* src)
-	{
-		return store_internal(dst, src);
-	}
-
-	ExecuteStatus Entry::store(String* dst, const Argument* src)
-	{
-		return store_internal(dst, src);
-	}
-
-	ExecuteStatus Entry::store(ArrayInterface* dst, const Argument* src)
-	{
-		dst->clear();
-
-		if (const ArgumentArray* array = etl::get_if<ArgumentArray>(src))
-		{
-			for (const Argument& argument : *array)
-			{
-				ExecuteStatus status = dst->append(&argument);
-
-				if (status != ExecuteStatus::Success)
-					return status;
-			}
-		}
-		else
-		{
-			return dst->append(src);
-		}
-
-		return ExecuteStatus::Success;
-	}
-
-	ExecuteStatus Entry::store_enum(u64* dst, const Argument* src, Refl::Enum* refl)
-	{
-		EnumInfo result = {
-		        .value = dst,
-		        .refl  = refl,
-		};
-
-		return store_internal(&result, src);
-	}
-
-	ExecuteStatus Entry::store_bitfield(u64* dst, const Argument* src, Refl::Enum* refl)
-	{
-		if (const ArgumentArray* array = etl::get_if<ArgumentArray>(src))
-		{
-			*dst = 0;
-
-			for (const Argument& argument : *array)
-			{
-				u64 tmp              = 0;
-				ExecuteStatus status = store_bitfield(&tmp, &argument, refl);
-
-				if (status != ExecuteStatus::Success)
-					return status;
-
-				*dst |= tmp;
-			}
-		}
-		else
-		{
-			return store_enum(dst, src, refl);
-		}
-
-		return ExecuteStatus::Success;
-	}
-
-	ExecuteStatus Entry::store(String* dst, bool* src)
-	{
-		(*dst) = (*src) ? "true" : "false";
-		return ExecuteStatus::Success;
-	}
-
-	ExecuteStatus Entry::store(String* dst, u64* src)
-	{
-		(*dst) = Strings::format("{}", *src);
-		return ExecuteStatus::Success;
-	}
-
-	ExecuteStatus Entry::store(String* dst, i64* src)
-	{
-		(*dst) = Strings::format("{}", *src);
-		return ExecuteStatus::Success;
-	}
-
-	ExecuteStatus Entry::store(String* dst, f64* src)
-	{
-		(*dst) = Strings::format("{}", *src);
-		return ExecuteStatus::Success;
-	}
-
-	ExecuteStatus Entry::store(String* dst, String* src)
-	{
-		(*dst) = *src;
-		return ExecuteStatus::Success;
-	}
-
-	ExecuteStatus Entry::store(String* dst, ArrayInterface* src)
-	{
-		(*dst) = Strings::format("<array:{}>", src->size());
-		return ExecuteStatus::Success;
-	}
-
-	EntryType VariableEntry::type() const
-	{
-		return EntryType::Variable;
-	}
-
-	Command::Command(StringView name, Callback callback, StringView description, EntryFlags flags)
-	    : Entry(name, description, flags), m_callback(etl::move(callback))
-	{}
-
-	EntryType Command::type() const
-	{
-		return EntryType::Command;
-	}
-
-	ExecuteStatus Command::execute(const ExecuteContext& ctx)
-	{
-		if (!m_callback)
-		{
-			return ExecuteStatus::CommandHasNoCallback;
-		}
-
-		return m_callback(ctx);
-	}
-
-	Entry::Entry(StringView name, StringView description, EntryFlags flags)
-	    : m_name(name), m_description(description), m_flags(flags)
-	{
-		Manager::instance()->bind(this);
-	}
-
-	Entry::~Entry()
-	{
-		Manager::instance()->unbind(this);
-	}
-
-	trinex_api Entry* find(StringView name)
-	{
-		return Manager::instance()->find(name);
-	}
-
-	trinex_api usize find(StringView name, const DelegateRef<void(Entry*)>& action)
-	{
-		return Manager::instance()->find(name, action);
-	}
-
-	trinex_api ExecuteStatus execute(StringView source, String* output, ExecuteFlags flags)
-	{
-		return Interpreter::instance()->execute(source, output, flags);
-	}
-
-	trinex_api ExecuteStatus execute_config(const Path& path)
+	trinex_api DynamicValue execute_config(const Path& path)
 	{
 		if (auto data = rootfs()->map(Path("[configs]:") / path))
-		{
-			const ExecuteStatus status = Console::execute(data->as<StringView>());
+			return Console::execute(data->as<StringView>());
 
-			if (status != ExecuteStatus::Success)
-			{
-				trinex_warning(Log::Engine, "Failed to execute config '%s' with status %u", path.c_str(),
-				               static_cast<u32>(status.value));
-			}
-			return status;
-		}
+		trinex_warning(Log::Console, "Failed to load config '%s'", path.c_str());
 
-		trinex_warning(Log::Engine, "Failed to load config '%s'", path.c_str());
-		return ExecuteStatus::FileOpenFailed;
+		return DynamicValue();
 	}
 }// namespace Trinex::Console
