@@ -30,6 +30,9 @@ namespace Trinex::Refl::New
 		virtual const void* load(const void* context, void* temporary = nullptr) = 0;
 		virtual void store(void* context, void* object)                          = 0;
 
+		Object* resolve(const Class* base) override;
+		const Object* resolve(const Class* base) const override;
+
 		Class* reflection() const override { return class_of<Property>(); }
 
 		inline const Type* type() const { return m_type.value(); }

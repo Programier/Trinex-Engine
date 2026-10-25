@@ -18,6 +18,8 @@ namespace Trinex::Refl::New
 		static PointerType* from(Type* type);
 		static const VTable* vtable();
 
+		Object* resolve(const Class* base) override;
+		const Object* resolve(const Class* base) const override;
 		Class* reflection() const override { return class_of<PointerType>(); }
 
 		inline Type* type() const { return m_type.value(); }

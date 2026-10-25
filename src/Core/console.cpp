@@ -9,7 +9,6 @@
 #include <Core/reflection/new/object.hpp>
 #include <Core/reflection/new/pointer_type.hpp>
 #include <Core/reflection/new/property.hpp>
-#include <Core/reflection/new/struct.hpp>
 #include <Core/reflection/new/type.hpp>
 #include <Core/types/path.hpp>
 
@@ -29,7 +28,8 @@ Entry <- EntryName
 ArgumentList <- Argument (Newline* ',' Newline* Argument)* (Newline* ',')?
 Argument <- Value
 Value <- Call / Reference / Literal
-Call <- EntryName '(' Newline* ArgumentList? Newline* ')' Method* Member*
+Call <- EntryName '(' Newline* ArgumentList? Newline* ')' Postfix*
+Postfix <- Method / Member
 Method <- '.' MemberName '(' Newline* ArgumentList? Newline* ')'
 Member <- '.' MemberName
 MemberName <- < IdentifierRaw >
@@ -64,11 +64,14 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		using Array<Argument>::Array;
 	};
 
-	struct Member {
-		StringView name;
-	};
+	struct Postfix {
+		enum class Type : u8
+		{
+			Member,
+			Method,
+		};
 
-	struct Method {
+		Type type;
 		StringView name;
 		Arguments arguments;
 	};
@@ -84,8 +87,7 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		Kind kind = Kind::Literal;
 		StringView value;
 		Arguments arguments;
-		Array<Method> methods;
-		Array<StringView> members;
+		Array<Postfix> postfixes;
 	};
 
 	struct Statement;
@@ -103,8 +105,7 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		Type type = Type::Entry;
 		StringView name;
 		Arguments arguments;
-		Array<Method> methods;
-		Array<StringView> members;
+		Array<Postfix> postfixes;
 		Statements statements;
 	};
 
@@ -153,22 +154,23 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 				for (const std::any& value : values)
 					if (const Arguments* arguments = any_ptr<Arguments>(value))
 						argument.arguments = *arguments;
-					else if (const Method* method = any_ptr<Method>(value))
-						argument.methods.emplace_back(*method);
-					else if (const Member* member = any_ptr<Member>(value))
-						argument.members.emplace_back(member->name);
+					else if (const Postfix* postfix = any_ptr<Postfix>(value))
+						argument.postfixes.emplace_back(*postfix);
 				return argument;
 			};
 			m_parser["MemberName"] = [](const peg::SemanticValues& values) { return StringView(values.token()); };
-			m_parser["Member"]     = [](const peg::SemanticValues& values) { return Member{first_ref<StringView>(values)}; };
-			m_parser["Method"]     = [](const peg::SemanticValues& values) {
-				Method method{.name = first_ref<StringView>(values)};
+			m_parser["Member"]     = [](const peg::SemanticValues& values) {
+				return Postfix{.type = Postfix::Type::Member, .name = first_ref<StringView>(values)};
+			};
+			m_parser["Method"] = [](const peg::SemanticValues& values) {
+				Postfix method{.type = Postfix::Type::Method, .name = first_ref<StringView>(values)};
 				for (const std::any& value : values)
 					if (const Arguments* arguments = any_ptr<Arguments>(value))
 						method.arguments = *arguments;
 				return method;
 			};
-			m_parser["Entry"] = [](const peg::SemanticValues& values) {
+			m_parser["Postfix"] = [](const peg::SemanticValues& values) { return first_ref<Postfix>(values); };
+			m_parser["Entry"]   = [](const peg::SemanticValues& values) {
 				return Statement{.type = Statement::Type::Entry, .name = first_ref<StringView>(values)};
 			};
 			m_parser["Assignment"] = [](const peg::SemanticValues& values) {
@@ -181,8 +183,7 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 				return Statement{.type      = Statement::Type::Invocation,
 				                 .name      = argument.value,
 				                 .arguments = argument.arguments,
-				                 .methods   = argument.methods,
-				                 .members   = argument.members};
+				                 .postfixes = argument.postfixes};
 			};
 			m_parser["Scope"] = [](const peg::SemanticValues& values) {
 				Statement statement{.type = Statement::Type::Scope, .name = first_ref<StringView>(values)};
@@ -314,34 +315,26 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		return {};
 	}
 
-	static DynamicValue resolve_members(DynamicValue value, Span<const StringView> members)
+	static DynamicValue resolve_member(DynamicValue value, StringView name)
 	{
-		for (StringView name : members)
+		Reflection::Type* value_type = value.type();
+		void* address                = value.data();
+
+		if (Reflection::PointerType* pointer_type = value_type ? value_type->cast<Reflection::PointerType>() : nullptr)
 		{
-			Reflection::Property* property = nullptr;
-
-			for (const Reflection::Struct* type = value ? value.type()->cast<Reflection::Struct>() : nullptr; type != nullptr;
-			     type                           = type->base())
-			{
-				if (Reflection::Object* member = type->find(Name(name)))
-				{
-					property = member->cast<Reflection::Property>();
-					break;
-				}
-			}
-
-			if (property == nullptr)
-			{
-				trinex_warning(Log::Console, "Failed to find property '%.*s'", static_cast<int>(name.size()), name.data());
-				return {};
-			}
-
-			value = value_of(const_cast<Reflection::Type*>(property->type()), property->load(value.data()));
-			if (!value)
-				return {};
+			address    = address ? *static_cast<void**>(address) : nullptr;
+			value_type = pointer_type->type();
 		}
 
-		return value;
+		Reflection::Property* property = value_type ? value_type->find<Reflection::Property>(name) : nullptr;
+
+		if (property == nullptr || address == nullptr)
+		{
+			trinex_warning(Log::Console, "Failed to find property '%.*s'", static_cast<int>(name.size()), name.data());
+			return {};
+		}
+
+		return value_of(const_cast<Reflection::Type*>(property->type()), property->load(address));
 	}
 
 	static DynamicValue resolve_reference(StringView scope, StringView name)
@@ -354,15 +347,19 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 			if (type == nullptr)
 				continue;
 
-			Array<StringView> members;
+			DynamicValue value = value_of(type, binding->address);
 			for (usize begin = position + 1; begin < name.size();)
 			{
 				const usize end = name.find('.', begin);
-				members.emplace_back(name.substr(begin, end - begin));
+				value           = resolve_member(etl::move(value), name.substr(begin, end - begin));
+				if (!value)
+					return {};
+
+				if (end == StringView::npos)
+					return value;
+
 				begin = end == StringView::npos ? name.size() : end + 1;
 			}
-
-			return resolve_members(value_of(type, binding->address), members);
 		}
 
 		return {};
@@ -453,16 +450,7 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 			type    = pointer_type->type();
 		}
 
-		Reflection::Function* function = nullptr;
-		for (const Reflection::Struct* struct_type = type ? type->cast<Reflection::Struct>() : nullptr; struct_type != nullptr;
-		     struct_type                           = struct_type->base())
-		{
-			if (Reflection::Object* member = struct_type->find(Name(name)))
-			{
-				function = member->cast<Reflection::Function>();
-				break;
-			}
-		}
+		Reflection::Function* function = type ? type->find<Reflection::Function>(name) : nullptr;
 
 		if (function == nullptr)
 		{
@@ -473,11 +461,13 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		return execute_function(scope, function, arguments, address);
 	}
 
-	static DynamicValue execute_methods(StringView scope, DynamicValue value, Span<const Method> methods)
+	static DynamicValue execute_postfixes(StringView scope, DynamicValue value, Span<const Postfix> postfixes)
 	{
-		for (const Method& method : methods)
+		for (const Postfix& postfix : postfixes)
 		{
-			value = execute_method(scope, value.type(), value.data(), method.name, method.arguments);
+			value = postfix.type == Postfix::Type::Member
+			                ? resolve_member(etl::move(value), postfix.name)
+			                : execute_method(scope, value.type(), value.data(), postfix.name, postfix.arguments);
 			if (!value)
 				return {};
 		}
@@ -501,8 +491,9 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		if (argument.kind == Argument::Kind::Literal)
 		{
 			DynamicValue result(expected_type);
-			return result && store(result.data(), expected_type, argument) ? resolve_members(etl::move(result), argument.members)
-			                                                               : DynamicValue();
+			return result && store(result.data(), expected_type, argument)
+			               ? execute_postfixes(scope, etl::move(result), argument.postfixes)
+			               : DynamicValue();
 		}
 
 		const Binding* binding = resolve_binding(scope, argument.value);
@@ -515,7 +506,7 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 			if (argument.kind == Argument::Kind::Reference)
 			{
 				if (DynamicValue value = resolve_reference(scope, argument.value))
-					return resolve_members(etl::move(value), argument.members);
+					return execute_postfixes(scope, etl::move(value), argument.postfixes);
 
 				DynamicValue result(expected_type);
 				return result && store(result.data(), expected_type, argument) ? result : DynamicValue();
@@ -530,9 +521,7 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		{
 			if (Reflection::Function* function = binding->reflection->cast<Reflection::Function>())
 			{
-				return resolve_members(
-				        execute_methods(scope, execute_function(scope, function, argument.arguments), argument.methods),
-				        argument.members);
+				return execute_postfixes(scope, execute_function(scope, function, argument.arguments), argument.postfixes);
 			}
 
 			trinex_warning(Log::Console, "Binding '%s' is not a command", binding->name.c_str());
@@ -540,15 +529,14 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		}
 
 		if (Reflection::Type* type = binding->reflection->cast<Reflection::Type>())
-			return resolve_members(value_of(type, binding->address), argument.members);
+			return execute_postfixes(scope, value_of(type, binding->address), argument.postfixes);
 
 		trinex_warning(Log::Console, "Binding '%s' is not a value", binding->name.c_str());
 		return {};
 	}
 
 	static DynamicValue execute_statement(StringView scope, StringView name, Span<const Argument> arguments,
-	                                      Span<const Method> methods, Span<const StringView> members, ExecuteFlags flags,
-	                                      Statement::Type type)
+	                                      Span<const Postfix> postfixes, ExecuteFlags flags, Statement::Type type)
 	{
 		const bool assignment  = type == Statement::Type::Assignment;
 		const Binding* binding = resolve_binding(scope, name);
@@ -593,7 +581,7 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 				return {};
 			}
 
-			return resolve_members(execute_methods(scope, execute_function(scope, function, arguments), methods), members);
+			return execute_postfixes(scope, execute_function(scope, function, arguments), postfixes);
 		}
 
 		Reflection::Type* value_type = binding->reflection->cast<Reflection::Type>();
@@ -641,8 +629,7 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 			return result;
 		}
 
-		return execute_statement(scope, statement.name, statement.arguments, statement.methods, statement.members, flags,
-		                         statement.type);
+		return execute_statement(scope, statement.name, statement.arguments, statement.postfixes, flags, statement.type);
 	}
 
 	trinex_api void bind(StringView name, void* address, Reflection::Type* reflection, StringView description, EntryFlags flags)

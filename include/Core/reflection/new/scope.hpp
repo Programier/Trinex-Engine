@@ -35,7 +35,7 @@ namespace Trinex::Refl::New
 		static Scope* trinex();
 		static Scope* create(InitializerList<Name> path);
 
-		Object* find(Name name) const override;
+		Object* find(Name name, const Class* base = nullptr) const override;
 		Class* reflection() const override { return class_of<Scope>(); }
 		inline const Array<Ref<Object>>& members() const { return m_members.container(); }
 	};

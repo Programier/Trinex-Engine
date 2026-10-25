@@ -36,7 +36,9 @@ namespace Trinex::Refl::New
 		Object(Name name, u64 flags = 0, Object* owner = nullptr);
 
 		virtual Class* reflection() const;
-		virtual Object* find(Name name) const;
+		virtual Object* resolve(const Class* base);
+		virtual const Object* resolve(const Class* base) const;
+		virtual Object* find(Name name, const Class* base = nullptr) const;
 
 		bool owner(Object* object);
 		bool is(const Class* base) const;
@@ -57,6 +59,24 @@ namespace Trinex::Refl::New
 		const T* cast() const
 		{
 			return is<T>() ? static_cast<const T*>(this) : nullptr;
+		}
+
+		template<typename T>
+		T* resolve()
+		{
+			return static_cast<T*>(resolve(class_of<T>()));
+		}
+
+		template<typename T>
+		const T* resolve() const
+		{
+			return static_cast<const T*>(resolve(class_of<T>()));
+		}
+
+		template<typename T>
+		T* find(Name name)
+		{
+			return static_cast<T*>(find(name, class_of<T>()));
 		}
 
 		inline Name name() const { return m_name; }

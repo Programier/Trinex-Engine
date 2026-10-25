@@ -190,7 +190,7 @@ namespace Trinex::Refl::New
 		}
 	}// namespace Native
 
-	Struct::Struct(Name name, u32 size, u32 alignment, u64 flags, const Struct* base, const VTable* vtable, Object* owner)
+	Struct::Struct(Name name, u32 size, u32 alignment, u64 flags, Struct* base, const VTable* vtable, Object* owner)
 	    : Type(name, size, alignment, flags, vtable, owner), m_base(retain_ref(base))
 	{}
 
@@ -226,11 +226,48 @@ namespace Trinex::Refl::New
 		return false;
 	}
 
-	Object* Struct::find(Name name) const
+	Object* Struct::find(Name name, const Class* base) const
 	{
 		if (auto it = m_members.find(name); it != m_members.end())
 		{
-			return it->value();
+			if (base)
+			{
+				return it->value()->is(base) ? it->value() : nullptr;
+			}
+			else
+			{
+				return it->value();
+			}
+		}
+
+		return m_base ? m_base->find(name, base) : nullptr;
+	}
+
+	Object* Struct::resolve(const Class* base)
+	{
+		if (Object* object = Type::resolve(base))
+		{
+			return object;
+		}
+
+		if (m_base)
+		{
+			return m_base->resolve(base);
+		}
+
+		return nullptr;
+	}
+
+	const Object* Struct::resolve(const Class* base) const
+	{
+		if (const Object* object = Type::resolve(base))
+		{
+			return object;
+		}
+
+		if (m_base)
+		{
+			return m_base->resolve(base);
 		}
 
 		return nullptr;

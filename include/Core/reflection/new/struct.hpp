@@ -30,7 +30,7 @@ namespace Trinex::Refl::New
 		};
 
 	private:
-		Ref<const Struct> m_base;
+		Ref<Struct> m_base;
 		FlatSet<Ref<Object>, Compare> m_members;
 
 	private:
@@ -46,10 +46,13 @@ namespace Trinex::Refl::New
 			IsTrivial        = 1ull << 11,
 		};
 
-		Struct(Name name, u32 size, u32 alignment, u64 flags = 0, const Struct* base = nullptr, const VTable* vtable = nullptr,
+		Struct(Name name, u32 size, u32 alignment, u64 flags = 0, Struct* base = nullptr, const VTable* vtable = nullptr,
 		       Object* owner = nullptr);
 
-		Object* find(Name name) const override;
+		Object* find(Name name, const Class* base = nullptr) const override;
+		Object* resolve(const Class* base) override;
+		const Object* resolve(const Class* base) const override;
+
 		bool is(const Struct* other) const;
 
 		Class* reflection() const override { return class_of<Struct>(); }

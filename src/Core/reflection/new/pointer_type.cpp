@@ -35,6 +35,26 @@ namespace Trinex::Refl::New
 		return &vtable;
 	}
 
+	Object* PointerType::resolve(const Class* base)
+	{
+		if (Object* object = Type::resolve(base))
+		{
+			return object;
+		}
+
+		return m_type->resolve(base);
+	}
+
+	const Object* PointerType::resolve(const Class* base) const
+	{
+		if (const Object* object = Type::resolve(base))
+		{
+			return object;
+		}
+
+		return m_type->resolve(base);
+	}
+
 	trinex_api Type* pointer_type_of(Type* type)
 	{
 		return PointerType::from(type);

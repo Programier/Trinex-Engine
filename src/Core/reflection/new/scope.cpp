@@ -83,11 +83,18 @@ namespace Trinex::Refl::New
 		return scope;
 	}
 
-	Object* Scope::find(Name name) const
+	Object* Scope::find(Name name, const Class* base) const
 	{
 		if (auto it = m_members.find(name); it != m_members.end())
 		{
-			return it->value();
+			if (base)
+			{
+				return it->value()->is(base) ? it->value() : nullptr;
+			}
+			else
+			{
+				return it->value();
+			}
 		}
 
 		return nullptr;

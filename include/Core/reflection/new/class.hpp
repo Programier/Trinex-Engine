@@ -19,7 +19,7 @@ namespace Trinex::Refl::New
 		};
 
 	public:
-		Class(Name name, u32 size, u32 alignment, u64 flags = 0, const Class* base = nullptr, const VTable* vtable = nullptr,
+		Class(Name name, u32 size, u32 alignment, u64 flags = 0, Class* base = nullptr, const VTable* vtable = nullptr,
 		      Object* owner = nullptr);
 
 		Class* reflection() const override { return class_of<Class>(); }

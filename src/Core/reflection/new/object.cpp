@@ -13,7 +13,17 @@ namespace Trinex::Refl::New
 		return class_of<Object>();
 	}
 
-	Object* Object::find(Name name) const
+	Object* Object::resolve(const Class* base)
+	{
+		return is(base) ? this : nullptr;
+	}
+
+	const Object* Object::resolve(const Class* base) const
+	{
+		return is(base) ? this : nullptr;
+	}
+
+	Object* Object::find(Name name, const Class* base) const
 	{
 		return nullptr;
 	}
