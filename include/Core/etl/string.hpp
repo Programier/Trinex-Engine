@@ -11,6 +11,7 @@ namespace Trinex
 
 	namespace Strings
 	{
+		trinex_api StringView trim(std::string_view value);
 		trinex_api StringView lstrip(const StringView& line, const StringView& chars = " \t\n\r");
 		trinex_api StringView rstrip(const StringView& line, const StringView& chars = " \t\n\r");
 		trinex_api StringView lstrip(const StringView& line, bool (*callback)(char ch));

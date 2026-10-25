@@ -26,14 +26,14 @@ namespace Trinex::Console
 		trinex_bitfield_enum_struct(EntryFlags, u32);
 	};
 
-	struct ExecuteFlags {
+	struct ExecutionFlags {
 		enum Enum : u32
 		{
 			Undefined     = 0,
 			IgnoreUnknown = 1 << 0,
 		};
 
-		trinex_bitfield_enum_struct(ExecuteFlags, u32);
+		trinex_bitfield_enum_struct(ExecutionFlags, u32);
 	};
 
 	trinex_api void bind(StringView name, void* address, Reflection::Type* reflection, StringView description = "",
@@ -43,7 +43,7 @@ namespace Trinex::Console
 
 	trinex_api void unbind(StringView name);
 
-	trinex_api DynamicValue execute(StringView source, ExecuteFlags flags = {});
+	trinex_api DynamicValue execute(StringView source, ExecutionFlags flags = {});
 	trinex_api DynamicValue execute_config(const Path& path);
 
 	template<typename T>

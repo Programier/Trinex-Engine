@@ -117,6 +117,18 @@ namespace Trinex
 			return true;
 		}
 
+		trinex_api StringView trim(StringView value)
+		{
+			const auto first = value.find_first_not_of(" \t");
+
+			if (first == std::string_view::npos)
+				return {};
+
+			const auto last = value.find_last_not_of(" \t");
+
+			return value.substr(first, last - first + 1);
+		}
+
 		trinex_api StringView lstrip(const StringView& line, const StringView& chars)
 		{
 			StringView::size_type start = line.find_first_not_of(chars);
