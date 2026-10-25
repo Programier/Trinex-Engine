@@ -9,11 +9,51 @@ namespace Reflector
 {
 	namespace fs = std::filesystem;
 
+	using ResolvedNameOf    = WriteAs<struct ResolvedName>;
 	using AccessorPathOf    = WriteAs<struct AccessorPath>;
 	using ResolvedPathOf    = WriteAs<struct ResolvedPath>;
 	using ObjectIDOf        = WriteAs<struct ObjectID>;
 	using ObjectPathOf      = WriteAs<struct ObjectPath>;
 	using OwnerReflectionOf = WriteAs<struct OwnerReflection>;
+	using FunctionFlagsOf   = WriteAs<struct FunctionFlags>;
+
+	struct ResolvedName {
+		static void execute(CodeWriter* writer, const Object* object)
+		{
+			if (object == nullptr || object->is_a(ObjectKind::Module))
+				return;
+
+			if (object->is_a(ObjectKind::Function))
+			{
+				const Function* function = static_cast<const Function*>(object);
+
+				if (function->flags & Function::Constructor)
+				{
+					writer->write("constructor_");
+					writer->write(reinterpret_cast<std::uintptr_t>(function));
+				}
+				else if (function->flags & Function::Destructor)
+				{
+					writer->write("destructor_");
+					writer->write(reinterpret_cast<std::uintptr_t>(function));
+				}
+				else if (function->flags & Function::Operator)
+				{
+					writer->write("operator_");
+					writer->write(reinterpret_cast<std::uintptr_t>(function));
+				}
+				else
+				{
+					writer->write(object->name);
+				}
+			}
+			else
+			{
+				writer->write(object->name);
+			}
+		}
+	};
+
 
 	struct AccessorPath {
 		static void execute(CodeWriter* writer, const Object* object)
@@ -28,14 +68,17 @@ namespace Reflector
 			}
 
 			execute(writer, object->owner);
-			writer->write("::$0", object->name);
+			writer->write("::$0", ResolvedNameOf(object));
 		}
 	};
 
 	struct ResolvedPath {
 		static void execute(CodeWriter* writer, const Object* object)
 		{
-			writer->write("$0::$1", AccessorPathOf(object->owner), object->name);
+			if (object == nullptr || object->is_a(ObjectKind::Module))
+				return;
+
+			writer->write("$0::$1", AccessorPathOf(object->owner), ResolvedNameOf(object));
 		}
 	};
 
@@ -134,6 +177,31 @@ namespace Reflector
 		}
 	};
 
+	struct FunctionFlags {
+		static void execute(CodeWriter* writer, const Object* object)
+		{
+			if (object == nullptr || !object->is_a(ObjectKind::Function))
+			{
+				writer->write("0");
+				return;
+			}
+
+			const Function* function = static_cast<const Function*>(object);
+			writer->write("Func::flags");
+
+			if (function->flags & Function::Final)
+				writer->write(" | Function::IsFinal");
+
+			if (function->flags & Function::Constructor)
+				writer->write(" | Function::IsConstructor");
+
+			if (function->flags & Function::Destructor)
+				writer->write(" | Function::IsDestructor");
+
+			if (function->flags & Function::Operator)
+				writer->write(" | Function::IsOperator");
+		}
+	};
 
 	static bool is_object_empty(const Object* object)
 	{
@@ -192,7 +260,7 @@ namespace Reflector
 			{
 				if (child->is_a(ObjectKind::Property) || child->is_a(ObjectKind::Function))
 				{
-					writer->write("static constexpr auto $0 = &", child->name);
+					writer->write("static constexpr auto $0 = &", ResolvedNameOf(child));
 					writer->line("$0::$1;", ResolvedPathOf(object), child->name);
 				}
 				else if (child->is_a(ObjectKind::Class))
@@ -279,7 +347,7 @@ namespace Reflector
 					writer->write("arg$0", index);
 				}
 
-				writer->line("}, $0, $1);", object->flags, OwnerReflectionOf(object));
+				writer->line("}, $0, $1);", FunctionFlagsOf(object), OwnerReflectionOf(object));
 				writer->line("return retain_ref(func);");
 			}
 

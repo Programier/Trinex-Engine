@@ -3,6 +3,7 @@
 #include <Core/etl/span.hpp>
 #include <Core/etl/utility.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
+#include <Core/reflection/new/const_type.hpp>
 #include <Core/reflection/new/function.hpp>
 #include <Core/reflection/new/object.hpp>
 #include <Core/reflection/new/pointer_type.hpp>
@@ -248,6 +249,8 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		void* object                   = nullptr;
 		Reflection::Object* reflection = nullptr;
 		ExecutionFlags flags           = ExecutionFlags::Undefined;
+		bool is_const                  = false;
+		bool is_read_only              = false;
 
 		inline bool is_valid() const
 		{
@@ -361,7 +364,20 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 	                                     Span<const StringView> arguments)
 	{
 		const auto& parameters = function->args();
+		bool has_this          = false;
+
+		for (const Ref<Reflection::Property>& parameter : parameters)
 		{
+			has_this = has_this || parameter->is_this();
+		}
+
+		{
+			if (context.is_const && function->is_method() && !function->is_const())
+			{
+				trinex_warning(Log::Console, "Cannot call a non-const method on a const object");
+				return {};
+			}
+
 			usize required_arguments = function->args().size();
 
 			if (context.object != nullptr)
@@ -451,6 +467,7 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 			{
 				context.object     = context.object ? *static_cast<void**>(context.object) : nullptr;
 				context.reflection = pointer->type();
+				context.is_const   = context.is_const || context.reflection->is<Reflection::ConstType>();
 			}
 
 			if (context.reflection == nullptr || (context.object == nullptr && !context.reflection->is<Reflection::Scope>()))
@@ -475,21 +492,27 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 				if (!value)
 					return {};
 
-				context.object     = value.data();
-				context.reflection = value.type();
+				context.object       = value.data();
+				context.reflection   = value.type();
+				context.is_const     = context.reflection->is<Reflection::ConstType>();
+				context.is_read_only = false;
 			}
 			else if (Reflection::Property* property = entry->resolve<Reflection::Property>())
 			{
-				context.object     = property->address(context.object);
-				context.reflection = const_cast<Reflection::Type*>(property->type());
+				context.object       = property->address(context.object);
+				context.reflection   = const_cast<Reflection::Type*>(property->type());
+				context.is_const     = context.is_const || context.reflection->is<Reflection::ConstType>();
+				context.is_read_only = property->is_read_only();
 
 				if (context.object == nullptr)
 					return {};
 			}
 			else if (Reflection::Scope* child = entry->resolve<Reflection::Scope>())
 			{
-				context.object     = nullptr;
-				context.reflection = child;
+				context.object       = nullptr;
+				context.reflection   = child;
+				context.is_const     = false;
+				context.is_read_only = false;
 			}
 			else
 			{
@@ -529,6 +552,12 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 
 			if (statement.kind == Statement::Kind::Assignment)
 			{
+				if (context.is_const || context.is_read_only)
+				{
+					trinex_warning(Log::Console, "Cannot assign to a const or read-only console value");
+					return {};
+				}
+
 				DynamicValue value(type);
 				if (!value || type->parse(value.data(), statement.value) != statement.value.size() ||
 				    !type->copy_assign(context.object, value.data()))

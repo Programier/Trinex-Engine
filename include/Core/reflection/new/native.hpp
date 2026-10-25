@@ -260,6 +260,12 @@ namespace Trinex::Refl::New::Native
 			return align_up(result, calculate_alignment());
 		}
 
+		static constexpr u64 calculate_flags()
+		{
+			u64 result = 0;
+			return result;
+		}
+
 		template<usize index, typename Arg, typename... Rest>
 		static consteval u64 calculate_argument_offset(u64 offset = 0)
 		{
@@ -318,6 +324,7 @@ namespace Trinex::Refl::New::Native
 		static constexpr u64 alignment     = calculate_alignment();
 		static constexpr u64 return_offset = calculate_return_offset();
 		static constexpr u64 size          = calculate_size();
+		static constexpr u64 flags         = calculate_flags();
 
 		template<usize index>
 		static consteval u64 argument_offset()
@@ -332,17 +339,36 @@ namespace Trinex::Refl::New::Native
 	template<typename Class, typename Ret, typename... Args, Ret (Class::*func)(Args...), typename Parent>
 	class Function<func, Parent> : public Function<MethodInvoker<func>::invoke, Parent>
 	{
+	private:
+		static constexpr u64 calculate_flags()
+		{
+			u64 result = Base::flags | Parent::Flags::IsMethod;
+			return result;
+		}
+
+
 	public:
 		using Base = Function<MethodInvoker<func>::invoke, Parent>;
 		using Base::Base;
+
+		static constexpr u64 flags = calculate_flags();
 	};
 
 	template<typename Class, typename Ret, typename... Args, Ret (Class::*func)(Args...) const, typename Parent>
 	class Function<func, Parent> : public Function<MethodInvoker<func>::invoke, Parent>
 	{
+	private:
+		static constexpr u64 calculate_flags()
+		{
+			u64 result = Base::flags | Parent::Flags::IsMethod | Parent::Flags::IsConst;
+			return result;
+		}
+
 	public:
 		using Base = Function<MethodInvoker<func>::invoke, Parent>;
 		using Base::Base;
+
+		static constexpr u64 flags = calculate_flags();
 	};
 
 	template<auto member, typename Base>

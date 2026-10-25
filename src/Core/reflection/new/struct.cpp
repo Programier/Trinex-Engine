@@ -91,8 +91,7 @@ namespace Trinex::Refl::New
 
 		bool is_text_serializable(const Property* property)
 		{
-			return !property->is_const() && !property->is_pointer() && !property->is_reference() && !property->is_read_only() &&
-			       !property->is_transient();
+			return !property->is_read_only() && !property->is_transient();
 		}
 
 		bool format_struct_properties(const Struct* type, const void* self, String& value, bool& has_property)
