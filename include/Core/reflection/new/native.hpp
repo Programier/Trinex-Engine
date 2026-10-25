@@ -301,8 +301,9 @@ namespace Trinex::Refl::New::Native
 			}
 			else
 			{
-				Ret& ret = *reinterpret_cast<Ret*>(align_up(address, alignof(Ret)));
-				ret      = func(etl::forward<Passed>(passed)...);
+				using Result   = etl::remove_const_t<Ret>;
+				Result& result = *reinterpret_cast<Result*>(align_up(address, alignof(Result)));
+				result         = func(etl::forward<Passed>(passed)...);
 			}
 		}
 

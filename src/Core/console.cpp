@@ -360,6 +360,23 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		return result && value != nullptr && type->copy_assign(result.data(), value) ? result : DynamicValue();
 	}
 
+	static DynamicValue execute_statement(ExecutionContext context, const Statement& statement);
+
+	static DynamicValue resolve_value(ExecutionContext context, StringView source, Reflection::Type* type)
+	{
+		DynamicValue value(type);
+		if (value && type->parse(value.data(), source) == source.size())
+			return value;
+
+		Parser parser;
+		Statements statements;
+		if (!parser.parse(source, statements) || statements.size() != 1 || statements.front().kind != Statement::Kind::Expression)
+			return {};
+
+		value = execute_statement(context, statements.front());
+		return value && value.type() == type ? value : DynamicValue();
+	}
+
 	static DynamicValue execute_function(const ExecutionContext& context, Reflection::Function* function,
 	                                     Span<const StringView> arguments)
 	{
@@ -421,7 +438,9 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 			else
 			{
 				const StringView argument = arguments[argument_index++];
-				success                   = parameter->type()->parse(value, argument) == argument.size();
+				DynamicValue resolved     = resolve_value(context, argument, const_cast<Reflection::Type*>(parameter->type()));
+				success                   = resolved && resolved.type() == parameter->type() &&
+				                            parameter->type()->copy_assign(value, resolved.data());
 			}
 		}
 
@@ -542,7 +561,12 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 				}
 
 				DynamicValue result;
-				for (const Statement& child : statement.children) result = execute_statement(context, child);
+
+				for (const Statement& child : statement.children)
+				{
+					result = execute_statement(context, child);
+				}
+
 				return result;
 			}
 
@@ -558,9 +582,8 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 					return {};
 				}
 
-				DynamicValue value(type);
-				if (!value || type->parse(value.data(), statement.value) != statement.value.size() ||
-				    !type->copy_assign(context.object, value.data()))
+				DynamicValue value = resolve_value(context, statement.value, type);
+				if (!value || value.type() != type || !type->copy_assign(context.object, value.data()))
 				{
 					trinex_warning(Log::Console, "Failed to assign console value");
 					return {};
