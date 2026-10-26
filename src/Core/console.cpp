@@ -2,6 +2,7 @@
 #include <Core/console.hpp>
 #include <Core/etl/span.hpp>
 #include <Core/etl/utility.hpp>
+#include <Core/etl/variant.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/reflection/new/const_type.hpp>
 #include <Core/reflection/new/function.hpp>
@@ -24,7 +25,7 @@ StatementList <- Statement (Separator+ Statement)*
 Statement <- Scope / Assignment / Expression
 
 Scope <- Context '{' Separator* StatementList? Separator* '}'
-Assignment <- Context '=' RawValue
+Assignment <- Context '=' AssignmentValue
 Expression <- Context
 
 Context <- Absolute? Operation Postfix*
@@ -35,7 +36,10 @@ Member <- '.' Operation
 
 Arguments <- '(' ArgumentList? ')'
 ArgumentList <- Argument (',' Argument)* ','?
-Argument <- < (Quoted / Balanced / !(',' / ')') .)+ >
+Argument <- ContextArgument / ArgumentValue
+AssignmentValue <- ContextArgument / RawValue
+ContextArgument <- '@' Context
+ArgumentValue <- < (Quoted / Balanced / !(',' / ')') .)+ >
 
 RawValue <- < (Quoted / Balanced / !(';' / '}' / Newline) .)+ >
 
@@ -58,7 +62,8 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 
 	using Statements = Array<struct Statement>;
 	using Context    = Array<struct Operation>;
-	using Arguments  = Array<StringView>;
+	using Argument   = Variant<StringView, Context>;
+	using Arguments  = Array<Argument>;
 
 	struct Operation {
 		StringView name;
@@ -76,7 +81,7 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		Kind kind = Kind::Expression;
 
 		Context context;
-		StringView value;
+		Argument value;
 		Statements children;
 	};
 
@@ -89,15 +94,17 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		{
 			using SV = peg::SemanticValues;
 
-			m_parser["IdentifierRaw"] = [](const SV& vs) { return StringView(vs.token()); };
-			m_parser["Argument"]      = [](const SV& vs) { return Strings::trim(vs.token()); };
+			m_parser["IdentifierRaw"]   = [](const SV& vs) { return StringView(vs.token()); };
+			m_parser["ArgumentValue"]   = [](const SV& vs) { return Argument(Strings::trim(vs.token())); };
+			m_parser["RawValue"]        = [](const SV& vs) { return Argument(Strings::trim(vs.token())); };
+			m_parser["ContextArgument"] = [](const SV& vs) { return Argument(std::any_cast<Context>(vs[0])); };
 
 			m_parser["ArgumentList"] = [](const SV& vs) {
 				Arguments result;
 
 				for (const auto& value : vs)
 				{
-					result.emplace_back(std::any_cast<StringView>(value));
+					result.emplace_back(std::any_cast<Argument>(value));
 				}
 
 				return result;
@@ -139,6 +146,12 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 
 				for (const auto& value : vs)
 				{
+					if (const auto* absolute = std::any_cast<StringView>(&value); absolute && *absolute == ".")
+					{
+						result.emplace_back(Operation{*absolute, {}});
+						continue;
+					}
+
 					if (const auto* operation = std::any_cast<Operation>(&value))
 					{
 						if (operation->name.empty())
@@ -158,16 +171,13 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 				return result;
 			};
 
-			// RawValue -> StringView
-			m_parser["RawValue"] = [](const SV& vs) { return Strings::trim(vs.token()); };
-
 			// Assignment -> Statement
 			m_parser["Assignment"] = [](const SV& vs) {
 				Statement result;
 
 				result.kind    = Statement::Kind::Assignment;
 				result.context = std::any_cast<Context>(vs[0]);
-				result.value   = std::any_cast<StringView>(vs[1]);
+				result.value   = std::any_cast<Argument>(vs[1]);
 
 				return result;
 			};
@@ -360,25 +370,29 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		return result && value != nullptr && type->copy_assign(result.data(), value) ? result : DynamicValue();
 	}
 
-	static DynamicValue execute_statement(ExecutionContext context, const Statement& statement);
+	static DynamicValue execute_statement(ExecutionContext ctx, const Statement& statement);
 
-	static DynamicValue resolve_value(ExecutionContext context, StringView source, Reflection::Type* type)
+	static DynamicValue resolve_value(ExecutionContext ctx, const Argument& source, Reflection::Type* type)
 	{
-		DynamicValue value(type);
-		if (value && type->parse(value.data(), source) == source.size())
-			return value;
+		if (const StringView* value = etl::get_if<StringView>(&source))
+		{
+			DynamicValue result(type);
+			return result && type->parse(result.data(), *value) == value->size() ? result : DynamicValue();
+		}
 
-		Parser parser;
-		Statements statements;
-		if (!parser.parse(source, statements) || statements.size() != 1 || statements.front().kind != Statement::Kind::Expression)
+		const Context* value = etl::get_if<Context>(&source);
+		if (value == nullptr)
 			return {};
 
-		value = execute_statement(context, statements.front());
-		return value && value.type() == type ? value : DynamicValue();
+		Statement statement;
+		statement.context = *value;
+
+		DynamicValue result = execute_statement(ctx, statement);
+		return result && result.type() == type ? result : DynamicValue();
 	}
 
-	static DynamicValue execute_function(const ExecutionContext& context, Reflection::Function* function,
-	                                     Span<const StringView> arguments)
+	static DynamicValue execute_function(const ExecutionContext& ctx, Reflection::Function* function,
+	                                     Span<const Argument> arguments)
 	{
 		const auto& parameters = function->args();
 		bool has_this          = false;
@@ -389,7 +403,7 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		}
 
 		{
-			if (context.is_const && function->is_method() && !function->is_const())
+			if (ctx.is_const && function->is_method() && !function->is_const())
 			{
 				trinex_warning(Log::Console, "Cannot call a non-const method on a const object");
 				return {};
@@ -397,7 +411,7 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 
 			usize required_arguments = function->args().size();
 
-			if (context.object != nullptr)
+			if (ctx.object != nullptr)
 			{
 				for (const Ref<Reflection::Property>& prop : function->args())
 				{
@@ -433,14 +447,14 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 
 			if (parameter->is_this())
 			{
-				success = parameter->type()->copy_assign(value, &context.object);
+				success = parameter->type()->copy_assign(value, &ctx.object);
 			}
 			else
 			{
-				const StringView argument = arguments[argument_index++];
-				DynamicValue resolved     = resolve_value(context, argument, const_cast<Reflection::Type*>(parameter->type()));
-				success                   = resolved && resolved.type() == parameter->type() &&
-				                            parameter->type()->copy_assign(value, resolved.data());
+				const Argument& argument = arguments[argument_index++];
+				DynamicValue resolved    = resolve_value(ctx, argument, const_cast<Reflection::Type*>(parameter->type()));
+				success                  = resolved && resolved.type() == parameter->type() &&
+				                           parameter->type()->copy_assign(value, resolved.data());
 			}
 		}
 
@@ -469,10 +483,12 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 	}
 
 	template<typename F>
-	static DynamicValue execute_operations(ExecutionContext context, Span<const Operation> operations, F&& func)
+	static DynamicValue execute_operations(ExecutionContext ctx, Span<const Operation> operations, F&& func)
 	{
-		if (!context.is_valid())
+		if (!ctx.is_valid())
 			return {};
+
+		const ExecutionContext base_context = ctx;
 
 		Array<DynamicValue> result;
 		result.reserve(operations.size());
@@ -482,56 +498,65 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 			const Operation* operation = operations.data();
 			operations                 = operations.subspan(1);
 
-			if (Reflection::PointerType* pointer = context.reflection->cast<Reflection::PointerType>())
+			if (operation->name == ".")
 			{
-				context.object     = context.object ? *static_cast<void**>(context.object) : nullptr;
-				context.reflection = pointer->type();
-				context.is_const   = context.is_const || context.reflection->is<Reflection::ConstType>();
+				ctx.object       = nullptr;
+				ctx.reflection   = root();
+				ctx.is_const     = false;
+				ctx.is_read_only = false;
+				continue;
 			}
 
-			if (context.reflection == nullptr || (context.object == nullptr && !context.reflection->is<Reflection::Scope>()))
+			if (Reflection::PointerType* pointer = ctx.reflection->cast<Reflection::PointerType>())
+			{
+				ctx.object     = ctx.object ? *static_cast<void**>(ctx.object) : nullptr;
+				ctx.reflection = pointer->type();
+				ctx.is_const   = ctx.is_const || ctx.reflection->is<Reflection::ConstType>();
+			}
+
+			if (ctx.reflection == nullptr || (ctx.object == nullptr && !ctx.reflection->is<Reflection::Scope>()))
 				return {};
 
-			Reflection::Object* entry = context.reflection->find(operation->name);
+			Reflection::Object* entry = ctx.reflection->find(operation->name);
 
 			if (entry == nullptr)
 				return {};
 
 			if (Reflection::Function* function = entry->resolve<Reflection::Function>())
 			{
-				DynamicValue& value = result.emplace_back(execute_function(context, function, operation->arguments));
+				DynamicValue& value = result.emplace_back(execute_function(base_context, function, operation->arguments));
 
 				if (function->result() == nullptr)
 				{
 					if (!operations.empty())
 						return {};
-					return func(context);
+					return func(ctx);
 				}
 
 				if (!value)
 					return {};
 
-				context.object       = value.data();
-				context.reflection   = value.type();
-				context.is_const     = context.reflection->is<Reflection::ConstType>();
-				context.is_read_only = false;
+				ctx.object       = value.data();
+				ctx.reflection   = value.type();
+				ctx.is_const     = ctx.reflection->is<Reflection::ConstType>();
+				ctx.is_read_only = false;
 			}
 			else if (Reflection::Property* property = entry->resolve<Reflection::Property>())
 			{
-				context.object       = property->address(context.object);
-				context.reflection   = const_cast<Reflection::Type*>(property->type());
-				context.is_const     = context.is_const || context.reflection->is<Reflection::ConstType>();
-				context.is_read_only = property->is_read_only();
+				ctx.object       = property->address(ctx.object);
+				ctx.reflection   = const_cast<Reflection::Type*>(property->type());
+				ctx.is_const     = ctx.is_const || ctx.reflection->is<Reflection::ConstType>();
+				ctx.is_read_only = property->is_read_only();
 
-				if (context.object == nullptr)
+				if (ctx.object == nullptr)
 					return {};
 			}
 			else if (Reflection::Scope* child = entry->resolve<Reflection::Scope>())
 			{
-				context.object       = nullptr;
-				context.reflection   = child;
-				context.is_const     = false;
-				context.is_read_only = false;
+				ctx.object       = nullptr;
+				ctx.reflection   = child;
+				ctx.is_const     = false;
+				ctx.is_read_only = false;
 			}
 			else
 			{
@@ -539,58 +564,60 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 			}
 		}
 
-		return func(context);
+		return func(ctx);
 	}
 
-	static DynamicValue execute_statement(ExecutionContext context, const Statement& statement)
+	static DynamicValue execute_statement(ExecutionContext ctx, const Statement& statement)
 	{
-		return execute_operations(context, statement.context, [&statement](const ExecutionContext& context) -> DynamicValue {
-			if (!context.is_valid())
+		return execute_operations(ctx, statement.context, [&statement, &base = ctx](const ExecutionContext& ctx) {
+			if (!ctx.is_valid())
 			{
-				if (!context.flags.any(ExecutionFlags::IgnoreUnknown))
+				if (!ctx.flags.any(ExecutionFlags::IgnoreUnknown))
 					trinex_warning(Log::Console, "Failed to resolve console context");
-				return {};
+				return DynamicValue();
 			}
 
 			if (statement.kind == Statement::Kind::Scope)
 			{
-				if (!context.reflection->is<Reflection::Scope>())
+				if (!ctx.reflection->is<Reflection::Scope>())
 				{
 					trinex_warning(Log::Console, "Console context is not a scope");
-					return {};
+					return DynamicValue();
 				}
 
 				DynamicValue result;
 
 				for (const Statement& child : statement.children)
 				{
-					result = execute_statement(context, child);
+					result = execute_statement(ctx, child);
 				}
 
 				return result;
 			}
 
-			Reflection::Type* type = context.reflection->resolve<Reflection::Type>();
-			if (type == nullptr || context.object == nullptr)
-				return {};
+			Reflection::Type* type = ctx.reflection->resolve<Reflection::Type>();
+
+			if (type == nullptr || ctx.object == nullptr)
+				return DynamicValue();
 
 			if (statement.kind == Statement::Kind::Assignment)
 			{
-				if (context.is_const || context.is_read_only)
+				if (ctx.is_const || ctx.is_read_only)
 				{
 					trinex_warning(Log::Console, "Cannot assign to a const or read-only console value");
-					return {};
+					return DynamicValue();
 				}
 
-				DynamicValue value = resolve_value(context, statement.value, type);
-				if (!value || value.type() != type || !type->copy_assign(context.object, value.data()))
+				DynamicValue value = resolve_value(base, statement.value, type);
+
+				if (!value || value.type() != type || !type->copy_assign(ctx.object, value.data()))
 				{
 					trinex_warning(Log::Console, "Failed to assign console value");
-					return {};
+					return DynamicValue();
 				}
 			}
 
-			return value_of(type, context.object);
+			return value_of(type, ctx.object);
 		});
 	}
 
@@ -637,11 +664,11 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		{
 			DynamicValue result;
 
-			ExecutionContext context = {nullptr, root(), flags};
+			ExecutionContext ctx = {nullptr, root(), flags};
 
 			for (const Statement& statement : statements)
 			{
-				result = execute_statement(context, statement);
+				result = execute_statement(ctx, statement);
 			}
 
 			return result;
