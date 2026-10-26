@@ -166,18 +166,7 @@ public:                                                                         
 	static void static_initialize_struct();                                                                                      \
 	static class Trinex::Refl::Struct* static_reflection();
 
-#define trinex_enum(enum_name)                                                                                                   \
-	static constexpr bool is_enum_reflected = true;                                                                              \
-                                                                                                                                 \
-private:                                                                                                                         \
-	static Trinex::Refl::Enum* s_enum;                                                                                           \
-                                                                                                                                 \
-public:                                                                                                                          \
-	static inline class Trinex::Refl::Enum* static_reflection()                                                                  \
-	{                                                                                                                            \
-		return s_enum;                                                                                                           \
-	}                                                                                                                            \
-	static void static_initialize_enum()
+#define trinex_enum struct
 
 #define trinex_copyable(class_name)                                                                                              \
 	class_name(const class_name&);                                                                                               \

@@ -12,15 +12,7 @@
 
 namespace Trinex
 {
-	trinex_implement_engine_class(CameraComponent, 0)
-	{
-		trinex_refl_prop(projection_mode);
-		trinex_refl_prop(fov);
-		trinex_refl_prop(ortho_width);
-		trinex_refl_prop(ortho_height);
-		trinex_refl_prop(near);
-		trinex_refl_prop(far);
-	}
+	trinex_implement_engine_class(CameraComponent, 0) {}
 
 	bool CameraComponent::serialize(Archive& archive)
 	{

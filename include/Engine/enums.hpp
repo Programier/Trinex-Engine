@@ -3,7 +3,8 @@
 
 namespace Trinex
 {
-	struct trinex_api ShowFlags
+	trinex_reflect()
+	trinex_enum ShowFlags
 	{
 		enum Enum : EnumerateType
 		{
@@ -20,10 +21,10 @@ namespace Trinex
 		};
 
 		trinex_bitfield_enum_struct(ShowFlags, EnumerateType);
-		trinex_enum(ShowFlags);
 	};
 
-	struct trinex_api ViewMode
+	trinex_reflect()
+	trinex_enum ViewMode
 	{
 		enum Enum : EnumerateType
 		{
@@ -41,10 +42,10 @@ namespace Trinex
 		};
 
 		trinex_enum_struct(ViewMode);
-		trinex_enum(ViewMode);
 	};
 
-	struct trinex_api CameraProjectionMode
+	trinex_reflect()
+	trinex_enum CameraProjectionMode
 	{
 		enum Enum : EnumerateType
 		{
@@ -53,7 +54,6 @@ namespace Trinex
 		};
 
 		trinex_enum_struct(CameraProjectionMode);
-		trinex_enum(CameraProjectionMode);
 	};
 
 } // namespace Trinex

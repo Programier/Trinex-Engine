@@ -9,7 +9,8 @@ namespace Trinex
 	class RenderSurface;
 	struct LightRenderParameters;
 
-	struct trinex_api LightUnits
+	trinex_reflect()
+	trinex_enum LightUnits
 	{
 		enum Enum : EnumerateType
 		{
@@ -20,7 +21,6 @@ namespace Trinex
 		};
 
 		trinex_enum_struct(LightUnits);
-		trinex_enum(LightUnits);
 	};
 
 	class trinex_api LightComponent : public SceneComponent

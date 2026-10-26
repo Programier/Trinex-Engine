@@ -56,6 +56,8 @@ namespace Trinex
 
 	public:
 		Array<Texture2DMip> mips;
+
+		trinex_property(IsReadOnly)
 		RHIColorFormat format;
 
 		Texture2D& rebuild() override;
@@ -71,6 +73,8 @@ namespace Trinex
 
 	public:
 		Array<Texture3DMip> mips;
+
+		trinex_property(IsReadOnly)
 		RHIColorFormat format;
 
 		Texture3D& rebuild() override;
@@ -87,6 +91,8 @@ namespace Trinex
 
 	public:
 		Array<TextureCubeMip> mips;
+
+		trinex_property(IsReadOnly)
 		RHIColorFormat format;
 
 		TextureCube& rebuild() override;

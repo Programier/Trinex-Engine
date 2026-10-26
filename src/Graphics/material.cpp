@@ -125,12 +125,7 @@ namespace Trinex
 		params->tooltip("Array of parammeters of this material");
 	}
 
-	trinex_implement_engine_class(Material, Refl::Class::IsAsset)
-	{
-		trinex_refl_prop(domain, Refl::Property::IsTransient);
-		trinex_refl_prop(depth_mode, Refl::Property::IsTransient);
-		trinex_refl_prop(blend_mode, Refl::Property::IsTransient);
-	}
+	trinex_implement_engine_class(Material, Refl::Class::IsAsset) {}
 
 	trinex_implement_engine_class(MaterialInstance, Refl::Class::IsAsset)
 	{

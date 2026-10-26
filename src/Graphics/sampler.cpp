@@ -16,12 +16,12 @@ namespace Trinex
 {
 	trinex_implement_struct(Trinex::Sampler, 0)
 	{
-		trinex_refl_virtual_prop(filter, filter, filter, Refl::Property::IsTransient);
-		trinex_refl_virtual_prop(address_u, address_u, address_u, Refl::Property::IsTransient);
-		trinex_refl_virtual_prop(address_v, address_v, address_v, Refl::Property::IsTransient);
-		trinex_refl_virtual_prop(address_w, address_w, address_w, Refl::Property::IsTransient);
-		trinex_refl_virtual_prop(compare_func, compare_func, compare_func, Refl::Property::IsTransient);
-		trinex_refl_virtual_prop(border_color, border_color, border_color, Refl::Property::IsTransient);
+		// trinex_refl_virtual_prop(filter, filter, filter, Refl::Property::IsTransient);
+		// trinex_refl_virtual_prop(address_u, address_u, address_u, Refl::Property::IsTransient);
+		// trinex_refl_virtual_prop(address_v, address_v, address_v, Refl::Property::IsTransient);
+		// trinex_refl_virtual_prop(address_w, address_w, address_w, Refl::Property::IsTransient);
+		// trinex_refl_virtual_prop(compare_func, compare_func, compare_func, Refl::Property::IsTransient);
+		// trinex_refl_virtual_prop(border_color, border_color, border_color, Refl::Property::IsTransient);
 	}
 
 	struct SamplerInitializerHash

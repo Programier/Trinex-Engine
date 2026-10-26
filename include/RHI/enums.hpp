@@ -20,7 +20,8 @@ namespace Trinex
 		trinex_enum_struct(RHIBackend);
 	};
 
-	struct RHIShaderParameterType
+	trinex_reflect()
+	trinex_enum RHIShaderParameterType
 	{
 		enum Enum : EnumerateType
 		{
@@ -164,20 +165,46 @@ namespace Trinex
 		};
 
 		trinex_bitfield_enum_struct(RHIShaderParameterType, EnumerateType);
-		trinex_enum(RHIShaderParameterType);
 
 		trinex_api static RHIShaderParameterType make_numeric(RHIShaderParameterType base, u8 len = 1);
 		trinex_api static RHIShaderParameterType make_matrix(RHIShaderParameterType base, u8 rows = 4, u8 columns = 4);
 
 		trinex_api RHIShaderParameterType element_type();
 
-		inline constexpr bool is_numeric() const { return (value & META_Numeric); }
-		inline constexpr bool is_matrix() const { return (value & META_Matrix) == META_Matrix; }
-		inline constexpr bool is_unsigned() const { return value & META_Unsigned; }
-		inline constexpr bool is_color() const { return value & META_Color; }
-		inline constexpr bool is_concrete() const { return value & META_Concrete; }
-		inline constexpr bool is_varying() const { return value & META_VaryingMask; }
-		inline constexpr bool is_meta() const { return !is_concrete(); }
+		inline constexpr bool is_numeric() const
+		{
+			return (value & META_Numeric);
+		}
+
+		inline constexpr bool is_matrix() const
+		{
+			return (value & META_Matrix) == META_Matrix;
+		}
+
+		inline constexpr bool is_unsigned() const
+		{
+			return value & META_Unsigned;
+		}
+
+		inline constexpr bool is_color() const
+		{
+			return value & META_Color;
+		}
+
+		inline constexpr bool is_concrete() const
+		{
+			return value & META_Concrete;
+		}
+
+		inline constexpr bool is_varying() const
+		{
+			return value & META_VaryingMask;
+		}
+
+		inline constexpr bool is_meta() const
+		{
+			return !is_concrete();
+		}
 
 		inline constexpr u8 rows() const
 		{
@@ -251,7 +278,8 @@ namespace Trinex
 		trinex_enum_struct(RHIBufferViewType);
 	};
 
-	struct RHICompareFunc
+	trinex_reflect()
+	trinex_enum RHICompareFunc
 	{
 		enum Enum : u8
 		{
@@ -266,7 +294,6 @@ namespace Trinex
 		};
 
 		trinex_enum_struct(RHICompareFunc);
-		trinex_enum(RHICompareFunc);
 	};
 
 	struct RHIAccess
@@ -334,7 +361,8 @@ namespace Trinex
 		trinex_enum_struct(RHISemantic);
 	};
 
-	struct RHISamplerFilter
+	trinex_reflect()
+	trinex_enum RHISamplerFilter
 	{
 		enum Enum : u8
 		{
@@ -344,10 +372,10 @@ namespace Trinex
 		};
 
 		trinex_enum_struct(RHISamplerFilter);
-		trinex_enum(RHISamplerFilter);
 	};
 
-	struct RHISamplerAddressMode
+	trinex_reflect()
+	trinex_enum RHISamplerAddressMode
 	{
 		enum Enum : u8
 		{
@@ -359,10 +387,10 @@ namespace Trinex
 		};
 
 		trinex_enum_struct(RHISamplerAddressMode);
-		trinex_enum(RHISamplerAddressMode);
 	};
 
-	struct RHIStencilOp
+	trinex_reflect()
+	trinex_enum RHIStencilOp
 	{
 		enum Enum : u8
 		{
@@ -377,10 +405,10 @@ namespace Trinex
 		};
 
 		trinex_enum_struct(RHIStencilOp);
-		trinex_enum(RHIStencilOp);
 	};
 
-	struct RHIBlendFunc
+	trinex_reflect()
+	trinex_enum RHIBlendFunc
 	{
 		enum Enum : u8
 		{
@@ -397,10 +425,10 @@ namespace Trinex
 		};
 
 		trinex_enum_struct(RHIBlendFunc);
-		trinex_enum(RHIBlendFunc);
 	};
 
-	struct RHIBlendOp
+	trinex_reflect()
+	trinex_enum RHIBlendOp
 	{
 		enum Enum : u8
 		{
@@ -412,10 +440,10 @@ namespace Trinex
 		};
 
 		trinex_enum_struct(RHIBlendOp);
-		trinex_enum(RHIBlendOp);
 	};
 
-	struct RHITopology
+	trinex_reflect()
+	trinex_enum RHITopology
 	{
 		enum Enum : u8
 		{
@@ -426,10 +454,10 @@ namespace Trinex
 		};
 
 		trinex_enum_struct(RHITopology);
-		trinex_enum(RHITopology);
 	};
 
-	struct RHIPolygonMode
+	trinex_reflect()
+	trinex_enum RHIPolygonMode
 	{
 		enum Enum : u8
 		{
@@ -438,10 +466,10 @@ namespace Trinex
 		};
 
 		trinex_enum_struct(RHIPolygonMode);
-		trinex_enum(RHIPolygonMode);
 	};
 
-	struct RHICullMode
+	trinex_reflect()
+	trinex_enum RHICullMode
 	{
 		enum Enum : u8
 		{
@@ -451,10 +479,10 @@ namespace Trinex
 		};
 
 		trinex_enum_struct(RHICullMode);
-		trinex_enum(RHICullMode);
 	};
 
-	struct RHIFrontFace
+	trinex_reflect()
+	trinex_enum RHIFrontFace
 	{
 		enum Enum : u8
 		{
@@ -463,7 +491,6 @@ namespace Trinex
 		};
 
 		trinex_enum_struct(RHIFrontFace);
-		trinex_enum(RHIFrontFace);
 	};
 
 	struct RHIVertexInputRate
@@ -491,7 +518,8 @@ namespace Trinex
 		inline usize stride() const { return value << 1; }
 	};
 
-	struct trinex_api RHIColorFormat
+	trinex_reflect()
+	trinex_enum trinex_api RHIColorFormat
 	{
 		struct Capabilities
 		{
@@ -597,7 +625,6 @@ namespace Trinex
 		};
 
 		trinex_enum_struct(RHIColorFormat);
-		trinex_enum(RHIColorFormat);
 
 		constexpr inline RHIColorFormat(const struct RHISurfaceFormat& format);
 		constexpr inline RHIColorFormat& operator=(const struct RHISurfaceFormat& format);
@@ -608,14 +635,29 @@ namespace Trinex
 		RHIColorFormat add_capabilities(Capabilities capabilities) const;
 		RHIColorFormat remove_capabilities(Capabilities capabilities) const;
 
-		constexpr static inline u32 static_count() { return 68; }
-		constexpr inline bool is_color() const { return value >= R8 && value <= P010; }
-		constexpr inline bool is_depth_stencil() const { return value == D24S8; }
-		constexpr inline bool is_depth() const { return value == D32F || value == D16_UNORM; }
-		constexpr inline bool has_depth() const { return is_depth() || is_depth_stencil(); }
+		constexpr static inline u32 static_count()
+		{
+			return 68;
+		}
+		constexpr inline bool is_color() const
+		{
+			return value >= R8 && value <= P010;
+		}
+		constexpr inline bool is_depth_stencil() const
+		{
+			return value == D24S8;
+		}
+		constexpr inline bool is_depth() const
+		{
+			return value == D32F || value == D16_UNORM;
+		}
+		constexpr inline bool has_depth() const
+		{
+			return is_depth() || is_depth_stencil();
+		}
 
 		template<typename Func>
-		constexpr static void static_foreach(Func&& func)
+		constexpr static void static_foreach(Func && func)
 		{
 			for (EnumerateType i = 1; i < static_count(); ++i)
 			{
@@ -624,7 +666,8 @@ namespace Trinex
 		}
 	};
 
-	struct RHISurfaceFormat
+	trinex_reflect()
+	trinex_enum RHISurfaceFormat
 	{
 		enum Enum : u8
 		{
@@ -682,7 +725,6 @@ namespace Trinex
 		};
 
 		trinex_enum_struct(RHISurfaceFormat);
-		trinex_enum(RHISurfaceFormat);
 
 		constexpr inline bool operator==(const struct RHIColorFormat& format) const noexcept
 		{
@@ -694,13 +736,31 @@ namespace Trinex
 			return value != static_cast<Enum>(format.value);
 		}
 
-		inline RHIColorFormat as_color_format() const { return static_cast<RHIColorFormat::Enum>(value); }
+		inline RHIColorFormat as_color_format() const
+		{
+			return static_cast<RHIColorFormat::Enum>(value);
+		}
 
-		inline bool is_color() const { return as_color_format().is_color(); }
-		inline bool is_depth_stencil() const { return as_color_format().is_depth_stencil(); }
-		inline bool is_depth() const { return as_color_format().is_depth(); }
-		inline bool has_depth() const { return as_color_format().has_depth(); }
-		inline operator RHIColorFormat() const { return as_color_format(); }
+		inline bool is_color() const
+		{
+			return as_color_format().is_color();
+		}
+		inline bool is_depth_stencil() const
+		{
+			return as_color_format().is_depth_stencil();
+		}
+		inline bool is_depth() const
+		{
+			return as_color_format().is_depth();
+		}
+		inline bool has_depth() const
+		{
+			return as_color_format().has_depth();
+		}
+		inline operator RHIColorFormat() const
+		{
+			return as_color_format();
+		}
 	};
 
 	struct RHIVertexFormat
@@ -795,7 +855,8 @@ namespace Trinex
 		return value != static_cast<Enum>(format.value);
 	}
 
-	struct RHIColorComponent
+	trinex_reflect()
+	trinex_enum RHIColorComponent
 	{
 		enum Enum : u8
 		{
@@ -811,7 +872,6 @@ namespace Trinex
 		};
 
 		trinex_bitfield_enum_struct(RHIColorComponent, u8);
-		trinex_enum(RHIColorComponent);
 	};
 
 	struct RHITextureType
@@ -946,7 +1006,8 @@ namespace Trinex
 		trinex_enum_struct(RHIMappingAccess);
 	};
 
-	struct RHIBorderColor
+	trinex_reflect()
+	trinex_enum RHIBorderColor
 	{
 		enum Enum : u8
 		{
@@ -960,7 +1021,6 @@ namespace Trinex
 		};
 
 		trinex_enum_struct(RHIBorderColor);
-		trinex_enum(RHIBorderColor);
 	};
 
 	struct RHIRayTracingGeometryType

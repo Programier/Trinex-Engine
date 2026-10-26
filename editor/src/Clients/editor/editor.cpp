@@ -5,6 +5,7 @@
 #include <Core/importer.hpp>
 #include <Core/localization.hpp>
 #include <Core/reflection/class.hpp>
+#include <Core/reflection/new/enum.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/threading.hpp>
 #include <Core/window.hpp>
@@ -744,7 +745,7 @@ namespace Trinex
 
 					if (ImGui::BeginMenu("editor/Show Flags"_localized))
 					{
-						for (auto& entry : ShowFlags::static_reflection()->entries())
+						for (auto& entry : Refl::New::enum_of<ShowFlags>()->values())
 						{
 							render_show_flag(m_show_flags, entry.value, entry.name.c_str());
 						}

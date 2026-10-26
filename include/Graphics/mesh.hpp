@@ -23,11 +23,13 @@ namespace Trinex
 	{
 		trinex_old_struct(MeshSurface, void);
 
+		trinex_property(IsReadOnly, IsTransient)
 		RHITopology topology = RHITopology::TriangleList;
-		u32 first_vertex     = 0;
-		u32 first_index      = ~0U;
-		u32 vertices_count   = 0;
-		u16 material_index   = 0;
+
+		u32 first_vertex   = 0;
+		u32 first_index    = ~0U;
+		u32 vertices_count = 0;
+		u16 material_index = 0;
 
 		bool serialize(Archive& ar);
 		inline bool is_indexed() const { return first_index != ~0U; }

@@ -3,7 +3,8 @@
 
 namespace Trinex
 {
-	struct OperationSystemType
+	trinex_reflect()
+	trinex_enum OperationSystemType
 	{
 		enum Enum
 		{
@@ -13,19 +14,18 @@ namespace Trinex
 		};
 
 		trinex_enum_struct(OperationSystemType);
-		trinex_enum(OperationSystemType);
 	};
 
-	struct PhysicalSizeMetric
+	trinex_reflect()
+	trinex_enum PhysicalSizeMetric
 	{
 		enum Enum
 		{
 			Inch,
-			Сentimeters,
+			Centimeters,
 		};
 
 		trinex_enum_struct(PhysicalSizeMetric);
-		trinex_enum(PhysicalSizeMetric);
 	};
 
 	struct WindowAttribute
@@ -104,7 +104,8 @@ namespace Trinex
 		trinex_bitfield_enum_struct(WindowAttribute, u64);
 	};
 
-	struct CursorMode
+	trinex_reflect()
+	trinex_enum CursorMode
 	{
 		enum Enum : EnumerateType
 		{
@@ -113,10 +114,10 @@ namespace Trinex
 		};
 
 		trinex_enum_struct(CursorMode);
-		trinex_enum(CursorMode);
 	};
 
-	struct Orientation
+	trinex_reflect()
+	trinex_enum Orientation
 	{
 		enum Enum : EnumerateType
 		{
@@ -127,10 +128,10 @@ namespace Trinex
 		};
 
 		trinex_enum_struct(Orientation);
-		trinex_enum(Orientation);
 	};
 
-	struct MessageBoxType
+	trinex_reflect()
+	trinex_enum MessageBoxType
 	{
 		enum Enum
 		{
@@ -140,7 +141,6 @@ namespace Trinex
 		};
 
 		trinex_enum_struct(MessageBoxType);
-		trinex_enum(MessageBoxType);
 	};
 
 	struct ArchiveFlags
@@ -178,7 +178,8 @@ namespace Trinex
 		trinex_enum_struct(IOMode);
 	};
 
-	struct SplashTextType
+	trinex_reflect()
+	trinex_enum SplashTextType
 	{
 		enum Enum : EnumerateType
 		{
@@ -190,6 +191,5 @@ namespace Trinex
 		};
 
 		trinex_enum_struct(SplashTextType);
-		trinex_enum(SplashTextType);
 	};
 } // namespace Trinex

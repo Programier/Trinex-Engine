@@ -67,8 +67,13 @@ namespace Trinex
 		bool compile_pass(ShaderCompiler* compiler, RenderPass* pass, const String& source);
 
 	public:
+		trinex_property(IsTransient)
 		MaterialDomain domain;
+
+		trinex_property(IsTransient)
 		MaterialDepthMode depth_mode;
+
+		trinex_property(IsTransient)
 		MaterialBlendMode blend_mode;
 
 		Material();

@@ -1056,7 +1056,8 @@ namespace Reflector
 
 			bool failure(const Token& token, std::string_view message)
 			{
-				std::cerr << "Error [" << token.line << ':' << token.column << "]: " << message << '\n';
+				std::cerr << "Error [" << token.line << ':' << token.column << "] near '" << token.value << "': " << message
+				          << '\n';
 				return false;
 			}
 
@@ -1313,7 +1314,7 @@ namespace Reflector
 				return true;
 			}
 
-			bool enumeration(Enum& object, const Annotation& annotation, std::size_t begin, std::size_t end)
+			bool enumeration(Enum& object, std::size_t begin, std::size_t end)
 			{
 				for (const auto& [first, last] : split_token_ranges(tokens, begin, end, ","))
 				{
@@ -1321,12 +1322,16 @@ namespace Reflector
 					Annotation item_annotation;
 					if (tokens[first].value.starts_with("trinex_"))
 					{
-						parse_annotation(cursor, item_annotation);
+						if (!parse_annotation(cursor, item_annotation))
+						{
+							return failure(tokens[first], "malformed enum-value reflection annotation");
+						}
 					}
 					const auto name = cursor.index;
 					if (name >= last || !is_identifier(tokens[name]))
 					{
-						return failure(annotation, "failed to parse enum value");
+						const Token& token = tokens[std::min(name, tokens.size() - 1)];
+						return failure(token, "expected an enum value name");
 					}
 					object.values.push_back({std::string(tokens[name].value), std::move(item_annotation.metadata)});
 				}
@@ -1388,7 +1393,7 @@ namespace Reflector
 
 					if (!is_identifier(current(cursor)))
 					{
-						return failure(enum_token, "trinex_enum_struct has an unnamed enum");
+						return failure(enum_token, "trinex_enum has an unnamed enum");
 					}
 
 					const std::string enum_name = std::string(current(cursor).value);
@@ -1399,19 +1404,19 @@ namespace Reflector
 					}
 					if (cursor.index >= end || current(cursor).value != "{")
 					{
-						return failure(enum_token, "trinex_enum_struct enum has no body");
+						return failure(enum_token, "trinex_enum enum has no body");
 					}
 
 					const auto close = matching_token(tokens, cursor.index);
 					if (close == cursor.index || close > end)
 					{
-						return failure(enum_token, "unclosed trinex_enum_struct enum body");
+						return failure(enum_token, "unclosed trinex_enum enum body");
 					}
 					if (found_enum)
 					{
-						return failure(enum_token, "trinex_enum_struct must contain exactly one enum");
+						return failure(enum_token, "trinex_enum must contain exactly one enum");
 					}
-					if (!enumeration(object, annotation, cursor.index + 1, close))
+					if (!enumeration(object, cursor.index + 1, close))
 					{
 						return false;
 					}
@@ -1427,7 +1432,7 @@ namespace Reflector
 
 				if (!found_enum)
 				{
-					return failure(annotation, "trinex_enum_struct must contain exactly one enum");
+					return failure(annotation, "trinex_enum must contain exactly one enum");
 				}
 
 				return true;
@@ -1437,7 +1442,7 @@ namespace Reflector
 			            bool is_template)
 			{
 				const auto kind           = current(cursor).value;
-				const bool is_enum_struct = kind == "trinex_enum_struct";
+				const bool is_enum_struct = kind == "trinex_enum";
 
 				if (kind != "class" && kind != "struct" && kind != "enum" && !is_enum_struct)
 				{
@@ -1572,7 +1577,7 @@ namespace Reflector
 							return false;
 						}
 					}
-					else if (!enumeration(static_cast<Enum&>(*object), annotation, cursor.index + 1, close))
+					else if (!enumeration(static_cast<Enum&>(*object), cursor.index + 1, close))
 					{
 						return false;
 					}

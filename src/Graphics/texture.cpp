@@ -46,12 +46,7 @@ namespace Trinex
 		return m_texture.get();
 	}
 
-	trinex_implement_engine_class(Texture2D, Refl::Class::IsAsset)
-	{
-#define m_format format
-		trinex_refl_prop(m_format, Refl::Property::IsReadOnly)->tooltip("Color format of this texture");
-#undef m_format
-	}
+	trinex_implement_engine_class(Texture2D, Refl::Class::IsAsset) {}
 
 	Texture2D& Texture2D::rebuild()
 	{
@@ -102,10 +97,7 @@ namespace Trinex
 		return archive.serialize(mips);
 	}
 
-	trinex_implement_engine_class(Texture3D, Refl::Class::IsAsset)
-	{
-		trinex_refl_prop(format, Refl::Property::IsReadOnly)->tooltip("Color format of this texture");
-	}
+	trinex_implement_engine_class(Texture3D, Refl::Class::IsAsset) {}
 
 	Texture3D& Texture3D::rebuild()
 	{
@@ -161,10 +153,7 @@ namespace Trinex
 		return archive.serialize(mips);
 	}
 
-	trinex_implement_engine_class(TextureCube, Refl::Class::IsAsset)
-	{
-		trinex_refl_prop(format, Refl::Property::IsReadOnly)->tooltip("Color format of this texture");
-	}
+	trinex_implement_engine_class(TextureCube, Refl::Class::IsAsset) {}
 
 	TextureCube& TextureCube::rebuild()
 	{

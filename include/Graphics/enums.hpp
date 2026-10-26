@@ -3,7 +3,8 @@
 
 namespace Trinex
 {
-	struct MaterialDomain
+	trinex_reflect()
+	trinex_enum MaterialDomain
 	{
 		enum Enum : EnumerateType
 		{
@@ -12,10 +13,10 @@ namespace Trinex
 		};
 
 		trinex_enum_struct(MaterialDomain);
-		trinex_enum(MaterialDomain);
 	};
 
-	struct MaterialDepthMode
+	trinex_reflect()
+	trinex_enum MaterialDepthMode
 	{
 		enum Enum : EnumerateType
 		{
@@ -26,13 +27,20 @@ namespace Trinex
 		};
 
 		trinex_bitfield_enum_struct(MaterialDepthMode, EnumerateType);
-		trinex_enum(MaterialDepthMode);
 
-		inline bool is_test_enabled() const { return bitfield & Test; }
-		inline bool is_write_enabled() const { return bitfield & Write; }
+		inline bool is_test_enabled() const
+		{
+			return bitfield & Test;
+		}
+
+		inline bool is_write_enabled() const
+		{
+			return bitfield & Write;
+		}
 	};
 
-	struct MaterialBlendMode
+	trinex_reflect()
+	trinex_enum MaterialBlendMode
 	{
 		enum Enum : EnumerateType
 		{
@@ -44,12 +52,30 @@ namespace Trinex
 		};
 
 		trinex_enum_struct(MaterialBlendMode);
-		trinex_enum(MaterialBlendMode);
 
-		inline bool is_opaque() const { return value == Opaque; }
-		inline bool is_masked() const { return value == Masked; }
-		inline bool is_translucent() const { return value == Translucent; }
-		inline bool is_additive() const { return value == Additive; }
-		inline bool is_modulate() const { return value == Modulate; }
+		inline bool is_opaque() const
+		{
+			return value == Opaque;
+		}
+
+		inline bool is_masked() const
+		{
+			return value == Masked;
+		}
+
+		inline bool is_translucent() const
+		{
+			return value == Translucent;
+		}
+
+		inline bool is_additive() const
+		{
+			return value == Additive;
+		}
+
+		inline bool is_modulate() const
+		{
+			return value == Modulate;
+		}
 	};
 } // namespace Trinex

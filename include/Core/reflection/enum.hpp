@@ -66,17 +66,4 @@ namespace Trinex::Refl
 		inline bool is_scriptable() const { return m_flags & IsScriptable; }
 		inline bool is_bit_flags() const { return m_flags & IsBitFlags; }
 	};
-
-#define trinex_implement_enum(enum_name, flags, ...)                                                                             \
-	trinex_on_reflection_init({.name = #enum_name})                                                                              \
-	{                                                                                                                            \
-		enum_name::static_initialize_enum();                                                                                     \
-	}                                                                                                                            \
-	void enum_name::static_initialize_enum()                                                                                     \
-	{                                                                                                                            \
-		s_enum = Trinex::Refl::Enum::create<enum_name::Enum, __VA_ARGS__>(#enum_name, flags);                                    \
-	}                                                                                                                            \
-	Trinex::Refl::Enum* enum_name::s_enum = nullptr
-
-#define trinex_implement_engine_enum(enum_name, flags, ...) trinex_implement_enum(Trinex::enum_name, flags, __VA_ARGS__)
 } // namespace Trinex::Refl

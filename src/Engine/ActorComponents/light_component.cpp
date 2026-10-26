@@ -15,15 +15,13 @@
 
 namespace Trinex
 {
-	trinex_implement_engine_enum(LightUnits, 0, Unitless, Candelas, Lumens, EV);
-
 	trinex_implement_engine_class(LightComponent, 0)
 	{
 		trinex_refl_prop(m_light_color)->tooltip("Color of this light");
 		trinex_refl_prop(m_is_enabled)->tooltip("Is this light enabled");
 		trinex_refl_prop(m_is_shadows_enabled)->tooltip("The light source can cast real-time shadows");
 		trinex_refl_prop(m_intensity)->tooltip("Intensivity of this light");
-		trinex_refl_virtual_prop(m_intensity_units, intensity_units, intensity_units)->tooltip("Intencity units of this light");
+		//trinex_refl_virtual_prop(m_intensity_units, intensity_units, intensity_units)->tooltip("Intencity units of this light");
 
 		trinex_refl_prop(m_depth_bias);
 		trinex_refl_prop(m_slope_scale);

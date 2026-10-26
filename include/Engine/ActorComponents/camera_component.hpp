@@ -12,12 +12,23 @@ namespace Trinex
 		trinex_class(CameraComponent, SceneComponent);
 
 	public:
+		trinex_property()
 		CameraProjectionMode projection_mode = CameraProjectionMode::Perspective;
-		float fov                            = 75.f;
-		float ortho_width                    = 20.f;
-		float ortho_height                   = 20.f;
-		float near                           = 0.1f;
-		float far                            = 1000.f;
+
+		trinex_property()
+		float fov = 75.f;
+
+		trinex_property()
+		float ortho_width = 20.f;
+
+		trinex_property()
+		float ortho_height = 20.f;
+
+		trinex_property()
+		float near = 0.1f;
+
+		trinex_property()
+		float far = 1000.f;
 
 		bool serialize(Archive& archive) override;
 		CameraView camera_view(const Transform& transform, float aspect = 1.f) const;

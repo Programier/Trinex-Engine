@@ -387,7 +387,7 @@ namespace Test {
 	{
 		std::unique_ptr<Module> module(parse(R"(
 namespace RHI {
-	trinex_reflect() trinex_enum_struct RHICompareFunc {
+	trinex_reflect() trinex_enum RHICompareFunc {
 		trinex_reflection_body();
 
 		enum class Enum : u8 {
@@ -409,15 +409,15 @@ namespace RHI {
 		            "enum struct stores its nested enum and values"))
 			return false;
 
-		for (std::string_view source : {"trinex_reflect() trinex_enum_struct Empty { trinex_reflection_body(); };",
-		                                "trinex_reflect() trinex_enum_struct Multiple { enum First { A }; enum Second { B }; };"})
+		for (std::string_view source : {"trinex_reflect() trinex_enum Empty { trinex_reflection_body(); };",
+		                                "trinex_reflect() trinex_enum Multiple { enum First { A }; enum Second { B }; };"})
 		{
 			if (!expect(parse(source) == nullptr, "invalid enum struct is rejected"))
 				return false;
 		}
 
 		std::unique_ptr<Module> enum_struct_module(
-		        parse("trinex_reflect() trinex_enum_struct StructScoped { enum struct Enum { Value }; };"));
+		        parse("trinex_reflect() trinex_enum StructScoped { enum struct Enum { Value }; };"));
 		if (!expect(enum_struct_module != nullptr, "enum struct nested enum parses successfully"))
 			return false;
 		auto* struct_scoped = find<EnumStruct>(*enum_struct_module, "StructScoped", ObjectKind::Enum);

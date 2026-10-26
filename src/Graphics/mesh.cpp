@@ -13,7 +13,6 @@ namespace Trinex
 {
 	trinex_implement_struct(Trinex::MeshSurface, 0)
 	{
-		trinex_refl_prop(topology, Refl::Property::IsReadOnly | Refl::Property::IsTransient);
 		trinex_refl_prop(first_vertex, Refl::Property::IsReadOnly | Refl::Property::IsTransient);
 		trinex_refl_prop(first_index, Refl::Property::IsReadOnly | Refl::Property::IsTransient);
 		trinex_refl_prop(vertices_count, Refl::Property::IsReadOnly | Refl::Property::IsTransient);
