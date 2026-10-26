@@ -206,7 +206,10 @@ namespace Trinex::Refl::New
 	template<>
 	trinex_api Type* TypeOf<void>::resolve()
 	{
-		return nullptr;
+		static Type::VTable vtable;
+		static Type type("void", 0, 1, Type::IsNative | Type::IsTriviallyCopyable | Type::IsTriviallyDestructible, &vtable,
+		                 Object::root());
+		return &type;
 	}
 
 	template<>

@@ -12,6 +12,8 @@ namespace Trinex::Refl::New
 		trinex_reflection_body();
 
 	public:
+		using Invoker = void (*)(const Function*, void*);
+
 		enum Flags : u64
 		{
 			IsMethod      = 1 << 0,
@@ -24,13 +26,14 @@ namespace Trinex::Refl::New
 		};
 
 	private:
+		Invoker m_invoker;
 		Ref<Property> m_result;
 		Array<Ref<Property>> m_args;
 		u32 m_size;
 		u32 m_alignment;
 
 	public:
-		Function(Name name, Ref<Property> result = nullptr, Array<Ref<Property>> args = {}, u64 flags = 0,
+		Function(Name name, Invoker invoker, Ref<Property> result = nullptr, Array<Ref<Property>> args = {}, u64 flags = 0,
 		         Object* owner = nullptr);
 
 		Class* reflection() const override { return class_of<Function>(); }
@@ -41,6 +44,7 @@ namespace Trinex::Refl::New
 		inline u32 size() const { return m_size; }
 		inline u32 alignment() const { return m_alignment; }
 
+		inline Invoker invoker() const { return m_invoker; }
 		inline bool is_method() const { return has_flags(IsMethod); }
 		inline bool is_const() const { return has_flags(IsConst); }
 		inline bool is_virtual() const { return has_flags(IsVirtual); }
@@ -48,7 +52,6 @@ namespace Trinex::Refl::New
 		inline bool is_constructor() const { return has_flags(IsConstructor); }
 		inline bool is_destructor() const { return has_flags(IsDestructor); }
 		inline bool is_operator() const { return has_flags(IsOperator); }
-
-		virtual void invoke(void* context) const = 0;
+		inline void invoke(void* context) const { m_invoker(this, context); }
 	};
 }// namespace Trinex::Refl::New

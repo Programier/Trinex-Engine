@@ -23,9 +23,12 @@ namespace Trinex::Refl::New
 		size      = align_up(size, type->alignment()) + type->size();
 	}
 
-	Function::Function(Name name, Ref<Property> result, Array<Ref<Property>> args, u64 flags, Object* owner)
-	    : Object(name, flags, owner), m_result(etl::move(result)), m_args(etl::move(args)), m_size(0), m_alignment(0)
+	Function::Function(Name name, Invoker invoker, Ref<Property> result, Array<Ref<Property>> args, u64 flags, Object* owner)
+	    : Object(name, flags, owner), m_invoker(invoker), m_result(etl::move(result)), m_args(etl::move(args)), m_size(0),
+	      m_alignment(0)
 	{
+		trinex_verify(m_invoker);
+
 		for (const auto& arg : m_args)
 		{
 			append_type(arg.value(), m_size, m_alignment);

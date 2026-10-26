@@ -219,7 +219,7 @@ namespace Trinex::Refl::New::Native
 	class Function;
 
 	template<typename Ret, typename... Args, Ret (*func)(Args...), typename Parent>
-	class Function<func, Parent> : public Parent
+	class Function<func, Parent>
 	{
 	private:
 		template<typename...>
@@ -332,7 +332,6 @@ namespace Trinex::Refl::New::Native
 		}
 
 	public:
-		using Parent::Parent;
 		using ReturnType = Ret;
 
 		template<usize Index>
@@ -350,7 +349,11 @@ namespace Trinex::Refl::New::Native
 			return calculate_argument_offset<index, Args...>();
 		}
 
-		void invoke(void* context) const override { call(reinterpret_cast<uptr>(context), Types<Args...>{}); }
+		template<typename Self>
+		static void invoker(Self, void* context)
+		{
+			call(reinterpret_cast<uptr>(context), Types<Args...>{});
+		}
 	};
 
 	template<typename Class, typename Ret, typename... Args, Ret (Class::*func)(Args...), typename Parent>

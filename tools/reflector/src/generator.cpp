@@ -366,21 +366,23 @@ namespace Reflector
 			auto scope = writer->scope();
 			writer->line("using Func = Native::Function<$0, Function>;\n", ResolvedPathOf(object));
 
-			writer->line("static Ref<Func> func = []()");
+			writer->line("static Ref<Function> func = adopt_ref([]");
 			writer->line("{");
 			{
 				auto scope = writer->scope();
 
-				const Object* owner   = object->owner;
-				const bool is_method  = owner && owner->is_a(ObjectKind::Class) && !(object->flags & Function::Static);
-				const bool has_result = object->type.name != "void" || (object->type.flags & TypeInfo::Pointer) ||
-				                        (object->type.flags & TypeInfo::Reference) || (object->type.flags & TypeInfo::RValueRef);
+				const Object* owner  = object->owner;
+				const bool is_method = owner && owner->is_a(ObjectKind::Class) && !(object->flags & Function::Static);
 
-				if (has_result)
+				writer->line("Ref<Property> result;\n");
+
+				writer->line("if constexpr (!etl::is_void_v<Func::ReturnType>)\n{");
 				{
+					auto scope = writer->scope();
 					writer->line("using Result = Native::OffsetProperty<Func::return_offset, Property>;");
-					writer->line("auto result =  Ref<Result>::make(\"return\", type_of<Func::ReturnType>());\n");
+					writer->line("result = Ref<Result>::make(\"return\", type_of<Func::ReturnType>());");
 				}
+				writer->line("}\n");
 
 				const std::size_t arg_offset = is_method ? 1 : 0;
 
@@ -401,8 +403,7 @@ namespace Reflector
 					writer->line("auto arg$0 = Ref<Arg$0>::make(\"$1\", type_of<Func::ArgumentType<$0>>());\n", arg, name);
 				}
 
-				writer->write("Func* func = trx_new Func(\"$0\", ", object->name);
-				writer->write(has_result ? "result" : "nullptr");
+				writer->write("return trx_new Function(\"$0\", &Func::invoker, result", object->name);
 				writer->write(", {");
 
 
@@ -414,10 +415,9 @@ namespace Reflector
 				}
 
 				writer->line("}, $0, $1);", FunctionFlagsOf(object), OwnerReflectionOf(object));
-				writer->line("return retain_ref(func);");
 			}
 
-			writer->line("}();\n");
+			writer->line("}());\n");
 			writer->line("return func.value();");
 		}
 		writer->line("}\n");
