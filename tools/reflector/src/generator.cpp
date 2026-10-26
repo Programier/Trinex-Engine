@@ -308,6 +308,15 @@ namespace Reflector
 			writer->line("return reflection.value();");
 		}
 		writer->line("}\n");
+
+		writer->line("template<>");
+		writer->line("trinex_export Type* TypeOf<$0>::resolve()", ResolvedPathOf(object));
+		writer->line("{");
+		{
+			auto scope = writer->scope();
+			writer->line("return enum_of<$0>();", ResolvedPathOf(object));
+		}
+		writer->line("}\n");
 	}
 
 	static void generate_property(CodeWriter* writer, const Property* object)
