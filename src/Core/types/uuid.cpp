@@ -56,7 +56,7 @@ namespace Trinex
 		{
 			return uuid_equals_string(self, StringView(value));
 		}
-	}// namespace
+	} // namespace
 
 	usize UUID::Hash::operator()(const UUID& uuid) const noexcept
 	{
@@ -200,8 +200,8 @@ namespace Trinex
 
 	trinex_on_pre_init({.name = "Trinex::UUID", .after = {"Trinex::StringView"}})
 	{
-		auto flags = ScriptClassFlags::Pod | ScriptClassFlags::AppClassAllInts | ScriptClassFlags::AppClassAlign8 |
-		             ScriptClassFlags::AppClassMoreConstructors;
+		auto flags = ScriptClassFlags::Pod | ScriptClassFlags::AppClassAllInts | ScriptClassFlags::AppClassAlign8
+		             | ScriptClassFlags::AppClassMoreConstructors;
 		ScriptBinding::Class registrar = ScriptBinding::Class::create("Trinex::UUID", ScriptBinding::value_type<UUID>(flags));
 
 		registrar.behaviour(ScriptClassBehave::Construct, "void f()", ScriptBinding::Helpers::constructor<UUID>,
@@ -226,4 +226,4 @@ namespace Trinex
 		registrar.method("bool opEquals(const StringView&) const", &uuid_equals_string);
 		registrar.method("bool opEquals(const string&) const", &uuid_equals_string_obj);
 	}
-}// namespace Trinex
+} // namespace Trinex

@@ -6,7 +6,8 @@
 
 namespace Trinex
 {
-	struct trinex_api CameraView {
+	struct trinex_api CameraView
+	{
 		Frustum frustum;
 		Matrix4f projection;
 		Matrix4f view;
@@ -51,4 +52,4 @@ namespace Trinex
 			return glm::min<u32>(lod_index, lod_count - 1);
 		}
 	};
-}// namespace Trinex
+} // namespace Trinex

@@ -36,4 +36,4 @@ namespace Trinex
 		}
 	};
 
-}// namespace Trinex
+} // namespace Trinex

@@ -29,7 +29,7 @@ namespace Trinex
 			trinex_api Texture2D* noise16x16             = nullptr;
 			trinex_api Texture2D* noise128x128           = nullptr;
 			trinex_api Texture3D* default_lut            = nullptr;
-		}// namespace Textures
+		} // namespace Textures
 
 		namespace Buffers
 		{
@@ -40,7 +40,7 @@ namespace Trinex
 		{
 			trinex_api Material* sprite    = nullptr;
 			trinex_api Material* base_pass = nullptr;
-		}// namespace Materials
+		} // namespace Materials
 
 		namespace Meshes
 		{
@@ -49,9 +49,9 @@ namespace Trinex
 			trinex_api StaticMesh* cylinder = nullptr;
 			trinex_api StaticMesh* plane    = nullptr;
 			trinex_api StaticMesh* cone     = nullptr;
-		}// namespace Meshes
+		} // namespace Meshes
 
-	}// namespace DefaultResources
+	} // namespace DefaultResources
 
 	trinex_api Object* load_object_from_memory(const u8* data, usize size, const StringView& name)
 	{
@@ -99,7 +99,6 @@ namespace Trinex
 
 		texture->rebuild();
 	}
-
 
 	static void generate_noise_textures(Package* package)
 	{
@@ -217,7 +216,8 @@ namespace Trinex
 		generate_noise_textures(package);
 	}
 
-	struct ProceduralVertex {
+	struct ProceduralVertex
+	{
 		Vector3f position;
 		Vector2f uv0;
 		Vector3f normal;
@@ -533,4 +533,4 @@ namespace Trinex
 		if (DefaultResources::Buffers::screen_quad)
 			trx_delete DefaultResources::Buffers::screen_quad;
 	}
-}// namespace Trinex
+} // namespace Trinex

@@ -22,7 +22,8 @@ namespace Trinex
 		LastStage  = DestroyGarbage
 	};
 
-	static struct GCState {
+	static struct GCState
+	{
 		usize object_index = 0;
 		GCStage stage      = GCStage::MarkUnreachable;
 	} gc_state;
@@ -159,7 +160,6 @@ namespace Trinex
 		}
 	}
 
-
 	void GarbageCollector::collect_garbage(float dt)
 	{
 		process_objects(find_unreachable);
@@ -215,4 +215,4 @@ namespace Trinex
 				++index;
 		}
 	}
-}// namespace Trinex
+} // namespace Trinex

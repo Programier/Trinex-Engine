@@ -1,59 +1,59 @@
 #pragma once
 
 #if defined(_WIN32)
-#define PLATFORM_WINDOWS 1
+	#define PLATFORM_WINDOWS 1
 #else
-#define PLATFORM_WINDOWS 0
+	#define PLATFORM_WINDOWS 0
 #endif
 
 #if defined(__ANDROID__) || defined(ANDROID)
-#define PLATFORM_ANDROID 1
+	#define PLATFORM_ANDROID 1
 #else
-#define PLATFORM_ANDROID 0
+	#define PLATFORM_ANDROID 0
 #endif
 
 #if defined(__linux__) && !PLATFORM_ANDROID
-#define PLATFORM_LINUX 1
+	#define PLATFORM_LINUX 1
 #else
-#define PLATFORM_LINUX 0
+	#define PLATFORM_LINUX 0
 #endif
 
 #if !defined(PLATFORM_ANDROID) && !defined(PLATFORM_LINUX) && !defined(PLATFORM_WINDOWS)
-#error "Platform doesn't support!"
+	#error "Platform doesn't support!"
 #endif
 
 #if defined(arm) || defined(__arm__) || defined(__ARM_ARCH)
-#define ARCH_ARM 1
+	#define ARCH_ARM 1
 #else
-#define ARCH_ARM 0
+	#define ARCH_ARM 0
 #endif
 
 #if defined(__x86_64__) || defined(m_X64)
-#define ARCH_X86_64 1
+	#define ARCH_X86_64 1
 #else
-#define ARCH_X86_64 0
+	#define ARCH_X86_64 0
 #endif
 
 #if __GNUC__
-#define TRINEX_GNU_COMPILER
+	#define TRINEX_GNU_COMPILER
 #elif __clang__
-#define TRINEX_CLANG_COMPILER
+	#define TRINEX_CLANG_COMPILER
 #else
-#error "Compiler doesn't support!"
+	#error "Compiler doesn't support!"
 #endif
 
 #if PLATFORM_ANDROID
-#define ANDROID_API __ANDROID_API__
+	#define ANDROID_API __ANDROID_API__
 #else
-#define ANDROID_API 0
+	#define ANDROID_API 0
 #endif
 
 #define STRUCT_OFFSET(StructClass, Member) (reinterpret_cast<size_t>(&reinterpret_cast<StructClass*>(0)->Member))
 
 #ifdef __cpp_rtti
-#define TRINEX_WITH_RTTI 1
+	#define TRINEX_WITH_RTTI 1
 #else
-#define TRINEX_WITH_RTTI 0
+	#define TRINEX_WITH_RTTI 0
 #endif
 
 #define MAKE_ENTITY_FULL_NAME(entity_name, ...) #__VA_ARGS__ __VA_OPT__("::") #entity_name
@@ -212,14 +212,14 @@ public:                                                                         
 	return *this
 
 #if defined(_WIN32)
-#define trinex_export __declspec(dllexport)
-#define trinex_import __declspec(dllimport)
+	#define trinex_export __declspec(dllexport)
+	#define trinex_import __declspec(dllimport)
 #elif defined(__GNUC__) || defined(__clang__)
-#define trinex_export __attribute__((visibility("default")))
-#define trinex_import __attribute__((visibility("default")))
+	#define trinex_export __attribute__((visibility("default")))
+	#define trinex_import __attribute__((visibility("default")))
 #else
-#define trinex_export
-#define trinex_import
+	#define trinex_export
+	#define trinex_import
 #endif
 
 #define trinex_reflection_body(...) TRINEX_CONCAT(TRINEX_CONCAT(trinex_reflection_file_id, _), __LINE__)

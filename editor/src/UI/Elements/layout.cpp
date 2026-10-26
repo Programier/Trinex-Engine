@@ -351,4 +351,4 @@ namespace Trinex::UI
 		ImGui::Spring(weight);
 		return UpdateFlags::Undefined;
 	}
-}// namespace Trinex::UI
+} // namespace Trinex::UI

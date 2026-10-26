@@ -15,7 +15,8 @@ namespace Trinex
 	class RHIFence;
 	class RHISemaphore;
 
-	struct RHIRect {
+	struct RHIRect
+	{
 		Vector2i size;
 		Vector2i pos;
 
@@ -24,7 +25,8 @@ namespace Trinex
 		inline bool operator!=(const RHIRect& v) const { return !((*this) == v); }
 	};
 
-	struct RHIRegion {
+	struct RHIRegion
+	{
 		Vector2f size;
 		Vector2f pos;
 
@@ -33,12 +35,14 @@ namespace Trinex
 		inline bool operator!=(const RHIRegion& v) const { return !((*this) == v); }
 	};
 
-	struct trinex_api RHIRange {
+	struct trinex_api RHIRange
+	{
 		u64 first = 0;
 		u64 count = ~0U;
 	};
 
-	struct trinex_api RHIShaderParameterInfo {
+	struct trinex_api RHIShaderParameterInfo
+	{
 		Name name;
 		u32 size                    = 0;
 		u32 offset                  = 0;
@@ -49,7 +53,8 @@ namespace Trinex
 		bool serialize(Archive& ar);
 	};
 
-	struct RHIInputAttribute {
+	struct RHIInputAttribute
+	{
 		RHISemantic semantic;
 		u8 binding;
 
@@ -60,7 +65,8 @@ namespace Trinex
 		bool serialize(Archive& ar);
 	};
 
-	struct RHITextureRegion {
+	struct RHITextureRegion
+	{
 		Vector3u extent;
 		Vector3u offset;
 		u16 mip;
@@ -76,25 +82,29 @@ namespace Trinex
 		{}
 	};
 
-	struct RHIBufferAddress {
+	struct RHIBufferAddress
+	{
 		RHIBuffer* buffer = nullptr;
 		usize offset      = 0;
 	};
 
-	struct RHIBufferCopy {
+	struct RHIBufferCopy
+	{
 		usize size       = 0;
 		usize dst_offset = 0;
 		usize src_offset = 0;
 	};
 
-	struct RHIBufferTextureCopy {
+	struct RHIBufferTextureCopy
+	{
 		usize size   = 0;
 		usize offset = 0;
 		u16 width    = 0;
 		u16 height   = 0;
 	};
 
-	struct RHITextureDescSRV {
+	struct RHITextureDescSRV
+	{
 		u16 base_slice           = 0;
 		u16 slice_count          = ~0;
 		u16 base_mip             = 0;
@@ -102,28 +112,32 @@ namespace Trinex
 		RHITextureType view_type = RHITextureType::Undefined;
 	};
 
-	struct RHITextureDescUAV {
+	struct RHITextureDescUAV
+	{
 		u16 base_slice           = 0;
 		u16 slice_count          = ~0;
 		u16 base_mip             = 0;
 		RHITextureType view_type = RHITextureType::Undefined;
 	};
 
-	struct RHITextureDescRTV {
+	struct RHITextureDescRTV
+	{
 		u16 base_slice           = 0;
 		u16 slice_count          = ~0;
 		u16 base_mip             = 0;
 		RHITextureType view_type = RHITextureType::Undefined;
 	};
 
-	struct RHITextureDescDSV {
+	struct RHITextureDescDSV
+	{
 		u16 base_slice           = 0;
 		u16 slice_count          = ~0;
 		u16 base_mip             = 0;
 		RHITextureType view_type = RHITextureType::Undefined;
 	};
 
-	struct RHIRayTracingGeometryTriangles {
+	struct RHIRayTracingGeometryTriangles
+	{
 		RHIDeviceAddress transform     = 0;
 		RHIDeviceAddress index_buffer  = 0;
 		RHIDeviceAddress vertex_buffer = 0;
@@ -135,13 +149,15 @@ namespace Trinex
 		u64 index_count               = 0;
 	};
 
-	struct RHIRayTracingGeometryAABBs {
+	struct RHIRayTracingGeometryAABBs
+	{
 		RHIDeviceAddress aabbs = 0;
 		u64 count              = 0;
 		u64 stride             = 0;
 	};
 
-	struct RHIRayTracingGeometry {
+	struct RHIRayTracingGeometry
+	{
 		RHIRayTracingGeometryType type   = RHIRayTracingGeometryType::Triangles;
 		RHIRayTracingGeometryFlags flags = RHIRayTracingGeometryFlags::Undefined;
 
@@ -152,7 +168,8 @@ namespace Trinex
 		};
 	};
 
-	struct RHIRayTracingGeometryInstance {
+	struct RHIRayTracingGeometryInstance
+	{
 		Matrix4x3f transform                                   = Matrix4x3f(1.f);
 		u32 id : 24                                            = 0;
 		u32 mask : 8                                           = 0xFF;
@@ -161,7 +178,8 @@ namespace Trinex
 		class RHIAccelerationStructure* acceleration_structure = nullptr;
 	};
 
-	struct RHIRayTracingAccelerationInputs {
+	struct RHIRayTracingAccelerationInputs
+	{
 		RHIRayTracingAccelerationLevel level = RHIRayTracingAccelerationLevel::Top;
 		RHIRayTracingAccelerationFlags flags = RHIRayTracingAccelerationFlags::Undefined;
 
@@ -173,10 +191,12 @@ namespace Trinex
 		};
 	};
 
-	struct trinex_api RHIDepthStencilState final {
+	struct trinex_api RHIDepthStencilState final
+	{
 		trinex_default_comparable(RHIDepthStencilState);
 
-		struct Depth {
+		struct Depth
+		{
 			trinex_default_comparable(Depth);
 
 			RHICompareFunc::Enum func : 7;
@@ -186,7 +206,8 @@ namespace Trinex
 			constexpr inline bool is_enabled() const { return func != RHICompareFunc::Always; }
 		} depth;
 
-		struct Stencil {
+		struct Stencil
+		{
 			trinex_default_comparable(Stencil);
 
 			RHIStencilOp::Enum fail : 4;
@@ -229,7 +250,8 @@ namespace Trinex
 		constexpr inline bool is_enabled() const { return depth.is_enabled() || stencil.is_enabled(); }
 	};
 
-	struct trinex_api RHIBlendingState final {
+	struct trinex_api RHIBlendingState final
+	{
 		trinex_default_comparable(RHIBlendingState);
 
 		static constexpr RHIBlendingState opaque(RHIColorComponent write_mask = RHIColorComponent::RGBA)
@@ -287,19 +309,20 @@ namespace Trinex
 
 		constexpr inline bool is_enabled() const
 		{
-			const bool color_blend = (src_color_func != RHIBlendFunc::One) || (dst_color_func != RHIBlendFunc::Zero) ||
-			                         (color_op != RHIBlendOp::Add);
+			const bool color_blend = (src_color_func != RHIBlendFunc::One) || (dst_color_func != RHIBlendFunc::Zero)
+			                         || (color_op != RHIBlendOp::Add);
 
-			const bool alpha_blend = (src_alpha_func != RHIBlendFunc::One) || (dst_alpha_func != RHIBlendFunc::Zero) ||
-			                         (alpha_op != RHIBlendOp::Add);
+			const bool alpha_blend = (src_alpha_func != RHIBlendFunc::One) || (dst_alpha_func != RHIBlendFunc::Zero)
+			                         || (alpha_op != RHIBlendOp::Add);
 
 			return color_blend || alpha_blend;
 		}
 
 		constexpr inline bool is_opaque() const
 		{
-			return (src_color_func == RHIBlendFunc::One && dst_color_func == RHIBlendFunc::Zero && color_op == RHIBlendOp::Add) &&
-			       (src_alpha_func == RHIBlendFunc::One && dst_alpha_func == RHIBlendFunc::Zero && alpha_op == RHIBlendOp::Add);
+			return (src_color_func == RHIBlendFunc::One && dst_color_func == RHIBlendFunc::Zero && color_op == RHIBlendOp::Add)
+			       && (src_alpha_func == RHIBlendFunc::One && dst_alpha_func == RHIBlendFunc::Zero
+			           && alpha_op == RHIBlendOp::Add);
 		}
 
 		constexpr inline bool is_translucent() const
@@ -309,8 +332,8 @@ namespace Trinex
 
 		constexpr inline bool is_alpha_blend() const
 		{
-			return src_color_func == RHIBlendFunc::SrcAlpha && dst_color_func == RHIBlendFunc::OneMinusSrcAlpha &&
-			       color_op == RHIBlendOp::Add;
+			return src_color_func == RHIBlendFunc::SrcAlpha && dst_color_func == RHIBlendFunc::OneMinusSrcAlpha
+			       && color_op == RHIBlendOp::Add;
 		}
 
 		constexpr inline bool is_additive() const
@@ -320,10 +343,10 @@ namespace Trinex
 
 		constexpr inline bool is_multiplicative() const
 		{
-			return (src_color_func == RHIBlendFunc::DstColor && dst_color_func == RHIBlendFunc::Zero &&
-			        color_op == RHIBlendOp::Add) ||
-			       (src_color_func == RHIBlendFunc::Zero && dst_color_func == RHIBlendFunc::SrcColor &&
-			        color_op == RHIBlendOp::Add);
+			return (src_color_func == RHIBlendFunc::DstColor && dst_color_func == RHIBlendFunc::Zero
+			        && color_op == RHIBlendOp::Add)
+			       || (src_color_func == RHIBlendFunc::Zero && dst_color_func == RHIBlendFunc::SrcColor
+			           && color_op == RHIBlendOp::Add);
 		}
 
 		constexpr inline bool is_alpha_replace() const
@@ -332,7 +355,8 @@ namespace Trinex
 		}
 	};
 
-	struct RHIRasterizerState {
+	struct RHIRasterizerState
+	{
 		trinex_default_comparable(RHIRasterizerState);
 
 		RHICullMode::Enum cull_mode : 2       = RHICullMode::None;
@@ -341,7 +365,8 @@ namespace Trinex
 		u8 depth_bias : 1                     = false;
 	};
 
-	struct RHIColorAttachmentInfo {
+	struct RHIColorAttachmentInfo
+	{
 		RHIRenderTargetView* view = nullptr;
 
 		union
@@ -355,7 +380,8 @@ namespace Trinex
 		RHIStoreFunc store = RHIStoreFunc::Store;
 	};
 
-	struct RHIDepthStencilAttachmentInfo {
+	struct RHIDepthStencilAttachmentInfo
+	{
 		RHIDepthStencilView* view = nullptr;
 
 		float depth                = 0.f;
@@ -366,14 +392,16 @@ namespace Trinex
 		RHIStoreFunc stencil_store = RHIStoreFunc::Store;
 	};
 
-	struct RHIDrawIndirectCommand {
+	struct RHIDrawIndirectCommand
+	{
 		u32 vertex_count;
 		u32 instance_count;
 		u32 first_vertex;
 		u32 first_instance;
 	};
 
-	struct RHIDrawIndexedIndirectCommand {
+	struct RHIDrawIndexedIndirectCommand
+	{
 		u32 index_count;
 		u32 instance_count;
 		u32 first_index;
@@ -381,13 +409,15 @@ namespace Trinex
 		u32 first_instance;
 	};
 
-	struct RHIDispatchIndirectCommand {
+	struct RHIDispatchIndirectCommand
+	{
 		u32 x;
 		u32 y;
 		u32 z;
 	};
 
-	struct RHIRenderingInfo {
+	struct RHIRenderingInfo
+	{
 		RHIColorAttachmentInfo colors[4];
 		RHIDepthStencilAttachmentInfo depth_stencil;
 		RHIRect rect;
@@ -430,13 +460,15 @@ namespace Trinex
 		}
 	};
 
-	struct RHIContextInheritanceInfo {
+	struct RHIContextInheritanceInfo
+	{
 		RHISurfaceFormat colors[4]       = {RHISurfaceFormat::Undefined};
 		RHISurfaceFormat depth           = RHISurfaceFormat::Undefined;
 		RHIContextInheritanceFlags flags = RHIContextInheritanceFlags::Undefined;
 	};
 
-	struct RHISubmitInfo {
+	struct RHISubmitInfo
+	{
 		RHICommandHandle* command      = nullptr;
 		RHISemaphore* wait_semaphore   = nullptr;
 		RHISemaphore* signal_semaphore = nullptr;
@@ -450,4 +482,4 @@ namespace Trinex
 		inline RHISubmitInfo(RHICommandHandle* command, RHIFence* fence) : command(command), signal_fence(fence) {}
 		inline RHISubmitInfo(RHIFence* fence) : signal_fence(fence) {}
 	};
-}// namespace Trinex
+} // namespace Trinex

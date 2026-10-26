@@ -22,7 +22,6 @@ namespace Trinex
 		menu->m_next = nullptr;
 	}
 
-
 	ImGuiMenuBar::Menu* ImGuiMenuBar::create(StringView name, Menu* before)
 	{
 		if (auto menu = find(name))
@@ -162,4 +161,4 @@ namespace Trinex
 	{
 		clear();
 	}
-}// namespace Trinex
+} // namespace Trinex

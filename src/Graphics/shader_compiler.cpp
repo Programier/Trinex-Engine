@@ -112,7 +112,7 @@ namespace Trinex
 			               result       = current_result;
 			               found_result = true;
 			               return true;
-		               }) &&
-		       found_result;
+		               })
+		       && found_result;
 	}
-}// namespace Trinex
+} // namespace Trinex

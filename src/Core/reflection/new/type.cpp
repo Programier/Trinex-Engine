@@ -74,8 +74,8 @@ namespace Trinex::Refl::New
 
 	bool Type::equals(const void* lhs, const void* rhs) const
 	{
-		return m_vtable != nullptr && m_vtable->equals != nullptr && lhs != nullptr && rhs != nullptr &&
-		       m_vtable->equals(this, lhs, rhs);
+		return m_vtable != nullptr && m_vtable->equals != nullptr && lhs != nullptr && rhs != nullptr
+		       && m_vtable->equals(this, lhs, rhs);
 	}
 
 	bool Type::compare(const void* lhs, const void* rhs, i32& result) const
@@ -101,4 +101,4 @@ namespace Trinex::Refl::New
 
 		return m_vtable->format(this, self, value);
 	}
-}// namespace Trinex::Refl::New
+} // namespace Trinex::Refl::New

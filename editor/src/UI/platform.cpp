@@ -15,14 +15,16 @@ namespace Trinex
 	{
 		namespace WindowBackend
 		{
-			struct ImGuiTrinexWindowData {
+			struct ImGuiTrinexWindowData
+			{
 				float time;
 				bool update_monitors;
 
 				ImGuiTrinexWindowData() : time(Engine::instance()->time_seconds()), update_monitors(true) {}
 			};
 
-			struct ImGuiTrinexViewportData {
+			struct ImGuiTrinexViewportData
+			{
 				Window* window    = nullptr;
 				ImGuiContext* ctx = nullptr;
 				bool owns_window  = false;
@@ -68,7 +70,8 @@ namespace Trinex
 				return {x, window->size().y - y};
 			}
 
-			struct ImGuiContextSaver {
+			struct ImGuiContextSaver
+			{
 				ImGuiContext* ctx;
 
 				ImGuiContextSaver(ImGuiContext* new_context) : ctx(ImGui::GetCurrentContext())
@@ -575,8 +578,8 @@ namespace Trinex
 				const Identifier window_id = static_cast<Identifier>(event.window_id);
 				if (event.type == EventType::Press || event.type == EventType::Release || event.type == EventType::Repeat)
 				{
-					if (event.code == EventCode::MouseLeft || event.code == EventCode::MouseMiddle ||
-					    event.code == EventCode::MouseRight)
+					if (event.code == EventCode::MouseLeft || event.code == EventCode::MouseMiddle
+					    || event.code == EventCode::MouseRight)
 						on_mouse_button(window_id, event.code, event.type != EventType::Release);
 					else
 						on_keyboard_button(window_id, event.code, event.type != EventType::Release);
@@ -836,9 +839,8 @@ namespace Trinex
 					io.BackendPlatformUserData = bd;
 					io.BackendFlags |= ImGuiBackendFlags_PlatformHasViewports;
 
-
-					if ((io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) &&
-					    (io.BackendFlags & ImGuiBackendFlags_PlatformHasViewports))
+					if ((io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+					    && (io.BackendFlags & ImGuiBackendFlags_PlatformHasViewports))
 						init_platform_interface(window);
 					return *this;
 				}
@@ -888,6 +890,6 @@ namespace Trinex
 					return *this;
 				}
 			} s_listener;
-		}// namespace WindowBackend
-	}// namespace
-}// namespace Trinex
+		} // namespace WindowBackend
+	} // namespace
+} // namespace Trinex

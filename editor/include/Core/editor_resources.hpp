@@ -1,6 +1,5 @@
 #pragma once
 
-
 namespace Trinex
 {
 	class Texture2D;
@@ -12,5 +11,5 @@ namespace Trinex
 		extern Texture2D* default_icon;
 		extern Texture2D* light_sprite;
 		extern Texture2D* blueprint_texture;
-	}// namespace EditorResources
-}// namespace Trinex
+	} // namespace EditorResources
+} // namespace Trinex

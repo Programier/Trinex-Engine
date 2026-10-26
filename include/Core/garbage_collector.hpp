@@ -31,4 +31,4 @@ namespace Trinex
 
 		trinex_api static void destroy_all_objects();
 	};
-}// namespace Trinex
+} // namespace Trinex

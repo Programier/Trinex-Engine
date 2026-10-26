@@ -48,7 +48,8 @@ namespace Trinex
 	// 	}
 	// };
 
-	struct MaterialBindingsVisitor {
+	struct MaterialBindingsVisitor
+	{
 	private:
 		RHIContext* m_ctx;
 		const RHIShaderParameterInfo* m_parameter;
@@ -93,8 +94,8 @@ namespace Trinex
 		bool operator()(RHIShaderResourceView* value) const
 		{
 			static constexpr RHIShaderParameterType mask =
-			        RHIShaderParameterType::META_Texture | RHIShaderParameterType::META_Buffer |
-			        RHIShaderParameterType::META_StructuredBuffer | RHIShaderParameterType::META_ByteAddressBuffer;
+			        RHIShaderParameterType::META_Texture | RHIShaderParameterType::META_Buffer
+			        | RHIShaderParameterType::META_StructuredBuffer | RHIShaderParameterType::META_ByteAddressBuffer;
 
 			if (m_parameter->type & mask)
 			{
@@ -683,4 +684,4 @@ namespace Trinex
 
 		return mat->apply_internal(this, ctx);
 	}
-}// namespace Trinex
+} // namespace Trinex

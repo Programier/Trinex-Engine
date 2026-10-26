@@ -12,4 +12,4 @@ namespace Trinex
 
 		return value;
 	}
-}// namespace Trinex
+} // namespace Trinex

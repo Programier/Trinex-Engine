@@ -5,12 +5,14 @@
 
 namespace Trinex::Refl::New
 {
-	trinex_reflect() class trinex_api PointerType : public Type
+	trinex_reflect()
+	class trinex_api PointerType : public Type
 	{
 		trinex_reflection_body();
 
 	public:
-		struct VTable : public Type::VTable {
+		struct VTable : public Type::VTable
+		{
 		};
 
 	private:
@@ -28,4 +30,4 @@ namespace Trinex::Refl::New
 
 		inline Type* type() const { return m_type.value(); }
 	};
-}// namespace Trinex::Refl::New
+} // namespace Trinex::Refl::New

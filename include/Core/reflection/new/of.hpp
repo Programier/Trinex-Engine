@@ -21,12 +21,14 @@ namespace Trinex::Refl::New
 	trinex_api Type* array_type_of(Type* type);
 
 	template<typename T>
-	struct TypeOf {
+	struct TypeOf
+	{
 		static Type* resolve();
 	};
 
 	template<typename T>
-	struct TypeOf<const T> {
+	struct TypeOf<const T>
+	{
 		static Type* resolve()
 		{
 			static Type* type = const_type_of(TypeOf<T>::resolve());
@@ -35,7 +37,8 @@ namespace Trinex::Refl::New
 	};
 
 	template<typename T>
-	struct TypeOf<T&> {
+	struct TypeOf<T&>
+	{
 		static Type* resolve()
 		{
 			static Type* type = pointer_type_of(TypeOf<T>::resolve());
@@ -44,7 +47,8 @@ namespace Trinex::Refl::New
 	};
 
 	template<typename T>
-	struct TypeOf<T&&> {
+	struct TypeOf<T&&>
+	{
 		static Type* resolve()
 		{
 			static Type* type = pointer_type_of(TypeOf<T>::resolve());
@@ -53,7 +57,8 @@ namespace Trinex::Refl::New
 	};
 
 	template<typename T>
-	struct TypeOf<T*> {
+	struct TypeOf<T*>
+	{
 		static Type* resolve()
 		{
 			static Type* type = pointer_type_of(TypeOf<T>::resolve());
@@ -62,7 +67,8 @@ namespace Trinex::Refl::New
 	};
 
 	template<typename T, typename AllocatorType>
-	struct TypeOf<::Trinex::Array<T, AllocatorType>> {
+	struct TypeOf<::Trinex::Array<T, AllocatorType>>
+	{
 		static Type* resolve()
 		{
 			static Type* type = array_type_of(TypeOf<T>::resolve());
@@ -71,17 +77,20 @@ namespace Trinex::Refl::New
 	};
 
 	template<typename T>
-	struct EnumOf {
+	struct EnumOf
+	{
 		static Enum* resolve();
 	};
 
 	template<typename T>
-	struct StructOf {
+	struct StructOf
+	{
 		static Struct* resolve();
 	};
 
 	template<typename T>
-	struct ClassOf {
+	struct ClassOf
+	{
 		static Class* resolve();
 	};
 
@@ -114,4 +123,4 @@ namespace Trinex::Refl::New
 
 	template<auto value>
 	Property* property_of();
-}// namespace Trinex::Refl::New
+} // namespace Trinex::Refl::New

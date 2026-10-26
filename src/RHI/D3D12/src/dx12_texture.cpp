@@ -135,4 +135,4 @@ namespace Trinex
 	{
 		return &allocate<D3D12Texture>()->create_2d(format, size, mips, flags);
 	}
-}// namespace Trinex
+} // namespace Trinex

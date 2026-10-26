@@ -18,5 +18,5 @@ namespace Trinex
 
 		ImGuiTrinexTextureId find_icon(Object* object);
 		ImGuiTrinexTextureId find_icon(Refl::Class* class_instance);
-	}// namespace Icons
-}// namespace Trinex
+	} // namespace Icons
+} // namespace Trinex

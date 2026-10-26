@@ -31,7 +31,6 @@ namespace Trinex::Refl::New
 		}
 	};
 
-
 	static u32 append_type(const Type* type, u32& size, u32& alignment)
 	{
 		alignment = Math::max(alignment, type->alignment());
@@ -82,4 +81,4 @@ namespace Trinex::Refl::New
 			m_result   = Ref<OffsetProperty>::make("result", offset, result);
 		}
 	}
-}// namespace Trinex::Refl::New
+} // namespace Trinex::Refl::New

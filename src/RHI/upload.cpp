@@ -1,7 +1,7 @@
 #include <Core/etl/algorithm.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/etl/critical_section.hpp>
 #include <Core/etl/map.hpp>
-#include <Core/etl/array.hpp>
 #include <Core/lifecycle.hpp>
 #include <Core/math/math.hpp>
 #include <Core/memory.hpp>
@@ -72,7 +72,7 @@ namespace Trinex
 	class RHIUploadAllocatorImpl : public ThreadLocalTickable
 	{
 	public:
-		static constexpr usize page_size = 8 * 1024 * 1024;// 8 MB
+		static constexpr usize page_size = 8 * 1024 * 1024; // 8 MB
 
 	private:
 		Trinex::CriticalSection m_critical;
@@ -101,7 +101,6 @@ namespace Trinex
 			m_pages.push_back(page);
 			return page;
 		}
-
 
 		void release_page(RHIUploadAllocatorPage* page)
 		{
@@ -208,7 +207,8 @@ namespace Trinex
 
 	static RHIUploadAllocatorImpl* allocator_instance()
 	{
-		static struct Initializer {
+		static struct Initializer
+		{
 			Initializer()
 			{
 				g_allocator = trx_new RHIUploadAllocatorImpl();
@@ -286,4 +286,4 @@ namespace Trinex
 		copy_region.offset               = upload.offset;
 		return copy(dst, dst_region, upload.buffer, copy_region);
 	}
-}// namespace Trinex
+} // namespace Trinex

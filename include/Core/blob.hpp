@@ -38,4 +38,4 @@ namespace Trinex
 			return T{reinterpret_cast<const Value*>(data()), size() / sizeof(Value)};
 		}
 	};
-}// namespace Trinex
+} // namespace Trinex

@@ -3,7 +3,8 @@
 
 namespace Trinex
 {
-	struct trinex_api Project {
+	struct trinex_api Project
+	{
 		static String name;
 		static String version;
 
@@ -25,4 +26,4 @@ namespace Trinex
 		static String to_string();
 		static void initialize();
 	};
-}// namespace Trinex
+} // namespace Trinex

@@ -23,7 +23,7 @@ namespace Trinex
 
 			return Strings::format("{}::{}", object_path, permutation.to_string());
 		}
-	}// namespace
+	} // namespace
 
 	static inline StringView find_rhi_name(const StringView& rhi_name)
 	{
@@ -335,4 +335,4 @@ namespace Trinex
 			trinex_error(Log::Graphics, "Failed to store pipeline library cache manifest");
 		}
 	}
-}// namespace Trinex
+} // namespace Trinex

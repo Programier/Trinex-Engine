@@ -23,7 +23,7 @@ namespace Trinex
 		{
 			return timestamp_equals_string(self, StringView(value));
 		}
-	}// namespace
+	} // namespace
 
 	usize Timestamp::Hash::operator()(const Timestamp& timestamp) const noexcept
 	{
@@ -124,8 +124,8 @@ namespace Trinex
 
 	trinex_on_pre_init({.name = "Trinex::Timestamp", .after = {"Trinex::StringView"}})
 	{
-		auto flags = ScriptClassFlags::Pod | ScriptClassFlags::AppClassAllInts | ScriptClassFlags::AppClassAlign8 |
-		             ScriptClassFlags::AppClassMoreConstructors;
+		auto flags = ScriptClassFlags::Pod | ScriptClassFlags::AppClassAllInts | ScriptClassFlags::AppClassAlign8
+		             | ScriptClassFlags::AppClassMoreConstructors;
 		ScriptBinding::Class registrar =
 		        ScriptBinding::Class::create("Trinex::Timestamp", ScriptBinding::value_type<Timestamp>(flags));
 
@@ -155,4 +155,4 @@ namespace Trinex
 		registrar.method("bool opEquals(const StringView&) const", &timestamp_equals_string);
 		registrar.method("bool opEquals(const string&) const", &timestamp_equals_string_obj);
 	}
-}// namespace Trinex
+} // namespace Trinex

@@ -38,5 +38,5 @@ namespace Trinex
 		class Class;
 		class Property;
 		struct PropertyChangedEvent;
-	}// namespace Refl
-}// namespace Trinex
+	} // namespace Refl
+} // namespace Trinex

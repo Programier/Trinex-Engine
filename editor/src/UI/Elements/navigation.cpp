@@ -386,4 +386,4 @@ namespace Trinex::UI
 		}
 		return handle_click(this, ImGui::Selectable(label.c_str(), current, 0, resolve(Size(0.0f, 0.0f))), on_click);
 	}
-}// namespace Trinex::UI
+} // namespace Trinex::UI

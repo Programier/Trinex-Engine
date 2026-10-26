@@ -14,7 +14,6 @@ namespace Trinex
 	if (m_info == nullptr)                                                                                                       \
 	return return_value
 
-
 	ScriptTypeInfo::ScriptTypeInfo(asITypeInfo* info) : m_info(info)
 	{
 		add_ref();
@@ -240,7 +239,6 @@ namespace Trinex
 		return method_by_decl(decl.c_str(), get);
 	}
 
-
 	// Properties
 	u32 ScriptTypeInfo::property_count() const
 	{
@@ -311,7 +309,6 @@ namespace Trinex
 		check_info(false);
 		return m_info->IsPropertyReference(index);
 	}
-
 
 	// Behaviours
 	u32 ScriptTypeInfo::behaviour_count() const
@@ -519,4 +516,4 @@ namespace Trinex
 	{
 		release();
 	}
-}// namespace Trinex
+} // namespace Trinex

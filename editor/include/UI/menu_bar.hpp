@@ -8,7 +8,8 @@ namespace Trinex::UI
 	class MenuBar final
 	{
 	public:
-		struct Menu {
+		struct Menu
+		{
 			MenuBar* const bar;
 			const String name;
 			Delegate<bool()> is_enabled;
@@ -69,4 +70,4 @@ namespace Trinex::UI
 		MenuBar& clear();
 		~MenuBar();
 	};
-}// namespace Trinex::UI
+} // namespace Trinex::UI

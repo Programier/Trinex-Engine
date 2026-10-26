@@ -7,17 +7,20 @@
 
 namespace Trinex::Refl::New
 {
-	struct EnumValue {
+	struct EnumValue
+	{
 		Name name;
 		i64 value;
 	};
 
-	trinex_reflect() class trinex_api Enum : public Type
+	trinex_reflect()
+	class trinex_api Enum : public Type
 	{
 		trinex_reflection_body();
 
 	public:
-		struct VTable : public Type::VTable {
+		struct VTable : public Type::VTable
+		{
 		};
 
 		enum Flags : u64
@@ -43,4 +46,4 @@ namespace Trinex::Refl::New
 		inline bool is_bit_flags() const { return has_flags(IsBitFlags); }
 		inline bool is_scoped() const { return has_flags(IsScoped); }
 	};
-}// namespace Trinex::Refl::New
+} // namespace Trinex::Refl::New

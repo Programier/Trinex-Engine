@@ -298,4 +298,4 @@ namespace Trinex
 		        ->display_name("Is Visible")
 		        .tooltip("If true, actor is visible in the scene");
 	}
-}// namespace Trinex
+} // namespace Trinex

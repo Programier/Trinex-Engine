@@ -69,4 +69,4 @@ namespace Trinex
 	{
 		return m_texture ? m_texture->as_srv() : nullptr;
 	}
-}// namespace Trinex
+} // namespace Trinex

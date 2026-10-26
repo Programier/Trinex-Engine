@@ -201,7 +201,7 @@ namespace Trinex
 		});
 
 		return *this;
-	}// namespace Trinex
+	} // namespace Trinex
 
 	u32 TextureCube::width(u8 mip) const
 	{
@@ -224,4 +224,4 @@ namespace Trinex
 			return false;
 		return archive.serialize(mips);
 	}
-}// namespace Trinex
+} // namespace Trinex

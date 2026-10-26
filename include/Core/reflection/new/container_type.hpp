@@ -5,12 +5,14 @@
 
 namespace Trinex::Refl::New
 {
-	trinex_reflect() class trinex_api ContainerType : public TemplateType
+	trinex_reflect()
+	class trinex_api ContainerType : public TemplateType
 	{
 		trinex_reflection_body();
 
 	public:
-		struct VTable : public TemplateType::VTable {
+		struct VTable : public TemplateType::VTable
+		{
 			usize (*size)(const ContainerType* type, const void* container) = nullptr;
 			void (*clear)(const ContainerType* type, void* container)       = nullptr;
 		};
@@ -25,4 +27,4 @@ namespace Trinex::Refl::New
 
 		inline const VTable* vtable() const { return static_cast<const VTable*>(Type::vtable()); }
 	};
-}// namespace Trinex::Refl::New
+} // namespace Trinex::Refl::New

@@ -230,7 +230,7 @@ namespace Trinex
 
 	VulkanUniformBuffer::VulkanUniformBuffer(usize min_size)
 	{
-		static constexpr usize uniform_buffer_page_size = 1024 * 32;// 32 KB
+		static constexpr usize uniform_buffer_page_size = 1024 * 32; // 32 KB
 
 		constexpr auto flags = RHIBufferFlags::UniformBuffer | RHIBufferFlags::CPURead | RHIBufferFlags::CPUWrite;
 		create(Math::max(uniform_buffer_page_size, min_size), flags);
@@ -316,4 +316,4 @@ namespace Trinex
 		m_cmd->copyBuffer(src_buffer, dst_buffer, vk::BufferCopy(region.src_offset, region.dst_offset, region.size));
 		return *this;
 	}
-}// namespace Trinex
+} // namespace Trinex

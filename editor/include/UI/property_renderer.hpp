@@ -8,13 +8,14 @@ namespace Trinex
 	{
 		struct ClassInfo;
 		struct PropertyChangedEvent;
-	}// namespace Refl
+	} // namespace Refl
 
 	class ScriptFunction;
 
 	namespace UI
 	{
-		struct PropertyRenderingFlags {
+		struct PropertyRenderingFlags
+		{
 			enum Enum : EnumerateType
 			{
 				Undefined   = 0,
@@ -70,7 +71,8 @@ namespace Trinex
 			};
 
 		private:
-			struct ContextEntry {
+			struct ContextEntry
+			{
 				Context* context;
 				PropertyRenderingFlags flags;
 				bool active;
@@ -103,5 +105,5 @@ namespace Trinex
 			static PropertyRenderer* static_renderer();
 			static Context* static_context();
 		};
-	}// namespace UI
-}// namespace Trinex
+	} // namespace UI
+} // namespace Trinex

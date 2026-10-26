@@ -93,7 +93,8 @@ export Material main<Material : IMaterial>(in IMaterialInput input)
 	{
 		if (!Super::compile(compiler, pass))
 			return false;
-		for (auto& node : m_nodes) node->post_compile(this);
+		for (auto& node : m_nodes)
+			node->post_compile(this);
 		return true;
 	}
 
@@ -174,4 +175,4 @@ export Material main<Material : IMaterial>(in IMaterialInput input)
 		                        metalness.value, roughness.value, opacity.value, AO.value, normal.value, position_offset.value);
 		return true;
 	}
-}// namespace Trinex
+} // namespace Trinex

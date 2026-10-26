@@ -1,34 +1,35 @@
 BasedOnStyle: LLVM
 AccessModifierOffset: -4
-AlignAfterOpenBracket: Align
+AlignAfterOpenBracket: true
 AlignConsecutiveAssignments: true
 AlignOperands: true
 AllowAllArgumentsOnNextLine: false
-AllowAllConstructorInitializersOnNextLine: false
+PackConstructorInitializers: BinPack
 AllowAllParametersOfDeclarationOnNextLine: false
-AllowShortBlocksOnASingleLine: false
+AllowShortBlocksOnASingleLine: Never
 AllowShortCaseLabelsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: Inline
-AllowShortIfStatementsOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: Never
 AllowShortLambdasOnASingleLine: All
-AllowShortLoopsOnASingleLine: true
-AlwaysBreakAfterReturnType: None
-AlwaysBreakTemplateDeclarations: Yes
+AllowShortLoopsOnASingleLine: false
+BreakAfterReturnType: None
+BreakTemplateDeclarations: Yes
 BreakBeforeBraces: Custom
 BraceWrapping:
   AfterCaseLabel: true
   AfterClass: true
-  AfterControlStatement: true
+  AfterControlStatement: Always
   AfterEnum: true
   AfterFunction: true
   AfterNamespace: true
+  AfterStruct: true
   AfterUnion: true
   BeforeCatch: true
   BeforeElse: true
   IndentBraces: false
   SplitEmptyFunction: false
   SplitEmptyRecord: true
-BreakBeforeBinaryOperators: None
+BreakBeforeBinaryOperators: NonAssignment
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: BeforeColon
 BreakInheritanceList: BeforeColon
@@ -36,15 +37,23 @@ ColumnLimit: 130
 CompactNamespaces: false
 ContinuationIndentWidth: 8
 IndentCaseLabels: true
-IndentPPDirectives: None
+IndentPPDirectives: BeforeHash
 IndentWidth: 4
-KeepEmptyLinesAtTheStartOfBlocks: true
-MaxEmptyLinesToKeep: 2
+IncludeCategories:
+  - Regex: '.*\.generated\.hpp'
+    Priority: 2
+  - Regex: '.*'
+    Priority: 1
+IncludeBlocks: Regroup
+KeepEmptyLines:
+  AtStartOfBlock: true
+MaxEmptyLinesToKeep: 1
 NamespaceIndentation: All
 ObjCSpaceAfterProperty: false
 ObjCSpaceBeforeProtocolList: true
 PointerAlignment: Left
-ReflowComments: false
+ReflowComments: Never
+SeparateDefinitionBlocks: Leave
 SpaceAfterCStyleCast: true
 SpaceAfterLogicalNot: false
 SpaceAfterTemplateKeyword: false
@@ -54,12 +63,19 @@ SpaceBeforeCtorInitializerColon: true
 SpaceBeforeInheritanceColon: true
 SpaceBeforeParens: ControlStatements
 SpaceBeforeRangeBasedForLoopColon: true
-SpaceInEmptyParentheses: false
-SpacesBeforeTrailingComments: 0
-SpacesInAngles: false
-SpacesInCStyleCastParentheses: false
+StatementMacros:
+  - Q_UNUSED
+  - QT_REQUIRE_VERSION
+  - trinex_reflect
+  - trinex_property
+  - trinex_function
+SpacesBeforeTrailingComments: 1
+SpacesInAngles: Never
 SpacesInContainerLiterals: false
-SpacesInParentheses: false
+SpacesInParens: Never
+SpacesInParensOptions:
+  InCStyleCasts: false
+  InEmptyParentheses: false
 SpacesInSquareBrackets: false
 TabWidth: 4
 UseTab: ForIndentation

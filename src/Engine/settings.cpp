@@ -11,7 +11,7 @@ namespace Trinex::Settings
 	trinex_api i32 gc_max_object_per_tick = 1;
 	trinex_api i32 fps_limit              = 60;
 	trinex_api float screen_percentage    = 1.f;
-	trinex_api Array<String> languages   = {"eng"};
+	trinex_api Array<String> languages    = {"eng"};
 	trinex_api Array<String> systems;
 	trinex_api Array<String> plugins;
 	trinex_api bool debug_shaders = false;
@@ -26,20 +26,20 @@ namespace Trinex::Settings
 		trinex_api bool force_keep_cpu_resources = false;
 		trinex_api u32 shadow_map_size           = 1024;
 		trinex_api float anisotropy              = 8.f;
-	}// namespace Rendering
+	} // namespace Rendering
 
 	namespace Window
 	{
-		trinex_api String title                       = "Trinex Engine";
-		trinex_api String client                      = "Trinex::DefaultClient";
-		trinex_api i32 size_x                         = 1280;
-		trinex_api i32 size_y                         = 720;
-		trinex_api i32 pos_x                          = -1;
-		trinex_api i32 pos_y                          = -1;
-		trinex_api bool vsync                         = true;
+		trinex_api String title                      = "Trinex Engine";
+		trinex_api String client                     = "Trinex::DefaultClient";
+		trinex_api i32 size_x                        = 1280;
+		trinex_api i32 size_y                        = 720;
+		trinex_api i32 pos_x                         = -1;
+		trinex_api i32 pos_y                         = -1;
+		trinex_api bool vsync                        = true;
 		trinex_api Array<WindowAttribute> attributes = {WindowAttribute::Resizable};
 		trinex_api Array<Orientation> orientations;
-	}// namespace Window
+	} // namespace Window
 
 	namespace Splash
 	{
@@ -50,8 +50,7 @@ namespace Trinex::Settings
 		trinex_api i32 version_text_size   = 14;
 		trinex_api i32 copyright_text_size = 14;
 		trinex_api i32 game_name_text_size = 32;
-	}// namespace Splash
-
+	} // namespace Splash
 
 	trinex_on_pre_init({.after = {"Trinex::ScriptVector", "Trinex::DefaultScriptAddons"}})
 	{
@@ -118,4 +117,4 @@ namespace Trinex::Settings
 
 		ScriptEngine::end_config_group();
 	}
-}// namespace Trinex::Settings
+} // namespace Trinex::Settings

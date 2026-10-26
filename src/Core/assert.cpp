@@ -8,7 +8,7 @@ namespace Trinex::Asserts
 	namespace
 	{
 		AssertHandler g_assert_handler = nullptr;
-	}// namespace
+	} // namespace
 
 	trinex_api void assert_handler(AssertHandler handler)
 	{
@@ -76,4 +76,4 @@ namespace Trinex::Asserts
 
 		report_failure(condition, file, line, function, buffer);
 	}
-}// namespace Trinex::Asserts
+} // namespace Trinex::Asserts

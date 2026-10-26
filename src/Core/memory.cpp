@@ -66,4 +66,4 @@ namespace Trinex
 
 		return nullptr;
 	}
-}// namespace Trinex
+} // namespace Trinex

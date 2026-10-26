@@ -37,4 +37,4 @@ namespace Trinex::Refl
 	{
 		return m_instance->alignment();
 	}
-}// namespace Trinex::Refl
+} // namespace Trinex::Refl

@@ -5,7 +5,7 @@ namespace Trinex
 {
 	class Script;
 	class ScriptTypeInfo;
-}// namespace Trinex
+} // namespace Trinex
 
 namespace Trinex::Refl
 {
@@ -20,4 +20,4 @@ namespace Trinex::Refl
 		Script* script() const;
 		~ScriptEnum();
 	};
-}// namespace Trinex::Refl
+} // namespace Trinex::Refl

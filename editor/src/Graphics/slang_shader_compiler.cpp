@@ -1,39 +1,39 @@
 #include <Core/definitions.hpp>
 
 #if !PLATFORM_ANDROID
-#include <Core/etl/flat_set.hpp>
-#include <Core/etl/span.hpp>
-#include <Core/etl/templates.hpp>
-#include <Core/filesystem/root_filesystem.hpp>
-#include <Core/garbage_collector.hpp>
-#include <Core/memory.hpp>
-#include <Core/reflection/class.hpp>
-#include <Core/string_functions.hpp>
-#include <Engine/Render/render_pass.hpp>
-#include <Engine/project.hpp>
-#include <Engine/settings.hpp>
-#include <Graphics/material.hpp>
-#include <Graphics/material_parameter.hpp>
-#include <Graphics/pipeline.hpp>
-#include <Graphics/shader.hpp>
-#include <Graphics/slang_shader_compiler.hpp>
-#include <cstring>
+	#include <Core/etl/flat_set.hpp>
+	#include <Core/etl/span.hpp>
+	#include <Core/etl/templates.hpp>
+	#include <Core/filesystem/root_filesystem.hpp>
+	#include <Core/garbage_collector.hpp>
+	#include <Core/memory.hpp>
+	#include <Core/reflection/class.hpp>
+	#include <Core/string_functions.hpp>
+	#include <Engine/Render/render_pass.hpp>
+	#include <Engine/project.hpp>
+	#include <Engine/settings.hpp>
+	#include <Graphics/material.hpp>
+	#include <Graphics/material_parameter.hpp>
+	#include <Graphics/pipeline.hpp>
+	#include <Graphics/shader.hpp>
+	#include <Graphics/slang_shader_compiler.hpp>
+	#include <cstring>
 
-#define RETURN_ON_FAIL(code)                                                                                                     \
-	if (SLANG_FAILED(code))                                                                                                      \
-	return false
+	#define RETURN_ON_FAIL(code)                                                                                                 \
+		if (SLANG_FAILED(code))                                                                                                  \
+		return false
 
-#define return_undefined_if_not(cond)                                                                                            \
-	if (!(cond))                                                                                                                 \
-	return RHIShaderParameterType::Undefined
+	#define return_undefined_if_not(cond)                                                                                        \
+		if (!(cond))                                                                                                             \
+		return RHIShaderParameterType::Undefined
 
-#define check_compile_errors()                                                                                                   \
-	if (log_handler.has_error)                                                                                                   \
-	return false
+	#define check_compile_errors()                                                                                               \
+		if (log_handler.has_error)                                                                                               \
+		return false
 
-#define return_if_false(cond)                                                                                                    \
-	if (!(cond))                                                                                                                 \
-	return
+	#define return_if_false(cond)                                                                                                \
+		if (!(cond))                                                                                                             \
+		return
 
 namespace Trinex
 {
@@ -42,7 +42,8 @@ namespace Trinex
 	class ReflectionParser
 	{
 	private:
-		struct VarTraceEntry {
+		struct VarTraceEntry
+		{
 			static constexpr usize exclude_scalar          = trinex_bit(0);
 			static constexpr usize exclude_vector          = trinex_bit(1);
 			static constexpr usize exclude_matrix          = trinex_bit(2);
@@ -174,15 +175,15 @@ namespace Trinex
 			name = Strings::to_lower(name);
 
 			static const TreeMap<String, RHISemantic> semantics = {
-			        {"position", RHISemantic::Position},        //
-			        {"texcoord", RHISemantic::TexCoord0},       //
-			        {"color", RHISemantic::Color},              //
-			        {"normal", RHISemantic::Normal},            //
-			        {"tangent", RHISemantic::Tangent},          //
-			        {"bitangent", RHISemantic::Bitangent},      //
-			        {"blendweight", RHISemantic::BlendWeight},  //
-			        {"blendindices", RHISemantic::BlendIndices},//
-			        {"userdata", RHISemantic::UserData}         //
+			        {"position", RHISemantic::Position},         //
+			        {"texcoord", RHISemantic::TexCoord0},        //
+			        {"color", RHISemantic::Color},               //
+			        {"normal", RHISemantic::Normal},             //
+			        {"tangent", RHISemantic::Tangent},           //
+			        {"bitangent", RHISemantic::Bitangent},       //
+			        {"blendweight", RHISemantic::BlendWeight},   //
+			        {"blendindices", RHISemantic::BlendIndices}, //
+			        {"userdata", RHISemantic::UserData}          //
 			};
 
 			auto it = semantics.find(name);
@@ -406,8 +407,8 @@ namespace Trinex
 				}
 				return register_parameter(info);
 			}
-			else if (is_in<slang::TypeReflection::Kind::Resource, slang::TypeReflection::Kind::SamplerState>(param.kind) &&
-			         !param.is_excluded(VarTraceEntry::exclude_resource))
+			else if (is_in<slang::TypeReflection::Kind::Resource, slang::TypeReflection::Kind::SamplerState>(param.kind)
+			         && !param.is_excluded(VarTraceEntry::exclude_resource))
 			{
 				RHIShaderParameterInfo object;
 				object.binding = param.trace_offset(param.category());
@@ -512,8 +513,8 @@ namespace Trinex
 					return_if_false(parse_shader_parameter(var)) false;
 				}
 			}
-			else if (is_in<slang::TypeReflection::Kind::ConstantBuffer>(param.kind) &&
-			         !param.is_excluded(VarTraceEntry::exclude_constant_buffer))
+			else if (is_in<slang::TypeReflection::Kind::ConstantBuffer>(param.kind)
+			         && !param.is_excluded(VarTraceEntry::exclude_constant_buffer))
 			{
 				auto layout = param.var->getTypeLayout()->getElementTypeLayout();
 
@@ -584,7 +585,8 @@ namespace Trinex
 
 	Array<ReflectionParser::TypeDetector*> ReflectionParser::type_detectors;
 
-	struct TypeDetector {
+	struct TypeDetector
+	{
 		using Scalar = slang::TypeReflection::ScalarType;
 		using SVR    = slang::VariableReflection;
 		using SVLR   = slang ::VariableLayoutReflection;
@@ -659,12 +661,14 @@ namespace Trinex
 
 	namespace
 	{
-		struct SlangShaderStageEntry {
+		struct SlangShaderStageEntry
+		{
 			String stage;
 			String entry_name;
 		};
 
-		struct SlangShaderPermutation {
+		struct SlangShaderPermutation
+		{
 			Name name;
 			Array<String> specialization_args;
 			Array<SlangShaderStageEntry> stage_entries;
@@ -839,7 +843,7 @@ namespace Trinex
 			return true;
 		}
 
-	}// namespace
+	} // namespace
 
 	SLANG_ShaderCompiler::SLANG_ShaderCompiler()
 	{
@@ -878,7 +882,8 @@ namespace Trinex
 		desc.session_desc.targetCount = 1;
 		desc.session_desc.targets     = &desc.target_desc;
 
-		for (auto& include_dir : include_directories) desc.add_search_path(include_dir.c_str());
+		for (auto& include_dir : include_directories)
+			desc.add_search_path(include_dir.c_str());
 		initialize_context(&desc);
 
 		desc.session_desc.searchPathCount          = desc.search_paths.size();
@@ -1004,18 +1009,18 @@ namespace Trinex
 			result.permutation = permutation.name;
 
 			ShaderInfo shader_infos[] = {
-			        {&result.shaders.vertex, "vertex", "vertex_main"},                                          //
-			        {&result.shaders.tessellation_control, "tessellation_control", "tessellation_control_main"},//
-			        {&result.shaders.tessellation, "tessellation", "tessellation_main"},                        //
-			        {&result.shaders.geometry, "geometry", "geometry_main"},                                    //
-			        {&result.shaders.fragment, "fragment", "fragment_main"},                                    //
-			        {&result.shaders.compute, "compute", "compute_main"},                                       //
-			        {&result.shaders.mesh, "mesh", "mesh_main"},                                                //
-			        {&result.shaders.task, "task", "task_main"},                                                //
-			        {&result.shaders.raygen, "raygen", "raygen_main"},                                          //
-			        {&result.shaders.closest_hit, "closest_hit", "closest_hit_main"},                           //
-			        {&result.shaders.any_hit, "any_hit", "any_hit_main"},                                       //
-			        {&result.shaders.miss, "miss", "miss_main"},                                                //
+			        {&result.shaders.vertex, "vertex", "vertex_main"},                                           //
+			        {&result.shaders.tessellation_control, "tessellation_control", "tessellation_control_main"}, //
+			        {&result.shaders.tessellation, "tessellation", "tessellation_main"},                         //
+			        {&result.shaders.geometry, "geometry", "geometry_main"},                                     //
+			        {&result.shaders.fragment, "fragment", "fragment_main"},                                     //
+			        {&result.shaders.compute, "compute", "compute_main"},                                        //
+			        {&result.shaders.mesh, "mesh", "mesh_main"},                                                 //
+			        {&result.shaders.task, "task", "task_main"},                                                 //
+			        {&result.shaders.raygen, "raygen", "raygen_main"},                                           //
+			        {&result.shaders.closest_hit, "closest_hit", "closest_hit_main"},                            //
+			        {&result.shaders.any_hit, "any_hit", "any_hit_main"},                                        //
+			        {&result.shaders.miss, "miss", "miss_main"},                                                 //
 			};
 
 			for (auto& info : shader_infos)
@@ -1039,7 +1044,7 @@ namespace Trinex
 			}
 
 			StackArray<slang::IComponentType*> permutation_components = components;
-			const usize module_count                                   = permutation_components.size();
+			const usize module_count                                  = permutation_components.size();
 
 			for (auto& info : shader_infos)
 			{
@@ -1195,6 +1200,6 @@ namespace Trinex
 		session->add_definition("TRINEX_D3D12_RHI", "1");
 		session->add_definition("TRINEX_DIRECT_X_RHI", "1");
 	}
-}// namespace Trinex
+} // namespace Trinex
 
 #endif

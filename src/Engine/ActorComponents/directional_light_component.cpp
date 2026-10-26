@@ -33,4 +33,4 @@ namespace Trinex
 	{
 		return Super::calculate_light_intensity();
 	}
-}// namespace Trinex
+} // namespace Trinex

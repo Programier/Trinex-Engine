@@ -10,4 +10,4 @@ namespace Trinex
 	{
 		using std::get;
 	}
-}// namespace Trinex
+} // namespace Trinex

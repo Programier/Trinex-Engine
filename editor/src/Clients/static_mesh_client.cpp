@@ -101,4 +101,4 @@ namespace Trinex
 		return dock;
 	}
 
-}// namespace Trinex
+} // namespace Trinex

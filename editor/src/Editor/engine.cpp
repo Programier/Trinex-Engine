@@ -53,4 +53,4 @@ namespace Trinex
 	{
 		return m_selected_actors.contains(actor);
 	}
-}// namespace Trinex
+} // namespace Trinex

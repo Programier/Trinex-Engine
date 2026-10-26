@@ -1,8 +1,8 @@
 #include <Core/archive.hpp>
 #include <Core/constants.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/etl/templates.hpp>
-#include <Core/etl/array.hpp>
 #include <Core/memory.hpp>
 #include <Core/types/name.hpp>
 #include <ScriptEngine/script_binding.hpp>
@@ -73,14 +73,16 @@ namespace Trinex
 	static constexpr u32 invalid_name_index = 0xFFFFFFFF;
 	static constexpr usize cache_size       = 64;
 
-	struct NameCacheEntry {
+	struct NameCacheEntry
+	{
 		const char* data = nullptr;
 		usize length     = 0;
 		u64 hash         = 0;
 		u32 index        = invalid_name_index;
 	};
 
-	struct NameCache {
+	struct NameCache
+	{
 		NameCacheEntry by_data[cache_size];
 		NameCacheEntry by_hash[cache_size];
 	};
@@ -148,8 +150,8 @@ namespace Trinex
 	static inline bool find_name_index(const StringView& view, u64 hash, u32& out_index)
 	{
 		Array<Name::Entry>& name_table = name_entries();
-		Map<u64, u32>& indices          = name_index_map();
-		const auto head                 = indices.find(hash);
+		Map<u64, u32>& indices         = name_index_map();
+		const auto head                = indices.find(hash);
 
 		if (head == indices.end())
 		{
@@ -183,7 +185,7 @@ namespace Trinex
 			return *this;
 		}
 
-		u64 hash                        = memory_hash(view.data(), view.length(), 0);
+		u64 hash                       = memory_hash(view.data(), view.length(), 0);
 		Array<Name::Entry>& name_table = name_entries();
 
 		if (find_cached_name(view, hash, m_id))
@@ -260,8 +262,8 @@ namespace Trinex
 
 	trinex_on_pre_init({.name = "Trinex::Name", .after = {"Trinex::StringView"}})
 	{
-		auto flags = ScriptClassFlags::Pod | ScriptClassFlags::AppClassAllInts | ScriptClassFlags::AppClassAlign8 |
-		             ScriptClassFlags::AppClassMoreConstructors;
+		auto flags = ScriptClassFlags::Pod | ScriptClassFlags::AppClassAllInts | ScriptClassFlags::AppClassAlign8
+		             | ScriptClassFlags::AppClassMoreConstructors;
 		ScriptBinding::Class registrar = ScriptBinding::Class::create("Trinex::Name", ScriptBinding::value_type<Name>(flags));
 
 		registrar.behaviour(ScriptClassBehave::Construct, "void f()", ScriptBinding::Helpers::constructor<Name>,
@@ -285,4 +287,4 @@ namespace Trinex
 		registrar.method("const string& opConv() const", &Name::operator const std::basic_string<char>&);
 		registrar.method("const string& opImplConv() const", &Name::operator const std::basic_string<char>&);
 	}
-}// namespace Trinex
+} // namespace Trinex

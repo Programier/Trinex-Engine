@@ -1,5 +1,5 @@
-#include <Core/etl/static_array.hpp>
 #include <Core/etl/engine_resource.hpp>
+#include <Core/etl/static_array.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/threading.hpp>
@@ -17,4 +17,4 @@ namespace Trinex
 	trinex_api void splash_screen_text(SplashTextType type, const StringView& text) {}
 	trinex_api void stop_thread(Thread*& thread) {}
 	trinex_api void hide_splash_screen() {}
-}// namespace Trinex
+} // namespace Trinex

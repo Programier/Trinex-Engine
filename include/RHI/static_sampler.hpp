@@ -10,22 +10,23 @@ namespace Trinex
 	{
 	protected:
 		static trinex_api void create(RHISampler*& sampler, RHISamplerFilter filter, RHISamplerAddressMode address_u,
-		                                 RHISamplerAddressMode address_v, RHISamplerAddressMode address_w, float mip_bias,
-		                                 float max_anisotropy, RHIBorderColor border_color, RHICompareFunc compare_func);
+		                              RHISamplerAddressMode address_v, RHISamplerAddressMode address_w, float mip_bias,
+		                              float max_anisotropy, RHIBorderColor border_color, RHICompareFunc compare_func);
 	};
 
-	template<RHISamplerFilter filter         = RHISamplerFilter::Point,           //
-	         RHISamplerAddressMode address_u = RHISamplerAddressMode::ClampToEdge,//
-	         RHISamplerAddressMode address_v = RHISamplerAddressMode::ClampToEdge,//
-	         RHISamplerAddressMode address_w = RHISamplerAddressMode::ClampToEdge,//
-	         u32 mip_bias                    = 0,                                 //
-	         u32 max_anisotropy              = 1,                                 //
-	         RHIBorderColor border_color     = RHIBorderColor::FloatOpaqueBlack,  //
+	template<RHISamplerFilter filter         = RHISamplerFilter::Point,            //
+	         RHISamplerAddressMode address_u = RHISamplerAddressMode::ClampToEdge, //
+	         RHISamplerAddressMode address_v = RHISamplerAddressMode::ClampToEdge, //
+	         RHISamplerAddressMode address_w = RHISamplerAddressMode::ClampToEdge, //
+	         u32 mip_bias                    = 0,                                  //
+	         u32 max_anisotropy              = 1,                                  //
+	         RHIBorderColor border_color     = RHIBorderColor::FloatOpaqueBlack,   //
 	         RHICompareFunc compare_func     = RHICompareFunc::Never>
 	class RHIStaticSampler final : public RHIStaticSamplerBase
 	{
 	private:
-		struct StaticResource {
+		struct StaticResource
+		{
 			RHISampler* sampler = nullptr;
 			StaticResource()
 			{
@@ -56,4 +57,4 @@ namespace Trinex
 	using RHIShadowSampler = RHIStaticSampler<RHISamplerFilter::Bilinear, RHISamplerAddressMode::ClampToBorder,
 	                                          RHISamplerAddressMode::ClampToBorder, RHISamplerAddressMode::ClampToBorder, 0, 1,
 	                                          RHIBorderColor::FloatTransparentBlack, RHICompareFunc::Lequal>;
-}// namespace Trinex
+} // namespace Trinex

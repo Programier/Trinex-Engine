@@ -26,7 +26,6 @@ namespace Trinex::RenderGraph
 		static constexpr u64 s_resource_type_mask    = 0x7ull;
 		static constexpr u64 s_resource_address_mask = ~s_resource_type_mask;
 
-
 		Resource* m_next;
 		Resource* m_prev;
 		Pass* m_writer;
@@ -382,9 +381,11 @@ namespace Trinex::RenderGraph
 				Pass* pass = node->pass;
 				node->pass = nullptr;
 
-				for (Plugin* plugin : m_plugins) plugin->on_pass_begin(pass, ctx);
+				for (Plugin* plugin : m_plugins)
+					plugin->on_pass_begin(pass, ctx);
 				pass->execute(ctx);
-				for (Plugin* plugin : m_plugins) plugin->on_pass_end(pass, ctx);
+				for (Plugin* plugin : m_plugins)
+					plugin->on_pass_end(pass, ctx);
 
 				trinex_rhi_pop_stage(ctx);
 			}
@@ -397,14 +398,16 @@ namespace Trinex::RenderGraph
 		StackByteAllocator::Mark mark;
 		Node* root = build_graph();
 
-		for (Plugin* plugin : m_plugins) plugin->on_frame_begin(this, ctx);
+		for (Plugin* plugin : m_plugins)
+			plugin->on_frame_begin(this, ctx);
 
 		for (Node* dependency : root->dependencies)
 		{
 			execute_node(dependency, ctx);
 		}
 
-		for (Plugin* plugin : m_plugins) plugin->on_frame_end(this, ctx);
+		for (Plugin* plugin : m_plugins)
+			plugin->on_frame_end(this, ctx);
 		return true;
 	}
-}// namespace Trinex::RenderGraph
+} // namespace Trinex::RenderGraph

@@ -9,7 +9,8 @@ namespace Trinex::VFS
 	class trinex_api RootFS : public Singletone<RootFS, FileSystem>
 	{
 	public:
-		struct Greater {
+		struct Greater
+		{
 			using is_transparent = void;
 			bool operator()(StringView lhs, StringView rhs) const { return lhs > rhs; }
 		};
@@ -19,7 +20,6 @@ namespace Trinex::VFS
 	private:
 		static RootFS* s_instance;
 		FileSystems m_file_systems;
-
 
 	public:
 		Ref<File> open(PathView path, AccessFlags flags = AccessFlags::Read) override;
@@ -41,8 +41,7 @@ namespace Trinex::VFS
 
 		friend class Singletone<RootFS, FileSystem>;
 	};
-}// namespace Trinex::VFS
-
+} // namespace Trinex::VFS
 
 namespace Trinex
 {

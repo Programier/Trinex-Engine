@@ -200,4 +200,4 @@ namespace Trinex
 		static_cast<D3D12Buffer*>(buffer)->transition(resource_state_of(access));
 		return *this;
 	}
-}// namespace Trinex
+} // namespace Trinex

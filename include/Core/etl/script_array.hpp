@@ -28,7 +28,6 @@ namespace Trinex
 	protected:
 		mutable CScriptArray* m_as_array;
 
-
 	protected:
 		int find_object_type_id() const;
 		asITypeInfo* find_object_type() const;
@@ -56,7 +55,6 @@ namespace Trinex
 		usize references() const;
 		virtual const String& full_declaration() const = 0;
 
-
 		virtual ~ScriptArrayBase();
 	};
 
@@ -69,7 +67,6 @@ namespace Trinex
 		using const_pointer   = const T*;
 		using reference       = T&;
 		using const_reference = const T&;
-
 
 		template<typename Type, typename ScriptArrayType>
 		class Iterator
@@ -164,7 +161,6 @@ namespace Trinex
 		using const_iterator         = Iterator<const value_type, const ScriptArray>;
 		using reverse_iterator       = std::reverse_iterator<iterator>;
 		using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-
 
 		ScriptArray() = default;
 
@@ -274,4 +270,4 @@ namespace Trinex
 #undef script_array_init_check
 #undef script_array_init_check_noret
 
-}// namespace Trinex
+} // namespace Trinex

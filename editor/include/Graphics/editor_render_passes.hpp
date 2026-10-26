@@ -11,4 +11,4 @@ namespace Trinex::EditorRenderPasses
 		bool is_material_compatible(const Material* material) override;
 		RenderPass& modify_shader_compilation_env(ShaderCompilationEnvironment* env) override;
 	};
-}// namespace Trinex::EditorRenderPasses
+} // namespace Trinex::EditorRenderPasses

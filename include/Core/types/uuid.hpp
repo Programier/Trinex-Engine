@@ -10,7 +10,8 @@ namespace Trinex
 	public:
 		static inline constexpr usize byte_count = 16;
 
-		struct Hash {
+		struct Hash
+		{
 			usize operator()(const UUID& uuid) const noexcept;
 		};
 
@@ -61,16 +62,17 @@ namespace Trinex
 		inline bool operator>=(const UUID& other) const { return m_uuid >= other.m_uuid; }
 		inline explicit operator bool() const { return is_valid(); }
 	};
-}// namespace Trinex
+} // namespace Trinex
 
 namespace std
 {
 	template<>
-	struct hash<Trinex::UUID> {
+	struct hash<Trinex::UUID>
+	{
 		size_t operator()(const Trinex::UUID& uuid) const noexcept
 		{
 			static Trinex::UUID::Hash h;
 			return h(uuid);
 		}
 	};
-}// namespace std
+} // namespace std

@@ -61,7 +61,8 @@ namespace Trinex
 
 	static void register_flags_meta(Refl::Property* prop, const String& meta)
 	{
-		struct Accessor : public Refl::Property {
+		struct Accessor : public Refl::Property
+		{
 			static void add_flag(Refl::Property* prop, Refl::Property::Flags mask)
 			{
 				constexpr auto address = &Accessor::m_flags;
@@ -372,4 +373,4 @@ namespace Trinex
 	{
 		Script::register_custom_reflection_parser("string", string_property);
 	}
-}// namespace Trinex
+} // namespace Trinex

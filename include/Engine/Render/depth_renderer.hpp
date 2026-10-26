@@ -29,4 +29,4 @@ namespace Trinex
 
 		inline RHITexture* cubemap() const { return m_cubemap; }
 	};
-}// namespace Trinex
+} // namespace Trinex

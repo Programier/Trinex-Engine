@@ -77,8 +77,8 @@ namespace Trinex
 
 		type = remove_const(type);
 
-		if (type == nullptr || type->size() > sizeof(m_storage) || type->alignment() > alignof(Storage<32, 16>) ||
-		    !type->construct(data()))
+		if (type == nullptr || type->size() > sizeof(m_storage) || type->alignment() > alignof(Storage<32, 16>)
+		    || !type->construct(data()))
 		{
 			return false;
 		}
@@ -93,8 +93,8 @@ namespace Trinex
 
 		type = remove_const(type);
 
-		if (type == nullptr || value == nullptr || type->size() > sizeof(m_storage) ||
-		    type->alignment() > alignof(Storage<32, 16>) || !type->copy_construct(data(), value))
+		if (type == nullptr || value == nullptr || type->size() > sizeof(m_storage)
+		    || type->alignment() > alignof(Storage<32, 16>) || !type->copy_construct(data(), value))
 		{
 			return false;
 		}
@@ -111,4 +111,4 @@ namespace Trinex
 			m_type = nullptr;
 		}
 	}
-}// namespace Trinex
+} // namespace Trinex

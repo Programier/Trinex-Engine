@@ -104,4 +104,4 @@ namespace Trinex
 	}
 
 	LightComponent::~LightComponent() {}
-}// namespace Trinex
+} // namespace Trinex

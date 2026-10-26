@@ -73,7 +73,6 @@ namespace Trinex::Platform
 		return 0;
 	}
 
-
 	LinuxMemory::LinuxMemory() {}
 
 	LinuxMemory* LinuxMemory::instance()
@@ -206,4 +205,4 @@ namespace Trinex::Platform
 
 		return info;
 	}
-}// namespace Trinex::Platform
+} // namespace Trinex::Platform

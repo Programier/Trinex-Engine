@@ -13,4 +13,4 @@ namespace Trinex
 		void update();
 		void terminate();
 	};
-}// namespace Trinex
+} // namespace Trinex

@@ -1,6 +1,6 @@
 #include <Core/etl/algorithm.hpp>
-#include <Core/etl/critical_section.hpp>
 #include <Core/etl/array.hpp>
+#include <Core/etl/critical_section.hpp>
 #include <Core/lifecycle.hpp>
 #include <Core/math/math.hpp>
 #include <Core/memory.hpp>
@@ -71,7 +71,7 @@ namespace Trinex
 	class RHIReadBackAllocatorImpl : public ThreadLocalTickable
 	{
 	public:
-		static constexpr usize page_size = 8 * 1024 * 1024;// 8 MB
+		static constexpr usize page_size = 8 * 1024 * 1024; // 8 MB
 
 	private:
 		Trinex::CriticalSection m_critical;
@@ -206,7 +206,8 @@ namespace Trinex
 
 	static RHIReadBackAllocatorImpl* allocator_instance()
 	{
-		static struct Initializer {
+		static struct Initializer
+		{
 			Initializer()
 			{
 				g_allocator = trx_new RHIReadBackAllocatorImpl();
@@ -251,4 +252,4 @@ namespace Trinex
 
 		return g_allocator->statistics();
 	}
-}// namespace Trinex
+} // namespace Trinex

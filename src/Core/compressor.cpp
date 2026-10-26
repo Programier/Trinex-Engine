@@ -31,4 +31,4 @@ namespace Trinex::Compressor
 		trinex_verify(out_size >= 0);
 		dst.resize(out_size);
 	}
-}// namespace Trinex::Compressor
+} // namespace Trinex::Compressor

@@ -236,4 +236,4 @@ namespace Trinex
 	const EventCode EventCode::GamepadLeftTrigger  = "GamepadLeftTrigger";
 	const EventCode EventCode::GamepadRightTrigger = "GamepadRightTrigger";
 
-}// namespace Trinex
+} // namespace Trinex

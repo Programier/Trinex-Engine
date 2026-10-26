@@ -9,7 +9,6 @@
 #include <ScriptEngine/script_type_info.hpp>
 #include <angelscript.h>
 
-
 namespace Trinex
 {
 	ScriptModule::ScriptModule(const ScriptModule&) = default;
@@ -117,7 +116,6 @@ namespace Trinex
 		return static_cast<usize>(m_module->GetFunctionCount());
 	}
 
-
 	ScriptFunction ScriptModule::function_by_index(u32 index) const
 	{
 		return ScriptFunction(m_module->GetFunctionByIndex(index));
@@ -142,7 +140,6 @@ namespace Trinex
 	{
 		return function_by_name(func_name.c_str());
 	}
-
 
 	bool ScriptModule::remove_function(const ScriptFunction& function)
 	{
@@ -185,7 +182,8 @@ namespace Trinex
 		const char* out_name      = nullptr;
 		const char* out_namespace = nullptr;
 		bool result = m_module->GetGlobalVar(index, name ? &out_name : nullptr, name_space ? &out_namespace : nullptr, type_id,
-		                                     is_const) >= 0;
+		                                     is_const)
+		              >= 0;
 
 		if (result)
 		{
@@ -300,4 +298,4 @@ namespace Trinex
 		}
 		return nullptr;
 	}
-}// namespace Trinex
+} // namespace Trinex

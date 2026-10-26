@@ -5,21 +5,24 @@ namespace Trinex::etl
 	namespace detail
 	{
 		template<typename T>
-		struct Arg {
+		struct Arg
+		{
 			using Storage = T;
 
 			static T get(void* p) { return *static_cast<T*>(p); }
 		};
 
 		template<typename T>
-		struct Arg<T&> {
+		struct Arg<T&>
+		{
 			using Storage = T*;
 
 			static T& get(void* p) { return **static_cast<T**>(p); }
 		};
 
 		template<typename T>
-		struct Arg<T&&> {
+		struct Arg<T&&>
+		{
 			using Storage = T*;
 
 			static T&& get(void* p) { return static_cast<T&&>(**static_cast<T**>(p)); }
@@ -29,7 +32,8 @@ namespace Trinex::etl
 		struct InvokeArgs;
 
 		template<usize Offset, typename T, typename... Rest>
-		struct InvokeArgs<Offset, T, Rest...> {
+		struct InvokeArgs<Offset, T, Rest...>
+		{
 			using Storage = typename Arg<T>::Storage;
 
 			static constexpr usize aligned = (Offset + alignof(Storage) - 1) & ~(alignof(Storage) - 1);
@@ -40,7 +44,8 @@ namespace Trinex::etl
 		struct FunctionInvoker;
 
 		template<typename R, typename... Args>
-		struct FunctionInvoker<R (*)(Args...)> {
+		struct FunctionInvoker<R (*)(Args...)>
+		{
 			template<usize Index, usize Offset, typename T, typename... Rest>
 			static decltype(auto) get(void* context)
 			{
@@ -57,15 +62,18 @@ namespace Trinex::etl
 			}
 
 			template<usize... I>
-			struct Indices {
+			struct Indices
+			{
 			};
 
 			template<usize N, usize... I>
-			struct MakeIndices : MakeIndices<N - 1, N - 1, I...> {
+			struct MakeIndices : MakeIndices<N - 1, N - 1, I...>
+			{
 			};
 
 			template<usize... I>
-			struct MakeIndices<0, I...> {
+			struct MakeIndices<0, I...>
+			{
 				using Type = Indices<I...>;
 			};
 
@@ -82,12 +90,14 @@ namespace Trinex::etl
 		};
 
 		template<auto F, typename... Other>
-		struct Invoker {
+		struct Invoker
+		{
 			static void call(void* context, Other...) { FunctionInvoker<decltype(F)>::call(context, F); }
 		};
 
 		template<auto resolver, typename... Other>
-		struct DynamicInvoker {
+		struct DynamicInvoker
+		{
 			static void call(void* context, Other... other)
 			{
 				auto func = resolver(context, other...);
@@ -98,11 +108,11 @@ namespace Trinex::etl
 				}
 			}
 		};
-	}// namespace detail
+	} // namespace detail
 
 	template<auto F, typename... Args>
 	inline constexpr auto invoker = &detail::Invoker<F, Args...>::call;
 
 	template<auto resolver, typename... Args>
 	inline constexpr auto dynamic_invoker = &detail::DynamicInvoker<resolver, Args...>::call;
-}// namespace Trinex::etl
+} // namespace Trinex::etl

@@ -106,7 +106,6 @@ namespace Trinex
 	class BlendIndicesVertexBuffer : public VertexBuffer<Vector4u16>  { using VertexBuffer::VertexBuffer; };
 	// clang-format on
 
-
 	// INDEX BUFFER IMPLEMENTATION
 
 	class trinex_api IndexBuffer
@@ -198,4 +197,4 @@ namespace Trinex
 	class IndexBuffer16 : public TypedIndexBuffer<u16> { using TypedIndexBuffer::TypedIndexBuffer; };
 	class IndexBuffer32 : public TypedIndexBuffer<u32> { using TypedIndexBuffer::TypedIndexBuffer; };
 	// clang-format on
-}// namespace Trinex
+} // namespace Trinex

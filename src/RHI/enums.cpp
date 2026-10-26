@@ -94,4 +94,4 @@ namespace Trinex
 
 		return Undefined;
 	}
-}// namespace Trinex
+} // namespace Trinex

@@ -141,4 +141,4 @@ namespace Trinex::Refl
 		if (this == root)
 			root = nullptr;
 	}
-}// namespace Trinex::Refl
+} // namespace Trinex::Refl

@@ -23,4 +23,4 @@ namespace Trinex
 
 		bool serialize(Archive& archive) override;
 	};
-}// namespace Trinex
+} // namespace Trinex

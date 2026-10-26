@@ -116,7 +116,8 @@ namespace Trinex
 
 		RHI::instance()->submit(fence);
 
-		while (!fence->is_signaled()) Thread::static_yield();
+		while (!fence->is_signaled())
+			Thread::static_yield();
 
 		u8* data     = buffer->map(RHIMappingAccess::Read);
 		Actor* actor = *reinterpret_cast<Actor**>(data);
@@ -249,4 +250,4 @@ namespace Trinex
 
 		return *this;
 	}
-}// namespace Trinex
+} // namespace Trinex

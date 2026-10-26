@@ -23,4 +23,4 @@ namespace Trinex::Refl::New
 		vtable()->clear(this, container);
 		return true;
 	}
-}// namespace Trinex::Refl::New
+} // namespace Trinex::Refl::New

@@ -18,7 +18,8 @@ namespace Trinex
 
 	public:
 		template<typename NativeType>
-		struct Scriptable : Super::Scriptable<NativeType> {
+		struct Scriptable : Super::Scriptable<NativeType>
+		{
 			Scriptable& update(float dt) override
 			{
 				static_cast<Actor*>(this)->scriptable_update(dt);
@@ -103,4 +104,4 @@ namespace Trinex
 
 		friend class World;
 	};
-}// namespace Trinex
+} // namespace Trinex

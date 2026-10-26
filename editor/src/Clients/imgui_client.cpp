@@ -217,7 +217,6 @@ namespace Trinex
 		return *this;
 	}
 
-
 	ImGuiViewportClient& ImGuiViewportClient::update(float dt)
 	{
 		return *this;
@@ -232,4 +231,4 @@ namespace Trinex
 	{
 		return dock;
 	}
-}// namespace Trinex
+} // namespace Trinex

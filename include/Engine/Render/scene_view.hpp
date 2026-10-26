@@ -52,4 +52,4 @@ namespace Trinex
 		inline RenderScene* scene() const { return m_scene; }
 		inline SceneViewState* state() const { return m_state; }
 	};
-}// namespace Trinex
+} // namespace Trinex

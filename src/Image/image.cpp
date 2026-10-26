@@ -69,7 +69,6 @@ namespace Trinex
 
 	Image::~Image() {}
 
-
 	Image::Image(Image&& img)
 	{
 		*this = std::move(img);
@@ -200,4 +199,4 @@ namespace Trinex
 	{
 		return archive.serialize(m_size, m_data);
 	}
-}// namespace Trinex
+} // namespace Trinex

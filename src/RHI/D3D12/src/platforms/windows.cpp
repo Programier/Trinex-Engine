@@ -13,4 +13,4 @@ namespace Trinex
 		SDL_GetWindowWMInfo(window, &info);
 		return info.info.win.window;
 	}
-}// namespace Trinex
+} // namespace Trinex

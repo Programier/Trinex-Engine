@@ -30,4 +30,4 @@ namespace Trinex
 	};
 
 	trinex_implement_engine_class(ImGuiDebug, 0) {}
-}// namespace Trinex
+} // namespace Trinex

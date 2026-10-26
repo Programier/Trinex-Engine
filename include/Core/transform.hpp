@@ -8,7 +8,8 @@ namespace Trinex
 {
 	class Archive;
 
-	struct trinex_api Transform {
+	struct trinex_api Transform
+	{
 		trinex_old_struct(Transform, void);
 
 	private:
@@ -50,4 +51,4 @@ namespace Trinex
 		String as_string() const;
 		bool serialize(Archive& ar);
 	};
-}// namespace Trinex
+} // namespace Trinex

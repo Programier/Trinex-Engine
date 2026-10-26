@@ -20,4 +20,4 @@ namespace Trinex
 		~Joystick();
 		friend struct JoystickEvent;
 	};
-}// namespace Trinex
+} // namespace Trinex

@@ -2,7 +2,6 @@
 #include <Core/math/matrix.hpp>
 #include <Core/math/quaternion.hpp>
 #include <Core/math/vector.hpp>
-
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_access.hpp>
@@ -227,4 +226,4 @@ namespace Trinex::Math
 		        (threads.z + group.z - 1) / group.z,
 		};
 	}
-}// namespace Trinex::Math
+} // namespace Trinex::Math

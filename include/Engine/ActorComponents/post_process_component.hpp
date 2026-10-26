@@ -23,4 +23,4 @@ namespace Trinex
 		inline float priority() const { return m_priority; }
 		inline float blend_weight() const { return m_blend_weight; }
 	};
-}// namespace Trinex
+} // namespace Trinex

@@ -12,11 +12,11 @@
 #include <scripthelper.h>
 
 #if ARCH_ARM
-#include "jit_compiler/arm64/compiler.hpp"
+	#include "jit_compiler/arm64/compiler.hpp"
 using PlatformJitCompiler = JIT::ARM64_Compiler;
 
 #elif ARCH_X86_64
-#include "jit_compiler/x86-64/compiler.hpp"
+	#include "jit_compiler/x86-64/compiler.hpp"
 using PlatformJitCompiler = JIT::X86_64_Compiler;
 #endif
 
@@ -135,7 +135,6 @@ namespace Trinex
 				jit_compiler = nullptr;
 			}
 		}
-
 
 	public:
 		static State& instance()
@@ -378,7 +377,8 @@ namespace Trinex
 
 		bool result = State::instance()->GetGlobalPropertyByIndex(
 		                      index, name ? &c_name : nullptr, name_space ? &c_name_space : nullptr, type_id, is_const,
-		                      config_group ? &c_group : nullptr, reinterpret_cast<void**>(pointer)) >= 0;
+		                      config_group ? &c_group : nullptr, reinterpret_cast<void**>(pointer))
+		              >= 0;
 
 		if (result)
 		{
@@ -591,7 +591,6 @@ namespace Trinex
 	{
 		return type_id == asTYPEID_DOUBLE;
 	}
-
 
 	bool ScriptEngine::is_object_type(i32 type_id, bool handle_is_object)
 	{
@@ -933,4 +932,4 @@ namespace Trinex
 		                                variable_name_generic, ScriptCallConv::Generic);
 		ScriptEngine::default_namespace("");
 	}
-}// namespace Trinex
+} // namespace Trinex

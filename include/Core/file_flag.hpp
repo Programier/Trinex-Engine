@@ -4,7 +4,8 @@
 
 namespace Trinex
 {
-	struct trinex_api FileFlag final {
+	struct trinex_api FileFlag final
+	{
 		union
 		{
 			usize data[2];
@@ -16,8 +17,7 @@ namespace Trinex
 		bool operator==(const FileFlag& other) const;
 		bool operator!=(const FileFlag& other) const;
 
-
 		static const FileFlag& package_flag();
 		static const FileFlag& asset_flag();
 	};
-}// namespace Trinex
+} // namespace Trinex

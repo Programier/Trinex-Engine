@@ -48,4 +48,4 @@ namespace Trinex
 				         (int) time());
 		}
 	};
-}// namespace Trinex
+} // namespace Trinex

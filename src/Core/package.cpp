@@ -130,6 +130,5 @@ namespace Trinex
 		return package;
 	}
 
-
 	trinex_implement_engine_class(Package, Refl::Class::IsScriptable) {}
-}// namespace Trinex
+} // namespace Trinex

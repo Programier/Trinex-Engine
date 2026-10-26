@@ -39,12 +39,14 @@ namespace Trinex
 	}
 
 	template<typename Type, typename HashType, typename Pred, typename AllocatorType>
-	struct Serializer<Set<Type, HashType, Pred, AllocatorType>> {
+	struct Serializer<Set<Type, HashType, Pred, AllocatorType>>
+	{
 		bool serialize(Archive& ar, Set<Type, HashType, Pred, AllocatorType>& set) { return trinex_serialize_set(set); }
 	};
 
 	template<typename Type, typename Compare, typename AllocatorType>
-	struct Serializer<TreeSet<Type, Compare, AllocatorType>> {
+	struct Serializer<TreeSet<Type, Compare, AllocatorType>>
+	{
 		bool serialize(Archive& ar, TreeSet<Type, Compare, AllocatorType>& set) { return trinex_serialize_set(set); }
 	};
-}// namespace Trinex
+} // namespace Trinex

@@ -1,9 +1,9 @@
 #pragma once
 #include <Core/engine_types.hpp>
 #include <Core/etl/any.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/etl/string.hpp>
-#include <Core/etl/array.hpp>
 
 namespace Trinex
 {
@@ -21,7 +21,8 @@ namespace Trinex
 			UserData,
 		};
 
-		struct trinex_api Argument {
+		struct trinex_api Argument
+		{
 			String name;
 			Type type;
 			Any data;
@@ -32,7 +33,7 @@ namespace Trinex
 			Argument(const String& name, const StringView& value);
 			Argument(const String& name, const char* value);
 			Argument(const String& name, const ArrayType& value);
-			
+
 			trinex_default_copyable(Argument);
 			trinex_default_moveable(Argument);
 
@@ -74,4 +75,4 @@ namespace Trinex
 		static Argument* find(const String& name);
 		static void push_argument(const Argument& argument, bool override = false);
 	};
-}// namespace Trinex
+} // namespace Trinex

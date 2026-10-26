@@ -96,7 +96,6 @@ namespace Trinex
 		}
 	}
 
-
 	ScriptContext::ScriptContext(ScriptContext&& other) noexcept
 	    : m_context(other.m_context), m_line_callback(std::move(other.m_line_callback))
 	{
@@ -558,7 +557,8 @@ namespace Trinex
 		asETypeModifiers script_modifiers;
 		const char* script_name;
 		const bool result = m_context->GetVar(var_index, stack_level, &script_name, type_id,
-		                                      (modifiers ? &script_modifiers : nullptr), is_var_on_heap, stack_offset) >= 0;
+		                                      (modifiers ? &script_modifiers : nullptr), is_var_on_heap, stack_offset)
+		                    >= 0;
 
 		if (name)
 		{
@@ -613,4 +613,4 @@ namespace Trinex
 	{
 		release_context();
 	}
-}// namespace Trinex
+} // namespace Trinex

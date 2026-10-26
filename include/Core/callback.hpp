@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/engine_types.hpp>
-#include <Core/etl/delegate.hpp>
 #include <Core/etl/array.hpp>
+#include <Core/etl/delegate.hpp>
 
 namespace Trinex
 {
@@ -12,7 +12,8 @@ namespace Trinex
 	class CallBacks final
 	{
 	private:
-		struct FuncNode {
+		struct FuncNode
+		{
 			Delegate<Signature> function;
 			FuncNode* prev = nullptr;
 			FuncNode* next = nullptr;
@@ -74,7 +75,6 @@ namespace Trinex
 
 		using iterator       = basic_iterator<FuncNode, Delegate<Signature>>;
 		using const_iterator = basic_iterator<const FuncNode, const Delegate<Signature>>;
-
 
 		inline CallBacks() = default;
 		inline CallBacks(const CallBacks& callbacks) { (*this) = callbacks; }
@@ -165,4 +165,4 @@ namespace Trinex
 
 		~CallBacks() { clear(); }
 	};
-}// namespace Trinex
+} // namespace Trinex

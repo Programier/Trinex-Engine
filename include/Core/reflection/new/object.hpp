@@ -9,7 +9,8 @@ namespace Trinex::Refl::New
 {
 	class Class;
 
-	trinex_reflect() class trinex_api Object : public RefCounted
+	trinex_reflect()
+	class trinex_api Object : public RefCounted
 	{
 		trinex_reflection_body();
 
@@ -20,6 +21,7 @@ namespace Trinex::Refl::New
 
 	protected:
 		bool has_flags(u64 flags) const { return (m_flags & flags) == flags; }
+
 		bool has_any_flags(u64 flags) const { return (m_flags & flags) != 0; }
 
 		virtual bool register_child(Object* object);
@@ -84,10 +86,15 @@ namespace Trinex::Refl::New
 		}
 
 		inline Name name() const { return m_name; }
+
 		inline Ref<Object> owner() const { return m_owner.lock(); }
+
 		inline u64 flags() const { return m_flags; }
+
 		inline bool is_deprecated() const { return has_flags(Deprecated); }
+
 		inline bool is_editor_only() const { return has_flags(EditorOnly); }
+
 		inline bool is_hidden() const { return has_flags(Hidden); }
 	};
-}// namespace Trinex::Refl::New
+} // namespace Trinex::Refl::New

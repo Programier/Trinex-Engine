@@ -6,9 +6,8 @@ namespace Trinex
 	template<typename T>
 	using Optional = std::optional<T>;
 
-
 	namespace etl
 	{
 
 	}
-}// namespace Trinex
+} // namespace Trinex

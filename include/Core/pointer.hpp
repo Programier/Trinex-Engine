@@ -16,7 +16,6 @@ namespace Trinex
 		bool serialize(class Archive& ar, Object*& object, bool is_reference);
 	};
 
-
 	template<class InstanceClass>
 	class Pointer : private PointerBase
 	{
@@ -27,11 +26,11 @@ namespace Trinex
 			Object* m_object;
 		};
 
-
 	public:
 		using Type = InstanceClass;
 
-		struct HashStruct : public Hash<InstanceClass*> {
+		struct HashStruct : public Hash<InstanceClass*>
+		{
 			usize operator()(const Pointer<InstanceClass>& instance) const
 			{
 				return static_cast<Hash<InstanceClass*>>(*this)(instance.m_instance);
@@ -79,7 +78,6 @@ namespace Trinex
 			return *this;
 		}
 
-
 		InstanceClass* operator->() const { return m_instance; }
 
 		operator InstanceClass*() const { return m_instance; }
@@ -96,7 +94,6 @@ namespace Trinex
 
 		~Pointer() { remove_reference(m_object); }
 
-
 		bool serialize(class Archive& ar, bool is_reference = true) { return PointerBase::serialize(ar, m_object, is_reference); }
 	};
-}// namespace Trinex
+} // namespace Trinex

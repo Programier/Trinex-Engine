@@ -15,4 +15,4 @@ namespace Trinex::EditorRenderPasses
 		env->add_module("editor/templates/hitproxy.slang");
 		return *this;
 	}
-}// namespace Trinex::EditorRenderPasses
+} // namespace Trinex::EditorRenderPasses

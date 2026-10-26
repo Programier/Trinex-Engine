@@ -27,7 +27,7 @@ namespace Trinex
 				}
 			});
 		}
-	}// namespace
+	} // namespace
 
 	trinex_implement_registry(Tickable);
 
@@ -136,7 +136,6 @@ namespace Trinex
 		return true;
 	}
 
-
 	static class : public Tickable
 	{
 	public:
@@ -158,4 +157,4 @@ namespace Trinex
 			return *this;
 		}
 	} s_tickable;
-}// namespace Trinex
+} // namespace Trinex

@@ -1,7 +1,6 @@
 #include <ScriptEngine/script_func_ptr.hpp>
 #include <angelscript.h>
 
-
 namespace Trinex
 {
 	ScriptFuncPtr* ScriptFuncPtr::function_ptr_generic(GenericFunction function)
@@ -24,4 +23,4 @@ namespace Trinex
 		ptr = asSMethodPtr<sizeof(function)>::Convert(function);
 		return reinterpret_cast<ScriptMethodPtr*>(&ptr);
 	}
-}// namespace Trinex
+} // namespace Trinex

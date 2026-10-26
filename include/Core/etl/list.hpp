@@ -29,12 +29,14 @@ namespace Trinex
 	}
 
 	template<typename T, typename AllocatorType>
-	struct Serializer<ForwardList<T, AllocatorType>> {
+	struct Serializer<ForwardList<T, AllocatorType>>
+	{
 		bool serialize(Archive& ar, ForwardList<T, AllocatorType>& list) { return trinex_serialize_list(ar, list); }
 	};
 
 	template<typename T, typename AllocatorType>
-	struct Serializer<List<T, AllocatorType>> {
+	struct Serializer<List<T, AllocatorType>>
+	{
 		bool serialize(Archive& ar, List<T, AllocatorType>& list) { return trinex_serialize_list(ar, list); }
 	};
-}// namespace Trinex
+} // namespace Trinex

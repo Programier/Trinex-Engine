@@ -65,4 +65,4 @@ namespace Trinex::Platform
 	{
 		SDLInputSystem::instance()->update();
 	}
-}// namespace Trinex::Platform
+} // namespace Trinex::Platform

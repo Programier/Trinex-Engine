@@ -118,7 +118,8 @@ namespace Trinex
 	ImGuiWidgetsList& ImGuiWidgetsList::push(ImGuiWidget* widget, const void* id)
 	{
 		Node* parent_node = m_root;
-		while (parent_node && parent_node->next) parent_node = parent_node->next;
+		while (parent_node && parent_node->next)
+			parent_node = parent_node->next;
 
 		Node* node   = trx_new Node();
 		node->widget = widget;
@@ -195,7 +196,6 @@ namespace Trinex
 		}
 	}
 
-
 	ImGuiWindow& ImGuiWindow::new_frame()
 	{
 		make_current(this);
@@ -255,11 +255,12 @@ namespace Trinex
 	{
 		return m_current_window;
 	}
-}// namespace Trinex
+} // namespace Trinex
 
 namespace ImGui
 {
-	struct InputTextCallback {
+	struct InputTextCallback
+	{
 		ImGuiInputTextCallback callback;
 		void* userdata;
 		Trinex::String* str;
@@ -301,7 +302,8 @@ namespace ImGui
 		ImDrawList* list  = window->DrawList;
 		ImGuiViewport* vp = window->Viewport;
 
-		struct Args {
+		struct Args
+		{
 			Trinex::Vector2f16 pos;
 			Trinex::Vector2f16 size;
 		} args;
@@ -509,4 +511,4 @@ namespace ImGui
 		ImGui::PopFont();
 		return status;
 	}
-}// namespace ImGui
+} // namespace ImGui

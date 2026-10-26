@@ -2,9 +2,8 @@
 #include <Core/group.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/reflection/struct.hpp>
-#include <ScriptEngine/script_binding.hpp>
-
 #include <Graphics/gpu_buffers.hpp>
+#include <ScriptEngine/script_binding.hpp>
 
 namespace Trinex::Refl
 {
@@ -384,4 +383,4 @@ namespace Trinex::Refl
 		r.method("const Array<Property@>& properties() const", &T::properties);
 		r.method("Property find_property(StringView name)", &T::find_property);
 	}
-}// namespace Trinex::Refl
+} // namespace Trinex::Refl

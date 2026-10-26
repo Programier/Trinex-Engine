@@ -18,4 +18,4 @@ namespace Trinex::UI
 		Button& pop_scope() override;
 		UpdateFlags on_begin_update() override;
 	};
-}// namespace Trinex::UI
+} // namespace Trinex::UI

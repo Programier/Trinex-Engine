@@ -1,6 +1,6 @@
 #pragma once
-#include <Core/etl/map.hpp>
 #include <Core/etl/array.hpp>
+#include <Core/etl/map.hpp>
 #include <Core/types/name.hpp>
 #include <RHI/structures.hpp>
 
@@ -8,7 +8,8 @@ namespace Trinex
 {
 	class ShaderCompilationResult;
 
-	struct trinex_api GraphicsShaderCache {
+	struct trinex_api GraphicsShaderCache
+	{
 		Array<RHIShaderParameterInfo> parameters;
 		Array<RHIInputAttribute> vertex_attributes;
 		Buffer vertex;
@@ -25,7 +26,8 @@ namespace Trinex
 		bool serialize(Archive& ar);
 	};
 
-	struct trinex_api ComputeShaderCache {
+	struct trinex_api ComputeShaderCache
+	{
 		Array<RHIShaderParameterInfo> parameters;
 
 		Buffer compute;
@@ -38,7 +40,8 @@ namespace Trinex
 		bool serialize(Archive& ar);
 	};
 
-	struct trinex_api PipelineLibraryCache {
+	struct trinex_api PipelineLibraryCache
+	{
 		enum Type : u8
 		{
 			Unknown  = 0,
@@ -57,13 +60,15 @@ namespace Trinex
 		bool serialize(Archive& ar);
 	};
 
-	struct trinex_api PipelineLibraryCacheIndexEntry {
+	struct trinex_api PipelineLibraryCacheIndexEntry
+	{
 		PipelineLibraryCache::Type type = PipelineLibraryCache::Unknown;
 		u128 shader_hash                = 0;
 		bool serialize(Archive& ar);
 	};
 
-	struct trinex_api PipelineLibraryCacheManifest {
+	struct trinex_api PipelineLibraryCacheManifest
+	{
 		Map<String, PipelineLibraryCacheIndexEntry> entries;
 		String rhi_name;
 		bool is_loaded = false;
@@ -76,4 +81,4 @@ namespace Trinex
 		bool store() const;
 		bool serialize(Archive& ar);
 	};
-}// namespace Trinex
+} // namespace Trinex

@@ -87,4 +87,4 @@ namespace Trinex::etl
 	using std::unique;
 	using std::unique_copy;
 	using std::upper_bound;
-}// namespace Trinex::etl
+} // namespace Trinex::etl

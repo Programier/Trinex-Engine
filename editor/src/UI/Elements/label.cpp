@@ -15,4 +15,4 @@ namespace Trinex::UI
 		ImGui::LabelText(label.c_str(), "%s", value.c_str());
 		return UpdateFlags::Undefined;
 	}
-}// namespace Trinex::UI
+} // namespace Trinex::UI

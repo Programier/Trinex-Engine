@@ -107,7 +107,8 @@ namespace Trinex::UI::Refl
 		}
 
 		template<typename Field, typename FlagsType>
-		struct FlagsBinder {
+		struct FlagsBinder
+		{
 			template<FlagsType flag>
 			static bool load(const FlagsType* flags)
 			{
@@ -139,7 +140,7 @@ namespace Trinex::UI::Refl
 				flags->bind(name, load<flag>, store<flag>, Property::Markup);
 			}
 		};
-	}// namespace
+	} // namespace
 
 #define trinex_ui_bind_flag(name)
 
@@ -195,4 +196,4 @@ namespace Trinex::UI::Refl
 			Binder::bind<ImGuiWindowFlags_NoInputs>("no_inputs");
 		}
 	}
-}// namespace Trinex::UI::Refl
+} // namespace Trinex::UI::Refl

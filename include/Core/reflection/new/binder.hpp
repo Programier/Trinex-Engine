@@ -43,4 +43,4 @@ namespace Trinex::Refl::New
 			}
 		}
 	};
-}// namespace Trinex::Refl::New
+} // namespace Trinex::Refl::New

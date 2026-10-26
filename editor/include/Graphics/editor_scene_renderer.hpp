@@ -19,4 +19,4 @@ namespace Trinex
 		EditorRenderer& render_outlines(Actor* const* actors = nullptr, usize count = 0);
 		EditorRenderer& render_primitives(Actor* const* actors = nullptr, usize count = 0);
 	};
-}// namespace Trinex
+} // namespace Trinex

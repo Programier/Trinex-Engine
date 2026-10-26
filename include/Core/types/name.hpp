@@ -26,17 +26,20 @@ namespace Trinex
 		static const Name mask;
 
 	public:
-		struct Entry {
+		struct Entry
+		{
 			String name;
 			u64 hash;
 			u32 next = 0xFFFFFFFF;
 		};
 
-		struct HashFunction {
+		struct HashFunction
+		{
 			inline u64 operator()(const Name& name) const { return name.m_id; }
 		};
 
-		struct Less {
+		struct Less
+		{
 			inline bool operator()(const Name& x, const Name& y) const
 			{
 				return std::less<String>()(x.to_string(), y.to_string());
@@ -99,4 +102,4 @@ namespace Trinex
 
 		bool serialize(class Archive& ar);
 	};
-}// namespace Trinex
+} // namespace Trinex

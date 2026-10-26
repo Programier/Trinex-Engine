@@ -1,7 +1,7 @@
 #include <Core/etl/allocator.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/etl/critical_section.hpp>
 #include <Core/etl/pair.hpp>
-#include <Core/etl/array.hpp>
 #include <Core/math/math.hpp>
 #include <Core/memory.hpp>
 #include <Core/threading.hpp>
@@ -13,7 +13,8 @@ namespace Trinex
 	{
 		struct TempAllocatorData;
 
-		struct TempAllocatorSync {
+		struct TempAllocatorSync
+		{
 			Array<TempAllocatorData*> stacks;
 			CriticalSection critical_section;
 
@@ -35,12 +36,14 @@ namespace Trinex
 			}
 		};
 
-		struct TempAllocatorData {
+		struct TempAllocatorData
+		{
 			using size_type                                = StackByteAllocator::size_type;
 			static constexpr size_type min_block_size      = 1024 * 32;
 			static constexpr size_type min_block_alignment = 16;
 
-			struct Node {
+			struct Node
+			{
 				Node* m_next = nullptr;
 
 				u8* m_begin;
@@ -134,7 +137,7 @@ namespace Trinex
 
 		static thread_local TempAllocatorData s_stack_allocator(&s_stack_sync);
 		static thread_local TempAllocatorData s_frame_allocator(&s_frame_sync);
-	}// namespace
+	} // namespace
 
 	unsigned char* ByteAllocator::allocate_aligned(size_type size, size_type align)
 	{
@@ -177,7 +180,8 @@ namespace Trinex
 	static void reset_stack_allocator(TempAllocatorSync* sync)
 	{
 		sync->lock();
-		for (TempAllocatorData* allocator : sync->stacks) allocator->reset();
+		for (TempAllocatorData* allocator : sync->stacks)
+			allocator->reset();
 		sync->unlock();
 	}
 
@@ -214,4 +218,4 @@ namespace Trinex
 	{
 		reset_stack_allocator(&s_frame_sync);
 	}
-}// namespace Trinex
+} // namespace Trinex

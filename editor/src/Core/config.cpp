@@ -23,4 +23,4 @@ namespace Trinex::Settings::Editor
 		}
 		ScriptEngine::end_config_group();
 	}
-}// namespace Trinex::Settings::Editor
+} // namespace Trinex::Settings::Editor

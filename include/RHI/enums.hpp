@@ -3,7 +3,8 @@
 
 namespace Trinex
 {
-	struct RHIBackend {
+	struct RHIBackend
+	{
 		enum Enum : u8
 		{
 			Undefined = 0,
@@ -19,7 +20,8 @@ namespace Trinex
 		trinex_enum_struct(RHIBackend);
 	};
 
-	struct RHIShaderParameterType {
+	struct RHIShaderParameterType
+	{
 		enum Enum : EnumerateType
 		{
 			Undefined = 0,
@@ -190,7 +192,8 @@ namespace Trinex
 		}
 	};
 
-	struct RHITextureFlags {
+	struct RHITextureFlags
+	{
 		enum Enum : u8
 		{
 			Undefined          = 0,
@@ -198,7 +201,6 @@ namespace Trinex
 			UnorderedAccess    = trinex_bit(1),
 			RenderTarget       = trinex_bit(2),
 			DepthStencilTarget = trinex_bit(3),
-
 
 			ColorAttachment        = RenderTarget | ShaderResource,
 			RWColorAttachment      = UnorderedAccess | ColorAttachment,
@@ -209,7 +211,8 @@ namespace Trinex
 		trinex_bitfield_enum_struct(RHITextureFlags, u8);
 	};
 
-	struct RHIBufferFlags {
+	struct RHIBufferFlags
+	{
 		enum Enum : u16
 		{
 			Undefined         = 0,
@@ -235,7 +238,8 @@ namespace Trinex
 		trinex_bitfield_enum_struct(RHIBufferFlags, u16);
 	};
 
-	struct RHIBufferViewType {
+	struct RHIBufferViewType
+	{
 		enum Enum : u8
 		{
 			ByteAddress  = 0,
@@ -247,7 +251,8 @@ namespace Trinex
 		trinex_enum_struct(RHIBufferViewType);
 	};
 
-	struct RHICompareFunc {
+	struct RHICompareFunc
+	{
 		enum Enum : u8
 		{
 			Always   = 0,
@@ -264,7 +269,8 @@ namespace Trinex
 		trinex_enum(RHICompareFunc);
 	};
 
-	struct RHIAccess {
+	struct RHIAccess
+	{
 		enum Enum : EnumerateType
 		{
 			Undefined = 0,
@@ -297,8 +303,8 @@ namespace Trinex
 			RTV = RTVRead | RTVWrite,
 			DSV = DSVRead | DSVWrite,
 
-			ReadableMask = CPURead | AccelerationRead | IndirectArgs | VertexBuffer | IndexBuffer | UniformBuffer | SRVCompute |
-			               SRVGraphics | TransferSrc | PresentSrc | UAVCompute | UAVGraphics | RTVRead | DSVRead,
+			ReadableMask = CPURead | AccelerationRead | IndirectArgs | VertexBuffer | IndexBuffer | UniformBuffer | SRVCompute
+			               | SRVGraphics | TransferSrc | PresentSrc | UAVCompute | UAVGraphics | RTVRead | DSVRead,
 			WritableMask =
 			        CPUWrite | AccelerationWrite | UAVCompute | UAVGraphics | TransferDst | ResolveDst | RTVWrite | DSVWrite,
 		};
@@ -306,7 +312,8 @@ namespace Trinex
 		trinex_bitfield_enum_struct(RHIAccess, EnumerateType);
 	};
 
-	struct RHISemantic {
+	struct RHISemantic
+	{
 		enum Enum : u8
 		{
 			Undefined    = 0,
@@ -327,7 +334,8 @@ namespace Trinex
 		trinex_enum_struct(RHISemantic);
 	};
 
-	struct RHISamplerFilter {
+	struct RHISamplerFilter
+	{
 		enum Enum : u8
 		{
 			Point     = 0,
@@ -339,7 +347,8 @@ namespace Trinex
 		trinex_enum(RHISamplerFilter);
 	};
 
-	struct RHISamplerAddressMode {
+	struct RHISamplerAddressMode
+	{
 		enum Enum : u8
 		{
 			Repeat            = 0,
@@ -353,7 +362,8 @@ namespace Trinex
 		trinex_enum(RHISamplerAddressMode);
 	};
 
-	struct RHIStencilOp {
+	struct RHIStencilOp
+	{
 		enum Enum : u8
 		{
 			Keep     = 0,
@@ -370,7 +380,8 @@ namespace Trinex
 		trinex_enum(RHIStencilOp);
 	};
 
-	struct RHIBlendFunc {
+	struct RHIBlendFunc
+	{
 		enum Enum : u8
 		{
 			Zero             = 0,
@@ -389,7 +400,8 @@ namespace Trinex
 		trinex_enum(RHIBlendFunc);
 	};
 
-	struct RHIBlendOp {
+	struct RHIBlendOp
+	{
 		enum Enum : u8
 		{
 			Add             = 0,
@@ -403,7 +415,8 @@ namespace Trinex
 		trinex_enum(RHIBlendOp);
 	};
 
-	struct RHITopology {
+	struct RHITopology
+	{
 		enum Enum : u8
 		{
 			TriangleList  = 0,
@@ -416,7 +429,8 @@ namespace Trinex
 		trinex_enum(RHITopology);
 	};
 
-	struct RHIPolygonMode {
+	struct RHIPolygonMode
+	{
 		enum Enum : u8
 		{
 			Fill = 0,
@@ -427,7 +441,8 @@ namespace Trinex
 		trinex_enum(RHIPolygonMode);
 	};
 
-	struct RHICullMode {
+	struct RHICullMode
+	{
 		enum Enum : u8
 		{
 			None  = 0,
@@ -439,7 +454,8 @@ namespace Trinex
 		trinex_enum(RHICullMode);
 	};
 
-	struct RHIFrontFace {
+	struct RHIFrontFace
+	{
 		enum Enum : u8
 		{
 			ClockWise        = 0,
@@ -450,7 +466,8 @@ namespace Trinex
 		trinex_enum(RHIFrontFace);
 	};
 
-	struct RHIVertexInputRate {
+	struct RHIVertexInputRate
+	{
 		enum Enum : u8
 		{
 			Vertex   = 0,
@@ -460,7 +477,8 @@ namespace Trinex
 		trinex_enum_struct(RHIVertexInputRate);
 	};
 
-	struct RHIIndexFormat {
+	struct RHIIndexFormat
+	{
 		enum Enum : u8
 		{
 			Undefined = 0,
@@ -473,8 +491,10 @@ namespace Trinex
 		inline usize stride() const { return value << 1; }
 	};
 
-	struct trinex_api RHIColorFormat {
-		struct Capabilities {
+	struct trinex_api RHIColorFormat
+	{
+		struct Capabilities
+		{
 			enum Enum : EnumerateType
 			{
 				Undefined = 0,
@@ -604,7 +624,8 @@ namespace Trinex
 		}
 	};
 
-	struct RHISurfaceFormat {
+	struct RHISurfaceFormat
+	{
 		enum Enum : u8
 		{
 			Undefined = RHIColorFormat::Undefined,
@@ -682,7 +703,8 @@ namespace Trinex
 		inline operator RHIColorFormat() const { return as_color_format(); }
 	};
 
-	struct RHIVertexFormat {
+	struct RHIVertexFormat
+	{
 		enum Enum : u8
 		{
 			Undefined = 0,
@@ -773,7 +795,8 @@ namespace Trinex
 		return value != static_cast<Enum>(format.value);
 	}
 
-	struct RHIColorComponent {
+	struct RHIColorComponent
+	{
 		enum Enum : u8
 		{
 			Undefined = 0,
@@ -791,7 +814,8 @@ namespace Trinex
 		trinex_enum(RHIColorComponent);
 	};
 
-	struct RHITextureType {
+	struct RHITextureType
+	{
 		enum Enum : u8
 		{
 			Undefined        = 0,
@@ -807,7 +831,8 @@ namespace Trinex
 		trinex_enum_struct(RHITextureType);
 	};
 
-	struct RHICubeFace {
+	struct RHICubeFace
+	{
 		enum Enum : u8
 		{
 			Right  = 0,
@@ -820,7 +845,8 @@ namespace Trinex
 		trinex_enum_struct(RHICubeFace);
 	};
 
-	struct RHILoadFunc {
+	struct RHILoadFunc
+	{
 		enum Enum : u8
 		{
 			Load     = 0,
@@ -831,7 +857,8 @@ namespace Trinex
 		trinex_enum_struct(RHILoadFunc);
 	};
 
-	struct RHIStoreFunc {
+	struct RHIStoreFunc
+	{
 		enum Enum : u8
 		{
 			Store    = 0,
@@ -841,7 +868,8 @@ namespace Trinex
 		trinex_enum_struct(RHIStoreFunc);
 	};
 
-	struct RHIResolveFunc {
+	struct RHIResolveFunc
+	{
 		enum Enum : u8
 		{
 			Undefined = 0,
@@ -854,7 +882,8 @@ namespace Trinex
 		trinex_enum_struct(RHIResolveFunc);
 	};
 
-	struct RHIRenderingFlags {
+	struct RHIRenderingFlags
+	{
 		enum Enum : u8
 		{
 			Undefined            = 0,
@@ -866,7 +895,8 @@ namespace Trinex
 		trinex_bitfield_enum_struct(RHIRenderingFlags, u8);
 	};
 
-	struct RHIAspect {
+	struct RHIAspect
+	{
 		enum Enum : u8
 		{
 			Undefined    = 0,
@@ -879,7 +909,8 @@ namespace Trinex
 		trinex_bitfield_enum_struct(RHIAspect, u8);
 	};
 
-	struct RHIContextInheritanceFlags {
+	struct RHIContextInheritanceFlags
+	{
 		enum Enum : u8
 		{
 			Undefined          = 0,
@@ -889,7 +920,8 @@ namespace Trinex
 		trinex_bitfield_enum_struct(RHIContextInheritanceFlags, u8);
 	};
 
-	struct RHIContextFlags {
+	struct RHIContextFlags
+	{
 		enum Enum : u8
 		{
 			Undefined = 0,
@@ -902,7 +934,8 @@ namespace Trinex
 		trinex_bitfield_enum_struct(RHIContextFlags, u8);
 	};
 
-	struct RHIMappingAccess {
+	struct RHIMappingAccess
+	{
 		enum Enum : u8
 		{
 			Undefined = 0,
@@ -913,7 +946,8 @@ namespace Trinex
 		trinex_enum_struct(RHIMappingAccess);
 	};
 
-	struct RHIBorderColor {
+	struct RHIBorderColor
+	{
 		enum Enum : u8
 		{
 			FloatOpaqueBlack      = 0,
@@ -929,7 +963,8 @@ namespace Trinex
 		trinex_enum(RHIBorderColor);
 	};
 
-	struct RHIRayTracingGeometryType {
+	struct RHIRayTracingGeometryType
+	{
 		enum Enum : u8
 		{
 			Triangles = 0,
@@ -939,7 +974,8 @@ namespace Trinex
 		trinex_enum_struct(RHIRayTracingGeometryType);
 	};
 
-	struct RHIRayTracingAccelerationLevel {
+	struct RHIRayTracingAccelerationLevel
+	{
 		enum Enum : u8
 		{
 			Top    = 0,
@@ -949,7 +985,8 @@ namespace Trinex
 		trinex_enum_struct(RHIRayTracingAccelerationLevel);
 	};
 
-	struct RHIRayTracingGeometryFlags {
+	struct RHIRayTracingGeometryFlags
+	{
 		enum Enum : u8
 		{
 			Undefined         = 0,
@@ -960,7 +997,8 @@ namespace Trinex
 		trinex_bitfield_enum_struct(RHIRayTracingGeometryFlags, u8);
 	};
 
-	struct RHIRayTracingAccelerationFlags {
+	struct RHIRayTracingAccelerationFlags
+	{
 		enum Enum : u8
 		{
 			Undefined       = 0,
@@ -975,7 +1013,8 @@ namespace Trinex
 		trinex_bitfield_enum_struct(RHIRayTracingAccelerationFlags, u8);
 	};
 
-	struct RHIRayTracingShaderGroupType {
+	struct RHIRayTracingShaderGroupType
+	{
 		enum Enum : u8
 		{
 			GeneralRayGen   = 0,
@@ -988,7 +1027,8 @@ namespace Trinex
 		trinex_enum_struct(RHIRayTracingShaderGroupType);
 	};
 
-	struct RHIRayTracingGeometryInstanceFlags {
+	struct RHIRayTracingGeometryInstanceFlags
+	{
 		enum Enum : u8
 		{
 			Undefined                 = 0,
@@ -1001,4 +1041,4 @@ namespace Trinex
 
 		trinex_bitfield_enum_struct(RHIRayTracingGeometryInstanceFlags, u8);
 	};
-}// namespace Trinex
+} // namespace Trinex

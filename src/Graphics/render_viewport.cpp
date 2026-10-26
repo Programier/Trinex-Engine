@@ -40,7 +40,7 @@ namespace Trinex
 				                                                                  EventCode::Undefined, dispatch_viewport_input);
 			}
 		}
-	}// namespace
+	} // namespace
 
 	RenderViewport::RenderViewport(Window* window, u32 present_interval)
 	{
@@ -124,4 +124,4 @@ namespace Trinex
 	{
 		return m_viewports;
 	}
-}// namespace Trinex
+} // namespace Trinex

@@ -10,7 +10,8 @@ namespace Trinex
 		static_assert((segment_size & (segment_size - 1)) == 0, "segment_size must be power of two");
 
 	private:
-		struct Segment {
+		struct Segment
+		{
 			Segment* prev;
 			usize used;
 			unsigned char* data;
@@ -25,7 +26,8 @@ namespace Trinex
 			Segment& operator=(const Segment&) = delete;
 		};
 
-		struct Footer {
+		struct Footer
+		{
 			usize object_offset;
 			usize previous_used;
 		};
@@ -164,7 +166,6 @@ namespace Trinex
 			T* object = (T*) (m_current->data + object_offset);
 			new (object) T(args...);
 
-
 			Footer* footer        = (Footer*) (m_current->data + footer_offset);
 			footer->object_offset = object_offset;
 			footer->previous_used = m_current->used;
@@ -202,4 +203,4 @@ namespace Trinex
 			m_free    = nullptr;
 		}
 	};
-};// namespace Trinex
+}; // namespace Trinex

@@ -29,4 +29,4 @@ namespace Trinex
 		inline Angle outer_cone_angle() const { return m_outer_cone_angle; }
 	};
 
-}// namespace Trinex
+} // namespace Trinex

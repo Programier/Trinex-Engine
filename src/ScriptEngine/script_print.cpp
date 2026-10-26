@@ -2,7 +2,6 @@
 #include <ScriptEngine/script_engine.hpp>
 #include <angelscript.h>
 
-
 namespace Trinex
 {
 	static String to_string(asIScriptGeneric* gen, asUINT arg)
@@ -37,7 +36,8 @@ namespace Trinex
 			else
 			{
 				auto arg = atoi(&fmt[next]) % argc;
-				while (next < fmt.size() && isdigit(fmt[next])) ++next;
+				while (next < fmt.size() && isdigit(fmt[next]))
+					++next;
 				arg += skip_args;
 
 				const u8* address = reinterpret_cast<const u8*>(gen->GetArgAddress(arg));
@@ -85,4 +85,4 @@ namespace Trinex
 		ScriptEngine::register_function("void print(const ?& ...)", script_print, ScriptCallConv::Generic);
 		ScriptEngine::register_function("void printf(const string& fmt, const ?& ...)", script_printf, ScriptCallConv::Generic);
 	}
-}// namespace Trinex
+} // namespace Trinex

@@ -49,4 +49,4 @@ namespace Trinex
 		inline float scale() const { return m_smooth_scale; }
 		inline u32 mip() const { return m_mip; }
 	};
-}// namespace Trinex
+} // namespace Trinex

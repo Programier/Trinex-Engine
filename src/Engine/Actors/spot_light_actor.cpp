@@ -16,4 +16,4 @@ namespace Trinex
 	{
 		return m_spot_light_component;
 	}
-}// namespace Trinex
+} // namespace Trinex

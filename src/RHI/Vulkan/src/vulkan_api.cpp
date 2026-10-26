@@ -1,6 +1,4 @@
-﻿#include <VkBootstrap.h>
-
-#include <Core/memory.hpp>
+﻿#include <Core/memory.hpp>
 #include <Core/profiler.hpp>
 #include <Core/threading.hpp>
 #include <Core/tickable.hpp>
@@ -8,6 +6,7 @@
 #include <Engine/settings.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/texture.hpp>
+#include <VkBootstrap.h>
 #include <vulkan_api.hpp>
 #include <vulkan_bindless.hpp>
 #include <vulkan_buffer.hpp>
@@ -38,7 +37,6 @@ namespace Trinex
 	}
 
 	static RHI::Registry s_vulkan_api_registry(RHIBackend::Vulkan, create_vulkan_api, destroy_vulkan_api);
-
 
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
 	                                                     VkDebugUtilsMessageTypeFlagsEXT message_type,
@@ -439,4 +437,4 @@ namespace Trinex
 	{
 		VulkanAPI::instance()->add_garbage(object);
 	}
-}// namespace Trinex
+} // namespace Trinex

@@ -1,6 +1,6 @@
 #include <Core/engine_types.hpp>
-#include <Core/etl/string.hpp>
 #include <Core/etl/array.hpp>
+#include <Core/etl/string.hpp>
 #include <Core/math/vector.hpp>
 #include <Core/types/color.hpp>
 
@@ -9,7 +9,8 @@ namespace Trinex
 	class Image;
 	class Path;
 
-	struct trinex_api FontConfig {
+	struct trinex_api FontConfig
+	{
 		Vector2u image_size;
 		Color color;
 		Vector2u font_size;
@@ -33,4 +34,4 @@ namespace Trinex
 
 		~Font();
 	};
-}// namespace Trinex
+} // namespace Trinex

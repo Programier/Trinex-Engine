@@ -37,7 +37,6 @@ namespace Trinex
 		return offset(pos, IOWhence::Begin);
 	}
 
-
 	void VectorWriterBase::copy_data(u8* to, const u8* from, usize count)
 	{
 		std::memcpy(to, from, count);
@@ -47,4 +46,4 @@ namespace Trinex
 	{
 		std::memcpy(to, from, count);
 	}
-}// namespace Trinex
+} // namespace Trinex

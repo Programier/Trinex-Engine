@@ -5,7 +5,8 @@
 
 namespace Trinex
 {
-	struct trinex_api Constants {
+	struct trinex_api Constants
+	{
 		static const u32 processor_count;
 		static const Vector3f OX;
 		static const Vector3f OY;
@@ -41,4 +42,4 @@ namespace Trinex
 		static const String translation_config_extension;
 		static const u64 script_userdata_id;
 	};
-}// namespace Trinex
+} // namespace Trinex

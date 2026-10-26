@@ -16,4 +16,4 @@ namespace Trinex
 		PointLightActor();
 		PointLightComponent* point_light_component() const;
 	};
-}// namespace Trinex
+} // namespace Trinex

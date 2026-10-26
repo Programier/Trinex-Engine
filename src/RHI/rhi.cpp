@@ -8,7 +8,8 @@ namespace Trinex
 {
 	namespace
 	{
-		struct Backend {
+		struct Backend
+		{
 			RHI::CreateFunction create;
 			RHI::DestroyFunction destroy;
 		};
@@ -18,8 +19,7 @@ namespace Trinex
 			static FlatMap<RHIBackend, Backend> registry;
 			return registry;
 		}
-	}// namespace
-
+	} // namespace
 
 	RHI::Registry::Registry(RHIBackend backend, CreateFunction create, DestroyFunction destroy)
 	{
@@ -36,4 +36,4 @@ namespace Trinex
 	{
 		return nullptr;
 	}
-}// namespace Trinex
+} // namespace Trinex

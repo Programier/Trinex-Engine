@@ -245,8 +245,8 @@ namespace Trinex
 		constexpr auto build_type = vk::AccelerationStructureBuildTypeKHR::eDevice;
 		auto sizes = VulkanAPI::instance()->m_device.getAccelerationStructureBuildSizesKHR(build_type, build_info, primitives);
 
-		constexpr auto flags = RHIBufferFlags::AccelerationStorage | RHIBufferFlags::ByteAddressBuffer |
-		                       RHIBufferFlags::ShaderResource | RHIBufferFlags::UnorderedAccess | RHIBufferFlags::DeviceAddress;
+		constexpr auto flags = RHIBufferFlags::AccelerationStorage | RHIBufferFlags::ByteAddressBuffer
+		                       | RHIBufferFlags::ShaderResource | RHIBufferFlags::UnorderedAccess | RHIBufferFlags::DeviceAddress;
 
 		m_acceleration_buffer = trx_new VulkanBuffer();
 		m_acceleration_buffer->create(sizes.accelerationStructureSize, flags);
@@ -336,7 +336,6 @@ namespace Trinex
 		const vk::DeviceAddress sbt = pipeline->shader_binding_table()->address().as<vk::DeviceAddress>();
 		const usize groups          = pipeline->groups();
 
-
 		using Region = vk::StridedDeviceAddressRegionKHR;
 
 		Region raygen_region(sbt + handle * raygen, handle, handle);
@@ -355,4 +354,4 @@ namespace Trinex
 		flush_raytrace()->traceRaysKHR(raygen_region, miss_region, hit_region, callable_region, width, height, depth);
 		return *this;
 	}
-}// namespace Trinex
+} // namespace Trinex

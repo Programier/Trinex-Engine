@@ -9,7 +9,7 @@ namespace Trinex
 {
 	class Group;
 	class Archive;
-}// namespace Trinex
+} // namespace Trinex
 
 namespace Trinex::Refl
 {
@@ -18,14 +18,16 @@ namespace Trinex::Refl
 		trinex_reflect_type(Struct, ScopedType);
 
 	public:
-		struct StructCompare {
+		struct StructCompare
+		{
 			inline bool operator()(const Struct* a, const Struct* b) const
 			{
 				return a->name().to_string() < b->name().to_string();
 			}
 		};
 
-		struct Flags {
+		struct Flags
+		{
 			enum Enum : u8
 			{
 				IsAbstract      = trinex_bit(0),
@@ -226,4 +228,4 @@ namespace Trinex::Refl
 
 #define trinex_implement_struct_default_init(decl, flags)                                                                        \
 	trinex_implement_struct(decl, flags) {}
-}// namespace Trinex::Refl
+} // namespace Trinex::Refl

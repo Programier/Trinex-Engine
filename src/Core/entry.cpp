@@ -9,4 +9,4 @@ namespace Trinex
 	}
 
 	trinex_implement_engine_class_default_init(EntryPoint, 0);
-}// namespace Trinex
+} // namespace Trinex

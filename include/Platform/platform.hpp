@@ -35,4 +35,4 @@ namespace Trinex::Platform
 		virtual Clipboard* clipboard()          = 0;
 		virtual void update()                   = 0;
 	};
-}// namespace Trinex::Platform
+} // namespace Trinex::Platform

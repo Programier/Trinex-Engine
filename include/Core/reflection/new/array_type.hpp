@@ -4,7 +4,8 @@
 
 namespace Trinex::Refl::New
 {
-	trinex_reflect() class trinex_api ArrayType : public ContainerType
+	trinex_reflect()
+	class trinex_api ArrayType : public ContainerType
 	{
 	public:
 		class VTable : public ContainerType::VTable
@@ -35,4 +36,4 @@ namespace Trinex::Refl::New
 
 		inline Type* argument() const { return m_vtable.argument(); }
 	};
-}// namespace Trinex::Refl::New
+} // namespace Trinex::Refl::New

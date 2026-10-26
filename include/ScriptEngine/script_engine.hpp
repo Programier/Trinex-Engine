@@ -48,7 +48,8 @@ namespace Trinex
 		static void destroy_script_object(void*, const ScriptTypeInfo& info);
 
 	public:
-		struct GarbageCollectFlags {
+		struct GarbageCollectFlags
+		{
 			enum Enum : u8
 			{
 				FullCycle      = 1,
@@ -204,4 +205,4 @@ namespace Trinex
 		friend class ScriptObject;
 		friend class ScriptContext;
 	};
-}// namespace Trinex
+} // namespace Trinex

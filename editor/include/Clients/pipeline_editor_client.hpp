@@ -1,7 +1,6 @@
 #pragma once
 #include <Clients/object_view_client.hpp>
 
-
 namespace Trinex
 {
 	class PipelineEditorClient : public ObjectViewClient
@@ -12,4 +11,4 @@ namespace Trinex
 		PipelineEditorClient();
 		PipelineEditorClient& select(Object* object) override;
 	};
-}// namespace Trinex
+} // namespace Trinex

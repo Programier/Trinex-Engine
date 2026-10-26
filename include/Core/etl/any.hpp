@@ -24,11 +24,13 @@ namespace Trinex
 		};
 
 		template<typename T>
-		static constexpr inline bool is_stack_type = std::integral_constant<
-		        bool, std::is_nothrow_move_constructible<T>::value && sizeof(T) <= sizeof(Storage::stack) &&
-		                      std::alignment_of<T>::value <= std::alignment_of<Storage::stack_storage_t>::value>::value;
+		static constexpr inline bool is_stack_type =
+		        std::integral_constant<bool, std::is_nothrow_move_constructible<T>::value && sizeof(T) <= sizeof(Storage::stack)
+		                                             && std::alignment_of<T>::value
+		                                                        <= std::alignment_of<Storage::stack_storage_t>::value>::value;
 
-		struct trinex_api Manager {
+		struct trinex_api Manager
+		{
 			void (*destroy)(Storage&) noexcept;
 			void (*copy)(const Storage& src, Storage& dest);
 			void (*move)(Storage& src, Storage& dest) noexcept;
@@ -45,7 +47,8 @@ namespace Trinex
 		};
 
 		template<typename T>
-		struct StackManager {
+		struct StackManager
+		{
 			static void destroy(Storage& storage) noexcept { std::destroy_at(reinterpret_cast<T*>(&storage.stack)); }
 
 			static void copy(const Storage& src, Storage& dest) { new (&dest.stack) T(reinterpret_cast<const T&>(src.stack)); }
@@ -66,7 +69,8 @@ namespace Trinex
 		};
 
 		template<typename T>
-		struct DynamicManager {
+		struct DynamicManager
+		{
 			static void destroy(Storage& storage) noexcept { trx_delete reinterpret_cast<T*>(storage.dynamic); }
 
 			static void copy(const Storage& src, Storage& dest)
@@ -112,17 +116,14 @@ namespace Trinex
 			return &manager;
 		}
 
-
 		Storage m_storage;
 		Manager* m_manager = nullptr;
-
 
 		template<typename Value, typename DecayValue>
 		typename std::enable_if<is_stack_type<DecayValue>>::type initialize(Value&& value)
 		{
 			new (&m_storage.stack) DecayValue(std::forward<Value>(value));
 		}
-
 
 		template<typename Value, typename DecayValue>
 		typename std::enable_if<!is_stack_type<DecayValue>>::type initialize(Value&& value)
@@ -156,7 +157,6 @@ namespace Trinex
 			              "Type must be copy constructible");
 			construct(std::forward<ValueType>(value));
 		}
-
 
 		template<typename ValueType,
 		         typename = typename std::enable_if<!std::is_same<typename std::decay<ValueType>::type, Any>::value>::type>
@@ -244,4 +244,4 @@ namespace Trinex
 
 		friend struct ScriptAny;
 	};
-}// namespace Trinex
+} // namespace Trinex

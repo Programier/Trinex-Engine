@@ -2,7 +2,8 @@
 
 namespace Trinex::Platform
 {
-	struct SystemType {
+	struct SystemType
+	{
 		enum Enum : u8
 		{
 			Unknown = 0,
@@ -40,7 +41,8 @@ namespace Trinex::Platform
 		trinex_enum_struct(SystemType);
 	};
 
-	struct Architecture {
+	struct Architecture
+	{
 		enum Enum : u8
 		{
 			Unknown = 0,
@@ -54,7 +56,8 @@ namespace Trinex::Platform
 		trinex_enum_struct(Architecture);
 	};
 
-	struct CPUFeature {
+	struct CPUFeature
+	{
 		enum Enum : u64
 		{
 			Undefined = 0,
@@ -77,7 +80,8 @@ namespace Trinex::Platform
 		trinex_bitfield_enum_struct(CPUFeature, u64);
 	};
 
-	struct MemoryProtection {
+	struct MemoryProtection
+	{
 		enum Enum : u8
 		{
 			NoAccess         = 0,
@@ -92,7 +96,8 @@ namespace Trinex::Platform
 		trinex_bitfield_enum_struct(MemoryProtection, u8);
 	};
 
-	struct VirtualMemoryFlags {
+	struct VirtualMemoryFlags
+	{
 		enum Enum : u8
 		{
 			Undefined      = 0,
@@ -107,7 +112,8 @@ namespace Trinex::Platform
 		trinex_bitfield_enum_struct(VirtualMemoryFlags, u8);
 	};
 
-	struct FileAccess {
+	struct FileAccess
+	{
 		enum Enum : u8
 		{
 			Undefined = 0,
@@ -120,7 +126,8 @@ namespace Trinex::Platform
 		trinex_bitfield_enum_struct(FileAccess, u8);
 	};
 
-	struct FileShare {
+	struct FileShare
+	{
 		enum Enum : u8
 		{
 			None   = 0,
@@ -133,7 +140,8 @@ namespace Trinex::Platform
 		trinex_bitfield_enum_struct(FileShare, u8);
 	};
 
-	struct FileCreateMode {
+	struct FileCreateMode
+	{
 		enum Enum : u8
 		{
 			OpenExisting = 0,
@@ -146,7 +154,8 @@ namespace Trinex::Platform
 		trinex_enum_struct(FileCreateMode);
 	};
 
-	struct FileAttribute {
+	struct FileAttribute
+	{
 		enum Enum : u16
 		{
 			Undefined  = 0,
@@ -161,7 +170,8 @@ namespace Trinex::Platform
 		trinex_bitfield_enum_struct(FileAttribute, u16);
 	};
 
-	struct FileWatchEventType {
+	struct FileWatchEventType
+	{
 		enum Enum : u32
 		{
 			Undefined = 0,
@@ -176,7 +186,8 @@ namespace Trinex::Platform
 		trinex_bitfield_enum_struct(FileWatchEventType, u32);
 	};
 
-	struct ProcessIO {
+	struct ProcessIO
+	{
 		enum Enum : u8
 		{
 			Undefined   = 0,
@@ -188,7 +199,8 @@ namespace Trinex::Platform
 		trinex_enum_struct(ProcessIO);
 	};
 
-	struct ThreadPriority {
+	struct ThreadPriority
+	{
 		enum Enum : u8
 		{
 			Low      = 0,
@@ -200,7 +212,8 @@ namespace Trinex::Platform
 		trinex_enum_struct(ThreadPriority);
 	};
 
-	struct ThreadState {
+	struct ThreadState
+	{
 		enum Enum : u8
 		{
 			Undefined = 0,
@@ -212,7 +225,8 @@ namespace Trinex::Platform
 		trinex_enum_struct(ThreadState);
 	};
 
-	struct DialogStatus {
+	struct DialogStatus
+	{
 		enum Enum : u8
 		{
 			Undefined = 0,
@@ -224,4 +238,4 @@ namespace Trinex::Platform
 
 		trinex_enum_struct(DialogStatus);
 	};
-}// namespace Trinex::Platform
+} // namespace Trinex::Platform

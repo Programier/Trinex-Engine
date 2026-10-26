@@ -42,4 +42,4 @@ namespace Trinex::VFS
 
 		friend class RootFS;
 	};
-}// namespace Trinex::VFS
+} // namespace Trinex::VFS

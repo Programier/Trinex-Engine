@@ -40,4 +40,4 @@ namespace Trinex
 			return static_cast<const T*>(this);
 		}
 	};
-}// namespace Trinex
+} // namespace Trinex

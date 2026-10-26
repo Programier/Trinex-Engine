@@ -18,7 +18,7 @@ namespace Trinex
 		class ScriptClass;
 		class ScriptEnum;
 		class ScriptStruct;
-	}// namespace Refl
+	} // namespace Refl
 
 	class Script;
 
@@ -55,7 +55,8 @@ namespace Trinex
 	class trinex_api Script final
 	{
 	public:
-		struct trinex_api ClassMetadata {
+		struct trinex_api ClassMetadata
+		{
 			ScriptTypeInfo type_info;
 			TreeSet<String> class_metadata;
 			TreeMap<i32, TreeSet<String>> func_metadata_map;
@@ -175,4 +176,4 @@ namespace Trinex
 		friend class Refl::ScriptStruct;
 		friend class Refl::ScriptEnum;
 	};
-}// namespace Trinex
+} // namespace Trinex

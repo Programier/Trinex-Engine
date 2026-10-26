@@ -20,4 +20,4 @@ namespace Trinex
 
 		inline ~ScopeLock() { m_critical_section.unlock(); }
 	};
-}// namespace Trinex
+} // namespace Trinex

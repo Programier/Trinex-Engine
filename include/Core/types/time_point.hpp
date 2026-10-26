@@ -10,7 +10,8 @@ namespace Trinex
 	public:
 		static inline constexpr u64 invalid_value = ~static_cast<u64>(0);
 
-		struct Hash {
+		struct Hash
+		{
 			usize operator()(const TimePoint& TimePoint) const noexcept;
 		};
 
@@ -56,16 +57,17 @@ namespace Trinex
 		inline bool operator>=(const TimePoint& other) const { return m_time_point >= other.m_time_point; }
 		inline explicit operator bool() const { return is_valid(); }
 	};
-}// namespace Trinex
+} // namespace Trinex
 
 namespace std
 {
 	template<>
-	struct hash<Trinex::TimePoint> {
+	struct hash<Trinex::TimePoint>
+	{
 		size_t operator()(const Trinex::TimePoint& TimePoint) const noexcept
 		{
 			static Trinex::TimePoint::Hash h;
 			return h(TimePoint);
 		}
 	};
-}// namespace std
+} // namespace std

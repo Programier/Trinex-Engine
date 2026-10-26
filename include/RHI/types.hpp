@@ -5,7 +5,8 @@
 namespace Trinex
 {
 	template<typename Tag>
-	struct RHIResourceHandle : Storage<8, 8> {
+	struct RHIResourceHandle : Storage<8, 8>
+	{
 		constexpr RHIResourceHandle() : Storage<8, 8>({0}) {}
 		constexpr RHIResourceHandle(u64 value) : Storage<8, 8>({0}) { as<u64>() = value; }
 		constexpr RHIResourceHandle(const RHIResourceHandle&)            = default;
@@ -26,4 +27,4 @@ namespace Trinex
 
 	using RHIDescriptor    = RHIResourceHandle<DescriptorTag>;
 	using RHIDeviceAddress = RHIResourceHandle<DeviceAddressTag>;
-}// namespace Trinex
+} // namespace Trinex

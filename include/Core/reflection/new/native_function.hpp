@@ -8,7 +8,8 @@
 
 namespace Trinex::Refl::New
 {
-	trinex_reflect() class trinex_api NativeFunction : public Function
+	trinex_reflect()
+	class trinex_api NativeFunction : public Function
 	{
 		trinex_reflection_body();
 
@@ -51,4 +52,4 @@ namespace Trinex::Refl::New
 			}
 		}
 	};
-}// namespace Trinex::Refl::New
+} // namespace Trinex::Refl::New

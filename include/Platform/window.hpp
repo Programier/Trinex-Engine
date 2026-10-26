@@ -6,7 +6,7 @@ namespace Trinex
 {
 	struct WindowDesc;
 	class Window;
-}// namespace Trinex
+} // namespace Trinex
 
 namespace Trinex::Platform
 {
@@ -21,4 +21,4 @@ namespace Trinex::Platform
 		virtual Ref<Window> grabbed() const                                                         = 0;
 		virtual Ref<Window> find(u32 id) const                                                      = 0;
 	};
-}// namespace Trinex::Platform
+} // namespace Trinex::Platform

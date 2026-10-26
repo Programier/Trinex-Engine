@@ -16,4 +16,4 @@ namespace Trinex
 		return trx_new VulkanShader(source, parameters);
 	}
 
-}// namespace Trinex
+} // namespace Trinex

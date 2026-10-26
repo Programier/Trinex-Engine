@@ -51,4 +51,4 @@ namespace Trinex
 			trx_delete joystick;
 		}
 	}
-}// namespace Trinex
+} // namespace Trinex

@@ -33,4 +33,4 @@ namespace Trinex
 			sampler->release();
 		}
 	}
-}// namespace Trinex
+} // namespace Trinex

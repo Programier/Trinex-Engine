@@ -9,7 +9,8 @@ namespace Trinex
 	class RenderSurface;
 	struct LightRenderParameters;
 
-	struct trinex_api LightUnits {
+	struct trinex_api LightUnits
+	{
 		enum Enum : EnumerateType
 		{
 			Unitless = 0,
@@ -82,4 +83,4 @@ namespace Trinex
 		LightComponent& stop_play() override;
 		~LightComponent();
 	};
-}// namespace Trinex
+} // namespace Trinex

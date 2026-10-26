@@ -154,4 +154,4 @@ namespace Trinex
 		return ar.serialize(bones);
 	}
 
-}// namespace Trinex
+} // namespace Trinex

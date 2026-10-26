@@ -37,7 +37,6 @@ namespace Trinex
 		return scene->create_geometry(geometry);
 	}
 
-
 	trinex_implement_engine_class(StaticMeshComponent, Refl::Class::IsScriptable)
 	{
 		trinex_refl_virtual_prop(mesh, mesh, mesh)->tooltip("Mesh object of this component");
@@ -120,4 +119,4 @@ namespace Trinex
 		return *this;
 	}
 
-}// namespace Trinex
+} // namespace Trinex

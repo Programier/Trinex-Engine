@@ -9,4 +9,4 @@ namespace Trinex::etl
 	using std::make_index_sequence;
 	using std::move;
 	using std::swap;
-}// namespace Trinex::etl
+} // namespace Trinex::etl

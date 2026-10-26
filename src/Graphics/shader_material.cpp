@@ -6,7 +6,6 @@
 #include <Engine/project.hpp>
 #include <Graphics/shader_material.hpp>
 
-
 namespace Trinex
 {
 	trinex_implement_engine_class(ShaderMaterial, Refl::Class::IsAsset)
@@ -32,4 +31,4 @@ namespace Trinex
 			return false;
 		return archive;
 	}
-}// namespace Trinex
+} // namespace Trinex

@@ -1,6 +1,5 @@
 #include <Core/colors.hpp>
 
-
 namespace Trinex
 {
 	const trinex_api Color Colors::IndianRed(0.8039f, 0.3608f, 0.3608f, 1.0f);
@@ -150,4 +149,4 @@ namespace Trinex
 	const trinex_api Color Colors::DarkSlateGray(0.1843f, 0.3098f, 0.3098f, 1.0f);
 	const trinex_api Color Colors::DarkSlateGrey(0.1843f, 0.3098f, 0.3098f, 1.0f);
 	const trinex_api Color Colors::Black(0.0f, 0.0f, 0.0f, 1.0f);
-}// namespace Trinex
+} // namespace Trinex

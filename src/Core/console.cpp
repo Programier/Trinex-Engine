@@ -12,7 +12,6 @@
 #include <Core/reflection/new/scope.hpp>
 #include <Core/reflection/new/type.hpp>
 #include <Core/types/path.hpp>
-
 #include <any>
 #include <peglib.h>
 
@@ -65,12 +64,14 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 	using Argument   = Variant<StringView, Context>;
 	using Arguments  = Array<Argument>;
 
-	struct Operation {
+	struct Operation
+	{
 		StringView name;
 		Arguments arguments;
 	};
 
-	struct Statement {
+	struct Statement
+	{
 		enum class Kind
 		{
 			Scope,
@@ -255,7 +256,8 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 
 	static constexpr u64 console_flags_shift = 48;
 
-	struct ExecutionContext {
+	struct ExecutionContext
+	{
 		void* object                   = nullptr;
 		Reflection::Object* reflection = nullptr;
 		ExecutionFlags flags           = ExecutionFlags::Undefined;
@@ -286,8 +288,8 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 	public:
 		BoundProperty(Name name, void* address, Reflection::Type* type, EntryFlags flags, Reflection::Object* owner)
 		    : Property(name, type,
-		               (static_cast<u64>(flags) << console_flags_shift) |
-		                       (flags.any(EntryFlags::ReadOnly) ? Reflection::Property::IsReadOnly : 0),
+		               (static_cast<u64>(flags) << console_flags_shift)
+		                       | (flags.any(EntryFlags::ReadOnly) ? Reflection::Property::IsReadOnly : 0),
 		               owner),
 		      m_address(address)
 		{}
@@ -362,7 +364,6 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		Reflection::Scope* scope = scope_of(position == StringView::npos ? "" : name.substr(0, position), false);
 		return scope ? scope->find(Name(name.substr(position == StringView::npos ? 0 : position + 1))) : nullptr;
 	}
-
 
 	static DynamicValue value_of(Reflection::Type* type, const void* value)
 	{
@@ -453,8 +454,8 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 			{
 				const Argument& argument = arguments[argument_index++];
 				DynamicValue resolved    = resolve_value(ctx, argument, const_cast<Reflection::Type*>(parameter->type()));
-				success                  = resolved && resolved.type() == parameter->type() &&
-				                           parameter->type()->copy_assign(value, resolved.data());
+				success                  = resolved && resolved.type() == parameter->type()
+				                           && parameter->type()->copy_assign(value, resolved.data());
 			}
 		}
 
@@ -640,8 +641,8 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		const usize position     = name.rfind('.');
 		Reflection::Scope* scope = scope_of(position == StringView::npos ? "" : name.substr(0, position), true);
 		const Name binding_name(name.substr(position == StringView::npos ? 0 : position + 1));
-		trinex_verify(address != nullptr && reflection != nullptr && scope != nullptr && binding_name.is_valid() &&
-		              find_binding(name) == nullptr);
+		trinex_verify(address != nullptr && reflection != nullptr && scope != nullptr && binding_name.is_valid()
+		              && find_binding(name) == nullptr);
 		(void) Ref<BoundProperty>::make(binding_name, address, reflection, flags, scope);
 		(void) description;
 	}
@@ -701,4 +702,4 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 
 		return DynamicValue();
 	}
-}// namespace Trinex::Console
+} // namespace Trinex::Console

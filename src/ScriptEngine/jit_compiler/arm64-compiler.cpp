@@ -24,47 +24,46 @@
 
 #if ARCH_ARM || FORCE_COMPILE_ARM_JIT
 
-#include <algorithm>
-#include <cinttypes>
-#include <cmath>
-#include <cstring>
-#include <stdexcept>
+	#include <algorithm>
+	#include <cinttypes>
+	#include <cmath>
+	#include <cstring>
+	#include <stdexcept>
 
-#define WITH_LOG 0
-#define SHOW_JIT_ENTRY 0
+	#define WITH_LOG 0
+	#define SHOW_JIT_ENTRY 0
 
-#if WITH_LOG
-#define logf printf
-#else
-#define logf(...)
-#endif
+	#if WITH_LOG
+		#define logf printf
+	#else
+		#define logf(...)
+	#endif
 
-#define STDCALL_DECL
+	#define STDCALL_DECL
 
-#define RETURN_CONTROL_TO_VM() return exec_asBC_RET(info)
-#define NEED_IMPLEMENTATION()                                                                                                    \
-	printf("Function %s need implementaion!\n", __FUNCTION__);                                                                   \
-	RETURN_CONTROL_TO_VM()
-#define CHECK_IT() printf("Function %s marked for check\n", __FUNCTION__)
+	#define RETURN_CONTROL_TO_VM() return exec_asBC_RET(info)
+	#define NEED_IMPLEMENTATION()                                                                                                \
+		printf("Function %s need implementaion!\n", __FUNCTION__);                                                               \
+		RETURN_CONTROL_TO_VM()
+	#define CHECK_IT() printf("Function %s marked for check\n", __FUNCTION__)
 
-#define MAYBE_UNUSED __attribute__((unused))
+	#define MAYBE_UNUSED __attribute__((unused))
 
-#define arg_value_dword(offset) asBC_DWORDARG(info->address + offset)
-#define arg_value_int() asBC_INTARG(info->address)
-#define arg_value_qword() asBC_QWORDARG(info->address)
-#define arg_value_float(offset) asBC_FLOATARG(info->address + offset)
-#define arg_value_ptr() asBC_PTRARG(info->address)
-#define arg_value_word(index) (*(((asWORD*) info->address) + index + 1))
-#define arg_value_short(index) (*(((short*) info->address) + index + 1))
-#define arg_offset(index) (-(*(((short*) info->address) + index + 1)) * sizeof(asDWORD))
-#define new_instruction(x) catch_errors(info->assembler.x)
+	#define arg_value_dword(offset) asBC_DWORDARG(info->address + offset)
+	#define arg_value_int() asBC_INTARG(info->address)
+	#define arg_value_qword() asBC_QWORDARG(info->address)
+	#define arg_value_float(offset) asBC_FLOATARG(info->address + offset)
+	#define arg_value_ptr() asBC_PTRARG(info->address)
+	#define arg_value_word(index) (*(((asWORD*) info->address) + index + 1))
+	#define arg_value_short(index) (*(((short*) info->address) + index + 1))
+	#define arg_offset(index) (-(*(((short*) info->address) + index + 1)) * sizeof(asDWORD))
+	#define new_instruction(x) catch_errors(info->assembler.x)
 
-
-#if !PLATFORM_ANDROID
-#define PLATFORM_DEFAULT 1
-#else
-#define PLATFORM_DEFAULT 0
-#endif
+	#if !PLATFORM_ANDROID
+		#define PLATFORM_DEFAULT 1
+	#else
+		#define PLATFORM_DEFAULT 0
+	#endif
 
 namespace JIT
 {
@@ -74,8 +73,7 @@ namespace JIT
 
 	static constexpr inline size_t const_pool_size = 64;
 
-#if PLATFORM_ANDROID || PLATFORM_DEFAULT
-
+	#if PLATFORM_ANDROID || PLATFORM_DEFAULT
 
 	static constexpr inline GpX stack_pointer MAYBE_UNUSED       = sp;
 	static constexpr inline GpX stack_frame_pointer MAYBE_UNUSED = x29;
@@ -88,7 +86,6 @@ namespace JIT
 	static constexpr inline GpW dword_free_1 MAYBE_UNUSED = w9;
 	static constexpr inline GpW dword_free_2 MAYBE_UNUSED = w10;
 	static constexpr inline GpW dword_free_3 MAYBE_UNUSED = w11;
-
 
 	static constexpr inline VecS float_free_1 MAYBE_UNUSED  = s0;
 	static constexpr inline VecS float_free_2 MAYBE_UNUSED  = s1;
@@ -121,7 +118,7 @@ namespace JIT
 	static constexpr inline GpX vm_object MAYBE_UNUSED              = x6;
 	static constexpr inline GpX vm_object_type MAYBE_UNUSED         = x7;
 
-#endif
+	#endif
 
 	static float STDCALL_DECL mod_float(float a, float b)
 	{
@@ -183,9 +180,9 @@ namespace JIT
 
 	ARM64_Compiler::ARM64_Compiler(bool with_suspend) : m_with_suspend(with_suspend)
 	{
-#define register_code(name)                                                                                                      \
-	exec[static_cast<size_t>(name)]       = &ARM64_Compiler::exec_##name;                                                        \
-	code_names[static_cast<size_t>(name)] = #name;
+	#define register_code(name)                                                                                                  \
+		exec[static_cast<size_t>(name)]       = &ARM64_Compiler::exec_##name;                                                    \
+		code_names[static_cast<size_t>(name)] = #name;
 
 		register_code(asBC_PopPtr);
 		register_code(asBC_PshGPtr);
@@ -388,9 +385,8 @@ namespace JIT
 		register_code(asBC_POWi64);
 		register_code(asBC_POWu64);
 		register_code(asBC_Thiscall1);
-#undef register_code
+	#undef register_code
 	}
-
 
 	int ARM64_Compiler::CompileFunction(asIScriptFunction* function, asJITFunction* output)
 	{
@@ -417,7 +413,6 @@ namespace JIT
 		Label const_pool_label = info.assembler.newLabel();
 		info.const_pool_label  = &const_pool_label;
 		info.const_pool        = &const_pool;
-
 
 		unsigned int index              = 0;
 		std::string function_name       = function->GetName();
@@ -465,14 +460,13 @@ namespace JIT
 		bind_label_if_required(info);
 		size_t index = static_cast<size_t>(info->instruction);
 
-#if WITH_LOG
+	#if WITH_LOG
 		auto current_offset = info->assembler.offset();
-#endif
-
+	#endif
 
 		((*this).*exec[index])(info);
 
-#if WITH_LOG
+	#if WITH_LOG
 		{
 			auto size           = instruction_size(info->instruction);
 			bool is_implemented = current_offset != info->assembler.offset();
@@ -482,9 +476,9 @@ namespace JIT
 				is_implemented = true;
 			}
 
-#if !SHOW_JIT_ENTRY
+		#if !SHOW_JIT_ENTRY
 			if (info->instruction != asBC_JitEntry && info->instruction != asBC_SUSPEND)
-#endif
+		#endif
 			{
 				logf("%-15s (%3zu with size = %u, %15s) -> [", code_names[index], index, size,
 				     (is_implemented ? "IMPLEMENTED" : "NOT IMPLEMENTED"));
@@ -496,11 +490,10 @@ namespace JIT
 				printf("]\n");
 			}
 		}
-#endif
+	#endif
 
 		return instruction_size(info->instruction);
 	}
-
 
 	void ARM64_Compiler::init(CompileInfo* info)
 	{
@@ -542,7 +535,6 @@ namespace JIT
 					info->labels.back().label             = info->assembler.newLabel();
 					break;
 				}
-
 
 				default: break;
 			}
@@ -665,7 +657,6 @@ namespace JIT
 		Label not_equal = info->assembler.newLabel();
 		Label end       = info->assembler.newLabel();
 
-
 		new_instruction(cmp(vm_value_q, 0));
 		new_instruction(b_ne(not_equal));
 		new_instruction(mov(vm_value_q, 1));
@@ -759,7 +750,6 @@ namespace JIT
 	{
 		Label is_zero = info->assembler.newLabel();
 		Label end     = info->assembler.newLabel();
-
 
 		new_instruction(cmp(vm_value_d, 0));
 		new_instruction(b_eq(is_zero));
@@ -1261,7 +1251,6 @@ namespace JIT
 		new_instruction(bind(end));
 	}
 
-
 	void ARM64_Compiler::exec_asBC_CMPIf(CompileInfo* info)
 	{
 		short offset0 = arg_offset(0);
@@ -1569,7 +1558,6 @@ namespace JIT
 		new_instruction(ldr(dword_free_1, a64::ptr(qword_free_1)));
 		new_instruction(str(dword_free_1, a64::ptr(vm_stack_frame_pointer, offset)));
 	}
-
 
 	void ARM64_Compiler::exec_asBC_WRTV1(CompileInfo* info)
 	{
@@ -2088,7 +2076,6 @@ namespace JIT
 	{
 		RETURN_CONTROL_TO_VM();
 	}
-
 
 	void ARM64_Compiler::exec_asBC_iTOb(CompileInfo* info)
 	{
@@ -2806,6 +2793,6 @@ namespace JIT
 	{
 		RETURN_CONTROL_TO_VM();
 	}
-}// namespace JIT
+} // namespace JIT
 
 #endif

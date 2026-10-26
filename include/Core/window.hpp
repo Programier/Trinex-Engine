@@ -11,7 +11,8 @@ namespace Trinex
 	struct WindowConfig;
 	class Image;
 
-	struct WindowDesc {
+	struct WindowDesc
+	{
 		String title  = "Trinex Engine";
 		String client = "";
 		Vector2u size = {1280, 720};
@@ -87,4 +88,4 @@ namespace Trinex
 
 		friend class RenderViewport;
 	};
-}// namespace Trinex
+} // namespace Trinex

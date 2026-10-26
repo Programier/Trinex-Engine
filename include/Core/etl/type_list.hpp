@@ -16,92 +16,110 @@ namespace Trinex
 		inline constexpr bool is_same_v<A, A> = true;
 
 		template<bool V>
-		struct bool_constant {
+		struct bool_constant
+		{
 			static constexpr bool value = V;
 		};
 
 		template<bool Condition, class True, class False>
-		struct conditional {
+		struct conditional
+		{
 			using type = True;
 		};
 		template<class True, class False>
-		struct conditional<false, True, False> {
+		struct conditional<false, True, False>
+		{
 			using type = False;
 		};
 		template<bool Condition, class True, class False>
 		using conditional_t = typename conditional<Condition, True, False>::type;
 
 		template<class T>
-		struct remove_reference {
+		struct remove_reference
+		{
 			using type = T;
 		};
 		template<class T>
-		struct remove_reference<T&> {
+		struct remove_reference<T&>
+		{
 			using type = T;
 		};
 		template<class T>
-		struct remove_reference<T&&> {
+		struct remove_reference<T&&>
+		{
 			using type = T;
 		};
 		template<class T>
-		struct remove_cv {
+		struct remove_cv
+		{
 			using type = T;
 		};
 		template<class T>
-		struct remove_cv<const T> {
+		struct remove_cv<const T>
+		{
 			using type = T;
 		};
 		template<class T>
-		struct remove_cv<volatile T> {
+		struct remove_cv<volatile T>
+		{
 			using type = T;
 		};
 		template<class T>
-		struct remove_cv<const volatile T> {
+		struct remove_cv<const volatile T>
+		{
 			using type = T;
 		};
 		template<class T>
 		using remove_cvref_t = typename remove_cv<typename remove_reference<T>::type>::type;
 
 		template<size_type N, class... Ts>
-		struct type_at_impl {
+		struct type_at_impl
+		{
 			static_assert(N < sizeof...(Ts), "TypeList: type_at index out of bounds");
 		};
 		template<size_type N, class Head, class... Tail>
-		struct type_at_impl<N, Head, Tail...> : type_at_impl<N - 1, Tail...> {
+		struct type_at_impl<N, Head, Tail...> : type_at_impl<N - 1, Tail...>
+		{
 		};
 		template<class Head, class... Tail>
-		struct type_at_impl<0, Head, Tail...> {
+		struct type_at_impl<0, Head, Tail...>
+		{
 			using type = Head;
 		};
 
 		template<size_type... Indices>
-		struct index_sequence {
+		struct index_sequence
+		{
 		};
 
 		template<class A, class B>
 		struct sequence_concat;
 		template<size_type... A, size_type... B>
-		struct sequence_concat<index_sequence<A...>, index_sequence<B...>> {
+		struct sequence_concat<index_sequence<A...>, index_sequence<B...>>
+		{
 			using type = index_sequence<A..., (sizeof...(A) + B)...>;
 		};
 
 		// Logarithmic template recursion depth instead of O(N).
 		template<size_type N>
-		struct make_index_sequence_impl {
+		struct make_index_sequence_impl
+		{
 			using type = typename sequence_concat<typename make_index_sequence_impl<N / 2>::type,
 			                                      typename make_index_sequence_impl<N - N / 2>::type>::type;
 		};
 		template<>
-		struct make_index_sequence_impl<0> {
+		struct make_index_sequence_impl<0>
+		{
 			using type = index_sequence<>;
 		};
 		template<>
-		struct make_index_sequence_impl<1> {
+		struct make_index_sequence_impl<1>
+		{
 			using type = index_sequence<0>;
 		};
 		template<size_type N>
 		using make_index_sequence = typename make_index_sequence_impl<N>::type;
-	}// namespace type_list_detail
+	} // namespace type_list_detail
 
 	namespace type_list_detail
 	{
@@ -109,24 +127,28 @@ namespace Trinex
 		struct concat;
 
 		template<>
-		struct concat<> {
+		struct concat<>
+		{
 			using type = TypeList<>;
 		};
 
 		template<class... Ts>
-		struct concat<TypeList<Ts...>> {
+		struct concat<TypeList<Ts...>>
+		{
 			using type = TypeList<Ts...>;
 		};
 
 		template<class... A, class... B, class... Rest>
-		struct concat<TypeList<A...>, TypeList<B...>, Rest...> : concat<TypeList<A..., B...>, Rest...> {
+		struct concat<TypeList<A...>, TypeList<B...>, Rest...> : concat<TypeList<A..., B...>, Rest...>
+		{
 		};
 
 		template<class... Lists>
 		using concat_t = typename concat<Lists...>::type;
 
 		template<class List, type_list_detail::size_type Begin, type_list_detail::size_type End>
-		struct slice {
+		struct slice
+		{
 			static_assert(Begin <= End && End <= List::size_v, "TypeList: slice out of bounds");
 
 			template<type_list_detail::size_type... I>
@@ -136,7 +158,8 @@ namespace Trinex
 		};
 
 		template<class List>
-		struct reverse {
+		struct reverse
+		{
 			template<type_list_detail::size_type... I>
 			static auto make(type_list_detail::index_sequence<I...>)
 			        -> TypeList<typename List::template type_at<List::size_v - 1 - I>...>;
@@ -145,7 +168,8 @@ namespace Trinex
 		};
 
 		template<class List, type_list_detail::size_type A, type_list_detail::size_type B>
-		struct swap {
+		struct swap
+		{
 			static_assert(A < List::size_v && B < List::size_v, "TypeList: swap indices out of bounds");
 
 			template<type_list_detail::size_type... I>
@@ -159,7 +183,8 @@ namespace Trinex
 		struct remove;
 
 		template<class... Ts, class T>
-		struct remove<TypeList<Ts...>, T> {
+		struct remove<TypeList<Ts...>, T>
+		{
 			using type =
 			        concat_t<type_list_detail::conditional_t<type_list_detail::is_same_v<Ts, T>, TypeList<>, TypeList<Ts>>...>;
 		};
@@ -168,7 +193,8 @@ namespace Trinex
 		struct intersection;
 
 		template<class... A, class... B>
-		struct intersection<TypeList<A...>, TypeList<B...>> {
+		struct intersection<TypeList<A...>, TypeList<B...>>
+		{
 			using type =
 			        concat_t<type_list_detail::conditional_t<TypeList<B...>::template contains_v<A>, TypeList<A>, TypeList<>>...>;
 		};
@@ -177,7 +203,8 @@ namespace Trinex
 		struct difference;
 
 		template<class... A, class... B>
-		struct difference<TypeList<A...>, TypeList<B...>> {
+		struct difference<TypeList<A...>, TypeList<B...>>
+		{
 			using type =
 			        concat_t<type_list_detail::conditional_t<TypeList<B...>::template contains_v<A>, TypeList<>, TypeList<A>>...>;
 		};
@@ -186,18 +213,21 @@ namespace Trinex
 		struct remove_first;
 
 		template<class... Seen, class T>
-		struct remove_first<TypeList<Seen...>, T> {
+		struct remove_first<TypeList<Seen...>, T>
+		{
 			using type = TypeList<Seen...>;
 		};
 
 		template<class... Seen, class T, class Head, class... Tail>
-		struct remove_first<TypeList<Seen...>, T, Head, Tail...> {
+		struct remove_first<TypeList<Seen...>, T, Head, Tail...>
+		{
 			using type = type_list_detail::conditional_t<type_list_detail::is_same_v<Head, T>, TypeList<Seen..., Tail...>,
 			                                             typename remove_first<TypeList<Seen..., Head>, T, Tail...>::type>;
 		};
 
 		template<class List, type_list_detail::size_type Count>
-		struct repeat {
+		struct repeat
+		{
 			template<type_list_detail::size_type... I>
 			static auto make(type_list_detail::index_sequence<I...>)
 			        -> concat_t<type_list_detail::conditional_t<(I < Count), List, TypeList<>>...>;
@@ -206,19 +236,22 @@ namespace Trinex
 		};
 
 		template<class List, class Other>
-		struct is_subset : type_list_detail::bool_constant<false> {
+		struct is_subset : type_list_detail::bool_constant<false>
+		{
 		};
 
 		template<class... A, class... B>
 		struct is_subset<TypeList<A...>, TypeList<B...>>
-		    : type_list_detail::bool_constant<(TypeList<B...>::template contains_v<A> && ...)> {
+		    : type_list_detail::bool_constant<(TypeList<B...>::template contains_v<A> && ...)>
+		{
 		};
 
 		template<class List, template<class> class Pred>
 		struct filter;
 
 		template<class... Ts, template<class> class Pred>
-		struct filter<TypeList<Ts...>, Pred> {
+		struct filter<TypeList<Ts...>, Pred>
+		{
 			using type = concat_t<type_list_detail::conditional_t<bool(Pred<Ts>::value), TypeList<Ts>, TypeList<>>...>;
 		};
 
@@ -226,7 +259,8 @@ namespace Trinex
 		struct reject;
 
 		template<class... Ts, template<class> class Pred>
-		struct reject<TypeList<Ts...>, Pred> {
+		struct reject<TypeList<Ts...>, Pred>
+		{
 			using type = concat_t<type_list_detail::conditional_t<bool(Pred<Ts>::value), TypeList<>, TypeList<Ts>>...>;
 		};
 
@@ -234,7 +268,8 @@ namespace Trinex
 		struct unique_acc;
 
 		template<class... Seen>
-		struct unique_acc<TypeList<Seen...>> {
+		struct unique_acc<TypeList<Seen...>>
+		{
 			using type = TypeList<Seen...>;
 		};
 
@@ -242,14 +277,16 @@ namespace Trinex
 		struct unique_acc<TypeList<Seen...>, Head, Tail...>
 		    : unique_acc<type_list_detail::conditional_t<(type_list_detail::is_same_v<Head, Seen> || ...), TypeList<Seen...>,
 		                                                 TypeList<Seen..., Head>>,
-		                 Tail...> {
+		                 Tail...>
+		{
 		};
 
 		template<class List>
 		struct unique_list;
 
 		template<class... U>
-		struct unique_list<TypeList<U...>> {
+		struct unique_list<TypeList<U...>>
+		{
 			using type = typename unique_acc<TypeList<>, U...>::type;
 		};
 
@@ -257,19 +294,22 @@ namespace Trinex
 		struct fold;
 
 		template<class Acc, template<class, class> class Fn>
-		struct fold<Acc, Fn> {
+		struct fold<Acc, Fn>
+		{
 			using type = Acc;
 		};
 
 		template<class Acc, template<class, class> class Fn, class Head, class... Tail>
-		struct fold<Acc, Fn, Head, Tail...> : fold<typename Fn<Acc, Head>::type, Fn, Tail...> {
+		struct fold<Acc, Fn, Head, Tail...> : fold<typename Fn<Acc, Head>::type, Fn, Tail...>
+		{
 		};
 
 		template<class Head, class List>
 		struct prepend;
 
 		template<class Head, class... Ts>
-		struct prepend<Head, TypeList<Ts...>> {
+		struct prepend<Head, TypeList<Ts...>>
+		{
 			using type = TypeList<Head, Ts...>;
 		};
 
@@ -277,12 +317,14 @@ namespace Trinex
 		struct sorted_insert;
 
 		template<class T, template<class, class> class Less>
-		struct sorted_insert<TypeList<>, T, Less> {
+		struct sorted_insert<TypeList<>, T, Less>
+		{
 			using type = TypeList<T>;
 		};
 
 		template<class Head, class... Tail, class T, template<class, class> class Less>
-		struct sorted_insert<TypeList<Head, Tail...>, T, Less> {
+		struct sorted_insert<TypeList<Head, Tail...>, T, Less>
+		{
 			using with_tail = typename sorted_insert<TypeList<Tail...>, T, Less>::type;
 			using type      = type_list_detail::conditional_t<bool(Less<T, Head>::value), TypeList<T, Head, Tail...>,
 			                                                  typename prepend<Head, with_tail>::type>;
@@ -292,19 +334,22 @@ namespace Trinex
 		struct sort_acc;
 
 		template<class Acc, template<class, class> class Less>
-		struct sort_acc<Acc, Less> {
+		struct sort_acc<Acc, Less>
+		{
 			using type = Acc;
 		};
 
 		template<class Acc, template<class, class> class Less, class Head, class... Tail>
-		struct sort_acc<Acc, Less, Head, Tail...> : sort_acc<typename sorted_insert<Acc, Head, Less>::type, Less, Tail...> {
+		struct sort_acc<Acc, Less, Head, Tail...> : sort_acc<typename sorted_insert<Acc, Head, Less>::type, Less, Tail...>
+		{
 		};
 
 		template<class Left, class Right>
 		struct zip;
 
 		template<class... L, class... R>
-		struct zip<TypeList<L...>, TypeList<R...>> {
+		struct zip<TypeList<L...>, TypeList<R...>>
+		{
 			static_assert(sizeof...(L) == sizeof...(R), "TypeList: zip requires lists of equal size");
 			using type = TypeList<TypeList<L, R>...>;
 		};
@@ -313,7 +358,8 @@ namespace Trinex
 		struct cartesian_product;
 
 		template<class... L, class... R>
-		struct cartesian_product<TypeList<L...>, TypeList<R...>> {
+		struct cartesian_product<TypeList<L...>, TypeList<R...>>
+		{
 			template<class A>
 			using row  = TypeList<TypeList<A, R>...>;
 			using type = concat_t<row<L>...>;
@@ -325,7 +371,8 @@ namespace Trinex
 		struct function_forms;
 
 		template<class... Args, class Return>
-		struct function_forms<TypeList<Args...>, Return> {
+		struct function_forms<TypeList<Args...>, Return>
+		{
 			using pointer   = Return (*)(Args...);
 			using signature = Return(Args...);
 		};
@@ -334,7 +381,8 @@ namespace Trinex
 		struct method_forms;
 
 		template<class... Args, class Object, class Return>
-		struct method_forms<TypeList<Args...>, Object, Return> {
+		struct method_forms<TypeList<Args...>, Object, Return>
+		{
 			using normal          = Return (Object::*)(Args...);
 			using constant        = Return (Object::*)(Args...) const;
 			using noexcept_method = Return (Object::*)(Args...) noexcept;
@@ -346,13 +394,15 @@ namespace Trinex
 		struct flatten;
 
 		template<class... SubLists, class Deferred>
-		struct flatten<TypeList<SubLists...>, Deferred> {
+		struct flatten<TypeList<SubLists...>, Deferred>
+		{
 			using type = concat_t<SubLists...>;
 		};
-	}// namespace type_list_detail
+	} // namespace type_list_detail
 
 	template<class... Ts>
-	struct TypeList {
+	struct TypeList
+	{
 		using Type                                          = TypeList;
 		using self                                          = TypeList;
 		static constexpr type_list_detail::size_type size_v = sizeof...(Ts);
@@ -664,8 +714,8 @@ namespace Trinex
 		{
 			return [&]<type_list_detail::size_type... I>(type_list_detail::index_sequence<I...>) {
 				return ((index == I ? (static_cast<void>(static_cast<Func&&>(func).template operator()<type_at<I>, I>()), true)
-				                    : false) ||
-				        ...);
+				                    : false)
+				        || ...);
 			}(type_list_detail::make_index_sequence<size_v>{});
 		}
 
@@ -675,4 +725,4 @@ namespace Trinex
 			return static_cast<F&&>(f).template operator()<Args..., Ts...>(static_cast<Values&&>(values)...);
 		}
 	};
-}// namespace Trinex
+} // namespace Trinex

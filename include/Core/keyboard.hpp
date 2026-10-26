@@ -134,4 +134,4 @@ namespace Trinex::Keyboard
 		Menu,
 		__COUNT__
 	};
-}// namespace Trinex::Keyboard
+} // namespace Trinex::Keyboard

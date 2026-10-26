@@ -7,7 +7,7 @@ namespace Trinex
 	namespace Refl
 	{
 		class Struct;
-	}// namespace Refl
+	} // namespace Refl
 
 	class ScriptFunction;
 
@@ -32,4 +32,4 @@ namespace Trinex
 		static const char* static_name();
 	};
 
-}// namespace Trinex
+} // namespace Trinex

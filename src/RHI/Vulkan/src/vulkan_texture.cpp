@@ -112,7 +112,6 @@ namespace Trinex
 		desc.first_mip  = Math::min<u8>(view->base_mip, texture->mipmap_count() - 1);
 		desc.mip_levels = 1;
 
-
 		return desc;
 	}
 
@@ -375,4 +374,4 @@ namespace Trinex
 		static_cast<VulkanTexture*>(texture)->barrier(this, access);
 		return *this;
 	}
-}// namespace Trinex
+} // namespace Trinex

@@ -6,7 +6,8 @@
 
 namespace Trinex
 {
-	struct LightRenderParameters {
+	struct LightRenderParameters
+	{
 		alignas(16) LinearColor color;
 		alignas(16) Vector3f location;
 		alignas(16) Vector3f direction;
@@ -18,13 +19,16 @@ namespace Trinex
 		alignas(4) u32 shadow_address;
 	};
 
-	struct LightRenderRanges {
-		struct alignas(8) Range {
+	struct LightRenderRanges
+	{
+		struct alignas(8) Range
+		{
 			u32 start = 0;
 			u32 end   = 0;
 		};
 
-		struct alignas(8) LightRange {
+		struct alignas(8) LightRange
+		{
 			Range normal;
 			Range shadowed;
 		};
@@ -34,27 +38,31 @@ namespace Trinex
 		LightRange directional;
 	};
 
-	struct PointLightShadowParameters {
+	struct PointLightShadowParameters
+	{
 		RHIDescriptor descriptor;
 		float depth_bias;
 		float slope_scale;
 	};
 
-	struct SpotLightShadowParameters {
+	struct SpotLightShadowParameters
+	{
 		RHIDescriptor descriptor;
 		Matrix4f projview;
 		float depth_bias;
 		float slope_scale;
 	};
 
-	struct DirectionalLightShadowCascade {
+	struct DirectionalLightShadowCascade
+	{
 		RHIDescriptor descriptor;
 		Matrix4f projview;
 	};
 
-	struct DirectionalLightShadowParameters {
+	struct DirectionalLightShadowParameters
+	{
 		Vector4f splits;
 		float depth_bias;
 		float slope_scale;
 	};
-}// namespace Trinex
+} // namespace Trinex

@@ -29,6 +29,6 @@ namespace Trinex
 	declare_primitive(UnsignedInteger64, u64);
 	declare_primitive(Float, float);
 	declare_primitive(Double, double);
-}// namespace Trinex
+} // namespace Trinex
 
 #undef declare_primitive

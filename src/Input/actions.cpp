@@ -28,18 +28,18 @@ namespace Trinex
 
 		bool is_active(const InputEvent& event)
 		{
-			return event.type == EventType::Press || event.type == EventType::Repeat ||
-			       (event.value.type == InputValueType::Boolean && event.value.is_active());
+			return event.type == EventType::Press || event.type == EventType::Repeat
+			       || (event.value.type == InputValueType::Boolean && event.value.is_active());
 		}
 
 		InputActionPhase combine_phase(InputActionPhase current, InputActionPhase next)
 		{
-			if (next == InputActionPhase::Canceled || next == InputActionPhase::Completed || next == InputActionPhase::Started ||
-			    next == InputActionPhase::Ongoing)
+			if (next == InputActionPhase::Canceled || next == InputActionPhase::Completed || next == InputActionPhase::Started
+			    || next == InputActionPhase::Ongoing)
 				return next;
 			return current;
 		}
-	}// namespace
+	} // namespace
 
 	InputValue InputModifier::apply(const InputEvent&, const InputValue& value) const
 	{
@@ -311,4 +311,4 @@ namespace Trinex
 		}
 		return *this;
 	}
-}// namespace Trinex
+} // namespace Trinex

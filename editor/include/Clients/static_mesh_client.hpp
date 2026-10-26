@@ -42,4 +42,4 @@ namespace Trinex
 		StaticMeshClient& select(Object* object) override;
 		u32 build_dock(u32 dock) override;
 	};
-}// namespace Trinex
+} // namespace Trinex

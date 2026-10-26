@@ -11,4 +11,4 @@ namespace Trinex
 
 		EngineResource() { Object::flags |= Object::Flags::StandAlone; }
 	};
-}// namespace Trinex
+} // namespace Trinex

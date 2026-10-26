@@ -194,4 +194,4 @@ namespace Trinex
 		ImGui::DockBuilderDockWindow("###Material Source", dock);
 		return dock;
 	}
-}// namespace Trinex
+} // namespace Trinex

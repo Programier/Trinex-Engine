@@ -1,9 +1,9 @@
 #pragma once
 #include <Core/engine_types.hpp>
 #include <Core/enums.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/etl/atomic.hpp>
 #include <Core/etl/type_traits.hpp>
-#include <Core/etl/array.hpp>
 #include <Core/types/name.hpp>
 #include <angelscript_object.h>
 
@@ -20,7 +20,8 @@ namespace Trinex
 	{
 	public:
 		template<typename NativeType>
-		struct Scriptable : public NativeType {
+		struct Scriptable : public NativeType
+		{
 			Scriptable& preload() override
 			{
 				static_cast<Object*>(this)->script_preload();
@@ -34,10 +35,10 @@ namespace Trinex
 			}
 		};
 
-
 		using ObjectClass = Object;
 
-		struct Flags {
+		struct Flags
+		{
 			enum Enum : u32
 			{
 				None = 0,
@@ -350,7 +351,6 @@ namespace Trinex
 		friend class Refl::Class;
 	};
 
-
 #define trinex_class(class_name, base_name)                                                                                      \
 protected:                                                                                                                       \
 	static class Trinex::Refl::Class* m_static_class;                                                                            \
@@ -380,11 +380,10 @@ private:
 	}                                                                                                                            \
 	void decl::static_initialize_class()
 
-
 #define trinex_implement_class_default_init(decl, flags)                                                                         \
 	trinex_implement_class(decl, flags) {}
 
 #define trinex_implement_engine_class(decl, flags) trinex_implement_class(Trinex::decl, flags)
 #define trinex_implement_engine_class_default_init(decl, flags)                                                                  \
 	trinex_implement_engine_class(decl, flags) {}
-}// namespace Trinex
+} // namespace Trinex

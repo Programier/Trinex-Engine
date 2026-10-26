@@ -452,7 +452,8 @@ namespace Trinex
 		Builder builder;
 		ScriptBuildResult build_result;
 
-		struct ScriptBuildStateGuard {
+		struct ScriptBuildStateGuard
+		{
 			bool old_exception_on_error = false;
 
 			ScriptBuildStateGuard(bool exception_on_error) : old_exception_on_error(ScriptEngine::exception_on_error)
@@ -628,7 +629,6 @@ namespace Trinex
 		return default_value_of<ClassMetadata>();
 	}
 
-
 	const Script::ClassMetadata& Script::metadata_for_class(i32 type_id) const
 	{
 		if (m_module.is_valid())
@@ -777,4 +777,4 @@ namespace Trinex
 	{
 		scripts_folder()->load_scripts();
 	}
-}// namespace Trinex
+} // namespace Trinex

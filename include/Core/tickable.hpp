@@ -52,4 +52,4 @@ namespace Trinex
 
 		inline Thread* thread() const { return m_thread; }
 	};
-}// namespace Trinex
+} // namespace Trinex

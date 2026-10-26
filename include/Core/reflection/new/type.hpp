@@ -5,12 +5,14 @@
 
 namespace Trinex::Refl::New
 {
-	trinex_reflect() class trinex_api Type : public Object
+	trinex_reflect()
+	class trinex_api Type : public Object
 	{
 		trinex_reflection_body();
 
 	public:
-		struct VTable {
+		struct VTable
+		{
 			void (*construct)(const Type* type, void* dst, usize count)                       = nullptr;
 			void (*destruct)(const Type* type, void* value, usize count)                      = nullptr;
 			void (*copy_construct)(const Type* type, void* dst, const void* src, usize count) = nullptr;
@@ -68,4 +70,4 @@ namespace Trinex::Refl::New
 		inline bool is_trivially_destructible() const { return has_flags(IsTriviallyDestructible); }
 		inline bool has_default_constructor() const { return has_flags(HasDefaultConstructor); }
 	};
-}// namespace Trinex::Refl::New
+} // namespace Trinex::Refl::New

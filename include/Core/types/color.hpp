@@ -6,10 +6,12 @@ namespace Trinex
 {
 	struct LinearColor;
 
-	struct Color {
+	struct Color
+	{
 		union
 		{
-			struct {
+			struct
+			{
 				u8 r, g, b, a;
 			};
 
@@ -89,7 +91,8 @@ namespace Trinex
 		constexpr bool operator!=(const Color& other) const { return !(*this == other); }
 	};
 
-	struct LinearColor {
+	struct LinearColor
+	{
 		f32 r, g, b, a;
 
 		constexpr LinearColor() : r(0), g(0), b(0), a(1) {}
@@ -263,4 +266,4 @@ namespace Trinex
 	    : r(Color::float_to_byte(linear.r)), g(Color::float_to_byte(linear.g)), b(Color::float_to_byte(linear.b)),
 	      a(Color::float_to_byte(linear.a))
 	{}
-}// namespace Trinex
+} // namespace Trinex

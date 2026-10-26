@@ -16,4 +16,4 @@ namespace Trinex
 		virtual InputDeviceType type(u32 index = 0) const = 0;
 		virtual const InputEvent* state(u32& len) const   = 0;
 	};
-}// namespace Trinex
+} // namespace Trinex

@@ -4,7 +4,8 @@
 namespace Trinex::Binder
 {
 	template<int index, typename T>
-	struct Arg {
+	struct Arg
+	{
 		static constexpr int idx = index;
 		using Type               = T;
 	};
@@ -13,12 +14,14 @@ namespace Trinex::Binder
 	struct ArgAt;
 
 	template<typename Default, int index>
-	struct ArgAt<Default, index> {
+	struct ArgAt<Default, index>
+	{
 		using Type = Default;
 	};
 
 	template<typename Default, int index, int idx, typename T, typename... Rest>
-	struct ArgAt<Default, index, Arg<idx, T>, Rest...> {
+	struct ArgAt<Default, index, Arg<idx, T>, Rest...>
+	{
 		using Type = std::conditional_t<index == idx, T, typename ArgAt<Default, index, Rest...>::Type>;
 	};
 
@@ -26,7 +29,8 @@ namespace Trinex::Binder
 	struct ScriptBinderImpl;
 
 	template<template<class T> class TypeRemapper, auto func, typename Ret, typename... Args, typename... Override>
-	struct ScriptBinderImpl<TypeRemapper, func, Ret (*)(Args...), Override...> {
+	struct ScriptBinderImpl<TypeRemapper, func, Ret (*)(Args...), Override...>
+	{
 		using MappedRet = typename ArgAt<Ret, -1, Override...>::Type;
 		using OutRet    = typename TypeRemapper<MappedRet>::RetType;
 
@@ -70,6 +74,7 @@ namespace Trinex::Binder
 	};
 
 	template<template<class T> class TypeRemapper, auto func, typename... Overrides>
-	struct ScriptBinder : ScriptBinderImpl<TypeRemapper, func, decltype(func), Overrides...> {
+	struct ScriptBinder : ScriptBinderImpl<TypeRemapper, func, decltype(func), Overrides...>
+	{
 	};
-}// namespace Trinex::Binder
+} // namespace Trinex::Binder

@@ -58,7 +58,8 @@ namespace Trinex::Refl::New
 				if (!is_identifier_start(m_value[m_position]))
 					return false;
 
-				while (m_position < m_value.size() && is_identifier_character(m_value[m_position])) ++m_position;
+				while (m_position < m_value.size() && is_identifier_character(m_value[m_position]))
+					++m_position;
 
 				value = m_value.substr(begin, m_position - begin);
 				return true;
@@ -117,7 +118,7 @@ namespace Trinex::Refl::New
 
 			return true;
 		}
-	}// namespace
+	} // namespace
 
 	namespace Native
 	{
@@ -178,7 +179,7 @@ namespace Trinex::Refl::New
 			value += '}';
 			return true;
 		}
-	}// namespace Native
+	} // namespace Native
 
 	Struct::Struct(Name name, u32 size, u32 alignment, u64 flags, Array<Ref<Struct>> bases, const VTable* vtable, Object* owner)
 	    : Type(name, size, alignment, flags, vtable, owner), m_bases(etl::move(bases))
@@ -294,4 +295,4 @@ namespace Trinex::Refl::New
 
 		return false;
 	}
-}// namespace Trinex::Refl::New
+} // namespace Trinex::Refl::New

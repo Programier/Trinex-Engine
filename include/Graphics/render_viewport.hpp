@@ -47,4 +47,4 @@ namespace Trinex
 		static RenderViewport* current();
 		static const Array<RenderViewport*>& viewports();
 	};
-}// namespace Trinex
+} // namespace Trinex

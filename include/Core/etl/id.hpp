@@ -46,4 +46,4 @@ namespace Trinex::etl
 	private:
 		Type m_value = invalid_value;
 	};
-}// namespace Trinex::etl
+} // namespace Trinex::etl

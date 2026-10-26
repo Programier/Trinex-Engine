@@ -43,7 +43,8 @@ namespace Trinex
 	};
 
 	template<auto value>
-	struct DelegateTag {
+	struct DelegateTag
+	{
 	};
 
 	class DelegateBase
@@ -53,7 +54,8 @@ namespace Trinex
 		using Context = Storage<24, 8>;
 
 		template<typename Method, typename T>
-		struct PointerMethodContext {
+		struct PointerMethodContext
+		{
 			Method method;
 			T* object;
 		};
@@ -168,7 +170,8 @@ namespace Trinex
 		using FunctionPtr = R (*)(Args...);
 
 	private:
-		struct ContextManager {
+		struct ContextManager
+		{
 			R (*invoke)(const Delegate*, Args...);
 			void (*copy)(DelegateBase*, const DelegateBase*);
 			void (*move)(DelegateBase*, DelegateBase*);
@@ -329,24 +332,24 @@ namespace Trinex
 		}
 
 		template<auto method, typename T>
-		    requires(!etl::is_volatile_v<T> && etl::is_member_function_pointer_v<decltype(method)> &&
-		             etl::is_invocable_r_v<R, decltype(method), T&, Args...>)
+		    requires(!etl::is_volatile_v<T> && etl::is_member_function_pointer_v<decltype(method)>
+		             && etl::is_invocable_r_v<R, decltype(method), T&, Args...>)
 		Delegate(T* object, DelegateTag<method>) noexcept
 		{
 			bind<method>(object);
 		}
 
 		template<typename T, typename Method>
-		    requires(etl::is_member_function_pointer_v<etl::decay_t<Method>> &&
-		             etl::is_invocable_r_v<R, etl::decay_t<Method>, T*, Args...>)
+		    requires(etl::is_member_function_pointer_v<etl::decay_t<Method>>
+		             && etl::is_invocable_r_v<R, etl::decay_t<Method>, T*, Args...>)
 		Delegate(T* object, Method&& method) noexcept
 		{
 			bind(object, etl::forward<Method>(method));
 		}
 
 		template<typename F>
-		    requires(!etl::same_as<etl::decay_t<F>, Delegate> && !etl::is_member_function_pointer_v<etl::decay_t<F>> &&
-		             etl::is_invocable_r_v<R, etl::decay_t<F>&, Args...>)
+		    requires(!etl::same_as<etl::decay_t<F>, Delegate> && !etl::is_member_function_pointer_v<etl::decay_t<F>>
+		             && etl::is_invocable_r_v<R, etl::decay_t<F>&, Args...>)
 		Delegate(F&& func)
 		{
 			bind(etl::forward<F>(func));
@@ -362,24 +365,24 @@ namespace Trinex
 		}
 
 		template<auto method, typename T>
-		    requires(!etl::is_volatile_v<T> && etl::is_member_function_pointer_v<decltype(method)> &&
-		             etl::is_invocable_r_v<R, decltype(method), T&, Args...>)
+		    requires(!etl::is_volatile_v<T> && etl::is_member_function_pointer_v<decltype(method)>
+		             && etl::is_invocable_r_v<R, decltype(method), T&, Args...>)
 		static Delegate from(T* object) noexcept
 		{
 			return Delegate(object, DelegateTag<method>{});
 		}
 
 		template<typename T, typename Method>
-		    requires(etl::is_member_function_pointer_v<etl::decay_t<Method>> &&
-		             etl::is_invocable_r_v<R, etl::decay_t<Method>, T*, Args...>)
+		    requires(etl::is_member_function_pointer_v<etl::decay_t<Method>>
+		             && etl::is_invocable_r_v<R, etl::decay_t<Method>, T*, Args...>)
 		static Delegate from(T* object, Method&& method) noexcept
 		{
 			return Delegate(object, etl::forward<Method>(method));
 		}
 
 		template<typename F>
-		    requires(!etl::same_as<etl::decay_t<F>, Delegate> && !etl::is_member_function_pointer_v<etl::decay_t<F>> &&
-		             etl::is_invocable_r_v<R, etl::decay_t<F>&, Args...>)
+		    requires(!etl::same_as<etl::decay_t<F>, Delegate> && !etl::is_member_function_pointer_v<etl::decay_t<F>>
+		             && etl::is_invocable_r_v<R, etl::decay_t<F>&, Args...>)
 		static Delegate from(F&& func)
 		{
 			return Delegate(etl::forward<F>(func));
@@ -505,8 +508,8 @@ namespace Trinex
 		}
 
 		template<auto method, typename T>
-		    requires(!etl::is_volatile_v<T> && etl::is_member_function_pointer_v<decltype(method)> &&
-		             etl::is_invocable_r_v<R, decltype(method), T&, Args...>)
+		    requires(!etl::is_volatile_v<T> && etl::is_member_function_pointer_v<decltype(method)>
+		             && etl::is_invocable_r_v<R, decltype(method), T&, Args...>)
 		void bind(T* object) noexcept
 		{
 			reset();
@@ -538,8 +541,8 @@ namespace Trinex
 		}
 
 		template<typename F>
-		    requires(!etl::same_as<etl::remove_cvref_t<F>, Delegate> && etl::is_invocable_r_v<R, etl::decay_t<F>&, Args...> &&
-		             !etl::is_convertible_v<etl::decay_t<F>, FunctionPtr>)
+		    requires(!etl::same_as<etl::remove_cvref_t<F>, Delegate> && etl::is_invocable_r_v<R, etl::decay_t<F>&, Args...>
+		             && !etl::is_convertible_v<etl::decay_t<F>, FunctionPtr>)
 		void bind(F&& func)
 		{
 			using Callable = etl::decay_t<F>;
@@ -559,8 +562,8 @@ namespace Trinex
 		}
 
 		template<typename F>
-		    requires(!etl::same_as<etl::remove_cvref_t<F>, Delegate> && etl::is_invocable_r_v<R, etl::decay_t<F>&, Args...> &&
-		             etl::is_convertible_v<etl::decay_t<F>, FunctionPtr>)
+		    requires(!etl::same_as<etl::remove_cvref_t<F>, Delegate> && etl::is_invocable_r_v<R, etl::decay_t<F>&, Args...>
+		             && etl::is_convertible_v<etl::decay_t<F>, FunctionPtr>)
 		void bind(F&& func) noexcept
 		{
 			bind(static_cast<FunctionPtr>(etl::forward<F>(func)));
@@ -589,10 +592,8 @@ namespace Trinex
 		friend constexpr bool operator==(DelegateHandle, DelegateHandle) noexcept = default;
 	};
 
-
 	template<typename>
 	class MulticastDelegate;
-
 
 	template<typename... Args>
 	class MulticastDelegate<void(Args...)>
@@ -604,19 +605,22 @@ namespace Trinex
 
 	private:
 		template<typename T>
-		struct IsRValueReference {
+		struct IsRValueReference
+		{
 			static constexpr bool value = false;
 		};
 
 		template<typename T>
-		struct IsRValueReference<T&&> {
+		struct IsRValueReference<T&&>
+		{
 			static constexpr bool value = true;
 		};
 
 		static_assert((!IsRValueReference<Args>::value && ...), "MulticastDelegate does not support rvalue-reference arguments");
 
 	private:
-		struct Node {
+		struct Node
+		{
 			Node* next;
 			DelegateType delegate;
 
@@ -839,7 +843,6 @@ namespace Trinex
 		constexpr MulticastDelegate() noexcept = default;
 		MulticastDelegate(const MulticastDelegate& other) : m_tail(clone(other.m_tail)) {}
 
-
 		MulticastDelegate& operator=(const MulticastDelegate& other)
 		{
 			if (this == &other)
@@ -1037,4 +1040,4 @@ namespace Trinex
 
 		void operator()(Args... args) { broadcast(args...); }
 	};
-}// namespace Trinex
+} // namespace Trinex

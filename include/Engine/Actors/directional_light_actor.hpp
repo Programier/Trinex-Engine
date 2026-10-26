@@ -14,4 +14,4 @@ namespace Trinex
 		DirectionalLightActor();
 		DirectionalLightComponent* directional_light_component() const;
 	};
-}// namespace Trinex
+} // namespace Trinex

@@ -6,63 +6,61 @@ namespace Trinex::Asserts
 
 	trinex_api void assert_handler(AssertHandler handler);
 	[[noreturn]] trinex_api void report_failure(const char* condition, const char* file, int line, const char* function,
-	                                               const char* message = nullptr);
+	                                            const char* message = nullptr);
 	[[noreturn]] trinex_api void report_failure_fmt(const char* condition, const char* file, int line, const char* function,
-	                                                   const char* format = nullptr, ...);
-}// namespace Trinex::Asserts
-
+	                                                const char* format = nullptr, ...);
+} // namespace Trinex::Asserts
 
 #if !defined(TRINEX_ENABLE_ASSERTS)
-#if TRINEX_DEBUG_BUILD || defined(_DEBUG) || !defined(NDEBUG)
-#define TRINEX_ENABLE_ASSERTS 1
-#else
-#define TRINEX_ENABLE_ASSERTS 0
-#endif
+	#if TRINEX_DEBUG_BUILD || defined(_DEBUG) || !defined(NDEBUG)
+		#define TRINEX_ENABLE_ASSERTS 1
+	#else
+		#define TRINEX_ENABLE_ASSERTS 0
+	#endif
 #endif
 
 #if TRINEX_ENABLE_ASSERTS
 
-#define trinex_assert(condition)                                                                                                 \
-	do                                                                                                                           \
-	{                                                                                                                            \
-		if (!(condition)) [[unlikely]]                                                                                           \
+	#define trinex_assert(condition)                                                                                             \
+		do                                                                                                                       \
 		{                                                                                                                        \
-			::Trinex::Asserts::report_failure(#condition, __FILE__, __LINE__, __func__);                                         \
-		}                                                                                                                        \
-	} while (false)
+			if (!(condition)) [[unlikely]]                                                                                       \
+			{                                                                                                                    \
+				::Trinex::Asserts::report_failure(#condition, __FILE__, __LINE__, __func__);                                     \
+			}                                                                                                                    \
+		} while (false)
 
-#define trinex_assert_msg(condition, message)                                                                                    \
-	do                                                                                                                           \
-	{                                                                                                                            \
-		if (!(condition)) [[unlikely]]                                                                                           \
+	#define trinex_assert_msg(condition, message)                                                                                \
+		do                                                                                                                       \
 		{                                                                                                                        \
-			::Trinex::Asserts::report_failure(#condition, __FILE__, __LINE__, __func__, message);                                \
-		}                                                                                                                        \
-	} while (false)
+			if (!(condition)) [[unlikely]]                                                                                       \
+			{                                                                                                                    \
+				::Trinex::Asserts::report_failure(#condition, __FILE__, __LINE__, __func__, message);                            \
+			}                                                                                                                    \
+		} while (false)
 
-#define trinex_assert_fmt(condition, format, ...)                                                                                \
-	do                                                                                                                           \
-	{                                                                                                                            \
-		if (!(condition)) [[unlikely]]                                                                                           \
+	#define trinex_assert_fmt(condition, format, ...)                                                                            \
+		do                                                                                                                       \
 		{                                                                                                                        \
-			::Trinex::Asserts::report_failure_fmt(#condition, __FILE__, __LINE__, __func__, format, ##__VA_ARGS__);              \
-		}                                                                                                                        \
-	} while (false)
+			if (!(condition)) [[unlikely]]                                                                                       \
+			{                                                                                                                    \
+				::Trinex::Asserts::report_failure_fmt(#condition, __FILE__, __LINE__, __func__, format, ##__VA_ARGS__);          \
+			}                                                                                                                    \
+		} while (false)
 
-#define trinex_failure() ::Trinex::Asserts::report_failure(nullptr, __FILE__, __LINE__, __func__)
-#define trinex_failure_msg(message) ::Trinex::Asserts::report_failure(nullptr, __FILE__, __LINE__, __func__, message)
-#define trinex_failure_fmt(format, ...)                                                                                          \
-	::Trinex::Asserts::report_failure_fmt(nullptr, __FILE__, __LINE__, __func__, format, ##__VA_ARGS__)
+	#define trinex_failure() ::Trinex::Asserts::report_failure(nullptr, __FILE__, __LINE__, __func__)
+	#define trinex_failure_msg(message) ::Trinex::Asserts::report_failure(nullptr, __FILE__, __LINE__, __func__, message)
+	#define trinex_failure_fmt(format, ...)                                                                                      \
+		::Trinex::Asserts::report_failure_fmt(nullptr, __FILE__, __LINE__, __func__, format, ##__VA_ARGS__)
 
 #else
-#define trinex_assert(condition) ((void) 0)
-#define trinex_assert_msg(condition, message) ((void) 0)
-#define trinex_assert_fmt(condition, format, ...) ((void) 0)
-#define trinex_failure() ((void) 0)
-#define trinex_failure_msg(message) ((void) 0)
-#define trinex_failure_fmt(message) ((void) 0)
+	#define trinex_assert(condition) ((void) 0)
+	#define trinex_assert_msg(condition, message) ((void) 0)
+	#define trinex_assert_fmt(condition, format, ...) ((void) 0)
+	#define trinex_failure() ((void) 0)
+	#define trinex_failure_msg(message) ((void) 0)
+	#define trinex_failure_fmt(message) ((void) 0)
 #endif
-
 
 #define trinex_verify(condition)                                                                                                 \
 	do                                                                                                                           \

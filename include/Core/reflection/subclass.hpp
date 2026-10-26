@@ -52,4 +52,4 @@ namespace Trinex::Refl
 
 		bool operator!=(Class* class_instance) const { return m_class != class_instance; }
 	};
-}// namespace Trinex::Refl
+} // namespace Trinex::Refl

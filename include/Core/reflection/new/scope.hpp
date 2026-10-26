@@ -7,12 +7,14 @@
 
 namespace Trinex::Refl::New
 {
-	trinex_reflect() class trinex_api Scope : public Object
+	trinex_reflect()
+	class trinex_api Scope : public Object
 	{
 		trinex_reflection_body();
 
 	private:
-		struct Compare {
+		struct Compare
+		{
 			using is_transparent = void;
 
 			inline bool operator()(Name lhs, Name rhs) const { return lhs.id() < rhs.id(); }
@@ -43,4 +45,4 @@ namespace Trinex::Refl::New
 		Class* reflection() const override { return class_of<Scope>(); }
 		inline const Array<Ref<Object>>& members() const { return m_members.container(); }
 	};
-}// namespace Trinex::Refl::New
+} // namespace Trinex::Refl::New

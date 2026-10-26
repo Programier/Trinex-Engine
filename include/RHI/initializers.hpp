@@ -6,7 +6,8 @@ namespace Trinex
 {
 	class RHIShader;
 
-	struct RHITextureDesc {
+	struct RHITextureDesc
+	{
 		RHITextureType type   = RHITextureType::Texture2D;
 		RHIColorFormat format = RHIColorFormat::R8G8B8A8;
 		Vector3u size         = {0, 0, 0};
@@ -14,7 +15,8 @@ namespace Trinex
 		RHITextureFlags flags = RHITextureFlags::ShaderResource;
 	};
 
-	struct trinex_api RHISamplerDesc {
+	struct trinex_api RHISamplerDesc
+	{
 		RHISamplerFilter filter;
 		RHISamplerAddressMode address_u;
 		RHISamplerAddressMode address_v;
@@ -34,10 +36,12 @@ namespace Trinex
 		inline bool operator!=(const RHISamplerDesc& initializer) const { return !(*this == initializer); }
 	};
 
-	struct RHIGraphicsPipelineDesc {
+	struct RHIGraphicsPipelineDesc
+	{
 		union
 		{
-			struct {
+			struct
+			{
 				RHIShader* vertex_shader               = nullptr;
 				RHIShader* tessellation_control_shader = nullptr;
 				RHIShader* tessellation_shader         = nullptr;
@@ -54,10 +58,12 @@ namespace Trinex
 		usize vertex_attributes_count                     = 0;
 	};
 
-	struct RHIMeshPipelineDesc {
+	struct RHIMeshPipelineDesc
+	{
 		union
 		{
-			struct {
+			struct
+			{
 				RHIShader* task_shader     = nullptr;
 				RHIShader* mesh_shader     = nullptr;
 				RHIShader* fragment_shader = nullptr;
@@ -70,13 +76,15 @@ namespace Trinex
 		usize parameters_count                          = 0;
 	};
 
-	struct trinex_api RHIComputePipelineDesc {
+	struct trinex_api RHIComputePipelineDesc
+	{
 		RHIShader* compute_shader                       = nullptr;
 		const struct RHIShaderParameterInfo* parameters = nullptr;
 		usize parameters_count                          = 0;
 	};
 
-	struct trinex_api RHIRayTracingShaderGroup {
+	struct trinex_api RHIRayTracingShaderGroup
+	{
 		union
 		{
 			RHIShader* general = nullptr;
@@ -92,7 +100,8 @@ namespace Trinex
 		RHIRayTracingShaderGroupType type = RHIRayTracingShaderGroupType::GeneralRayGen;
 	};
 
-	struct trinex_api RHIRayTracingPipelineDesc {
+	struct trinex_api RHIRayTracingPipelineDesc
+	{
 		RHIRayTracingShaderGroup* groups = nullptr;
 		u64 groups_count                 = 0;
 
@@ -101,4 +110,4 @@ namespace Trinex
 
 		u8 max_recursion = 2;
 	};
-}// namespace Trinex
+} // namespace Trinex

@@ -38,7 +38,6 @@ namespace Trinex
 	const char Path::separator          = '/';
 	const StringView Path::sv_separator = "/";
 
-
 	usize Path::Hash::operator()(const Path& p) const noexcept
 	{
 		static Trinex::Hash<String> hasher;
@@ -65,7 +64,8 @@ namespace Trinex
 		{
 			data[write++] = sep;
 
-			while (read < size && data[read] == sep) ++read;
+			while (read < size && data[read] == sep)
+				++read;
 		}
 
 		auto append_component = [&](usize begin, usize length) {
@@ -85,7 +85,8 @@ namespace Trinex
 
 			usize begin = write;
 
-			while (begin > limit && data[begin - 1] != sep) --begin;
+			while (begin > limit && data[begin - 1] != sep)
+				--begin;
 
 			return begin;
 		};
@@ -104,14 +105,16 @@ namespace Trinex
 		while (read < size)
 		{
 			// Skip repeated separators.
-			while (read < size && data[read] == sep) ++read;
+			while (read < size && data[read] == sep)
+				++read;
 
 			if (read == size)
 				break;
 
 			const usize begin = read;
 
-			while (read < size && data[read] != sep) ++read;
+			while (read < size && data[read] != sep)
+				++read;
 
 			const usize length = read - begin;
 
@@ -266,10 +269,12 @@ namespace Trinex
 
 		// For every remaining component in base,
 		// we need to go one directory up.
-		for (; base_it != base_end; ++base_it) result /= PathView("..");
+		for (; base_it != base_end; ++base_it)
+			result /= PathView("..");
 
 		// Then append the unmatched part of this path.
-		for (; path_it != path_end; ++path_it) result /= *path_it;
+		for (; path_it != path_end; ++path_it)
+			result /= *path_it;
 
 		return result;
 	}
@@ -286,7 +291,8 @@ namespace Trinex
 
 		usize begin = size();
 
-		while (begin > 0 && m_path[begin - 1] != '/') --begin;
+		while (begin > 0 && m_path[begin - 1] != '/')
+			--begin;
 		return PathView(StringView(m_path.data() + begin, size() - begin));
 	}
 
@@ -345,7 +351,8 @@ namespace Trinex
 
 		usize pos = size();
 
-		while (pos > 0 && m_path[pos - 1] != '/') --pos;
+		while (pos > 0 && m_path[pos - 1] != '/')
+			--pos;
 
 		// No separator:
 		//
@@ -468,7 +475,8 @@ namespace Trinex
 
 		usize end = begin;
 
-		while (end < size() && m_path[end] != '/') ++end;
+		while (end < size() && m_path[end] != '/')
+			++end;
 
 		return PathView(StringView(m_path.data() + begin, end - begin));
 	}
@@ -480,7 +488,8 @@ namespace Trinex
 
 		usize begin = size();
 
-		while (begin > 0 && m_path[begin - 1] != '/') --begin;
+		while (begin > 0 && m_path[begin - 1] != '/')
+			--begin;
 
 		return PathView(StringView(m_path.data() + begin, size() - begin));
 	}
@@ -660,4 +669,4 @@ namespace Trinex
 
 		return status;
 	}
-}// namespace Trinex
+} // namespace Trinex

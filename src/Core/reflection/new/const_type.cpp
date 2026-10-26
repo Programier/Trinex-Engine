@@ -58,4 +58,4 @@ namespace Trinex::Refl::New
 	{
 		return ConstType::from(type);
 	}
-}// namespace Trinex::Refl::New
+} // namespace Trinex::Refl::New

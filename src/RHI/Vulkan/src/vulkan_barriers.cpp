@@ -5,7 +5,8 @@
 
 namespace Trinex::Barrier
 {
-	struct LayoutFlags {
+	struct LayoutFlags
+	{
 		vk::AccessFlags access;
 		vk::PipelineStageFlags stage;
 
@@ -19,9 +20,9 @@ namespace Trinex::Barrier
 					break;
 
 				case vk::ImageLayout::eGeneral:
-					access = vk::AccessFlagBits::eShaderRead | vk::AccessFlagBits::eShaderWrite |
-					         vk::AccessFlagBits::eTransferRead | vk::AccessFlagBits::eTransferWrite;
-					stage = vk::PipelineStageFlagBits::eAllCommands;
+					access = vk::AccessFlagBits::eShaderRead | vk::AccessFlagBits::eShaderWrite
+					         | vk::AccessFlagBits::eTransferRead | vk::AccessFlagBits::eTransferWrite;
+					stage  = vk::PipelineStageFlagBits::eAllCommands;
 					break;
 
 				case vk::ImageLayout::eColorAttachmentOptimal:
@@ -84,4 +85,4 @@ namespace Trinex::Barrier
 		barrier.dstAccessMask = dst.access;
 		cmd->pipelineBarrier(src.stage, dst.stage, {}, {}, {}, barrier);
 	}
-}// namespace Trinex::Barrier
+} // namespace Trinex::Barrier

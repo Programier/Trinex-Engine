@@ -45,4 +45,4 @@ namespace Trinex
 		Super::update(dt);
 		return *this;
 	}
-}// namespace Trinex
+} // namespace Trinex

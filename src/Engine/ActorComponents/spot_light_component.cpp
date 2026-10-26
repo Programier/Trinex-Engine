@@ -54,4 +54,4 @@ namespace Trinex
 		out.direction   = direction();
 		return *this;
 	}
-}// namespace Trinex
+} // namespace Trinex

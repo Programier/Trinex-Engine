@@ -2,7 +2,8 @@
 
 namespace Trinex::VFS
 {
-	struct AccessFlags {
+	struct AccessFlags
+	{
 		enum Enum : u8
 		{
 			Read      = trinex_bit(0),
@@ -15,7 +16,8 @@ namespace Trinex::VFS
 		trinex_bitfield_enum_struct(AccessFlags, u8);
 	};
 
-	struct FileType {
+	struct FileType
+	{
 		enum Enum : u8
 		{
 			Undefined,
@@ -26,7 +28,8 @@ namespace Trinex::VFS
 		trinex_enum_struct(FileType);
 	};
 
-	struct WalkFlags {
+	struct WalkFlags
+	{
 		enum Enum : u8
 		{
 			Undefined   = 0,
@@ -39,7 +42,8 @@ namespace Trinex::VFS
 		trinex_bitfield_enum_struct(WalkFlags, u8);
 	};
 
-	struct WalkResult {
+	struct WalkResult
+	{
 		enum Enum : u8
 		{
 			Continue = 0,
@@ -48,4 +52,4 @@ namespace Trinex::VFS
 		};
 		trinex_enum_struct(WalkResult);
 	};
-}// namespace Trinex::VFS
+} // namespace Trinex::VFS

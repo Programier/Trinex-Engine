@@ -62,4 +62,4 @@ namespace Trinex::UI
 		UpdateFlags on_begin_update() override;
 		bool build(DockSpace* space);
 	};
-}// namespace Trinex::UI
+} // namespace Trinex::UI

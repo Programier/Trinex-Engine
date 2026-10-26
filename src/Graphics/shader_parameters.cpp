@@ -57,4 +57,4 @@ namespace Trinex
 		delta_time = Engine::instance()->delta_time();
 		return *this;
 	}
-}// namespace Trinex
+} // namespace Trinex

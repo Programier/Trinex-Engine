@@ -212,4 +212,4 @@ namespace Trinex
 		return "editor/StaticMeshPreview"_localized;
 	}
 
-}// namespace Trinex
+} // namespace Trinex

@@ -24,4 +24,4 @@ namespace Trinex
 			return reinterpret_cast<T*>(address());
 		}
 	};
-}// namespace Trinex
+} // namespace Trinex

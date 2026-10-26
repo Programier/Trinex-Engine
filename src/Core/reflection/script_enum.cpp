@@ -1,6 +1,6 @@
 #include <Core/reflection/script_enum.hpp>
-#include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script.hpp>
+#include <ScriptEngine/script_binding.hpp>
 
 namespace Trinex::Refl
 {
@@ -31,4 +31,4 @@ namespace Trinex::Refl
 	{
 		m_script->m_refl_objects.erase(this);
 	}
-}// namespace Trinex::Refl
+} // namespace Trinex::Refl

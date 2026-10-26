@@ -42,12 +42,14 @@ namespace Trinex
 	}
 
 	template<typename Key, typename Value, typename HashType, typename Pred, typename AllocatorType>
-	struct Serializer<Map<Key, Value, HashType, Pred, AllocatorType>> {
+	struct Serializer<Map<Key, Value, HashType, Pred, AllocatorType>>
+	{
 		bool serialize(Archive& ar, Map<Key, Value, HashType, Pred, AllocatorType>& map) { return trinex_serialize_map(ar, map); }
 	};
 
 	template<typename Key, typename Value, typename Compare, typename AllocatorType>
-	struct Serializer<TreeMap<Key, Value, Compare, AllocatorType>> {
+	struct Serializer<TreeMap<Key, Value, Compare, AllocatorType>>
+	{
 		bool serialize(Archive& ar, TreeMap<Key, Value, Compare, AllocatorType>& map) { return trinex_serialize_map(ar, map); }
 	};
-}// namespace Trinex
+} // namespace Trinex

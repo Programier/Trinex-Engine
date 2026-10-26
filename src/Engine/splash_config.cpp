@@ -1,7 +1,6 @@
 #include <Engine/settings.hpp>
 #include <Engine/splash_config.hpp>
 
-
 namespace Trinex
 {
 
@@ -20,4 +19,4 @@ namespace Trinex
 		game_name_text_size = Settings::Splash::game_name_text_size;
 		return *this;
 	}
-}// namespace Trinex
+} // namespace Trinex

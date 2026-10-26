@@ -3,7 +3,6 @@
 //#include <Sensors/sensor.hpp>
 //#include <stdexcept>
 
-
 //namespace Trinex
 //{
 //    /*
@@ -50,7 +49,6 @@
 //        for (uint_t i = 0; i < m_sensor_count; i++) m_sensor_names.push_back(SDL_SensorGetDeviceName(i));
 //    }
 
-
 //    static void close_sensor(void* sensor)
 //    {
 //        if (sensor)
@@ -59,7 +57,6 @@
 //            info_log("Sensor", "Close sensor %p\n", sensor);
 //        }
 //    }
-
 
 //    // Non static methods implementation
 

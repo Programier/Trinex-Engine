@@ -7,7 +7,8 @@ namespace Trinex
 	class DataChain
 	{
 	private:
-		struct Node {
+		struct Node
+		{
 			const Node* prev;
 			T data;
 
@@ -19,7 +20,8 @@ namespace Trinex
 			}
 		};
 
-		struct NodeCompare {
+		struct NodeCompare
+		{
 			bool operator()(const Node* const a, const Node* const b) const noexcept { return a->less(*b); }
 		};
 
@@ -110,7 +112,8 @@ namespace Trinex
 			if (size > 0)
 			{
 				Link result = Link(this, find_node({nullptr, values[0]}));
-				for (size_t i = 1; i < size; ++i) result = result.next(values[i]);
+				for (size_t i = 1; i < size; ++i)
+					result = result.next(values[i]);
 				return result;
 			}
 			return {this, nullptr};
@@ -123,7 +126,8 @@ namespace Trinex
 			if (chunks_count > 0)
 			{
 				destruct_chunk(--chunks_count, m_storage.size() % chunk_size);
-				for (uint64_t i = 0; i < chunks_count; ++i) destruct_chunk(i, chunk_size);
+				for (uint64_t i = 0; i < chunks_count; ++i)
+					destruct_chunk(i, chunk_size);
 				m_storage.clear();
 			}
 		}
@@ -137,9 +141,10 @@ namespace Trinex
 			if (chunks_count > 0)
 			{
 				destroy_chunk(--chunks_count, m_storage.size() % chunk_size);
-				for (uint64_t i = 0; i < chunks_count; ++i) destroy_chunk(i, chunk_size);
+				for (uint64_t i = 0; i < chunks_count; ++i)
+					destroy_chunk(i, chunk_size);
 			}
 		}
 	};
 
-}// namespace Trinex
+} // namespace Trinex

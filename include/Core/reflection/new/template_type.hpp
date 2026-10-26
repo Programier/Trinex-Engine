@@ -5,7 +5,8 @@
 
 namespace Trinex::Refl::New
 {
-	trinex_reflect() class trinex_api TemplateType : public Type
+	trinex_reflect()
+	class trinex_api TemplateType : public Type
 	{
 		trinex_reflection_body();
 
@@ -24,4 +25,4 @@ namespace Trinex::Refl::New
 
 		inline const VTable* vtable() const { return static_cast<const VTable*>(Type::vtable()); }
 	};
-}// namespace Trinex::Refl::New
+} // namespace Trinex::Refl::New

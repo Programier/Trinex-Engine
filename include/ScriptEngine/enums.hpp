@@ -3,7 +3,8 @@
 
 namespace Trinex
 {
-	struct ScriptClassFlags {
+	struct ScriptClassFlags
+	{
 		enum Enum : u64
 		{
 			Ref                      = 1ULL << 0,
@@ -31,7 +32,8 @@ namespace Trinex
 		trinex_bitfield_enum_struct(ScriptClassFlags, u64);
 	};
 
-	struct ScriptModuleLookup {
+	struct ScriptModuleLookup
+	{
 		enum Enum : u8
 		{
 			OnlyIfExists      = 0,
@@ -42,7 +44,8 @@ namespace Trinex
 		trinex_enum_struct(ScriptModuleLookup);
 	};
 
-	struct ScriptTypeModifiers {
+	struct ScriptTypeModifiers
+	{
 		enum Enum : u8
 		{
 			None     = 0,
@@ -55,7 +58,8 @@ namespace Trinex
 		trinex_bitfield_enum_struct(ScriptTypeModifiers, u8);
 	};
 
-	struct ScriptCallConv {
+	struct ScriptCallConv
+	{
 		enum Enum
 		{
 			Auto              = 0,
@@ -73,7 +77,8 @@ namespace Trinex
 		trinex_enum_struct(ScriptCallConv);
 	};
 
-	struct ScriptClassBehave {
+	struct ScriptClassBehave
+	{
 		enum Enum : EnumerateType
 		{
 			Construct        = 0,
@@ -94,4 +99,4 @@ namespace Trinex
 
 		trinex_enum_struct(ScriptClassBehave);
 	};
-}// namespace Trinex
+} // namespace Trinex

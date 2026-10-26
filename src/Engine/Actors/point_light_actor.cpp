@@ -16,4 +16,4 @@ namespace Trinex
 	{
 		return m_point_light_component;
 	}
-}// namespace Trinex
+} // namespace Trinex

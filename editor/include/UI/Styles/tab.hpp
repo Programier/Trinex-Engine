@@ -3,7 +3,8 @@
 
 namespace Trinex::UI
 {
-	struct TabStyle {
+	struct TabStyle
+	{
 		Unit rounding         = Unit(4.0f);
 		Unit border_size      = Unit(0.0f);
 		Unit min_width_base   = Unit(0.0f);
@@ -14,4 +15,4 @@ namespace Trinex::UI
 		TabStyle& push();
 		TabStyle& pop();
 	};
-}// namespace Trinex::UI
+} // namespace Trinex::UI

@@ -71,4 +71,4 @@ namespace Trinex::UI
 	{
 		return item_state_flags(readback_if(ImGui::SliderInt(label.c_str(), &value, min, max, format.c_str())));
 	}
-}// namespace Trinex::UI
+} // namespace Trinex::UI

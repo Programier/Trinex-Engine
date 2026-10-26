@@ -16,4 +16,4 @@ namespace Trinex::UI
 
 	ImFont* text_font(FontSize size = FontSize::Normal);
 	ImFont* icons_font(FontSize size = FontSize::Normal);
-}// namespace Trinex::UI
+} // namespace Trinex::UI

@@ -21,4 +21,4 @@ namespace Trinex
 		ar.serialize(semantic);
 		return ar.serialize(binding);
 	}
-}// namespace Trinex
+} // namespace Trinex

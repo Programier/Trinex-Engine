@@ -14,21 +14,23 @@ namespace Trinex
 	class trinex_api MaterialBindings
 	{
 	public:
-		struct MemoryBlock {
+		struct MemoryBlock
+		{
 			void* memory = nullptr;
 			usize size   = 0;
 		};
 
-		struct CombinedSamplerImage {
+		struct CombinedSamplerImage
+		{
 			RHIShaderResourceView* texture = nullptr;
 			RHISampler* sampler            = nullptr;
 		};
 
-		using Binding = Variant<bool, Vector2b, Vector3b, Vector4b, //
-		                        i32, Vector2i, Vector3i, Vector4i,  //
-		                        u32, Vector2u, Vector3u, Vector4u,  //
-		                        float, Vector2f, Vector3f, Vector4f,//
-		                        MemoryBlock, CombinedSamplerImage,  //
+		using Binding = Variant<bool, Vector2b, Vector3b, Vector4b,  //
+		                        i32, Vector2i, Vector3i, Vector4i,   //
+		                        u32, Vector2u, Vector3u, Vector4u,   //
+		                        float, Vector2f, Vector3f, Vector4f, //
+		                        MemoryBlock, CombinedSamplerImage,   //
 		                        RHISampler*, RHIShaderResourceView*>;
 
 		using Container = TreeMap<Name, Binding>;
@@ -92,4 +94,4 @@ namespace Trinex
 		inline Container::const_reverse_iterator crbegin() const { return m_bindings.crbegin(); }
 		inline Container::const_reverse_iterator crend() const { return m_bindings.crend(); }
 	};
-}// namespace Trinex
+} // namespace Trinex

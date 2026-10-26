@@ -10,7 +10,8 @@ namespace Trinex
 	template<typename>
 	class WeakRef;
 
-	trinex_reflect() class trinex_api RefCounted
+	trinex_reflect()
+	class trinex_api RefCounted
 	{
 		trinex_reflection_body();
 
@@ -66,7 +67,8 @@ namespace Trinex
 	private:
 		T* m_ptr = nullptr;
 
-		struct AdoptTag {
+		struct AdoptTag
+		{
 		};
 
 		explicit Ref(T* ptr, AdoptTag) noexcept : m_ptr(ptr) {}
@@ -406,4 +408,4 @@ namespace Trinex
 	{
 		return Ref<T>::retain(ptr);
 	}
-}// namespace Trinex
+} // namespace Trinex

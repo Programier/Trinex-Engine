@@ -63,4 +63,4 @@ namespace Trinex
 			return Average<OutType, out_max_cout>(static_cast<OutType>(m_value), m_count);
 		}
 	};
-}// namespace Trinex
+} // namespace Trinex

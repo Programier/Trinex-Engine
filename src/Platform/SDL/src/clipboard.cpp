@@ -3,7 +3,8 @@
 
 namespace Trinex::Platform
 {
-	struct ClipboardPayload {
+	struct ClipboardPayload
+	{
 		String mime;
 		Array<u8> data;
 	};
@@ -125,4 +126,4 @@ namespace Trinex::Platform
 		return true;
 	}
 
-}// namespace Trinex::Platform
+} // namespace Trinex::Platform

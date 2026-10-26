@@ -4,7 +4,8 @@
 
 namespace Trinex
 {
-	struct Colors {
+	struct Colors
+	{
 		static const trinex_api Color IndianRed;
 		static const trinex_api Color LightCoral;
 		static const trinex_api Color Salmon;
@@ -153,4 +154,4 @@ namespace Trinex
 		static const trinex_api Color DarkSlateGrey;
 		static const trinex_api Color Black;
 	};
-}// namespace Trinex
+} // namespace Trinex

@@ -13,7 +13,7 @@ namespace Trinex
 	class RHIBuffer;
 	class RHITexture;
 	class RHIContext;
-}// namespace Trinex
+} // namespace Trinex
 
 namespace Trinex::RenderGraph
 {
@@ -50,7 +50,8 @@ namespace Trinex::RenderGraph
 		};
 
 	private:
-		struct Node {
+		struct Node
+		{
 			Pass* pass;
 			RGArray<Node*> dependencies;
 
@@ -111,7 +112,8 @@ namespace Trinex::RenderGraph
 	class trinex_api Pass
 	{
 	public:
-		struct ResourceRef {
+		struct ResourceRef
+		{
 			RenderGraph::Resource* resource;
 			RHIAccess access;
 			RHIAccess initial;
@@ -214,4 +216,4 @@ namespace Trinex::RenderGraph
 	{
 		return pass->name();
 	}
-}// namespace Trinex::RenderGraph
+} // namespace Trinex::RenderGraph

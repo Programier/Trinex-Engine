@@ -21,4 +21,4 @@ namespace Trinex::Platform
 	{
 		return LinuxMemory::instance();
 	}
-}// namespace Trinex::Platform
+} // namespace Trinex::Platform

@@ -5,7 +5,7 @@
 namespace Trinex
 {
 	class InputDevice;
-}// namespace Trinex
+} // namespace Trinex
 
 namespace Trinex::Platform
 {
@@ -22,4 +22,4 @@ namespace Trinex::Platform
 		virtual bool text_input_enabled() const               = 0;
 		virtual InputSystem& text_input_enabled(bool enabled) = 0;
 	};
-}// namespace Trinex::Platform
+} // namespace Trinex::Platform

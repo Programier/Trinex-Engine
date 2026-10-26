@@ -64,17 +64,9 @@ namespace Trinex
 		virtual RHIDescriptor descriptor() const = 0;
 	};
 
-	class trinex_api RHIRenderTargetView
-	{
-	public:
-		virtual ~RHIRenderTargetView() {}
-	};
+	class trinex_api RHIRenderTargetView{public: virtual ~RHIRenderTargetView(){}};
 
-	class trinex_api RHIDepthStencilView
-	{
-	public:
-		virtual ~RHIDepthStencilView() {}
-	};
+	class trinex_api RHIDepthStencilView{public: virtual ~RHIDepthStencilView(){}};
 
 	class trinex_api RHISampler : public RHIObject
 	{
@@ -155,4 +147,4 @@ namespace Trinex
 	{
 	public:
 	};
-}// namespace Trinex
+} // namespace Trinex

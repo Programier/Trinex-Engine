@@ -134,4 +134,4 @@ namespace Trinex::Keyboard
 		key_registrar.value("Menu", Menu);
 		key_registrar.value("__COUNT__", __COUNT__);
 	};
-}// namespace Trinex::Keyboard
+} // namespace Trinex::Keyboard

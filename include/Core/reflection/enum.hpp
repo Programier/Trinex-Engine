@@ -10,7 +10,8 @@ namespace Trinex::Refl
 		trinex_reflect_type(Enum, Object);
 
 	public:
-		struct Entry {
+		struct Entry
+		{
 			Name name;
 			EnumerateType value;
 
@@ -78,4 +79,4 @@ namespace Trinex::Refl
 	Trinex::Refl::Enum* enum_name::s_enum = nullptr
 
 #define trinex_implement_engine_enum(enum_name, flags, ...) trinex_implement_enum(Trinex::enum_name, flags, __VA_ARGS__)
-}// namespace Trinex::Refl
+} // namespace Trinex::Refl

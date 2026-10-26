@@ -112,4 +112,4 @@ namespace Trinex
 	struct Angle;
 	struct Plane;
 	struct Frustum;
-}// namespace Trinex
+} // namespace Trinex

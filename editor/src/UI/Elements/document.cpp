@@ -1,8 +1,8 @@
 #include <Core/blob.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/etl/string.hpp>
 #include <Core/etl/utility.hpp>
 #include <Core/etl/variant.hpp>
-#include <Core/etl/array.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/types/path.hpp>
@@ -80,30 +80,35 @@ _Comment    <- '//' (![\r\n] .)*
 		struct Property;
 		struct Node;
 
-		struct Property {
+		struct Property
+		{
 			PropertyPath path;
 			ValueDesc value;
 			SourceLocation location;
 		};
 
-		struct Include {
+		struct Include
+		{
 			Path path;
 			SourceLocation location;
 		};
 
-		struct TransitionBlock {
+		struct TransitionBlock
+		{
 			Array<StyleTransition> transitions;
 			SourceLocation location;
 		};
 
-		struct Style {
+		struct Style
+		{
 			StyleSelector selector;
 			Array<StyleProperty> properties;
 			Array<StyleTransition> transitions;
 			SourceLocation location;
 		};
 
-		struct Node {
+		struct Node
+		{
 			String type;
 			Array<Property> properties;
 			Array<Node> children;
@@ -238,7 +243,8 @@ _Comment    <- '//' (![\r\n] .)*
 
 			inline bool parse_unit_literal(Unit& unit, StringView token)
 			{
-				struct Suffix {
+				struct Suffix
+				{
 					StringView text;
 					Unit::Type type;
 				};
@@ -297,7 +303,7 @@ _Comment    <- '//' (![\r\n] .)*
 
 				return Ease::OutCubic;
 			}
-		}// namespace Detail
+		} // namespace Detail
 
 		class Parser
 		{
@@ -993,8 +999,7 @@ _Comment    <- '//' (![\r\n] .)*
 
 			return true;
 		}
-	}// namespace Markup
-
+	} // namespace Markup
 
 	trinex_implement_ui_element(Document) {}
 
@@ -1048,7 +1053,6 @@ _Comment    <- '//' (![\r\n] .)*
 			return load(blob->as<StringView>(), path);
 		}
 
-
 		trinex_error(Log::Editor, "Failed to open UI document '%s'", path.c_str());
 		return false;
 	}
@@ -1090,4 +1094,4 @@ _Comment    <- '//' (![\r\n] .)*
 		auto it = m_elements.find(id);
 		return it == m_elements.end() ? nullptr : it->second;
 	}
-}// namespace Trinex::UI
+} // namespace Trinex::UI

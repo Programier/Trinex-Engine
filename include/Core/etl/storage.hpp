@@ -3,7 +3,8 @@
 namespace Trinex
 {
 	template<usize size, usize align = 16>
-	struct alignas(align) Storage {
+	struct alignas(align) Storage
+	{
 		static_assert(size > 0);
 		static_assert((align & (align - 1)) == 0, "alignment must be power of two");
 
@@ -62,4 +63,4 @@ namespace Trinex
 			as<T, offset>().~T();
 		}
 	};
-}// namespace Trinex
+} // namespace Trinex

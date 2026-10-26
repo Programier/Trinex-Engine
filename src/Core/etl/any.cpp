@@ -140,10 +140,11 @@ namespace Trinex
 		reset();
 	}
 
-
-	struct ScriptAny {
+	struct ScriptAny
+	{
 		template<bool is_handle>
-		struct ObjectValue {
+		struct ObjectValue
+		{
 			void* data[2];
 
 			ObjectValue(void* address, asITypeInfo* info)
@@ -307,4 +308,4 @@ namespace Trinex
 		reg.method("bool get(?& value)", &ScriptAny::get);
 		reg.method("void opConv(?&)", &ScriptAny::opCast);
 	}
-}// namespace Trinex
+} // namespace Trinex

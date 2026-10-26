@@ -1,7 +1,7 @@
 #include <Core/etl/algorithm.hpp>
 #include <Core/etl/allocator.hpp>
-#include <Core/etl/utility.hpp>
 #include <Core/etl/array.hpp>
+#include <Core/etl/utility.hpp>
 #include <Core/math/math.hpp>
 #include <UI/element.hpp>
 #include <UI/reflection.hpp>
@@ -36,8 +36,8 @@ namespace Trinex::UI
 			return false;
 		}
 
-		return value_to_f32(dst.x, (*list)[0]) && value_to_f32(dst.y, (*list)[1]) && value_to_f32(dst.z, (*list)[2]) &&
-		       value_to_f32(dst.w, (*list)[3]);
+		return value_to_f32(dst.x, (*list)[0]) && value_to_f32(dst.y, (*list)[1]) && value_to_f32(dst.z, (*list)[2])
+		       && value_to_f32(dst.w, (*list)[3]);
 	}
 
 	static bool value_to_vec3(Vec3& dst, const Markup::ValueDesc& src)
@@ -348,8 +348,8 @@ namespace Trinex::UI
 			StyleValue target;
 			const StyleTransition* transition = find_transition(m_transitions, property_name);
 
-			if (has_later_property(m_properties, index) || transition == nullptr || transition->duration <= 0.0f ||
-			    !style_value(target, property.value))
+			if (has_later_property(m_properties, index) || transition == nullptr || transition->duration <= 0.0f
+			    || !style_value(target, property.value))
 			{
 				apply(property);
 				continue;
@@ -501,4 +501,4 @@ namespace Trinex::UI
 			visitor(rule);
 		}
 	}
-}// namespace Trinex::UI
+} // namespace Trinex::UI

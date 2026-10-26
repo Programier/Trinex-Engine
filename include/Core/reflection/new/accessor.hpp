@@ -10,4 +10,4 @@ namespace Trinex
 		template<typename T>
 		struct Accessor;
 	}
-}// namespace Trinex
+} // namespace Trinex

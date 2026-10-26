@@ -2,7 +2,6 @@
 
 #include <Core/math/matrix.hpp>
 #include <Core/math/vector.hpp>
-
 #include <Core/object.hpp>
 #include <Core/pointer.hpp>
 #include <Graphics/sampler.hpp>
@@ -256,5 +255,5 @@ public:                                                                         
 			CombinedSurface& apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info) override;
 			bool serialize(Archive& ar) override;
 		};
-	}// namespace MaterialParameters
-}// namespace Trinex
+	} // namespace MaterialParameters
+} // namespace Trinex

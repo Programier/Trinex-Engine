@@ -26,4 +26,4 @@ namespace Trinex::etl
 	using std::uninitialized_move_n;
 	using std::uninitialized_value_construct;
 	using std::uninitialized_value_construct_n;
-}// namespace Trinex::etl
+} // namespace Trinex::etl

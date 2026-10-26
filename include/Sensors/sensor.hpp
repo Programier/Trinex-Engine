@@ -2,7 +2,6 @@
 
 //#include <Core/engine_types.hpp>
 
-
 //namespace Trinex
 //{
 //    struct trinex_api Sensor

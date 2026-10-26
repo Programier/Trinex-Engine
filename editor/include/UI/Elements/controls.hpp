@@ -63,7 +63,7 @@ namespace Trinex::UI
 		String label;
 		i32 option = 0;
 		Name on_click;
-		Vec4 check_color = {0.28f, 0.59f, 0.92f, 1.00f};
+		Vec4 check_color             = {0.28f, 0.59f, 0.92f, 1.00f};
 		f32 check_animation_duration = 0.12f;
 		Ease check_animation_ease    = Ease::OutCubic;
 
@@ -115,4 +115,4 @@ namespace Trinex::UI
 
 		UpdateFlags on_begin_update() override;
 	};
-}// namespace Trinex::UI
+} // namespace Trinex::UI

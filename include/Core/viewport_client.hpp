@@ -18,4 +18,4 @@ namespace Trinex
 		virtual ViewportClient& update(class RenderViewport* viewport, float dt);
 		static ViewportClient* create(const StringView& name);
 	};
-}// namespace Trinex
+} // namespace Trinex

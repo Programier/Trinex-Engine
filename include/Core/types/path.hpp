@@ -26,7 +26,8 @@ namespace Trinex
 			inline void find_end()
 			{
 				m_end = m_begin;
-				while (m_end < m_path.size() && m_path[m_end] != '/') ++m_end;
+				while (m_end < m_path.size() && m_path[m_end] != '/')
+					++m_end;
 			}
 
 		public:
@@ -130,7 +131,8 @@ namespace Trinex
 
 				const usize begin = i;
 
-				while (i < size && path[i] != sep) ++i;
+				while (i < size && path[i] != sep)
+					++i;
 
 				const usize length = i - begin;
 
@@ -241,7 +243,8 @@ namespace Trinex
 		Path& on_path_changed();
 
 	public:
-		struct trinex_api Hash {
+		struct trinex_api Hash
+		{
 			usize operator()(const Path& p) const noexcept;
 		};
 
@@ -333,16 +336,17 @@ namespace Trinex
 
 		bool serialize(Archive& ar);
 	};
-}// namespace Trinex
+} // namespace Trinex
 
 namespace std
 {
 	template<>
-	struct hash<Trinex::Path> {
+	struct hash<Trinex::Path>
+	{
 		size_t operator()(const Trinex::Path& p) const noexcept
 		{
 			static Trinex::Path::Hash h;
 			return h(p);
 		}
 	};
-}// namespace std
+} // namespace std

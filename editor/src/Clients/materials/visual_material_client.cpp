@@ -32,12 +32,14 @@ namespace Trinex
 		static const char* static_name() { return "editor/Node Properties"_localized; }
 	};
 
-	struct HorizontalLayout {
+	struct HorizontalLayout
+	{
 		HorizontalLayout() { ImGui::BeginHorizontal(this); }
 		~HorizontalLayout() { ImGui::EndHorizontal(); }
 	};
 
-	struct VerticalLayout {
+	struct VerticalLayout
+	{
 		VerticalLayout() { ImGui::BeginVertical(this); }
 		~VerticalLayout() { ImGui::EndVertical(); }
 	};
@@ -59,7 +61,8 @@ namespace Trinex
 		}
 	};
 
-	struct EditorSuspend {
+	struct EditorSuspend
+	{
 		EditorSuspend() { ed::Suspend(); }
 		~EditorSuspend() { ed::Resume(); }
 	};
@@ -103,7 +106,6 @@ namespace Trinex
 		RHIShaderParameterType type = value->type();
 		const u8 length             = type.columns();
 		u8* address                 = value->address();
-
 
 		static Refl::Property* property_table[4][4] = {
 		        {
@@ -294,11 +296,9 @@ namespace Trinex
 	// 		// const auto from = reinterpret_cast<VisualMaterialGraph::Pin*>(m_graph_state.m_create_node_from_pin);
 	// 		// auto& state     = m_graph_state;
 
-
 	// 		// ed::Resume();
 	// 		return true;
 	// 	}
-
 
 	// 	// static void process_drag_and_drop(VisualMaterial* material)
 	// 	// {
@@ -645,7 +645,6 @@ namespace Trinex
 	// 	// 	Map<VisualMaterialGraph::Node*, VisualMaterialGraph::Node*> m_nodes_map;
 	// 	// 	NodesSet result;
 
-
 	// 	// 	for (auto node : nodes)
 	// 	// 	{
 	// 	// 		if (!node->is_root_node())
@@ -924,4 +923,4 @@ namespace Trinex
 		ImGui::DockBuilderDockWindow("###Graph", center);
 		return center;
 	}
-}// namespace Trinex
+} // namespace Trinex

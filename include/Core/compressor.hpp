@@ -5,4 +5,4 @@ namespace Trinex::Compressor
 {
 	trinex_api void compress(const Buffer& src, Buffer& dst);
 	trinex_api void decompress(const Buffer& src, Buffer& dst);
-}// namespace Trinex::Compressor
+} // namespace Trinex::Compressor

@@ -10,4 +10,4 @@ namespace Trinex
 		[[maybe_unused]] auto lock = critical_section();
 		VulkanAPI::instance()->m_thread_locals.push_back(this);
 	}
-}// namespace Trinex
+} // namespace Trinex

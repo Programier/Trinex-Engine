@@ -11,7 +11,7 @@ namespace Trinex
 	{
 		class Node;
 		class Pin;
-	}// namespace VisualMaterialGraph
+	} // namespace VisualMaterialGraph
 
 	class VisualMaterial;
 
@@ -24,7 +24,8 @@ namespace Trinex
 		ax::NodeEditor::EditorContext* m_context = nullptr;
 		Pointer<VisualMaterial> m_material;
 
-		struct {
+		struct
+		{
 			String filter                 = "";
 			Vector2f pos                  = {0.f, 0.f};
 			VisualMaterialGraph::Pin* pin = nullptr;
@@ -53,4 +54,4 @@ namespace Trinex
 		VisualMaterialEditorClient& select(Object* object) override;
 		u32 build_dock(u32 dock) override;
 	};
-}// namespace Trinex
+} // namespace Trinex

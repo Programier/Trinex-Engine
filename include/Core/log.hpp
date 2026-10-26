@@ -2,7 +2,8 @@
 
 namespace Trinex::Log
 {
-	struct trinex_api Category {
+	struct trinex_api Category
+	{
 		const char* name;
 		bool enabled;
 
@@ -13,7 +14,8 @@ namespace Trinex::Log
 		constexpr explicit operator bool() const noexcept { return enabled; }
 	};
 
-	struct Level {
+	struct Level
+	{
 		enum Enum : u8
 		{
 			Debug    = 0,
@@ -26,7 +28,8 @@ namespace Trinex::Log
 		trinex_enum_struct(Level);
 	};
 
-	struct trinex_api Record {
+	struct trinex_api Record
+	{
 		Category* category;
 		const char* file;
 		const char* func;
@@ -89,12 +92,12 @@ namespace Trinex::Log
 
 	trinex_api void add_listener(Listener* listener);
 	trinex_api void remove_listener(Listener* listener);
-}// namespace Trinex::Log
+} // namespace Trinex::Log
 
 #if TRINEX_DEBUG_BUILD
-#define trinex_debug(...) Trinex::Log::debug(__FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
+	#define trinex_debug(...) Trinex::Log::debug(__FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
 #else
-#define trinex_debug(...) ((void) 0)
+	#define trinex_debug(...) ((void) 0)
 #endif
 
 #define trinex_info(...) Trinex::Log::info(__FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)

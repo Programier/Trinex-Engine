@@ -18,14 +18,16 @@ namespace ImGuizmo
 {
 	enum OPERATION : unsigned int;
 	enum MODE : unsigned int;
-}// namespace ImGuizmo
+} // namespace ImGuizmo
 
 namespace Trinex
 {
 	struct InputEvent;
 
-	struct EditorState {
-		struct {
+	struct EditorState
+	{
+		struct
+		{
 			const Refl::Enum::Entry* view_mode_entry = nullptr;
 			Vector2f size                            = {0.f, 0.f};
 			bool show_additional_menu                = false;
@@ -45,13 +47,16 @@ namespace Trinex
 		trinex_class(EditorClientOLD, ImGuiViewportClient);
 
 	private:
-		struct Stats {
-			struct TimingQuery {
+		struct Stats
+		{
+			struct TimingQuery
+			{
 				RHITimestamp* timestamp = nullptr;
 				const char* pass        = nullptr;
 			};
 
-			struct TimingResult {
+			struct TimingResult
+			{
 				float time       = 0.f;
 				const char* pass = nullptr;
 			};
@@ -59,7 +64,8 @@ namespace Trinex
 			class Pipeline
 			{
 			private:
-				struct Entry {
+				struct Entry
+				{
 					RHIPipelineStatistics* stats = nullptr;
 					RHIFence* fence              = nullptr;
 				};
@@ -79,7 +85,8 @@ namespace Trinex
 			class Timings
 			{
 			private:
-				struct Frame {
+				struct Frame
+				{
 					RHIFence* fence;
 					Array<TimingQuery> queries;
 
@@ -177,4 +184,4 @@ namespace Trinex
 
 		EditorClientOLD& select(Object* object) override;
 	};
-}// namespace Trinex
+} // namespace Trinex

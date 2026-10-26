@@ -7,7 +7,7 @@ namespace Trinex
 	{
 		class Document;
 		class Widget;
-	}// namespace UI
+	} // namespace UI
 
 	class ContentBrowserWidget;
 	class ConsoleWidget;
@@ -22,7 +22,6 @@ namespace Trinex
 		ContentBrowserWidget* m_content_browser = nullptr;
 		ConsoleWidget* m_console                = nullptr;
 
-
 	private:
 		EditorClient& on_render_viewport();
 
@@ -34,4 +33,4 @@ namespace Trinex
 		EditorClient& select(Object* object) override;
 		EditorClient& update(float dt) override;
 	};
-}// namespace Trinex
+} // namespace Trinex

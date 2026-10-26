@@ -14,4 +14,4 @@ namespace Trinex
 		bool shader_source(String& out_source) override;
 		bool serialize(Archive& archive) override;
 	};
-}// namespace Trinex
+} // namespace Trinex

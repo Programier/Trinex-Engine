@@ -12,8 +12,7 @@ namespace Trinex
 	class RenderViewport;
 	class Window;
 	class RHIContext;
-}// namespace Trinex
-
+} // namespace Trinex
 
 namespace Trinex
 {
@@ -22,7 +21,7 @@ namespace Trinex
 		void on_event_recieved(const Event& event);
 		void disable_events();
 		void enable_events();
-	}// namespace ImGuiBackend_Window
+	} // namespace ImGuiBackend_Window
 
 	class ImGuiContextLock final
 	{
@@ -51,7 +50,8 @@ namespace Trinex
 
 	class ImGuiWidgetsList final
 	{
-		struct Node {
+		struct Node
+		{
 			ImGuiWidget* widget = nullptr;
 			Node* next          = nullptr;
 			Node* parent        = nullptr;
@@ -102,7 +102,6 @@ namespace Trinex
 		~ImGuiWidgetsList();
 	};
 
-
 	namespace Refl
 	{
 		template<typename T>
@@ -131,8 +130,7 @@ namespace Trinex
 		static ImGuiWindow* current();
 		static void make_current(ImGuiWindow*);
 	};
-}// namespace Trinex
-
+} // namespace Trinex
 
 struct ImGuiWindow;
 
@@ -195,4 +193,4 @@ namespace ImGui
 	{
 		return {vec.x, vec.y, vec.z, vec.w};
 	}
-}// namespace ImGui
+} // namespace ImGui

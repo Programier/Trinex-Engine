@@ -7,7 +7,8 @@ namespace Trinex::Refl::New
 {
 	class Type;
 
-	trinex_reflect() class trinex_api Property : public Object
+	trinex_reflect()
+	class trinex_api Property : public Object
 	{
 		trinex_reflection_body();
 
@@ -42,4 +43,4 @@ namespace Trinex::Refl::New
 		inline bool is_this() const { return has_flags(IsThis); }
 	};
 
-}// namespace Trinex::Refl::New
+} // namespace Trinex::Refl::New

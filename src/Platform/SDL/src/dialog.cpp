@@ -23,7 +23,8 @@ namespace Trinex::Platform
 			result.paths  = files;
 			result.filter = filter;
 
-			while (files[result.count]) ++result.count;
+			while (files[result.count])
+				++result.count;
 		}
 
 		(*function)(result);
@@ -34,7 +35,6 @@ namespace Trinex::Platform
 	{
 		return nullptr;
 	}
-
 
 	SDLDialogSystem* SDLDialogSystem::instance()
 	{
@@ -75,4 +75,4 @@ namespace Trinex::Platform
 		SDL_ShowOpenFolderDialog(dialog_callback, trx_new DialogCallback(callback), sdl_window(parent), location, multiple);
 		return *this;
 	}
-}// namespace Trinex::Platform
+} // namespace Trinex::Platform

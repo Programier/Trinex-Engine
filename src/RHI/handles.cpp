@@ -116,4 +116,4 @@ namespace Trinex
 			return status;
 		}
 	}
-}// namespace Trinex
+} // namespace Trinex

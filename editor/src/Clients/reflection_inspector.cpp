@@ -38,7 +38,6 @@ namespace Trinex
 			return open;
 		}
 
-
 		void draw_tree(Refl::Object* object)
 		{
 			if (Refl::ScopedType* scope = Refl::Object::instance_cast<Refl::ScopedType>(object))
@@ -107,4 +106,4 @@ namespace Trinex
 	};
 
 	trinex_implement_engine_class_default_init(ReflInspector, 0);
-}// namespace Trinex
+} // namespace Trinex

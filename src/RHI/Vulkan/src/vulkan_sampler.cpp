@@ -79,4 +79,4 @@ namespace Trinex
 	{
 		return &(trx_new VulkanSampler())->create(desc);
 	}
-}// namespace Trinex
+} // namespace Trinex

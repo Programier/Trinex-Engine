@@ -10,4 +10,4 @@ namespace Trinex
 	{
 		m_post_process_component = new_instance<PostProcessComponent>("Post Process Component", this);
 	}
-}// namespace Trinex
+} // namespace Trinex

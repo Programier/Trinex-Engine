@@ -4,7 +4,8 @@ class asIScriptGeneric;
 
 namespace Trinex
 {
-	struct trinex_api ScriptFuncPtr {
+	struct trinex_api ScriptFuncPtr
+	{
 	public:
 		using GlobalFunction  = void (*)();
 		using GenericFunction = void (*)(asIScriptGeneric*);
@@ -27,7 +28,8 @@ namespace Trinex
 		return function_ptr_generic(function);
 	}
 
-	struct trinex_api ScriptMethodPtr {
+	struct trinex_api ScriptMethodPtr
+	{
 	public:
 		using GeneralMethod = void (ScriptMethodPtr::*)();
 
@@ -47,4 +49,4 @@ namespace Trinex
 			return method_ptr_general(reinterpret_cast<GeneralMethod>(func));
 		}
 	};
-}// namespace Trinex
+} // namespace Trinex

@@ -120,5 +120,5 @@ private:
 
 		// 	Translucent& begin(Renderer* renderer, RHIContext* ctx) override;
 		// };
-	}// namespace RenderPasses
-}// namespace Trinex
+	} // namespace RenderPasses
+} // namespace Trinex

@@ -4,7 +4,6 @@
 #include <Engine/ActorComponents/mesh_component.hpp>
 #include <Graphics/gpu_buffers.hpp>
 
-
 namespace Trinex
 {
 	class trinex_api StaticMeshComponent : public MeshComponent
@@ -33,4 +32,4 @@ namespace Trinex
 			return *this;
 		}
 	};
-}// namespace Trinex
+} // namespace Trinex

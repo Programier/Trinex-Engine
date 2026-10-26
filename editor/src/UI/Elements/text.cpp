@@ -2,7 +2,6 @@
 #include <UI/reflection.hpp>
 #include <imgui_internal.h>
 
-
 namespace Trinex::UI
 {
 	trinex_implement_ui_element(Text)
@@ -32,4 +31,4 @@ namespace Trinex::UI
 		ImGui::TextEx(text.c_str(), text.c_str() + text.size(), 0);
 		return UpdateFlags::Undefined;
 	}
-}// namespace Trinex::UI
+} // namespace Trinex::UI

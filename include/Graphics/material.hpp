@@ -110,4 +110,4 @@ namespace Trinex
 			return static_cast<T*>(MaterialInterface::create_parameter(name, T::static_type()));
 		}
 	};
-}// namespace Trinex
+} // namespace Trinex

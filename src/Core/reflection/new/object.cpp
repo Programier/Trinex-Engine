@@ -72,4 +72,4 @@ namespace Trinex::Refl::New
 	{
 		return false;
 	}
-}// namespace Trinex::Refl::New
+} // namespace Trinex::Refl::New

@@ -11,7 +11,8 @@ namespace Trinex
 	class ScriptVector
 	{
 	public:
-		struct Instance : public Array<u8> {
+		struct Instance : public Array<u8>
+		{
 			using Array::Array;
 
 			using Array::m_end;
@@ -25,8 +26,8 @@ namespace Trinex
 		static usize m_type_size;
 		static usize m_refs;
 
-
-		struct TypeInitializer {
+		struct TypeInitializer
+		{
 			void init()
 			{
 				if (ScriptEngine::is_primitive_type(m_type_id))
@@ -84,8 +85,8 @@ namespace Trinex
 			~TypeInitializer() { destruct(); }
 		};
 
-
-		struct TempInstance : public Instance {
+		struct TempInstance : public Instance
+		{
 			using Instance::Instance;
 
 			u8* init_temp(u8* src)
@@ -644,7 +645,8 @@ namespace Trinex
 			if (c == 0)
 				c = 1;
 
-			while (c < m_self->size() + bytes) c *= 2;
+			while (c < m_self->size() + bytes)
+				c *= 2;
 			reserve_impl(c);
 		}
 
@@ -891,4 +893,4 @@ namespace Trinex
 		r.method("void pop_back()", T::pop_back, ScriptCallConv::Generic);
 		r.method("void erase(uint64 p, uint64 n = 1)", T::erase, ScriptCallConv::Generic);
 	}
-}// namespace Trinex
+} // namespace Trinex

@@ -12,7 +12,6 @@ namespace Trinex
 		using WritePos  = usize;
 		using PosOffset = i64;
 
-
 		usize size();
 		BufferWriter& position(WritePos pos);
 
@@ -29,7 +28,6 @@ namespace Trinex
 
 		virtual ~BufferWriter() {}
 	};
-
 
 	class trinex_api BufferReader
 	{
@@ -62,7 +60,6 @@ namespace Trinex
 
 		virtual ~BufferReader() {}
 	};
-
 
 	class trinex_api VectorWriterBase : public BufferWriter
 	{
@@ -158,4 +155,4 @@ namespace Trinex
 		bool is_open() const override { return true; }
 	};
 
-}// namespace Trinex
+} // namespace Trinex

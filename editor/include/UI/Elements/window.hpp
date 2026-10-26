@@ -31,4 +31,4 @@ namespace Trinex::UI
 		UpdateFlags on_begin_update() override;
 		Element& on_end_update(UpdateFlags flags) override;
 	};
-}// namespace Trinex::UI
+} // namespace Trinex::UI

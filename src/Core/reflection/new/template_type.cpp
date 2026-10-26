@@ -15,4 +15,4 @@ namespace Trinex::Refl::New
 	{
 		return nullptr;
 	}
-}// namespace Trinex::Refl::New
+} // namespace Trinex::Refl::New

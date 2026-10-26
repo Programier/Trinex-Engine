@@ -32,7 +32,8 @@ namespace Trinex::Refl
 		ScriptEngine::on_terminate.push(on_script_engine_terminate);
 	}
 
-	struct ClassOf {
+	struct ClassOf
+	{
 		Class* self = nullptr;
 
 		ClassOf(asITypeInfo* ti)
@@ -47,7 +48,8 @@ namespace Trinex::Refl
 			asITypeInfo* current = ti;
 			auto target          = Trinex::Object::static_reflection()->script_type_info.info();
 
-			while (current && current != target) current = current->GetBaseType();
+			while (current && current != target)
+				current = current->GetBaseType();
 
 			if (current)
 			{
@@ -72,4 +74,4 @@ namespace Trinex::Refl
 
 		reg.method("Trinex::Refl::Class@ opImplCast() const", &ClassOf::class_of_impl_cast);
 	}
-}// namespace Trinex::Refl
+} // namespace Trinex::Refl

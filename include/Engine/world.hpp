@@ -35,4 +35,4 @@ namespace Trinex
 		inline const Array<LevelInstance*>& levels() const { return m_levels; }
 		inline RenderScene* scene() const { return m_scene; }
 	};
-}// namespace Trinex
+} // namespace Trinex

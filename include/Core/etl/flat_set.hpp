@@ -1,8 +1,8 @@
 #pragma once
 
+#include <Core/etl/array.hpp>
 #include <Core/etl/functional.hpp>
 #include <Core/etl/pair.hpp>
-#include <Core/etl/array.hpp>
 #include <type_traits>
 
 namespace Trinex
@@ -143,7 +143,6 @@ namespace Trinex
 		constexpr void clear() { container_type::clear(); }
 		constexpr void swap(FlatSet& other) { container_type::swap(other); }
 
-
 		template<typename LookupKey>
 		    requires(is_lookup_key<LookupKey>)
 		constexpr const_iterator find(const LookupKey& value) const
@@ -226,7 +225,6 @@ namespace Trinex
 		constexpr const container_type& container() const { return *this; }
 	};
 
-
 	template<typename T, typename Compare = Less<T>, typename AllocatorType = Allocator<T>, typename ArchiveType>
 	inline bool trinex_serialize_flat_set(ArchiveType& ar, FlatSet<T, Compare, AllocatorType>& set)
 	    requires(is_complete_archive_type<ArchiveType>)
@@ -236,7 +234,8 @@ namespace Trinex
 	}
 
 	template<typename T, typename C, typename A>
-	struct Serializer<FlatSet<T, C, A>> {
+	struct Serializer<FlatSet<T, C, A>>
+	{
 		bool serialize(Archive& ar, FlatSet<T, C, A>& set) { return trinex_serialize_flat_set(ar, set); }
 	};
-}// namespace Trinex
+} // namespace Trinex

@@ -98,4 +98,4 @@ namespace Trinex::Refl
 	// NameProperty;
 	// ObjectProperty;
 	// ArrayProperty;
-}// namespace Trinex::Refl
+} // namespace Trinex::Refl

@@ -90,7 +90,6 @@ namespace Trinex::Platform
 			}
 		}
 
-
 		SDL_free(displays);
 		return *this;
 	}
@@ -160,4 +159,4 @@ namespace Trinex::Platform
 		return true;
 	}
 
-}// namespace Trinex::Platform
+} // namespace Trinex::Platform

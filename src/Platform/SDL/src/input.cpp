@@ -1,9 +1,6 @@
-#include <SDLPlatform/input.hpp>
-
 #include <Core/etl/algorithm.hpp>
 #include <Input/device.hpp>
 #include <Input/system.hpp>
-
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_gamepad.h>
 #include <SDL3/SDL_joystick.h>
@@ -11,7 +8,7 @@
 #include <SDL3/SDL_mouse.h>
 #include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_touch.h>
-
+#include <SDLPlatform/input.hpp>
 
 namespace Trinex::Platform
 {
@@ -129,7 +126,7 @@ namespace Trinex::Platform
 				default: return EventCode::Undefined;
 			}
 		}
-	}// namespace
+	} // namespace
 
 	SDLInputDevice::SDLInputDevice(InputDeviceType type, u64 id, String name) : m_type(type), m_id(id), m_name(etl::move(name)) {}
 
@@ -397,4 +394,4 @@ namespace Trinex::Platform
 			SDL_StopTextInput(nullptr);
 		return *this;
 	}
-}// namespace Trinex::Platform
+} // namespace Trinex::Platform

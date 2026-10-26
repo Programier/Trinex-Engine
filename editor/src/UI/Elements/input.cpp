@@ -67,4 +67,4 @@ namespace Trinex::UI
 
 		return item_state_flags(readback_if(changed));
 	}
-}// namespace Trinex::UI
+} // namespace Trinex::UI

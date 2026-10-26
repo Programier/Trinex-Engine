@@ -3,7 +3,6 @@
 #include <vulkan_queue.hpp>
 #include <vulkan_sync.hpp>
 
-
 namespace Trinex
 {
 	VulkanQueue::VulkanQueue(vk::Queue queue, u32 index) : m_queue(queue), m_index(index) {}
@@ -28,4 +27,4 @@ namespace Trinex
 		vk::check_result(m_queue.waitIdle());
 		return *this;
 	}
-}// namespace Trinex
+} // namespace Trinex

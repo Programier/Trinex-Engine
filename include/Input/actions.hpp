@@ -1,6 +1,6 @@
 #pragma once
-#include <Core/etl/delegate.hpp>
 #include <Core/etl/array.hpp>
+#include <Core/etl/delegate.hpp>
 #include <Core/ref_counted.hpp>
 #include <Input/types.hpp>
 
@@ -8,7 +8,8 @@ namespace Trinex
 {
 	class InputDevice;
 
-	struct InputActionPhase {
+	struct InputActionPhase
+	{
 		enum Enum : u8
 		{
 			None,
@@ -32,7 +33,8 @@ namespace Trinex
 		InputValueType value_type() const { return m_value_type; }
 	};
 
-	struct InputControl {
+	struct InputControl
+	{
 		InputDeviceType device_type = InputDeviceType::Undefined;
 		InputDevice* device         = nullptr;
 		EventType type              = EventType::Undefined;
@@ -95,7 +97,8 @@ namespace Trinex
 		InputValue apply(const InputEvent& event, const InputValue& value) const override;
 	};
 
-	struct InputTriggerState {
+	struct InputTriggerState
+	{
 		bool active      = false;
 		f32 elapsed      = 0.f;
 		InputValue value = {};
@@ -187,7 +190,8 @@ namespace Trinex
 		InputActionPhase update(f32 dt, InputTriggerState& state) const override;
 	};
 
-	struct InputMapping {
+	struct InputMapping
+	{
 		Ref<InputAction> action;
 		InputControl control;
 		Array<Ref<InputModifier>> modifiers;
@@ -214,7 +218,8 @@ namespace Trinex
 		const Array<InputMapping>& mappings() const { return m_mappings; }
 	};
 
-	struct InputActionEvent {
+	struct InputActionEvent
+	{
 		Ref<InputAction> action;
 		InputValue value;
 		InputActionPhase phase      = InputActionPhase::None;
@@ -222,7 +227,8 @@ namespace Trinex
 		const InputContext* context = nullptr;
 	};
 
-	struct InputActionState {
+	struct InputActionState
+	{
 		Ref<InputAction> action;
 		InputValue value;
 		InputActionPhase phase    = InputActionPhase::None;
@@ -232,4 +238,4 @@ namespace Trinex
 	using InputActionListenerHandle = Handle<class InputActionListenerTag>;
 	using InputActionListener       = Delegate<bool(const InputActionEvent&)>;
 
-}// namespace Trinex
+} // namespace Trinex

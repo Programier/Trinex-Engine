@@ -1,7 +1,7 @@
 #pragma once
+#include <Core/etl/array.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/etl/set.hpp>
-#include <Core/etl/array.hpp>
 #include <Core/object.hpp>
 #include <Core/string_functions.hpp>
 #include <RHI/enums.hpp>
@@ -80,7 +80,8 @@ namespace Trinex::VisualMaterialGraph
 	class Compiler
 	{
 	private:
-		struct RedirectionKey {
+		struct RedirectionKey
+		{
 			Refl::Class* node_class;
 			Identifier id;
 
@@ -147,7 +148,8 @@ namespace Trinex::VisualMaterialGraph
 	class Pin
 	{
 	public:
-		struct DefaultValue {
+		struct DefaultValue
+		{
 			virtual u8* address()                       = 0;
 			virtual RHIShaderParameterType type() const = 0;
 			virtual Expression compile() const          = 0;
@@ -240,7 +242,8 @@ namespace Trinex::VisualMaterialGraph
 
 	public:
 		template<typename T>
-		struct Scriptable : public Super::Scriptable<T> {
+		struct Scriptable : public Super::Scriptable<T>
+		{
 			Expression compile(OutputPin* pin, Compiler& compiler) override { return Node::script_compile(pin, compiler); }
 			Scriptable& render() override
 			{
@@ -272,4 +275,4 @@ namespace Trinex::VisualMaterialGraph
 
 		~Node();
 	};
-}// namespace Trinex::VisualMaterialGraph
+} // namespace Trinex::VisualMaterialGraph

@@ -1,7 +1,6 @@
 #include <Core/archive.hpp>
 #include <Core/file_flag.hpp>
 
-
 namespace Trinex
 {
 	static constexpr usize make_flag_from_string(const char* string)
@@ -23,7 +22,6 @@ namespace Trinex
 
 		return result;
 	}
-
 
 	FileFlag::FileFlag(usize first, usize second)
 	{
@@ -52,4 +50,4 @@ namespace Trinex
 		static FileFlag flag(make_flag_from_string("TRINEX"), make_flag_from_string("ASSET"));
 		return flag;
 	}
-}// namespace Trinex
+} // namespace Trinex

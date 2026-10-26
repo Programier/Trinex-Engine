@@ -25,4 +25,4 @@ namespace Trinex
 		Matrix4f projection_matrix(float aspect = 1.f);
 		Matrix4f view_matrix();
 	};
-}// namespace Trinex
+} // namespace Trinex

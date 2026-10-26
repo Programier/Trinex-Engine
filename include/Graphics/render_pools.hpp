@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/engine_types.hpp>
-#include <Core/etl/map.hpp>
 #include <Core/etl/array.hpp>
+#include <Core/etl/map.hpp>
 #include <Core/math/fwd.hpp>
 #include <Core/pointer.hpp>
 #include <RHI/enums.hpp>
@@ -20,7 +20,8 @@ namespace Trinex
 	class trinex_api RHIFencePool final
 	{
 	private:
-		struct FenceEntry {
+		struct FenceEntry
+		{
 			u64 frame       = 0;
 			RHIFence* fence = nullptr;
 		};
@@ -44,7 +45,8 @@ namespace Trinex
 	class trinex_api RHIBufferPool final
 	{
 	private:
-		struct BufferEntry {
+		struct BufferEntry
+		{
 			u64 frame         = 0;
 			RHIBuffer* buffer = nullptr;
 		};
@@ -69,7 +71,8 @@ namespace Trinex
 	class trinex_api RHITexturePool final
 	{
 	private:
-		struct Key {
+		struct Key
+		{
 			u16 width;
 			u16 height;
 			u16 depth;
@@ -81,11 +84,13 @@ namespace Trinex
 			inline bool operator==(const Key& key) const = default;
 		};
 
-		struct trinex_api Hasher {
+		struct trinex_api Hasher
+		{
 			u64 operator()(const Key& key) const;
 		};
 
-		struct SurfaceEntry {
+		struct SurfaceEntry
+		{
 			u64 frame           = 0;
 			RHITexture* surface = nullptr;
 		};
@@ -113,7 +118,8 @@ namespace Trinex
 	class trinex_api RenderSurfacePool final
 	{
 	private:
-		struct SurfaceEntry {
+		struct SurfaceEntry
+		{
 			u64 frame = 0;
 			Pointer<RenderSurface> surface;
 		};
@@ -136,7 +142,8 @@ namespace Trinex
 	class trinex_api RHITimestampPool final
 	{
 	private:
-		struct TimestampEntry {
+		struct TimestampEntry
+		{
 			u64 frame               = 0;
 			RHITimestamp* timestamp = nullptr;
 		};
@@ -155,7 +162,8 @@ namespace Trinex
 	class trinex_api RHIPipelineStatisticsPool final
 	{
 	private:
-		struct StatsEntry {
+		struct StatsEntry
+		{
 			u64 frame                    = 0;
 			RHIPipelineStatistics* stats = nullptr;
 		};
@@ -174,7 +182,8 @@ namespace Trinex
 	class trinex_api RHIContextPool final
 	{
 	private:
-		struct ContextEntry {
+		struct ContextEntry
+		{
 			u64 frame           = 0;
 			RHIContext* context = nullptr;
 		};
@@ -209,4 +218,4 @@ namespace Trinex
 			return *this;
 		}
 	};
-}// namespace Trinex
+} // namespace Trinex

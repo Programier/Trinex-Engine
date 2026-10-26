@@ -9,7 +9,7 @@ namespace Trinex
 		class Node;
 		class NodeLayout;
 		class MaterialRoot;
-	}// namespace VisualMaterialGraph
+	} // namespace VisualMaterialGraph
 
 	class VisualMaterial : public Material
 	{
@@ -44,4 +44,4 @@ namespace Trinex
 		inline RootNode* root_node() const { return reinterpret_cast<RootNode*>(nodes()[0].ptr()); }
 		inline bool is_root_node(VisualMaterialGraph::Node* node) const { return m_nodes[0].ptr() == node; }
 	};
-}// namespace Trinex
+} // namespace Trinex

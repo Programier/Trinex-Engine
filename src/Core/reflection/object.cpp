@@ -15,7 +15,7 @@ namespace Trinex::Refl
 		trinex_api Name description  = "description";
 		trinex_api Name group        = "group";
 		trinex_api Name renderer     = "renderer";
-	}// namespace Meta
+	} // namespace Meta
 
 	static Set<Object*> m_instances;
 	static bool m_check_exiting_instance = true;
@@ -43,7 +43,8 @@ namespace Trinex::Refl
 	bool ClassInfo::is_a(const ClassInfo* const info) const
 	{
 		const ClassInfo* self = this;
-		while (self && self != info) self = self->parent;
+		while (self && self != info)
+			self = self->parent;
 		return self != nullptr;
 	}
 
@@ -465,4 +466,4 @@ namespace Trinex::Refl
 			}
 		}
 	}
-}// namespace Trinex::Refl
+} // namespace Trinex::Refl

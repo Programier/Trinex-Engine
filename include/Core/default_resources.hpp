@@ -27,7 +27,7 @@ namespace Trinex
 			trinex_api extern Texture2D* noise16x16;
 			trinex_api extern Texture2D* noise128x128;
 			trinex_api extern Texture3D* default_lut;
-		}// namespace Textures
+		} // namespace Textures
 
 		namespace Buffers
 		{
@@ -38,7 +38,7 @@ namespace Trinex
 		{
 			trinex_api extern Material* sprite;
 			trinex_api extern Material* base_pass;
-		}// namespace Materials
+		} // namespace Materials
 
 		namespace Meshes
 		{
@@ -47,9 +47,9 @@ namespace Trinex
 			trinex_api extern StaticMesh* cylinder;
 			trinex_api extern StaticMesh* plane;
 			trinex_api extern StaticMesh* cone;
-		}// namespace Meshes
+		} // namespace Meshes
 
-	}// namespace DefaultResources
+	} // namespace DefaultResources
 
 	trinex_api class Object* load_object_from_memory(const u8* data, usize size, const StringView& fullname);
-}// namespace Trinex
+} // namespace Trinex

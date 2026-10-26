@@ -3,7 +3,8 @@
 
 namespace Trinex
 {
-	struct trinex_api Plane {
+	struct trinex_api Plane
+	{
 		Vector3f normal;
 		f32 offset;
 
@@ -12,4 +13,4 @@ namespace Trinex
 		Plane(const Vector3f& normal, float distance);
 		Plane(const Vector3f& normal, const Vector3f& location);
 	};
-}// namespace Trinex
+} // namespace Trinex

@@ -8,7 +8,8 @@ namespace Trinex
 {
 	using InputListenerHandle = Handle<class InputListener>;
 
-	struct InputValueType {
+	struct InputValueType
+	{
 		enum Enum : u8
 		{
 			Undefined,
@@ -24,7 +25,8 @@ namespace Trinex
 		trinex_enum_struct(InputValueType);
 	};
 
-	struct InputValue {
+	struct InputValue
+	{
 		InputValueType type = InputValueType::Undefined;
 		Vector3f axes       = {0.f, 0.f, 0.f};
 
@@ -37,7 +39,8 @@ namespace Trinex
 		bool is_active() const { return axes.x != 0.f || axes.y != 0.f || axes.z != 0.f; }
 	};
 
-	struct trinex_api InputDeviceType : private Name {
+	struct trinex_api InputDeviceType : private Name
+	{
 		using Name::c_str;
 		using Name::hash;
 		using Name::id;
@@ -61,7 +64,8 @@ namespace Trinex
 		inline bool operator!=(const InputDeviceType& other) const { return Name::operator!=(other); }
 	};
 
-	struct trinex_api EventType : private Name {
+	struct trinex_api EventType : private Name
+	{
 		using Name::c_str;
 		using Name::hash;
 		using Name::id;
@@ -136,7 +140,8 @@ namespace Trinex
 		inline bool operator!=(const EventType& other) const { return Name::operator!=(other); }
 	};
 
-	struct trinex_api EventCode : private Name {
+	struct trinex_api EventCode : private Name
+	{
 
 	public:
 		using Name::c_str;
@@ -317,7 +322,8 @@ namespace Trinex
 
 	class InputDevice;
 
-	struct InputEvent {
+	struct InputEvent
+	{
 		InputDevice* device     = nullptr;
 		u64 window_id           = 0;
 		EventType type          = EventType::Undefined;
@@ -338,4 +344,4 @@ namespace Trinex
 		}
 	};
 
-}// namespace Trinex
+} // namespace Trinex

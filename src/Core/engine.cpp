@@ -118,4 +118,4 @@ namespace Trinex
 	}
 
 	trinex_api Engine* engine_instance = nullptr;
-}// namespace Trinex
+} // namespace Trinex

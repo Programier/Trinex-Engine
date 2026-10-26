@@ -6,14 +6,16 @@ namespace Trinex::LifeCycle
 {
 	namespace
 	{
-		struct Handler {
+		struct Handler
+		{
 			Handler* next;
 			Function function;
 			const char* name;
 			Array<const char*> dependencies;
 		};
 
-		struct PendingHandlers {
+		struct PendingHandlers
+		{
 			PendingHandlers* next;
 			Handler* list;
 		};
@@ -81,7 +83,7 @@ namespace Trinex::LifeCycle
 				}
 			}
 		}
-	}// namespace
+	} // namespace
 
 	Registrar::Registrar(i32 event, Function function, const Description& description)
 	{
@@ -102,4 +104,4 @@ namespace Trinex::LifeCycle
 			execute_handler(current, &list);
 		}
 	}
-}// namespace Trinex::LifeCycle
+} // namespace Trinex::LifeCycle

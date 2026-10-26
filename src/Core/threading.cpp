@@ -1,8 +1,8 @@
+#include <Core/etl/array.hpp>
 #include <Core/etl/atomic.hpp>
 #include <Core/etl/critical_section.hpp>
 #include <Core/etl/deque.hpp>
 #include <Core/etl/scope_variable.hpp>
-#include <Core/etl/array.hpp>
 #include <Core/math/math.hpp>
 #include <Core/memory.hpp>
 #include <Core/threading.hpp>
@@ -265,11 +265,13 @@ namespace Trinex
 
 	static thread_local Thread* this_thread_instance = nullptr;
 
-	struct Thread::Impl {
+	struct Thread::Impl
+	{
 		Deque<Task::TaskImpl*> m_tasks[3];
 		CriticalSection m_cs;
 
-		struct ThreadData {
+		struct ThreadData
+		{
 			std::thread* m_thread;
 			std::condition_variable m_cv;
 			bool m_running = true;
@@ -638,7 +640,8 @@ namespace Trinex
 				thread_count = 1;
 
 			m_workers.reserve(thread_count);
-			for (usize i = 0; i < thread_count; ++i) m_workers.emplace_back(trx_new Thread(worker_main, this));
+			for (usize i = 0; i < thread_count; ++i)
+				m_workers.emplace_back(trx_new Thread(worker_main, this));
 		}
 
 		~TaskGraphImpl()
@@ -648,7 +651,8 @@ namespace Trinex
 				m_stop = true;
 			}
 			m_cv.notify_all();
-			for (Thread* worker : m_workers) trx_delete worker;
+			for (Thread* worker : m_workers)
+				trx_delete worker;
 		}
 
 		void add_task_locked(Task::TaskImpl* task)
@@ -816,4 +820,4 @@ namespace Trinex
 	{
 		destroy_thread(s_logic_thread);
 	}
-}// namespace Trinex
+} // namespace Trinex

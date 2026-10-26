@@ -39,7 +39,7 @@ namespace Trinex::UI
 
 			return nullptr;
 		}
-	}// namespace
+	} // namespace
 
 	trinex_implement_class(Trinex::UI::Client, 0) {}
 
@@ -136,7 +136,6 @@ namespace Trinex::UI
 		ImGui::SetCurrentContext(m_ctx);
 		ClientListener::for_each<&ClientListener::on_begin_frame>(this);
 		ImGui::NewFrame();
-
 
 		//DockLayoutOptions options = {};
 
@@ -373,4 +372,4 @@ namespace Trinex::UI
 	{
 		return *this;
 	}
-}// namespace Trinex::UI
+} // namespace Trinex::UI

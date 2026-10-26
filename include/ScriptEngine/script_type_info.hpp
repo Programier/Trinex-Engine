@@ -16,7 +16,6 @@ namespace Trinex
 		mutable asITypeInfo* m_info = nullptr;
 		const ScriptTypeInfo& add_ref() const;
 
-
 	public:
 		ScriptTypeInfo(asITypeInfo* info = nullptr);
 		trinex_copyable(ScriptTypeInfo);
@@ -119,4 +118,4 @@ namespace Trinex
 
 		~ScriptTypeInfo();
 	};
-}// namespace Trinex
+} // namespace Trinex

@@ -8,15 +8,16 @@ namespace Trinex::Platform
 	using FileOffset   = i64;
 	using FilePosition = u64;
 
-	struct Result {
+	struct Result
+	{
 		bool success    = false;
 		u32 error_code  = 0;
 		const char* api = nullptr;
 
 		inline explicit operator bool() const { return success; }
 	};
-	
-	struct EnvironmentVariable{
-		
+
+	struct EnvironmentVariable
+	{
 	};
-}// namespace Trinex::Platform
+} // namespace Trinex::Platform

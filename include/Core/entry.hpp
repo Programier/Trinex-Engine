@@ -11,4 +11,4 @@ namespace Trinex
 	public:
 		virtual i32 execute();
 	};
-}// namespace Trinex
+} // namespace Trinex

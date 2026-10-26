@@ -268,4 +268,4 @@ namespace Trinex::UI
 		ImGui::GetWindowDrawList()->PopClipRect();
 		return *this;
 	}
-}// namespace Trinex::UI
+} // namespace Trinex::UI

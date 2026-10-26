@@ -104,4 +104,4 @@ namespace Trinex::Refl
 	{
 		return m_entries;
 	}
-}// namespace Trinex::Refl
+} // namespace Trinex::Refl

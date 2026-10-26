@@ -19,26 +19,27 @@ namespace Trinex
 	{
 		class Graph;
 		class Pass;
-	}// namespace RenderGraph
+	} // namespace RenderGraph
 
 	class trinex_api Renderer
 	{
 	public:
 		enum SurfaceType
 		{
-			SceneColorHDR,// Render target for scene hdr colors
-			SceneColorLDR,// Render target for scene ldr colors
-			SceneDepth,   // Render target for scene depths
-			BaseColor,    // Render target for base color
-			Normal,       // Render target for normal
-			MSRA,         // Render target for MSRA (R: Metalic, G: Roughness, B: Specular, A: AO)
-			Velocity,     // Render target for motion vectors
+			SceneColorHDR, // Render target for scene hdr colors
+			SceneColorLDR, // Render target for scene ldr colors
+			SceneDepth,    // Render target for scene depths
+			BaseColor,     // Render target for base color
+			Normal,        // Render target for normal
+			MSRA,          // Render target for MSRA (R: Metalic, G: Roughness, B: Specular, A: AO)
+			Velocity,      // Render target for motion vectors
 
 			LastSurface,
 		};
 
 	private:
-		struct ChildRenderer {
+		struct ChildRenderer
+		{
 			Renderer* renderer;
 			ChildRenderer* next;
 		};
@@ -110,4 +111,4 @@ namespace Trinex
 		virtual ~Renderer() {}
 	};
 
-}// namespace Trinex
+} // namespace Trinex

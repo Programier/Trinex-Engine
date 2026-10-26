@@ -3,7 +3,8 @@
 
 namespace Trinex
 {
-	struct MaterialDomain {
+	struct MaterialDomain
+	{
 		enum Enum : EnumerateType
 		{
 			Surface     = 0,
@@ -14,7 +15,8 @@ namespace Trinex
 		trinex_enum(MaterialDomain);
 	};
 
-	struct MaterialDepthMode {
+	struct MaterialDepthMode
+	{
 		enum Enum : EnumerateType
 		{
 			Disabled     = 0,
@@ -30,7 +32,8 @@ namespace Trinex
 		inline bool is_write_enabled() const { return bitfield & Write; }
 	};
 
-	struct MaterialBlendMode {
+	struct MaterialBlendMode
+	{
 		enum Enum : EnumerateType
 		{
 			Opaque      = 0,
@@ -49,4 +52,4 @@ namespace Trinex
 		inline bool is_additive() const { return value == Additive; }
 		inline bool is_modulate() const { return value == Modulate; }
 	};
-}// namespace Trinex
+} // namespace Trinex

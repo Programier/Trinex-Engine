@@ -11,7 +11,8 @@ namespace Trinex
 	class RHITexture;
 	class Sampler;
 
-	struct trinex_api Texture2DMip {
+	struct trinex_api Texture2DMip
+	{
 		Vector2u size;
 		Buffer data;
 
@@ -19,7 +20,8 @@ namespace Trinex
 		bool serialize(Archive& ar);
 	};
 
-	struct trinex_api Texture3DMip {
+	struct trinex_api Texture3DMip
+	{
 		Vector3u size;
 		Buffer data;
 
@@ -27,14 +29,14 @@ namespace Trinex
 		bool serialize(Archive& ar);
 	};
 
-	struct trinex_api TextureCubeMip {
+	struct trinex_api TextureCubeMip
+	{
 		Vector2u size;
 		Buffer data;
 
 		TextureCubeMip(Vector2u init_size = {}, const Buffer& buffer = {}) : size(init_size), data(buffer) {}
 		bool serialize(Archive& ar);
 	};
-
 
 	class trinex_api Texture : public Asset
 	{
@@ -93,4 +95,4 @@ namespace Trinex
 		Vector2u size(u8 mip = 0) const;
 		bool serialize(Archive& archive) override;
 	};
-}// namespace Trinex
+} // namespace Trinex

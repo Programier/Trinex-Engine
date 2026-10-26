@@ -33,7 +33,6 @@
 #include <imgui_internal.h>
 #include <imgui_stacklayout.h>
 
-
 namespace Trinex
 {
 
@@ -97,7 +96,6 @@ namespace Trinex
 			RHIPipelineStatisticsPool::global_instance()->release(m_last);
 		}
 	}
-
 
 	void EditorClientOLD::Stats::Timings::Frame::clear()
 	{
@@ -600,7 +598,6 @@ namespace Trinex
 			}
 		}
 
-
 		return *this;
 	}
 
@@ -645,7 +642,8 @@ namespace Trinex
 			ImGui::SameLine();
 		};
 
-		struct {
+		struct
+		{
 			ImGuizmo::OPERATION op;
 			const char* name;
 		} operation_controls[] = {
@@ -790,8 +788,8 @@ namespace Trinex
 		auto cursor_position = ImGui::GetCursorPos();
 		auto viewport_size   = ImGui::GetContentRegionAvail();
 
-		if (!ImGuizmo::IsOver() && ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered() &&
-		    ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+		if (!ImGuizmo::IsOver() && ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered()
+		    && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 		{
 			auto relative_mouse_pos = ImGui::GetMousePos() - (ImGui::GetWindowPos() + ImGui::GetCursorPos());
 			Vector2f uv             = ImGui::EngineVecFrom(relative_mouse_pos / viewport_size);
@@ -849,8 +847,8 @@ namespace Trinex
 	{
 		move_camera(m_camera_move, m_camera_relative_mode);
 
-		camera->add_location(Vector3f((camera->world_transform().rotation_matrix() * Vector4f(m_camera_move, 1.0))) *
-		                     m_dt.average() * m_camera_speed);
+		camera->add_location(Vector3f((camera->world_transform().rotation_matrix() * Vector4f(m_camera_move, 1.0)))
+		                     * m_dt.average() * m_camera_speed);
 
 		float aspect = m_state.viewport.size.x / m_state.viewport.size.y;
 
@@ -958,4 +956,4 @@ namespace Trinex
 		return *this;
 	}
 
-}// namespace Trinex
+} // namespace Trinex

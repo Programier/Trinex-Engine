@@ -20,52 +20,50 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-
 #include "x86-64/compiler.hpp"
 
 #if ARCH_X86_64 || FORCE_COMPILE_X86_64_JIT
 
-#include <algorithm>
-#include <cinttypes>
-#include <cmath>
-#include <cstring>
-#include <stdexcept>
+	#include <algorithm>
+	#include <cinttypes>
+	#include <cmath>
+	#include <cstring>
+	#include <stdexcept>
 
-#define WITH_LOG 0
-#define SHOW_JIT_ENTRY 0
+	#define WITH_LOG 0
+	#define SHOW_JIT_ENTRY 0
 
-#if WITH_LOG
-#define logf printf
-#else
-#define logf(...)
-#endif
+	#if WITH_LOG
+		#define logf printf
+	#else
+		#define logf(...)
+	#endif
 
-#define STDCALL_DECL
+	#define STDCALL_DECL
 
-#define RETURN_CONTROL_TO_VM() return exec_asBC_RET(info)
-#define NEED_IMPLEMENTATION()                                                                                                    \
-	printf("Function %s need implementaion!\n", __FUNCTION__);                                                                   \
-	RETURN_CONTROL_TO_VM()
-#define CHECK_IT() printf("Function %s marked for check\n", __FUNCTION__)
+	#define RETURN_CONTROL_TO_VM() return exec_asBC_RET(info)
+	#define NEED_IMPLEMENTATION()                                                                                                \
+		printf("Function %s need implementaion!\n", __FUNCTION__);                                                               \
+		RETURN_CONTROL_TO_VM()
+	#define CHECK_IT() printf("Function %s marked for check\n", __FUNCTION__)
 
-#define MAYBE_UNUSED __attribute__((unused))
+	#define MAYBE_UNUSED __attribute__((unused))
 
-#define arg_value_dword(offset) asBC_DWORDARG(info->address + offset)
-#define arg_value_int() asBC_INTARG(info->address)
-#define arg_value_qword() asBC_QWORDARG(info->address)
-#define arg_value_float(offset) asBC_FLOATARG(info->address + offset)
-#define arg_value_ptr() asBC_PTRARG(info->address)
-#define arg_value_word(index) (*(((asWORD*) info->address) + index + 1))
-#define arg_value_short(index) (*(((signed short*) info->address) + index + 1))
-#define arg_offset(index) (-(*(((short*) info->address) + index + 1)) * sizeof(asDWORD))
-#define new_instruction(x) catch_errors(info->assembler.x)
+	#define arg_value_dword(offset) asBC_DWORDARG(info->address + offset)
+	#define arg_value_int() asBC_INTARG(info->address)
+	#define arg_value_qword() asBC_QWORDARG(info->address)
+	#define arg_value_float(offset) asBC_FLOATARG(info->address + offset)
+	#define arg_value_ptr() asBC_PTRARG(info->address)
+	#define arg_value_word(index) (*(((asWORD*) info->address) + index + 1))
+	#define arg_value_short(index) (*(((signed short*) info->address) + index + 1))
+	#define arg_offset(index) (-(*(((short*) info->address) + index + 1)) * sizeof(asDWORD))
+	#define new_instruction(x) catch_errors(info->assembler.x)
 
-
-#if !PLATFORM_WINDOWS && !PLATFORM_LINUX
-#define PLATFORM_DEFAULT 1
-#else
-#define PLATFORM_DEFAULT 0
-#endif
+	#if !PLATFORM_WINDOWS && !PLATFORM_LINUX
+		#define PLATFORM_DEFAULT 1
+	#else
+		#define PLATFORM_DEFAULT 0
+	#endif
 
 namespace JIT
 {
@@ -75,7 +73,7 @@ namespace JIT
 
 	static constexpr inline size_t const_pool_size = 64;
 
-#if PLATFORM_LINUX || PLATFORM_DEFAULT
+	#if PLATFORM_LINUX || PLATFORM_DEFAULT
 	static constexpr inline Gpq stack_pointer MAYBE_UNUSED = rsp;
 	static constexpr inline Gpq base_pointer MAYBE_UNUSED  = rbp;
 
@@ -133,8 +131,7 @@ namespace JIT
 	static constexpr inline Gpq vm_object MAYBE_UNUSED              = r11;
 	static constexpr inline Gpq vm_object_type MAYBE_UNUSED         = r12;
 
-
-#elif PLATFORM_WINDOWS
+	#elif PLATFORM_WINDOWS
 	static constexpr inline Gpq stack_pointer MAYBE_UNUSED = rsp;
 	static constexpr inline Gpq base_pointer MAYBE_UNUSED  = rbp;
 
@@ -191,8 +188,7 @@ namespace JIT
 	static constexpr inline Gpb vm_value_b MAYBE_UNUSED             = r10b;
 	static constexpr inline Gpq vm_object MAYBE_UNUSED              = r11;
 	static constexpr inline Gpq vm_object_type MAYBE_UNUSED         = r12;
-#endif
-
+	#endif
 
 	static float STDCALL_DECL mod_float(float a, float b)
 	{
@@ -241,9 +237,9 @@ namespace JIT
 
 	static void STDCALL_DECL make_exception_nullptr_access()
 	{
-#if __cpp_exceptions
+	#if __cpp_exceptions
 		throw std::runtime_error("Attempting to access a null pointer");
-#endif
+	#endif
 	}
 
 	////////////////////// MUST BE REMOVED IN FUTURE! //////////////////////
@@ -262,12 +258,10 @@ namespace JIT
 		return static_cast<float>(value);
 	}
 
-
 	static float STDCALL_DECL uint64_to_float(uint64_t value)
 	{
 		return static_cast<float>(value);
 	}
-
 
 	static uint64_t STDCALL_DECL double_to_uint64(double value)
 	{
@@ -291,9 +285,9 @@ namespace JIT
 
 	X86_64_Compiler::X86_64_Compiler(bool with_suspend) : m_with_suspend(with_suspend)
 	{
-#define register_code(name)                                                                                                      \
-	exec[static_cast<size_t>(name)]       = &X86_64_Compiler::exec_##name;                                                       \
-	code_names[static_cast<size_t>(name)] = #name;
+	#define register_code(name)                                                                                                  \
+		exec[static_cast<size_t>(name)]       = &X86_64_Compiler::exec_##name;                                                   \
+		code_names[static_cast<size_t>(name)] = #name;
 
 		register_code(asBC_PopPtr);
 		register_code(asBC_PshGPtr);
@@ -496,9 +490,8 @@ namespace JIT
 		register_code(asBC_POWi64);
 		register_code(asBC_POWu64);
 		register_code(asBC_Thiscall1);
-#undef register_code
+	#undef register_code
 	}
-
 
 	int X86_64_Compiler::CompileFunction(asIScriptFunction* function, asJITFunction* output)
 	{
@@ -525,7 +518,6 @@ namespace JIT
 		Label const_pool_label = info.assembler.newLabel();
 		info.const_pool_label  = &const_pool_label;
 		info.const_pool        = &const_pool;
-
 
 		unsigned int index              = 0;
 		std::set<unsigned int>& skip_it = m_skip_instructions[function->GetName()];
@@ -572,14 +564,13 @@ namespace JIT
 		bind_label_if_required(info);
 		size_t index = static_cast<size_t>(info->instruction);
 
-#if WITH_LOG
+	#if WITH_LOG
 		auto current_offset = info->assembler.offset();
-#endif
-
+	#endif
 
 		((*this).*exec[index])(info);
 
-#if WITH_LOG
+	#if WITH_LOG
 		{
 			auto size           = instruction_size(info->instruction);
 			bool is_implemented = current_offset != info->assembler.offset();
@@ -589,9 +580,9 @@ namespace JIT
 				is_implemented = true;
 			}
 
-#if !SHOW_JIT_ENTRY
+		#if !SHOW_JIT_ENTRY
 			if (info->instruction != asBC_JitEntry && info->instruction != asBC_SUSPEND)
-#endif
+		#endif
 			{
 				logf("%-15s (%3zu with size = %u, %15s) -> [", code_names[index], index, size,
 				     (is_implemented ? "IMPLEMENTED" : "NOT IMPLEMENTED"));
@@ -603,11 +594,10 @@ namespace JIT
 				printf("]\n");
 			}
 		}
-#endif
+	#endif
 
 		return instruction_size(info->instruction);
 	}
-
 
 	void X86_64_Compiler::init(CompileInfo* info)
 	{
@@ -647,7 +637,6 @@ namespace JIT
 					info->labels.back().label             = info->assembler.newLabel();
 					break;
 				}
-
 
 				default: break;
 			}
@@ -705,11 +694,11 @@ namespace JIT
 				return index;
 		}
 
-#if __cpp_exceptions
+	#if __cpp_exceptions
 		throw std::runtime_error("Undefined label");
-#else
+	#else
 		return info->labels.size();
-#endif
+	#endif
 	}
 
 	asUINT X86_64_Compiler::instruction_size(asEBCInstr instruction)
@@ -772,7 +761,6 @@ namespace JIT
 	{
 		Label not_equal = info->assembler.newLabel();
 		Label end       = info->assembler.newLabel();
-
 
 		new_instruction(cmp(vm_value_q, 0));
 		new_instruction(jne(not_equal));
@@ -870,7 +858,6 @@ namespace JIT
 		CHECK_IT();
 		Label is_zero = info->assembler.newLabel();
 		Label end     = info->assembler.newLabel();
-
 
 		new_instruction(cmp(vm_value_d, 0));
 		new_instruction(je(is_zero));
@@ -1329,7 +1316,6 @@ namespace JIT
 		new_instruction(bind(end));
 	}
 
-
 	void X86_64_Compiler::exec_asBC_CMPIf(CompileInfo* info)
 	{
 		short offset0 = arg_offset(0);
@@ -1402,9 +1388,9 @@ namespace JIT
 	void X86_64_Compiler::exec_asBC_STR(CompileInfo* info)
 	{
 		// Byte code is deprecated!
-#if __cpp_exceptions
+	#if __cpp_exceptions
 		throw std::runtime_error("Byte code asBC_STR is deprecated!");
-#endif
+	#endif
 	}
 
 	void X86_64_Compiler::exec_asBC_CALLSYS(CompileInfo* info)
@@ -1625,7 +1611,6 @@ namespace JIT
 		new_instruction(mov(dword_free_1, dword_ptr(qword_free_1)));
 		new_instruction(mov(dword_ptr(vm_stack_frame_pointer, offset), dword_free_1));
 	}
-
 
 	void X86_64_Compiler::exec_asBC_WRTV1(CompileInfo* info)
 	{
@@ -2122,7 +2107,6 @@ namespace JIT
 	{
 		RETURN_CONTROL_TO_VM();
 	}
-
 
 	void X86_64_Compiler::exec_asBC_iTOb(CompileInfo* info)
 	{
@@ -2799,6 +2783,6 @@ namespace JIT
 	{
 		RETURN_CONTROL_TO_VM();
 	}
-}// namespace JIT
+} // namespace JIT
 
 #endif

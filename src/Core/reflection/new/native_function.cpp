@@ -16,4 +16,4 @@ namespace Trinex::Refl::New
 		trinex_verify(m_address);
 	}
 
-}// namespace Trinex::Refl::New
+} // namespace Trinex::Refl::New

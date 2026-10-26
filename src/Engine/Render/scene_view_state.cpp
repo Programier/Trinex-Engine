@@ -58,4 +58,4 @@ namespace Trinex
 	{
 		return *this;
 	}
-}// namespace Trinex
+} // namespace Trinex

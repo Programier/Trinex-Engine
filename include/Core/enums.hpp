@@ -3,7 +3,8 @@
 
 namespace Trinex
 {
-	struct OperationSystemType {
+	struct OperationSystemType
+	{
 		enum Enum
 		{
 			Linux,
@@ -15,7 +16,8 @@ namespace Trinex
 		trinex_enum(OperationSystemType);
 	};
 
-	struct PhysicalSizeMetric {
+	struct PhysicalSizeMetric
+	{
 		enum Enum
 		{
 			Inch,
@@ -26,7 +28,8 @@ namespace Trinex
 		trinex_enum(PhysicalSizeMetric);
 	};
 
-	struct WindowAttribute {
+	struct WindowAttribute
+	{
 		enum Enum : u64
 		{
 			Undefined = 0,
@@ -64,8 +67,8 @@ namespace Trinex
 			ReadOnly = Occluded | InputFocus | MouseFocus | MouseCapture,
 
 			// Can be directly changed at runtime.
-			ReadWrite = Fullscreen | Hidden | Borderless | Resizable | MouseGrabbed | KeyboardGrabbed | MouseRelativeMode |
-			            AlwaysOnTop | NotFocusable | Modal,
+			ReadWrite = Fullscreen | Hidden | Borderless | Resizable | MouseGrabbed | KeyboardGrabbed | MouseRelativeMode
+			            | AlwaysOnTop | NotFocusable | Modal,
 
 			// Runtime state changed through commands:
 			// minimize(), maximize(), restore().
@@ -101,7 +104,8 @@ namespace Trinex
 		trinex_bitfield_enum_struct(WindowAttribute, u64);
 	};
 
-	struct CursorMode {
+	struct CursorMode
+	{
 		enum Enum : EnumerateType
 		{
 			Normal,
@@ -112,7 +116,8 @@ namespace Trinex
 		trinex_enum(CursorMode);
 	};
 
-	struct Orientation {
+	struct Orientation
+	{
 		enum Enum : EnumerateType
 		{
 			Landscape        = 0,
@@ -125,7 +130,8 @@ namespace Trinex
 		trinex_enum(Orientation);
 	};
 
-	struct MessageBoxType {
+	struct MessageBoxType
+	{
 		enum Enum
 		{
 			Error,
@@ -137,7 +143,8 @@ namespace Trinex
 		trinex_enum(MessageBoxType);
 	};
 
-	struct ArchiveFlags {
+	struct ArchiveFlags
+	{
 		enum Enum : EnumerateType
 		{
 			Undefined        = 0,
@@ -148,7 +155,8 @@ namespace Trinex
 		trinex_bitfield_enum_struct(ArchiveFlags, EnumerateType);
 	};
 
-	struct IOWhence {
+	struct IOWhence
+	{
 		enum Enum : u8
 		{
 			Current = 0,
@@ -159,7 +167,8 @@ namespace Trinex
 		trinex_enum_struct(IOWhence);
 	};
 
-	struct IOMode {
+	struct IOMode
+	{
 		enum Enum : u8
 		{
 			Read  = 0,
@@ -169,7 +178,8 @@ namespace Trinex
 		trinex_enum_struct(IOMode);
 	};
 
-	struct SplashTextType {
+	struct SplashTextType
+	{
 		enum Enum : EnumerateType
 		{
 			StartupProgress = 0,
@@ -182,4 +192,4 @@ namespace Trinex
 		trinex_enum_struct(SplashTextType);
 		trinex_enum(SplashTextType);
 	};
-}// namespace Trinex
+} // namespace Trinex

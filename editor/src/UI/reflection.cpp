@@ -27,7 +27,8 @@ namespace Trinex::UI::Refl
 
 	Type& Type::bind(Name name, Property* prop)
 	{
-		struct DownCastChecker {
+		struct DownCastChecker
+		{
 			static void check(Type* type, Name name)
 			{
 				for (Type* child : type->m_childs)
@@ -474,8 +475,8 @@ namespace Trinex::UI::Refl
 		}
 
 		VectorType result;
-		if (!value_to_f32(result.x, values[0], mask) || !value_to_f32(result.y, values[1], mask) ||
-		    !value_to_f32(result.z, values[2], mask))
+		if (!value_to_f32(result.x, values[0], mask) || !value_to_f32(result.y, values[1], mask)
+		    || !value_to_f32(result.z, values[2], mask))
 		{
 			return false;
 		}
@@ -495,8 +496,8 @@ namespace Trinex::UI::Refl
 		}
 
 		VectorType result;
-		if (!value_to_f32(result.x, values[0], mask) || !value_to_f32(result.y, values[1], mask) ||
-		    !value_to_f32(result.z, values[2], mask) || !value_to_f32(result.w, values[3], mask))
+		if (!value_to_f32(result.x, values[0], mask) || !value_to_f32(result.y, values[1], mask)
+		    || !value_to_f32(result.z, values[2], mask) || !value_to_f32(result.w, values[3], mask))
 		{
 			return false;
 		}
@@ -600,7 +601,8 @@ namespace Trinex::UI::Refl
 	struct VectorResolverBinder;
 
 	template<typename Dst, typename... Src>
-	struct VectorResolverBinder<Dst, TypesList<Src...>> {
+	struct VectorResolverBinder<Dst, TypesList<Src...>>
+	{
 		static void bind() { (bind_vector_resolver<Dst, Src>(), ...); }
 	};
 
@@ -668,7 +670,6 @@ namespace Trinex::UI::Refl
 		vector = etl::move(result);
 		return true;
 	}
-
 
 	trinex_on_pre_init()
 	{
@@ -776,4 +777,4 @@ namespace Trinex::UI::Refl
 		trinex_ui_bind_type_name(Markup::Null);
 		trinex_ui_bind_type_name(Markup::Object);
 	}
-}// namespace Trinex::UI::Refl
+} // namespace Trinex::UI::Refl

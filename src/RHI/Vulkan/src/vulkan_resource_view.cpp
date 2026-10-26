@@ -170,4 +170,4 @@ namespace Trinex
 		m_cmd->clearDepthStencilImage(view->image(), vk::ImageLayout::eTransferDstOptimal, value, range);
 		return *this;
 	}
-}// namespace Trinex
+} // namespace Trinex

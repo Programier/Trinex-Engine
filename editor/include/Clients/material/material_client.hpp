@@ -28,4 +28,4 @@ namespace Trinex
 
 		inline Material* material() const { return m_material; }
 	};
-}// namespace Trinex
+} // namespace Trinex

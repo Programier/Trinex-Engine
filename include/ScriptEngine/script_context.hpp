@@ -184,4 +184,4 @@ namespace Trinex
 
 		friend class ScriptEngine;
 	};
-}// namespace Trinex
+} // namespace Trinex

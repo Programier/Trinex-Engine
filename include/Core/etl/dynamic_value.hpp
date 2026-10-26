@@ -62,4 +62,4 @@ namespace Trinex
 		inline explicit operator bool() const { return m_type != nullptr; }
 	};
 
-}// namespace Trinex
+} // namespace Trinex

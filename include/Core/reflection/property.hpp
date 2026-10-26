@@ -10,7 +10,7 @@ namespace Trinex
 	class Object;
 	class ScriptFunction;
 	class Path;
-}// namespace Trinex
+} // namespace Trinex
 
 namespace Trinex::Refl
 {
@@ -20,7 +20,8 @@ namespace Trinex::Refl
 	class ArrayProperty;
 	class PropertyRenderer;
 
-	struct PropertyChangedEvent {
+	struct PropertyChangedEvent
+	{
 		void* context;
 		Property* property;
 		PropertyChangedEvent* owner_event;
@@ -40,7 +41,6 @@ namespace Trinex::Refl
 		inline bool is_a(const void* field) const;
 	};
 
-
 #define trinex_refl_prop_type_filter(...)                                                                                        \
 public:                                                                                                                          \
 	template<typename T>                                                                                                         \
@@ -57,14 +57,15 @@ private:
 
 		template<typename Accessor>
 		struct PropertyImpl;
-	}// namespace Detail
+	} // namespace Detail
 
 	class trinex_api Property : public Object
 	{
 		trinex_reflect_type(Property, Object);
 
 	public:
-		struct Flags {
+		struct Flags
+		{
 			enum Enum : u8
 			{
 				Undefined         = 0,
@@ -129,7 +130,8 @@ private:
 		RenderFunction m_render_function;
 
 		template<usize size>
-		struct InnerProperties {
+		struct InnerProperties
+		{
 			Property* properties[size];
 		};
 
@@ -181,7 +183,8 @@ private:
 		return property->address(context) == field;
 	}
 
-	struct PropertyLayout {
+	struct PropertyLayout
+	{
 		bool draw_label      = true;
 		bool inline_value    = false;
 		bool inline_children = false;
@@ -278,11 +281,13 @@ private:
 
 	private:
 		template<typename T>
-		struct IsVector : std::false_type {
+		struct IsVector : std::false_type
+		{
 		};
 
 		template<glm::length_t L, typename T, glm::qualifier Q>
-		struct IsVector<glm::vec<L, T, Q>> : std::true_type {
+		struct IsVector<glm::vec<L, T, Q>> : std::true_type
+		{
 		};
 
 		trinex_refl_prop_type_filter(IsVector<T>::value);
@@ -320,11 +325,13 @@ private:
 
 	private:
 		template<typename T>
-		struct IsMatrix : std::false_type {
+		struct IsMatrix : std::false_type
+		{
 		};
 
 		template<glm::length_t C, glm::length_t R, typename T, glm::qualifier Q>
-		struct IsMatrix<glm::mat<C, R, T, Q>> : std::true_type {
+		struct IsMatrix<glm::mat<C, R, T, Q>> : std::true_type
+		{
 		};
 
 		trinex_refl_prop_type_filter(IsMatrix<T>::value);
@@ -485,19 +492,23 @@ private:
 
 	protected:
 		template<typename T>
-		struct IsArray : std::false_type {
+		struct IsArray : std::false_type
+		{
 		};
 
 		template<typename T, typename Alloc>
-		struct IsArray<Trinex::Array<T, Alloc>> : std::true_type {
+		struct IsArray<Trinex::Array<T, Alloc>> : std::true_type
+		{
 		};
 
 		template<typename T>
-		struct IsScriptableArray : std::false_type {
+		struct IsScriptableArray : std::false_type
+		{
 		};
 
 		template<typename T>
-		struct IsScriptableArray<Trinex::Array<T>> : std::true_type {
+		struct IsScriptableArray<Trinex::Array<T>> : std::true_type
+		{
 		};
 
 		trinex_refl_prop_type_filter(IsArray<T>::value);
@@ -562,12 +573,14 @@ private:
 		trinex_reflect_type(SubClassProperty, ReflObjectProperty);
 
 		template<typename T>
-		struct IsSubClassProp {
+		struct IsSubClassProp
+		{
 			static constexpr inline bool value = false;
 		};
 
 		template<typename T>
-		struct IsSubClassProp<SubClassOf<T>> {
+		struct IsSubClassProp<SubClassOf<T>>
+		{
 			static constexpr inline bool value = true;
 		};
 
@@ -622,7 +635,8 @@ private:
 		inline constexpr bool always_false = false;
 
 		template<typename T>
-		struct ContextAccessor {
+		struct ContextAccessor
+		{
 			using Type      = T;
 			using OwnerType = void;
 
@@ -633,7 +647,8 @@ private:
 		};
 
 		template<typename T, typename Owner>
-		struct MemberAccessor {
+		struct MemberAccessor
+		{
 			using Type      = T;
 			using OwnerType = Owner;
 
@@ -655,7 +670,8 @@ private:
 		};
 
 		template<typename T>
-		struct StaticAccessor {
+		struct StaticAccessor
+		{
 			using Type      = T;
 			using OwnerType = void;
 
@@ -697,25 +713,29 @@ private:
 		// Maps a concrete C++ value type to the matching reflected Property subclass
 		// while reusing a single accessor-based storage implementation.
 		template<typename Accessor, typename T>
-		struct PropertyImplTyped {
+		struct PropertyImplTyped
+		{
 		};
 
 		template<typename Accessor>
-		struct PropertyImpl : public PropertyImplTyped<Accessor, typename Accessor::Type> {
+		struct PropertyImpl : public PropertyImplTyped<Accessor, typename Accessor::Type>
+		{
 			using Super = PropertyImplTyped<Accessor, typename Accessor::Type>;
 			using Super::Super;
 		};
 
 		template<typename Accessor, typename T>
 		    requires(BooleanProperty::is_supported<T>)
-		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, BooleanProperty> {
+		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, BooleanProperty>
+		{
 			using Super = PropertyStorage<Accessor, BooleanProperty>;
 			using Super::Super;
 		};
 
 		template<typename Accessor, typename T>
 		    requires(IntegerProperty::is_supported<T>)
-		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, IntegerProperty> {
+		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, IntegerProperty>
+		{
 			using Super = PropertyStorage<Accessor, IntegerProperty>;
 			using Super::Super;
 
@@ -724,21 +744,24 @@ private:
 
 		template<typename Accessor, typename T>
 		    requires(FloatProperty::is_supported<T>)
-		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, FloatProperty> {
+		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, FloatProperty>
+		{
 			using Super = PropertyStorage<Accessor, FloatProperty>;
 			using Super::Super;
 		};
 
 		template<typename Accessor, typename T>
 		    requires(AngleProperty::is_supported<T>)
-		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, AngleProperty> {
+		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, AngleProperty>
+		{
 			using Super = PropertyStorage<Accessor, AngleProperty>;
 			using Super::Super;
 		};
 
 		template<typename Accessor, typename T>
 		    requires(VectorProperty::is_supported<T>)
-		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, VectorProperty> {
+		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, VectorProperty>
+		{
 			using Super = PropertyStorage<Accessor, VectorProperty>;
 			using Super::Super;
 
@@ -774,7 +797,8 @@ private:
 
 		template<typename Accessor, typename T>
 		    requires(MatrixProperty::is_supported<T>)
-		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, MatrixProperty> {
+		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, MatrixProperty>
+		{
 			using Super = PropertyStorage<Accessor, MatrixProperty>;
 			using Super::Super;
 
@@ -811,14 +835,16 @@ private:
 
 		template<typename Accessor, typename T>
 		    requires(QuaternionProperty::is_supported<T>)
-		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, QuaternionProperty> {
+		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, QuaternionProperty>
+		{
 			using Super = PropertyStorage<Accessor, QuaternionProperty>;
 			using Super::Super;
 		};
 
 		template<typename Accessor, typename T>
 		    requires(EnumProperty::is_supported<T>)
-		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, EnumProperty> {
+		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, EnumProperty>
+		{
 			using Super = PropertyStorage<Accessor, EnumProperty>;
 			using Super::Super;
 
@@ -827,42 +853,48 @@ private:
 
 		template<typename Accessor, typename T>
 		    requires(ColorProperty::is_supported<T>)
-		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, ColorProperty> {
+		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, ColorProperty>
+		{
 			using Super = PropertyStorage<Accessor, ColorProperty>;
 			using Super::Super;
 		};
 
 		template<typename Accessor, typename T>
 		    requires(LinearColorProperty::is_supported<T>)
-		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, LinearColorProperty> {
+		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, LinearColorProperty>
+		{
 			using Super = PropertyStorage<Accessor, LinearColorProperty>;
 			using Super::Super;
 		};
 
 		template<typename Accessor, typename T>
 		    requires(StringProperty::is_supported<T>)
-		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, StringProperty> {
+		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, StringProperty>
+		{
 			using Super = PropertyStorage<Accessor, StringProperty>;
 			using Super::Super;
 		};
 
 		template<typename Accessor, typename T>
 		    requires(NameProperty::is_supported<T>)
-		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, NameProperty> {
+		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, NameProperty>
+		{
 			using Super = PropertyStorage<Accessor, NameProperty>;
 			using Super::Super;
 		};
 
 		template<typename Accessor, typename T>
 		    requires(PathProperty::is_supported<T>)
-		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, PathProperty> {
+		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, PathProperty>
+		{
 			using Super = PropertyStorage<Accessor, PathProperty>;
 			using Super::Super;
 		};
 
 		template<typename Accessor, typename T>
 		    requires(ObjectProperty::is_supported<T>)
-		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, ObjectProperty> {
+		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, ObjectProperty>
+		{
 			using Super = PropertyStorage<Accessor, ObjectProperty>;
 			using Super::Super;
 
@@ -871,7 +903,8 @@ private:
 
 		template<typename Accessor, typename T>
 		    requires(StructProperty::is_supported<T>)
-		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, StructProperty> {
+		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, StructProperty>
+		{
 			using Super = PropertyStorage<Accessor, StructProperty>;
 			using Super::Super;
 
@@ -880,7 +913,8 @@ private:
 
 		template<typename Accessor, typename T>
 		    requires(ArrayProperty::is_supported<T>)
-		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, ArrayProperty> {
+		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, ArrayProperty>
+		{
 			using Super = PropertyStorage<Accessor, ArrayProperty>;
 			using Super::Super;
 			using Value = typename T::value_type;
@@ -965,7 +999,8 @@ private:
 
 		template<typename Accessor, typename T>
 		    requires(ReflObjectProperty::is_supported<T>)
-		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, ReflObjectProperty> {
+		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, ReflObjectProperty>
+		{
 			using Super = PropertyStorage<Accessor, ReflObjectProperty>;
 			using Super::Super;
 
@@ -974,7 +1009,8 @@ private:
 
 		template<typename Accessor, typename T>
 		    requires(SubClassProperty::is_supported<T>)
-		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, SubClassProperty> {
+		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, SubClassProperty>
+		{
 			using Super = PropertyStorage<Accessor, SubClassProperty>;
 			using Super::Super;
 
@@ -983,7 +1019,8 @@ private:
 
 		template<typename Accessor, typename T>
 		    requires(FlagsProperty::is_supported<T>)
-		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, FlagsProperty> {
+		struct PropertyImplTyped<Accessor, T> : public PropertyStorage<Accessor, FlagsProperty>
+		{
 			using Super = PropertyStorage<Accessor, FlagsProperty>;
 			using Super::Super;
 
@@ -994,12 +1031,14 @@ private:
 		using CallbackSetter = Delegate<void(void*, const Any&)>;
 
 		template<typename Getter, typename Enable>
-		struct GetterBinding {
+		struct GetterBinding
+		{
 			static constexpr inline bool is_supported = false;
 		};
 
 		template<typename Ret, typename Instance>
-		struct GetterBinding<Ret (Instance::*)() const, void> {
+		struct GetterBinding<Ret (Instance::*)() const, void>
+		{
 			using Value                               = std::remove_cvref_t<Ret>;
 			static constexpr inline bool is_supported = true;
 
@@ -1013,7 +1052,8 @@ private:
 		};
 
 		template<typename Ret>
-		struct GetterBinding<Ret (*)(), void> {
+		struct GetterBinding<Ret (*)(), void>
+		{
 			using Value                               = std::remove_cvref_t<Ret>;
 			static constexpr inline bool is_supported = true;
 
@@ -1024,8 +1064,9 @@ private:
 		};
 
 		template<typename Getter>
-		struct GetterBinding<Getter, std::enable_if_t<!std::is_member_function_pointer_v<Getter> &&
-		                                              std::is_invocable_v<Getter, const void*>>> {
+		struct GetterBinding<
+		        Getter, std::enable_if_t<!std::is_member_function_pointer_v<Getter> && std::is_invocable_v<Getter, const void*>>>
+		{
 			using Value                               = std::remove_cvref_t<std::invoke_result_t<Getter, const void*>>;
 			static constexpr inline bool is_supported = true;
 
@@ -1036,13 +1077,15 @@ private:
 		};
 
 		template<typename Setter, typename Value, typename = void>
-		struct SetterBinding {
+		struct SetterBinding
+		{
 			static constexpr inline bool is_supported = false;
 		};
 
 		template<typename Ret, typename Instance, typename Arg, typename Value>
 		struct SetterBinding<Ret (Instance::*)(Arg), Value,
-		                     std::enable_if_t<std::is_constructible_v<std::remove_cvref_t<Arg>, const Value&>>> {
+		                     std::enable_if_t<std::is_constructible_v<std::remove_cvref_t<Arg>, const Value&>>>
+		{
 			static constexpr inline bool is_supported = true;
 
 			static CallbackSetter bind(Ret (Instance::*setter)(Arg))
@@ -1057,7 +1100,8 @@ private:
 
 		template<typename Ret, typename Arg, typename Value>
 		struct SetterBinding<Ret (*)(Arg), Value,
-		                     std::enable_if_t<std::is_constructible_v<std::remove_cvref_t<Arg>, const Value&>>> {
+		                     std::enable_if_t<std::is_constructible_v<std::remove_cvref_t<Arg>, const Value&>>>
+		{
 			static constexpr inline bool is_supported = true;
 
 			static CallbackSetter bind(Ret (*setter)(Arg))
@@ -1070,9 +1114,10 @@ private:
 		};
 
 		template<typename Setter, typename Value>
-		struct SetterBinding<Setter, Value,
-		                     std::enable_if_t<!std::is_member_function_pointer_v<Setter> &&
-		                                      std::is_invocable_v<Setter, void*, const Value&>>> {
+		struct SetterBinding<
+		        Setter, Value,
+		        std::enable_if_t<!std::is_member_function_pointer_v<Setter> && std::is_invocable_v<Setter, void*, const Value&>>>
+		{
 			static constexpr inline bool is_supported = true;
 
 			static CallbackSetter bind(Setter setter)
@@ -1128,7 +1173,7 @@ private:
 			using PropType = CallbackProperty<Value>;
 			return Object::new_instance<PropType>(owner, name, std::move(getter), std::move(setter), flags);
 		}
-	}// namespace Detail
+	} // namespace Detail
 
 	template<typename T, typename Instance>
 	inline auto Property::create(StringView name, T Instance::* prop, Object* owner, Flags flags)
@@ -1218,4 +1263,4 @@ private:
 #define trinex_refl_virtual_prop(prop_name, getter, setter, ...)                                                                 \
 	Trinex::Refl::Property::create(#prop_name, &This::getter, &This::setter, This::static_reflection() __VA_OPT__(, ) __VA_ARGS__)
 
-}// namespace Trinex::Refl
+} // namespace Trinex::Refl

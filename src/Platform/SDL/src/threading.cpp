@@ -4,17 +4,18 @@
 #include <SDLPlatform/threading.hpp>
 
 #if PLATFORM_LINUX
-#include <pthread.h>
+	#include <pthread.h>
 #elif PLATFORM_WINDOWS
-#include <Core/etl/array.hpp>
-#include <windows.h>
+	#include <Core/etl/array.hpp>
+	#include <windows.h>
 #endif
 
 namespace Trinex::Platform
 {
 	static thread_local Ref<Thread> s_current_thread;
 
-	struct ThreadData {
+	struct ThreadData
+	{
 		Thread* thread;
 		void (*function)(void*);
 		void* userdata;
@@ -126,7 +127,7 @@ namespace Trinex::Platform
 	}
 
 	SDLThreadSystem::SDLThreadSystem() {}
-	
+
 	SDLThreadSystem* SDLThreadSystem::instance()
 	{
 		static SDLThreadSystem system;
@@ -214,4 +215,4 @@ namespace Trinex::Platform
 		SDL_DelayNS(0);
 		return *this;
 	}
-}// namespace Trinex::Platform
+} // namespace Trinex::Platform

@@ -39,12 +39,14 @@ namespace Trinex
 			return;
 		}
 
-		struct CompareType {
+		struct CompareType
+		{
 			bool operator()(const LightComponent* light, u32 type) const { return light->light_type() < type; }
 			bool operator()(u32 type, const LightComponent* light) const { return light->light_type() > type; }
 		};
 
-		struct CompareShadows {
+		struct CompareShadows
+		{
 			bool operator()(const LightComponent* light, bool) const { return !light->is_shadows_enabled(); }
 			bool operator()(bool, const LightComponent* light) const { return light->is_shadows_enabled(); }
 		};
@@ -621,7 +623,8 @@ namespace Trinex
 		const Vector2u size = scene_view().view_size();
 		auto pool           = RHITexturePool::global_instance();
 
-		struct Chain {
+		struct Chain
+		{
 			RHITexture* texture;
 			Vector2u size;
 		};
@@ -815,8 +818,8 @@ namespace Trinex
 						for (; current < end; ++current)
 						{
 							parameters[current].shadow_address = address;
-							address += sizeof(DirectionalLightShadowParameters) +
-							           s_cascades_per_directional_light * sizeof(DirectionalLightShadowCascade);
+							address += sizeof(DirectionalLightShadowParameters)
+							           + s_cascades_per_directional_light * sizeof(DirectionalLightShadowCascade);
 						}
 					}
 
@@ -843,15 +846,16 @@ namespace Trinex
 			u32 spot_lights        = m_light_ranges->spot.shadowed.end - m_light_ranges->spot.shadowed.start;
 			u32 directional_lights = m_light_ranges->directional.shadowed.end - m_light_ranges->directional.shadowed.start;
 
-			usize buffer_size = point_lights * sizeof(PointLightShadowParameters) +//
-			                    spot_lights * sizeof(SpotLightShadowParameters) +  //
-			                    directional_lights * (sizeof(DirectionalLightShadowParameters) +
-			                                          s_cascades_per_directional_light * sizeof(DirectionalLightShadowCascade));//
+			usize buffer_size = point_lights * sizeof(PointLightShadowParameters) + //
+			                    spot_lights * sizeof(SpotLightShadowParameters) +   //
+			                    directional_lights
+			                            * (sizeof(DirectionalLightShadowParameters)
+			                               + s_cascades_per_directional_light * sizeof(DirectionalLightShadowCascade)); //
 
 			auto pool = RHIBufferPool::global_instance();
 			m_shadow_buffer =
-			        pool->acquire_transient(buffer_size, RHIBufferFlags::ByteAddressBuffer | RHIBufferFlags::ShaderResource |
-			                                                     RHIBufferFlags::TransferDst);
+			        pool->acquire_transient(buffer_size, RHIBufferFlags::ByteAddressBuffer | RHIBufferFlags::ShaderResource
+			                                                     | RHIBufferFlags::TransferDst);
 
 			if (buffer_size == 0)
 				return m_shadow_buffer;
@@ -888,8 +892,8 @@ namespace Trinex
 					auto light = static_cast<DirectionalLightComponent*>(m_visible_lights[current]);
 					register_shadow_light(light, current_data);
 
-					current_data += sizeof(DirectionalLightShadowParameters) +
-					                s_cascades_per_directional_light * sizeof(DirectionalLightShadowCascade);
+					current_data += sizeof(DirectionalLightShadowParameters)
+					                + s_cascades_per_directional_light * sizeof(DirectionalLightShadowCascade);
 				}
 
 				ctx->update(m_shadow_buffer, buffer, {.size = buffer_size});
@@ -903,4 +907,4 @@ namespace Trinex
 
 		return m_shadow_buffer;
 	}
-}// namespace Trinex
+} // namespace Trinex

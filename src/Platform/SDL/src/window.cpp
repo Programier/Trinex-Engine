@@ -418,4 +418,4 @@ namespace Trinex::Platform
 
 		return retain_ref(it->second);
 	}
-}// namespace Trinex::Platform
+} // namespace Trinex::Platform

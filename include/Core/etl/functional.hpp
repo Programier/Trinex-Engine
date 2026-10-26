@@ -20,4 +20,4 @@ namespace Trinex
 
 	template<typename T>
 	using NotEqualTo = std::not_equal_to<T>;
-}// namespace Trinex
+} // namespace Trinex

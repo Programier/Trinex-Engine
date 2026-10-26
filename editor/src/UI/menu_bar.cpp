@@ -93,7 +93,6 @@ namespace Trinex::UI
 		menu->m_next = nullptr;
 	}
 
-
 	MenuBar::Menu* MenuBar::create(StringView name, Menu* before)
 	{
 		if (auto it = m_menus.find(String(name)); it != m_menus.end())
@@ -223,4 +222,4 @@ namespace Trinex::UI
 	{
 		clear();
 	}
-}// namespace Trinex::UI
+} // namespace Trinex::UI

@@ -11,7 +11,7 @@ namespace Trinex::UI
 		Size padding     = Size(4.0f, 3.0f);
 		Unit rounding    = Unit(0.0f);
 		Unit border_size = Unit(0.0f);
-		
+
 		FramedGeometry& push_scope() override;
 		FramedGeometry& pop_scope() override;
 	};
@@ -26,4 +26,4 @@ namespace Trinex::UI
 		Framed& push_scope() override;
 		Framed& pop_scope() override;
 	};
-}// namespace Trinex::UI
+} // namespace Trinex::UI

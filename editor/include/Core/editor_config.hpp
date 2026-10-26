@@ -9,4 +9,4 @@ namespace Trinex::Settings::Editor
 	extern float large_font_size;
 
 	extern bool show_grid;
-}// namespace Trinex::Settings::Editor
+} // namespace Trinex::Settings::Editor

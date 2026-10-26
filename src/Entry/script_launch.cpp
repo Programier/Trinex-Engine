@@ -34,7 +34,6 @@ namespace Trinex
 				return -1;
 			}
 
-
 			ScriptModule module = ScriptEngine::module_by_name(module_argument->get<const String&>().c_str());
 
 			if (!module.is_valid())
@@ -81,4 +80,4 @@ namespace Trinex
 
 	trinex_implement_class_default_init(ScriptExec, 0);
 	trinex_implement_class_default_init(ScriptConfigDump, 0);
-}// namespace Trinex
+} // namespace Trinex

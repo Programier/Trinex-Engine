@@ -1,11 +1,9 @@
+#include <Core/exception.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
 #include <android/native_window.h>
-
-#include <vulkan_headers.hpp>
-
-#include <Core/exception.hpp>
 #include <vulkan/vulkan_android.h>
+#include <vulkan_headers.hpp>
 
 namespace Trinex
 {
@@ -25,4 +23,4 @@ namespace Trinex
 
 		return surface;
 	}
-}// namespace Trinex
+} // namespace Trinex

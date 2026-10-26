@@ -41,4 +41,4 @@ namespace Trinex
 	const String Constants::virtual_file_system_extension = ".tvfs";
 	const String Constants::translation_config_extension  = ".lang";
 	const u64 Constants::script_userdata_id               = Strings::hash_of("script_userdata_id");
-}// namespace Trinex
+} // namespace Trinex

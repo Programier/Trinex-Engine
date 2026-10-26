@@ -85,4 +85,4 @@ namespace Trinex
 		constexpr reference at(size_type n) { return (*this)[n]; }
 		constexpr const_reference at(size_type n) const { return (*this)[n]; }
 	};
-}// namespace Trinex
+} // namespace Trinex

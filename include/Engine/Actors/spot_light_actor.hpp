@@ -16,4 +16,4 @@ namespace Trinex
 		SpotLightActor();
 		SpotLightComponent* spot_light_component() const;
 	};
-}// namespace Trinex
+} // namespace Trinex

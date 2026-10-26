@@ -29,7 +29,7 @@ namespace Trinex
 			constexpr auto suffix   = std::string_view{">::value_name_array(void)"};
 			constexpr auto function = std::string_view{__FUNCSIG__};
 #else
-#error Unsupported compiler
+	#error Unsupported compiler
 #endif
 
 			constexpr auto start = function.find(prefix) + prefix.size();
@@ -45,4 +45,4 @@ namespace Trinex
 	public:
 		static consteval const char* name() { return m_value.data(); }
 	};
-}// namespace Trinex
+} // namespace Trinex

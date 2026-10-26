@@ -37,14 +37,14 @@ namespace Trinex::VisualMaterialGraph
 	}
 
 	MaterialRoot::MaterialRoot()
-	    : Node(), base_color(new_input("Base Color", RHIShaderParameterType::Float3, RHIShaderParameterType::Float3)),//
-	      opacity(new_input("Opacity", RHIShaderParameterType::Float, RHIShaderParameterType::Float)),                //
-	      emissive(new_input("Emissive Color", RHIShaderParameterType::Float3, RHIShaderParameterType::Float3)),      //
-	      specular(new_input("Specular", RHIShaderParameterType::Float, RHIShaderParameterType::Float)),              //
-	      metalness(new_input("Metalness", RHIShaderParameterType::Float, RHIShaderParameterType::Float)),            //
-	      roughness(new_input("Roughness", RHIShaderParameterType::Float, RHIShaderParameterType::Float)),            //
-	      ao(new_input("AO", RHIShaderParameterType::Float, RHIShaderParameterType::Float)),                          //
-	      normal(new_input("Normal", RHIShaderParameterType::Float3, RHIShaderParameterType::Float3)),                //
+	    : Node(), base_color(new_input("Base Color", RHIShaderParameterType::Float3, RHIShaderParameterType::Float3)), //
+	      opacity(new_input("Opacity", RHIShaderParameterType::Float, RHIShaderParameterType::Float)),                 //
+	      emissive(new_input("Emissive Color", RHIShaderParameterType::Float3, RHIShaderParameterType::Float3)),       //
+	      specular(new_input("Specular", RHIShaderParameterType::Float, RHIShaderParameterType::Float)),               //
+	      metalness(new_input("Metalness", RHIShaderParameterType::Float, RHIShaderParameterType::Float)),             //
+	      roughness(new_input("Roughness", RHIShaderParameterType::Float, RHIShaderParameterType::Float)),             //
+	      ao(new_input("AO", RHIShaderParameterType::Float, RHIShaderParameterType::Float)),                           //
+	      normal(new_input("Normal", RHIShaderParameterType::Float3, RHIShaderParameterType::Float3)),                 //
 	      position_offset(new_input("Position Offset", RHIShaderParameterType::Float3, RHIShaderParameterType::Float3))
 	{
 		opacity->default_value()->ref<float>()   = 1.0f;
@@ -52,7 +52,6 @@ namespace Trinex::VisualMaterialGraph
 		normal->default_value()->ref<Vector3f>() = {0.5f, 0.5f, 1.0f};
 		ao->default_value()->ref<float>()        = 1.f;
 	}
-
 
 	Texture2D::Texture2D() : texture(DefaultResources::Textures::default_texture)
 	{
@@ -334,4 +333,4 @@ namespace Trinex::VisualMaterialGraph
 
 		return *this;
 	}
-}// namespace Trinex::VisualMaterialGraph
+} // namespace Trinex::VisualMaterialGraph

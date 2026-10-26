@@ -153,7 +153,8 @@ namespace Trinex
 		return *this;
 	}
 
-	struct VulkanDescriptorSetAllocator::VulkanDescriptorPool {
+	struct VulkanDescriptorSetAllocator::VulkanDescriptorPool
+	{
 		static constexpr inline u32 s_descriptor_sets_per_pool = 1024;
 
 	private:
@@ -162,7 +163,8 @@ namespace Trinex
 
 		union
 		{
-			struct {
+			struct
+			{
 				u32 m_textures;
 				u32 m_samplers;
 				u32 m_combined_image_sampler;
@@ -256,7 +258,6 @@ namespace Trinex
 				}
 			}
 
-
 			trinex_profile_cpu_n("Allocate");
 			vk::DescriptorSetLayout descriptor_set_layout = layout->descriptor_set_layout();
 			vk::DescriptorSetAllocateInfo info(m_pool, descriptor_set_layout);
@@ -269,8 +270,10 @@ namespace Trinex
 		}
 	};
 
-	struct VulkanDescriptorSetAllocator::Binding {
-		struct Descriptor {
+	struct VulkanDescriptorSetAllocator::Binding
+	{
+		struct Descriptor
+		{
 			using enum vk::ImageLayout;
 
 			u64 data[2];
@@ -368,7 +371,8 @@ namespace Trinex
 		Descriptor descriptor;
 	};
 
-	struct VulkanDescriptorSetAllocator::FrameCache {
+	struct VulkanDescriptorSetAllocator::FrameCache
+	{
 		VulkanDescriptorPool* pool = nullptr;
 		Map<u64, vk::DescriptorSet> table;
 
@@ -535,4 +539,4 @@ namespace Trinex
 		static thread_local VulkanDescriptorSetAllocator* allocator = trx_new VulkanDescriptorSetAllocator();
 		return allocator;
 	}
-}// namespace Trinex
+} // namespace Trinex

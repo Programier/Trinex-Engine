@@ -1,15 +1,15 @@
-#include <Core/etl/critical_section.hpp>
 #include <Core/etl/array.hpp>
+#include <Core/etl/critical_section.hpp>
 #include <Core/log.hpp>
 #include <Core/types/timestamp.hpp>
 #include <cstdarg>
-
 
 namespace Trinex::Log
 {
 	namespace
 	{
-		struct LoggerState {
+		struct LoggerState
+		{
 			CriticalSectionRecursive critical_section;
 
 			Array<Listener*> listeners;
@@ -103,7 +103,7 @@ namespace Trinex::Log
 				listener->on_log_record(record);
 			}
 		}
-	}// namespace
+	} // namespace
 
 	trinex_api Category General    = {"General", true};
 	trinex_api Category Core       = {"Core", true};
@@ -148,7 +148,6 @@ namespace Trinex::Log
 	trinex_implement_log_function(warning, Warning);
 	trinex_implement_log_function(error, Error);
 	trinex_implement_log_function(critical, Critical);
-
 
 	trinex_api void enabled(bool value)
 	{
@@ -195,4 +194,4 @@ namespace Trinex::Log
 		});
 	}
 
-}// namespace Trinex::Log
+} // namespace Trinex::Log

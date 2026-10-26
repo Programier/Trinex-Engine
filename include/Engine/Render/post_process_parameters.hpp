@@ -3,10 +3,12 @@
 
 namespace Trinex
 {
-	struct PostProcessParameters final {
+	struct PostProcessParameters final
+	{
 		trinex_old_struct(PostProcessParameters, void);
 
-		struct SSAO {
+		struct SSAO
+		{
 			trinex_old_struct(SSAO, void);
 
 			bool enabled    = false;
@@ -20,7 +22,8 @@ namespace Trinex
 			u32 samples             = 32;
 		};
 
-		struct Bloom {
+		struct Bloom
+		{
 			trinex_old_struct(Bloom, void);
 
 			bool enabled    = true;
@@ -37,4 +40,4 @@ namespace Trinex
 
 		PostProcessParameters& blend(const PostProcessParameters& parameters, float blend_factor);
 	};
-}// namespace Trinex
+} // namespace Trinex

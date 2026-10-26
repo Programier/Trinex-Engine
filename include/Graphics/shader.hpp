@@ -20,4 +20,4 @@ namespace Trinex
 		Shader& rebuild() override;
 		inline RHIShader* handle() const { return m_shader; }
 	};
-}// namespace Trinex
+} // namespace Trinex

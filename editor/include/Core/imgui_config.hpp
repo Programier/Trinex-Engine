@@ -7,13 +7,14 @@ namespace Trinex
 	class RHITexture;
 	class RHISampler;
 	class RHIContext;
-}// namespace Trinex
+} // namespace Trinex
 
 struct ImDrawList;
 struct ImDrawCmd;
 struct ImDrawData;
 
-struct ImGuiTrinexTextureId {
+struct ImGuiTrinexTextureId
+{
 	Trinex::RHITexture* texture;
 	Trinex::RHISampler* sampler;
 
@@ -30,10 +31,11 @@ struct ImGuiTrinexTextureId {
 	inline operator const void*() const { return id(); }
 };
 
-struct ImDrawCallbackArgs {
+struct ImDrawCallbackArgs
+{
 	Trinex::RHIContext* ctx;
 	Trinex::RHITexture* color;
-	
+
 	const ImDrawData* data;
 	const ImDrawList* list;
 	const ImDrawCmd* cmd;

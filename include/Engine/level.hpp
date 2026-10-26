@@ -19,7 +19,6 @@ namespace Trinex
 		bool m_is_playing;
 		bool m_is_visible;
 
-
 	private:
 		void scriptable_start_play();
 		void scriptable_update(float dt);
@@ -31,7 +30,8 @@ namespace Trinex
 
 	public:
 		template<typename NativeType>
-		struct Scriptable : Super::Scriptable<NativeType> {
+		struct Scriptable : Super::Scriptable<NativeType>
+		{
 			Scriptable& start_play() override
 			{
 				static_cast<LevelInstance*>(this)->scriptable_start_play();
@@ -61,7 +61,7 @@ namespace Trinex
 		virtual LevelInstance& stop_play();
 		virtual LevelInstance& despawned();
 		virtual World* world();
-		
+
 		bool serialize(Archive& archive) override;
 
 		inline Level* level() const { return m_level; }
@@ -86,4 +86,4 @@ namespace Trinex
 		bool update(LevelInstance* instance);
 		bool serialize(Archive& ar) override;
 	};
-}// namespace Trinex
+} // namespace Trinex

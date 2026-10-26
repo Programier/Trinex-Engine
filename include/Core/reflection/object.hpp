@@ -12,7 +12,7 @@ namespace Trinex
 	{
 		class Class;
 	}
-}// namespace Trinex
+} // namespace Trinex
 
 namespace Trinex::Refl
 {
@@ -23,10 +23,10 @@ namespace Trinex::Refl
 		extern trinex_api Name description;
 		extern trinex_api Name group;
 		extern trinex_api Name renderer;
-	}// namespace Meta
+	} // namespace Meta
 
-
-	struct FindFlags {
+	struct FindFlags
+	{
 		enum Enum : u8
 		{
 			Undefined   = 0,
@@ -37,7 +37,8 @@ namespace Trinex::Refl
 		trinex_bitfield_enum_struct(FindFlags, u8);
 	};
 
-	struct trinex_api ClassInfo {
+	struct trinex_api ClassInfo
+	{
 		const Name class_name;
 		const ClassInfo* const parent;
 
@@ -242,7 +243,6 @@ public:                                                                         
                                                                                                                                  \
 private:
 
-
 #define trinex_implement_reflect_type(decl, ...)                                                                                 \
 	Trinex::Refl::ClassInfo* decl::static_refl_class_info()                                                                      \
 	{                                                                                                                            \
@@ -283,4 +283,4 @@ private:
 		decl::initialize_reflection();                                                                                           \
 	}                                                                                                                            \
 	static void TRINEX_CONCAT(trinex_refl_initializer_, __LINE__)(Trinex::ScriptBinding::Class & r)
-}// namespace Trinex::Refl
+} // namespace Trinex::Refl

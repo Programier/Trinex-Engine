@@ -33,4 +33,4 @@ namespace Trinex::Platform
 
 		return nullptr;
 	}
-}// namespace Trinex::Platform
+} // namespace Trinex::Platform

@@ -47,4 +47,4 @@ namespace Trinex::Refl::New
 	{
 		return ArrayType::from(type);
 	}
-}// namespace Trinex::Refl::New
+} // namespace Trinex::Refl::New

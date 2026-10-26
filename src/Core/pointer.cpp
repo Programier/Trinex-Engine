@@ -49,4 +49,4 @@ namespace Trinex
 
 		return ar;
 	}
-}// namespace Trinex
+} // namespace Trinex

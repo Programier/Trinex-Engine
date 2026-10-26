@@ -369,7 +369,6 @@ namespace Trinex
 		m_rasterizer.frontFace   = vk::FrontFace::eClockwise;
 		m_rasterizer.lineWidth   = 1.f;
 
-
 		static vk::ShaderStageFlagBits graphics_stages[] = {
 		        vk::ShaderStageFlagBits::eTaskEXT,
 		        vk::ShaderStageFlagBits::eMeshEXT,
@@ -394,7 +393,6 @@ namespace Trinex
 		{
 			return pipeline;
 		}
-
 
 		m_rasterizer.setPolygonMode(VulkanEnums::polygon_mode_of(context->polygon_mode()));
 		m_rasterizer.setCullMode(VulkanEnums::cull_mode_of(context->cull_mode()));
@@ -507,7 +505,8 @@ namespace Trinex
 	{
 		StackByteAllocator::Mark mark;
 
-		struct {
+		struct
+		{
 			vk::RayTracingPipelineCreateInfoKHR pipeline_info{};
 			vk::ShaderStageFlags stages;
 			vk::RayTracingShaderGroupCreateInfoKHR* groups_info;
@@ -646,4 +645,4 @@ namespace Trinex
 			return trx_new VulkanRayTracingPipeline(desc);
 		return nullptr;
 	}
-}// namespace Trinex
+} // namespace Trinex

@@ -2,7 +2,8 @@
 
 namespace Trinex
 {
-	struct Angle {
+	struct Angle
+	{
 		float value;
 
 		constexpr Angle() : value(0.0f) {}
@@ -48,4 +49,4 @@ namespace Trinex
 		constexpr bool operator<=(Angle rhs) const { return value <= rhs.value; }
 		constexpr bool operator>=(Angle rhs) const { return value >= rhs.value; }
 	};
-}// namespace Trinex
+} // namespace Trinex

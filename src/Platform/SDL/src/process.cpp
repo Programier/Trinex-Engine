@@ -8,7 +8,8 @@ namespace Trinex::Platform
 {
 	static constexpr const char* s_vfs_file_property = "Trinex.VFS.File";
 
-	struct StreamInfo {
+	struct StreamInfo
+	{
 		Stream* src;
 		SDL_IOStream* dst;
 		const char* option;
@@ -27,7 +28,6 @@ namespace Trinex::Platform
 
 		return static_cast<SDL_IOStream*>(SDL_GetPointerProperty(props, SDL_PROP_PROCESS_STDOUT_POINTER, nullptr));
 	}
-
 
 	static Sint64 SDLCALL file_seek(void* userdata, Sint64 offset, SDL_IOWhence whence)
 	{
@@ -245,7 +245,6 @@ namespace Trinex::Platform
 		        {options->stderr_stream, nullptr, SDL_PROP_PROCESS_CREATE_STDERR_NUMBER, SDL_PROP_PROCESS_CREATE_STDERR_POINTER},
 		};
 
-
 		auto cleanup = [&streams, props]() {
 			for (StreamInfo& stream : streams)
 			{
@@ -337,4 +336,4 @@ namespace Trinex::Platform
 		}
 		return *this;
 	}
-}// namespace Trinex::Platform
+} // namespace Trinex::Platform

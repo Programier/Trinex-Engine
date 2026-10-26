@@ -38,7 +38,8 @@ namespace Trinex
 
 	bool VulkanQueryPool::is_available(u64 index)
 	{
-		struct {
+		struct
+		{
 			u64 value;
 			u64 available;
 		} result{};
@@ -106,7 +107,8 @@ namespace Trinex
 	class VulkanTimestamp : public VulkanDeferredDestroy<RHITimestamp>
 	{
 	private:
-		struct Marker {
+		struct Marker
+		{
 			VulkanQueryPool* pool = nullptr;
 			u64 index             = 0;
 
@@ -183,7 +185,8 @@ namespace Trinex
 	class VulkanPipelineStats : public VulkanDeferredDestroy<RHIPipelineStatistics>
 	{
 	private:
-		struct Stats {
+		struct Stats
+		{
 			u64 vertices;
 			u64 primitives;
 			u64 vertex_shader_invocations;
@@ -196,7 +199,8 @@ namespace Trinex
 			u64 tesselation_shader_invocations;
 		};
 
-		struct Marker {
+		struct Marker
+		{
 			VulkanQueryPool* pool = nullptr;
 			u64 index             = 0;
 
@@ -306,4 +310,4 @@ namespace Trinex
 		return *this;
 	}
 
-}// namespace Trinex
+} // namespace Trinex

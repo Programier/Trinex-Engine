@@ -226,8 +226,8 @@ namespace Trinex
 
 	D3D12_GraphicsPipeline& D3D12_GraphicsPipeline::flush(D3D12_State* state)
 	{
-		if (!state->pipeline_state().is_any_resource_dirty() && !state->rtv_state().is_any_resource_dirty() &&
-		    !state->dsv_state().is_any_resource_dirty())
+		if (!state->pipeline_state().is_any_resource_dirty() && !state->rtv_state().is_any_resource_dirty()
+		    && !state->dsv_state().is_any_resource_dirty())
 		{
 			return *this;
 		}
@@ -270,4 +270,4 @@ namespace Trinex
 	{
 		return NoneApi::create_compute_pipeline(pipeline);
 	}
-}// namespace Trinex
+} // namespace Trinex

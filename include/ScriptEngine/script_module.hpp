@@ -91,4 +91,4 @@ namespace Trinex
 		friend class ScriptFunction;
 		friend class ScriptTypeInfo;
 	};
-}// namespace Trinex
+} // namespace Trinex

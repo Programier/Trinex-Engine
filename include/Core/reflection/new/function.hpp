@@ -7,7 +7,8 @@
 
 namespace Trinex::Refl::New
 {
-	trinex_reflect() class trinex_api Function : public Object
+	trinex_reflect()
+	class trinex_api Function : public Object
 	{
 		trinex_reflection_body();
 
@@ -57,4 +58,4 @@ namespace Trinex::Refl::New
 		inline bool is_operator() const { return has_flags(IsOperator); }
 		inline void invoke(void* context) const { m_invoker(context, this); }
 	};
-}// namespace Trinex::Refl::New
+} // namespace Trinex::Refl::New

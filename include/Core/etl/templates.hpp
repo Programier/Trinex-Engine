@@ -6,18 +6,21 @@
 namespace Trinex
 {
 	template<typename... Args>
-	struct TypesList {
+	struct TypesList
+	{
 	private:
 		template<usize index, typename... Rest>
 		struct type_at_impl;
 
 		template<usize index, typename First, typename... Rest>
-		struct type_at_impl<index, First, Rest...> {
+		struct type_at_impl<index, First, Rest...>
+		{
 			using type = typename type_at_impl<index - 1, Rest...>::type;
 		};
 
 		template<typename First, typename... Rest>
-		struct type_at_impl<0, First, Rest...> {
+		struct type_at_impl<0, First, Rest...>
+		{
 			using type = First;
 		};
 
@@ -25,12 +28,14 @@ namespace Trinex
 		struct pop_front_impl;
 
 		template<typename... Ts>
-		struct pop_front_impl<0, Ts...> {
+		struct pop_front_impl<0, Ts...>
+		{
 			using type = TypesList<Ts...>;
 		};
 
 		template<unsigned int N, typename Head, typename... Tail>
-		struct pop_front_impl<N, Head, Tail...> {
+		struct pop_front_impl<N, Head, Tail...>
+		{
 			static_assert(N <= sizeof...(Tail) + 1, "pop_front out of bounds");
 			using type = typename pop_front_impl<N - 1, Tail...>::type;
 		};
@@ -39,13 +44,15 @@ namespace Trinex
 		struct pop_back_impl;
 
 		template<unsigned int N, typename... AccumArgs>
-		struct pop_back_impl<N, TypesList<AccumArgs...>> {
+		struct pop_back_impl<N, TypesList<AccumArgs...>>
+		{
 			static_assert(N <= sizeof...(AccumArgs), "pop_back out of bounds");
 			using type = typename pop_front_impl<sizeof...(AccumArgs) - N, AccumArgs...>::type;
 		};
 
 		template<unsigned int N, typename... AccumArgs, typename Head, typename... Tail>
-		struct pop_back_impl<N, TypesList<AccumArgs...>, Head, Tail...> {
+		struct pop_back_impl<N, TypesList<AccumArgs...>, Head, Tail...>
+		{
 			using type = typename pop_back_impl<N, TypesList<AccumArgs..., Head>, Tail...>::type;
 		};
 
@@ -150,16 +157,17 @@ namespace Trinex
 		using make_const_method = Ret (O::*)(Args...) const;
 	};
 
-
 	template<typename T>
-	struct Signature {
+	struct Signature
+	{
 		static constexpr inline bool is_function     = false;
 		static constexpr inline bool is_method       = false;
 		static constexpr inline bool is_const_method = false;
 	};
 
 	template<typename ReturnType, typename... ArgsType>
-	struct Signature<ReturnType(ArgsType...)> {
+	struct Signature<ReturnType(ArgsType...)>
+	{
 		using Type   = ReturnType (*)(ArgsType...);
 		using Return = ReturnType;
 		using Args   = TypesList<ArgsType...>;
@@ -179,7 +187,8 @@ namespace Trinex
 	};
 
 	template<typename ReturnType, typename... ArgsType>
-	struct Signature<ReturnType (*)(ArgsType...)> {
+	struct Signature<ReturnType (*)(ArgsType...)>
+	{
 		using Type   = ReturnType (*)(ArgsType...);
 		using Return = ReturnType;
 		using Args   = TypesList<ArgsType...>;
@@ -199,7 +208,8 @@ namespace Trinex
 	};
 
 	template<typename ReturnType, typename... ArgsType>
-	struct Signature<ReturnType (&)(ArgsType...)> {
+	struct Signature<ReturnType (&)(ArgsType...)>
+	{
 		using Type   = ReturnType (*)(ArgsType...);
 		using Return = ReturnType;
 		using Args   = TypesList<ArgsType...>;
@@ -219,7 +229,8 @@ namespace Trinex
 	};
 
 	template<typename ClassType, typename ReturnType, typename... ArgsType>
-	struct Signature<ReturnType (ClassType::*)(ArgsType...)> {
+	struct Signature<ReturnType (ClassType::*)(ArgsType...)>
+	{
 		using Type   = ReturnType (ClassType::*)(ArgsType...);
 		using Args   = TypesList<ArgsType...>;
 		using Return = ReturnType;
@@ -240,7 +251,8 @@ namespace Trinex
 	};
 
 	template<typename ClassType, typename ReturnType, typename... ArgsType>
-	struct Signature<ReturnType (ClassType::*)(ArgsType...) const> {
+	struct Signature<ReturnType (ClassType::*)(ArgsType...) const>
+	{
 		using Type   = ReturnType (ClassType::*)(ArgsType...) const;
 		using Args   = TypesList<ArgsType...>;
 		using Return = ReturnType;
@@ -310,7 +322,8 @@ namespace Trinex
 	}
 
 	template<class... Ts>
-	struct overloaded : Ts... {
+	struct overloaded : Ts...
+	{
 		using Ts::operator()...;
 	};
 
@@ -386,4 +399,4 @@ namespace Trinex
 		static T value{};
 		return value;
 	}
-}// namespace Trinex
+} // namespace Trinex

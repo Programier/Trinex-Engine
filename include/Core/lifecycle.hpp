@@ -20,7 +20,8 @@ namespace Trinex::LifeCycle
 		PostShutdown     = -1,
 	};
 
-	struct Description {
+	struct Description
+	{
 		const char* name                         = "Undefined";
 		std::initializer_list<const char*> after = {};
 	};
@@ -67,7 +68,7 @@ namespace Trinex::LifeCycle
 	}
 
 	trinex_api void execute(i32 stage);
-}// namespace Trinex::LifeCycle
+} // namespace Trinex::LifeCycle
 
 #define trinex_lifecycle_handler(stage_id, ...)                                                                                  \
 	static void TRINEX_CONCAT(trinex_lifecycle_function_, __LINE__)();                                                           \

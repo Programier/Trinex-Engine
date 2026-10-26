@@ -6,7 +6,8 @@
 
 namespace Trinex::VFS
 {
-	struct FileWatchEventType {
+	struct FileWatchEventType
+	{
 		enum Enum : u32
 		{
 			Undefined = 0,
@@ -21,7 +22,8 @@ namespace Trinex::VFS
 		trinex_bitfield_enum_struct(FileWatchEventType, u32);
 	};
 
-	struct FileWatchEvent {
+	struct FileWatchEvent
+	{
 		FileWatchEventType type = FileWatchEventType::Undefined;
 		Path path;
 		Path old_path;
@@ -30,7 +32,8 @@ namespace Trinex::VFS
 
 	using FileWatchCallback = CallBack<void(const FileWatchEvent&)>;
 
-	struct FileWatchNotification : public FileWatchEvent {
+	struct FileWatchNotification : public FileWatchEvent
+	{
 		Identifier watch_id = 0;
 	};
 
@@ -41,6 +44,6 @@ namespace Trinex::VFS
 
 		virtual bool watch(Identifier watch_id, const Path& virtual_path, const Path& native_path, bool recursive) = 0;
 		virtual void unwatch(Identifier watch_id)                                                                  = 0;
-		virtual void poll(Array<FileWatchNotification>& events)                                                   = 0;
+		virtual void poll(Array<FileWatchNotification>& events)                                                    = 0;
 	};
-}// namespace Trinex::VFS
+} // namespace Trinex::VFS

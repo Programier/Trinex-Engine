@@ -50,4 +50,4 @@ namespace Trinex
 	{
 		return true;
 	}
-}// namespace Trinex
+} // namespace Trinex

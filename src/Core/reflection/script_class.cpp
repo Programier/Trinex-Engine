@@ -25,7 +25,6 @@ namespace Trinex::Refl
 
 		auto factories = info.factory_count();
 
-
 		for (u32 i = 0; i < factories; ++i)
 		{
 			m_factory = info.factory_by_index(i);
@@ -81,4 +80,4 @@ namespace Trinex::Refl
 	{
 		m_script->m_refl_objects.erase(this);
 	}
-}// namespace Trinex::Refl
+} // namespace Trinex::Refl

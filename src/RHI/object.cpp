@@ -32,4 +32,4 @@ namespace Trinex
 	}
 
 	RHIObject::~RHIObject() {}
-}// namespace Trinex
+} // namespace Trinex

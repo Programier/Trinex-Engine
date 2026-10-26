@@ -6,19 +6,23 @@
 
 namespace Trinex
 {
-	struct GlobalShaderParameters {
-		struct alignas(16) Viewport {
+	struct GlobalShaderParameters
+	{
+		struct alignas(16) Viewport
+		{
 			alignas(8) Vector2f pos;
 			alignas(8) Vector2f size;
 			alignas(8) Vector2f inv_size;
 		};
 
-		struct alignas(16) RenderTarget {
+		struct alignas(16) RenderTarget
+		{
 			alignas(8) Vector2f size;
 			alignas(8) Vector2f inv_size;
 		};
 
-		struct alignas(16) Camera {
+		struct alignas(16) Camera
+		{
 			alignas(16) Frustum frustum;
 			alignas(16) Matrix4f projection;
 			alignas(16) Matrix4f view;
@@ -43,4 +47,4 @@ namespace Trinex
 
 		trinex_api GlobalShaderParameters& update(const class SceneView* scene_view);
 	};
-}// namespace Trinex
+} // namespace Trinex

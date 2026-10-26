@@ -25,7 +25,7 @@ namespace Trinex
 		{
 			return nullptr;
 		}
-	}// namespace UI::Backend
+	} // namespace UI::Backend
 
 	class TextureView : public GlobalPipelineLibrary
 	{
@@ -235,14 +235,13 @@ namespace Trinex
 		static const Matrix4f face_scale = Math::scale(Matrix4f(1.f), Vector3f(1.f / 4.f, 1.f / 3.f, 1.f));
 
 		const Vector2f face_offsets[6] = {
-		        {0.25f, 0.0f},        // +X  (col=2, row=1)
-		        {-0.75f, 0.0f},       // -X  (col=0, row=1)
-		        {-0.25f, 0.6666667f}, // +Y  (col=1, row=0)
-		        {-0.25f, -0.6666667f},// -Y  (col=1, row=2)
-		        {-0.25f, 0.0f},       // +Z  (col=1, row=1)
-		        {0.75f, 0.0f},        // -Z  (col=3, row=1)
+		        {0.25f, 0.0f},         // +X  (col=2, row=1)
+		        {-0.75f, 0.0f},        // -X  (col=0, row=1)
+		        {-0.25f, 0.6666667f},  // +Y  (col=1, row=0)
+		        {-0.25f, -0.6666667f}, // -Y  (col=1, row=2)
+		        {-0.25f, 0.0f},        // +Z  (col=1, row=1)
+		        {0.75f, 0.0f},         // -Z  (col=3, row=1)
 		};
-
 
 		auto ctx = UI::Backend::rhi();
 
@@ -262,8 +261,8 @@ namespace Trinex
 		}
 	}
 
-
-	struct TextureViewVisitor {
+	struct TextureViewVisitor
+	{
 		TextureEditorClient* client;
 		Vector2f size;
 
@@ -493,4 +492,4 @@ namespace Trinex
 		render_texture_2d(texture->handle(), projection, range(), 0, mask());
 		return *this;
 	}
-}// namespace Trinex
+} // namespace Trinex

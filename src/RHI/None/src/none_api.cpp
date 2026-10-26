@@ -29,41 +29,51 @@ namespace Trinex
 
 	static RHI::Registry s_none_api_registry(RHIBackend::Undefined, create_none_api, destroy_none_api);
 
-	struct NoneTimestamp : public NoneApiDestroyable<RHITimestamp> {
+	struct NoneTimestamp : public NoneApiDestroyable<RHITimestamp>
+	{
 		float milliseconds() override { return 0.f; }
 	};
 
-	struct NonePipelineStatistics : public NoneApiDestroyable<RHIPipelineStatistics> {
+	struct NonePipelineStatistics : public NoneApiDestroyable<RHIPipelineStatistics>
+	{
 		NonePipelineStatistics& fetch() override { return *this; }
 	};
 
-	struct NoneFence : public NoneApiDestroyable<RHIFence> {
+	struct NoneFence : public NoneApiDestroyable<RHIFence>
+	{
 		bool is_signaled() override { return true; }
 		void reset() override {}
 	};
 
-	struct NoneSemaphore : public NoneApiDestroyable<RHISemaphore> {
+	struct NoneSemaphore : public NoneApiDestroyable<RHISemaphore>
+	{
 	};
 
-	struct NoneSampler : public NoneApiDestroyable<RHISampler> {
+	struct NoneSampler : public NoneApiDestroyable<RHISampler>
+	{
 		RHIDescriptor descriptor() const override { return 0; }
 	};
 
-	struct NoneSRV : public RHIShaderResourceView {
+	struct NoneSRV : public RHIShaderResourceView
+	{
 		RHIDescriptor descriptor() const override { return 0; }
 	};
 
-	struct NoneUAV : public RHIUnorderedAccessView {
+	struct NoneUAV : public RHIUnorderedAccessView
+	{
 		RHIDescriptor descriptor() const override { return 0; }
 	};
 
-	struct NoneRTV : public RHIRenderTargetView {
+	struct NoneRTV : public RHIRenderTargetView
+	{
 	};
 
-	struct NoneDSV : public RHIDepthStencilView {
+	struct NoneDSV : public RHIDepthStencilView
+	{
 	};
 
-	struct NoneTexture : public NoneApiDestroyable<RHITexture> {
+	struct NoneTexture : public NoneApiDestroyable<RHITexture>
+	{
 		Vector3u size() const override { return {0, 0, 0}; }
 		RHIRenderTargetView* as_rtv(RHITextureDescRTV* desc) override { return rhi_default<NoneRTV>(); }
 		RHIDepthStencilView* as_dsv(RHITextureDescDSV* desc) override { return rhi_default<NoneDSV>(); }
@@ -71,13 +81,16 @@ namespace Trinex
 		RHIUnorderedAccessView* as_uav(RHITextureDescUAV* desc) override { return rhi_default<NoneUAV>(); }
 	};
 
-	struct NoneShader : public NoneApiDestroyable<RHIShader> {
+	struct NoneShader : public NoneApiDestroyable<RHIShader>
+	{
 	};
 
-	struct NonePipeline : public NoneApiDestroyable<RHIPipeline> {
+	struct NonePipeline : public NoneApiDestroyable<RHIPipeline>
+	{
 	};
 
-	struct NoneBuffer : public NoneApiDestroyable<RHIBuffer> {
+	struct NoneBuffer : public NoneApiDestroyable<RHIBuffer>
+	{
 		usize size() const override { return 0; }
 		RHIDeviceAddress address() override { return 0; }
 		u8* map(RHIMappingAccess access) override { return nullptr; }
@@ -87,7 +100,8 @@ namespace Trinex
 		RHIUnorderedAccessView* as_uav(RHIBufferViewType type, RHIColorFormat format) override { return rhi_default<NoneUAV>(); }
 	};
 
-	struct NoneSwapchain : public NoneApiDestroyable<RHISwapchain> {
+	struct NoneSwapchain : public NoneApiDestroyable<RHISwapchain>
+	{
 		void present_interval(u32 interval) override {}
 		void resize(const Vector2u& new_size) override {}
 		RHISemaphore* acquire_semaphore() override { return rhi_default<NoneSemaphore>(); }
@@ -96,7 +110,8 @@ namespace Trinex
 		RHITexture* as_texture() override { return rhi_default<NoneTexture>(); }
 	};
 
-	struct NoneAccelerationStructure : public NoneApiDestroyable<RHIAccelerationStructure> {
+	struct NoneAccelerationStructure : public NoneApiDestroyable<RHIAccelerationStructure>
+	{
 	};
 
 	NoneApi& NoneApi::update(float dt)
@@ -194,4 +209,4 @@ namespace Trinex
 	{
 		return *this;
 	}
-}// namespace Trinex
+} // namespace Trinex

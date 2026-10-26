@@ -133,4 +133,4 @@ namespace Trinex
 			r.method("Ptr<void> opImplCast() const", self_return);
 		}
 	}
-}// namespace Trinex
+} // namespace Trinex

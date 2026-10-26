@@ -28,4 +28,4 @@ namespace Trinex
 	{
 		return get(reinterpret_cast<Identifier>(id));
 	}
-}// namespace Trinex
+} // namespace Trinex

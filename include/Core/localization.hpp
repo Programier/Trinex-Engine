@@ -25,5 +25,4 @@ namespace Trinex
 		friend class Singletone<Localization, EmptySingletoneParent>;
 	};
 
-
-}// namespace Trinex
+} // namespace Trinex

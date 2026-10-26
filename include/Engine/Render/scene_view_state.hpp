@@ -29,4 +29,4 @@ namespace Trinex
 		inline const CameraView& camera_view() const { return m_view; }
 		inline RHITexture* scene_color() const { return m_scene_color; }
 	};
-}// namespace Trinex
+} // namespace Trinex

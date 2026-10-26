@@ -66,8 +66,8 @@ namespace Trinex
 
 		if (m_gpu_heap == nullptr && m_cpu_heap.size() > 0)
 		{
-			RHIBufferFlags flags = RHIBufferFlags::DeviceAddress | RHIBufferFlags::TransferDst |
-			                       RHIBufferFlags::ByteAddressBuffer | RHIBufferFlags::ShaderResource;
+			RHIBufferFlags flags = RHIBufferFlags::DeviceAddress | RHIBufferFlags::TransferDst | RHIBufferFlags::ByteAddressBuffer
+			                       | RHIBufferFlags::ShaderResource;
 			m_gpu_heap           = RHI::instance()->create_buffer(m_cpu_heap.size(), flags);
 		}
 
@@ -298,4 +298,4 @@ namespace Trinex
 
 		return free(address);
 	}
-}// namespace Trinex
+} // namespace Trinex

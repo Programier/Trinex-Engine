@@ -40,4 +40,4 @@ namespace Trinex::Refl
 	{
 		m_script->m_refl_objects.erase(this);
 	}
-}// namespace Trinex::Refl
+} // namespace Trinex::Refl

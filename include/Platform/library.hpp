@@ -4,7 +4,8 @@
 
 namespace Trinex::Platform
 {
-	struct LibrarySymbol {
+	struct LibrarySymbol
+	{
 		void (*address)() = nullptr;
 
 		template<typename T>
@@ -37,4 +38,4 @@ namespace Trinex::Platform
 
 		virtual Ref<Library> load(const char* path) = 0;
 	};
-}// namespace Trinex::Platform
+} // namespace Trinex::Platform

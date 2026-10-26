@@ -32,4 +32,4 @@ namespace Trinex
 			Registry::for_each_invoke(&ObjectDestroyListener::on_object_destroy, object);
 		}
 	};
-}// namespace Trinex
+} // namespace Trinex

@@ -3,13 +3,13 @@
 #include <Core/reflection/new/of.hpp>
 #include <Core/reflection/new/type.hpp>
 
-
 namespace Trinex::Refl::New
 {
 	namespace Native
 	{
 		template<typename T, typename Value>
-		struct NumericFormatter {
+		struct NumericFormatter
+		{
 			static usize parse(const Type*, void* self, StringView value)
 			{
 				Value parsed = {};
@@ -30,7 +30,8 @@ namespace Trinex::Refl::New
 		};
 
 		template<>
-		struct TypeFormatter<bool> {
+		struct TypeFormatter<bool>
+		{
 			static usize parse(const Type*, void* self, StringView value)
 			{
 				bool parsed = false;
@@ -51,7 +52,8 @@ namespace Trinex::Refl::New
 		};
 
 		template<>
-		struct TypeFormatter<String> {
+		struct TypeFormatter<String>
+		{
 			static usize parse(const Type*, void* self, StringView value)
 			{
 				const usize size = value.size();
@@ -112,7 +114,8 @@ namespace Trinex::Refl::New
 		};
 
 		template<>
-		struct TypeFormatter<Vector2u> {
+		struct TypeFormatter<Vector2u>
+		{
 			static usize parse(const Type*, void* self, StringView value)
 			{
 				if (value.size() < 5 || value[0] != '[' || value[value.size() - 1] != ']')
@@ -128,8 +131,10 @@ namespace Trinex::Refl::New
 				StringView second = value.substr(separator + 1, value.size() - separator - 2);
 
 				auto trim = [](StringView& text) {
-					while (!text.empty() && (text.front() == ' ' || text.front() == '\t')) text = text.substr(1);
-					while (!text.empty() && (text.back() == ' ' || text.back() == '\t')) text = text.substr(0, text.size() - 1);
+					while (!text.empty() && (text.front() == ' ' || text.front() == '\t'))
+						text = text.substr(1);
+					while (!text.empty() && (text.back() == ' ' || text.back() == '\t'))
+						text = text.substr(0, text.size() - 1);
 				};
 
 				trim(first);
@@ -155,45 +160,55 @@ namespace Trinex::Refl::New
 		};
 
 		template<>
-		struct TypeFormatter<i8> : NumericFormatter<i8, i64> {
+		struct TypeFormatter<i8> : NumericFormatter<i8, i64>
+		{
 		};
 
 		template<>
-		struct TypeFormatter<i16> : NumericFormatter<i16, i64> {
+		struct TypeFormatter<i16> : NumericFormatter<i16, i64>
+		{
 		};
 
 		template<>
-		struct TypeFormatter<i32> : NumericFormatter<i32, i64> {
+		struct TypeFormatter<i32> : NumericFormatter<i32, i64>
+		{
 		};
 
 		template<>
-		struct TypeFormatter<i64> : NumericFormatter<i64, i64> {
+		struct TypeFormatter<i64> : NumericFormatter<i64, i64>
+		{
 		};
 
 		template<>
-		struct TypeFormatter<u8> : NumericFormatter<u8, u64> {
+		struct TypeFormatter<u8> : NumericFormatter<u8, u64>
+		{
 		};
 
 		template<>
-		struct TypeFormatter<u16> : NumericFormatter<u16, u64> {
+		struct TypeFormatter<u16> : NumericFormatter<u16, u64>
+		{
 		};
 
 		template<>
-		struct TypeFormatter<u32> : NumericFormatter<u32, u64> {
+		struct TypeFormatter<u32> : NumericFormatter<u32, u64>
+		{
 		};
 
 		template<>
-		struct TypeFormatter<u64> : NumericFormatter<u64, u64> {
+		struct TypeFormatter<u64> : NumericFormatter<u64, u64>
+		{
 		};
 
 		template<>
-		struct TypeFormatter<f32> : NumericFormatter<f32, f64> {
+		struct TypeFormatter<f32> : NumericFormatter<f32, f64>
+		{
 		};
 
 		template<>
-		struct TypeFormatter<f64> : NumericFormatter<f64, f64> {
+		struct TypeFormatter<f64> : NumericFormatter<f64, f64>
+		{
 		};
-	}// namespace Native
+	} // namespace Native
 
 	template<typename T>
 	static Type* type_of_internal(Name name)
@@ -306,4 +321,4 @@ namespace Trinex::Refl::New
 		TypeOf<f32>::resolve();
 		TypeOf<f64>::resolve();
 	}
-}// namespace Trinex::Refl::New
+} // namespace Trinex::Refl::New

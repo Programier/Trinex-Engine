@@ -5,7 +5,8 @@
 namespace Trinex
 {
 	template<usize N>
-	struct ConstexprString {
+	struct ConstexprString
+	{
 		char data[N]{};
 
 		consteval ConstexprString(const char (&str)[N]) { std::copy_n(str, N, data); }
@@ -57,4 +58,4 @@ namespace Trinex
 	{
 		return ConstexprString<s2>(str) == fs;
 	}
-}// namespace Trinex
+} // namespace Trinex

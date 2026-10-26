@@ -6,7 +6,8 @@
 
 namespace Trinex::Refl::New
 {
-	trinex_reflect() class trinex_api Class final : public Struct
+	trinex_reflect()
+	class trinex_api Class final : public Struct
 	{
 		trinex_reflection_body();
 
@@ -33,4 +34,4 @@ namespace Trinex::Refl::New
 		inline bool is_scriptable() const { return has_flags(IsScriptable); }
 		inline const VTable* vtable() const { return static_cast<const VTable*>(Struct::vtable()); }
 	};
-}// namespace Trinex::Refl::New
+} // namespace Trinex::Refl::New

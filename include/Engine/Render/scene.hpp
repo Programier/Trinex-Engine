@@ -20,8 +20,10 @@ namespace Trinex
 	class trinex_api RenderScene final
 	{
 	public:
-		struct Geometry {
-			struct Buffer {
+		struct Geometry
+		{
+			struct Buffer
+			{
 				RHIDescriptor buffer;
 				u32 offset;
 				u32 stride;
@@ -29,7 +31,8 @@ namespace Trinex
 
 			using VertexStream = Vector3f;
 
-			struct SurfaceStream {
+			struct SurfaceStream
+			{
 				Vector2f16 uv0;
 				Vector2f16 uv1;
 
@@ -37,7 +40,8 @@ namespace Trinex
 				u32 tangent;
 			};
 
-			struct AnimationStream {
+			struct AnimationStream
+			{
 				u8 indices[4];
 				u8 weights[4];
 			};
@@ -51,8 +55,10 @@ namespace Trinex
 			Box3f aabb              = {};
 		};
 
-		struct Primitive {
-			struct Flags {
+		struct Primitive
+		{
+			struct Flags
+			{
 				enum Enum : u32
 				{
 					IsLast   = trinex_bit(0),
@@ -74,7 +80,8 @@ namespace Trinex
 			Flags flags        = 0;
 		};
 
-		struct Chunk {
+		struct Chunk
+		{
 			Material* material = nullptr;
 			u32 count          = 0;
 			u32 capacity       = 0;
@@ -82,7 +89,8 @@ namespace Trinex
 		};
 
 	private:
-		struct Command {
+		struct Command
+		{
 			u32 begin;
 			u32 end;
 			inline bool operator<(const Command& other) const { return begin < other.begin; }
@@ -149,4 +157,4 @@ namespace Trinex
 		inline RHIBuffer* heap() const { return m_gpu_heap; }
 		inline const Array<Chunk>& chunks() const { return m_chunks; }
 	};
-}// namespace Trinex
+} // namespace Trinex

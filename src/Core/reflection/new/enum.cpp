@@ -12,8 +12,9 @@ namespace Trinex::Refl::New
 				return 0;
 
 			auto skip_whitespace = [&value](usize& position) {
-				while (position < value.size() &&
-				       (value[position] == ' ' || value[position] == '\t' || value[position] == '\r' || value[position] == '\n'))
+				while (position < value.size()
+				       && (value[position] == ' ' || value[position] == '\t' || value[position] == '\r'
+				           || value[position] == '\n'))
 					++position;
 			};
 
@@ -34,8 +35,8 @@ namespace Trinex::Refl::New
 			for (;;)
 			{
 				const usize token_begin = position;
-				while (position < value.size() && value[position] != '|' && value[position] != ' ' && value[position] != '\t' &&
-				       value[position] != '\r' && value[position] != '\n')
+				while (position < value.size() && value[position] != '|' && value[position] != ' ' && value[position] != '\t'
+				       && value[position] != '\r' && value[position] != '\n')
 					++position;
 
 				if (token_begin == position)
@@ -123,7 +124,7 @@ namespace Trinex::Refl::New
 			value += numeric;
 			return true;
 		}
-	}// namespace Native
+	} // namespace Native
 
 	Enum::Enum(Name name, Ref<Type> underlying, Array<EnumValue> values, u64 flags, const VTable* vtable, Object* owner)
 	    : Type(name, underlying->size(), underlying->alignment(), flags, vtable, owner), m_underlying(etl::move(underlying)),
@@ -141,5 +142,4 @@ namespace Trinex::Refl::New
 		return nullptr;
 	}
 
-
-}// namespace Trinex::Refl::New
+} // namespace Trinex::Refl::New

@@ -51,4 +51,4 @@ namespace Trinex
 		Super::select(object);
 		return *this;
 	}
-}// namespace Trinex
+} // namespace Trinex

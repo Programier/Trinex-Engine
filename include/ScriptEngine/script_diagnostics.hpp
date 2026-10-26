@@ -4,7 +4,8 @@
 
 namespace Trinex
 {
-	struct trinex_api ScriptDiagnostic {
+	struct trinex_api ScriptDiagnostic
+	{
 		enum class Type : u8
 		{
 			Info,
@@ -12,14 +13,15 @@ namespace Trinex
 			Error,
 		};
 
-		Type type        = Type::Info;
-		String section   = {};
-		i32 row          = 0;
-		i32 column       = 0;
-		String message   = {};
+		Type type      = Type::Info;
+		String section = {};
+		i32 row        = 0;
+		i32 column     = 0;
+		String message = {};
 	};
 
-	struct trinex_api ScriptBuildResult {
+	struct trinex_api ScriptBuildResult
+	{
 		bool success = false;
 		Array<ScriptDiagnostic> diagnostics;
 
@@ -34,4 +36,4 @@ namespace Trinex
 			return false;
 		}
 	};
-}// namespace Trinex
+} // namespace Trinex

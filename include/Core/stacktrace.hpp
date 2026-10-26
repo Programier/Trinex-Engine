@@ -1,14 +1,15 @@
 #pragma once
 #include <Core/engine_types.hpp>
-#include <Core/etl/string.hpp>
 #include <Core/etl/array.hpp>
+#include <Core/etl/string.hpp>
 
 namespace Trinex
 {
 	class trinex_api StackTrace final
 	{
 	public:
-		struct FunctionInfo {
+		struct FunctionInfo
+		{
 			String filename;
 			String symbol_name;
 			void* func_address = nullptr;
@@ -22,4 +23,4 @@ namespace Trinex
 		const Array<FunctionInfo>& callstack() const;
 		String to_string(bool with_filename = false, const char* line_sep = "\n") const;
 	};
-}// namespace Trinex
+} // namespace Trinex

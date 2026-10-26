@@ -8,7 +8,6 @@
 #include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 
-
 namespace Trinex
 {
 	static constexpr usize s_line_vtx_per_node = 40960;
@@ -261,4 +260,4 @@ namespace Trinex
 		trinex_rhi_pop_stage(ctx);
 		return *this;
 	}
-}// namespace Trinex
+} // namespace Trinex

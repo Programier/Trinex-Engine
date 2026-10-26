@@ -58,12 +58,12 @@ namespace Trinex
 		}
 		else
 		{
-			return Math::ortho(-ortho_width / 2.0f, // Left
-			                   ortho_width / 2.0f,  // Right
-			                   -ortho_height / 2.0f,// Bottom
-			                   ortho_height / 2.0f, // Top
-			                   near,                // Near clipping plane
-			                   far                  // Far clipping plane
+			return Math::ortho(-ortho_width / 2.0f,  // Left
+			                   ortho_width / 2.0f,   // Right
+			                   -ortho_height / 2.0f, // Bottom
+			                   ortho_height / 2.0f,  // Top
+			                   near,                 // Near clipping plane
+			                   far                   // Far clipping plane
 			);
 		}
 	}
@@ -73,4 +73,4 @@ namespace Trinex
 		const Transform& transform = world_transform();
 		return Math::look_at(transform.location, transform.location + transform.forward_vector(), transform.up_vector());
 	}
-}// namespace Trinex
+} // namespace Trinex

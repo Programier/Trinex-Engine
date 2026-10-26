@@ -223,4 +223,4 @@ namespace Trinex
 		Pipeline* result = pipeline(permutation);
 		return result ? result->find_parameter(key) : nullptr;
 	}
-}// namespace Trinex
+} // namespace Trinex

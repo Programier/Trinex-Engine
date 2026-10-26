@@ -4,4 +4,4 @@ namespace Trinex
 {
 	trinex_implement_registry(ObjectCreateListener);
 	trinex_implement_registry(ObjectDestroyListener);
-}// namespace Trinex
+} // namespace Trinex

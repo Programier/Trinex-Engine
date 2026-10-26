@@ -160,7 +160,6 @@ namespace Trinex
 					        m_header_max + ImVec2(node_padding.z - half_border_width, 0), ImVec2(0.0f, 0.0f), uv, header_color,
 					        GetStyle().NodeRounding, ImDrawFlags_RoundCornersTop);
 
-
 					if (m_content_min.y > m_header_max.y)
 					{
 						draw_list->AddLine(ImVec2(m_header_min.x - (8 - half_border_width), m_header_max.y - 0.5f),
@@ -275,7 +274,7 @@ namespace Trinex
 		auto rect_center_y        = (rect.Min.y + rect.Max.y) * 0.5f;
 		auto rect_center          = ImVec2(rect_center_x, rect_center_y);
 		const auto outline_scale  = rect_w / 24.0f;
-		const auto extra_segments = static_cast<int>(2 * outline_scale);// for full circle
+		const auto extra_segments = static_cast<int>(2 * outline_scale); // for full circle
 
 		if (type == BlueprintBuilder::IconType::Flow)
 		{
@@ -482,4 +481,4 @@ namespace Trinex
 		ImGui::Dummy(size);
 	}
 
-}// namespace Trinex
+} // namespace Trinex

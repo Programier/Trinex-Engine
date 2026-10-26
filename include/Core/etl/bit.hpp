@@ -19,4 +19,4 @@ namespace Trinex::etl
 	using std::rotr;
 
 	using std::endian;
-}// namespace Trinex::etl
+} // namespace Trinex::etl

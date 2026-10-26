@@ -68,4 +68,4 @@ namespace Trinex::Math
 		Vector4f row3 = Math::row(projview, 3);
 		return Plane(row3 - row2);
 	}
-}// namespace Trinex::Math
+} // namespace Trinex::Math

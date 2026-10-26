@@ -68,4 +68,4 @@ namespace Trinex
 
 		inline ~Sampler() { release(); }
 	};
-}// namespace Trinex
+} // namespace Trinex

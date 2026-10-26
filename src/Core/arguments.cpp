@@ -87,7 +87,6 @@ namespace Trinex
 		return String(argument + start, end);
 	}
 
-
 	void Arguments::push_array_argument(const String& name, const String& argument)
 	{
 		Array<String> data = {};
@@ -110,16 +109,17 @@ namespace Trinex
 		arg.data  = data;
 	}
 
-
 	void Arguments::push_argument(const char* name)
 	{
 		usize pos = 0;
 		usize len = std::strlen(name);
 
-		for (pos = 0; pos < len && name[pos] != '='; ++pos);
+		for (pos = 0; pos < len && name[pos] != '='; ++pos)
+			;
 
 		usize arg_pos = pos + 1;
-		for (; arg_pos < len && name[arg_pos] == ' '; ++arg_pos);
+		for (; arg_pos < len && name[arg_pos] == ' '; ++arg_pos)
+			;
 
 		String arg_name = String(name, pos);
 
@@ -179,4 +179,4 @@ namespace Trinex
 		m_arguments[argument.name] = argument;
 		return;
 	}
-}// namespace Trinex
+} // namespace Trinex

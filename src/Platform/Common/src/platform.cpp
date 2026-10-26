@@ -62,5 +62,4 @@ namespace Trinex::Platform
 		return Context::instance()->dialog_system();
 	}
 
-
-}// namespace Trinex::Platform
+} // namespace Trinex::Platform

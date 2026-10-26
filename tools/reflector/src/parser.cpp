@@ -17,13 +17,15 @@ namespace Reflector
 {
 	namespace
 	{
-		struct Cursor {
+		struct Cursor
+		{
 			std::string_view source;
 			const std::vector<Token>* tokens = nullptr;
 			std::size_t index                = 0;
 		};
 
-		struct Annotation {
+		struct Annotation
+		{
 			std::string name;
 			std::string arguments;
 			std::vector<Metadata> metadata;
@@ -31,7 +33,8 @@ namespace Reflector
 			std::size_t column = 0;
 		};
 
-		struct DeclarationPrefix {
+		struct DeclarationPrefix
+		{
 			std::string attributes;
 			std::string engine_macros;
 		};
@@ -133,8 +136,9 @@ namespace Reflector
 
 		bool is_export_macro(const Token& token)
 		{
-			return token.type == TokenType::Identifier &&
-			       (has_suffix(token.value, "_api") || has_suffix(token.value, "_export") || has_suffix(token.value, "_import"));
+			return token.type == TokenType::Identifier
+			       && (has_suffix(token.value, "_api") || has_suffix(token.value, "_export")
+			           || has_suffix(token.value, "_import"));
 		}
 
 		bool is_engine_macro(const Token& token)
@@ -143,15 +147,15 @@ namespace Reflector
 			{
 				return false;
 			}
-			return is_export_macro(token) || has_suffix(token.value, "_api") || has_suffix(token.value, "_INLINE") ||
-			       has_suffix(token.value, "_MACRO") || token.value == "GENERATED_BODY" ||
-			       token.value == "GENERATED_CLASS_BODY" || token.value == "FORCE_INLINE" || token.value == "FORCEINLINE";
+			return is_export_macro(token) || has_suffix(token.value, "_api") || has_suffix(token.value, "_INLINE")
+			       || has_suffix(token.value, "_MACRO") || token.value == "GENERATED_BODY"
+			       || token.value == "GENERATED_CLASS_BODY" || token.value == "FORCE_INLINE" || token.value == "FORCEINLINE";
 		}
 
 		bool is_template_argument_list(const std::vector<Token>& tokens, std::size_t index)
 		{
-			return index > 0 && tokens[index - 1].type == TokenType::Identifier && tokens[index - 1].value != "operator" &&
-			       is_symbol(tokens[index], "<");
+			return index > 0 && tokens[index - 1].type == TokenType::Identifier && tokens[index - 1].value != "operator"
+			       && is_symbol(tokens[index], "<");
 		}
 
 		std::size_t matching_token(const std::vector<Token>& tokens, std::size_t open_index);
@@ -310,8 +314,8 @@ namespace Reflector
 
 		std::size_t skip_balanced(const std::vector<Token>& tokens, std::size_t index)
 		{
-			if (is_symbol(tokens[index], "(") || is_symbol(tokens[index], "{") || is_symbol(tokens[index], "[") ||
-			    is_template_argument_list(tokens, index))
+			if (is_symbol(tokens[index], "(") || is_symbol(tokens[index], "{") || is_symbol(tokens[index], "[")
+			    || is_template_argument_list(tokens, index))
 			{
 				return matching_token(tokens, index) + 1;
 			}
@@ -325,8 +329,8 @@ namespace Reflector
 			std::size_t range_begin = begin;
 			for (std::size_t i = begin; i < end;)
 			{
-				if (is_symbol(tokens[i], "(") || is_symbol(tokens[i], "{") || is_symbol(tokens[i], "[") ||
-				    is_template_argument_list(tokens, i))
+				if (is_symbol(tokens[i], "(") || is_symbol(tokens[i], "{") || is_symbol(tokens[i], "[")
+				    || is_template_argument_list(tokens, i))
 				{
 					i = skip_balanced(tokens, i);
 					continue;
@@ -501,8 +505,8 @@ namespace Reflector
 				if (open < end && close > open && close < end)
 				{
 					TypeInfo component;
-					if (!parse_type_info(raw_between(spelling, tokens[begin], tokens[close + 1]), component) ||
-					    !parse_type_info(raw_between(spelling, tokens[close + 1], tokens[end]), component))
+					if (!parse_type_info(raw_between(spelling, tokens[begin], tokens[close + 1]), component)
+					    || !parse_type_info(raw_between(spelling, tokens[close + 1], tokens[end]), component))
 					{
 						return false;
 					}
@@ -516,8 +520,8 @@ namespace Reflector
 			{
 				TypeInfo::TemplateArgument argument;
 				auto argument_end = last;
-				if (argument_end >= first + 3 && tokens[argument_end - 1].value == "." && tokens[argument_end - 2].value == "." &&
-				    tokens[argument_end - 3].value == ".")
+				if (argument_end >= first + 3 && tokens[argument_end - 1].value == "." && tokens[argument_end - 2].value == "."
+				    && tokens[argument_end - 3].value == ".")
 				{
 					argument.flags |= TypeInfo::TemplateArgument::PackExpansion;
 					argument_end -= 3;
@@ -543,10 +547,10 @@ namespace Reflector
 							continue;
 						}
 					}
-					value |= tokens[i].type == TokenType::Number || tokens[i].type == TokenType::String ||
-					         tokens[i].type == TokenType::Character || tokens[i].value == "true" || tokens[i].value == "false" ||
-					         tokens[i].value == "nullptr" || tokens[i].value == "+" || tokens[i].value == "-" ||
-					         tokens[i].value == "|" || tokens[i].value == "sizeof" || tokens[i].value == "alignof";
+					value |= tokens[i].type == TokenType::Number || tokens[i].type == TokenType::String
+					         || tokens[i].type == TokenType::Character || tokens[i].value == "true" || tokens[i].value == "false"
+					         || tokens[i].value == "nullptr" || tokens[i].value == "+" || tokens[i].value == "-"
+					         || tokens[i].value == "|" || tokens[i].value == "sizeof" || tokens[i].value == "alignof";
 				}
 				const auto text = raw_between(spelling, tokens[first], tokens[argument_end]);
 				if (value)
@@ -667,8 +671,8 @@ namespace Reflector
 		{
 			for (std::size_t i = begin; i < end;)
 			{
-				if (is_symbol(tokens[i], "(") || is_symbol(tokens[i], "{") || is_symbol(tokens[i], "[") ||
-				    is_template_argument_list(tokens, i))
+				if (is_symbol(tokens[i], "(") || is_symbol(tokens[i], "{") || is_symbol(tokens[i], "[")
+				    || is_template_argument_list(tokens, i))
 				{
 					i = skip_balanced(tokens, i);
 					continue;
@@ -688,10 +692,10 @@ namespace Reflector
 			{
 				if (is_symbol(tokens[i], "("))
 				{
-					const auto close = matching_token(tokens, i);
-					const auto is_declarator_group =
-					        i > begin && (is_symbol(tokens[i - 1], "*") || is_symbol(tokens[i - 1], "&") ||
-					                      is_symbol(tokens[i - 1], "&&") || is_symbol(tokens[i - 1], "::"));
+					const auto close               = matching_token(tokens, i);
+					const auto is_declarator_group = i > begin
+					                                 && (is_symbol(tokens[i - 1], "*") || is_symbol(tokens[i - 1], "&")
+					                                     || is_symbol(tokens[i - 1], "&&") || is_symbol(tokens[i - 1], "::"));
 					if (close < end && !is_declarator_group)
 					{
 						return i;
@@ -745,8 +749,8 @@ namespace Reflector
 					i = skip_balanced(tokens, i);
 					continue;
 				}
-				if (tokens[i].type == TokenType::Identifier && !is_type_prefix(tokens[i]) && !is_export_macro(tokens[i]) &&
-				    tokens[i].value != "const")
+				if (tokens[i].type == TokenType::Identifier && !is_type_prefix(tokens[i]) && !is_export_macro(tokens[i])
+				    && tokens[i].value != "const")
 				{
 					best = i;
 				}
@@ -799,12 +803,13 @@ namespace Reflector
 				end            = equals;
 			}
 			auto name = find_property_name(tokens, begin, end);
-			if (name != end &&
-			    (is_builtin(tokens[name].value) || name == begin || (name > begin && tokens[name - 1].value == "::") ||
-			     (name + 1 < end && (tokens[name + 1].value == "::" || tokens[name + 1].value == "<"))))
+			if (name != end
+			    && (is_builtin(tokens[name].value) || name == begin || (name > begin && tokens[name - 1].value == "::")
+			        || (name + 1 < end && (tokens[name + 1].value == "::" || tokens[name + 1].value == "<"))))
 			{
 				name = end;
 			}
+
 			if (name != end)
 			{
 				const auto spelling =
@@ -957,8 +962,8 @@ namespace Reflector
 					std::int64_t result = 0;
 					if (op == "+")
 					{
-						if ((*right > 0 && *left > std::numeric_limits<std::int64_t>::max() - *right) ||
-						    (*right < 0 && *left < std::numeric_limits<std::int64_t>::min() - *right))
+						if ((*right > 0 && *left > std::numeric_limits<std::int64_t>::max() - *right)
+						    || (*right < 0 && *left < std::numeric_limits<std::int64_t>::min() - *right))
 						{
 							return {};
 						}
@@ -966,8 +971,8 @@ namespace Reflector
 					}
 					else if (op == "-")
 					{
-						if ((*right < 0 && *left > std::numeric_limits<std::int64_t>::max() + *right) ||
-						    (*right > 0 && *left < std::numeric_limits<std::int64_t>::min() + *right))
+						if ((*right < 0 && *left > std::numeric_limits<std::int64_t>::max() + *right)
+						    || (*right > 0 && *left < std::numeric_limits<std::int64_t>::min() + *right))
 						{
 							return {};
 						}
@@ -1161,8 +1166,8 @@ namespace Reflector
 
 				auto open = find_parameter_list_open(tokens, begin, end);
 
-				if (open < end && open > begin && tokens[open - 1].value == "operator" &&
-				    matching_token(tokens, open) == open + 1 && open + 2 < end && tokens[open + 2].value == "(")
+				if (open < end && open > begin && tokens[open - 1].value == "operator" && matching_token(tokens, open) == open + 1
+				    && open + 2 < end && tokens[open + 2].value == "(")
 				{
 					open += 2;
 				}
@@ -1211,8 +1216,8 @@ namespace Reflector
 					}
 				}
 
-				if ((object->flags & Function::Operator) && object->type.name.empty() && name + 1 < open &&
-				    tokens[name + 1].type == TokenType::Identifier)
+				if ((object->flags & Function::Operator) && object->type.name.empty() && name + 1 < open
+				    && tokens[name + 1].type == TokenType::Identifier)
 				{
 					if (!parse_type_info(raw_between(source, tokens[name + 1], tokens[open]), object->type))
 					{
@@ -1243,8 +1248,8 @@ namespace Reflector
 					if (text == "->")
 					{
 						auto type_end = i + 1;
-						while (type_end < end && tokens[type_end].value != "override" && tokens[type_end].value != "final" &&
-						       tokens[type_end].value != "=")
+						while (type_end < end && tokens[type_end].value != "override" && tokens[type_end].value != "final"
+						       && tokens[type_end].value != "=")
 						{
 							++type_end;
 						}
@@ -1257,7 +1262,7 @@ namespace Reflector
 					}
 					if (text == ":")
 					{
-						break;// Constructor initializer list.
+						break; // Constructor initializer list.
 					}
 					if (text == "const")
 					{
@@ -1287,8 +1292,8 @@ namespace Reflector
 				{
 					for (const auto& [first, last] : split_token_ranges(tokens, open + 1, close, ","))
 					{
-						if (last == first + 3 && tokens[first].value == "." && tokens[first + 1].value == "." &&
-						    tokens[first + 2].value == ".")
+						if (last == first + 3 && tokens[first].value == "." && tokens[first + 1].value == "."
+						    && tokens[first + 2].value == ".")
 						{
 							object->flags |= Function::Variadic;
 						}
@@ -1510,7 +1515,7 @@ namespace Reflector
 
 				if (parts.empty())
 				{
-					parts.emplace_back();// Anonymous namespace is still a distinct scope.
+					parts.emplace_back(); // Anonymous namespace is still a distinct scope.
 				}
 
 				Scope* owner = &scope;
@@ -1604,8 +1609,9 @@ namespace Reflector
 						continue;
 					}
 
-					if (current(cursor).value == "namespace" || (current(cursor).value == "inline" && cursor.index + 1 < end &&
-					                                             tokens[cursor.index + 1].value == "namespace"))
+					if (current(cursor).value == "namespace"
+					    || (current(cursor).value == "inline" && cursor.index + 1 < end
+					        && tokens[cursor.index + 1].value == "namespace"))
 					{
 						if (!namespace_scope(scope, cursor, end))
 						{
@@ -1620,8 +1626,8 @@ namespace Reflector
 
 					if (!parse_annotation(cursor, annotation))
 					{
-						if (tokens[start].value == "trinex_reflect" || tokens[start].value == "trinex_function" ||
-						    tokens[start].value == "trinex_property")
+						if (tokens[start].value == "trinex_reflect" || tokens[start].value == "trinex_function"
+						    || tokens[start].value == "trinex_property")
 						{
 							return failure(tokens[start], "malformed reflection annotation");
 						}
@@ -1701,9 +1707,10 @@ namespace Reflector
 
 		public:
 			ModuleParser(std::string_view source) : source(source), tokens(tokenize(source)) { std::erase_if(tokens, is_trivia); }
+
 			bool parse(Module& module) { return range(module, 0, tokens.size() - 1, Access::Global); }
 		};
-	}// namespace
+	} // namespace
 
 	bool parse(Module* module, std::string_view source)
 	{
@@ -1724,4 +1731,4 @@ namespace Reflector
 
 		return module;
 	}
-}// namespace Reflector
+} // namespace Reflector

@@ -44,7 +44,8 @@ namespace Trinex::VisualMaterialGraph
 	}
 
 	template<typename T>
-	struct DataTypeFormatter {
+	struct DataTypeFormatter
+	{
 		static String format(const T& value, RHIShaderParameterType type, u32 depth = 0)
 		{
 			if (depth == 0)
@@ -54,7 +55,8 @@ namespace Trinex::VisualMaterialGraph
 	};
 
 	template<glm::length_t L, typename T, glm::qualifier Q>
-	struct DataTypeFormatter<glm::vec<L, T, Q>> {
+	struct DataTypeFormatter<glm::vec<L, T, Q>>
+	{
 		static String format(const glm::vec<L, T, Q>& value, RHIShaderParameterType type, u32 depth = 0)
 		{
 			String result = Expression::typename_of(type);
@@ -75,17 +77,20 @@ namespace Trinex::VisualMaterialGraph
 	};
 
 	template<>
-	struct DataTypeFormatter<Matrix3f> {
+	struct DataTypeFormatter<Matrix3f>
+	{
 		static String format(const Matrix3f& value, RHIShaderParameterType type, u32 depth = 0) { return {}; }
 	};
 
 	template<>
-	struct DataTypeFormatter<Matrix4f> {
+	struct DataTypeFormatter<Matrix4f>
+	{
 		static String format(const Matrix4f& value, RHIShaderParameterType type, u32 depth = 0) { return {}; }
 	};
 
 	template<typename T, RHIShaderParameterType type_value>
-	struct DefaultValueHolder : public Pin::DefaultValue {
+	struct DefaultValueHolder : public Pin::DefaultValue
+	{
 		T value = T();
 
 		u8* address() override { return reinterpret_cast<u8*>(&value); }
@@ -662,7 +667,8 @@ namespace Trinex::VisualMaterialGraph
 		String source;
 		usize required_size = 0;
 
-		for (const String& expression : expression) required_size += spacing.size() + expression.size() + 1;
+		for (const String& expression : expression)
+			required_size += spacing.size() + expression.size() + 1;
 		source.reserve(required_size);
 
 		for (const String& expression : expression)
@@ -949,4 +955,4 @@ namespace Trinex::VisualMaterialGraph
 
 		// static RHIShaderParameterType component_type(RHIShaderParameterType type);
 	}
-}// namespace Trinex::VisualMaterialGraph
+} // namespace Trinex::VisualMaterialGraph

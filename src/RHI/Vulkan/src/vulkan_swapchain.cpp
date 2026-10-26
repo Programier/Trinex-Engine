@@ -79,7 +79,6 @@ namespace Trinex
 		else
 			builder.set_pre_transform_flags(static_cast<VkSurfaceTransformFlagBitsKHR>(capabilities.currentTransform));
 
-
 		VkSurfaceFormatKHR f;
 		f.colorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
 		f.format     = VK_FORMAT_B8G8R8A8_UNORM;
@@ -339,4 +338,4 @@ namespace Trinex
 		static_cast<VulkanSwapchain*>(swapchain)->present();
 		return *this;
 	}
-}// namespace Trinex
+} // namespace Trinex

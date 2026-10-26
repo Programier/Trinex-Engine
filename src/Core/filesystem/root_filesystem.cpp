@@ -9,7 +9,7 @@ namespace Trinex
 		return VFS::RootFS::instance();
 	}
 
-}// namespace Trinex
+} // namespace Trinex
 
 namespace Trinex::VFS
 {
@@ -42,7 +42,7 @@ namespace Trinex::VFS
 				return rootfs()->walk(m_path / path, callback, flags);
 			}
 		};
-	}// namespace
+	} // namespace
 
 	RootFS* RootFS::s_instance = nullptr;
 
@@ -153,4 +153,4 @@ namespace Trinex::VFS
 
 		return nullptr;
 	}
-}// namespace Trinex::VFS
+} // namespace Trinex::VFS

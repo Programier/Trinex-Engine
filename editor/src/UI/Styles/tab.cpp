@@ -35,4 +35,4 @@ namespace Trinex::UI
 		type->bind("overline_color", &TabStyle::overline_color, Refl::Property::Style);
 		trinex_ui_bind_type_name(TabStyle);
 	}
-}// namespace Trinex::UI
+} // namespace Trinex::UI

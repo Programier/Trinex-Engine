@@ -23,7 +23,7 @@ namespace Trinex
 		{
 			return TimePoint_equals_string(self, StringView(value));
 		}
-	}// namespace
+	} // namespace
 
 	usize TimePoint::Hash::operator()(const TimePoint& TimePoint) const noexcept
 	{
@@ -117,8 +117,8 @@ namespace Trinex
 
 	trinex_on_pre_init({.name = "Trinex::TimePoint", .after = {"Trinex::StringView"}})
 	{
-		auto flags = ScriptClassFlags::Pod | ScriptClassFlags::AppClassAllInts | ScriptClassFlags::AppClassAlign8 |
-		             ScriptClassFlags::AppClassMoreConstructors;
+		auto flags = ScriptClassFlags::Pod | ScriptClassFlags::AppClassAllInts | ScriptClassFlags::AppClassAlign8
+		             | ScriptClassFlags::AppClassMoreConstructors;
 		ScriptBinding::Class registrar =
 		        ScriptBinding::Class::create("Trinex::TimePoint", ScriptBinding::value_type<TimePoint>(flags));
 
@@ -148,4 +148,4 @@ namespace Trinex
 		registrar.method("bool opEquals(const StringView&) const", &TimePoint_equals_string);
 		registrar.method("bool opEquals(const string&) const", &TimePoint_equals_string_obj);
 	}
-}// namespace Trinex
+} // namespace Trinex

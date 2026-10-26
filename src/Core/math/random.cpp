@@ -16,4 +16,4 @@ namespace Trinex::Random
 		std::uniform_int_distribution<i32> dist(min, max);
 		return dist(s_random);
 	}
-}// namespace Trinex::Random
+} // namespace Trinex::Random

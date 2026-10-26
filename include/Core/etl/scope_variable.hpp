@@ -12,4 +12,4 @@ namespace Trinex
 		inline ScopeVariable(T& var, const T& new_value) : m_var(var), m_prev(var) { m_var = new_value; }
 		inline ~ScopeVariable() { m_var = m_prev; }
 	};
-}// namespace Trinex
+} // namespace Trinex

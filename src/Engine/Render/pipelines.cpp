@@ -41,7 +41,8 @@ namespace Trinex::Pipelines
 	void GaussianBlur::blur(RHIContext* ctx, RHIShaderResourceView* src, Vector2f direction, float sigma, float radius,
 	                        Swizzle swizzle, RHISampler* sampler, Vector2f offset, Vector2f size)
 	{
-		struct Args {
+		struct Args
+		{
 			alignas(8) Vector2f offset;
 			alignas(8) Vector2f size;
 			alignas(8) Vector2f direction;
@@ -80,7 +81,8 @@ namespace Trinex::Pipelines
 	void NoiseApplication::noise(RHIContext* ctx, RHITexture* noise, f32 opacity, f32 scale, RHISampler* sampler, Vector2f offset,
 	                             Vector2f size)
 	{
-		struct Args {
+		struct Args
+		{
 			alignas(8) Vector2f offset;
 			alignas(8) Vector2f size;
 			alignas(8) Vector2f inv_size;
@@ -121,7 +123,8 @@ namespace Trinex::Pipelines
 	void Blit2D::blit(RHIContext* ctx, RHIShaderResourceView* src, Vector2f offset, Vector2f inv_size, Swizzle swizzle,
 	                  RHISampler* sampler)
 	{
-		struct ShaderArgs {
+		struct ShaderArgs
+		{
 			alignas(8) Vector2f offset;
 			alignas(8) Vector2f inv_size;
 			alignas(4) Swizzle swizzle;
@@ -156,10 +159,11 @@ namespace Trinex::Pipelines
 	{
 		return passthrow(ctx, src, {});
 	}
-	
+
 	void Passthrow::passthrow(RHIContext* ctx, RHIShaderResourceView* src, const Args& args)
 	{
-		struct SubmitArgs {
+		struct SubmitArgs
+		{
 			alignas(8) Vector2f src_offset;
 			alignas(8) Vector2f src_size;
 			alignas(8) Vector2f dst_offset;
@@ -194,7 +198,6 @@ namespace Trinex::Pipelines
 		ctx->draw(RHITopology::TriangleList, 6, 0);
 	}
 
-
 	trinex_implement_pipeline(Downsample, "[shaders]:/TrinexEngine/trinex/graphics/downsample.slang")
 	{
 		m_scene = find_parameter("scene");
@@ -205,7 +208,8 @@ namespace Trinex::Pipelines
 	{
 		push_context_state(this, ctx);
 
-		struct Args {
+		struct Args
+		{
 			alignas(8) Vector2f offset;
 			alignas(8) Vector2f size;
 		};
@@ -229,7 +233,8 @@ namespace Trinex::Pipelines
 	void BloomExtract::extract(RHIContext* ctx, RHIShaderResourceView* src, float threshold, float knee, float clamp,
 	                           Vector2f offset, Vector2f size)
 	{
-		struct Args {
+		struct Args
+		{
 			alignas(8) Vector2f offset;
 			alignas(8) Vector2f size;
 			alignas(4) float threshold;
@@ -272,7 +277,8 @@ namespace Trinex::Pipelines
 
 	void BloomUpsample::upsample(RHIContext* ctx, RHIShaderResourceView* src, float weight, Vector2f offset, Vector2f size)
 	{
-		struct Args {
+		struct Args
+		{
 			Vector2f offset;
 			Vector2f size;
 			float weight;
@@ -414,7 +420,8 @@ namespace Trinex::Pipelines
 		return *this;
 	}
 
-	struct SSAOArguments {
+	struct SSAOArguments
+	{
 		Vector2f noise_scale;
 		float intensity;
 		float bias;
@@ -549,4 +556,4 @@ namespace Trinex::Pipelines
 		}
 		return *this;
 	}
-}// namespace Trinex::Pipelines
+} // namespace Trinex::Pipelines

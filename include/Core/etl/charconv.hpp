@@ -8,4 +8,4 @@ namespace Trinex::etl
 
 	using std::from_chars_result;
 	using std::to_chars_result;
-}// namespace Trinex::etl
+} // namespace Trinex::etl

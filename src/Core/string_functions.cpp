@@ -370,4 +370,4 @@ namespace Trinex::Strings
 		stream.remove_prefix(pos + 1);
 		return true;
 	}
-}// namespace Trinex::Strings
+} // namespace Trinex::Strings

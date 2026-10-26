@@ -1,6 +1,6 @@
 #include <Core/enums.hpp>
-#include <Core/etl/string.hpp>
 #include <Core/etl/array.hpp>
+#include <Core/etl/string.hpp>
 
 namespace Trinex::Settings
 {
@@ -23,7 +23,7 @@ namespace Trinex::Settings
 		extern trinex_api u32 shadow_map_size;
 		extern trinex_api bool force_keep_cpu_resources;
 		extern trinex_api float anisotropy;
-	}// namespace Rendering
+	} // namespace Rendering
 
 	namespace Window
 	{
@@ -36,7 +36,7 @@ namespace Trinex::Settings
 		extern trinex_api bool vsync;
 		extern trinex_api Array<WindowAttribute> attributes;
 		extern trinex_api Array<Orientation> orientations;
-	}// namespace Window
+	} // namespace Window
 
 	namespace Splash
 	{
@@ -47,5 +47,5 @@ namespace Trinex::Settings
 		extern trinex_api i32 version_text_size;
 		extern trinex_api i32 copyright_text_size;
 		extern trinex_api i32 game_name_text_size;
-	}// namespace Splash
-}// namespace Trinex::Settings
+	} // namespace Splash
+} // namespace Trinex::Settings

@@ -43,4 +43,4 @@ namespace Trinex
 		DefaultClient& attach(class RenderViewport* viewport) override;
 		DefaultClient& update(class RenderViewport* viewport, float dt) override;
 	};
-}// namespace Trinex
+} // namespace Trinex

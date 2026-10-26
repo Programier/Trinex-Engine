@@ -43,4 +43,4 @@ namespace Trinex::Icons
 
 		return default_texture();
 	}
-}// namespace Trinex::Icons
+} // namespace Trinex::Icons

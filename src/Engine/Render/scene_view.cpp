@@ -62,4 +62,4 @@ namespace Trinex
 		return Vector3f(result.x / result.w, result.y / result.w, result.z / result.w);
 	}
 
-}// namespace Trinex
+} // namespace Trinex

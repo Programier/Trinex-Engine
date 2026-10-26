@@ -103,4 +103,4 @@ namespace Trinex::EditorPipelines
 		ctx->update_scalar(&args, m_args);
 		ctx->draw(RHITopology::TriangleList, 6, 0);
 	}
-}// namespace Trinex::EditorPipelines
+} // namespace Trinex::EditorPipelines

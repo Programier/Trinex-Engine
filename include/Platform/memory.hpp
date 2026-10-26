@@ -4,7 +4,8 @@
 
 namespace Trinex::Platform
 {
-	struct MemoryInfo {
+	struct MemoryInfo
+	{
 		u64 total_physical     = 0;
 		u64 available_physical = 0;
 		u64 total_virtual      = 0;
@@ -32,4 +33,4 @@ namespace Trinex::Platform
 		virtual usize granularity() const                                                                                    = 0;
 		virtual MemoryInfo info() const                                                                                      = 0;
 	};
-}// namespace Trinex::Platform
+} // namespace Trinex::Platform

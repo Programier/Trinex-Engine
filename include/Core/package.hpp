@@ -31,4 +31,4 @@ namespace Trinex
 		bool save(Stream* stream = nullptr, ArchiveFlags flags = {}) override;
 		friend class Object;
 	};
-}// namespace Trinex
+} // namespace Trinex

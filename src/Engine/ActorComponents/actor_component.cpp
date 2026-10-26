@@ -26,7 +26,6 @@ namespace Trinex
 		script_actor_comp_despawned  = r.method("void despawned()", trinex_scoped_void_method(This, despawned));
 		script_actor_comp_sync       = r.method("void sync()", trinex_scoped_void_method(This, sync));
 
-
 		r.method("Actor actor() const final", overload_of<Actor*()>(&This::actor));
 		r.method("void actor(Actor actor) const final", overload_of<ActorComponent&()>(&This::actor));
 
@@ -128,4 +127,4 @@ namespace Trinex
 		owner(actor);
 		return *this;
 	}
-}// namespace Trinex
+} // namespace Trinex

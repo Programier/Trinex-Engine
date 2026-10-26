@@ -5,7 +5,8 @@
 namespace Trinex
 {
 	template<typename Key, typename Value, typename Compare>
-	struct FlatMapCompare {
+	struct FlatMapCompare
+	{
 		using is_transparent = void;
 
 		constexpr bool operator()(const Pair<Key, Value>& a, const Pair<Key, Value>& b) const
@@ -135,4 +136,4 @@ namespace Trinex
 		constexpr const container_type& container() const { return base_type::container(); }
 	};
 
-}// namespace Trinex
+} // namespace Trinex

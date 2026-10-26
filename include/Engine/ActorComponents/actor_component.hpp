@@ -23,7 +23,8 @@ namespace Trinex
 
 	public:
 		template<typename NativeType>
-		struct Scriptable : public Super::Scriptable<NativeType> {
+		struct Scriptable : public Super::Scriptable<NativeType>
+		{
 			Scriptable& spawned() override
 			{
 				reinterpret_cast<ActorComponent*>(this)->script_spawned();
@@ -79,4 +80,4 @@ namespace Trinex
 		class RenderScene* scene() const;
 		class ActorComponent& actor(Actor* actor);
 	};
-}// namespace Trinex
+} // namespace Trinex

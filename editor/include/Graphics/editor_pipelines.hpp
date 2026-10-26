@@ -7,7 +7,7 @@ namespace Trinex
 	class Renderer;
 	class RHIShaderResourceView;
 	class RHIContext;
-}// namespace Trinex
+} // namespace Trinex
 
 namespace Trinex::EditorPipelines
 {
@@ -39,7 +39,8 @@ namespace Trinex::EditorPipelines
 		const RHIShaderParameterInfo* m_scene_view;
 		const RHIShaderParameterInfo* m_args;
 
-		struct Args {
+		struct Args
+		{
 			float lower_scale;
 			float lower_alpha;
 			float upper_scale;
@@ -50,4 +51,4 @@ namespace Trinex::EditorPipelines
 		void render(RHIContext* ctx, Renderer* renderer);
 	};
 
-}// namespace Trinex::EditorPipelines
+} // namespace Trinex::EditorPipelines

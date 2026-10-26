@@ -4,7 +4,6 @@
 #include <slang.h>
 #include <spirv_glsl.hpp>
 
-
 namespace Trinex
 {
 	class Material;
@@ -16,7 +15,8 @@ namespace Trinex
 		trinex_class(SLANG_ShaderCompiler, ShaderCompiler);
 
 	public:
-		struct ShaderInfo {
+		struct ShaderInfo
+		{
 			Buffer* source;
 			const char* stage_name          = nullptr;
 			const char* default_entry_name  = nullptr;
@@ -38,7 +38,8 @@ namespace Trinex
 			bool compile(ShaderInfo* infos, usize len);
 		};
 
-		struct SessionInitializer {
+		struct SessionInitializer
+		{
 			Array<const char*, FrameAllocator<const char*>> search_paths;
 			Array<slang::PreprocessorMacroDesc, FrameAllocator<slang::PreprocessorMacroDesc>> definitions;
 			Array<slang::CompilerOptionEntry, FrameAllocator<slang::CompilerOptionEntry>> options;
@@ -151,4 +152,4 @@ namespace Trinex
 	public:
 		void initialize_context(SessionInitializer* session) override;
 	};
-}// namespace Trinex
+} // namespace Trinex

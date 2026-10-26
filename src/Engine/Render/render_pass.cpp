@@ -155,5 +155,5 @@ namespace Trinex
 		// 	ctx->rasterizer_state(rasterizer);
 		// 	return *this;
 		// }
-	}// namespace RenderPasses
-}// namespace Trinex
+	} // namespace RenderPasses
+} // namespace Trinex

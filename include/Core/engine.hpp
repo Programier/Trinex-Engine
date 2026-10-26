@@ -39,4 +39,4 @@ namespace Trinex
 		inline float delta_time() const { return m_delta_time; }
 		inline u64 frame_index() const { return m_frame_index; }
 	};
-}// namespace Trinex
+} // namespace Trinex

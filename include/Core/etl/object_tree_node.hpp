@@ -15,7 +15,6 @@ namespace Trinex
 		static Object* find(const_iterator begin, const_iterator end, StringView full_name);
 		static Object* find(const_iterator begin, const_iterator end, Name name);
 
-
 		template<typename Super, typename Element = Object>
 		class DataHolder : public Super
 		{
@@ -46,7 +45,6 @@ namespace Trinex
 				}
 			}
 		};
-
 
 		template<typename Super, typename Element>
 		friend class ObjectTreeNode;
@@ -114,4 +112,4 @@ namespace Trinex
 			return Super::find_child_object(name.to_string());
 		}
 	};
-}// namespace Trinex
+} // namespace Trinex

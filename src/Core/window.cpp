@@ -41,11 +41,10 @@ namespace Trinex
 
 	Window* Window::create(const WindowDesc& desc, Window* parent)
 	{
-		Ref<Window> self;//Platform::WindowSystem::instance()->create(desc);
+		Ref<Window> self; //Platform::WindowSystem::instance()->create(desc);
 
 		if (self == nullptr)
 			return nullptr;
-
 
 		const i32 interval      = 1;
 		self->m_render_viewport = Object::new_instance<RenderViewport>("", nullptr, self.value(), interval);
@@ -94,4 +93,4 @@ namespace Trinex
 		}
 		return *this;
 	}
-}// namespace Trinex
+} // namespace Trinex

@@ -32,10 +32,10 @@ namespace Trinex::UI
 		auto& io = ImGui::GetIO();
 		{
 			const ImWchar icons_ranges[] = {
-			        0x0020,      0x00FF,// ASCII + Latin
-			        0x2000,      0x206F,// punctuation
-			        0x2190,      0x21FF,// arrows
-			        0x2700,      0x27BF,// dingbats
+			        0x0020,      0x00FF, // ASCII + Latin
+			        0x2000,      0x206F, // punctuation
+			        0x2190,      0x21FF, // arrows
+			        0x2700,      0x27BF, // dingbats
 			        ICON_MIN_LC, ICON_MAX_LC, 0,
 			};
 
@@ -115,7 +115,6 @@ namespace Trinex::UI
 		colors[ImGuiCol_NavWindowingDimBg]         = colors[ImGuiCol_NavWindowingDimBg];
 		colors[ImGuiCol_ModalWindowDimBg]          = colors[ImGuiCol_ModalWindowDimBg];
 
-
 		style.WindowRounding    = 1.0f;
 		style.ChildRounding     = 1.0f;
 		style.FrameRounding     = 1.0f;
@@ -143,4 +142,4 @@ namespace Trinex::UI
 	{
 		return ImGui::GetIO().Fonts->Fonts[3 + static_cast<u32>(size)];
 	}
-}// namespace Trinex::UI
+} // namespace Trinex::UI

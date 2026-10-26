@@ -32,7 +32,6 @@ namespace Trinex::UI
 		return *Super::pop_scope().as<This>();
 	}
 
-
 	Framed& Framed::push_scope()
 	{
 		Super::push_scope();
@@ -50,4 +49,4 @@ namespace Trinex::UI
 		return *Super::pop_scope().as<This>();
 	}
 
-}// namespace Trinex::UI
+} // namespace Trinex::UI

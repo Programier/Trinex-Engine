@@ -18,4 +18,4 @@ namespace Trinex
 		Any& get(Identifier id);
 		Any& get(const void* id);
 	};
-}// namespace Trinex
+} // namespace Trinex

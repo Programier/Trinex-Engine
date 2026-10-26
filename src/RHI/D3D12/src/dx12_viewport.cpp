@@ -143,4 +143,4 @@ namespace Trinex
 	{
 		return allocate<D3D12_Viewport>(viewport, vsync);
 	}
-}// namespace Trinex
+} // namespace Trinex

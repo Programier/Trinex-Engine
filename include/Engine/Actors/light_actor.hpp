@@ -10,4 +10,4 @@ namespace Trinex
 
 	public:
 	};
-}// namespace Trinex
+} // namespace Trinex

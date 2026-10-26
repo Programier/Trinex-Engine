@@ -1,9 +1,9 @@
 #if PLATFORM_LINUX
-#define VK_USE_PLATFORM_WAYLAND_KHR
-#define VK_USE_PLATFORM_XLIB_KHR
+	#define VK_USE_PLATFORM_WAYLAND_KHR
+	#define VK_USE_PLATFORM_XLIB_KHR
 #elif PLATFORM_WINDOWS
-#include <Windows.h>
-#define VK_USE_PLATFORM_WIN32_KHR
+	#include <Windows.h>
+	#define VK_USE_PLATFORM_WIN32_KHR
 #endif
 
 #include <Core/window.hpp>
@@ -149,11 +149,11 @@ namespace Trinex
 		return result.value;
 	}
 #else
-#error "Implementation required"
+	#error "Implementation required"
 #endif
 
 	vk::SurfaceKHR VulkanAPI::create_surface(Window* window)
 	{
 		return create_window_surface(static_cast<SDL_Window*>(window->native_handle()), m_instance.instance);
 	}
-}// namespace Trinex
+} // namespace Trinex

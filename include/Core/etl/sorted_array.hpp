@@ -233,7 +233,6 @@ namespace Trinex
 		constexpr const container_type& container() const { return *this; }
 	};
 
-
 	template<typename T, typename Compare = Less<T>, typename AllocatorType = Allocator<T>, typename ArchiveType>
 	inline bool trinex_serialize_sorted_array(ArchiveType& ar, SortedArray<T, Compare, AllocatorType>& vector)
 	    requires(is_complete_archive_type<ArchiveType>)
@@ -244,7 +243,8 @@ namespace Trinex
 	}
 
 	template<typename T, typename C, typename A>
-	struct Serializer<SortedArray<T, C, A>> {
+	struct Serializer<SortedArray<T, C, A>>
+	{
 		bool serialize(Archive& ar, SortedArray<T, C, A>& vector) { return trinex_serialize_sorted_array(ar, vector); }
 	};
-}// namespace Trinex
+} // namespace Trinex

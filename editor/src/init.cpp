@@ -26,7 +26,7 @@ namespace Trinex
 		Texture2D* default_icon      = nullptr;
 		Texture2D* light_sprite      = nullptr;
 		Texture2D* blueprint_texture = nullptr;
-	}// namespace EditorResources
+	} // namespace EditorResources
 
 	trinex_on_pre_init()
 	{
@@ -70,4 +70,4 @@ namespace Trinex
 		Trinex::Settings::Splash::font = "[content]:/TrinexEditor/fonts/Source Code Pro/SourceCodePro-Bold.ttf";
 		Console::execute_config("TrinexEditor/editor.config");
 	}
-}// namespace Trinex
+} // namespace Trinex

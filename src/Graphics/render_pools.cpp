@@ -43,7 +43,8 @@ namespace Trinex
 		{
 			Identifier id = 0;
 
-			struct Value {
+			struct Value
+			{
 				u16 x;
 				u16 y;
 				RHITextureFlags flags;
@@ -719,7 +720,6 @@ namespace Trinex
 		}
 	} s_pool_update;
 
-
 	trinex_on_shutdown()
 	{
 		RHIBufferPool::global_instance()->release_all();
@@ -729,4 +729,4 @@ namespace Trinex
 		RHIPipelineStatisticsPool::global_instance()->release_all();
 		RHIContextPool::global_instance()->release_all();
 	}
-}// namespace Trinex
+} // namespace Trinex

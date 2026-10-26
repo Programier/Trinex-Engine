@@ -19,7 +19,8 @@ namespace Trinex::Refl::New::Native
 	trinex_api bool format_enum(const Type* type, const void* self, String& value);
 
 	template<typename T>
-	struct TypeFormatter {
+	struct TypeFormatter
+	{
 		template<typename Self>
 		static usize parse(const Self* type, void* self, StringView value)
 		{
@@ -63,8 +64,8 @@ namespace Trinex::Refl::New::Native
 			if constexpr (etl::is_swappable_v<T>)
 				vtable.swap = &TypeVTable::swap;
 
-			if constexpr ((etl::is_trivially_copyable_v<T> && etl::is_trivially_destructible_v<T>) ||
-			              (etl::is_move_constructible_v<T> && etl::is_destructible_v<T>) )
+			if constexpr ((etl::is_trivially_copyable_v<T> && etl::is_trivially_destructible_v<T>)
+			              || (etl::is_move_constructible_v<T> && etl::is_destructible_v<T>) )
 				vtable.relocate = &TypeVTable::relocate;
 
 			if constexpr (etl::equality_comparable<T>)
@@ -83,14 +84,16 @@ namespace Trinex::Refl::New::Native
 		static void construct(const Self*, void* dst, usize count)
 		{
 			T* values = static_cast<T*>(dst);
-			for (usize index = 0; index < count; ++index) etl::construct_at(values + index);
+			for (usize index = 0; index < count; ++index)
+				etl::construct_at(values + index);
 		}
 
 		template<typename Self>
 		static void destruct(const Self*, void* value, usize count)
 		{
 			T* values = static_cast<T*>(value);
-			while (count != 0) etl::destroy_at(values + --count);
+			while (count != 0)
+				etl::destroy_at(values + --count);
 		}
 
 		template<typename Self>
@@ -98,7 +101,8 @@ namespace Trinex::Refl::New::Native
 		{
 			T* destination  = static_cast<T*>(dst);
 			const T* source = static_cast<const T*>(src);
-			for (usize index = 0; index < count; ++index) etl::construct_at(destination + index, source[index]);
+			for (usize index = 0; index < count; ++index)
+				etl::construct_at(destination + index, source[index]);
 		}
 
 		template<typename Self>
@@ -106,7 +110,8 @@ namespace Trinex::Refl::New::Native
 		{
 			T* destination = static_cast<T*>(dst);
 			T* source      = static_cast<T*>(src);
-			for (usize index = 0; index < count; ++index) etl::construct_at(destination + index, etl::move(source[index]));
+			for (usize index = 0; index < count; ++index)
+				etl::construct_at(destination + index, etl::move(source[index]));
 		}
 
 		template<typename Self>
@@ -136,7 +141,8 @@ namespace Trinex::Refl::New::Native
 		{
 			T* left  = static_cast<T*>(lhs);
 			T* right = static_cast<T*>(rhs);
-			for (usize index = 0; index < count; ++index) etl::swap(left[index], right[index]);
+			for (usize index = 0; index < count; ++index)
+				etl::swap(left[index], right[index]);
 		}
 
 		template<typename Self>
@@ -150,8 +156,10 @@ namespace Trinex::Refl::New::Native
 			{
 				T* destination = static_cast<T*>(dst);
 				T* source      = static_cast<T*>(src);
-				for (usize index = 0; index < count; ++index) etl::construct_at(destination + index, etl::move(source[index]));
-				while (count != 0) etl::destroy_at(source + --count);
+				for (usize index = 0; index < count; ++index)
+					etl::construct_at(destination + index, etl::move(source[index]));
+				while (count != 0)
+					etl::destroy_at(source + --count);
 			}
 		}
 
@@ -207,12 +215,14 @@ namespace Trinex::Refl::New::Native
 	struct MethodInvoker;
 
 	template<typename Class, typename Ret, typename... Args, Ret (Class::*method)(Args...)>
-	struct MethodInvoker<method> {
+	struct MethodInvoker<method>
+	{
 		static Ret invoke(Class* self, Args... args) { return (self->*method)(etl::forward<Args>(args)...); }
 	};
 
 	template<typename Class, typename Ret, typename... Args, Ret (Class::*method)(Args...) const>
-	struct MethodInvoker<method> {
+	struct MethodInvoker<method>
+	{
 		static Ret invoke(const Class* self, Args... args) { return (self->*method)(etl::forward<Args>(args)...); }
 	};
 
@@ -224,18 +234,21 @@ namespace Trinex::Refl::New::Native
 	{
 	private:
 		template<typename...>
-		struct Types {
+		struct Types
+		{
 		};
 
 		template<usize Index, typename... Types>
 		struct ArgumentAt;
 
 		template<usize Index, typename Arg, typename... Rest>
-		struct ArgumentAt<Index, Arg, Rest...> : ArgumentAt<Index - 1, Rest...> {
+		struct ArgumentAt<Index, Arg, Rest...> : ArgumentAt<Index - 1, Rest...>
+		{
 		};
 
 		template<typename Arg, typename... Rest>
-		struct ArgumentAt<0, Arg, Rest...> {
+		struct ArgumentAt<0, Arg, Rest...>
+		{
 			using Type = Arg;
 		};
 
@@ -330,7 +343,6 @@ namespace Trinex::Refl::New::Native
 			u64 result = Base::flags | Parent::Flags::IsMethod;
 			return result;
 		}
-
 
 	public:
 		using Base = Function<MethodInvoker<func>::invoke, Parent>;

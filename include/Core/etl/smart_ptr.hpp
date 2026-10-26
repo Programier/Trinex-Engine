@@ -8,4 +8,4 @@ namespace Trinex
 
 	template<typename Type, typename Dp = std::default_delete<Type>>
 	using UniquePtr = std::unique_ptr<Type, Dp>;
-}// namespace Trinex
+} // namespace Trinex

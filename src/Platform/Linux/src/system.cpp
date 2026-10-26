@@ -1,5 +1,5 @@
-#include <Core/etl/string.hpp>
 #include <Core/etl/array.hpp>
+#include <Core/etl/string.hpp>
 #include <Core/types/uuid.hpp>
 #include <LinuxPlatform/system.hpp>
 #include <RHI/enums.hpp>
@@ -12,7 +12,6 @@
 #include <sys/types.h>
 #include <sys/utsname.h>
 #include <unistd.h>
-
 
 namespace Trinex::Platform
 {
@@ -32,7 +31,8 @@ namespace Trinex::Platform
 				if (pos != String::npos)
 				{
 					pos++;
-					while (pos < line.size() && line[pos] == ' ') pos++;
+					while (pos < line.size() && line[pos] == ' ')
+						pos++;
 					return line.substr(pos);
 				}
 			}
@@ -278,4 +278,4 @@ namespace Trinex::Platform
 		data[8] = static_cast<u8>((data[8] & 0x3F) | 0x80);
 		return true;
 	}
-}// namespace Trinex::Platform
+} // namespace Trinex::Platform

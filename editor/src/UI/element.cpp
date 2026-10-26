@@ -585,4 +585,4 @@ namespace Trinex::UI
 	{
 		clear();
 	}
-}// namespace Trinex::UI
+} // namespace Trinex::UI

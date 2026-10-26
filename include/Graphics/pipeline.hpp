@@ -94,4 +94,4 @@ namespace Trinex
 		ComputePipeline& rebuild() override;
 		inline Shader* compute_shader() const { return m_shader; }
 	};
-}// namespace Trinex
+} // namespace Trinex

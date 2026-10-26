@@ -9,7 +9,8 @@ namespace Trinex::UI
 {
 	class Element;
 
-	struct StyleState {
+	struct StyleState
+	{
 		enum Enum : u8
 		{
 			Undefined = 0,
@@ -22,13 +23,15 @@ namespace Trinex::UI
 		trinex_bitfield_enum_struct(StyleState, u8);
 	};
 
-	struct StyleProperty {
+	struct StyleProperty
+	{
 		Markup::PropertyPath path;
 		Markup::ValueDesc value;
 		Markup::SourceLocation location;
 	};
 
-	struct StyleSelector {
+	struct StyleSelector
+	{
 		Name name;
 		StyleState states = StyleState::Undefined;
 		u32 specificity   = 0;
@@ -36,14 +39,16 @@ namespace Trinex::UI
 
 	using StyleValue = Variant<f32, Vec2, Vec3, Vec4, ImVec2, ImVec4>;
 
-	struct StyleTransition {
+	struct StyleTransition
+	{
 		Name property;
 		f32 duration = 0.15f;
 		Ease ease    = Ease::OutCubic;
 		f32 delay    = 0.0f;
 	};
 
-	struct StyleRule {
+	struct StyleRule
+	{
 		StyleSelector selector;
 		Array<StyleProperty> properties;
 		Array<StyleTransition> transitions;
@@ -54,7 +59,8 @@ namespace Trinex::UI
 	using StyleRuleVisitor     = DelegateRef<void(const StyleRule&)>;
 	using StyleRuleSource      = DelegateRef<void(const StyleRuleVisitor&)>;
 
-	struct StyleAnimationTrack {
+	struct StyleAnimationTrack
+	{
 		StyleValue from;
 		StyleValue to;
 		f32 elapsed  = 0.0f;
@@ -96,4 +102,4 @@ namespace Trinex::UI
 		inline const Array<StyleRule>& rules() const { return m_rules; }
 		inline u32 revision() const { return m_revision; }
 	};
-}// namespace Trinex::UI
+} // namespace Trinex::UI

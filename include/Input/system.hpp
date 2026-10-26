@@ -1,6 +1,6 @@
 #pragma once
-#include <Core/etl/delegate.hpp>
 #include <Core/etl/array.hpp>
+#include <Core/etl/delegate.hpp>
 #include <Core/ref_counted.hpp>
 #include <Input/actions.hpp>
 #include <Input/device.hpp>
@@ -15,7 +15,8 @@ namespace Trinex
 		using Listener = Delegate<bool(const InputEvent&)>;
 
 	private:
-		struct DeviceBinding {
+		struct DeviceBinding
+		{
 			Ref<InputDevice> device;
 			DelegateHandle listener;
 
@@ -23,7 +24,8 @@ namespace Trinex
 			inline bool operator!=(const InputDevice* other) const noexcept { return device != other; }
 		};
 
-		struct ListenerBinding {
+		struct ListenerBinding
+		{
 			InputDevice* device;
 			EventType type;
 			EventCode code;
@@ -32,7 +34,8 @@ namespace Trinex
 			mutable bool enabled = true;
 		};
 
-		struct MappingState {
+		struct MappingState
+		{
 			Ref<InputContext> context;
 			usize mapping_index  = 0;
 			u64 context_revision = 0;
@@ -41,12 +44,14 @@ namespace Trinex
 			Array<InputTriggerState> triggers;
 		};
 
-		struct ActionListenerBinding {
+		struct ActionListenerBinding
+		{
 			InputActionListener listener;
 			InputActionListenerHandle handle;
 		};
 
-		struct ActiveInputContext {
+		struct ActiveInputContext
+		{
 			Ref<InputContext> context;
 			i32 priority               = 0;
 			bool blocks_lower_priority = false;
@@ -107,4 +112,4 @@ namespace Trinex
 		// Returns true when a listener consumes the event.
 		bool dispatch(const InputEvent& event);
 	};
-}// namespace Trinex
+} // namespace Trinex

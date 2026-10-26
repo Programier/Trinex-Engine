@@ -36,7 +36,6 @@ namespace Trinex
 		auto self = static_reflection();
 		auto r    = ScriptBinding::Class::existing(self);
 
-
 		static constexpr const char* signatures[] = {
 		        "void start_play()",
 		        "void update(float dt)",
@@ -44,7 +43,6 @@ namespace Trinex
 		        "Actor@ spawn_actor(Class@ , const Vector3f&, const Vector3f&, const Vector3f&, const Name&) final",
 		        "T@ spawn_actor<T>(const Vector3f&, const Vector3f&, const Vector3f&, const Name&) final",
 		};
-
 
 		script_level_start_play    = r.method(signatures[0], trinex_scoped_void_method(LevelInstance, start_play));
 		script_level_update        = r.method(signatures[1], trinex_scoped_void_method(LevelInstance, update));
@@ -263,4 +261,4 @@ namespace Trinex
 
 		return ar.serialize_memory(m_state);
 	}
-}// namespace Trinex
+} // namespace Trinex

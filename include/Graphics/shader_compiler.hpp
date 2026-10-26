@@ -1,6 +1,6 @@
 #pragma once
-#include <Core/etl/delegate.hpp>
 #include <Core/etl/array.hpp>
+#include <Core/etl/delegate.hpp>
 #include <Core/object.hpp>
 #include <RHI/structures.hpp>
 
@@ -34,7 +34,8 @@ namespace Trinex
 		Name permutation;
 		u128 shader_hash = 0;
 
-		struct Shaders {
+		struct Shaders
+		{
 			Buffer vertex;
 			Buffer tessellation_control;
 			Buffer tessellation;
@@ -54,7 +55,8 @@ namespace Trinex
 			Buffer intersection;
 		} shaders;
 
-		struct Reflection {
+		struct Reflection
+		{
 			Array<RHIInputAttribute> vertex_attributes;
 			Array<RHIShaderParameterInfo> parameters;
 		} reflection;
@@ -123,4 +125,4 @@ namespace Trinex
 		virtual bool compile(const ShaderCompilationEnvironment* env, const CompileCallback& callback) = 0;
 	};
 
-}// namespace Trinex
+} // namespace Trinex

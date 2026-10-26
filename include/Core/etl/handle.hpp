@@ -47,4 +47,4 @@ namespace Trinex
 		constexpr bool operator>(const Handle& other) const noexcept { return m_handle > other.m_handle; }
 		constexpr bool operator>=(const Handle& other) const noexcept { return m_handle >= other.m_handle; }
 	};
-}// namespace Trinex
+} // namespace Trinex

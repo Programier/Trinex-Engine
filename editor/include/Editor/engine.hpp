@@ -31,4 +31,4 @@ namespace Trinex
 		EditorEngine& is_selected(Actor* actor, bool status);
 		bool is_selected(Actor* actor) const;
 	};
-}// namespace Trinex
+} // namespace Trinex

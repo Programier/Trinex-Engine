@@ -9,7 +9,8 @@ namespace Trinex::Refl::New
 	class Property;
 	class Function;
 
-	trinex_reflect() class trinex_api Struct : public Type
+	trinex_reflect()
+	class trinex_api Struct : public Type
 	{
 		trinex_reflection_body();
 
@@ -19,7 +20,8 @@ namespace Trinex::Refl::New
 		};
 
 	private:
-		struct Compare {
+		struct Compare
+		{
 			using is_transparent = void;
 
 			inline bool operator()(Name lhs, Name rhs) const { return lhs.id() < rhs.id(); }
@@ -68,4 +70,4 @@ namespace Trinex::Refl::New
 		inline bool is_standard_layout() const { return has_flags(IsStandardLayout); }
 		inline bool is_trivial() const { return has_flags(IsTrivial); }
 	};
-}// namespace Trinex::Refl::New
+} // namespace Trinex::Refl::New

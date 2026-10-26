@@ -241,7 +241,8 @@ namespace Trinex
 				vb_desc->inputRate = vs_state.rate;
 				++vb_desc;
 
-				while (va_index < count && va_desc[va_index].binding == stream) ++va_index;
+				while (va_index < count && va_desc[va_index].binding == stream)
+					++va_index;
 			}
 		}
 
@@ -250,7 +251,8 @@ namespace Trinex
 
 	u128 VulkanContext::graphics_pipeline_id(VulkanVertexAttribute* attributes, usize count) const
 	{
-		struct VACache {
+		struct VACache
+		{
 			u16 offset;
 			u16 stride;
 			u16 binding;
@@ -341,7 +343,6 @@ namespace Trinex
 		return *this;
 	}
 
-
 	VulkanUniformBuffer* VulkanCommandHandle::UniformBuffer::request_uniform_page(usize size)
 	{
 		while (*m_uniform_buffer_current)
@@ -351,7 +352,6 @@ namespace Trinex
 				return buffer;
 			m_uniform_buffer_current = &buffer->next;
 		}
-
 
 		VulkanUniformBuffer* buffer = trx_new VulkanUniformBuffer(size);
 		(*m_uniform_buffer_current) = buffer;
@@ -920,4 +920,4 @@ namespace Trinex
 	{
 		return trx_new VulkanContext(flags);
 	}
-}// namespace Trinex
+} // namespace Trinex

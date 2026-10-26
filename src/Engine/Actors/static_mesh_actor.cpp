@@ -24,4 +24,4 @@ namespace Trinex
 	}
 
 	StaticMeshActor::~StaticMeshActor() {}
-}// namespace Trinex
+} // namespace Trinex

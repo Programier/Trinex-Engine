@@ -69,4 +69,4 @@ namespace Trinex
 		inline const FrameArray<PostProcessComponent*> visible_post_processes() const { return m_visible_post_processes; }
 		inline const PostProcessParameters* post_process_parameters() const { return m_post_process_params; }
 	};
-}// namespace Trinex
+} // namespace Trinex

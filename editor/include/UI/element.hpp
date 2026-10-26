@@ -1,13 +1,12 @@
 #pragma once
+#include <Core/etl/array.hpp>
 #include <Core/etl/delegate.hpp>
 #include <Core/etl/flat_map.hpp>
 #include <Core/etl/string.hpp>
-#include <Core/etl/array.hpp>
 #include <Core/types/name.hpp>
 #include <UI/style_sheet.hpp>
 #include <UI/types.hpp>
 #include <imgui.h>
-
 
 namespace Trinex
 {
@@ -26,7 +25,7 @@ namespace Trinex::UI
 
 		template<typename T>
 		class NativeType;
-	}// namespace Refl
+	} // namespace Refl
 
 	class Element
 	{
@@ -36,7 +35,8 @@ namespace Trinex::UI
 		using ScopeStack    = Stack<512>;
 		using EventListener = Delegate<void(Event* event)>;
 
-		struct UpdateFlags {
+		struct UpdateFlags
+		{
 			enum Enum : u16
 			{
 				Undefined  = 0,
@@ -64,7 +64,8 @@ namespace Trinex::UI
 		};
 
 		using This = Element;
-		struct Binding {
+		struct Binding
+		{
 			void* value;
 			const Refl::Type* type;
 			Markup::BindingPath path;
@@ -217,4 +218,4 @@ private:                                                                        
 #define trinex_ui_bind_virtual_property(name, type)                                                                              \
 	reflection()->bind(#name, &This::name, &This::name, Trinex::UI::Refl::Property::type)
 
-}// namespace Trinex::UI
+} // namespace Trinex::UI

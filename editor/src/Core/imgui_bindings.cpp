@@ -70,7 +70,8 @@ namespace Trinex
 #define new_enum_v(a, b) new_enum.value(#b, a##_##b)
 #define new_enum_v2(a, b) new_enum.value(#b, a##b)
 	template<typename T>
-	struct ImGuiRemapper {
+	struct ImGuiRemapper
+	{
 		using ArgType = T;
 		using RetType = T;
 
@@ -78,13 +79,15 @@ namespace Trinex
 	};
 
 	template<>
-	struct ImGuiRemapper<void> {
+	struct ImGuiRemapper<void>
+	{
 		using ArgType = void;
 		using RetType = void;
 	};
 
 	template<>
-	struct ImGuiRemapper<const char*> {
+	struct ImGuiRemapper<const char*>
+	{
 		using ArgType = const String&;
 		using RetType = String;
 
@@ -92,7 +95,8 @@ namespace Trinex
 	};
 
 	template<>
-	struct ImGuiRemapper<NullableString> {
+	struct ImGuiRemapper<NullableString>
+	{
 		using ArgType = const String&;
 		using RetType = String;
 
@@ -105,7 +109,8 @@ namespace Trinex
 	};
 
 	template<typename T>
-	struct ImGuiRemapper<T*> {
+	struct ImGuiRemapper<T*>
+	{
 		using ArgType = ScriptPointer;
 		using RetType = ScriptPointer;
 
@@ -113,8 +118,10 @@ namespace Trinex
 	};
 
 	template<typename T, std::size_t N>
-	struct ImGuiRemapper<T[N]> {
-		struct Value {
+	struct ImGuiRemapper<T[N]>
+	{
+		struct Value
+		{
 			T values[N];
 		};
 
@@ -1290,7 +1297,8 @@ namespace Trinex
 		ScriptNamespaceScopedChanger imgui("ImGui");
 		auto e = ScriptEngine();
 
-		struct Custom {
+		struct Custom
+		{
 			static void Text(const String& str) { ImGui::Text("%s", str.c_str()); }
 
 			static void TextColored(const ImVec4& col, const String& str) { ImGui::TextColored(col, "%s", str.c_str()); }
@@ -1758,4 +1766,4 @@ namespace Trinex
 		register_structures();
 		register_functions();
 	}
-}// namespace Trinex
+} // namespace Trinex

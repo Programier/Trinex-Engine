@@ -3,7 +3,8 @@
 
 namespace Trinex
 {
-	struct AllocatorBase {
+	struct AllocatorBase
+	{
 		using value_type      = unsigned char;
 		using pointer         = value_type*;
 		using const_pointer   = const value_type*;
@@ -25,13 +26,15 @@ namespace Trinex
 		}
 	};
 
-	struct trinex_api ByteAllocator : AllocatorBase {
+	struct trinex_api ByteAllocator : AllocatorBase
+	{
 		static inline unsigned char* allocate(size_type size) { return allocate_aligned(size, 16); }
 		static unsigned char* allocate_aligned(size_type size, size_type align);
 		static void deallocate(unsigned char* ptr) noexcept;
 	};
 
-	struct trinex_api StackByteAllocator : AllocatorBase {
+	struct trinex_api StackByteAllocator : AllocatorBase
+	{
 		class trinex_api Mark final
 		{
 		private:
@@ -56,7 +59,8 @@ namespace Trinex
 		static void location(u128 value);
 	};
 
-	struct trinex_api FrameByteAllocator : AllocatorBase {
+	struct trinex_api FrameByteAllocator : AllocatorBase
+	{
 		static inline unsigned char* allocate(size_type size) { return allocate_aligned(size, 16); }
 		static inline void deallocate(unsigned char*) noexcept {}
 		static unsigned char* allocate_aligned(size_type size, size_type align);
@@ -64,7 +68,8 @@ namespace Trinex
 	};
 
 	template<typename T, typename Type>
-	struct TypedAllocator : Type {
+	struct TypedAllocator : Type
+	{
 		using value_type      = T;
 		using pointer         = value_type*;
 		using const_pointer   = const value_type*;
@@ -74,7 +79,8 @@ namespace Trinex
 		using difference_type = std::ptrdiff_t;
 
 		template<typename U>
-		struct rebind {
+		struct rebind
+		{
 			using other = TypedAllocator<U, Type>;
 		};
 
@@ -121,4 +127,4 @@ namespace Trinex
 
 	template<typename T>
 	using FrameAllocator = TypedAllocator<T, FrameByteAllocator>;
-}// namespace Trinex
+} // namespace Trinex

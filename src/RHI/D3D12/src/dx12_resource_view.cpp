@@ -68,4 +68,4 @@ namespace Trinex
 	{
 		m_descriptor.release();
 	}
-}// namespace Trinex
+} // namespace Trinex

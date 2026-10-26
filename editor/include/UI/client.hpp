@@ -1,6 +1,6 @@
 #pragma once
-#include <Core/etl/registry.hpp>
 #include <Core/etl/array.hpp>
+#include <Core/etl/registry.hpp>
 #include <Core/types/path.hpp>
 #include <Core/viewport_client.hpp>
 #include <UI/menu_bar.hpp>
@@ -16,7 +16,8 @@ namespace Trinex::UI
 		trinex_class(Client, ViewportClient);
 
 	private:
-		struct DocumentEntry {
+		struct DocumentEntry
+		{
 			Document* document = nullptr;
 			Path path;
 			Array<Identifier> watch_ids;
@@ -103,4 +104,4 @@ namespace Trinex::UI
 			}
 		}
 	};
-}// namespace Trinex::UI
+} // namespace Trinex::UI

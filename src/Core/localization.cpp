@@ -21,7 +21,6 @@ namespace Trinex
 		if (it != m_translation_map.end())
 			return it->second;
 
-
 		for (int i = 0; i < 2; i++)
 		{
 			it = m_default_translation_map.find(hash);
@@ -127,7 +126,6 @@ namespace Trinex
 		Path path = localization_dir / language();
 		load_localization(m_translation_map, path);
 
-
 		return *this;
 	}
 
@@ -155,4 +153,4 @@ namespace Trinex
 	{
 		Localization::instance()->reload(true, true);
 	}
-}// namespace Trinex
+} // namespace Trinex

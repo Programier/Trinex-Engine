@@ -404,4 +404,4 @@ namespace Trinex
 	trinex_implement_engine_class_default_init(GraphicsPipeline, 0);
 	trinex_implement_engine_class_default_init(ComputePipeline, 0);
 
-}// namespace Trinex
+} // namespace Trinex

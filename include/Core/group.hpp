@@ -32,4 +32,4 @@ namespace Trinex
 
 		~Group();
 	};
-}// namespace Trinex
+} // namespace Trinex

@@ -33,4 +33,4 @@ namespace Trinex
 	{
 		Refl::Property::create("UUID", &This::uuid_string, This::static_reflection(), Refl::Property::IsReadOnly);
 	}
-}// namespace Trinex
+} // namespace Trinex

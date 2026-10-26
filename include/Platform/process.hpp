@@ -10,7 +10,8 @@ namespace Trinex
 
 namespace Trinex::Platform
 {
-	struct ProcessOptions {
+	struct ProcessOptions
+	{
 		const char* const* environment = nullptr;
 		const char* working_directory  = nullptr;
 
@@ -50,4 +51,4 @@ namespace Trinex::Platform
 		virtual Process* launch(const char* const* args, const ProcessOptions* options = nullptr) = 0;
 		virtual ProcessSystem& destroy(Process* process)                                          = 0;
 	};
-}// namespace Trinex::Platform
+} // namespace Trinex::Platform

@@ -16,7 +16,8 @@ namespace Trinex
 	}
 
 	template<typename T, typename AllocatorType>
-	struct Serializer<Deque<T, AllocatorType>> {
+	struct Serializer<Deque<T, AllocatorType>>
+	{
 		bool serialize(Archive& ar, Deque<T, AllocatorType>& list) { return trinex_serialize_deque(ar, list); }
 	};
-}// namespace Trinex
+} // namespace Trinex

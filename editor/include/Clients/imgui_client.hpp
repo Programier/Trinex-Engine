@@ -17,7 +17,7 @@ namespace Trinex
 		trinex_class(ImGuiViewportClient, ViewportClient);
 
 	public:
-		static constexpr u32 s_dock_id = 0x524F4F54;// 'ROOT'
+		static constexpr u32 s_dock_id = 0x524F4F54; // 'ROOT'
 
 	private:
 		ImGuiContext* m_context    = nullptr;
@@ -36,7 +36,8 @@ namespace Trinex
 		ImGuiMenuBar menu_bar;
 
 		template<typename Native>
-		struct Scriptable : public Super::Scriptable<Native> {
+		struct Scriptable : public Super::Scriptable<Native>
+		{
 			Scriptable& update(float dt) override
 			{
 				ImGuiViewportClient::scriptable_update(dt);
@@ -67,4 +68,4 @@ namespace Trinex
 		virtual ImGuiViewportClient& select(Object* object);
 		virtual u32 build_dock(u32 dock);
 	};
-}// namespace Trinex
+} // namespace Trinex

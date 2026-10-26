@@ -1,21 +1,19 @@
+#include <Core/engine.hpp>
 #include <Core/profiler.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/threading.hpp>
-#include <Engine/default_client.hpp>
-#include <Engine/world.hpp>
-#include <Graphics/render_pools.hpp>
-#include <Graphics/render_viewport.hpp>
-#include <RHI/context.hpp>
-#include <RHI/rhi.hpp>
-
-#include <Core/engine.hpp>
 #include <Engine/Render/scene.hpp>
 #include <Engine/Render/scene_view.hpp>
 #include <Engine/camera_view.hpp>
+#include <Engine/default_client.hpp>
+#include <Engine/world.hpp>
 #include <Graphics/pipeline_library.hpp>
+#include <Graphics/render_pools.hpp>
+#include <Graphics/render_viewport.hpp>
 #include <Graphics/shader_parameters.hpp>
+#include <RHI/context.hpp>
+#include <RHI/rhi.hpp>
 #include <RHI/structures.hpp>
-
 
 namespace Trinex
 {
@@ -66,8 +64,8 @@ namespace Trinex
 
 	RHIBuffer* DefaultClient::create_buffer(RHIContext* ctx, const void* data, usize size)
 	{
-		RHIBufferFlags flags = RHIBufferFlags::ShaderResource | RHIBufferFlags::TransferDst | RHIBufferFlags::StructuredBuffer |
-		                       RHIBufferFlags::UniformBuffer | RHIBufferFlags::UnorderedAccess;
+		RHIBufferFlags flags = RHIBufferFlags::ShaderResource | RHIBufferFlags::TransferDst | RHIBufferFlags::StructuredBuffer
+		                       | RHIBufferFlags::UniformBuffer | RHIBufferFlags::UnorderedAccess;
 
 		RHIBuffer* buffer = RHI::instance()->create_buffer(size, flags);
 		m_resources.push_back(buffer);
@@ -119,12 +117,12 @@ namespace Trinex
 			};
 
 			const u32 indices[36] = {
-			        0, 1, 2, 2, 3, 0,// Front
-			        1, 5, 6, 6, 2, 1,// Right
-			        5, 4, 7, 7, 6, 5,// Back
-			        4, 0, 3, 3, 7, 4,// Left
-			        3, 2, 6, 6, 7, 3,// Top
-			        4, 5, 1, 1, 0, 4 // Bottom
+			        0, 1, 2, 2, 3, 0, // Front
+			        1, 5, 6, 6, 2, 1, // Right
+			        5, 4, 7, 7, 6, 5, // Back
+			        4, 0, 3, 3, 7, 4, // Left
+			        3, 2, 6, 6, 7, 3, // Top
+			        4, 5, 1, 1, 0, 4  // Bottom
 			};
 
 			geometry.vertex_stream.buffer = create_descriptor(ctx, positions, sizeof(positions));
@@ -135,9 +133,8 @@ namespace Trinex
 			geometry.index_stream.offset = 0;
 			geometry.index_stream.stride = sizeof(u32);
 
-			geometry_id = scene->create_geometry(geometry);// id = 0
+			geometry_id = scene->create_geometry(geometry); // id = 0
 		}
-
 
 		for (int i = 0; i < 5; ++i)
 		{
@@ -155,7 +152,6 @@ namespace Trinex
 				});
 			}
 		}
-
 
 		RHIContextPool::global_instance()->end(ctx);
 		return *this;
@@ -197,7 +193,6 @@ namespace Trinex
 		}
 		ctx->end_rendering();
 
-
 		ctx->barrier(swapchain->as_texture(), RHIAccess::PresentSrc);
 		RHITexturePool::global_instance()->release(depth);
 		RHIContextPool::global_instance()->end(ctx, swapchain->acquire_semaphore(), swapchain->present_semaphore());
@@ -206,4 +201,4 @@ namespace Trinex
 	}
 
 	trinex_implement_engine_class_default_init(DefaultClient, 0);
-}// namespace Trinex
+} // namespace Trinex

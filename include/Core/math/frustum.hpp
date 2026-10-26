@@ -3,7 +3,8 @@
 
 namespace Trinex
 {
-	struct trinex_api Frustum {
+	struct trinex_api Frustum
+	{
 		Plane left;
 		Plane right;
 		Plane top;
@@ -19,4 +20,4 @@ namespace Trinex
 		bool contains(const Box3f& box) const;
 		bool intersects(const Box3f& box) const;
 	};
-}// namespace Trinex
+} // namespace Trinex

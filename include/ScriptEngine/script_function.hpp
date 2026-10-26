@@ -84,4 +84,4 @@ namespace Trinex
 	};
 
 	using ScriptClassMethod = ScriptFunction;
-}// namespace Trinex
+} // namespace Trinex

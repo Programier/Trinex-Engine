@@ -15,7 +15,8 @@ namespace Trinex::Console
 	using DynamicFunction = void (*)();
 	using DynamicInvoker  = void (*)(void*, const Reflection::Function*);
 
-	struct EntryFlags {
+	struct EntryFlags
+	{
 		enum Enum : u32
 		{
 			Undefined  = 0,
@@ -29,7 +30,8 @@ namespace Trinex::Console
 		trinex_bitfield_enum_struct(EntryFlags, u32);
 	};
 
-	struct ExecutionFlags {
+	struct ExecutionFlags
+	{
 		enum Enum : u32
 		{
 			Undefined     = 0,
@@ -89,4 +91,4 @@ namespace Trinex::Console
 			function(name, address, invoker, Reflection::type_of<Ret>(), types, sizeof...(Args), description, flags);
 		}
 	}
-}// namespace Trinex::Console
+} // namespace Trinex::Console

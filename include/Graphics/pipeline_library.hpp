@@ -112,4 +112,4 @@ private:
 		return path;                                                                                                             \
 	}                                                                                                                            \
 	void class_name::initialize()
-}// namespace Trinex
+} // namespace Trinex

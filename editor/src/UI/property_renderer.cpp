@@ -20,7 +20,8 @@
 
 namespace Trinex::UI
 {
-	struct PropertyChangedEvent : Refl::PropertyChangedEvent {
+	struct PropertyChangedEvent : Refl::PropertyChangedEvent
+	{
 		PropertyChangedEvent(void* ctx, Refl::Property* prop, Refl::PropertyChangedEvent* owner)
 		    : Refl::PropertyChangedEvent(ctx, prop, owner)
 		{
@@ -112,7 +113,8 @@ namespace Trinex::UI
 		return properties;
 	}
 
-	struct ScopedPropID {
+	struct ScopedPropID
+	{
 		ScopedPropID(const void* object, Refl::Property* prop) { push_props_id(object, prop); }
 		~ScopedPropID() { pop_props_id(); }
 	};
@@ -309,7 +311,6 @@ namespace Trinex::UI
 		return false;
 	}
 
-
 	bool PropertyRenderer::render_properties(void* object, Refl::Struct* struct_class, bool read_only, StringView name)
 	{
 		bool has_changed_props = false;
@@ -376,8 +377,8 @@ namespace Trinex::UI
 		bool on_begin_rendering(PropertyRenderer* renderer) override
 		{
 			bool status = ImGui::BeginTable("###properties", 3,
-			                                ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter |
-			                                        ImGuiTableFlags_BordersInner | ImGuiTableFlags_BordersV);
+			                                ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter
+			                                        | ImGuiTableFlags_BordersInner | ImGuiTableFlags_BordersV);
 			if (status)
 			{
 				ImGui::TableSetupColumn("##Column1", ImGuiTableColumnFlags_WidthStretch, 0.45);
@@ -551,10 +552,10 @@ namespace Trinex::UI
 
 			static const char* labels[] = {"X", "Y", "Z", "W"};
 			static const ImU32 colors[] = {
-			        IM_COL32(160, 64, 64, 255), // X — темно-червоний
-			        IM_COL32(64, 140, 64, 255), // Y — темно-зелений
-			        IM_COL32(64, 108, 176, 255),// Z — темно-синій
-			        IM_COL32(140, 120, 64, 255),// W — темно-жовтий
+			        IM_COL32(160, 64, 64, 255),  // X — темно-червоний
+			        IM_COL32(64, 140, 64, 255),  // Y — темно-зелений
+			        IM_COL32(64, 108, 176, 255), // Z — темно-синій
+			        IM_COL32(140, 120, 64, 255), // W — темно-жовтий
 			};
 
 			ImGuiStyle& style   = ImGui::GetStyle();
@@ -1214,7 +1215,8 @@ namespace Trinex::UI
 
 		bool changed = false;
 
-		struct Entry {
+		struct Entry
+		{
 			String name;
 			EnumerateType value;
 		};
@@ -1231,7 +1233,7 @@ namespace Trinex::UI
 			{
 				auto& enum_entries = prop->enum_instance()->entries();
 
-				userdata               = Array<Entry>();
+				userdata              = Array<Entry>();
 				Array<Entry>& entries = userdata.cast<Array<Entry>&>();
 				entries.reserve(enum_entries.size());
 
@@ -1311,4 +1313,4 @@ namespace Trinex::UI
 		ctx->renderer<Refl::FlagsProperty>(render_flags_property);
 		ctx->renderer<Refl::VirtualProperty>(render_virtual_property);
 	}
-}// namespace Trinex::UI
+} // namespace Trinex::UI

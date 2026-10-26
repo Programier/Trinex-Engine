@@ -112,7 +112,8 @@ namespace Trinex
 	class trinex_api Thread
 	{
 	public:
-		struct NoThread {
+		struct NoThread
+		{
 		};
 
 	private:
@@ -156,7 +157,6 @@ namespace Trinex
 		u32 workers() const;
 		TaskGraph& add_task(const Task& task);
 		TaskGraph& wait_for(const Task& task);
-
 
 		template<typename Callable>
 		inline TaskGraph& for_each(usize count, Callable&& func, usize block = 64, u32 max_threads = 0xFFFFU)
@@ -203,4 +203,4 @@ namespace Trinex
 	{
 		return this_thread() == logic_thread();
 	}
-}// namespace Trinex
+} // namespace Trinex

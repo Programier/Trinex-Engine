@@ -5,9 +5,9 @@
 namespace Trinex
 {
 	trinex_api void* memcpy_elements(void* dst, const void* src, usize element_size, usize element_count, usize dst_stride = 0,
-	                                    usize src_stride = 0);
+	                                 usize src_stride = 0);
 	trinex_api void* memcpy_transform(void* dst, const void* src, usize element_count, usize dst_stride, usize src_stride,
-	                                     void (*transform)(void* dst, const void* src));
+	                                  void (*transform)(void* dst, const void* src));
 	trinex_api u128 memory_hash(const void* memory, const usize size, u128 seed = 0);
 	trinex_api const u8* memory_search(const u8* haystack, usize haystack_len, const u8* needle, usize needle_len);
 
@@ -44,7 +44,8 @@ namespace Trinex
 		return reinterpret_cast<Type*>(align_down(reinterpret_cast<usize>(in), alignment));
 	}
 
-	struct HashBuilder {
+	struct HashBuilder
+	{
 		u128 hash = 0;
 
 		HashBuilder(u128 seed = 0) : hash(seed) {}
@@ -56,4 +57,4 @@ namespace Trinex
 			return *this;
 		}
 	};
-}// namespace Trinex
+} // namespace Trinex

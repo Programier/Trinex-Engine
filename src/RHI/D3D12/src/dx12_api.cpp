@@ -237,4 +237,4 @@ namespace Trinex
 	{
 		D3D12::api()->deferred_destroy(object);
 	}
-}// namespace Trinex
+} // namespace Trinex

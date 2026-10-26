@@ -115,9 +115,9 @@ namespace Trinex
 	{
 		if (m_vtx_count > 0 && m_buffer == nullptr)
 		{
-			m_buffer = RHI::instance()->create_buffer(m_vtx_count * m_stride, m_flags | RHIBufferFlags::VertexBuffer |
-			                                                                          RHIBufferFlags::ByteAddressBuffer |
-			                                                                          RHIBufferFlags::ShaderResource);
+			m_buffer = RHI::instance()->create_buffer(m_vtx_count * m_stride, m_flags | RHIBufferFlags::VertexBuffer
+			                                                                          | RHIBufferFlags::ByteAddressBuffer
+			                                                                          | RHIBufferFlags::ShaderResource);
 
 			RHIContextPool::global_instance()->execute([this](RHIContext* ctx) {
 				ctx->barrier(m_buffer.get(), RHIAccess::TransferDst);
@@ -326,9 +326,9 @@ namespace Trinex
 	{
 		if (m_idx_count > 0 && m_buffer == nullptr)
 		{
-			m_buffer = RHI::instance()->create_buffer(size(), m_flags | RHIBufferFlags::IndexBuffer |
-			                                                          RHIBufferFlags::ByteAddressBuffer |
-			                                                          RHIBufferFlags::ShaderResource);
+			m_buffer = RHI::instance()->create_buffer(size(), m_flags | RHIBufferFlags::IndexBuffer
+			                                                          | RHIBufferFlags::ByteAddressBuffer
+			                                                          | RHIBufferFlags::ShaderResource);
 
 			RHIContextPool::global_instance()->execute([this](RHIContext* ctx) {
 				ctx->barrier(m_buffer.get(), RHIAccess::TransferDst);
@@ -388,4 +388,4 @@ namespace Trinex
 		}
 		return ar;
 	}
-}// namespace Trinex
+} // namespace Trinex

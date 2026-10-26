@@ -7,7 +7,6 @@
 #include <Engine/world.hpp>
 #include <ScriptEngine/script_context.hpp>
 
-
 namespace Trinex
 {
 	trinex_implement_engine_class_default_init(World, 0);
@@ -137,4 +136,4 @@ namespace Trinex
 
 		return level->remove_from(m_levels);
 	}
-}// namespace Trinex
+} // namespace Trinex

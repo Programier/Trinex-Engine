@@ -17,26 +17,30 @@ namespace Trinex::UI::Refl
 	template<typename T>
 	class NativeType;
 
-	struct PropertyRef {
+	struct PropertyRef
+	{
 		void* address     = nullptr;
 		const Type* type  = nullptr;
 		const Name* field = nullptr;
 		u64 fields        = 0;
 	};
 
-	struct ConstPropertyRef {
+	struct ConstPropertyRef
+	{
 		const void* address = nullptr;
 		const Type* type    = nullptr;
 		const Name* field   = nullptr;
 		u64 fields          = 0;
 	};
 
-	struct ValueRef {
+	struct ValueRef
+	{
 		void* address    = nullptr;
 		const Type* type = nullptr;
 	};
 
-	struct ConstValueRef {
+	struct ConstValueRef
+	{
 		const void* address = nullptr;
 		const Type* type    = nullptr;
 	};
@@ -44,7 +48,8 @@ namespace Trinex::UI::Refl
 	class Property
 	{
 	public:
-		struct Flags {
+		struct Flags
+		{
 			enum Enum : u8
 			{
 				Undefined = 0,
@@ -503,4 +508,4 @@ namespace Trinex::UI::Refl
 	};
 
 #define trinex_ui_bind_type_name(name) Trinex::UI::Refl::Type::name_of<name> = #name
-}// namespace Trinex::UI::Refl
+} // namespace Trinex::UI::Refl

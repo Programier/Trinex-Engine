@@ -1,5 +1,4 @@
 #include <ScriptEngine/script_engine.hpp>
-
 #include <angelscript.h>
 
 // Addons
@@ -10,7 +9,6 @@
 #include <scriptdictionary.h>
 #include <scripthelper.h>
 #include <scriptstdstring.h>
-
 
 namespace Trinex
 {
@@ -35,4 +33,4 @@ namespace Trinex
 		i32 type_id = ScriptEngine::type_id_by_decl("string");
 		ScriptEngine::register_custom_variable_parser(type_id, parse_string_value);
 	}
-}// namespace Trinex
+} // namespace Trinex

@@ -65,7 +65,8 @@ namespace Trinex::Refl
 
 			auto base = parent();
 
-			while (base && base->script_type_info.info() == nullptr) base = base->parent();
+			while (base && base->script_type_info.info() == nullptr)
+				base = base->parent();
 
 			if (base)
 			{
@@ -147,7 +148,8 @@ namespace Trinex::Refl
 	const ScriptTypeInfo& Class::find_valid_script_type_info() const
 	{
 		auto self = this;
-		while (self && !self->script_type_info.is_valid()) self = self->parent();
+		while (self && !self->script_type_info.is_valid())
+			self = self->parent();
 		return self->script_type_info;
 	}
 
@@ -166,4 +168,4 @@ namespace Trinex::Refl
 		Super::register_layout(r, info, downcast);
 		r.method("Trinex::Object@ singletone_instance() const", &Class::singletone_instance);
 	}
-}// namespace Trinex::Refl
+} // namespace Trinex::Refl

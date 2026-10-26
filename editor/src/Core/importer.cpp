@@ -1,7 +1,7 @@
 #include <Core/default_resources.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/etl/optional.hpp>
 #include <Core/etl/variant.hpp>
-#include <Core/etl/array.hpp>
 #include <Core/importer.hpp>
 #include <Core/math/math.hpp>
 #include <Core/memory.hpp>
@@ -9,6 +9,14 @@
 #include <Core/reflection/class.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/types/path.hpp>
+#include <Engine/ActorComponents/directional_light_component.hpp>
+#include <Engine/ActorComponents/mesh_component.hpp>
+#include <Engine/ActorComponents/point_light_component.hpp>
+#include <Engine/ActorComponents/spot_light_component.hpp>
+#include <Engine/Actors/directional_light_actor.hpp>
+#include <Engine/Actors/point_light_actor.hpp>
+#include <Engine/Actors/spot_light_actor.hpp>
+#include <Engine/Actors/static_mesh_actor.hpp>
 #include <Engine/world.hpp>
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/material.hpp>
@@ -19,24 +27,15 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <tiny_gltf.h>
 
-#include <Engine/Actors/directional_light_actor.hpp>
-#include <Engine/Actors/point_light_actor.hpp>
-#include <Engine/Actors/spot_light_actor.hpp>
-#include <Engine/Actors/static_mesh_actor.hpp>
-
-#include <Engine/ActorComponents/directional_light_component.hpp>
-#include <Engine/ActorComponents/mesh_component.hpp>
-#include <Engine/ActorComponents/point_light_component.hpp>
-#include <Engine/ActorComponents/spot_light_component.hpp>
-
-
 namespace Trinex::Importer
 {
-	struct ImporterContext {
+	struct ImporterContext
+	{
 	private:
 		using ImportedMesh = Variant<Pointer<StaticMesh>, Pointer<SkeletalMesh>>;
 
-		struct BufferInfo {
+		struct BufferInfo
+		{
 			union
 			{
 				u8* data = nullptr;
@@ -56,7 +55,8 @@ namespace Trinex::Importer
 			}
 		};
 
-		struct Accessors {
+		struct Accessors
+		{
 			static constexpr u64 s_position_flag  = 1 << 0;
 			static constexpr u64 s_texcoord0_flag = 1 << 1;
 			static constexpr u64 s_normals_flag   = 1 << 2;
@@ -88,7 +88,8 @@ namespace Trinex::Importer
 	private:
 		World* m_world;
 
-		struct Packages {
+		struct Packages
+		{
 			Package* root;
 			Package* textures  = nullptr;
 			Package* materials = nullptr;
@@ -99,7 +100,8 @@ namespace Trinex::Importer
 
 		} m_package;
 
-		struct MeshInfo {
+		struct MeshInfo
+		{
 			ImportedMesh mesh;
 			Vector3f offset;
 		};
@@ -140,7 +142,6 @@ namespace Trinex::Importer
 
 			return &model.accessors[it->second];
 		}
-
 
 		static inline usize accessor_element_size(const tinygltf::Accessor* accessor)
 		{
@@ -404,7 +405,6 @@ namespace Trinex::Importer
 			mip.size.y = gltf_image.height;
 			mip.data.resize(gltf_image.image.size());
 
-
 			memcpy(mip.data.data(), gltf_image.image.data(), gltf_image.image.size());
 
 			texture->format = parse_format(gltf_image.component, gltf_image.bits, gltf_image.pixel_type);
@@ -540,7 +540,6 @@ namespace Trinex::Importer
 				usize vertices = elements_count(accessor.positions, accessor.texcoords0, accessor.normals, accessor.tangents,
 				                                accessor.colors);
 				usize indices  = elements_count(accessor.indices);
-
 
 				MeshSurface* surface  = &lod.surfaces[i];
 				surface->topology     = topology_of(primitive.mode);
@@ -813,4 +812,4 @@ namespace Trinex::Importer
 		ImporterContext context(world, package, transform);
 		context.import(file);
 	}
-}// namespace Trinex::Importer
+} // namespace Trinex::Importer

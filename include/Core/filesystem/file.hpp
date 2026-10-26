@@ -20,4 +20,4 @@ namespace Trinex::VFS
 		virtual FileStat stat() const                                   = 0;
 		virtual Ref<Blob> map(usize offset = 0, usize size = ~usize(0)) = 0;
 	};
-}// namespace Trinex::VFS
+} // namespace Trinex::VFS

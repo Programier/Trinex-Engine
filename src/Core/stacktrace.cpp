@@ -3,8 +3,8 @@
 
 #if PLATFORM_WINDOWS
 #else
-#include <dlfcn.h>
-#include <execinfo.h>
+	#include <dlfcn.h>
+	#include <execinfo.h>
 #endif
 namespace Trinex
 {
@@ -14,7 +14,7 @@ namespace Trinex
 #else
 	StackTrace::StackTrace(u32 skip)
 	{
-#if !PLATFORM_ANDROID || ANDROID_API >= 33
+	#if !PLATFORM_ANDROID || ANDROID_API >= 33
 		void* callstack[2048];
 		u32 frames = backtrace(callstack, 2048);
 		if (frames < skip)
@@ -38,7 +38,7 @@ namespace Trinex
 		}
 
 		free(symbols);
-#endif
+	#endif
 	}
 #endif
 
@@ -60,4 +60,4 @@ namespace Trinex
 		return ss.str();
 	}
 
-}// namespace Trinex
+} // namespace Trinex

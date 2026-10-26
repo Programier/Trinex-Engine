@@ -17,4 +17,4 @@ namespace Trinex
 	Plane::Plane(const Vector3f& normal, const Vector3f& location)
 	    : normal(Math::normalize(normal)), offset(-Math::dot(this->normal, location))
 	{}
-}// namespace Trinex
+} // namespace Trinex

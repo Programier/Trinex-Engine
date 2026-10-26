@@ -11,7 +11,8 @@ namespace Trinex
 	class Renderer;
 	struct LightRenderRanges;
 
-	struct Swizzle : VectorNT<4, u8> {
+	struct Swizzle : VectorNT<4, u8>
+	{
 		enum Enum : u8
 		{
 			R    = 0,
@@ -79,7 +80,8 @@ namespace Trinex
 			const RHIShaderParameterInfo* m_args;
 
 		public:
-			struct Args {
+			struct Args
+			{
 				RHISampler* sampler    = nullptr;
 				RHIRegion store_region = {};
 				RHIRegion copy_region  = {};
@@ -138,7 +140,6 @@ namespace Trinex
 			void upsample(RHIContext* ctx, RHIShaderResourceView* src, float weight = 1.f, Vector2f offset = {0.f, 0.f},
 			              Vector2f size = {1.f, 1.f});
 		};
-
 
 		class trinex_api BatchedLines : public GlobalPipelineLibrary
 		{
@@ -298,5 +299,5 @@ namespace Trinex
 		public:
 			TAA& render(RHIContext* ctx, Renderer* renderer);
 		};
-	}// namespace Pipelines
-}// namespace Trinex
+	} // namespace Pipelines
+} // namespace Trinex

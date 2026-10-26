@@ -27,7 +27,8 @@ namespace Trinex
 	static ScriptFunction script_object_preload;
 	static ScriptFunction script_object_postload;
 
-	static thread_local struct NextObjectInfo {
+	static thread_local struct NextObjectInfo
+	{
 		Refl::Class* class_instance;
 
 		NextObjectInfo() { reset(); }
@@ -698,8 +699,9 @@ namespace Trinex
 				return object;
 		}
 
-		Path path = Path(Project::assets_dir) /
-		            Path(Strings::replace_all(name, Constants::name_separator, Path::sv_separator) + Constants::asset_extention);
+		Path path =
+		        Path(Project::assets_dir)
+		        / Path(Strings::replace_all(name, Constants::name_separator, Path::sv_separator) + Constants::asset_extention);
 		return load_from_file_internal(path, name, flags | ArchiveFlags::SkipObjectSearch);
 	}
 
@@ -797,4 +799,4 @@ namespace Trinex
 		}
 		return nullptr;
 	}
-}// namespace Trinex
+} // namespace Trinex

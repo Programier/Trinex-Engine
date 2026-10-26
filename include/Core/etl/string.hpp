@@ -36,5 +36,5 @@ namespace Trinex
 		trinex_api bool format(String& stream, i64 value);
 		trinex_api bool format(String& stream, u64 value);
 		trinex_api bool format(String& stream, f64 value);
-	}// namespace Strings
-}// namespace Trinex
+	} // namespace Strings
+} // namespace Trinex

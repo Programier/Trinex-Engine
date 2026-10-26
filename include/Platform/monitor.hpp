@@ -4,27 +4,29 @@
 
 namespace Trinex::Platform
 {
-	struct MonitorMode {
-		u32 monitor         = 0;     // Monitor identifier
-		Vector2u resolution = {0, 0};// Video mode size in display coordinates.
-		f32 pixel_density   = 1.f;   // Scale from display coordinates to physical pixels.
-		u32 refresh_rate    = 0;     // Refresh rate in millihertz (mHz).
+	struct MonitorMode
+	{
+		u32 monitor         = 0;      // Monitor identifier
+		Vector2u resolution = {0, 0}; // Video mode size in display coordinates.
+		f32 pixel_density   = 1.f;    // Scale from display coordinates to physical pixels.
+		u32 refresh_rate    = 0;      // Refresh rate in millihertz (mHz).
 	};
 
-	struct Monitor {
-		const char* name = nullptr;// Human-readable monitor name.
-		u32 id           = 0;      // Stable monitor identifier.
+	struct Monitor
+	{
+		const char* name = nullptr; // Human-readable monitor name.
+		u32 id           = 0;       // Stable monitor identifier.
 
-		Vector2i position = {0, 0};// Monitor position in virtual desktop coordinates.
-		Vector2u size     = {0, 0};// Monitor size in desktop coordinate units.
+		Vector2i position = {0, 0}; // Monitor position in virtual desktop coordinates.
+		Vector2u size     = {0, 0}; // Monitor size in desktop coordinate units.
 
-		Vector2i work_position = {0, 0};// Position of the usable desktop area, excluding panels/taskbars.
-		Vector2u work_size     = {0, 0};// Size of the usable desktop area, excluding panels/taskbars.
+		Vector2i work_position = {0, 0}; // Position of the usable desktop area, excluding panels/taskbars.
+		Vector2u work_size     = {0, 0}; // Size of the usable desktop area, excluding panels/taskbars.
 
-		f32 content_scale = 1.f;// User/OS preferred content scaling factor for this monitor.
+		f32 content_scale = 1.f; // User/OS preferred content scaling factor for this monitor.
 
-		MonitorMode mode = {};   // Currently active video mode.
-		bool primary     = false;// Whether this is the primary monitor.
+		MonitorMode mode = {};    // Currently active video mode.
+		bool primary     = false; // Whether this is the primary monitor.
 	};
 
 	class trinex_api MonitorSystem
@@ -44,7 +46,6 @@ namespace Trinex::Platform
 		inline bool monitor(Monitor* out) const { return monitor(primary(), out); }
 		inline const MonitorMode* modes(usize& count) const { return modes(primary(), count); }
 		inline bool mode(MonitorMode* out) const { return mode(primary(), out); }
-
 
 		template<typename F>
 		inline const MonitorSystem& for_each_monitor(F&& f) const
@@ -66,7 +67,8 @@ namespace Trinex::Platform
 			usize count             = 0;
 			const MonitorMode* data = modes(monitor, count);
 
-			for (usize i = 0; i < count; ++i) f(data[i]);
+			for (usize i = 0; i < count; ++i)
+				f(data[i]);
 			return *this;
 		}
 
@@ -76,4 +78,4 @@ namespace Trinex::Platform
 			return for_each_mode(primary(), f);
 		}
 	};
-}// namespace Trinex::Platform
+} // namespace Trinex::Platform

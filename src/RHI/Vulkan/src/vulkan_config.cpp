@@ -32,4 +32,4 @@ namespace Trinex::VulkanConfig
 		}
 		ScriptEngine::end_config_group();
 	}
-}// namespace Trinex::VulkanConfig
+} // namespace Trinex::VulkanConfig

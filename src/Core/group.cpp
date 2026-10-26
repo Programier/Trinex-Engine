@@ -118,7 +118,6 @@ namespace Trinex
 		{
 		}
 
-
 		m_structs.insert(m_structs.begin() + index, instance);
 		return *this;
 	}
@@ -153,4 +152,4 @@ namespace Trinex
 			m_parent = nullptr;
 		}
 	}
-}// namespace Trinex
+} // namespace Trinex

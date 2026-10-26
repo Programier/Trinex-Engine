@@ -85,46 +85,43 @@ namespace Trinex::etl
 	template<typename...>
 	inline constexpr bool always_false_v = false;
 
-
 	// ============================================================================
 	// Object traits
 	// ============================================================================
 
 	template<typename T>
-	struct is_object_type : std::is_base_of<Object, std::remove_cvref_t<T>> {
+	struct is_object_type : std::is_base_of<Object, std::remove_cvref_t<T>>
+	{
 	};
 
 	template<typename T>
 	inline constexpr bool is_object_type_v = is_object_type<T>::value;
 
-
 	template<typename T>
 	concept object_type = is_object_type_v<T>;
-
 
 	// ============================================================================
 	// Super
 	// ============================================================================
 
 	template<typename T, typename = void>
-	struct has_super : std::false_type {
+	struct has_super : std::false_type
+	{
 	};
 
 	template<typename T>
-	struct has_super<T, std::void_t<typename std::remove_cvref_t<T>::Super>> : std::true_type {
+	struct has_super<T, std::void_t<typename std::remove_cvref_t<T>::Super>> : std::true_type
+	{
 	};
 
 	template<typename T>
 	inline constexpr bool has_super_v = has_super<T>::value;
 
-
 	template<typename T>
 	using super_t = typename std::remove_cvref_t<T>::Super;
 
-
 	template<typename T>
 	concept object_with_super = object_type<T> && has_super_v<T>;
-
 
 	// ============================================================================
 	// Detection
@@ -133,36 +130,37 @@ namespace Trinex::etl
 	template<template<typename...> typename Op, typename... Args>
 	concept detected = requires { typename Op<Args...>; };
 
-
 	template<template<typename...> typename Op, typename... Args>
-	struct is_detected : std::bool_constant<detected<Op, Args...>> {
+	struct is_detected : std::bool_constant<detected<Op, Args...>>
+	{
 	};
 
 	template<template<typename...> typename Op, typename... Args>
 	inline constexpr bool is_detected_v = is_detected<Op, Args...>::value;
 
-
 	template<typename T, typename... Ts>
-	struct is_any_of : std::disjunction<std::is_same<T, Ts>...> {
+	struct is_any_of : std::disjunction<std::is_same<T, Ts>...>
+	{
 	};
 
 	template<typename T, typename... Ts>
 	inline constexpr bool is_any_of_v = is_any_of<T, Ts...>::value;
 
-
 	template<typename T, template<typename...> typename Template>
-	struct is_specialization_of_impl : std::false_type {
+	struct is_specialization_of_impl : std::false_type
+	{
 	};
 
 	template<template<typename...> typename Template, typename... Args>
-	struct is_specialization_of_impl<Template<Args...>, Template> : std::true_type {
+	struct is_specialization_of_impl<Template<Args...>, Template> : std::true_type
+	{
 	};
 
-
 	template<typename T, template<typename...> typename Template>
-	struct is_specialization_of : is_specialization_of_impl<std::remove_cvref_t<T>, Template> {
+	struct is_specialization_of : is_specialization_of_impl<std::remove_cvref_t<T>, Template>
+	{
 	};
 
 	template<typename T, template<typename...> typename Template>
 	inline constexpr bool is_specialization_of_v = is_specialization_of<T, Template>::value;
-}// namespace Trinex::etl
+} // namespace Trinex::etl

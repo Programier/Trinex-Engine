@@ -13,4 +13,4 @@ namespace Trinex
 		m_shader = RHI::instance()->create_shader(source, {});
 		return *this;
 	}
-}// namespace Trinex
+} // namespace Trinex

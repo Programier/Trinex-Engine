@@ -21,4 +21,4 @@ namespace Trinex
 		inline Vector3f direction() const { return world_transform().forward_vector(); }
 		inline float shadows_distance() const { return m_shadows_distance; }
 	};
-}// namespace Trinex
+} // namespace Trinex

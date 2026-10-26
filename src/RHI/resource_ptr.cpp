@@ -8,4 +8,4 @@ namespace Trinex
 		RHIObject::static_release(static_cast<RHIObject*>(object));
 	}
 
-}// namespace Trinex
+} // namespace Trinex

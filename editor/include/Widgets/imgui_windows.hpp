@@ -80,9 +80,9 @@ namespace Trinex
 	{
 		ImGui::FileBrowser* m_browser = nullptr;
 
-
 	public:
-		struct Flags {
+		struct Flags
+		{
 			enum Enum : u8
 			{
 				None              = 0,
@@ -126,10 +126,12 @@ namespace Trinex
 
 	class ImGuiSpawnNewActor : public ImGuiWidget
 	{
-		struct Node {
+		struct Node
+		{
 			class Refl::Class* self = nullptr;
 
-			struct Compare {
+			struct Compare
+			{
 				bool operator()(const Node* a, const Node* b) const;
 			};
 
@@ -192,4 +194,4 @@ namespace Trinex
 	public:
 		bool render(RenderViewport* viewport) override;
 	};
-}// namespace Trinex
+} // namespace Trinex

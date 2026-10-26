@@ -85,8 +85,10 @@ namespace Trinex::ScriptBinding
 
 		static String trim(StringView view)
 		{
-			while (!view.empty() && std::isspace(static_cast<unsigned char>(view.front()))) view.remove_prefix(1);
-			while (!view.empty() && std::isspace(static_cast<unsigned char>(view.back()))) view.remove_suffix(1);
+			while (!view.empty() && std::isspace(static_cast<unsigned char>(view.front())))
+				view.remove_prefix(1);
+			while (!view.empty() && std::isspace(static_cast<unsigned char>(view.back())))
+				view.remove_suffix(1);
 			return String(view);
 		}
 
@@ -97,13 +99,14 @@ namespace Trinex::ScriptBinding
 
 			for (usize index = 0; index < name.size();)
 			{
-				if (name.substr(index, 5) == "class" &&
-				    (index == 0 || std::isspace(static_cast<unsigned char>(name[index - 1])) ||
-				     is_template_delimiter(name[index - 1])) &&
-				    (index + 5 >= name.size() || std::isspace(static_cast<unsigned char>(name[index + 5]))))
+				if (name.substr(index, 5) == "class"
+				    && (index == 0 || std::isspace(static_cast<unsigned char>(name[index - 1]))
+				        || is_template_delimiter(name[index - 1]))
+				    && (index + 5 >= name.size() || std::isspace(static_cast<unsigned char>(name[index + 5]))))
 				{
 					index += 5;
-					while (index < name.size() && std::isspace(static_cast<unsigned char>(name[index]))) ++index;
+					while (index < name.size() && std::isspace(static_cast<unsigned char>(name[index])))
+						++index;
 					continue;
 				}
 
@@ -164,7 +167,7 @@ namespace Trinex::ScriptBinding
 
 			return result;
 		}
-	}// namespace
+	} // namespace
 
 	static_assert(sizeof(FunctionPointer) >= sizeof(asSFuncPtr));
 	static_assert(alignof(FunctionPointer) >= alignof(asSFuncPtr));
@@ -256,7 +259,8 @@ namespace Trinex::ScriptBinding
 		auto engine = ScriptEngine::engine();
 
 		trinex_verify(engine->RegisterObjectBehaviour(m_class_base.c_str(), create_behaviour(behaviour), decl, func,
-		                                              create_call_conv(func, conv, true), auxiliary) >= 0);
+		                                              create_call_conv(func, conv, true), auxiliary)
+		              >= 0);
 		return *this;
 	}
 
@@ -265,8 +269,9 @@ namespace Trinex::ScriptBinding
 		ScriptNamespaceScopedChanger ns(m_namespace);
 		auto engine = ScriptEngine::engine();
 
-		trinex_verify(engine->RegisterObjectMethod(m_class_base.c_str(), decl, func, create_call_conv(func, conv, true),
-		                                           auxiliary) >= 0);
+		trinex_verify(
+		        engine->RegisterObjectMethod(m_class_base.c_str(), decl, func, create_call_conv(func, conv, true), auxiliary)
+		        >= 0);
 		return type_info().method_by_decl(decl);
 	}
 
@@ -443,4 +448,4 @@ namespace Trinex::ScriptBinding
 	{
 		return Namespace(namespace_name);
 	}
-}// namespace Trinex::ScriptBinding
+} // namespace Trinex::ScriptBinding

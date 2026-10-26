@@ -61,4 +61,4 @@ namespace Trinex
 		return "editor/Properties"_localized;
 	}
 
-}// namespace Trinex
+} // namespace Trinex

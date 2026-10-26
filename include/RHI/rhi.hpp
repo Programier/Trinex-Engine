@@ -74,4 +74,4 @@ namespace Trinex
 
 		virtual RHI& present(RHISwapchain* swapchain) = 0;
 	};
-}// namespace Trinex
+} // namespace Trinex

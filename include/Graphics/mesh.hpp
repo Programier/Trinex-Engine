@@ -9,7 +9,8 @@ namespace Trinex
 {
 	class MaterialInterface;
 
-	struct MeshVertexAttribute {
+	struct MeshVertexAttribute
+	{
 		RHISemantic semantic;
 		RHIVertexFormat format;
 		u8 stream;
@@ -18,7 +19,8 @@ namespace Trinex
 		inline bool operator<(const MeshVertexAttribute& attribute) const { return semantic < attribute.semantic; }
 	};
 
-	struct trinex_api MeshSurface {
+	struct trinex_api MeshSurface
+	{
 		trinex_old_struct(MeshSurface, void);
 
 		RHITopology topology = RHITopology::TriangleList;
@@ -33,7 +35,8 @@ namespace Trinex
 
 	using MeshVertexStream = Vector3f;
 
-	struct MeshSurfaceStream {
+	struct MeshSurfaceStream
+	{
 		Vector2f16 uv0;
 		Vector2f16 uv1;
 
@@ -41,7 +44,8 @@ namespace Trinex
 		u32 tangent;
 	};
 
-	struct MeshAnimationStream {
+	struct MeshAnimationStream
+	{
 		u8 indices[4];
 		u8 weights[4];
 	};
@@ -51,7 +55,8 @@ namespace Trinex
 		trinex_class(StaticMesh, Asset);
 
 	public:
-		struct trinex_api LOD {
+		struct trinex_api LOD
+		{
 			trinex_old_struct(LOD, void);
 
 			VertexBuffer<MeshVertexStream> vertex_stream;
@@ -76,7 +81,8 @@ namespace Trinex
 		trinex_class(SkeletalMesh, Asset);
 
 	public:
-		struct trinex_api LOD {
+		struct trinex_api LOD
+		{
 			trinex_old_struct(LOD, void);
 			VertexBuffer<MeshVertexStream> vertex_stream;
 			VertexBuffer<MeshSurfaceStream> surface_stream;
@@ -96,4 +102,4 @@ namespace Trinex
 		SkeletalMesh& rebuild() override;
 		bool serialize(Archive& ar) override;
 	};
-}// namespace Trinex
+} // namespace Trinex

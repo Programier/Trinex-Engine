@@ -21,4 +21,4 @@ namespace Trinex
 		inline usize overrided_material_count() const { return m_material_overrides.size(); }
 		inline MaterialInterface* overrided_material(usize index) const { return m_material_overrides[index]; }
 	};
-}// namespace Trinex
+} // namespace Trinex

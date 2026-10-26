@@ -81,4 +81,4 @@ namespace Trinex
 		static void icon(const ImVec2& size, IconType type, bool filled, const ImVec4& color = ImVec4(1, 1, 1, 1),
 		                 const ImVec4& inner_color = ImVec4(0, 0, 0, 0));
 	};
-}// namespace Trinex
+} // namespace Trinex

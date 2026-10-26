@@ -227,4 +227,4 @@ namespace Trinex
 		RHITexturePool::global_instance()->release(surface);
 		return *this;
 	}
-}// namespace Trinex
+} // namespace Trinex

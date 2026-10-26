@@ -175,4 +175,4 @@ namespace Trinex
 	{
 		release();
 	}
-}// namespace Trinex
+} // namespace Trinex

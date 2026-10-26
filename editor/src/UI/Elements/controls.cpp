@@ -131,9 +131,10 @@ namespace Trinex::UI
 		const f32 square_size = ImGui::GetFrameHeight();
 		const ImVec2 pos      = window->DC.CursorPos;
 		const ImRect check_bb(pos, pos + ImVec2(square_size, square_size));
-		const ImRect total_bb(pos,
-		                      pos + ImVec2(square_size + (label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f),
-		                                   label_size.y + style.FramePadding.y * 2.0f));
+		const ImRect total_bb(
+		        pos, pos
+		                     + ImVec2(square_size + (label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f),
+		                              label_size.y + style.FramePadding.y * 2.0f));
 
 		ImGui::ItemSize(total_bb, style.FramePadding.y);
 		if (!ImGui::ItemAdd(total_bb, id))
@@ -293,4 +294,4 @@ namespace Trinex::UI
 		const bool edited = ImGui::ColorEdit4(label.c_str(), &value.x);
 		return item_state_flags(readback_if(edited));
 	}
-}// namespace Trinex::UI
+} // namespace Trinex::UI

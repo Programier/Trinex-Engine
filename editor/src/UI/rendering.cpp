@@ -29,7 +29,6 @@ namespace Trinex::RenderBackend
 			RHISampler* m_sampler = nullptr;
 			RHIResourcePtr<RHIBuffer> m_projection;
 
-
 		public:
 			void bind(RHIContext* ctx, const Matrix4f& projection)
 			{
@@ -78,7 +77,8 @@ namespace Trinex::RenderBackend
 			m_projection         = RHI::instance()->create_buffer(sizeof(Matrix4f), flags);
 		}
 
-		struct RenderFlags {
+		struct RenderFlags
+		{
 			enum Enum : u8
 			{
 				Undefined     = 0,
@@ -90,14 +90,16 @@ namespace Trinex::RenderBackend
 			trinex_bitfield_enum_struct(RenderFlags, u8);
 		};
 
-		struct ImGuiTrinexData {
+		struct ImGuiTrinexData
+		{
 			RHIContext* context  = nullptr;
 			RHITexture* layer    = nullptr;
 			RenderFlags flags    = RenderFlags::Undefined;
 			Vector4f clear_color = {0.f, 0.f, 0.f, 0.f};
 		};
 
-		struct ImGuiTrinexViewportData {
+		struct ImGuiTrinexViewportData
+		{
 			RHIResourcePtr<RHIBuffer> vertex_buffer;
 			RHIResourcePtr<RHIBuffer> index_buffer;
 			u64 vertex_count = 0;
@@ -266,7 +268,6 @@ namespace Trinex::RenderBackend
 				return;
 			}
 
-
 			const Vector2u view_size = {draw_data->DisplaySize.x, draw_data->DisplaySize.y};
 
 			bd->context = ctx;
@@ -431,7 +432,7 @@ namespace Trinex::RenderBackend
 			bd->context = nullptr;
 			bd->layer   = nullptr;
 		}
-	}// namespace
+	} // namespace
 
 	namespace
 	{
@@ -609,5 +610,5 @@ namespace Trinex::RenderBackend
 				return *this;
 			}
 		} s_listener;
-	}// namespace
-}// namespace Trinex::RenderBackend
+	} // namespace
+} // namespace Trinex::RenderBackend

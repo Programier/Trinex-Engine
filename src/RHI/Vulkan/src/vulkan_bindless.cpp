@@ -54,12 +54,13 @@ namespace Trinex
 		{
 			const vk::DescriptorSetLayoutCreateFlags layout_flags = vk::DescriptorSetLayoutCreateFlagBits::eUpdateAfterBindPool;
 
-			const vk::DescriptorBindingFlagsEXT binding_flags = vk::DescriptorBindingFlagBits::eUpdateAfterBind |
-			                                                    vk::DescriptorBindingFlagBits::eUpdateUnusedWhilePending |
-			                                                    vk::DescriptorBindingFlagBits::ePartiallyBound;
+			const vk::DescriptorBindingFlagsEXT binding_flags = vk::DescriptorBindingFlagBits::eUpdateAfterBind
+			                                                    | vk::DescriptorBindingFlagBits::eUpdateUnusedWhilePending
+			                                                    | vk::DescriptorBindingFlagBits::ePartiallyBound;
 
 			vk::DescriptorBindingFlagsEXT binding_flags_array[HeapsCount];
-			for (u32 i = 0; i < HeapsCount; ++i) binding_flags_array[i] = binding_flags;
+			for (u32 i = 0; i < HeapsCount; ++i)
+				binding_flags_array[i] = binding_flags;
 
 			vk::DescriptorSetLayoutBindingFlagsCreateInfoEXT binding_info(HeapsCount, binding_flags_array);
 			vk::DescriptorSetLayoutCreateInfo layout_info(layout_flags, HeapsCount, m_bindings, &binding_info);
@@ -165,4 +166,4 @@ namespace Trinex
 		m_free[heap].push_back(descriptor);
 		return *this;
 	}
-}// namespace Trinex
+} // namespace Trinex

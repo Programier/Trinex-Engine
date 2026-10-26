@@ -29,7 +29,8 @@ namespace Trinex
 		}
 
 	public:
-		struct DummyCriticalSection {
+		struct DummyCriticalSection
+		{
 		};
 
 		trinex_non_copyable(Registry);
@@ -144,7 +145,6 @@ namespace Trinex
 			RegistryInstance::s_last  = tail;
 		}
 
-
 		virtual ~Registry()
 		{
 			[[maybe_unused]] auto lock = RegistryInstance::critical_section();
@@ -177,8 +177,7 @@ private:                                                                        
 	static Type* s_first;                                                                                                        \
 	static Type* s_last
 
-
 #define trinex_implement_registry(Type)                                                                                          \
 	Type* Type::s_first = nullptr;                                                                                               \
 	Type* Type::s_last  = nullptr
-}// namespace Trinex
+} // namespace Trinex

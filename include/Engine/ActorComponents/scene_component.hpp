@@ -24,7 +24,8 @@ namespace Trinex
 
 	public:
 		template<typename Native>
-		struct Scriptable : Super::Scriptable<Native> {
+		struct Scriptable : Super::Scriptable<Native>
+		{
 			Scriptable& on_transform_changed() override
 			{
 				SceneComponent::script_on_transform_changed();
@@ -63,4 +64,4 @@ namespace Trinex
 		SceneComponent& on_property_changed(const Refl::PropertyChangedEvent& event) override;
 		bool serialize(Archive& ar) override;
 	};
-}// namespace Trinex
+} // namespace Trinex

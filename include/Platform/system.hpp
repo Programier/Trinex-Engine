@@ -11,7 +11,8 @@ namespace Trinex
 
 namespace Trinex::Platform
 {
-	struct SystemInfo {
+	struct SystemInfo
+	{
 		SystemType type           = SystemType::Unknown;
 		Architecture architecture = Architecture::Unknown;
 		const char* name;
@@ -22,7 +23,8 @@ namespace Trinex::Platform
 		const char* user_name;
 	};
 
-	struct CPUInfo {
+	struct CPUInfo
+	{
 		String vendor;
 		String brand;
 		Architecture architecture = Architecture::Unknown;
@@ -58,4 +60,4 @@ namespace Trinex::Platform
 		virtual bool environment(const char* name, const char* value, bool replace = true) = 0;
 		virtual bool create_uuid(UUID* out)                                                = 0;
 	};
-}// namespace Trinex::Platform
+} // namespace Trinex::Platform

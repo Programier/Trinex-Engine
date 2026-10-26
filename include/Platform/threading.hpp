@@ -38,4 +38,4 @@ namespace Trinex::Platform
 			return create("Trinex Thread", function, userdata, priority);
 		}
 	};
-}// namespace Trinex::Platform
+} // namespace Trinex::Platform

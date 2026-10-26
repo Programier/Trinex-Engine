@@ -72,4 +72,4 @@ namespace Trinex
 	{
 		return trx_new VulkanFence();
 	}
-}// namespace Trinex
+} // namespace Trinex

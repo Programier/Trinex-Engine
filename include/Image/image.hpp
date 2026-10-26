@@ -50,4 +50,4 @@ namespace Trinex
 		inline u32 height() const { return m_size.y; }
 		inline u32 channels() const { return m_data.size() / (width() * height()); }
 	};
-}// namespace Trinex
+} // namespace Trinex

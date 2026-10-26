@@ -88,4 +88,4 @@ namespace Trinex
 		return {view_pos.x, view_pos.y, view_pos.z};
 	}
 
-}// namespace Trinex
+} // namespace Trinex

@@ -143,5 +143,5 @@ namespace Trinex
 
 			usize size() const override { return sizeof(T); }
 		};
-	}// namespace Refl
-}// namespace Trinex
+	} // namespace Refl
+} // namespace Trinex

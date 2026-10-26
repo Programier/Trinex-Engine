@@ -6,7 +6,7 @@ namespace Trinex
 {
 	class Script;
 	class ScriptTypeInfo;
-}// namespace Trinex
+} // namespace Trinex
 
 namespace Trinex::Refl
 {
@@ -27,4 +27,4 @@ namespace Trinex::Refl
 		usize size() const override;
 		~ScriptClass();
 	};
-}// namespace Trinex::Refl
+} // namespace Trinex::Refl

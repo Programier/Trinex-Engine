@@ -12,7 +12,8 @@ namespace Trinex
 	class trinex_api BatchedLines final
 	{
 	public:
-		struct trinex_api Vertex {
+		struct trinex_api Vertex
+		{
 		private:
 			alignas(4) Vector3f m_position;
 			alignas(4) Color m_color;
@@ -50,7 +51,8 @@ namespace Trinex
 		};
 
 	private:
-		struct Node {
+		struct Node
+		{
 			Node* next;
 			Vertex* vertices;
 			usize vtx_count;
@@ -103,4 +105,4 @@ namespace Trinex
 		                               Color color3 = {255, 255, 255, 255});
 		BatchedTriangles& render(RHIContext* ctx, Renderer* renderer);
 	};
-}// namespace Trinex
+} // namespace Trinex

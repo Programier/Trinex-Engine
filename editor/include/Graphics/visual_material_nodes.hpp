@@ -93,4 +93,4 @@ namespace Trinex::VisualMaterialGraph
 		inline OutputPin* b_pin() const { return outputs()[3]; }
 		inline OutputPin* a_pin() const { return outputs()[4]; }
 	};
-}// namespace Trinex::VisualMaterialGraph
+} // namespace Trinex::VisualMaterialGraph

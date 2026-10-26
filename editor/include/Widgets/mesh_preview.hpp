@@ -39,4 +39,4 @@ namespace Trinex
 		virtual const char* name();
 		static const char* static_name();
 	};
-}// namespace Trinex
+} // namespace Trinex

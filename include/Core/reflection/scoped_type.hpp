@@ -21,7 +21,8 @@ namespace Trinex::Refl
 		void unlock() const;
 
 	public:
-		struct Locker final {
+		struct Locker final
+		{
 		private:
 			const ScopedType* const m_object;
 
@@ -37,4 +38,4 @@ namespace Trinex::Refl
 
 		inline bool is_locked() const { return m_lock_count > 0; }
 	};
-}// namespace Trinex::Refl
+} // namespace Trinex::Refl

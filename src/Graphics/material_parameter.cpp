@@ -327,4 +327,4 @@ namespace Trinex::MaterialParameters
 		trinex_refl_prop(surface, Refl::Property::IsTransient);
 		trinex_refl_prop(sampler, Refl::Property::IsTransient);
 	}
-}// namespace Trinex::MaterialParameters
+} // namespace Trinex::MaterialParameters

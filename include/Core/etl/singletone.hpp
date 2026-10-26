@@ -4,10 +4,10 @@
 #include <Core/etl/utility.hpp>
 #include <Core/object.hpp>
 
-
 namespace Trinex
 {
-	struct EmptySingletoneParent {
+	struct EmptySingletoneParent
+	{
 	};
 
 	template<typename Type, typename Parent = EmptySingletoneParent, bool with_destroy_controller = true>
@@ -36,4 +36,4 @@ namespace Trinex
 
 		~Singletone() { Type::s_instance = nullptr; }
 	};
-}// namespace Trinex
+} // namespace Trinex

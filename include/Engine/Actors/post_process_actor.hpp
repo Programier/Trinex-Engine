@@ -16,4 +16,4 @@ namespace Trinex
 		PostProcessActor();
 		inline PostProcessComponent* post_process_component() const { return m_post_process_component; }
 	};
-}// namespace Trinex
+} // namespace Trinex

@@ -163,4 +163,4 @@ namespace Trinex
 		LifeCycle::execute(LifeCycle::PostShutdown);
 		destroy_threads();
 	}
-}// namespace Trinex
+} // namespace Trinex

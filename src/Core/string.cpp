@@ -145,14 +145,16 @@ namespace Trinex
 		trinex_api StringView lstrip(const StringView& line, bool (*callback)(char ch))
 		{
 			StringView::size_type pos = 0;
-			while (pos < line.size() && callback(line[pos])) pos++;
+			while (pos < line.size() && callback(line[pos]))
+				pos++;
 			return line.substr(pos, line.length() - pos);
 		}
 
 		trinex_api StringView rstrip(const StringView& line, bool (*callback)(char ch))
 		{
 			StringView::size_type pos = line.size() - 1;
-			while (pos > 0 && callback(line[pos])) pos--;
+			while (pos > 0 && callback(line[pos]))
+				pos--;
 			if (pos == 0 && callback(line[pos]))
 				return "";
 			return line.substr(0, pos + 1);
@@ -217,6 +219,6 @@ namespace Trinex
 		{
 			return format_number(stream, value);
 		}
-	}// namespace Strings
+	} // namespace Strings
 
-}// namespace Trinex
+} // namespace Trinex

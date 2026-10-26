@@ -1,7 +1,7 @@
 #include <Core/archive.hpp>
-#include <Core/etl/static_array.hpp>
 #include <Core/etl/atomic.hpp>
 #include <Core/etl/map.hpp>
+#include <Core/etl/static_array.hpp>
 #include <Core/memory.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/reflection/struct.hpp>
@@ -24,7 +24,8 @@ namespace Trinex
 		trinex_refl_virtual_prop(border_color, border_color, border_color, Refl::Property::IsTransient);
 	}
 
-	struct SamplerInitializerHash {
+	struct SamplerInitializerHash
+	{
 		inline usize operator()(const RHISamplerDesc& initializer) const { return initializer.hash(); }
 	};
 
@@ -331,7 +332,8 @@ namespace Trinex
 	trinex_on_shutdown()
 	{
 		s_gc_disabled = true;
-		for (SamplerImpl* sampler : s_default_samplers) sampler->release();
+		for (SamplerImpl* sampler : s_default_samplers)
+			sampler->release();
 
 		SamplerImpl* sampler = s_first_sampler;
 
@@ -349,4 +351,4 @@ namespace Trinex
 			}
 		}
 	}
-}// namespace Trinex
+} // namespace Trinex

@@ -16,7 +16,6 @@ namespace Trinex::UI
 		Array<Path> m_dependencies;
 		bool m_open = false;
 
-
 	public:
 		Document();
 		~Document();
@@ -36,4 +35,4 @@ namespace Trinex::UI
 		inline const StyleSheet* style_sheet() const { return &m_style_sheet; }
 		inline const Array<Path>& dependencies() const { return m_dependencies; }
 	};
-}// namespace Trinex::UI
+} // namespace Trinex::UI

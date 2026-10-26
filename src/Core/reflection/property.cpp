@@ -409,4 +409,4 @@ namespace Trinex::Refl
 
 		return false;
 	}
-}// namespace Trinex::Refl
+} // namespace Trinex::Refl

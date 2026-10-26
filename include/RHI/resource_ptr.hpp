@@ -65,4 +65,4 @@ namespace Trinex
 
 		RHIResourcePtr& operator=(T* ptr) { return reset(ptr); }
 	};
-}// namespace Trinex
+} // namespace Trinex

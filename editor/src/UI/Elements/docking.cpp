@@ -241,4 +241,4 @@ namespace Trinex::UI
 		ImGui::DockBuilderDockWindow(window.c_str(), dock_id);
 		return true;
 	}
-}// namespace Trinex::UI
+} // namespace Trinex::UI

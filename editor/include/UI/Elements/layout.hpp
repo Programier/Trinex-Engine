@@ -190,4 +190,4 @@ namespace Trinex::UI
 
 		UpdateFlags on_begin_update() override;
 	};
-}// namespace Trinex::UI
+} // namespace Trinex::UI

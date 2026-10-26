@@ -69,4 +69,4 @@ namespace Trinex::Strings
 			return line;
 		return "";
 	}
-}// namespace Trinex::Strings
+} // namespace Trinex::Strings

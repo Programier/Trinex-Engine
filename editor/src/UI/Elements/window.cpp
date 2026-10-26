@@ -90,4 +90,4 @@ namespace Trinex::UI
 		ImGui::End();
 		return *this;
 	}
-}// namespace Trinex::UI
+} // namespace Trinex::UI

@@ -3,8 +3,9 @@
 namespace Trinex
 {
 	template<typename Underlying>
-	struct Flags {
+	struct Flags
+	{
 		using Enum = Underlying;
 		trinex_bitfield_enum_struct(Flags, Underlying);
 	};
-}// namespace Trinex
+} // namespace Trinex

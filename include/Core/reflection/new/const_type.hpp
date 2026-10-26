@@ -5,7 +5,8 @@
 
 namespace Trinex::Refl::New
 {
-	trinex_reflect() class trinex_api ConstType : public Type
+	trinex_reflect()
+	class trinex_api ConstType : public Type
 	{
 		trinex_reflection_body();
 
@@ -23,4 +24,4 @@ namespace Trinex::Refl::New
 		Class* reflection() const override { return class_of<ConstType>(); }
 		inline Type* type() const { return m_type.value(); }
 	};
-}// namespace Trinex::Refl::New
+} // namespace Trinex::Refl::New

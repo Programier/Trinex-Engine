@@ -40,4 +40,4 @@ namespace Trinex
 		out.inv_attenuation_radius = 1.f / m_attenuation_radius;
 		return *this;
 	}
-}// namespace Trinex
+} // namespace Trinex

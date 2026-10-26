@@ -3,13 +3,16 @@
 
 namespace Trinex
 {
-	struct ByteAllocatorTag {
+	struct ByteAllocatorTag
+	{
 	};
-	struct StackByteAllocatorTag {
+	struct StackByteAllocatorTag
+	{
 	};
-	struct FrameByteAllocatorTag {
+	struct FrameByteAllocatorTag
+	{
 	};
-}// namespace Trinex
+} // namespace Trinex
 
 trinex_api void* operator new(std::size_t size, Trinex::ByteAllocatorTag) noexcept;
 trinex_api void* operator new(std::size_t size, Trinex::StackByteAllocatorTag) noexcept;
@@ -22,17 +25,21 @@ trinex_api void operator delete(void* ptr, Trinex::ByteAllocatorTag) noexcept;
 
 namespace Trinex
 {
-	struct ByteAllocatorDeleter {
+	struct ByteAllocatorDeleter
+	{
 		template<typename T>
-		struct strip_ref {
+		struct strip_ref
+		{
 			using type = T;
 		};
 		template<typename T>
-		struct strip_ref<T&> {
+		struct strip_ref<T&>
+		{
 			using type = T;
 		};
 		template<typename T>
-		struct strip_ref<T&&> {
+		struct strip_ref<T&&>
+		{
 			using type = T;
 		};
 
@@ -46,7 +53,7 @@ namespace Trinex
 			}
 		}
 	};
-}// namespace Trinex
+} // namespace Trinex
 
 #define trx_new new (Trinex::ByteAllocatorTag{})
 #define trx_stack_new new (Trinex::StackByteAllocatorTag{})

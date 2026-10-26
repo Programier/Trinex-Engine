@@ -59,4 +59,4 @@ namespace Trinex::Refl::New
 	{
 		return PointerType::from(type);
 	}
-}// namespace Trinex::Refl::New
+} // namespace Trinex::Refl::New

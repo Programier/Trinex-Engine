@@ -9,12 +9,14 @@ namespace Trinex
 
 namespace Trinex::Platform
 {
-	struct DialogFileFilter {
+	struct DialogFileFilter
+	{
 		const char* name    = nullptr;
 		const char* pattern = nullptr;
 	};
 
-	struct DialogResult {
+	struct DialogResult
+	{
 		DialogStatus status;
 		const char* const* paths = nullptr;
 		usize count              = 0;
@@ -40,4 +42,4 @@ namespace Trinex::Platform
 		virtual DialogSystem& open_directory(const DialogCallback& callback, const char* location = nullptr,
 		                                     bool multiple = false, Window* parent = nullptr) = 0;
 	};
-}// namespace Trinex::Platform
+} // namespace Trinex::Platform

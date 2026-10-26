@@ -5,7 +5,8 @@
 
 namespace Trinex
 {
-	struct WeakEntry {
+	struct WeakEntry
+	{
 		RefCounted* ptr = nullptr;
 		u32 weak_refs   = 0;
 
@@ -25,7 +26,8 @@ namespace Trinex
 			static constexpr u32 page_size = 1024;
 
 		private:
-			struct Page {
+			struct Page
+			{
 				WeakEntry entries[page_size];
 			};
 
@@ -101,7 +103,7 @@ namespace Trinex
 			}
 		};
 
-	}// namespace
+	} // namespace
 
 	void RefCounted::add_ref() const noexcept
 	{
@@ -227,4 +229,4 @@ namespace Trinex
 		if (AtomicRef(entry->weak_refs).load(etl::memory_order_acquire) == 0)
 			storage->free(entry);
 	}
-}// namespace Trinex
+} // namespace Trinex

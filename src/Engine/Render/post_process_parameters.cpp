@@ -39,4 +39,4 @@ namespace Trinex
 		(*this) = parameters;
 		return *this;
 	}
-}// namespace Trinex
+} // namespace Trinex

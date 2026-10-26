@@ -85,12 +85,12 @@ namespace Trinex
 		return nullptr;
 	}
 
-
 	bool InputSystem::is_pressed(const InputDevice* device, EventCode code) const
 	{
 		const InputEvent* event = state(device, code);
-		return event && (event->type == EventType::Press || event->type == EventType::Repeat ||
-		                 (event->value.type == InputValueType::Boolean && event->value.is_active()));
+		return event
+		       && (event->type == EventType::Press || event->type == EventType::Repeat
+		           || (event->value.type == InputValueType::Boolean && event->value.is_active()));
 	}
 
 	bool InputSystem::is_pressed(EventCode code) const
@@ -187,8 +187,8 @@ namespace Trinex
 		for (auto it = m_mapping_states.begin(); it != m_mapping_states.end();)
 		{
 			MappingState& mapping = *it;
-			if (!mapping.context || mapping.context_revision != mapping.context->revision() ||
-			    mapping.mapping_index >= mapping.context->mappings().size())
+			if (!mapping.context || mapping.context_revision != mapping.context->revision()
+			    || mapping.mapping_index >= mapping.context->mappings().size())
 			{
 				it = m_mapping_states.erase(it);
 				continue;
@@ -249,8 +249,8 @@ namespace Trinex
 
 	bool InputSystem::matches(const ListenerBinding& binding, const InputEvent& event)
 	{
-		return (!binding.device || binding.device == event.device) && (!binding.type || binding.type == event.type) &&
-		       (!binding.code || binding.code == event.code);
+		return (!binding.device || binding.device == event.device) && (!binding.type || binding.type == event.type)
+		       && (!binding.code || binding.code == event.code);
 	}
 
 	void InputSystem::flush_pending_listeners()
@@ -289,8 +289,8 @@ namespace Trinex
 	{
 		for (MappingState& state : m_mapping_states)
 		{
-			if (state.context == context && state.mapping_index == mapping_index && state.device == device &&
-			    state.context_revision == context->revision())
+			if (state.context == context && state.mapping_index == mapping_index && state.device == device
+			    && state.context_revision == context->revision())
 			{
 				return state;
 			}
@@ -353,8 +353,8 @@ namespace Trinex
 			}
 		}
 
-		return matching_type && (!control.device || (event.device && event.device == control.device)) &&
-		       (!control.type || control.type == event.type) && (!control.code || control.code == event.code);
+		return matching_type && (!control.device || (event.device && event.device == control.device))
+		       && (!control.type || control.type == event.type) && (!control.code || control.code == event.code);
 	}
 
 	InputValue InputSystem::event_value(const InputEvent& event)
@@ -471,8 +471,8 @@ namespace Trinex
 				continue;
 			}
 
-			if (mapping.context && mapping.context_revision == mapping.context->revision() &&
-			    mapping.mapping_index < mapping.context->mappings().size())
+			if (mapping.context && mapping.context_revision == mapping.context->revision()
+			    && mapping.mapping_index < mapping.context->mappings().size())
 			{
 				const InputMapping& source = mapping.context->mappings()[mapping.mapping_index];
 				emit(mapping, source, InputActionPhase::Canceled, {});
@@ -565,4 +565,4 @@ namespace Trinex
 		return nullptr;
 	}
 
-}// namespace Trinex
+} // namespace Trinex

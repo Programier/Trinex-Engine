@@ -21,4 +21,4 @@ namespace Trinex
 		PrimitiveComponent();
 		~PrimitiveComponent();
 	};
-}// namespace Trinex
+} // namespace Trinex

@@ -120,4 +120,4 @@ namespace Trinex
 	{
 		return murmur_hash(static_cast<const u8*>(memory), size, seed);
 	}
-}// namespace Trinex
+} // namespace Trinex

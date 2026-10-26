@@ -34,4 +34,4 @@ namespace Trinex
 		inline Vector2u size() const { return m_size; }
 		inline RHISurfaceFormat format() const { return m_format; }
 	};
-}// namespace Trinex
+} // namespace Trinex

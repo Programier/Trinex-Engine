@@ -15,4 +15,4 @@ namespace Trinex
 	{
 		return m_directional_light_component;
 	}
-}// namespace Trinex
+} // namespace Trinex

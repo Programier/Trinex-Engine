@@ -24,4 +24,4 @@ namespace Trinex
 
 		inline Object* selected_object() const { return m_object.ptr(); }
 	};
-}// namespace Trinex
+} // namespace Trinex

@@ -1,6 +1,6 @@
 #pragma once
-#include <Core/etl/variant.hpp>
 #include <Core/etl/array.hpp>
+#include <Core/etl/variant.hpp>
 #include <Core/math/vector.hpp>
 #include <Core/types/name.hpp>
 
@@ -10,7 +10,7 @@ namespace Trinex
 	class RHITexture;
 	class RHISampler;
 	class RHIContext;
-}// namespace Trinex
+} // namespace Trinex
 
 namespace Trinex::UI
 {
@@ -21,7 +21,8 @@ namespace Trinex::UI
 	using Vec4  = Vector4f;
 	using Color = Vector4f;
 
-	struct Axis {
+	struct Axis
+	{
 		enum Enum : u8
 		{
 			X,
@@ -31,7 +32,8 @@ namespace Trinex::UI
 		trinex_enum_struct(Axis);
 	};
 
-	struct Ease {
+	struct Ease
+	{
 		enum Enum : u8
 		{
 			Linear = 0,
@@ -54,7 +56,8 @@ namespace Trinex::UI
 		trinex_enum_struct(Ease);
 	};
 
-	struct Unit {
+	struct Unit
+	{
 		enum Type : u8
 		{
 			Px,
@@ -71,7 +74,8 @@ namespace Trinex::UI
 		constexpr Unit(f32 value) : type(Px), value(value) {}
 	};
 
-	struct Size {
+	struct Size
+	{
 		Unit width;
 		Unit height;
 
@@ -81,8 +85,10 @@ namespace Trinex::UI
 		constexpr Size(const Vec2& size) : width(size.x), height(size.y) {}
 	};
 
-	struct Event {
-		struct Flags {
+	struct Event
+	{
+		struct Flags
+		{
 			enum Enum : u8
 			{
 				Undefined = 0,
@@ -129,18 +135,21 @@ namespace Trinex::UI
 
 	namespace Markup
 	{
-		struct SourceLocation {
+		struct SourceLocation
+		{
 			u32 line   = 0;
 			u32 column = 0;
 		};
 
-		struct LocalizationKey : public Array<Name> {
+		struct LocalizationKey : public Array<Name>
+		{
 			using Array::Array;
 		};
 
-
-		struct BindingPath : public Array<Name> {
-			struct Mode {
+		struct BindingPath : public Array<Name>
+		{
+			struct Mode
+			{
 				enum Enum : u8
 				{
 					Undefined = 0,
@@ -156,31 +165,36 @@ namespace Trinex::UI
 			Mode mode = Mode::Read;
 		};
 
-		struct PropertyPath : public Array<Name> {
+		struct PropertyPath : public Array<Name>
+		{
 			using Array::Array;
 		};
 
-		struct Identifier : public String {
+		struct Identifier : public String
+		{
 			using String::String;
 		};
 
-		struct Null {
+		struct Null
+		{
 		};
 
 		using Container = Array<struct ValueDesc>;
 		using Object    = Array<struct ObjectField>;
 		using Value = Variant<Null, bool, i32, f32, String, Unit, LocalizationKey, BindingPath, Identifier, Container, Object>;
 
-		struct ValueDesc {
+		struct ValueDesc
+		{
 			Value value;
 			SourceLocation location;
 		};
 
-		struct ObjectField {
+		struct ObjectField
+		{
 			Name name;
 			ValueDesc value;
 			SourceLocation location;
 		};
 
-	}// namespace Markup
-}// namespace Trinex::UI
+	} // namespace Markup
+} // namespace Trinex::UI

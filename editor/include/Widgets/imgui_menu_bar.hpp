@@ -7,7 +7,8 @@ namespace Trinex
 	class ImGuiMenuBar final
 	{
 	public:
-		struct Menu {
+		struct Menu
+		{
 			ImGuiMenuBar* const bar;
 			const String name;
 			Delegate<bool()> is_enabled;
@@ -55,4 +56,4 @@ namespace Trinex
 		ImGuiMenuBar& clear();
 		~ImGuiMenuBar();
 	};
-}// namespace Trinex
+} // namespace Trinex

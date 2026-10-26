@@ -17,4 +17,4 @@ namespace Trinex
 		SkeletalMeshActor();
 		~SkeletalMeshActor();
 	};
-}// namespace Trinex
+} // namespace Trinex

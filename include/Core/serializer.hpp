@@ -7,6 +7,7 @@ namespace Trinex
 	 *  bool serialize(class Archive& ar, T& value);
 	*/
 	template<typename T>
-	struct Serializer {
+	struct Serializer
+	{
 	};
-}// namespace Trinex
+} // namespace Trinex

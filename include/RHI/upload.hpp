@@ -5,7 +5,8 @@ namespace Trinex
 	class RHIContext;
 	class RHIBuffer;
 
-	struct trinex_api RHIUploadAllocation {
+	struct trinex_api RHIUploadAllocation
+	{
 		RHIBuffer* buffer = nullptr;
 		u8* data          = nullptr;
 		usize offset      = 0;
@@ -14,7 +15,8 @@ namespace Trinex
 		inline explicit operator bool() const { return buffer != nullptr && data != nullptr && size > 0; }
 	};
 
-	struct trinex_api RHIUploadAllocatorStats {
+	struct trinex_api RHIUploadAllocatorStats
+	{
 		usize total_pages           = 0;
 		usize free_pages            = 0;
 		usize used_pages            = 0;
@@ -33,4 +35,4 @@ namespace Trinex
 		static RHIUploadAllocation allocate_chunk(RHIContext* context, usize max_size, usize alignment = 16);
 		static RHIUploadAllocatorStats statistics();
 	};
-}// namespace Trinex
+} // namespace Trinex

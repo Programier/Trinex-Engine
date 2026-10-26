@@ -1,7 +1,6 @@
 #include <Core/blob.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <LinuxPlatform/filesystem.hpp>
-
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -67,7 +66,6 @@ namespace Trinex::Platform
 
 		return result;
 	}
-
 
 	static VFS::FileStat file_stat_of(const struct stat& stat)
 	{
@@ -521,4 +519,4 @@ namespace Trinex::Platform
 	{
 		rootfs()->mount("/", retain_ref(LinuxFileSystem::instance()));
 	}
-}// namespace Trinex::Platform
+} // namespace Trinex::Platform

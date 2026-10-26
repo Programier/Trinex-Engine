@@ -22,5 +22,5 @@ namespace Trinex
 
 		using std::atomic_signal_fence;
 		using std::atomic_thread_fence;
-	}// namespace etl
-}// namespace Trinex
+	} // namespace etl
+} // namespace Trinex

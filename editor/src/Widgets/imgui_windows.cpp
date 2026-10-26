@@ -57,7 +57,6 @@ namespace Trinex
 		return true;
 	}
 
-
 	ImGuiNotificationMessage::ImGuiNotificationMessage(const String& msg, Type type) : m_message(msg), m_type(type) {}
 
 	bool ImGuiNotificationMessage::render(RenderViewport* viewport)
@@ -79,7 +78,6 @@ namespace Trinex
 				case Type::Warning: text_color = ImVec4(1.0f, 0.7f, 0.0f, 1.0f); break;
 				case Type::Error: text_color = ImVec4(1.0f, 0.3f, 0.3f, 1.0f); break;
 			}
-
 
 			text_wrapped_colored(text_color, "%s", m_message.c_str());
 
@@ -314,7 +312,6 @@ namespace Trinex
 		return "editor/Rename Object"_localized;
 	}
 
-
 	ImGuiOpenFile::ImGuiOpenFile(Flags flags) : m_flags(flags)
 	{
 		m_browser = trx_new ImGui::FileBrowser(static_cast<ImGuiFileBrowserFlags>(flags));
@@ -414,7 +411,6 @@ namespace Trinex
 	{
 		return "editor/Open File"_localized;
 	}
-
 
 	bool ImGuiSpawnNewActor::Node::Compare::operator()(const Node* a, const Node* b) const
 	{
@@ -534,11 +530,9 @@ namespace Trinex
 		render_tree(m_root);
 		ImGui::End();
 
-
 		ImGui::Begin("##ActorSpawner->ActorParameters");
 		render_parameters();
 		ImGui::End();
-
 
 		ImGui::End();
 		return m_is_open;
@@ -778,8 +772,8 @@ namespace Trinex
 			Actor* pending_move_actor          = nullptr;
 			LevelInstance* pending_move_target = nullptr;
 
-			ImGuiTableFlags table_flags = ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter |
-			                              ImGuiTableFlags_BordersInner | ImGuiTableFlags_BordersV;
+			ImGuiTableFlags table_flags = ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter
+			                              | ImGuiTableFlags_BordersInner | ImGuiTableFlags_BordersV;
 
 			if (ImGui::BeginTable("##LevelTable", 4, table_flags))
 			{
@@ -858,4 +852,4 @@ namespace Trinex
 		ImGui::End();
 		return is_open;
 	}
-}// namespace Trinex
+} // namespace Trinex

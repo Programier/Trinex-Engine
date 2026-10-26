@@ -52,7 +52,7 @@ namespace Trinex
 		{
 			return load(blob->data(), blob->size());
 		}
-		
+
 		return false;
 	}
 
@@ -212,4 +212,4 @@ namespace Trinex
 	{
 		close();
 	}
-}// namespace Trinex
+} // namespace Trinex

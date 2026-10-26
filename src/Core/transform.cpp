@@ -88,7 +88,6 @@ namespace Trinex
 		return new_transform;
 	}
 
-
 	Transform& Transform::operator+=(const Transform& other)
 	{
 		location += other.location;
@@ -135,9 +134,9 @@ namespace Trinex
 	{
 		return Strings::format("Location: {}, {}, {}\n"
 		                       "Rotation: {}, {}, {}, {}\n"
-		                       "Scale: {}, {}, {}",                           //
-		                       location.x, location.y, location.z,            //
-		                       rotation.x, rotation.y, rotation.z, rotation.w,//
+		                       "Scale: {}, {}, {}",                            //
+		                       location.x, location.y, location.z,             //
+		                       rotation.x, rotation.y, rotation.z, rotation.w, //
 		                       scale.x, scale.y, scale.z);
 	}
 
@@ -176,4 +175,4 @@ namespace Trinex
 
 		Transform::static_reflection()->script_type_info = registrar.type_info();
 	}
-}// namespace Trinex
+} // namespace Trinex

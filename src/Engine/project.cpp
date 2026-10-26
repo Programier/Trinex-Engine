@@ -49,7 +49,6 @@ namespace Trinex
 		initialized = true;
 	}
 
-
 	bool Project::close_project()
 	{
 		name             = "";
@@ -117,7 +116,6 @@ namespace Trinex
 		if (close_project() == false)
 			return false;
 		bool status = ScriptEngine::exec_string(config);
-
 
 		if (status)
 		{
@@ -239,4 +237,4 @@ Engine::Project::shader_cache_dir = "{}";
 
 		initialize_configs();
 	}
-}// namespace Trinex
+} // namespace Trinex

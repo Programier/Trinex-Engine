@@ -15,4 +15,4 @@ namespace Trinex
 	PrimitiveComponent::PrimitiveComponent() {}
 
 	PrimitiveComponent::~PrimitiveComponent() {}
-}// namespace Trinex
+} // namespace Trinex

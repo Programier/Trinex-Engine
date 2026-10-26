@@ -82,8 +82,8 @@ namespace Trinex::etl
 
 	template<typename T>
 	concept serializable_primitive =
-	        std::is_trivially_copyable_v<std::remove_cvref_t<T>> && !std::is_pointer_v<std::remove_cvref_t<T>> &&
-	        !std::is_member_pointer_v<std::remove_cvref_t<T>>;
+	        std::is_trivially_copyable_v<std::remove_cvref_t<T>> && !std::is_pointer_v<std::remove_cvref_t<T>>
+	        && !std::is_member_pointer_v<std::remove_cvref_t<T>>;
 
 	template<typename T>
 	concept is_byte = std::is_integral_v<T> && sizeof(T) == sizeof(u8);
@@ -135,4 +135,4 @@ namespace Trinex::etl
 
 	template<typename T>
 	concept is_reflected = requires { requires T::is_reflected == true; };
-}// namespace Trinex::etl
+} // namespace Trinex::etl

@@ -9,7 +9,8 @@
 
 namespace Trinex
 {
-	struct ArrayStorage {
+	struct ArrayStorage
+	{
 		void* start;
 		void* finish;
 		void* end;
@@ -38,7 +39,8 @@ namespace Trinex
 	protected:
 		union
 		{
-			struct {
+			struct
+			{
 				pointer m_start;
 				pointer m_finish;
 				pointer m_end;
@@ -63,7 +65,6 @@ namespace Trinex
 		static constexpr inline bool is_forward_iterator =
 		        std::is_convertible_v<typename std::iterator_traits<IteratorType>::iterator_category, std::forward_iterator_tag>;
 
-
 	public:
 		constexpr AllocatorType& allocator() { return *this; }
 		constexpr const AllocatorType& allocator() const { return *this; }
@@ -80,7 +81,8 @@ namespace Trinex
 			size_type c = capacity();
 			if (c == 0)
 				c = 1;
-			while (c < size() + n) c *= 2;
+			while (c < size() + n)
+				c *= 2;
 			return c;
 		}
 
@@ -198,13 +200,13 @@ namespace Trinex
 			m_end    = new_start + len;
 		}
 
-
 		template<typename IteratorType>
 		constexpr void range_insert(iterator pos, IteratorType first, IteratorType last, std::input_iterator_tag)
 		{
 			if (pos == end())
 			{
-				for (; first != last; ++first) insert(end(), *first);
+				for (; first != last; ++first)
+					insert(end(), *first);
 			}
 			else if (first != last)
 			{
@@ -295,7 +297,8 @@ namespace Trinex
 			std::destroy(m_start, m_end);
 
 			pointer cur(m_start);
-			for (; first != last && cur != m_finish; ++cur, ++first) construct_at(cur, *first);
+			for (; first != last && cur != m_finish; ++cur, ++first)
+				construct_at(cur, *first);
 
 			if (first == last)
 				erase_at_end(cur);
@@ -397,7 +400,8 @@ namespace Trinex
 		{
 			try
 			{
-				for (; first != last; ++first) emplace_back(*first);
+				for (; first != last; ++first)
+					emplace_back(*first);
 			}
 			catch (...)
 			{
@@ -794,7 +798,6 @@ namespace Trinex
 		constexpr const ArrayStorage& storage() const { return m_storage; }
 	};
 
-
 	template<typename T>
 	using FrameArray = Array<T, FrameAllocator<T>>;
 
@@ -811,13 +814,13 @@ namespace Trinex
 	}
 
 	template<typename Type, typename Alloc>
-	struct Serializer<Array<Type, Alloc>> {
+	struct Serializer<Array<Type, Alloc>>
+	{
 		bool serialize(Archive& ar, Array<Type, Alloc>& array) { return trinex_serialize_array(ar, array); }
 	};
-}// namespace Trinex
-
+} // namespace Trinex
 
 namespace Trinex
 {
 
-}// namespace Trinex
+} // namespace Trinex

@@ -8,7 +8,8 @@ namespace Trinex
 	class RenderPass;
 	class MaterialBindings;
 
-	struct PrimitiveRenderingContext {
+	struct PrimitiveRenderingContext
+	{
 		class Renderer* renderer;
 		RHIContext* context;
 		RenderPass* pass;
@@ -20,4 +21,4 @@ namespace Trinex
 		    : renderer(renderer), context(ctx), pass(pass), local_to_world(local_to_world), bindings(bindings)
 		{}
 	};
-}// namespace Trinex
+} // namespace Trinex
