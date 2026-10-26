@@ -36,4 +36,11 @@ namespace Trinex::Refl::New
 
 		append_type(m_result.value(), m_size, m_alignment);
 	}
+
+	NativeFunction::NativeFunction(Name name, Address address, Invoker invoker, Ref<Property> result, Array<Ref<Property>> args,
+	                               u64 flags, Object* owner)
+	    : Function(name, invoker, etl::move(result), etl::move(args), flags, owner), m_address(address)
+	{
+		trinex_verify(m_address);
+	}
 }// namespace Trinex::Refl::New

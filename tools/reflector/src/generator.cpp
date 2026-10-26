@@ -364,7 +364,7 @@ namespace Reflector
 		writer->line("{");
 		{
 			auto scope = writer->scope();
-			writer->line("using Func = Native::Function<$0, Function>;\n", ResolvedPathOf(object));
+			writer->line("using Func = Native::Function<$0, NativeFunction>;\n", ResolvedPathOf(object));
 
 			writer->line("static Ref<Function> func = adopt_ref([]");
 			writer->line("{");
@@ -403,18 +403,24 @@ namespace Reflector
 					writer->line("auto arg$0 = Ref<Arg$0>::make(\"$1\", type_of<Func::ArgumentType<$0>>());\n", arg, name);
 				}
 
-				writer->write("return trx_new Function(\"$0\", &Func::invoker, result", object->name);
-				writer->write(", {");
-
-
-				for (std::size_t index = 0, count = arg_offset + object->args.size(); index < count; ++index)
+				writer->line("return trx_new NativeFunction(");
 				{
-					if (index != 0)
-						writer->write(", ");
-					writer->write("arg$0", index);
-				}
+					auto scope = writer->scope();
+					writer->line("\"$0\",", object->name);
+					writer->line("reinterpret_cast<NativeFunction::Address>(Func::address),");
+					writer->line("&Func::invoker,");
+					writer->line("result,");
+					writer->write("{");
 
-				writer->line("}, $0, $1);", FunctionFlagsOf(object), OwnerReflectionOf(object));
+					for (std::size_t index = 0, count = arg_offset + object->args.size(); index < count; ++index)
+					{
+						if (index != 0)
+							writer->write(", ");
+						writer->write("arg$0", index);
+					}
+					writer->line("},\n$0,\n$1", FunctionFlagsOf(object), OwnerReflectionOf(object));
+				}
+				writer->line(");");
 			}
 
 			writer->line("}());\n");

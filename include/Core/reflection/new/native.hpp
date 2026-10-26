@@ -278,7 +278,7 @@ namespace Trinex::Refl::New::Native
 
 		static constexpr u64 calculate_flags()
 		{
-			u64 result = 0;
+			u64 result = Parent::IsNative;
 			return result;
 		}
 
@@ -337,6 +337,7 @@ namespace Trinex::Refl::New::Native
 		template<usize Index>
 		using ArgumentType = typename ArgumentAt<Index, Args...>::Type;
 
+		static constexpr auto address      = func;
 		static constexpr u64 alignment     = calculate_alignment();
 		static constexpr u64 return_offset = calculate_return_offset();
 		static constexpr u64 size          = calculate_size();

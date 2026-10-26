@@ -16,13 +16,14 @@ namespace Trinex::Refl::New
 
 		enum Flags : u64
 		{
-			IsMethod      = 1 << 0,
-			IsConst       = 1 << 1,
-			IsVirtual     = 1 << 2,
-			IsFinal       = 1 << 3,
-			IsConstructor = 1 << 4,
-			IsDestructor  = 1 << 5,
-			IsOperator    = 1 << 6,
+			IsNative      = 1 << 0,
+			IsMethod      = 1 << 1,
+			IsConst       = 1 << 2,
+			IsVirtual     = 1 << 3,
+			IsFinal       = 1 << 4,
+			IsConstructor = 1 << 5,
+			IsDestructor  = 1 << 6,
+			IsOperator    = 1 << 7,
 		};
 
 	private:
@@ -40,11 +41,10 @@ namespace Trinex::Refl::New
 
 		inline Property* result() const { return m_result.value(); }
 		inline const Array<Ref<Property>>& args() const { return m_args; }
-
 		inline u32 size() const { return m_size; }
 		inline u32 alignment() const { return m_alignment; }
-
 		inline Invoker invoker() const { return m_invoker; }
+		inline bool is_native() const { return has_flags(IsNative); }
 		inline bool is_method() const { return has_flags(IsMethod); }
 		inline bool is_const() const { return has_flags(IsConst); }
 		inline bool is_virtual() const { return has_flags(IsVirtual); }
@@ -53,5 +53,22 @@ namespace Trinex::Refl::New
 		inline bool is_destructor() const { return has_flags(IsDestructor); }
 		inline bool is_operator() const { return has_flags(IsOperator); }
 		inline void invoke(void* context) const { m_invoker(this, context); }
+	};
+
+	trinex_reflect() class trinex_api NativeFunction : public Function
+	{
+		trinex_reflection_body();
+
+	public:
+		using Address = void (*)();
+
+	private:
+		Address m_address;
+
+	public:
+		NativeFunction(Name name, Address address, Invoker invoker, Ref<Property> result = nullptr,
+		               Array<Ref<Property>> args = {}, u64 flags = 0, Object* owner = nullptr);
+
+		inline Address address() const { return m_address; }
 	};
 }// namespace Trinex::Refl::New
