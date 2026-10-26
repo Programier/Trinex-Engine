@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/etl/dynamic_value.hpp>
+#include <Core/etl/invoker.hpp>
 #include <Core/etl/string.hpp>
 #include <Core/reflection/new/of.hpp>
 

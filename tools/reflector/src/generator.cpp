@@ -408,7 +408,7 @@ namespace Reflector
 					auto scope = writer->scope();
 					writer->line("\"$0\",", object->name);
 					writer->line("reinterpret_cast<NativeFunction::Address>(Func::address),");
-					writer->line("&Func::invoker,");
+					writer->line("Func::invoker<const Function*>,");
 					writer->line("result,");
 					writer->write("{");
 

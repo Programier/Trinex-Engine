@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/etl/concepts.hpp>
+#include <Core/etl/invoker.hpp>
 #include <Core/etl/memory.hpp>
 #include <Core/etl/string.hpp>
 #include <Core/etl/type_traits.hpp>
@@ -297,40 +298,6 @@ namespace Trinex::Refl::New::Native
 			}
 		}
 
-		template<typename Arg>
-		static decltype(auto) unpack(uptr address)
-		{
-			using T = Storage<Arg>;
-
-			if constexpr (etl::is_reference_v<Arg>)
-				return static_cast<Arg>(**reinterpret_cast<T*>(address));
-			else
-				return static_cast<Arg>(*reinterpret_cast<T*>(address));
-		}
-
-		template<typename... Passed>
-		static void call(uptr address, Types<>, Passed&&... passed)
-		{
-			if constexpr (etl::is_void_v<Ret>)
-			{
-				func(etl::forward<Passed>(passed)...);
-			}
-			else
-			{
-				using Result   = etl::remove_const_t<Ret>;
-				Result& result = *reinterpret_cast<Result*>(align_up(address, alignof(Result)));
-				result         = func(etl::forward<Passed>(passed)...);
-			}
-		}
-
-		template<typename Arg, typename... Rest, typename... Passed>
-		static void call(uptr address, Types<Arg, Rest...>, Passed&&... passed)
-		{
-			using T = Storage<Arg>;
-			address = align_up(address, alignof(T));
-			call(address + sizeof(T), Types<Rest...>{}, etl::forward<Passed>(passed)..., unpack<Arg>(address));
-		}
-
 	public:
 		using ReturnType = Ret;
 
@@ -351,10 +318,7 @@ namespace Trinex::Refl::New::Native
 		}
 
 		template<typename Self>
-		static void invoker(Self, void* context)
-		{
-			call(reinterpret_cast<uptr>(context), Types<Args...>{});
-		}
+		static constexpr void (*invoker)(void*, Self) = etl::invoker<func, Self>;
 	};
 
 	template<typename Class, typename Ret, typename... Args, Ret (Class::*func)(Args...), typename Parent>

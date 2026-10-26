@@ -12,7 +12,7 @@ namespace Trinex::Refl::New
 		trinex_reflection_body();
 
 	public:
-		using Invoker = void (*)(const Function*, void*);
+		using Invoker = void (*)(void*, const Function*);
 
 		enum Flags : u64
 		{
@@ -52,7 +52,7 @@ namespace Trinex::Refl::New
 		inline bool is_constructor() const { return has_flags(IsConstructor); }
 		inline bool is_destructor() const { return has_flags(IsDestructor); }
 		inline bool is_operator() const { return has_flags(IsOperator); }
-		inline void invoke(void* context) const { m_invoker(this, context); }
+		inline void invoke(void* context) const { m_invoker(context, this); }
 	};
 
 	trinex_reflect() class trinex_api NativeFunction : public Function
