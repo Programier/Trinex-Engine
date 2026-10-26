@@ -1,10 +1,14 @@
 #pragma once
 #include <Core/reflection/new/object.hpp>
 
+#include <Core/reflection/new/type.generated.hpp>
+
 namespace Trinex::Refl::New
 {
 	trinex_reflect() class trinex_api Type : public Object
 	{
+		trinex_reflection_body();
+
 	public:
 		struct VTable {
 			void (*construct)(const Type* type, void* dst, usize count)                       = nullptr;
@@ -53,7 +57,7 @@ namespace Trinex::Refl::New
 		bool format(const void* self, String& value) const;
 
 		Class* reflection() const override { return class_of<Type>(); }
-		
+
 		inline u32 size() const { return m_size; }
 		inline u32 alignment() const { return m_alignment; }
 		inline const VTable* vtable() const { return m_vtable; }

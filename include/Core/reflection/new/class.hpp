@@ -2,10 +2,14 @@
 
 #include <Core/reflection/new/struct.hpp>
 
+#include <Core/reflection/new/class.generated.hpp>
+
 namespace Trinex::Refl::New
 {
 	trinex_reflect() class trinex_api Class final : public Struct
 	{
+		trinex_reflection_body();
+
 	public:
 		class VTable : public Struct::VTable
 		{
@@ -19,12 +23,11 @@ namespace Trinex::Refl::New
 		};
 
 	public:
-		Class(Name name, u32 size, u32 alignment, u64 flags = 0, Class* base = nullptr, const VTable* vtable = nullptr,
+		Class(Name name, u32 size, u32 alignment, u64 flags = 0, Array<Ref<Struct>> bases = {}, const VTable* vtable = nullptr,
 		      Object* owner = nullptr);
 
 		Class* reflection() const override { return class_of<Class>(); }
 
-		inline const Class* base() const { return static_cast<const Class*>(Struct::base()); }
 		inline bool is_asset() const { return has_flags(IsAsset); }
 		inline bool is_singleton() const { return has_flags(IsSingleton); }
 		inline bool is_scriptable() const { return has_flags(IsScriptable); }

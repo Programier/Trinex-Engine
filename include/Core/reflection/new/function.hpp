@@ -3,10 +3,14 @@
 #include <Core/etl/array.hpp>
 #include <Core/reflection/new/property.hpp>
 
+#include <Core/reflection/new/function.generated.hpp>
+
 namespace Trinex::Refl::New
 {
 	trinex_reflect() class trinex_api Function : public Object
 	{
+		trinex_reflection_body();
+
 	public:
 		enum Flags : u64
 		{

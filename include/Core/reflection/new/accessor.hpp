@@ -1,7 +1,13 @@
 #pragma once
 
-namespace Trinex::Refl::New
+namespace Trinex
 {
-	template<typename T>
-	struct Accessor;
-}
+	template<typename...>
+	struct TypeList;
+
+	namespace Refl::New
+	{
+		template<typename T>
+		struct Accessor;
+	}
+}// namespace Trinex

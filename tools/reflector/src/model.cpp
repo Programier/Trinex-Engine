@@ -342,18 +342,6 @@ namespace Reflector
 		}
 	}
 
-	bool Class::link(const TypeIndex& type_index)
-	{
-		bool result = Super::link(type_index);
-
-		for (const Base& base : bases)
-		{
-			result = link_type(this, base.type, type_index, ObjectKind::Class) && result;
-		}
-
-		return result;
-	}
-
 	bool Function::link(const TypeIndex& type_index)
 	{
 		bool result = Super::link(type_index) && link_type(this, type, type_index);

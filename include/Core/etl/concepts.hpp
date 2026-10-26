@@ -132,4 +132,7 @@ namespace Trinex::etl
 
 	template<typename T>
 	concept ordered_comparable = ordered_comparable_with<T, T>;
+
+	template<typename T>
+	concept is_reflected = requires { requires T::is_reflected == true; };
 }// namespace Trinex::etl

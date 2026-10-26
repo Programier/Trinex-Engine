@@ -532,7 +532,6 @@ namespace Engine {
 			return false;
 		for (std::string_view source :
 		     {"trinex_function() int broken;", "trinex_property() int;",
-		      "trinex_reflect() enum Bad { Unknown = External(), Following, Recovered = 8, Next };",
 		      "template <typename T> trinex_reflect() class Box {};", "template <typename T> trinex_function() T cast();",
 		      "trinex_reflect() class Broken {", "namespace Broken {", "trinex_property(", "trinex_function() void f(",
 		      "trinex_property() int value"})

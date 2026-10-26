@@ -476,4 +476,23 @@ namespace Trinex::Refl::New::Native
 				this->type()->copy_assign(destination, object);
 		}
 	};
+
+	template<typename Result, typename Wrapper, typename F>
+	auto gather_reflections(F&& func)
+	{
+		return [&]<template<typename...> class W, typename... Args>(W<Args...>*) {
+			Result result;
+			result.reserve((usize{0} + ... + static_cast<usize>(etl::is_reflected<Args>)));
+
+			// clang-format off
+			([&]<typename T>() {
+				if constexpr (etl::is_reflected<T>) {
+					result.emplace_back(func.template operator()<T>());
+				}
+			}.template operator()<Args>(), ...);
+			// clang-format off
+			
+			return result;
+		}(static_cast<Wrapper*>(nullptr));
+	}
 }// namespace Trinex::Refl::New::Native

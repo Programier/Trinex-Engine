@@ -3,10 +3,14 @@
 #include <Core/etl/flat_set.hpp>
 #include <Core/reflection/new/object.hpp>
 
+#include <Core/reflection/new/scope.generated.hpp>
+
 namespace Trinex::Refl::New
 {
 	trinex_reflect() class trinex_api Scope : public Object
 	{
+		trinex_reflection_body();
+
 	private:
 		struct Compare {
 			using is_transparent = void;

@@ -3,12 +3,16 @@
 #include <Core/reflection/new/of.hpp>
 #include <Core/types/name.hpp>
 
+#include <Core/reflection/new/object.generated.hpp>
+
 namespace Trinex::Refl::New
 {
 	class Class;
 
 	trinex_reflect() class trinex_api Object : public RefCounted
 	{
+		trinex_reflection_body();
+
 	private:
 		WeakRef<Object> m_owner;
 		u64 m_flags;
@@ -74,7 +78,7 @@ namespace Trinex::Refl::New
 		}
 
 		template<typename T>
-		T* find(Name name)
+		T* find(Name name) const
 		{
 			return static_cast<T*>(find(name, class_of<T>()));
 		}

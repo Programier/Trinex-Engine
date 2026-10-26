@@ -16,6 +16,7 @@ namespace Reflector
 	using ObjectPathOf      = WriteAs<struct ObjectPath>;
 	using OwnerReflectionOf = WriteAs<struct OwnerReflection>;
 	using FunctionFlagsOf   = WriteAs<struct FunctionFlags>;
+	using BaseClassesOf     = WriteAs<struct BaseClasses>;
 
 	struct ResolvedName {
 		static void execute(CodeWriter* writer, const Object* object)
@@ -200,6 +201,28 @@ namespace Reflector
 
 			if (function->flags & Function::Operator)
 				writer->write(" | Function::IsOperator");
+		}
+	};
+
+	struct BaseClasses {
+		static void execute(CodeWriter* writer, const Object* object)
+		{
+			if (object == nullptr || !object->is_a(ObjectKind::Class))
+			{
+				return;
+			}
+
+			const Class* instance = static_cast<const Class*>(object);
+
+			for (std::size_t i = 0; i < instance->bases.size(); ++i)
+			{
+				if (i != 0)
+				{
+					writer->write(", ");
+				}
+
+				writer->write(instance->bases[i].type.name);
+			}
 		}
 	};
 
@@ -409,27 +432,34 @@ namespace Reflector
 			auto indent = writer->scope();
 			writer->line("using This = $0;\n", ResolvedPathOf(object));
 
-			writer->line("if constexpr (etl::is_base_of_v<Trinex::RefCounted, This>)");
-			writer->line("{");
-			{
-				auto indent = writer->scope();
-				writer->line("static Native::ClassVTable<This, Class::VTable> vtable;");
-				writer->line("static Class type(\"$0\", sizeof(This), alignof(This), Type::IsNative, nullptr, &vtable, $1);",
-				             object->name, OwnerReflectionOf(object));
-				writer->line("return &type;");
-			}
-			writer->line("}");
-			writer->line("else");
-			writer->line("{");
-			{
-				auto indent = writer->scope();
-				writer->line("static Native::StructVTable<This, Struct::VTable> vtable;");
-				writer->line("static Struct type(\"$0\", sizeof(This), alignof(This), Type::IsNative, nullptr, &vtable, $1);",
-				             object->name, OwnerReflectionOf(object));
+			writer->line("constexpr bool is_ref_counted = etl::is_base_of_v<::Trinex::RefCounted, This>;");
+			writer->line("using StructVTable = Native::StructVTable<This, Struct::VTable>;");
+			writer->line("using ClassVTable = Native::ClassVTable<This, Class::VTable>;\n");
 
-				writer->line("return &type;");
+			writer->line("using VTable = etl::conditional_t<is_ref_counted, ClassVTable, StructVTable>;");
+			writer->line("using Result = etl::conditional_t<is_ref_counted, Class, Struct>;\n");
+
+			writer->line("static Ref<Result> result = []");
+			writer->line("{");
+			{
+				auto indent = writer->scope();
+
+				writer->line("auto bases = Native::gather_reflections<Array<Ref<Struct>>, This::Bases>([]<typename T>");
+				writer->line("{");
+				{
+					auto scope = writer->scope();
+					writer->line("return retain_ref(struct_of<T>());");
+				}
+				writer->line("});\n");
+
+				writer->line("static VTable vtable;");
+				writer->line("return Ref<Result>::make(\"$0\", sizeof(This), alignof(This), Type::IsNative, etl::move(bases), "
+				             "&vtable, $1);",
+				             object->name, OwnerReflectionOf(object));
 			}
-			writer->line("}");
+			writer->line("}();\n");
+
+			writer->line("return result.value();");
 		}
 		writer->line("}\n");
 
@@ -536,6 +566,8 @@ namespace Reflector
 			{
 				auto scope = writer->scope();
 
+				writer->line("static constexpr inline const bool is_reflected = true; \\");
+				writer->line("using Bases = ::Trinex::TypeList<$0>; \\", BaseClassesOf(instance));
 				writer->line("using This = $0; \\", instance->name);
 				writer->line("friend struct ::Trinex::Refl::New::Accessor<$0>", instance->name);
 			}
@@ -568,6 +600,11 @@ namespace Reflector
 
 		writer->line("#include <Core/reflection/new/accessor.hpp>");
 		writer->line("#include <Core/reflection/new/binder.hpp>\n");
+
+		writer->line("#ifdef trinex_reflection_file_id");
+		writer->line("#undef trinex_reflection_file_id");
+		writer->line("#endif\n");
+
 		writer->line("#define trinex_reflection_file_id trinex_reflection_$0", ObjectIDOf(module));
 
 		generate_reflection_bodies(writer, module, module);

@@ -1,7 +1,8 @@
 #pragma once
-
 #include <Core/etl/flat_set.hpp>
 #include <Core/reflection/new/type.hpp>
+
+#include <Core/reflection/new/struct.generated.hpp>
 
 namespace Trinex::Refl::New
 {
@@ -10,6 +11,8 @@ namespace Trinex::Refl::New
 
 	trinex_reflect() class trinex_api Struct : public Type
 	{
+		trinex_reflection_body();
+
 	public:
 		class VTable : public Type::VTable
 		{
@@ -30,7 +33,7 @@ namespace Trinex::Refl::New
 		};
 
 	private:
-		Ref<Struct> m_base;
+		Array<Ref<Struct>> m_bases;
 		FlatSet<Ref<Object>, Compare> m_members;
 
 	private:
@@ -46,7 +49,7 @@ namespace Trinex::Refl::New
 			IsTrivial        = 1ull << 11,
 		};
 
-		Struct(Name name, u32 size, u32 alignment, u64 flags = 0, Struct* base = nullptr, const VTable* vtable = nullptr,
+		Struct(Name name, u32 size, u32 alignment, u64 flags = 0, Array<Ref<Struct>> bases = {}, const VTable* vtable = nullptr,
 		       Object* owner = nullptr);
 
 		Object* find(Name name, const Class* base = nullptr) const override;
@@ -57,7 +60,7 @@ namespace Trinex::Refl::New
 
 		Class* reflection() const override { return class_of<Struct>(); }
 
-		inline const Struct* base() const { return m_base.value(); }
+		inline const Array<Ref<Struct>>& bases() const { return m_bases; }
 		inline const Array<Ref<Object>>& members() const { return m_members.container(); }
 		inline const VTable* vtable() const { return static_cast<const VTable*>(Type::vtable()); }
 		inline bool is_abstract() const { return has_flags(IsAbstract); }

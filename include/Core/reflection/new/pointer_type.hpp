@@ -1,10 +1,14 @@
 #pragma once
 #include <Core/reflection/new/type.hpp>
 
+#include <Core/reflection/new/pointer_type.generated.hpp>
+
 namespace Trinex::Refl::New
 {
 	trinex_reflect() class trinex_api PointerType : public Type
 	{
+		trinex_reflection_body();
+
 	public:
 		struct VTable : public Type::VTable {
 		};

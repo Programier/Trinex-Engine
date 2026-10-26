@@ -76,19 +76,6 @@ namespace Trinex::Refl::New
 			}
 		};
 
-		Property* find_property(const Struct* type, Name name)
-		{
-			for (const Struct* current = type; current != nullptr; current = current->base())
-			{
-				if (Object* object = current->find(name))
-				{
-					return object->cast<Property>();
-				}
-			}
-
-			return nullptr;
-		}
-
 		bool is_text_serializable(const Property* property)
 		{
 			return !property->is_read_only() && !property->is_transient();
@@ -96,8 +83,13 @@ namespace Trinex::Refl::New
 
 		bool format_struct_properties(const Struct* type, const void* self, String& value, bool& has_property)
 		{
-			if (const Struct* base = type->base(); base && !format_struct_properties(base, self, value, has_property))
-				return false;
+			for (auto& base : type->bases())
+			{
+				if (!format_struct_properties(base.value(), self, value, has_property))
+				{
+					return false;
+				}
+			}
 
 			for (const Ref<Object>& member : type->members())
 			{
@@ -131,7 +123,6 @@ namespace Trinex::Refl::New
 	{
 		usize parse_struct(const Type* type, void* self, StringView value)
 		{
-			const Struct* struct_type = static_cast<const Struct*>(type);
 			TextReader reader(value);
 
 			if (!reader.consume('{'))
@@ -149,7 +140,7 @@ namespace Trinex::Refl::New
 				if (!reader.read_identifier(name) || !reader.consume('='))
 					return 0;
 
-				Property* property = find_property(struct_type, Name(name));
+				Property* property = type->find<Property>(name);
 
 				if (property == nullptr || !is_text_serializable(property))
 					return 0;
@@ -189,8 +180,8 @@ namespace Trinex::Refl::New
 		}
 	}// namespace Native
 
-	Struct::Struct(Name name, u32 size, u32 alignment, u64 flags, Struct* base, const VTable* vtable, Object* owner)
-	    : Type(name, size, alignment, flags, vtable, owner), m_base(retain_ref(base))
+	Struct::Struct(Name name, u32 size, u32 alignment, u64 flags, Array<Ref<Struct>> bases, const VTable* vtable, Object* owner)
+	    : Type(name, size, alignment, flags, vtable, owner), m_bases(etl::move(bases))
 	{}
 
 	bool Struct::register_child(Object* object)
@@ -239,7 +230,15 @@ namespace Trinex::Refl::New
 			}
 		}
 
-		return m_base ? m_base->find(name, base) : nullptr;
+		for (auto& entry : m_bases)
+		{
+			if (Object* object = entry->find(name, base))
+			{
+				return object;
+			}
+		}
+
+		return nullptr;
 	}
 
 	Object* Struct::resolve(const Class* base)
@@ -249,9 +248,12 @@ namespace Trinex::Refl::New
 			return object;
 		}
 
-		if (m_base)
+		for (auto& entry : m_bases)
 		{
-			return m_base->resolve(base);
+			if (Object* object = entry->resolve(base))
+			{
+				return object;
+			}
 		}
 
 		return nullptr;
@@ -264,9 +266,12 @@ namespace Trinex::Refl::New
 			return object;
 		}
 
-		if (m_base)
+		for (auto& entry : m_bases)
 		{
-			return m_base->resolve(base);
+			if (Object* object = entry->resolve(base))
+			{
+				return object;
+			}
 		}
 
 		return nullptr;
@@ -274,11 +279,19 @@ namespace Trinex::Refl::New
 
 	bool Struct::is(const Struct* other) const
 	{
-		for (const Struct* current = this; current != nullptr; current = current->base())
+		if (this == other)
 		{
-			if (current == other)
-				return true;
+			return true;
 		}
+
+		for (auto& entry : m_bases)
+		{
+			if (entry->is(other))
+			{
+				return true;
+			}
+		}
+
 		return false;
 	}
 }// namespace Trinex::Refl::New

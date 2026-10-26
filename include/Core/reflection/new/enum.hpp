@@ -3,6 +3,8 @@
 #include <Core/etl/array.hpp>
 #include <Core/reflection/new/type.hpp>
 
+#include <Core/reflection/new/enum.generated.hpp>
+
 namespace Trinex::Refl::New
 {
 	struct EnumValue {
@@ -12,6 +14,8 @@ namespace Trinex::Refl::New
 
 	trinex_reflect() class trinex_api Enum : public Type
 	{
+		trinex_reflection_body();
+
 	public:
 		struct VTable : public Type::VTable {
 		};

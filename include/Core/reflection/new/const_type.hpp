@@ -1,10 +1,14 @@
 #pragma once
 #include <Core/reflection/new/type.hpp>
 
+#include <Core/reflection/new/const_type.generated.hpp>
+
 namespace Trinex::Refl::New
 {
 	trinex_reflect() class trinex_api ConstType : public Type
 	{
+		trinex_reflection_body();
+
 	private:
 		Ref<Type> m_type;
 

@@ -1,12 +1,16 @@
 #pragma once
 #include <Core/reflection/new/type.hpp>
 
+#include <Core/reflection/new/property.generated.hpp>
+
 namespace Trinex::Refl::New
 {
 	class Type;
 
 	trinex_reflect() class trinex_api Property : public Object
 	{
+		trinex_reflection_body();
+
 	public:
 		enum Flags : u64
 		{

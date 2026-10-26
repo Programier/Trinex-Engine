@@ -1,11 +1,14 @@
 #pragma once
-
 #include <Core/reflection/new/type.hpp>
+
+#include <Core/reflection/new/template_type.generated.hpp>
 
 namespace Trinex::Refl::New
 {
 	trinex_reflect() class trinex_api TemplateType : public Type
 	{
+		trinex_reflection_body();
+
 	public:
 		class VTable : public Type::VTable
 		{

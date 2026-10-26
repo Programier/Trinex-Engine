@@ -224,7 +224,6 @@ namespace Reflector
 	public:
 		trinex_reflector_type(Class, Scope);
 
-		bool link(const TypeIndex& type_index) override;
 		inline bool is_struct() const { return flags & IsStruct; }
 		inline bool is_class() const { return !is_struct(); }
 	};
