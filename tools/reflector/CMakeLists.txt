@@ -14,4 +14,8 @@ target_compile_features(TrinexReflectorTests PRIVATE cxx_std_20)
 target_link_libraries(TrinexReflectorTests PRIVATE TrinexReflectorCore)
 target_include_directories(TrinexReflectorTests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
+foreach(target TrinexReflectorCore TrinexReflector TrinexReflectorTests)
+	target_compile_options(${target} PRIVATE -Wall -Wextra)
+endforeach()
+
 

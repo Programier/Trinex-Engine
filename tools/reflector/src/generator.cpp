@@ -263,7 +263,7 @@ namespace Reflector
 					writer->write("static constexpr auto $0 = &", ResolvedNameOf(child));
 					writer->line("$0::$1;", ResolvedPathOf(object), child->name);
 				}
-				else if (child->is_a(ObjectKind::Class))
+				else if (child->is_a(ObjectKind::Class) || child->is_a(ObjectKind::Enum))
 				{
 					writer->write("using $0 = ", child->name);
 					writer->line("$0::$1;", ResolvedPathOf(object), child->name);
@@ -274,6 +274,40 @@ namespace Reflector
 
 		writer->write("using Accessor$0", object->line);
 		writer->line(" = Accessor<$0>;\n", ResolvedPathOf(object));
+	}
+
+	static void generate_enum(CodeWriter* writer, const Enum* object)
+	{
+		writer->line("template<>");
+		writer->line("trinex_export Enum* EnumOf<$0>::resolve()", ResolvedPathOf(object));
+		writer->line("{");
+		{
+			auto scope = writer->scope();
+
+			writer->line("static Ref<Enum> reflection = []()");
+			writer->line("{");
+			{
+				auto scope = writer->scope();
+
+				writer->line("auto underlying = retain_ref(type_of<etl::underlying_type_t<$0>>());", ResolvedPathOf(object));
+				writer->line("static Native::EnumVTable<$0, Enum::VTable> vtable;\n", ResolvedPathOf(object));
+
+				writer->line("Array<EnumValue> values = {");
+				{
+					auto scope = writer->scope();
+					for (auto& value : object->values)
+					{
+						writer->line("{\"$1\", static_cast<i64>($0::$1)},", ResolvedPathOf(object), value.name);
+					}
+				}
+				writer->line("};\n");
+				writer->line("return Ref<Enum>::make(\"$0\", etl::move(underlying), etl::move(values), 0, &vtable, $1);",
+				             object->name, OwnerReflectionOf(object));
+			}
+			writer->line("}();\n");
+			writer->line("return reflection.value();");
+		}
+		writer->line("}\n");
 	}
 
 	static void generate_property(CodeWriter* writer, const Property* object)
@@ -426,7 +460,11 @@ namespace Reflector
 	{
 		for (const Object* object : scope->objects)
 		{
-			if (object->is_a(ObjectKind::Property))
+			if (object->is_a(ObjectKind::Enum))
+			{
+				generate_enum(writer, static_cast<const Enum*>(object));
+			}
+			else if (object->is_a(ObjectKind::Property))
 			{
 				generate_property(writer, static_cast<const Property*>(object));
 			}
@@ -456,6 +494,7 @@ namespace Reflector
 				case ObjectKind::Class: writer->line("type_of<$0>();", ResolvedPathOf(object)); break;
 				case ObjectKind::Property: writer->line("property_of<$0>();", ResolvedPathOf(object)); break;
 				case ObjectKind::Function: writer->line("function_of<$0>();", ResolvedPathOf(object)); break;
+				case ObjectKind::Enum: writer->line("enum_of<$0>();", ResolvedPathOf(object)); break;
 
 				default: break;
 			}
@@ -536,6 +575,7 @@ namespace Reflector
 		writer->line("#include <$0>", module->name);
 		writer->line("#include <Core/etl/type_traits.hpp>");
 		writer->line("#include <Core/reflection/new/of.hpp>");
+		writer->line("#include <Core/reflection/new/enum.hpp>");
 		writer->line("#include <Core/reflection/new/scope.hpp>");
 		writer->line("#include <Core/reflection/new/class.hpp>");
 		writer->line("#include <Core/reflection/new/function.hpp>");

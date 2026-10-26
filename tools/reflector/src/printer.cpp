@@ -186,7 +186,7 @@ namespace Reflector
 		{
 			for (const auto& value : enumeration->values)
 			{
-				stream << indent << "  " << value.name << " = " << value.value << '\n';
+				stream << indent << "  " << value.name << '\n';
 				for (const auto& metadata : value.metadata)
 					stream << indent << "    metadata: " << metadata.name << '=' << metadata.value << '\n';
 			}
@@ -219,8 +219,7 @@ namespace Reflector
 	{
 		std::vector<std::pair<std::string_view, const TypeIndex::Entry*>> entries;
 		entries.reserve(index.m_types.size());
-		for (const auto& [name, entry] : index.m_types)
-			entries.emplace_back(name, &entry);
+		for (const auto& [name, entry] : index.m_types) entries.emplace_back(name, &entry);
 
 		std::sort(entries.begin(), entries.end(), [](const auto& left, const auto& right) { return left.first < right.first; });
 

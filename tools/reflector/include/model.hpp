@@ -173,13 +173,12 @@ namespace Reflector
 	public:
 		struct Value {
 			std::string name;
-			std::int64_t value;
 			std::vector<Metadata> metadata;
 
 			template<typename Ar>
 			void serialize(Ar& ar)
 			{
-				ar(name, value, metadata);
+				ar(name, metadata);
 			}
 		};
 

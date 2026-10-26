@@ -110,7 +110,7 @@ namespace Reflector
 		exit(0);
 	}
 
-	int Reflector::on_help(std::span<std::string_view> args)
+	int Reflector::on_help(std::span<std::string_view>)
 	{
 		help();
 		return 0;
@@ -342,7 +342,7 @@ namespace Reflector
 					entry.module->serialize(ar);
 					entry.request = request;
 
-					assert(next == file.tellg());
+					assert(next == static_cast<std::uint64_t>(file.tellg()));
 				}
 			}
 			else

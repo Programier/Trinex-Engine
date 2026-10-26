@@ -14,6 +14,8 @@ namespace Trinex::Refl::New::Native
 {
 	trinex_api usize parse_struct(const Type* type, void* self, StringView value);
 	trinex_api bool format_struct(const Type* type, const void* self, String& value);
+	trinex_api usize parse_enum(const Type* type, void* self, StringView value);
+	trinex_api bool format_enum(const Type* type, const void* self, String& value);
 
 	template<typename T>
 	struct TypeFormatter {
@@ -164,6 +166,20 @@ namespace Trinex::Refl::New::Native
 			const T& left  = *static_cast<const T*>(lhs);
 			const T& right = *static_cast<const T*>(rhs);
 			return left < right ? -1 : right < left ? 1 : 0;
+		}
+	};
+
+	template<typename T, typename Parent>
+	class EnumVTable : public TypeVTable<T, Parent>
+	{
+	public:
+		using Super = TypeVTable<T, Parent>;
+
+		template<typename... Args>
+		EnumVTable(Args&&... args) : Super(etl::forward<Args>(args)...)
+		{
+			this->parse  = &parse_enum;
+			this->format = &format_enum;
 		}
 	};
 

@@ -117,25 +117,6 @@ namespace Reflector
 			return trim(source.substr(begin.offset, end.offset + end.length - begin.offset));
 		}
 
-		bool contains_word(std::string_view value, std::string_view word)
-		{
-			auto offset = value.find(word);
-			while (offset != std::string_view::npos)
-			{
-				const auto before =
-				        offset == 0 || !(std::isalnum(static_cast<unsigned char>(value[offset - 1])) || value[offset - 1] == '_');
-				const auto after = offset + word.size() >= value.size() ||
-				                   !(std::isalnum(static_cast<unsigned char>(value[offset + word.size()])) ||
-				                     value[offset + word.size()] == '_');
-				if (before && after)
-				{
-					return true;
-				}
-				offset = value.find(word, offset + word.size());
-			}
-			return false;
-		}
-
 		bool has_suffix(std::string_view value, std::string_view suffix)
 		{
 			return value.size() >= suffix.size() && value.substr(value.size() - suffix.size()) == suffix;
@@ -1166,7 +1147,7 @@ namespace Reflector
 			}
 
 			bool function(Scope& scope, const Annotation& annotation, std::size_t begin, std::size_t end, Access access,
-			              bool is_template, const DeclarationPrefix& prefix)
+			              bool is_template)
 			{
 				auto object      = std::make_unique<Function>();
 				object->metadata = annotation.metadata;
@@ -1329,9 +1310,6 @@ namespace Reflector
 
 			bool enumeration(Enum& object, const Annotation& annotation, std::size_t begin, std::size_t end)
 			{
-				std::unordered_map<std::string, std::int64_t> values;
-				std::optional<std::int64_t> next = 0;
-
 				for (const auto& [first, last] : split_token_ranges(tokens, begin, end, ","))
 				{
 					Cursor cursor{source, &tokens, first};
@@ -1345,16 +1323,7 @@ namespace Reflector
 					{
 						return failure(annotation, "failed to parse enum value");
 					}
-					const auto equals = find_top_level_equal(tokens, name + 1, last);
-					auto value        = equals < last ? EnumExpression(tokens, equals + 1, last, values).evaluate() : next;
-					if (!value)
-					{
-						return failure(annotation, concatenate("unable to evaluate enum value: ", tokens[name].value));
-					}
-					object.values.push_back({std::string(tokens[name].value), *value, std::move(item_annotation.metadata)});
-					values[std::string(tokens[name].value)]                    = *value;
-					values[concatenate(object.name, "::", tokens[name].value)] = *value;
-					next = *value == std::numeric_limits<std::int64_t>::max() ? std::nullopt : std::optional(*value + 1);
+					object.values.push_back({std::string(tokens[name].value), std::move(item_annotation.metadata)});
 				}
 				return true;
 			}
@@ -1651,8 +1620,8 @@ namespace Reflector
 
 					if (!parse_annotation(cursor, annotation))
 					{
-						if (tokens[start].value == "trinex_reflect" || tokens[start].value == "trinex_enum" ||
-						    tokens[start].value == "trinex_function" || tokens[start].value == "trinex_property")
+						if (tokens[start].value == "trinex_reflect" || tokens[start].value == "trinex_function" ||
+						    tokens[start].value == "trinex_property")
 						{
 							return failure(tokens[start], "malformed reflection annotation");
 						}
@@ -1677,7 +1646,8 @@ namespace Reflector
 
 					const auto after     = consume_declaration_prefix(cursor);
 					prefix.engine_macros = append_raw(prefix.engine_macros, after.engine_macros);
-					if (annotation.name == "trinex_reflect" || annotation.name == "trinex_enum")
+
+					if (annotation.name == "trinex_reflect")
 					{
 						if (!record(scope, cursor, annotation, end, access, !template_prefix.empty()))
 						{
@@ -1721,8 +1691,7 @@ namespace Reflector
 							return false;
 						}
 					}
-					else if (!function(scope, annotation, declaration_begin, declaration_end, access, !template_prefix.empty(),
-					                   prefix))
+					else if (!function(scope, annotation, declaration_begin, declaration_end, access, !template_prefix.empty()))
 					{
 						return false;
 					}
