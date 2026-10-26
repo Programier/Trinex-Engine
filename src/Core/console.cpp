@@ -5,7 +5,7 @@
 #include <Core/etl/variant.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/reflection/new/const_type.hpp>
-#include <Core/reflection/new/function.hpp>
+#include <Core/reflection/new/native_function.hpp>
 #include <Core/reflection/new/object.hpp>
 #include <Core/reflection/new/pointer_type.hpp>
 #include <Core/reflection/new/property.hpp>
@@ -621,7 +621,21 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		});
 	}
 
-	trinex_api void bind(StringView name, void* address, Reflection::Type* reflection, StringView description, EntryFlags flags)
+	trinex_api DynamicFunction resolve_function(const Reflection::Function* function)
+	{
+		if (function == nullptr)
+			return nullptr;
+
+		if (const Reflection::NativeFunction* native = function->cast<Reflection::NativeFunction>())
+		{
+			return native->address();
+		}
+
+		return nullptr;
+	}
+
+	trinex_api void property(StringView name, void* address, Reflection::Type* reflection, StringView description,
+	                         EntryFlags flags)
 	{
 		const usize position     = name.rfind('.');
 		Reflection::Scope* scope = scope_of(position == StringView::npos ? "" : name.substr(0, position), true);
@@ -632,7 +646,7 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		(void) description;
 	}
 
-	trinex_api void bind(StringView name, Reflection::Function* function, StringView description, EntryFlags flags)
+	trinex_api void function(StringView name, Reflection::Function* function, StringView description, EntryFlags flags)
 	{
 		const usize position     = name.rfind('.');
 		Reflection::Scope* scope = scope_of(position == StringView::npos ? "" : name.substr(0, position), true);
@@ -642,10 +656,11 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		(void) description;
 	}
 
-	trinex_api void bind(StringView name, void (*function)(void*), Reflection::Type* ret, Reflection::Type** args, usize count,
-	                     StringView description, EntryFlags flags)
+	trinex_api void function(StringView name, DynamicFunction func, DynamicInvoker invoker, Reflection::Type* result,
+	                         Reflection::Type** args, usize count, StringView description, EntryFlags flags)
 	{
-		// trinex_verify(function != nullptr && !name.empty() && find_binding(name) == nullptr);
+		auto native = Ref<Reflection::NativeFunction>::make(name, func, invoker, result, args, count);
+		function(name, native.value(), description, flags);
 	}
 
 	trinex_api void unbind(StringView name)

@@ -5,22 +5,41 @@
 
 namespace Trinex::Refl::New
 {
-	static void append_type(Property* prop, u32& size, u32& alignment)
+	class OffsetProperty : public Property
 	{
-		if (prop == nullptr)
+	private:
+		usize m_offset;
+
+	public:
+		OffsetProperty(Name name, usize offset, Type* type) : Property(name, type), m_offset(offset) {}
+
+		void* address(void* context) override
 		{
-			return;
+			return context == nullptr ? nullptr : static_cast<void*>(static_cast<u8*>(context) + m_offset);
 		}
 
-		const Type* type = prop->type();
-
-		if (type == nullptr)
+		const void* load(const void* context, void* temporary = nullptr) override
 		{
-			return;
+			(void) temporary;
+			return context == nullptr ? nullptr : static_cast<const void*>(static_cast<const u8*>(context) + m_offset);
 		}
 
+		void store(void* context, void* object) override
+		{
+			if (void* destination = address(context))
+				this->type()->copy_assign(destination, object);
+		}
+	};
+
+
+	static u32 append_type(const Type* type, u32& size, u32& alignment)
+	{
 		alignment = Math::max(alignment, type->alignment());
-		size      = align_up(size, type->alignment()) + type->size();
+
+		const u32 offset = align_up(size, type->alignment());
+		size             = offset + type->size();
+
+		return offset;
 	}
 
 	Function::Function(Name name, Invoker invoker, Ref<Property> result, Array<Ref<Property>> args, u64 flags, Object* owner)
@@ -31,16 +50,36 @@ namespace Trinex::Refl::New
 
 		for (const auto& arg : m_args)
 		{
-			append_type(arg.value(), m_size, m_alignment);
+			trinex_verify(arg);
+			append_type(arg->type(), m_size, m_alignment);
 		}
 
-		append_type(m_result.value(), m_size, m_alignment);
+		if (m_result)
+		{
+			append_type(m_result->type(), m_size, m_alignment);
+		}
 	}
 
-	NativeFunction::NativeFunction(Name name, Address address, Invoker invoker, Ref<Property> result, Array<Ref<Property>> args,
-	                               u64 flags, Object* owner)
-	    : Function(name, invoker, etl::move(result), etl::move(args), flags, owner), m_address(address)
+	Function::Function(Name name, Invoker invoker, Type* result, Type** args, usize count, u64 flags, Object* owner)
+	    : Object(name, flags, owner), m_invoker(invoker), m_size(0), m_alignment(0)
 	{
-		trinex_verify(m_address);
+		trinex_verify(m_invoker);
+
+		m_args.reserve(count);
+
+		for (usize i = 0; i < count; ++i)
+		{
+			Type* arg = args[i];
+			trinex_verify(arg);
+
+			u32 offset = append_type(arg, m_size, m_alignment);
+			m_args.emplace_back(Ref<OffsetProperty>::make("", offset, arg));
+		}
+
+		if (result && !result->is_void())
+		{
+			u32 offset = append_type(result, m_size, m_alignment);
+			m_result   = Ref<OffsetProperty>::make("result", offset, result);
+		}
 	}
 }// namespace Trinex::Refl::New

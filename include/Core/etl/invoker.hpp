@@ -4,8 +4,6 @@ namespace Trinex::etl
 {
 	namespace detail
 	{
-		using usize = decltype(sizeof(0));
-
 		template<typename T>
 		struct Arg {
 			using Storage = T;
@@ -35,10 +33,8 @@ namespace Trinex::etl
 			using Storage = typename Arg<T>::Storage;
 
 			static constexpr usize aligned = (Offset + alignof(Storage) - 1) & ~(alignof(Storage) - 1);
-
-			static constexpr usize next = aligned + sizeof(Storage);
+			static constexpr usize next    = aligned + sizeof(Storage);
 		};
-
 
 		template<typename F>
 		struct FunctionInvoker;

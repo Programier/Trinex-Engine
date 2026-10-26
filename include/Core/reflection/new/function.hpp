@@ -37,6 +37,9 @@ namespace Trinex::Refl::New
 		Function(Name name, Invoker invoker, Ref<Property> result = nullptr, Array<Ref<Property>> args = {}, u64 flags = 0,
 		         Object* owner = nullptr);
 
+		Function(Name name, Invoker invoker, Type* result = nullptr, Type** args = nullptr, usize count = 0, u64 flags = 0,
+		         Object* owner = nullptr);
+
 		Class* reflection() const override { return class_of<Function>(); }
 
 		inline Property* result() const { return m_result.value(); }
@@ -53,22 +56,5 @@ namespace Trinex::Refl::New
 		inline bool is_destructor() const { return has_flags(IsDestructor); }
 		inline bool is_operator() const { return has_flags(IsOperator); }
 		inline void invoke(void* context) const { m_invoker(context, this); }
-	};
-
-	trinex_reflect() class trinex_api NativeFunction : public Function
-	{
-		trinex_reflection_body();
-
-	public:
-		using Address = void (*)();
-
-	private:
-		Address m_address;
-
-	public:
-		NativeFunction(Name name, Address address, Invoker invoker, Ref<Property> result = nullptr,
-		               Array<Ref<Property>> args = {}, u64 flags = 0, Object* owner = nullptr);
-
-		inline Address address() const { return m_address; }
 	};
 }// namespace Trinex::Refl::New

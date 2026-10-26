@@ -62,6 +62,7 @@ namespace Trinex::Refl::New
 		inline u32 alignment() const { return m_alignment; }
 		inline const VTable* vtable() const { return m_vtable; }
 		inline bool has_vtable() const { return m_vtable != nullptr; }
+		inline bool is_void() const { return m_size == 0 || m_alignment == 0; }
 		inline bool is_native() const { return has_flags(IsNative); }
 		inline bool is_trivially_copyable() const { return has_flags(IsTriviallyCopyable); }
 		inline bool is_trivially_destructible() const { return has_flags(IsTriviallyDestructible); }

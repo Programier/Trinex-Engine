@@ -16,11 +16,11 @@ namespace Trinex
 
 	trinex_on_pre_init()
 	{
-		Console::bind("window.title", &s_config.title, Refl::New::type_of<String>());
-		Console::bind("window.client", &s_config.client, Refl::New::type_of<String>());
-		Console::bind("window.size", &s_config.size, Refl::New::type_of<Vector2u>());
-		Console::bind("window.pos", &s_config.pos, Refl::New::type_of<Vector2u>());
-		Console::bind("window.monitor", &s_config.monitor, Refl::New::type_of<i16>());
+		Console::property("window.title", &s_config.title);
+		Console::property("window.client", &s_config.client);
+		Console::property("window.size", &s_config.size);
+		Console::property("window.pos", &s_config.pos);
+		Console::property("window.monitor", &s_config.monitor);
 		//static Console::VariableRef attributes(&s_config.attributes, "window.attributes");
 	}
 
