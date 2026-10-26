@@ -10,7 +10,8 @@ namespace Reflector
 	class Archive;
 	class Module;
 
-	struct CompileRequest {
+	struct CompileRequest
+	{
 		std::filesystem::path source = {};
 		std::filesystem::path header = {};
 		std::uint64_t timestamp      = 0;
@@ -21,17 +22,20 @@ namespace Reflector
 		bool outdated : 1  = false;
 	};
 
-	struct DirectoryInfo {
+	struct DirectoryInfo
+	{
 		std::filesystem::path path;
 		bool external = false;
 	};
 
-	struct ModuleInfo {
+	struct ModuleInfo
+	{
 		Module* module          = nullptr;
 		CompileRequest* request = nullptr;
 	};
 
-	struct CacheEntry {
+	struct CacheEntry
+	{
 		CompileRequest* request = nullptr;
 	};
 
@@ -75,4 +79,4 @@ namespace Reflector
 
 		int execute(std::span<std::string_view> args);
 	};
-}// namespace Reflector
+} // namespace Reflector

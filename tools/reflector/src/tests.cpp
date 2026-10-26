@@ -1,12 +1,11 @@
 #include <archive.hpp>
+#include <iostream>
+#include <memory>
 #include <model.hpp>
 #include <parser.hpp>
 #include <printer.hpp>
-#include <stream.hpp>
-
-#include <iostream>
-#include <memory>
 #include <sstream>
+#include <stream.hpp>
 #include <string_view>
 
 namespace
@@ -36,7 +35,8 @@ namespace
 		}
 
 		bool result = true;
-		for (Module* module : modules) result = module->link(index) && result;
+		for (Module* module : modules)
+			result = module->link(index) && result;
 		return result;
 	}
 
@@ -67,15 +67,15 @@ namespace
 	{
 		for (const std::string newline : {"\n", "\r\n"})
 		{
-			const std::string directive = "  #define trinex_material_parameter(self, super) \\" + newline +
-			                              "\ttrinex_reflect(self, super); \\" + newline + "\t\\" + newline;
+			const std::string directive = "  #define trinex_material_parameter(self, super) \\" + newline
+			                              + "\ttrinex_reflect(self, super); \\" + newline + "\t\\" + newline;
 			const std::string source    = directive + newline + "trinex_property() int visible;";
 			const auto tokens           = tokenize(source);
-			if (!expect(tokens[0].type == TokenType::Preprocessor &&
-			                    tokens[0].value.find("trinex_reflect(self, super);") != std::string_view::npos,
-			            "continued directive is a single token") ||
-			    !expect(tokens[1].value == "trinex_property" && tokens[1].line == 5 && tokens[1].column == 1,
-			            "declaration position after continued directive"))
+			if (!expect(tokens[0].type == TokenType::Preprocessor
+			                    && tokens[0].value.find("trinex_reflect(self, super);") != std::string_view::npos,
+			            "continued directive is a single token")
+			    || !expect(tokens[1].value == "trinex_property" && tokens[1].line == 5 && tokens[1].column == 1,
+			               "declaration position after continued directive"))
 				return false;
 			std::unique_ptr<Module> module(parse(source));
 			if (!expect(module && module->objects.size() == 1 && find<Property>(*module, "visible", ObjectKind::Property),
@@ -120,17 +120,17 @@ namespace { trinex_function() void local(); }
 		auto* tick  = find<Function>(*module, "Engine::Gameplay::Actor::tick", ObjectKind::Function);
 		if (!expect(actor && space && value && tick, "qualified lookup through owning scopes"))
 			return false;
-		return expect(module->name == "namespace_context" && module->owner == nullptr, "module identity") &&
-		       expect(module->is_a(ObjectKind::Module), "module object kind") &&
-		       expect(actor->owner == space && value->owner == actor && tick->owner == actor, "parent pointers") &&
-		       expect(actor->objects.size() == 2 && space->objects.size() == 3, "namespace reopening merges children") &&
-		       expect(value->access == Access::Public && value->type.name == "int", "property type and access") &&
-		       expect(tick->args.size() == 1 && tick->args[0].name == "dt" && tick->args[0].type.name == "float", "argument") &&
-		       expect(actor->metadata[0].name == "DisplayName" && value->metadata[0].value == "\"State\"", "metadata") &&
-		       expect(tick->find("missing", ObjectKind::Property) == nullptr, "leaf lookup") &&
-		       expect(actor->find("::Engine::Gameplay::Actor", ObjectKind::Class) == actor, "absolute lookup") &&
-		       expect(module->objects.size() == 2 && static_cast<Scope&>(*module->objects[1]).objects.size() == 2,
-		              "anonymous namespace ownership");
+		return expect(module->name == "namespace_context" && module->owner == nullptr, "module identity")
+		       && expect(module->is_a(ObjectKind::Module), "module object kind")
+		       && expect(actor->owner == space && value->owner == actor && tick->owner == actor, "parent pointers")
+		       && expect(actor->objects.size() == 2 && space->objects.size() == 3, "namespace reopening merges children")
+		       && expect(value->access == Access::Public && value->type.name == "int", "property type and access")
+		       && expect(tick->args.size() == 1 && tick->args[0].name == "dt" && tick->args[0].type.name == "float", "argument")
+		       && expect(actor->metadata[0].name == "DisplayName" && value->metadata[0].value == "\"State\"", "metadata")
+		       && expect(tick->find("missing", ObjectKind::Property) == nullptr, "leaf lookup")
+		       && expect(actor->find("::Engine::Gameplay::Actor", ObjectKind::Class) == actor, "absolute lookup")
+		       && expect(module->objects.size() == 2 && static_cast<Scope&>(*module->objects[1]).objects.size() == 2,
+		                 "anonymous namespace ownership");
 	}
 
 	bool test_complex_declarations()
@@ -155,23 +155,23 @@ public:
 		if (!expect(value && callback && pointer && method && unnamed, "complex declarations exist"))
 			return false;
 		const auto& type = value->type;
-		if (!expect(type.name == "std::vector" && type.templates.size() == 1, "template type") ||
-		    !expect(type.templates[0].type.name == "std::pair" && type.templates[0].type.templates.size() == 2,
-		            "nested template arguments"))
+		if (!expect(type.name == "std::vector" && type.templates.size() == 1, "template type")
+		    || !expect(type.templates[0].type.name == "std::pair" && type.templates[0].type.templates.size() == 2,
+		               "nested template arguments"))
 			return false;
-		return expect(type.flags == (TypeInfo::Template | TypeInfo::Reference), "type context flags") &&
-		       expect(value->value == "GetValue()", "property initializer") &&
-		       expect(callback->type.name == "int (*)(float)", "function pointer retained") &&
-		       expect(pointer->type.name == "int" && pointer->type.flags == (TypeInfo::Pointer | TypeInfo::PointerConst),
-		              "pointer cv retained") &&
-		       expect(method->args.size() == 2 && method->args[0].type.name == "int (*)(int a, int b)", "callback argument") &&
-		       expect(method->args[1].type.flags == (TypeInfo::Const | TypeInfo::Reference | TypeInfo::Template),
-		              "argument qualifiers") &&
-		       expect(method->flags == Function::Const, "argument const does not leak into function flags") &&
-		       expect(unnamed->args.size() == 5 && unnamed->args[0].name.empty() && unnamed->args[1].name.empty() &&
-		                      unnamed->args[2].name.empty() && unnamed->args[3].name.empty(),
-		              "unnamed arguments") &&
-		       expect(unnamed->args[4].name == "count" && unnamed->args[4].value == "8", "default argument");
+		return expect(type.flags == (TypeInfo::Template | TypeInfo::Reference), "type context flags")
+		       && expect(value->value == "GetValue()", "property initializer")
+		       && expect(callback->type.name == "int (*)(float)", "function pointer retained")
+		       && expect(pointer->type.name == "int" && pointer->type.flags == (TypeInfo::Pointer | TypeInfo::PointerConst),
+		                 "pointer cv retained")
+		       && expect(method->args.size() == 2 && method->args[0].type.name == "int (*)(int a, int b)", "callback argument")
+		       && expect(method->args[1].type.flags == (TypeInfo::Const | TypeInfo::Reference | TypeInfo::Template),
+		                 "argument qualifiers")
+		       && expect(method->flags == Function::Const, "argument const does not leak into function flags")
+		       && expect(unnamed->args.size() == 5 && unnamed->args[0].name.empty() && unnamed->args[1].name.empty()
+		                         && unnamed->args[2].name.empty() && unnamed->args[3].name.empty(),
+		                 "unnamed arguments")
+		       && expect(unnamed->args[4].name == "count" && unnamed->args[4].value == "8", "default argument");
 	}
 
 	bool test_pointer_types()
@@ -196,33 +196,34 @@ trinex_function() auto trailing() -> int*;
 		auto* trailing     = find<Function>(*module, "trailing", ObjectKind::Function);
 		if (!expect(items && qualified && numbers && nested && nested_array && read && trailing, "pointer declarations"))
 			return false;
-		if (!expect(items->type.name == "std::vector" && items->type.templates.size() == 1 &&
-		                    items->type.flags == (TypeInfo::Const | TypeInfo::Template | TypeInfo::Pointer),
+		if (!expect(items->type.name == "std::vector" && items->type.templates.size() == 1
+		                    && items->type.flags == (TypeInfo::Const | TypeInfo::Template | TypeInfo::Pointer),
 		            "pointer retains structured template arguments"))
 			return false;
-		if (!expect(qualified->type.name == "int" &&
-		                    qualified->type.flags ==
-		                            (TypeInfo::Volatile | TypeInfo::Pointer | TypeInfo::PointerConst | TypeInfo::PointerVolatile),
+		if (!expect(qualified->type.name == "int"
+		                    && qualified->type.flags
+		                               == (TypeInfo::Volatile | TypeInfo::Pointer | TypeInfo::PointerConst
+		                                   | TypeInfo::PointerVolatile),
 		            "separate pointee and pointer qualifiers"))
 			return false;
 		if (!expect(numbers->type.name == "int" && numbers->type.flags == (TypeInfo::Const | TypeInfo::Pointer), "array decay"))
 			return false;
-		if (!expect(nested->type.templates.size() == 1 && nested->type.templates[0].type.flags == TypeInfo::Pointer &&
-		                    nested_array->type.templates.size() == 1 &&
-		                    nested_array->type.templates[0].type.flags == TypeInfo::Pointer,
+		if (!expect(nested->type.templates.size() == 1 && nested->type.templates[0].type.flags == TypeInfo::Pointer
+		                    && nested_array->type.templates.size() == 1
+		                    && nested_array->type.templates[0].type.flags == TypeInfo::Pointer,
 		            "nested type pointer flags"))
 			return false;
-		if (!expect(read->type.flags == (TypeInfo::Template | TypeInfo::Pointer) && read->args.size() == 3 &&
-		                    read->args[0].type.flags == (TypeInfo::Const | TypeInfo::Pointer) &&
-		                    read->args[1].type.flags == (TypeInfo::Pointer | TypeInfo::PointerConst | TypeInfo::Reference) &&
-		                    read->args[2].name.empty() && read->args[2].type.templates.size() == 1 &&
-		                    trailing->type.flags == TypeInfo::Pointer,
+		if (!expect(read->type.flags == (TypeInfo::Template | TypeInfo::Pointer) && read->args.size() == 3
+		                    && read->args[0].type.flags == (TypeInfo::Const | TypeInfo::Pointer)
+		                    && read->args[1].type.flags == (TypeInfo::Pointer | TypeInfo::PointerConst | TypeInfo::Reference)
+		                    && read->args[2].name.empty() && read->args[2].type.templates.size() == 1
+		                    && trailing->type.flags == TypeInfo::Pointer,
 		            "function pointer types"))
 			return false;
 		std::ostringstream output;
 		Reflector::print(output, module.get());
-		if (!expect(output.str().find("const std::vector<int>*") != std::string::npos &&
-		                    output.str().find("pointer_const") != std::string::npos,
+		if (!expect(output.str().find("const std::vector<int>*") != std::string::npos
+		                    && output.str().find("pointer_const") != std::string::npos,
 		            "printer pointer flags"))
 			return false;
 		for (const auto declaration :
@@ -267,13 +268,13 @@ namespace Engine {
 		auto* subscript = find<Function>(*module, "Engine::Box::operator[]", ObjectKind::Function);
 		if (!expect(box && ctor && dtor && eq && convert && call && subscript, "special functions exist"))
 			return false;
-		return expect(box->objects.size() == 6, "special function count") &&
-		       expect(ctor->flags & Function::Constructor, "constructor flag") &&
-		       expect(dtor->flags & Function::Destructor, "destructor flag") &&
-		       expect(eq->type.name == "bool" && (eq->flags & Function::Operator), "operator") &&
-		       expect(convert->type.name == "bool", "conversion target") &&
-		       expect(call->args.empty() && (call->flags & Function::Const), "call operator") &&
-		       expect(subscript->type.flags & TypeInfo::Reference, "subscript return reference");
+		return expect(box->objects.size() == 6, "special function count")
+		       && expect(ctor->flags & Function::Constructor, "constructor flag")
+		       && expect(dtor->flags & Function::Destructor, "destructor flag")
+		       && expect(eq->type.name == "bool" && (eq->flags & Function::Operator), "operator")
+		       && expect(convert->type.name == "bool", "conversion target")
+		       && expect(call->args.empty() && (call->flags & Function::Const), "call operator")
+		       && expect(subscript->type.flags & TypeInfo::Reference, "subscript return reference");
 	}
 
 	bool test_attributes_macros_and_nested_types()
@@ -305,15 +306,15 @@ namespace Engine {
 		auto* work  = find<Function>(*module, "Engine::Outer::work", ObjectKind::Function);
 		if (!expect(outer && inner && value && state && get && work, "attributes and nested types"))
 			return false;
-		return expect(outer->flags & Class::Final && outer->bases.size() == 2, "final and bases") &&
-		       expect(outer->bases[0].type.name == "Base" && outer->bases[0].type.templates.size() == 1 &&
-		                      outer->bases[0].access == Access::Public,
-		              "virtual template base") &&
-		       expect(outer->bases[1].access == Access::Private, "class default base access") &&
-		       expect(value->owner == inner && value->access == Access::Public, "nested ownership and struct access") &&
-		       expect(state->access == Access::Protected && state->flags == Property::Mutable, "member flags and access") &&
-		       expect(get->flags == Function::Const, "function qualifiers") &&
-		       expect(work->flags == (Function::Virtual | Function::Final | Function::PureVirtual), "function qualifiers");
+		return expect(outer->flags & Class::Final && outer->bases.size() == 2, "final and bases")
+		       && expect(outer->bases[0].type.name == "Base" && outer->bases[0].type.templates.size() == 1
+		                         && outer->bases[0].access == Access::Public,
+		                 "virtual template base")
+		       && expect(outer->bases[1].access == Access::Private, "class default base access")
+		       && expect(value->owner == inner && value->access == Access::Public, "nested ownership and struct access")
+		       && expect(state->access == Access::Protected && state->flags == Property::Mutable, "member flags and access")
+		       && expect(get->flags == Function::Const, "function qualifiers")
+		       && expect(work->flags == (Function::Virtual | Function::Final | Function::PureVirtual), "function qualifiers");
 	}
 
 	bool test_template_arguments_and_flags()
@@ -346,21 +347,21 @@ trinex_reflect() struct Data {
 			return false;
 		if (!expect(items->type.templates.size() == 2 && pack->type.templates.size() == 1, "argument counts"))
 			return false;
-		return expect(items->type.templates[0].type.name == "std::vector", "template type argument") &&
-		       expect(items->type.templates[1].flags == TypeInfo::TemplateArgument::Value &&
-		                      items->type.templates[1].value == "4",
-		              "non-type template argument") &&
-		       expect(pack->type.templates[0].flags & TypeInfo::TemplateArgument::PackExpansion, "pack expansion") &&
-		       expect(empty->type.templates.empty() && (empty->type.flags & TypeInfo::Template), "empty template list") &&
-		       expect(limit->flags == (Property::Inline | Property::Static | Property::Constexpr), "property context flags") &&
-		       expect(bits->flags == Property::Bitfield && bits->value == "2", "bit field") &&
-		       expect(values->value == "{1, 2}" && values->type.name == "int" && values->type.flags == TypeInfo::Pointer,
-		              "array initializer") &&
-		       expect(log->flags == (Function::Static | Function::Variadic), "noexcept false and variadic") &&
-		       expect(get->flags == 0 && get->type.flags == (TypeInfo::Const | TypeInfo::Reference), "return type qualifiers") &&
-		       expect(count->type.name == "int" && count->type.flags == (TypeInfo::Const | TypeInfo::Reference) &&
-		                      count->flags == Function::Const,
-		              "trailing return type");
+		return expect(items->type.templates[0].type.name == "std::vector", "template type argument")
+		       && expect(items->type.templates[1].flags == TypeInfo::TemplateArgument::Value
+		                         && items->type.templates[1].value == "4",
+		                 "non-type template argument")
+		       && expect(pack->type.templates[0].flags & TypeInfo::TemplateArgument::PackExpansion, "pack expansion")
+		       && expect(empty->type.templates.empty() && (empty->type.flags & TypeInfo::Template), "empty template list")
+		       && expect(limit->flags == (Property::Inline | Property::Static | Property::Constexpr), "property context flags")
+		       && expect(bits->flags == Property::Bitfield && bits->value == "2", "bit field")
+		       && expect(values->value == "{1, 2}" && values->type.name == "int" && values->type.flags == TypeInfo::Pointer,
+		                 "array initializer")
+		       && expect(log->flags == (Function::Static | Function::Variadic), "noexcept false and variadic")
+		       && expect(get->flags == 0 && get->type.flags == (TypeInfo::Const | TypeInfo::Reference), "return type qualifiers")
+		       && expect(count->type.name == "int" && count->type.flags == (TypeInfo::Const | TypeInfo::Reference)
+		                         && count->flags == Function::Const,
+		                 "trailing return type");
 	}
 
 	bool test_enums()
@@ -380,6 +381,48 @@ namespace Test {
 		if (!expect(enumeration && enumeration->values.size() == 10, "enum values"))
 			return false;
 		return expect(enumeration->values.back().metadata.size() == 1, "enumerator metadata");
+	}
+
+	bool test_enum_structs()
+	{
+		std::unique_ptr<Module> module(parse(R"(
+namespace RHI {
+	trinex_reflect() trinex_enum_struct RHICompareFunc {
+		trinex_reflection_body();
+
+		enum class Enum : u8 {
+			Always = 0,
+			Lequal = 1,
+			Gequal = 2,
+		};
+	};
+}
+)"));
+		if (!expect(module != nullptr, "enum struct source parses successfully"))
+			return false;
+
+		auto* enumeration = find<EnumStruct>(*module, "RHI::RHICompareFunc", ObjectKind::Enum);
+		if (!expect(enumeration != nullptr && enumeration->kind() == ObjectKind::EnumStruct, "enum struct is an enum model"))
+			return false;
+
+		if (!expect(enumeration->enum_name == "Enum" && enumeration->values.size() == 3,
+		            "enum struct stores its nested enum and values"))
+			return false;
+
+		for (std::string_view source : {"trinex_reflect() trinex_enum_struct Empty { trinex_reflection_body(); };",
+		                                "trinex_reflect() trinex_enum_struct Multiple { enum First { A }; enum Second { B }; };"})
+		{
+			if (!expect(parse(source) == nullptr, "invalid enum struct is rejected"))
+				return false;
+		}
+
+		std::unique_ptr<Module> enum_struct_module(
+		        parse("trinex_reflect() trinex_enum_struct StructScoped { enum struct Enum { Value }; };"));
+		if (!expect(enum_struct_module != nullptr, "enum struct nested enum parses successfully"))
+			return false;
+		auto* struct_scoped = find<EnumStruct>(*enum_struct_module, "StructScoped", ObjectKind::Enum);
+		return expect(struct_scoped != nullptr && struct_scoped->enum_name == "Enum" && struct_scoped->values.size() == 1,
+		              "enum struct nested enum is reflected");
 	}
 
 	bool test_reflection_body()
@@ -526,15 +569,14 @@ namespace Engine {
 			return false;
 		std::ostringstream output;
 		Reflector::print(output, valid.get());
-		if (!expect(output.str().find("class Good") != std::string::npos &&
-		                    output.str().find("property value: int") != std::string::npos,
+		if (!expect(output.str().find("class Good") != std::string::npos
+		                    && output.str().find("property value: int") != std::string::npos,
 		            "printer traverses module"))
 			return false;
 		for (std::string_view source :
-		     {"trinex_function() int broken;", "trinex_property() int;",
-		      "template <typename T> trinex_reflect() class Box {};", "template <typename T> trinex_function() T cast();",
-		      "trinex_reflect() class Broken {", "namespace Broken {", "trinex_property(", "trinex_function() void f(",
-		      "trinex_property() int value"})
+		     {"trinex_function() int broken;", "trinex_property() int;", "template <typename T> trinex_reflect() class Box {};",
+		      "template <typename T> trinex_function() T cast();", "trinex_reflect() class Broken {", "namespace Broken {",
+		      "trinex_property(", "trinex_function() void f(", "trinex_property() int value"})
 		{
 			std::unique_ptr<Module> invalid(parse(source, "bad.hpp"));
 			if (!expect(invalid == nullptr, source))
@@ -543,15 +585,15 @@ namespace Engine {
 			if (!expect(recovered && find<Property>(*recovered, "value", ObjectKind::Property), "parser reuse after error"))
 				return false;
 		}
-		if (!expect(valid->name == "good.hpp" && find<Class>(*valid, "Good", ObjectKind::Class) == good &&
-		                    good->owner == valid.get(),
+		if (!expect(valid->name == "good.hpp" && find<Class>(*valid, "Good", ObjectKind::Class) == good
+		                    && good->owner == valid.get(),
 		            "parser reuse preserves previous module"))
 			return false;
 		std::unique_ptr<Module> empty(parse(""));
 		return expect(empty && empty->objects.empty(), "empty source");
 	}
 
-}// namespace
+} // namespace
 
 int main()
 {
@@ -567,6 +609,7 @@ int main()
 	success      = test_attributes_macros_and_nested_types() && success;
 	success      = test_template_arguments_and_flags() && success;
 	success      = test_enums() && success;
+	success      = test_enum_structs() && success;
 	success      = test_reflection_body() && success;
 	success      = test_class_linking() && success;
 	success      = test_module_linking() && success;

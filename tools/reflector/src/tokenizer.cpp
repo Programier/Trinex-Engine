@@ -71,7 +71,7 @@ namespace Reflector
 			return offset + text.size() <= source.size() && source.substr(offset, text.size()) == text;
 		}
 
-	}// namespace
+	} // namespace
 
 	std::vector<Token> tokenize(std::string_view source)
 	{
@@ -158,8 +158,8 @@ namespace Reflector
 			if (std::isdigit(static_cast<unsigned char>(c)))
 			{
 				auto end = offset + 1;
-				while (end < source.size() &&
-				       (std::isalnum(static_cast<unsigned char>(source[end])) || source[end] == '.' || source[end] == '_'))
+				while (end < source.size()
+				       && (std::isalnum(static_cast<unsigned char>(source[end])) || source[end] == '.' || source[end] == '_'))
 				{
 					++end;
 				}
@@ -180,9 +180,9 @@ namespace Reflector
 			}
 
 			std::size_t length = 1;
-			if (starts_with(source, offset, "::") || starts_with(source, offset, "&&") || starts_with(source, offset, "->") ||
-			    starts_with(source, offset, "==") || starts_with(source, offset, "!=") || starts_with(source, offset, "<=") ||
-			    starts_with(source, offset, ">="))
+			if (starts_with(source, offset, "::") || starts_with(source, offset, "&&") || starts_with(source, offset, "->")
+			    || starts_with(source, offset, "==") || starts_with(source, offset, "!=") || starts_with(source, offset, "<=")
+			    || starts_with(source, offset, ">="))
 			{
 				length = 2;
 			}
@@ -199,4 +199,4 @@ namespace Reflector
 		return tokens;
 	}
 
-}// namespace Reflector
+} // namespace Reflector

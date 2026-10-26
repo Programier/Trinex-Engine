@@ -113,10 +113,11 @@ namespace Reflector
 				case ObjectKind::Module: return "module";
 				case ObjectKind::Function: return "function";
 				case ObjectKind::Property: return "property";
+				case ObjectKind::EnumStruct: return "enum_struct";
 			}
 			return "unknown";
 		}
-	}// namespace
+	} // namespace
 
 	void print(std::ostream& stream, const Object* object, std::size_t depth)
 	{
@@ -219,7 +220,8 @@ namespace Reflector
 	{
 		std::vector<std::pair<std::string_view, const TypeIndex::Entry*>> entries;
 		entries.reserve(index.m_types.size());
-		for (const auto& [name, entry] : index.m_types) entries.emplace_back(name, &entry);
+		for (const auto& [name, entry] : index.m_types)
+			entries.emplace_back(name, &entry);
 
 		std::sort(entries.begin(), entries.end(), [](const auto& left, const auto& right) { return left.first < right.first; });
 
@@ -227,4 +229,4 @@ namespace Reflector
 		for (const auto& [name, entry] : entries)
 			stream << "  " << kind_name(entry->kind) << ' ' << name << " module=" << std::quoted(entry->module) << '\n';
 	}
-}// namespace Reflector
+} // namespace Reflector

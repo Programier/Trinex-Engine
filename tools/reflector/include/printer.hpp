@@ -8,4 +8,4 @@ namespace Reflector
 
 	void print(std::ostream& stream, const Object* object, std::size_t depth = 0);
 	void print(std::ostream& stream, const TypeIndex& index);
-}// namespace Reflector
+} // namespace Reflector

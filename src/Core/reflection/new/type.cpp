@@ -86,6 +86,15 @@ namespace Trinex::Refl::New
 		return true;
 	}
 
+	bool Type::serialize(void* self, Archive& ar)
+	{
+		if (m_vtable->serialize == nullptr || self == nullptr)
+			return false;
+
+		m_vtable->serialize(this, self, ar);
+		return true;
+	}
+
 	usize Type::parse(void* self, StringView value) const
 	{
 		if (m_vtable->parse == nullptr || self == nullptr)

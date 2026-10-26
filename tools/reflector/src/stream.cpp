@@ -11,7 +11,8 @@ namespace Reflector
 
 	CodeWriter::Indentation::~Indentation()
 	{
-		while (m_writer.m_indent_level > m_previous_level) m_writer.unindent();
+		while (m_writer.m_indent_level > m_previous_level)
+			m_writer.unindent();
 	}
 
 	CodeWriter::CodeWriter(std::string_view indent) : m_indent(indent) {}
@@ -41,7 +42,8 @@ namespace Reflector
 
 			if (m_line_start && character != '\n')
 			{
-				for (std::size_t level = 0; level < m_indent_level; ++level) m_text += m_indent;
+				for (std::size_t level = 0; level < m_indent_level; ++level)
+					m_text += m_indent;
 				m_line_start = false;
 			}
 
@@ -95,4 +97,4 @@ namespace Reflector
 	{
 		return m_text;
 	}
-}// namespace Reflector
+} // namespace Reflector

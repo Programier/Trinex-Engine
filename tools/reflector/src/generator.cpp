@@ -18,7 +18,8 @@ namespace Reflector
 	using FunctionFlagsOf   = WriteAs<struct FunctionFlags>;
 	using BaseClassesOf     = WriteAs<struct BaseClasses>;
 
-	struct ResolvedName {
+	struct ResolvedName
+	{
 		static void execute(CodeWriter* writer, const Object* object)
 		{
 			if (object == nullptr || object->is_a(ObjectKind::Module))
@@ -51,12 +52,17 @@ namespace Reflector
 			else
 			{
 				writer->write(object->name);
+
+				if (object->is_a(ObjectKind::EnumStruct))
+				{
+					writer->write("::$0", static_cast<const EnumStruct*>(object)->enum_name);
+				}
 			}
 		}
 	};
 
-
-	struct AccessorPath {
+	struct AccessorPath
+	{
 		static void execute(CodeWriter* writer, const Object* object)
 		{
 			if (object == nullptr || object->is_a(ObjectKind::Module))
@@ -73,7 +79,8 @@ namespace Reflector
 		}
 	};
 
-	struct ResolvedPath {
+	struct ResolvedPath
+	{
 		static void execute(CodeWriter* writer, const Object* object)
 		{
 			if (object == nullptr || object->is_a(ObjectKind::Module))
@@ -83,7 +90,8 @@ namespace Reflector
 		}
 	};
 
-	struct ObjectID {
+	struct ObjectID
+	{
 		static bool execute(CodeWriter* writer, const Object* object)
 		{
 			if (object == nullptr)
@@ -115,8 +123,8 @@ namespace Reflector
 		}
 	};
 
-
-	struct ObjectPath {
+	struct ObjectPath
+	{
 		static bool execute_list(CodeWriter* writer, const Object* object)
 		{
 			if (object == nullptr || object->is_a(ObjectKind::Module))
@@ -139,7 +147,8 @@ namespace Reflector
 		}
 	};
 
-	struct OwnerReflection {
+	struct OwnerReflection
+	{
 		static void execute(CodeWriter* writer, const Object* object)
 		{
 			if (object == nullptr || object->is_a(ObjectKind::Module))
@@ -178,7 +187,8 @@ namespace Reflector
 		}
 	};
 
-	struct FunctionFlags {
+	struct FunctionFlags
+	{
 		static void execute(CodeWriter* writer, const Object* object)
 		{
 			if (object == nullptr || !object->is_a(ObjectKind::Function))
@@ -204,7 +214,8 @@ namespace Reflector
 		}
 	};
 
-	struct BaseClasses {
+	struct BaseClasses
+	{
 		static void execute(CodeWriter* writer, const Object* object)
 		{
 			if (object == nullptr || !object->is_a(ObjectKind::Class))
@@ -234,6 +245,7 @@ namespace Reflector
 		switch (object->kind())
 		{
 			case ObjectKind::Enum:
+			case ObjectKind::EnumStruct:
 			case ObjectKind::Class:
 			case ObjectKind::Function:
 			case ObjectKind::Property: return false;
@@ -333,7 +345,25 @@ namespace Reflector
 		writer->line("}\n");
 
 		writer->line("template<>");
+		writer->line("trinex_export Enum* EnumOf<$0::$1>::resolve()", ResolvedPathOf(object->owner), object->name);
+		writer->line("{");
+		{
+			auto scope = writer->scope();
+			writer->line("return enum_of<$0>();", ResolvedPathOf(object));
+		}
+		writer->line("}\n");
+
+		writer->line("template<>");
 		writer->line("trinex_export Type* TypeOf<$0>::resolve()", ResolvedPathOf(object));
+		writer->line("{");
+		{
+			auto scope = writer->scope();
+			writer->line("return enum_of<$0>();", ResolvedPathOf(object));
+		}
+		writer->line("}\n");
+
+		writer->line("template<>");
+		writer->line("trinex_export Type* TypeOf<$0::$1>::resolve()", ResolvedPathOf(object->owner), object->name);
 		writer->line("{");
 		{
 			auto scope = writer->scope();
@@ -540,6 +570,7 @@ namespace Reflector
 				case ObjectKind::Property: writer->line("property_of<$0>();", ResolvedPathOf(object)); break;
 				case ObjectKind::Function: writer->line("function_of<$0>();", ResolvedPathOf(object)); break;
 				case ObjectKind::Enum: writer->line("enum_of<$0>();", ResolvedPathOf(object)); break;
+				case ObjectKind::EnumStruct: writer->line("enum_of<$0>();", ResolvedPathOf(object)); break;
 
 				default: break;
 			}
@@ -698,7 +729,6 @@ namespace Reflector
 		return true;
 	}
 
-
 	bool generate_header(fs::path path, const Module* module)
 	{
 		if (is_object_empty(module))
@@ -725,4 +755,4 @@ namespace Reflector
 
 		return save_generated_file(path, &source);
 	}
-}// namespace Reflector
+} // namespace Reflector

@@ -18,7 +18,8 @@ namespace Reflector
 	};
 
 	template<typename Executor>
-	struct WriteAs {
+	struct WriteAs
+	{
 		static_assert(CodeWriterExecutor<Executor>,
 		              "WriteAs executor must provide static void execute(CodeWriter*, const Object*)");
 
@@ -37,8 +38,8 @@ namespace Reflector
 	};
 
 	template<typename T>
-	concept CodeWriterLine = std::convertible_to<T, std::string_view> || std::convertible_to<T, const Object*> ||
-	                         is_write_as<std::remove_cvref_t<T>> || CodeWriterStringifiable<T>;
+	concept CodeWriterLine = std::convertible_to<T, std::string_view> || std::convertible_to<T, const Object*>
+	                         || is_write_as<std::remove_cvref_t<T>> || CodeWriterStringifiable<T>;
 
 	template<typename... Args>
 	class CodeWriterFormat final
@@ -224,4 +225,4 @@ namespace Reflector
 		// The returned view remains valid until the next mutation or destruction.
 		std::string_view text() const noexcept;
 	};
-}// namespace Reflector
+} // namespace Reflector

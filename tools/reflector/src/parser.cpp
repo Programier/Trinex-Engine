@@ -1333,12 +1333,113 @@ namespace Reflector
 				return true;
 			}
 
+			bool enum_struct(EnumStruct& object, const Annotation& annotation, std::size_t begin, std::size_t end)
+			{
+				bool found_enum = false;
+
+				for (Cursor cursor{source, &tokens, begin}; cursor.index < end;)
+				{
+					if (current(cursor).value == "trinex_reflection_body")
+					{
+						const Token& macro = current(cursor);
+						++cursor.index;
+						if (cursor.index >= end || current(cursor).value != "(")
+						{
+							return failure(macro, "trinex_reflection_body must be invoked without arguments");
+						}
+
+						const auto close = matching_token(tokens, cursor.index);
+						if (close != cursor.index + 1)
+						{
+							return failure(macro, "trinex_reflection_body must be invoked without arguments");
+						}
+
+						cursor.index = close + 1;
+						if (cursor.index >= end || current(cursor).value != ";")
+						{
+							return failure(macro, "trinex_reflection_body must be followed by a semicolon");
+						}
+						++cursor.index;
+						continue;
+					}
+
+					if (current(cursor).value != "enum")
+					{
+						if (current(cursor).value == "{")
+						{
+							const auto close = matching_token(tokens, cursor.index);
+							cursor.index     = close > cursor.index ? close + 1 : end;
+						}
+						else
+						{
+							const auto statement_end = find_statement_end(tokens, cursor.index);
+							cursor.index = is_symbol(tokens[statement_end], "{") ? matching_token(tokens, statement_end) + 1
+							                                                     : std::min(statement_end + 1, end);
+						}
+						continue;
+					}
+
+					const Token& enum_token = current(cursor);
+					++cursor.index;
+					if (current(cursor).value == "class" || current(cursor).value == "struct")
+					{
+						++cursor.index;
+					}
+
+					if (!is_identifier(current(cursor)))
+					{
+						return failure(enum_token, "trinex_enum_struct has an unnamed enum");
+					}
+
+					const std::string enum_name = std::string(current(cursor).value);
+					++cursor.index;
+					while (cursor.index < end && current(cursor).value != "{" && current(cursor).value != ";")
+					{
+						++cursor.index;
+					}
+					if (cursor.index >= end || current(cursor).value != "{")
+					{
+						return failure(enum_token, "trinex_enum_struct enum has no body");
+					}
+
+					const auto close = matching_token(tokens, cursor.index);
+					if (close == cursor.index || close > end)
+					{
+						return failure(enum_token, "unclosed trinex_enum_struct enum body");
+					}
+					if (found_enum)
+					{
+						return failure(enum_token, "trinex_enum_struct must contain exactly one enum");
+					}
+					if (!enumeration(object, annotation, cursor.index + 1, close))
+					{
+						return false;
+					}
+
+					object.enum_name = enum_name;
+					found_enum       = true;
+					cursor.index     = close + 1;
+					if (current(cursor).value == ";")
+					{
+						++cursor.index;
+					}
+				}
+
+				if (!found_enum)
+				{
+					return failure(annotation, "trinex_enum_struct must contain exactly one enum");
+				}
+
+				return true;
+			}
+
 			bool record(Scope& scope, Cursor& cursor, const Annotation& annotation, std::size_t end, Access access,
 			            bool is_template)
 			{
-				const auto kind = current(cursor).value;
+				const auto kind           = current(cursor).value;
+				const bool is_enum_struct = kind == "trinex_enum_struct";
 
-				if (kind != "class" && kind != "struct" && kind != "enum")
+				if (kind != "class" && kind != "struct" && kind != "enum" && !is_enum_struct)
 				{
 					return failure(annotation, "failed to parse annotated type");
 				}
@@ -1368,9 +1469,13 @@ namespace Reflector
 						static_cast<Class*>(object.get())->flags |= Class::IsStruct;
 					}
 				}
-				else
+				else if (kind == "enum")
 				{
 					object = std::make_unique<Enum>();
+				}
+				else
+				{
+					object = std::make_unique<EnumStruct>();
 				}
 
 				object->name     = current(cursor).value;
@@ -1456,6 +1561,13 @@ namespace Reflector
 					if (structure)
 					{
 						if (!range(*structure, cursor.index + 1, close, kind == "class" ? Access::Private : Access::Public))
+						{
+							return false;
+						}
+					}
+					else if (is_enum_struct)
+					{
+						if (!enum_struct(static_cast<EnumStruct&>(*object), annotation, cursor.index + 1, close))
 						{
 							return false;
 						}

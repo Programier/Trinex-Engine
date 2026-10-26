@@ -18,7 +18,8 @@ namespace Reflector
 		EndOfFile,
 	};
 
-	struct Token {
+	struct Token
+	{
 		TokenType type = TokenType::EndOfFile;
 		std::string_view value;
 		std::size_t offset = 0;
@@ -28,4 +29,4 @@ namespace Reflector
 	};
 
 	std::vector<Token> tokenize(std::string_view source);
-}// namespace Reflector
+} // namespace Reflector

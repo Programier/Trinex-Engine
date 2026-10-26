@@ -9,9 +9,9 @@ namespace Reflector
 {
 	static bool is_builtin_type(std::string_view name)
 	{
-		return name == "void" || name == "bool" || name == "char" || name == "signed" || name == "unsigned" || name == "short" ||
-		       name == "int" || name == "long" || name == "float" || name == "double" || name == "wchar_t" || name == "char8_t" ||
-		       name == "char16_t" || name == "char32_t" || name == "auto" || name.starts_with("std::");
+		return name == "void" || name == "bool" || name == "char" || name == "signed" || name == "unsigned" || name == "short"
+		       || name == "int" || name == "long" || name == "float" || name == "double" || name == "wchar_t" || name == "char8_t"
+		       || name == "char16_t" || name == "char32_t" || name == "auto" || name.starts_with("std::");
 	}
 
 	static std::string qualified_name(const Object* object)
@@ -33,7 +33,8 @@ namespace Reflector
 
 	static const Module* module_of(const Object* object)
 	{
-		while (object && !object->is_a(ObjectKind::Module)) object = object->owner;
+		while (object && !object->is_a(ObjectKind::Module))
+			object = object->owner;
 		return static_cast<const Module*>(object);
 	}
 
@@ -49,6 +50,7 @@ namespace Reflector
 			case ObjectKind::Module: return "module";
 			case ObjectKind::Function: return "function";
 			case ObjectKind::Property: return "property";
+			case ObjectKind::EnumStruct: return "enum struct";
 		}
 		return "unknown";
 	}
@@ -103,10 +105,12 @@ namespace Reflector
 			return false;
 		}
 
-		if (required_kind != ObjectKind::Object && object->kind != required_kind)
+		const bool valid_kind = required_kind == ObjectKind::Object || object->kind == required_kind
+		                        || (required_kind == ObjectKind::Enum && object->kind == ObjectKind::EnumStruct);
+		if (!valid_kind)
 		{
-			link_error(context, "reflected type '" + type.name + "' is not a " + object_kind_name(required_kind) + " (found " +
-			                            object_kind_name(object->kind) + ")");
+			link_error(context, "reflected type '" + type.name + "' is not a " + object_kind_name(required_kind) + " (found "
+			                            + object_kind_name(object->kind) + ")");
 			return false;
 		}
 
@@ -114,6 +118,7 @@ namespace Reflector
 	}
 
 	trinex_implement_reflector_type(Enum, values);
+	trinex_implement_reflector_type(EnumStruct, enum_name);
 	trinex_implement_reflector_type(Namespace);
 	trinex_implement_reflector_type(Scope, objects);
 	trinex_implement_reflector_type(Class, bases, flags, body_line);
@@ -147,7 +152,6 @@ namespace Reflector
 		auto visit = [&](auto&& self, const Object* object) -> void {
 			if (object == nullptr)
 				return;
-
 
 			if (object->is_a(ObjectKind::Class) || object->is_a(ObjectKind::Enum))
 			{
@@ -262,6 +266,7 @@ namespace Reflector
 			case ObjectKind::Module: return new Module();
 			case ObjectKind::Function: return new Function();
 			case ObjectKind::Property: return new Property();
+			case ObjectKind::EnumStruct: return new EnumStruct();
 			default: return nullptr;
 		}
 	}
@@ -298,7 +303,8 @@ namespace Reflector
 		if (name.starts_with("::"))
 		{
 			Object* root = this;
-			while (root->owner) root = root->owner;
+			while (root->owner)
+				root = root->owner;
 			return root->find(name.substr(2), kind);
 		}
 		const auto separator  = name.find("::");
@@ -345,7 +351,8 @@ namespace Reflector
 	bool Function::link(const TypeIndex& type_index)
 	{
 		bool result = Super::link(type_index) && link_type(this, type, type_index);
-		for (const Argument& argument : args) result = link_type(this, argument.type, type_index) && result;
+		for (const Argument& argument : args)
+			result = link_type(this, argument.type, type_index) && result;
 		return result;
 	}
 
@@ -354,4 +361,4 @@ namespace Reflector
 		const bool result = Super::link(type_index);
 		return link_type(this, type, type_index) && result;
 	}
-}// namespace Reflector
+} // namespace Reflector

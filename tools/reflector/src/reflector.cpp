@@ -46,7 +46,8 @@ namespace Reflector
 		}
 	};
 
-	struct CommandLineBinding {
+	struct CommandLineBinding
+	{
 		std::string_view cmd1;
 		std::string_view cmd2;
 		int (Reflector::*action)(std::span<std::string_view>);
@@ -483,8 +484,8 @@ namespace Reflector
 				return false;
 
 			const fs::path source = generated_source_path(m_output, info.request->header);
-			if (!info.request->external && (info.request->outdated || !fs::exists(source)) &&
-			    !generate_source(source, info.module))
+			if (!info.request->external && (info.request->outdated || !fs::exists(source))
+			    && !generate_source(source, info.module))
 				return false;
 		}
 		return true;
@@ -551,4 +552,4 @@ namespace Reflector
 		report_duration();
 		return 0;
 	}
-}// namespace Reflector
+} // namespace Reflector

@@ -45,19 +45,21 @@ namespace Reflector
 
 	enum class ObjectKind : std::uint8_t
 	{
-		Object    = 0,
-		Enum      = 1,
-		Scope     = 2,
-		Namespace = 3,
-		Class     = 4,
-		Module    = 5,
-		Function  = 6,
-		Property  = 7,
+		Object     = 0,
+		Enum       = 1,
+		Scope      = 2,
+		Namespace  = 3,
+		Class      = 4,
+		Module     = 5,
+		Function   = 6,
+		Property   = 7,
+		EnumStruct = 8,
 	};
 
 	class Archive;
 	class Object;
 	class Enum;
+	class EnumStruct;
 	class Scope;
 	class Namespace;
 	class Struct;
@@ -71,7 +73,8 @@ namespace Reflector
 		friend void print(std::ostream& stream, const TypeIndex& index);
 
 	public:
-		struct Entry {
+		struct Entry
+		{
 			ObjectKind kind = ObjectKind::Object;
 			std::string module;
 
@@ -93,7 +96,8 @@ namespace Reflector
 		void serialize(Archive& ar);
 	};
 
-	struct Metadata {
+	struct Metadata
+	{
 		std::string name;
 		std::string value;
 
@@ -104,7 +108,8 @@ namespace Reflector
 		}
 	};
 
-	struct TypeInfo {
+	struct TypeInfo
+	{
 		struct TemplateArgument;
 
 		static constexpr inline std::uint8_t Const           = 1 << 0;
@@ -130,15 +135,16 @@ namespace Reflector
 		}
 	};
 
-	struct TypeInfo::TemplateArgument {
+	struct TypeInfo::TemplateArgument
+	{
 		static constexpr inline std::uint8_t Type          = 1 << 0;
 		static constexpr inline std::uint8_t Value         = 1 << 1;
 		static constexpr inline std::uint8_t Template      = 1 << 2;
 		static constexpr inline std::uint8_t PackExpansion = 1 << 3;
 
 		// Exactly one of Type/Value/Template; PackExpansion adds ... after the argument.
-		TypeInfo type;    // Type argument, including nested template arguments and qualifiers.
-		std::string value;// C++ expression for Value, qualified template name for Template.
+		TypeInfo type;     // Type argument, including nested template arguments and qualifiers.
+		std::string value; // C++ expression for Value, qualified template name for Template.
 		std::uint8_t flags = Type;
 
 		template<typename Ar>
@@ -171,7 +177,8 @@ namespace Reflector
 	class Enum : public Object
 	{
 	public:
-		struct Value {
+		struct Value
+		{
 			std::string name;
 			std::vector<Metadata> metadata;
 
@@ -186,6 +193,15 @@ namespace Reflector
 
 	public:
 		trinex_reflector_type(Enum, Object);
+	};
+
+	class EnumStruct : public Enum
+	{
+	public:
+		std::string enum_name;
+
+	public:
+		trinex_reflector_type(EnumStruct, Enum);
 	};
 
 	class Scope : public Object
@@ -206,7 +222,8 @@ namespace Reflector
 		static constexpr inline std::uint8_t Final    = 1 << 0;
 		static constexpr inline std::uint8_t IsStruct = 1 << 1;
 
-		struct Base {
+		struct Base
+		{
 			TypeInfo type;
 			Access access = Access::Public;
 
@@ -253,7 +270,8 @@ namespace Reflector
 		static constexpr inline std::uint32_t Operator    = 1 << 7;
 		static constexpr inline std::uint32_t Variadic    = 1 << 8;
 
-		struct Argument {
+		struct Argument
+		{
 			TypeInfo type;
 			std::string name;
 			std::string value;
@@ -293,4 +311,4 @@ namespace Reflector
 	};
 
 	void serialize(Archive& ar, Object*& object);
-}// namespace Reflector
+} // namespace Reflector
