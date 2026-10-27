@@ -191,6 +191,7 @@ public:                                                                         
 			trinex_material_parameter(Sampler, Parameter);
 
 		public:
+			trinex_property(IsTransient)
 			Trinex::Sampler sampler;
 
 			Sampler();
@@ -203,7 +204,9 @@ public:                                                                         
 			trinex_material_parameter(Sampler2D, Parameter);
 
 		public:
+			trinex_property(IsTransient)
 			Trinex::Sampler sampler;
+
 			Trinex::Texture2D* texture;
 
 			Sampler2D();
@@ -249,6 +252,8 @@ public:                                                                         
 
 		public:
 			Trinex::RenderSurface* surface;
+
+			trinex_reflect(IsTransient)
 			Trinex::Sampler sampler;
 
 			CombinedSurface();

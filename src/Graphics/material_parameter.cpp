@@ -294,14 +294,12 @@ namespace Trinex::MaterialParameters
 	implement_parameter(Sampler)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(sampler, Refl::Property::IsTransient);
 	}
 
 	implement_parameter(Sampler2D)
 	{
 		register_parameter<This>();
 		trinex_refl_prop(texture, Refl::Property::IsTransient);
-		trinex_refl_prop(sampler, Refl::Property::IsTransient);
 	}
 
 	implement_parameter(Texture2D)
@@ -325,6 +323,5 @@ namespace Trinex::MaterialParameters
 	{
 		register_parameter<This>();
 		trinex_refl_prop(surface, Refl::Property::IsTransient);
-		trinex_refl_prop(sampler, Refl::Property::IsTransient);
 	}
 } // namespace Trinex::MaterialParameters

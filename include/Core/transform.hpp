@@ -4,13 +4,16 @@
 #include <Core/math/quaternion.hpp>
 #include <Core/math/vector.hpp>
 
+#include <Core/transform.generated.hpp>
+
 namespace Trinex
 {
 	class Archive;
 
+	trinex_reflect()
 	struct trinex_api Transform
 	{
-		trinex_old_struct(Transform, void);
+		trinex_reflection_body();
 
 	private:
 		Vector3f vector_of(const Vector3f& dir) const;

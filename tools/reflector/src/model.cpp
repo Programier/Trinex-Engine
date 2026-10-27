@@ -9,9 +9,18 @@ namespace Reflector
 {
 	static bool is_builtin_type(std::string_view name)
 	{
-		return name == "void" || name == "bool" || name == "char" || name == "signed" || name == "unsigned" || name == "short"
-		       || name == "int" || name == "long" || name == "float" || name == "double" || name == "wchar_t" || name == "char8_t"
-		       || name == "char16_t" || name == "char32_t" || name == "auto" || name.starts_with("std::");
+		static const char* names[] = {"bool", "String", "Vector2u", "i8",  "u8",  "i16", "u16",
+		                              "i32",  "u32",    "i64",      "u64", "f32", "f64", "Array"};
+
+		for (const char* entry : names)
+		{
+			if (entry == name)
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	static std::string qualified_name(const Object* object)

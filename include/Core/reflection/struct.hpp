@@ -209,23 +209,4 @@ namespace Trinex::Refl
 		}
 	};
 
-#define trinex_implement_struct(decl, flags)                                                                                     \
-	class Trinex::Refl::Struct* decl::m_static_struct = nullptr;                                                                 \
-                                                                                                                                 \
-	class Trinex::Refl::Struct* decl::static_reflection()                                                                        \
-	{                                                                                                                            \
-		if (!m_static_struct)                                                                                                    \
-		{                                                                                                                        \
-			m_static_struct = Trinex::Refl::NativeStruct<decl>::create(#decl, flags);                                            \
-		}                                                                                                                        \
-		return m_static_struct;                                                                                                  \
-	}                                                                                                                            \
-	trinex_on_reflection_init({.name = #decl})                                                                                   \
-	{                                                                                                                            \
-		decl::static_reflection();                                                                                               \
-	}                                                                                                                            \
-	void decl::static_initialize_struct()
-
-#define trinex_implement_struct_default_init(decl, flags)                                                                        \
-	trinex_implement_struct(decl, flags) {}
 } // namespace Trinex::Refl

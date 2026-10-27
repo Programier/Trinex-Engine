@@ -52,6 +52,8 @@ namespace Trinex::VisualMaterialGraph
 
 	public:
 		String name;
+		
+		trinex_property(Inline)
 		Trinex::Sampler sampler;
 
 		Sampler();
@@ -76,6 +78,8 @@ namespace Trinex::VisualMaterialGraph
 
 	public:
 		Trinex::Texture2D* texture;
+
+		trinex_property(Inline)
 		Trinex::Sampler sampler;
 
 		SampleTexture();

@@ -1,41 +1,74 @@
 #pragma once
-#include <Core/engine_types.hpp>
+#include <Engine/Render/post_process_parameters.generated.hpp>
 
 namespace Trinex
 {
+	trinex_reflect()
 	struct PostProcessParameters final
 	{
-		trinex_old_struct(PostProcessParameters, void);
+		trinex_reflection_body();
 
+		trinex_reflect()
 		struct SSAO
 		{
-			trinex_old_struct(SSAO, void);
+			trinex_reflection_body();
 
-			bool enabled    = false;
-			float intensity = 1.f;
-			float bias      = 0.03f;
-			float power     = 2.f;
-			float radius    = 0.01f;
+			trinex_property()
+			bool enabled = false;
 
-			float fade_out_distance = 80.f;
-			float fade_out_radius   = 50.f;
-			u32 samples             = 32;
+			trinex_property()
+			f32 intensity = 1.f;
+
+			trinex_property()
+			f32 bias = 0.03f;
+
+			trinex_property()
+			f32 power = 2.f;
+
+			trinex_property()
+			f32 radius = 0.01f;
+
+			trinex_property()
+			f32 fade_out_distance = 80.f;
+
+			trinex_property()
+			f32 fade_out_radius = 50.f;
+
+			trinex_property()
+			u32 samples = 32;
 		};
 
+		trinex_reflect()
 		struct Bloom
 		{
-			trinex_old_struct(Bloom, void);
+			trinex_reflection_body();
 
-			bool enabled    = true;
-			float intensity = 1.f;
-			float threshold = 1.f;
-			float knee      = 0.5f;
-			float clamp     = 3.f;
-			float fade_base = 1.f;
-			float fade_max  = 1.f;
+			trinex_property()
+			bool enabled = true;
+
+			trinex_property()
+			f32 intensity = 1.f;
+
+			trinex_property()
+			f32 threshold = 1.f;
+
+			trinex_property()
+			f32 knee = 0.5f;
+
+			trinex_property()
+			f32 clamp = 3.f;
+
+			trinex_property()
+			f32 fade_base = 1.f;
+
+			trinex_property()
+			f32 fade_max = 1.f;
 		};
 
+		trinex_property()
 		SSAO ssao;
+
+		trinex_property()
 		Bloom bloom;
 
 		PostProcessParameters& blend(const PostProcessParameters& parameters, float blend_factor);

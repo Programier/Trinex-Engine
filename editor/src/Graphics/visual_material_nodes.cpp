@@ -25,7 +25,6 @@ namespace Trinex::VisualMaterialGraph
 		static_node_group(static_reflection(), "Textures");
 
 		trinex_refl_prop(name);
-		trinex_refl_prop(sampler, Refl::Property::Inline);
 	}
 
 	trinex_implement_class(Trinex::VisualMaterialGraph::SampleTexture, 0)
@@ -33,7 +32,6 @@ namespace Trinex::VisualMaterialGraph
 		static_node_group(static_reflection(), "Textures");
 
 		trinex_refl_prop(texture);
-		trinex_refl_prop(sampler, Refl::Property::Inline);
 	}
 
 	MaterialRoot::MaterialRoot()

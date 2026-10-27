@@ -11,17 +11,6 @@
 
 namespace Trinex
 {
-	trinex_implement_struct(Trinex::Transform, 0)
-	{
-		auto& location = *trinex_refl_prop(location);
-		auto& rotation = *trinex_refl_prop(rotation);
-		auto& scale    = *trinex_refl_prop(scale);
-
-		location.display_name("Location").tooltip("Location component of transform");
-		rotation.display_name("Rotation").tooltip("Rotation component of transform");
-		scale.display_name("Scale").tooltip("Scale component of transform");
-	}
-
 	Transform::Transform(const Vector3f& location, const Quaternion& rotation, const Vector3f& scale)
 	    : location(location), rotation(rotation), scale(scale)
 	{}
@@ -172,7 +161,5 @@ namespace Trinex
 		registrar.method("Trinex::Matrix4f translation_matrix() const final", &Transform::translation_matrix);
 		registrar.method("Trinex::Matrix4f rotation_matrix() const final", &Transform::rotation_matrix);
 		registrar.method("Trinex::Matrix4f scale_matrix() const final", &Transform::scale_matrix);
-
-		Transform::static_reflection()->script_type_info = registrar.type_info();
 	}
 } // namespace Trinex

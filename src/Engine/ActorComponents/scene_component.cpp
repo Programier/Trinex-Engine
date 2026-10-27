@@ -32,9 +32,6 @@ namespace Trinex
 	{
 		trinex_refl_virtual_prop(Is Visible, is_visible, is_visible);
 
-		auto& local = *trinex_refl_prop(m_local);
-		local.display_name("Transform").tooltip("Local transform of this component");
-
 		auto r = ScriptBinding::Class::existing(static_reflection());
 
 		r.method("SceneComponent@ attach(SceneComponent@ child) final", &This::attach);

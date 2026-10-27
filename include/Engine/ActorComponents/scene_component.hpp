@@ -10,7 +10,9 @@ namespace Trinex
 		trinex_class(SceneComponent, ActorComponent);
 
 	private:
+		trinex_reflect()
 		Transform m_local;
+		
 		mutable Transform m_world;
 
 		mutable bool m_is_transform_dirty : 1;

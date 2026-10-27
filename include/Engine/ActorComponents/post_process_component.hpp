@@ -9,6 +9,7 @@ namespace Trinex
 		trinex_class(PostProcessComponent, SceneComponent);
 
 	private:
+		trinex_property(Inline)
 		PostProcessParameters m_parameters;
 
 		float m_priority;

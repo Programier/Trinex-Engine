@@ -5,6 +5,8 @@
 #include <Core/pointer.hpp>
 #include <Graphics/gpu_buffers.hpp>
 
+#include <Graphics/mesh.generated.hpp>
+
 namespace Trinex
 {
 	class MaterialInterface;
@@ -19,16 +21,24 @@ namespace Trinex
 		inline bool operator<(const MeshVertexAttribute& attribute) const { return semantic < attribute.semantic; }
 	};
 
+	trinex_reflect()
 	struct trinex_api MeshSurface
 	{
-		trinex_old_struct(MeshSurface, void);
+		trinex_reflection_body();
 
 		trinex_property(IsReadOnly, IsTransient)
 		RHITopology topology = RHITopology::TriangleList;
 
-		u32 first_vertex   = 0;
-		u32 first_index    = ~0U;
+		trinex_property(IsReadOnly, IsTransient)
+		u32 first_vertex = 0;
+
+		trinex_property(IsReadOnly, IsTransient)
+		u32 first_index = ~0U;
+
+		trinex_property(IsReadOnly, IsTransient)
 		u32 vertices_count = 0;
+
+		trinex_property(IsReadOnly, IsTransient)
 		u16 material_index = 0;
 
 		bool serialize(Archive& ar);
@@ -57,14 +67,17 @@ namespace Trinex
 		trinex_class(StaticMesh, Asset);
 
 	public:
+		trinex_reflect()
 		struct trinex_api LOD
 		{
-			trinex_old_struct(LOD, void);
+			//trinex_reflection_body();
 
 			VertexBuffer<MeshVertexStream> vertex_stream;
 			VertexBuffer<MeshSurfaceStream> surface_stream;
 
 			IndexBuffer indices;
+
+			trinex_property()
 			Array<MeshSurface> surfaces;
 
 			bool serialize(Archive& ar);

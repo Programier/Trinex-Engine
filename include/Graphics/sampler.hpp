@@ -2,14 +2,17 @@
 #include <Core/types/color.hpp>
 #include <RHI/enums.hpp>
 
+#include <Graphics/sampler.generated.hpp>
+
 namespace Trinex
 {
 	struct RHISamplerDesc;
 	class RHISampler;
 
+	trinex_reflect()
 	class trinex_api Sampler final
 	{
-		trinex_old_struct(Sampler, void);
+		trinex_reflection_body();
 
 	private:
 		class SamplerImpl* m_sampler = nullptr;

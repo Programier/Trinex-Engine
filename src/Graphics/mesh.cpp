@@ -11,34 +11,11 @@
 
 namespace Trinex
 {
-	trinex_implement_struct(Trinex::MeshSurface, 0)
-	{
-		trinex_refl_prop(first_vertex, Refl::Property::IsReadOnly | Refl::Property::IsTransient);
-		trinex_refl_prop(first_index, Refl::Property::IsReadOnly | Refl::Property::IsTransient);
-		trinex_refl_prop(vertices_count, Refl::Property::IsReadOnly | Refl::Property::IsTransient);
-		trinex_refl_prop(material_index, Refl::Property::IsTransient);
-	}
-
-	trinex_implement_struct(Trinex::StaticMesh::LOD, 0)
-	{
-		trinex_refl_prop(surfaces, Refl::Property::IsReadOnly | Refl::Property::IsTransient);
-	}
-
-	trinex_implement_class(Trinex::StaticMesh, Refl::Class::IsAsset | Refl::Class::IsScriptable)
-	{
-		trinex_refl_prop(materials)->tooltip("Array of materials for this mesh");
-		trinex_refl_prop(lods, Refl::Property::IsReadOnly | Refl::Property::IsTransient)->tooltip("Array of lods of this mesh");
-	}
-
-	trinex_implement_struct(Trinex::SkeletalMesh::LOD, 0)
-	{
-		trinex_refl_prop(surfaces, Refl::Property::IsReadOnly | Refl::Property::IsTransient);
-	}
+	trinex_implement_class(Trinex::StaticMesh, Refl::Class::IsAsset | Refl::Class::IsScriptable) {}
 
 	trinex_implement_engine_class(SkeletalMesh, Refl::Class::IsAsset | Refl::Class::IsScriptable)
 	{
-		trinex_refl_prop(materials)->tooltip("Array of materials for this mesh");
-		trinex_refl_prop(lods, Refl::Property::IsReadOnly | Refl::Property::IsTransient)->tooltip("Array of lods of this mesh");
+		
 	}
 
 	bool MeshSurface::serialize(Archive& ar)
