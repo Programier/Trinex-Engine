@@ -1,14 +1,14 @@
+#include <Core/reflection/indirection_type.hpp>
 #include <Core/reflection/native.hpp>
 #include <Core/reflection/of.hpp>
-#include <Core/reflection/pointer_type.hpp>
 
 namespace Trinex::Refl
 {
-	PointerType::PointerType(Name name, Type* type, Object* owner)
+	IndirectionType::IndirectionType(Name name, Type* type, Object* owner)
 	    : Type(name, sizeof(void*), alignof(void*), 0, vtable(), owner), m_type(retain_ref(type))
 	{}
 
-	PointerType* PointerType::from(Type* type)
+	IndirectionType* IndirectionType::from(Type* type, bool rvalue)
 	{
 		if (type == nullptr)
 			return nullptr;
@@ -18,24 +18,24 @@ namespace Trinex::Refl
 		if (owner == nullptr)
 			return nullptr;
 
-		Name name = type->name().to_string() + "*";
+		Name name = type->name().to_string() + (rvalue ? "*" : "&&");
 
 		if (Object* type = owner->find(name))
 		{
-			return static_cast<PointerType*>(type);
+			return static_cast<IndirectionType*>(type);
 		}
 
-		Ref<PointerType> pointer = Ref<PointerType>::make(name, type, owner);
+		Ref<IndirectionType> pointer = Ref<IndirectionType>::make(name, type, owner);
 		return pointer.value();
 	}
 
-	const PointerType::VTable* PointerType::vtable()
+	const IndirectionType::VTable* IndirectionType::vtable()
 	{
 		static Native::TypeVTable<void*, VTable> vtable;
 		return &vtable;
 	}
 
-	Object* PointerType::resolve(const Class* base)
+	Object* IndirectionType::resolve(const Class* base)
 	{
 		if (Object* object = Type::resolve(base))
 		{
@@ -45,7 +45,7 @@ namespace Trinex::Refl
 		return m_type->resolve(base);
 	}
 
-	const Object* PointerType::resolve(const Class* base) const
+	const Object* IndirectionType::resolve(const Class* base) const
 	{
 		if (const Object* object = Type::resolve(base))
 		{
@@ -55,8 +55,8 @@ namespace Trinex::Refl
 		return m_type->resolve(base);
 	}
 
-	trinex_api Type* pointer_type_of(Type* type)
+	trinex_api Type* indirection_type_of(Type* type, bool rvalue)
 	{
-		return PointerType::from(type);
+		return IndirectionType::from(type);
 	}
 } // namespace Trinex::Refl

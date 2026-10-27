@@ -661,7 +661,7 @@ namespace Reflector
 		writer->line("#include <Core/reflection/enum.hpp>");
 		writer->line("#include <Core/reflection/scope.hpp>");
 		writer->line("#include <Core/reflection/class.hpp>");
-		writer->line("#include <Core/reflection/function.hpp>");
+		writer->line("#include <Core/reflection/native_function.hpp>");
 		writer->line("#include <Core/reflection/native.hpp>");
 		writer->line();
 

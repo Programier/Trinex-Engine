@@ -17,7 +17,7 @@ namespace Trinex::Refl
 
 	// Kept as a free functions so this header does not need to include others headers
 	trinex_api Type* const_type_of(Type* type);
-	trinex_api Type* pointer_type_of(Type* type);
+	trinex_api Type* indirection_type_of(Type* type, bool rvalue = false);
 	trinex_api Type* array_type_of(Type* type);
 
 	template<typename T>
@@ -41,7 +41,7 @@ namespace Trinex::Refl
 	{
 		static Type* resolve()
 		{
-			static Type* type = pointer_type_of(TypeOf<T>::resolve());
+			static Type* type = indirection_type_of(TypeOf<T>::resolve());
 			return type;
 		}
 	};
@@ -51,7 +51,7 @@ namespace Trinex::Refl
 	{
 		static Type* resolve()
 		{
-			static Type* type = pointer_type_of(TypeOf<T>::resolve());
+			static Type* type = indirection_type_of(TypeOf<T>::resolve(), true);
 			return type;
 		}
 	};
@@ -61,7 +61,7 @@ namespace Trinex::Refl
 	{
 		static Type* resolve()
 		{
-			static Type* type = pointer_type_of(TypeOf<T>::resolve());
+			static Type* type = indirection_type_of(TypeOf<T>::resolve());
 			return type;
 		}
 	};

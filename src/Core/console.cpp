@@ -5,9 +5,9 @@
 #include <Core/etl/variant.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/reflection/const_type.hpp>
+#include <Core/reflection/indirection_type.hpp>
 #include <Core/reflection/native_function.hpp>
 #include <Core/reflection/object.hpp>
-#include <Core/reflection/pointer_type.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/reflection/scope.hpp>
 #include <Core/reflection/type.hpp>
@@ -507,10 +507,10 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 				continue;
 			}
 
-			if (Refl::PointerType* pointer = ctx.reflection->cast<Refl::PointerType>())
+			if (Refl::IndirectionType* indirect = ctx.reflection->cast<Refl::IndirectionType>())
 			{
 				ctx.object     = ctx.object ? *static_cast<void**>(ctx.object) : nullptr;
-				ctx.reflection = pointer->type();
+				ctx.reflection = indirect->type();
 				ctx.is_const   = ctx.is_const || ctx.reflection->is<Refl::ConstType>();
 			}
 
