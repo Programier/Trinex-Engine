@@ -1,14 +1,14 @@
 #pragma once
 
 #include <Core/etl/engine_resource.hpp>
-#include <Core/object.hpp>
+#include <Core/deprecated/object.hpp>
 #include <Input/system.hpp>
 
 namespace Trinex
 {
-	class trinex_api Engine : public EngineResource<Object>
+	class trinex_api Engine : public EngineResource<DeprecatedObject>
 	{
-		trinex_class(Engine, Object);
+		trinex_class(Engine, DeprecatedObject);
 
 		u64 m_frame_index;
 		float m_delta_time;

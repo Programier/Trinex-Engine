@@ -53,12 +53,12 @@ namespace Trinex
 
 	} // namespace DefaultResources
 
-	trinex_api Object* load_object_from_memory(const u8* data, usize size, const StringView& name)
+	trinex_api DeprecatedObject* load_object_from_memory(const u8* data, usize size, const StringView& name)
 	{
 		if (size > 0)
 		{
 			MemoryStream stream = MemoryStream(const_cast<u8*>(data), size);
-			return Object::load_object(name, &stream);
+			return DeprecatedObject::load_object(name, &stream);
 		}
 
 		return nullptr;
@@ -67,15 +67,15 @@ namespace Trinex
 	template<typename T>
 	static T* load_object(const char* name)
 	{
-		Object* obj = Object::load_object(name);
+		DeprecatedObject* obj = DeprecatedObject::load_object(name);
 		return reinterpret_cast<T*>(obj);
 	}
 
 	template<typename T>
 	static T* create_texture(Package* package, const char* name)
 	{
-		T* texture = Object::new_instance<T>(name, package);
-		texture->flags |= Object::Flags::StandAlone;
+		T* texture = DeprecatedObject::new_instance<T>(name, package);
+		texture->flags |= DeprecatedObject::Flags::StandAlone;
 		texture->format = RHIColorFormat::R8G8B8A8;
 		return texture;
 	}
@@ -251,8 +251,8 @@ namespace Trinex
 	static StaticMesh* create_mesh(Package* package, const char* name, const Array<ProceduralVertex>& vertices,
 	                               const Array<u32>& indices)
 	{
-		StaticMesh* mesh = Object::new_instance<StaticMesh>(name, package);
-		mesh->flags |= Object::Flags::StandAlone;
+		StaticMesh* mesh = DeprecatedObject::new_instance<StaticMesh>(name, package);
+		mesh->flags |= DeprecatedObject::Flags::StandAlone;
 		mesh->bounds = calculate_bounds(vertices);
 		mesh->materials.push_back(DefaultResources::Materials::base_pass);
 

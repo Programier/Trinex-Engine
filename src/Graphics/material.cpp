@@ -132,7 +132,7 @@ namespace Trinex
 		trinex_refl_virtual_prop(Material, parent, parent)->tooltip("Parent Material of this instance");
 	}
 
-	bool MaterialInterface::unregister_child(Object* child)
+	bool MaterialInterface::unregister_child(DeprecatedObject* child)
 	{
 		bool result = ObjectTreeNode::unregister_child(child);
 		return result || child->is_instance_of<MaterialParameters::Parameter>();
@@ -159,7 +159,7 @@ namespace Trinex
 			return nullptr;
 		}
 
-		Parameter* parameter = Object::instance_cast<Parameter>(class_instance->create_object(name, this));
+		Parameter* parameter = DeprecatedObject::instance_cast<Parameter>(class_instance->create_object(name, this));
 
 		if (parameter == nullptr)
 		{
@@ -210,7 +210,7 @@ namespace Trinex
 				String name;
 				archive.serialize(name);
 
-				if (auto param = Object::load_object(name, archive.stream(), ArchiveFlags::SkipObjectSearch))
+				if (auto param = DeprecatedObject::load_object(name, archive.stream(), ArchiveFlags::SkipObjectSearch))
 				{
 					param->owner(this);
 				}
@@ -322,7 +322,7 @@ namespace Trinex
 		return pipeline;
 	}
 
-	Object* Material::register_child(Object* child, u32& index)
+	DeprecatedObject* Material::register_child(DeprecatedObject* child, u32& index)
 	{
 		if (child && child->is_instance_of<Pipeline>())
 			return this;
@@ -330,7 +330,7 @@ namespace Trinex
 		return ObjectTreeNode::register_child(child, index);
 	}
 
-	bool Material::unregister_child(Object* child)
+	bool Material::unregister_child(DeprecatedObject* child)
 	{
 		if (child && child->is_instance_of<Pipeline>())
 			return true;

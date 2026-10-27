@@ -7,7 +7,7 @@ namespace Trinex
 {
 	trinex_implement_engine_class(ObjectViewClient, 0)
 	{
-		register_client(Object::static_reflection(), static_reflection());
+		register_client(DeprecatedObject::static_reflection(), static_reflection());
 	}
 
 	ObjectViewClient::ObjectViewClient()
@@ -56,7 +56,7 @@ namespace Trinex
 		return *this;
 	}
 
-	ObjectViewClient& ObjectViewClient::select(Object* object)
+	ObjectViewClient& ObjectViewClient::select(DeprecatedObject* object)
 	{
 		Super::select(object);
 		m_object = object;

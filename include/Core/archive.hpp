@@ -7,7 +7,7 @@
 namespace Trinex
 {
 	class Stream;
-	class Object;
+	class DeprecatedObject;
 
 	class trinex_api Archive
 	{
@@ -62,8 +62,8 @@ namespace Trinex
 		bool begin_chunk(u32& offset);
 		bool end_chunk(u32 offset);
 
-		bool serialize_object(Object*& object, StringView name = "", Object* owner = nullptr);
-		bool serialize_object_ref(Object*& object);
+		bool serialize_object(DeprecatedObject*& object, StringView name = "", DeprecatedObject* owner = nullptr);
+		bool serialize_object_ref(DeprecatedObject*& object);
 
 		template<typename... Args>
 		Archive& operator()(Args&... args)
@@ -115,9 +115,9 @@ namespace Trinex
 		}
 
 		template<typename T>
-		bool serialize_object(T*& object, StringView name = "", Object* owner = nullptr)
+		bool serialize_object(T*& object, StringView name = "", DeprecatedObject* owner = nullptr)
 		{
-			Object* self = object;
+			DeprecatedObject* self = object;
 			bool valid   = serialize_object(self, name, owner);
 
 			if (valid && is_reading())
@@ -131,7 +131,7 @@ namespace Trinex
 		template<typename T>
 		bool serialize_object_ref(T*& object)
 		{
-			Object* self = object;
+			DeprecatedObject* self = object;
 			bool valid   = serialize_object_ref(self);
 
 			if (valid && is_reading())
@@ -143,7 +143,7 @@ namespace Trinex
 		}
 
 		template<typename T>
-		inline bool serialize_childs(Object* owner, T** begin = nullptr, T** end = nullptr)
+		inline bool serialize_childs(DeprecatedObject* owner, T** begin = nullptr, T** end = nullptr)
 		{
 			u32 size = end - begin;
 			serialize(size);

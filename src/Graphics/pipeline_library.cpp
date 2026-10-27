@@ -20,8 +20,8 @@ namespace Trinex
 
 		switch (type)
 		{
-			case PipelineLibraryCache::Graphics: pipeline = Object::new_instance<GraphicsPipeline>(name, this); break;
-			case PipelineLibraryCache::Compute: pipeline = Object::new_instance<ComputePipeline>(name, this); break;
+			case PipelineLibraryCache::Graphics: pipeline = DeprecatedObject::new_instance<GraphicsPipeline>(name, this); break;
+			case PipelineLibraryCache::Compute: pipeline = DeprecatedObject::new_instance<ComputePipeline>(name, this); break;
 			default: break;
 		}
 
@@ -58,7 +58,7 @@ namespace Trinex
 		return Strings::class_name_sv_of(name);
 	}
 
-	Object* GlobalPipelineLibrary::package_of(StringView name)
+	DeprecatedObject* GlobalPipelineLibrary::package_of(StringView name)
 	{
 		Package* package         = Package::static_find_package("TrinexEngine::GlobalPipelines", true);
 		StringView child_package = Strings::namespace_sv_of(name);

@@ -2,7 +2,7 @@
 
 #include <Core/math/matrix.hpp>
 #include <Core/math/vector.hpp>
-#include <Core/object.hpp>
+#include <Core/deprecated/object.hpp>
 #include <Core/pointer.hpp>
 #include <Graphics/sampler.hpp>
 
@@ -32,9 +32,9 @@ public:                                                                         
 		return Trinex::RHIShaderParameterType::self;                                                                             \
 	}
 
-		class trinex_api Parameter : public Object
+		class trinex_api Parameter : public DeprecatedObject
 		{
-			trinex_class(Parameter, Object);
+			trinex_class(Parameter, DeprecatedObject);
 
 		private:
 			u16 m_pipeline_refs = 0;

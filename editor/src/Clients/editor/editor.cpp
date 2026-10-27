@@ -205,10 +205,10 @@ namespace Trinex
 			{
 				for (const String& lang : Settings::languages)
 				{
-					const char* localized = Object::localize("editor/" + lang).c_str();
+					const char* localized = DeprecatedObject::localize("editor/" + lang).c_str();
 					if (ImGui::MenuItem(localized))
 					{
-						Object::language(lang);
+						DeprecatedObject::language(lang);
 						break;
 					}
 				}
@@ -278,7 +278,7 @@ namespace Trinex
 		Platform::Monitor monitor_info;
 		Platform::MonitorSystem::instance()->monitor(wd->monitor(), &monitor_info);
 		wd->size(monitor_info.mode.resolution);
-		m_world = Object::new_instance<World>("World");
+		m_world = DeprecatedObject::new_instance<World>("World");
 
 		m_scene_view.state(&m_scene_view_state);
 		m_scene_view.scene(m_world->scene());
@@ -302,7 +302,7 @@ namespace Trinex
 
 		ImGuiWindow::make_current(prev_window);
 
-		camera = Object::new_instance<CameraComponent>();
+		camera = DeprecatedObject::new_instance<CameraComponent>();
 		camera->location({0, 3.f, -3.f});
 		camera->look_at({0.f, 0.f, 0.f});
 
@@ -443,11 +443,11 @@ namespace Trinex
 	{
 		if (ImGui::BeginDragDropTarget())
 		{
-			const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ContentBrowser->Object");
+			const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ContentBrowser->DeprecatedObject");
 			if (payload)
 			{
-				IM_ASSERT(payload->DataSize == sizeof(Object*));
-				on_object_dropped(*reinterpret_cast<Object**>(payload->Data));
+				IM_ASSERT(payload->DataSize == sizeof(DeprecatedObject*));
+				on_object_dropped(*reinterpret_cast<DeprecatedObject**>(payload->Data));
 			}
 			ImGui::EndDragDropTarget();
 		}
@@ -774,13 +774,13 @@ namespace Trinex
 		// ImGui::DockBuilderDockWindow(ContentBrowser::static_name(), dock_id_down);
 		ImGui::DockBuilderDockWindow(PropertyRenderer::static_name(), dock_id_right_up);
 		ImGui::DockBuilderDockWindow(ImGuiLevelExplorer::static_name(), dock_id_right_down);
-		ImGui::DockBuilderDockWindow(Object::localize("editor/Viewport").c_str(), dock_id);
+		ImGui::DockBuilderDockWindow(DeprecatedObject::localize("editor/Viewport").c_str(), dock_id);
 		return dock_id;
 	}
 
 	EditorClientOLD& EditorClientOLD::render_viewport_window()
 	{
-		if (!ImGui::Begin(Object::localize("editor/Viewport").c_str(), nullptr))
+		if (!ImGui::Begin(DeprecatedObject::localize("editor/Viewport").c_str(), nullptr))
 		{
 			ImGui::End();
 			return *this;
@@ -938,7 +938,7 @@ namespace Trinex
 		}
 	}
 
-	EditorClientOLD& EditorClientOLD::select(Object* object)
+	EditorClientOLD& EditorClientOLD::select(DeprecatedObject* object)
 	{
 		if (Level* level = instance_cast<Level>(object))
 		{

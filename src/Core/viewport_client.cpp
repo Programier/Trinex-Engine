@@ -58,7 +58,7 @@ namespace Trinex
 
 		if (client_class)
 		{
-			return Object::instance_cast<ViewportClient>(client_class->create_object());
+			return DeprecatedObject::instance_cast<ViewportClient>(client_class->create_object());
 		}
 
 		return nullptr;

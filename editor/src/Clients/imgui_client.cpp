@@ -26,7 +26,7 @@ namespace Trinex
 
 		m_ic_script_update =
 		        r.method("void update(float dt)", trinex_scoped_method(This, update, ImGuiViewportClient & (float) ));
-		m_ic_script_select = r.method("void select(Object@ object)", trinex_scoped_method(This, select));
+		m_ic_script_select = r.method("void select(DeprecatedObject@ object)", trinex_scoped_method(This, select));
 
 		r.method("void update(RenderViewport viewport, float dt)",
 		         trinex_scoped_method(This, update, ImGuiViewportClient & (RenderViewport*, float) ));
@@ -48,7 +48,7 @@ namespace Trinex
 		WindowDesc desc;
 		desc.client = client->full_name();
 		auto window = Window::create(desc);
-		return Object::instance_cast<ImGuiViewportClient>(window->render_viewport()->client());
+		return DeprecatedObject::instance_cast<ImGuiViewportClient>(window->render_viewport()->client());
 	}
 
 	static void draw_available_clients_for_opening_internal(Refl::Class* self, Refl::Class* skip)
@@ -92,7 +92,7 @@ namespace Trinex
 		ScriptContext::current()->execute(this, m_ic_script_update, nullptr, dt);
 	}
 
-	void ImGuiViewportClient::scriptable_select(Object* object)
+	void ImGuiViewportClient::scriptable_select(DeprecatedObject* object)
 	{
 		ScriptContext::current()->execute(this, m_ic_script_select);
 	}
@@ -222,7 +222,7 @@ namespace Trinex
 		return *this;
 	}
 
-	ImGuiViewportClient& ImGuiViewportClient::select(Object* object)
+	ImGuiViewportClient& ImGuiViewportClient::select(DeprecatedObject* object)
 	{
 		return *this;
 	}

@@ -44,7 +44,7 @@ Value <- Localization
        / Integer
        / Boolean
        / Null
-       / Object
+       / DeprecatedObject
        / List
        / IdentifierValue
 
@@ -53,7 +53,7 @@ Binding      <- '$' Identifier ('.' Identifier)* BindingMode?
 BindingMode  <- ':' < 'rw' / 'wr' / 'r' / 'w' >
 
 List <- '[' (Value (',' Value)*)? ']'
-Object <- '{' (ObjectField ObjectSep?)* '}'
+DeprecatedObject <- '{' (ObjectField ObjectSep?)* '}'
 ObjectSep <- ',' / ';'
 ObjectField <- Identifier ':' Value
 
@@ -508,8 +508,8 @@ _Comment    <- '//' (![\r\n] .)*
 					};
 				};
 
-				m_parser["Object"] = [](const peg::SemanticValues& values) {
-					Object object;
+				m_parser["DeprecatedObject"] = [](const peg::SemanticValues& values) {
+					DeprecatedObject object;
 					object.reserve(values.size());
 
 					for (const std::any& item : values)

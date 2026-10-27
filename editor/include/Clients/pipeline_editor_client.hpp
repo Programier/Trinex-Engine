@@ -9,6 +9,6 @@ namespace Trinex
 
 	public:
 		PipelineEditorClient();
-		PipelineEditorClient& select(Object* object) override;
+		PipelineEditorClient& select(DeprecatedObject* object) override;
 	};
 } // namespace Trinex

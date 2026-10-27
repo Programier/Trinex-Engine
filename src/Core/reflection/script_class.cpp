@@ -38,11 +38,11 @@ namespace Trinex::Refl
 		trinex_verify_msg(m_factory.is_valid(), "The script class does not contain a default constructor");
 	}
 
-	Trinex::Object* ScriptClass::object_constructor(StringView name, Trinex::Object* owner, bool scriptable)
+	Trinex::DeprecatedObject* ScriptClass::object_constructor(StringView name, Trinex::DeprecatedObject* owner, bool scriptable)
 	{
 		trinex_verify_msg(scriptable, "Cannot create non-scriptable object from scriptable class");
 
-		Trinex::Object* obj = nullptr;
+		Trinex::DeprecatedObject* obj = nullptr;
 		ScriptContext::current()->execute(m_factory, &obj);
 
 		if (obj == nullptr)
@@ -59,7 +59,7 @@ namespace Trinex::Refl
 		return obj;
 	}
 
-	ScriptClass& ScriptClass::destroy_object(Trinex::Object* object)
+	ScriptClass& ScriptClass::destroy_object(Trinex::DeprecatedObject* object)
 	{
 		auto script_object = reinterpret_cast<asIScriptObject*>(object);
 		script_object->Destroy();

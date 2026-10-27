@@ -27,6 +27,11 @@ namespace Trinex
 		trinex_verify_msg(inserted, "RHI backend is already registered");
 	}
 
+	RHIBackend RHI::backend()
+	{
+		return RHIBackend::Undefined;
+	}
+
 	RHI* RHI::instance()
 	{
 		return nullptr;

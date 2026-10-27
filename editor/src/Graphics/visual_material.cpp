@@ -69,7 +69,7 @@ export Material main<Material : IMaterial>(in IMaterialInput input)
 		if (!node_class->is_a<VisualMaterialGraph::Node>())
 			return nullptr;
 
-		VisualMaterialGraph::Node* node = Object::instance_cast<VisualMaterialGraph::Node>(node_class->create_object("", this));
+		VisualMaterialGraph::Node* node = DeprecatedObject::instance_cast<VisualMaterialGraph::Node>(node_class->create_object("", this));
 
 		if (node)
 		{

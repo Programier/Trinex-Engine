@@ -8,7 +8,7 @@ namespace Trinex
 namespace Trinex::Refl
 {
 	class Class;
-	template<typename T = Trinex::Object>
+	template<typename T = Trinex::DeprecatedObject>
 	class SubClassOf final
 	{
 	private:

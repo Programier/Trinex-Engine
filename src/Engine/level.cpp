@@ -89,7 +89,7 @@ namespace Trinex
 		ScriptContext::current()->execute(this, script_level_stop_play, nullptr);
 	}
 
-	Object* LevelInstance::register_child(Object* child, u32& index)
+	DeprecatedObject* LevelInstance::register_child(DeprecatedObject* child, u32& index)
 	{
 		Actor* actor = instance_cast<Actor>(child);
 
@@ -109,7 +109,7 @@ namespace Trinex
 		return this;
 	}
 
-	bool LevelInstance::unregister_child(Object* child)
+	bool LevelInstance::unregister_child(DeprecatedObject* child)
 	{
 		Actor* actor = instance_cast<Actor>(child);
 
@@ -213,7 +213,7 @@ namespace Trinex
 
 	Level::Level() : m_class(LevelInstance::static_reflection()) {}
 
-	LevelInstance* Level::create_instance(StringView name, Object* owner)
+	LevelInstance* Level::create_instance(StringView name, DeprecatedObject* owner)
 	{
 		ScopeVariable scope(s_next_level, this);
 

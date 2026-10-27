@@ -3,12 +3,12 @@
 #include <Core/buffer_manager.hpp>
 #include <Core/compressor.hpp>
 #include <Core/constants.hpp>
+#include <Core/deprecated/object.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/file_flag.hpp>
 #include <Core/filesystem/file.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/memory.hpp>
-#include <Core/object.hpp>
 #include <Core/object_listener.hpp>
 #include <Core/package.hpp>
 #include <Core/pointer.hpp>
@@ -39,20 +39,20 @@ namespace Trinex
 
 	static Package* s_root_package = nullptr;
 
-	static Array<Object*> s_root_objects;
-	static Array<Object*> s_objects;
+	static Array<DeprecatedObject*> s_root_objects;
+	static Array<DeprecatedObject*> s_objects;
 
 	static void create_default_package()
 	{
 		if (s_root_package == nullptr)
 		{
-			s_root_package = Object::new_instance<Package>("Content");
-			s_root_package->flags.remove(Object::Flags::IsSerializable);
+			s_root_package = DeprecatedObject::new_instance<Package>("Content");
+			s_root_package->flags.remove(DeprecatedObject::Flags::IsSerializable);
 			s_root_package->add_reference();
 		}
 	}
 
-	Refl::Class* Object::static_setup_next_object_info(Refl::Class* self)
+	Refl::Class* DeprecatedObject::static_setup_next_object_info(Refl::Class* self)
 	{
 		if (!s_next_object_info.class_instance)
 		{
@@ -63,7 +63,7 @@ namespace Trinex
 		return s_next_object_info.class_instance;
 	}
 
-	void Object::initialize_new_object(Object* object, StringView name, Object* owner)
+	void DeprecatedObject::initialize_new_object(DeprecatedObject* object, StringView name, DeprecatedObject* owner)
 	{
 		object->m_name = name;
 		object->owner(owner);
@@ -73,17 +73,17 @@ namespace Trinex
 		s_next_object_info.reset();
 	}
 
-	trinex_implement_engine_class(Object, Refl::Class::IsScriptable)
+	trinex_implement_engine_class(DeprecatedObject, Refl::Class::IsScriptable)
 	{
 		auto r = ScriptBinding::Class::existing(static_reflection());
-		r.method("const string& string_name() const final", &Object::string_name);
-		r.static_function("Package@ root_package()", &Object::root_package);
-		r.method("const Name& name() const final", overload_of<const Name&>(&Object::name));
-		r.method("Refl::Class@ class_instance() const final", &Object::class_instance);
-		r.method("bool owner(Object@ new_owner) final", overload_of<bool()>(&Object::owner));
+		r.method("const string& string_name() const final", &DeprecatedObject::string_name);
+		r.static_function("Package@ root_package()", &DeprecatedObject::root_package);
+		r.method("const Name& name() const final", overload_of<const Name&>(&DeprecatedObject::name));
+		r.method("Refl::Class@ class_instance() const final", &DeprecatedObject::class_instance);
+		r.method("bool owner(DeprecatedObject@ new_owner) final", overload_of<bool()>(&DeprecatedObject::owner));
 
-		r.method("void preload()", trinex_scoped_method(Object, preload));
-		r.method("void postload()", trinex_scoped_method(Object, postload));
+		r.method("void preload()", trinex_scoped_method(DeprecatedObject, preload));
+		r.method("void postload()", trinex_scoped_method(DeprecatedObject, postload));
 		script_object_preload  = r.type_info().method_by_decl("void preload()");
 		script_object_postload = r.type_info().method_by_decl("void postload()");
 
@@ -93,22 +93,22 @@ namespace Trinex
 		});
 
 		{
-			ScriptNamespaceScopedChanger changer("Trinex::Object");
-			ScriptEngine::register_function("Object@ static_find_object(StringView object_name)", static_find_object);
+			ScriptNamespaceScopedChanger changer("Trinex::DeprecatedObject");
+			ScriptEngine::register_function("DeprecatedObject@ static_find_object(StringView object_name)", static_find_object);
 		}
 	}
 
-	void Object::script_preload()
+	void DeprecatedObject::script_preload()
 	{
 		ScriptContext::current()->execute(this, script_object_preload);
 	}
 
-	void Object::script_postload()
+	void DeprecatedObject::script_postload()
 	{
 		ScriptContext::current()->execute(this, script_object_postload);
 	}
 
-	bool Object::private_check_instance(const Refl::Class* const check_class) const
+	bool DeprecatedObject::private_check_instance(const Refl::Class* const check_class) const
 	{
 		const void* self = this;
 		if (self == nullptr)
@@ -118,44 +118,44 @@ namespace Trinex
 		return _class != nullptr && _class->is_a(check_class);
 	}
 
-	int Object::AddRef() const
+	int DeprecatedObject::AddRef() const
 	{
 		return 1;
 	}
 
-	int Object::Release() const
+	int DeprecatedObject::Release() const
 	{
 		return 1;
 	}
 
-	asILockableSharedBool* Object::GetWeakRefFlag() const
+	asILockableSharedBool* DeprecatedObject::GetWeakRefFlag() const
 	{
 		return nullptr;
 	}
 
-	int Object::GetRefCount()
+	int DeprecatedObject::GetRefCount()
 	{
 		return 1;
 	}
 
-	void Object::SetGCFlag() {}
+	void DeprecatedObject::SetGCFlag() {}
 
-	bool Object::GetGCFlag()
+	bool DeprecatedObject::GetGCFlag()
 	{
 		return false;
 	}
 
-	asITypeInfo* Object::GetObjectType() const
+	asITypeInfo* DeprecatedObject::GetObjectType() const
 	{
 		return m_class->script_type_info.info();
 	}
 
-	int Object::CopyFrom(const asIScriptObject* other)
+	int DeprecatedObject::CopyFrom(const asIScriptObject* other)
 	{
 		return 0;
 	}
 
-	Object::Object() : m_references(0)
+	DeprecatedObject::DeprecatedObject() : m_references(0)
 	{
 		trinex_verify_msg(s_next_object_info.class_instance, "Next object class is invalid!");
 
@@ -172,22 +172,22 @@ namespace Trinex
 		s_objects.push_back(this);
 	}
 
-	class Refl::Class* Object::class_instance() const
+	class Refl::Class* DeprecatedObject::class_instance() const
 	{
 		return m_class;
 	}
 
-	trinex_api String Object::package_name_of(const StringView& name)
+	trinex_api String DeprecatedObject::package_name_of(const StringView& name)
 	{
 		return String(package_name_sv_of(name));
 	}
 
-	trinex_api String Object::object_name_of(const StringView& name)
+	trinex_api String DeprecatedObject::object_name_of(const StringView& name)
 	{
 		return String(object_name_sv_of(name));
 	}
 
-	trinex_api StringView Object::package_name_sv_of(const StringView& name)
+	trinex_api StringView DeprecatedObject::package_name_sv_of(const StringView& name)
 	{
 		auto index = name.find_last_of(Constants::name_separator);
 		if (index == String::npos)
@@ -197,7 +197,7 @@ namespace Trinex
 		return name.substr(0, index);
 	}
 
-	trinex_api StringView Object::object_name_sv_of(const StringView& name)
+	trinex_api StringView DeprecatedObject::object_name_sv_of(const StringView& name)
 	{
 		auto pos = name.find_last_of(Constants::name_separator);
 		if (pos == String::npos)
@@ -209,32 +209,32 @@ namespace Trinex
 		return name.substr(pos, name.length() - pos);
 	}
 
-	trinex_api const Array<Object*>& Object::static_root_objects()
+	trinex_api const Array<DeprecatedObject*>& DeprecatedObject::static_root_objects()
 	{
 		return s_root_objects;
 	}
 
-	const Array<Object*>& Object::static_objects()
+	const Array<DeprecatedObject*>& DeprecatedObject::static_objects()
 	{
 		return s_objects;
 	}
 
-	Object::~Object()
+	DeprecatedObject::~DeprecatedObject()
 	{
-		remove_from<&Object::m_global_index>(s_objects, m_global_index);
+		remove_from<&DeprecatedObject::m_global_index>(s_objects, m_global_index);
 	}
 
-	const String& Object::string_name() const
+	const String& DeprecatedObject::string_name() const
 	{
 		return m_name.to_string();
 	}
 
-	Object* Object::find_child_object(StringView name) const
+	DeprecatedObject* DeprecatedObject::find_child_object(StringView name) const
 	{
 		return nullptr;
 	}
 
-	bool Object::rename(StringView name, Object* new_owner)
+	bool DeprecatedObject::rename(StringView name, DeprecatedObject* new_owner)
 	{
 		if (new_owner == nullptr)
 			new_owner = m_owner;
@@ -252,7 +252,7 @@ namespace Trinex
 			}
 		}
 
-		Object* old_owner = m_owner;
+		DeprecatedObject* old_owner = m_owner;
 		Name old_name     = m_name;
 
 		bool result = owner(nullptr);
@@ -281,36 +281,36 @@ namespace Trinex
 		return result;
 	}
 
-	Object& Object::post_rename(Object* old_owner, Name old_name)
+	DeprecatedObject& DeprecatedObject::post_rename(DeprecatedObject* old_owner, Name old_name)
 	{
 		return *this;
 	}
 
-	const Name& Object::name() const
+	const Name& DeprecatedObject::name() const
 	{
 		return m_name;
 	}
 
-	Object& Object::on_owner_update(Object* new_owner)
+	DeprecatedObject& DeprecatedObject::on_owner_update(DeprecatedObject* new_owner)
 	{
 		return *this;
 	}
 
-	Object* Object::register_child(Object* child, u32& index)
+	DeprecatedObject* DeprecatedObject::register_child(DeprecatedObject* child, u32& index)
 	{
 		return this;
 	}
 
-	bool Object::unregister_child(Object* child)
+	bool DeprecatedObject::unregister_child(DeprecatedObject* child)
 	{
 		return true;
 	}
 
-	Package* Object::package(bool recursive) const
+	Package* DeprecatedObject::package(bool recursive) const
 	{
 		if (recursive)
 		{
-			const Object* self = this;
+			const DeprecatedObject* self = this;
 			Package* pkg       = nullptr;
 
 			while (self && !pkg)
@@ -325,9 +325,9 @@ namespace Trinex
 		return instance_cast<Package>(m_owner);
 	}
 
-	String Object::full_name() const
+	String DeprecatedObject::full_name() const
 	{
-		static auto object_name_of = [](const Object* object) -> String {
+		static auto object_name_of = [](const DeprecatedObject* object) -> String {
 			if (object->m_name.is_valid())
 				return object->m_name.to_string();
 
@@ -335,8 +335,8 @@ namespace Trinex
 		};
 
 		String result         = object_name_of(this);
-		const Object* current = m_owner;
-		const Object* root    = root_package();
+		const DeprecatedObject* current = m_owner;
+		const DeprecatedObject* root    = root_package();
 
 		while (current && current != root)
 		{
@@ -350,24 +350,24 @@ namespace Trinex
 		return result;
 	}
 
-	u32 Object::references() const
+	u32 DeprecatedObject::references() const
 	{
 		return m_references;
 	}
 
-	u32 Object::add_reference() const
+	u32 DeprecatedObject::add_reference() const
 	{
 		++m_references;
 		return references();
 	}
 
-	u32 Object::remove_reference() const
+	u32 DeprecatedObject::remove_reference() const
 	{
 		--m_references;
 		return references();
 	}
 
-	bool Object::is_noname() const
+	bool DeprecatedObject::is_noname() const
 	{
 		return !m_name.is_valid();
 	}
@@ -377,32 +377,32 @@ namespace Trinex
 		return s_root_package;
 	}
 
-	trinex_api Object* Object::static_find_object(StringView object_name)
+	trinex_api DeprecatedObject* DeprecatedObject::static_find_object(StringView object_name)
 	{
 		return s_root_package->find_child_object(object_name);
 	}
 
-	Object& Object::preload()
+	DeprecatedObject& DeprecatedObject::preload()
 	{
 		return *this;
 	}
 
-	Object& Object::postload()
+	DeprecatedObject& DeprecatedObject::postload()
 	{
 		return rebuild();
 	}
 
-	Object& Object::rebuild()
+	DeprecatedObject& DeprecatedObject::rebuild()
 	{
 		return *this;
 	}
 
-	Object& Object::on_create()
+	DeprecatedObject& DeprecatedObject::on_create()
 	{
 		return *this;
 	}
 
-	Object& Object::on_destroy()
+	DeprecatedObject& DeprecatedObject::on_destroy()
 	{
 		if (m_owner)
 		{
@@ -416,24 +416,24 @@ namespace Trinex
 		return *this;
 	}
 
-	Object& Object::on_property_changed(const Refl::PropertyChangedEvent& event)
+	DeprecatedObject& DeprecatedObject::on_property_changed(const Refl::PropertyChangedEvent& event)
 	{
 		return *this;
 	}
 
-	Object* Object::owner() const
+	DeprecatedObject* DeprecatedObject::owner() const
 	{
 		return m_owner;
 	}
 
-	bool Object::owner(Object* new_owner)
+	bool DeprecatedObject::owner(DeprecatedObject* new_owner)
 	{
 		if (new_owner == m_owner)
 			return true;
 
 		if (this == new_owner)
 		{
-			trinex_error(Log::Core, "Object cannot own itself!");
+			trinex_error(Log::Core, "DeprecatedObject cannot own itself!");
 			return false;
 		}
 
@@ -456,7 +456,7 @@ namespace Trinex
 		{
 			m_child_index    = 0xFFFFFFFF;
 			m_owner          = new_owner;
-			Object* redirect = new_owner->register_child(this, m_child_index);
+			DeprecatedObject* redirect = new_owner->register_child(this, m_child_index);
 
 			if (redirect == new_owner)
 			{
@@ -497,12 +497,12 @@ namespace Trinex
 		Package* next_package = package->find_child_object_checked<Package>(name);
 		if (next_package == nullptr && create && !name.empty())
 		{
-			next_package = Object::new_instance<Package>(name, package);
+			next_package = DeprecatedObject::new_instance<Package>(name, package);
 		}
 		return next_package;
 	}
 
-	Package* Object::static_find_package(StringView name, bool create)
+	Package* DeprecatedObject::static_find_package(StringView name, bool create)
 	{
 		Package* package = const_cast<Package*>(root_package());
 
@@ -521,17 +521,17 @@ namespace Trinex
 		return package ? find_next_package(package, name, create) : nullptr;
 	}
 
-	u32 Object::child_index() const
+	u32 DeprecatedObject::child_index() const
 	{
 		return m_child_index;
 	}
 
-	u32 Object::global_index() const
+	u32 DeprecatedObject::global_index() const
 	{
 		return m_global_index;
 	}
 
-	bool Object::serialize(Archive& archive)
+	bool DeprecatedObject::serialize(Archive& archive)
 	{
 		if (!flags.any(Flags::IsSerializable))
 		{
@@ -541,17 +541,17 @@ namespace Trinex
 		return class_instance()->serialize_properties(this, archive);
 	}
 
-	bool Object::is_valid() const
+	bool DeprecatedObject::is_valid() const
 	{
 		return true;
 	}
 
-	Path Object::filepath() const
+	Path DeprecatedObject::filepath() const
 	{
 		Path path = m_name.to_string() + Constants::asset_extention;
 
-		const Object* entry = m_owner;
-		const Object* root  = root_package();
+		const DeprecatedObject* entry = m_owner;
+		const DeprecatedObject* root  = root_package();
 
 		while (entry && entry != root)
 		{
@@ -562,23 +562,23 @@ namespace Trinex
 		return path;
 	}
 
-	bool Object::is_editable() const
+	bool DeprecatedObject::is_editable() const
 	{
 		return flags.any(Flags::IsEditable);
 	}
 
-	const Object& Object::mark_dirty() const
+	const DeprecatedObject& DeprecatedObject::mark_dirty() const
 	{
 		flags |= Flags::IsDirty;
 		return *this;
 	}
 
-	bool Object::is_dirty() const
+	bool DeprecatedObject::is_dirty() const
 	{
 		return flags.all(Flags::IsDirty);
 	}
 
-	bool Object::save(Stream* stream, ArchiveFlags flags)
+	bool DeprecatedObject::save(Stream* stream, ArchiveFlags flags)
 	{
 		if (stream == nullptr)
 		{
@@ -607,7 +607,7 @@ namespace Trinex
 		Archive raw = Archive(buffer, IOMode::Write, flags);
 
 		{
-			Object* self = this;
+			DeprecatedObject* self = this;
 			if (!raw.serialize_object(self))
 			{
 				return false;
@@ -625,7 +625,7 @@ namespace Trinex
 		return ar;
 	}
 
-	trinex_api Object* Object::load_object(StringView fullname, Stream* stream, ArchiveFlags serialization_flags)
+	trinex_api DeprecatedObject* DeprecatedObject::load_object(StringView fullname, Stream* stream, ArchiveFlags serialization_flags)
 	{
 		if (stream == nullptr)
 		{
@@ -635,7 +635,7 @@ namespace Trinex
 
 		if (!(serialization_flags & ArchiveFlags::SkipObjectSearch))
 		{
-			if (Object* object = static_find_object(fullname))
+			if (DeprecatedObject* object = static_find_object(fullname))
 			{
 				return object;
 			}
@@ -663,7 +663,7 @@ namespace Trinex
 
 		Archive raw = Archive(retain_ref(&raw_stream), IOMode::Read);
 
-		Object* object = nullptr;
+		DeprecatedObject* object = nullptr;
 
 		if (fullname.empty())
 		{
@@ -671,8 +671,8 @@ namespace Trinex
 		}
 		else
 		{
-			StringView package_name = Object::package_name_sv_of(fullname);
-			StringView object_name  = Object::object_name_sv_of(fullname);
+			StringView package_name = DeprecatedObject::package_name_sv_of(fullname);
+			StringView object_name  = DeprecatedObject::object_name_sv_of(fullname);
 
 			raw.serialize_object(object, object_name, Package::static_find_package(package_name, true));
 		}
@@ -680,22 +680,22 @@ namespace Trinex
 		return object;
 	}
 
-	static Object* load_from_file_internal(const Path& path, StringView fullname, ArchiveFlags flags)
+	static DeprecatedObject* load_from_file_internal(const Path& path, StringView fullname, ArchiveFlags flags)
 	{
 		if (auto file = rootfs()->open(path))
 		{
-			Object* object = Object::load_object(fullname, file.value(), flags);
+			DeprecatedObject* object = DeprecatedObject::load_object(fullname, file.value(), flags);
 			return object;
 		}
 
 		return nullptr;
 	}
 
-	trinex_api Object* Object::load_object(StringView name, ArchiveFlags flags)
+	trinex_api DeprecatedObject* DeprecatedObject::load_object(StringView name, ArchiveFlags flags)
 	{
 		if (!(flags & ArchiveFlags::SkipObjectSearch))
 		{
-			if (Object* object = static_find_object(name))
+			if (DeprecatedObject* object = static_find_object(name))
 				return object;
 		}
 
@@ -705,7 +705,7 @@ namespace Trinex
 		return load_from_file_internal(path, name, flags | ArchiveFlags::SkipObjectSearch);
 	}
 
-	trinex_api Object* Object::load_object_from_file(const Path& path, ArchiveFlags flags)
+	trinex_api DeprecatedObject* DeprecatedObject::load_object_from_file(const Path& path, ArchiveFlags flags)
 	{
 		String package_name = Strings::replace_all(path.parent(), Path::sv_separator, Constants::name_separator);
 		StringView name     = path.stem();
@@ -713,25 +713,25 @@ namespace Trinex
 
 		if (!(flags & ArchiveFlags::SkipObjectSearch))
 		{
-			if (Object* object = static_find_object(full_name))
+			if (DeprecatedObject* object = static_find_object(full_name))
 				return object;
 		}
 
 		return load_from_file_internal(Path(Project::assets_dir) / path, full_name, flags | ArchiveFlags::SkipObjectSearch);
 	}
 
-	bool Object::is_serializable() const
+	bool DeprecatedObject::is_serializable() const
 	{
 		return flags.any(Flags::IsSerializable);
 	}
 
-	Package* Object::root_package()
+	Package* DeprecatedObject::root_package()
 	{
 		create_default_package();
 		return s_root_package;
 	}
 
-	bool Object::static_validate_object_name(StringView name, String* msg)
+	bool DeprecatedObject::static_validate_object_name(StringView name, String* msg)
 	{
 		auto create_msg = [msg](const char* message) {
 			if (msg)
@@ -754,7 +754,7 @@ namespace Trinex
 		return true;
 	}
 
-	trinex_api Object* Object::copy_from(Object* src)
+	trinex_api DeprecatedObject* DeprecatedObject::copy_from(DeprecatedObject* src)
 	{
 		ArchiveFlags flags = ArchiveFlags::IsCopyProcess;
 
@@ -771,7 +771,7 @@ namespace Trinex
 
 		{
 			BufferStream stream = buffer;
-			Object* new_object  = Object::load_object("", &stream, flags);
+			DeprecatedObject* new_object  = DeprecatedObject::load_object("", &stream, flags);
 
 			if (!new_object)
 			{
@@ -782,7 +782,7 @@ namespace Trinex
 		}
 	}
 
-	Object* Object::static_new_instance(Refl::Class* object_class, StringView name, Object* owner)
+	DeprecatedObject* DeprecatedObject::static_new_instance(Refl::Class* object_class, StringView name, DeprecatedObject* owner)
 	{
 		if (object_class)
 		{
@@ -791,7 +791,7 @@ namespace Trinex
 		return nullptr;
 	}
 
-	Object* Object::static_new_placement_instance(void* place, Refl::Class* object_class, StringView name, Object* owner)
+	DeprecatedObject* DeprecatedObject::static_new_placement_instance(void* place, Refl::Class* object_class, StringView name, DeprecatedObject* owner)
 	{
 		if (object_class)
 		{

@@ -1,6 +1,6 @@
 #include <Core/archive.hpp>
 #include <Core/engine.hpp>
-#include <Core/object.hpp>
+#include <Core/deprecated/object.hpp>
 #include <Core/pointer.hpp>
 
 namespace Trinex
@@ -16,7 +16,7 @@ namespace Trinex
 		return false;
 	}
 
-	PointerBase& PointerBase::add_reference(Object* object)
+	PointerBase& PointerBase::add_reference(DeprecatedObject* object)
 	{
 		if (object && can_update_reference())
 		{
@@ -25,7 +25,7 @@ namespace Trinex
 		return *this;
 	}
 
-	PointerBase& PointerBase::remove_reference(Object* object)
+	PointerBase& PointerBase::remove_reference(DeprecatedObject* object)
 	{
 		if (object && can_update_reference())
 		{
@@ -35,7 +35,7 @@ namespace Trinex
 		return *this;
 	}
 
-	bool PointerBase::serialize(class Archive& ar, Object*& object, bool is_reference)
+	bool PointerBase::serialize(class Archive& ar, DeprecatedObject*& object, bool is_reference)
 	{
 		if (is_reference)
 		{

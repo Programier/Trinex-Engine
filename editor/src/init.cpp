@@ -13,11 +13,11 @@
 
 namespace Trinex
 {
-	static void skip_destroy_assets(Object* object)
+	static void skip_destroy_assets(DeprecatedObject* object)
 	{
 		if (object->class_instance()->is_asset())
 		{
-			object->flags.remove(Object::Flags::IsUnreachable);
+			object->flags.remove(DeprecatedObject::Flags::IsUnreachable);
 		}
 	}
 
@@ -47,7 +47,7 @@ namespace Trinex
 	template<typename T>
 	static T* load_object(const char* name)
 	{
-		Object* obj = Object::load_object(name);
+		DeprecatedObject* obj = DeprecatedObject::load_object(name);
 		return reinterpret_cast<T*>(obj);
 	}
 
@@ -56,7 +56,7 @@ namespace Trinex
 #define load_resource(var, name, type, group_name)                                                                               \
 	EditorResources::var =                                                                                                       \
 	        reinterpret_cast<type*>(load_object_from_memory(name##_data, name##_len, "Editor::" #group_name "::" #name));        \
-	reinterpret_cast<Object*>(EditorResources::var)->add_reference()
+	reinterpret_cast<DeprecatedObject*>(EditorResources::var)->add_reference()
 
 		EditorResources::default_icon      = load_object<Texture2D>("TrinexEditor::Textures::DefaultIcon");
 		EditorResources::blueprint_texture = load_object<Texture2D>("TrinexEditor::Textures::BlueprintBackground");

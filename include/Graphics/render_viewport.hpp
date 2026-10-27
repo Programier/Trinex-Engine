@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/etl/string.hpp>
 #include <Core/math/vector.hpp>
-#include <Core/object.hpp>
+#include <Core/deprecated/object.hpp>
 #include <Core/pointer.hpp>
 #include <RHI/enums.hpp>
 #include <RHI/resource_ptr.hpp>
@@ -16,9 +16,9 @@ namespace Trinex
 	class RHITexture;
 	struct Color;
 
-	class trinex_api RenderViewport : public Object
+	class trinex_api RenderViewport : public DeprecatedObject
 	{
-		trinex_class(RenderViewport, Object);
+		trinex_class(RenderViewport, DeprecatedObject);
 
 	private:
 		static Array<RenderViewport*> m_viewports;

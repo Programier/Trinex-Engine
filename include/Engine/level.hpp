@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/etl/array.hpp>
-#include <Core/object.hpp>
+#include <Core/deprecated/object.hpp>
 #include <Core/pointer.hpp>
 
 namespace Trinex
@@ -9,9 +9,9 @@ namespace Trinex
 	class Level;
 	class Actor;
 
-	class trinex_api LevelInstance : public Object
+	class trinex_api LevelInstance : public DeprecatedObject
 	{
-		trinex_class(LevelInstance, Object);
+		trinex_class(LevelInstance, DeprecatedObject);
 
 	private:
 		Pointer<Level> m_level;
@@ -25,8 +25,8 @@ namespace Trinex
 		void scriptable_stop_play();
 
 	protected:
-		Object* register_child(Object* child, u32& index) override;
-		bool unregister_child(Object* child) override;
+		DeprecatedObject* register_child(DeprecatedObject* child, u32& index) override;
+		bool unregister_child(DeprecatedObject* child) override;
 
 	public:
 		template<typename NativeType>
@@ -71,9 +71,9 @@ namespace Trinex
 		inline const Array<class Actor*>& actors() const { return m_actors; }
 	};
 
-	class trinex_api Level : public Object
+	class trinex_api Level : public DeprecatedObject
 	{
-		trinex_class(Level, Object);
+		trinex_class(Level, DeprecatedObject);
 
 	private:
 		Refl::Class* m_class;
@@ -82,7 +82,7 @@ namespace Trinex
 	public:
 		Level();
 
-		LevelInstance* create_instance(StringView name = "", Object* owner = nullptr);
+		LevelInstance* create_instance(StringView name = "", DeprecatedObject* owner = nullptr);
 		bool update(LevelInstance* instance);
 		bool serialize(Archive& ar) override;
 	};

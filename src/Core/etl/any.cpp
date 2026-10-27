@@ -197,7 +197,7 @@ namespace Trinex
 			}
 		};
 
-		static_assert(Any::is_stack_type<ObjectValue<true>>, "Object Value is not stack type!");
+		static_assert(Any::is_stack_type<ObjectValue<true>>, "DeprecatedObject Value is not stack type!");
 
 		static Any& opAssign(Any* self, const Any& any) { return (*self) = any; }
 

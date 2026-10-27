@@ -3,17 +3,17 @@
 
 namespace Trinex
 {
-	class Object;
+	class DeprecatedObject;
 
 	class trinex_api ObjectCreateListener : public Registry<ObjectCreateListener>
 	{
 		trinex_registry(ObjectCreateListener);
 
 	public:
-		virtual ObjectCreateListener& on_object_create(Object* object) = 0;
+		virtual ObjectCreateListener& on_object_create(DeprecatedObject* object) = 0;
 
 		using Registry::for_each_invoke;
-		static inline void for_each_invoke(Object* object)
+		static inline void for_each_invoke(DeprecatedObject* object)
 		{
 			Registry::for_each_invoke(&ObjectCreateListener::on_object_create, object);
 		}
@@ -24,10 +24,10 @@ namespace Trinex
 		trinex_registry(ObjectDestroyListener);
 
 	public:
-		virtual ObjectDestroyListener& on_object_destroy(Object* object) = 0;
+		virtual ObjectDestroyListener& on_object_destroy(DeprecatedObject* object) = 0;
 
 		using Registry::for_each_invoke;
-		static inline void for_each_invoke(Object* object)
+		static inline void for_each_invoke(DeprecatedObject* object)
 		{
 			Registry::for_each_invoke(&ObjectDestroyListener::on_object_destroy, object);
 		}

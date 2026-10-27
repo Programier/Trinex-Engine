@@ -51,5 +51,5 @@ namespace Trinex
 
 	} // namespace DefaultResources
 
-	trinex_api class Object* load_object_from_memory(const u8* data, usize size, const StringView& fullname);
+	trinex_api class DeprecatedObject* load_object_from_memory(const u8* data, usize size, const StringView& fullname);
 } // namespace Trinex

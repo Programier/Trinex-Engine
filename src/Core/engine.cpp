@@ -116,6 +116,4 @@ namespace Trinex
 	{
 		return std::chrono::duration_cast<std::chrono::duration<float>>(current_time_point() - start_time).count();
 	}
-
-	trinex_api Engine* engine_instance = nullptr;
 } // namespace Trinex

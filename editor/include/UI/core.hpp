@@ -180,8 +180,8 @@ namespace Trinex::UI
 		};
 
 		using Container = Array<struct ValueDesc>;
-		using Object    = Array<struct ObjectField>;
-		using Value = Variant<Null, bool, i32, f32, String, Unit, LocalizationKey, BindingPath, Identifier, Container, Object>;
+		using DeprecatedObject    = Array<struct ObjectField>;
+		using Value = Variant<Null, bool, i32, f32, String, Unit, LocalizationKey, BindingPath, Identifier, Container, DeprecatedObject>;
 
 		struct ValueDesc
 		{

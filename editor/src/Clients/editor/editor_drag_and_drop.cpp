@@ -6,11 +6,11 @@
 
 namespace Trinex
 {
-	EditorClientOLD& EditorClientOLD::on_object_dropped(Object* object)
+	EditorClientOLD& EditorClientOLD::on_object_dropped(DeprecatedObject* object)
 	{
 		if (StaticMesh* mesh = object->instance_cast<StaticMesh>())
 		{
-			StaticMeshActor* actor = Object::new_instance<StaticMeshActor>();
+			StaticMeshActor* actor = DeprecatedObject::new_instance<StaticMeshActor>();
 			actor->mesh_component()->mesh(mesh);
 			actor->owner(m_world);
 		}

@@ -70,7 +70,7 @@ namespace Trinex
 		return actor;
 	}
 
-	Object* Actor::register_child(Object* child, u32& index)
+	DeprecatedObject* Actor::register_child(DeprecatedObject* child, u32& index)
 	{
 		ActorComponent* component = instance_cast<ActorComponent>(child);
 
@@ -95,7 +95,7 @@ namespace Trinex
 		return this;
 	}
 
-	bool Actor::unregister_child(Object* child)
+	bool Actor::unregister_child(DeprecatedObject* child)
 	{
 		ActorComponent* component = instance_cast<ActorComponent>(child);
 

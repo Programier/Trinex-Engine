@@ -48,7 +48,7 @@ namespace Trinex
 
 	Shader* Pipeline::create_new_shader()
 	{
-		Shader* shader = Object::new_instance<Shader>();
+		Shader* shader = DeprecatedObject::new_instance<Shader>();
 		shader->owner(this);
 		return shader;
 	}
@@ -79,7 +79,7 @@ namespace Trinex
 
 	class Material* Pipeline::material() const
 	{
-		return Object::instance_cast<Material>(owner());
+		return DeprecatedObject::instance_cast<Material>(owner());
 	}
 
 	static bool pipeline_parameter_compare(const RHIShaderParameterInfo& a, const Name& name)

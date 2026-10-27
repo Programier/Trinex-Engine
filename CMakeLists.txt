@@ -58,7 +58,6 @@ else()
 endif()
 
 trinex_source_directories(TrinexEngine RECURSIVE
-    "${TRINEX_ENGINE_SRC}/Window/"
     "${TRINEX_ENGINE_SRC}/Image/"
     "${TRINEX_ENGINE_SRC}/Graphics/"
     "${TRINEX_ENGINE_SRC}/Core/"

@@ -170,7 +170,7 @@ namespace Trinex
 		EditorClientOLD& render_viewport_menu();
 		EditorClientOLD& render_statistics();
 
-		EditorClientOLD& on_object_dropped(Object* object);
+		EditorClientOLD& on_object_dropped(DeprecatedObject* object);
 		EditorClientOLD& update_drag_and_drop();
 
 		EditorClientOLD& update_camera();
@@ -182,6 +182,6 @@ namespace Trinex
 		void on_mouse_release(const InputEvent& event);
 		void on_mouse_move(const InputEvent& event);
 
-		EditorClientOLD& select(Object* object) override;
+		EditorClientOLD& select(DeprecatedObject* object) override;
 	};
 } // namespace Trinex

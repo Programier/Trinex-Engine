@@ -34,7 +34,7 @@ namespace Trinex::UI
 
 			if (Window* window = Window::create(desc))
 			{
-				return Object::instance_cast<Client>(window->render_viewport()->client());
+				return DeprecatedObject::instance_cast<Client>(window->render_viewport()->client());
 			}
 
 			return nullptr;
@@ -320,7 +320,7 @@ namespace Trinex::UI
 	// 	return *this;
 	// }
 
-	Client& Client::select(Object* object)
+	Client& Client::select(DeprecatedObject* object)
 	{
 		return *this;
 	}

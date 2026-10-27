@@ -7,10 +7,10 @@ namespace Trinex
 {
 	Package::Package()
 	{
-		flags |= Object::Flags::StandAlone;
+		flags |= DeprecatedObject::Flags::StandAlone;
 	}
 
-	bool Package::can_add_object(Object* object) const
+	bool Package::can_add_object(DeprecatedObject* object) const
 	{
 		if (!object)
 			return false;
@@ -29,21 +29,21 @@ namespace Trinex
 
 		if (contains_object(object->name()))
 		{
-			trinex_error(Log::Core, "Cannot add object to package. Object with name '%s' already exist in package!",
+			trinex_error(Log::Core, "Cannot add object to package. DeprecatedObject with name '%s' already exist in package!",
 			             object->string_name().c_str());
 			return false;
 		}
 		return true;
 	}
 
-	Object* Package::register_child(Object* object, u32& index)
+	DeprecatedObject* Package::register_child(DeprecatedObject* object, u32& index)
 	{
 		if (can_add_object(object))
 			return ObjectTreeNode::register_child(object, index);
 		return nullptr;
 	}
 
-	bool Package::add_object(Object* object)
+	bool Package::add_object(DeprecatedObject* object)
 	{
 		if (!object)
 			return false;
@@ -51,7 +51,7 @@ namespace Trinex
 		return object->owner(this);
 	}
 
-	Package& Package::remove_object(Object* object)
+	Package& Package::remove_object(DeprecatedObject* object)
 	{
 		if (!object || object->package() != this)
 			return *this;
@@ -60,12 +60,12 @@ namespace Trinex
 		return *this;
 	}
 
-	const Array<Object*>& Package::objects() const
+	const Array<DeprecatedObject*>& Package::objects() const
 	{
 		return childs();
 	}
 
-	bool Package::contains_object(const Object* object) const
+	bool Package::contains_object(const DeprecatedObject* object) const
 	{
 		return object ? object->package() == this : false;
 	}
@@ -85,7 +85,7 @@ namespace Trinex
 
 		bool result = true;
 
-		for (Object* object : m_childs)
+		for (DeprecatedObject* object : m_childs)
 		{
 			if (Package* sub_package = object->instance_cast<Package>())
 			{
@@ -108,7 +108,7 @@ namespace Trinex
 		Package* next_package = package->find_child_object_checked<Package>(name);
 		if (next_package == nullptr && create && !name.empty())
 		{
-			next_package = Object::new_instance<Package>(name, package);
+			next_package = DeprecatedObject::new_instance<Package>(name, package);
 		}
 		return next_package;
 	}

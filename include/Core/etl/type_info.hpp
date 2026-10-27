@@ -6,7 +6,7 @@
 
 namespace Trinex
 {
-	class Object;
+	class DeprecatedObject;
 
 	struct trinex_api type_info_base{protected: template<std::size_t... indices> static consteval auto substring_as_array(
 		    std::string_view str, std::index_sequence<indices...>){return std::array{str[indices]..., '\0'};
@@ -96,7 +96,7 @@ public:
 	static constexpr inline bool is_destructible                    = std::is_destructible_v<T>;
 	static constexpr inline bool is_trivially_destructible          = std::is_trivially_destructible_v<T>;
 	static constexpr inline bool is_nothrow_destructible            = std::is_nothrow_destructible_v<T>;
-	static constexpr inline bool is_object_based                    = std::is_base_of_v<Object, decay_type>;
+	static constexpr inline bool is_object_based                    = std::is_base_of_v<DeprecatedObject, decay_type>;
 
 	static consteval std::string_view name() { return m_name.data(); }
 

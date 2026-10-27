@@ -34,7 +34,7 @@ namespace Trinex
 	// 	return *this;
 	// }
 
-	EditorClient& EditorClient::select(Object* object)
+	EditorClient& EditorClient::select(DeprecatedObject* object)
 	{
 		Super::select(object);
 		return *this;

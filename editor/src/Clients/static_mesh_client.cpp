@@ -78,7 +78,7 @@ namespace Trinex
 		return *this;
 	}
 
-	StaticMeshClient& StaticMeshClient::select(Object* object)
+	StaticMeshClient& StaticMeshClient::select(DeprecatedObject* object)
 	{
 		if (auto mesh = instance_cast<StaticMesh>(object))
 		{

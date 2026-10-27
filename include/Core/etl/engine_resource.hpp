@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/object.hpp>
+#include <Core/deprecated/object.hpp>
 
 namespace Trinex
 {
@@ -9,6 +9,6 @@ namespace Trinex
 	public:
 		using Parent::Parent;
 
-		EngineResource() { Object::flags |= Object::Flags::StandAlone; }
+		EngineResource() { DeprecatedObject::flags |= DeprecatedObject::Flags::StandAlone; }
 	};
 } // namespace Trinex

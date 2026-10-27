@@ -78,7 +78,7 @@ namespace Trinex
 			}
 		}
 
-		Object* compiler_object = compiler_class->create_object();
+		DeprecatedObject* compiler_object = compiler_class->create_object();
 
 		if (compiler_object == nullptr)
 		{

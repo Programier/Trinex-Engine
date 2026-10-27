@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/etl/array.hpp>
 #include <Core/etl/delegate.hpp>
-#include <Core/object.hpp>
+#include <Core/deprecated/object.hpp>
 #include <RHI/structures.hpp>
 
 namespace Trinex
@@ -66,9 +66,9 @@ namespace Trinex
 		bool initialize_pipeline(class ComputePipeline* pipeline);
 	};
 
-	class trinex_api ShaderCompiler : public Object
+	class trinex_api ShaderCompiler : public DeprecatedObject
 	{
-		trinex_class(ShaderCompiler, Object);
+		trinex_class(ShaderCompiler, DeprecatedObject);
 
 	public:
 		using CompileCallback = Delegate<bool(const ShaderCompilationResult&)>;

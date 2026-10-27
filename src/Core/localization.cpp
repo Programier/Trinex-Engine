@@ -3,7 +3,7 @@
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/localization.hpp>
 #include <Core/memory.hpp>
-#include <Core/object.hpp>
+#include <Core/deprecated/object.hpp>
 #include <Engine/project.hpp>
 #include <Engine/settings.hpp>
 #include <regex>
@@ -129,17 +129,17 @@ namespace Trinex
 		return *this;
 	}
 
-	trinex_api const String& Object::language()
+	trinex_api const String& DeprecatedObject::language()
 	{
 		return Localization::instance()->language();
 	}
 
-	trinex_api void Object::language(const StringView& new_language)
+	trinex_api void DeprecatedObject::language(const StringView& new_language)
 	{
 		Localization::instance()->language(new_language);
 	}
 
-	trinex_api const String& Object::localize(const StringView& line)
+	trinex_api const String& DeprecatedObject::localize(const StringView& line)
 	{
 		return Localization::instance()->localize(line);
 	}

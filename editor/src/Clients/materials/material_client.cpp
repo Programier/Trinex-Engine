@@ -84,10 +84,10 @@ namespace Trinex
 			{
 				for (const String& lang : Settings::languages)
 				{
-					const char* localized = Object::localize("editor/" + lang).c_str();
+					const char* localized = DeprecatedObject::localize("editor/" + lang).c_str();
 					if (ImGui::MenuItem(localized))
 					{
-						Object::language(lang);
+						DeprecatedObject::language(lang);
 						break;
 					}
 				}
@@ -151,7 +151,7 @@ namespace Trinex
 		return *this;
 	}
 
-	MaterialEditorClient& MaterialEditorClient::select(Object* object)
+	MaterialEditorClient& MaterialEditorClient::select(DeprecatedObject* object)
 	{
 		Super::select(object);
 

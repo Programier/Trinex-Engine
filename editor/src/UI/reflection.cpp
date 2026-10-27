@@ -65,9 +65,9 @@ namespace Trinex::UI::Refl
 			return it->second(dst.address, src.address, mask);
 		}
 
-		if (src.type == NativeType<Markup::Object>::instance())
+		if (src.type == NativeType<Markup::DeprecatedObject>::instance())
 		{
-			const auto& object = *static_cast<const Markup::Object*>(src.address);
+			const auto& object = *static_cast<const Markup::DeprecatedObject*>(src.address);
 
 			for (const Markup::ObjectField& field : object)
 			{
@@ -609,7 +609,7 @@ namespace Trinex::UI::Refl
 	template<typename DstType>
 	static bool object_to_type(void* dst, const void* src, Property::Flags mask)
 	{
-		const auto& object = *static_cast<const Markup::Object*>(src);
+		const auto& object = *static_cast<const Markup::DeprecatedObject*>(src);
 
 		for (const Markup::ObjectField& field : object)
 		{
@@ -775,6 +775,6 @@ namespace Trinex::UI::Refl
 		trinex_ui_bind_type_name(Markup::BindingPath);
 		trinex_ui_bind_type_name(Markup::LocalizationKey);
 		trinex_ui_bind_type_name(Markup::Null);
-		trinex_ui_bind_type_name(Markup::Object);
+		trinex_ui_bind_type_name(Markup::DeprecatedObject);
 	}
 } // namespace Trinex::UI::Refl

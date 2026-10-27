@@ -5,7 +5,7 @@ struct ImGuiTrinexTextureId;
 namespace Trinex
 {
 	class Texture2D;
-	class Object;
+	class DeprecatedObject;
 
 	namespace Refl
 	{
@@ -16,7 +16,7 @@ namespace Trinex
 	{
 		ImGuiTrinexTextureId default_texture();
 
-		ImGuiTrinexTextureId find_icon(Object* object);
+		ImGuiTrinexTextureId find_icon(DeprecatedObject* object);
 		ImGuiTrinexTextureId find_icon(Refl::Class* class_instance);
 	} // namespace Icons
 } // namespace Trinex

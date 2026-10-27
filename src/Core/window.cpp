@@ -47,7 +47,7 @@ namespace Trinex
 			return nullptr;
 
 		const i32 interval      = 1;
-		self->m_render_viewport = Object::new_instance<RenderViewport>("", nullptr, self.value(), interval);
+		self->m_render_viewport = DeprecatedObject::new_instance<RenderViewport>("", nullptr, self.value(), interval);
 
 		// Initialize client
 		//self->icon(load_image_icon());

@@ -454,7 +454,7 @@ namespace Trinex
 			return surface;
 		}
 
-		RenderSurface* surface = Object::new_instance<RenderSurface>();
+		RenderSurface* surface = DeprecatedObject::new_instance<RenderSurface>();
 		surface->add_reference();
 		surface->init(format, size);
 

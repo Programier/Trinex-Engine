@@ -76,7 +76,7 @@ namespace Trinex::etl
 	using std::underlying_type_t;
 
 	class Archive;
-	class Object;
+	class DeprecatedObject;
 
 	// ============================================================================
 	// Basic utilities
@@ -86,11 +86,11 @@ namespace Trinex::etl
 	inline constexpr bool always_false_v = false;
 
 	// ============================================================================
-	// Object traits
+	// DeprecatedObject traits
 	// ============================================================================
 
 	template<typename T>
-	struct is_object_type : std::is_base_of<Object, std::remove_cvref_t<T>>
+	struct is_object_type : std::is_base_of<DeprecatedObject, std::remove_cvref_t<T>>
 	{
 	};
 

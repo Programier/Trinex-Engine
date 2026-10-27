@@ -388,7 +388,7 @@ namespace Trinex
 		return *this;
 	}
 
-	TextureEditorClient& TextureEditorClient::select(Object* object)
+	TextureEditorClient& TextureEditorClient::select(DeprecatedObject* object)
 	{
 		if (TextureCube* texture = instance_cast<TextureCube>(object))
 		{

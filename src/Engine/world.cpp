@@ -90,7 +90,7 @@ namespace Trinex
 		return *this;
 	}
 
-	Object* World::register_child(Object* child, u32& index)
+	DeprecatedObject* World::register_child(DeprecatedObject* child, u32& index)
 	{
 		LevelInstance* level = instance_cast<LevelInstance>(child);
 
@@ -117,7 +117,7 @@ namespace Trinex
 		return this;
 	}
 
-	bool World::unregister_child(Object* child)
+	bool World::unregister_child(DeprecatedObject* child)
 	{
 		LevelInstance* level = instance_cast<LevelInstance>(child);
 

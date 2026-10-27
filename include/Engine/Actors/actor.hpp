@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/object.hpp>
+#include <Core/deprecated/object.hpp>
 #include <Core/pointer.hpp>
 #include <Core/transform.hpp>
 
@@ -12,9 +12,9 @@ namespace Trinex
 	class LevelInstance;
 	class RenderScene;
 
-	class trinex_api Actor : public Object
+	class trinex_api Actor : public DeprecatedObject
 	{
-		trinex_class(Actor, Object);
+		trinex_class(Actor, DeprecatedObject);
 
 	public:
 		template<typename NativeType>
@@ -66,8 +66,8 @@ namespace Trinex
 		void scriptable_despawned();
 
 	protected:
-		Object* register_child(Object* child, u32& index) override;
-		bool unregister_child(Object* child) override;
+		DeprecatedObject* register_child(DeprecatedObject* child, u32& index) override;
+		bool unregister_child(DeprecatedObject* child) override;
 
 	public:
 		Actor();

@@ -304,11 +304,11 @@ namespace Trinex
 	// 	// {
 	// 	// 	if (ImGui::BeginDragDropTarget())
 	// 	// 	{
-	// 	// 		const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ContentBrowser->Object");
+	// 	// 		const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ContentBrowser->DeprecatedObject");
 	// 	// 		if (payload)
 	// 	// 		{
-	// 	// 			IM_ASSERT(payload->DataSize == sizeof(Object*));
-	// 	// 			Object* new_object = *reinterpret_cast<Object**>(payload->Data);
+	// 	// 			IM_ASSERT(payload->DataSize == sizeof(DeprecatedObject*));
+	// 	// 			DeprecatedObject* new_object = *reinterpret_cast<DeprecatedObject**>(payload->Data);
 	// 	// 		}
 	// 	// 		ImGui::EndDragDropTarget();
 	// 	// 	}
@@ -649,7 +649,7 @@ namespace Trinex
 	// 	// 	{
 	// 	// 		if (!node->is_root_node())
 	// 	// 		{
-	// 	// 			auto copy         = Object::instance_cast<VisualMaterialGraph::Node>(Object::copy_from(node));
+	// 	// 			auto copy         = DeprecatedObject::instance_cast<VisualMaterialGraph::Node>(DeprecatedObject::copy_from(node));
 	// 	// 			copy->position    = node->position + position_offset;
 	// 	// 			m_nodes_map[node] = copy;
 	// 	// 			result.insert(copy);
@@ -824,7 +824,7 @@ namespace Trinex
 
 		if (m_properties_window)
 		{
-			Object* properties_object = nullptr;
+			DeprecatedObject* properties_object = nullptr;
 
 			if (m_properties_window && m_selected_nodes.size() == 1)
 			{
@@ -907,7 +907,7 @@ namespace Trinex
 		return *this;
 	}
 
-	VisualMaterialEditorClient& VisualMaterialEditorClient::select(Object* object)
+	VisualMaterialEditorClient& VisualMaterialEditorClient::select(DeprecatedObject* object)
 	{
 		if (VisualMaterial* material = instance_cast<VisualMaterial>(object))
 		{

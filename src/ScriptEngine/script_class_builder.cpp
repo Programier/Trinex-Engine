@@ -46,7 +46,7 @@ namespace Trinex::Refl
 			ti = ti->GetSubType(0);
 
 			asITypeInfo* current = ti;
-			auto target          = Trinex::Object::static_reflection()->script_type_info.info();
+			auto target          = Trinex::DeprecatedObject::static_reflection()->script_type_info.info();
 
 			while (current && current != target)
 				current = current->GetBaseType();

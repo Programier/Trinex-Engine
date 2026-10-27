@@ -4,18 +4,18 @@
 
 namespace Trinex
 {
-	class Object;
+	class DeprecatedObject;
 
 	class trinex_api ObjectTreeNodeStatics
 	{
 	private:
-		using iterator       = Object**;
-		using const_iterator = Object* const*;
-		static bool lower_bound(iterator begin, iterator end, iterator& out, Object* object, Refl::Class* check_class);
-		static Object* find(const_iterator begin, const_iterator end, StringView full_name);
-		static Object* find(const_iterator begin, const_iterator end, Name name);
+		using iterator       = DeprecatedObject**;
+		using const_iterator = DeprecatedObject* const*;
+		static bool lower_bound(iterator begin, iterator end, iterator& out, DeprecatedObject* object, Refl::Class* check_class);
+		static DeprecatedObject* find(const_iterator begin, const_iterator end, StringView full_name);
+		static DeprecatedObject* find(const_iterator begin, const_iterator end, Name name);
 
-		template<typename Super, typename Element = Object>
+		template<typename Super, typename Element = DeprecatedObject>
 		class DataHolder : public Super
 		{
 		public:
@@ -50,17 +50,17 @@ namespace Trinex
 		friend class ObjectTreeNode;
 	};
 
-	template<typename Super, typename Element = Object>
+	template<typename Super, typename Element = DeprecatedObject>
 	class ObjectTreeNode : public ObjectTreeNodeStatics::DataHolder<Super, Element>
 	{
 		using Holder = ObjectTreeNodeStatics::DataHolder<Super, Element>;
 
 	protected:
-		Object* register_child(Object* child, u32& index) override
+		DeprecatedObject* register_child(DeprecatedObject* child, u32& index) override
 		{
-			Object** begin = reinterpret_cast<Object**>(Holder::m_childs.begin());
-			Object** end   = reinterpret_cast<Object**>(Holder::m_childs.end());
-			Object** place = nullptr;
+			DeprecatedObject** begin = reinterpret_cast<DeprecatedObject**>(Holder::m_childs.begin());
+			DeprecatedObject** end   = reinterpret_cast<DeprecatedObject**>(Holder::m_childs.end());
+			DeprecatedObject** place = nullptr;
 
 			if (!ObjectTreeNodeStatics::lower_bound(begin, end, place, child, Element::static_reflection()))
 				return Super::register_child(child, index);
@@ -69,11 +69,11 @@ namespace Trinex
 			return this;
 		}
 
-		bool unregister_child(Object* child) override
+		bool unregister_child(DeprecatedObject* child) override
 		{
-			Object** begin = reinterpret_cast<Object**>(Holder::m_childs.begin());
-			Object** end   = reinterpret_cast<Object**>(Holder::m_childs.end());
-			Object** place = nullptr;
+			DeprecatedObject** begin = reinterpret_cast<DeprecatedObject**>(Holder::m_childs.begin());
+			DeprecatedObject** end   = reinterpret_cast<DeprecatedObject**>(Holder::m_childs.end());
+			DeprecatedObject** place = nullptr;
 
 			if (!ObjectTreeNodeStatics::lower_bound(begin, end, place, child, Element::static_reflection()))
 				return Super::unregister_child(child);
@@ -88,7 +88,7 @@ namespace Trinex
 		}
 
 	public:
-		Object* find_child_object(StringView name) const override
+		DeprecatedObject* find_child_object(StringView name) const override
 		{
 			using It = ObjectTreeNodeStatics::const_iterator;
 			It begin = reinterpret_cast<It>(Holder::m_childs.begin());
@@ -100,7 +100,7 @@ namespace Trinex
 			return Super::find_child_object(name);
 		}
 
-		Object* find_child_object(Name name) const
+		DeprecatedObject* find_child_object(Name name) const
 		{
 			using It = ObjectTreeNodeStatics::const_iterator;
 			It begin = reinterpret_cast<It>(Holder::m_childs.begin());

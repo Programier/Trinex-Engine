@@ -27,7 +27,7 @@ namespace Trinex
 		ImGuiViewportClient& update(class RenderViewport* viewport, float dt) final override;
 
 		void scriptable_update(float dt);
-		void scriptable_select(Object* object);
+		void scriptable_select(DeprecatedObject* object);
 
 	protected:
 		void draw_available_clients_for_opening();
@@ -44,7 +44,7 @@ namespace Trinex
 				return *this;
 			}
 
-			Scriptable& select(Object* object) override
+			Scriptable& select(DeprecatedObject* object) override
 			{
 				ImGuiViewportClient::scriptable_select(object);
 				return *this;
@@ -65,7 +65,7 @@ namespace Trinex
 		inline ImGuiContext* context() const { return m_context; }
 
 		virtual ImGuiViewportClient& update(float dt);
-		virtual ImGuiViewportClient& select(Object* object);
+		virtual ImGuiViewportClient& select(DeprecatedObject* object);
 		virtual u32 build_dock(u32 dock);
 	};
 } // namespace Trinex

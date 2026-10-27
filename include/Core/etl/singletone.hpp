@@ -2,7 +2,7 @@
 
 #include <Core/definitions.hpp>
 #include <Core/etl/utility.hpp>
-#include <Core/object.hpp>
+#include <Core/deprecated/object.hpp>
 
 namespace Trinex
 {

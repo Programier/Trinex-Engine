@@ -9,13 +9,13 @@
 namespace Trinex
 {
 	class Package;
-	class Object;
+	class DeprecatedObject;
 	class Path;
 
 	trinex_api const char* operator""_localized(const char* line, usize len);
 
 	// Head of all classes in the Engine
-	class trinex_api Object : private asIScriptObject
+	class trinex_api DeprecatedObject : private asIScriptObject
 	{
 	public:
 		template<typename NativeType>
@@ -23,18 +23,18 @@ namespace Trinex
 		{
 			Scriptable& preload() override
 			{
-				static_cast<Object*>(this)->script_preload();
+				static_cast<DeprecatedObject*>(this)->script_preload();
 				return *this;
 			}
 
 			Scriptable& postload() override
 			{
-				static_cast<Object*>(this)->script_postload();
+				static_cast<DeprecatedObject*>(this)->script_postload();
 				return *this;
 			}
 		};
 
-		using ObjectClass = Object;
+		using ObjectClass = DeprecatedObject;
 
 		struct Flags
 		{
@@ -60,7 +60,7 @@ namespace Trinex
 
 	private:
 		Refl::Class* m_class;
-		Object* m_owner;
+		DeprecatedObject* m_owner;
 		Name m_name;
 
 		mutable Atomic<u32> m_references;
@@ -76,19 +76,19 @@ namespace Trinex
 	private:
 		// Setup object info
 		static Refl::Class* static_setup_next_object_info(Refl::Class* self = nullptr);
-		static void initialize_new_object(Object* object, StringView name, Object* owner);
+		static void initialize_new_object(DeprecatedObject* object, StringView name, DeprecatedObject* owner);
 
 		template<typename T>
-		static inline T* initialize_new_object_checked(T* object, StringView name, Object* owner)
+		static inline T* initialize_new_object_checked(T* object, StringView name, DeprecatedObject* owner)
 		{
-			if constexpr (std::is_base_of_v<Object, T>)
+			if constexpr (std::is_base_of_v<DeprecatedObject, T>)
 			{
 				initialize_new_object(object, name, owner);
 			}
 			return object;
 		}
 
-		template<u32 Object::* prop = &Object::m_child_index, typename ContainerType>
+		template<u32 DeprecatedObject::* prop = &DeprecatedObject::m_child_index, typename ContainerType>
 		bool remove_from(ContainerType& container, u32 idx)
 		{
 			if (container.empty())
@@ -101,9 +101,9 @@ namespace Trinex
 
 			if (idx != last)
 			{
-				auto* moved                        = container[last];
-				container[idx]                     = moved;
-				static_cast<Object*>(moved)->*prop = idx;
+				auto* moved                                  = container[last];
+				container[idx]                               = moved;
+				static_cast<DeprecatedObject*>(moved)->*prop = idx;
 			}
 
 			container.pop_back();
@@ -116,10 +116,10 @@ namespace Trinex
 	protected:
 		bool private_check_instance(const class Refl::Class* const check_class) const;
 
-		virtual Object& on_owner_update(Object* new_owner);
-		virtual Object* register_child(Object* child, u32& index);
-		virtual bool unregister_child(Object* child);
-		virtual Object& post_rename(Object* old_owner, Name old_name);
+		virtual DeprecatedObject& on_owner_update(DeprecatedObject* new_owner);
+		virtual DeprecatedObject* register_child(DeprecatedObject* child, u32& index);
+		virtual bool unregister_child(DeprecatedObject* child);
+		virtual DeprecatedObject& post_rename(DeprecatedObject* old_owner, Name old_name);
 
 	private:
 		// AngelScript integration
@@ -133,14 +133,14 @@ namespace Trinex
 		int CopyFrom(const asIScriptObject* other) override;
 
 	public:
-		using This  = Object;
-		using Super = Object;
+		using This  = DeprecatedObject;
+		using Super = DeprecatedObject;
 
-		Object();
-		trinex_non_copyable(Object);
-		trinex_non_moveable(Object);
+		DeprecatedObject();
+		trinex_non_copyable(DeprecatedObject);
+		trinex_non_moveable(DeprecatedObject);
 
-		static Object* static_constructor();
+		static DeprecatedObject* static_constructor();
 		static void static_initialize_class();
 		static class Refl::Class* static_reflection();
 		class Refl::Class* class_instance() const;
@@ -149,8 +149,8 @@ namespace Trinex
 		static String object_name_of(const StringView& name);
 		static StringView package_name_sv_of(const StringView& name);
 		static StringView object_name_sv_of(const StringView& name);
-		static const Array<Object*>& static_root_objects();
-		static const Array<Object*>& static_objects();
+		static const Array<DeprecatedObject*>& static_root_objects();
+		static const Array<DeprecatedObject*>& static_objects();
 		static Package* root_package();
 		static bool static_validate_object_name(StringView name, String* msg = nullptr);
 
@@ -158,17 +158,17 @@ namespace Trinex
 		static void language(const StringView& new_language);
 		static const String& localize(const StringView& line);
 
-		static Object* load_object(StringView fullname, class Blob* blob, ArchiveFlags flags = {});
-		static Object* load_object(StringView fullname, class Stream* stream, ArchiveFlags flags = {});
-		static Object* load_object(StringView fullname, ArchiveFlags flags = {});
-		static Object* load_object_from_file(const Path& path, ArchiveFlags flags = {});
+		static DeprecatedObject* load_object(StringView fullname, class Blob* blob, ArchiveFlags flags = {});
+		static DeprecatedObject* load_object(StringView fullname, class Stream* stream, ArchiveFlags flags = {});
+		static DeprecatedObject* load_object(StringView fullname, ArchiveFlags flags = {});
+		static DeprecatedObject* load_object_from_file(const Path& path, ArchiveFlags flags = {});
 
-		virtual bool rename(StringView name, Object* new_owner = nullptr);
+		virtual bool rename(StringView name, DeprecatedObject* new_owner = nullptr);
 		const Name& name() const;
 
-		static Object* static_find_object(StringView object_name);
+		static DeprecatedObject* static_find_object(StringView object_name);
 		static Package* static_find_package(StringView name, bool create = false);
-		virtual Object* find_child_object(StringView name) const;
+		virtual DeprecatedObject* find_child_object(StringView name) const;
 
 		const String& string_name() const;
 		Package* package(bool recursive = false) const;
@@ -184,30 +184,31 @@ namespace Trinex
 		bool is_editable() const;
 		bool is_serializable() const;
 		virtual bool is_valid() const;
-		virtual const Object& mark_dirty() const;
+		virtual const DeprecatedObject& mark_dirty() const;
 		bool is_dirty() const;
 
 		virtual bool save(Stream* stream = nullptr, ArchiveFlags flags = {});
 
-		virtual Object& on_create();
-		virtual Object& on_destroy();
-		virtual Object& on_property_changed(const Refl::PropertyChangedEvent& event);
+		virtual DeprecatedObject& on_create();
+		virtual DeprecatedObject& on_destroy();
+		virtual DeprecatedObject& on_property_changed(const Refl::PropertyChangedEvent& event);
 
-		virtual Object& preload();
-		virtual Object& postload();
-		virtual Object& rebuild();
+		virtual DeprecatedObject& preload();
+		virtual DeprecatedObject& postload();
+		virtual DeprecatedObject& rebuild();
 
-		Object* owner() const;
-		bool owner(Object* new_owner);
+		DeprecatedObject* owner() const;
+		bool owner(DeprecatedObject* new_owner);
 
-		static trinex_api Object* copy_from(Object* src);
+		static trinex_api DeprecatedObject* copy_from(DeprecatedObject* src);
 
-		static Object* static_new_instance(Refl::Class* object_class, StringView name = "", Object* owner = nullptr);
-		static Object* static_new_placement_instance(void* place, Refl::Class* object_class, StringView name = "",
-		                                             Object* owner = nullptr);
+		static DeprecatedObject* static_new_instance(Refl::Class* object_class, StringView name = "",
+		                                             DeprecatedObject* owner = nullptr);
+		static DeprecatedObject* static_new_placement_instance(void* place, Refl::Class* object_class, StringView name = "",
+		                                                       DeprecatedObject* owner = nullptr);
 
 		template<typename Type, bool check_constructible = false, typename... Args>
-		static Type* new_instance(StringView name = "", Object* owner = nullptr, Args&&... args)
+		static Type* new_instance(StringView name = "", DeprecatedObject* owner = nullptr, Args&&... args)
 		{
 			constexpr bool invalid =
 			        check_constructible && (std::is_abstract_v<Type> || (!std::is_constructible_v<Type, Args...>) );
@@ -218,14 +219,14 @@ namespace Trinex
 			}
 			else
 			{
-				if constexpr (std::is_base_of_v<Object, Type>)
+				if constexpr (std::is_base_of_v<DeprecatedObject, Type>)
 					static_setup_next_object_info(Type::static_reflection());
 				return initialize_new_object_checked(trx_new Type(std::forward<Args>(args)...), name, owner);
 			}
 		}
 
 		template<typename Type, bool check_constructible = false, typename... Args>
-		static Type* new_placement_instance(void* place, StringView name = "", Object* owner = nullptr, Args&&... args)
+		static Type* new_placement_instance(void* place, StringView name = "", DeprecatedObject* owner = nullptr, Args&&... args)
 		{
 			constexpr bool invalid =
 			        check_constructible && (std::is_abstract_v<Type> || (!std::is_constructible_v<Type, Args...>) );
@@ -236,7 +237,7 @@ namespace Trinex
 			}
 			else
 			{
-				if constexpr (std::is_base_of_v<Object, Type>)
+				if constexpr (std::is_base_of_v<DeprecatedObject, Type>)
 					static_setup_next_object_info(Type::static_reflection());
 				return initialize_new_object_checked(new (place) Type(std::forward<Args>(args)...), name, owner);
 			}
@@ -283,7 +284,7 @@ namespace Trinex
 		}
 
 		template<typename Type>
-		static Type* instance_cast(Object* object)
+		static Type* instance_cast(DeprecatedObject* object)
 		{
 			if (!object)
 				return nullptr;
@@ -291,7 +292,7 @@ namespace Trinex
 		}
 
 		template<typename Type>
-		static const Type* instance_cast(const Object* object)
+		static const Type* instance_cast(const DeprecatedObject* object)
 		{
 			if (!object)
 				return nullptr;
@@ -310,7 +311,7 @@ namespace Trinex
 		template<typename ObjectInstanceType>
 		static ObjectInstanceType* static_find_object_checked(const StringView& object_name)
 		{
-			Object* object = static_find_object(object_name);
+			DeprecatedObject* object = static_find_object(object_name);
 			if (object)
 			{
 				return object->instance_cast<ObjectInstanceType>();
@@ -321,7 +322,7 @@ namespace Trinex
 		template<typename ObjectInstanceType>
 		ObjectInstanceType* find_child_object_checked(StringView object_name) const
 		{
-			Object* object = find_child_object(object_name);
+			DeprecatedObject* object = find_child_object(object_name);
 			if (object)
 			{
 				return instance_cast<ObjectInstanceType>(object);
@@ -341,7 +342,7 @@ namespace Trinex
 			return false;
 		}
 
-		virtual ~Object();
+		virtual ~DeprecatedObject();
 		friend class PointerBase;
 		friend class Package;
 		friend class Archive;

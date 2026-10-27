@@ -4,7 +4,7 @@
 #include <Core/etl/algorithm.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/icons.hpp>
-#include <Core/object.hpp>
+#include <Core/deprecated/object.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/enum.hpp>
 #include <Core/reflection/object.hpp>
@@ -1007,12 +1007,12 @@ namespace Trinex::UI
 
 			if (!read_only && ImGui::BeginDragDropTarget())
 			{
-				const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ContentBrowser->Object");
+				const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ContentBrowser->DeprecatedObject");
 				if (payload)
 				{
-					IM_ASSERT(payload->DataSize == sizeof(Object*));
+					IM_ASSERT(payload->DataSize == sizeof(DeprecatedObject*));
 
-					Object* new_object = *reinterpret_cast<Object**>(payload->Data);
+					DeprecatedObject* new_object = *reinterpret_cast<DeprecatedObject**>(payload->Data);
 
 					if (new_object->class_instance()->is_a(prop->class_instance()))
 					{

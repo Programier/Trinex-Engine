@@ -49,7 +49,7 @@ namespace Trinex::UI
 
 	public:
 		//virtual Client& setup_dockspace(DockLayout& layout);
-		virtual Client& select(Object* object);
+		virtual Client& select(DeprecatedObject* object);
 		virtual Client& update(float dt);
 
 		inline ImGuiContext* context() const { return m_ctx; }

@@ -1,6 +1,6 @@
 #include <Core/editor_resources.hpp>
 #include <Core/icons.hpp>
-#include <Core/object.hpp>
+#include <Core/deprecated/object.hpp>
 #include <Core/package.hpp>
 #include <Core/pointer.hpp>
 #include <Core/reflection/class.hpp>
@@ -15,7 +15,7 @@ namespace Trinex::Icons
 		return ImGuiTrinexTextureId(EditorResources::default_icon->handle());
 	}
 
-	ImGuiTrinexTextureId find_icon(Object* object)
+	ImGuiTrinexTextureId find_icon(DeprecatedObject* object)
 	{
 		if (object)
 		{

@@ -2,7 +2,7 @@
 #include <Core/etl/array.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/etl/set.hpp>
-#include <Core/object.hpp>
+#include <Core/deprecated/object.hpp>
 #include <Core/string_functions.hpp>
 #include <RHI/enums.hpp>
 
@@ -125,7 +125,7 @@ namespace Trinex::VisualMaterialGraph
 		inline T* create_temp_node(u16 id)
 		{
 			static_assert(std::is_base_of_v<Node, T>, "Node class must be derived from Node");
-			return Object::instance_cast<T>(create_temp_node(T::static_reflection(), id));
+			return DeprecatedObject::instance_cast<T>(create_temp_node(T::static_reflection(), id));
 		}
 
 		Compiler& add_redirection(Node* node, Identifier id);
@@ -228,9 +228,9 @@ namespace Trinex::VisualMaterialGraph
 		friend class Node;
 	};
 
-	class Node : public Object
+	class Node : public DeprecatedObject
 	{
-		trinex_class(Node, Object);
+		trinex_class(Node, DeprecatedObject);
 
 	private:
 		Array<InputPin*> m_inputs;

@@ -24,7 +24,7 @@ namespace Trinex
 		MaterialEditorClient& attach(class RenderViewport* viewport) override;
 		MaterialEditorClient& update(float dt) override;
 		u32 build_dock(u32 dock) override;
-		MaterialEditorClient& select(Object* object) override;
+		MaterialEditorClient& select(DeprecatedObject* object) override;
 
 		inline Material* material() const { return m_material; }
 	};

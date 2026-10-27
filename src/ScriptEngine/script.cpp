@@ -408,7 +408,7 @@ namespace Trinex
 	static bool is_child_of_object(const ScriptTypeInfo& info)
 	{
 		auto p_info      = info.info();
-		auto object_info = Trinex::Object::static_reflection()->script_type_info.info();
+		auto object_info = Trinex::DeprecatedObject::static_reflection()->script_type_info.info();
 
 		while (p_info && p_info != object_info)
 		{

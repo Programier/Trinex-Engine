@@ -7,7 +7,7 @@
 
 namespace Trinex
 {
-	class Object;
+	class DeprecatedObject;
 	class ScriptFunction;
 	class Path;
 } // namespace Trinex
@@ -448,7 +448,7 @@ private:
 	class trinex_api ObjectProperty : public Property
 	{
 		trinex_reflect_type(ObjectProperty, Property);
-		trinex_refl_prop_type_filter(std::is_pointer_v<T>&& std::is_base_of_v<Trinex::Object, std::remove_pointer_t<T>>);
+		trinex_refl_prop_type_filter(std::is_pointer_v<T>&& std::is_base_of_v<Trinex::DeprecatedObject, std::remove_pointer_t<T>>);
 
 	private:
 		bool m_is_composite = false;
@@ -460,9 +460,9 @@ private:
 		usize alignment() const override;
 		bool serialize(void* object, Archive& ar) override;
 
-		Trinex::Object* object(void* context);
-		bool object(void* context, Trinex::Object* object);
-		const Trinex::Object* object(const void* context) const;
+		Trinex::DeprecatedObject* object(void* context);
+		bool object(void* context, Trinex::DeprecatedObject* object);
+		const Trinex::DeprecatedObject* object(const void* context) const;
 		bool is_composite() const;
 		ObjectProperty& is_composite(bool flag);
 
@@ -666,7 +666,7 @@ private:
 				return &(instance->*prop);
 			}
 
-			static constexpr inline bool should_trigger_owner_event = std::is_base_of_v<Trinex::Object, Owner>;
+			static constexpr inline bool should_trigger_owner_event = std::is_base_of_v<Trinex::DeprecatedObject, Owner>;
 		};
 
 		template<typename T>

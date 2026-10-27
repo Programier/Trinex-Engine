@@ -41,6 +41,7 @@ namespace Trinex
 		static constexpr usize s_max_uniform_buffers = 8;
 		static constexpr usize s_max_vertex_buffers  = 8;
 
+		static RHIBackend backend();
 		static RHI* instance();
 		static RHI* instance(RHIBackend backend);
 

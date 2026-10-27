@@ -1,7 +1,7 @@
 #include <Core/engine.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/math/math.hpp>
-#include <Core/object.hpp>
+#include <Core/deprecated/object.hpp>
 #include <Core/object_listener.hpp>
 #include <Core/package.hpp>
 #include <Core/reflection/class.hpp>
@@ -28,14 +28,14 @@ namespace Trinex
 		GCStage stage      = GCStage::MarkUnreachable;
 	} gc_state;
 
-	CallBacks<void(Object*)> GarbageCollector::on_unreachable_check;
+	CallBacks<void(DeprecatedObject*)> GarbageCollector::on_unreachable_check;
 
 	static inline u32 get_max_objects_per_tick()
 	{
 		return Math::max<u32>(1, Settings::gc_max_object_per_tick);
 	}
 
-	void GarbageCollector::destroy(Object* object)
+	void GarbageCollector::destroy(DeprecatedObject* object)
 	{
 		if (object == nullptr)
 			return;
@@ -61,7 +61,7 @@ namespace Trinex
 
 	void GarbageCollector::update(float dt)
 	{
-		if (Object::static_objects().empty())
+		if (DeprecatedObject::static_objects().empty())
 			return;
 
 		if (gc_state.stage == GCStage::MarkUnreachable)
@@ -90,15 +90,15 @@ namespace Trinex
 		gc_state.stage = static_cast<GCStage>(value);
 	}
 
-	bool GarbageCollector::process_objects(void (*callback)(Object* object))
+	bool GarbageCollector::process_objects(void (*callback)(DeprecatedObject* object))
 	{
-		const auto& objects  = Object::static_objects();
+		const auto& objects  = DeprecatedObject::static_objects();
 		u32 objects_per_tick = get_max_objects_per_tick();
 		auto objects_count   = objects.size();
 
 		while (objects_per_tick > 0 && gc_state.object_index < objects_count)
 		{
-			Object* object = objects[gc_state.object_index];
+			DeprecatedObject* object = objects[gc_state.object_index];
 
 			if (object)
 			{
@@ -119,22 +119,22 @@ namespace Trinex
 
 	void GarbageCollector::mark_unreachable(float dt)
 	{
-		static void (*callback)(Object* object) = [](Object* object) { object->flags |= Object::Flags::IsUnreachable; };
+		static void (*callback)(DeprecatedObject* object) = [](DeprecatedObject* object) { object->flags |= DeprecatedObject::Flags::IsUnreachable; };
 		process_objects(callback);
 	}
 
-	static void find_unreachable(Object* object)
+	static void find_unreachable(DeprecatedObject* object)
 	{
 		GarbageCollector::on_unreachable_check(object);
 
 		auto& flags = object->flags;
 
-		if (flags.any(Object::Flags::StandAlone) || object->references() > 0 || object->owner() != nullptr)
+		if (flags.any(DeprecatedObject::Flags::StandAlone) || object->references() > 0 || object->owner() != nullptr)
 		{
-			object->flags.remove(Object::Flags::IsUnreachable);
+			object->flags.remove(DeprecatedObject::Flags::IsUnreachable);
 		}
 
-		if (!object->flags.all(Object::Flags::IsUnreachable))
+		if (!object->flags.all(DeprecatedObject::Flags::IsUnreachable))
 		{
 			Refl::Class* class_instance = object->class_instance();
 
@@ -149,10 +149,10 @@ namespace Trinex
 
 					if (auto object_prop = Refl::Object::instance_cast<Refl::ObjectProperty>(prop))
 					{
-						Object* prop_object = object_prop->object(object);
+						DeprecatedObject* prop_object = object_prop->object(object);
 						if (prop_object)
 						{
-							prop_object->flags.remove(Object::Flags::IsUnreachable);
+							prop_object->flags.remove(DeprecatedObject::Flags::IsUnreachable);
 						}
 					}
 				}
@@ -167,8 +167,8 @@ namespace Trinex
 
 	void GarbageCollector::destroy_garbage(float dt)
 	{
-		static void (*callback)(Object* object) = [](Object* object) {
-			if (object->flags.all(Object::Flags::IsUnreachable))
+		static void (*callback)(DeprecatedObject* object) = [](DeprecatedObject* object) {
+			if (object->flags.all(DeprecatedObject::Flags::IsUnreachable))
 			{
 				destroy(object);
 			}
@@ -177,23 +177,23 @@ namespace Trinex
 		process_objects(callback);
 	}
 
-	static bool destroy_recursive(Object* object)
+	static bool destroy_recursive(DeprecatedObject* object)
 	{
 		if (object == nullptr)
 			return true;
 
-		if (!object->flags.all(Object::Flags::IsAvailableForGC))
+		if (!object->flags.all(DeprecatedObject::Flags::IsAvailableForGC))
 			return false;
 
 		auto index = object->global_index();
 
-		if (Object* owner = object->owner())
+		if (DeprecatedObject* owner = object->owner())
 		{
 			if (!destroy_recursive(owner))
 				return false;
 
 			// Maybe this object is already destroyed, check it
-			if (Object::static_objects()[index] != object)
+			if (DeprecatedObject::static_objects()[index] != object)
 				return true;
 		}
 
@@ -203,13 +203,13 @@ namespace Trinex
 
 	void GarbageCollector::destroy_all_objects()
 	{
-		auto& objects = const_cast<Array<Object*>&>(Object::static_objects());
+		auto& objects = const_cast<Array<DeprecatedObject*>&>(DeprecatedObject::static_objects());
 
 		usize index = 0;
 
 		while (index < objects.size())
 		{
-			Object* object = objects[index];
+			DeprecatedObject* object = objects[index];
 
 			if (!destroy_recursive(object))
 				++index;

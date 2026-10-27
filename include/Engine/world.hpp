@@ -15,8 +15,8 @@ namespace Trinex
 		RenderScene* m_scene = nullptr;
 
 	protected:
-		Object* register_child(Object* child, u32& index) override;
-		bool unregister_child(Object* child) override;
+		DeprecatedObject* register_child(DeprecatedObject* child, u32& index) override;
+		bool unregister_child(DeprecatedObject* child) override;
 
 	public:
 		World();

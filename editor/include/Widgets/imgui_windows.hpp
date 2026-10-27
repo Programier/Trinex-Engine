@@ -66,11 +66,11 @@ namespace Trinex
 
 	class ImGuiRenameObject : public ImGuiWidget
 	{
-		class Object* m_object = nullptr;
+		class DeprecatedObject* m_object = nullptr;
 		String new_object_name;
 
 	public:
-		ImGuiRenameObject(class Object* object);
+		ImGuiRenameObject(class DeprecatedObject* object);
 		bool render(class RenderViewport* viewport) override;
 		virtual const char* name() const;
 		static const char* static_name();
@@ -175,7 +175,7 @@ namespace Trinex
 
 	private:
 		static void render_vector(const char* name, const Vector3f& vector);
-		static void render_tooltip(Object* object);
+		static void render_tooltip(DeprecatedObject* object);
 		static void render_tooltip(class LevelInstance* level);
 		static void render_tooltip(class Actor* actor);
 

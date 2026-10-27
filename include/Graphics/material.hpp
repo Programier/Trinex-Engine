@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/etl/map.hpp>
 #include <Core/etl/object_tree_node.hpp>
-#include <Core/object.hpp>
+#include <Core/deprecated/object.hpp>
 #include <Graphics/enums.hpp>
 #include <Graphics/material_parameter.hpp>
 #include <RHI/structures.hpp>
@@ -20,15 +20,15 @@ namespace Trinex
 	class RenderPass;
 	class ShaderCompiler;
 
-	class trinex_api MaterialInterface : public ObjectTreeNode<Object, MaterialParameters::Parameter>
+	class trinex_api MaterialInterface : public ObjectTreeNode<DeprecatedObject, MaterialParameters::Parameter>
 	{
-		trinex_class(MaterialInterface, Object);
+		trinex_class(MaterialInterface, DeprecatedObject);
 
 	public:
 		using Parameter = MaterialParameters::Parameter;
 
 	protected:
-		bool unregister_child(Object* child) override;
+		bool unregister_child(DeprecatedObject* child) override;
 
 		Parameter* create_parameter(const Name& name, RHIShaderParameterType type);
 
@@ -56,8 +56,8 @@ namespace Trinex
 	protected:
 		Map<RenderPass*, GraphicsPipeline*> m_pipelines;
 
-		Object* register_child(Object* child, u32& index) override;
-		bool unregister_child(Object* child) override;
+		DeprecatedObject* register_child(DeprecatedObject* child, u32& index) override;
+		bool unregister_child(DeprecatedObject* child) override;
 		bool apply_internal(MaterialInterface* head, const PrimitiveRenderingContext* ctx);
 
 	private:

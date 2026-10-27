@@ -33,7 +33,7 @@ namespace Trinex
 
 	ImGuiStaticMeshPreview::ImGuiStaticMeshPreview()
 	{
-		m_camera = Object::new_instance<CameraComponent>();
+		m_camera = DeprecatedObject::new_instance<CameraComponent>();
 	}
 
 	i32 ImGuiStaticMeshPreview::match_zoom_index(int direction)

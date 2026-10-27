@@ -5,7 +5,7 @@
 
 namespace Trinex
 {
-	PropertyRenderer& PropertyRenderer::on_object_destroy(Object* object)
+	PropertyRenderer& PropertyRenderer::on_object_destroy(DeprecatedObject* object)
 	{
 		if (m_object == object)
 		{
@@ -37,7 +37,7 @@ namespace Trinex
 		return *this;
 	}
 
-	PropertyRenderer& PropertyRenderer::object(Object* object)
+	PropertyRenderer& PropertyRenderer::object(DeprecatedObject* object)
 	{
 		m_object = object;
 		m_struct = object ? object->class_instance() : nullptr;

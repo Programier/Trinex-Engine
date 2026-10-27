@@ -1,12 +1,12 @@
 #pragma once
-#include <Core/object.hpp>
+#include <Core/deprecated/object.hpp>
 #include <Input/types.hpp>
 
 namespace Trinex
 {
-	class trinex_api ViewportClient : public Object
+	class trinex_api ViewportClient : public DeprecatedObject
 	{
-		trinex_class(ViewportClient, Object);
+		trinex_class(ViewportClient, DeprecatedObject);
 
 	public:
 		virtual ViewportClient& attach(class RenderViewport* viewport);

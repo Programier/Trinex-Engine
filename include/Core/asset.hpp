@@ -1,13 +1,13 @@
 #pragma once
 
-#include <Core/object.hpp>
+#include <Core/deprecated/object.hpp>
 #include <Core/types/uuid.hpp>
 
 namespace Trinex
 {
-	class trinex_api Asset : public Object
+	class trinex_api Asset : public DeprecatedObject
 	{
-		trinex_class(Asset, Object);
+		trinex_class(Asset, DeprecatedObject);
 
 	private:
 		UUID m_uuid;

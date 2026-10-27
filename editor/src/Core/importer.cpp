@@ -96,7 +96,7 @@ namespace Trinex::Importer
 			Package* meshes    = nullptr;
 
 			Packages(Package* pkg) : root(pkg) {}
-			Package* create_subpackage(const String& name) { return Object::new_instance<Package>(name, root); }
+			Package* create_subpackage(const String& name) { return DeprecatedObject::new_instance<Package>(name, root); }
 
 		} m_package;
 
@@ -397,7 +397,7 @@ namespace Trinex::Importer
 				name = Path(gltf_image.uri).filename();
 			}
 
-			texture = Object::new_instance<Texture2D>(name, m_package.textures);
+			texture = DeprecatedObject::new_instance<Texture2D>(name, m_package.textures);
 			texture->preload();
 
 			auto& mip  = texture->mips.emplace_back();
@@ -442,7 +442,7 @@ namespace Trinex::Importer
 
 			const tinygltf::Material& gltf_material = model.materials[index];
 
-			material = Object::new_instance<MaterialInstance>(gltf_material.name, m_package.materials);
+			material = DeprecatedObject::new_instance<MaterialInstance>(gltf_material.name, m_package.materials);
 			{
 				namespace Parameters = MaterialParameters;
 
@@ -507,7 +507,7 @@ namespace Trinex::Importer
 			const usize primitives          = gltf_mesh.primitives.size();
 
 			StaticMesh* mesh =
-			        Object::new_instance<StaticMesh>(Strings::format("{}_{}", gltf_mesh.name, index), m_package.meshes);
+			        DeprecatedObject::new_instance<StaticMesh>(Strings::format("{}_{}", gltf_mesh.name, index), m_package.meshes);
 			mesh->materials.reserve(primitives);
 
 			auto& lod = mesh->lods.emplace_back();
@@ -696,7 +696,7 @@ namespace Trinex::Importer
 		template<typename T>
 		T* create_actor(const String& name, const Transform& transform)
 		{
-			T* actor = Object::new_instance<T>(name);
+			T* actor = DeprecatedObject::new_instance<T>(name);
 			actor->scene_component()->local_transform(transform);
 			return actor;
 		}

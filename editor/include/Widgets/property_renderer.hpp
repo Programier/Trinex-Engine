@@ -18,11 +18,11 @@ namespace Trinex
 		Refl::Struct* m_struct = nullptr;
 
 	public:
-		PropertyRenderer& on_object_destroy(Object* object) override;
+		PropertyRenderer& on_object_destroy(DeprecatedObject* object) override;
 		bool render(RenderViewport* viewport) override;
 		PropertyRenderer& render();
 
-		PropertyRenderer& object(Object* object);
+		PropertyRenderer& object(DeprecatedObject* object);
 		PropertyRenderer& object(void* object, Refl::Struct* self);
 
 		inline void* object() const { return m_object; }

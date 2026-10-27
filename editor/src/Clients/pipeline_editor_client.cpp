@@ -14,7 +14,7 @@ namespace Trinex
 	PipelineEditorClient::PipelineEditorClient()
 	{
 		// menu_bar.create("")->actions.push([this]() {
-		// 	Object* object = selected_object();
+		// 	DeprecatedObject* object = selected_object();
 
 		// 	if (ImGui::MenuItem("editor/Compile"_localized, nullptr, false, object != nullptr))
 		// 	{
@@ -44,7 +44,7 @@ namespace Trinex
 		// });
 	}
 
-	PipelineEditorClient& PipelineEditorClient::select(Object* object)
+	PipelineEditorClient& PipelineEditorClient::select(DeprecatedObject* object)
 	{
 		if (!object || !object->is_instance_of<Pipeline>())
 			return *this;

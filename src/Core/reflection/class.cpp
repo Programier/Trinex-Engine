@@ -42,14 +42,14 @@ namespace Trinex::Refl
 		return *this;
 	}
 
-	void Class::script_object_constructor(void* object, StringView name, Trinex::Object* owner)
+	void Class::script_object_constructor(void* object, StringView name, Trinex::DeprecatedObject* owner)
 	{
-		if (!Trinex::Object::static_setup_next_object_info())
+		if (!Trinex::DeprecatedObject::static_setup_next_object_info())
 		{
 			i32 type_id = ScriptContext::current()->this_type_id();
 
 			if (Class* script_class = ScriptEngine::find_class(type_id))
-				Trinex::Object::static_setup_next_object_info(script_class);
+				Trinex::DeprecatedObject::static_setup_next_object_info(script_class);
 		}
 
 		create_placement_object(object, name, owner);
@@ -76,13 +76,13 @@ namespace Trinex::Refl
 			if (flags.any(IsConstructible))
 			{
 				auto factory =
-				        Strings::format(R"({}@ f(Trinex::StringView name = "", Trinex::Object owner = null))", full_name());
+				        Strings::format(R"({}@ f(Trinex::StringView name = "", Trinex::DeprecatedObject owner = null))", full_name());
 
 				registrar.behaviour(ScriptClassBehave::Construct, "void f()", &Class::script_object_constructor_default,
 				                    ScriptCallConv::ThisCall_ObjFirst, this);
 
 				registrar.behaviour(ScriptClassBehave::Construct,
-				                    R"(void f(Trinex::StringView name = "", Trinex::Object owner = null))",
+				                    R"(void f(Trinex::StringView name = "", Trinex::DeprecatedObject owner = null))",
 				                    &Class::script_object_constructor, ScriptCallConv::ThisCall_ObjFirst, this);
 
 				registrar.behaviour(ScriptClassBehave::Factory, factory.c_str(), script_object_factory(), ScriptCallConv::CDecl);
@@ -92,13 +92,13 @@ namespace Trinex::Refl
 		return *this;
 	}
 
-	Trinex::Object* Class::object_constructor(StringView name, Trinex::Object* owner, bool scriptable)
+	Trinex::DeprecatedObject* Class::object_constructor(StringView name, Trinex::DeprecatedObject* owner, bool scriptable)
 	{
 		trinex_unreachable();
 		return nullptr;
 	}
 
-	Trinex::Object* Class::object_placement_constructor(void* mem, StringView name, Trinex::Object* owner, bool scriptable)
+	Trinex::DeprecatedObject* Class::object_placement_constructor(void* mem, StringView name, Trinex::DeprecatedObject* owner, bool scriptable)
 	{
 		trinex_unreachable();
 		return nullptr;
@@ -125,21 +125,21 @@ namespace Trinex::Refl
 		return *this;
 	}
 
-	Trinex::Object* Class::create_object(StringView name, Trinex::Object* owner)
+	Trinex::DeprecatedObject* Class::create_object(StringView name, Trinex::DeprecatedObject* owner)
 	{
-		bool scriptable        = !Trinex::Object::static_setup_next_object_info(this)->is_native();
-		Trinex::Object* object = object_constructor(name, owner, scriptable);
+		bool scriptable        = !Trinex::DeprecatedObject::static_setup_next_object_info(this)->is_native();
+		Trinex::DeprecatedObject* object = object_constructor(name, owner, scriptable);
 		return object;
 	}
 
-	Trinex::Object* Class::create_placement_object(void* place, StringView name, Trinex::Object* owner)
+	Trinex::DeprecatedObject* Class::create_placement_object(void* place, StringView name, Trinex::DeprecatedObject* owner)
 	{
-		bool scriptable        = !Trinex::Object::static_setup_next_object_info(this)->is_native();
-		Trinex::Object* object = object_placement_constructor(place, name, owner, scriptable);
+		bool scriptable        = !Trinex::DeprecatedObject::static_setup_next_object_info(this)->is_native();
+		Trinex::DeprecatedObject* object = object_placement_constructor(place, name, owner, scriptable);
 		return object;
 	}
 
-	Class& Class::destroy_object(Trinex::Object* object)
+	Class& Class::destroy_object(Trinex::DeprecatedObject* object)
 	{
 		trx_delete object;
 		return *this;
@@ -153,7 +153,7 @@ namespace Trinex::Refl
 		return self->script_type_info;
 	}
 
-	Trinex::Object* Class::singletone_instance() const
+	Trinex::DeprecatedObject* Class::singletone_instance() const
 	{
 		return m_singletone_object;
 	}
@@ -166,6 +166,6 @@ namespace Trinex::Refl
 	void Class::register_layout(ScriptBinding::Class& r, ClassInfo* info, DownCast downcast)
 	{
 		Super::register_layout(r, info, downcast);
-		r.method("Trinex::Object@ singletone_instance() const", &Class::singletone_instance);
+		r.method("Trinex::DeprecatedObject@ singletone_instance() const", &Class::singletone_instance);
 	}
 } // namespace Trinex::Refl

@@ -178,7 +178,7 @@ namespace Trinex
 						Actor* actor = *(actors++);
 						for (ActorComponent* component : actor->components())
 						{
-							if (auto primitive = Object::instance_cast<PrimitiveComponent>(component))
+							if (auto primitive = DeprecatedObject::instance_cast<PrimitiveComponent>(component))
 							{
 								Matrix4f matrix = primitive->world_transform().matrix();
 								// RenderPass* pass = RenderPasses::Depth::static_instance();
@@ -226,7 +226,7 @@ namespace Trinex
 			if (!editor->is_selected(light->actor()))
 				continue;
 
-			if (auto spot_light = Object::instance_cast<SpotLightComponent>(light))
+			if (auto spot_light = DeprecatedObject::instance_cast<SpotLightComponent>(light))
 			{
 				auto dir           = spot_light->direction() * 2.f;
 				float outer_radius = 2.f * Math::tan(spot_light->outer_cone_angle());
@@ -236,12 +236,12 @@ namespace Trinex
 				lines.add_cone(location, -dir, outer_radius, {255, 255, 0, 255}, 0, 3.f);
 				lines.add_cone(location, -dir, inner_radius, {255, 255, 0, 255}, 0, 3.f);
 			}
-			else if (auto point_light = Object::instance_cast<PointLightComponent>(light))
+			else if (auto point_light = DeprecatedObject::instance_cast<PointLightComponent>(light))
 			{
 				auto& location = point_light->world_transform().location;
 				lines.add_sphere(location, point_light->attenuation_radius(), {255, 255, 0, 255}, 0, 3.f);
 			}
-			else if (auto directional_light = Object::instance_cast<DirectionalLightComponent>(light))
+			else if (auto directional_light = DeprecatedObject::instance_cast<DirectionalLightComponent>(light))
 			{
 				auto& location = directional_light->world_transform().location;
 				lines.add_arrow(location, directional_light->direction(), {255, 255, 0, 255}, 3.f);

@@ -41,7 +41,7 @@ namespace Trinex
 
 	protected:
 		static StringView pipeline_name_of(StringView name);
-		static Object* package_of(StringView name);
+		static DeprecatedObject* package_of(StringView name);
 
 		GlobalPipelineLibrary& load_pipeline();
 
@@ -78,7 +78,7 @@ public:                                                                         
 	const char* source_path() const override;                                                                                    \
 	void initialize() override;                                                                                                  \
 	~class_name();                                                                                                               \
-	friend class Trinex::Object;                                                                                                 \
+	friend class Trinex::DeprecatedObject;                                                                                                 \
                                                                                                                                  \
 private:
 
@@ -101,7 +101,7 @@ private:
 	{                                                                                                                            \
 		if (!s_instance)                                                                                                         \
 		{                                                                                                                        \
-			Object::new_instance<class_name>(pipeline_name_of(#class_name), package_of(#class_name));                            \
+			DeprecatedObject::new_instance<class_name>(pipeline_name_of(#class_name), package_of(#class_name));                            \
 			s_instance->add_reference();                                                                                         \
 			s_instance->load_pipeline();                                                                                         \
 		}                                                                                                                        \

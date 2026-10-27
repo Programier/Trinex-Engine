@@ -51,7 +51,7 @@ namespace Trinex
 
 		VisualMaterialEditorClient& create_properties_window() override;
 		VisualMaterialEditorClient& update(float dt) override;
-		VisualMaterialEditorClient& select(Object* object) override;
+		VisualMaterialEditorClient& select(DeprecatedObject* object) override;
 		u32 build_dock(u32 dock) override;
 	};
 } // namespace Trinex

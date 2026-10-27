@@ -1,7 +1,7 @@
 #include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/etl/span.hpp>
-#include <Core/object.hpp>
+#include <Core/deprecated/object.hpp>
 #include <Core/package.hpp>
 #include <Core/reflection/class.hpp>
 #include <Core/reflection/struct.hpp>
@@ -113,7 +113,7 @@ namespace Trinex
 		return *this;
 	}
 
-	bool Archive::serialize_object(Object*& object, StringView name, Object* owner)
+	bool Archive::serialize_object(DeprecatedObject*& object, StringView name, DeprecatedObject* owner)
 	{
 		if (is_saving())
 		{
@@ -168,7 +168,7 @@ namespace Trinex
 		}
 	}
 
-	bool Archive::serialize_object_ref(Object*& object)
+	bool Archive::serialize_object_ref(DeprecatedObject*& object)
 	{
 		if (is_saving())
 		{
@@ -191,7 +191,7 @@ namespace Trinex
 			}
 			else
 			{
-				object = Object::load_object(name);
+				object = DeprecatedObject::load_object(name);
 			}
 		}
 

@@ -216,8 +216,8 @@ namespace Trinex
 	{
 		switch (type)
 		{
-			case Graphics: graphics.apply_to(Object::instance_cast<GraphicsPipeline>(pipeline)); break;
-			case Compute: compute.apply_to(Object::instance_cast<ComputePipeline>(pipeline)); break;
+			case Graphics: graphics.apply_to(DeprecatedObject::instance_cast<GraphicsPipeline>(pipeline)); break;
+			case Compute: compute.apply_to(DeprecatedObject::instance_cast<ComputePipeline>(pipeline)); break;
 			default: break;
 		}
 	}

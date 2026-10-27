@@ -35,7 +35,7 @@ namespace Trinex
 		{
 			static_assert(std::is_base_of_v<VisualMaterialGraph::Node, T>,
 			              "Template type must have base class VisualMaterialGraph::Node");
-			return Object::instance_cast<T>(create_node(T::static_reflection()));
+			return DeprecatedObject::instance_cast<T>(create_node(T::static_reflection()));
 		}
 
 		bool shader_source(String& out_source) override;

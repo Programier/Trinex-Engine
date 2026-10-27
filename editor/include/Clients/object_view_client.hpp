@@ -12,7 +12,7 @@ namespace Trinex
 
 	private:
 		PropertyRenderer* m_property_renderer = nullptr;
-		Pointer<Object> m_object;
+		Pointer<DeprecatedObject> m_object;
 
 	public:
 		ObjectViewClient();
@@ -20,8 +20,8 @@ namespace Trinex
 		ObjectViewClient& attach(RenderViewport* vp) override;
 		u32 build_dock(u32 dock) override;
 		ObjectViewClient& update(float dt) override;
-		ObjectViewClient& select(Object* object) override;
+		ObjectViewClient& select(DeprecatedObject* object) override;
 
-		inline Object* selected_object() const { return m_object.ptr(); }
+		inline DeprecatedObject* selected_object() const { return m_object.ptr(); }
 	};
 } // namespace Trinex

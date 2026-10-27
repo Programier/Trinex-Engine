@@ -39,7 +39,7 @@ namespace Trinex
 		StaticMeshClient& attach(RenderViewport* vp) override;
 		StaticMeshClient& deattach(RenderViewport* vp) override;
 		StaticMeshClient& update(float dt) override;
-		StaticMeshClient& select(Object* object) override;
+		StaticMeshClient& select(DeprecatedObject* object) override;
 		u32 build_dock(u32 dock) override;
 	};
 } // namespace Trinex

@@ -40,7 +40,7 @@ namespace Trinex
 		return true;
 	}
 
-	static bool render_object_name(Object* object)
+	static bool render_object_name(DeprecatedObject* object)
 	{
 		if (object == nullptr)
 			return false;
@@ -109,7 +109,7 @@ namespace Trinex
 	}
 
 	ImGuiCreateNewPackage::ImGuiCreateNewPackage(Package* parent, const CallBack<void(Package*)>& on_create)
-	    : m_parent(parent ? parent : Object::root_package()), m_on_create(on_create)
+	    : m_parent(parent ? parent : DeprecatedObject::root_package()), m_on_create(on_create)
 	{}
 
 	bool ImGuiCreateNewPackage::render(class RenderViewport* viewport)
@@ -128,7 +128,7 @@ namespace Trinex
 		if (!allow_rename && m_parent->contains_object(new_package_name))
 		{
 			text_wrapped_colored(ImVec4(1.0, 0.0, 0.0, 1.0),
-			                     "Cannot create package! Object with name '%s' already exists in package '%s'",
+			                     "Cannot create package! DeprecatedObject with name '%s' already exists in package '%s'",
 			                     new_package_name.c_str(), m_parent->string_name().c_str());
 		}
 		else if (new_package_name.find(Constants::name_separator) != String::npos)
@@ -141,7 +141,7 @@ namespace Trinex
 			ImGui::Separator();
 			if (ImGui::Button("editor/Create"_localized))
 			{
-				Package* new_package = Object::new_instance<Package>(new_package_name, m_parent);
+				Package* new_package = DeprecatedObject::new_instance<Package>(new_package_name, m_parent);
 				open                 = false;
 
 				if (m_on_create)
@@ -210,7 +210,7 @@ namespace Trinex
 		if (m_parent->contains_object(new_asset_name))
 		{
 			text_wrapped_colored(ImVec4(1.0, 0.0, 0.0, 1.0),
-			                     "Cannot create new Asset! Object with name '%s' already exists in package '%s'",
+			                     "Cannot create new Asset! DeprecatedObject with name '%s' already exists in package '%s'",
 			                     new_asset_name.c_str(), m_parent->string_name().c_str());
 		}
 		else if (new_asset_name.find(Constants::name_separator) != String::npos)
@@ -225,7 +225,7 @@ namespace Trinex
 			if (ImGui::Button("editor/Create"_localized))
 			{
 				Refl::Class* class_instance = m_filtered_classes[current_index];
-				Object* created_object      = class_instance->create_object(new_asset_name);
+				DeprecatedObject* created_object      = class_instance->create_object(new_asset_name);
 				m_parent->add_object(created_object);
 				open = false;
 			}
@@ -245,7 +245,7 @@ namespace Trinex
 		return "editor/New Asset"_localized;
 	}
 
-	ImGuiRenameObject::ImGuiRenameObject(Object* object) : m_object(object)
+	ImGuiRenameObject::ImGuiRenameObject(DeprecatedObject* object) : m_object(object)
 	{
 		if (object)
 			new_object_name = object->string_name();
@@ -263,7 +263,7 @@ namespace Trinex
 		ImGui::SetNextWindowPos(ImGui::ImVecFrom(viewport->size() / 2u), ImGuiCond_Once, {0.5, 0.5});
 
 		ImGui::Begin(name(), closable ? &open : nullptr, ImGuiWindowFlags_NoCollapse);
-		ImGui::Text("Object: %s", m_object->full_name().c_str());
+		ImGui::Text("DeprecatedObject: %s", m_object->full_name().c_str());
 
 		ImGui::InputText("editor/New Name"_localized, new_object_name);
 
@@ -309,7 +309,7 @@ namespace Trinex
 
 	const char* ImGuiRenameObject::static_name()
 	{
-		return "editor/Rename Object"_localized;
+		return "editor/Rename DeprecatedObject"_localized;
 	}
 
 	ImGuiOpenFile::ImGuiOpenFile(Flags flags) : m_flags(flags)
@@ -563,7 +563,7 @@ namespace Trinex
 		ImGui::TextColored(ImVec4(0.4f, 0.4f, 1.0f, 1.0f), "%.1f", vector.z + 0.005f);
 	}
 
-	void ImGuiLevelExplorer::render_tooltip(Object* object)
+	void ImGuiLevelExplorer::render_tooltip(DeprecatedObject* object)
 	{
 		ImGui::TextDisabled("Class: ");
 		ImGui::SameLine();
@@ -572,7 +572,7 @@ namespace Trinex
 
 	void ImGuiLevelExplorer::render_tooltip(class LevelInstance* level)
 	{
-		render_tooltip(static_cast<Object*>(level));
+		render_tooltip(static_cast<DeprecatedObject*>(level));
 
 		if (Level* asset = level->level())
 		{
@@ -584,7 +584,7 @@ namespace Trinex
 
 	void ImGuiLevelExplorer::render_tooltip(class Actor* actor)
 	{
-		render_tooltip(static_cast<Object*>(actor));
+		render_tooltip(static_cast<DeprecatedObject*>(actor));
 
 		if (auto component = actor->scene_component())
 		{

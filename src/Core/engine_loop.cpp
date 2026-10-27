@@ -52,7 +52,7 @@ namespace Trinex
 		initialize_graphics_api(true);
 
 		i32 result        = 0;
-		EntryPoint* entry = Object::instance_cast<EntryPoint>(Refl::Class::static_require(entry_name)->create_object());
+		EntryPoint* entry = DeprecatedObject::instance_cast<EntryPoint>(Refl::Class::static_require(entry_name)->create_object());
 		trinex_verify_msg(entry, "Failed to create entry point!");
 
 		Settings::Rendering::force_keep_cpu_resources = true;
@@ -77,7 +77,7 @@ namespace Trinex
 		Project::initialize();
 
 		Refl::Class* engine_class = Refl::Class::static_find(Settings::engine_class, Refl::FindFlags::IsRequired);
-		// engine_instance           = Object::instance_cast<Engine>(engine_class->create_object());
+		// engine_instance           = DeprecatedObject::instance_cast<Engine>(engine_class->create_object());
 
 		// if (engine_instance == nullptr)
 		// {

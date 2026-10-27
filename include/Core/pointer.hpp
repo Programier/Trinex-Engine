@@ -4,16 +4,16 @@
 
 namespace Trinex
 {
-	class Object;
+	class DeprecatedObject;
 
 	class trinex_api PointerBase
 	{
 	protected:
-		PointerBase& add_reference(Object* object);
-		PointerBase& remove_reference(Object* object);
+		PointerBase& add_reference(DeprecatedObject* object);
+		PointerBase& remove_reference(DeprecatedObject* object);
 		PointerBase();
 
-		bool serialize(class Archive& ar, Object*& object, bool is_reference);
+		bool serialize(class Archive& ar, DeprecatedObject*& object, bool is_reference);
 	};
 
 	template<class InstanceClass>
@@ -23,7 +23,7 @@ namespace Trinex
 		union
 		{
 			InstanceClass* m_instance = nullptr;
-			Object* m_object;
+			DeprecatedObject* m_object;
 		};
 
 	public:

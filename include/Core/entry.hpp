@@ -1,12 +1,12 @@
 #pragma once
 
-#include <Core/object.hpp>
+#include <Core/deprecated/object.hpp>
 
 namespace Trinex
 {
-	class trinex_api EntryPoint : public Object
+	class trinex_api EntryPoint : public DeprecatedObject
 	{
-		trinex_class(EntryPoint, Object);
+		trinex_class(EntryPoint, DeprecatedObject);
 
 	public:
 		virtual i32 execute();

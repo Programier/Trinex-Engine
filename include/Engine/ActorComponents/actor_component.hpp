@@ -1,14 +1,14 @@
 #pragma once
-#include <Core/object.hpp>
+#include <Core/deprecated/object.hpp>
 
 namespace Trinex
 {
 	class Actor;
 	class ScriptFunction;
 
-	class trinex_api ActorComponent : public Object
+	class trinex_api ActorComponent : public DeprecatedObject
 	{
-		trinex_class(ActorComponent, Object);
+		trinex_class(ActorComponent, DeprecatedObject);
 
 	private:
 		bool m_is_playing = false;

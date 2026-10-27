@@ -503,7 +503,7 @@ namespace Trinex::VisualMaterialGraph
 		if (!node_class->is_a<Node>())
 			return nullptr;
 
-		Node* node = Object::instance_cast<Node>(node_class->create_object());
+		Node* node = DeprecatedObject::instance_cast<Node>(node_class->create_object());
 
 		if (node)
 		{

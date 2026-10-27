@@ -34,7 +34,7 @@ namespace Trinex
 		TextureEditorClient();
 		TextureEditorClient& attach(RenderViewport* vp) override;
 		TextureEditorClient& update(float dt) override;
-		TextureEditorClient& select(Object* object) override;
+		TextureEditorClient& select(DeprecatedObject* object) override;
 		u32 build_dock(u32 dock_id) override;
 		Matrix4f build_projection(Vector2u texture_size, Vector2u viewport_size) const;
 

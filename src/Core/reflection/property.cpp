@@ -47,7 +47,7 @@ namespace Trinex::Refl
 
 	void Property::trigger_object_event(const PropertyChangedEvent& event)
 	{
-		Trinex::Object* object = reinterpret_cast<Trinex::Object*>(event.context);
+		Trinex::DeprecatedObject* object = reinterpret_cast<Trinex::DeprecatedObject*>(event.context);
 		object->on_property_changed(event);
 	}
 
@@ -183,17 +183,17 @@ namespace Trinex::Refl
 
 	usize ObjectProperty::size() const
 	{
-		return sizeof(Trinex::Object*);
+		return sizeof(Trinex::DeprecatedObject*);
 	}
 
 	usize ObjectProperty::alignment() const
 	{
-		return alignof(Trinex::Object*);
+		return alignof(Trinex::DeprecatedObject*);
 	}
 
 	bool ObjectProperty::serialize(void* object, Archive& ar)
 	{
-		Trinex::Object*& instance = *address_as<Trinex::Object*>(object);
+		Trinex::DeprecatedObject*& instance = *address_as<Trinex::DeprecatedObject*>(object);
 
 		if (m_is_composite)
 		{
@@ -205,24 +205,24 @@ namespace Trinex::Refl
 		}
 	}
 
-	Trinex::Object* ObjectProperty::object(void* context)
+	Trinex::DeprecatedObject* ObjectProperty::object(void* context)
 	{
-		return *address_as<Trinex::Object*>(context);
+		return *address_as<Trinex::DeprecatedObject*>(context);
 	}
 
-	bool ObjectProperty::object(void* context, Trinex::Object* object)
+	bool ObjectProperty::object(void* context, Trinex::DeprecatedObject* object)
 	{
 		if (object == nullptr || object->class_instance()->is_a(class_instance()))
 		{
-			(*address_as<Trinex::Object*>(context)) = object;
+			(*address_as<Trinex::DeprecatedObject*>(context)) = object;
 			return true;
 		}
 		return false;
 	}
 
-	const Trinex::Object* ObjectProperty::object(const void* context) const
+	const Trinex::DeprecatedObject* ObjectProperty::object(const void* context) const
 	{
-		return *address_as<Trinex::Object*>(context);
+		return *address_as<Trinex::DeprecatedObject*>(context);
 	}
 
 	bool ObjectProperty::is_composite() const
