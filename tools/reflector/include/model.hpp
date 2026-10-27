@@ -290,6 +290,14 @@ namespace Reflector
 	public:
 		trinex_reflector_type(Function, Object);
 		bool link(const TypeIndex& type_index) override;
+
+		inline bool is_method() const
+		{
+			if (flags & Static)
+				return false;
+
+			return owner && owner->is_a(ObjectKind::Class);
+		}
 	};
 
 	class Property : public Object

@@ -14,6 +14,7 @@ namespace Trinex
 		Refl::Class* m_reflection;
 
 	public:
+		trinex_function()
 		bool is(const Refl::Class* base) const;
 
 		trinex_function()

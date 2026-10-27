@@ -9,14 +9,15 @@ namespace Reflector
 {
 	namespace fs = std::filesystem;
 
-	using ResolvedNameOf    = WriteAs<struct ResolvedName>;
-	using AccessorPathOf    = WriteAs<struct AccessorPath>;
-	using ResolvedPathOf    = WriteAs<struct ResolvedPath>;
-	using ObjectIDOf        = WriteAs<struct ObjectID>;
-	using ObjectPathOf      = WriteAs<struct ObjectPath>;
-	using OwnerReflectionOf = WriteAs<struct OwnerReflection>;
-	using FunctionFlagsOf   = WriteAs<struct FunctionFlags>;
-	using BaseClassesOf     = WriteAs<struct BaseClasses>;
+	using ResolvedNameOf      = WriteAs<struct ResolvedName>;
+	using AccessorPathOf      = WriteAs<struct AccessorPath>;
+	using ResolvedPathOf      = WriteAs<struct ResolvedPath>;
+	using ObjectIDOf          = WriteAs<struct ObjectID>;
+	using ObjectPathOf        = WriteAs<struct ObjectPath>;
+	using OwnerReflectionOf   = WriteAs<struct OwnerReflection>;
+	using FunctionFlagsOf     = WriteAs<struct FunctionFlags>;
+	using BaseClassesOf       = WriteAs<struct BaseClasses>;
+	using FunctionPrototypeOf = WriteAs<struct FunctionPrototype>;
 
 	struct ResolvedName
 	{
@@ -32,22 +33,21 @@ namespace Reflector
 				if (function->flags & Function::Constructor)
 				{
 					writer->write("constructor_");
-					writer->write(reinterpret_cast<std::uintptr_t>(function));
 				}
 				else if (function->flags & Function::Destructor)
 				{
 					writer->write("destructor_");
-					writer->write(reinterpret_cast<std::uintptr_t>(function));
 				}
 				else if (function->flags & Function::Operator)
 				{
 					writer->write("operator_");
-					writer->write(reinterpret_cast<std::uintptr_t>(function));
 				}
 				else
 				{
-					writer->write(object->name);
+					writer->write("$0_", object->name);
 				}
+
+				writer->write(reinterpret_cast<std::uintptr_t>(function));
 			}
 			else
 			{
@@ -237,6 +237,128 @@ namespace Reflector
 		}
 	};
 
+	struct FunctionPrototype
+	{
+		static void execute(CodeWriter* writer, const TypeInfo& type)
+		{
+			if (type.flags & TypeInfo::Const)
+			{
+				writer->write("const ");
+			}
+
+			if (type.flags & TypeInfo::Volatile)
+			{
+				writer->write("volatile ");
+			}
+
+			writer->write(type.name);
+
+			if (type.flags & TypeInfo::Template)
+			{
+				writer->write("<");
+
+				for (std::size_t index = 0; index < type.templates.size(); ++index)
+				{
+					if (index != 0)
+					{
+						writer->write(", ");
+					}
+
+					const TypeInfo::TemplateArgument& argument = type.templates[index];
+
+					if (argument.flags & TypeInfo::TemplateArgument::Type)
+					{
+						execute(writer, argument.type);
+					}
+					else
+					{
+						writer->write(argument.value);
+					}
+
+					if (argument.flags & TypeInfo::TemplateArgument::PackExpansion)
+					{
+						writer->write("...");
+					}
+				}
+
+				writer->write(">");
+			}
+
+			if ((type.flags & TypeInfo::Pointer) && type.name.find('*') == std::string::npos)
+			{
+				writer->write("*");
+
+				if (type.flags & TypeInfo::PointerConst)
+				{
+					writer->write(" const");
+				}
+
+				if (type.flags & TypeInfo::PointerVolatile)
+				{
+					writer->write(" volatile");
+				}
+			}
+
+			if (type.flags & TypeInfo::Reference)
+			{
+				writer->write("&");
+			}
+
+			if (type.flags & TypeInfo::RValueRef)
+			{
+				writer->write("&&");
+			}
+		}
+
+		static void execute(CodeWriter* writer, const Object* object)
+		{
+			if (object == nullptr || !object->is_a(ObjectKind::Function))
+			{
+				return;
+			}
+
+			const Function* function = static_cast<const Function*>(object);
+
+			execute(writer, function->type);
+
+			if (function->is_method())
+			{
+				writer->write(" ($0::*)(", ResolvedPathOf(function->owner));
+			}
+			else
+			{
+				writer->write(" (*)(");
+			}
+
+			for (std::size_t index = 0; index < function->args.size(); ++index)
+			{
+				if (index != 0)
+				{
+					writer->write(", ");
+				}
+
+				execute(writer, function->args[index].type);
+			}
+
+			if (function->flags & Function::Variadic)
+			{
+				if (!function->args.empty())
+				{
+					writer->write(", ");
+				}
+
+				writer->write("...");
+			}
+
+			writer->write(")");
+
+			if (function->flags & Function::Const)
+			{
+				writer->write(" const");
+			}
+		}
+	};
+
 	static bool is_object_empty(const Object* object)
 	{
 		if (object == nullptr)
@@ -293,10 +415,16 @@ namespace Reflector
 
 			for (Object* child : object->objects)
 			{
-				if (child->is_a(ObjectKind::Property) || child->is_a(ObjectKind::Function))
+				if (child->is_a(ObjectKind::Property))
 				{
 					writer->write("static constexpr auto $0 = &", ResolvedNameOf(child));
 					writer->line("$0::$1;", ResolvedPathOf(object), child->name);
+				}
+				else if (child->is_a(ObjectKind::Function))
+				{
+					writer->write("static constexpr auto ");
+					writer->write("$0 = static_cast<$1>", ResolvedNameOf(child), FunctionPrototypeOf(child));
+					writer->line("(&$0::$1);", ResolvedPathOf(object), child->name);
 				}
 				else if (child->is_a(ObjectKind::Class) || child->is_a(ObjectKind::Enum))
 				{
