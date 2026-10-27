@@ -1,8 +1,8 @@
 #include <Core/archive.hpp>
 #include <Core/default_resources.hpp>
 #include <Core/etl/flat_map.hpp>
-#include <Core/reflection/class.hpp>
-#include <Core/reflection/property.hpp>
+#include <Core/reflection/deprecated/class.hpp>
+#include <Core/reflection/deprecated/property.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Engine/Render/primitive_context.hpp>
 #include <Engine/Render/render_pass.hpp>
@@ -16,7 +16,7 @@
 
 namespace Trinex::MaterialParameters
 {
-	static FlatMap<EnumerateType, Refl::Class*> s_parameter_classes;
+	static FlatMap<EnumerateType, Refl::Deprecated::Class*> s_parameter_classes;
 
 	template<typename T>
 	static void register_parameter()
@@ -25,7 +25,7 @@ namespace Trinex::MaterialParameters
 		s_parameter_classes[index] = T::static_reflection();
 	}
 
-	Refl::Class* Parameter::static_find_class(RHIShaderParameterType type)
+	Refl::Deprecated::Class* Parameter::static_find_class(RHIShaderParameterType type)
 	{
 		EnumerateType index = static_cast<EnumerateType>(type);
 
@@ -181,109 +181,109 @@ namespace Trinex::MaterialParameters
 
 	implement_parameter(Bool)
 	{
-		trinex_refl_prop(value, Refl::Property::IsTransient);
+		trinex_refl_prop(value, Refl::Deprecated::Property::IsTransient);
 	}
 
 	implement_parameter(Int)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(value, Refl::Property::IsTransient);
+		trinex_refl_prop(value, Refl::Deprecated::Property::IsTransient);
 	}
 
 	implement_parameter(UInt)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(value, Refl::Property::IsTransient);
+		trinex_refl_prop(value, Refl::Deprecated::Property::IsTransient);
 	}
 
 	implement_parameter(Float)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(value, Refl::Property::IsTransient);
+		trinex_refl_prop(value, Refl::Deprecated::Property::IsTransient);
 	}
 
 	implement_parameter(Bool2)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(value, Refl::Property::IsTransient);
+		trinex_refl_prop(value, Refl::Deprecated::Property::IsTransient);
 	}
 
 	implement_parameter(Bool3)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(value, Refl::Property::IsTransient);
+		trinex_refl_prop(value, Refl::Deprecated::Property::IsTransient);
 	}
 
 	implement_parameter(Bool4)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(value, Refl::Property::IsTransient);
+		trinex_refl_prop(value, Refl::Deprecated::Property::IsTransient);
 	}
 
 	implement_parameter(Int2)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(value, Refl::Property::IsTransient);
+		trinex_refl_prop(value, Refl::Deprecated::Property::IsTransient);
 	}
 
 	implement_parameter(Int3)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(value, Refl::Property::IsTransient);
+		trinex_refl_prop(value, Refl::Deprecated::Property::IsTransient);
 	}
 
 	implement_parameter(Int4)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(value, Refl::Property::IsTransient);
+		trinex_refl_prop(value, Refl::Deprecated::Property::IsTransient);
 	}
 
 	implement_parameter(UInt2)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(value, Refl::Property::IsTransient);
+		trinex_refl_prop(value, Refl::Deprecated::Property::IsTransient);
 	}
 
 	implement_parameter(UInt3)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(value, Refl::Property::IsTransient);
+		trinex_refl_prop(value, Refl::Deprecated::Property::IsTransient);
 	}
 
 	implement_parameter(UInt4)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(value, Refl::Property::IsTransient);
+		trinex_refl_prop(value, Refl::Deprecated::Property::IsTransient);
 	}
 
 	implement_parameter(Float2)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(value, Refl::Property::IsTransient);
+		trinex_refl_prop(value, Refl::Deprecated::Property::IsTransient);
 	}
 
 	implement_parameter(Float3)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(value, Refl::Property::IsTransient);
+		trinex_refl_prop(value, Refl::Deprecated::Property::IsTransient);
 	}
 
 	implement_parameter(Float4)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(value, Refl::Property::IsTransient);
+		trinex_refl_prop(value, Refl::Deprecated::Property::IsTransient);
 	}
 
 	implement_parameter(Float3x3)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(value, Refl::Property::IsTransient);
+		trinex_refl_prop(value, Refl::Deprecated::Property::IsTransient);
 	}
 
 	implement_parameter(Float4x4)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(value, Refl::Property::IsTransient);
+		trinex_refl_prop(value, Refl::Deprecated::Property::IsTransient);
 	}
 
 	implement_parameter(LocalToWorld)
@@ -299,13 +299,13 @@ namespace Trinex::MaterialParameters
 	implement_parameter(Sampler2D)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(texture, Refl::Property::IsTransient);
+		trinex_refl_prop(texture, Refl::Deprecated::Property::IsTransient);
 	}
 
 	implement_parameter(Texture2D)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(texture, Refl::Property::IsTransient);
+		trinex_refl_prop(texture, Refl::Deprecated::Property::IsTransient);
 	}
 
 	implement_parameter(Globals)
@@ -316,12 +316,12 @@ namespace Trinex::MaterialParameters
 	implement_parameter(Surface)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(surface, Refl::Property::IsTransient);
+		trinex_refl_prop(surface, Refl::Deprecated::Property::IsTransient);
 	}
 
 	implement_parameter(CombinedSurface)
 	{
 		register_parameter<This>();
-		trinex_refl_prop(surface, Refl::Property::IsTransient);
+		trinex_refl_prop(surface, Refl::Deprecated::Property::IsTransient);
 	}
 } // namespace Trinex::MaterialParameters

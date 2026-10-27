@@ -1,6 +1,6 @@
 #include <Core/etl/algorithm.hpp>
 #include <Core/garbage_collector.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Core/string_functions.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/shader.hpp>
@@ -65,7 +65,7 @@ namespace Trinex
 		}
 
 		String full_class_name = Strings::format("Trinex::{}_ShaderCompiler", api_name);
-		auto* compiler_class   = Refl::Class::static_find(full_class_name);
+		auto* compiler_class   = Refl::Deprecated::Class::static_find(full_class_name);
 
 		if (compiler_class == nullptr)
 			return nullptr;

@@ -28,8 +28,8 @@ namespace Trinex
 		class PropertyRenderer
 		{
 		public:
-			using PropertiesMap = TreeMap<String, Array<Refl::Property*>>;
-			using RendererFunc  = Delegate<bool(PropertyRenderer* renderer, Refl::Property* prop, bool read_only)>;
+			using PropertiesMap = TreeMap<String, Array<Refl::Deprecated::Property*>>;
+			using RendererFunc  = Delegate<bool(PropertyRenderer* renderer, Refl::Deprecated::Property* prop, bool read_only)>;
 
 			class Context
 			{
@@ -38,7 +38,7 @@ namespace Trinex
 				using EndRenderingFunc   = Delegate<void(PropertyRenderer* renderer, bool)>;
 
 			private:
-				Map<const Refl::ClassInfo*, RendererFunc> m_renderers;
+				Map<const Refl::Deprecated::ClassInfo*, RendererFunc> m_renderers;
 				Context* m_prev = nullptr;
 
 			public:
@@ -57,9 +57,9 @@ namespace Trinex
 			public:
 				Context(Context* prev = nullptr) : m_prev(prev) {}
 
-				const RendererFunc& renderer(const Refl::ClassInfo*) const;
-				const RendererFunc* renderer_ptr(const Refl::ClassInfo*) const;
-				Context& renderer(const Refl::ClassInfo*, const RendererFunc& func);
+				const RendererFunc& renderer(const Refl::Deprecated::ClassInfo*) const;
+				const RendererFunc* renderer_ptr(const Refl::Deprecated::ClassInfo*) const;
+				Context& renderer(const Refl::Deprecated::ClassInfo*, const RendererFunc& func);
 
 				inline Context* prev() const { return m_prev; }
 
@@ -80,24 +80,24 @@ namespace Trinex
 
 			Array<StringView> m_names_stack;
 			Array<ContextEntry> m_context_stack;
-			Refl::PropertyChangedEvent* m_event = nullptr;
+			Refl::Deprecated::PropertyChangedEvent* m_event = nullptr;
 
 		public:
 			UserData userdata;
 
 			PropertyRenderer& propagate_property_event();
-			PropertyRenderer& propagate_property_event(void* ctx, Refl::Property* property);
+			PropertyRenderer& propagate_property_event(void* ctx, Refl::Deprecated::Property* property);
 			inline StringView property_name() const { return m_names_stack.back(); }
 			StringView property_name(StringView name);
-			StringView property_name(Refl::Property* prop, const void* context);
+			StringView property_name(Refl::Deprecated::Property* prop, const void* context);
 
 			bool begin(Context* ctx = nullptr);
 			PropertyRenderer& end();
 
 			void* property_address() const;
-			Refl::Property* property() const;
-			bool render_property(void* object, Refl::Property* prop, bool read_only = false, StringView name = "");
-			bool render_properties(void* object, class Refl::Struct* struct_class, bool read_only = false, StringView name = "");
+			Refl::Deprecated::Property* property() const;
+			bool render_property(void* object, Refl::Deprecated::Property* prop, bool read_only = false, StringView name = "");
+			bool render_properties(void* object, class Refl::Deprecated::Struct* struct_class, bool read_only = false, StringView name = "");
 
 			inline PropertyRenderingFlags property_rendering_flags() const { return m_context_stack.back().flags; }
 			inline Context* context() const { return m_context_stack.back().context; }

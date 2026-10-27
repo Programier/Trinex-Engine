@@ -2,7 +2,7 @@
 #include <Core/etl/any.hpp>
 #include <Core/etl/type_traits.hpp>
 #include <Core/math/angle.hpp>
-#include <Core/reflection/object.hpp>
+#include <Core/reflection/deprecated/object.hpp>
 #include <Core/types/color.hpp>
 
 namespace Trinex
@@ -12,7 +12,7 @@ namespace Trinex
 	class Path;
 } // namespace Trinex
 
-namespace Trinex::Refl
+namespace Trinex::Refl::Deprecated
 {
 	template<typename T>
 	class SubClassOf;
@@ -552,7 +552,7 @@ private:
 	class trinex_api ReflObjectProperty : public Property
 	{
 		trinex_reflect_type(ReflObjectProperty, Property);
-		trinex_refl_prop_type_filter(std::is_pointer_v<T>&& std::is_base_of_v<Trinex::Refl::Object, std::remove_pointer_t<T>>);
+		trinex_refl_prop_type_filter(std::is_pointer_v<T>&& std::is_base_of_v<Trinex::Refl::Deprecated::Object, std::remove_pointer_t<T>>);
 
 	public:
 		using Property::Property;
@@ -561,11 +561,11 @@ private:
 		usize alignment() const override;
 		bool serialize(void* object, Archive& ar) override;
 
-		Refl::Object* object(void* context);
-		bool object(void* context, Refl::Object* object);
-		const Trinex::Refl::Object* object(const void* context) const;
+		Refl::Deprecated::Object* object(void* context);
+		bool object(void* context, Refl::Deprecated::Object* object);
+		const Trinex::Refl::Deprecated::Object* object(const void* context) const;
 
-		virtual Refl::ClassInfo* info() const = 0;
+		virtual Refl::Deprecated::ClassInfo* info() const = 0;
 	};
 
 	class trinex_api SubClassProperty : public ReflObjectProperty
@@ -590,11 +590,11 @@ private:
 		using ReflObjectProperty::ReflObjectProperty;
 
 		Class* class_instance(void* context);
-		bool class_instance(void* context, Refl::Class* instance);
+		bool class_instance(void* context, Refl::Deprecated::Class* instance);
 		const Class* class_instance(const void* context) const;
-		Refl::ClassInfo* info() const override;
+		Refl::Deprecated::ClassInfo* info() const override;
 
-		virtual Refl::Class* base_class() const = 0;
+		virtual Refl::Deprecated::Class* base_class() const = 0;
 	};
 
 	class trinex_api FlagsProperty : public Property
@@ -608,7 +608,7 @@ private:
 
 	public:
 		using Property::Property;
-		virtual Refl::Enum* enum_instance() const = 0;
+		virtual Refl::Deprecated::Enum* enum_instance() const = 0;
 		bool serialize(void* object, Archive& ar) override;
 	};
 
@@ -1004,7 +1004,7 @@ private:
 			using Super = PropertyStorage<Accessor, ReflObjectProperty>;
 			using Super::Super;
 
-			Refl::ClassInfo* info() const override { return std::remove_pointer_t<T>::static_refl_class_info(); }
+			Refl::Deprecated::ClassInfo* info() const override { return std::remove_pointer_t<T>::static_refl_class_info(); }
 		};
 
 		template<typename Accessor, typename T>
@@ -1258,9 +1258,9 @@ private:
 
 #undef trinex_refl_prop_type_filter
 #define trinex_refl_prop(prop_name, ...)                                                                                         \
-	Trinex::Refl::Property::create(#prop_name, &This::prop_name, This::static_reflection() __VA_OPT__(, ) __VA_ARGS__)
+	Trinex::Refl::Deprecated::Property::create(#prop_name, &This::prop_name, This::static_reflection() __VA_OPT__(, ) __VA_ARGS__)
 
 #define trinex_refl_virtual_prop(prop_name, getter, setter, ...)                                                                 \
-	Trinex::Refl::Property::create(#prop_name, &This::getter, &This::setter, This::static_reflection() __VA_OPT__(, ) __VA_ARGS__)
+	Trinex::Refl::Deprecated::Property::create(#prop_name, &This::getter, &This::setter, This::static_reflection() __VA_OPT__(, ) __VA_ARGS__)
 
-} // namespace Trinex::Refl
+} // namespace Trinex::Refl::Deprecated

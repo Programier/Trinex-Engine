@@ -17,6 +17,6 @@ namespace Trinex
 		ImGuiTrinexTextureId default_texture();
 
 		ImGuiTrinexTextureId find_icon(DeprecatedObject* object);
-		ImGuiTrinexTextureId find_icon(Refl::Class* class_instance);
+		ImGuiTrinexTextureId find_icon(Refl::Deprecated::Class* class_instance);
 	} // namespace Icons
 } // namespace Trinex

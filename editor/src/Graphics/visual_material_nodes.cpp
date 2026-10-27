@@ -1,6 +1,6 @@
 #include <Core/default_resources.hpp>
-#include <Core/reflection/class.hpp>
-#include <Core/reflection/property.hpp>
+#include <Core/reflection/deprecated/class.hpp>
+#include <Core/reflection/deprecated/property.hpp>
 #include <Core/string_functions.hpp>
 #include <Graphics/texture.hpp>
 #include <Graphics/visual_material.hpp>

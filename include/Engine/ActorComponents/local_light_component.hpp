@@ -13,7 +13,7 @@ namespace Trinex
 	public:
 		LocalLightComponent();
 
-		LocalLightComponent& on_property_changed(const Refl::PropertyChangedEvent& event) override;
+		LocalLightComponent& on_property_changed(const Refl::Deprecated::PropertyChangedEvent& event) override;
 		LocalLightComponent& update_bounding_box() override;
 		LocalLightComponent& render_parameters(LightRenderParameters& out) override;
 

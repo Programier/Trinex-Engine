@@ -7,7 +7,7 @@ namespace Trinex
 {
 	class trinex_api Group final
 	{
-		Array<Refl::Struct*> m_structs;
+		Array<Refl::Deprecated::Struct*> m_structs;
 
 		Array<Group*> m_childs;
 		Group* m_parent = nullptr;
@@ -26,9 +26,9 @@ namespace Trinex
 		Group* parent() const;
 		const Array<Group*>& childs() const;
 		const Name& name() const;
-		const Array<class Refl::Struct*>& structs() const;
-		Group& add_struct(class Refl::Struct*);
-		Group& remove_struct(class Refl::Struct*);
+		const Array<class Refl::Deprecated::Struct*>& structs() const;
+		Group& add_struct(class Refl::Deprecated::Struct*);
+		Group& remove_struct(class Refl::Deprecated::Struct*);
 
 		~Group();
 	};

@@ -1,4 +1,4 @@
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Core/viewport_client.hpp>
 #include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_engine.hpp>
@@ -10,7 +10,7 @@ namespace Trinex
 	static ScriptFunction vc_deattach;
 	static ScriptFunction vc_render;
 
-	trinex_implement_engine_class(ViewportClient, Refl::Class::IsScriptable)
+	trinex_implement_engine_class(ViewportClient, Refl::Deprecated::Class::IsScriptable)
 	{
 		auto r = ScriptBinding::Class::existing(static_reflection());
 
@@ -54,7 +54,7 @@ namespace Trinex
 
 	ViewportClient* ViewportClient::create(const StringView& name)
 	{
-		auto* client_class = Refl::Class::static_find(name);
+		auto* client_class = Refl::Deprecated::Class::static_find(name);
 
 		if (client_class)
 		{

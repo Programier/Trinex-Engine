@@ -1,8 +1,8 @@
 #include <Core/archive.hpp>
 #include <Core/default_resources.hpp>
-#include <Core/reflection/class.hpp>
-#include <Core/reflection/enum.hpp>
-#include <Core/reflection/property.hpp>
+#include <Core/reflection/deprecated/class.hpp>
+#include <Core/reflection/deprecated/enum.hpp>
+#include <Core/reflection/deprecated/property.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
@@ -30,19 +30,19 @@ namespace Trinex
 	// public:
 	// 	using T::T;
 
-	// 	Refl::Property* element_property() const override
+	// 	Refl::Deprecated::Property* element_property() const override
 	// 	{
 	// 		constexpr Parameter* T::* null_prop = nullptr;
-	// 		const auto flags                    = Refl::Property::InlineSingleField;
-	// 		using Element                       = Refl::NativeProperty<null_prop>;
+	// 		const auto flags                    = Refl::Deprecated::Property::InlineSingleField;
+	// 		using Element                       = Refl::Deprecated::NativeProperty<null_prop>;
 
-	// 		static Refl::Property* prop = Refl::Object::new_instance<Element>(nullptr, StringView("Element"), flags);
+	// 		static Refl::Deprecated::Property* prop = Refl::Deprecated::Object::new_instance<Element>(nullptr, StringView("Element"), flags);
 	// 		return prop;
 	// 	}
 
 	// 	const String& index_name(const void* context, usize index) const override
 	// 	{
-	// 		const Refl::ArrayProperty* prop = this;
+	// 		const Refl::Deprecated::ArrayProperty* prop = this;
 	// 		const Parameter* parameter      = *prop->at_as<const Parameter*>(context, index);
 	// 		return parameter->name().to_string();
 	// 	}
@@ -120,14 +120,14 @@ namespace Trinex
 
 	trinex_implement_engine_class(MaterialInterface, 0)
 	{
-		auto params = trinex_refl_prop(m_childs, Refl::Property::IsTransient | Refl::Property::IsReadOnly);
-		Refl::Object::instance_cast<Refl::ObjectProperty>(params->element_property())->is_composite(true);
+		auto params = trinex_refl_prop(m_childs, Refl::Deprecated::Property::IsTransient | Refl::Deprecated::Property::IsReadOnly);
+		Refl::Deprecated::Object::instance_cast<Refl::Deprecated::ObjectProperty>(params->element_property())->is_composite(true);
 		params->tooltip("Array of parammeters of this material");
 	}
 
-	trinex_implement_engine_class(Material, Refl::Class::IsAsset) {}
+	trinex_implement_engine_class(Material, Refl::Deprecated::Class::IsAsset) {}
 
-	trinex_implement_engine_class(MaterialInstance, Refl::Class::IsAsset)
+	trinex_implement_engine_class(MaterialInstance, Refl::Deprecated::Class::IsAsset)
 	{
 		trinex_refl_virtual_prop(Material, parent, parent)->tooltip("Parent Material of this instance");
 	}

@@ -6,7 +6,7 @@
 #include <Core/math/math.hpp>
 #include <Core/package.hpp>
 #include <Core/profiler.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/threading.hpp>
 #include <Core/window.hpp>

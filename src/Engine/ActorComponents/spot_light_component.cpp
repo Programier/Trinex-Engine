@@ -1,6 +1,6 @@
 #include <Core/math/math.hpp>
-#include <Core/reflection/class.hpp>
-#include <Core/reflection/property.hpp>
+#include <Core/reflection/deprecated/class.hpp>
+#include <Core/reflection/deprecated/property.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/spot_light_component.hpp>
 #include <Engine/Render/lighting.hpp>

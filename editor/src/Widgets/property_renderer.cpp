@@ -1,5 +1,5 @@
 #include <Core/garbage_collector.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <UI/property_renderer.hpp>
 #include <Widgets/property_renderer.hpp>
 
@@ -44,7 +44,7 @@ namespace Trinex
 		return *this;
 	}
 
-	PropertyRenderer& PropertyRenderer::object(void* object, Refl::Struct* self)
+	PropertyRenderer& PropertyRenderer::object(void* object, Refl::Deprecated::Struct* self)
 	{
 		m_object = (object && self) ? object : nullptr;
 		m_struct = (object && self) ? self : nullptr;

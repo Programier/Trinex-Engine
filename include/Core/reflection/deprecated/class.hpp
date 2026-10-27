@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/callback.hpp>
 #include <Core/deprecated/object.hpp>
-#include <Core/reflection/struct.hpp>
+#include <Core/reflection/deprecated/struct.hpp>
 
 namespace Trinex
 {
@@ -11,7 +11,7 @@ namespace Trinex
 	}
 	class SingletoneBase;
 
-	namespace Refl
+	namespace Refl::Deprecated
 	{
 		class trinex_api Class : public Struct
 		{
@@ -29,9 +29,10 @@ namespace Trinex
 			using ObjectFactory = Trinex::DeprecatedObject*(StringView name, Trinex::DeprecatedObject* owner);
 
 			virtual Trinex::DeprecatedObject* object_constructor(StringView name = "", Trinex::DeprecatedObject* owner = nullptr,
-			                                           bool scriptable = false);
-			virtual Trinex::DeprecatedObject* object_placement_constructor(void* mem, StringView name = "", Trinex::DeprecatedObject* owner = nullptr,
 			                                                     bool scriptable = false);
+			virtual Trinex::DeprecatedObject* object_placement_constructor(void* mem, StringView name = "",
+			                                                               Trinex::DeprecatedObject* owner = nullptr,
+			                                                               bool scriptable                 = false);
 			virtual ObjectFactory* script_object_factory() const;
 
 			Class& register_scriptable_instance() override;
@@ -46,7 +47,8 @@ namespace Trinex
 			Class& destroy_struct(void* obj) override;
 
 			Trinex::DeprecatedObject* create_object(StringView name = "", Trinex::DeprecatedObject* owner = nullptr);
-			Trinex::DeprecatedObject* create_placement_object(void* place, StringView name = "", Trinex::DeprecatedObject* owner = nullptr);
+			Trinex::DeprecatedObject* create_placement_object(void* place, StringView name = "",
+			                                                  Trinex::DeprecatedObject* owner = nullptr);
 			virtual Class& destroy_object(Trinex::DeprecatedObject* object);
 			Trinex::DeprecatedObject* singletone_instance() const;
 
@@ -89,7 +91,8 @@ namespace Trinex
 				return nullptr;
 			}
 
-			Trinex::DeprecatedObject* object_constructor(StringView name, Trinex::DeprecatedObject* owner, bool scriptable = false) override
+			Trinex::DeprecatedObject* object_constructor(StringView name, Trinex::DeprecatedObject* owner,
+			                                             bool scriptable = false) override
 			{
 				if constexpr (!std::is_final_v<T>)
 				{
@@ -102,7 +105,7 @@ namespace Trinex
 			}
 
 			Trinex::DeprecatedObject* object_placement_constructor(void* mem, StringView name, Trinex::DeprecatedObject* owner,
-			                                             bool scriptable = false) override
+			                                                       bool scriptable = false) override
 			{
 				if constexpr (!std::is_final_v<T>)
 				{
@@ -143,5 +146,5 @@ namespace Trinex
 
 			usize size() const override { return sizeof(T); }
 		};
-	} // namespace Refl
+	} // namespace Refl::Deprecated
 } // namespace Trinex

@@ -1,7 +1,7 @@
 #include <Core/group.hpp>
-#include <Core/reflection/class.hpp>
-#include <Core/reflection/enum.hpp>
-#include <Core/reflection/property.hpp>
+#include <Core/reflection/deprecated/class.hpp>
+#include <Core/reflection/deprecated/enum.hpp>
+#include <Core/reflection/deprecated/property.hpp>
 #include <Core/types/path.hpp>
 #include <Engine/project.hpp>
 #include <Graphics/visual_material.hpp>
@@ -36,7 +36,7 @@ export Material main<Material : IMaterial>(in IMaterialInput input)
 
 )";
 
-	trinex_implement_engine_class(VisualMaterial, Refl::Class::IsAsset) {}
+	trinex_implement_engine_class(VisualMaterial, Refl::Deprecated::Class::IsAsset) {}
 
 	VisualMaterial::VisualMaterial()
 	{
@@ -54,7 +54,7 @@ export Material main<Material : IMaterial>(in IMaterialInput input)
 		return *this;
 	}
 
-	VisualMaterialGraph::Node* VisualMaterial::create_node(Refl::Class* node_class, const Vector2f& position)
+	VisualMaterialGraph::Node* VisualMaterial::create_node(Refl::Deprecated::Class* node_class, const Vector2f& position)
 	{
 		if (m_nodes.size() == std::numeric_limits<u16>::max())
 		{

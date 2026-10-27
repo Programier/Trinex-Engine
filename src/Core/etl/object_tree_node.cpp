@@ -1,6 +1,6 @@
 #include <Core/etl/object_tree_node.hpp>
 #include <Core/deprecated/object.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Core/string_functions.hpp>
 #include <algorithm>
 
@@ -11,7 +11,7 @@ namespace Trinex
 		return object->name().id() < id;
 	}
 
-	bool ObjectTreeNodeStatics::lower_bound(iterator begin, iterator end, iterator& out, DeprecatedObject* object, Refl::Class* check_class)
+	bool ObjectTreeNodeStatics::lower_bound(iterator begin, iterator end, iterator& out, DeprecatedObject* object, Refl::Deprecated::Class* check_class)
 	{
 		if (!object->class_instance()->is_a(check_class))
 		{

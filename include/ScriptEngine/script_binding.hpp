@@ -145,8 +145,8 @@ class trinex_api Class
 public:
 	static Class create(const StringView& name, const ObjectTypeOptions& options = {});
 	static Class existing(const StringView& name);
-	static Class existing(Refl::Class* class_instance);
-	static Class reflected(Refl::Class* class_instance,
+	static Class existing(Refl::Deprecated::Class* class_instance);
+	static Class reflected(Refl::Deprecated::Class* class_instance,
 	                       ScriptClassFlags flags = ScriptClassFlags::AppNativeInheritance | ScriptClassFlags::NoCount);
 
 	inline const String& name() const { return m_class; }

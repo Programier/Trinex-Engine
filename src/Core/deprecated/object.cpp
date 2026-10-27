@@ -12,7 +12,7 @@
 #include <Core/object_listener.hpp>
 #include <Core/package.hpp>
 #include <Core/pointer.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Core/stream.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/threading.hpp>
@@ -29,7 +29,7 @@ namespace Trinex
 
 	static thread_local struct NextObjectInfo
 	{
-		Refl::Class* class_instance;
+		Refl::Deprecated::Class* class_instance;
 
 		NextObjectInfo() { reset(); }
 
@@ -52,7 +52,7 @@ namespace Trinex
 		}
 	}
 
-	Refl::Class* DeprecatedObject::static_setup_next_object_info(Refl::Class* self)
+	Refl::Deprecated::Class* DeprecatedObject::static_setup_next_object_info(Refl::Deprecated::Class* self)
 	{
 		if (!s_next_object_info.class_instance)
 		{
@@ -73,13 +73,13 @@ namespace Trinex
 		s_next_object_info.reset();
 	}
 
-	trinex_implement_engine_class(DeprecatedObject, Refl::Class::IsScriptable)
+	trinex_implement_engine_class(DeprecatedObject, Refl::Deprecated::Class::IsScriptable)
 	{
 		auto r = ScriptBinding::Class::existing(static_reflection());
 		r.method("const string& string_name() const final", &DeprecatedObject::string_name);
 		r.static_function("Package@ root_package()", &DeprecatedObject::root_package);
 		r.method("const Name& name() const final", overload_of<const Name&>(&DeprecatedObject::name));
-		r.method("Refl::Class@ class_instance() const final", &DeprecatedObject::class_instance);
+		r.method("Refl::Deprecated::Class@ class_instance() const final", &DeprecatedObject::class_instance);
 		r.method("bool owner(DeprecatedObject@ new_owner) final", overload_of<bool()>(&DeprecatedObject::owner));
 
 		r.method("void preload()", trinex_scoped_method(DeprecatedObject, preload));
@@ -108,7 +108,7 @@ namespace Trinex
 		ScriptContext::current()->execute(this, script_object_postload);
 	}
 
-	bool DeprecatedObject::private_check_instance(const Refl::Class* const check_class) const
+	bool DeprecatedObject::private_check_instance(const Refl::Deprecated::Class* const check_class) const
 	{
 		const void* self = this;
 		if (self == nullptr)
@@ -172,7 +172,7 @@ namespace Trinex
 		s_objects.push_back(this);
 	}
 
-	class Refl::Class* DeprecatedObject::class_instance() const
+	class Refl::Deprecated::Class* DeprecatedObject::class_instance() const
 	{
 		return m_class;
 	}
@@ -416,7 +416,7 @@ namespace Trinex
 		return *this;
 	}
 
-	DeprecatedObject& DeprecatedObject::on_property_changed(const Refl::PropertyChangedEvent& event)
+	DeprecatedObject& DeprecatedObject::on_property_changed(const Refl::Deprecated::PropertyChangedEvent& event)
 	{
 		return *this;
 	}
@@ -782,7 +782,7 @@ namespace Trinex
 		}
 	}
 
-	DeprecatedObject* DeprecatedObject::static_new_instance(Refl::Class* object_class, StringView name, DeprecatedObject* owner)
+	DeprecatedObject* DeprecatedObject::static_new_instance(Refl::Deprecated::Class* object_class, StringView name, DeprecatedObject* owner)
 	{
 		if (object_class)
 		{
@@ -791,7 +791,7 @@ namespace Trinex
 		return nullptr;
 	}
 
-	DeprecatedObject* DeprecatedObject::static_new_placement_instance(void* place, Refl::Class* object_class, StringView name, DeprecatedObject* owner)
+	DeprecatedObject* DeprecatedObject::static_new_placement_instance(void* place, Refl::Deprecated::Class* object_class, StringView name, DeprecatedObject* owner)
 	{
 		if (object_class)
 		{

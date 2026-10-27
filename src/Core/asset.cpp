@@ -1,7 +1,7 @@
 #include <Core/archive.hpp>
 #include <Core/asset.hpp>
-#include <Core/reflection/class.hpp>
-#include <Core/reflection/property.hpp>
+#include <Core/reflection/deprecated/class.hpp>
+#include <Core/reflection/deprecated/property.hpp>
 
 namespace Trinex
 {
@@ -29,8 +29,8 @@ namespace Trinex
 		return archive.serialize(m_uuid);
 	}
 
-	trinex_implement_engine_class(Asset, Refl::Class::IsAsset | Refl::Class::IsScriptable)
+	trinex_implement_engine_class(Asset, Refl::Deprecated::Class::IsAsset | Refl::Deprecated::Class::IsScriptable)
 	{
-		Refl::Property::create("UUID", &This::uuid_string, This::static_reflection(), Refl::Property::IsReadOnly);
+		Refl::Deprecated::Property::create("UUID", &This::uuid_string, This::static_reflection(), Refl::Deprecated::Property::IsReadOnly);
 	}
 } // namespace Trinex

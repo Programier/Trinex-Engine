@@ -1,10 +1,10 @@
-#include <Core/reflection/script_enum.hpp>
+#include <Core/reflection/deprecated/script_enum.hpp>
 #include <ScriptEngine/script.hpp>
 #include <ScriptEngine/script_binding.hpp>
 
-namespace Trinex::Refl
+namespace Trinex::Refl::Deprecated
 {
-	trinex_implement_reflect_type(Trinex::Refl::ScriptEnum) {}
+	trinex_implement_reflect_type(Trinex::Refl::Deprecated::ScriptEnum) {}
 
 	ScriptEnum::ScriptEnum(Script* script, const ScriptTypeInfo& info) : m_script(script)
 	{
@@ -31,4 +31,4 @@ namespace Trinex::Refl
 	{
 		m_script->m_refl_objects.erase(this);
 	}
-} // namespace Trinex::Refl
+} // namespace Trinex::Refl::Deprecated

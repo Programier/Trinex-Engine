@@ -2,7 +2,7 @@
 #include <Core/etl/concepts.hpp>
 #include <Core/etl/set.hpp>
 #include <Core/etl/type_traits.hpp>
-#include <Core/reflection/scoped_type.hpp>
+#include <Core/reflection/deprecated/scoped_type.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 
 namespace Trinex
@@ -11,7 +11,7 @@ namespace Trinex
 	class Archive;
 } // namespace Trinex
 
-namespace Trinex::Refl
+namespace Trinex::Refl::Deprecated
 {
 	class trinex_api Struct : public ScopedType
 	{
@@ -209,4 +209,4 @@ namespace Trinex::Refl
 		}
 	};
 
-} // namespace Trinex::Refl
+} // namespace Trinex::Refl::Deprecated

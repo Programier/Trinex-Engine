@@ -1,6 +1,6 @@
 #include <Core/engine.hpp>
 #include <Core/profiler.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Core/threading.hpp>
 #include <Engine/Render/scene.hpp>
 #include <Engine/Render/scene_view.hpp>

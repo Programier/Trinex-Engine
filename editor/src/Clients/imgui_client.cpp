@@ -1,7 +1,7 @@
 #include <Clients/imgui_client.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/localization.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/threading.hpp>
 #include <Core/types/color.hpp>
@@ -20,7 +20,7 @@ namespace Trinex
 	static ScriptFunction m_ic_script_update;
 	static ScriptFunction m_ic_script_select;
 
-	trinex_implement_engine_class(ImGuiViewportClient, Refl::Class::IsScriptable)
+	trinex_implement_engine_class(ImGuiViewportClient, Refl::Deprecated::Class::IsScriptable)
 	{
 		auto r = ScriptBinding::Class::existing(static_reflection());
 
@@ -40,10 +40,10 @@ namespace Trinex
 		};
 	}
 
-	static Map<Refl::Class*, ImGuiViewportClient*> m_opened_clients;
-	static Map<Refl::Class*, Refl::Class*> m_viewports_map;
+	static Map<Refl::Deprecated::Class*, ImGuiViewportClient*> m_opened_clients;
+	static Map<Refl::Deprecated::Class*, Refl::Deprecated::Class*> m_viewports_map;
 
-	static ImGuiViewportClient* open_editor_client(Refl::Class* client)
+	static ImGuiViewportClient* open_editor_client(Refl::Deprecated::Class* client)
 	{
 		WindowDesc desc;
 		desc.client = client->full_name();
@@ -51,7 +51,7 @@ namespace Trinex
 		return DeprecatedObject::instance_cast<ImGuiViewportClient>(window->render_viewport()->client());
 	}
 
-	static void draw_available_clients_for_opening_internal(Refl::Class* self, Refl::Class* skip)
+	static void draw_available_clients_for_opening_internal(Refl::Deprecated::Class* self, Refl::Deprecated::Class* skip)
 	{
 		if (self == nullptr)
 			return;
@@ -66,9 +66,9 @@ namespace Trinex
 			}
 		}
 
-		for (Refl::Struct* child : self->derived_structs())
+		for (Refl::Deprecated::Struct* child : self->derived_structs())
 		{
-			if (auto class_instance = Refl::Object::instance_cast<Refl::Class>(child))
+			if (auto class_instance = Refl::Deprecated::Object::instance_cast<Refl::Deprecated::Class>(child))
 			{
 				draw_available_clients_for_opening_internal(class_instance, skip);
 			}
@@ -97,7 +97,7 @@ namespace Trinex
 		ScriptContext::current()->execute(this, m_ic_script_select);
 	}
 
-	bool ImGuiViewportClient::register_client(Refl::Class* object_type, Refl::Class* renderer)
+	bool ImGuiViewportClient::register_client(Refl::Deprecated::Class* object_type, Refl::Deprecated::Class* renderer)
 	{
 		if (object_type == nullptr || renderer == nullptr)
 			return false;
@@ -106,9 +106,9 @@ namespace Trinex
 		return true;
 	}
 
-	ImGuiViewportClient* ImGuiViewportClient::client_of(Refl::Class* object_type, bool create_if_not_exist)
+	ImGuiViewportClient* ImGuiViewportClient::client_of(Refl::Deprecated::Class* object_type, bool create_if_not_exist)
 	{
-		Refl::Class* viewport_class = nullptr;
+		Refl::Deprecated::Class* viewport_class = nullptr;
 
 		while (object_type && viewport_class == nullptr)
 		{

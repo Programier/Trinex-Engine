@@ -6,7 +6,7 @@
 #include <Core/math/math.hpp>
 #include <Core/memory.hpp>
 #include <Core/package.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/types/path.hpp>
 #include <Engine/ActorComponents/directional_light_component.hpp>

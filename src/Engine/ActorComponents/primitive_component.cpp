@@ -1,5 +1,5 @@
 #include <Core/etl/templates.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/Actors/actor.hpp>
@@ -10,7 +10,7 @@
 
 namespace Trinex
 {
-	trinex_implement_engine_class(PrimitiveComponent, Refl::Class::IsScriptable) {}
+	trinex_implement_engine_class(PrimitiveComponent, Refl::Deprecated::Class::IsScriptable) {}
 
 	PrimitiveComponent::PrimitiveComponent() {}
 

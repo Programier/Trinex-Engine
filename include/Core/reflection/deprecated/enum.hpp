@@ -1,9 +1,9 @@
 #pragma once
 #include <Core/etl/value_info.hpp>
-#include <Core/reflection/object.hpp>
+#include <Core/reflection/deprecated/object.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 
-namespace Trinex::Refl
+namespace Trinex::Refl::Deprecated
 {
 	class trinex_api Enum : public Object
 	{
@@ -66,4 +66,4 @@ namespace Trinex::Refl
 		inline bool is_scriptable() const { return m_flags & IsScriptable; }
 		inline bool is_bit_flags() const { return m_flags & IsBitFlags; }
 	};
-} // namespace Trinex::Refl
+} // namespace Trinex::Refl::Deprecated

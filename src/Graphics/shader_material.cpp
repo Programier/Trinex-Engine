@@ -1,14 +1,14 @@
 #include <Core/archive.hpp>
 #include <Core/blob.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
-#include <Core/reflection/class.hpp>
-#include <Core/reflection/property.hpp>
+#include <Core/reflection/deprecated/class.hpp>
+#include <Core/reflection/deprecated/property.hpp>
 #include <Engine/project.hpp>
 #include <Graphics/shader_material.hpp>
 
 namespace Trinex
 {
-	trinex_implement_engine_class(ShaderMaterial, Refl::Class::IsAsset)
+	trinex_implement_engine_class(ShaderMaterial, Refl::Deprecated::Class::IsAsset)
 	{
 		trinex_refl_prop(shader_path)->tooltip("Path to slang file");
 	}

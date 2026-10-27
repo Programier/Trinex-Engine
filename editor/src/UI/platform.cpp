@@ -1,7 +1,7 @@
 #include <Core/engine.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/etl/templates.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Core/window.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Input/system.hpp>

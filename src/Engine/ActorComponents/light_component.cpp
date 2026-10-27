@@ -1,6 +1,6 @@
-#include <Core/reflection/class.hpp>
-#include <Core/reflection/enum.hpp>
-#include <Core/reflection/property.hpp>
+#include <Core/reflection/deprecated/class.hpp>
+#include <Core/reflection/deprecated/enum.hpp>
+#include <Core/reflection/deprecated/property.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/Render/lighting.hpp>

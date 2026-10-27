@@ -1,6 +1,6 @@
 #include <Core/exception.hpp>
 #include <Core/memory.hpp>
-#include <Core/reflection/struct.hpp>
+#include <Core/reflection/deprecated/struct.hpp>
 #include <dx12_api.hpp>
 #include <dx12_buffer.hpp>
 #include <dx12_command_allocator.hpp>

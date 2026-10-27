@@ -1,13 +1,13 @@
 #include <Core/archive.hpp>
 #include <Core/group.hpp>
-#include <Core/reflection/property.hpp>
-#include <Core/reflection/struct.hpp>
+#include <Core/reflection/deprecated/property.hpp>
+#include <Core/reflection/deprecated/struct.hpp>
 #include <Graphics/gpu_buffers.hpp>
 #include <ScriptEngine/script_binding.hpp>
 
-namespace Trinex::Refl
+namespace Trinex::Refl::Deprecated
 {
-	trinex_implement_reflect_type(Trinex::Refl::Struct)
+	trinex_implement_reflect_type(Trinex::Refl::Deprecated::Struct)
 	{
 		Property::initialize_reflection();
 		r.method("Struct@ parent() const", &Struct::parent);
@@ -203,7 +203,7 @@ namespace Trinex::Refl
 		return nullptr;
 	}
 
-	static Array<Property*> collect_serializable_properties(Refl::Struct* self)
+	static Array<Property*> collect_serializable_properties(Refl::Deprecated::Struct* self)
 	{
 		Array<Property*> result;
 		result.reserve(20);
@@ -383,4 +383,4 @@ namespace Trinex::Refl
 		r.method("const Array<Property@>& properties() const", &T::properties);
 		r.method("Property find_property(StringView name)", &T::find_property);
 	}
-} // namespace Trinex::Refl
+} // namespace Trinex::Refl::Deprecated

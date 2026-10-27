@@ -1,4 +1,4 @@
-#include <Core/reflection/script_class.hpp>
+#include <Core/reflection/deprecated/script_class.hpp>
 #include <ScriptEngine/script.hpp>
 #include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_context.hpp>
@@ -6,9 +6,9 @@
 #include <ScriptEngine/script_function.hpp>
 #include <angelscript.h>
 
-namespace Trinex::Refl
+namespace Trinex::Refl::Deprecated
 {
-	trinex_implement_reflect_type(Trinex::Refl::ScriptClass) {}
+	trinex_implement_reflect_type(Trinex::Refl::Deprecated::ScriptClass) {}
 
 	bool Class::is_script_class(Class* self)
 	{
@@ -80,4 +80,4 @@ namespace Trinex::Refl
 	{
 		m_script->m_refl_objects.erase(this);
 	}
-} // namespace Trinex::Refl
+} // namespace Trinex::Refl::Deprecated

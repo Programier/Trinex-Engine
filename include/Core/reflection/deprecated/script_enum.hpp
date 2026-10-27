@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/reflection/enum.hpp>
+#include <Core/reflection/deprecated/enum.hpp>
 
 namespace Trinex
 {
@@ -7,7 +7,7 @@ namespace Trinex
 	class ScriptTypeInfo;
 } // namespace Trinex
 
-namespace Trinex::Refl
+namespace Trinex::Refl::Deprecated
 {
 	class trinex_api ScriptEnum : public Enum
 	{
@@ -20,4 +20,4 @@ namespace Trinex::Refl
 		Script* script() const;
 		~ScriptEnum();
 	};
-} // namespace Trinex::Refl
+} // namespace Trinex::Refl::Deprecated

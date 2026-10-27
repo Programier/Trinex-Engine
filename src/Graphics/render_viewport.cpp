@@ -1,6 +1,6 @@
 #include <Core/engine.hpp>
 #include <Core/etl/templates.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Core/threading.hpp>
 #include <Core/viewport_client.hpp>
 #include <Core/window.hpp>
@@ -12,7 +12,7 @@
 
 namespace Trinex
 {
-	trinex_implement_engine_class(RenderViewport, Refl::Class::IsScriptable) {}
+	trinex_implement_engine_class(RenderViewport, Refl::Deprecated::Class::IsScriptable) {}
 
 	static RenderViewport* m_current_render_viewport = nullptr;
 	Array<RenderViewport*> RenderViewport::m_viewports;

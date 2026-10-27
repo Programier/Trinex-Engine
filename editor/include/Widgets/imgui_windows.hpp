@@ -53,12 +53,12 @@ namespace Trinex
 		String new_asset_name;
 		int current_index = 0;
 
-		Array<Refl::Class*> m_filtered_classes;
+		Array<Refl::Deprecated::Class*> m_filtered_classes;
 
 	public:
-		CallBacks<bool(class Refl::Class*)> filters;
+		CallBacks<bool(class Refl::Deprecated::Class*)> filters;
 
-		ImGuiCreateNewAsset(class Package* pkg, const CallBacks<bool(class Refl::Class*)>& = {});
+		ImGuiCreateNewAsset(class Package* pkg, const CallBacks<bool(class Refl::Deprecated::Class*)>& = {});
 		bool render(class RenderViewport* viewport) override;
 		virtual const char* name() const;
 		static const char* static_name();
@@ -128,7 +128,7 @@ namespace Trinex
 	{
 		struct Node
 		{
-			class Refl::Class* self = nullptr;
+			class Refl::Deprecated::Class* self = nullptr;
 
 			struct Compare
 			{
@@ -151,7 +151,7 @@ namespace Trinex
 		String m_name;
 		bool m_is_open = false;
 
-		void build_tree(Node* node, class Refl::Class* self);
+		void build_tree(Node* node, class Refl::Deprecated::Class* self);
 		void render_tree(Node* node);
 		void render_parameters();
 		void begin_dock_space();

@@ -5,7 +5,7 @@ namespace Trinex
 	class Object;
 }
 
-namespace Trinex::Refl
+namespace Trinex::Refl::Deprecated
 {
 	class Class;
 	template<typename T = Trinex::DeprecatedObject>
@@ -52,4 +52,4 @@ namespace Trinex::Refl
 
 		bool operator!=(Class* class_instance) const { return m_class != class_instance; }
 	};
-} // namespace Trinex::Refl
+} // namespace Trinex::Refl::Deprecated

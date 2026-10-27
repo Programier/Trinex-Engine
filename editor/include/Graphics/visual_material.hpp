@@ -25,7 +25,7 @@ namespace Trinex
 
 	public:
 		VisualMaterial();
-		VisualMaterialGraph::Node* create_node(class Refl::Class* node_class, const Vector2f& position = {});
+		VisualMaterialGraph::Node* create_node(class Refl::Deprecated::Class* node_class, const Vector2f& position = {});
 		VisualMaterial& destroy_node(VisualMaterialGraph::Node* node, bool destroy_links = true);
 		bool compile(ShaderCompiler* compiler = nullptr, RenderPass* pass = nullptr) override;
 		~VisualMaterial();

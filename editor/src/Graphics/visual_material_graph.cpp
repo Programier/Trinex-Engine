@@ -1,6 +1,6 @@
 #include <Core/group.hpp>
 #include <Core/memory.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Graphics/visual_material.hpp>
 #include <Graphics/visual_material_graph.hpp>
 #include <ScriptEngine/script_binding.hpp>
@@ -14,7 +14,7 @@ namespace Trinex::VisualMaterialGraph
 	static ScriptFunction s_node_compile_output;
 	static ScriptFunction s_node_render;
 
-	trinex_implement_class(Trinex::VisualMaterialGraph::Node, Refl::Class::IsScriptable)
+	trinex_implement_class(Trinex::VisualMaterialGraph::Node, Refl::Deprecated::Class::IsScriptable)
 	{
 		auto r = ScriptBinding::Class::existing(static_reflection());
 
@@ -498,7 +498,7 @@ namespace Trinex::VisualMaterialGraph
 		}
 	}
 
-	Node* Compiler::create_temp_node(Refl::Class* node_class, u16 id)
+	Node* Compiler::create_temp_node(Refl::Deprecated::Class* node_class, u16 id)
 	{
 		if (!node_class->is_a<Node>())
 			return nullptr;
@@ -526,7 +526,7 @@ namespace Trinex::VisualMaterialGraph
 		return static_uniform_parameter_name(node->class_instance(), node->id());
 	}
 
-	String Compiler::static_uniform_parameter_name(Refl::Class* node_class, u16 id)
+	String Compiler::static_uniform_parameter_name(Refl::Deprecated::Class* node_class, u16 id)
 	{
 		String node_name = Strings::to_lower(node_class->name());
 		return Strings::format("trx_var_{}_{}", node_name, id);
@@ -542,7 +542,7 @@ namespace Trinex::VisualMaterialGraph
 		return *this;
 	}
 
-	Node* Compiler::find_redirection(Refl::Class* node_class, Identifier id)
+	Node* Compiler::find_redirection(Refl::Deprecated::Class* node_class, Identifier id)
 	{
 		RedirectionKey key;
 		key.node_class = node_class;
@@ -739,7 +739,7 @@ namespace Trinex::VisualMaterialGraph
 		return *this;
 	}
 
-	void Node::static_node_group(Refl::Class* node_class, const String& group)
+	void Node::static_node_group(Refl::Deprecated::Class* node_class, const String& group)
 	{
 		trinex_assert_msg(node_class->is_a<Node>(),
 		                  "Cannot use 'node_group' with classes, which is not derived from Trinex::VisualMaterialGraph::Node!");
@@ -796,7 +796,7 @@ namespace Trinex::VisualMaterialGraph
 		ScriptContext::current()->execute(this, s_node_render);
 	}
 
-	Node& Node::on_property_changed(const Refl::PropertyChangedEvent& event)
+	Node& Node::on_property_changed(const Refl::Deprecated::PropertyChangedEvent& event)
 	{
 		Super::on_property_changed(event);
 
@@ -845,12 +845,12 @@ namespace Trinex::VisualMaterialGraph
 	static void register_metadata_functions()
 	{
 		{
-			ScriptBinding::Class r = ScriptBinding::Class::existing("Trinex::Refl::Class");
+			ScriptBinding::Class r = ScriptBinding::Class::existing("Trinex::Refl::Deprecated::Class");
 			r.method("void node_group(const string& group_name) const final", Node::static_node_group);
 		}
 
 		{
-			ScriptBinding::Class r = ScriptBinding::Class::existing("Trinex::Refl::ScriptClass");
+			ScriptBinding::Class r = ScriptBinding::Class::existing("Trinex::Refl::Deprecated::ScriptClass");
 			r.method("void node_group(const string& group_name) const final", Node::static_node_group);
 		}
 	}
@@ -868,8 +868,8 @@ namespace Trinex::VisualMaterialGraph
 	trinex_on_reflection_init({.name  = "Trinex::VisualMaterialGraph",
 	                           .after = {
 	                                   "Trinex::RHIShaderParameterType",
-	                                   "Trinex::Refl::Class",
-	                                   "Trinex::Refl::ScriptClass",
+	                                   "Trinex::Refl::Deprecated::Class",
+	                                   "Trinex::Refl::Deprecated::ScriptClass",
 	                                   "Trinex::VisualMaterialGraph::Node",
 	                           }})
 	{

@@ -1,6 +1,6 @@
 #include <Core/constants.hpp>
 #include <Core/package.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Core/string_functions.hpp>
 
 namespace Trinex
@@ -130,5 +130,5 @@ namespace Trinex
 		return package;
 	}
 
-	trinex_implement_engine_class(Package, Refl::Class::IsScriptable) {}
+	trinex_implement_engine_class(Package, Refl::Deprecated::Class::IsScriptable) {}
 } // namespace Trinex

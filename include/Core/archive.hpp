@@ -29,7 +29,7 @@ namespace Trinex
 			}
 		}
 
-		bool serialize_struct(Refl::Struct* self, void* obj);
+		bool serialize_struct(Refl::Deprecated::Struct* self, void* obj);
 
 	public:
 		Archive();

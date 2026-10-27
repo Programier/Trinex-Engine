@@ -3,8 +3,8 @@
 #include <Core/etl/map.hpp>
 #include <Core/etl/static_array.hpp>
 #include <Core/memory.hpp>
-#include <Core/reflection/property.hpp>
-#include <Core/reflection/struct.hpp>
+#include <Core/reflection/deprecated/property.hpp>
+#include <Core/reflection/deprecated/struct.hpp>
 #include <Core/threading.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/sampler.hpp>

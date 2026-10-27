@@ -78,8 +78,8 @@ namespace Trinex
 		static void begin_diagnostics_capture(ScriptBuildResult* result);
 		static void end_diagnostics_capture();
 
-		static void register_class(i32 type_id, Refl::Class* self);
-		static Refl::Class* find_class(i32 type_id);
+		static void register_class(i32 type_id, Refl::Deprecated::Class* self);
+		static Refl::Deprecated::Class* find_class(i32 type_id);
 		static void unregister_class(i32 type_id);
 
 		static void bind_imports();

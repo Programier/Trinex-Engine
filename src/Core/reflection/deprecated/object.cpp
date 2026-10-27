@@ -1,12 +1,12 @@
 #include <Core/constants.hpp>
 #include <Core/etl/set.hpp>
 #include <Core/etl/templates.hpp>
-#include <Core/reflection/object.hpp>
+#include <Core/reflection/deprecated/object.hpp>
 #include <Core/string_functions.hpp>
 #include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_engine.hpp>
 
-namespace Trinex::Refl
+namespace Trinex::Refl::Deprecated
 {
 	namespace Meta
 	{
@@ -111,7 +111,7 @@ namespace Trinex::Refl
 			initialized = true;
 
 			{
-				ScriptBinding::Enum r("Trinex::Refl::FindFlags");
+				ScriptBinding::Enum r("Trinex::Refl::Deprecated::FindFlags");
 				r.value("None", FindFlags::Undefined);
 				r.value("CreateScope", FindFlags::CreateScope);
 				r.value("IsRequired", FindFlags::IsRequired);
@@ -119,16 +119,16 @@ namespace Trinex::Refl
 			{
 				auto options = ScriptBinding::reference_type(sizeof(ClassInfo),
 				                                             ScriptClassFlags::NoCount | ScriptClassFlags::ImplicitHandle);
-				auto r       = ScriptBinding::Class::create("Trinex::Refl::ClassInfo", options);
+				auto r       = ScriptBinding::Class::create("Trinex::Refl::Deprecated::ClassInfo", options);
 				r.property("const Name class_name", &ClassInfo::class_name);
 				r.property("const ClassInfo@ parent", &ClassInfo::parent);
 				r.method("bool is_a(const ClassInfo@ info) const", &ClassInfo::is_a);
 			}
 
 			auto r = ScriptBinding::Class::create(
-			        "Trinex::Refl::Object",
+			        "Trinex::Refl::Deprecated::Object",
 			        ScriptBinding::reference_type(sizeof(Object), ScriptClassFlags::NoCount | ScriptClassFlags::ImplicitHandle));
-			r.static_function("Trinex::Refl::ClassInfo@ static_refl_class_info()", &Object::static_refl_class_info);
+			r.static_function("Trinex::Refl::Deprecated::ClassInfo@ static_refl_class_info()", &Object::static_refl_class_info);
 			r.static_function("bool is_valid(Object@ object)", Object::is_valid);
 			r.static_function("Object@ static_root()", Object::static_root);
 
@@ -417,8 +417,8 @@ namespace Trinex::Refl
 	{
 		using T = Object;
 
-		r.method("Trinex::Refl::Object@ owner(Trinex::Refl::Object@ new_owner)", overload_of<Object&>(&T::owner));
-		r.method("Trinex::Refl::Object@ owner()", overload_of<Object*>(&T::owner));
+		r.method("Trinex::Refl::Deprecated::Object@ owner(Trinex::Refl::Deprecated::Object@ new_owner)", overload_of<Object&>(&T::owner));
+		r.method("Trinex::Refl::Deprecated::Object@ owner()", overload_of<Object*>(&T::owner));
 		r.method("const Trinex::Name& name() const", &T::name);
 		r.method("string full_name() const", overload_of<String>(&T::full_name));
 		r.method("string scope_name() const", &T::scope_name);
@@ -429,25 +429,25 @@ namespace Trinex::Refl
 		r.method("const string& description() const", overload_of<const String&>(&T::description));
 		r.method("const string& group() const", overload_of<const String&>(&T::group));
 
-		r.method("Trinex::Refl::Object@ display_name(Trinex::StringView name)", overload_of<Object&>(&T::display_name));
-		r.method("Trinex::Refl::Object@ tooltip(Trinex::StringView tooltip)", overload_of<Object&>(&T::tooltip));
-		r.method("Trinex::Refl::Object@ description(Trinex::StringView description)", overload_of<Object&>(&T::description));
-		r.method("Trinex::Refl::Object@ group(Trinex::StringView group)", overload_of<Object&>(&T::group));
+		r.method("Trinex::Refl::Deprecated::Object@ display_name(Trinex::StringView name)", overload_of<Object&>(&T::display_name));
+		r.method("Trinex::Refl::Deprecated::Object@ tooltip(Trinex::StringView tooltip)", overload_of<Object&>(&T::tooltip));
+		r.method("Trinex::Refl::Deprecated::Object@ description(Trinex::StringView description)", overload_of<Object&>(&T::description));
+		r.method("Trinex::Refl::Deprecated::Object@ group(Trinex::StringView group)", overload_of<Object&>(&T::group));
 
-		r.method("Trinex::Refl::Object@ remove_metadata(const Trinex::Name& name)", &T::remove_metadata);
+		r.method("Trinex::Refl::Deprecated::Object@ remove_metadata(const Trinex::Name& name)", &T::remove_metadata);
 
-		r.method("Trinex::Refl::Object@ find(const Trinex::Name& name)", &T::find<Object>);
-		r.method("Trinex::Refl::ClassInfo@ refl_class_info() const", &T::refl_class_info);
+		r.method("Trinex::Refl::Deprecated::Object@ find(const Trinex::Name& name)", &T::find<Object>);
+		r.method("Trinex::Refl::Deprecated::ClassInfo@ refl_class_info() const", &T::refl_class_info);
 
 		String current_type = r.name();
 
 		for (auto i = info->parent; i; i = i->parent)
 		{
 			// upcast
-			String opconv           = Strings::format("Trinex::Refl::{}@ opConv()", i->class_name.to_string());
-			String const_opconv     = Strings::format("const Trinex::Refl::{}@ opConv() const", i->class_name.to_string());
-			String opimplconv       = Strings::format("Trinex::Refl::{}@ opImplConv()", i->class_name.to_string());
-			String const_opimplconv = Strings::format("const Trinex::Refl::{}@ opImplConv() const", i->class_name.to_string());
+			String opconv           = Strings::format("Trinex::Refl::Deprecated::{}@ opConv()", i->class_name.to_string());
+			String const_opconv     = Strings::format("const Trinex::Refl::Deprecated::{}@ opConv() const", i->class_name.to_string());
+			String opimplconv       = Strings::format("Trinex::Refl::Deprecated::{}@ opImplConv()", i->class_name.to_string());
+			String const_opimplconv = Strings::format("const Trinex::Refl::Deprecated::{}@ opImplConv() const", i->class_name.to_string());
 
 			r.method(opconv.c_str(), self_address);
 			r.method(const_opconv.c_str(), self_address);
@@ -458,7 +458,7 @@ namespace Trinex::Refl
 			String opcast       = Strings::format("{}@ opCast()", current_type);
 			String const_opcast = Strings::format("const {}@ opCast() const", current_type);
 
-			auto r = ScriptBinding::Class::existing(Strings::format("Trinex::Refl::{}", i->class_name.to_string()));
+			auto r = ScriptBinding::Class::existing(Strings::format("Trinex::Refl::Deprecated::{}", i->class_name.to_string()));
 			if (downcast)
 			{
 				r.method(opcast.c_str(), downcast);
@@ -466,4 +466,4 @@ namespace Trinex::Refl
 			}
 		}
 	}
-} // namespace Trinex::Refl
+} // namespace Trinex::Refl::Deprecated

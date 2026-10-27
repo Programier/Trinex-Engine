@@ -1,13 +1,13 @@
 #include <Core/constants.hpp>
-#include <Core/reflection/enum.hpp>
+#include <Core/reflection/deprecated/enum.hpp>
 #include <Core/string_functions.hpp>
 #include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 #include <angelscript.h>
 
-namespace Trinex::Refl
+namespace Trinex::Refl::Deprecated
 {
-	trinex_implement_reflect_type(Trinex::Refl::Enum) {}
+	trinex_implement_reflect_type(Trinex::Refl::Deprecated::Enum) {}
 
 	Enum::Enum(u8 flags) : m_flags(flags) {}
 
@@ -104,4 +104,4 @@ namespace Trinex::Refl
 	{
 		return m_entries;
 	}
-} // namespace Trinex::Refl
+} // namespace Trinex::Refl::Deprecated

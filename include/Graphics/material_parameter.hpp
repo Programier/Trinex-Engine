@@ -43,7 +43,7 @@ public:                                                                         
 			virtual Parameter& apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info) = 0;
 
 		public:
-			static Refl::Class* static_find_class(RHIShaderParameterType type);
+			static Refl::Deprecated::Class* static_find_class(RHIShaderParameterType type);
 
 			virtual RHIShaderParameterType type() const = 0;
 			friend class Trinex::Material;

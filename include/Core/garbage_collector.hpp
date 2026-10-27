@@ -20,7 +20,7 @@ namespace Trinex
 
 		friend class EngineLoop;
 		friend class Class;
-		friend class Refl::Class;
+		friend class Refl::Deprecated::Class;
 
 	private:
 		trinex_api static void submit_current_stage();

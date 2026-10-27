@@ -1,8 +1,8 @@
-#include <Core/reflection/script_property.hpp>
-#include <Core/reflection/script_struct.hpp>
+#include <Core/reflection/deprecated/script_property.hpp>
+#include <Core/reflection/deprecated/script_struct.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 
-namespace Trinex::Refl
+namespace Trinex::Refl::Deprecated
 {
 	usize ScriptEnumProperty::size() const
 	{
@@ -37,4 +37,4 @@ namespace Trinex::Refl
 	{
 		return m_instance->alignment();
 	}
-} // namespace Trinex::Refl
+} // namespace Trinex::Refl::Deprecated

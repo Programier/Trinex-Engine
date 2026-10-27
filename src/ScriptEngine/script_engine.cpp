@@ -33,7 +33,7 @@ namespace Trinex
 		ScriptFolder* script_folder  = nullptr;
 
 		Map<i32, ScriptEngine::VariableToStringFunction> parsers_map;
-		Map<i32, Refl::Class*> classes_map;
+		Map<i32, Refl::Deprecated::Class*> classes_map;
 		ScriptBuildResult* diagnostics_result = nullptr;
 
 	private:
@@ -264,7 +264,7 @@ namespace Trinex
 		State::instance().diagnostics_result = nullptr;
 	}
 
-	void ScriptEngine::register_class(i32 type_id, Refl::Class* self)
+	void ScriptEngine::register_class(i32 type_id, Refl::Deprecated::Class* self)
 	{
 		if (self)
 		{
@@ -272,7 +272,7 @@ namespace Trinex
 		}
 	}
 
-	Refl::Class* ScriptEngine::find_class(i32 type_id)
+	Refl::Deprecated::Class* ScriptEngine::find_class(i32 type_id)
 	{
 		auto& map = State::instance().classes_map;
 		auto it   = map.find(type_id);

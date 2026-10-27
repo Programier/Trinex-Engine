@@ -15,7 +15,7 @@ namespace Trinex
 	{
 	private:
 		void* m_object         = nullptr;
-		Refl::Struct* m_struct = nullptr;
+		Refl::Deprecated::Struct* m_struct = nullptr;
 
 	public:
 		PropertyRenderer& on_object_destroy(DeprecatedObject* object) override;
@@ -23,10 +23,10 @@ namespace Trinex
 		PropertyRenderer& render();
 
 		PropertyRenderer& object(DeprecatedObject* object);
-		PropertyRenderer& object(void* object, Refl::Struct* self);
+		PropertyRenderer& object(void* object, Refl::Deprecated::Struct* self);
 
 		inline void* object() const { return m_object; }
-		inline Refl::Struct* object_reflection() const { return m_struct; }
+		inline Refl::Deprecated::Struct* object_reflection() const { return m_struct; }
 
 		virtual const char* name() const;
 		static const char* static_name();

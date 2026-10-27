@@ -1,6 +1,6 @@
 #include <Core/etl/algorithm.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Core/window.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <UI/Elements/document.hpp>
@@ -12,19 +12,19 @@ namespace Trinex::UI
 {
 	namespace
 	{
-		static Map<Trinex::Refl::Class*, Client*>& opened_clients()
+		static Map<Trinex::Refl::Deprecated::Class*, Client*>& opened_clients()
 		{
-			static Map<Trinex::Refl::Class*, Client*> value;
+			static Map<Trinex::Refl::Deprecated::Class*, Client*> value;
 			return value;
 		}
 
-		static Map<Trinex::Refl::Class*, Trinex::Refl::Class*>& registered_clients()
+		static Map<Trinex::Refl::Deprecated::Class*, Trinex::Refl::Deprecated::Class*>& registered_clients()
 		{
-			static Map<Trinex::Refl::Class*, Trinex::Refl::Class*> value;
+			static Map<Trinex::Refl::Deprecated::Class*, Trinex::Refl::Deprecated::Class*> value;
 			return value;
 		}
 
-		static Client* open_client(Trinex::Refl::Class* client_class)
+		static Client* open_client(Trinex::Refl::Deprecated::Class* client_class)
 		{
 			if (client_class == nullptr)
 				return nullptr;
@@ -43,7 +43,7 @@ namespace Trinex::UI
 
 	trinex_implement_class(Trinex::UI::Client, 0) {}
 
-	bool Client::register_client(Trinex::Refl::Class* object_type, Trinex::Refl::Class* renderer)
+	bool Client::register_client(Trinex::Refl::Deprecated::Class* object_type, Trinex::Refl::Deprecated::Class* renderer)
 	{
 		if (object_type == nullptr || renderer == nullptr)
 			return false;
@@ -52,9 +52,9 @@ namespace Trinex::UI
 		return true;
 	}
 
-	Client* Client::client_of(Trinex::Refl::Class* object_type, bool create_if_not_exist)
+	Client* Client::client_of(Trinex::Refl::Deprecated::Class* object_type, bool create_if_not_exist)
 	{
-		Trinex::Refl::Class* client_class = nullptr;
+		Trinex::Refl::Deprecated::Class* client_class = nullptr;
 
 		while (object_type && client_class == nullptr)
 		{

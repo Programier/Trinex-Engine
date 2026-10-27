@@ -3,20 +3,20 @@
 #include <Core/etl/span.hpp>
 #include <Core/deprecated/object.hpp>
 #include <Core/package.hpp>
-#include <Core/reflection/class.hpp>
-#include <Core/reflection/struct.hpp>
+#include <Core/reflection/deprecated/class.hpp>
+#include <Core/reflection/deprecated/struct.hpp>
 #include <Core/stream.hpp>
 #include <Core/types/path.hpp>
 
 namespace Trinex
 {
-	static inline Refl::Class* find_class(const Array<Name>& hierarchy)
+	static inline Refl::Deprecated::Class* find_class(const Array<Name>& hierarchy)
 	{
-		Refl::Class* instance = nullptr;
+		Refl::Deprecated::Class* instance = nullptr;
 
 		for (Name name : hierarchy)
 		{
-			if ((instance = Refl::Class::static_find(name)))
+			if ((instance = Refl::Deprecated::Class::static_find(name)))
 			{
 				return instance;
 			}
@@ -38,7 +38,7 @@ namespace Trinex
 	    : Archive(Ref<MemoryStream>::make(memory, size), mode, flags)
 	{}
 
-	bool Archive::serialize_struct(Refl::Struct* self, void* obj)
+	bool Archive::serialize_struct(Refl::Deprecated::Struct* self, void* obj)
 	{
 		return self->serialize(obj, *this);
 	}
@@ -126,7 +126,7 @@ namespace Trinex
 			Array<Name> hierarchy;
 			serialize(hierarchy);
 
-			Refl::Class* self = find_class(hierarchy);
+			Refl::Deprecated::Class* self = find_class(hierarchy);
 
 			if (self == nullptr)
 			{

@@ -33,10 +33,13 @@ namespace Trinex
 
 	namespace Refl
 	{
-		class Enum;
-		class Struct;
-		class Class;
-		class Property;
-		struct PropertyChangedEvent;
+		namespace Deprecated
+		{
+			class Enum;
+			class Struct;
+			class Class;
+			class Property;
+			struct PropertyChangedEvent;
+		} // namespace Deprecated
 	} // namespace Refl
 } // namespace Trinex

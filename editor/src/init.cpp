@@ -6,7 +6,7 @@
 #include <Core/garbage_collector.hpp>
 #include <Core/memory.hpp>
 #include <Core/package.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/gpu_buffers.hpp>
 #include <Platform/platform.hpp>

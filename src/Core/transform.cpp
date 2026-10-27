@@ -1,8 +1,8 @@
 #include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/math/math.hpp>
-#include <Core/reflection/property.hpp>
-#include <Core/reflection/struct.hpp>
+#include <Core/reflection/deprecated/property.hpp>
+#include <Core/reflection/deprecated/struct.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/transform.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>

@@ -1,7 +1,7 @@
 #pragma once
-#include <Core/reflection/object.hpp>
+#include <Core/reflection/deprecated/object.hpp>
 
-namespace Trinex::Refl
+namespace Trinex::Refl::Deprecated
 {
 	class trinex_api ScopedType : public Object
 	{
@@ -38,4 +38,4 @@ namespace Trinex::Refl
 
 		inline bool is_locked() const { return m_lock_count > 0; }
 	};
-} // namespace Trinex::Refl
+} // namespace Trinex::Refl::Deprecated

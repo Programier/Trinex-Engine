@@ -31,8 +31,8 @@ namespace Trinex::UI
 		MenuBar menu_bar;
 
 	public:
-		static bool register_client(Trinex::Refl::Class* object_type, Trinex::Refl::Class* renderer);
-		static Client* client_of(Trinex::Refl::Class* object_type, bool create_if_not_exist = false);
+		static bool register_client(Trinex::Refl::Deprecated::Class* object_type, Trinex::Refl::Deprecated::Class* renderer);
+		static Client* client_of(Trinex::Refl::Deprecated::Class* object_type, bool create_if_not_exist = false);
 
 		Client& attach(class RenderViewport* viewport) override;
 		Client& deattach(class RenderViewport* viewport) override;

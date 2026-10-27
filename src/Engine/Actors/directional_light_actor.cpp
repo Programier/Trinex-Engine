@@ -1,4 +1,4 @@
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Engine/ActorComponents/directional_light_component.hpp>
 #include <Engine/Actors/directional_light_actor.hpp>
 

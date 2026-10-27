@@ -1,5 +1,5 @@
 #include <Clients/imgui_client.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Core/types/path.hpp>
 #include <UI/imgui.hpp>
 

@@ -6,8 +6,8 @@
 #include <Core/etl/templates.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/garbage_collector.hpp>
-#include <Core/reflection/class.hpp>
-#include <Core/reflection/struct.hpp>
+#include <Core/reflection/deprecated/class.hpp>
+#include <Core/reflection/deprecated/struct.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/threading.hpp>
 #include <Core/window.hpp>
@@ -52,7 +52,7 @@ namespace Trinex
 		initialize_graphics_api(true);
 
 		i32 result        = 0;
-		EntryPoint* entry = DeprecatedObject::instance_cast<EntryPoint>(Refl::Class::static_require(entry_name)->create_object());
+		EntryPoint* entry = DeprecatedObject::instance_cast<EntryPoint>(Refl::Deprecated::Class::static_require(entry_name)->create_object());
 		trinex_verify_msg(entry, "Failed to create entry point!");
 
 		Settings::Rendering::force_keep_cpu_resources = true;
@@ -72,11 +72,11 @@ namespace Trinex
 
 		LifeCycle::execute(LifeCycle::PreInit);
 		LifeCycle::execute(LifeCycle::ReflectionInit);
-		Refl::Object::load_reflection();
+		Refl::Deprecated::Object::load_reflection();
 
 		Project::initialize();
 
-		Refl::Class* engine_class = Refl::Class::static_find(Settings::engine_class, Refl::FindFlags::IsRequired);
+		Refl::Deprecated::Class* engine_class = Refl::Deprecated::Class::static_find(Settings::engine_class, Refl::Deprecated::FindFlags::IsRequired);
 		// engine_instance           = DeprecatedObject::instance_cast<Engine>(engine_class->create_object());
 
 		// if (engine_instance == nullptr)

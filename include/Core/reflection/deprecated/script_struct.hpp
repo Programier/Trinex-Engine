@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/reflection/struct.hpp>
+#include <Core/reflection/deprecated/struct.hpp>
 
 namespace Trinex
 {
@@ -7,7 +7,7 @@ namespace Trinex
 	class ScriptTypeInfo;
 } // namespace Trinex
 
-namespace Trinex::Refl
+namespace Trinex::Refl::Deprecated
 {
 	class trinex_api ScriptStruct : public Struct
 	{
@@ -24,4 +24,4 @@ namespace Trinex::Refl
 		usize size() const override;
 		~ScriptStruct();
 	};
-} // namespace Trinex::Refl
+} // namespace Trinex::Refl::Deprecated

@@ -82,7 +82,7 @@ namespace Trinex::VisualMaterialGraph
 	private:
 		struct RedirectionKey
 		{
-			Refl::Class* node_class;
+			Refl::Deprecated::Class* node_class;
 			Identifier id;
 
 			inline bool operator<(const RedirectionKey& other) const
@@ -117,9 +117,9 @@ namespace Trinex::VisualMaterialGraph
 		~Compiler();
 
 		static String static_uniform_parameter_name(Node* node);
-		static String static_uniform_parameter_name(Refl::Class* node_class, u16 id);
+		static String static_uniform_parameter_name(Refl::Deprecated::Class* node_class, u16 id);
 
-		Node* create_temp_node(Refl::Class* node_class, u16 id);
+		Node* create_temp_node(Refl::Deprecated::Class* node_class, u16 id);
 
 		template<typename T>
 		inline T* create_temp_node(u16 id)
@@ -129,7 +129,7 @@ namespace Trinex::VisualMaterialGraph
 		}
 
 		Compiler& add_redirection(Node* node, Identifier id);
-		Node* find_redirection(Refl::Class* node_class, Identifier id);
+		Node* find_redirection(Refl::Deprecated::Class* node_class, Identifier id);
 
 		Compiler& add_include(const StringView& include);
 		Expression make_uniform(RHIShaderParameterType type, const String& name_override = "");
@@ -255,14 +255,14 @@ namespace Trinex::VisualMaterialGraph
 	public:
 		Vector2f position = {0.f, 0.f};
 
-		static void static_node_group(Refl::Class* node_class, const String& group);
+		static void static_node_group(Refl::Deprecated::Class* node_class, const String& group);
 		InputPin* new_input(const String& name, RHIShaderParameterType type);
 		OutputPin* new_output(const String& name, RHIShaderParameterType type);
 
 		InputPin* new_input(const String& name, RHIShaderParameterType type, RHIShaderParameterType default_value_type);
 		OutputPin* new_output(const String& name, RHIShaderParameterType type, RHIShaderParameterType default_value_type);
 
-		Node& on_property_changed(const Refl::PropertyChangedEvent& event) override;
+		Node& on_property_changed(const Refl::Deprecated::PropertyChangedEvent& event) override;
 
 		virtual Expression compile(OutputPin* pin, Compiler& compiler);
 		virtual Node& render();

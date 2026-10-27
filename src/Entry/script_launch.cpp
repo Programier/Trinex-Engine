@@ -1,7 +1,7 @@
 #include <Core/arguments.hpp>
 #include <Core/entry.hpp>
 #include <Core/etl/script_array.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_function.hpp>

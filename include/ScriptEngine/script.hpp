@@ -14,10 +14,13 @@ namespace Trinex
 {
 	namespace Refl
 	{
-		class Object;
-		class ScriptClass;
-		class ScriptEnum;
-		class ScriptStruct;
+		namespace Deprecated
+		{
+			class Object;
+			class ScriptClass;
+			class ScriptEnum;
+			class ScriptStruct;
+		} // namespace Deprecated
 	} // namespace Refl
 
 	class Script;
@@ -78,7 +81,7 @@ namespace Trinex
 		String m_name;
 		String m_code;
 		ScriptFolder* m_folder;
-		Set<Refl::Object*> m_refl_objects;
+		Set<Refl::Deprecated::Object*> m_refl_objects;
 
 		// Metadata info
 		TreeMap<i32, TreeSet<String>> m_func_metadata_map;
@@ -96,7 +99,7 @@ namespace Trinex
 		Script& delete_reflection();
 
 	public:
-		using PropertyReflectionParser = Refl::Property* (*) (Script*, Refl::Struct*, ScriptTypeInfo, u32);
+		using PropertyReflectionParser = Refl::Deprecated::Property* (*) (Script*, Refl::Deprecated::Struct*, ScriptTypeInfo, u32);
 		CallBacks<void(Script*)> on_build;
 		CallBacks<void(Script*)> on_discard;
 		CallBacks<void(Script*)> on_exception;
@@ -114,7 +117,7 @@ namespace Trinex
 		bool build(bool exception_on_error = true);
 
 		// Reflection generation
-		Refl::Struct* create_reflection(const ScriptTypeInfo& info);
+		Refl::Deprecated::Struct* create_reflection(const ScriptTypeInfo& info);
 		static void register_custom_reflection_parser(StringView datatype, PropertyReflectionParser parser);
 
 		// Metadata
@@ -172,8 +175,8 @@ namespace Trinex
 
 		~Script();
 		friend class ScriptFolder;
-		friend class Refl::ScriptClass;
-		friend class Refl::ScriptStruct;
-		friend class Refl::ScriptEnum;
+		friend class Refl::Deprecated::ScriptClass;
+		friend class Refl::Deprecated::ScriptStruct;
+		friend class Refl::Deprecated::ScriptEnum;
 	};
 } // namespace Trinex

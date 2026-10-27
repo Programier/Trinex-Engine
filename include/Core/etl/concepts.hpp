@@ -116,12 +116,12 @@ namespace Trinex::etl
 
 	template<typename T>
 	concept is_reflected_struct = requires(T* obj) {
-		{ obj->static_reflection() } -> std::same_as<Trinex::Refl::Struct*>;
+		{ obj->static_reflection() } -> std::same_as<Trinex::Refl::Deprecated::Struct*>;
 	};
 
 	template<typename T>
 	concept is_reflected_class = requires(T* obj) {
-		{ obj->static_reflection() } -> std::same_as<Trinex::Refl::Class*>;
+		{ obj->static_reflection() } -> std::same_as<Trinex::Refl::Deprecated::Class*>;
 	};
 
 	template<typename T1, typename T2>

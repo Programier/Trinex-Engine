@@ -1,4 +1,4 @@
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Core/threading.hpp>
 #include <Graphics/render_surface.hpp>
 #include <RHI/initializers.hpp>

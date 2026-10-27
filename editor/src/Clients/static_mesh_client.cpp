@@ -1,5 +1,5 @@
 #include <Clients/static_mesh_client.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Core/threading.hpp>
 #include <Core/window.hpp>
 #include <Engine/ActorComponents/camera_component.hpp>

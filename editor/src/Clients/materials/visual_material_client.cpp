@@ -3,9 +3,9 @@
 #include <Core/group.hpp>
 #include <Core/icons.hpp>
 #include <Core/memory.hpp>
-#include <Core/reflection/class.hpp>
-#include <Core/reflection/enum.hpp>
-#include <Core/reflection/property.hpp>
+#include <Core/reflection/deprecated/class.hpp>
+#include <Core/reflection/deprecated/enum.hpp>
+#include <Core/reflection/deprecated/property.hpp>
 #include <Core/threading.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/render_surface.hpp>
@@ -107,30 +107,30 @@ namespace Trinex
 		const u8 length             = type.columns();
 		u8* address                 = value->address();
 
-		static Refl::Property* property_table[4][4] = {
+		static Refl::Deprecated::Property* property_table[4][4] = {
 		        {
-		                Refl::Property::null_property<float>(),
-		                Refl::Property::null_property<Vector2f>(),
-		                Refl::Property::null_property<Vector3f>(),
-		                Refl::Property::null_property<Vector4f>(),
+		                Refl::Deprecated::Property::null_property<float>(),
+		                Refl::Deprecated::Property::null_property<Vector2f>(),
+		                Refl::Deprecated::Property::null_property<Vector3f>(),
+		                Refl::Deprecated::Property::null_property<Vector4f>(),
 		        },
 		        {
-		                Refl::Property::null_property<u32>(),
-		                Refl::Property::null_property<Vector2u>(),
-		                Refl::Property::null_property<Vector3u>(),
-		                Refl::Property::null_property<Vector4u>(),
+		                Refl::Deprecated::Property::null_property<u32>(),
+		                Refl::Deprecated::Property::null_property<Vector2u>(),
+		                Refl::Deprecated::Property::null_property<Vector3u>(),
+		                Refl::Deprecated::Property::null_property<Vector4u>(),
 		        },
 		        {
-		                Refl::Property::null_property<i32>(),
-		                Refl::Property::null_property<Vector2i>(),
-		                Refl::Property::null_property<Vector3i>(),
-		                Refl::Property::null_property<Vector4i>(),
+		                Refl::Deprecated::Property::null_property<i32>(),
+		                Refl::Deprecated::Property::null_property<Vector2i>(),
+		                Refl::Deprecated::Property::null_property<Vector3i>(),
+		                Refl::Deprecated::Property::null_property<Vector4i>(),
 		        },
 		        {
-		                Refl::Property::null_property<bool>(),
-		                Refl::Property::null_property<Vector2b>(),
-		                Refl::Property::null_property<Vector3b>(),
-		                Refl::Property::null_property<Vector4b>(),
+		                Refl::Deprecated::Property::null_property<bool>(),
+		                Refl::Deprecated::Property::null_property<Vector2b>(),
+		                Refl::Deprecated::Property::null_property<Vector3b>(),
+		                Refl::Deprecated::Property::null_property<Vector4b>(),
 		        },
 		};
 
@@ -144,7 +144,7 @@ namespace Trinex
 			default: type_index = 0; break;
 		}
 
-		Refl::Property* prop = property_table[type_index][length - 1];
+		Refl::Deprecated::Property* prop = property_table[type_index][length - 1];
 
 		static NodePropertiesContext ctx;
 		const ImGuiStyle& style = ImGui::GetStyle();
@@ -177,7 +177,7 @@ namespace Trinex
 		ImGui::TextUnformatted(label);
 	};
 
-	static bool match_filter(Refl::Struct* self, const String& filter)
+	static bool match_filter(Refl::Deprecated::Struct* self, const String& filter)
 	{
 		if (self->is_class())
 		{
@@ -209,7 +209,7 @@ namespace Trinex
 		if (filter.empty())
 			return true;
 
-		for (Refl::Struct* instance : group->structs())
+		for (Refl::Deprecated::Struct* instance : group->structs())
 		{
 			if (match_filter(instance, filter))
 				return true;
@@ -224,12 +224,12 @@ namespace Trinex
 		return false;
 	}
 
-	static Refl::Class* render_node_types(Group* group, const String& filter, bool changed)
+	static Refl::Deprecated::Class* render_node_types(Group* group, const String& filter, bool changed)
 	{
 		if (!group)
 			return nullptr;
 
-		Refl::Class* current = nullptr;
+		Refl::Deprecated::Class* current = nullptr;
 
 		for (auto* child : group->childs())
 		{
@@ -257,7 +257,7 @@ namespace Trinex
 				if (ImGui::TreeNodeEx(child->name().c_str()))
 				{
 					ImGui::Indent(10.f);
-					Refl::Class* new_class = render_node_types(child, filter, changed);
+					Refl::Deprecated::Class* new_class = render_node_types(child, filter, changed);
 
 					if (!current && new_class)
 						current = new_class;
@@ -270,7 +270,7 @@ namespace Trinex
 			ImGui::PopID();
 		}
 
-		for (Refl::Struct* instance : group->structs())
+		for (Refl::Deprecated::Struct* instance : group->structs())
 		{
 			if (instance->is_class())
 			{
@@ -283,7 +283,7 @@ namespace Trinex
 
 				if (ImGui::MenuItem(instance->name().c_str()))
 				{
-					current = Refl::Object::instance_cast<Refl::Class>(instance);
+					current = Refl::Deprecated::Object::instance_cast<Refl::Deprecated::Class>(instance);
 				}
 			}
 		}
@@ -520,7 +520,7 @@ namespace Trinex
 			ImGui::Separator();
 
 			static Group* root_group = Group::find("Trinex::VisualMaterialGraph::Nodes");
-			if (Refl::Class* self = render_node_types(root_group, m_create_node_ctx.filter, filter_changed))
+			if (Refl::Deprecated::Class* self = render_node_types(root_group, m_create_node_ctx.filter, filter_changed))
 			{
 				auto node = m_material->create_node(self, m_create_node_ctx.pos);
 

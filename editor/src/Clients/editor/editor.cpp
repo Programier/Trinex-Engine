@@ -4,7 +4,7 @@
 #include <Core/icons.hpp>
 #include <Core/importer.hpp>
 #include <Core/localization.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Core/reflection/new/enum.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/threading.hpp>
@@ -39,7 +39,7 @@ namespace Trinex
 
 	EditorState::EditorState()
 	{
-		viewport.view_mode_entry = Refl::Enum::static_find("Trinex::ViewMode", Refl::FindFlags::IsRequired)
+		viewport.view_mode_entry = Refl::Deprecated::Enum::static_find("Trinex::ViewMode", Refl::Deprecated::FindFlags::IsRequired)
 		                                   ->entry(static_cast<EnumerateType>(ViewMode::Lit));
 	}
 
@@ -728,7 +728,7 @@ namespace Trinex
 			if (ImGui::BeginPopup("##addition_menu", ImGuiWindowFlags_NoMove))
 			{
 				{
-					static auto* self = Refl::Enum::static_find("Trinex::ViewMode", Refl::FindFlags::IsRequired);
+					static auto* self = Refl::Deprecated::Enum::static_find("Trinex::ViewMode", Refl::Deprecated::FindFlags::IsRequired);
 
 					if (ImGui::BeginCombo("editor/View Mode"_localized, m_state.viewport.view_mode_entry->name.c_str()))
 					{

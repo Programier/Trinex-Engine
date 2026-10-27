@@ -5,10 +5,10 @@
 #include <Core/etl/templates.hpp>
 #include <Core/icons.hpp>
 #include <Core/deprecated/object.hpp>
-#include <Core/reflection/class.hpp>
-#include <Core/reflection/enum.hpp>
-#include <Core/reflection/object.hpp>
-#include <Core/reflection/property.hpp>
+#include <Core/reflection/deprecated/class.hpp>
+#include <Core/reflection/deprecated/enum.hpp>
+#include <Core/reflection/deprecated/object.hpp>
+#include <Core/reflection/deprecated/property.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/types/path.hpp>
 #include <UI/imgui.hpp>
@@ -20,10 +20,10 @@
 
 namespace Trinex::UI
 {
-	struct PropertyChangedEvent : Refl::PropertyChangedEvent
+	struct PropertyChangedEvent : Refl::Deprecated::PropertyChangedEvent
 	{
-		PropertyChangedEvent(void* ctx, Refl::Property* prop, Refl::PropertyChangedEvent* owner)
-		    : Refl::PropertyChangedEvent(ctx, prop, owner)
+		PropertyChangedEvent(void* ctx, Refl::Deprecated::Property* prop, Refl::Deprecated::PropertyChangedEvent* owner)
+		    : Refl::Deprecated::PropertyChangedEvent(ctx, prop, owner)
 		{
 			if (owner)
 			{
@@ -41,20 +41,20 @@ namespace Trinex::UI
 	};
 
 	template<typename T>
-	static inline T* prop_cast(Refl::Property* prop)
+	static inline T* prop_cast(Refl::Deprecated::Property* prop)
 	{
-		return Refl::Object::instance_cast<T>(prop);
+		return Refl::Deprecated::Object::instance_cast<T>(prop);
 	}
 
 	template<typename T>
-	static inline T* prop_cast_checked(Refl::Property* prop)
+	static inline T* prop_cast_checked(Refl::Deprecated::Property* prop)
 	{
 		auto res = prop_cast<T>(prop);
 		trinex_assert_msg(res, "Failed to cast property");
 		return res;
 	}
 
-	static inline void push_props_id(const void* object, Refl::Property* prop)
+	static inline void push_props_id(const void* object, Refl::Deprecated::Property* prop)
 	{
 		ImGui::PushID(object);
 		ImGui::PushID(prop);
@@ -66,7 +66,7 @@ namespace Trinex::UI
 		ImGui::PopID();
 	}
 
-	static inline bool has_only_one_property(Refl::Struct* self)
+	static inline bool has_only_one_property(Refl::Deprecated::Struct* self)
 	{
 		u32 count = 0;
 
@@ -79,7 +79,7 @@ namespace Trinex::UI
 		return count < 2;
 	}
 
-	static inline usize properties_count(Refl::Struct* self)
+	static inline usize properties_count(Refl::Deprecated::Struct* self)
 	{
 		usize count = 0;
 
@@ -92,17 +92,17 @@ namespace Trinex::UI
 		return count;
 	}
 
-	static Refl::Property** collect_properties(Refl::Struct* self, usize& count)
+	static Refl::Deprecated::Property** collect_properties(Refl::Deprecated::Struct* self, usize& count)
 	{
 		count                       = properties_count(self);
-		Refl::Property** properties = StackAllocator<Refl::Property*>::allocate(count);
-		Refl::Property** current    = properties;
+		Refl::Deprecated::Property** properties = StackAllocator<Refl::Deprecated::Property*>::allocate(count);
+		Refl::Deprecated::Property** current    = properties;
 
 		while (self)
 		{
 			auto& properties = self->properties();
 
-			for (Refl::Property* prop : properties)
+			for (Refl::Deprecated::Property* prop : properties)
 			{
 				(*current++) = prop;
 			}
@@ -115,7 +115,7 @@ namespace Trinex::UI
 
 	struct ScopedPropID
 	{
-		ScopedPropID(const void* object, Refl::Property* prop) { push_props_id(object, prop); }
+		ScopedPropID(const void* object, Refl::Deprecated::Property* prop) { push_props_id(object, prop); }
 		~ScopedPropID() { pop_props_id(); }
 	};
 
@@ -187,14 +187,14 @@ namespace Trinex::UI
 		return 0.f;
 	}
 
-	const RendererFunc& PropertyRenderer::Context::renderer(const Refl::ClassInfo* refl_class) const
+	const RendererFunc& PropertyRenderer::Context::renderer(const Refl::Deprecated::ClassInfo* refl_class) const
 	{
 		if (auto ptr = renderer_ptr(refl_class))
 			return *ptr;
 		return default_value_of<RendererFunc>();
 	}
 
-	const RendererFunc* PropertyRenderer::Context::renderer_ptr(const Refl::ClassInfo* refl_class) const
+	const RendererFunc* PropertyRenderer::Context::renderer_ptr(const Refl::Deprecated::ClassInfo* refl_class) const
 	{
 		for (const Context* ctx = this; ctx; ctx = ctx->prev())
 		{
@@ -205,7 +205,7 @@ namespace Trinex::UI
 		return nullptr;
 	}
 
-	PropertyRenderer::Context& PropertyRenderer::Context::renderer(const Refl::ClassInfo* refl_class, const RendererFunc& func)
+	PropertyRenderer::Context& PropertyRenderer::Context::renderer(const Refl::Deprecated::ClassInfo* refl_class, const RendererFunc& func)
 	{
 		m_renderers[refl_class] = func;
 		return *this;
@@ -213,7 +213,7 @@ namespace Trinex::UI
 
 	PropertyRenderer& PropertyRenderer::propagate_property_event()
 	{
-		Refl::PropertyChangedEvent* event = m_event;
+		Refl::Deprecated::PropertyChangedEvent* event = m_event;
 
 		while (event)
 		{
@@ -224,7 +224,7 @@ namespace Trinex::UI
 		return *this;
 	}
 
-	PropertyRenderer& PropertyRenderer::propagate_property_event(void* ctx, Refl::Property* property)
+	PropertyRenderer& PropertyRenderer::propagate_property_event(void* ctx, Refl::Deprecated::Property* property)
 	{
 		PropertyChangedEvent event(ctx, property, m_event);
 		m_event = &event;
@@ -245,7 +245,7 @@ namespace Trinex::UI
 		return overrided;
 	}
 
-	StringView PropertyRenderer::property_name(Refl::Property* prop, const void* context)
+	StringView PropertyRenderer::property_name(Refl::Deprecated::Property* prop, const void* context)
 	{
 		StringView overrided = m_names_stack.back();
 
@@ -280,12 +280,12 @@ namespace Trinex::UI
 		return m_event->context;
 	}
 
-	Refl::Property* PropertyRenderer::property() const
+	Refl::Deprecated::Property* PropertyRenderer::property() const
 	{
 		return m_event->property;
 	}
 
-	bool PropertyRenderer::render_property(void* object, Refl::Property* prop, bool read_only, StringView name)
+	bool PropertyRenderer::render_property(void* object, Refl::Deprecated::Property* prop, bool read_only, StringView name)
 	{
 		if (prop->is_hidden())
 			return false;
@@ -311,7 +311,7 @@ namespace Trinex::UI
 		return false;
 	}
 
-	bool PropertyRenderer::render_properties(void* object, Refl::Struct* struct_class, bool read_only, StringView name)
+	bool PropertyRenderer::render_properties(void* object, Refl::Deprecated::Struct* struct_class, bool read_only, StringView name)
 	{
 		bool has_changed_props = false;
 
@@ -323,7 +323,7 @@ namespace Trinex::UI
 		if (props_count == 0)
 			return true;
 
-		etl::sort(properties, properties + props_count, [&](Refl::Property* first, Refl::Property* second) -> bool {
+		etl::sort(properties, properties + props_count, [&](Refl::Deprecated::Property* first, Refl::Deprecated::Property* second) -> bool {
 			const String& group1 = first->group();
 			const String& group2 = second->group();
 
@@ -338,7 +338,7 @@ namespace Trinex::UI
 
 		for (usize i = 0; i < props_count; ++i)
 		{
-			Refl::Property* prop = properties[i];
+			Refl::Deprecated::Property* prop = properties[i];
 
 			bool open = true;
 			//const String& group = prop->group();
@@ -440,7 +440,7 @@ namespace Trinex::UI
 
 	//////////////////////// PROPERTY RENDERERS ////////////////////////
 
-	static void render_name(PropertyRenderer* renderer, Refl::Property* prop)
+	static void render_name(PropertyRenderer* renderer, Refl::Deprecated::Property* prop)
 	{
 		auto ctx = renderer->context();
 
@@ -509,13 +509,13 @@ namespace Trinex::UI
 		return result;
 	}
 
-	static bool collapsing_header(PropertyRenderer* renderer, Refl::Property* prop)
+	static bool collapsing_header(PropertyRenderer* renderer, Refl::Deprecated::Property* prop)
 	{
 		StringView name = renderer->property_name(prop, renderer->property_address());
 		return collapsing_header(renderer, prop, name.data());
 	}
 
-	static bool render_boolean_property(PropertyRenderer* renderer, Refl::Property* prop, bool read_only)
+	static bool render_boolean_property(PropertyRenderer* renderer, Refl::Deprecated::Property* prop, bool read_only)
 	{
 		renderer->context()->next_row();
 		render_name(renderer, prop);
@@ -533,7 +533,7 @@ namespace Trinex::UI
 		return false;
 	}
 
-	static bool render_scalar_property(void* context, Refl::Property* prop, PropertyRenderer* renderer, ImGuiDataType type,
+	static bool render_scalar_property(void* context, Refl::Deprecated::Property* prop, PropertyRenderer* renderer, ImGuiDataType type,
 	                                   i32 components, bool read_only)
 	{
 		PropertyRenderer::Context* ctx = renderer->context();
@@ -586,38 +586,38 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	static ImGuiDataType find_imgui_data_type(Refl::IntegerProperty* prop)
+	static ImGuiDataType find_imgui_data_type(Refl::Deprecated::IntegerProperty* prop)
 	{
 		return (std::countr_zero(prop->size()) * 2) + static_cast<ImGuiDataType>(prop->is_unsigned());
 	}
 
-	static ImGuiDataType find_imgui_data_type(Refl::FloatProperty* prop)
+	static ImGuiDataType find_imgui_data_type(Refl::Deprecated::FloatProperty* prop)
 	{
 		return prop->size() == 4 ? ImGuiDataType_Float : ImGuiDataType_Double;
 	}
 
-	static bool render_integer_property(PropertyRenderer* renderer, Refl::Property* prop_base, bool read_only)
+	static bool render_integer_property(PropertyRenderer* renderer, Refl::Deprecated::Property* prop_base, bool read_only)
 	{
 		renderer->context()->next_row();
-		auto prop = prop_cast_checked<Refl::IntegerProperty>(prop_base);
+		auto prop = prop_cast_checked<Refl::Deprecated::IntegerProperty>(prop_base);
 		render_name(renderer, prop_base);
 		return render_scalar_property(renderer->property_address(), prop, renderer, find_imgui_data_type(prop), 1, read_only);
 	}
 
-	static bool render_float_property(PropertyRenderer* renderer, Refl::Property* prop, bool read_only)
+	static bool render_float_property(PropertyRenderer* renderer, Refl::Deprecated::Property* prop, bool read_only)
 	{
 		renderer->context()->next_row();
 		render_name(renderer, prop);
-		auto float_prop = prop_cast_checked<Refl::FloatProperty>(prop);
+		auto float_prop = prop_cast_checked<Refl::Deprecated::FloatProperty>(prop);
 		return render_scalar_property(renderer->property_address(), prop, renderer, find_imgui_data_type(float_prop), 1,
 		                              read_only);
 	}
 
-	static bool render_angle_property(PropertyRenderer* renderer, Refl::Property* prop, bool read_only)
+	static bool render_angle_property(PropertyRenderer* renderer, Refl::Deprecated::Property* prop, bool read_only)
 	{
 		renderer->context()->next_row();
 		render_name(renderer, prop);
-		auto angle_prop = prop_cast_checked<Refl::AngleProperty>(prop);
+		auto angle_prop = prop_cast_checked<Refl::Deprecated::AngleProperty>(prop);
 		float* angle    = angle_prop->address_as<float>(renderer->property_address());
 		float degrees   = Math::degrees(*angle);
 
@@ -631,9 +631,9 @@ namespace Trinex::UI
 		return false;
 	}
 
-	static bool render_vector_property(PropertyRenderer* renderer, Refl::Property* prop_base, bool read_only)
+	static bool render_vector_property(PropertyRenderer* renderer, Refl::Deprecated::Property* prop_base, bool read_only)
 	{
-		auto prop    = prop_cast_checked<Refl::VectorProperty>(prop_base);
+		auto prop    = prop_cast_checked<Refl::Deprecated::VectorProperty>(prop_base);
 		auto element = prop->element_property();
 
 		void* address = renderer->property_address();
@@ -646,7 +646,7 @@ namespace Trinex::UI
 			                              read_only || element->is_read_only());
 		};
 
-		if (element->is_a<Refl::BooleanProperty>())
+		if (element->is_a<Refl::Deprecated::BooleanProperty>())
 		{
 			renderer->context()->next_row();
 			render_name(renderer, prop);
@@ -687,11 +687,11 @@ namespace Trinex::UI
 
 			ImGui::PopID();
 		}
-		else if (auto integer = prop_cast<Refl::IntegerProperty>(element))
+		else if (auto integer = prop_cast<Refl::Deprecated::IntegerProperty>(element))
 		{
 			return render_scalar(find_imgui_data_type(integer));
 		}
-		else if (auto floating = prop_cast<Refl::FloatProperty>(element))
+		else if (auto floating = prop_cast<Refl::Deprecated::FloatProperty>(element))
 		{
 			return render_scalar(find_imgui_data_type(floating));
 		}
@@ -699,9 +699,9 @@ namespace Trinex::UI
 		return false;
 	}
 
-	static bool render_matrix_property(PropertyRenderer* renderer, Refl::Property* prop_base, bool read_only)
+	static bool render_matrix_property(PropertyRenderer* renderer, Refl::Deprecated::Property* prop_base, bool read_only)
 	{
-		auto prop        = prop_cast_checked<Refl::MatrixProperty>(prop_base);
+		auto prop        = prop_cast_checked<Refl::Deprecated::MatrixProperty>(prop_base);
 		auto row_prop    = prop->row_property();
 		const usize rows = prop->rows();
 
@@ -728,9 +728,9 @@ namespace Trinex::UI
 		return is_changed;
 	}
 
-	static bool render_quaternion_property(PropertyRenderer* renderer, Refl::Property* prop_base, bool read_only)
+	static bool render_quaternion_property(PropertyRenderer* renderer, Refl::Deprecated::Property* prop_base, bool read_only)
 	{
-		auto prop                      = prop_cast_checked<Refl::QuaternionProperty>(prop_base);
+		auto prop                      = prop_cast_checked<Refl::Deprecated::QuaternionProperty>(prop_base);
 		Quaternion* quaternion         = prop->address_as<Quaternion>(renderer->property_address());
 		Vector3f degrees               = Math::degrees(Math::euler_angles(*quaternion));
 		PropertyRenderer::Context* ctx = renderer->context();
@@ -751,9 +751,9 @@ namespace Trinex::UI
 		return false;
 	}
 
-	static bool render_enum_property(PropertyRenderer* renderer, Refl::Property* prop_base, bool read_only)
+	static bool render_enum_property(PropertyRenderer* renderer, Refl::Deprecated::Property* prop_base, bool read_only)
 	{
-		auto prop                      = prop_cast_checked<Refl::EnumProperty>(prop_base);
+		auto prop                      = prop_cast_checked<Refl::Deprecated::EnumProperty>(prop_base);
 		auto enum_inst                 = prop->enum_instance();
 		void* context                  = renderer->property_address();
 		PropertyRenderer::Context* ctx = renderer->context();
@@ -788,7 +788,7 @@ namespace Trinex::UI
 		return is_changed;
 	}
 
-	static bool render_color_property(PropertyRenderer* renderer, Refl::Property* prop, bool read_only)
+	static bool render_color_property(PropertyRenderer* renderer, Refl::Deprecated::Property* prop, bool read_only)
 	{
 		PropertyRenderer::Context* ctx = renderer->context();
 		ctx->next_row();
@@ -820,7 +820,7 @@ namespace Trinex::UI
 		return false;
 	}
 
-	static bool render_linear_color_property(PropertyRenderer* renderer, Refl::Property* prop, bool read_only)
+	static bool render_linear_color_property(PropertyRenderer* renderer, Refl::Deprecated::Property* prop, bool read_only)
 	{
 		PropertyRenderer::Context* ctx = renderer->context();
 		ctx->next_row();
@@ -844,7 +844,7 @@ namespace Trinex::UI
 		return false;
 	}
 
-	static bool render_string_property(PropertyRenderer* renderer, Refl::Property* prop, bool read_only)
+	static bool render_string_property(PropertyRenderer* renderer, Refl::Deprecated::Property* prop, bool read_only)
 	{
 		PropertyRenderer::Context* ctx = renderer->context();
 		ctx->next_row();
@@ -865,7 +865,7 @@ namespace Trinex::UI
 		return false;
 	}
 
-	static bool render_name_property(PropertyRenderer* renderer, Refl::Property* prop, bool read_only)
+	static bool render_name_property(PropertyRenderer* renderer, Refl::Deprecated::Property* prop, bool read_only)
 	{
 		renderer->context()->next_row();
 		render_name(renderer, prop);
@@ -880,7 +880,7 @@ namespace Trinex::UI
 		return false;
 	}
 
-	static bool render_path_property(PropertyRenderer* renderer, Refl::Property* prop, bool read_only)
+	static bool render_path_property(PropertyRenderer* renderer, Refl::Deprecated::Property* prop, bool read_only)
 	{
 		renderer->context()->next_row();
 		render_name(renderer, prop);
@@ -925,8 +925,8 @@ namespace Trinex::UI
 		return false;
 	}
 
-	static bool render_struct_property_internal(PropertyRenderer* renderer, void* struct_address, Refl::Property* prop,
-	                                            Refl::Struct* struct_instance, bool read_only)
+	static bool render_struct_property_internal(PropertyRenderer* renderer, void* struct_address, Refl::Deprecated::Property* prop,
+	                                            Refl::Deprecated::Struct* struct_instance, bool read_only)
 	{
 		bool is_changed   = false;
 		bool is_collapsed = false;
@@ -969,9 +969,9 @@ namespace Trinex::UI
 		return is_changed;
 	}
 
-	static bool render_object_property(PropertyRenderer* renderer, Refl::Property* prop_base, bool read_only)
+	static bool render_object_property(PropertyRenderer* renderer, Refl::Deprecated::Property* prop_base, bool read_only)
 	{
-		Refl::ObjectProperty* prop = prop_cast_checked<Refl::ObjectProperty>(prop_base);
+		Refl::Deprecated::ObjectProperty* prop = prop_cast_checked<Refl::Deprecated::ObjectProperty>(prop_base);
 		void* context              = renderer->property_address();
 		auto object                = prop->object(context);
 
@@ -1042,16 +1042,16 @@ namespace Trinex::UI
 		return false;
 	}
 
-	static bool render_struct_property(PropertyRenderer* renderer, Refl::Property* prop_base, bool read_only)
+	static bool render_struct_property(PropertyRenderer* renderer, Refl::Deprecated::Property* prop_base, bool read_only)
 	{
-		Refl::StructProperty* prop = prop_cast_checked<Refl::StructProperty>(prop_base);
+		Refl::Deprecated::StructProperty* prop = prop_cast_checked<Refl::Deprecated::StructProperty>(prop_base);
 		return render_struct_property_internal(renderer, prop->address(renderer->property_address()), prop,
 		                                       prop->struct_instance(), read_only || prop->is_read_only());
 	}
 
-	static bool render_array_property(PropertyRenderer* renderer, Refl::Property* prop_base, bool read_only)
+	static bool render_array_property(PropertyRenderer* renderer, Refl::Deprecated::Property* prop_base, bool read_only)
 	{
-		auto prop       = prop_cast_checked<Refl::ArrayProperty>(prop_base);
+		auto prop       = prop_cast_checked<Refl::Deprecated::ArrayProperty>(prop_base);
 		bool is_changed = false;
 
 		auto ctx      = renderer->context();
@@ -1073,7 +1073,7 @@ namespace Trinex::UI
 		if (collapsing_header(renderer, prop))
 		{
 			ImGui::Indent();
-			Refl::Property* element_prop = prop->element_property();
+			Refl::Deprecated::Property* element_prop = prop->element_property();
 
 			usize count = prop->length(address);
 
@@ -1111,9 +1111,9 @@ namespace Trinex::UI
 		return is_changed;
 	}
 
-	static Refl::Object* refl_object_property_selector(Refl::Object* node, Refl::ClassInfo* info)
+	static Refl::Deprecated::Object* refl_object_property_selector(Refl::Deprecated::Object* node, Refl::Deprecated::ClassInfo* info)
 	{
-		Refl::Object* result = nullptr;
+		Refl::Deprecated::Object* result = nullptr;
 		if (node->refl_class_info()->is_a(info))
 		{
 			if (ImGui::Selectable(node->display_name().c_str()))
@@ -1122,7 +1122,7 @@ namespace Trinex::UI
 			}
 		}
 
-		if (auto scope = Refl::Object::instance_cast<Refl::ScopedType>(node))
+		if (auto scope = Refl::Deprecated::Object::instance_cast<Refl::Deprecated::ScopedType>(node))
 		{
 			for (auto& [name, child] : scope->childs())
 			{
@@ -1135,10 +1135,10 @@ namespace Trinex::UI
 		return result;
 	}
 
-	static bool render_refl_object_property(PropertyRenderer* renderer, Refl::Property* prop_base, bool read_only)
+	static bool render_refl_object_property(PropertyRenderer* renderer, Refl::Deprecated::Property* prop_base, bool read_only)
 	{
 		renderer->context()->next_row();
-		auto prop = prop_cast_checked<Refl::ReflObjectProperty>(prop_base);
+		auto prop = prop_cast_checked<Refl::Deprecated::ReflObjectProperty>(prop_base);
 		render_name(renderer, prop);
 
 		void* address = renderer->property_address();
@@ -1150,7 +1150,7 @@ namespace Trinex::UI
 		{
 			bool use_none = ImGui::Selectable("None");
 
-			if (use_none || (current = refl_object_property_selector(Refl::Object::static_root(), prop->info())))
+			if (use_none || (current = refl_object_property_selector(Refl::Deprecated::Object::static_root(), prop->info())))
 			{
 				prop->object(address, use_none ? nullptr : current);
 				changed = true;
@@ -1161,9 +1161,9 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	static Refl::Class* refl_sub_class_property_selector(Refl::Class* node)
+	static Refl::Deprecated::Class* refl_sub_class_property_selector(Refl::Deprecated::Class* node)
 	{
-		Refl::Class* result = nullptr;
+		Refl::Deprecated::Class* result = nullptr;
 
 		if (ImGui::Selectable(node->display_name().c_str()))
 		{
@@ -1172,7 +1172,7 @@ namespace Trinex::UI
 
 		for (auto& derived : node->derived_structs())
 		{
-			if (auto derived_class = Refl::Object::instance_cast<Refl::Class>(derived))
+			if (auto derived_class = Refl::Deprecated::Object::instance_cast<Refl::Deprecated::Class>(derived))
 			{
 				auto child_result = refl_sub_class_property_selector(derived_class);
 
@@ -1184,10 +1184,10 @@ namespace Trinex::UI
 		return result;
 	}
 
-	static bool render_sub_class_property(PropertyRenderer* renderer, Refl::Property* prop_base, bool read_only)
+	static bool render_sub_class_property(PropertyRenderer* renderer, Refl::Deprecated::Property* prop_base, bool read_only)
 	{
 		renderer->context()->next_row();
-		auto prop = prop_cast_checked<Refl::SubClassProperty>(prop_base);
+		auto prop = prop_cast_checked<Refl::Deprecated::SubClassProperty>(prop_base);
 		render_name(renderer, prop);
 
 		void* address = renderer->property_address();
@@ -1209,9 +1209,9 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	static bool render_flags_property(PropertyRenderer* renderer, Refl::Property* prop_base, bool read_only)
+	static bool render_flags_property(PropertyRenderer* renderer, Refl::Deprecated::Property* prop_base, bool read_only)
 	{
-		auto prop = prop_cast_checked<Refl::FlagsProperty>(prop_base);
+		auto prop = prop_cast_checked<Refl::Deprecated::FlagsProperty>(prop_base);
 
 		bool changed = false;
 
@@ -1269,9 +1269,9 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	static bool render_virtual_property(PropertyRenderer* renderer, Refl::Property* prop_base, bool read_only)
+	static bool render_virtual_property(PropertyRenderer* renderer, Refl::Deprecated::Property* prop_base, bool read_only)
 	{
-		Refl::VirtualProperty* prop = prop_cast_checked<Refl::VirtualProperty>(prop_base);
+		Refl::Deprecated::VirtualProperty* prop = prop_cast_checked<Refl::Deprecated::VirtualProperty>(prop_base);
 		void* context               = renderer->property_address();
 
 		Any value       = prop->getter(context);
@@ -1292,25 +1292,25 @@ namespace Trinex::UI
 	{
 		auto ctx = PropertyRenderer::static_context();
 
-		ctx->renderer<Refl::BooleanProperty>(render_boolean_property);
-		ctx->renderer<Refl::IntegerProperty>(render_integer_property);
-		ctx->renderer<Refl::FloatProperty>(render_float_property);
-		ctx->renderer<Refl::AngleProperty>(render_angle_property);
-		ctx->renderer<Refl::VectorProperty>(render_vector_property);
-		ctx->renderer<Refl::MatrixProperty>(render_matrix_property);
-		ctx->renderer<Refl::QuaternionProperty>(render_quaternion_property);
-		ctx->renderer<Refl::EnumProperty>(render_enum_property);
-		ctx->renderer<Refl::ColorProperty>(render_color_property);
-		ctx->renderer<Refl::LinearColorProperty>(render_linear_color_property);
-		ctx->renderer<Refl::StringProperty>(render_string_property);
-		ctx->renderer<Refl::NameProperty>(render_name_property);
-		ctx->renderer<Refl::PathProperty>(render_path_property);
-		ctx->renderer<Refl::StructProperty>(render_struct_property);
-		ctx->renderer<Refl::ObjectProperty>(render_object_property);
-		ctx->renderer<Refl::ArrayProperty>(render_array_property);
-		ctx->renderer<Refl::ReflObjectProperty>(render_refl_object_property);
-		ctx->renderer<Refl::SubClassProperty>(render_sub_class_property);
-		ctx->renderer<Refl::FlagsProperty>(render_flags_property);
-		ctx->renderer<Refl::VirtualProperty>(render_virtual_property);
+		ctx->renderer<Refl::Deprecated::BooleanProperty>(render_boolean_property);
+		ctx->renderer<Refl::Deprecated::IntegerProperty>(render_integer_property);
+		ctx->renderer<Refl::Deprecated::FloatProperty>(render_float_property);
+		ctx->renderer<Refl::Deprecated::AngleProperty>(render_angle_property);
+		ctx->renderer<Refl::Deprecated::VectorProperty>(render_vector_property);
+		ctx->renderer<Refl::Deprecated::MatrixProperty>(render_matrix_property);
+		ctx->renderer<Refl::Deprecated::QuaternionProperty>(render_quaternion_property);
+		ctx->renderer<Refl::Deprecated::EnumProperty>(render_enum_property);
+		ctx->renderer<Refl::Deprecated::ColorProperty>(render_color_property);
+		ctx->renderer<Refl::Deprecated::LinearColorProperty>(render_linear_color_property);
+		ctx->renderer<Refl::Deprecated::StringProperty>(render_string_property);
+		ctx->renderer<Refl::Deprecated::NameProperty>(render_name_property);
+		ctx->renderer<Refl::Deprecated::PathProperty>(render_path_property);
+		ctx->renderer<Refl::Deprecated::StructProperty>(render_struct_property);
+		ctx->renderer<Refl::Deprecated::ObjectProperty>(render_object_property);
+		ctx->renderer<Refl::Deprecated::ArrayProperty>(render_array_property);
+		ctx->renderer<Refl::Deprecated::ReflObjectProperty>(render_refl_object_property);
+		ctx->renderer<Refl::Deprecated::SubClassProperty>(render_sub_class_property);
+		ctx->renderer<Refl::Deprecated::FlagsProperty>(render_flags_property);
+		ctx->renderer<Refl::Deprecated::VirtualProperty>(render_virtual_property);
 	}
 } // namespace Trinex::UI

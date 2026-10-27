@@ -11,7 +11,7 @@ namespace Trinex
 	private:
 		using iterator       = DeprecatedObject**;
 		using const_iterator = DeprecatedObject* const*;
-		static bool lower_bound(iterator begin, iterator end, iterator& out, DeprecatedObject* object, Refl::Class* check_class);
+		static bool lower_bound(iterator begin, iterator end, iterator& out, DeprecatedObject* object, Refl::Deprecated::Class* check_class);
 		static DeprecatedObject* find(const_iterator begin, const_iterator end, StringView full_name);
 		static DeprecatedObject* find(const_iterator begin, const_iterator end, Name name);
 

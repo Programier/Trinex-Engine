@@ -1,7 +1,7 @@
 #include <Core/etl/engine_resource.hpp>
 #include <Core/etl/static_array.hpp>
 #include <Core/garbage_collector.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Core/threading.hpp>
 #include <Core/window.hpp>
 #include <Engine/splash_config.hpp>

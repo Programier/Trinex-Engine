@@ -51,8 +51,8 @@ namespace Trinex
 			}
 		};
 
-		static bool register_client(Refl::Class* object_type, Refl::Class* renderer);
-		static ImGuiViewportClient* client_of(Refl::Class* object_type, bool create_if_not_exist = false);
+		static bool register_client(Refl::Deprecated::Class* object_type, Refl::Deprecated::Class* renderer);
+		static ImGuiViewportClient* client_of(Refl::Deprecated::Class* object_type, bool create_if_not_exist = false);
 
 		ImGuiViewportClient();
 		~ImGuiViewportClient();

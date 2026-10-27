@@ -1,4 +1,4 @@
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Core/string_functions.hpp>
 #include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_engine.hpp>
@@ -227,12 +227,12 @@ namespace Trinex::ScriptBinding
 		return Class(name);
 	}
 
-	Class Class::existing(Refl::Class* class_instance)
+	Class Class::existing(Refl::Deprecated::Class* class_instance)
 	{
 		return existing(class_instance->full_name());
 	}
 
-	Class Class::reflected(Refl::Class* class_instance, ScriptClassFlags flags)
+	Class Class::reflected(Refl::Deprecated::Class* class_instance, ScriptClassFlags flags)
 	{
 		auto binding                     = create(class_instance->full_name(), reference_type(class_instance->size(), flags));
 		auto info                        = binding.type_info();

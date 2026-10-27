@@ -1,7 +1,7 @@
 #include <Core/archive.hpp>
 #include <Core/garbage_collector.hpp>
-#include <Core/reflection/class.hpp>
-#include <Core/reflection/property.hpp>
+#include <Core/reflection/deprecated/class.hpp>
+#include <Core/reflection/deprecated/property.hpp>
 #include <Core/threading.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Graphics/material.hpp>

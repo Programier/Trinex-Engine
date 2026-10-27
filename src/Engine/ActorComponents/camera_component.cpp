@@ -2,8 +2,8 @@
 #include <Core/buffer_manager.hpp>
 #include <Core/engine.hpp>
 #include <Core/math/math.hpp>
-#include <Core/reflection/class.hpp>
-#include <Core/reflection/property.hpp>
+#include <Core/reflection/deprecated/class.hpp>
+#include <Core/reflection/deprecated/property.hpp>
 #include <Core/window.hpp>
 #include <Engine/ActorComponents/camera_component.hpp>
 #include <Engine/camera_view.hpp>

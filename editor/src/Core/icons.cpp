@@ -3,7 +3,7 @@
 #include <Core/deprecated/object.hpp>
 #include <Core/package.hpp>
 #include <Core/pointer.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/texture.hpp>
 #include <UI/imgui.hpp>
@@ -33,7 +33,7 @@ namespace Trinex::Icons
 		return default_texture();
 	}
 
-	ImGuiTrinexTextureId find_icon(Refl::Class* class_instance)
+	ImGuiTrinexTextureId find_icon(Refl::Deprecated::Class* class_instance)
 	{
 		static Name meta = "__trinex_editor_class_icon__";
 		auto& data       = class_instance->metadata(meta);

@@ -2,7 +2,7 @@
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/icons.hpp>
 #include <Core/package.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Editor/engine.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Engine/Actors/actor.hpp>
@@ -23,9 +23,9 @@ namespace Trinex
 	ImGui::TextWrapped(format __VA_OPT__(, ) __VA_ARGS__);                                                                       \
 	ImGui::PopStyleColor()
 
-	static bool render_class_name(Refl::Object* object)
+	static bool render_class_name(Refl::Deprecated::Object* object)
 	{
-		if (object == nullptr || object == Refl::Object::static_root())
+		if (object == nullptr || object == Refl::Deprecated::Object::static_root())
 			return false;
 
 		if (render_class_name(object->owner()))
@@ -163,16 +163,16 @@ namespace Trinex
 		return "editor/New Package"_localized;
 	}
 
-	ImGuiCreateNewAsset::ImGuiCreateNewAsset(class Package* pkg, const CallBacks<bool(class Refl::Class*)>& filters)
+	ImGuiCreateNewAsset::ImGuiCreateNewAsset(class Package* pkg, const CallBacks<bool(class Refl::Deprecated::Class*)>& filters)
 	    : m_parent(pkg), filters(filters)
 	{
 		if (filters.empty())
 		{
-			m_filtered_classes = Refl::Class::asset_classes();
+			m_filtered_classes = Refl::Deprecated::Class::asset_classes();
 		}
 		else
 		{
-			for (Refl::Class* class_instance : Refl::Class::asset_classes())
+			for (Refl::Deprecated::Class* class_instance : Refl::Deprecated::Class::asset_classes())
 			{
 				for (auto& filter : filters)
 				{
@@ -188,7 +188,7 @@ namespace Trinex
 
 	static const char* get_asset_class_name_default(void* userdata, int index)
 	{
-		return (*reinterpret_cast<Array<Refl::Class*>*>(userdata))[index]->name().c_str();
+		return (*reinterpret_cast<Array<Refl::Deprecated::Class*>*>(userdata))[index]->name().c_str();
 	}
 
 	bool ImGuiCreateNewAsset::render(class RenderViewport* viewport)
@@ -224,7 +224,7 @@ namespace Trinex
 
 			if (ImGui::Button("editor/Create"_localized))
 			{
-				Refl::Class* class_instance = m_filtered_classes[current_index];
+				Refl::Deprecated::Class* class_instance = m_filtered_classes[current_index];
 				DeprecatedObject* created_object      = class_instance->create_object(new_asset_name);
 				m_parent->add_object(created_object);
 				open = false;
@@ -425,15 +425,15 @@ namespace Trinex
 		}
 	}
 
-	void ImGuiSpawnNewActor::build_tree(Node* node, class Refl::Class* self)
+	void ImGuiSpawnNewActor::build_tree(Node* node, class Refl::Deprecated::Class* self)
 	{
 		node->self = self;
 
-		for (Refl::Struct* child : self->derived_structs())
+		for (Refl::Deprecated::Struct* child : self->derived_structs())
 		{
 			if (child->parent() == self)
 			{
-				if (Refl::Class* child_class = Refl::Object::instance_cast<Refl::Class>(child))
+				if (Refl::Deprecated::Class* child_class = Refl::Deprecated::Object::instance_cast<Refl::Deprecated::Class>(child))
 				{
 					Node* child_node = trx_new Node();
 					build_tree(child_node, child_class);
@@ -445,7 +445,7 @@ namespace Trinex
 
 	ImGuiSpawnNewActor::ImGuiSpawnNewActor(class World* world) : world(world)
 	{
-		auto* actor_class = Refl::Class::static_find("Trinex::Actor", Refl::FindFlags::IsRequired);
+		auto* actor_class = Refl::Deprecated::Class::static_find("Trinex::Actor", Refl::Deprecated::FindFlags::IsRequired);
 		m_root            = trx_new Node();
 		build_tree(m_root, actor_class);
 		Platform::Monitor monitor_info;

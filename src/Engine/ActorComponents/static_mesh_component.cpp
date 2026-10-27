@@ -1,6 +1,6 @@
 #include <Core/profiler.hpp>
-#include <Core/reflection/class.hpp>
-#include <Core/reflection/property.hpp>
+#include <Core/reflection/deprecated/class.hpp>
+#include <Core/reflection/deprecated/property.hpp>
 #include <Engine/ActorComponents/static_mesh_component.hpp>
 #include <Engine/Render/scene.hpp>
 #include <Graphics/mesh.hpp>
@@ -37,7 +37,7 @@ namespace Trinex
 		return scene->create_geometry(geometry);
 	}
 
-	trinex_implement_engine_class(StaticMeshComponent, Refl::Class::IsScriptable)
+	trinex_implement_engine_class(StaticMeshComponent, Refl::Deprecated::Class::IsScriptable)
 	{
 		trinex_refl_virtual_prop(mesh, mesh, mesh)->tooltip("Mesh object of this component");
 

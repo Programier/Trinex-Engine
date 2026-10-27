@@ -75,7 +75,7 @@ namespace Trinex
 
 		using Super::new_instance;
 
-		static Actor* new_instance(Refl::Class* self, const Vector3f& location = {0.f, 0.f, 0.f},
+		static Actor* new_instance(Refl::Deprecated::Class* self, const Vector3f& location = {0.f, 0.f, 0.f},
 		                           const Quaternion& rotation = {0.f, 0.f, 0.f, 1.f}, const Vector3f& scale = {1.f, 1.f, 1.f},
 		                           const Name& name = Name::none);
 

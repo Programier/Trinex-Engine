@@ -1,10 +1,10 @@
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Core/string_functions.hpp>
 #include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <angelscript.h>
 
-namespace Trinex::Refl
+namespace Trinex::Refl::Deprecated
 {
 	static void visit_script_classes(Object* object)
 	{
@@ -54,7 +54,7 @@ namespace Trinex::Refl
 			if (current)
 			{
 				String fullname = Strings::concat_scoped_name(ti->GetNamespace(), ti->GetName());
-				self            = Refl::Class::static_find(fullname);
+				self            = Refl::Deprecated::Class::static_find(fullname);
 			}
 		}
 
@@ -63,7 +63,7 @@ namespace Trinex::Refl
 		Class* class_of_impl_cast() const { return self; }
 	};
 
-	trinex_on_reflection_init({.after = {"Trinex::Refl::Class"}})
+	trinex_on_reflection_init({.after = {"Trinex::Refl::Deprecated::Class"}})
 	{
 		auto reg = ScriptBinding::Class::create("Trinex::class_of<T>",
 		                                        ScriptBinding::value_type<ClassOf>(ScriptClassFlags::Template));
@@ -72,6 +72,6 @@ namespace Trinex::Refl
 		              ScriptBinding::Helpers::constructor<ClassOf, asITypeInfo*, const ClassOf&>);
 		reg.behaviour(ScriptClassBehave::Destruct, "void f()", ScriptBinding::Helpers::destructor<ClassOf>);
 
-		reg.method("Trinex::Refl::Class@ opImplCast() const", &ClassOf::class_of_impl_cast);
+		reg.method("Trinex::Refl::Deprecated::Class@ opImplCast() const", &ClassOf::class_of_impl_cast);
 	}
 } // namespace Trinex::Refl

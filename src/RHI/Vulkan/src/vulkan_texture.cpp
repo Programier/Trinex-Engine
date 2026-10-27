@@ -3,7 +3,7 @@
 #include <Core/etl/type_traits.hpp>
 #include <Core/math/math.hpp>
 #include <Core/memory.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <RHI/initializers.hpp>
 #include <RHI/upload.hpp>
 #include <vulkan_api.hpp>

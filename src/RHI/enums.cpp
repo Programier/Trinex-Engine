@@ -1,5 +1,5 @@
 #include <Core/math/math.hpp>
-#include <Core/reflection/enum.hpp>
+#include <Core/reflection/deprecated/enum.hpp>
 #include <RHI/enums.hpp>
 
 namespace Trinex

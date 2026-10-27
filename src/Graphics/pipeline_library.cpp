@@ -2,7 +2,7 @@
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/package.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Core/string_functions.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/pipeline_library.hpp>

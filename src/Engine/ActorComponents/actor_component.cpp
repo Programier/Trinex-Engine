@@ -1,5 +1,5 @@
 #include <Core/etl/templates.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Engine/ActorComponents/actor_component.hpp>
 #include <Engine/Actors/actor.hpp>
 #include <ScriptEngine/script_binding.hpp>
@@ -15,7 +15,7 @@ namespace Trinex
 	static ScriptFunction script_actor_comp_despawned;
 	static ScriptFunction script_actor_comp_sync;
 
-	trinex_implement_engine_class(ActorComponent, Refl::Class::IsScriptable)
+	trinex_implement_engine_class(ActorComponent, Refl::Deprecated::Class::IsScriptable)
 	{
 		auto r = ScriptBinding::Class::existing(static_reflection());
 

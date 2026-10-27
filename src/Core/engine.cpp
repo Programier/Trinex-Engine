@@ -1,5 +1,5 @@
 #include <Core/engine.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Platform/platform.hpp>
 #include <chrono>
 

@@ -1,6 +1,6 @@
 #include <Core/archive.hpp>
-#include <Core/reflection/property.hpp>
-#include <Core/reflection/struct.hpp>
+#include <Core/reflection/deprecated/property.hpp>
+#include <Core/reflection/deprecated/struct.hpp>
 #include <RHI/structures.hpp>
 
 namespace Trinex

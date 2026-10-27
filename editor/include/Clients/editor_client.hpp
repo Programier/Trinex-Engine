@@ -3,7 +3,7 @@
 #include <Core/etl/average.hpp>
 #include <Core/etl/critical_section.hpp>
 #include <Core/etl/deque.hpp>
-#include <Core/reflection/enum.hpp>
+#include <Core/reflection/deprecated/enum.hpp>
 #include <Engine/Render/renderer.hpp>
 #include <Engine/Render/scene.hpp>
 #include <Engine/Render/scene_view_state.hpp>
@@ -28,7 +28,7 @@ namespace Trinex
 	{
 		struct
 		{
-			const Refl::Enum::Entry* view_mode_entry = nullptr;
+			const Refl::Deprecated::Enum::Entry* view_mode_entry = nullptr;
 			Vector2f size                            = {0.f, 0.f};
 			bool show_additional_menu                = false;
 			bool is_hovered                          = false;

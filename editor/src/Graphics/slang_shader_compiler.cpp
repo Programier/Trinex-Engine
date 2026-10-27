@@ -7,7 +7,7 @@
 	#include <Core/filesystem/root_filesystem.hpp>
 	#include <Core/garbage_collector.hpp>
 	#include <Core/memory.hpp>
-	#include <Core/reflection/class.hpp>
+	#include <Core/reflection/deprecated/class.hpp>
 	#include <Core/string_functions.hpp>
 	#include <Engine/Render/render_pass.hpp>
 	#include <Engine/project.hpp>

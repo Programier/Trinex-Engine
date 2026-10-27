@@ -1,4 +1,4 @@
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Editor/Clients/editor.hpp>
 #include <UI/Elements/document.hpp>
 #include <imgui.h>

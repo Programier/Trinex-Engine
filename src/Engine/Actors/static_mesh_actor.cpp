@@ -1,13 +1,13 @@
 #include <Core/etl/templates.hpp>
-#include <Core/reflection/class.hpp>
-#include <Core/reflection/property.hpp>
+#include <Core/reflection/deprecated/class.hpp>
+#include <Core/reflection/deprecated/property.hpp>
 #include <Engine/ActorComponents/static_mesh_component.hpp>
 #include <Engine/Actors/static_mesh_actor.hpp>
 #include <ScriptEngine/script_binding.hpp>
 
 namespace Trinex
 {
-	trinex_implement_engine_class(StaticMeshActor, Refl::Class::IsScriptable)
+	trinex_implement_engine_class(StaticMeshActor, Refl::Deprecated::Class::IsScriptable)
 	{
 		auto r = ScriptBinding::Class::existing(static_reflection());
 		r.method("StaticMeshComponent@ mesh_component() const final", trinex_scoped_method(This, mesh_component));

@@ -1,10 +1,10 @@
-#include <Core/reflection/scoped_type.hpp>
+#include <Core/reflection/deprecated/scoped_type.hpp>
 #include <Core/string_functions.hpp>
 #include <ScriptEngine/script_binding.hpp>
 
-namespace Trinex::Refl
+namespace Trinex::Refl::Deprecated
 {
-	trinex_implement_reflect_type(Trinex::Refl::ScopedType) {}
+	trinex_implement_reflect_type(Trinex::Refl::Deprecated::ScopedType) {}
 
 	static ScopedType* root = nullptr;
 
@@ -141,4 +141,4 @@ namespace Trinex::Refl
 		if (this == root)
 			root = nullptr;
 	}
-} // namespace Trinex::Refl
+} // namespace Trinex::Refl::Deprecated

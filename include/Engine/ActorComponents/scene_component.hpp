@@ -63,7 +63,7 @@ namespace Trinex
 		inline const Array<Pointer<SceneComponent>>& childs() const { return m_childs; }
 
 		virtual SceneComponent& on_transform_changed();
-		SceneComponent& on_property_changed(const Refl::PropertyChangedEvent& event) override;
+		SceneComponent& on_property_changed(const Refl::Deprecated::PropertyChangedEvent& event) override;
 		bool serialize(Archive& ar) override;
 	};
 } // namespace Trinex

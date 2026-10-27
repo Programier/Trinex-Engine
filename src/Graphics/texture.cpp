@@ -1,6 +1,6 @@
 #include <Core/archive.hpp>
-#include <Core/reflection/class.hpp>
-#include <Core/reflection/property.hpp>
+#include <Core/reflection/deprecated/class.hpp>
+#include <Core/reflection/deprecated/property.hpp>
 #include <Core/threading.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/sampler.hpp>
@@ -32,7 +32,7 @@ namespace Trinex
 		return ar;
 	}
 
-	trinex_implement_engine_class(Texture, Refl::Class::IsAsset) {}
+	trinex_implement_engine_class(Texture, Refl::Deprecated::Class::IsAsset) {}
 
 	RHIShaderResourceView* Texture::srv() const
 	{
@@ -46,7 +46,7 @@ namespace Trinex
 		return m_texture.get();
 	}
 
-	trinex_implement_engine_class(Texture2D, Refl::Class::IsAsset) {}
+	trinex_implement_engine_class(Texture2D, Refl::Deprecated::Class::IsAsset) {}
 
 	Texture2D& Texture2D::rebuild()
 	{
@@ -97,7 +97,7 @@ namespace Trinex
 		return archive.serialize(mips);
 	}
 
-	trinex_implement_engine_class(Texture3D, Refl::Class::IsAsset) {}
+	trinex_implement_engine_class(Texture3D, Refl::Deprecated::Class::IsAsset) {}
 
 	Texture3D& Texture3D::rebuild()
 	{
@@ -153,7 +153,7 @@ namespace Trinex
 		return archive.serialize(mips);
 	}
 
-	trinex_implement_engine_class(TextureCube, Refl::Class::IsAsset) {}
+	trinex_implement_engine_class(TextureCube, Refl::Deprecated::Class::IsAsset) {}
 
 	TextureCube& TextureCube::rebuild()
 	{

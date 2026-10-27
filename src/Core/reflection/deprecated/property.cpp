@@ -1,20 +1,20 @@
 #include <Core/archive.hpp>
 #include <Core/etl/templates.hpp>
-#include <Core/reflection/class.hpp>
-#include <Core/reflection/enum.hpp>
-#include <Core/reflection/property.hpp>
+#include <Core/reflection/deprecated/class.hpp>
+#include <Core/reflection/deprecated/enum.hpp>
+#include <Core/reflection/deprecated/property.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/types/path.hpp>
 #include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 
-namespace Trinex::Refl
+namespace Trinex::Refl::Deprecated
 {
-	trinex_implement_reflect_type(Trinex::Refl::Property)
+	trinex_implement_reflect_type(Trinex::Refl::Deprecated::Property)
 	{
 		using T = Property::Flags;
 
-		ScriptBinding::Enum e("Trinex::Refl::Property::Flag");
+		ScriptBinding::Enum e("Trinex::Refl::Deprecated::Property::Flag");
 		e.value("property", 0);
 		e.value("is_read_only", T::IsReadOnly);
 		e.value("is_transient", T::IsTransient);
@@ -23,27 +23,27 @@ namespace Trinex::Refl
 		e.value("inline", T::Inline);
 	}
 
-	trinex_implement_reflect_type(Trinex::Refl::PrimitiveProperty) {}
-	trinex_implement_reflect_type(Trinex::Refl::BooleanProperty) {}
-	trinex_implement_reflect_type(Trinex::Refl::IntegerProperty) {}
-	trinex_implement_reflect_type(Trinex::Refl::FloatProperty) {}
-	trinex_implement_reflect_type(Trinex::Refl::AngleProperty) {}
-	trinex_implement_reflect_type(Trinex::Refl::EnumProperty) {}
-	trinex_implement_reflect_type(Trinex::Refl::ColorProperty) {}
-	trinex_implement_reflect_type(Trinex::Refl::LinearColorProperty) {}
-	trinex_implement_reflect_type(Trinex::Refl::VectorProperty) {}
-	trinex_implement_reflect_type(Trinex::Refl::MatrixProperty) {}
-	trinex_implement_reflect_type(Trinex::Refl::QuaternionProperty) {}
-	trinex_implement_reflect_type(Trinex::Refl::StringProperty) {}
-	trinex_implement_reflect_type(Trinex::Refl::NameProperty) {}
-	trinex_implement_reflect_type(Trinex::Refl::PathProperty) {}
-	trinex_implement_reflect_type(Trinex::Refl::ObjectProperty) {}
-	trinex_implement_reflect_type(Trinex::Refl::StructProperty) {}
-	trinex_implement_reflect_type(Trinex::Refl::ArrayProperty) {}
-	trinex_implement_reflect_type(Trinex::Refl::ReflObjectProperty) {}
-	trinex_implement_reflect_type(Trinex::Refl::SubClassProperty) {}
-	trinex_implement_reflect_type(Trinex::Refl::FlagsProperty) {}
-	trinex_implement_reflect_type(Trinex::Refl::VirtualProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::Deprecated::PrimitiveProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::Deprecated::BooleanProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::Deprecated::IntegerProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::Deprecated::FloatProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::Deprecated::AngleProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::Deprecated::EnumProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::Deprecated::ColorProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::Deprecated::LinearColorProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::Deprecated::VectorProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::Deprecated::MatrixProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::Deprecated::QuaternionProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::Deprecated::StringProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::Deprecated::NameProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::Deprecated::PathProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::Deprecated::ObjectProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::Deprecated::StructProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::Deprecated::ArrayProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::Deprecated::ReflObjectProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::Deprecated::SubClassProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::Deprecated::FlagsProperty) {}
+	trinex_implement_reflect_type(Trinex::Refl::Deprecated::VirtualProperty) {}
 
 	void Property::trigger_object_event(const PropertyChangedEvent& event)
 	{
@@ -75,17 +75,17 @@ namespace Trinex::Refl
 
 	Property& Property::item_flags(Flags flags)
 	{
-		if (auto* array = Refl::Object::instance_cast<ArrayProperty>(this))
+		if (auto* array = Refl::Deprecated::Object::instance_cast<ArrayProperty>(this))
 		{
 			return array->element_flags(flags);
 		}
 
-		if (auto* vector = Refl::Object::instance_cast<VectorProperty>(this))
+		if (auto* vector = Refl::Deprecated::Object::instance_cast<VectorProperty>(this))
 		{
 			return vector->element_flags(flags);
 		}
 
-		if (auto* matrix = Refl::Object::instance_cast<MatrixProperty>(this))
+		if (auto* matrix = Refl::Deprecated::Object::instance_cast<MatrixProperty>(this))
 		{
 			return matrix->row_flags(flags);
 		}
@@ -282,12 +282,12 @@ namespace Trinex::Refl
 
 	usize ReflObjectProperty::size() const
 	{
-		return sizeof(Refl::Object*);
+		return sizeof(Refl::Deprecated::Object*);
 	}
 
 	usize ReflObjectProperty::alignment() const
 	{
-		return alignof(Refl::Object*);
+		return alignof(Refl::Deprecated::Object*);
 	}
 
 	bool ReflObjectProperty::serialize(void* context, Archive& ar)
@@ -327,43 +327,43 @@ namespace Trinex::Refl
 		return true;
 	}
 
-	Refl::Object* ReflObjectProperty::object(void* context)
+	Refl::Deprecated::Object* ReflObjectProperty::object(void* context)
 	{
-		return *address_as<Refl::ObjectProperty*>(context);
+		return *address_as<Refl::Deprecated::ObjectProperty*>(context);
 	}
 
-	bool ReflObjectProperty::object(void* context, Refl::Object* object)
+	bool ReflObjectProperty::object(void* context, Refl::Deprecated::Object* object)
 	{
 		if (object == nullptr || object->refl_class_info()->is_a(info()))
 		{
-			(*address_as<Refl::Object*>(context)) = object;
+			(*address_as<Refl::Deprecated::Object*>(context)) = object;
 			return true;
 		}
 
 		return false;
 	}
 
-	const Trinex::Refl::Object* ReflObjectProperty::object(const void* context) const
+	const Trinex::Refl::Deprecated::Object* ReflObjectProperty::object(const void* context) const
 	{
-		return *address_as<const Refl::ObjectProperty*>(context);
+		return *address_as<const Refl::Deprecated::ObjectProperty*>(context);
 	}
 
 	Class* SubClassProperty::class_instance(void* context)
 	{
-		return *address_as<Refl::Class*>(context);
+		return *address_as<Refl::Deprecated::Class*>(context);
 	}
 
-	bool SubClassProperty::class_instance(void* context, Refl::Class* instance)
+	bool SubClassProperty::class_instance(void* context, Refl::Deprecated::Class* instance)
 	{
 		return object(context, instance);
 	}
 
 	const Class* SubClassProperty::class_instance(const void* context) const
 	{
-		return *address_as<const Refl::Class*>(context);
+		return *address_as<const Refl::Deprecated::Class*>(context);
 	}
 
-	Refl::ClassInfo* SubClassProperty::info() const
+	Refl::Deprecated::ClassInfo* SubClassProperty::info() const
 	{
 		return Class::static_refl_class_info();
 	}
@@ -409,4 +409,4 @@ namespace Trinex::Refl
 
 		return false;
 	}
-} // namespace Trinex::Refl
+} // namespace Trinex::Refl::Deprecated

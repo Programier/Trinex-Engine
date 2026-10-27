@@ -14,7 +14,7 @@ namespace Trinex
 	}
 } // namespace Trinex
 
-namespace Trinex::Refl
+namespace Trinex::Refl::Deprecated
 {
 	namespace Meta
 	{
@@ -222,20 +222,20 @@ namespace Trinex::Refl
 public:                                                                                                                          \
 	using This  = name;                                                                                                          \
 	using Super = base;                                                                                                          \
-	friend class Trinex::Refl::Object;                                                                                           \
+	friend class Trinex::Refl::Deprecated::Object;                                                                                           \
                                                                                                                                  \
-	static Trinex::Refl::ClassInfo* static_refl_class_info();                                                                    \
-	virtual Trinex::Refl::ClassInfo* refl_class_info() const override;                                                           \
+	static Trinex::Refl::Deprecated::ClassInfo* static_refl_class_info();                                                                    \
+	virtual Trinex::Refl::Deprecated::ClassInfo* refl_class_info() const override;                                                           \
                                                                                                                                  \
-	static name* static_find(StringView object_name, Trinex::Refl::FindFlags flags = Trinex::Refl::FindFlags::Undefined);        \
-	static name* static_require(StringView object_name, Trinex::Refl::FindFlags flags = Trinex::Refl::FindFlags::Undefined);     \
+	static name* static_find(StringView object_name, Trinex::Refl::Deprecated::FindFlags flags = Trinex::Refl::Deprecated::FindFlags::Undefined);        \
+	static name* static_require(StringView object_name, Trinex::Refl::Deprecated::FindFlags flags = Trinex::Refl::Deprecated::FindFlags::Undefined);     \
 	template<typename T>                                                                                                         \
-	static T* static_find(StringView object_name, Trinex::Refl::FindFlags flags = Trinex::Refl::FindFlags::Undefined)            \
+	static T* static_find(StringView object_name, Trinex::Refl::Deprecated::FindFlags flags = Trinex::Refl::Deprecated::FindFlags::Undefined)            \
 	{                                                                                                                            \
 		return Object::static_find<T>(object_name, flags);                                                                       \
 	}                                                                                                                            \
 	template<typename T>                                                                                                         \
-	static T* static_require(StringView object_name, Trinex::Refl::FindFlags flags = Trinex::Refl::FindFlags::Undefined)         \
+	static T* static_require(StringView object_name, Trinex::Refl::Deprecated::FindFlags flags = Trinex::Refl::Deprecated::FindFlags::Undefined)         \
 	{                                                                                                                            \
 		return Object::static_require<T>(object_name, flags);                                                                    \
 	}                                                                                                                            \
@@ -244,23 +244,23 @@ public:                                                                         
 private:
 
 #define trinex_implement_reflect_type(decl, ...)                                                                                 \
-	Trinex::Refl::ClassInfo* decl::static_refl_class_info()                                                                      \
+	Trinex::Refl::Deprecated::ClassInfo* decl::static_refl_class_info()                                                                      \
 	{                                                                                                                            \
-		static Trinex::Refl::ClassInfo info(#decl, Super::static_refl_class_info());                                             \
+		static Trinex::Refl::Deprecated::ClassInfo info(#decl, Super::static_refl_class_info());                                             \
 		return &info;                                                                                                            \
 	}                                                                                                                            \
                                                                                                                                  \
-	Trinex::Refl::ClassInfo* decl::refl_class_info() const                                                                       \
+	Trinex::Refl::Deprecated::ClassInfo* decl::refl_class_info() const                                                                       \
 	{                                                                                                                            \
 		return decl::static_refl_class_info();                                                                                   \
 	}                                                                                                                            \
-	decl* decl::static_find(StringView object_name, Trinex::Refl::FindFlags flags)                                               \
+	decl* decl::static_find(StringView object_name, Trinex::Refl::Deprecated::FindFlags flags)                                               \
 	{                                                                                                                            \
-		return Trinex::Refl::Object::static_find<decl>(object_name, flags);                                                      \
+		return Trinex::Refl::Deprecated::Object::static_find<decl>(object_name, flags);                                                      \
 	}                                                                                                                            \
-	decl* decl::static_require(StringView object_name, Trinex::Refl::FindFlags flags)                                            \
+	decl* decl::static_require(StringView object_name, Trinex::Refl::Deprecated::FindFlags flags)                                            \
 	{                                                                                                                            \
-		return Trinex::Refl::Object::static_require<decl>(object_name, flags);                                                   \
+		return Trinex::Refl::Deprecated::Object::static_require<decl>(object_name, flags);                                                   \
 	}                                                                                                                            \
 	static void TRINEX_CONCAT(trinex_refl_initializer_, __LINE__)(Trinex::ScriptBinding::Class & r);                             \
 	void decl::initialize_reflection()                                                                                           \
@@ -283,4 +283,4 @@ private:
 		decl::initialize_reflection();                                                                                           \
 	}                                                                                                                            \
 	static void TRINEX_CONCAT(trinex_refl_initializer_, __LINE__)(Trinex::ScriptBinding::Class & r)
-} // namespace Trinex::Refl
+} // namespace Trinex::Refl::Deprecated

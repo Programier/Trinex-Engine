@@ -1,5 +1,5 @@
 #include <Core/entry.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 
 namespace Trinex
 {

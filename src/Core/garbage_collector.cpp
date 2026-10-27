@@ -4,8 +4,8 @@
 #include <Core/deprecated/object.hpp>
 #include <Core/object_listener.hpp>
 #include <Core/package.hpp>
-#include <Core/reflection/class.hpp>
-#include <Core/reflection/property.hpp>
+#include <Core/reflection/deprecated/class.hpp>
+#include <Core/reflection/deprecated/property.hpp>
 #include <Engine/settings.hpp>
 
 #define DISABLE_GC 1
@@ -136,7 +136,7 @@ namespace Trinex
 
 		if (!object->flags.all(DeprecatedObject::Flags::IsUnreachable))
 		{
-			Refl::Class* class_instance = object->class_instance();
+			Refl::Deprecated::Class* class_instance = object->class_instance();
 
 			if (class_instance)
 			{
@@ -147,7 +147,7 @@ namespace Trinex
 						continue;
 					}
 
-					if (auto object_prop = Refl::Object::instance_cast<Refl::ObjectProperty>(prop))
+					if (auto object_prop = Refl::Deprecated::Object::instance_cast<Refl::Deprecated::ObjectProperty>(prop))
 					{
 						DeprecatedObject* prop_object = object_prop->object(object);
 						if (prop_object)

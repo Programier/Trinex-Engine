@@ -1,7 +1,7 @@
 #include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/etl/scope_variable.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Engine/Actors/actor.hpp>
 #include <Engine/level.hpp>
@@ -22,7 +22,7 @@ namespace Trinex
 	static ScriptFunction script_level_spawn_actor;
 	static ScriptFunction script_level_spawn_actor_t;
 
-	static Actor* scriptable_spawn_actor(LevelInstance* level, class Refl::Class* self, const Vector3f& location,
+	static Actor* scriptable_spawn_actor(LevelInstance* level, class Refl::Deprecated::Class* self, const Vector3f& location,
 	                                     const Vector3f& rotation, const Vector3f& scale, const Name& name)
 	{
 		return nullptr;
@@ -31,7 +31,7 @@ namespace Trinex
 
 	static void scriptable_spawn_actor_t(asIScriptGeneric* generic) {}
 
-	trinex_implement_class(Trinex::LevelInstance, Refl::Class::IsScriptable)
+	trinex_implement_class(Trinex::LevelInstance, Refl::Deprecated::Class::IsScriptable)
 	{
 		auto self = static_reflection();
 		auto r    = ScriptBinding::Class::existing(self);
@@ -209,7 +209,7 @@ namespace Trinex
 		return archive.serialize_childs(this, m_actors.begin(), m_actors.end());
 	}
 
-	trinex_implement_class(Trinex::Level, Refl::Class::IsScriptable | Refl::Class::IsAsset) {}
+	trinex_implement_class(Trinex::Level, Refl::Deprecated::Class::IsScriptable | Refl::Deprecated::Class::IsAsset) {}
 
 	Level::Level() : m_class(LevelInstance::static_reflection()) {}
 

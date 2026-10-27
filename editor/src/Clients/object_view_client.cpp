@@ -1,5 +1,5 @@
 #include <Clients/object_view_client.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Widgets/property_renderer.hpp>
 #include <imgui_internal.h>
 

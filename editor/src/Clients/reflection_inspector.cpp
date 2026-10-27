@@ -1,7 +1,7 @@
 #include <Clients/imgui_client.hpp>
-#include <Core/reflection/class.hpp>
-#include <Core/reflection/enum.hpp>
-#include <Core/reflection/scoped_type.hpp>
+#include <Core/reflection/deprecated/class.hpp>
+#include <Core/reflection/deprecated/enum.hpp>
+#include <Core/reflection/deprecated/scoped_type.hpp>
 #include <UI/imgui.hpp>
 #include <imgui_internal.h>
 
@@ -12,13 +12,13 @@ namespace Trinex
 		trinex_class(ReflInspector, ImGuiViewportClient);
 
 	public:
-		static bool draw_object_info(Refl::Object* object)
+		static bool draw_object_info(Refl::Deprecated::Object* object)
 		{
 			bool open = false;
 
 			ImGui::TableNextRow();
 
-			if (object->is_a<Refl::ScopedType>() || object->is_a<Refl::Enum>())
+			if (object->is_a<Refl::Deprecated::ScopedType>() || object->is_a<Refl::Deprecated::Enum>())
 			{
 				ImGui::TableSetColumnIndex(0);
 				open = ImGui::TreeNodeEx(object->name().c_str(), ImGuiTreeNodeFlags_SpanAllColumns);
@@ -38,9 +38,9 @@ namespace Trinex
 			return open;
 		}
 
-		void draw_tree(Refl::Object* object)
+		void draw_tree(Refl::Deprecated::Object* object)
 		{
-			if (Refl::ScopedType* scope = Refl::Object::instance_cast<Refl::ScopedType>(object))
+			if (Refl::Deprecated::ScopedType* scope = Refl::Deprecated::Object::instance_cast<Refl::Deprecated::ScopedType>(object))
 			{
 				if (draw_object_info(object))
 				{
@@ -52,7 +52,7 @@ namespace Trinex
 					ImGui::TreePop();
 				}
 			}
-			else if (Refl::Enum* enum_instance = Refl::Object::instance_cast<Refl::Enum>(object))
+			else if (Refl::Deprecated::Enum* enum_instance = Refl::Deprecated::Object::instance_cast<Refl::Deprecated::Enum>(object))
 			{
 				if (draw_object_info(object))
 				{
@@ -90,7 +90,7 @@ namespace Trinex
 				ImGui::TableSetupColumn("Value");
 				ImGui::TableHeadersRow();
 
-				draw_tree(Refl::Object::static_root());
+				draw_tree(Refl::Deprecated::Object::static_root());
 				ImGui::EndTable();
 			}
 			ImGui::End();

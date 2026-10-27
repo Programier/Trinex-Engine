@@ -1,8 +1,8 @@
 #include <Core/etl/templates.hpp>
 #include <Core/memory.hpp>
 #include <Core/profiler.hpp>
-#include <Core/reflection/class.hpp>
-#include <Core/reflection/enum.hpp>
+#include <Core/reflection/deprecated/class.hpp>
+#include <Core/reflection/deprecated/enum.hpp>
 #include <Graphics/material_parameter.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/shader.hpp>

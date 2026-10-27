@@ -158,13 +158,13 @@
 
 #define trinex_old_struct(struct_name, base_name)                                                                                \
 protected:                                                                                                                       \
-	static Trinex::Refl::Struct* m_static_struct;                                                                                \
+	static Trinex::Refl::Deprecated::Struct* m_static_struct;                                                                                \
                                                                                                                                  \
 public:                                                                                                                          \
 	using This  = struct_name;                                                                                                   \
 	using Super = base_name;                                                                                                     \
 	static void static_initialize_struct();                                                                                      \
-	static class Trinex::Refl::Struct* static_reflection();
+	static class Trinex::Refl::Deprecated::Struct* static_reflection();
 
 #define trinex_enum struct
 

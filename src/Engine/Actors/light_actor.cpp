@@ -1,4 +1,4 @@
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Engine/Actors/light_actor.hpp>
 
 namespace Trinex

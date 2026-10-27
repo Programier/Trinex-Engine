@@ -1,5 +1,5 @@
-#include <Core/reflection/class.hpp>
-#include <Core/reflection/property.hpp>
+#include <Core/reflection/deprecated/class.hpp>
+#include <Core/reflection/deprecated/property.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/local_light_component.hpp>
 #include <Engine/Render/lighting.hpp>
@@ -13,7 +13,7 @@ namespace Trinex
 
 	LocalLightComponent::LocalLightComponent() : m_attenuation_radius(30.f) {}
 
-	LocalLightComponent& LocalLightComponent::on_property_changed(const Refl::PropertyChangedEvent& event)
+	LocalLightComponent& LocalLightComponent::on_property_changed(const Refl::Deprecated::PropertyChangedEvent& event)
 	{
 		Super::on_property_changed(event);
 

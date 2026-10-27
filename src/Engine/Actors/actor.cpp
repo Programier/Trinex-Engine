@@ -1,8 +1,8 @@
 #include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/etl/templates.hpp>
-#include <Core/reflection/class.hpp>
-#include <Core/reflection/property.hpp>
+#include <Core/reflection/deprecated/class.hpp>
+#include <Core/reflection/deprecated/property.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Engine/Actors/actor.hpp>
 #include <Engine/world.hpp>
@@ -54,7 +54,7 @@ namespace Trinex
 		ScriptContext::current()->execute(this, script_actor_despawned);
 	}
 
-	Actor* Actor::new_instance(Refl::Class* self, const Vector3f& location, const Quaternion& rotation, const Vector3f& scale,
+	Actor* Actor::new_instance(Refl::Deprecated::Class* self, const Vector3f& location, const Quaternion& rotation, const Vector3f& scale,
 	                           const Name& name)
 	{
 		Actor* actor = self->create_object()->instance_cast<Actor>();
@@ -258,13 +258,13 @@ namespace Trinex
 
 		const String& index_name(const void* context, usize index) const override
 		{
-			const Refl::ArrayProperty* prop = this;
+			const Refl::Deprecated::ArrayProperty* prop = this;
 			const ActorComponent* component = *prop->at_as<const ActorComponent*>(context, index);
 			return component->name().to_string();
 		}
 	};
 
-	trinex_implement_engine_class(Actor, Refl::Class::IsScriptable)
+	trinex_implement_engine_class(Actor, Refl::Deprecated::Class::IsScriptable)
 	{
 		auto self = static_reflection();
 		auto r    = ScriptBinding::Class::existing(self);
@@ -285,10 +285,10 @@ namespace Trinex
 			script_actor_despawned.release();
 		});
 
-		auto flags      = Refl::Property::IsReadOnly | Refl::Property::IsTransient;
+		auto flags      = Refl::Deprecated::Property::IsReadOnly | Refl::Deprecated::Property::IsTransient;
 		auto components = trinex_refl_prop(m_components, flags);
 
-		if (auto element = Refl::Object::instance_cast<Refl::ObjectProperty>(components->element_property()))
+		if (auto element = Refl::Deprecated::Object::instance_cast<Refl::Deprecated::ObjectProperty>(components->element_property()))
 		{
 			element->is_composite(true);
 		}

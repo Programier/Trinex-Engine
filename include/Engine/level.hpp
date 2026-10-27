@@ -76,7 +76,7 @@ namespace Trinex
 		trinex_class(Level, DeprecatedObject);
 
 	private:
-		Refl::Class* m_class;
+		Refl::Deprecated::Class* m_class;
 		Buffer m_state;
 
 	public:

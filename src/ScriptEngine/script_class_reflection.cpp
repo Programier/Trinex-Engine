@@ -1,9 +1,9 @@
 #include <Core/group.hpp>
-#include <Core/reflection/property.hpp>
-#include <Core/reflection/script_class.hpp>
-#include <Core/reflection/script_enum.hpp>
-#include <Core/reflection/script_property.hpp>
-#include <Core/reflection/script_struct.hpp>
+#include <Core/reflection/deprecated/property.hpp>
+#include <Core/reflection/deprecated/script_class.hpp>
+#include <Core/reflection/deprecated/script_enum.hpp>
+#include <Core/reflection/deprecated/script_property.hpp>
+#include <Core/reflection/deprecated/script_struct.hpp>
 #include <Core/string_functions.hpp>
 #include <ScriptEngine/script.hpp>
 #include <ScriptEngine/script_context.hpp>
@@ -59,11 +59,11 @@ namespace Trinex
 		return MetaType::Unknown;
 	}
 
-	static void register_flags_meta(Refl::Property* prop, const String& meta)
+	static void register_flags_meta(Refl::Deprecated::Property* prop, const String& meta)
 	{
-		struct Accessor : public Refl::Property
+		struct Accessor : public Refl::Deprecated::Property
 		{
-			static void add_flag(Refl::Property* prop, Refl::Property::Flags mask)
+			static void add_flag(Refl::Deprecated::Property* prop, Refl::Deprecated::Property::Flags mask)
 			{
 				constexpr auto address = &Accessor::m_flags;
 				auto& flags            = prop->*address;
@@ -71,7 +71,7 @@ namespace Trinex
 			}
 		};
 
-		static asITypeInfo* enum_type = ScriptEngine::engine()->GetTypeInfoByDecl("Trinex::Refl::Property::Flag");
+		static asITypeInfo* enum_type = ScriptEngine::engine()->GetTypeInfoByDecl("Trinex::Refl::Deprecated::Property::Flag");
 
 		asUINT count = enum_type->GetEnumValueCount();
 
@@ -89,13 +89,13 @@ namespace Trinex
 		trinex_unreachable_fmt("Failed to find property flag with name '%s'", meta.data());
 	}
 
-	static void register_expression_meta(Script* script, Refl::Object* self, const String& meta)
+	static void register_expression_meta(Script* script, Refl::Deprecated::Object* self, const String& meta)
 	{
-		const Refl::ClassInfo* refl_info = self->refl_class_info();
+		const Refl::Deprecated::ClassInfo* refl_info = self->refl_class_info();
 
 		trinex_verify_fmt(refl_info, "Cannot find scriptable property type for prop '{}'", self->full_name().c_str());
 
-		String code = Strings::format("void __trinex_engine_execute_meta__(Trinex::Refl::{}@ prop) {{ prop.{}; }}",
+		String code = Strings::format("void __trinex_engine_execute_meta__(Trinex::Refl::Deprecated::{}@ prop) {{ prop.{}; }}",
 		                              refl_info->class_name.to_string(), meta);
 
 		auto module    = script->module().as_module();
@@ -123,7 +123,7 @@ namespace Trinex
 		module->SetDefaultNamespace(ns);
 	}
 
-	static void register_metadata(Script* script, Refl::Property* prop, const TreeSet<String>& metadata)
+	static void register_metadata(Script* script, Refl::Deprecated::Property* prop, const TreeSet<String>& metadata)
 	{
 		for (auto& meta : metadata)
 		{
@@ -139,7 +139,7 @@ namespace Trinex
 		}
 	}
 
-	static void register_metadata(Script* script, Refl::Struct* self, const TreeSet<String>& metadata)
+	static void register_metadata(Script* script, Refl::Deprecated::Struct* self, const TreeSet<String>& metadata)
 	{
 		for (auto& meta : metadata)
 		{
@@ -154,68 +154,68 @@ namespace Trinex
 		}
 	}
 
-	static Refl::Property* register_enum_property(Script* script, Refl::Struct* self, const String& prop_name,
+	static Refl::Deprecated::Property* register_enum_property(Script* script, Refl::Deprecated::Struct* self, const String& prop_name,
 	                                              ScriptTypeInfo info, usize offset)
 	{
 		auto fullname             = Strings::concat_scoped_name(info.namespace_name(), info.name());
-		Refl::Enum* enum_instance = Refl::Enum::static_find(fullname);
+		Refl::Deprecated::Enum* enum_instance = Refl::Deprecated::Enum::static_find(fullname);
 
 		if (enum_instance == nullptr)
-			enum_instance = Refl::Object::new_instance<Refl::ScriptEnum>(fullname, script, info);
+			enum_instance = Refl::Deprecated::Object::new_instance<Refl::Deprecated::ScriptEnum>(fullname, script, info);
 
-		return self->new_child<Refl::ScriptEnumProperty>(prop_name, offset, enum_instance);
+		return self->new_child<Refl::Deprecated::ScriptEnumProperty>(prop_name, offset, enum_instance);
 	}
 
-	static Refl::Property* register_primitive_property(Script* script, Refl::Struct* self, i32 type_id, u32 prop_idx)
+	static Refl::Deprecated::Property* register_primitive_property(Script* script, Refl::Deprecated::Struct* self, i32 type_id, u32 prop_idx)
 	{
 		u32 offset = self->script_type_info.property_offset(prop_idx);
 
 		String name          = String(self->script_type_info.property_name(prop_idx));
-		Refl::Property* prop = nullptr;
+		Refl::Deprecated::Property* prop = nullptr;
 
 		if (ScriptEngine::is_bool(type_id))
 		{
-			prop = self->new_child<Refl::ScriptBooleanProperty>(name, offset);
+			prop = self->new_child<Refl::Deprecated::ScriptBooleanProperty>(name, offset);
 		}
 		else if (ScriptEngine::is_int8(type_id))
 		{
-			prop = self->new_child<Refl::ScriptIntegerProperty<i8>>(name, offset);
+			prop = self->new_child<Refl::Deprecated::ScriptIntegerProperty<i8>>(name, offset);
 		}
 		else if (ScriptEngine::is_int16(type_id))
 		{
-			prop = self->new_child<Refl::ScriptIntegerProperty<i16>>(name, offset);
+			prop = self->new_child<Refl::Deprecated::ScriptIntegerProperty<i16>>(name, offset);
 		}
 		else if (ScriptEngine::is_int32(type_id))
 		{
-			prop = self->new_child<Refl::ScriptIntegerProperty<i32>>(name, offset);
+			prop = self->new_child<Refl::Deprecated::ScriptIntegerProperty<i32>>(name, offset);
 		}
 		else if (ScriptEngine::is_int64(type_id))
 		{
-			prop = self->new_child<Refl::ScriptIntegerProperty<i64>>(name, offset);
+			prop = self->new_child<Refl::Deprecated::ScriptIntegerProperty<i64>>(name, offset);
 		}
 		else if (ScriptEngine::is_uint8(type_id))
 		{
-			prop = self->new_child<Refl::ScriptIntegerProperty<u8>>(name, offset);
+			prop = self->new_child<Refl::Deprecated::ScriptIntegerProperty<u8>>(name, offset);
 		}
 		else if (ScriptEngine::is_uint16(type_id))
 		{
-			prop = self->new_child<Refl::ScriptIntegerProperty<u16>>(name, offset);
+			prop = self->new_child<Refl::Deprecated::ScriptIntegerProperty<u16>>(name, offset);
 		}
 		else if (ScriptEngine::is_uint32(type_id))
 		{
-			prop = self->new_child<Refl::ScriptIntegerProperty<u32>>(name, offset);
+			prop = self->new_child<Refl::Deprecated::ScriptIntegerProperty<u32>>(name, offset);
 		}
 		else if (ScriptEngine::is_uint64(type_id))
 		{
-			prop = self->new_child<Refl::ScriptIntegerProperty<u64>>(name, offset);
+			prop = self->new_child<Refl::Deprecated::ScriptIntegerProperty<u64>>(name, offset);
 		}
 		else if (ScriptEngine::is_float(type_id))
 		{
-			prop = self->new_child<Refl::ScriptFloatProperty<float>>(name, offset);
+			prop = self->new_child<Refl::Deprecated::ScriptFloatProperty<float>>(name, offset);
 		}
 		else if (ScriptEngine::is_double(type_id))
 		{
-			prop = self->new_child<Refl::ScriptFloatProperty<double>>(name, offset);
+			prop = self->new_child<Refl::Deprecated::ScriptFloatProperty<double>>(name, offset);
 		}
 
 		ScriptTypeInfo info = ScriptEngine::type_info_by_id(type_id);
@@ -230,7 +230,7 @@ namespace Trinex
 		return prop;
 	}
 
-	static Refl::Property* register_class_property(Script* script, Refl::Struct* self, ScriptTypeInfo info, u32 prop_idx,
+	static Refl::Deprecated::Property* register_class_property(Script* script, Refl::Deprecated::Struct* self, ScriptTypeInfo info, u32 prop_idx,
 	                                               bool has_property_meta)
 	{
 		auto decl = Strings::concat_scoped_name(info.namespace_name(), info.name());
@@ -251,27 +251,27 @@ namespace Trinex
 		u32 offset = self->script_type_info.property_offset(prop_idx);
 
 		String name          = String(self->script_type_info.property_name(prop_idx));
-		Refl::Property* prop = nullptr;
+		Refl::Deprecated::Property* prop = nullptr;
 
 		if (prop_struct->is_class())
 		{
-			Refl::Class* instance = Refl::Object::instance_cast<Refl::Class>(prop_struct);
+			Refl::Deprecated::Class* instance = Refl::Deprecated::Object::instance_cast<Refl::Deprecated::Class>(prop_struct);
 			if (instance)
 			{
-				prop = self->new_child<Refl::ScriptObjectProperty>(name, offset, instance);
+				prop = self->new_child<Refl::Deprecated::ScriptObjectProperty>(name, offset, instance);
 			}
 		}
 		else if (has_property_meta)
 		{
 			bool is_handle = ScriptEngine::is_handle_type(self->script_type_info.property_type_id(prop_idx));
 			trinex_verify_msg(!is_handle, "Cannot register handle as struct property!");
-			prop = self->new_child<Refl::ScriptStructProperty>(name, offset, prop_struct);
+			prop = self->new_child<Refl::Deprecated::ScriptStructProperty>(name, offset, prop_struct);
 		}
 
 		return prop;
 	}
 
-	static void register_reflection(Script* script, Refl::Struct* self)
+	static void register_reflection(Script* script, Refl::Deprecated::Struct* self)
 	{
 		auto& type      = self->script_type_info;
 		auto prop_count = type.property_count();
@@ -288,7 +288,7 @@ namespace Trinex
 				auto prop_type_id = type.property_type_id(i);
 				auto& metadata    = class_metadata.metadata_for_property(i);
 
-				Refl::Property* prop = nullptr;
+				Refl::Deprecated::Property* prop = nullptr;
 
 				if (ScriptEngine::is_primitive_type(prop_type_id) && metadata.contains("property"))
 				{
@@ -313,14 +313,14 @@ namespace Trinex
 		m_custom_parsers[String(datatype)] = parser;
 	}
 
-	Refl::Struct* Script::create_reflection(const ScriptTypeInfo& info)
+	Refl::Deprecated::Struct* Script::create_reflection(const ScriptTypeInfo& info)
 	{
 		if (!info.is_valid())
 			return nullptr;
 
 		auto decl = Strings::concat_scoped_name(info.namespace_name(), info.name());
 
-		if (auto instance = Refl::Struct::static_find(decl))
+		if (auto instance = Refl::Deprecated::Struct::static_find(decl))
 		{
 			if (instance->script_type_info == info)
 				return instance;
@@ -336,19 +336,19 @@ namespace Trinex
 		if (base.is_valid() && !base_class)
 			return nullptr;
 
-		Refl::Struct* script_class = nullptr;
+		Refl::Deprecated::Struct* script_class = nullptr;
 
 		if (base_class && base_class->is_class())
 		{
-			if (auto parent = Refl::Object::instance_cast<Refl::Class>(base_class))
+			if (auto parent = Refl::Deprecated::Object::instance_cast<Refl::Deprecated::Class>(base_class))
 			{
-				script_class = Refl::Object::new_instance<Refl::ScriptClass>(decl, parent, this, info);
+				script_class = Refl::Deprecated::Object::new_instance<Refl::Deprecated::ScriptClass>(decl, parent, this, info);
 			}
 		}
 		else
 		{
-			script_class = Refl::Object::new_instance<Refl::ScriptStruct>(
-			        decl, Refl::Object::instance_cast<Refl::ScriptStruct>(base_class), this, info);
+			script_class = Refl::Deprecated::Object::new_instance<Refl::Deprecated::ScriptStruct>(
+			        decl, Refl::Deprecated::Object::instance_cast<Refl::Deprecated::ScriptStruct>(base_class), this, info);
 		}
 
 		if (script_class)
@@ -359,14 +359,14 @@ namespace Trinex
 		return script_class;
 	}
 
-	static Refl::Property* string_property(Script* script, Refl::Struct* self, ScriptTypeInfo info, u32 idx)
+	static Refl::Deprecated::Property* string_property(Script* script, Refl::Deprecated::Struct* self, ScriptTypeInfo info, u32 idx)
 	{
 		bool is_handle = ScriptEngine::is_handle_type(self->script_type_info.property_type_id(idx));
 		trinex_verify_msg(!is_handle, "Cannot register handle as string property!");
 
 		u32 offset  = self->script_type_info.property_offset(idx);
 		String name = String(self->script_type_info.property_name(idx));
-		return self->new_child<Refl::ScriptStringProperty>(name, offset);
+		return self->new_child<Refl::Deprecated::ScriptStringProperty>(name, offset);
 	}
 
 	trinex_on_pre_init()

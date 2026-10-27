@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <ScriptEngine/script_function.hpp>
 
 namespace Trinex
@@ -8,7 +8,7 @@ namespace Trinex
 	class ScriptTypeInfo;
 } // namespace Trinex
 
-namespace Trinex::Refl
+namespace Trinex::Refl::Deprecated
 {
 	class trinex_api ScriptClass : public Class
 	{
@@ -27,4 +27,4 @@ namespace Trinex::Refl
 		usize size() const override;
 		~ScriptClass();
 	};
-} // namespace Trinex::Refl
+} // namespace Trinex::Refl::Deprecated

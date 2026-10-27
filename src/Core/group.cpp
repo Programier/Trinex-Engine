@@ -1,6 +1,6 @@
 #include <Core/constants.hpp>
 #include <Core/group.hpp>
-#include <Core/reflection/struct.hpp>
+#include <Core/reflection/deprecated/struct.hpp>
 #include <Core/string_functions.hpp>
 #include <cstring>
 
@@ -97,14 +97,14 @@ namespace Trinex
 		return m_name;
 	}
 
-	const Array<Refl::Struct*>& Group::structs() const
+	const Array<Refl::Deprecated::Struct*>& Group::structs() const
 	{
 		return m_structs;
 	}
 
-	Group& Group::add_struct(class Refl::Struct* instance)
+	Group& Group::add_struct(class Refl::Deprecated::Struct* instance)
 	{
-		for (class Refl::Struct* element : m_structs)
+		for (class Refl::Deprecated::Struct* element : m_structs)
 		{
 			if (element == instance)
 				return *this;
@@ -122,10 +122,10 @@ namespace Trinex
 		return *this;
 	}
 
-	Group& Group::remove_struct(class Refl::Struct* instance)
+	Group& Group::remove_struct(class Refl::Deprecated::Struct* instance)
 	{
 		auto removed =
-		        std::remove_if(m_structs.begin(), m_structs.end(), [instance](Refl::Struct* ell) { return ell == instance; });
+		        std::remove_if(m_structs.begin(), m_structs.end(), [instance](Refl::Deprecated::Struct* ell) { return ell == instance; });
 		m_structs.erase(removed, m_structs.end());
 		return *this;
 	}

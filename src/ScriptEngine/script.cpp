@@ -3,7 +3,7 @@
 #include <Core/etl/templates.hpp>
 #include <Core/filesystem/file.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
-#include <Core/reflection/script_class.hpp>
+#include <Core/reflection/deprecated/script_class.hpp>
 #include <Core/string_functions.hpp>
 #include <Engine/project.hpp>
 #include <ScriptEngine/script.hpp>
@@ -441,7 +441,7 @@ namespace Trinex
 
 		for (auto instance : refls)
 		{
-			Refl::Object::destroy_instance(instance);
+			Refl::Deprecated::Object::destroy_instance(instance);
 		}
 
 		return *this;

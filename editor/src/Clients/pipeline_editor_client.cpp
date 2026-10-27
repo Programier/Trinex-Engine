@@ -1,5 +1,5 @@
 #include <Clients/pipeline_editor_client.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/shader_compiler.hpp>
 #include <imgui.h>

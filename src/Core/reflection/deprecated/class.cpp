@@ -1,14 +1,14 @@
 #include <Core/garbage_collector.hpp>
-#include <Core/reflection/class.hpp>
+#include <Core/reflection/deprecated/class.hpp>
 #include <Core/string_functions.hpp>
 #include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <angelscript.h>
 
-namespace Trinex::Refl
+namespace Trinex::Refl::Deprecated
 {
-	trinex_implement_reflect_type(Trinex::Refl::Class)
+	trinex_implement_reflect_type(Trinex::Refl::Deprecated::Class)
 	{
 		r.method("Class@ parent() const", &Class::parent);
 		r.static_function("Class@ static_find(Trinex::StringView name, int flags = 0)", Class::static_find<Class>);
@@ -75,8 +75,8 @@ namespace Trinex::Refl
 
 			if (flags.any(IsConstructible))
 			{
-				auto factory =
-				        Strings::format(R"({}@ f(Trinex::StringView name = "", Trinex::DeprecatedObject owner = null))", full_name());
+				auto factory = Strings::format(R"({}@ f(Trinex::StringView name = "", Trinex::DeprecatedObject owner = null))",
+				                               full_name());
 
 				registrar.behaviour(ScriptClassBehave::Construct, "void f()", &Class::script_object_constructor_default,
 				                    ScriptCallConv::ThisCall_ObjFirst, this);
@@ -98,7 +98,8 @@ namespace Trinex::Refl
 		return nullptr;
 	}
 
-	Trinex::DeprecatedObject* Class::object_placement_constructor(void* mem, StringView name, Trinex::DeprecatedObject* owner, bool scriptable)
+	Trinex::DeprecatedObject* Class::object_placement_constructor(void* mem, StringView name, Trinex::DeprecatedObject* owner,
+	                                                              bool scriptable)
 	{
 		trinex_unreachable();
 		return nullptr;
@@ -127,14 +128,14 @@ namespace Trinex::Refl
 
 	Trinex::DeprecatedObject* Class::create_object(StringView name, Trinex::DeprecatedObject* owner)
 	{
-		bool scriptable        = !Trinex::DeprecatedObject::static_setup_next_object_info(this)->is_native();
+		bool scriptable                  = !Trinex::DeprecatedObject::static_setup_next_object_info(this)->is_native();
 		Trinex::DeprecatedObject* object = object_constructor(name, owner, scriptable);
 		return object;
 	}
 
 	Trinex::DeprecatedObject* Class::create_placement_object(void* place, StringView name, Trinex::DeprecatedObject* owner)
 	{
-		bool scriptable        = !Trinex::DeprecatedObject::static_setup_next_object_info(this)->is_native();
+		bool scriptable                  = !Trinex::DeprecatedObject::static_setup_next_object_info(this)->is_native();
 		Trinex::DeprecatedObject* object = object_placement_constructor(place, name, owner, scriptable);
 		return object;
 	}
@@ -168,4 +169,4 @@ namespace Trinex::Refl
 		Super::register_layout(r, info, downcast);
 		r.method("Trinex::DeprecatedObject@ singletone_instance() const", &Class::singletone_instance);
 	}
-} // namespace Trinex::Refl
+} // namespace Trinex::Refl::Deprecated

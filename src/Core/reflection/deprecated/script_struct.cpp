@@ -1,13 +1,13 @@
-#include <Core/reflection/script_struct.hpp>
+#include <Core/reflection/deprecated/script_struct.hpp>
 #include <ScriptEngine/script.hpp>
 #include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_function.hpp>
 #include <angelscript.h>
 
-namespace Trinex::Refl
+namespace Trinex::Refl::Deprecated
 {
-	trinex_implement_reflect_type(Trinex::Refl::ScriptStruct) {}
+	trinex_implement_reflect_type(Trinex::Refl::Deprecated::ScriptStruct) {}
 
 	ScriptStruct::ScriptStruct(ScriptStruct* parent, Script* script, const ScriptTypeInfo& info, Flags flags)
 	    : Struct(parent, flags | IsScriptable), m_script(script)
@@ -40,4 +40,4 @@ namespace Trinex::Refl
 	{
 		m_script->m_refl_objects.erase(this);
 	}
-} // namespace Trinex::Refl
+} // namespace Trinex::Refl::Deprecated

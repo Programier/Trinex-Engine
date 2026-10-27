@@ -2,8 +2,8 @@
 #include <Core/etl/templates.hpp>
 #include <Core/math/math.hpp>
 #include <Core/profiler.hpp>
-#include <Core/reflection/class.hpp>
-#include <Core/reflection/property.hpp>
+#include <Core/reflection/deprecated/class.hpp>
+#include <Core/reflection/deprecated/property.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Engine/Actors/actor.hpp>
@@ -28,7 +28,7 @@ namespace Trinex
 		return childs[index];
 	}
 
-	trinex_implement_engine_class(SceneComponent, Refl::Class::IsScriptable)
+	trinex_implement_engine_class(SceneComponent, Refl::Deprecated::Class::IsScriptable)
 	{
 		trinex_refl_virtual_prop(Is Visible, is_visible, is_visible);
 
@@ -132,7 +132,7 @@ namespace Trinex
 		return *this;
 	}
 
-	SceneComponent& SceneComponent::on_property_changed(const Refl::PropertyChangedEvent& event)
+	SceneComponent& SceneComponent::on_property_changed(const Refl::Deprecated::PropertyChangedEvent& event)
 	{
 		Super::on_property_changed(event);
 

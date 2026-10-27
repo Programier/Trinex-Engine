@@ -1,9 +1,9 @@
 #include <Core/archive.hpp>
 #include <Core/default_resources.hpp>
-#include <Core/reflection/class.hpp>
-#include <Core/reflection/enum.hpp>
-#include <Core/reflection/property.hpp>
-#include <Core/reflection/struct.hpp>
+#include <Core/reflection/deprecated/class.hpp>
+#include <Core/reflection/deprecated/enum.hpp>
+#include <Core/reflection/deprecated/property.hpp>
+#include <Core/reflection/deprecated/struct.hpp>
 #include <Graphics/gpu_buffers.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/mesh.hpp>
@@ -11,9 +11,9 @@
 
 namespace Trinex
 {
-	trinex_implement_class(Trinex::StaticMesh, Refl::Class::IsAsset | Refl::Class::IsScriptable) {}
+	trinex_implement_class(Trinex::StaticMesh, Refl::Deprecated::Class::IsAsset | Refl::Deprecated::Class::IsScriptable) {}
 
-	trinex_implement_engine_class(SkeletalMesh, Refl::Class::IsAsset | Refl::Class::IsScriptable)
+	trinex_implement_engine_class(SkeletalMesh, Refl::Deprecated::Class::IsAsset | Refl::Deprecated::Class::IsScriptable)
 	{
 		
 	}

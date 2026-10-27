@@ -1,6 +1,6 @@
 #include <Core/profiler.hpp>
-#include <Core/reflection/class.hpp>
-#include <Core/reflection/property.hpp>
+#include <Core/reflection/deprecated/class.hpp>
+#include <Core/reflection/deprecated/property.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/mesh_component.hpp>
 #include <Engine/Render/primitive_context.hpp>
@@ -15,7 +15,7 @@
 
 namespace Trinex
 {
-	trinex_implement_engine_class(MeshComponent, Refl::Class::IsScriptable)
+	trinex_implement_engine_class(MeshComponent, Refl::Deprecated::Class::IsScriptable)
 	{
 		trinex_refl_prop(m_material_overrides)->tooltip("Material overrides of this component");
 	}

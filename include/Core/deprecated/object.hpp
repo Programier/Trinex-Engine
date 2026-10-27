@@ -59,7 +59,7 @@ namespace Trinex
 		};
 
 	private:
-		Refl::Class* m_class;
+		Refl::Deprecated::Class* m_class;
 		DeprecatedObject* m_owner;
 		Name m_name;
 
@@ -68,14 +68,14 @@ namespace Trinex
 		mutable u32 m_global_index;
 
 	protected:
-		static class Refl::Class* m_static_class;
+		static class Refl::Deprecated::Class* m_static_class;
 
 	public:
 		mutable Flags flags;
 
 	private:
 		// Setup object info
-		static Refl::Class* static_setup_next_object_info(Refl::Class* self = nullptr);
+		static Refl::Deprecated::Class* static_setup_next_object_info(Refl::Deprecated::Class* self = nullptr);
 		static void initialize_new_object(DeprecatedObject* object, StringView name, DeprecatedObject* owner);
 
 		template<typename T>
@@ -114,7 +114,7 @@ namespace Trinex
 		void script_postload();
 
 	protected:
-		bool private_check_instance(const class Refl::Class* const check_class) const;
+		bool private_check_instance(const class Refl::Deprecated::Class* const check_class) const;
 
 		virtual DeprecatedObject& on_owner_update(DeprecatedObject* new_owner);
 		virtual DeprecatedObject* register_child(DeprecatedObject* child, u32& index);
@@ -142,8 +142,8 @@ namespace Trinex
 
 		static DeprecatedObject* static_constructor();
 		static void static_initialize_class();
-		static class Refl::Class* static_reflection();
-		class Refl::Class* class_instance() const;
+		static class Refl::Deprecated::Class* static_reflection();
+		class Refl::Deprecated::Class* class_instance() const;
 
 		static String package_name_of(const StringView& name);
 		static String object_name_of(const StringView& name);
@@ -191,7 +191,7 @@ namespace Trinex
 
 		virtual DeprecatedObject& on_create();
 		virtual DeprecatedObject& on_destroy();
-		virtual DeprecatedObject& on_property_changed(const Refl::PropertyChangedEvent& event);
+		virtual DeprecatedObject& on_property_changed(const Refl::Deprecated::PropertyChangedEvent& event);
 
 		virtual DeprecatedObject& preload();
 		virtual DeprecatedObject& postload();
@@ -202,9 +202,9 @@ namespace Trinex
 
 		static trinex_api DeprecatedObject* copy_from(DeprecatedObject* src);
 
-		static DeprecatedObject* static_new_instance(Refl::Class* object_class, StringView name = "",
+		static DeprecatedObject* static_new_instance(Refl::Deprecated::Class* object_class, StringView name = "",
 		                                             DeprecatedObject* owner = nullptr);
-		static DeprecatedObject* static_new_placement_instance(void* place, Refl::Class* object_class, StringView name = "",
+		static DeprecatedObject* static_new_placement_instance(void* place, Refl::Deprecated::Class* object_class, StringView name = "",
 		                                                       DeprecatedObject* owner = nullptr);
 
 		template<typename Type, bool check_constructible = false, typename... Args>
@@ -348,29 +348,29 @@ namespace Trinex
 		friend class Archive;
 		friend class MemoryManager;
 		friend class GarbageCollector;
-		friend class Refl::Class;
+		friend class Refl::Deprecated::Class;
 	};
 
 #define trinex_class(class_name, base_name)                                                                                      \
 protected:                                                                                                                       \
-	static class Trinex::Refl::Class* m_static_class;                                                                            \
+	static class Trinex::Refl::Deprecated::Class* m_static_class;                                                                            \
                                                                                                                                  \
 public:                                                                                                                          \
 	using This  = class_name;                                                                                                    \
 	using Super = base_name;                                                                                                     \
 	static void static_initialize_class();                                                                                       \
-	static class Trinex::Refl::Class* static_reflection();                                                                       \
+	static class Trinex::Refl::Deprecated::Class* static_reflection();                                                                       \
                                                                                                                                  \
 private:
 
 #define trinex_implement_class(decl, flags)                                                                                      \
-	class Trinex::Refl::Class* decl::m_static_class = nullptr;                                                                   \
+	class Trinex::Refl::Deprecated::Class* decl::m_static_class = nullptr;                                                                   \
                                                                                                                                  \
-	class Trinex::Refl::Class* decl::static_reflection()                                                                         \
+	class Trinex::Refl::Deprecated::Class* decl::static_reflection()                                                                         \
 	{                                                                                                                            \
 		if (!m_static_class)                                                                                                     \
 		{                                                                                                                        \
-			m_static_class = Trinex::Refl::NativeClass<decl>::create(#decl, flags);                                              \
+			m_static_class = Trinex::Refl::Deprecated::NativeClass<decl>::create(#decl, flags);                                              \
 		}                                                                                                                        \
 		return m_static_class;                                                                                                   \
 	}                                                                                                                            \

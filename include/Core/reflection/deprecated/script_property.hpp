@@ -1,7 +1,7 @@
 #pragma once
-#include <Core/reflection/property.hpp>
+#include <Core/reflection/deprecated/property.hpp>
 
-namespace Trinex::Refl
+namespace Trinex::Refl::Deprecated
 {
 	template<typename Super, bool dereference = false>
 	class ScriptProperty : public Super
@@ -98,4 +98,4 @@ namespace Trinex::Refl
 	// NameProperty;
 	// ObjectProperty;
 	// ArrayProperty;
-} // namespace Trinex::Refl
+} // namespace Trinex::Refl::Deprecated
