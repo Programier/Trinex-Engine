@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/etl/storage.hpp>
-#include <Core/reflection/new/of.hpp>
+#include <Core/reflection/of.hpp>
 
 namespace Trinex
 {
@@ -8,16 +8,16 @@ namespace Trinex
 	{
 	private:
 		Storage<32, 16> m_storage;
-		Refl::New::Type* m_type = nullptr;
+		Refl::Type* m_type = nullptr;
 
 	public:
 		DynamicValue() = default;
-		explicit DynamicValue(Refl::New::Type* type);
+		explicit DynamicValue(Refl::Type* type);
 
 		template<typename T>
 		DynamicValue(const T& value)
 		{
-			assign(Refl::New::type_of<T>(), &value);
+			assign(Refl::type_of<T>(), &value);
 		}
 
 		DynamicValue(const DynamicValue& other);
@@ -30,18 +30,18 @@ namespace Trinex
 		template<typename T>
 		DynamicValue& operator=(const T& value)
 		{
-			assign(Refl::New::type_of<T>(), &value);
+			assign(Refl::type_of<T>(), &value);
 			return *this;
 		}
 
-		bool construct(Refl::New::Type* type);
-		bool assign(Refl::New::Type* type, const void* value);
+		bool construct(Refl::Type* type);
+		bool assign(Refl::Type* type, const void* value);
 		void reset();
 
 		template<typename T>
 		bool is() const
 		{
-			return m_type == Refl::New::type_of<T>();
+			return m_type == Refl::type_of<T>();
 		}
 
 		template<typename T>
@@ -58,7 +58,7 @@ namespace Trinex
 
 		inline void* data() { return m_storage.data; }
 		inline const void* data() const { return m_storage.data; }
-		inline Refl::New::Type* type() const { return m_type; }
+		inline Refl::Type* type() const { return m_type; }
 		inline explicit operator bool() const { return m_type != nullptr; }
 	};
 

@@ -3,7 +3,7 @@
 #include <Core/etl/map.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/reflection/deprecated/class.hpp>
-#include <Core/reflection/new/of.hpp>
+#include <Core/reflection/of.hpp>
 #include <Core/threading.hpp>
 #include <Core/viewport_client.hpp>
 #include <Core/window.hpp>

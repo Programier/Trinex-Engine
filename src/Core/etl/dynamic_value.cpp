@@ -1,15 +1,15 @@
 #include <Core/etl/dynamic_value.hpp>
-#include <Core/reflection/new/const_type.hpp>
-#include <Core/reflection/new/type.hpp>
+#include <Core/reflection/const_type.hpp>
+#include <Core/reflection/type.hpp>
 
 namespace Trinex
 {
-	static Refl::New::Type* remove_const(Refl::New::Type* type)
+	static Refl::Type* remove_const(Refl::Type* type)
 	{
 		if (type == nullptr)
 			return nullptr;
 
-		if (auto const_type = type->cast<Refl::New::ConstType>())
+		if (auto const_type = type->cast<Refl::ConstType>())
 		{
 			return const_type->type();
 		}
@@ -17,7 +17,7 @@ namespace Trinex
 		return type;
 	}
 
-	DynamicValue::DynamicValue(Refl::New::Type* type)
+	DynamicValue::DynamicValue(Refl::Type* type)
 	{
 		construct(type);
 	}
@@ -71,7 +71,7 @@ namespace Trinex
 		return *this;
 	}
 
-	bool DynamicValue::construct(Refl::New::Type* type)
+	bool DynamicValue::construct(Refl::Type* type)
 	{
 		reset();
 
@@ -87,7 +87,7 @@ namespace Trinex
 		return true;
 	}
 
-	bool DynamicValue::assign(Refl::New::Type* type, const void* value)
+	bool DynamicValue::assign(Refl::Type* type, const void* value)
 	{
 		reset();
 

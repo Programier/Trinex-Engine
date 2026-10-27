@@ -5,7 +5,7 @@
 #include <Core/importer.hpp>
 #include <Core/localization.hpp>
 #include <Core/reflection/deprecated/class.hpp>
-#include <Core/reflection/new/enum.hpp>
+#include <Core/reflection/enum.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/threading.hpp>
 #include <Core/window.hpp>
@@ -39,8 +39,9 @@ namespace Trinex
 
 	EditorState::EditorState()
 	{
-		viewport.view_mode_entry = Refl::Deprecated::Enum::static_find("Trinex::ViewMode", Refl::Deprecated::FindFlags::IsRequired)
-		                                   ->entry(static_cast<EnumerateType>(ViewMode::Lit));
+		viewport.view_mode_entry =
+		        Refl::Deprecated::Enum::static_find("Trinex::ViewMode", Refl::Deprecated::FindFlags::IsRequired)
+		                ->entry(static_cast<EnumerateType>(ViewMode::Lit));
 	}
 
 	trinex_implement_engine_class(EditorClientOLD, 0)
@@ -728,7 +729,8 @@ namespace Trinex
 			if (ImGui::BeginPopup("##addition_menu", ImGuiWindowFlags_NoMove))
 			{
 				{
-					static auto* self = Refl::Deprecated::Enum::static_find("Trinex::ViewMode", Refl::Deprecated::FindFlags::IsRequired);
+					static auto* self =
+					        Refl::Deprecated::Enum::static_find("Trinex::ViewMode", Refl::Deprecated::FindFlags::IsRequired);
 
 					if (ImGui::BeginCombo("editor/View Mode"_localized, m_state.viewport.view_mode_entry->name.c_str()))
 					{
@@ -745,7 +747,7 @@ namespace Trinex
 
 					if (ImGui::BeginMenu("editor/Show Flags"_localized))
 					{
-						for (auto& entry : Refl::New::enum_of<ShowFlags>()->values())
+						for (auto& entry : Refl::enum_of<ShowFlags>()->values())
 						{
 							render_show_flag(m_show_flags, entry.value, entry.name.c_str());
 						}

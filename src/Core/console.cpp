@@ -4,13 +4,13 @@
 #include <Core/etl/utility.hpp>
 #include <Core/etl/variant.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
-#include <Core/reflection/new/const_type.hpp>
-#include <Core/reflection/new/native_function.hpp>
-#include <Core/reflection/new/object.hpp>
-#include <Core/reflection/new/pointer_type.hpp>
-#include <Core/reflection/new/property.hpp>
-#include <Core/reflection/new/scope.hpp>
-#include <Core/reflection/new/type.hpp>
+#include <Core/reflection/const_type.hpp>
+#include <Core/reflection/native_function.hpp>
+#include <Core/reflection/object.hpp>
+#include <Core/reflection/pointer_type.hpp>
+#include <Core/reflection/property.hpp>
+#include <Core/reflection/scope.hpp>
+#include <Core/reflection/type.hpp>
 #include <Core/types/path.hpp>
 #include <any>
 #include <peglib.h>
@@ -258,17 +258,17 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 
 	struct ExecutionContext
 	{
-		void* object                   = nullptr;
-		Reflection::Object* reflection = nullptr;
-		ExecutionFlags flags           = ExecutionFlags::Undefined;
-		bool is_const                  = false;
-		bool is_read_only              = false;
+		void* object             = nullptr;
+		Refl::Object* reflection = nullptr;
+		ExecutionFlags flags     = ExecutionFlags::Undefined;
+		bool is_const            = false;
+		bool is_read_only        = false;
 
 		inline bool is_valid() const
 		{
 			if (reflection)
 			{
-				if (reflection->is<Reflection::Scope>())
+				if (reflection->is<Refl::Scope>())
 				{
 					return true;
 				}
@@ -280,16 +280,16 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		}
 	};
 
-	class BoundProperty final : public Reflection::Property
+	class BoundProperty final : public Refl::Property
 	{
 	private:
 		void* m_address;
 
 	public:
-		BoundProperty(Name name, void* address, Reflection::Type* type, EntryFlags flags, Reflection::Object* owner)
+		BoundProperty(Name name, void* address, Refl::Type* type, EntryFlags flags, Refl::Object* owner)
 		    : Property(name, type,
 		               (static_cast<u64>(flags) << console_flags_shift)
-		                       | (flags.any(EntryFlags::ReadOnly) ? Reflection::Property::IsReadOnly : 0),
+		                       | (flags.any(EntryFlags::ReadOnly) ? Refl::Property::IsReadOnly : 0),
 		               owner),
 		      m_address(address)
 		{}
@@ -303,17 +303,17 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		}
 	};
 
-	class BoundFunction final : public Reflection::Object
+	class BoundFunction final : public Refl::Object
 	{
 	private:
-		Ref<Reflection::Function> m_function;
+		Ref<Refl::Function> m_function;
 
 	public:
-		BoundFunction(Name name, Reflection::Function* function, EntryFlags flags, Reflection::Object* owner)
+		BoundFunction(Name name, Refl::Function* function, EntryFlags flags, Refl::Object* owner)
 		    : Object(name, static_cast<u64>(flags) << console_flags_shift, owner), m_function(retain_ref(function))
 		{}
 
-		Object* resolve(const Reflection::Class* base) override
+		Object* resolve(const Refl::Class* base) override
 		{
 			if (Object* object = Object::resolve(base))
 				return object;
@@ -322,15 +322,15 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		}
 	};
 
-	static Reflection::Scope* root()
+	static Refl::Scope* root()
 	{
-		static Reflection::Scope scope("Console");
+		static Refl::Scope scope("Console");
 		return &scope;
 	}
 
-	static Reflection::Scope* scope_of(StringView path, bool create)
+	static Refl::Scope* scope_of(StringView path, bool create)
 	{
-		Reflection::Scope* scope = root();
+		Refl::Scope* scope = root();
 
 		for (usize begin = 0; scope != nullptr && begin < path.size();)
 		{
@@ -339,13 +339,13 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 			if (!name.is_valid())
 				return nullptr;
 
-			if (Reflection::Object* object = scope->find(name))
+			if (Refl::Object* object = scope->find(name))
 			{
-				scope = object->resolve<Reflection::Scope>();
+				scope = object->resolve<Refl::Scope>();
 			}
 			else if (create)
 			{
-				scope = Ref<Reflection::Scope>::make(name, Reflection::Object::None, scope).value();
+				scope = Ref<Refl::Scope>::make(name, Refl::Object::None, scope).value();
 			}
 			else
 			{
@@ -358,14 +358,14 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		return scope;
 	}
 
-	static Reflection::Object* find_binding(StringView name)
+	static Refl::Object* find_binding(StringView name)
 	{
-		const usize position     = name.rfind('.');
-		Reflection::Scope* scope = scope_of(position == StringView::npos ? "" : name.substr(0, position), false);
+		const usize position = name.rfind('.');
+		Refl::Scope* scope   = scope_of(position == StringView::npos ? "" : name.substr(0, position), false);
 		return scope ? scope->find(Name(name.substr(position == StringView::npos ? 0 : position + 1))) : nullptr;
 	}
 
-	static DynamicValue value_of(Reflection::Type* type, const void* value)
+	static DynamicValue value_of(Refl::Type* type, const void* value)
 	{
 		DynamicValue result(type);
 		return result && value != nullptr && type->copy_assign(result.data(), value) ? result : DynamicValue();
@@ -373,7 +373,7 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 
 	static DynamicValue execute_statement(ExecutionContext ctx, const Statement& statement);
 
-	static DynamicValue resolve_value(ExecutionContext ctx, const Argument& source, Reflection::Type* type)
+	static DynamicValue resolve_value(ExecutionContext ctx, const Argument& source, Refl::Type* type)
 	{
 		if (const StringView* value = etl::get_if<StringView>(&source))
 		{
@@ -392,13 +392,12 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		return result && result.type() == type ? result : DynamicValue();
 	}
 
-	static DynamicValue execute_function(const ExecutionContext& ctx, Reflection::Function* function,
-	                                     Span<const Argument> arguments)
+	static DynamicValue execute_function(const ExecutionContext& ctx, Refl::Function* function, Span<const Argument> arguments)
 	{
 		const auto& parameters = function->args();
 		bool has_this          = false;
 
-		for (const Ref<Reflection::Property>& parameter : parameters)
+		for (const Ref<Refl::Property>& parameter : parameters)
 		{
 			has_this = has_this || parameter->is_this();
 		}
@@ -414,7 +413,7 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 
 			if (ctx.object != nullptr)
 			{
-				for (const Ref<Reflection::Property>& prop : function->args())
+				for (const Ref<Refl::Property>& prop : function->args())
 				{
 					if (prop->is_this())
 					{
@@ -432,14 +431,14 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 
 		const usize alignment = function->alignment() == 0 ? alignof(void*) : function->alignment();
 		void* storage         = ByteAllocator::allocate_aligned(function->size() == 0 ? 1 : function->size(), alignment);
-		Array<Reflection::Property*> constructed;
+		Array<Refl::Property*> constructed;
 		bool success = true;
 
 		for (usize index = 0, argument_index = 0; success && index < parameters.size(); ++index)
 		{
-			Reflection::Property* parameter = parameters[index].value();
-			void* value                     = parameter->address(storage);
-			success                         = value != nullptr && parameter->type()->construct(value);
+			Refl::Property* parameter = parameters[index].value();
+			void* value               = parameter->address(storage);
+			success                   = value != nullptr && parameter->type()->construct(value);
 
 			if (!success)
 				break;
@@ -453,7 +452,7 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 			else
 			{
 				const Argument& argument = arguments[argument_index++];
-				DynamicValue resolved    = resolve_value(ctx, argument, const_cast<Reflection::Type*>(parameter->type()));
+				DynamicValue resolved    = resolve_value(ctx, argument, const_cast<Refl::Type*>(parameter->type()));
 				success                  = resolved && resolved.type() == parameter->type()
 				                           && parameter->type()->copy_assign(value, resolved.data());
 			}
@@ -464,8 +463,8 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		if (success)
 		{
 			function->invoke(storage);
-			if (Reflection::Property* return_value = function->result())
-				result = value_of(const_cast<Reflection::Type*>(return_value->type()), return_value->load(storage));
+			if (Refl::Property* return_value = function->result())
+				result = value_of(const_cast<Refl::Type*>(return_value->type()), return_value->load(storage));
 		}
 		else
 		{
@@ -474,7 +473,7 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 
 		while (!constructed.empty())
 		{
-			Reflection::Property* parameter = constructed.back();
+			Refl::Property* parameter = constructed.back();
 			parameter->type()->destruct(parameter->address(storage));
 			constructed.pop_back();
 		}
@@ -508,22 +507,22 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 				continue;
 			}
 
-			if (Reflection::PointerType* pointer = ctx.reflection->cast<Reflection::PointerType>())
+			if (Refl::PointerType* pointer = ctx.reflection->cast<Refl::PointerType>())
 			{
 				ctx.object     = ctx.object ? *static_cast<void**>(ctx.object) : nullptr;
 				ctx.reflection = pointer->type();
-				ctx.is_const   = ctx.is_const || ctx.reflection->is<Reflection::ConstType>();
+				ctx.is_const   = ctx.is_const || ctx.reflection->is<Refl::ConstType>();
 			}
 
-			if (ctx.reflection == nullptr || (ctx.object == nullptr && !ctx.reflection->is<Reflection::Scope>()))
+			if (ctx.reflection == nullptr || (ctx.object == nullptr && !ctx.reflection->is<Refl::Scope>()))
 				return {};
 
-			Reflection::Object* entry = ctx.reflection->find(operation->name);
+			Refl::Object* entry = ctx.reflection->find(operation->name);
 
 			if (entry == nullptr)
 				return {};
 
-			if (Reflection::Function* function = entry->resolve<Reflection::Function>())
+			if (Refl::Function* function = entry->resolve<Refl::Function>())
 			{
 				DynamicValue& value = result.emplace_back(execute_function(base_context, function, operation->arguments));
 
@@ -539,20 +538,20 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 
 				ctx.object       = value.data();
 				ctx.reflection   = value.type();
-				ctx.is_const     = ctx.reflection->is<Reflection::ConstType>();
+				ctx.is_const     = ctx.reflection->is<Refl::ConstType>();
 				ctx.is_read_only = false;
 			}
-			else if (Reflection::Property* property = entry->resolve<Reflection::Property>())
+			else if (Refl::Property* property = entry->resolve<Refl::Property>())
 			{
 				ctx.object       = property->address(ctx.object);
-				ctx.reflection   = const_cast<Reflection::Type*>(property->type());
-				ctx.is_const     = ctx.is_const || ctx.reflection->is<Reflection::ConstType>();
+				ctx.reflection   = const_cast<Refl::Type*>(property->type());
+				ctx.is_const     = ctx.is_const || ctx.reflection->is<Refl::ConstType>();
 				ctx.is_read_only = property->is_read_only();
 
 				if (ctx.object == nullptr)
 					return {};
 			}
-			else if (Reflection::Scope* child = entry->resolve<Reflection::Scope>())
+			else if (Refl::Scope* child = entry->resolve<Refl::Scope>())
 			{
 				ctx.object       = nullptr;
 				ctx.reflection   = child;
@@ -580,7 +579,7 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 
 			if (statement.kind == Statement::Kind::Scope)
 			{
-				if (!ctx.reflection->is<Reflection::Scope>())
+				if (!ctx.reflection->is<Refl::Scope>())
 				{
 					trinex_warning(Log::Console, "Console context is not a scope");
 					return DynamicValue();
@@ -596,7 +595,7 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 				return result;
 			}
 
-			Reflection::Type* type = ctx.reflection->resolve<Reflection::Type>();
+			Refl::Type* type = ctx.reflection->resolve<Refl::Type>();
 
 			if (type == nullptr || ctx.object == nullptr)
 				return DynamicValue();
@@ -622,12 +621,12 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		});
 	}
 
-	trinex_api DynamicFunction resolve_function(const Reflection::Function* function)
+	trinex_api DynamicFunction resolve_function(const Refl::Function* function)
 	{
 		if (function == nullptr)
 			return nullptr;
 
-		if (const Reflection::NativeFunction* native = function->cast<Reflection::NativeFunction>())
+		if (const Refl::NativeFunction* native = function->cast<Refl::NativeFunction>())
 		{
 			return native->address();
 		}
@@ -635,11 +634,10 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		return nullptr;
 	}
 
-	trinex_api void property(StringView name, void* address, Reflection::Type* reflection, StringView description,
-	                         EntryFlags flags)
+	trinex_api void property(StringView name, void* address, Refl::Type* reflection, StringView description, EntryFlags flags)
 	{
-		const usize position     = name.rfind('.');
-		Reflection::Scope* scope = scope_of(position == StringView::npos ? "" : name.substr(0, position), true);
+		const usize position = name.rfind('.');
+		Refl::Scope* scope   = scope_of(position == StringView::npos ? "" : name.substr(0, position), true);
 		const Name binding_name(name.substr(position == StringView::npos ? 0 : position + 1));
 		trinex_verify(address != nullptr && reflection != nullptr && scope != nullptr && binding_name.is_valid()
 		              && find_binding(name) == nullptr);
@@ -647,26 +645,26 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		(void) description;
 	}
 
-	trinex_api void function(StringView name, Reflection::Function* function, StringView description, EntryFlags flags)
+	trinex_api void function(StringView name, Refl::Function* function, StringView description, EntryFlags flags)
 	{
-		const usize position     = name.rfind('.');
-		Reflection::Scope* scope = scope_of(position == StringView::npos ? "" : name.substr(0, position), true);
+		const usize position = name.rfind('.');
+		Refl::Scope* scope   = scope_of(position == StringView::npos ? "" : name.substr(0, position), true);
 		const Name binding_name(name.substr(position == StringView::npos ? 0 : position + 1));
 		trinex_verify(function != nullptr && scope != nullptr && binding_name.is_valid() && find_binding(name) == nullptr);
 		(void) Ref<BoundFunction>::make(binding_name, function, flags, scope);
 		(void) description;
 	}
 
-	trinex_api void function(StringView name, DynamicFunction func, DynamicInvoker invoker, Reflection::Type* result,
-	                         Reflection::Type** args, usize count, StringView description, EntryFlags flags)
+	trinex_api void function(StringView name, DynamicFunction func, DynamicInvoker invoker, Refl::Type* result, Refl::Type** args,
+	                         usize count, StringView description, EntryFlags flags)
 	{
-		auto native = Ref<Reflection::NativeFunction>::make(name, func, invoker, result, args, count);
+		auto native = Ref<Refl::NativeFunction>::make(name, func, invoker, result, args, count);
 		function(name, native.value(), description, flags);
 	}
 
 	trinex_api void unbind(StringView name)
 	{
-		if (Reflection::Object* binding = find_binding(name))
+		if (Refl::Object* binding = find_binding(name))
 			binding->owner(nullptr);
 	}
 

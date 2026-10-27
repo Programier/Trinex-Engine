@@ -594,8 +594,8 @@ namespace Reflector
 			writer->line("private: \\");
 			{
 				auto scope = writer->scope();
-				writer->line("friend class ::Trinex::Refl::New::Binder<$0>; \\", instance->name);
-				writer->write("[[no_unique_address]] ::Trinex::Refl::New::Binder<$0> ", instance->name);
+				writer->line("friend class ::Trinex::Refl::Binder<$0>; \\", instance->name);
+				writer->write("[[no_unique_address]] ::Trinex::Refl::Binder<$0> ", instance->name);
 				writer->line("m_triner_reflection_binder_$0 = this; \\", instance->body_line);
 			}
 
@@ -606,7 +606,7 @@ namespace Reflector
 				writer->line("static constexpr inline const bool is_reflected = true; \\");
 				writer->line("using Bases = ::Trinex::TypeList<$0>; \\", BaseClassesOf(instance));
 				writer->line("using This = $0; \\", instance->name);
-				writer->line("friend struct ::Trinex::Refl::New::Accessor<$0>", instance->name);
+				writer->line("friend struct ::Trinex::Refl::Accessor<$0>", instance->name);
 			}
 		}
 	}
@@ -635,8 +635,8 @@ namespace Reflector
 		if (is_object_empty(module))
 			return true;
 
-		writer->line("#include <Core/reflection/new/accessor.hpp>");
-		writer->line("#include <Core/reflection/new/binder.hpp>\n");
+		writer->line("#include <Core/reflection/accessor.hpp>");
+		writer->line("#include <Core/reflection/binder.hpp>\n");
 
 		writer->line("#ifdef trinex_reflection_file_id");
 		writer->line("#undef trinex_reflection_file_id");
@@ -657,12 +657,12 @@ namespace Reflector
 
 		writer->line("#include <$0>", module->name);
 		writer->line("#include <Core/etl/type_traits.hpp>");
-		writer->line("#include <Core/reflection/new/of.hpp>");
-		writer->line("#include <Core/reflection/new/enum.hpp>");
-		writer->line("#include <Core/reflection/new/scope.hpp>");
-		writer->line("#include <Core/reflection/new/class.hpp>");
-		writer->line("#include <Core/reflection/new/function.hpp>");
-		writer->line("#include <Core/reflection/new/native.hpp>");
+		writer->line("#include <Core/reflection/of.hpp>");
+		writer->line("#include <Core/reflection/enum.hpp>");
+		writer->line("#include <Core/reflection/scope.hpp>");
+		writer->line("#include <Core/reflection/class.hpp>");
+		writer->line("#include <Core/reflection/function.hpp>");
+		writer->line("#include <Core/reflection/native.hpp>");
 		writer->line();
 
 		writer->line("namespace Trinex");
@@ -674,7 +674,7 @@ namespace Reflector
 		writer->line("}");
 		writer->line();
 
-		writer->line("namespace Trinex::Refl::New");
+		writer->line("namespace Trinex::Refl");
 		writer->line("{");
 		{
 			auto indent = writer->scope();
