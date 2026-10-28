@@ -140,7 +140,7 @@ namespace Trinex
 		return *_this;
 	}
 
-	trinex_on_reflection_init()
+	trinex_on_register()
 	{
 		ScriptBinding::Class registrar =
 		        ScriptBinding::Class::create("Trinex::Transform", ScriptBinding::value_type<Transform>(ScriptClassFlags::Pod));

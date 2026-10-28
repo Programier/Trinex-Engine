@@ -14,7 +14,7 @@ namespace Trinex
 {
 	static WindowDesc s_config;
 
-	trinex_on_pre_init()
+	trinex_on_bootstrap()
 	{
 		Console::property("window.title", &s_config.title);
 		Console::property("window.client", &s_config.client);

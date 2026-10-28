@@ -24,7 +24,7 @@ namespace Trinex::UI
 		return *this;
 	}
 
-	trinex_on_pre_init()
+	trinex_on_bootstrap()
 	{
 		auto type = Refl::NativeType<TabStyle>::instance();
 		type->bind("rounding", &TabStyle::rounding, Refl::Property::Style);

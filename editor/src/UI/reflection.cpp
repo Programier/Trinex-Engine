@@ -671,7 +671,7 @@ namespace Trinex::UI::Refl
 		return true;
 	}
 
-	trinex_on_pre_init()
+	trinex_on_bootstrap()
 	{
 		using ScalarTypesList = TypesList<bool, i8, u8, i16, u16, i32, u32, i64, u64, f16, f32, f64>;
 

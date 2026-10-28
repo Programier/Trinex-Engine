@@ -112,7 +112,7 @@ namespace Trinex
 				engine->SetJITCompiler(jit_compiler);
 			}
 #endif
-			LifeCycle::on_post_shutdown(ScriptEngine::terminate);
+			LifeCycle::on_finalize(ScriptEngine::terminate);
 
 			script_folder = trx_new ScriptFolder("[scripts]:");
 		}
@@ -925,7 +925,7 @@ namespace Trinex
 		generic->SetReturnObject(&name);
 	}
 
-	trinex_on_reflection_init()
+	trinex_on_register()
 	{
 		ScriptEngine::default_namespace("Trinex::ScriptEngine");
 		ScriptEngine::register_function("string variable_name(const ?& variable, bool include_namespace = true)",

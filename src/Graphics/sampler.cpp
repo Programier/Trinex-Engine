@@ -301,14 +301,14 @@ namespace Trinex
 		s_default_samplers[filter.value] = sampler;
 	}
 
-	trinex_on_pre_init()
+	trinex_on_bootstrap()
 	{
 		construct_default_sampler<RHISamplerFilter::Point>();
 		construct_default_sampler<RHISamplerFilter::Bilinear>();
 		construct_default_sampler<RHISamplerFilter::Trilinear>();
 	}
 
-	trinex_on_resources_init()
+	trinex_on_load()
 	{
 		for (SamplerImpl* sampler : s_default_samplers)
 		{

@@ -369,7 +369,7 @@ namespace Trinex
 		return self->new_child<Refl::Deprecated::ScriptStringProperty>(name, offset);
 	}
 
-	trinex_on_pre_init()
+	trinex_on_bootstrap()
 	{
 		Script::register_custom_reflection_parser("string", string_property);
 	}

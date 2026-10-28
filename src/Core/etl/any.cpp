@@ -291,7 +291,7 @@ namespace Trinex
 		static void constructor(void* self, void* value, i32 type_id) { opAssignValue(*new (self) Any(), value, type_id); }
 	};
 
-	trinex_on_pre_init()
+	trinex_on_bootstrap()
 	{
 		auto reg = ScriptBinding::Class::create("Trinex::Any",
 		                                        ScriptBinding::value_type<Any>(ScriptClassFlags::AppClassMoreConstructors));

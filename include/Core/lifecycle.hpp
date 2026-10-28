@@ -7,17 +7,18 @@ namespace Trinex::LifeCycle
 
 	enum Stage
 	{
-		PreInit          = -11,
-		ReflectionInit   = -10,
-		CoreRegistration = -9,
-		ConfigsInit      = -8,
-		CoreInit         = -7,
-		Init             = -6,
-		ResourcesInit    = -5,
-		PostInit         = -4,
-		PreShutdown      = -3,
-		Shutdown         = -2,
-		PostShutdown     = -1,
+		// Startup
+		Bootstrap  = -9,
+		Register   = -8,
+		Configure  = -7,
+		Initialize = -6,
+		Load       = -5,
+		Start      = -4,
+
+		// Shutdown
+		Stop     = -3,
+		Shutdown = -2,
+		Finalize = -1
 	};
 
 	struct Description
@@ -32,29 +33,39 @@ namespace Trinex::LifeCycle
 		Registrar(i32 stage, Function function, const Description& description = {});
 	};
 
-	static inline Registrar on_pre_init(Function function, const Description& description = {})
+	static inline Registrar on_bootstrap(Function function, const Description& description = {})
 	{
-		return Registrar(PreInit, function, description);
+		return Registrar(Bootstrap, function, description);
 	}
 
-	static inline Registrar on_reflection_init(Function function, const Description& description = {})
+	static inline Registrar on_register(Function function, const Description& description = {})
 	{
-		return Registrar(ReflectionInit, function, description);
+		return Registrar(Register, function, description);
 	}
 
-	static inline Registrar on_init(Function function, const Description& description = {})
+	static inline Registrar on_configure(Function function, const Description& description = {})
 	{
-		return Registrar(Init, function, description);
+		return Registrar(Configure, function, description);
 	}
 
-	static inline Registrar on_configs_init(Function function, const Description& description = {})
+	static inline Registrar on_initialize(Function function, const Description& description = {})
 	{
-		return Registrar(ConfigsInit, function, description);
+		return Registrar(Initialize, function, description);
 	}
 
-	static inline Registrar on_resources_init(Function function, const Description& description = {})
+	static inline Registrar on_load(Function function, const Description& description = {})
 	{
-		return Registrar(ResourcesInit, function, description);
+		return Registrar(Load, function, description);
+	}
+
+	static inline Registrar on_start(Function function, const Description& description = {})
+	{
+		return Registrar(Start, function, description);
+	}
+
+	static inline Registrar on_stop(Function function, const Description& description = {})
+	{
+		return Registrar(Stop, function, description);
 	}
 
 	static inline Registrar on_shutdown(Function function, const Description& description = {})
@@ -62,9 +73,9 @@ namespace Trinex::LifeCycle
 		return Registrar(Shutdown, function, description);
 	}
 
-	static inline Registrar on_post_shutdown(Function function, const Description& description = {})
+	static inline Registrar on_finalize(Function function, const Description& description = {})
 	{
-		return Registrar(PostShutdown, function, description);
+		return Registrar(Finalize, function, description);
 	}
 
 	trinex_api void execute(i32 stage);
@@ -78,14 +89,12 @@ namespace Trinex::LifeCycle
                                                                                                                                  \
 	static void TRINEX_CONCAT(trinex_lifecycle_function_, __LINE__)()
 
-#define trinex_on_pre_init(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::PreInit, __VA_ARGS__)
-#define trinex_on_reflection_init(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::ReflectionInit, __VA_ARGS__)
-#define trinex_on_core_registration(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::CoreRegistration, __VA_ARGS__)
-#define trinex_on_configs_init(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::ConfigsInit, __VA_ARGS__)
-#define trinex_on_core_init(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::CoreInit, __VA_ARGS__)
-#define trinex_on_init(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::Init, __VA_ARGS__)
-#define trinex_on_resources_init(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::ResourcesInit, __VA_ARGS__)
-#define trinex_on_post_init(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::PostInit, __VA_ARGS__)
-#define trinex_on_pre_shutdown(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::PreShutdown, __VA_ARGS__)
+#define trinex_on_bootstrap(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::Bootstrap, __VA_ARGS__)
+#define trinex_on_register(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::Register, __VA_ARGS__)
+#define trinex_on_configure(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::Configure, __VA_ARGS__)
+#define trinex_on_initialize(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::Initialize, __VA_ARGS__)
+#define trinex_on_load(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::Load, __VA_ARGS__)
+#define trinex_on_start(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::Start, __VA_ARGS__)
+#define trinex_on_stop(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::Stop, __VA_ARGS__)
 #define trinex_on_shutdown(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::Shutdown, __VA_ARGS__)
-#define trinex_on_post_shutdown(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::PostShutdown, __VA_ARGS__)
+#define trinex_on_finalize(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::Finalize, __VA_ARGS__)

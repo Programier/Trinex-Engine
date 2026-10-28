@@ -305,7 +305,7 @@ namespace Trinex::Refl
 		return type_of_internal<f64>("f64");
 	}
 
-	trinex_on_reflection_init()
+	trinex_on_register()
 	{
 		TypeOf<bool>::resolve();
 		TypeOf<String>::resolve();

@@ -70,8 +70,6 @@ namespace Trinex
 		arguments.init(argc, argv);
 		initialize_filesystem();
 
-		LifeCycle::execute(LifeCycle::PreInit);
-		LifeCycle::execute(LifeCycle::ReflectionInit);
 		Refl::Deprecated::Object::load_reflection();
 
 		Project::initialize();
@@ -129,8 +127,8 @@ namespace Trinex
 			Trinex::splash_screen_text(Trinex::SplashTextType::StartupProgress, "Starting Engine");
 		}
 
-		LifeCycle::execute(LifeCycle::ResourcesInit);
-		LifeCycle::execute(LifeCycle::Init);
+		// LifeCycle::execute(LifeCycle::ResourcesInit);
+		// LifeCycle::execute(LifeCycle::Init);
 
 		wait_time = 2.0f - (Engine::instance()->time_seconds() - wait_time);
 
@@ -160,7 +158,7 @@ namespace Trinex
 
 		GarbageCollector::destroy(Engine::instance());
 
-		LifeCycle::execute(LifeCycle::PostShutdown);
+		//LifeCycle::execute(LifeCycle::PostShutdown);
 		destroy_threads();
 	}
 } // namespace Trinex

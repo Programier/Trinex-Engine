@@ -149,7 +149,7 @@ namespace Trinex
 		return Localization::instance()->localize(StringView(line, len)).c_str();
 	}
 
-	trinex_on_init()
+	trinex_on_initialize()
 	{
 		Localization::instance()->reload(true, true);
 	}

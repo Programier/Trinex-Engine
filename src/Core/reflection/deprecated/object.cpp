@@ -24,7 +24,7 @@ namespace Trinex::Refl::Deprecated
 	static StringView m_next_object_name = "";
 	static Object* m_next_object_owner   = nullptr;
 
-	trinex_on_post_shutdown()
+	trinex_on_finalize()
 	{
 		m_check_exiting_instance = false;
 
@@ -417,7 +417,8 @@ namespace Trinex::Refl::Deprecated
 	{
 		using T = Object;
 
-		r.method("Trinex::Refl::Deprecated::Object@ owner(Trinex::Refl::Deprecated::Object@ new_owner)", overload_of<Object&>(&T::owner));
+		r.method("Trinex::Refl::Deprecated::Object@ owner(Trinex::Refl::Deprecated::Object@ new_owner)",
+		         overload_of<Object&>(&T::owner));
 		r.method("Trinex::Refl::Deprecated::Object@ owner()", overload_of<Object*>(&T::owner));
 		r.method("const Trinex::Name& name() const", &T::name);
 		r.method("string full_name() const", overload_of<String>(&T::full_name));
@@ -429,9 +430,11 @@ namespace Trinex::Refl::Deprecated
 		r.method("const string& description() const", overload_of<const String&>(&T::description));
 		r.method("const string& group() const", overload_of<const String&>(&T::group));
 
-		r.method("Trinex::Refl::Deprecated::Object@ display_name(Trinex::StringView name)", overload_of<Object&>(&T::display_name));
+		r.method("Trinex::Refl::Deprecated::Object@ display_name(Trinex::StringView name)",
+		         overload_of<Object&>(&T::display_name));
 		r.method("Trinex::Refl::Deprecated::Object@ tooltip(Trinex::StringView tooltip)", overload_of<Object&>(&T::tooltip));
-		r.method("Trinex::Refl::Deprecated::Object@ description(Trinex::StringView description)", overload_of<Object&>(&T::description));
+		r.method("Trinex::Refl::Deprecated::Object@ description(Trinex::StringView description)",
+		         overload_of<Object&>(&T::description));
 		r.method("Trinex::Refl::Deprecated::Object@ group(Trinex::StringView group)", overload_of<Object&>(&T::group));
 
 		r.method("Trinex::Refl::Deprecated::Object@ remove_metadata(const Trinex::Name& name)", &T::remove_metadata);
@@ -444,10 +447,12 @@ namespace Trinex::Refl::Deprecated
 		for (auto i = info->parent; i; i = i->parent)
 		{
 			// upcast
-			String opconv           = Strings::format("Trinex::Refl::Deprecated::{}@ opConv()", i->class_name.to_string());
-			String const_opconv     = Strings::format("const Trinex::Refl::Deprecated::{}@ opConv() const", i->class_name.to_string());
-			String opimplconv       = Strings::format("Trinex::Refl::Deprecated::{}@ opImplConv()", i->class_name.to_string());
-			String const_opimplconv = Strings::format("const Trinex::Refl::Deprecated::{}@ opImplConv() const", i->class_name.to_string());
+			String opconv = Strings::format("Trinex::Refl::Deprecated::{}@ opConv()", i->class_name.to_string());
+			String const_opconv =
+			        Strings::format("const Trinex::Refl::Deprecated::{}@ opConv() const", i->class_name.to_string());
+			String opimplconv = Strings::format("Trinex::Refl::Deprecated::{}@ opImplConv()", i->class_name.to_string());
+			String const_opimplconv =
+			        Strings::format("const Trinex::Refl::Deprecated::{}@ opImplConv() const", i->class_name.to_string());
 
 			r.method(opconv.c_str(), self_address);
 			r.method(const_opconv.c_str(), self_address);

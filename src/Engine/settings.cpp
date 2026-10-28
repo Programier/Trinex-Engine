@@ -52,7 +52,7 @@ namespace Trinex::Settings
 		trinex_api i32 game_name_text_size = 32;
 	} // namespace Splash
 
-	trinex_on_pre_init(.after = {"Trinex::ScriptVector", "Trinex::DefaultScriptAddons"})
+	trinex_on_bootstrap(.after = {"Trinex::ScriptVector", "Trinex::DefaultScriptAddons"})
 	{
 		// LifeCycle::execute(LifeCycle::ReflectionInit, "Trinex::WindowAttribute");
 		// LifeCycle::execute(LifeCycle::ReflectionInit, "Trinex::Orientation");

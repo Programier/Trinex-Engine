@@ -9,7 +9,7 @@ namespace Trinex
 {
 	static FT_Library m_library;
 
-	trinex_on_pre_init()
+	trinex_on_bootstrap()
 	{
 		trinex_assert(!FT_Init_FreeType(&m_library));
 	}

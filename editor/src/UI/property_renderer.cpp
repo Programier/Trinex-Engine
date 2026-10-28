@@ -1288,7 +1288,7 @@ namespace Trinex::UI
 		return changed;
 	}
 
-	trinex_on_pre_init()
+	trinex_on_bootstrap()
 	{
 		auto ctx = PropertyRenderer::static_context();
 

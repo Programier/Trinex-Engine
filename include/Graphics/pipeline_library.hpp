@@ -83,7 +83,7 @@ public:                                                                         
 private:
 
 #define trinex_implement_pipeline(class_name, path)                                                                              \
-	trinex_on_init(.name = #class_name)                                                                                          \
+	trinex_on_initialize(.name = #class_name)                                                                                          \
 	{                                                                                                                            \
 		class_name::create();                                                                                                    \
 	}                                                                                                                            \

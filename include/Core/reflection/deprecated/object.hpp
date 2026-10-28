@@ -278,7 +278,7 @@ private:
 			decl::register_layout(r, decl::static_refl_class_info(), script_downcast<decl>);                                     \
 		}                                                                                                                        \
 	}                                                                                                                            \
-	trinex_on_reflection_init(.name = #decl, .after = {__VA_ARGS__})                                                             \
+	trinex_on_register(.name = #decl, .after = {__VA_ARGS__})                                                             \
 	{                                                                                                                            \
 		decl::initialize_reflection();                                                                                           \
 	}                                                                                                                            \

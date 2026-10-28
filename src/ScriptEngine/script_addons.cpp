@@ -19,7 +19,7 @@ namespace Trinex
 		return *reinterpret_cast<const String*>(address);
 	}
 
-	trinex_on_pre_init(.name = "Trinex::DefaultScriptAddons")
+	trinex_on_bootstrap(.name = "Trinex::DefaultScriptAddons")
 	{
 		asIScriptEngine* engine = ScriptEngine::engine();
 

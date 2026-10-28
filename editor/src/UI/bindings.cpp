@@ -144,7 +144,7 @@ namespace Trinex::UI::Refl
 
 #define trinex_ui_bind_flag(name)
 
-	trinex_on_pre_init()
+	trinex_on_bootstrap()
 	{
 		auto imgui = NativeType<ImGuiContext*>::instance();
 		imgui->bind("window_pos", window_pos, Property::Markup);

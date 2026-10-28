@@ -197,21 +197,21 @@ public:                                                                         
 private:                                                                                                                         \
 	static void initialize_reflection()
 
-#define trinex_implement_ui_element(name)                                                                                        \
-	Trinex::UI::Refl::Type* name::type() const                                                                                   \
-	{                                                                                                                            \
-		return name::reflection();                                                                                               \
-	}                                                                                                                            \
-	Trinex::UI::Refl::NativeType<name>* name::reflection()                                                                       \
-	{                                                                                                                            \
-		static Trinex::UI::Refl::NativeType<name>* s_type = Trinex::UI::Refl::ElementRegistry::instance()->bind<name>(#name);    \
-		static auto registrar = Trinex::LifeCycle::on_reflection_init([] { name::initialize_reflection(); });                    \
-		return s_type;                                                                                                           \
-	}                                                                                                                            \
-	trinex_on_pre_init()                                                                                                         \
-	{                                                                                                                            \
-		name::reflection();                                                                                                      \
-	}                                                                                                                            \
+#define trinex_implement_ui_element(name)                                                                                          \
+	Trinex::UI::Refl::Type* name::type() const                                                                                     \
+	{                                                                                                                              \
+		return name::reflection();                                                                                                 \
+	}                                                                                                                              \
+	Trinex::UI::Refl::NativeType<name>* name::reflection()                                                                         \
+	{                                                                                                                              \
+		static Trinex::UI::Refl::NativeType<name>* s_type = Trinex::UI::Refl::ElementRegistry::instance()->bind<name>(#name);      \
+		static auto registrar                             = Trinex::LifeCycle::on_register([] { name::initialize_reflection(); }); \
+		return s_type;                                                                                                             \
+	}                                                                                                                              \
+	trinex_on_bootstrap()                                                                                                           \
+	{                                                                                                                              \
+		name::reflection();                                                                                                        \
+	}                                                                                                                              \
 	void name::initialize_reflection()
 
 #define trinex_ui_bind_property(name, type) reflection()->bind(#name, &This::name, Trinex::UI::Refl::Property::type)

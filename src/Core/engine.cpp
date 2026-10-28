@@ -36,25 +36,23 @@ namespace Trinex
 
 	i32 Engine::launch(int argc, char** argv)
 	{
-		// PreInit -
-		// ReflectionInit
-		// CoreRegistration
-		// ConfigsInit
-		// CoreInit
-		// Init
-		// ResourcesInit
-		// PostInit
-		// PreShutdown
-		// Shutdown
-		// PostShutdown
+		// 		Bootstrap  = -9,
+		//         Register   = -8,
+		//         Configure  = -7,
+		//         Initialize = -6,
+		//         Load       = -5,
+		//         Start      = -4,
 
-		// PRE INITIALIZATION STAGE
-		LifeCycle::execute(LifeCycle::PreInit);
+		//         // Shutdown
+		//         Stop     = -3,
+		//         Shutdown = -2,
+		//         Finalize = -1
 
-		// REFLECTION INITIALIZATION STAGE
-		LifeCycle::execute(LifeCycle::ReflectionInit);
+		// BOOTSTRAP STAGE
+		LifeCycle::execute(LifeCycle::Bootstrap);
 
-		trinex_info(Log::Core, "hello");
+		// REGISTER STAGE
+		LifeCycle::execute(LifeCycle::Register);
 
 		while (true)
 		{

@@ -918,7 +918,7 @@ namespace Reflector
 			auto indent = writer->scope();
 			generate_reflection(writer, module);
 
-			writer->line("trinex_on_reflection_init()");
+			writer->line("trinex_on_register()");
 			writer->line("{");
 			{
 				auto initialization_indent = writer->scope();

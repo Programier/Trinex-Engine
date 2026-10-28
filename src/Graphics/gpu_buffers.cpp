@@ -28,7 +28,7 @@ namespace Trinex
 
 	} s_null_vertex_buffer;
 
-	trinex_on_resources_init()
+	trinex_on_load()
 	{
 		s_null_vertex_buffer.init();
 	}

@@ -1134,7 +1134,7 @@ namespace Trinex::Bindings::GLM
 		});
 	}
 
-	trinex_on_pre_init()
+	trinex_on_bootstrap()
 	{
 		register_types();
 		bind_vector_types();

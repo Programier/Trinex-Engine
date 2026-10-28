@@ -851,7 +851,7 @@ namespace Trinex
 		return true;
 	}
 
-	trinex_on_pre_init(.name = "Trinex::ScriptVector")
+	trinex_on_bootstrap(.name = "Trinex::ScriptVector")
 	{
 		using T    = ScriptVector;
 		auto flags = ScriptClassFlags::AppClassAllInts | ScriptClassFlags::Template;

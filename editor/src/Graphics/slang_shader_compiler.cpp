@@ -623,7 +623,7 @@ namespace Trinex
 		}
 	};
 
-	trinex_on_pre_init()
+	trinex_on_bootstrap()
 	{
 		using T      = TypeDetector;
 		using Scalar = slang::TypeReflection::ScalarType;

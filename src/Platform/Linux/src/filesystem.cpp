@@ -515,7 +515,7 @@ namespace Trinex::Platform
 		return false;
 	}
 
-	trinex_on_pre_init()
+	trinex_on_bootstrap()
 	{
 		rootfs()->mount("/", retain_ref(LinuxFileSystem::instance()));
 	}

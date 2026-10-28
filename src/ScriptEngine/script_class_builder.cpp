@@ -27,7 +27,7 @@ namespace Trinex::Refl::Deprecated
 		visit_script_classes(Object::static_root());
 	}
 
-	trinex_on_pre_init()
+	trinex_on_bootstrap()
 	{
 		ScriptEngine::on_terminate.push(on_script_engine_terminate);
 	}
@@ -63,7 +63,7 @@ namespace Trinex::Refl::Deprecated
 		Class* class_of_impl_cast() const { return self; }
 	};
 
-	trinex_on_reflection_init(.after = {"Trinex::Refl::Deprecated::Class"})
+	trinex_on_register(.after = {"Trinex::Refl::Deprecated::Class"})
 	{
 		auto reg = ScriptBinding::Class::create("Trinex::class_of<T>",
 		                                        ScriptBinding::value_type<ClassOf>(ScriptClassFlags::Template));

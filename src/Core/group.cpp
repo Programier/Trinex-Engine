@@ -8,7 +8,7 @@ namespace Trinex
 {
 	static Group* s_root_group = nullptr;
 
-	trinex_on_post_shutdown()
+	trinex_on_finalize()
 	{
 		trx_delete s_root_group;
 		s_root_group = nullptr;
@@ -124,8 +124,8 @@ namespace Trinex
 
 	Group& Group::remove_struct(class Refl::Deprecated::Struct* instance)
 	{
-		auto removed =
-		        std::remove_if(m_structs.begin(), m_structs.end(), [instance](Refl::Deprecated::Struct* ell) { return ell == instance; });
+		auto removed = std::remove_if(m_structs.begin(), m_structs.end(),
+		                              [instance](Refl::Deprecated::Struct* ell) { return ell == instance; });
 		m_structs.erase(removed, m_structs.end());
 		return *this;
 	}

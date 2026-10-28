@@ -9,7 +9,7 @@ namespace Trinex::Settings::Editor
 	float large_font_size  = 24.f;
 	bool show_grid         = true;
 
-	trinex_on_pre_init()
+	trinex_on_bootstrap()
 	{
 		ScriptEngine::begin_config_group("editor/editor.config");
 		{

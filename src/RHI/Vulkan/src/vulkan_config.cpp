@@ -14,7 +14,7 @@ namespace Trinex::VulkanConfig
 	bool enable_validation               = static_cast<bool>(TRINEX_DEBUG_BUILD);
 	bool allow_any_gpu_type              = false;
 
-	trinex_on_pre_init()
+	trinex_on_bootstrap()
 	{
 		ScriptBinding::Enum reg("Trinex::VulkanGPU");
 		reg.value("other", vkb::DeviceType::other);

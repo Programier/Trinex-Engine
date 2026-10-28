@@ -1,8 +1,8 @@
 #pragma once
 
 #include <Core/definitions.hpp>
-#include <Core/etl/utility.hpp>
 #include <Core/deprecated/object.hpp>
+#include <Core/etl/utility.hpp>
 
 namespace Trinex
 {
@@ -22,7 +22,7 @@ namespace Trinex
 
 				if constexpr (with_destroy_controller)
 				{
-					LifeCycle::on_post_shutdown([]() {
+					LifeCycle::on_finalize([]() {
 						if (Type::s_instance)
 						{
 							trx_delete_inline(Type::s_instance);

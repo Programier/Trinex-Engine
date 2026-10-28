@@ -213,7 +213,7 @@ Engine::Project::shader_cache_dir = "{}";
 		Console::execute_config("input.config");
 		Console::execute_config("user.config");
 
-		LifeCycle::execute(LifeCycle::ConfigsInit);
+		LifeCycle::execute(LifeCycle::Configure);
 	}
 
 	void Project::initialize()

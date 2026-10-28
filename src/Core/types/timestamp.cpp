@@ -122,7 +122,7 @@ namespace Trinex
 		return ar.serialize(m_timestamp);
 	}
 
-	trinex_on_pre_init(.name = "Trinex::Timestamp", .after = {"Trinex::StringView"})
+	trinex_on_bootstrap(.name = "Trinex::Timestamp", .after = {"Trinex::StringView"})
 	{
 		auto flags = ScriptClassFlags::Pod | ScriptClassFlags::AppClassAllInts | ScriptClassFlags::AppClassAlign8
 		             | ScriptClassFlags::AppClassMoreConstructors;

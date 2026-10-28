@@ -77,7 +77,7 @@ namespace Trinex
 		trinex_info(Log::Scripting, "%s", result.c_str());
 	}
 
-	trinex_on_pre_init(.after = {"Trinex::DefaultScriptAddons"})
+	trinex_on_bootstrap(.after = {"Trinex::DefaultScriptAddons"})
 	{
 		auto str = ScriptBinding::Class::existing("string");
 

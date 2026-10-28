@@ -374,7 +374,7 @@ private:
 		}                                                                                                                        \
 		return m_static_class;                                                                                                   \
 	}                                                                                                                            \
-	trinex_on_reflection_init(.name = #decl)                                                                                     \
+	trinex_on_register(.name = #decl)                                                                                     \
 	{                                                                                                                            \
 		decl::static_reflection();                                                                                               \
 	}                                                                                                                            \

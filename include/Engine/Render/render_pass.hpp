@@ -61,7 +61,7 @@ public:                                                                         
 private:
 
 #define trinex_implement_render_pass(pass_name)                                                                                  \
-	trinex_on_reflection_init()                                                                                                  \
+	trinex_on_register()                                                                                                  \
 	{                                                                                                                            \
 		pass_name::static_instance();                                                                                            \
 	}                                                                                                                            \

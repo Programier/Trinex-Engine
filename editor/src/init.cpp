@@ -28,7 +28,7 @@ namespace Trinex
 		Texture2D* blueprint_texture = nullptr;
 	} // namespace EditorResources
 
-	trinex_on_pre_init()
+	trinex_on_bootstrap()
 	{
 		auto fs = rootfs();
 
@@ -51,7 +51,7 @@ namespace Trinex
 		return reinterpret_cast<T*>(obj);
 	}
 
-	trinex_on_resources_init()
+	trinex_on_load()
 	{
 #define load_resource(var, name, type, group_name)                                                                               \
 	EditorResources::var =                                                                                                       \
@@ -65,7 +65,7 @@ namespace Trinex
 		GarbageCollector::on_unreachable_check.push(skip_destroy_assets);
 	}
 
-	trinex_on_configs_init()
+	trinex_on_configure()
 	{
 		Trinex::Settings::Splash::font = "[content]:/TrinexEditor/fonts/Source Code Pro/SourceCodePro-Bold.ttf";
 		Console::execute_config("TrinexEditor/editor.config");
