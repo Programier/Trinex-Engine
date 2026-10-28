@@ -5,6 +5,7 @@
 #include <Core/etl/variant.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/reflection/const_type.hpp>
+#include <Core/reflection/function_set.hpp>
 #include <Core/reflection/indirection_type.hpp>
 #include <Core/reflection/native_function.hpp>
 #include <Core/reflection/object.hpp>
@@ -401,6 +402,30 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		return result && result.type() == type ? result : DynamicValue();
 	}
 
+	static Refl::Function* resolve_function(void* context, Refl::FunctionSet* set, usize args)
+	{
+		Refl::Function* function = nullptr;
+
+		for (const Ref<Refl::Function>& func : set->functions())
+		{
+			const usize implicit_arguments = context != nullptr && func->is_method();
+
+			if (func->args().size() - implicit_arguments == args)
+			{
+				if (function == nullptr)
+				{
+					function = func.value();
+				}
+				else
+				{
+					trinex_warning(Log::Console, "Failed to resolve overloaded function '%s'", set->name().c_str());
+					return nullptr;
+				}
+			}
+		}
+		return function;
+	}
+
 	static DynamicValue execute_function(const ExecutionContext& ctx, Refl::Function* function, Span<const Argument> arguments)
 	{
 		const auto& parameters = function->args();
@@ -530,6 +555,14 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 
 			if (entry == nullptr)
 				return {};
+
+			if (Refl::FunctionSet* set = entry->resolve<Refl::FunctionSet>())
+			{
+				entry = resolve_function(base_context.object, set, operation->arguments.size());
+
+				if (entry == nullptr)
+					return {};
+			}
 
 			if (Refl::Function* function = entry->resolve<Refl::Function>())
 			{
