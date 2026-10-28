@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/etl/invoker.hpp>
 #include <Core/reflection/object.hpp>
 
 #include <Core/reflection/type.generated.hpp>
@@ -33,6 +34,19 @@ namespace Trinex::Refl
 		u32 m_alignment;
 		const VTable* m_vtable;
 
+		bool invoke_construct_internal(void* mem, Type* const* args, usize count, void* context) const;
+
+		template<typename... Args>
+		bool invoke_construct(void* mem, Args&&... args) const
+		{
+			if (mem == nullptr)
+				return false;
+
+			Type* types[] = {type_of<void*>(), type_of<Args>()...};
+			etl::InvokeContext<void, void*, Args...> context(mem, static_cast<Args&&>(args)...);
+			return invoke_construct_internal(mem, types, sizeof...(Args) + 1, context);
+		}
+
 	public:
 		enum Flags : u64
 		{
@@ -44,7 +58,7 @@ namespace Trinex::Refl
 
 		Type(Name name, u32 size, u32 alignment, u64 flags = 0, const VTable* vtable = nullptr, Object* owner = nullptr);
 
-		bool construct(void* dst) const;
+		bool construct(void* value) const;
 		bool destruct(void* value) const;
 		bool copy_construct(void* dst, const void* src) const;
 		bool move_construct(void* dst, void* src) const;
@@ -71,5 +85,17 @@ namespace Trinex::Refl
 		inline bool is_trivially_copyable() const { return has_flags(IsTriviallyCopyable); }
 		inline bool is_trivially_destructible() const { return has_flags(IsTriviallyDestructible); }
 		inline bool has_default_constructor() const { return has_flags(HasDefaultConstructor); }
+
+		template<typename Arg>
+		bool construct(void* dst, Arg&& arg) const
+		{
+			return invoke_construct(dst, static_cast<Arg&&>(arg));
+		}
+
+		template<typename Arg0, typename Arg1, typename... Args>
+		bool construct(void* dst, Arg0&& arg0, Arg1&& arg1, Args&&... args) const
+		{
+			return invoke_construct(dst, static_cast<Arg0&&>(arg0), static_cast<Arg1&&>(arg1), static_cast<Args&&>(args)...);
+		}
 	};
 } // namespace Trinex::Refl

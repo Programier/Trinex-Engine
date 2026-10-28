@@ -10,6 +10,7 @@ namespace Reflector
 {
 	namespace fs = std::filesystem;
 
+	using NameOf              = WriteAs<struct Name>;
 	using HexNameOf           = WriteAs<struct HexName>;
 	using ResolvedNameOf      = WriteAs<struct ResolvedName>;
 	using ResolvedPathOf      = WriteAs<struct ResolvedPath>;
@@ -19,6 +20,35 @@ namespace Reflector
 	using FunctionFlagsOf     = WriteAs<struct FunctionFlags>;
 	using BaseClassesOf       = WriteAs<struct BaseClasses>;
 	using FunctionPrototypeOf = WriteAs<struct FunctionPrototype>;
+
+	struct Name
+	{
+		static void execute(CodeWriter* writer, const Object* object)
+		{
+			if (object == nullptr || object->is_a(ObjectKind::Module))
+				return;
+
+			if (const Function* function = dynamic_cast<const Function*>(object))
+			{
+				if (function->flags & Function::Constructor)
+				{
+					writer->write("$constructor");
+				}
+				else if (function->flags & Function::Operator)
+				{
+					writer->write("$operator");
+				}
+				else
+				{
+					writer->write(object->name);
+				}
+			}
+			else
+			{
+				writer->write(object->name);
+			}
+		}
+	};
 
 	struct HexName
 	{
@@ -508,7 +538,7 @@ namespace Reflector
 			writer->line("static FunctionSet* function_set_$0_$1()\n{", id, HexNameOf(child));
 			{
 				auto scope = writer->scope();
-				writer->line("static FunctionSet set(\"$0\", $1);", child->name, ReflectionOf(object));
+				writer->line("static FunctionSet set(\"$0\", $1);", NameOf(child), ReflectionOf(object));
 				writer->line("return &set;");
 			}
 			writer->line("}\n");

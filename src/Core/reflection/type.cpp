@@ -1,3 +1,5 @@
+#include <Core/reflection/function.hpp>
+#include <Core/reflection/function_set.hpp>
 #include <Core/reflection/type.hpp>
 
 namespace Trinex::Refl
@@ -13,11 +15,51 @@ namespace Trinex::Refl
 		}
 	}
 
-	bool Type::construct(void* dst) const
+	bool Type::invoke_construct_internal(void* mem, Type* const* args, usize count, void* context) const
 	{
-		if (m_vtable->construct == nullptr || dst == nullptr)
+		if (mem == nullptr || context == nullptr)
 			return false;
-		m_vtable->construct(this, dst);
+
+		if (count == 0 && m_vtable->construct)
+		{
+			m_vtable->construct(this, mem);
+			return true;
+		}
+
+		if (count == 1 && args[0] == type_of<const void*>() && m_vtable->copy_construct)
+		{
+			constexpr usize offset = (sizeof(void*) + alignof(void*) - 1) & ~(alignof(void*) - 1);
+			const void* src        = *reinterpret_cast<const void* const*>(static_cast<unsigned char*>(context) + offset);
+			m_vtable->copy_construct(this, mem, src);
+			return true;
+		}
+
+		if (count == 1 && args[0] == type_of<void*>() && m_vtable->move_construct)
+		{
+			constexpr usize offset = (sizeof(void*) + alignof(void*) - 1) & ~(alignof(void*) - 1);
+			void* src              = *reinterpret_cast<void**>(static_cast<unsigned char*>(context) + offset);
+			m_vtable->move_construct(this, mem, src);
+			return true;
+		}
+
+		static const Name name          = "$constructor";
+		const FunctionSet* constructors = find<FunctionSet>(name);
+		if (constructors == nullptr)
+			return false;
+
+		Function* constructor = constructors->resolve(args, count);
+		if (constructor == nullptr)
+			return false;
+
+		constructor->invoke(context);
+		return true;
+	}
+
+	bool Type::construct(void* value) const
+	{
+		if (m_vtable->construct == nullptr || value == nullptr)
+			return false;
+		m_vtable->construct(this, value);
 		return true;
 	}
 
