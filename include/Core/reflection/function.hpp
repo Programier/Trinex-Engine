@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Core/etl/array.hpp>
+#include <Core/etl/invoker.hpp>
 #include <Core/reflection/property.hpp>
 
 #include <Core/reflection/function.generated.hpp>
@@ -34,6 +35,16 @@ namespace Trinex::Refl
 		u32 m_size;
 		u32 m_alignment;
 
+		template<typename... Args>
+		bool has_signature() const
+		{
+			if (m_args.size() != sizeof...(Args))
+				return false;
+
+			usize index = 0;
+			return ((m_args[index++]->type() == type_of<Args>()) && ...);
+		}
+
 	public:
 		Function(Name name, Invoker invoker, Ref<Property> result = nullptr, Array<Ref<Property>> args = {}, u64 flags = 0,
 		         Object* owner = nullptr);
@@ -57,5 +68,22 @@ namespace Trinex::Refl
 		inline bool is_destructor() const { return has_flags(IsDestructor); }
 		inline bool is_operator() const { return has_flags(IsOperator); }
 		inline void invoke(void* context) const { m_invoker(context, this); }
+
+		template<typename Ret, typename... Args>
+		Ret invoke(Args... args) const
+		{
+			trinex_verify(has_signature<Args...>());
+
+			if constexpr (!std::is_void_v<Ret>)
+				trinex_verify(m_result && m_result->type() == type_of<Ret>());
+
+			etl::InvokeContext<Ret, Args...> context(static_cast<Args&&>(args)...);
+			m_invoker(context, this);
+
+			if constexpr (etl::InvokeArg<Ret>::has_value)
+			{
+				return context.result();
+			}
+		}
 	};
 } // namespace Trinex::Refl

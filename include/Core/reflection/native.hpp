@@ -263,7 +263,7 @@ namespace Trinex::Refl::Native
 			((result = result < alignof(Storage<Args>) ? alignof(Storage<Args>) : result), ...);
 
 			if constexpr (!etl::is_void_v<Ret>)
-				result = result < alignof(Ret) ? alignof(Ret) : result;
+				result = result < alignof(Storage<Ret>) ? alignof(Storage<Ret>) : result;
 
 			return result;
 		}
@@ -275,7 +275,7 @@ namespace Trinex::Refl::Native
 			((offset = align_up(offset, alignof(Storage<Args>)), offset += sizeof(Storage<Args>)), ...);
 
 			if constexpr (!etl::is_void_v<Ret>)
-				offset = align_up(offset, alignof(Ret));
+				offset = align_up(offset, alignof(Storage<Ret>));
 
 			return offset;
 		}
@@ -285,7 +285,7 @@ namespace Trinex::Refl::Native
 			u64 result = calculate_return_offset();
 
 			if constexpr (!etl::is_void_v<Ret>)
-				result += sizeof(Ret);
+				result += sizeof(Storage<Ret>);
 
 			return align_up(result, calculate_alignment());
 		}

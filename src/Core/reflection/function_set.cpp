@@ -21,6 +21,11 @@ namespace Trinex::Refl
 		}
 	}
 
+	void FunctionSet::invoke_function(Function* function, void* context)
+	{
+		function->invoke(context);
+	}
+
 	bool FunctionSet::register_child(Object* object)
 	{
 		if (Function* function = cast<Function>(object))
@@ -68,7 +73,7 @@ namespace Trinex::Refl
 		return Object::unregister_child(object);
 	}
 
-	Function* FunctionSet::resolve(Type* const* args, usize count) const
+	Function* FunctionSet::resolve(Type* const* args, usize count, const Type* result) const
 	{
 		for (const Ref<Function>& function : m_functions)
 		{
