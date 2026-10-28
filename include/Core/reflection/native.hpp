@@ -81,85 +81,65 @@ namespace Trinex::Refl::Native
 		}
 
 		template<typename Self>
-		static void construct(const Self*, void* dst, usize count)
+		static void construct(const Self*, void* dst)
 		{
-			T* values = static_cast<T*>(dst);
-			for (usize index = 0; index < count; ++index)
-				etl::construct_at(values + index);
+			etl::construct_at(static_cast<T*>(dst));
 		}
 
 		template<typename Self>
-		static void destruct(const Self*, void* value, usize count)
+		static void destruct(const Self*, void* value)
 		{
-			T* values = static_cast<T*>(value);
-			while (count != 0)
-				etl::destroy_at(values + --count);
+			etl::destroy_at(static_cast<T*>(value));
 		}
 
 		template<typename Self>
-		static void copy_construct(const Self*, void* dst, const void* src, usize count)
+		static void copy_construct(const Self*, void* dst, const void* src)
 		{
 			T* destination  = static_cast<T*>(dst);
 			const T* source = static_cast<const T*>(src);
-			for (usize index = 0; index < count; ++index)
-				etl::construct_at(destination + index, source[index]);
+			etl::construct_at(destination, *source);
 		}
 
 		template<typename Self>
-		static void move_construct(const Self*, void* dst, void* src, usize count)
+		static void move_construct(const Self*, void* dst, void* src)
 		{
 			T* destination = static_cast<T*>(dst);
 			T* source      = static_cast<T*>(src);
-			for (usize index = 0; index < count; ++index)
-				etl::construct_at(destination + index, etl::move(source[index]));
+			etl::construct_at(destination, etl::move(*source));
 		}
 
 		template<typename Self>
-		static void copy_assign(const Self*, void* dst, const void* src, usize count)
+		static void copy_assign(const Self*, void* dst, const void* src)
 		{
-			T* destination  = static_cast<T*>(dst);
-			const T* source = static_cast<const T*>(src);
-			for (usize index = 0; index < count; ++index)
-			{
-				destination[index] = source[index];
-			}
+			(*static_cast<T*>(dst)) = (*static_cast<const T*>(src));
 		}
 
 		template<typename Self>
-		static void move_assign(const Self*, void* dst, void* src, usize count)
+		static void move_assign(const Self*, void* dst, void* src)
 		{
-			T* destination = static_cast<T*>(dst);
-			T* source      = static_cast<T*>(src);
-			for (usize index = 0; index < count; ++index)
-			{
-				destination[index] = etl::move(source[index]);
-			}
+			(*static_cast<T*>(dst)) = etl::move(*static_cast<const T*>(src));
 		}
 
 		template<typename Self>
-		static void swap(const Self*, void* lhs, void* rhs, usize count)
+		static void swap(const Self*, void* lhs, void* rhs)
 		{
-			T* left  = static_cast<T*>(lhs);
-			T* right = static_cast<T*>(rhs);
-			for (usize index = 0; index < count; ++index)
-				etl::swap(left[index], right[index]);
+			etl::swap(*static_cast<T*>(lhs), *static_cast<T*>(rhs));
 		}
 
 		template<typename Self>
-		static void relocate(const Self*, void* dst, void* src, usize count)
+		static void relocate(const Self*, void* dst, void* src)
 		{
 			if constexpr (etl::is_trivially_copyable_v<T> && etl::is_trivially_destructible_v<T>)
 			{
-				etl::memmove(dst, src, sizeof(T) * count);
+				etl::memmove(dst, src, sizeof(T));
 			}
 			else if constexpr (etl::is_move_constructible_v<T> && etl::is_destructible_v<T>)
 			{
 				T* destination = static_cast<T*>(dst);
 				T* source      = static_cast<T*>(src);
-				for (usize index = 0; index < count; ++index)
-					etl::construct_at(destination + index, etl::move(source[index]));
-				while (count != 0)
-					etl::destroy_at(source + --count);
+
+				etl::construct_at(destination, etl::move(*source));
+				etl::destroy_at(source);
 			}
 		}
 

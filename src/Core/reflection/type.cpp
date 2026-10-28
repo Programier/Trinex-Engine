@@ -13,67 +13,67 @@ namespace Trinex::Refl
 		}
 	}
 
-	bool Type::construct(void* dst, usize count) const
+	bool Type::construct(void* dst) const
 	{
 		if (m_vtable->construct == nullptr || dst == nullptr)
 			return false;
-		m_vtable->construct(this, dst, count);
+		m_vtable->construct(this, dst);
 		return true;
 	}
 
-	bool Type::destruct(void* value, usize count) const
+	bool Type::destruct(void* value) const
 	{
 		if (m_vtable->destruct == nullptr || value == nullptr)
 			return false;
-		m_vtable->destruct(this, value, count);
+		m_vtable->destruct(this, value);
 		return true;
 	}
 
-	bool Type::copy_construct(void* dst, const void* src, usize count) const
+	bool Type::copy_construct(void* dst, const void* src) const
 	{
 		if (m_vtable->copy_construct == nullptr || dst == nullptr || src == nullptr)
 			return false;
-		m_vtable->copy_construct(this, dst, src, count);
+		m_vtable->copy_construct(this, dst, src);
 		return true;
 	}
 
-	bool Type::move_construct(void* dst, void* src, usize count) const
+	bool Type::move_construct(void* dst, void* src) const
 	{
 		if (m_vtable->move_construct == nullptr || dst == nullptr || src == nullptr)
 			return false;
-		m_vtable->move_construct(this, dst, src, count);
+		m_vtable->move_construct(this, dst, src);
 		return true;
 	}
 
-	bool Type::copy_assign(void* dst, const void* src, usize count) const
+	bool Type::copy_assign(void* dst, const void* src) const
 	{
 		if (m_vtable->copy_assign == nullptr || dst == nullptr || src == nullptr)
 			return false;
-		m_vtable->copy_assign(this, dst, src, count);
+		m_vtable->copy_assign(this, dst, src);
 		return true;
 	}
 
-	bool Type::move_assign(void* dst, void* src, usize count) const
+	bool Type::move_assign(void* dst, void* src) const
 	{
 		if (m_vtable->move_assign == nullptr || dst == nullptr || src == nullptr)
 			return false;
-		m_vtable->move_assign(this, dst, src, count);
+		m_vtable->move_assign(this, dst, src);
 		return true;
 	}
 
-	bool Type::swap(void* lhs, void* rhs, usize count) const
+	bool Type::swap(void* lhs, void* rhs) const
 	{
 		if (m_vtable->swap == nullptr || lhs == nullptr || rhs == nullptr)
 			return false;
-		m_vtable->swap(this, lhs, rhs, count);
+		m_vtable->swap(this, lhs, rhs);
 		return true;
 	}
 
-	bool Type::relocate(void* dst, void* src, usize count) const
+	bool Type::relocate(void* dst, void* src) const
 	{
 		if (m_vtable->relocate == nullptr || dst == nullptr || src == nullptr)
 			return false;
-		m_vtable->relocate(this, dst, src, count);
+		m_vtable->relocate(this, dst, src);
 		return true;
 	}
 

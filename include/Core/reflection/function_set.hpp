@@ -38,7 +38,7 @@ namespace Trinex::Refl
 		inline usize size() const { return m_functions.size(); }
 
 		template<typename... Args>
-		Function* resolve()
+		Function* resolve() const
 		{
 			if constexpr (sizeof...(Args))
 			{
