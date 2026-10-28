@@ -12,7 +12,6 @@ namespace Reflector
 
 	using HexNameOf           = WriteAs<struct HexName>;
 	using ResolvedNameOf      = WriteAs<struct ResolvedName>;
-	using AccessorPathOf      = WriteAs<struct AccessorPath>;
 	using ResolvedPathOf      = WriteAs<struct ResolvedPath>;
 	using ObjectIDOf          = WriteAs<struct ObjectID>;
 	using ObjectPathOf        = WriteAs<struct ObjectPath>;
@@ -47,6 +46,11 @@ namespace Reflector
 				writer->write("func_");
 				writer->write(reinterpret_cast<std::uintptr_t>(object));
 			}
+			else if (object->is_a(ObjectKind::Property))
+			{
+				writer->write("prop_");
+				writer->write(reinterpret_cast<std::uintptr_t>(object));
+			}
 			else
 			{
 				writer->write(object->name);
@@ -59,32 +63,32 @@ namespace Reflector
 		}
 	};
 
-	struct AccessorPath
+	struct ResolvedPath
 	{
-		static void execute(CodeWriter* writer, const Object* object)
+		static void accessor(CodeWriter* writer, const Object* object, const Object* child = nullptr)
 		{
 			if (object == nullptr || object->is_a(ObjectKind::Module))
 				return;
 
-			if (object->is_a(ObjectKind::Scope))
+			const bool can_use_accessor = child == nullptr || !child->is_a(ObjectKind::Namespace);
+
+			if (object->is_a(ObjectKind::Scope) && can_use_accessor)
 			{
-				writer->write("Accessor$0", object->line);
+				writer->write("Accessor_$0", reinterpret_cast<std::uintptr_t>(object));
 				return;
 			}
 
-			execute(writer, object->owner);
+			accessor(writer, object->owner, object);
 			writer->write("::$0", ResolvedNameOf(object));
 		}
-	};
 
-	struct ResolvedPath
-	{
 		static void execute(CodeWriter* writer, const Object* object)
 		{
 			if (object == nullptr || object->is_a(ObjectKind::Module))
 				return;
 
-			writer->write("$0::$1", AccessorPathOf(object->owner), ResolvedNameOf(object));
+			accessor(writer, object->owner, object);
+			writer->write("::$0", ResolvedNameOf(object));
 		}
 	};
 
@@ -393,8 +397,12 @@ namespace Reflector
 
 	static void generate_accessor(CodeWriter* writer, const Scope* object)
 	{
+		if (object->is_a(ObjectKind::Module))
+			return;
+
 		const bool is_class = object->is_a(ObjectKind::Class);
 
+		writer->line("// Accessor for $0", object);
 		if (is_class)
 		{
 			writer->line("template<>");
@@ -402,7 +410,7 @@ namespace Reflector
 		}
 		else
 		{
-			writer->line("struct Accessor$0", object->line);
+			writer->line("struct Accessor_$0", reinterpret_cast<std::uintptr_t>(object));
 		}
 
 		writer->line("{");
@@ -470,7 +478,7 @@ namespace Reflector
 
 		if (is_class)
 		{
-			writer->write("using Accessor$0", object->line);
+			writer->write("using Accessor_$0", reinterpret_cast<std::uintptr_t>(object));
 			writer->line(" = Accessor<$0>;\n", ResolvedPathOf(object));
 		}
 	}
