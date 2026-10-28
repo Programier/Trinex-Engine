@@ -45,6 +45,7 @@ namespace Trinex::Refl
 		virtual Object* resolve(const Class* base);
 		virtual const Object* resolve(const Class* base) const;
 		virtual Object* find(Name name, const Class* base = nullptr) const;
+		Object* find_path(StringView path, const Class* base = nullptr) const;
 
 		bool owner(Object* object);
 		bool is(const Class* base) const;

@@ -27,6 +27,15 @@ namespace Trinex
 			return lstrip(rstrip(line, callback), callback);
 		}
 
+		inline StringView split(StringView& input, StringView separator)
+		{
+			const StringView::size_type position = separator.empty() ? StringView::npos : input.find(separator);
+			const StringView result              = input.substr(0, position);
+
+			input = position == StringView::npos ? StringView() : input.substr(position + separator.size());
+			return result;
+		}
+
 		trinex_api usize parse(StringView text, bool& value);
 		trinex_api usize parse(StringView text, i64& value);
 		trinex_api usize parse(StringView text, u64& value);

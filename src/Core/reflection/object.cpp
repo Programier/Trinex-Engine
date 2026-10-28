@@ -25,6 +25,35 @@ namespace Trinex::Refl
 		return nullptr;
 	}
 
+	Object* Object::find_path(StringView path, const Class* base) const
+	{
+		const Object* scope = this;
+		Object* object      = nullptr;
+
+		if (path.starts_with("::"))
+		{
+			scope = Object::root();
+			path.remove_prefix(2);
+		}
+
+		while (!path.empty())
+		{
+			const StringView entry = Strings::split(path, "::");
+
+			if (entry.empty())
+				return nullptr;
+
+			object = scope->find(Name(entry));
+
+			if (object == nullptr)
+				return nullptr;
+
+			scope = object;
+		}
+
+		return base == nullptr || object->is(base) ? object : nullptr;
+	}
+
 	bool Object::owner(Object* object)
 	{
 		if (m_owner == object)
