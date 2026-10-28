@@ -39,7 +39,7 @@ namespace Trinex::Refl
 		static Object* root();
 
 	public:
-		Object(Name name, u64 flags = 0, Object* owner = nullptr);
+		Object(Name name, u64 flags = 0);
 
 		virtual Class* reflection() const;
 		virtual Object* resolve(const Class* base);
@@ -65,6 +65,24 @@ namespace Trinex::Refl
 		const T* cast() const
 		{
 			return is<T>() ? static_cast<const T*>(this) : nullptr;
+		}
+
+		template<typename T>
+		static T* cast(Object* object)
+		{
+			if (object == nullptr)
+				return nullptr;
+
+			return object->cast<T>();
+		}
+
+		template<typename T>
+		static const T* cast(const Object* object)
+		{
+			if (object == nullptr)
+				return nullptr;
+
+			return object->cast<T>();
 		}
 
 		template<typename T>

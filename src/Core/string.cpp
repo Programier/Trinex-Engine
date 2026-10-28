@@ -6,7 +6,7 @@
 
 namespace Trinex
 {
-	trinex_on_pre_init({.name = "Trinex::StringView", .after = {"Trinex::DefaultScriptAddons"}})
+	trinex_on_pre_init(.name = "Trinex::StringView", .after = {"Trinex::DefaultScriptAddons"})
 	{
 		auto flags = ScriptClassFlags::Pod | ScriptClassFlags::AppClassAllInts;
 		ScriptBinding::Class registrar =

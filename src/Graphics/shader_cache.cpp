@@ -328,7 +328,7 @@ namespace Trinex
 		return ar.serialize(entries);
 	}
 
-	trinex_on_shutdown({.name = "PipelineLibraryCacheManifest"})
+	trinex_on_shutdown(.name = "PipelineLibraryCacheManifest")
 	{
 		if (!PipelineLibraryCacheManifest::instance().store())
 		{

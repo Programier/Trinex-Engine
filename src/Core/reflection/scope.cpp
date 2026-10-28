@@ -7,6 +7,14 @@ namespace Trinex::Refl
 		return Scope::root();
 	}
 
+	Scope::Scope(Name name, u64 flags, Object* owner) : Object(name, flags)
+	{
+		if (owner)
+		{
+			Object::owner(owner);
+		}
+	}
+
 	bool Scope::register_child(Object* object)
 	{
 		if (object == nullptr || object == this || m_members.contains(object->name()))

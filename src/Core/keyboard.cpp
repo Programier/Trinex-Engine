@@ -3,7 +3,7 @@
 
 namespace Trinex::Keyboard
 {
-	trinex_on_pre_init({.name = "Trinex::Keyboard"})
+	trinex_on_pre_init(.name = "Trinex::Keyboard")
 	{
 		ScriptBinding::Enum status_registrar("Trinex::Keyboard::Status");
 		ScriptBinding::Enum key_registrar("Trinex::Keyboard::Key");

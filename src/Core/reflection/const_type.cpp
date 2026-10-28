@@ -5,8 +5,13 @@
 namespace Trinex::Refl
 {
 	ConstType::ConstType(Name name, Type* type, Object* owner)
-	    : Type(name, sizeof(void*), alignof(void*), 0, type ? type->vtable() : nullptr, owner), m_type(retain_ref(type))
-	{}
+	    : Type(name, sizeof(void*), alignof(void*), 0, type ? type->vtable() : nullptr), m_type(retain_ref(type))
+	{
+		if (owner)
+		{
+			Object::owner(owner);
+		}
+	}
 
 	ConstType* ConstType::from(Type* type)
 	{

@@ -42,8 +42,7 @@ namespace Trinex::Refl
 	}
 
 	Function::Function(Name name, Invoker invoker, Ref<Property> result, Array<Ref<Property>> args, u64 flags, Object* owner)
-	    : Object(name, flags, owner), m_invoker(invoker), m_result(etl::move(result)), m_args(etl::move(args)), m_size(0),
-	      m_alignment(0)
+	    : Object(name, flags), m_invoker(invoker), m_result(etl::move(result)), m_args(etl::move(args)), m_size(0), m_alignment(0)
 	{
 		trinex_verify(m_invoker);
 
@@ -57,10 +56,15 @@ namespace Trinex::Refl
 		{
 			append_type(m_result->type(), m_size, m_alignment);
 		}
+
+		if (owner)
+		{
+			Object::owner(owner);
+		}
 	}
 
 	Function::Function(Name name, Invoker invoker, Type* result, Type** args, usize count, u64 flags, Object* owner)
-	    : Object(name, flags, owner), m_invoker(invoker), m_size(0), m_alignment(0)
+	    : Object(name, flags), m_invoker(invoker), m_size(0), m_alignment(0)
 	{
 		trinex_verify(m_invoker);
 
@@ -79,6 +83,11 @@ namespace Trinex::Refl
 		{
 			u32 offset = append_type(result, m_size, m_alignment);
 			m_result   = Ref<OffsetProperty>::make("result", offset, result);
+		}
+
+		if (owner)
+		{
+			Object::owner(owner);
 		}
 	}
 } // namespace Trinex::Refl

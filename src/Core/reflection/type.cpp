@@ -3,9 +3,14 @@
 namespace Trinex::Refl
 {
 	Type::Type(Name name, u32 size, u32 alignment, u64 flags, const VTable* vtable, Object* owner)
-	    : Object(name, flags, owner), m_size(size), m_alignment(alignment), m_vtable(vtable)
+	    : Object(name, flags), m_size(size), m_alignment(alignment), m_vtable(vtable)
 	{
 		trinex_verify(vtable);
+
+		if (owner)
+		{
+			Object::owner(owner);
+		}
 	}
 
 	bool Type::construct(void* dst, usize count) const

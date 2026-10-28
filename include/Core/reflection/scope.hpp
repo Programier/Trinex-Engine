@@ -35,7 +35,7 @@ namespace Trinex::Refl
 		bool unregister_child(Object* object) override;
 
 	public:
-		using Object::Object;
+		Scope(Name name, u64 flags = 0, Object* owner = nullptr);
 
 		static Scope* root();
 		static Scope* trinex();

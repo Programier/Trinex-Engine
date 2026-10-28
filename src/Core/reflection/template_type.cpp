@@ -3,8 +3,13 @@
 namespace Trinex::Refl
 {
 	TemplateType::TemplateType(Name name, u32 size, u32 alignment, u64 flags, const VTable* vtable, Object* owner)
-	    : Type(name, size, alignment, flags, vtable, owner)
-	{}
+	    : Type(name, size, alignment, flags, vtable)
+	{
+		if (owner)
+		{
+			Object::owner(owner);
+		}
+	}
 
 	usize TemplateType::argument_count() const
 	{

@@ -13,8 +13,13 @@ namespace Trinex::Refl
 	}
 
 	ArrayType::ArrayType(Name name, Type* argument, Object* owner)
-	    : ContainerType(name, sizeof(Array<i32>), alignof(Array<i32>), 0, &m_vtable, owner), m_vtable(argument)
-	{}
+	    : ContainerType(name, sizeof(Array<i32>), alignof(Array<i32>), 0, &m_vtable), m_vtable(argument)
+	{
+		if (owner)
+		{
+			Object::owner(owner);
+		}
+	}
 
 	ArrayType* ArrayType::from(Type* type)
 	{

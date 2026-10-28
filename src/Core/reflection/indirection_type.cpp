@@ -5,8 +5,13 @@
 namespace Trinex::Refl
 {
 	IndirectionType::IndirectionType(Name name, Type* type, Object* owner)
-	    : Type(name, sizeof(void*), alignof(void*), 0, vtable(), owner), m_type(retain_ref(type))
-	{}
+	    : Type(name, sizeof(void*), alignof(void*), 0, vtable()), m_type(retain_ref(type))
+	{
+		if (owner)
+		{
+			Object::owner(owner);
+		}
+	}
 
 	IndirectionType* IndirectionType::from(Type* type, bool rvalue)
 	{

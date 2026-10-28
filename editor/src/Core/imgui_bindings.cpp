@@ -1760,7 +1760,7 @@ namespace Trinex
 		// clang-format on
 	}
 
-	trinex_on_pre_init({.after = {"Trinex::ScriptPointer", "Trinex::DefaultScriptAddons", "Trinex::ScriptVector"}})
+	trinex_on_pre_init(.after = {"Trinex::ScriptPointer", "Trinex::DefaultScriptAddons", "Trinex::ScriptVector"})
 	{
 		register_enums();
 		register_structures();

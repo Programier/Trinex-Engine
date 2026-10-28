@@ -3,8 +3,13 @@
 namespace Trinex::Refl
 {
 	ContainerType::ContainerType(Name name, u32 size, u32 alignment, u64 flags, const VTable* vtable, Object* owner)
-	    : TemplateType(name, size, alignment, flags, vtable, owner)
-	{}
+	    : TemplateType(name, size, alignment, flags, vtable)
+	{
+		if (owner)
+		{
+			Object::owner(owner);
+		}
+	}
 
 	bool ContainerType::size(const void* container, usize& result) const
 	{

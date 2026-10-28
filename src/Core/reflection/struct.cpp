@@ -182,8 +182,13 @@ namespace Trinex::Refl
 	} // namespace Native
 
 	Struct::Struct(Name name, u32 size, u32 alignment, u64 flags, Array<Ref<Struct>> bases, const VTable* vtable, Object* owner)
-	    : Type(name, size, alignment, flags, vtable, owner), m_bases(etl::move(bases))
-	{}
+	    : Type(name, size, alignment, flags, vtable), m_bases(etl::move(bases))
+	{
+		if (owner)
+		{
+			Object::owner(owner);
+		}
+	}
 
 	bool Struct::register_child(Object* object)
 	{

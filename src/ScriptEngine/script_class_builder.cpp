@@ -63,7 +63,7 @@ namespace Trinex::Refl::Deprecated
 		Class* class_of_impl_cast() const { return self; }
 	};
 
-	trinex_on_reflection_init({.after = {"Trinex::Refl::Deprecated::Class"}})
+	trinex_on_reflection_init(.after = {"Trinex::Refl::Deprecated::Class"})
 	{
 		auto reg = ScriptBinding::Class::create("Trinex::class_of<T>",
 		                                        ScriptBinding::value_type<ClassOf>(ScriptClassFlags::Template));

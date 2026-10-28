@@ -289,10 +289,14 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		BoundProperty(Name name, void* address, Refl::Type* type, EntryFlags flags, Refl::Object* owner)
 		    : Property(name, type,
 		               (static_cast<u64>(flags) << console_flags_shift)
-		                       | (flags.any(EntryFlags::ReadOnly) ? Refl::Property::IsReadOnly : 0),
-		               owner),
+		                       | (flags.any(EntryFlags::ReadOnly) ? Refl::Property::IsReadOnly : 0)),
 		      m_address(address)
-		{}
+		{
+			if (owner)
+			{
+				Object::owner(owner);
+			}
+		}
 
 		void* address(void*) override { return is_read_only() ? nullptr : m_address; }
 		const void* load(const void*, void* = nullptr) override { return m_address; }
@@ -310,8 +314,13 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 
 	public:
 		BoundFunction(Name name, Refl::Function* function, EntryFlags flags, Refl::Object* owner)
-		    : Object(name, static_cast<u64>(flags) << console_flags_shift, owner), m_function(retain_ref(function))
-		{}
+		    : Object(name, static_cast<u64>(flags) << console_flags_shift), m_function(retain_ref(function))
+		{
+			if (owner)
+			{
+				Object::owner(owner);
+			}
+		}
 
 		Object* resolve(const Refl::Class* base) override
 		{

@@ -127,9 +127,14 @@ namespace Trinex::Refl
 	} // namespace Native
 
 	Enum::Enum(Name name, Ref<Type> underlying, Array<EnumValue> values, u64 flags, const VTable* vtable, Object* owner)
-	    : Type(name, underlying->size(), underlying->alignment(), flags, vtable, owner), m_underlying(etl::move(underlying)),
+	    : Type(name, underlying->size(), underlying->alignment(), flags, vtable), m_underlying(etl::move(underlying)),
 	      m_values(etl::move(values))
-	{}
+	{
+		if (owner)
+		{
+			Object::owner(owner);
+		}
+	}
 
 	const EnumValue* Enum::find_value(Name name) const
 	{

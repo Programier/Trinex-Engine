@@ -42,7 +42,7 @@ namespace Trinex
 		static T* cast(Object* object)
 		{
 			if (object == nullptr)
-				return false;
+				return nullptr;
 
 			return object->cast<T>();
 		}
@@ -51,7 +51,7 @@ namespace Trinex
 		static const T* cast(const Object* object)
 		{
 			if (object == nullptr)
-				return false;
+				return nullptr;
 
 			return object->cast<T>();
 		}

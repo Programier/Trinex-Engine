@@ -198,7 +198,7 @@ namespace Trinex
 		return ar.serialize(m_uuid);
 	}
 
-	trinex_on_pre_init({.name = "Trinex::UUID", .after = {"Trinex::StringView"}})
+	trinex_on_pre_init(.name = "Trinex::UUID", .after = {"Trinex::StringView"})
 	{
 		auto flags = ScriptClassFlags::Pod | ScriptClassFlags::AppClassAllInts | ScriptClassFlags::AppClassAlign8
 		             | ScriptClassFlags::AppClassMoreConstructors;

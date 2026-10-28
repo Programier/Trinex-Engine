@@ -865,13 +865,13 @@ namespace Trinex::VisualMaterialGraph
 		r.method("uint64 links_count() const", &T::links_count);
 	}
 
-	trinex_on_reflection_init({.name  = "Trinex::VisualMaterialGraph",
+	trinex_on_reflection_init(.name  = "Trinex::VisualMaterialGraph",
 	                           .after = {
 	                                   "Trinex::RHIShaderParameterType",
 	                                   "Trinex::Refl::Deprecated::Class",
 	                                   "Trinex::Refl::Deprecated::ScriptClass",
 	                                   "Trinex::VisualMaterialGraph::Node",
-	                           }})
+	                           })
 	{
 		using SPType = RHIShaderParameterType;
 		register_metadata_functions();

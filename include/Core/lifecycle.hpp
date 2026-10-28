@@ -74,7 +74,7 @@ namespace Trinex::LifeCycle
 	static void TRINEX_CONCAT(trinex_lifecycle_function_, __LINE__)();                                                           \
                                                                                                                                  \
 	static const ::Trinex::LifeCycle::Registrar TRINEX_CONCAT(trinex_lifecycle_registrar_, __LINE__)(                            \
-	        stage_id, &TRINEX_CONCAT(trinex_lifecycle_function_, __LINE__) __VA_OPT__(, ) __VA_ARGS__);                          \
+	        stage_id, &TRINEX_CONCAT(trinex_lifecycle_function_, __LINE__), {__VA_ARGS__});                                      \
                                                                                                                                  \
 	static void TRINEX_CONCAT(trinex_lifecycle_function_, __LINE__)()
 

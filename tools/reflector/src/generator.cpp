@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <fstream>
 #include <generator.hpp>
 #include <iostream>
@@ -9,15 +10,30 @@ namespace Reflector
 {
 	namespace fs = std::filesystem;
 
+	using HexNameOf           = WriteAs<struct HexName>;
 	using ResolvedNameOf      = WriteAs<struct ResolvedName>;
 	using AccessorPathOf      = WriteAs<struct AccessorPath>;
 	using ResolvedPathOf      = WriteAs<struct ResolvedPath>;
 	using ObjectIDOf          = WriteAs<struct ObjectID>;
 	using ObjectPathOf        = WriteAs<struct ObjectPath>;
-	using OwnerReflectionOf   = WriteAs<struct OwnerReflection>;
+	using ReflectionOf        = WriteAs<struct Reflection>;
 	using FunctionFlagsOf     = WriteAs<struct FunctionFlags>;
 	using BaseClassesOf       = WriteAs<struct BaseClasses>;
 	using FunctionPrototypeOf = WriteAs<struct FunctionPrototype>;
+
+	struct HexName
+	{
+		static void execute(CodeWriter* writer, const Object* object)
+		{
+			constexpr std::string_view digits = "0123456789abcdef";
+
+			for (unsigned char ch : object->name)
+			{
+				writer->write(digits.substr(ch >> 4, 1));
+				writer->write(digits.substr(ch & 0x0F, 1));
+			}
+		}
+	};
 
 	struct ResolvedName
 	{
@@ -28,26 +44,8 @@ namespace Reflector
 
 			if (object->is_a(ObjectKind::Function))
 			{
-				const Function* function = static_cast<const Function*>(object);
-
-				if (function->flags & Function::Constructor)
-				{
-					writer->write("constructor_");
-				}
-				else if (function->flags & Function::Destructor)
-				{
-					writer->write("destructor_");
-				}
-				else if (function->flags & Function::Operator)
-				{
-					writer->write("operator_");
-				}
-				else
-				{
-					writer->write("$0_", object->name);
-				}
-
-				writer->write(reinterpret_cast<std::uintptr_t>(function));
+				writer->write("func_");
+				writer->write(reinterpret_cast<std::uintptr_t>(object));
 			}
 			else
 			{
@@ -68,7 +66,7 @@ namespace Reflector
 			if (object == nullptr || object->is_a(ObjectKind::Module))
 				return;
 
-			if (object->is_a(ObjectKind::Class))
+			if (object->is_a(ObjectKind::Scope))
 			{
 				writer->write("Accessor$0", object->line);
 				return;
@@ -147,42 +145,30 @@ namespace Reflector
 		}
 	};
 
-	struct OwnerReflection
+	struct Reflection
 	{
 		static void execute(CodeWriter* writer, const Object* object)
 		{
 			if (object == nullptr || object->is_a(ObjectKind::Module))
 			{
+				writer->write("Object::root()");
 				return;
 			}
 
-			const Object* owner = object->owner;
-
-			if (object->owner == nullptr)
+			if (object->is_a(ObjectKind::Class))
 			{
-			}
-
-			if (owner)
-			{
-				if (owner->is_a(ObjectKind::Class))
-				{
-					writer->write("type_of<$0>()", owner);
-				}
-				else
-				{
-					if (owner->is_a(ObjectKind::Module))
-					{
-						writer->write("Object::root()");
-					}
-					else
-					{
-						writer->write("Scope::create($0)", ObjectPathOf(owner));
-					}
-				}
+				writer->write("type_of<$0>()", object);
 			}
 			else
 			{
-				writer->write("Object::root()");
+				if (object->is_a(ObjectKind::Module))
+				{
+					writer->write("Object::root()");
+				}
+				else
+				{
+					writer->write("Scope::create($0)", ObjectPathOf(object));
+				}
 			}
 		}
 	};
@@ -407,8 +393,18 @@ namespace Reflector
 
 	static void generate_accessor(CodeWriter* writer, const Scope* object)
 	{
-		writer->line("template<>");
-		writer->line("struct Accessor<$0>", ResolvedPathOf(object));
+		const bool is_class = object->is_a(ObjectKind::Class);
+
+		if (is_class)
+		{
+			writer->line("template<>");
+			writer->line("struct Accessor<$0>", ResolvedPathOf(object));
+		}
+		else
+		{
+			writer->line("struct Accessor$0", object->line);
+		}
+
 		writer->line("{");
 		{
 			auto scope = writer->scope();
@@ -420,11 +416,48 @@ namespace Reflector
 					writer->write("static constexpr auto $0 = &", ResolvedNameOf(child));
 					writer->line("$0::$1;", ResolvedPathOf(object), child->name);
 				}
-				else if (child->is_a(ObjectKind::Function))
+				else if (auto function = dynamic_cast<Function*>(child))
 				{
-					writer->write("static constexpr auto ");
-					writer->write("$0 = static_cast<$1>", ResolvedNameOf(child), FunctionPrototypeOf(child));
-					writer->line("(&$0::$1);", ResolvedPathOf(object), child->name);
+					writer->write("static constexpr auto $0 = ", ResolvedNameOf(child));
+
+					if (function->flags & Function::Constructor)
+					{
+						writer->write("+[](void* mem");
+
+						for (std::size_t index = 0; index < function->args.size(); ++index)
+						{
+							writer->write(", ");
+							FunctionPrototype::execute(writer, function->args[index].type);
+							writer->write(" arg$0", index);
+						}
+
+						writer->line(")");
+						writer->line("{");
+						{
+							auto lambda_scope = writer->scope();
+							writer->write("::new (mem) $0(", ResolvedPathOf(object));
+
+							for (std::size_t index = 0; index < function->args.size(); ++index)
+							{
+								if (index != 0)
+								{
+									writer->write(", ");
+								}
+
+								writer->write("etl::forward<");
+								FunctionPrototype::execute(writer, function->args[index].type);
+								writer->write(">(arg$0)", index);
+							}
+
+							writer->line(");");
+						}
+						writer->line("};\n");
+					}
+					else
+					{
+						writer->write("static_cast<$0>", FunctionPrototypeOf(child));
+						writer->line("(&$0::$1);", ResolvedPathOf(object), child->name);
+					}
 				}
 				else if (child->is_a(ObjectKind::Class) || child->is_a(ObjectKind::Enum))
 				{
@@ -435,8 +468,43 @@ namespace Reflector
 		}
 		writer->line("};\n");
 
-		writer->write("using Accessor$0", object->line);
-		writer->line(" = Accessor<$0>;\n", ResolvedPathOf(object));
+		if (is_class)
+		{
+			writer->write("using Accessor$0", object->line);
+			writer->line(" = Accessor<$0>;\n", ResolvedPathOf(object));
+		}
+	}
+
+	static void generate_function_sets(CodeWriter* writer, const Scope* object)
+	{
+		static thread_local std::vector<std::string_view> storage(128, "");
+
+		std::uintptr_t id = reinterpret_cast<uintptr_t>(object);
+		std::size_t sets  = 0;
+
+		for (Object* child : object->objects)
+		{
+			if (!child->is_a(ObjectKind::Function))
+				continue;
+
+			if (std::find(storage.begin(), storage.begin() + sets, child->name) != storage.begin() + sets)
+				continue;
+
+			if (sets == storage.size())
+			{
+				storage.resize(storage.size() * 2);
+			}
+
+			storage[sets++] = child->name;
+
+			writer->line("static FunctionSet* function_set_$0_$1()\n{", id, HexNameOf(child));
+			{
+				auto scope = writer->scope();
+				writer->line("static FunctionSet set(\"$0\", $1);", child->name, ReflectionOf(object));
+				writer->line("return &set;");
+			}
+			writer->line("}\n");
+		}
 	}
 
 	static void generate_enum(CodeWriter* writer, const Enum* object)
@@ -465,7 +533,7 @@ namespace Reflector
 				}
 				writer->line("};\n");
 				writer->line("return Ref<Enum>::make(\"$0\", etl::move(underlying), etl::move(values), 0, &vtable, $1);",
-				             object->name, OwnerReflectionOf(object));
+				             object->name, ReflectionOf(object->owner));
 			}
 			writer->line("}();\n");
 			writer->line("return reflection.value();");
@@ -509,7 +577,7 @@ namespace Reflector
 			auto scope = writer->scope();
 			writer->line("using Prop = Native::MemberProperty<$0, Property>;\n", ResolvedPathOf(object));
 
-			writer->line("static Prop prop(\"$0\", type_of<Prop::Type>(), 0, $1);", object->name, OwnerReflectionOf(object));
+			writer->line("static Prop prop(\"$0\", type_of<Prop::Type>(), 0, $1);", object->name, ReflectionOf(object->owner));
 			writer->line("return &prop;");
 		}
 		writer->line("}\n");
@@ -576,7 +644,8 @@ namespace Reflector
 							writer->write(", ");
 						writer->write("arg$0", index);
 					}
-					writer->line("},\n$0,\n$1", FunctionFlagsOf(object), OwnerReflectionOf(object));
+					std::uintptr_t id = reinterpret_cast<std::uintptr_t>(object->owner);
+					writer->line("},\n$0,\nfunction_set_$1_$2()", FunctionFlagsOf(object), id, HexNameOf(object));
 				}
 				writer->line(");");
 			}
@@ -619,7 +688,7 @@ namespace Reflector
 				writer->line("static VTable vtable;");
 				writer->line("return Ref<Result>::make(\"$0\", sizeof(This), alignof(This), Type::IsNative, etl::move(bases), "
 				             "&vtable, $1);",
-				             object->name, OwnerReflectionOf(object));
+				             object->name, ReflectionOf(object->owner));
 			}
 			writer->line("}();\n");
 
@@ -661,6 +730,9 @@ namespace Reflector
 
 	static void generate_reflection(CodeWriter* writer, const Scope* scope)
 	{
+		generate_function_sets(writer, scope);
+		generate_accessor(writer, scope);
+
 		for (const Object* object : scope->objects)
 		{
 			if (object->is_a(ObjectKind::Enum))
@@ -677,7 +749,6 @@ namespace Reflector
 			}
 			else if (object->is_a(ObjectKind::Class))
 			{
-				generate_accessor(writer, static_cast<const Class*>(object));
 				generate_class(writer, static_cast<const Class*>(object));
 			}
 
@@ -789,6 +860,7 @@ namespace Reflector
 		writer->line("#include <Core/reflection/enum.hpp>");
 		writer->line("#include <Core/reflection/scope.hpp>");
 		writer->line("#include <Core/reflection/class.hpp>");
+		writer->line("#include <Core/reflection/function_set.hpp>");
 		writer->line("#include <Core/reflection/native_function.hpp>");
 		writer->line("#include <Core/reflection/native.hpp>");
 		writer->line();

@@ -91,7 +91,7 @@ namespace Trinex
 		ScriptEngine::register_property("const NullPtr nullptr", &null);
 	}
 
-	trinex_on_pre_init({.name = "Trinex::ScriptPointer"})
+	trinex_on_pre_init(.name = "Trinex::ScriptPointer")
 	{
 		register_nullptr();
 

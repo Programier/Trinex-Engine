@@ -3,10 +3,7 @@
 
 namespace Trinex::Refl
 {
-	Object::Object(Name name, u64 flags, Object* owner) : m_flags(flags), m_name(name)
-	{
-		m_owner = owner && owner->register_child(this) ? owner : nullptr;
-	}
+	Object::Object(Name name, u64 flags) : m_owner(nullptr), m_flags(flags), m_name(name) {}
 
 	Class* Object::reflection() const
 	{
@@ -32,6 +29,7 @@ namespace Trinex::Refl
 	{
 		if (m_owner == object)
 			return true;
+
 		if (object == this)
 			return false;
 
