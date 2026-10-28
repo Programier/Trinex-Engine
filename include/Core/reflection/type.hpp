@@ -34,18 +34,8 @@ namespace Trinex::Refl
 		u32 m_alignment;
 		const VTable* m_vtable;
 
-		bool invoke_construct_internal(void* mem, Type* const* args, usize count, void* context) const;
-
-		template<typename... Args>
-		bool invoke_construct(void* mem, Args&&... args) const
-		{
-			if (mem == nullptr)
-				return false;
-
-			Type* types[] = {type_of<void*>(), type_of<Args>()...};
-			etl::InvokeContext<void, void*, Args...> context(mem, static_cast<Args&&>(args)...);
-			return invoke_construct_internal(mem, types, sizeof...(Args) + 1, context);
-		}
+		bool invoke_construct(void* mem, Type* const* args, usize count, void* context) const;
+		void* invoke_allocate(Type* const* args, usize count, void* context) const;
 
 	public:
 		enum Flags : u64
@@ -57,6 +47,9 @@ namespace Trinex::Refl
 		};
 
 		Type(Name name, u32 size, u32 alignment, u64 flags = 0, const VTable* vtable = nullptr, Object* owner = nullptr);
+
+		void* allocate();
+		bool release(void* object);
 
 		bool construct(void* value) const;
 		bool destruct(void* value) const;
@@ -86,16 +79,23 @@ namespace Trinex::Refl
 		inline bool is_trivially_destructible() const { return has_flags(IsTriviallyDestructible); }
 		inline bool has_default_constructor() const { return has_flags(HasDefaultConstructor); }
 
-		template<typename Arg>
-		bool construct(void* dst, Arg&& arg) const
+		template<typename... Args>
+		bool construct(void* mem, Args&&... args) const
 		{
-			return invoke_construct(dst, static_cast<Arg&&>(arg));
+			if (mem == nullptr)
+				return false;
+
+			Type* types[] = {type_of<void*>(), type_of<Args>()...};
+			etl::InvokeContext<void, void*, Args...> context(mem, static_cast<Args&&>(args)...);
+			return invoke_construct(mem, types, sizeof...(Args) + 1, context);
 		}
 
-		template<typename Arg0, typename Arg1, typename... Args>
-		bool construct(void* dst, Arg0&& arg0, Arg1&& arg1, Args&&... args) const
+		template<typename... Args>
+		void* allocate(Args&&... args) const
 		{
-			return invoke_construct(dst, static_cast<Arg0&&>(arg0), static_cast<Arg1&&>(arg1), static_cast<Args&&>(args)...);
+			Type* types[] = {type_of<void*>(), type_of<Args>()...};
+			etl::InvokeContext<void, void*, Args...> context(nullptr, static_cast<Args&&>(args)...);
+			return invoke_allocate(types, sizeof...(Args) + 1, context);
 		}
 	};
 } // namespace Trinex::Refl

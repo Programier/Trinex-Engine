@@ -15,7 +15,7 @@ namespace Trinex::Refl
 		}
 	}
 
-	bool Type::invoke_construct_internal(void* mem, Type* const* args, usize count, void* context) const
+	bool Type::invoke_construct(void* mem, Type* const* args, usize count, void* context) const
 	{
 		if (mem == nullptr || context == nullptr)
 			return false;
@@ -53,6 +53,51 @@ namespace Trinex::Refl
 
 		constructor->invoke(context);
 		return true;
+	}
+
+	void* Type::invoke_allocate(Type* const* args, usize count, void* context) const
+	{
+		if (m_size == 0 || m_alignment == 0)
+			return nullptr;
+
+		auto* instance = ByteAllocator::allocate_aligned(size(), alignment());
+
+		if (instance)
+		{
+			etl::InvokeArg<void*>::store(context, instance);
+
+			if (!invoke_construct(instance, args, count, context))
+			{
+				ByteAllocator::deallocate(instance);
+				instance = nullptr;
+			}
+		}
+
+		return instance;
+	}
+
+	void* Type::allocate()
+	{
+		if (m_vtable->construct == nullptr)
+			return nullptr;
+
+		if (m_size == 0 || m_alignment == 0)
+			return nullptr;
+
+		auto* instance = ByteAllocator::allocate_aligned(size(), alignment());
+		m_vtable->construct(this, instance);
+		return instance;
+	}
+
+	bool Type::release(void* object)
+	{
+		if (destruct(object))
+		{
+			ByteAllocator::deallocate(static_cast<unsigned char*>(object));
+			return true;
+		}
+
+		return false;
 	}
 
 	bool Type::construct(void* value) const
