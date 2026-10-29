@@ -202,4 +202,20 @@ namespace Trinex::Refl
 
 		return m_vtable->format(this, self, value);
 	}
+
+	usize Type::parse_indirect(void* result, StringView value) const
+	{
+		if (m_vtable->parse_indirect == nullptr || result == nullptr)
+			return 0;
+
+		return m_vtable->parse_indirect(this, result, value);
+	}
+
+	bool Type::format_indirect(const void* object, String& value) const
+	{
+		if (m_vtable->format_indirect == nullptr)
+			return false;
+
+		return m_vtable->format_indirect(this, object, value);
+	}
 } // namespace Trinex::Refl

@@ -27,6 +27,8 @@ namespace Trinex::Refl
 			void (*serialize)(const Type* type, void* self, Archive& ar)         = nullptr;
 			usize (*parse)(const Type* type, void* self, StringView value)       = nullptr;
 			bool (*format)(const Type* type, const void* self, String& value)    = nullptr;
+			usize (*parse_indirect)(const Type* type, void* result, StringView value) = nullptr;
+			bool (*format_indirect)(const Type* type, const void* object, String& value) = nullptr;
 		};
 
 	private:
@@ -66,6 +68,8 @@ namespace Trinex::Refl
 		bool serialize(void* self, Archive& ar);
 		usize parse(void* self, StringView value) const;
 		bool format(const void* self, String& value) const;
+		usize parse_indirect(void* result, StringView value) const;
+		bool format_indirect(const void* object, String& value) const;
 
 		Class* reflection() const override { return class_of<Type>(); }
 

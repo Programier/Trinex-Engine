@@ -53,6 +53,8 @@ namespace Trinex
 
 		// REGISTER STAGE
 		LifeCycle::execute(LifeCycle::Register);
+		
+		LifeCycle::execute(LifeCycle::Configure);
 
 		while (true)
 		{

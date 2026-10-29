@@ -5,6 +5,7 @@
 #include <Core/etl/string.hpp>
 #include <Core/etl/type_traits.hpp>
 #include <Core/etl/utility.hpp>
+#include <Core/reflection/indirect_resolver.hpp>
 
 namespace Trinex::Refl
 {
@@ -37,6 +38,17 @@ namespace Trinex::Refl::Native
 	template<typename T, typename VTable>
 	class TypeVTable : public VTable
 	{
+	private:
+		static constexpr bool has_indirect_parse = requires(StringView input, T*& result) {
+			{ IndirectResolver<T>::parse(result, input) } -> etl::same_as<usize>;
+		};
+
+		static constexpr bool has_indirect_format = requires(const T* object, String& output) {
+			{ IndirectResolver<T>::format(object, output) } -> etl::same_as<bool>;
+		};
+
+		static constexpr bool has_indirect_resolver = has_indirect_parse && has_indirect_format;
+
 	public:
 		template<typename... Args>
 		TypeVTable(Args&&... args) : VTable(etl::forward<Args>(args)...)
@@ -78,6 +90,12 @@ namespace Trinex::Refl::Native
 
 			vtable.parse  = &TypeFormatter<T>::parse;
 			vtable.format = &TypeFormatter<T>::format;
+
+			if constexpr (has_indirect_resolver)
+			{
+				vtable.parse_indirect  = &TypeVTable::parse_indirect;
+				vtable.format_indirect = &TypeVTable::format_indirect;
+			}
 		}
 
 		template<typename Self>
@@ -155,6 +173,24 @@ namespace Trinex::Refl::Native
 			const T& left  = *static_cast<const T*>(lhs);
 			const T& right = *static_cast<const T*>(rhs);
 			return left < right ? -1 : right < left ? 1 : 0;
+		}
+
+		template<typename Self>
+		static usize parse_indirect(const Self*, void* result, StringView value)
+		{
+			T* object          = nullptr;
+			const usize parsed = IndirectResolver<T>::parse(object, value);
+
+			if (parsed != 0)
+				*static_cast<void**>(result) = object;
+
+			return parsed;
+		}
+
+		template<typename Self>
+		static bool format_indirect(const Self*, const void* object, String& value)
+		{
+			return IndirectResolver<T>::format(static_cast<const T*>(object), value);
 		}
 	};
 

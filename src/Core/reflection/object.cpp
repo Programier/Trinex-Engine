@@ -25,7 +25,7 @@ namespace Trinex::Refl
 		return nullptr;
 	}
 
-	Object* Object::find_path(StringView path, const Class* base) const
+	Object* Object::lookup(StringView path, const Class* base) const
 	{
 		const Object* scope = this;
 		Object* object      = nullptr;
@@ -34,6 +34,9 @@ namespace Trinex::Refl
 		{
 			scope = Object::root();
 			path.remove_prefix(2);
+
+			if (path.empty())
+				return base == nullptr || scope->is(base) ? const_cast<Object*>(scope) : nullptr;
 		}
 
 		while (!path.empty())
@@ -52,6 +55,51 @@ namespace Trinex::Refl
 		}
 
 		return base == nullptr || object->is(base) ? object : nullptr;
+	}
+
+	usize IndirectResolver<Object>::parse(Object*& result, Refl::Class* base, StringView value)
+	{
+		const usize end       = value.find_first_of(",} \t\r\n");
+		const StringView path = value.substr(0, end);
+
+		if (path == "null")
+		{
+			result = nullptr;
+			return path.size();
+		}
+
+		if (Object* object = Object::root()->lookup(path, base))
+		{
+			result = object;
+			return path.size();
+		}
+
+		return 0;
+	}
+
+	bool IndirectResolver<Object>::format(const Object* object, String& value)
+	{
+		if (object == nullptr)
+		{
+			value += "null";
+			return true;
+		}
+
+		String path;
+		const Object* root = Object::root();
+
+		while (object != root)
+		{
+			if (object == nullptr || !object->name().is_valid())
+				return false;
+
+			path              = object->name().to_string() + (path.empty() ? "" : "::" + path);
+			Ref<Object> owner = object->owner();
+			object            = owner.value();
+		}
+
+		value += "::" + path;
+		return true;
 	}
 
 	bool Object::owner(Object* object)

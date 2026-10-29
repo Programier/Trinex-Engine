@@ -4,6 +4,38 @@
 
 namespace Trinex::Refl
 {
+	static usize parse_indirection(const Type* type, void* self, StringView value)
+	{
+		const auto* indirection = static_cast<const IndirectionType*>(type);
+		const Type* target      = indirection->type();
+
+		if (target == nullptr)
+			return 0;
+
+		return target->parse_indirect(self, value);
+	}
+
+	static bool format_indirection(const Type* type, const void* self, String& value)
+	{
+		const auto* indirection = static_cast<const IndirectionType*>(type);
+		const Type* target      = indirection->type();
+
+		if (target == nullptr)
+			return false;
+
+		return target->format_indirect(*static_cast<void* const*>(self), value);
+	}
+
+	class IndirectionVTable final : public Native::TypeVTable<void*, IndirectionType::VTable>
+	{
+	public:
+		IndirectionVTable()
+		{
+			this->parse  = &parse_indirection;
+			this->format = &format_indirection;
+		}
+	};
+
 	IndirectionType::IndirectionType(Name name, Type* type, Object* owner)
 	    : Type(name, sizeof(void*), alignof(void*), 0, vtable()), m_type(retain_ref(type))
 	{
@@ -36,7 +68,7 @@ namespace Trinex::Refl
 
 	const IndirectionType::VTable* IndirectionType::vtable()
 	{
-		static Native::TypeVTable<void*, VTable> vtable;
+		static IndirectionVTable vtable;
 		return &vtable;
 	}
 

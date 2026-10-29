@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/ref_counted.hpp>
+#include <Core/reflection/indirect_resolver.hpp>
 #include <Core/reflection/of.hpp>
 #include <Core/types/name.hpp>
 
@@ -45,7 +46,7 @@ namespace Trinex::Refl
 		virtual Object* resolve(const Class* base);
 		virtual const Object* resolve(const Class* base) const;
 		virtual Object* find(Name name, const Class* base = nullptr) const;
-		Object* find_path(StringView path, const Class* base = nullptr) const;
+		Object* lookup(StringView path, const Class* base = nullptr) const;
 
 		bool owner(Object* object);
 		bool is(const Class* base) const;
@@ -104,6 +105,12 @@ namespace Trinex::Refl
 			return static_cast<T*>(find(name, class_of<T>()));
 		}
 
+		template<typename T>
+		T* lookup(StringView path) const
+		{
+			return static_cast<T*>(lookup(path, class_of<T>()));
+		}
+
 		inline Name name() const { return m_name; }
 
 		inline Ref<Object> owner() const { return m_owner.lock(); }
@@ -115,5 +122,30 @@ namespace Trinex::Refl
 		inline bool is_editor_only() const { return has_flags(EditorOnly); }
 
 		inline bool is_hidden() const { return has_flags(Hidden); }
+	};
+
+	template<>
+	struct IndirectResolver<Object>
+	{
+		static trinex_api usize parse(Object*& result, Refl::Class* base, StringView value);
+		static trinex_api bool format(const Object* object, String& value);
+
+		template<typename T>
+		static usize parse(T*& result, StringView value)
+		{
+			Object* object     = nullptr;
+			const usize parsed = parse(object, class_of<T>(), value);
+
+			if (parsed != 0)
+				result = static_cast<T*>(object);
+
+			return parsed;
+		}
+	};
+
+	template<typename T>
+	    requires(trinex_is_base_of(Object, T) && !trinex_is_same(Object, T))
+	struct IndirectResolver<T> : public IndirectResolver<Object>
+	{
 	};
 } // namespace Trinex::Refl
