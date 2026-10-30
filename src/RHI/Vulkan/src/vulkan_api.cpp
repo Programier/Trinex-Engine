@@ -36,6 +36,7 @@ namespace Trinex
 		trx_delete static_cast<VulkanAPI*>(api);
 	}
 
+	static VulkanAPI* s_instance = nullptr;
 	static RHI::Registry s_vulkan_api_registry(RHIBackend::Vulkan, create_vulkan_api, destroy_vulkan_api);
 
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
@@ -187,8 +188,14 @@ namespace Trinex
 		return new_features;
 	}
 
+	VulkanAPI* VulkanAPI::instance()
+	{
+		return s_instance;
+	}
+
 	VulkanAPI::VulkanAPI()
 	{
+		s_instance = this;
 		auto array = make_extensions_array();
 		m_device_extensions.assign(array.begin(), array.end());
 

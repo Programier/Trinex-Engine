@@ -5,7 +5,6 @@
 #include <Core/etl/deque.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/etl/static_array.hpp>
-
 #include <RHI/rhi.hpp>
 #include <VkBootstrap.h>
 #include <vk_mem_alloc.h>
@@ -27,7 +26,8 @@ namespace Trinex
 	class VulkanDescriptorHeap;
 	class Window;
 
-	struct VulkanExtention {
+	struct VulkanExtention
+	{
 		StringView name;
 		mutable bool enabled = false;
 
@@ -39,11 +39,6 @@ namespace Trinex
 	class VulkanAPI final : public RHI
 	{
 	public:
-		static inline VulkanAPI* instance() { return static_cast<VulkanAPI*>(RHI::instance()); }
-		const char* name() const override { return "Vulkan"; }
-		const char* renderer() const override { return m_properties.deviceName.data(); }
-
-		// API DATA
 		vkb::Instance m_instance;
 		vk::PhysicalDevice m_physical_device;
 		vk::Device m_device;
@@ -55,7 +50,8 @@ namespace Trinex
 		vk::PhysicalDeviceFeatures m_features;
 
 	private:
-		struct Garbage {
+		struct Garbage
+		{
 			RHIObject* object;
 			u64 frame;
 		};
@@ -77,7 +73,7 @@ namespace Trinex
 		static consteval auto make_extensions_array()
 		{
 			return std::to_array<VulkanExtention>({
-			        {"", false},// Dummy extension
+			        {"", false}, // Dummy extension
 			        {VK_KHR_SWAPCHAIN_EXTENSION_NAME, true},
 			        {VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME, true},
 			        {VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME, false},
@@ -150,19 +146,20 @@ namespace Trinex
 		}
 
 	public:
-		//////////////////////////////////////////////////////////////
-
-		// API METHODS
-
 		vk::SurfaceKHR create_surface(Window* interface);
 		vk::Extent2D surface_size(const vk::SurfaceKHR& surface) const;
 		bool has_stencil_component(vk::Format format);
 
 		bool is_format_supported(vk::Format format, vk::FormatFeatureFlagBits flags, bool optimal);
 		VulkanAPI& add_garbage(RHIObject* object);
-		//////////////////////////////////////////////////////////////
+
+	public:
+		static VulkanAPI* instance();
 
 		VulkanAPI();
+
+		const char* name() const override { return "Vulkan"; }
+		const char* renderer() const override { return m_properties.deviceName.data(); }
 
 		VulkanAPI& update(float dt) override;
 		VulkanAPI& submit(const RHISubmitInfo& info) override;
@@ -192,4 +189,4 @@ namespace Trinex
 
 		~VulkanAPI();
 	};
-}// namespace Trinex
+} // namespace Trinex

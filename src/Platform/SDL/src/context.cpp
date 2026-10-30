@@ -1,4 +1,5 @@
 #include <SDL3/SDL_init.h>
+#include <SDL3/SDL_log.h>
 #include <SDLPlatform/clipboard.hpp>
 #include <SDLPlatform/context.hpp>
 #include <SDLPlatform/dialog.hpp>
@@ -11,9 +12,15 @@
 
 namespace Trinex::Platform
 {
+	static void SDLCALL sdl_log(void*, int, SDL_LogPriority, const char* message)
+	{
+		trinex_info(Log::Platform, "SDL: {}", message);
+	}
+
 	SDLContext::SDLContext()
 	{
-		SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD);
+		SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD | SDL_INIT_EVENTS);
+		SDL_SetLogOutputFunction(sdl_log, nullptr);
 	}
 
 	SDLContext::~SDLContext()

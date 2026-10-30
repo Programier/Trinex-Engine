@@ -3,7 +3,8 @@
 
 namespace Trinex
 {
-	struct RHIBackend
+	trinex_reflect()
+	trinex_enum RHIBackend
 	{
 		enum Enum : u8
 		{
