@@ -1,4 +1,6 @@
+#include <Core/command_line.hpp>
 #include <Core/engine.hpp>
+#include <Core/entry.hpp>
 #include <Core/reflection/deprecated/class.hpp>
 #include <Platform/platform.hpp>
 #include <chrono>
@@ -36,32 +38,27 @@ namespace Trinex
 
 	i32 Engine::launch(int argc, char** argv)
 	{
-		// 		Bootstrap  = -9,
-		//         Register   = -8,
-		//         Configure  = -7,
-		//         Initialize = -6,
-		//         Load       = -5,
-		//         Start      = -4,
-
-		//         // Shutdown
-		//         Stop     = -3,
-		//         Shutdown = -2,
-		//         Finalize = -1
+		CommandLine::init(argc, argv);
 
 		// BOOTSTRAP STAGE
 		LifeCycle::execute(LifeCycle::Bootstrap);
 
 		// REGISTER STAGE
 		LifeCycle::execute(LifeCycle::Register);
-		
+
+		// CONFIGURE STATE
 		LifeCycle::execute(LifeCycle::Configure);
 
-		while (true)
+		i32 result = 0;
+
+		if (auto entry = EntryPoint::create())
 		{
-			Platform::Context::instance()->update();
+			result = entry->execute();
 		}
 
-		return 0;
+		LifeCycle::execute(LifeCycle::Finalize);
+
+		return result;
 	}
 
 	i32 Engine::init()

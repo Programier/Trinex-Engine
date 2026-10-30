@@ -16,11 +16,11 @@ namespace Trinex
 
 	trinex_on_bootstrap()
 	{
-		Console::property("window.title", &s_config.title);
-		Console::property("window.client", &s_config.client);
-		Console::property("window.size", &s_config.size);
-		Console::property("window.pos", &s_config.pos);
-		Console::property("window.monitor", &s_config.monitor);
+		Console::variable("window.title", &s_config.title);
+		Console::variable("window.client", &s_config.client);
+		Console::variable("window.size", &s_config.size);
+		Console::variable("window.pos", &s_config.pos);
+		Console::variable("window.monitor", &s_config.monitor);
 		//static Console::VariableRef attributes(&s_config.attributes, "window.attributes");
 	}
 

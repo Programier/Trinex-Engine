@@ -676,7 +676,7 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		return nullptr;
 	}
 
-	trinex_api void property(StringView name, void* address, Refl::Type* reflection, StringView description, EntryFlags flags)
+	trinex_api void variable(StringView name, void* address, Refl::Type* reflection, StringView description, EntryFlags flags)
 	{
 		const usize position = name.rfind('.');
 		Refl::Scope* scope   = scope_of(position == StringView::npos ? "" : name.substr(0, position), true);

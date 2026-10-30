@@ -133,7 +133,7 @@ namespace Trinex::Refl
 	bool Object::is(const Class* base) const
 	{
 		if (Class* instance = reflection())
-			return base && instance->is(base);
+			return base && instance->is_child_of(base);
 
 		return false;
 	}

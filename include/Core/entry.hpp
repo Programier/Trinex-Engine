@@ -11,6 +11,8 @@ namespace Trinex
 		trinex_reflection_body();
 
 	public:
+		static Ref<EntryPoint> create();
+
 		trinex_function()
 		virtual i32 execute();
 	};

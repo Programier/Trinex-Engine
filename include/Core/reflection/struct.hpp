@@ -58,7 +58,7 @@ namespace Trinex::Refl
 		Object* resolve(const Class* base) override;
 		const Object* resolve(const Class* base) const override;
 
-		bool is(const Struct* other) const;
+		bool is_child_of(const Struct* other) const;
 
 		Class* reflection() const override { return class_of<Struct>(); }
 
@@ -69,5 +69,24 @@ namespace Trinex::Refl
 		inline bool is_final() const { return has_flags(IsFinal); }
 		inline bool is_standard_layout() const { return has_flags(IsStandardLayout); }
 		inline bool is_trivial() const { return has_flags(IsTrivial); }
+
+		using Type::allocate;
+
+		template<typename T>
+		bool is_child_of() const
+		{
+			return is_child_of(struct_of<T>());
+		}
+
+		template<typename T, typename... Args>
+		T* allocate(Args&&... args) const
+		{
+			if (is_child_of<T>())
+			{
+				return static_cast<T*>(allocate(static_cast<Args&&>(args)...));
+			}
+
+			return nullptr;
+		}
 	};
 } // namespace Trinex::Refl

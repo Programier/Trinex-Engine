@@ -283,7 +283,7 @@ namespace Trinex::Refl
 		return nullptr;
 	}
 
-	bool Struct::is(const Struct* other) const
+	bool Struct::is_child_of(const Struct* other) const
 	{
 		if (this == other)
 		{
@@ -292,7 +292,7 @@ namespace Trinex::Refl
 
 		for (auto& entry : m_bases)
 		{
-			if (entry->is(other))
+			if (entry->is_child_of(other))
 			{
 				return true;
 			}

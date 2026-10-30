@@ -841,6 +841,12 @@ namespace Reflector
 				auto scope = writer->scope();
 
 				writer->line("static constexpr inline const bool is_reflected = true; \\");
+
+				if (instance->bases.size() == 1)
+				{
+					writer->line("using Super = $0; \\", instance->bases[0].type.name);
+				}
+
 				writer->line("using Bases = ::Trinex::TypeList<$0>; \\", BaseClassesOf(instance));
 				writer->line("using This = $0; \\", instance->name);
 				writer->line("friend struct ::Trinex::Refl::Accessor<$0>", instance->name);

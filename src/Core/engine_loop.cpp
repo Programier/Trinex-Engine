@@ -1,4 +1,4 @@
-#include <Core/arguments.hpp>
+#include <Core/command_line.hpp>
 #include <Core/constants.hpp>
 #include <Core/engine.hpp>
 #include <Core/engine_loop.hpp>
@@ -51,8 +51,9 @@ namespace Trinex
 	{
 		initialize_graphics_api(true);
 
-		i32 result        = 0;
-		EntryPoint* entry = DeprecatedObject::instance_cast<EntryPoint>(Refl::Deprecated::Class::static_require(entry_name)->create_object());
+		i32 result = 0;
+		EntryPoint* entry =
+		        DeprecatedObject::instance_cast<EntryPoint>(Refl::Deprecated::Class::static_require(entry_name)->create_object());
 		trinex_verify_msg(entry, "Failed to create entry point!");
 
 		Settings::Rendering::force_keep_cpu_resources = true;
@@ -66,15 +67,15 @@ namespace Trinex
 	{
 		trinex_info(Log::Core, "Start engine!");
 
-		Arguments arguments;
-		arguments.init(argc, argv);
+		CommandLine::init(argc, argv);
 		initialize_filesystem();
 
 		Refl::Deprecated::Object::load_reflection();
 
 		Project::initialize();
 
-		Refl::Deprecated::Class* engine_class = Refl::Deprecated::Class::static_find(Settings::engine_class, Refl::Deprecated::FindFlags::IsRequired);
+		Refl::Deprecated::Class* engine_class =
+		        Refl::Deprecated::Class::static_find(Settings::engine_class, Refl::Deprecated::FindFlags::IsRequired);
 		// engine_instance           = DeprecatedObject::instance_cast<Engine>(engine_class->create_object());
 
 		// if (engine_instance == nullptr)
@@ -85,12 +86,8 @@ namespace Trinex
 
 		ScriptEngine::load_scripts();
 
-		auto entry_param = Arguments::find("entry");
-
-		if (entry_param && entry_param->type == Arguments::Type::String)
-		{
-			return execute_entry(entry_param->get<const String&>());
-		}
+		if (const StringView entry = CommandLine::value("entry"); !entry.empty())
+			return execute_entry(entry);
 
 		initialize_graphics_api();
 

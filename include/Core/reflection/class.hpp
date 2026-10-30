@@ -29,6 +29,8 @@ namespace Trinex::Refl
 
 		Class* reflection() const override { return class_of<Class>(); }
 
+		using Super::allocate;
+		inline RefCounted* allocate() const { return static_cast<RefCounted*>(Struct::allocate()); }
 		inline bool is_asset() const { return has_flags(IsAsset); }
 		inline bool is_singleton() const { return has_flags(IsSingleton); }
 		inline bool is_scriptable() const { return has_flags(IsScriptable); }

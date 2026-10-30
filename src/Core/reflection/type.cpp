@@ -76,7 +76,7 @@ namespace Trinex::Refl
 		return instance;
 	}
 
-	void* Type::allocate()
+	void* Type::allocate() const
 	{
 		if (m_vtable->construct == nullptr)
 			return nullptr;
@@ -89,7 +89,7 @@ namespace Trinex::Refl
 		return instance;
 	}
 
-	bool Type::release(void* object)
+	bool Type::release(void* object) const
 	{
 		if (destruct(object))
 		{

@@ -14,20 +14,20 @@ namespace Trinex::Refl
 	public:
 		struct VTable
 		{
-			void (*construct)(const Type* type, void* dst)                       = nullptr;
-			void (*destruct)(const Type* type, void* value)                      = nullptr;
-			void (*copy_construct)(const Type* type, void* dst, const void* src) = nullptr;
-			void (*move_construct)(const Type* type, void* dst, void* src)       = nullptr;
-			void (*copy_assign)(const Type* type, void* dst, const void* src)    = nullptr;
-			void (*move_assign)(const Type* type, void* dst, void* src)          = nullptr;
-			void (*swap)(const Type* type, void* lhs, void* rhs)                 = nullptr;
-			void (*relocate)(const Type* type, void* dst, void* src)             = nullptr;
-			bool (*equals)(const Type* type, const void* lhs, const void* rhs)   = nullptr;
-			i32 (*compare)(const Type* type, const void* lhs, const void* rhs)   = nullptr;
-			void (*serialize)(const Type* type, void* self, Archive& ar)         = nullptr;
-			usize (*parse)(const Type* type, void* self, StringView value)       = nullptr;
-			bool (*format)(const Type* type, const void* self, String& value)    = nullptr;
-			usize (*parse_indirect)(const Type* type, void* result, StringView value) = nullptr;
+			void (*construct)(const Type* type, void* dst)                               = nullptr;
+			void (*destruct)(const Type* type, void* value)                              = nullptr;
+			void (*copy_construct)(const Type* type, void* dst, const void* src)         = nullptr;
+			void (*move_construct)(const Type* type, void* dst, void* src)               = nullptr;
+			void (*copy_assign)(const Type* type, void* dst, const void* src)            = nullptr;
+			void (*move_assign)(const Type* type, void* dst, void* src)                  = nullptr;
+			void (*swap)(const Type* type, void* lhs, void* rhs)                         = nullptr;
+			void (*relocate)(const Type* type, void* dst, void* src)                     = nullptr;
+			bool (*equals)(const Type* type, const void* lhs, const void* rhs)           = nullptr;
+			i32 (*compare)(const Type* type, const void* lhs, const void* rhs)           = nullptr;
+			void (*serialize)(const Type* type, void* self, Archive& ar)                 = nullptr;
+			usize (*parse)(const Type* type, void* self, StringView value)               = nullptr;
+			bool (*format)(const Type* type, const void* self, String& value)            = nullptr;
+			usize (*parse_indirect)(const Type* type, void* result, StringView value)    = nullptr;
 			bool (*format_indirect)(const Type* type, const void* object, String& value) = nullptr;
 		};
 
@@ -50,8 +50,8 @@ namespace Trinex::Refl
 
 		Type(Name name, u32 size, u32 alignment, u64 flags = 0, const VTable* vtable = nullptr, Object* owner = nullptr);
 
-		void* allocate();
-		bool release(void* object);
+		void* allocate() const;
+		bool release(void* object) const;
 
 		bool construct(void* value) const;
 		bool destruct(void* value) const;
@@ -100,6 +100,17 @@ namespace Trinex::Refl
 			Type* types[] = {type_of<void*>(), type_of<Args>()...};
 			etl::InvokeContext<void, void*, Args...> context(nullptr, static_cast<Args&&>(args)...);
 			return invoke_allocate(types, sizeof...(Args) + 1, context);
+		}
+
+		template<typename T, typename... Args>
+		T* allocate(Args&&... args) const
+		{
+			if (this == type_of<T>())
+			{
+				return static_cast<T*>(allocate(static_cast<Args&&>(args)...));
+			}
+
+			return nullptr;
 		}
 	};
 } // namespace Trinex::Refl

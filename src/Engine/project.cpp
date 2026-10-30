@@ -1,5 +1,5 @@
-#include <Core/arguments.hpp>
 #include <Core/blob.hpp>
+#include <Core/command_line.hpp>
 #include <Core/console.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/string_functions.hpp>
@@ -221,11 +221,9 @@ Engine::Project::shader_cache_dir = "{}";
 		bind_to_script_engine();
 
 		// Try to load project using files from argument
-		auto arg = Arguments::find("project");
-
-		if (arg && arg->type == Arguments::Type::String)
+		if (const StringView project = CommandLine::value("project"); !project.empty())
 		{
-			if (open_project(arg->get<String>()) && check_initialize(false))
+			if (open_project(project) && check_initialize(false))
 				return;
 		}
 
