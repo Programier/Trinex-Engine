@@ -194,13 +194,6 @@ namespace Trinex
 		}
 	};
 
-	trinex_api void create_threads();
-	trinex_api void destroy_threads();
 	trinex_api Thread* logic_thread();
 	trinex_api Thread* this_thread();
-
-	inline bool is_in_logic_thread()
-	{
-		return this_thread() == logic_thread();
-	}
 } // namespace Trinex

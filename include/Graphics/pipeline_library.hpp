@@ -78,15 +78,11 @@ public:                                                                         
 	const char* source_path() const override;                                                                                    \
 	void initialize() override;                                                                                                  \
 	~class_name();                                                                                                               \
-	friend class Trinex::DeprecatedObject;                                                                                                 \
+	friend class Trinex::DeprecatedObject;                                                                                       \
                                                                                                                                  \
 private:
 
 #define trinex_implement_pipeline(class_name, path)                                                                              \
-	trinex_on_initialize(.name = #class_name)                                                                                          \
-	{                                                                                                                            \
-		class_name::create();                                                                                                    \
-	}                                                                                                                            \
                                                                                                                                  \
 	class_name* class_name::s_instance = nullptr;                                                                                \
 	class_name::class_name() : Super(#class_name)                                                                                \
@@ -101,7 +97,7 @@ private:
 	{                                                                                                                            \
 		if (!s_instance)                                                                                                         \
 		{                                                                                                                        \
-			DeprecatedObject::new_instance<class_name>(pipeline_name_of(#class_name), package_of(#class_name));                            \
+			DeprecatedObject::new_instance<class_name>(pipeline_name_of(#class_name), package_of(#class_name));                  \
 			s_instance->add_reference();                                                                                         \
 			s_instance->load_pipeline();                                                                                         \
 		}                                                                                                                        \

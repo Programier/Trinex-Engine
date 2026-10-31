@@ -1,15 +1,16 @@
 #pragma once
 
-#include <Core/deprecated/object.hpp>
-#include <Core/etl/engine_resource.hpp>
+#include <Core/object.hpp>
 #include <Input/system.hpp>
+
+#include <Core/engine.generated.hpp>
 
 namespace Trinex
 {
-
-	class trinex_api Engine : public EngineResource<DeprecatedObject>
+	trinex_reflect()
+	class trinex_api Engine : public Object
 	{
-		trinex_class(Engine, DeprecatedObject);
+		trinex_reflection_body();
 
 	public:
 		enum State : u8
@@ -50,10 +51,10 @@ namespace Trinex
 		virtual void on_stop();
 		virtual void on_finalize();
 
-		float time_seconds() const;
+		f32 time_seconds() const;
 		Engine& request_exit();
 
-		inline float delta_time() const { return m_delta_time; }
+		inline f32 delta_time() const { return m_delta_time; }
 		inline u64 frame_index() const { return m_frame_index; }
 		inline State state() const { return m_state; }
 		inline bool is_initializing() const { return m_state == State::Initializing; }

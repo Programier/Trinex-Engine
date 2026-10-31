@@ -18,7 +18,7 @@ namespace Trinex
 		return false;
 	}
 
-	ViewportClient& ViewportClient::update(class RenderViewport* viewport, float dt)
+	ViewportClient& ViewportClient::update(class RenderViewport* viewport, f32 dt)
 	{
 		return *this;
 	}

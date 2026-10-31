@@ -798,26 +798,13 @@ namespace Trinex
 		return Thread::static_self();
 	}
 
-	trinex_api void create_threads()
+	trinex_on_bootstrap()
 	{
-		if (s_logic_thread == nullptr)
-		{
-			s_logic_thread = trx_new MainThread();
-		}
+		s_logic_thread = trx_new MainThread();
 	}
 
-	template<typename ThreadType>
-	static void destroy_thread(ThreadType*& thread)
+	trinex_on_finalize()
 	{
-		if (thread)
-		{
-			trx_delete thread;
-			thread = nullptr;
-		}
-	}
-
-	trinex_api void destroy_threads()
-	{
-		destroy_thread(s_logic_thread);
+		trx_delete s_logic_thread;
 	}
 } // namespace Trinex

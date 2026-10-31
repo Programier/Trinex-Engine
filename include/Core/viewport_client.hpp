@@ -20,7 +20,7 @@ namespace Trinex
 		// Return true to consume the event.
 		virtual bool on_input_event(const InputEvent& event);
 
-		virtual ViewportClient& update(class RenderViewport* viewport, float dt);
+		virtual ViewportClient& update(class RenderViewport* viewport, f32 dt);
 		static Ref<ViewportClient> create(StringView name);
 	};
 } // namespace Trinex

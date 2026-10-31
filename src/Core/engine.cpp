@@ -23,9 +23,6 @@ namespace Trinex
 		m_frame_index = 0;
 		m_prev_time   = 0.f;
 
-		flags.set(Flags::StandAlone);
-		flags.remove(Flags::IsAvailableForGC);
-
 		InputSystem::instance()->add_listener(nullptr, EventType::Quit, EventCode::Undefined,
 		                                      [this](const InputEvent&) { return request_exit(), true; });
 	}
@@ -155,9 +152,9 @@ namespace Trinex
 
 	void Engine::on_finalize() {}
 
-	float Engine::time_seconds() const
+	f32 Engine::time_seconds() const
 	{
-		return std::chrono::duration_cast<std::chrono::duration<float>>(current_time_point() - start_time).count();
+		return std::chrono::duration_cast<std::chrono::duration<f32>>(current_time_point() - start_time).count();
 	}
 
 	Engine& Engine::request_exit()
