@@ -6,7 +6,7 @@ namespace Trinex::Platform
 {
 	static SDL_WindowFlags window_flags_of(WindowAttribute attributes)
 	{
-		SDL_WindowFlags flags = 0;
+		SDL_WindowFlags flags = SDL_WINDOW_VULKAN;
 
 		while (attributes)
 		{

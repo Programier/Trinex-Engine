@@ -91,10 +91,6 @@ namespace Trinex
 
 		initialize_graphics_api();
 
-		// Setup main window
-		WindowDesc desc = WindowDesc::from_config();
-		desc.attributes.set(WindowAttribute::Hidden);
-		Window::create(desc);
 		return 0;
 	}
 

@@ -94,7 +94,7 @@ namespace Trinex
 			if (state.backend)
 				return state.backend;
 
-			state.backend = state.create();
+			return (state.backend = state.create());
 		}
 
 		return nullptr;

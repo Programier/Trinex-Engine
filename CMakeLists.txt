@@ -10,7 +10,7 @@ if(WIN32)
     option(TRINEX_WITH_D3D12 "Build TrinexEngine with support DirectX 12 API" ON)
 endif()
 
-option(TRINEX_WITH_EDITOR "Build engine with editor" ON)
+option(TRINEX_WITH_EDITOR "Build engine with editor" OFF)
 option(TRINEX_WITH_ADDRESS_SANITIZER OFF)
 option(TRINEX_AS_EXECUTABLE "Compile trinex engine to executable file instead of shared library" OFF)
 

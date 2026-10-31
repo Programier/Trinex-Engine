@@ -1,9 +1,6 @@
 #pragma once
-#include <Core/callback.hpp>
 #include <Core/enums.hpp>
-#include <Core/etl/string.hpp>
 #include <Core/math/vector.hpp>
-#include <Core/pointer.hpp>
 #include <Core/ref_counted.hpp>
 
 namespace Trinex
@@ -11,32 +8,11 @@ namespace Trinex
 	struct WindowConfig;
 	class Image;
 
-	struct WindowDesc
-	{
-		String title  = "Trinex Engine";
-		String client = "";
-		Vector2u size = {1280, 720};
-		Vector2u pos  = {0, 0};
-
-		WindowAttribute attributes = WindowAttribute::Resizable;
-		i16 monitor                = -1;
-
-		static trinex_api const WindowDesc& from_config();
-	};
-
 	class trinex_api Window : public RefCounted
 	{
 	public:
-		using DestroyCallback = CallBack<void()>;
-
-		CallBacks<void(Window* window)> on_destroy;
-
-	private:
-		Pointer<class RenderViewport> m_render_viewport;
-
 	public:
-		static Window* create(const char* title, Vector2u size, Window* parent = nullptr);
-		static Window* create(const WindowDesc& desc, Window* parent = nullptr);
+		static Ref<Window> create(const char* title, Vector2u size, WindowAttribute attributes = {});
 		static Ref<Window> find(u32 id);
 
 	public:
@@ -82,10 +58,5 @@ namespace Trinex
 		inline bool hide() { return attributes(WindowAttribute::Hidden, true); }
 		inline bool minimize() { return attributes(WindowAttribute::Minimized, true); }
 		inline bool maximize() { return attributes(WindowAttribute::Maximized, true); }
-
-		RenderViewport* render_viewport() const;
-		Window& create_client(const StringView& client_name);
-
-		friend class RenderViewport;
 	};
 } // namespace Trinex

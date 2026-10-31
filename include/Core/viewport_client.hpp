@@ -1,12 +1,17 @@
 #pragma once
-#include <Core/deprecated/object.hpp>
+#include <Core/object.hpp>
 #include <Input/types.hpp>
+
+#include <Core/viewport_client.generated.hpp>
 
 namespace Trinex
 {
-	class trinex_api ViewportClient : public DeprecatedObject
+	struct InputEvent;
+
+	trinex_reflect()
+	class trinex_api ViewportClient : public Object
 	{
-		trinex_class(ViewportClient, DeprecatedObject);
+		trinex_reflection_body();
 
 	public:
 		virtual ViewportClient& attach(class RenderViewport* viewport);
@@ -16,6 +21,6 @@ namespace Trinex
 		virtual bool on_input_event(const InputEvent& event);
 
 		virtual ViewportClient& update(class RenderViewport* viewport, float dt);
-		static ViewportClient* create(const StringView& name);
+		static Ref<ViewportClient> create(StringView name);
 	};
 } // namespace Trinex

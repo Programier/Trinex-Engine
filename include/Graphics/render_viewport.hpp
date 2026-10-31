@@ -1,10 +1,14 @@
 #pragma once
+#include <Core/enums.hpp>
+#include <Core/etl/array.hpp>
 #include <Core/etl/string.hpp>
 #include <Core/math/vector.hpp>
-#include <Core/deprecated/object.hpp>
+#include <Core/object.hpp>
 #include <Core/pointer.hpp>
 #include <RHI/enums.hpp>
 #include <RHI/resource_ptr.hpp>
+
+#include <Graphics/render_viewport.generated.hpp>
 
 namespace Trinex
 {
@@ -16,9 +20,10 @@ namespace Trinex
 	class RHITexture;
 	struct Color;
 
-	class trinex_api RenderViewport : public DeprecatedObject
+	trinex_reflect()
+	class trinex_api RenderViewport : public Object
 	{
-		trinex_class(RenderViewport, DeprecatedObject);
+		trinex_reflection_body();
 
 	private:
 		static Array<RenderViewport*> m_viewports;

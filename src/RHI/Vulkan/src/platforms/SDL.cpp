@@ -17,6 +17,12 @@
 
 namespace Trinex
 {
+	template<typename T>
+	static T load_function(vk::Instance instance, const char* name)
+	{
+		return reinterpret_cast<T>(instance.getProcAddr(name));
+	}
+
 #if PLATFORM_LINUX
 	static vk::SurfaceKHR create_wayland_surface(SDL_Window* window, vk::Instance instance)
 	{
@@ -43,18 +49,22 @@ namespace Trinex
 			trinex_failure_msg("Failed to get Wayland wl_surface from SDL window");
 		}
 
-		vk::WaylandSurfaceCreateInfoKHR info{};
-		info.display = display;
-		info.surface = surface;
+		const auto create_surface = load_function<PFN_vkCreateWaylandSurfaceKHR>(instance, "vkCreateWaylandSurfaceKHR");
+		trinex_verify_msg(create_surface, "VK_KHR_wayland_surface is not enabled");
 
-		auto result = instance.createWaylandSurfaceKHR(info);
+		VkWaylandSurfaceCreateInfoKHR info = {VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR};
+		info.display                       = display;
+		info.surface                       = surface;
 
-		if (result.result != vk::Result::eSuccess)
+		VkSurfaceKHR surface_handle = VK_NULL_HANDLE;
+		const VkResult result       = create_surface(static_cast<VkInstance>(instance), &info, nullptr, &surface_handle);
+
+		if (result != VK_SUCCESS)
 		{
-			trinex_failure_fmt("Failed to create Vulkan Wayland surface, error code: %d", static_cast<i32>(result.result));
+			trinex_failure_fmt("Failed to create Vulkan Wayland surface, error code: %d", static_cast<i32>(result));
 		}
 
-		return result.value;
+		return vk::SurfaceKHR(surface_handle);
 	}
 
 	static vk::SurfaceKHR create_x11_surface(SDL_Window* window, vk::Instance instance)
@@ -81,18 +91,22 @@ namespace Trinex
 			trinex_failure_msg("Failed to get X11 Window from SDL window");
 		}
 
-		vk::XlibSurfaceCreateInfoKHR info{};
-		info.dpy    = display;
-		info.window = x11_window;
+		const auto create_surface = load_function<PFN_vkCreateXlibSurfaceKHR>(instance, "vkCreateXlibSurfaceKHR");
+		trinex_verify_msg(create_surface, "VK_KHR_xlib_surface is not enabled");
 
-		auto result = instance.createXlibSurfaceKHR(info);
+		VkXlibSurfaceCreateInfoKHR info = {VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR};
+		info.dpy                        = display;
+		info.window                     = x11_window;
 
-		if (result.result != vk::Result::eSuccess)
+		VkSurfaceKHR surface_handle = VK_NULL_HANDLE;
+		const VkResult result       = create_surface(static_cast<VkInstance>(instance), &info, nullptr, &surface_handle);
+
+		if (result != VK_SUCCESS)
 		{
-			trinex_failure_fmt("Failed to create Vulkan X11 surface, error code: %d", static_cast<i32>(result.result));
+			trinex_failure_fmt("Failed to create Vulkan X11 surface, error code: %d", static_cast<i32>(result));
 		}
 
-		return result.value;
+		return vk::SurfaceKHR(surface_handle);
 	}
 
 	static vk::SurfaceKHR create_window_surface(SDL_Window* window, vk::Instance instance)
@@ -135,18 +149,22 @@ namespace Trinex
 			trinex_failure_msg("Failed to get Win32 HINSTANCE from SDL window");
 		}
 
-		vk::Win32SurfaceCreateInfoKHR info{};
-		info.hwnd      = hwnd;
-		info.hinstance = hinstance;
+		const auto create_surface = load_function<PFN_vkCreateWin32SurfaceKHR>(instance, "vkCreateWin32SurfaceKHR");
+		trinex_verify_msg(create_surface, "VK_KHR_win32_surface is not enabled");
 
-		auto result = instance.createWin32SurfaceKHR(info);
+		VkWin32SurfaceCreateInfoKHR info = {VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR};
+		info.hwnd                        = hwnd;
+		info.hinstance                   = hinstance;
 
-		if (result.result != vk::Result::eSuccess)
+		VkSurfaceKHR surface_handle = VK_NULL_HANDLE;
+		const VkResult result       = create_surface(static_cast<VkInstance>(instance), &info, nullptr, &surface_handle);
+
+		if (result != VK_SUCCESS)
 		{
-			trinex_failure_fmt("Failed to create Vulkan Win32 surface, error code: %d", static_cast<i32>(result.result));
+			trinex_failure_fmt("Failed to create Vulkan Win32 surface, error code: %d", static_cast<i32>(result));
 		}
 
-		return result.value;
+		return vk::SurfaceKHR(surface_handle);
 	}
 #else
 	#error "Implementation required"

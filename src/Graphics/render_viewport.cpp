@@ -1,6 +1,5 @@
 #include <Core/engine.hpp>
 #include <Core/etl/templates.hpp>
-#include <Core/reflection/deprecated/class.hpp>
 #include <Core/threading.hpp>
 #include <Core/viewport_client.hpp>
 #include <Core/window.hpp>
@@ -12,8 +11,6 @@
 
 namespace Trinex
 {
-	trinex_implement_engine_class(RenderViewport, Refl::Deprecated::Class::IsScriptable) {}
-
 	static RenderViewport* m_current_render_viewport = nullptr;
 	Array<RenderViewport*> RenderViewport::m_viewports;
 
@@ -54,9 +51,8 @@ namespace Trinex
 	RenderViewport::~RenderViewport()
 	{
 		client(nullptr);
-		m_window->m_render_viewport = nullptr;
-		m_window                    = nullptr;
-		m_swapchain                 = nullptr;
+		m_window    = nullptr;
+		m_swapchain = nullptr;
 
 		auto it = std::remove_if(m_viewports.begin(), m_viewports.end(), [this](RenderViewport* vp) { return vp == this; });
 		m_viewports.erase(it, m_viewports.end());
