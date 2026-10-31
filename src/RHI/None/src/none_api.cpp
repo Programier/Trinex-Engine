@@ -102,12 +102,11 @@ namespace Trinex
 
 	struct NoneSwapchain : public NoneApiDestroyable<RHISwapchain>
 	{
-		void present_interval(u32 interval) override {}
-		void resize(const Vector2u& new_size) override {}
+		void mode(RHIPresentMode mode) override {}
+		void resize(Vector2u size) override {}
 		RHISemaphore* acquire_semaphore() override { return rhi_default<NoneSemaphore>(); }
 		RHISemaphore* present_semaphore() override { return rhi_default<NoneSemaphore>(); }
-		RHIRenderTargetView* as_rtv() override { return rhi_default<NoneRTV>(); }
-		RHITexture* as_texture() override { return rhi_default<NoneTexture>(); }
+		RHITexture* backbuffer() override { return rhi_default<NoneTexture>(); }
 	};
 
 	struct NoneAccelerationStructure : public NoneApiDestroyable<RHIAccelerationStructure>
@@ -184,7 +183,7 @@ namespace Trinex
 		return new NoneBuffer();
 	}
 
-	RHISwapchain* NoneApi::create_swapchain(Window* window, u32 present_interval)
+	RHISwapchain* NoneApi::create_swapchain(Window* window, RHIPresentMode mode, u32 images)
 	{
 		return new NoneSwapchain();
 	}

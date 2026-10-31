@@ -5,6 +5,12 @@
 
 namespace Trinex
 {
+	namespace Refl
+	{
+		template<typename>
+		class Binder;
+	}
+
 	trinex_reflect()
 	class trinex_api Object : public RefCounted
 	{
@@ -12,6 +18,9 @@ namespace Trinex
 
 	private:
 		Refl::Class* m_reflection;
+
+		template<typename>
+		friend class Refl::Binder;
 
 	public:
 		trinex_function()

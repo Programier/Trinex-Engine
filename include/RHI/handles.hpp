@@ -134,13 +134,12 @@ namespace Trinex
 	class trinex_api RHISwapchain : public RHIObject
 	{
 	public:
-		virtual void present_interval(u32 interval) = 0;
-		virtual void resize(const Vector2u& size)   = 0;
+		virtual void mode(RHIPresentMode mode) = 0;
+		virtual void resize(Vector2u size)     = 0;
 
 		virtual RHISemaphore* acquire_semaphore() = 0;
 		virtual RHISemaphore* present_semaphore() = 0;
-		virtual RHIRenderTargetView* as_rtv()     = 0;
-		virtual RHITexture* as_texture()          = 0;
+		virtual RHITexture* backbuffer()          = 0;
 	};
 
 	class trinex_api RHIAccelerationStructure : public RHIObject

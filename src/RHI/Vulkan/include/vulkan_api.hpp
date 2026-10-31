@@ -165,8 +165,7 @@ namespace Trinex
 		VulkanAPI& submit(const RHISubmitInfo& info) override;
 		VulkanAPI& idle() override;
 
-		vk::PresentModeKHR present_mode_of(bool vsync, vk::SurfaceKHR surface);
-		vk::PresentModeKHR present_mode_of(u32 interval, vk::SurfaceKHR surface);
+		vk::PresentModeKHR present_mode_of(RHIPresentMode mode, vk::SurfaceKHR surface);
 
 		RHITimestamp* create_timestamp() override;
 		RHIPipelineStatistics* create_pipeline_statistics() override;
@@ -179,7 +178,7 @@ namespace Trinex
 		RHIPipeline* create_compute_pipeline(const RHIComputePipelineDesc& desc) override;
 		RHIPipeline* create_ray_tracing_pipeline(const RHIRayTracingPipelineDesc& desc) override;
 		RHIBuffer* create_buffer(usize size, RHIBufferFlags flags) override;
-		RHISwapchain* create_swapchain(Window* window, u32 present_interval) override;
+		RHISwapchain* create_swapchain(Window* window, RHIPresentMode mode, u32 images = 0) override;
 		RHIContext* create_context(RHIContextFlags flags) override;
 
 		RHIAccelerationStructure* create_acceleration_structure(const RHIRayTracingAccelerationInputs* inputs) override;

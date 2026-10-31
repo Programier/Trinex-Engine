@@ -1,15 +1,14 @@
 #include <Core/command_line.hpp>
 #include <Core/engine.hpp>
 #include <Core/entry.hpp>
+#include <Core/etl/scoped_value.hpp>
 #include <Core/reflection/deprecated/class.hpp>
 #include <Platform/platform.hpp>
 #include <chrono>
 
 namespace Trinex
 {
-	trinex_implement_engine_class_default_init(Engine, 0);
-
-	static Engine* s_instance = nullptr;
+	static thread_local Engine* s_instance = nullptr;
 
 	static inline std::chrono::high_resolution_clock::time_point current_time_point()
 	{
@@ -46,7 +45,7 @@ namespace Trinex
 		// REGISTER STAGE
 		LifeCycle::execute(LifeCycle::Register);
 
-		// CONFIGURE STATE
+		// CONFIGURE STAGE
 		LifeCycle::execute(LifeCycle::Configure);
 
 		i32 result = 0;
@@ -61,56 +60,109 @@ namespace Trinex
 		return result;
 	}
 
-	i32 Engine::init()
+	i32 Engine::run()
 	{
+		if (m_state != Created && m_state != ExitRequested)
+			return 1;
+
+		ScopedValue<Engine*> current_engine(s_instance, this);
+
+		// INITIALIZE STAGE
+
+		if (transition_to(Initializing))
+		{
+			on_initialize();
+			LifeCycle::execute(LifeCycle::Initialize);
+		}
+
+		if (transition_to(Loading))
+		{
+			on_load();
+			LifeCycle::execute(LifeCycle::Load);
+		}
+
+		if (transition_to(Starting))
+		{
+			on_start();
+			LifeCycle::execute(LifeCycle::Start);
+		}
+
+		if (transition_to(Running))
+		{
+			while (is_running())
+			{
+				update();
+			}
+		}
+
+		transition_to(Stopping);
+		LifeCycle::execute(LifeCycle::Stop);
+		on_stop();
+		LifeCycle::execute(LifeCycle::Shutdown);
+		on_finalize();
+
+		transition_to(Stopped);
+
 		return 0;
 	}
 
-	i32 Engine::update()
+	bool Engine::transition_to(State state)
 	{
+		if (m_state == state)
+			return true;
 
-		return 0;
+		bool is_valid = false;
+
+		switch (m_state)
+		{
+			case Created: is_valid = state == Initializing || state == ExitRequested; break;
+			case Initializing: is_valid = state == Loading || state == ExitRequested; break;
+			case Loading: is_valid = state == Starting || state == ExitRequested; break;
+			case Starting: is_valid = state == Running || state == ExitRequested; break;
+			case Running: is_valid = state == ExitRequested; break;
+			case ExitRequested: is_valid = state == Stopping; break;
+			case Stopping: is_valid = state == Stopped; break;
+			case Stopped:
+			case Failed: break;
+		}
+
+		if (!is_valid)
+			return false;
+
+		m_state = state;
+		return true;
 	}
 
-	i32 Engine::terminate()
+	void Engine::update()
 	{
-		m_is_shutting_down = true;
-		return 0;
+		const f32 current_time = time_seconds();
+		m_delta_time           = current_time - m_prev_time;
+		m_prev_time            = current_time;
+		++m_frame_index;
+
+		on_update(m_delta_time);
 	}
 
-	StringView Engine::application_name() const
-	{
-		return "Trinex Example";
-	}
+	void Engine::on_initialize() {}
 
-	float Engine::max_tick_rate() const
-	{
-		return 60.f;
-	}
+	void Engine::on_load() {}
 
-	float Engine::gamma() const
-	{
-		return 1.f;
-	}
+	void Engine::on_start() {}
 
-	Engine& Engine::request_exit()
-	{
-		m_is_requesting_exit = true;
-		return *this;
-	}
+	void Engine::on_update(f32 dt) {}
 
-	bool Engine::is_requesting_exit() const
-	{
-		return m_is_requesting_exit;
-	}
+	void Engine::on_stop() {}
 
-	bool Engine::is_shuting_down() const
-	{
-		return m_is_shutting_down;
-	}
+	void Engine::on_finalize() {}
 
 	float Engine::time_seconds() const
 	{
 		return std::chrono::duration_cast<std::chrono::duration<float>>(current_time_point() - start_time).count();
+	}
+
+	Engine& Engine::request_exit()
+	{
+		transition_to(ExitRequested);
+		return *this;
 	}
 } // namespace Trinex

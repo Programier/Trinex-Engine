@@ -2,7 +2,7 @@
 #include <Core/etl/atomic.hpp>
 #include <Core/etl/critical_section.hpp>
 #include <Core/etl/deque.hpp>
-#include <Core/etl/scope_variable.hpp>
+#include <Core/etl/scoped_value.hpp>
 #include <Core/math/math.hpp>
 #include <Core/memory.hpp>
 #include <Core/threading.hpp>
@@ -122,7 +122,7 @@ namespace Trinex
 		inline bool execute(u16 worker = 0)
 		{
 			{
-				ScopeVariable scope(s_worker_idx, worker);
+				ScopedValue scope(s_worker_idx, worker);
 				m_function->execute();
 			}
 

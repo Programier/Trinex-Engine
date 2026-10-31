@@ -1,4 +1,4 @@
-#include <Core/etl/scope_variable.hpp>
+#include <Core/etl/scoped_value.hpp>
 #include <Core/reflection/deprecated/class.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
@@ -50,7 +50,7 @@ namespace Trinex
 
 	World& World::update(float dt)
 	{
-		ScopeVariable scope_world(s_current_world, this);
+		ScopedValue scope_world(s_current_world, this);
 		Super::update(dt);
 
 		for (LevelInstance* level : m_levels)

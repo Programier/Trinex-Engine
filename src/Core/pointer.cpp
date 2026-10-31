@@ -1,6 +1,6 @@
 #include <Core/archive.hpp>
-#include <Core/engine.hpp>
 #include <Core/deprecated/object.hpp>
+#include <Core/engine.hpp>
 #include <Core/pointer.hpp>
 
 namespace Trinex
@@ -11,7 +11,7 @@ namespace Trinex
 	{
 		if (auto instance = Engine::instance())
 		{
-			return !instance->is_shuting_down();
+			return !instance->is_stopping();
 		}
 		return false;
 	}

@@ -5,7 +5,7 @@
 
 namespace Trinex
 {
-	class DefaultEntry;
+	class EngineEntry;
 
 	static trinex_console_var(Refl::Class*, s_entry_point_class, "trinex.entry", nullptr);
 
@@ -17,7 +17,7 @@ namespace Trinex
 		if (value.empty())
 		{
 			if (entry == nullptr)
-				entry = Refl::class_of<DefaultEntry>();
+				entry = Refl::class_of<EngineEntry>();
 		}
 		else
 		{

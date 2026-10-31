@@ -1,42 +1,68 @@
 #pragma once
 
-#include <Core/etl/engine_resource.hpp>
 #include <Core/deprecated/object.hpp>
+#include <Core/etl/engine_resource.hpp>
 #include <Input/system.hpp>
 
 namespace Trinex
 {
+
 	class trinex_api Engine : public EngineResource<DeprecatedObject>
 	{
 		trinex_class(Engine, DeprecatedObject);
 
-		u64 m_frame_index;
-		float m_delta_time;
-		float m_prev_time;
+	public:
+		enum State : u8
+		{
+			Created       = 0,
+			Initializing  = 1,
+			Loading       = 2,
+			Starting      = 3,
+			Running       = 4,
+			ExitRequested = 5,
+			Stopping      = 6,
+			Stopped       = 7,
+			Failed        = 8,
+		};
 
-		u8 m_is_requesting_exit : 1 = false;
-		u8 m_is_shutting_down : 1   = false;
+	private:
+		u64 m_frame_index;
+		f32 m_delta_time;
+		f32 m_prev_time;
+
+		State m_state = State::Created;
+
+	private:
+		bool transition_to(State state);
+		void update();
 
 	public:
 		Engine();
 
 		static Engine* instance();
 		static i32 launch(int argc, char** argv);
+		i32 run();
 
-		virtual i32 init();
-		virtual i32 update();
-		virtual i32 terminate();
-		virtual StringView application_name() const;
-		virtual float max_tick_rate() const;
-		virtual float gamma() const;
-
-		virtual Engine& request_exit();
-		bool is_requesting_exit() const;
+		virtual void on_initialize();
+		virtual void on_load();
+		virtual void on_start();
+		virtual void on_update(f32 dt);
+		virtual void on_stop();
+		virtual void on_finalize();
 
 		float time_seconds() const;
-		bool is_shuting_down() const;
+		Engine& request_exit();
 
 		inline float delta_time() const { return m_delta_time; }
 		inline u64 frame_index() const { return m_frame_index; }
+		inline State state() const { return m_state; }
+		inline bool is_initializing() const { return m_state == State::Initializing; }
+		inline bool is_loading() const { return m_state == State::Loading; }
+		inline bool is_starting() const { return m_state == State::Starting; }
+		inline bool is_running() const { return m_state == State::Running; }
+		inline bool is_exit_requested() const { return m_state == State::ExitRequested; }
+		inline bool is_stopping() const { return m_state == State::Stopping; }
+		inline bool is_stopped() const { return m_state == State::Stopped; }
+		inline bool is_failed() const { return m_state == State::Failed; }
 	};
 } // namespace Trinex

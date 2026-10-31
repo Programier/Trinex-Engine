@@ -1,123 +1,83 @@
-#include <Core/engine.hpp>
-#include <Core/etl/templates.hpp>
-#include <Core/threading.hpp>
+#include <Core/etl/algorithm.hpp>
 #include <Core/viewport_client.hpp>
-#include <Core/window.hpp>
-#include <Engine/settings.hpp>
-#include <Graphics/render_surface.hpp>
 #include <Graphics/render_viewport.hpp>
-#include <Input/system.hpp>
+#include <RHI/handles.hpp>
+#include <RHI/resource_ptr.hpp>
 #include <RHI/rhi.hpp>
 
 namespace Trinex
 {
-	static RenderViewport* m_current_render_viewport = nullptr;
-	Array<RenderViewport*> RenderViewport::m_viewports;
+	Array<Ref<RenderViewport>> RenderViewport::s_viewports = {};
 
-	namespace
+	RenderViewport::RenderViewport(Ref<Window> window, RHIPresentMode mode, u32 images)
 	{
-		InputListenerHandle s_viewport_input_listener;
+		trinex_verify(window);
 
-		bool dispatch_viewport_input(const InputEvent& event)
-		{
-			for (RenderViewport* viewport : RenderViewport::viewports())
-			{
-				if (viewport && viewport->client() && viewport->client()->on_input_event(event))
-					return true;
-			}
+		m_swapchain = RHI::instance()->create_swapchain(window.value(), mode, images);
+		trinex_verify(m_swapchain);
 
-			return false;
-		}
-
-		void register_viewport_input_listener()
-		{
-			if (!s_viewport_input_listener && InputSystem::instance())
-			{
-				s_viewport_input_listener = InputSystem::instance()->add_listener(nullptr, EventType::Undefined,
-				                                                                  EventCode::Undefined, dispatch_viewport_input);
-			}
-		}
-	} // namespace
-
-	RenderViewport::RenderViewport(Window* window, u32 present_interval)
-	{
-		register_viewport_input_listener();
-		m_viewports.push_back(this);
-		m_window    = window;
-		m_swapchain = RHI::instance()->create_swapchain(window, present_interval);
-		m_size      = window->size();
+		s_viewports.push_back(retain_ref(this));
 	}
 
 	RenderViewport::~RenderViewport()
 	{
-		client(nullptr);
-		m_window    = nullptr;
-		m_swapchain = nullptr;
+		auto it = etl::find(s_viewports.begin(), s_viewports.end(), this);
 
-		auto it = std::remove_if(m_viewports.begin(), m_viewports.end(), [this](RenderViewport* vp) { return vp == this; });
-		m_viewports.erase(it, m_viewports.end());
+		if (it != s_viewports.end())
+		{
+			s_viewports.erase_unordered(it);
+		}
 	}
 
-	ViewportClient* RenderViewport::client() const
-	{
-		return m_client.ptr();
-	}
-
-	RenderViewport& RenderViewport::client(ViewportClient* new_client)
+	RenderViewport& RenderViewport::client(Ref<ViewportClient> client)
 	{
 		if (m_client)
 		{
-			ViewportClient* tmp = m_client;
-			m_client            = nullptr;
+			Ref<ViewportClient> tmp;
+			tmp.swap(m_client);
+
 			tmp->deattach(this);
 		}
 
-		m_client = new_client;
+		m_client.swap(client);
 
-		if (new_client)
+		if (m_client)
 		{
-			new_client->attach(this);
+			m_client->attach(this);
+		}
+
+		return *this;
+	}
+
+	RenderViewport& RenderViewport::mode(RHIPresentMode mode)
+	{
+		if (m_swapchain)
+		{
+			m_swapchain->mode(mode);
 		}
 		return *this;
 	}
 
-	RenderViewport& RenderViewport::update(float dt)
+	RHISemaphore* RenderViewport::acquire_semaphore()
+	{
+		return m_swapchain ? m_swapchain->acquire_semaphore() : nullptr;
+	}
+
+	RHISemaphore* RenderViewport::present_semaphore()
+	{
+		return m_swapchain ? m_swapchain->present_semaphore() : nullptr;
+	}
+
+	RHITexture* RenderViewport::backbuffer()
+	{
+		return m_swapchain ? m_swapchain->backbuffer() : nullptr;
+	}
+
+	void RenderViewport::update(float dt)
 	{
 		if (m_client)
 		{
-			m_current_render_viewport = this;
 			m_client->update(this, dt);
-			m_current_render_viewport = nullptr;
 		}
-		return *this;
-	}
-
-	RenderViewport& RenderViewport::present_interval(u32 interval)
-	{
-		m_swapchain->present_interval(interval);
-		return *this;
-	}
-
-	RenderViewport& RenderViewport::on_resize(const Vector2u& size)
-	{
-		m_size = size;
-		m_swapchain->resize(size);
-		return *this;
-	}
-
-	RenderViewport& RenderViewport::on_orientation_changed(Orientation orientation)
-	{
-		m_swapchain->resize(size());
-		return *this;
-	}
-
-	RenderViewport* RenderViewport::current()
-	{
-		return m_current_render_viewport;
-	}
-
-	const Array<RenderViewport*>& RenderViewport::viewports()
-	{
-		return m_viewports;
 	}
 } // namespace Trinex

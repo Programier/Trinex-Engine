@@ -3,7 +3,6 @@
 #include <RHI/handles.hpp>
 #include <RHI/rhi.hpp>
 
-
 namespace Trinex
 {
 	class NoneApi : public RHI
@@ -27,7 +26,7 @@ namespace Trinex
 		RHIPipeline* create_compute_pipeline(const RHIComputePipelineDesc& desc) override;
 		RHIPipeline* create_ray_tracing_pipeline(const RHIRayTracingPipelineDesc& desc) override;
 		RHIBuffer* create_buffer(usize size, RHIBufferFlags type) override;
-		RHISwapchain* create_swapchain(Window* window, u32 present_interval) override;
+		RHISwapchain* create_swapchain(Window* window, RHIPresentMode mode, u32 images = 0) override;
 		RHIContext* create_context(RHIContextFlags flags) override;
 
 		RHIAccelerationStructure* create_acceleration_structure(const RHIRayTracingAccelerationInputs* inputs) override;
@@ -35,4 +34,4 @@ namespace Trinex
 
 		NoneApi& present(RHISwapchain* swapchain) override;
 	};
-}// namespace Trinex
+} // namespace Trinex

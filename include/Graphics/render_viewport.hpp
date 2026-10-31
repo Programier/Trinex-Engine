@@ -1,11 +1,7 @@
 #pragma once
-#include <Core/enums.hpp>
 #include <Core/etl/array.hpp>
-#include <Core/etl/string.hpp>
 #include <Core/math/vector.hpp>
 #include <Core/object.hpp>
-#include <Core/pointer.hpp>
-#include <RHI/enums.hpp>
 #include <RHI/resource_ptr.hpp>
 
 #include <Graphics/render_viewport.generated.hpp>
@@ -14,11 +10,12 @@ namespace Trinex
 {
 	class Window;
 	class ViewportClient;
-	class RenderTarget;
-	class RenderSurface;
-	class RHIRenderTargetView;
+	class RHISemaphore;
 	class RHITexture;
-	struct Color;
+	class RHIContext;
+	class RHISwapchain;
+	struct RHIPresentMode;
+	struct WindowAttribute;
 
 	trinex_reflect()
 	class trinex_api RenderViewport : public Object
@@ -26,30 +23,27 @@ namespace Trinex
 		trinex_reflection_body();
 
 	private:
-		static Array<RenderViewport*> m_viewports;
+		static Array<Ref<RenderViewport>> s_viewports;
 
-		class Window* m_window;
-		RHIResourcePtr<class RHISwapchain> m_swapchain;
-		Pointer<ViewportClient> m_client;
-		Vector2u m_size;
+		Ref<ViewportClient> m_client;
+		Ref<Window> m_window;
+		RHIResourcePtr<RHISwapchain> m_swapchain;
 
 	public:
-		RenderViewport(Window* window, u32 present_interval);
+		RenderViewport(Ref<Window> window, RHIPresentMode mode, u32 images = 0);
 		~RenderViewport();
 
-		RenderViewport& update(float dt);
-		ViewportClient* client() const;
-		RenderViewport& client(ViewportClient* client);
-		RenderViewport& present_interval(u32 interval);
-		RenderViewport& on_resize(const Vector2u& size);
-		RenderViewport& on_orientation_changed(Orientation orientation);
+		virtual void update(float dt);
 
-		inline Window* window() const { return m_window; }
-		inline RHISwapchain* swapchain() const { return m_swapchain; }
-		inline Vector2u size() const { return m_size; }
-		inline float aspect() const { return static_cast<float>(m_size.x) / static_cast<float>(m_size.y); }
+		RenderViewport& client(Ref<ViewportClient> client);
+		RenderViewport& mode(RHIPresentMode mode);
+		RHISemaphore* acquire_semaphore();
+		RHISemaphore* present_semaphore();
+		RHITexture* backbuffer();
 
-		static RenderViewport* current();
-		static const Array<RenderViewport*>& viewports();
+		static inline const Array<Ref<RenderViewport>>& viewports() { return s_viewports; }
+		inline const Ref<ViewportClient>& client() const { return m_client; }
+		inline const Ref<Window>& window() const { return m_window; }
+		inline const RHIResourcePtr<RHISwapchain>& swapchain() const { return m_swapchain; }
 	};
 } // namespace Trinex

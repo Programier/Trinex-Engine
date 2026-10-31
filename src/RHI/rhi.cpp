@@ -80,7 +80,8 @@ namespace Trinex
 
 	RHI* RHI::instance()
 	{
-		return instance(backend());
+		static RHI* rhi = instance(backend());
+		return rhi;
 	}
 
 	RHI* RHI::instance(RHIBackend backend)

@@ -970,6 +970,19 @@ namespace Trinex
 		trinex_bitfield_enum_struct(RHIAspect, u8);
 	};
 
+	struct RHIPresentMode
+	{
+		enum Enum : u8
+		{
+			Fifo        = 0,
+			FifoRelaxed = 1,
+			Mailbox     = 2,
+			Immediate   = 3,
+		};
+
+		trinex_enum_struct(RHIPresentMode);
+	};
+
 	struct RHIContextInheritanceFlags
 	{
 		enum Enum : u8

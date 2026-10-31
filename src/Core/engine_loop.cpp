@@ -100,14 +100,14 @@ namespace Trinex
 
 		{
 			int result = preinit(argc, argv);
-			if (result != 0 || Engine::instance()->is_requesting_exit())
+			if (result != 0 || Engine::instance()->is_exit_requested())
 				return;
 		}
 
 		const bool show_splash = Settings::Splash::show;
 
 		float wait_time = Engine::instance()->time_seconds();
-		Engine::instance()->init();
+		Engine::instance()->on_initialize();
 
 		extern void load_default_resources();
 		load_default_resources();
@@ -136,7 +136,7 @@ namespace Trinex
 
 	void EngineLoop::update()
 	{
-		Engine::instance()->update();
+		Engine::instance()->on_update(0.f);
 		Thread::static_self()->execute();
 	}
 
@@ -145,7 +145,7 @@ namespace Trinex
 		trinex_info(Log::Core, "Terminate Engine");
 
 		LifeCycle::execute(LifeCycle::Shutdown);
-		Engine::instance()->terminate();
+		Engine::instance()->on_finalize();
 
 		GarbageCollector::destroy_all_objects();
 

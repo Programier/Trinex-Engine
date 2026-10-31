@@ -2,7 +2,6 @@
 #include <RHI/enums.hpp>
 #include <vulkan_headers.hpp>
 
-
 namespace Trinex::VulkanEnums
 {
 	constexpr inline vk::ImageAspectFlags aspect_of(RHIColorFormat format)
@@ -336,7 +335,6 @@ namespace Trinex::VulkanEnums
 		}
 	}
 
-
 	static inline vk::StencilOp stencil_of(RHIStencilOp op)
 	{
 		switch (op)
@@ -368,8 +366,8 @@ namespace Trinex::VulkanEnums
 
 	static inline vk::DescriptorType descriptor_type_of(RHIShaderParameterType type)
 	{
-		constexpr RHIShaderParameterType combined_image_sampler(RHIShaderParameterType::META_Texture |
-		                                                        RHIShaderParameterType::META_Sampler);
+		constexpr RHIShaderParameterType combined_image_sampler(RHIShaderParameterType::META_Texture
+		                                                        | RHIShaderParameterType::META_Sampler);
 
 		if ((type & combined_image_sampler) == combined_image_sampler)
 			return vk::DescriptorType::eCombinedImageSampler;
@@ -619,4 +617,15 @@ namespace Trinex::VulkanEnums
 			default: return vk::BorderColor::eFloatOpaqueBlack;
 		}
 	}
-}// namespace Trinex::VulkanEnums
+
+	static constexpr inline vk::PresentModeKHR present_mode_of(RHIPresentMode mode)
+	{
+		switch (mode)
+		{
+			case RHIPresentMode::Fifo: return vk::PresentModeKHR::eFifo;
+			case RHIPresentMode::FifoRelaxed: return vk::PresentModeKHR::eFifoRelaxed;
+			case RHIPresentMode::Mailbox: return vk::PresentModeKHR::eMailbox;
+			case RHIPresentMode::Immediate: return vk::PresentModeKHR::eImmediate;
+		}
+	}
+} // namespace Trinex::VulkanEnums

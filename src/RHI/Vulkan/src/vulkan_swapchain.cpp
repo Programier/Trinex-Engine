@@ -46,10 +46,10 @@ namespace Trinex
 		}
 	}
 
-	VulkanSwapchain::VulkanSwapchain(Window* window, u32 present_interval)
-	    : m_surface(VulkanAPI::instance()->create_surface(window)), m_present_interval(present_interval)
+	VulkanSwapchain::VulkanSwapchain(Window* window, RHIPresentMode mode, u32 images)
+	    : m_surface(VulkanAPI::instance()->create_surface(window))
 	{
-		m_present_mode = VulkanAPI::instance()->present_mode_of(m_present_interval, m_surface);
+		m_present_mode = VulkanAPI::instance()->present_mode_of(mode, m_surface);
 		create_swapchain();
 	}
 
@@ -263,7 +263,23 @@ namespace Trinex
 		return m_render_finished_semaphores[m_image_index].get();
 	}
 
-	VulkanTexture* VulkanSwapchain::backbuffer()
+	void VulkanSwapchain::mode(RHIPresentMode mode)
+	{
+		vk::PresentModeKHR present_mode = VulkanAPI::instance()->present_mode_of(mode, m_surface);
+
+		if (present_mode != m_present_mode)
+		{
+			m_present_mode  = present_mode;
+			m_need_recreate = true;
+		}
+	}
+
+	void VulkanSwapchain::resize(Vector2u size)
+	{
+		m_need_recreate = true;
+	}
+
+	RHITexture* VulkanSwapchain::backbuffer()
 	{
 		if (m_image_index == -1)
 		{
@@ -278,46 +294,6 @@ namespace Trinex
 		return m_backbuffers[m_image_index];
 	}
 
-	void VulkanSwapchain::present_interval(u32 interval)
-	{
-		if (interval > 1)
-		{
-			trinex_warning(Log::RHI,
-			               "Vulkan swapchain does not support PresentInterval > 1 without additional presentation extensions;"
-			               "clamping %u to 1",
-			               interval);
-			interval = 1;
-		}
-
-		auto mode = VulkanAPI::instance()->present_mode_of(interval, m_surface);
-
-		if (interval != m_present_interval)
-		{
-			m_present_interval = interval;
-		}
-
-		if (mode != m_present_mode)
-		{
-			m_present_mode  = mode;
-			m_need_recreate = true;
-		}
-	}
-
-	RHIRenderTargetView* VulkanSwapchain::as_rtv()
-	{
-		return backbuffer()->as_rtv(nullptr);
-	}
-
-	RHITexture* VulkanSwapchain::as_texture()
-	{
-		return backbuffer();
-	}
-
-	void VulkanSwapchain::resize(const Vector2u& size)
-	{
-		m_need_recreate = true;
-	}
-
 	void VulkanSwapchain::present()
 	{
 		try_present(&VulkanSwapchain::do_present, true);
@@ -328,9 +304,9 @@ namespace Trinex
 		trx_delete this;
 	}
 
-	RHISwapchain* VulkanAPI::create_swapchain(Window* window, u32 present_interval)
+	RHISwapchain* VulkanAPI::create_swapchain(Window* window, RHIPresentMode mode, u32 images)
 	{
-		return trx_new VulkanSwapchain(window, present_interval);
+		return trx_new VulkanSwapchain(window, mode, images);
 	}
 
 	VulkanAPI& VulkanAPI::present(RHISwapchain* swapchain)

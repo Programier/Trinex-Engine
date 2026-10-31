@@ -1,6 +1,6 @@
 #include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
-#include <Core/etl/scope_variable.hpp>
+#include <Core/etl/scoped_value.hpp>
 #include <Core/reflection/deprecated/class.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Engine/Actors/actor.hpp>
@@ -151,7 +151,7 @@ namespace Trinex
 		if (!m_is_playing)
 			return *this;
 
-		ScopeVariable level_scope(s_current_level, this);
+		ScopedValue level_scope(s_current_level, this);
 
 		for (usize index = 0, count = m_actors.size(); index < count; ++index)
 		{
@@ -215,7 +215,7 @@ namespace Trinex
 
 	LevelInstance* Level::create_instance(StringView name, DeprecatedObject* owner)
 	{
-		ScopeVariable scope(s_next_level, this);
+		ScopedValue scope(s_next_level, this);
 
 		if (name.empty())
 			name = Level::name();

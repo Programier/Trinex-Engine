@@ -1,7 +1,7 @@
+#include <Core/deprecated/object.hpp>
 #include <Core/engine.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/math/math.hpp>
-#include <Core/deprecated/object.hpp>
 #include <Core/object_listener.hpp>
 #include <Core/package.hpp>
 #include <Core/reflection/deprecated/class.hpp>
@@ -42,7 +42,7 @@ namespace Trinex
 
 		auto engine = Engine::instance();
 
-		if (engine && !engine->is_shuting_down())
+		if (engine && !engine->is_stopping())
 		{
 			if (!object->is_noname())
 			{
@@ -119,7 +119,9 @@ namespace Trinex
 
 	void GarbageCollector::mark_unreachable(float dt)
 	{
-		static void (*callback)(DeprecatedObject* object) = [](DeprecatedObject* object) { object->flags |= DeprecatedObject::Flags::IsUnreachable; };
+		static void (*callback)(DeprecatedObject* object) = [](DeprecatedObject* object) {
+			object->flags |= DeprecatedObject::Flags::IsUnreachable;
+		};
 		process_objects(callback);
 	}
 
