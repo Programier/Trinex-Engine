@@ -42,13 +42,9 @@ namespace Trinex
 	class trinex_api RHIFence : public RHIObject
 	{
 	public:
-		virtual bool is_signaled() = 0;
-		virtual void reset()       = 0;
-	};
-
-	class trinex_api RHISemaphore : public RHIObject
-	{
-	public:
+		virtual u64 value() const                         = 0;
+		virtual bool wait(u64 value, u64 timeout = ~0ull) = 0;
+		virtual bool signal(u64 value)                    = 0;
 	};
 
 	class trinex_api RHIShaderResourceView
@@ -138,9 +134,9 @@ namespace Trinex
 		virtual void mode(RHIPresentMode mode) = 0;
 		virtual void resize(Vector2u size)     = 0;
 
-		virtual RHISemaphore* acquire_semaphore() = 0;
-		virtual RHISemaphore* present_semaphore() = 0;
-		virtual RHITexture* backbuffer()          = 0;
+		virtual RHIFence* acquire_fence() = 0;
+		virtual RHIFence* present_fence() = 0;
+		virtual RHITexture* backbuffer()  = 0;
 	};
 
 	class trinex_api RHIAccelerationStructure : public RHIObject

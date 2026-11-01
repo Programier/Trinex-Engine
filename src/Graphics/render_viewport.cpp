@@ -58,14 +58,14 @@ namespace Trinex
 		return *this;
 	}
 
-	RHISemaphore* RenderViewport::acquire_semaphore()
+	RHIFence* RenderViewport::acquire_fence()
 	{
-		return m_swapchain ? m_swapchain->acquire_semaphore() : nullptr;
+		return m_swapchain ? m_swapchain->acquire_fence() : nullptr;
 	}
 
-	RHISemaphore* RenderViewport::present_semaphore()
+	RHIFence* RenderViewport::present_fence()
 	{
-		return m_swapchain ? m_swapchain->present_semaphore() : nullptr;
+		return m_swapchain ? m_swapchain->present_fence() : nullptr;
 	}
 
 	RHITexture* RenderViewport::backbuffer()

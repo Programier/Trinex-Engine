@@ -41,27 +41,24 @@ namespace Trinex
 		}
 		submit.setCommandBuffers(commands);
 
-		for (RHISemaphore* wait : info.waits)
+		for (RHIFence* wait : info.waits)
 		{
-			VulkanSemaphore* semaphore = static_cast<VulkanSemaphore*>(wait);
-			trinex_assert(semaphore->is_signaled());
-			waits.push_back(semaphore->is_signaled(false).semaphore());
+			VulkanFence* fence = static_cast<VulkanFence*>(wait);
+			trinex_assert(fence->is_signaled());
+			waits.push_back(fence->is_signaled(false).semaphore());
 			wait_stages.push_back(vk::PipelineStageFlagBits::eAllCommands);
 		}
 		submit.setWaitSemaphores(waits).setWaitDstStageMask(wait_stages);
 
-		for (RHISemaphore* signal : info.signals)
+		for (RHIFence* signal : info.signals)
 		{
-			VulkanSemaphore* semaphore = static_cast<VulkanSemaphore*>(signal);
-			trinex_assert(!semaphore->is_signaled());
-			signals.push_back(semaphore->is_signaled(true).semaphore());
+			VulkanFence* fence = static_cast<VulkanFence*>(signal);
+			trinex_assert(!fence->is_signaled());
+			signals.push_back(fence->is_signaled(true).semaphore());
 		}
 		submit.setSignalSemaphores(signals);
 
-		VulkanFence* signal = static_cast<VulkanFence*>(info.fence);
-		vk::Fence fence     = info.fence ? signal->make_pending().fence() : VK_NULL_HANDLE;
-
-		vk::verify(m_queue.submit(submit, fence));
+		vk::verify(m_queue.submit(submit));
 	}
 
 	void VulkanQueue::wait()

@@ -15,8 +15,8 @@ namespace Trinex
 	{
 	private:
 		Array<VulkanTexture*> m_backbuffers;
-		Array<RHIResourcePtr<VulkanSemaphore>> m_image_present_semaphores;
-		Array<RHIResourcePtr<VulkanSemaphore>> m_render_finished_semaphores;
+		Array<RHIResourcePtr<VulkanFence>> m_image_present_fences;
+		Array<RHIResourcePtr<VulkanFence>> m_render_finished_fences;
 
 		vk::SurfaceKHR m_surface;
 		Window* m_window;
@@ -39,8 +39,8 @@ namespace Trinex
 		~VulkanSwapchain();
 
 		i32 acquire_image_index();
-		VulkanSemaphore* acquire_semaphore() override;
-		VulkanSemaphore* present_semaphore() override;
+		VulkanFence* acquire_fence() override;
+		VulkanFence* present_fence() override;
 
 		vk::Result present(vk::Queue* queue);
 		void resize(Vector2u size) override;

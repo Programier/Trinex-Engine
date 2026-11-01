@@ -12,7 +12,6 @@ namespace Trinex
 	class RHIDepthStencilView;
 	class RHICommandHandle;
 	class RHIFence;
-	class RHISemaphore;
 
 	struct RHIRect
 	{
@@ -469,8 +468,7 @@ namespace Trinex
 	struct RHISubmitInfo
 	{
 		RHIArrayView<RHICommandHandle*> commands = {};
-		RHIArrayView<RHISemaphore*> waits        = {};
-		RHIArrayView<RHISemaphore*> signals      = {};
-		RHIFence* fence                          = nullptr;
+		RHIArrayView<RHIFence*> waits            = {};
+		RHIArrayView<RHIFence*> signals          = {};
 	};
 } // namespace Trinex

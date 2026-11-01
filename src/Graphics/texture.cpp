@@ -60,7 +60,7 @@ namespace Trinex
 
 		m_texture = RHI::instance()->create_texture(desc);
 
-		RHIContextPool::global_instance()->execute([this](RHIContext* ctx) {
+		RHIContextPool::instance()->execute([this](RHIContext* ctx) {
 			ctx->barrier(m_texture, RHIAccess::TransferDst);
 
 			for (u8 index = 0; auto& mip : mips)
@@ -111,7 +111,7 @@ namespace Trinex
 
 		m_texture = RHI::instance()->create_texture(desc);
 
-		RHIContextPool::global_instance()->execute([this](RHIContext* ctx) {
+		RHIContextPool::instance()->execute([this](RHIContext* ctx) {
 			ctx->barrier(m_texture, RHIAccess::TransferDst);
 
 			for (u8 index = 0; auto& mip : mips)
@@ -167,7 +167,7 @@ namespace Trinex
 
 		m_texture = RHI::instance()->create_texture(desc);
 
-		RHIContextPool::global_instance()->execute([this](RHIContext* ctx) {
+		RHIContextPool::instance()->execute([this](RHIContext* ctx) {
 			ctx->barrier(m_texture, RHIAccess::TransferDst);
 
 			for (u8 index = 0; auto& mip : mips)

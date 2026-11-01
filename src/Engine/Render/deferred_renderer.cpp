@@ -495,7 +495,7 @@ namespace Trinex
 
 	DeferredRenderer& DeferredRenderer::ambient_occlusion_pass(RHIContext* ctx)
 	{
-		RHITexturePool* pool = RHITexturePool::global_instance();
+		RHITexturePool* pool = RHITexturePool::instance();
 
 		Vector2u half_size     = scene_view().view_size() / 2u;
 		Vector2f inv_half_size = 1.f / Vector2f(half_size);
@@ -621,7 +621,7 @@ namespace Trinex
 	DeferredRenderer& DeferredRenderer::bloom_pass(RHIContext* ctx)
 	{
 		const Vector2u size = scene_view().view_size();
-		auto pool           = RHITexturePool::global_instance();
+		auto pool           = RHITexturePool::instance();
 
 		struct Chain
 		{
@@ -774,7 +774,7 @@ namespace Trinex
 			        RHIBufferFlags::StructuredBuffer | RHIBufferFlags::ShaderResource | RHIBufferFlags::TransferDst;
 
 			usize size      = sizeof(LightRenderParameters) * m_visible_lights.size();
-			m_lights_buffer = RHIBufferPool::global_instance()->acquire_transient(size, flags);
+			m_lights_buffer = RHIBufferPool::instance()->acquire_transient(size, flags);
 
 			if (!m_visible_lights.empty())
 			{
@@ -852,7 +852,7 @@ namespace Trinex
 			                            * (sizeof(DirectionalLightShadowParameters)
 			                               + s_cascades_per_directional_light * sizeof(DirectionalLightShadowCascade)); //
 
-			auto pool = RHIBufferPool::global_instance();
+			auto pool = RHIBufferPool::instance();
 			m_shadow_buffer =
 			        pool->acquire_transient(buffer_size, RHIBufferFlags::ByteAddressBuffer | RHIBufferFlags::ShaderResource
 			                                                     | RHIBufferFlags::TransferDst);

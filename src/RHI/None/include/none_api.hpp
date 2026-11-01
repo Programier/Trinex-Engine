@@ -17,7 +17,7 @@ namespace Trinex
 
 		RHITimestamp* create_timestamp() override;
 		RHIPipelineStatistics* create_pipeline_statistics() override;
-		RHIFence* create_fence() override;
+		RHIFence* create_fence(u64 value = 0) override;
 		RHISampler* create_sampler(const RHISamplerDesc& desc) override;
 		RHITexture* create_texture(const RHITextureDesc& desc) override;
 		RHIShader* create_shader(Span<u8> source, Span<RHIShaderParameterInfo> parameters) override;

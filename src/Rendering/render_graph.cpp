@@ -75,7 +75,7 @@ namespace Trinex
 			if (m_backing->texture == nullptr)
 			{
 				const RGTextureDesc& desc = m_backing->texture_desc;
-				m_backing->texture = RHITexturePool::global_instance()->acquire_transient(desc.type, desc.format, desc.size, desc.flags);
+				m_backing->texture = RHITexturePool::instance()->acquire_transient(desc.type, desc.format, desc.size, desc.flags);
 			}
 			return m_backing->texture;
 		}
@@ -88,7 +88,7 @@ namespace Trinex
 			if (m_backing->buffer == nullptr)
 			{
 				const RGBufferDesc& desc = m_backing->buffer_desc;
-				m_backing->buffer = RHIBufferPool::global_instance()->acquire_transient(desc.size, desc.flags);
+				m_backing->buffer        = RHIBufferPool::instance()->acquire_transient(desc.size, desc.flags);
 			}
 			return m_backing->buffer;
 		}
@@ -512,17 +512,17 @@ namespace Trinex
 
 	RGResource* RenderGraph::find_resource(RHITexture* texture, RGPass* writer)
 	{
-		RGResource* previous = find_resource(texture);
+		RGResource* previous  = find_resource(texture);
 		RGResource*& resource = m_resource_map[texture];
-		resource = trx_frame_new RGResource(previous->backing(), writer, previous);
+		resource              = trx_frame_new RGResource(previous->backing(), writer, previous);
 		return resource;
 	}
 
 	RGResource* RenderGraph::find_resource(RHIBuffer* buffer, RGPass* writer)
 	{
-		RGResource* previous = find_resource(buffer);
+		RGResource* previous  = find_resource(buffer);
 		RGResource*& resource = m_resource_map[buffer];
-		resource = trx_frame_new RGResource(previous->backing(), writer, previous);
+		resource              = trx_frame_new RGResource(previous->backing(), writer, previous);
 		return resource;
 	}
 
@@ -533,7 +533,7 @@ namespace Trinex
 			return nullptr;
 
 		RGResource*& resource = m_resource_map[texture.m_identity];
-		resource = trx_frame_new RGResource(previous->backing(), writer, previous);
+		resource              = trx_frame_new RGResource(previous->backing(), writer, previous);
 		return resource;
 	}
 
@@ -544,7 +544,7 @@ namespace Trinex
 			return nullptr;
 
 		RGResource*& resource = m_resource_map[buffer.m_identity];
-		resource = trx_frame_new RGResource(previous->backing(), writer, previous);
+		resource              = trx_frame_new RGResource(previous->backing(), writer, previous);
 		return resource;
 	}
 
@@ -556,7 +556,7 @@ namespace Trinex
 			return {};
 		}
 
-		RGResource* resource = create_resource(desc);
+		RGResource* resource                = create_resource(desc);
 		m_resource_map[resource->backing()] = resource;
 		invalidate();
 		return RGTexture(resource->backing());
@@ -570,7 +570,7 @@ namespace Trinex
 			return {};
 		}
 
-		RGResource* resource = create_resource(desc);
+		RGResource* resource                = create_resource(desc);
 		m_resource_map[resource->backing()] = resource;
 		invalidate();
 		return RGBuffer(resource->backing());
@@ -745,11 +745,12 @@ namespace Trinex
 				}
 
 				const bool is_write = resource->access & RHIAccess::WritableMask;
-				if (resource->resource->resource_type() != RGResource::RenderPass && !is_write && !resource->resource->is_imported()
-				    && resource->resource->writer() == nullptr
+				if (resource->resource->resource_type() != RGResource::RenderPass && !is_write
+				    && !resource->resource->is_imported() && resource->resource->writer() == nullptr
 				    && resource->resource->previous() == nullptr)
 				{
-					trinex_error(Log::Graphics, "RenderGraph pass '%s' reads a transient resource before it is written", pass->name());
+					trinex_error(Log::Graphics, "RenderGraph pass '%s' reads a transient resource before it is written",
+					             pass->name());
 					return false;
 				}
 			}
@@ -877,7 +878,7 @@ namespace Trinex
 			        .size  = {16, 16, 1},
 			        .flags = RHITextureFlags::RWColorAttachment,
 			});
-			RGBuffer buffer = graph.create_buffer({
+			RGBuffer buffer   = graph.create_buffer({
 			        .size  = 256,
 			        .flags = RHIBufferFlags::ShaderResource | RHIBufferFlags::UnorderedAccess,
 			});

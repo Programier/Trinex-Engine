@@ -67,7 +67,7 @@ namespace Trinex
 		return (static_cast<Identifier>(size) << 32) | flags.bitfield;
 	}
 
-	RHIFencePool* RHIFencePool::global_instance()
+	RHIFencePool* RHIFencePool::instance()
 	{
 		static RHIFencePool pool;
 		return &pool;
@@ -106,21 +106,22 @@ namespace Trinex
 		return *this;
 	}
 
-	RHIFence* RHIFencePool::acquire()
+	RHIFence* RHIFencePool::acquire(u64 value)
 	{
 		if (!m_pool.empty())
 		{
 			RHIFence* fence = m_pool.back().fence;
-			fence->reset();
+			fence->signal(value);
 			m_pool.pop_back();
 			return fence;
 		}
-		return RHI::instance()->create_fence();
+
+		return RHI::instance()->create_fence(value);
 	}
 
-	RHIFence* RHIFencePool::acquire_transient()
+	RHIFence* RHIFencePool::acquire_transient(u64 value)
 	{
-		if (auto fence = acquire())
+		if (auto fence = acquire(value))
 		{
 			m_transient_fences.push_back(fence);
 			return fence;
@@ -148,7 +149,7 @@ namespace Trinex
 		return *this;
 	}
 
-	RHIBufferPool* RHIBufferPool::global_instance()
+	RHIBufferPool* RHIBufferPool::instance()
 	{
 		static RHIBufferPool pool;
 		return &pool;
@@ -255,7 +256,7 @@ namespace Trinex
 		return memory_hash(&key, sizeof(key));
 	}
 
-	RHITexturePool* RHITexturePool::global_instance()
+	RHITexturePool* RHITexturePool::instance()
 	{
 		static RHITexturePool pool;
 		return &pool;
@@ -393,7 +394,7 @@ namespace Trinex
 		return *this;
 	}
 
-	RenderSurfacePool* RenderSurfacePool::global_instance()
+	RenderSurfacePool* RenderSurfacePool::instance()
 	{
 		static RenderSurfacePool pool;
 		return &pool;
@@ -484,7 +485,7 @@ namespace Trinex
 		return *this;
 	}
 
-	RHITimestampPool* RHITimestampPool::global_instance()
+	RHITimestampPool* RHITimestampPool::instance()
 	{
 		static RHITimestampPool pool;
 		return &pool;
@@ -540,7 +541,7 @@ namespace Trinex
 		return *this;
 	}
 
-	RHIPipelineStatisticsPool* RHIPipelineStatisticsPool::global_instance()
+	RHIPipelineStatisticsPool* RHIPipelineStatisticsPool::instance()
 	{
 		static RHIPipelineStatisticsPool pool;
 		return &pool;
@@ -596,7 +597,7 @@ namespace Trinex
 		return *this;
 	}
 
-	RHIContextPool* RHIContextPool::global_instance()
+	RHIContextPool* RHIContextPool::instance()
 	{
 		static RHIContextPool pool;
 		return &pool;
@@ -693,12 +694,12 @@ namespace Trinex
 		return &acquire(flags)->begin();
 	}
 
-	RHIContextPool& RHIContextPool::end(RHIContext* context, RHISemaphore* wait, RHISemaphore* signal, RHIFence* fence)
+	RHIContextPool& RHIContextPool::end(RHIContext* context, RHIFence* wait, RHIFence* signal)
 	{
 		if (auto handle = context->end())
 		{
 			auto queue = RHI::instance()->queue(RHIQueueFlags::Graphics);
-			queue->submit(RHISubmitInfo(handle, wait, signal, fence));
+			queue->submit(RHISubmitInfo(handle, wait, signal));
 			handle->release();
 		}
 
@@ -709,13 +710,13 @@ namespace Trinex
 	{
 		Tickable& update(float) override
 		{
-			RenderSurfacePool::global_instance()->update();
-			RHITexturePool::global_instance()->update();
-			RHIBufferPool::global_instance()->update();
-			RHIFencePool::global_instance()->update();
-			RHITimestampPool::global_instance()->update();
-			RHIPipelineStatisticsPool::global_instance()->update();
-			RHIContextPool::global_instance()->update();
+			RenderSurfacePool::instance()->update();
+			RHITexturePool::instance()->update();
+			RHIBufferPool::instance()->update();
+			RHIFencePool::instance()->update();
+			RHITimestampPool::instance()->update();
+			RHIPipelineStatisticsPool::instance()->update();
+			RHIContextPool::instance()->update();
 
 			return *this;
 		}
@@ -723,11 +724,11 @@ namespace Trinex
 
 	trinex_on_shutdown()
 	{
-		RHIBufferPool::global_instance()->release_all();
-		RHITexturePool::global_instance()->release_all();
-		RHIFencePool::global_instance()->release_all();
-		RHITimestampPool::global_instance()->release_all();
-		RHIPipelineStatisticsPool::global_instance()->release_all();
-		RHIContextPool::global_instance()->release_all();
+		RHIBufferPool::instance()->release_all();
+		RHITexturePool::instance()->release_all();
+		RHIFencePool::instance()->release_all();
+		RHITimestampPool::instance()->release_all();
+		RHIPipelineStatisticsPool::instance()->release_all();
+		RHIContextPool::instance()->release_all();
 	}
 } // namespace Trinex

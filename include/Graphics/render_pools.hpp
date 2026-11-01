@@ -15,7 +15,6 @@ namespace Trinex
 	class RHITimestamp;
 	class RHIPipelineStatistics;
 	class RHIContext;
-	class RHISemaphore;
 
 	class trinex_api RHIFencePool final
 	{
@@ -33,11 +32,11 @@ namespace Trinex
 		RHIFencePool& flush_transient();
 
 	public:
-		static RHIFencePool* global_instance();
+		static RHIFencePool* instance();
 
 		RHIFencePool& update();
-		RHIFence* acquire();
-		RHIFence* acquire_transient();
+		RHIFence* acquire(u64 value = 0);
+		RHIFence* acquire_transient(u64 value = 0);
 		RHIFencePool& release_all();
 		RHIFencePool& release(RHIFence* fence);
 	};
@@ -59,7 +58,7 @@ namespace Trinex
 		RHIBufferPool& flush_transient();
 
 	public:
-		static RHIBufferPool* global_instance();
+		static RHIBufferPool* instance();
 
 		RHIBufferPool& update();
 		RHIBuffer* acquire(u32 size, RHIBufferFlags flags);
@@ -103,7 +102,7 @@ namespace Trinex
 		RHITexturePool& flush_transient();
 
 	public:
-		static RHITexturePool* global_instance();
+		static RHITexturePool* instance();
 
 		RHITexturePool& update();
 		RHITexture* acquire(RHISurfaceFormat format, Vector2u size, RHITextureFlags flags = RHITextureFlags::ColorAttachment);
@@ -131,7 +130,7 @@ namespace Trinex
 		RenderSurfacePool& flush_transient();
 
 	public:
-		static RenderSurfacePool* global_instance();
+		static RenderSurfacePool* instance();
 
 		RenderSurfacePool& update();
 		RenderSurface* acquire(struct RHISurfaceFormat format, Vector2u size);
@@ -151,7 +150,7 @@ namespace Trinex
 		Array<TimestampEntry> m_pool;
 
 	public:
-		static RHITimestampPool* global_instance();
+		static RHITimestampPool* instance();
 
 		RHITimestampPool& update();
 		RHITimestamp* acquire();
@@ -171,7 +170,7 @@ namespace Trinex
 		Array<StatsEntry> m_pool;
 
 	public:
-		static RHIPipelineStatisticsPool* global_instance();
+		static RHIPipelineStatisticsPool* instance();
 
 		RHIPipelineStatisticsPool& update();
 		RHIPipelineStatistics* acquire();
@@ -196,7 +195,7 @@ namespace Trinex
 		RHIContextPool& flush_transient();
 
 	public:
-		static RHIContextPool* global_instance();
+		static RHIContextPool* instance();
 
 		RHIContextPool& update();
 		RHIContext* acquire(RHIContextFlags flags = RHIContextFlags::Undefined);
@@ -204,8 +203,7 @@ namespace Trinex
 		RHIContextPool& release(RHIContext* context);
 
 		RHIContext* begin(RHIContextFlags flags = RHIContextFlags::Undefined);
-		RHIContextPool& end(RHIContext* context, RHISemaphore* wait = nullptr, RHISemaphore* signal = nullptr,
-		                    RHIFence* fence = nullptr);
+		RHIContextPool& end(RHIContext* context, RHIFence* wait = nullptr, RHIFence* signal = nullptr);
 
 		template<typename Func>
 		inline RHIContextPool& execute(const Func& func)

@@ -41,12 +41,9 @@ namespace Trinex
 
 	struct NoneFence : public NoneApiDestroyable<RHIFence>
 	{
-		bool is_signaled() override { return true; }
-		void reset() override {}
-	};
-
-	struct NoneSemaphore : public NoneApiDestroyable<RHISemaphore>
-	{
+		virtual u64 value() const override { return 0; };
+		virtual bool wait(u64 value, u64 timeout = ~0ull) override { return true; };
+		virtual bool signal(u64 value) override { return true; };
 	};
 
 	struct NoneSampler : public NoneApiDestroyable<RHISampler>
@@ -104,8 +101,8 @@ namespace Trinex
 	{
 		void mode(RHIPresentMode mode) override {}
 		void resize(Vector2u size) override {}
-		RHISemaphore* acquire_semaphore() override { return rhi_default<NoneSemaphore>(); }
-		RHISemaphore* present_semaphore() override { return rhi_default<NoneSemaphore>(); }
+		RHIFence* acquire_fence() override { return rhi_default<NoneFence>(); }
+		RHIFence* present_fence() override { return rhi_default<NoneFence>(); }
 		RHITexture* backbuffer() override { return rhi_default<NoneTexture>(); }
 	};
 
@@ -138,7 +135,7 @@ namespace Trinex
 		return new NonePipelineStatistics();
 	}
 
-	RHIFence* NoneApi::create_fence()
+	RHIFence* NoneApi::create_fence(u64 value)
 	{
 		return new NoneFence();
 	}

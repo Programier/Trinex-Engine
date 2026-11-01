@@ -99,7 +99,7 @@ namespace Trinex
 		};
 
 	private:
-		class VulkanFence* m_fence = nullptr;
+		vk::Fence m_fence;
 		class VulkanCommandBufferManager* m_manager;
 		Array<UniformBuffer> m_uniform_buffers;
 		Array<RHIObject*> m_transient_resources;
@@ -150,8 +150,6 @@ namespace Trinex
 		inline bool is_submitted() const { return m_state == State::Submitted; }
 		inline bool is_secondary() const { return m_flags & RHIContextFlags::Secondary; }
 		inline bool is_primary() const { return (m_flags & RHIContextFlags::Secondary) == RHIContextFlags::Undefined; }
-
-		inline VulkanFence* fence() const { return m_fence; }
 	};
 
 	class VulkanCommandBufferManager : public VulkanThreadLocal

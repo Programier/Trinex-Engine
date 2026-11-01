@@ -183,7 +183,7 @@ namespace Trinex
 			        "Clear Normal",         "Clear MSRA",           "Clear Velocity",
 			};
 
-			auto pool               = RHITexturePool::global_instance();
+			auto pool               = RHITexturePool::instance();
 			RHISurfaceFormat format = surface_format_of(type);
 			RHITextureFlags flags   = surface_flags_of(type);
 			RHITexture* target      = pool->acquire_transient(format, m_view.view_size(), flags);
@@ -204,8 +204,8 @@ namespace Trinex
 	{
 		if (m_globals == nullptr)
 		{
-			m_globals = RHIBufferPool::global_instance()->acquire_transient(sizeof(GlobalShaderParameters),
-			                                                                RHIBufferFlags::UniformBuffer);
+			auto pool = RHIBufferPool::instance();
+			m_globals = pool->acquire_transient(sizeof(GlobalShaderParameters), RHIBufferFlags::UniformBuffer);
 		}
 		return m_globals;
 	}
@@ -213,18 +213,18 @@ namespace Trinex
 	RHITexture* Renderer::request_surface(RHISurfaceFormat format, float scale)
 	{
 		Vector2u size = Vector2u(Vector2f(m_view.view_size()) * scale);
-		return RHITexturePool::global_instance()->acquire(format, size);
+		return RHITexturePool::instance()->acquire(format, size);
 	}
 
 	RHITexture* Renderer::request_transient_surface(RHISurfaceFormat format, float scale)
 	{
 		Vector2u size = Vector2u(Vector2f(m_view.view_size()) * scale);
-		return RHITexturePool::global_instance()->acquire_transient(format, size);
+		return RHITexturePool::instance()->acquire_transient(format, size);
 	}
 
 	Renderer& Renderer::return_surface(RHITexture* surface)
 	{
-		RHITexturePool::global_instance()->release(surface);
+		RHITexturePool::instance()->release(surface);
 		return *this;
 	}
 } // namespace Trinex

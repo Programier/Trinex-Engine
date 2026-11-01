@@ -9,7 +9,7 @@ namespace Trinex
 	{
 		if (buffer)
 		{
-			RHIBufferPool::global_instance()->release(buffer);
+			RHIBufferPool::instance()->release(buffer);
 			buffer = nullptr;
 		}
 	}
@@ -18,7 +18,7 @@ namespace Trinex
 	{
 		if (texture)
 		{
-			RHITexturePool::global_instance()->release(texture);
+			RHITexturePool::instance()->release(texture);
 			texture = nullptr;
 		}
 	}
@@ -31,9 +31,8 @@ namespace Trinex
 
 	SceneViewState& SceneViewState::allocate(RHIContext* ctx, Vector2u size)
 	{
-		m_size = size;
-		m_scene_color =
-		        RHITexturePool::global_instance()->acquire(RHISurfaceFormat::RGBA16F, size, RHITextureFlags::RWColorAttachment);
+		m_size        = size;
+		m_scene_color = RHITexturePool::instance()->acquire(RHISurfaceFormat::RGBA16F, size, RHITextureFlags::RWColorAttachment);
 
 		ctx->barrier(m_scene_color, RHIAccess::TransferDst);
 		ctx->clear_rtv(m_scene_color->as_rtv());

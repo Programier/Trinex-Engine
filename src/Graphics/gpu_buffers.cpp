@@ -18,7 +18,7 @@ namespace Trinex
 		{
 			m_buffer = RHI::instance()->create_buffer(64, m_flags | RHIBufferFlags::VertexBuffer);
 
-			RHIContextPool::global_instance()->execute([this](RHIContext* ctx) {
+			RHIContextPool::instance()->execute([this](RHIContext* ctx) {
 				u8 memory[64] = {};
 				ctx->barrier(m_buffer, RHIAccess::TransferDst);
 				ctx->update(m_buffer, memory, {.size = 64});
@@ -119,7 +119,7 @@ namespace Trinex
 			                                                                          | RHIBufferFlags::ByteAddressBuffer
 			                                                                          | RHIBufferFlags::ShaderResource);
 
-			RHIContextPool::global_instance()->execute([this](RHIContext* ctx) {
+			RHIContextPool::instance()->execute([this](RHIContext* ctx) {
 				ctx->barrier(m_buffer.get(), RHIAccess::TransferDst);
 				ctx->update(m_buffer.get(), m_data, {.size = size()});
 				ctx->barrier(m_buffer.get(), RHIAccess::VertexBuffer);
@@ -330,7 +330,7 @@ namespace Trinex
 			                                                          | RHIBufferFlags::ByteAddressBuffer
 			                                                          | RHIBufferFlags::ShaderResource);
 
-			RHIContextPool::global_instance()->execute([this](RHIContext* ctx) {
+			RHIContextPool::instance()->execute([this](RHIContext* ctx) {
 				ctx->barrier(m_buffer.get(), RHIAccess::TransferDst);
 				ctx->update(m_buffer.get(), m_data, {.size = size()});
 				ctx->barrier(m_buffer.get(), RHIAccess::IndexBuffer);

@@ -151,7 +151,7 @@ namespace Trinex
 		if (m_first == nullptr)
 			return *this;
 
-		auto pool             = RHIBufferPool::global_instance();
+		auto pool             = RHIBufferPool::instance();
 		RHIBuffer* vtx_buffer = pool->acquire(s_line_vtx_per_node * sizeof(Vertex), s_vtx_buffer_flags);
 
 #if TRINEX_DEBUG_BUILD

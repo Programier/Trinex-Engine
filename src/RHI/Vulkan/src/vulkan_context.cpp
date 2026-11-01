@@ -384,7 +384,7 @@ namespace Trinex
 
 	VulkanCommandHandle::VulkanCommandHandle(VulkanCommandBufferManager* manager, RHIContextFlags flags) : m_flags(flags)
 	{
-		m_fence   = trx_new VulkanFence(false);
+		m_fence   = vk::verify(VulkanAPI::device()->createFence({}));
 		m_manager = manager;
 
 		const bool secondary               = is_secondary();
@@ -412,11 +412,11 @@ namespace Trinex
 	{
 		if (m_state == State::Submitted)
 		{
-			if (m_fence->is_signaled())
+			if (VulkanAPI::device()->getFenceStatus(m_fence) == vk::Result::eSuccess)
 			{
 				m_state = State::Unused;
 				vk::verify(reset());
-				m_fence->reset();
+				vk::verify(VulkanAPI::device()->resetFences(m_fence));
 
 				for (auto& page : m_uniform_buffers)
 				{
@@ -452,7 +452,7 @@ namespace Trinex
 		trinex_profile_cpu_n("VulkanCommandBuffer::submit");
 		trinex_assert_msg(is_pending(), "Command Buffer must be in ended state!");
 		//VulkanAPI::instance()->m_graphics_queue->submit({}, m_fence);
-		m_fence->make_pending();
+
 		m_state = State::Submitted;
 		return *this;
 	}
@@ -460,13 +460,22 @@ namespace Trinex
 	VulkanCommandHandle& VulkanCommandHandle::wait()
 	{
 		trinex_profile_cpu_n("VulkanCommandBuffer::wait");
-		if (m_state == State::Submitted)
-		{
-			if (!m_fence->is_signaled())
-				m_fence->wait();
 
-			refresh_fence_status();
+		if (m_state != State::Submitted)
+			return *this;
+
+		const vk::Result status = VulkanAPI::device()->getFenceStatus(m_fence);
+
+		if (status == vk::Result::eNotReady)
+		{
+			vk::verify(VulkanAPI::device()->waitForFences(m_fence, vk::True, UINT64_MAX));
 		}
+		else
+		{
+			vk::verify(status);
+		}
+
+		refresh_fence_status();
 		return *this;
 	}
 
@@ -500,8 +509,8 @@ namespace Trinex
 				trx_delete_inline(current);
 			}
 		}
-		trx_delete m_fence;
 
+		DESTROY_CALL(destroyFence, m_fence);
 		release_transient_resources();
 	}
 

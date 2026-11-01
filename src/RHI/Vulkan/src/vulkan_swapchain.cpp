@@ -33,7 +33,7 @@ namespace Trinex
 		~VulkanSwapchainTexture() { m_image = vk::Image(); }
 	};
 
-	static void initialize_semaphores(Array<RHIResourcePtr<VulkanSemaphore>>& semaphores, usize size)
+	static void initialize_fences(Array<RHIResourcePtr<VulkanFence>>& semaphores, usize size)
 	{
 		semaphores.resize(size);
 
@@ -41,7 +41,7 @@ namespace Trinex
 		{
 			if (semaphore == nullptr)
 			{
-				semaphore = trx_new VulkanSemaphore();
+				semaphore = trx_new VulkanFence(vk::SemaphoreType::eBinary);
 			}
 		}
 	}
@@ -138,8 +138,8 @@ namespace Trinex
 		auto images = vk::verify(VulkanAPI::device()->getSwapchainImagesKHR(m_swapchain));
 
 		m_backbuffers.resize(images.size());
-		initialize_semaphores(m_image_present_semaphores, images.size() + 1);
-		initialize_semaphores(m_render_finished_semaphores, images.size());
+		initialize_fences(m_image_present_fences, images.size() + 1);
+		initialize_fences(m_render_finished_fences, images.size());
 
 		m_size = {extent.width, extent.height};
 
@@ -207,13 +207,10 @@ namespace Trinex
 				recreate_swapchain();
 			}
 
-			m_sync_index = (m_sync_index + 1) % m_image_present_semaphores.size();
+			m_sync_index = (m_sync_index + 1) % m_image_present_fences.size();
 
-			VulkanSemaphore* semaphore = m_image_present_semaphores[m_sync_index];
-			trinex_assert(!semaphore->is_signaled());
-
-			vk::ResultValue<u32> result =
-			        VulkanAPI::device()->acquireNextImageKHR(m_swapchain, UINT64_MAX, semaphore->semaphore());
+			VulkanFence* fence          = m_image_present_fences[m_sync_index];
+			vk::ResultValue<u32> result = VulkanAPI::device()->acquireNextImageKHR(m_swapchain, UINT64_MAX, fence->semaphore());
 
 			if (result.result == vk::Result::eErrorOutOfDateKHR)
 			{
@@ -237,23 +234,22 @@ namespace Trinex
 				trinex_unreachable_msg("Failed to acquire image index");
 			}
 
-			semaphore->is_signaled(true);
 			m_image_index = result.value;
 			m_need_recreate |= result.result == vk::Result::eSuboptimalKHR;
 			return m_image_index;
 		} while (true);
 	}
 
-	VulkanSemaphore* VulkanSwapchain::acquire_semaphore()
+	VulkanFence* VulkanSwapchain::acquire_fence()
 	{
 		backbuffer();
-		return m_image_present_semaphores[m_sync_index].get();
+		return m_image_present_fences[m_sync_index].get();
 	}
 
-	VulkanSemaphore* VulkanSwapchain::present_semaphore()
+	VulkanFence* VulkanSwapchain::present_fence()
 	{
 		backbuffer();
-		return m_render_finished_semaphores[m_image_index].get();
+		return m_render_finished_fences[m_image_index].get();
 	}
 
 	void VulkanSwapchain::mode(RHIPresentMode mode)
@@ -286,13 +282,13 @@ namespace Trinex
 
 		auto image_index = static_cast<u32>(m_image_index);
 
-		VulkanSemaphore* semaphore = present_semaphore();
+		VulkanFence* fence = present_fence();
 		vk::PresentInfoKHR info({}, m_swapchain, image_index);
 
-		if (semaphore->is_signaled())
+		if (fence->is_signaled())
 		{
-			info.setWaitSemaphores(semaphore->semaphore());
-			semaphore->is_signaled(false);
+			info.setWaitSemaphores(fence->semaphore());
+			fence->is_signaled(false);
 		}
 
 		{

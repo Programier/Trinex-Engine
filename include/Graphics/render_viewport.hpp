@@ -10,7 +10,7 @@ namespace Trinex
 {
 	class Window;
 	class ViewportClient;
-	class RHISemaphore;
+	class RHIFence;
 	class RHITexture;
 	class RHIContext;
 	class RHISwapchain;
@@ -40,8 +40,8 @@ namespace Trinex
 
 		RenderViewport& client(Ref<ViewportClient> client);
 		RenderViewport& mode(RHIPresentMode mode);
-		RHISemaphore* acquire_semaphore();
-		RHISemaphore* present_semaphore();
+		RHIFence* acquire_fence();
+		RHIFence* present_fence();
 		RHITexture* backbuffer();
 
 		static inline const Array<Ref<RenderViewport>>& viewports() { return s_viewports; }

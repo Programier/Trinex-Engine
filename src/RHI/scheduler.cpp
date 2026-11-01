@@ -71,7 +71,7 @@ namespace Trinex
 		if (batches.capacity() == 0)
 			batches.reserve(4);
 
-		auto* context_pool = RHIContextPool::global_instance();
+		auto* context_pool = RHIContextPool::instance();
 		auto* rhi          = RHI::instance();
 
 		{

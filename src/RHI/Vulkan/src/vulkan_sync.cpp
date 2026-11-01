@@ -5,70 +5,58 @@
 
 namespace Trinex
 {
-	VulkanFence::VulkanFence(bool is_signaled)
+	VulkanFence::VulkanFence(vk::SemaphoreType type, u64 value) : m_type(type), m_signaled(false)
 	{
-		if (is_signaled)
-		{
-			m_fence  = vk::verify(VulkanAPI::device()->createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled)));
-			m_status = Status::Signaled;
-		}
-		else
-		{
-			m_fence  = vk::verify(VulkanAPI::device()->createFence({}));
-			m_status = Status::Unsignaled;
-		}
-	}
-
-	bool VulkanFence::update_status() const
-	{
-		if (VulkanAPI::device()->getFenceStatus(m_fence) == vk::Result::eSuccess)
-		{
-			m_status = Status::Signaled;
-			return true;
-		}
-		return false;
-	}
-
-	bool VulkanFence::is_signaled()
-	{
-		if (m_status == Status::Undefined)
-		{
-			return update_status();
-		}
-
-		return m_status == Status::Signaled;
-	}
-
-	void VulkanFence::reset()
-	{
-		vk::verify(VulkanAPI::device()->resetFences(m_fence));
-		m_status = Status::Unsignaled;
-	}
-
-	VulkanFence& VulkanFence::wait()
-	{
-		auto result = VulkanAPI::device()->waitForFences(m_fence, vk::True, UINT64_MAX);
-		(void) result;
-		return *this;
+		vk::SemaphoreTypeCreateInfo type_info = {type, value};
+		m_semaphore = vk::verify(VulkanAPI::device()->createSemaphore(vk::SemaphoreCreateInfo({}, type_info)));
 	}
 
 	VulkanFence::~VulkanFence()
 	{
-		DESTROY_CALL(destroyFence, m_fence);
-	}
-
-	VulkanSemaphore::VulkanSemaphore() : m_signaled(false)
-	{
-		m_semaphore = vk::verify(VulkanAPI::device()->createSemaphore(vk::SemaphoreCreateInfo()));
-	}
-
-	VulkanSemaphore::~VulkanSemaphore()
-	{
 		VulkanAPI::device()->destroySemaphore(m_semaphore);
 	}
 
-	RHIFence* VulkanAPI::create_fence()
+	u64 VulkanFence::value() const
 	{
-		return trx_new VulkanFence();
+		if (m_type == vk::SemaphoreType::eTimeline)
+			return vk::verify(VulkanAPI::device()->getSemaphoreCounterValue(m_semaphore));
+
+		trinex_error(Log::RHI, "Counter values are only supported for timeline semaphores");
+		return 0;
+	}
+
+	bool VulkanFence::wait(u64 value, u64 timeout)
+	{
+		if (m_type == vk::SemaphoreType::eTimeline)
+		{
+			vk::SemaphoreWaitInfo info;
+			info.setSemaphores(m_semaphore);
+			info.setValues(value);
+
+			vk::Result result = VulkanAPI::device()->waitSemaphores(info, timeout);
+			return result == vk::Result::eSuccess;
+		}
+
+		trinex_error(Log::RHI,
+		             "CPU wait is only supported for timeline semaphores; use an RHIFence for binary semaphore completion");
+		return false;
+	}
+
+	bool VulkanFence::signal(u64 value)
+	{
+		if (m_type == vk::SemaphoreType::eTimeline)
+		{
+			vk::SemaphoreSignalInfo info(m_semaphore, value);
+			auto result = VulkanAPI::device()->signalSemaphore(info);
+			return result == vk::Result::eSuccess;
+		}
+
+		trinex_error(Log::RHI, "CPU signal is only supported for timeline semaphores");
+		return false;
+	}
+
+	RHIFence* VulkanAPI::create_fence(u64 value)
+	{
+		return trx_new VulkanFence(vk::SemaphoreType::eTimeline, value);
 	}
 } // namespace Trinex

@@ -132,7 +132,7 @@ namespace Trinex
 
 			if (is_transient)
 			{
-				ctx = static_cast<VulkanContext*>(RHIContextPool::global_instance()->begin());
+				ctx = static_cast<VulkanContext*>(RHIContextPool::instance()->begin());
 			}
 
 			auto upload = RHIUploadAllocator::allocate(ctx, size, 16);
@@ -146,7 +146,7 @@ namespace Trinex
 
 			if (is_transient)
 			{
-				RHIContextPool::global_instance()->end(ctx);
+				RHIContextPool::instance()->end(ctx);
 			}
 		}
 		return *this;

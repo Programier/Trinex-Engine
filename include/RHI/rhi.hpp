@@ -58,7 +58,7 @@ namespace Trinex
 
 		virtual RHITimestamp* create_timestamp()                                                    = 0;
 		virtual RHIPipelineStatistics* create_pipeline_statistics()                                 = 0;
-		virtual RHIFence* create_fence()                                                            = 0;
+		virtual RHIFence* create_fence(u64 value = 0)                                               = 0;
 		virtual RHISampler* create_sampler(const RHISamplerDesc& desc)                              = 0;
 		virtual RHITexture* create_texture(const RHITextureDesc& desc)                              = 0;
 		virtual RHIShader* create_shader(Span<u8> source, Span<RHIShaderParameterInfo> parameters)  = 0;

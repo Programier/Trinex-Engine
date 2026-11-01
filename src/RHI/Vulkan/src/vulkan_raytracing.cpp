@@ -259,9 +259,9 @@ namespace Trinex
 
 		m_acceleration = vk::verify(VulkanAPI::device()->createAccelerationStructureKHR(info, nullptr));
 
-		RHIBuffer* scratch = RHIBufferPool::global_instance()->acquire(sizes.buildScratchSize, flags);
+		RHIBuffer* scratch = RHIBufferPool::instance()->acquire(sizes.buildScratchSize, flags);
 
-		VulkanContext* ctx = static_cast<VulkanContext*>(RHIContextPool::global_instance()->acquire());
+		VulkanContext* ctx = static_cast<VulkanContext*>(RHIContextPool::instance()->acquire());
 		ctx->begin().barrier(scratch, RHIAccess::AccelerationRead | RHIAccess::AccelerationWrite);
 
 		build_info.dstAccelerationStructure = m_acceleration;
@@ -270,13 +270,13 @@ namespace Trinex
 		VulkanCommandHandle* cmd = ctx->handle();
 		cmd->buildAccelerationStructuresKHR(build_info, build_ranges);
 
-		cmd = ctx->end();
+		cmd                      = ctx->end();
 		RHICommandHandle* handle = cmd;
 		//VulkanAPI::instance()->submit({.commands = handle});
 		cmd->release();
 
-		RHIContextPool::global_instance()->release(ctx);
-		RHIBufferPool::global_instance()->release(scratch);
+		RHIContextPool::instance()->release(ctx);
+		RHIBufferPool::instance()->release(scratch);
 	}
 
 	VulkanAccelerationStructure::~VulkanAccelerationStructure()
