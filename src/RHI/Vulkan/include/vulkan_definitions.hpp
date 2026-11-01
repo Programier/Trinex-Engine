@@ -3,7 +3,7 @@
 #define DESTROY_CALL(func, obj)                                                                                                  \
 	{                                                                                                                            \
 		if (obj)                                                                                                                 \
-			VulkanAPI::instance()->m_device.func(obj);                                                                           \
+			VulkanAPI::device()->func(obj);                                                                                      \
 		obj = nullptr;                                                                                                           \
 	}
 

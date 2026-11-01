@@ -89,7 +89,7 @@ namespace Trinex
 
 		if (flags & RHIBufferFlags::DeviceAddress)
 		{
-			m_address = VulkanAPI::instance()->m_device.getBufferAddressKHR(vk::BufferDeviceAddressInfo(m_buffer));
+			m_address = VulkanAPI::device()->getBufferAddressKHR(vk::BufferDeviceAddressInfo(m_buffer));
 		}
 
 		if (flags & RHIBufferFlags::ShaderResource)

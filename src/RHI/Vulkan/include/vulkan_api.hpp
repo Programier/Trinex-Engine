@@ -41,7 +41,6 @@ namespace Trinex
 	public:
 		vkb::Instance m_instance;
 		vk::PhysicalDevice m_physical_device;
-		vk::Device m_device;
 		VmaAllocator m_allocator = VK_NULL_HANDLE;
 
 		VulkanQueue* m_graphics_queue = nullptr;
@@ -55,6 +54,9 @@ namespace Trinex
 			RHIObject* object;
 			u64 frame;
 		};
+
+		static VulkanAPI* s_vulkan;
+		vk::Device m_device;
 
 		Atomic<u64> m_frame;
 
@@ -154,16 +156,18 @@ namespace Trinex
 		VulkanAPI& add_garbage(RHIObject* object);
 
 	public:
-		static VulkanAPI* instance();
+		static VulkanAPI* instance() { return s_vulkan; }
+		static vk::Device* device() { return &instance()->m_device; }
 
+	public:
 		VulkanAPI();
 
 		const char* name() const override { return "Vulkan"; }
 		const char* renderer() const override { return m_properties.deviceName.data(); }
 
 		VulkanAPI& update(float dt) override;
+		VulkanAPI& wait() override;
 		VulkanAPI& submit(const RHISubmitInfo& info) override;
-		VulkanAPI& idle() override;
 		RHIQueue* queue(RHIQueueFlags flags, RHISwapchain* swapchain = nullptr) override;
 
 		vk::PresentModeKHR present_mode_of(RHIPresentMode mode, vk::SurfaceKHR surface);
@@ -184,8 +188,6 @@ namespace Trinex
 
 		RHIAccelerationStructure* create_acceleration_structure(const RHIRayTracingAccelerationInputs* inputs) override;
 		const u8* translate_ray_tracing_instances(const RHIRayTracingGeometryInstance* instances, usize& size) override;
-
-		VulkanAPI& present(RHISwapchain* swapchain) override;
 
 		~VulkanAPI();
 	};

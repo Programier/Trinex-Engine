@@ -262,7 +262,7 @@ namespace Trinex
 		                                             &m_rasterizer, &multisampling, &depth_stencil, &color_blend, &dynamic_state,
 		                                             layout()->layout(), {}, 0, {}, {}, &rendering_info);
 
-		auto pipeline_result = VulkanAPI::instance()->m_device.createGraphicsPipeline({}, pipeline_info);
+		auto pipeline_result = VulkanAPI::device()->createGraphicsPipeline({}, pipeline_info);
 		trinex_assert(pipeline_result.result == vk::Result::eSuccess);
 
 		pipeline = pipeline_result.value;
@@ -414,7 +414,7 @@ namespace Trinex
 		                                             &multisampling, &depth_stencil, &color_blend, &dynamic_state,
 		                                             layout()->layout(), {}, 0, {}, {}, &rendering_info);
 
-		auto pipeline_result = VulkanAPI::instance()->m_device.createGraphicsPipeline({}, pipeline_info);
+		auto pipeline_result = VulkanAPI::device()->createGraphicsPipeline({}, pipeline_info);
 		trinex_assert(pipeline_result.result == vk::Result::eSuccess);
 
 		pipeline = pipeline_result.value;
@@ -460,7 +460,7 @@ namespace Trinex
 		create_layout(desc.parameters, desc.parameters_count, vk::ShaderStageFlagBits::eCompute);
 		vk::ComputePipelineCreateInfo info({}, stage, layout()->layout());
 
-		auto result = VulkanAPI::instance()->m_device.createComputePipeline({}, info);
+		auto result = VulkanAPI::device()->createComputePipeline({}, info);
 		if (result.result != vk::Result::eSuccess)
 		{
 			trinex_error(Log::RHI, "Failed to create pipeline");
@@ -573,7 +573,7 @@ namespace Trinex
 		create_layout(desc.parameters, desc.parameters_count, state.stages);
 		state.pipeline_info.layout = layout()->layout();
 
-		m_pipeline = VulkanAPI::instance()->m_device.createRayTracingPipelineKHR({}, {}, state.pipeline_info, nullptr).value;
+		m_pipeline = VulkanAPI::device()->createRayTracingPipelineKHR({}, {}, state.pipeline_info, nullptr).value;
 
 		mark.reset();
 
@@ -586,7 +586,7 @@ namespace Trinex
 			const usize storage_size = desc.groups_count * handle_size_aligned;
 			u8* storage              = StackByteAllocator::allocate(desc.groups_count * handle_size);
 
-			auto result = VulkanAPI::instance()->m_device.getRayTracingShaderGroupHandlesKHR(m_pipeline, 0, desc.groups_count,
+			auto result = VulkanAPI::device()->getRayTracingShaderGroupHandlesKHR(m_pipeline, 0, desc.groups_count,
 			                                                                                 storage_size, storage);
 			trinex_assert_msg(result == vk::Result::eSuccess, "Failed to create shader binding table!");
 

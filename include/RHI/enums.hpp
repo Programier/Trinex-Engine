@@ -998,11 +998,9 @@ namespace Trinex
 	{
 		enum Enum : u8
 		{
-			Undefined = 0,
-			Secondary = 1 << 0,
-			Graphics  = 1 << 2,
-			Compute   = 1 << 3,
-			Transfer  = 1 << 4,
+			Undefined     = 0,
+			Secondary     = 1 << 0,
+			OneTimeSubmit = 1 << 1,
 		};
 
 		trinex_bitfield_enum_struct(RHIContextFlags, u8);

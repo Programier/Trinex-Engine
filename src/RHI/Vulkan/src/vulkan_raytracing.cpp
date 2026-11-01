@@ -243,7 +243,7 @@ namespace Trinex
 		const u32 primitives = primitives_count(inputs, build_ranges);
 
 		constexpr auto build_type = vk::AccelerationStructureBuildTypeKHR::eDevice;
-		auto sizes = VulkanAPI::instance()->m_device.getAccelerationStructureBuildSizesKHR(build_type, build_info, primitives);
+		auto sizes = VulkanAPI::device()->getAccelerationStructureBuildSizesKHR(build_type, build_info, primitives);
 
 		constexpr auto flags = RHIBufferFlags::AccelerationStorage | RHIBufferFlags::ByteAddressBuffer
 		                       | RHIBufferFlags::ShaderResource | RHIBufferFlags::UnorderedAccess | RHIBufferFlags::DeviceAddress;
@@ -257,7 +257,7 @@ namespace Trinex
 		info.type   = build_info.type;
 		info.offset = 0;
 
-		m_acceleration = vk::check_result(VulkanAPI::instance()->m_device.createAccelerationStructureKHR(info, nullptr));
+		m_acceleration = vk::verify(VulkanAPI::device()->createAccelerationStructureKHR(info, nullptr));
 
 		RHIBuffer* scratch = RHIBufferPool::global_instance()->acquire(sizes.buildScratchSize, flags);
 
@@ -280,7 +280,7 @@ namespace Trinex
 
 	VulkanAccelerationStructure::~VulkanAccelerationStructure()
 	{
-		VulkanAPI::instance()->m_device.destroyAccelerationStructureKHR(m_acceleration, nullptr);
+		VulkanAPI::device()->destroyAccelerationStructureKHR(m_acceleration, nullptr);
 		trx_delete m_acceleration_buffer;
 	}
 

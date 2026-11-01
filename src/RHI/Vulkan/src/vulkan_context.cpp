@@ -394,7 +394,7 @@ namespace Trinex
 		vk::CommandBufferAllocateInfo alloc_info(pool, level, 1);
 
 		static_cast<vk::CommandBuffer&>(*this) =
-		        vk::check_result(VulkanAPI::instance()->m_device.allocateCommandBuffers(alloc_info)).front();
+		        vk::verify(VulkanAPI::device()->allocateCommandBuffers(alloc_info)).front();
 	}
 
 	VulkanCommandHandle& VulkanCommandHandle::release_transient_resources()
@@ -416,7 +416,7 @@ namespace Trinex
 			if (m_fence->is_signaled())
 			{
 				m_state = State::Unused;
-				vk::check_result(reset());
+				vk::verify(reset());
 				m_fence->reset();
 
 				for (auto& page : m_uniform_buffers)
@@ -435,7 +435,7 @@ namespace Trinex
 	{
 		trinex_assert_msg(is_unused(), "Command Buffer must be unused");
 
-		vk::check_result(vk::CommandBuffer::begin(info));
+		vk::verify(vk::CommandBuffer::begin(info));
 		m_state = State::Active;
 		return *this;
 	}
@@ -443,7 +443,7 @@ namespace Trinex
 	VulkanCommandHandle& VulkanCommandHandle::end()
 	{
 		trinex_assert_msg(is_active(), "Command Buffer must be active!");
-		vk::check_result(vk::CommandBuffer::end());
+		vk::verify(vk::CommandBuffer::end());
 		m_state = State::Pending;
 		return *this;
 	}
@@ -490,7 +490,7 @@ namespace Trinex
 		wait();
 
 		auto pool = m_manager->command_pool();
-		VulkanAPI::instance()->m_device.freeCommandBuffers(pool, *this);
+		VulkanAPI::device()->freeCommandBuffers(pool, *this);
 
 		for (auto& page : m_uniform_buffers)
 		{
@@ -508,7 +508,7 @@ namespace Trinex
 
 	VulkanCommandBufferManager::VulkanCommandBufferManager()
 	{
-		m_pool = vk::check_result(VulkanAPI::instance()->m_device.createCommandPool(vk::CommandPoolCreateInfo(
+		m_pool = vk::verify(VulkanAPI::device()->createCommandPool(vk::CommandPoolCreateInfo(
 		        vk::CommandPoolCreateFlagBits::eResetCommandBuffer, VulkanAPI::instance()->m_graphics_queue->index())));
 	}
 
@@ -524,7 +524,7 @@ namespace Trinex
 			trx_delete handle;
 		}
 
-		VulkanAPI::instance()->m_device.destroyCommandPool(m_pool);
+		VulkanAPI::device()->destroyCommandPool(m_pool);
 	}
 
 	VulkanCommandBufferManager* VulkanCommandBufferManager::instance()

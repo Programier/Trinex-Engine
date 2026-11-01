@@ -12,8 +12,8 @@ namespace Trinex
 		const char* renderer() const override { return "None"; }
 
 		NoneApi& update(float dt) override;
+		NoneApi& wait() override;
 		NoneApi& submit(const RHISubmitInfo& info) override;
-		NoneApi& idle() override;
 		RHIQueue* queue(RHIQueueFlags flags, RHISwapchain* swapchain = nullptr) override;
 
 		RHITimestamp* create_timestamp() override;
@@ -32,7 +32,5 @@ namespace Trinex
 
 		RHIAccelerationStructure* create_acceleration_structure(const RHIRayTracingAccelerationInputs* inputs) override;
 		const u8* translate_ray_tracing_instances(const RHIRayTracingGeometryInstance* instances, usize& size) override;
-
-		NoneApi& present(RHISwapchain* swapchain) override;
 	};
 } // namespace Trinex

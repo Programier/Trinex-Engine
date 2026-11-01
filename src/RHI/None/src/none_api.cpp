@@ -118,12 +118,12 @@ namespace Trinex
 		return *this;
 	}
 
-	NoneApi& NoneApi::submit(const RHISubmitInfo& info)
+	NoneApi& NoneApi::wait()
 	{
 		return *this;
 	}
 
-	NoneApi& NoneApi::idle()
+	NoneApi& NoneApi::submit(const RHISubmitInfo& info)
 	{
 		return *this;
 	}
@@ -207,10 +207,5 @@ namespace Trinex
 	{
 		size *= sizeof(RHIRayTracingGeometryInstance);
 		return reinterpret_cast<const u8*>(instances);
-	}
-
-	NoneApi& NoneApi::present(RHISwapchain* swapchain)
-	{
-		return *this;
 	}
 } // namespace Trinex

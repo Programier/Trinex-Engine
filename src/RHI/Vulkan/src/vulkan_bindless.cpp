@@ -38,8 +38,8 @@ namespace Trinex
 
 	VulkanDescriptorHeap::~VulkanDescriptorHeap()
 	{
-		VulkanAPI::instance()->m_device.destroyDescriptorPool(m_descriptor_pool);
-		VulkanAPI::instance()->m_device.destroyDescriptorSetLayout(m_descriptor_set_layout);
+		VulkanAPI::instance()->device()->destroyDescriptorPool(m_descriptor_pool);
+		VulkanAPI::instance()->device()->destroyDescriptorSetLayout(m_descriptor_set_layout);
 	}
 
 	VulkanDescriptorHeap& VulkanDescriptorHeap::initialize(HeapType heap, vk::DescriptorType type, usize count)
@@ -64,7 +64,7 @@ namespace Trinex
 
 			vk::DescriptorSetLayoutBindingFlagsCreateInfoEXT binding_info(HeapsCount, binding_flags_array);
 			vk::DescriptorSetLayoutCreateInfo layout_info(layout_flags, HeapsCount, m_bindings, &binding_info);
-			m_descriptor_set_layout = vk::check_result(VulkanAPI::instance()->m_device.createDescriptorSetLayout(layout_info));
+			m_descriptor_set_layout = vk::verify(VulkanAPI::instance()->device()->createDescriptorSetLayout(layout_info));
 		}
 
 		// Create descriptor pool
@@ -83,13 +83,13 @@ namespace Trinex
 			}
 
 			vk::DescriptorPoolCreateInfo info(flags, 1, HeapsCount, pool_size);
-			m_descriptor_pool = vk::check_result(VulkanAPI::instance()->m_device.createDescriptorPool(info));
+			m_descriptor_pool = vk::verify(VulkanAPI::device()->createDescriptorPool(info));
 		}
 
 		// Create descriptor set
 		{
 			vk::DescriptorSetAllocateInfo info(m_descriptor_pool, 1, &m_descriptor_set_layout);
-			m_descriptor_set = vk::check_result(VulkanAPI::instance()->m_device.allocateDescriptorSets(info))[0];
+			m_descriptor_set = vk::verify(VulkanAPI::device()->allocateDescriptorSets(info))[0];
 		}
 		return *this;
 	}
@@ -119,7 +119,7 @@ namespace Trinex
 
 		vk::DescriptorImageInfo image_info(sampler, {}, vk::ImageLayout::eUndefined);
 		vk::WriteDescriptorSet write(m_descriptor_set, Sampler, descriptor.as<u32>(), vk::DescriptorType::eSampler, image_info);
-		VulkanAPI::instance()->m_device.updateDescriptorSets(write, {});
+		VulkanAPI::device()->updateDescriptorSets(write, {});
 		return descriptor;
 	}
 
@@ -132,14 +132,14 @@ namespace Trinex
 			vk::DescriptorImageInfo image_info({}, view, vk::ImageLayout::eShaderReadOnlyOptimal);
 			vk::WriteDescriptorSet write(m_descriptor_set, heap, descriptor.as<u32>(), vk::DescriptorType::eSampledImage,
 			                             image_info);
-			VulkanAPI::instance()->m_device.updateDescriptorSets(write, {});
+			VulkanAPI::device()->updateDescriptorSets(write, {});
 		}
 		else if (heap == StorageImage)
 		{
 			vk::DescriptorImageInfo image_info({}, view, vk::ImageLayout::eGeneral);
 			vk::WriteDescriptorSet write(m_descriptor_set, heap, descriptor.as<u32>(), vk::DescriptorType::eStorageImage,
 			                             image_info);
-			VulkanAPI::instance()->m_device.updateDescriptorSets(write, {});
+			VulkanAPI::device()->updateDescriptorSets(write, {});
 		}
 		else
 		{
@@ -156,7 +156,7 @@ namespace Trinex
 
 		vk::DescriptorBufferInfo buffer_info(buffer->buffer(), 0, buffer->size());
 		vk::WriteDescriptorSet write(m_descriptor_set, heap, descriptor.as<u32>(), descriptor_type, {}, buffer_info, {});
-		VulkanAPI::instance()->m_device.updateDescriptorSets(write, {});
+		VulkanAPI::device()->updateDescriptorSets(write, {});
 
 		return descriptor;
 	}

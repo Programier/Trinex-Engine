@@ -6,7 +6,7 @@ namespace Trinex
 	VulkanShader::VulkanShader(Span<u8> source, Span<RHIShaderParameterInfo> parameters)
 	{
 		vk::ShaderModuleCreateInfo info(vk::ShaderModuleCreateFlags(), source.size(), reinterpret_cast<u32*>(source.data()));
-		m_shader = vk::check_result(VulkanAPI::instance()->m_device.createShaderModule(info));
+		m_shader = vk::verify(VulkanAPI::device()->createShaderModule(info));
 	}
 
 	VulkanShader::~VulkanShader(){DESTROY_CALL(destroyShaderModule, m_shader)}

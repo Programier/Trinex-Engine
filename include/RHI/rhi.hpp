@@ -53,8 +53,8 @@ namespace Trinex
 		virtual const char* renderer() const = 0;
 
 		virtual RHI& update(float dt)                                                   = 0;
+		virtual RHI& wait()                                                             = 0;
 		virtual RHI& submit(const RHISubmitInfo& info)                                  = 0;
-		virtual RHI& idle()                                                             = 0;
 		virtual RHIQueue* queue(RHIQueueFlags flags, RHISwapchain* swapchain = nullptr) = 0;
 
 		virtual RHITimestamp* create_timestamp()                                                    = 0;
@@ -74,7 +74,16 @@ namespace Trinex
 		// Raytracing
 		virtual RHIAccelerationStructure* create_acceleration_structure(const RHIRayTracingAccelerationInputs* inputs) = 0;
 		virtual const u8* translate_ray_tracing_instances(const RHIRayTracingGeometryInstance* instances, usize& size) = 0;
+	};
 
-		virtual RHI& present(RHISwapchain* swapchain) = 0;
+	template<typename T>
+	class RHIRegistry : public RHI::Registry
+	{
+	private:
+		static RHI* create_instance() { return trx_new T(); }
+		static void destroy_instance(RHI* api) { trx_delete static_cast<T*>(api); }
+
+	public:
+		RHIRegistry(RHIBackend backend) : RHI::Registry(backend, create_instance, destroy_instance) {}
 	};
 } // namespace Trinex

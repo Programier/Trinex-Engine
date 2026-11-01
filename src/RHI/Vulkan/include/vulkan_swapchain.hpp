@@ -9,24 +9,18 @@
 
 namespace Trinex
 {
-	class VulkanCommandHandle;
+	class VulkanQueue;
 	class VulkanTexture;
 
 	class VulkanSwapchain final : public RHISwapchain
 	{
 	private:
-		enum Status : i32
-		{
-			Success     = 0,
-			OutOfDate   = -1,
-			SurfaceLost = -2,
-		};
-
 		Array<VulkanTexture*> m_backbuffers;
 		Array<RHIResourcePtr<VulkanSemaphore>> m_image_present_semaphores;
 		Array<RHIResourcePtr<VulkanSemaphore>> m_render_finished_semaphores;
 
 		vk::SurfaceKHR m_surface;
+		Window* m_window;
 		vk::PresentModeKHR m_present_mode;
 		vk::SwapchainKHR m_swapchain;
 		i32 m_sync_index  = 0;
@@ -38,20 +32,17 @@ namespace Trinex
 		VulkanSwapchain& create_swapchain(vk::SwapchainKHR* old = nullptr);
 		VulkanSwapchain& release_swapchain();
 		VulkanSwapchain& recreate_swapchain();
+		VulkanSwapchain& recreate_surface();
 
 	public:
 		VulkanSwapchain(Window* window, RHIPresentMode mode, u32 images);
 		~VulkanSwapchain();
 
 		i32 acquire_image_index();
-		i32 do_present();
-
-		i32 try_present(i32 (VulkanSwapchain::*callback)(), bool skip_on_out_of_date);
-
 		VulkanSemaphore* acquire_semaphore() override;
 		VulkanSemaphore* present_semaphore() override;
 
-		void present();
+		vk::Result present(vk::Queue* queue);
 		void resize(Vector2u size) override;
 		void mode(RHIPresentMode mode) override;
 		RHITexture* backbuffer() override;

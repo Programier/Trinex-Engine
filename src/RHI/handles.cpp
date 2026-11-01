@@ -105,7 +105,7 @@ namespace Trinex
 				ctx->copy(buffer, this, {.size = buffer_size});
 			}
 			RHIContextPool::global_instance()->end(ctx);
-			RHI::instance()->idle();
+			RHI::instance()->wait();
 
 			const u8* data    = buffer->map(RHIMappingAccess::Read);
 			const bool status = ar.write(data, buffer_size);

@@ -1,6 +1,5 @@
 #include <Core/memory.hpp>
 #include <Core/profiler.hpp>
-#include <Core/threading.hpp>
 #include <Core/window.hpp>
 #include <Graphics/render_pools.hpp>
 #include <Graphics/render_surface.hpp>
@@ -47,7 +46,7 @@ namespace Trinex
 	}
 
 	VulkanSwapchain::VulkanSwapchain(Window* window, RHIPresentMode mode, u32 images)
-	    : m_surface(VulkanAPI::instance()->create_surface(window))
+	    : m_surface(VulkanAPI::instance()->create_surface(window)), m_window(window)
 	{
 		m_present_mode = VulkanAPI::instance()->present_mode_of(mode, m_surface);
 		create_swapchain();
@@ -64,12 +63,12 @@ namespace Trinex
 		trinex_info(Log::RHI, "Creating new swapchain");
 		m_need_recreate = false;
 
-		vkb::SwapchainBuilder builder(VulkanAPI::instance()->m_physical_device, VulkanAPI::instance()->m_device, m_surface,
+		vkb::SwapchainBuilder builder(VulkanAPI::instance()->m_physical_device, *VulkanAPI::device(), m_surface,
 		                              VulkanAPI::instance()->m_graphics_queue->index(),
 		                              VulkanAPI::instance()->m_graphics_queue->index());
 
 		builder.set_desired_present_mode(static_cast<VkPresentModeKHR>(m_present_mode));
-		auto capabilities = vk::check_result(VulkanAPI::instance()->m_physical_device.getSurfaceCapabilitiesKHR(m_surface));
+		auto capabilities = vk::verify(VulkanAPI::instance()->m_physical_device.getSurfaceCapabilitiesKHR(m_surface));
 
 		builder.add_image_usage_flags(
 		        static_cast<VkImageUsageFlags>(vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst));
@@ -115,7 +114,7 @@ namespace Trinex
 
 	VulkanSwapchain& VulkanSwapchain::release_swapchain()
 	{
-		VulkanAPI::instance()->idle();
+		VulkanAPI::instance()->wait();
 
 		for (VulkanTexture* backbuffer : m_backbuffers)
 		{
@@ -125,8 +124,9 @@ namespace Trinex
 		m_backbuffers.clear();
 
 		if (m_swapchain)
-			VulkanAPI::instance()->m_device.destroySwapchainKHR(m_swapchain);
+			VulkanAPI::device()->destroySwapchainKHR(m_swapchain);
 
+		m_swapchain   = VK_NULL_HANDLE;
 		m_sync_index  = 0;
 		m_image_index = -1;
 		return *this;
@@ -140,115 +140,69 @@ namespace Trinex
 		release_swapchain();
 		create_swapchain(&swapchain);
 
-		VulkanAPI::instance()->m_device.destroySwapchainKHR(swapchain);
+		VulkanAPI::device()->destroySwapchainKHR(swapchain);
 
 		return *this;
 	}
 
+	VulkanSwapchain& VulkanSwapchain::recreate_surface()
+	{
+		release_swapchain();
+		vk::Instance(VulkanAPI::instance()->m_instance.instance).destroySurfaceKHR(m_surface);
+		m_surface = VulkanAPI::instance()->create_surface(m_window);
+		return create_swapchain();
+	}
+
 	i32 VulkanSwapchain::acquire_image_index()
 	{
+		if (m_image_index >= 0)
+			return m_image_index;
+
 		trinex_profile_cpu_n("VulkanSwapchain::acquire_image_index");
+		trinex_assert(m_image_index == -1);
 
-		const auto prev_sync_index = m_sync_index;
-		m_sync_index               = (m_sync_index + 1) % m_image_present_semaphores.size();
-
-		VulkanSemaphore* semaphore = m_image_present_semaphores[m_sync_index];
-		semaphore->is_signaled(true);
-
-		vk::ResultValue<u32> result =
-		        VulkanAPI::instance()->m_device.acquireNextImageKHR(m_swapchain, UINT64_MAX, semaphore->semaphore());
-
-		if (result.result == vk::Result::eErrorOutOfDateKHR)
+		do
 		{
-			m_sync_index = prev_sync_index;
-			return OutOfDate;
-		}
-		if (result.result == vk::Result::eErrorSurfaceLostKHR)
-		{
-			m_sync_index = prev_sync_index;
-			return SurfaceLost;
-		}
-
-		if (result.result == vk::Result::eErrorValidationFailedEXT)
-		{
-			trinex_error(Log::RHI, "vkAcquireNextImageKHR failed with validation error");
-		}
-		else if (result.result != vk::Result::eSuccess && result.result != vk::Result::eSuboptimalKHR)
-		{
-			trinex_unreachable_msg("Failed to acquire image index");
-		}
-
-		m_image_index = result.value;
-		return m_image_index;
-	}
-
-	i32 VulkanSwapchain::do_present()
-	{
-		if (m_image_index == -1)
-			return Status::Success;
-
-		auto image_index = static_cast<u32>(m_image_index);
-
-		VulkanSemaphore* semaphore = present_semaphore();
-		vk::PresentInfoKHR info({}, m_swapchain, image_index);
-
-		if (semaphore->is_signaled())
-		{
-			info.setWaitSemaphores(semaphore->semaphore());
-			semaphore->is_signaled(false);
-		}
-
-		{
-			trinex_profile_cpu_n("VulkanSwapchain::Present KHR");
-			vk::Result result = VulkanAPI::instance()->m_graphics_queue->present(info);
-			m_image_index     = -1;
-
-			if (result == vk::Result::eErrorOutOfDateKHR)
+			if (m_need_recreate)
 			{
-				return OutOfDate;
-			}
-			if (result == vk::Result::eErrorSurfaceLostKHR)
-			{
-				return SurfaceLost;
+				recreate_swapchain();
 			}
 
-			return Status::Success;
-		}
-	}
+			m_sync_index = (m_sync_index + 1) % m_image_present_semaphores.size();
 
-	i32 VulkanSwapchain::try_present(i32 (VulkanSwapchain::*callback)(), bool skip_on_out_of_date)
-	{
-		if (m_need_recreate)
-		{
-			recreate_swapchain();
-			return try_present(callback, skip_on_out_of_date);
-		}
+			VulkanSemaphore* semaphore = m_image_present_semaphores[m_sync_index];
+			trinex_assert(!semaphore->is_signaled());
 
-		i32 status = (this->*callback)();
+			vk::ResultValue<u32> result =
+			        VulkanAPI::device()->acquireNextImageKHR(m_swapchain, UINT64_MAX, semaphore->semaphore());
 
-		while (status < 0)
-		{
-			if (status == Status::OutOfDate)
+			if (result.result == vk::Result::eErrorOutOfDateKHR)
 			{
-				if (skip_on_out_of_date)
-					return status;
+				recreate_swapchain();
+				continue;
 			}
-			else if (status == Status::SurfaceLost)
+
+			if (result.result == vk::Result::eErrorSurfaceLostKHR)
 			{
 				trinex_warning(Log::RHI, "Swapchain surface lost");
+				recreate_surface();
+				continue;
 			}
-			else
+
+			if (result.result == vk::Result::eErrorValidationFailedEXT)
 			{
-				trinex_unreachable_msg("Failed to present swapchain");
+				trinex_error(Log::RHI, "vkAcquireNextImageKHR failed with validation error");
+			}
+			else if (result.result != vk::Result::eSuccess && result.result != vk::Result::eSuboptimalKHR)
+			{
+				trinex_unreachable_msg("Failed to acquire image index");
 			}
 
-			Thread::static_sleep_for(0.1);
-			recreate_swapchain();
-
-			status = (this->*callback)();
-		}
-
-		return status;
+			semaphore->is_signaled(true);
+			m_image_index = result.value;
+			m_need_recreate |= result.result == vk::Result::eSuboptimalKHR;
+			return m_image_index;
+		} while (true);
 	}
 
 	VulkanSemaphore* VulkanSwapchain::acquire_semaphore()
@@ -281,22 +235,50 @@ namespace Trinex
 
 	RHITexture* VulkanSwapchain::backbuffer()
 	{
-		if (m_image_index == -1)
-		{
-			trinex_profile_cpu_n("VulkanSwapchain::backbuffer");
-
-			if (try_present(&VulkanSwapchain::acquire_image_index, false) < 0)
-			{
-				trinex_unreachable_msg("Failed to acquire image index");
-			}
-		}
-
-		return m_backbuffers[m_image_index];
+		const i32 index = acquire_image_index();
+		trinex_verify_msg(index >= 0, "Failed to acquire image index");
+		return m_backbuffers[index];
 	}
 
-	void VulkanSwapchain::present()
+	vk::Result VulkanSwapchain::present(vk::Queue* queue)
 	{
-		try_present(&VulkanSwapchain::do_present, true);
+		if (m_image_index == -1)
+			return vk::Result::eSuccess;
+
+		auto image_index = static_cast<u32>(m_image_index);
+
+		VulkanSemaphore* semaphore = present_semaphore();
+		vk::PresentInfoKHR info({}, m_swapchain, image_index);
+
+		if (semaphore->is_signaled())
+		{
+			info.setWaitSemaphores(semaphore->semaphore());
+			semaphore->is_signaled(false);
+		}
+
+		{
+			trinex_profile_cpu_n("VulkanSwapchain::Present KHR");
+			vk::Result result = queue->presentKHR(info);
+			m_image_index     = -1;
+
+			if (result == vk::Result::eErrorOutOfDateKHR)
+			{
+				m_need_recreate = true;
+				return result;
+			}
+
+			if (result == vk::Result::eErrorSurfaceLostKHR)
+			{
+				return result;
+			}
+
+			if (result == vk::Result::eSuboptimalKHR)
+				m_need_recreate = true;
+			else if (result != vk::Result::eSuccess)
+				trinex_unreachable_msg("Failed to present swapchain");
+
+			return vk::Result::eSuccess;
+		}
 	}
 
 	void VulkanSwapchain::destroy()
@@ -307,11 +289,5 @@ namespace Trinex
 	RHISwapchain* VulkanAPI::create_swapchain(Window* window, RHIPresentMode mode, u32 images)
 	{
 		return trx_new VulkanSwapchain(window, mode, images);
-	}
-
-	VulkanAPI& VulkanAPI::present(RHISwapchain* swapchain)
-	{
-		static_cast<VulkanSwapchain*>(swapchain)->present();
-		return *this;
 	}
 } // namespace Trinex

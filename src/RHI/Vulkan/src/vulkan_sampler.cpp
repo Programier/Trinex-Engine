@@ -53,7 +53,7 @@ namespace Trinex
 
 		sampler_info.borderColor = VulkanEnums::border_color_of(desc.border_color);
 
-		m_sampler    = vk::check_result(VulkanAPI::instance()->m_device.createSampler(sampler_info));
+		m_sampler    = vk::verify(VulkanAPI::device()->createSampler(sampler_info));
 		m_descriptor = VulkanAPI::instance()->descriptor_heap()->allocate(m_sampler);
 		return *this;
 	}

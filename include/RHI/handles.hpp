@@ -154,7 +154,6 @@ namespace Trinex
 		virtual RHIQueueFlags flags() const            = 0;
 		virtual void present(RHISwapchain* swapchain)  = 0;
 		virtual void submit(const RHISubmitInfo& info) = 0;
-		virtual void wait(RHISemaphore* semaphore)     = 0;
 		virtual void wait()                            = 0;
 	};
 } // namespace Trinex

@@ -26,18 +26,8 @@ VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
 namespace Trinex
 {
-	static RHI* create_vulkan_api()
-	{
-		return trx_new VulkanAPI();
-	}
-
-	static void destroy_vulkan_api(RHI* api)
-	{
-		trx_delete static_cast<VulkanAPI*>(api);
-	}
-
-	static VulkanAPI* s_instance = nullptr;
-	static RHI::Registry s_vulkan_api_registry(RHIBackend::Vulkan, create_vulkan_api, destroy_vulkan_api);
+	static RHIRegistry<VulkanAPI> s_vulkan_api_registry(RHIBackend::Vulkan);
+	VulkanAPI* VulkanAPI::s_vulkan = nullptr;
 
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
 	                                                     VkDebugUtilsMessageTypeFlagsEXT message_type,
@@ -188,14 +178,9 @@ namespace Trinex
 		return new_features;
 	}
 
-	VulkanAPI* VulkanAPI::instance()
-	{
-		return s_instance;
-	}
-
 	VulkanAPI::VulkanAPI()
 	{
-		s_instance = this;
+		s_vulkan   = this;
 		auto array = make_extensions_array();
 		m_device_extensions.assign(array.begin(), array.end());
 
@@ -278,13 +263,13 @@ namespace Trinex
 		{
 			vk::SemaphoreTypeCreateInfo type_info(vk::SemaphoreType::eTimeline, 0);
 			vk::SemaphoreCreateInfo create_info({}, &type_info);
-			m_timeline = vk::check_result(m_device.createSemaphore(create_info));
+			m_timeline = vk::verify(m_device.createSemaphore(create_info));
 		}
 	}
 
 	VulkanAPI::~VulkanAPI()
 	{
-		idle();
+		m_graphics_queue->wait();
 
 		for (VulkanThreadLocal* local : m_thread_locals)
 		{
@@ -320,7 +305,7 @@ namespace Trinex
 
 	vk::PresentModeKHR VulkanAPI::present_mode_of(RHIPresentMode mode, vk::SurfaceKHR surface)
 	{
-		auto modes = vk::check_result(m_physical_device.getSurfacePresentModesKHR(surface));
+		auto modes = vk::verify(m_physical_device.getSurfacePresentModesKHR(surface));
 		trinex_verify_msg(!modes.empty(), "Failed to find present mode!");
 
 		vk::PresentModeKHR required = VulkanEnums::present_mode_of(mode);
@@ -336,7 +321,7 @@ namespace Trinex
 
 	vk::Extent2D VulkanAPI::surface_size(const vk::SurfaceKHR& surface) const
 	{
-		return vk::check_result(m_physical_device.getSurfaceCapabilitiesKHR(surface)).currentExtent;
+		return vk::verify(m_physical_device.getSurfaceCapabilitiesKHR(surface)).currentExtent;
 	}
 
 	bool VulkanAPI::has_stencil_component(vk::Format format)
@@ -354,7 +339,7 @@ namespace Trinex
 	VulkanAPI& VulkanAPI::update(float dt)
 	{
 		const u64 current_frame = ++m_frame;
-		const u64 gpu_frame     = vk::check_result(m_device.getSemaphoreCounterValueKHR(m_timeline));
+		const u64 gpu_frame     = vk::verify(m_device.getSemaphoreCounterValueKHR(m_timeline));
 
 		while (!m_garbage.empty() && m_garbage.front().frame <= gpu_frame)
 		{
@@ -371,6 +356,12 @@ namespace Trinex
 
 		m_graphics_queue->submit(submit_info);
 
+		return *this;
+	}
+
+	VulkanAPI& VulkanAPI::wait()
+	{
+		vk::verify(m_device.waitIdle());
 		return *this;
 	}
 
@@ -408,15 +399,9 @@ namespace Trinex
 		return *this;
 	}
 
-	VulkanAPI& VulkanAPI::idle()
-	{
-		m_graphics_queue->idle();
-		return *this;
-	}
-
 	RHIQueue* VulkanAPI::queue(RHIQueueFlags flags, RHISwapchain* swapchain)
 	{
-		return nullptr;
+		return m_graphics_queue;
 	}
 
 	VulkanAPI& VulkanAPI::add_garbage(RHIObject* object)

@@ -11,7 +11,6 @@
 
 #include <vulkan/vulkan.hpp>
 
-
 namespace VULKAN_HPP_NAMESPACE
 {
 #if TRINEX_ENABLE_ASSERTS
@@ -59,9 +58,9 @@ namespace VULKAN_HPP_NAMESPACE
 			case Result::eErrorVideoStdVersionNotSupportedKHR: return "ErrorVideoStdVersionNotSupportedKHR";
 			case Result::eErrorInvalidDrmFormatModifierPlaneLayoutEXT: return "ErrorInvalidDrmFormatModifierPlaneLayoutEXT";
 			case Result::eErrorPresentTimingQueueFullEXT: return "ErrorPresentTimingQueueFullEXT";
-#if defined(VK_USE_PLATFORM_WIN32_KHR)
+	#if defined(VK_USE_PLATFORM_WIN32_KHR)
 			case Result::eErrorFullScreenExclusiveModeLostEXT: return "ErrorFullScreenExclusiveModeLostEXT";
-#endif
+	#endif
 			case Result::eThreadIdleKHR: return "ThreadIdleKHR";
 			case Result::eThreadDoneKHR: return "ThreadDoneKHR";
 			case Result::eOperationDeferredKHR: return "OperationDeferredKHR";
@@ -77,22 +76,22 @@ namespace VULKAN_HPP_NAMESPACE
 
 #endif
 
-	inline void check_result(vk::Result result)
+	inline void verify(vk::Result result)
 	{
 		trinex_assert_msg(result == vk::Result::eSuccess, to_c_string(result));
 	}
 
 	template<typename T>
-	inline T& check_result(vk::ResultValue<T>& result)
+	inline T& verify(vk::ResultValue<T>& result)
 	{
-		check_result(result.result);
+		verify(result.result);
 		return result.value;
 	}
 
 	template<typename T>
-	inline T check_result(vk::ResultValue<T>&& result)
+	inline T verify(vk::ResultValue<T>&& result)
 	{
-		check_result(result.result);
+		verify(result.result);
 		return std::move(result.value);
 	}
-}// namespace VULKAN_HPP_NAMESPACE
+} // namespace VULKAN_HPP_NAMESPACE

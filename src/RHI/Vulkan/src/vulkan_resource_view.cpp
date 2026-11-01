@@ -27,7 +27,7 @@ namespace Trinex
 	VulkanTextureSRV::~VulkanTextureSRV()
 	{
 		VulkanAPI::instance()->descriptor_heap()->release(m_descriptor, VulkanDescriptorHeap::SampledImage);
-		VulkanAPI::instance()->m_device.destroyImageView(m_view);
+		VulkanAPI::device()->destroyImageView(m_view);
 	}
 
 	VulkanSRV& VulkanTextureSRV::bind(VulkanContext* context, u8 index)
@@ -44,7 +44,7 @@ namespace Trinex
 	VulkanTextureUAV::~VulkanTextureUAV()
 	{
 		VulkanAPI::instance()->descriptor_heap()->release(m_descriptor, VulkanDescriptorHeap::StorageImage);
-		VulkanAPI::instance()->m_device.destroyImageView(m_view);
+		VulkanAPI::device()->destroyImageView(m_view);
 	}
 
 	VulkanUAV& VulkanTextureUAV::bind(VulkanContext* context, u8 index)
@@ -55,12 +55,12 @@ namespace Trinex
 
 	VulkanTextureRTV::~VulkanTextureRTV()
 	{
-		VulkanAPI::instance()->m_device.destroyImageView(m_view);
+		VulkanAPI::device()->destroyImageView(m_view);
 	}
 
 	VulkanTextureDSV::~VulkanTextureDSV()
 	{
-		VulkanAPI::instance()->m_device.destroyImageView(m_view);
+		VulkanAPI::device()->destroyImageView(m_view);
 	}
 
 	VulkanStorageBufferSRV::VulkanStorageBufferSRV(VulkanBuffer* buffer) : VulkanBufferSRV(buffer)

@@ -50,7 +50,7 @@ namespace Trinex
 			}
 
 			vk::DescriptorSetLayoutCreateInfo info({}, count, bindings);
-			m_set_layout = vk::check_result(VulkanAPI::instance()->m_device.createDescriptorSetLayout(info));
+			m_set_layout = vk::verify(VulkanAPI::device()->createDescriptorSetLayout(info));
 
 			auto layouts = StackAllocator<vk::DescriptorSetLayout>::allocate(2);
 			layouts[0]   = m_set_layout;
@@ -58,17 +58,17 @@ namespace Trinex
 			pipeline_info.setPSetLayouts(layouts).setSetLayoutCount(2);
 		}
 
-		m_layout = vk::check_result(VulkanAPI::instance()->m_device.createPipelineLayout(pipeline_info));
+		m_layout = vk::verify(VulkanAPI::device()->createPipelineLayout(pipeline_info));
 	}
 
 	VulkanPipelineLayout::~VulkanPipelineLayout()
 	{
 		trx_delete m_descriptors;
-		VulkanAPI::instance()->m_device.destroyPipelineLayout(m_layout);
+		VulkanAPI::device()->destroyPipelineLayout(m_layout);
 
 		if (m_set_layout)
 		{
-			VulkanAPI::instance()->m_device.destroyDescriptorSetLayout(m_set_layout);
+			VulkanAPI::device()->destroyDescriptorSetLayout(m_set_layout);
 		}
 	}
 
@@ -215,16 +215,16 @@ namespace Trinex
 			usize count = VulkanAPI::instance()->is_raytracing_supported() ? 9 : 8;
 
 			vk::DescriptorPoolCreateInfo info({}, s_descriptor_sets_per_pool, count, sizes);
-			m_pool = vk::check_result(VulkanAPI::instance()->m_device.createDescriptorPool(info));
+			m_pool = vk::verify(VulkanAPI::device()->createDescriptorPool(info));
 		}
 
-		~VulkanDescriptorPool() { VulkanAPI::instance()->m_device.destroyDescriptorPool(m_pool); }
+		~VulkanDescriptorPool() { VulkanAPI::device()->destroyDescriptorPool(m_pool); }
 
 		VulkanDescriptorPool& reset()
 		{
 			reset_counters();
 			trinex_profile_cpu_n("VulkanDescriptorPool reset");
-			check_result(VulkanAPI::instance()->m_device.resetDescriptorPool(m_pool));
+			vk::verify(VulkanAPI::device()->resetDescriptorPool(m_pool));
 			return *this;
 		}
 
@@ -262,7 +262,7 @@ namespace Trinex
 			vk::DescriptorSetLayout descriptor_set_layout = layout->descriptor_set_layout();
 			vk::DescriptorSetAllocateInfo info(m_pool, descriptor_set_layout);
 			vk::DescriptorSet set;
-			vk::Result result = VulkanAPI::instance()->m_device.allocateDescriptorSets(&info, &set);
+			vk::Result result = VulkanAPI::device()->allocateDescriptorSets(&info, &set);
 
 			if (result == vk::Result::eSuccess)
 				return set;
@@ -530,7 +530,7 @@ namespace Trinex
 			}
 		}
 
-		VulkanAPI::instance()->m_device.updateDescriptorSets(count, writes, 0, nullptr);
+		VulkanAPI::device()->updateDescriptorSets(count, writes, 0, nullptr);
 		return set;
 	}
 

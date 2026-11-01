@@ -8,13 +8,13 @@ namespace Trinex
 {
 	VulkanQueryPool::VulkanQueryPool(const vk::QueryPoolCreateInfo& info)
 	{
-		m_pool = vk::check_result(VulkanAPI::instance()->m_device.createQueryPool(info));
+		m_pool = vk::verify(VulkanAPI::device()->createQueryPool(info));
 		m_free.resize(info.queryCount / 64, ~static_cast<u64>(0));
 	}
 
 	VulkanQueryPool::~VulkanQueryPool()
 	{
-		VulkanAPI::instance()->m_device.destroyQueryPool(m_pool);
+		VulkanAPI::device()->destroyQueryPool(m_pool);
 	}
 
 	bool VulkanQueryPool::find_index(u64& index)
@@ -44,9 +44,9 @@ namespace Trinex
 			u64 available;
 		} result{};
 
-		vk::Result res = VulkanAPI::instance()->m_device.getQueryPoolResults(
-		        m_pool, index, 1, sizeof(result), &result, sizeof(result),
-		        vk::QueryResultFlagBits::e64 | vk::QueryResultFlagBits::eWithAvailability);
+		vk::Result res = VulkanAPI::device()->getQueryPoolResults(m_pool, index, 1, sizeof(result), &result, sizeof(result),
+		                                                          vk::QueryResultFlagBits::e64
+		                                                                  | vk::QueryResultFlagBits::eWithAvailability);
 
 		if (res == vk::Result::eSuccess)
 		{
@@ -58,8 +58,8 @@ namespace Trinex
 
 	bool VulkanQueryPool::query(u64 index, void* dst, usize stride)
 	{
-		vk::Result res = VulkanAPI::instance()->m_device.getQueryPoolResults(m_pool, index, 1, stride, dst, stride,
-		                                                                     vk::QueryResultFlagBits::e64);
+		vk::Result res =
+		        VulkanAPI::device()->getQueryPoolResults(m_pool, index, 1, stride, dst, stride, vk::QueryResultFlagBits::e64);
 		return res == vk::Result::eSuccess;
 	}
 

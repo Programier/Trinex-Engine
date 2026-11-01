@@ -1,5 +1,4 @@
 #pragma once
-#include <Core/engine_types.hpp>
 #include <Core/math/matrix.hpp>
 #include <Core/math/vector.hpp>
 #include <Core/types/name.hpp>
@@ -473,7 +472,6 @@ namespace Trinex
 		RHISemaphore* wait        = nullptr;
 		RHISemaphore* signal      = nullptr;
 		RHIFence* fence           = nullptr;
-		RHIAccess access          = RHIAccess::Undefined;
 
 		inline RHISubmitInfo(RHICommandHandle* command = nullptr, RHISemaphore* wait = nullptr, RHISemaphore* signal = nullptr,
 		                     RHIFence* fence = nullptr)
