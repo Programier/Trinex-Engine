@@ -14,6 +14,7 @@ namespace Trinex
 	class RHITexture;
 	class RHIContext;
 	class RHISwapchain;
+	class RenderGraph;
 	struct RHIPresentMode;
 	struct WindowAttribute;
 
@@ -33,7 +34,9 @@ namespace Trinex
 		RenderViewport(Ref<Window> window, RHIPresentMode mode, u32 images = 0);
 		~RenderViewport();
 
-		virtual void update(float dt);
+		virtual void update(f32 dt);
+		virtual void render(RenderGraph* graph);
+		virtual void submit();
 
 		RenderViewport& client(Ref<ViewportClient> client);
 		RenderViewport& mode(RHIPresentMode mode);

@@ -80,4 +80,14 @@ namespace Trinex
 			m_client->update(this, dt);
 		}
 	}
+
+	void RenderViewport::render(RenderGraph* graph)
+	{
+		if (m_client)
+		{
+			m_client->render(this, graph);
+		}
+	}
+
+	void RenderViewport::submit() {}
 } // namespace Trinex

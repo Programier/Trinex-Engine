@@ -2,8 +2,14 @@
 #include <Core/engine.hpp>
 #include <Core/entry.hpp>
 #include <Core/etl/scoped_value.hpp>
+#include <Core/profiler.hpp>
 #include <Core/reflection/deprecated/class.hpp>
+#include <Core/tickable.hpp>
+#include <Graphics/render_pools.hpp>
+#include <Graphics/render_viewport.hpp>
 #include <Platform/platform.hpp>
+#include <RHI/rhi.hpp>
+#include <Rendering/render_graph.hpp>
 #include <chrono>
 
 namespace Trinex
@@ -154,12 +160,58 @@ namespace Trinex
 
 	void Engine::update()
 	{
+		trinex_profile_frame_mark();
+		trinex_profile_cpu_n("Engine::update");
+
 		const f32 current_time = time_seconds();
 		m_delta_time           = current_time - m_prev_time;
 		m_prev_time            = current_time;
 		++m_frame_index;
 
+		StackByteAllocator::reset();
+		FrameByteAllocator::reset();
+
 		on_update(m_delta_time);
+
+		Tickable::for_each_begin_frame(m_frame_index);
+		Tickable::for_each_update(m_delta_time);
+
+		if (RHI* rhi = RHI::instance())
+		{
+			rhi->update(m_delta_time);
+		}
+
+		update_viewports();
+		Tickable::for_each_end_frame(m_frame_index);
+	}
+
+	void Engine::update_viewports()
+	{
+		auto& viewports = RenderViewport::viewports();
+
+		if (viewports.empty())
+			return;
+
+		for (usize i = 0; i < viewports.size(); ++i)
+		{
+			trinex_profile_cpu_n("RenderViewport::update");
+			auto viewport = viewports[i];
+			viewport->update(m_delta_time);
+		}
+
+		// for (usize i = 0; i < viewports.size(); ++i)
+		// {
+		// 	trinex_profile_cpu_n("RenderViewport::render");
+		// 	auto viewport = viewports[i];
+		// 	viewport->render(&graph);
+		// }
+
+		// for (usize i = 0; i < viewports.size(); ++i)
+		// {
+		// 	trinex_profile_cpu_n("RenderViewport::submit");
+		// 	auto viewport = viewports[i];
+		// 	viewport->submit();
+		// }
 	}
 
 	void Engine::on_initialize() {}

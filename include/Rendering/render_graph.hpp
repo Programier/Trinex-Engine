@@ -3,6 +3,7 @@
 #include <Core/etl/map.hpp>
 #include <Core/etl/set.hpp>
 #include <Core/etl/type_traits.hpp>
+#include <Core/math/vector.hpp>
 #include <RHI/enums.hpp>
 
 namespace Trinex
@@ -33,6 +34,71 @@ namespace Trinex
 	class RenderGraph;
 	class RGResource;
 	class RGPass;
+
+	class trinex_api RGTexture
+	{
+	private:
+		void* m_identity = nullptr;
+
+		explicit RGTexture(void* identity) : m_identity(identity) {}
+		friend class RenderGraph;
+
+	public:
+		RGTexture() = default;
+		inline bool is_valid() const { return m_identity != nullptr; }
+	};
+
+	class trinex_api RGBuffer
+	{
+	private:
+		void* m_identity = nullptr;
+
+		explicit RGBuffer(void* identity) : m_identity(identity) {}
+		friend class RenderGraph;
+
+	public:
+		RGBuffer() = default;
+		inline bool is_valid() const { return m_identity != nullptr; }
+	};
+
+	struct trinex_api RGTextureDesc
+	{
+		RHITextureType type     = RHITextureType::Texture2D;
+		RHISurfaceFormat format = RHISurfaceFormat::RGBA8;
+		Vector3u size           = {0, 0, 1};
+		RHITextureFlags flags   = RHITextureFlags::ColorAttachment;
+	};
+
+	struct trinex_api RGBufferDesc
+	{
+		u32 size             = 0;
+		RHIBufferFlags flags = RHIBufferFlags::Undefined;
+	};
+
+	struct trinex_api RGLifetime
+	{
+		static constexpr u32 undefined = ~0u;
+		u32 first_pass                 = undefined;
+		u32 last_pass                  = undefined;
+
+		inline bool is_valid() const { return first_pass != undefined; }
+	};
+
+	class trinex_api RGContext
+	{
+	private:
+		RenderGraph* m_graph;
+		RHIContext* m_context;
+
+		RGContext(RenderGraph* graph, RHIContext* context) : m_graph(graph), m_context(context) {}
+		friend class RGPass;
+
+	public:
+		RHITexture* texture(RGTexture texture) const;
+		RHIBuffer* buffer(RGBuffer buffer) const;
+		inline RHIContext* rhi() const { return m_context; }
+		inline operator RHIContext*() const { return m_context; }
+	};
 
 	class trinex_api RenderGraph
 	{
@@ -71,7 +137,7 @@ namespace Trinex
 		};
 
 		RGMap<void*, RGResource*> m_resource_map;
-		RGSet<RHIObject*> m_outputs;
+		RGSet<void*> m_outputs;
 		RGArray<Plugin*> m_plugins;
 		RGArray<RGPass*> m_passes;
 		RGArray<RGPass*> m_execution_plan;
@@ -87,22 +153,36 @@ namespace Trinex
 
 		RGResource* create_resource(RHITexture* texture, RGPass* writer = nullptr);
 		RGResource* create_resource(RHIBuffer* buffer, RGPass* writer = nullptr);
+		RGResource* create_resource(const RGTextureDesc& desc, RGPass* writer = nullptr);
+		RGResource* create_resource(const RGBufferDesc& desc, RGPass* writer = nullptr);
 
-		RGResource* find_resource(RHIObject* texture);
+		RGResource* find_resource(void* identity);
 		RGResource* find_resource(RHITexture* texture);
 		RGResource* find_resource(RHIBuffer* buffer);
+		RGResource* find_resource(RGTexture texture);
+		RGResource* find_resource(RGBuffer buffer);
 		RGResource* find_resource(RGPass* pass);
 		RGResource* find_resource(RHITexture* texture, RGPass* writer);
 		RGResource* find_resource(RHIBuffer* buffer, RGPass* writer);
+		RGResource* find_resource(RGTexture texture, RGPass* writer);
+		RGResource* find_resource(RGBuffer buffer, RGPass* writer);
 
 	public:
 		RenderGraph();
 		// Imported resources are owned outside of the graph. Their initial state remains
 		// tracked by RHI until RHI exposes explicit state ownership to RenderGraph.
-		RenderGraph& import(RHITexture* texture);
-		RenderGraph& import(RHIBuffer* buffer);
+		RGTexture import(RHITexture* texture);
+		RGBuffer import(RHIBuffer* buffer);
+		RGTexture create_texture(const RGTextureDesc& desc);
+		RGBuffer create_buffer(const RGBufferDesc& desc);
 		RenderGraph& add_output(RHITexture* texture);
 		RenderGraph& add_output(RHIBuffer* buffer);
+		RenderGraph& add_output(RGTexture texture);
+		RenderGraph& add_output(RGBuffer buffer);
+		RHITexture* texture(RGTexture texture);
+		RHIBuffer* buffer(RGBuffer buffer);
+		RGLifetime lifetime(RGTexture texture) const;
+		RGLifetime lifetime(RGBuffer buffer) const;
 		RGPass& add_pass(const char* name = "Unnamed pass");
 		bool compile();
 		bool execute(RHIContext* context);
@@ -148,7 +228,7 @@ namespace Trinex
 		class Task
 		{
 		public:
-			virtual void execute(RHIContext* ctx) = 0;
+			virtual void execute(RGContext& ctx) = 0;
 			virtual ~Task() {}
 			friend RGPass;
 		};
@@ -162,7 +242,7 @@ namespace Trinex
 
 		public:
 			explicit LambdaTask(Callable&& fn) : m_callable(std::forward<Callable>(fn)) {}
-			void execute(RHIContext* ctx) override { m_callable(ctx); }
+			void execute(RGContext& ctx) override { m_callable(ctx); }
 		};
 
 		class RenderGraph* m_graph;
@@ -184,10 +264,16 @@ namespace Trinex
 		// read a resource and leave it ready for its next writer.
 		RGPass& add_resource(RHITexture* texture, RHIAccess access, RHIAccess initial = RHIAccess::Undefined);
 		RGPass& add_resource(RHIBuffer* buffer, RHIAccess access, RHIAccess initial = RHIAccess::Undefined);
+		RGPass& add_resource(RGTexture texture, RHIAccess access, RHIAccess initial = RHIAccess::Undefined);
+		RGPass& add_resource(RGBuffer buffer, RHIAccess access, RHIAccess initial = RHIAccess::Undefined);
 		RGPass& read(RHITexture* texture, RHIAccess access = RHIAccess::SRVGraphics);
 		RGPass& read(RHIBuffer* buffer, RHIAccess access = RHIAccess::SRVGraphics);
+		RGPass& read(RGTexture texture, RHIAccess access = RHIAccess::SRVGraphics);
+		RGPass& read(RGBuffer buffer, RHIAccess access = RHIAccess::SRVGraphics);
 		RGPass& write(RHITexture* texture, RHIAccess access);
 		RGPass& write(RHIBuffer* buffer, RHIAccess access);
+		RGPass& write(RGTexture texture, RHIAccess access);
+		RGPass& write(RGBuffer buffer, RHIAccess access);
 		RGPass& side_effect();
 
 		// TODO: Remove once all callers import resources explicitly.

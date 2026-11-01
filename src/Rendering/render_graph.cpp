@@ -4,6 +4,7 @@
 #include <Core/lifecycle.hpp>
 #include <Core/memory.hpp>
 #include <Core/profiler.hpp>
+#include <Graphics/render_pools.hpp>
 #include <RHI/context.hpp>
 #include <RHI/handles.hpp>
 #include <RHI/rhi.hpp>
@@ -12,6 +13,16 @@
 namespace Trinex
 {
 	static constexpr usize s_default_reserve_size = 64;
+
+	// TODO(RenderGraph):
+	// - Migrate renderer/editor call sites to RGTexture/RGBuffer and remove legacy raw-RHI RGPass overloads.
+	// - Make imports and exports explicit in all passes; imported resources retain external ownership.
+	// - Use RGLifetime to acquire transient resources at first use and release them after their final use.
+	// - Alias compatible transient allocations whose lifetimes do not overlap.
+	// - Add texture subresource ranges (mip/layer/aspect) once RHI supports subresource barriers.
+	// - Add graphics/compute/copy queue assignment, synchronization, and ownership transfers.
+	// - Support parallel command recording for independent execution-plan branches.
+	// - Expose a graph debugger: passes, dependencies, resource versions, lifetimes, barriers, and allocations.
 
 	class RGResource
 	{
@@ -23,83 +34,93 @@ namespace Trinex
 			RenderPass = 2,
 		};
 
-	private:
-		static constexpr u64 s_resource_type_mask    = 0x7ull;
-		static constexpr u64 s_resource_address_mask = ~s_resource_type_mask;
+		struct Backing
+		{
+			Type type;
+			RHITexture* texture = nullptr;
+			RHIBuffer* buffer   = nullptr;
+			RGTextureDesc texture_desc;
+			RGBufferDesc buffer_desc;
+			RGLifetime lifetime;
+			bool imported = false;
 
+			explicit Backing(RHITexture* value) : type(Texture), texture(value), imported(true) {}
+			explicit Backing(RHIBuffer* value) : type(Buffer), buffer(value), imported(true) {}
+			explicit Backing(const RGTextureDesc& value) : type(Texture), texture_desc(value) {}
+			explicit Backing(const RGBufferDesc& value) : type(Buffer), buffer_desc(value) {}
+		};
+
+	private:
 		RGResource* m_next;
 		RGResource* m_prev;
 		RGPass* m_writer;
-
-		// Since RHIObject is 8-byte aligned, the address is guaranteed to be aligned to the same value.
-		// So, the last 3 bits of the address will be zeros. We will actually use them to store the resource type.
-		union
-		{
-			void* m_resource;
-			u64 m_resource_address;
-		};
+		Backing* m_backing;
+		RGPass* m_pass;
 
 	public:
-		inline RGResource(RHITexture* resource, RGPass* writer = nullptr, RGResource* prev = nullptr)
-		    : m_next(nullptr), m_prev(prev), m_writer(writer), m_resource(resource)
+		inline RGResource(Backing* backing, RGPass* writer = nullptr, RGResource* prev = nullptr)
+		    : m_next(nullptr), m_prev(prev), m_writer(writer), m_backing(backing), m_pass(nullptr)
 		{
 			if (prev)
-			{
 				prev->m_next = this;
-			}
 		}
 
-		inline RGResource(RHIBuffer* resource, RGPass* writer = nullptr, RGResource* prev = nullptr)
-		    : m_next(nullptr), m_prev(prev), m_writer(writer), m_resource(resource)
+		inline RGResource(RGPass* pass) : m_next(nullptr), m_prev(nullptr), m_writer(nullptr), m_backing(nullptr), m_pass(pass) {}
+
+		RHITexture* texture()
 		{
-			m_resource_address |= Buffer;
-			if (prev)
+			if (m_backing == nullptr || m_backing->type != Texture)
+				return nullptr;
+
+			if (m_backing->texture == nullptr)
 			{
-				prev->m_next = this;
+				const RGTextureDesc& desc = m_backing->texture_desc;
+				m_backing->texture = RHITexturePool::global_instance()->acquire_transient(desc.type, desc.format, desc.size, desc.flags);
 			}
+			return m_backing->texture;
 		}
 
-		inline RGResource(RGPass* pass) : m_next(nullptr), m_prev(nullptr), m_writer(nullptr), m_resource(pass)
+		RHIBuffer* buffer()
 		{
-			m_resource_address |= RenderPass;
-		}
+			if (m_backing == nullptr || m_backing->type != Buffer)
+				return nullptr;
 
-		template<typename T>
-		inline T* as() const
-		{
-			return reinterpret_cast<T*>(m_resource_address & s_resource_address_mask);
+			if (m_backing->buffer == nullptr)
+			{
+				const RGBufferDesc& desc = m_backing->buffer_desc;
+				m_backing->buffer = RHIBufferPool::global_instance()->acquire_transient(desc.size, desc.flags);
+			}
+			return m_backing->buffer;
 		}
 
 		inline RGPass* writer() const { return m_writer; }
 		inline RGResource* previous() const { return m_prev; }
 		inline RGResource* next() const { return m_next; }
-		inline Type resource_type() const { return static_cast<Type>(m_resource_address & s_resource_type_mask); }
+		inline RGPass* pass() const { return m_pass; }
+		inline Backing* backing() const { return m_backing; }
+		inline Type resource_type() const { return m_backing ? m_backing->type : RenderPass; }
+		inline bool is_imported() const { return m_backing && m_backing->imported; }
+		inline RGLifetime lifetime() const { return m_backing ? m_backing->lifetime : RGLifetime{}; }
 	};
 
 	RHITexture* RGPass::ResourceRef::as_texture() const
 	{
 		if (resource->resource_type() == RGResource::Texture)
-		{
-			return resource->as<RHITexture>();
-		}
+			return resource->texture();
 		return nullptr;
 	}
 
 	RHIBuffer* RGPass::ResourceRef::as_buffer() const
 	{
 		if (resource->resource_type() == RGResource::Buffer)
-		{
-			return resource->as<RHIBuffer>();
-		}
+			return resource->buffer();
 		return nullptr;
 	}
 
 	RGPass* RGPass::ResourceRef::as_pass() const
 	{
 		if (resource->resource_type() == RGResource::RenderPass)
-		{
-			return resource->as<RGPass>();
-		}
+			return resource->pass();
 		return nullptr;
 	}
 
@@ -161,6 +182,32 @@ namespace Trinex
 			return add_resource(m_graph->find_resource(buffer), access, initial);
 	}
 
+	RGPass& RGPass::add_resource(RGTexture texture, RHIAccess access, RHIAccess initial)
+	{
+		if (!texture.is_valid())
+		{
+			trinex_error(Log::Graphics, "RenderGraph pass '%s' references an invalid RG texture", name());
+			return *this;
+		}
+
+		if (access & RHIAccess::WritableMask)
+			return add_resource(m_graph->find_resource(texture, this), access, initial);
+		return add_resource(m_graph->find_resource(texture), access, initial);
+	}
+
+	RGPass& RGPass::add_resource(RGBuffer buffer, RHIAccess access, RHIAccess initial)
+	{
+		if (!buffer.is_valid())
+		{
+			trinex_error(Log::Graphics, "RenderGraph pass '%s' references an invalid RG buffer", name());
+			return *this;
+		}
+
+		if (access & RHIAccess::WritableMask)
+			return add_resource(m_graph->find_resource(buffer, this), access, initial);
+		return add_resource(m_graph->find_resource(buffer), access, initial);
+	}
+
 	RGPass& RGPass::read(RHITexture* texture, RHIAccess access)
 	{
 		if (access & RHIAccess::WritableMask)
@@ -179,6 +226,24 @@ namespace Trinex
 		return add_resource(buffer, access);
 	}
 
+	RGPass& RGPass::read(RGTexture texture, RHIAccess access)
+	{
+		if (access & RHIAccess::WritableMask)
+		{
+			trinex_error(Log::Graphics, "RenderGraph pass '%s' declares an RG texture read with writable access", name());
+		}
+		return add_resource(texture, access);
+	}
+
+	RGPass& RGPass::read(RGBuffer buffer, RHIAccess access)
+	{
+		if (access & RHIAccess::WritableMask)
+		{
+			trinex_error(Log::Graphics, "RenderGraph pass '%s' declares an RG buffer read with writable access", name());
+		}
+		return add_resource(buffer, access);
+	}
+
 	RGPass& RGPass::write(RHITexture* texture, RHIAccess access)
 	{
 		if (!(access & RHIAccess::WritableMask))
@@ -193,6 +258,24 @@ namespace Trinex
 		if (!(access & RHIAccess::WritableMask))
 		{
 			trinex_error(Log::Graphics, "RenderGraph pass '%s' declares a buffer write without writable access", name());
+		}
+		return add_resource(buffer, access);
+	}
+
+	RGPass& RGPass::write(RGTexture texture, RHIAccess access)
+	{
+		if (!(access & RHIAccess::WritableMask))
+		{
+			trinex_error(Log::Graphics, "RenderGraph pass '%s' declares an RG texture write without writable access", name());
+		}
+		return add_resource(texture, access);
+	}
+
+	RGPass& RGPass::write(RGBuffer buffer, RHIAccess access)
+	{
+		if (!(access & RHIAccess::WritableMask))
+		{
+			trinex_error(Log::Graphics, "RenderGraph pass '%s' declares an RG buffer write without writable access", name());
 		}
 		return add_resource(buffer, access);
 	}
@@ -232,8 +315,19 @@ namespace Trinex
 			return add_resource(m_graph->create_resource(buffer), access, initial);
 	}
 
+	RHITexture* RGContext::texture(RGTexture texture) const
+	{
+		return m_graph->texture(texture);
+	}
+
+	RHIBuffer* RGContext::buffer(RGBuffer buffer) const
+	{
+		return m_graph->buffer(buffer);
+	}
+
 	RGPass& RGPass::execute(RHIContext* ctx)
 	{
+		RGContext context(m_graph, ctx);
 		for (const RGPass::ResourceRef* ref : m_resources)
 		{
 			auto resource    = ref->resource;
@@ -243,13 +337,13 @@ namespace Trinex
 			{
 				case RGResource::Texture:
 				{
-					ctx->barrier(resource->as<RHITexture>(), access);
+					ctx->barrier(resource->texture(), access);
 					break;
 				}
 
 				case RGResource::Buffer:
 				{
-					ctx->barrier(resource->as<RHIBuffer>(), access);
+					ctx->barrier(resource->buffer(), access);
 					break;
 				}
 
@@ -259,7 +353,7 @@ namespace Trinex
 
 		for (Task* task : m_tasks)
 		{
-			task->execute(ctx);
+			task->execute(context);
 			task->~Task();
 		}
 
@@ -275,8 +369,8 @@ namespace Trinex
 
 			switch (ref->resource->resource_type())
 			{
-				case RGResource::Texture: ctx->barrier(ref->resource->as<RHITexture>(), ref->access); break;
-				case RGResource::Buffer: ctx->barrier(ref->resource->as<RHIBuffer>(), ref->access); break;
+				case RGResource::Texture: ctx->barrier(ref->resource->texture(), ref->access); break;
+				case RGResource::Buffer: ctx->barrier(ref->resource->buffer(), ref->access); break;
 				default: break;
 			}
 		}
@@ -322,45 +416,55 @@ namespace Trinex
 		}
 	}
 
-	RenderGraph& RenderGraph::import(RHITexture* texture)
+	RGTexture RenderGraph::import(RHITexture* texture)
 	{
 		if (texture == nullptr)
 		{
 			trinex_error(Log::Graphics, "Cannot import a null RenderGraph texture");
-			return *this;
+			return {};
 		}
 
 		find_resource(texture);
 		invalidate();
-		return *this;
+		return RGTexture(texture);
 	}
 
-	RenderGraph& RenderGraph::import(RHIBuffer* buffer)
+	RGBuffer RenderGraph::import(RHIBuffer* buffer)
 	{
 		if (buffer == nullptr)
 		{
 			trinex_error(Log::Graphics, "Cannot import a null RenderGraph buffer");
-			return *this;
+			return {};
 		}
 
 		find_resource(buffer);
 		invalidate();
-		return *this;
+		return RGBuffer(buffer);
 	}
 
 	RGResource* RenderGraph::create_resource(RHITexture* texture, RGPass* writer)
 	{
-		return trx_frame_new RGResource(texture, writer, nullptr);
+		return trx_frame_new RGResource(trx_frame_new RGResource::Backing(texture), writer, nullptr);
 	}
 
 	RGResource* RenderGraph::create_resource(RHIBuffer* buffer, RGPass* writer)
 	{
-		return trx_frame_new RGResource(buffer, writer, nullptr);
+		return trx_frame_new RGResource(trx_frame_new RGResource::Backing(buffer), writer, nullptr);
 	}
 
-	RGResource* RenderGraph::find_resource(RHIObject* object)
+	RGResource* RenderGraph::create_resource(const RGTextureDesc& desc, RGPass* writer)
 	{
-		auto it = m_resource_map.find(object);
+		return trx_frame_new RGResource(trx_frame_new RGResource::Backing(desc), writer, nullptr);
+	}
+
+	RGResource* RenderGraph::create_resource(const RGBufferDesc& desc, RGPass* writer)
+	{
+		return trx_frame_new RGResource(trx_frame_new RGResource::Backing(desc), writer, nullptr);
+	}
+
+	RGResource* RenderGraph::find_resource(void* identity)
+	{
+		auto it = m_resource_map.find(identity);
 		if (it == m_resource_map.end())
 			return nullptr;
 		return it->second;
@@ -371,7 +475,7 @@ namespace Trinex
 		RGResource*& resource = m_resource_map[texture];
 
 		if (resource == nullptr)
-			resource = trx_frame_new RGResource(texture, nullptr, nullptr);
+			resource = create_resource(texture);
 
 		return resource;
 	}
@@ -381,9 +485,19 @@ namespace Trinex
 		RGResource*& resource = m_resource_map[buffer];
 
 		if (resource == nullptr)
-			resource = trx_frame_new RGResource(buffer, nullptr, nullptr);
+			resource = create_resource(buffer);
 
 		return resource;
+	}
+
+	RGResource* RenderGraph::find_resource(RGTexture texture)
+	{
+		return texture.is_valid() ? find_resource(texture.m_identity) : nullptr;
+	}
+
+	RGResource* RenderGraph::find_resource(RGBuffer buffer)
+	{
+		return buffer.is_valid() ? find_resource(buffer.m_identity) : nullptr;
 	}
 
 	RGResource* RenderGraph::find_resource(RGPass* pass)
@@ -398,16 +512,68 @@ namespace Trinex
 
 	RGResource* RenderGraph::find_resource(RHITexture* texture, RGPass* writer)
 	{
+		RGResource* previous = find_resource(texture);
 		RGResource*& resource = m_resource_map[texture];
-		resource              = trx_frame_new RGResource(texture, writer, resource);
+		resource = trx_frame_new RGResource(previous->backing(), writer, previous);
 		return resource;
 	}
 
 	RGResource* RenderGraph::find_resource(RHIBuffer* buffer, RGPass* writer)
 	{
+		RGResource* previous = find_resource(buffer);
 		RGResource*& resource = m_resource_map[buffer];
-		resource              = trx_frame_new RGResource(buffer, writer, resource);
+		resource = trx_frame_new RGResource(previous->backing(), writer, previous);
 		return resource;
+	}
+
+	RGResource* RenderGraph::find_resource(RGTexture texture, RGPass* writer)
+	{
+		RGResource* previous = find_resource(texture);
+		if (previous == nullptr)
+			return nullptr;
+
+		RGResource*& resource = m_resource_map[texture.m_identity];
+		resource = trx_frame_new RGResource(previous->backing(), writer, previous);
+		return resource;
+	}
+
+	RGResource* RenderGraph::find_resource(RGBuffer buffer, RGPass* writer)
+	{
+		RGResource* previous = find_resource(buffer);
+		if (previous == nullptr)
+			return nullptr;
+
+		RGResource*& resource = m_resource_map[buffer.m_identity];
+		resource = trx_frame_new RGResource(previous->backing(), writer, previous);
+		return resource;
+	}
+
+	RGTexture RenderGraph::create_texture(const RGTextureDesc& desc)
+	{
+		if (desc.size.x == 0 || desc.size.y == 0 || desc.size.z == 0 || desc.flags == RHITextureFlags::Undefined)
+		{
+			trinex_error(Log::Graphics, "Cannot create an invalid RenderGraph texture");
+			return {};
+		}
+
+		RGResource* resource = create_resource(desc);
+		m_resource_map[resource->backing()] = resource;
+		invalidate();
+		return RGTexture(resource->backing());
+	}
+
+	RGBuffer RenderGraph::create_buffer(const RGBufferDesc& desc)
+	{
+		if (desc.size == 0 || desc.flags == RHIBufferFlags::Undefined)
+		{
+			trinex_error(Log::Graphics, "Cannot create an invalid RenderGraph buffer");
+			return {};
+		}
+
+		RGResource* resource = create_resource(desc);
+		m_resource_map[resource->backing()] = resource;
+		invalidate();
+		return RGBuffer(resource->backing());
 	}
 
 	RenderGraph& RenderGraph::add_output(RHITexture* texture)
@@ -424,6 +590,56 @@ namespace Trinex
 		m_outputs.insert(buffer);
 		invalidate();
 		return *this;
+	}
+
+	RenderGraph& RenderGraph::add_output(RGTexture texture)
+	{
+		if (!texture.is_valid() || find_resource(texture) == nullptr)
+		{
+			trinex_error(Log::Graphics, "Cannot export an undefined RenderGraph texture");
+			return *this;
+		}
+
+		m_outputs.insert(texture.m_identity);
+		invalidate();
+		return *this;
+	}
+
+	RenderGraph& RenderGraph::add_output(RGBuffer buffer)
+	{
+		if (!buffer.is_valid() || find_resource(buffer) == nullptr)
+		{
+			trinex_error(Log::Graphics, "Cannot export an undefined RenderGraph buffer");
+			return *this;
+		}
+
+		m_outputs.insert(buffer.m_identity);
+		invalidate();
+		return *this;
+	}
+
+	RHITexture* RenderGraph::texture(RGTexture texture)
+	{
+		RGResource* resource = find_resource(texture);
+		return resource ? resource->texture() : nullptr;
+	}
+
+	RHIBuffer* RenderGraph::buffer(RGBuffer buffer)
+	{
+		RGResource* resource = find_resource(buffer);
+		return resource ? resource->buffer() : nullptr;
+	}
+
+	RGLifetime RenderGraph::lifetime(RGTexture texture) const
+	{
+		auto it = m_resource_map.find(texture.m_identity);
+		return it == m_resource_map.end() ? RGLifetime{} : it->second->lifetime();
+	}
+
+	RGLifetime RenderGraph::lifetime(RGBuffer buffer) const
+	{
+		auto it = m_resource_map.find(buffer.m_identity);
+		return it == m_resource_map.end() ? RGLifetime{} : it->second->lifetime();
 	}
 
 	RGPass& RenderGraph::add_pass(const char* name)
@@ -476,7 +692,7 @@ namespace Trinex
 			if (resource->resource_type() != RGResource::RenderPass)
 				return nullptr;
 
-			writer = resource->as<RGPass>();
+			writer = resource->pass();
 		}
 
 		Node* node = build_graph(writer);
@@ -495,7 +711,7 @@ namespace Trinex
 		trinex_profile_cpu_n("RenderRenderGraph::build");
 		Node* root = Node::create();
 
-		for (RHIObject* output : m_outputs)
+		for (void* output : m_outputs)
 		{
 			if (RGResource* resource = find_resource(output))
 			{
@@ -525,6 +741,15 @@ namespace Trinex
 				if (resource == nullptr || resource->resource == nullptr)
 				{
 					trinex_error(Log::Graphics, "RenderGraph pass '%s' has an invalid resource declaration", pass->name());
+					return false;
+				}
+
+				const bool is_write = resource->access & RHIAccess::WritableMask;
+				if (resource->resource->resource_type() != RGResource::RenderPass && !is_write && !resource->resource->is_imported()
+				    && resource->resource->writer() == nullptr
+				    && resource->resource->previous() == nullptr)
+				{
+					trinex_error(Log::Graphics, "RenderGraph pass '%s' reads a transient resource before it is written", pass->name());
 					return false;
 				}
 			}
@@ -576,6 +801,25 @@ namespace Trinex
 				return false;
 		}
 
+		for (auto& [identity, resource] : m_resource_map)
+		{
+			static_cast<void>(identity);
+			if (resource->backing())
+				resource->backing()->lifetime = {};
+		}
+
+		for (u32 pass_index = 0; pass_index < m_execution_plan.size(); ++pass_index)
+		{
+			for (const RGPass::ResourceRef* ref : m_execution_plan[pass_index]->resources())
+			{
+				if (RGResource::Backing* backing = ref->resource->backing())
+				{
+					backing->lifetime.first_pass = std::min(backing->lifetime.first_pass, pass_index);
+					backing->lifetime.last_pass  = pass_index;
+				}
+			}
+		}
+
 		m_is_compiled = true;
 		return true;
 	}
@@ -593,7 +837,8 @@ namespace Trinex
 		for (RGPass* pass : m_execution_plan)
 		{
 			trinex_profile_transient_cpu_n(pass->name());
-			trinex_rhi_push_stage(ctx, pass->name());
+			if (ctx)
+				trinex_rhi_push_stage(ctx, pass->name());
 
 			for (Plugin* plugin : m_plugins)
 				plugin->on_pass_begin(pass, ctx);
@@ -601,7 +846,8 @@ namespace Trinex
 			for (Plugin* plugin : m_plugins)
 				plugin->on_pass_end(pass, ctx);
 
-			trinex_rhi_pop_stage(ctx);
+			if (ctx)
+				trinex_rhi_pop_stage(ctx);
 		}
 
 		for (Plugin* plugin : m_plugins)
@@ -615,13 +861,45 @@ namespace Trinex
 			RenderGraph graph;
 			RGPass& first  = graph.add_pass("First").side_effect();
 			RGPass& second = graph.add_pass("Second").add_dependency(&first).side_effect();
-			first.add_func([](RHIContext*) {});
+			first.add_func([](RGContext& context) { trinex_verify(context.rhi() == nullptr); });
 			second.add_func([](RHIContext*) {});
 
 			trinex_verify(graph.compile());
 			const auto& plan = graph.execution_plan();
 			trinex_verify_msg(plan.size() == 2, "The execution plan must contain both side-effect passes");
 			trinex_verify_msg(plan[0] == &first && plan[1] == &second, "Dependencies must execute before their consumers");
+			trinex_verify(graph.execute(nullptr));
+		}
+
+		{
+			RenderGraph graph;
+			RGTexture texture = graph.create_texture({
+			        .size  = {16, 16, 1},
+			        .flags = RHITextureFlags::RWColorAttachment,
+			});
+			RGBuffer buffer = graph.create_buffer({
+			        .size  = 256,
+			        .flags = RHIBufferFlags::ShaderResource | RHIBufferFlags::UnorderedAccess,
+			});
+
+			trinex_verify(texture.is_valid());
+			trinex_verify(buffer.is_valid());
+
+			RGPass& produce = graph.add_pass("Produce").side_effect();
+			produce.write(texture, RHIAccess::RTV).write(buffer, RHIAccess::UAVCompute).add_func([](RHIContext*) {});
+
+			RGPass& consume = graph.add_pass("Consume").side_effect();
+			consume.read(texture).read(buffer, RHIAccess::SRVCompute).add_func([](RHIContext*) {});
+
+			trinex_verify(graph.compile());
+			const auto& plan = graph.execution_plan();
+			trinex_verify_msg(plan.size() == 2, "Logical resources must retain producer-consumer dependencies");
+			trinex_verify_msg(plan[0] == &produce && plan[1] == &consume,
+			                  "Logical resources must schedule writers before readers");
+			trinex_verify_msg(graph.lifetime(texture).first_pass == 0 && graph.lifetime(texture).last_pass == 1,
+			                  "Texture lifetime must cover every pass that references it");
+			trinex_verify_msg(graph.lifetime(buffer).first_pass == 0 && graph.lifetime(buffer).last_pass == 1,
+			                  "Buffer lifetime must cover every pass that references it");
 		}
 
 		{

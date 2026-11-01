@@ -6,6 +6,7 @@
 
 namespace Trinex
 {
+	class RenderGraph;
 	struct InputEvent;
 
 	trinex_reflect()
@@ -20,7 +21,8 @@ namespace Trinex
 		// Return true to consume the event.
 		virtual bool on_input_event(const InputEvent& event);
 
-		virtual ViewportClient& update(class RenderViewport* viewport, f32 dt);
+		virtual void update(class RenderViewport* viewport, f32 dt);
+		virtual void render(class RenderViewport* viewport, RenderGraph* graph);
 		static Ref<ViewportClient> create(StringView name);
 	};
 } // namespace Trinex

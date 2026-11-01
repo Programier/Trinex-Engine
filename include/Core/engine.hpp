@@ -36,6 +36,7 @@ namespace Trinex
 	private:
 		bool transition_to(State state);
 		void update();
+		void update_viewports();
 
 	public:
 		Engine();

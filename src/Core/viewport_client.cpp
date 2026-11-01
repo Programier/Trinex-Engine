@@ -18,10 +18,9 @@ namespace Trinex
 		return false;
 	}
 
-	ViewportClient& ViewportClient::update(class RenderViewport* viewport, f32 dt)
-	{
-		return *this;
-	}
+	void ViewportClient::update(class RenderViewport* viewport, f32 dt) {}
+
+	void ViewportClient::render(class RenderViewport* viewport, RenderGraph* graph) {}
 
 	Ref<ViewportClient> ViewportClient::create(StringView name)
 	{
