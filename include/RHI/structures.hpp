@@ -468,17 +468,9 @@ namespace Trinex
 
 	struct RHISubmitInfo
 	{
-		RHICommandHandle* command = nullptr;
-		RHISemaphore* wait        = nullptr;
-		RHISemaphore* signal      = nullptr;
-		RHIFence* fence           = nullptr;
-
-		inline RHISubmitInfo(RHICommandHandle* command = nullptr, RHISemaphore* wait = nullptr, RHISemaphore* signal = nullptr,
-		                     RHIFence* fence = nullptr)
-		    : command(command), wait(wait), signal(signal), fence(fence)
-		{}
-
-		inline RHISubmitInfo(RHICommandHandle* command, RHIFence* fence) : command(command), fence(fence) {}
-		inline RHISubmitInfo(RHIFence* fence) : fence(fence) {}
+		RHIArrayView<RHICommandHandle*> commands = {};
+		RHIArrayView<RHISemaphore*> waits        = {};
+		RHIArrayView<RHISemaphore*> signals      = {};
+		RHIFence* fence                          = nullptr;
 	};
 } // namespace Trinex

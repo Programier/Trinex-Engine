@@ -54,7 +54,6 @@ namespace Trinex
 
 		virtual RHI& update(float dt)                                                   = 0;
 		virtual RHI& wait()                                                             = 0;
-		virtual RHI& submit(const RHISubmitInfo& info)                                  = 0;
 		virtual RHIQueue* queue(RHIQueueFlags flags, RHISwapchain* swapchain = nullptr) = 0;
 
 		virtual RHITimestamp* create_timestamp()                                                    = 0;

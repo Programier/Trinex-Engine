@@ -13,7 +13,6 @@ namespace Trinex
 
 		NoneApi& update(float dt) override;
 		NoneApi& wait() override;
-		NoneApi& submit(const RHISubmitInfo& info) override;
 		RHIQueue* queue(RHIQueueFlags flags, RHISwapchain* swapchain = nullptr) override;
 
 		RHITimestamp* create_timestamp() override;

@@ -271,7 +271,8 @@ namespace Trinex
 		cmd->buildAccelerationStructuresKHR(build_info, build_ranges);
 
 		cmd = ctx->end();
-		VulkanAPI::instance()->submit(cmd);
+		RHICommandHandle* handle = cmd;
+		//VulkanAPI::instance()->submit({.commands = handle});
 		cmd->release();
 
 		RHIContextPool::global_instance()->release(ctx);

@@ -1,3 +1,4 @@
+#include <Core/etl/allocator.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_context.hpp>
 #include <vulkan_queue.hpp>
@@ -26,30 +27,36 @@ namespace Trinex
 
 	void VulkanQueue::submit(const RHISubmitInfo& info)
 	{
+		StackByteAllocator::Mark mark;
+
 		vk::SubmitInfo submit;
+		Array<vk::CommandBuffer, StackAllocator<vk::CommandBuffer>> commands;
+		Array<vk::Semaphore, StackAllocator<vk::Semaphore>> waits;
+		Array<vk::PipelineStageFlags, StackAllocator<vk::PipelineStageFlags>> wait_stages;
+		Array<vk::Semaphore, StackAllocator<vk::Semaphore>> signals;
 
-		if (info.command)
+		for (RHICommandHandle* command : info.commands)
 		{
-			vk::CommandBuffer& cmd = *static_cast<VulkanCommandHandle*>(info.command);
-			submit.setCommandBuffers(cmd);
+			commands.push_back(*static_cast<VulkanCommandHandle*>(command));
 		}
+		submit.setCommandBuffers(commands);
 
-		if (info.wait)
+		for (RHISemaphore* wait : info.waits)
 		{
-			VulkanSemaphore* semaphore = static_cast<VulkanSemaphore*>(info.wait);
+			VulkanSemaphore* semaphore = static_cast<VulkanSemaphore*>(wait);
 			trinex_assert(semaphore->is_signaled());
-			submit.setWaitSemaphores(semaphore->is_signaled(false).semaphore());
-
-			vk::PipelineStageFlags wait_mask = vk::PipelineStageFlagBits::eAllCommands;
-			submit.setWaitDstStageMask(wait_mask);
+			waits.push_back(semaphore->is_signaled(false).semaphore());
+			wait_stages.push_back(vk::PipelineStageFlagBits::eAllCommands);
 		}
+		submit.setWaitSemaphores(waits).setWaitDstStageMask(wait_stages);
 
-		if (info.signal)
+		for (RHISemaphore* signal : info.signals)
 		{
-			VulkanSemaphore* semaphore = static_cast<VulkanSemaphore*>(info.signal);
+			VulkanSemaphore* semaphore = static_cast<VulkanSemaphore*>(signal);
 			trinex_assert(!semaphore->is_signaled());
-			submit.setSignalSemaphores(semaphore->is_signaled(true).semaphore());
+			signals.push_back(semaphore->is_signaled(true).semaphore());
 		}
+		submit.setSignalSemaphores(signals);
 
 		VulkanFence* signal = static_cast<VulkanFence*>(info.fence);
 		vk::Fence fence     = info.fence ? signal->make_pending().fence() : VK_NULL_HANDLE;
@@ -60,12 +67,5 @@ namespace Trinex
 	void VulkanQueue::wait()
 	{
 		vk::verify(m_queue.waitIdle());
-	}
-
-	VulkanQueue& VulkanQueue::submit(const vk::SubmitInfo& info, vk::Fence fence)
-	{
-		ScopeLock lock(m_critical);
-		vk::verify(m_queue.submit(info, fence));
-		return *this;
 	}
 } // namespace Trinex

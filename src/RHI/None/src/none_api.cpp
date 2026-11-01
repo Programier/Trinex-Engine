@@ -123,11 +123,6 @@ namespace Trinex
 		return *this;
 	}
 
-	NoneApi& NoneApi::submit(const RHISubmitInfo& info)
-	{
-		return *this;
-	}
-
 	RHIQueue* NoneApi::queue(RHIQueueFlags flags, RHISwapchain* swapchain)
 	{
 		return nullptr;

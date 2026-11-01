@@ -40,10 +40,6 @@ namespace Trinex
 		{
 			trinex_debug(Log::RHI, "%s", callback_data->pMessage);
 		}
-		else if (has_bit(VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT))
-		{
-			trinex_info(Log::RHI, "%s", callback_data->pMessage);
-		}
 		else if (has_bit(VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT))
 		{
 			trinex_warning(Log::RHI, "%s", callback_data->pMessage);
@@ -476,7 +472,7 @@ namespace Trinex
 		submit_info.pSignalSemaphores    = &m_timeline;
 		submit_info.pNext                = &timeline_info;
 
-		m_graphics_queue->submit(submit_info);
+		//m_graphics_queue->submit(submit_info);
 
 		return *this;
 	}
@@ -484,40 +480,6 @@ namespace Trinex
 	VulkanAPI& VulkanAPI::wait()
 	{
 		vk::verify(m_device.waitIdle());
-		return *this;
-	}
-
-	VulkanAPI& VulkanAPI::submit(const RHISubmitInfo& info)
-	{
-		vk::SubmitInfo submit_info;
-
-		if (info.command)
-		{
-			vk::CommandBuffer& cmd = *static_cast<VulkanCommandHandle*>(info.command);
-			submit_info.setCommandBuffers(cmd);
-		}
-
-		if (info.wait)
-		{
-			VulkanSemaphore* semaphore = static_cast<VulkanSemaphore*>(info.wait);
-			trinex_assert(semaphore->is_signaled());
-			submit_info.setWaitSemaphores(semaphore->is_signaled(false).semaphore());
-
-			vk::PipelineStageFlags wait_mask = vk::PipelineStageFlagBits::eAllCommands;
-			submit_info.setWaitDstStageMask(wait_mask);
-		}
-
-		if (info.signal)
-		{
-			VulkanSemaphore* semaphore = static_cast<VulkanSemaphore*>(info.signal);
-			trinex_assert(!semaphore->is_signaled());
-			submit_info.setSignalSemaphores(semaphore->is_signaled(true).semaphore());
-		}
-
-		VulkanFence* signal = static_cast<VulkanFence*>(info.fence);
-		vk::Fence fence     = info.fence ? signal->make_pending().fence() : VK_NULL_HANDLE;
-
-		m_graphics_queue->submit(submit_info, fence);
 		return *this;
 	}
 

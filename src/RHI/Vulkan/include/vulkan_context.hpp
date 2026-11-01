@@ -1,7 +1,7 @@
 #pragma once
+#include <Core/etl/array.hpp>
 #include <Core/etl/critical_section.hpp>
 #include <Core/etl/deque.hpp>
-#include <Core/etl/array.hpp>
 #include <RHI/context.hpp>
 #include <vulkan_headers.hpp>
 #include <vulkan_thread_local.hpp>
@@ -74,7 +74,8 @@ namespace Trinex
 			Submitted,
 		};
 
-		struct UniformBuffer {
+		struct UniformBuffer
+		{
 			VulkanUniformBuffer* m_uniform_buffer_head     = nullptr;
 			VulkanUniformBuffer** m_uniform_buffer_current = &m_uniform_buffer_head;
 
@@ -161,7 +162,6 @@ namespace Trinex
 		Deque<VulkanCommandHandle*> m_primary;
 		Deque<VulkanCommandHandle*> m_secondary;
 
-
 	public:
 		VulkanCommandBufferManager();
 		~VulkanCommandBufferManager();
@@ -193,12 +193,14 @@ namespace Trinex
 			ComputeMask  = Pipeline,
 		};
 
-		struct CombinedImage {
+		struct CombinedImage
+		{
 			vk::ImageView srv;
 			vk::Sampler sampler;
 		};
 
-		struct UniformBuffer {
+		struct UniformBuffer
+		{
 			vk::Buffer buffer;
 			u32 size;
 			u32 offset;
@@ -213,14 +215,16 @@ namespace Trinex
 			inline bool operator!=(const UniformBuffer& other) const { return !((*this) == other); }
 		};
 
-		struct Framebuffer {
+		struct Framebuffer
+		{
 			vk::Format formats[6] = {vk::Format::eUndefined};
 			Vector2u16 size       = {0, 0};
 
 			vk::PipelineRenderingCreateInfo pipeline_create_info() const;
 		};
 
-		struct VertexAttribute {
+		struct VertexAttribute
+		{
 			u16 stream;
 			u16 offset;
 			RHIVertexFormat format;
@@ -233,7 +237,8 @@ namespace Trinex
 			inline bool operator!=(const VertexAttribute& other) const { return !((*this) == other); }
 		};
 
-		struct VertexStream {
+		struct VertexStream
+		{
 			vk::VertexInputRate rate;
 			u16 stride;
 
@@ -252,7 +257,8 @@ namespace Trinex
 		RHIRegion m_scissor;
 		RHITopology m_topology;
 
-		struct {
+		struct
+		{
 			float constant;
 			float clamp;
 			float slope;
@@ -262,7 +268,8 @@ namespace Trinex
 
 		union PipelineState
 		{
-			struct State {
+			struct State
+			{
 				RHIDepthStencilState depth_stencil;
 				RHIBlendingState blending;
 				RHIRasterizerState rasterizer;
@@ -420,4 +427,4 @@ namespace Trinex
 		inline bool is_secondary() const { return m_flags & RHIContextFlags::Secondary; }
 		inline VulkanCommandHandle* handle() const { return m_cmd; }
 	};
-}// namespace Trinex
+} // namespace Trinex

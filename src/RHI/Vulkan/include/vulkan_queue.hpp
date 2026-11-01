@@ -10,7 +10,6 @@ namespace Trinex
 	class VulkanQueue final : public RHIQueue
 	{
 	private:
-		CriticalSection m_critical;
 		vk::Queue m_queue;
 		u32 m_index;
 
@@ -23,7 +22,6 @@ namespace Trinex
 		void submit(const RHISubmitInfo& info) override;
 		void wait() override;
 
-		VulkanQueue& submit(const vk::SubmitInfo& info, vk::Fence fence = {});
 		inline u32 index() const { return m_index; }
 	};
 } // namespace Trinex

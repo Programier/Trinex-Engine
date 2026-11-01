@@ -393,8 +393,7 @@ namespace Trinex
 		vk::CommandPool pool = manager->command_pool();
 		vk::CommandBufferAllocateInfo alloc_info(pool, level, 1);
 
-		static_cast<vk::CommandBuffer&>(*this) =
-		        vk::verify(VulkanAPI::device()->allocateCommandBuffers(alloc_info)).front();
+		static_cast<vk::CommandBuffer&>(*this) = vk::verify(VulkanAPI::device()->allocateCommandBuffers(alloc_info)).front();
 	}
 
 	VulkanCommandHandle& VulkanCommandHandle::release_transient_resources()
@@ -452,7 +451,7 @@ namespace Trinex
 	{
 		trinex_profile_cpu_n("VulkanCommandBuffer::submit");
 		trinex_assert_msg(is_pending(), "Command Buffer must be in ended state!");
-		VulkanAPI::instance()->m_graphics_queue->submit({}, m_fence->fence());
+		//VulkanAPI::instance()->m_graphics_queue->submit({}, m_fence);
 		m_fence->make_pending();
 		m_state = State::Submitted;
 		return *this;

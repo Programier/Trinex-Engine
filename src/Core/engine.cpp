@@ -9,6 +9,7 @@
 #include <Graphics/render_viewport.hpp>
 #include <Platform/platform.hpp>
 #include <RHI/rhi.hpp>
+#include <RHI/scheduler.hpp>
 #include <Rendering/render_graph.hpp>
 #include <chrono>
 
@@ -180,6 +181,8 @@ namespace Trinex
 		{
 			rhi->update(m_delta_time);
 		}
+
+		RHIScheduler::instance()->execute();
 
 		update_viewports();
 		Tickable::for_each_end_frame(m_frame_index);
