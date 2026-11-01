@@ -172,6 +172,6 @@ namespace Trinex
 
 	vk::SurfaceKHR VulkanAPI::create_surface(Window* window)
 	{
-		return create_window_surface(static_cast<SDL_Window*>(window->native_handle()), m_instance.instance);
+		return create_window_surface(static_cast<SDL_Window*>(window->native_handle()), m_instance);
 	}
 } // namespace Trinex

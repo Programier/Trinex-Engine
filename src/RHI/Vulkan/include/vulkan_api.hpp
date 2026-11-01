@@ -6,7 +6,6 @@
 #include <Core/etl/map.hpp>
 #include <Core/etl/static_array.hpp>
 #include <RHI/rhi.hpp>
-#include <VkBootstrap.h>
 #include <vk_mem_alloc.h>
 #include <vulkan_api.hpp>
 #include <vulkan_definitions.hpp>
@@ -39,7 +38,7 @@ namespace Trinex
 	class VulkanAPI final : public RHI
 	{
 	public:
-		vkb::Instance m_instance;
+		vk::Instance m_instance;
 		vk::PhysicalDevice m_physical_device;
 		VmaAllocator m_allocator = VK_NULL_HANDLE;
 
@@ -68,6 +67,7 @@ namespace Trinex
 		VulkanPipelineLayoutManager* m_pipeline_layout_manager;
 		VulkanDescriptorHeap* m_descriptor_heap;
 		vk::Semaphore m_timeline;
+		vk::DebugUtilsMessengerEXT m_debug_messenger;
 
 		vk::PhysicalDeviceRayTracingPipelinePropertiesKHR m_ray_trace_properties;
 

@@ -6,7 +6,7 @@
 #include <Engine/settings.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/texture.hpp>
-#include <VkBootstrap.h>
+#include <SDL3/SDL_vulkan.h>
 #include <vulkan_api.hpp>
 #include <vulkan_bindless.hpp>
 #include <vulkan_buffer.hpp>
@@ -57,37 +57,113 @@ namespace Trinex
 #undef has_bit
 	}
 
-	static vkb::PhysicalDevice initialize_physical_device()
+	struct PhysicalDeviceSelection
 	{
-		vkb::PhysicalDeviceSelector phys_device_selector(VulkanAPI::instance()->m_instance);
+		vk::PhysicalDevice device;
+		u32 graphics_queue_family;
+	};
 
-		for (const VulkanExtention& extension : VulkanAPI::instance()->extensions())
+	template<typename Extensions>
+	static bool contains_extension(const Extensions& extensions, StringView name)
+	{
+		for (const auto& extension : extensions)
 		{
-			if (extension.is_valid() && extension.enabled)
+			if (name == extension.extensionName)
+				return true;
+		}
+		return false;
+	}
+
+	static bool contains_extension(const Array<const char*>& extensions, StringView name)
+	{
+		for (const char* extension : extensions)
+		{
+			if (name == extension)
+				return true;
+		}
+		return false;
+	}
+
+	static void add_instance_extension(Array<const char*>& enabled_extensions, const auto& available_extensions, const char* name)
+	{
+		if (!contains_extension(available_extensions, name) || contains_extension(enabled_extensions, name))
+			return;
+
+		enabled_extensions.push_back(name);
+	}
+
+	static void add_surface_extensions(Array<const char*>& enabled_extensions)
+	{
+		auto available_extensions = vk::verify(vk::enumerateInstanceExtensionProperties());
+
+		add_instance_extension(enabled_extensions, available_extensions, VK_KHR_SURFACE_EXTENSION_NAME);
+
+#if PLATFORM_WINDOWS
+		add_instance_extension(enabled_extensions, available_extensions, "VK_KHR_win32_surface");
+#elif PLATFORM_ANDROID
+		add_instance_extension(enabled_extensions, available_extensions, "VK_KHR_android_surface");
+#elif PLATFORM_LINUX
+		add_instance_extension(enabled_extensions, available_extensions, "VK_KHR_xlib_surface");
+		add_instance_extension(enabled_extensions, available_extensions, "VK_KHR_wayland_surface");
+#endif
+	}
+
+	static PhysicalDeviceSelection initialize_physical_device()
+	{
+		VulkanAPI* api = VulkanAPI::instance();
+		auto devices   = vk::verify(api->m_instance.enumeratePhysicalDevices());
+
+		PhysicalDeviceSelection selected = {};
+		bool has_selected                = false;
+
+		for (vk::PhysicalDevice device : devices)
+		{
+			const vk::PhysicalDeviceProperties properties = device.getProperties();
+			if (!VulkanConfig::allow_any_gpu_type
+			    && properties.deviceType != static_cast<vk::PhysicalDeviceType>(VulkanConfig::device_type))
+				continue;
+
+			auto extensions = vk::verify(device.enumerateDeviceExtensionProperties());
+			bool supported  = true;
+
+			for (const VulkanExtention& extension : api->extensions())
 			{
-				phys_device_selector.add_required_extension(extension.name.data());
+				if (extension.is_valid() && extension.enabled && !contains_extension(extensions, extension.name))
+				{
+					supported = false;
+					break;
+				}
 			}
+
+			if (!supported)
+				continue;
+
+			auto queue_families = device.getQueueFamilyProperties();
+			for (u32 index = 0; index < queue_families.size(); ++index)
+			{
+				const vk::QueueFamilyProperties& queue_family = queue_families[index];
+				if (queue_family.queueCount && (queue_family.queueFlags & vk::QueueFlagBits::eGraphics))
+				{
+					selected     = {device, index};
+					has_selected = true;
+					break;
+				}
+			}
+
+			if (has_selected && properties.deviceType == static_cast<vk::PhysicalDeviceType>(VulkanConfig::device_type))
+				break;
 		}
 
-		phys_device_selector.defer_surface_initialization();
-		phys_device_selector.allow_any_gpu_device_type(VulkanConfig::allow_any_gpu_type);
-		phys_device_selector.require_present();
-		phys_device_selector.prefer_gpu_device_type(VulkanConfig::device_type);
+		trinex_verify_msg(has_selected, "Failed to find a suitable Vulkan physical device");
 
-		auto selected_device = phys_device_selector.select();
-		trinex_verify_msg(selected_device.has_value(), selected_device.error().message().c_str());
-
-		auto device = selected_device.value();
-
-		for (const VulkanExtention& extension : VulkanAPI::instance()->extensions())
+		auto extensions = vk::verify(selected.device.enumerateDeviceExtensionProperties());
+		for (const VulkanExtention& extension : api->extensions())
 		{
 			if (extension.is_valid() && !extension.enabled)
-			{
-				extension.enabled = device.enable_extension_if_present(extension.name.data());
-			}
+				extension.enabled = contains_extension(extensions, extension.name);
 		}
 
-		return device;
+		return selected;
 	}
 
 	static void clean_pnext(vk::BaseOutStructure* base)
@@ -100,9 +176,9 @@ namespace Trinex
 		}
 	}
 
-	static vkb::Device build_device(vkb::PhysicalDevice& physical_device)
+	static vk::Device build_device(const PhysicalDeviceSelection& selection)
 	{
-		vkb::DeviceBuilder builder(physical_device);
+		VulkanAPI* api = VulkanAPI::instance();
 
 		vk::PhysicalDeviceFeatures2 features;
 		vk::PhysicalDeviceVulkan11Features vk11_features;
@@ -125,38 +201,64 @@ namespace Trinex
 		ray_tracing.pNext         = &shading_rate;
 		shading_rate.pNext        = &dynamic_rendering;
 
-		vk::PhysicalDevice(physical_device.physical_device).getFeatures2(&features);
+		api->m_physical_device.getFeatures2(&features);
 		clean_pnext(reinterpret_cast<vk::BaseOutStructure*>(&features));
+		features.features = api->m_features;
 
 		mesh_shaders.primitiveFragmentShadingRateMeshShader               = vk::False;
 		acceleration.accelerationStructureCaptureReplay                   = vk::False;
 		ray_tracing.rayTracingPipelineShaderGroupHandleCaptureReplay      = vk::False;
 		ray_tracing.rayTracingPipelineShaderGroupHandleCaptureReplayMixed = vk::False;
 
-		builder.add_pNext(&vk11_features);
-		builder.add_pNext(&descriptor_indexing);
-		builder.add_pNext(&timeline_semaphore);
-		builder.add_pNext(&dynamic_rendering);
+		features.pNext            = &vk11_features;
+		vk11_features.pNext       = &descriptor_indexing;
+		descriptor_indexing.pNext = &timeline_semaphore;
+		timeline_semaphore.pNext  = &dynamic_rendering;
+		dynamic_rendering.pNext   = nullptr;
 
-		if (VulkanAPI::instance()->is_extension_enabled<VK_EXT_MESH_SHADER_EXTENSION_NAME>())
-			builder.add_pNext(&mesh_shaders);
+		if (api->is_extension_enabled<VK_EXT_MESH_SHADER_EXTENSION_NAME>())
+		{
+			dynamic_rendering.pNext = &mesh_shaders;
+			mesh_shaders.pNext      = nullptr;
+		}
 
-		if (VulkanAPI::instance()->is_extension_enabled<VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME>())
-			builder.add_pNext(&device_address);
+		vk::BaseOutStructure* chain = reinterpret_cast<vk::BaseOutStructure*>(&dynamic_rendering);
+		while (chain->pNext)
+			chain = chain->pNext;
 
-		if (VulkanAPI::instance()->is_extension_enabled<VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME>())
-			builder.add_pNext(&acceleration);
+		if (api->is_extension_enabled<VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME>())
+		{
+			chain->pNext = reinterpret_cast<vk::BaseOutStructure*>(&device_address);
+			chain        = chain->pNext;
+		}
 
-		if (VulkanAPI::instance()->is_extension_enabled<VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME>())
-			builder.add_pNext(&ray_tracing);
+		if (api->is_extension_enabled<VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME>())
+		{
+			chain->pNext = reinterpret_cast<vk::BaseOutStructure*>(&acceleration);
+			chain        = chain->pNext;
+		}
 
-		if (VulkanAPI::instance()->is_extension_enabled<VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME>())
-			builder.add_pNext(&shading_rate);
+		if (api->is_extension_enabled<VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME>())
+		{
+			chain->pNext = reinterpret_cast<vk::BaseOutStructure*>(&ray_tracing);
+			chain        = chain->pNext;
+		}
 
-		auto device_ret = builder.build();
-		trinex_verify_msg(device_ret.has_value(), device_ret.error().message().c_str());
+		if (api->is_extension_enabled<VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME>())
+			chain->pNext = reinterpret_cast<vk::BaseOutStructure*>(&shading_rate);
 
-		return device_ret.value();
+		Array<const char*> extensions;
+		for (const VulkanExtention& extension : api->extensions())
+		{
+			if (extension.is_valid() && extension.enabled)
+				extensions.push_back(extension.name.data());
+		}
+
+		const float priority = 1.f;
+		vk::DeviceQueueCreateInfo queue_info({}, selection.graphics_queue_family, 1, &priority);
+		vk::DeviceCreateInfo info({}, 1, &queue_info, 0, nullptr, extensions.size(), extensions.data(), nullptr, &features);
+
+		return vk::verify(api->m_physical_device.createDevice(info));
 	}
 
 	static vk::PhysicalDeviceFeatures filter_features(const vk::PhysicalDeviceFeatures& features)
@@ -186,35 +288,61 @@ namespace Trinex
 
 		VULKAN_HPP_DEFAULT_DISPATCHER.init();
 
-		vkb::InstanceBuilder instance_builder;
-		instance_builder.require_api_version(VK_API_VERSION_1_1);
+		Array<const char*> instance_extensions;
+		u32 extension_count           = 0;
+		const char* const* extensions = SDL_Vulkan_GetInstanceExtensions(&extension_count);
+		trinex_verify_msg(extensions, "Failed to get required Vulkan instance extensions from SDL");
+		instance_extensions.insert(instance_extensions.end(), extensions, extensions + extension_count);
+		add_surface_extensions(instance_extensions);
+
+		vk::DebugUtilsMessengerCreateInfoEXT debug_info;
+		vk::ValidationFeaturesEXT validation_info;
+		Array<const char*> validation_layers;
 
 		if (VulkanConfig::enable_validation)
 		{
-			instance_builder.set_debug_callback(debug_callback)
-			        .request_validation_layers(true)
-			        .enable_validation_layers(true)
-			        .add_validation_feature_enable(VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT);
+			validation_layers.push_back("VK_LAYER_KHRONOS_validation");
+			instance_extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+			instance_extensions.push_back(VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME);
+
+			debug_info
+			        .setMessageSeverity(vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose
+			                            | vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo
+			                            | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning
+			                            | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError)
+			        .setMessageType(vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral
+			                        | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation
+			                        | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance)
+			        .setPfnUserCallback(reinterpret_cast<vk::PFN_DebugUtilsMessengerCallbackEXT>(debug_callback));
+
+			const vk::ValidationFeatureEnableEXT validation_features[] = {
+			        vk::ValidationFeatureEnableEXT::eSynchronizationValidation,
+			};
+			validation_info.setEnabledValidationFeatures(validation_features);
+			debug_info.pNext = &validation_info;
 		}
-		else
+
+		vk::ApplicationInfo application_info("Trinex Engine", VK_MAKE_API_VERSION(0, 0, 0, 1), "Trinex",
+		                                     VK_MAKE_API_VERSION(0, 0, 0, 1), VK_API_VERSION_1_1);
+		vk::InstanceCreateInfo instance_info({}, &application_info, validation_layers.size(), validation_layers.data(),
+		                                     instance_extensions.size(), instance_extensions.data(),
+		                                     VulkanConfig::enable_validation ? &debug_info : nullptr);
+
+		m_instance = vk::verify(vk::createInstance(instance_info));
+		VULKAN_HPP_DEFAULT_DISPATCHER.init(m_instance);
+
+		if (VulkanConfig::enable_validation)
 		{
-			instance_builder.enable_validation_layers(false).request_validation_layers(false);
+			debug_info.pNext  = nullptr;
+			m_debug_messenger = vk::verify(m_instance.createDebugUtilsMessengerEXT(debug_info));
 		}
-
-		auto instance_ret = instance_builder.build();
-
-		trinex_verify_msg(instance_ret.has_value(), instance_ret.error().message().c_str());
-
-		m_instance = instance_ret.value();
-		VULKAN_HPP_DEFAULT_DISPATCHER.init(vk::Instance(m_instance.instance));
 
 		// Initialize physical device
 		auto selected_device = initialize_physical_device();
-		m_physical_device    = vk::PhysicalDevice(selected_device.physical_device);
+		m_physical_device    = selected_device.device;
 
 		m_properties = m_physical_device.getProperties();
 		m_features   = filter_features(m_physical_device.getFeatures());
-		selected_device.enable_features_if_present(m_features);
 
 		if (is_raytracing_supported())
 		{
@@ -225,19 +353,11 @@ namespace Trinex
 		trinex_info(Log::RHI, "Selected GPU '%s'", renderer());
 
 		// Initialize device
-		auto bootstrap_device = build_device(selected_device);
-		m_device              = vk::Device(bootstrap_device.device);
+		m_device = build_device(selected_device);
 		VULKAN_HPP_DEFAULT_DISPATCHER.init(m_device);
 
-		auto graphics_queue_index = bootstrap_device.get_queue_index(vkb::QueueType::graphics);
-		auto graphics_queue       = bootstrap_device.get_queue(vkb::QueueType::graphics);
-
-		if (!graphics_queue_index.has_value() || !graphics_queue.has_value())
-		{
-			trinex_unreachable_msg("Failed to create graphics queue");
-		}
-
-		m_graphics_queue          = trx_new VulkanQueue(graphics_queue.value(), graphics_queue_index.value());
+		m_graphics_queue          = trx_new VulkanQueue(m_device.getQueue(selected_device.graphics_queue_family, 0),
+		                                                selected_device.graphics_queue_family);
 		m_pipeline_layout_manager = trx_new VulkanPipelineLayoutManager();
 		m_query_pool_manager      = trx_new VulkanQueryPoolManager();
 		m_descriptor_heap         = trx_new VulkanDescriptorHeap();
@@ -289,7 +409,9 @@ namespace Trinex
 		m_device.destroySemaphore(m_timeline);
 
 		m_device.destroy();
-		vkb::destroy_instance(m_instance);
+		if (m_debug_messenger)
+			m_instance.destroyDebugUtilsMessengerEXT(m_debug_messenger);
+		m_instance.destroy();
 	}
 
 	VulkanAPI& VulkanAPI::destroy_garbage()

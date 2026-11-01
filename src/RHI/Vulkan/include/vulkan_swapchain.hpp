@@ -2,7 +2,6 @@
 #include <Core/etl/array.hpp>
 #include <RHI/resource_ptr.hpp>
 #include <RHI/rhi.hpp>
-#include <VkBootstrap.h>
 #include <vulkan_destroyable.hpp>
 #include <vulkan_headers.hpp>
 #include <vulkan_sync.hpp>
@@ -23,6 +22,7 @@ namespace Trinex
 		Window* m_window;
 		vk::PresentModeKHR m_present_mode;
 		vk::SwapchainKHR m_swapchain;
+		u32 m_desired_image_count;
 		i32 m_sync_index  = 0;
 		i32 m_image_index = -1;
 		Vector2u m_size;

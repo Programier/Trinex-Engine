@@ -1,4 +1,3 @@
-add_subdirectory(libs/vk-bootstrap)
 add_subdirectory(libs/vulkan_memory_allocator)
 
 trinex_reflection_directories(TrinexEngine PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)

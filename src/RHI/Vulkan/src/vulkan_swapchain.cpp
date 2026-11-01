@@ -1,3 +1,4 @@
+#include <Core/etl/algorithm.hpp>
 #include <Core/memory.hpp>
 #include <Core/profiler.hpp>
 #include <Core/window.hpp>
@@ -46,7 +47,7 @@ namespace Trinex
 	}
 
 	VulkanSwapchain::VulkanSwapchain(Window* window, RHIPresentMode mode, u32 images)
-	    : m_surface(VulkanAPI::instance()->create_surface(window)), m_window(window)
+	    : m_surface(VulkanAPI::instance()->create_surface(window)), m_window(window), m_desired_image_count(images)
 	{
 		m_present_mode = VulkanAPI::instance()->present_mode_of(mode, m_surface);
 		create_swapchain();
@@ -55,7 +56,7 @@ namespace Trinex
 	VulkanSwapchain::~VulkanSwapchain()
 	{
 		release_swapchain();
-		vk::Instance(VulkanAPI::instance()->m_instance.instance).destroySurfaceKHR(m_surface);
+		VulkanAPI::instance()->m_instance.destroySurfaceKHR(m_surface);
 	}
 
 	VulkanSwapchain& VulkanSwapchain::create_swapchain(vk::SwapchainKHR* old)
@@ -63,52 +64,90 @@ namespace Trinex
 		trinex_info(Log::RHI, "Creating new swapchain");
 		m_need_recreate = false;
 
-		vkb::SwapchainBuilder builder(VulkanAPI::instance()->m_physical_device, *VulkanAPI::device(), m_surface,
-		                              VulkanAPI::instance()->m_graphics_queue->index(),
-		                              VulkanAPI::instance()->m_graphics_queue->index());
+		VulkanAPI* api    = VulkanAPI::instance();
+		auto capabilities = vk::verify(api->m_physical_device.getSurfaceCapabilitiesKHR(m_surface));
+		auto formats      = vk::verify(api->m_physical_device.getSurfaceFormatsKHR(m_surface));
+		trinex_verify_msg(!formats.empty(), "Failed to find a surface format");
 
-		builder.set_desired_present_mode(static_cast<VkPresentModeKHR>(m_present_mode));
-		auto capabilities = vk::verify(VulkanAPI::instance()->m_physical_device.getSurfaceCapabilitiesKHR(m_surface));
-
-		builder.add_image_usage_flags(
-		        static_cast<VkImageUsageFlags>(vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst));
-
-		if (capabilities.supportedTransforms & vk::SurfaceTransformFlagBitsKHR::eIdentity)
-			builder.set_pre_transform_flags(VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR);
-		else
-			builder.set_pre_transform_flags(static_cast<VkSurfaceTransformFlagBitsKHR>(capabilities.currentTransform));
-
-		VkSurfaceFormatKHR f;
-		f.colorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
-		f.format     = VK_FORMAT_B8G8R8A8_UNORM;
-		builder.set_desired_format(f);
-
-		if (old)
+		vk::SurfaceFormatKHR surface_format = formats.front();
+		for (const vk::SurfaceFormatKHR& format : formats)
 		{
-			builder.set_old_swapchain(*old);
+			if (format.format == vk::Format::eB8G8R8A8Unorm && format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear)
+			{
+				surface_format = format;
+				break;
+			}
 		}
 
-		auto swapchain = builder.build();
+		vk::Extent2D extent = capabilities.currentExtent;
+		if (extent.width == UINT32_MAX)
+		{
+			const Vector2u size = m_window->size();
+			extent.width        = etl::clamp(size.x, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
+			extent.height       = etl::clamp(size.y, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
+		}
 
-		trinex_verify_msg(swapchain.has_value(), swapchain.error().message().c_str());
+		u32 image_count = m_desired_image_count ? m_desired_image_count : capabilities.minImageCount + 1;
+		image_count     = etl::max(image_count, capabilities.minImageCount);
+		if (capabilities.maxImageCount)
+			image_count = etl::min(image_count, capabilities.maxImageCount);
 
-		auto images_result = swapchain->get_images();
-		trinex_verify_msg(images_result.has_value(), images_result.error().message().c_str());
-		auto& images = images_result.value();
+		vk::ImageUsageFlags usage = vk::ImageUsageFlagBits::eColorAttachment;
+		if (capabilities.supportedUsageFlags & vk::ImageUsageFlagBits::eTransferSrc)
+			usage |= vk::ImageUsageFlagBits::eTransferSrc;
+		if (capabilities.supportedUsageFlags & vk::ImageUsageFlagBits::eTransferDst)
+			usage |= vk::ImageUsageFlagBits::eTransferDst;
+
+		vk::CompositeAlphaFlagBitsKHR composite_alpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
+		if (!(capabilities.supportedCompositeAlpha & composite_alpha))
+		{
+			constexpr vk::CompositeAlphaFlagBitsKHR modes[] = {
+			        vk::CompositeAlphaFlagBitsKHR::ePreMultiplied,
+			        vk::CompositeAlphaFlagBitsKHR::ePostMultiplied,
+			        vk::CompositeAlphaFlagBitsKHR::eInherit,
+			};
+
+			for (vk::CompositeAlphaFlagBitsKHR mode : modes)
+			{
+				if (capabilities.supportedCompositeAlpha & mode)
+				{
+					composite_alpha = mode;
+					break;
+				}
+			}
+		}
+
+		vk::SwapchainCreateInfoKHR info;
+		info.setSurface(m_surface)
+		        .setMinImageCount(image_count)
+		        .setImageFormat(surface_format.format)
+		        .setImageColorSpace(surface_format.colorSpace)
+		        .setImageExtent(extent)
+		        .setImageArrayLayers(1)
+		        .setImageUsage(usage)
+		        .setImageSharingMode(vk::SharingMode::eExclusive)
+		        .setPreTransform((capabilities.supportedTransforms & vk::SurfaceTransformFlagBitsKHR::eIdentity)
+		                                 ? vk::SurfaceTransformFlagBitsKHR::eIdentity
+		                                 : capabilities.currentTransform)
+		        .setCompositeAlpha(composite_alpha)
+		        .setPresentMode(m_present_mode)
+		        .setClipped(true)
+		        .setOldSwapchain(old ? *old : VK_NULL_HANDLE);
+
+		m_swapchain = vk::verify(VulkanAPI::device()->createSwapchainKHR(info));
+		auto images = vk::verify(VulkanAPI::device()->getSwapchainImagesKHR(m_swapchain));
 
 		m_backbuffers.resize(images.size());
 		initialize_semaphores(m_image_present_semaphores, images.size() + 1);
 		initialize_semaphores(m_render_finished_semaphores, images.size());
 
-		m_size = {swapchain->extent.width, swapchain->extent.height};
+		m_size = {extent.width, extent.height};
 
 		for (i32 i = 0; auto& backbuffer : m_backbuffers)
 		{
-			backbuffer = trx_new VulkanSwapchainTexture(images[i], vk::Format(swapchain->image_format), m_size);
+			backbuffer = trx_new VulkanSwapchainTexture(images[i], surface_format.format, m_size);
 			++i;
 		}
-
-		m_swapchain = swapchain->swapchain;
 		return *this;
 	}
 
@@ -148,7 +187,7 @@ namespace Trinex
 	VulkanSwapchain& VulkanSwapchain::recreate_surface()
 	{
 		release_swapchain();
-		vk::Instance(VulkanAPI::instance()->m_instance.instance).destroySurfaceKHR(m_surface);
+		VulkanAPI::instance()->m_instance.destroySurfaceKHR(m_surface);
 		m_surface = VulkanAPI::instance()->create_surface(m_window);
 		return create_swapchain();
 	}
