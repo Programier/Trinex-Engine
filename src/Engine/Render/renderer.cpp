@@ -4,7 +4,6 @@
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/Render/deferred_renderer.hpp>
 #include <Engine/Render/primitive_context.hpp>
-#include <Engine/Render/render_graph.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/renderer.hpp>
 #include <Engine/Render/scene.hpp>
@@ -18,12 +17,13 @@
 #include <Graphics/shader_parameters.hpp>
 #include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
+#include <Rendering/render_graph.hpp>
 
 namespace Trinex
 {
 	Renderer::Renderer(const SceneView& view, ViewMode mode) : m_view(view), m_view_mode(mode)
 	{
-		m_graph = new (FrameAllocator<RenderGraph::Graph>::allocate(1)) RenderGraph::Graph();
+		m_graph = new (FrameAllocator<RenderGraph>::allocate(1)) RenderGraph();
 	}
 
 	RHISurfaceFormat Renderer::surface_format_of(SurfaceType type)
@@ -174,7 +174,7 @@ namespace Trinex
 		return surface_clear_pass(type)->resources()[0]->as_texture();
 	}
 
-	RenderGraph::Pass* Renderer::surface_clear_pass(SurfaceType type)
+	RGPass* Renderer::surface_clear_pass(SurfaceType type)
 	{
 		if (m_surface_clears[type] == nullptr)
 		{
@@ -188,8 +188,8 @@ namespace Trinex
 			RHITextureFlags flags   = surface_flags_of(type);
 			RHITexture* target      = pool->acquire_transient(format, m_view.view_size(), flags);
 
-			RenderGraph::Pass* pass = &m_graph->add_pass(clear_pass_names[type]).add_resource(target, RHIAccess::TransferDst);
-			m_surface_clears[type]  = pass;
+			RGPass* pass           = &m_graph->add_pass(clear_pass_names[type]).add_resource(target, RHIAccess::TransferDst);
+			m_surface_clears[type] = pass;
 
 			if (type == SceneDepth)
 				pass->add_func([target](RHIContext* ctx) { ctx->clear_dsv(target->as_dsv()); });

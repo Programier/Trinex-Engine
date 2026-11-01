@@ -14,12 +14,8 @@ namespace Trinex
 	class RHIBuffer;
 	class RHITexture;
 	class RHIContext;
-
-	namespace RenderGraph
-	{
-		class Graph;
-		class Pass;
-	} // namespace RenderGraph
+	class RenderGraph;
+	class RGPass;
 
 	class trinex_api Renderer
 	{
@@ -45,11 +41,11 @@ namespace Trinex
 		};
 
 		ChildRenderer* m_child_renderer = nullptr;
-		RenderGraph::Graph* m_graph;
+		RenderGraph* m_graph;
 		RHIBuffer* m_globals = nullptr;
 		SceneView m_view;
 		ViewMode m_view_mode;
-		RenderGraph::Pass* m_surface_clears[LastSurface] = {};
+		RGPass* m_surface_clears[LastSurface] = {};
 
 	public:
 		static RHISurfaceFormat surface_format_of(SurfaceType type);
@@ -66,7 +62,7 @@ namespace Trinex
 
 		Renderer& add_child_renderer(Renderer* renderer);
 		RHITexture* surface(SurfaceType type);
-		RenderGraph::Pass* surface_clear_pass(SurfaceType type);
+		RGPass* surface_clear_pass(SurfaceType type);
 		RHIBuffer* globals_uniform_buffer();
 
 		RHITexture* request_surface(RHISurfaceFormat format, float scale = 1.f);
@@ -98,15 +94,15 @@ namespace Trinex
 		static inline RHISurfaceFormat msra_format() { return surface_format_of(MSRA); }
 		static inline RHISurfaceFormat velocity_format() { return surface_format_of(Velocity); }
 
-		inline RenderGraph::Pass* scene_color_hdr_clear_pass() { return surface_clear_pass(SceneColorHDR); }
-		inline RenderGraph::Pass* scene_color_ldr_clear_pass() { return surface_clear_pass(SceneColorLDR); }
-		inline RenderGraph::Pass* scene_depth_clear_pass() { return surface_clear_pass(SceneDepth); }
-		inline RenderGraph::Pass* base_color_clear_pass() { return surface_clear_pass(BaseColor); }
-		inline RenderGraph::Pass* normal_clear_pass() { return surface_clear_pass(Normal); }
-		inline RenderGraph::Pass* msra_clear_pass() { return surface_clear_pass(MSRA); }
-		inline RenderGraph::Pass* velocity_clear_pass() { return surface_clear_pass(Velocity); }
+		inline RGPass* scene_color_hdr_clear_pass() { return surface_clear_pass(SceneColorHDR); }
+		inline RGPass* scene_color_ldr_clear_pass() { return surface_clear_pass(SceneColorLDR); }
+		inline RGPass* scene_depth_clear_pass() { return surface_clear_pass(SceneDepth); }
+		inline RGPass* base_color_clear_pass() { return surface_clear_pass(BaseColor); }
+		inline RGPass* normal_clear_pass() { return surface_clear_pass(Normal); }
+		inline RGPass* msra_clear_pass() { return surface_clear_pass(MSRA); }
+		inline RGPass* velocity_clear_pass() { return surface_clear_pass(Velocity); }
 
-		inline RenderGraph::Graph* render_graph() const { return m_graph; }
+		inline RenderGraph* render_graph() const { return m_graph; }
 
 		virtual ~Renderer() {}
 	};

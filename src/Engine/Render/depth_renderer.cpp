@@ -3,13 +3,13 @@
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/Render/depth_renderer.hpp>
 #include <Engine/Render/primitive_context.hpp>
-#include <Engine/Render/render_graph.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/scene.hpp>
 #include <Engine/camera_view.hpp>
 #include <Graphics/render_pools.hpp>
 #include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
+#include <Rendering/render_graph.hpp>
 
 namespace Trinex
 {

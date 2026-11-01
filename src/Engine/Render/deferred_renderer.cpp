@@ -12,7 +12,6 @@
 #include <Engine/Render/pipelines.hpp>
 #include <Engine/Render/post_process_parameters.hpp>
 #include <Engine/Render/primitive_context.hpp>
-#include <Engine/Render/render_graph.hpp>
 #include <Engine/Render/render_pass.hpp>
 #include <Engine/Render/scene.hpp>
 #include <Engine/Render/scene_view_state.hpp>
@@ -23,6 +22,7 @@
 #include <RHI/context.hpp>
 #include <RHI/rhi.hpp>
 #include <RHI/static_sampler.hpp>
+#include <Rendering/render_graph.hpp>
 #include <algorithm>
 
 namespace Trinex

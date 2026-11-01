@@ -20,7 +20,7 @@ namespace Trinex::LifeCycle
 			Handler* list;
 		};
 
-		static void execute_dependencies(const char* dependency, Handler** list);
+		static void execute_handler(Handler** list, const char* dependency);
 
 		static FlatMap<i32, Handler*>& handlers()
 		{
@@ -49,7 +49,7 @@ namespace Trinex::LifeCycle
 				const char* dependency = current->dependencies.back();
 				current->dependencies.pop_back();
 
-				execute_dependencies(dependency, pending);
+				execute_handler(pending, dependency);
 			}
 
 			if (current->function)
@@ -62,7 +62,7 @@ namespace Trinex::LifeCycle
 			trx_delete current;
 		}
 
-		static void execute_dependencies(const char* dependency, Handler** list)
+		static void execute_handler(Handler** list, const char* dependency)
 		{
 			if (list == nullptr)
 				return;
@@ -91,9 +91,9 @@ namespace Trinex::LifeCycle
 		list           = trx_new Handler{list, function, description.name, description.after};
 	}
 
-	trinex_api void execute(i32 event)
+	trinex_api void execute(i32 stage)
 	{
-		Handler*& list = handlers()[event];
+		Handler*& list = handlers()[stage];
 
 		while (list)
 		{
@@ -103,5 +103,10 @@ namespace Trinex::LifeCycle
 
 			execute_handler(current, &list);
 		}
+	}
+
+	trinex_api void execute(i32 stage, const char* handler)
+	{
+		execute_handler(&handlers()[stage], handler);
 	}
 } // namespace Trinex::LifeCycle

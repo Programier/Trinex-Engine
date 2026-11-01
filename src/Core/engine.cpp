@@ -9,13 +9,27 @@
 namespace Trinex
 {
 	static thread_local Engine* s_instance = nullptr;
+	static std::chrono::high_resolution_clock::time_point start_time;
 
 	static inline std::chrono::high_resolution_clock::time_point current_time_point()
 	{
 		return std::chrono::high_resolution_clock::now();
 	}
 
-	static std::chrono::high_resolution_clock::time_point start_time;
+	static void launch_testing(const Array<String>* entries)
+	{
+		if (entries->empty())
+		{
+			LifeCycle::execute(LifeCycle::Testing);
+		}
+		else
+		{
+			for (const String& entry : *entries)
+			{
+				LifeCycle::execute(LifeCycle::Testing, entry.c_str());
+			}
+		}
+	}
 
 	Engine::Engine()
 	{
@@ -38,6 +52,14 @@ namespace Trinex
 
 		// BOOTSTRAP STAGE
 		LifeCycle::execute(LifeCycle::Bootstrap);
+
+		// TESTING STAGE
+		if (auto entries = CommandLine::values("testing"))
+		{
+			launch_testing(entries);
+			trinex_info(Log::Core, "Testing completed successfully");
+			return 0;
+		}
 
 		// REGISTER STAGE
 		LifeCycle::execute(LifeCycle::Register);

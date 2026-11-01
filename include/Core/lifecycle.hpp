@@ -7,6 +7,9 @@ namespace Trinex::LifeCycle
 
 	enum Stage
 	{
+		// Testing
+		Testing = -10,
+
 		// Startup
 		Bootstrap  = -9,
 		Register   = -8,
@@ -79,6 +82,7 @@ namespace Trinex::LifeCycle
 	}
 
 	trinex_api void execute(i32 stage);
+	trinex_api void execute(i32 stage, const char* handler);
 } // namespace Trinex::LifeCycle
 
 #define trinex_lifecycle_handler(stage_id, ...)                                                                                  \
@@ -89,6 +93,7 @@ namespace Trinex::LifeCycle
                                                                                                                                  \
 	static void TRINEX_CONCAT(trinex_lifecycle_function_, __LINE__)()
 
+#define trinex_on_testing(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::Testing, __VA_ARGS__)
 #define trinex_on_bootstrap(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::Bootstrap, __VA_ARGS__)
 #define trinex_on_register(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::Register, __VA_ARGS__)
 #define trinex_on_configure(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::Configure, __VA_ARGS__)
