@@ -7,7 +7,9 @@
 
 namespace Trinex
 {
-	VulkanQueue::VulkanQueue(vk::Queue queue, u32 index) : m_queue(queue), m_index(index) {}
+	VulkanQueue::VulkanQueue(vk::Queue queue, RHIQueueFlags flags, u32 family_index, u32 queue_index)
+	    : m_queue(queue), m_flags(flags), m_family_index(family_index), m_queue_index(queue_index)
+	{}
 
 	void VulkanQueue::destroy()
 	{
@@ -16,7 +18,7 @@ namespace Trinex
 
 	RHIQueueFlags VulkanQueue::flags() const
 	{
-		return {};
+		return m_flags;
 	}
 
 	void VulkanQueue::present(RHISwapchain* swapchain)

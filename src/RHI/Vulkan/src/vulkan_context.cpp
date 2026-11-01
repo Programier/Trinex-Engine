@@ -517,7 +517,7 @@ namespace Trinex
 	VulkanCommandBufferManager::VulkanCommandBufferManager()
 	{
 		m_pool = vk::verify(VulkanAPI::device()->createCommandPool(vk::CommandPoolCreateInfo(
-		        vk::CommandPoolCreateFlagBits::eResetCommandBuffer, VulkanAPI::instance()->m_graphics_queue->index())));
+		        vk::CommandPoolCreateFlagBits::eResetCommandBuffer, VulkanAPI::graphics()->family_index())));
 	}
 
 	VulkanCommandBufferManager::~VulkanCommandBufferManager()

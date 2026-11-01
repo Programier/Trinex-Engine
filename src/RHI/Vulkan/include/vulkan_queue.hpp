@@ -11,10 +11,12 @@ namespace Trinex
 	{
 	private:
 		vk::Queue m_queue;
-		u32 m_index;
+		RHIQueueFlags m_flags;
+		u32 m_family_index;
+		u32 m_queue_index;
 
 	public:
-		VulkanQueue(vk::Queue queue, u32 index);
+		VulkanQueue(vk::Queue queue, RHIQueueFlags flags, u32 family_index, u32 queue_index);
 
 		void destroy() override;
 		RHIQueueFlags flags() const override;
@@ -22,6 +24,7 @@ namespace Trinex
 		void submit(const RHISubmitInfo& info) override;
 		void wait() override;
 
-		inline u32 index() const { return m_index; }
+		inline u32 family_index() const { return m_family_index; }
+		inline u32 queue_index() const { return m_queue_index; }
 	};
 } // namespace Trinex

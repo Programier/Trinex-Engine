@@ -42,8 +42,6 @@ namespace Trinex
 		vk::PhysicalDevice m_physical_device;
 		VmaAllocator m_allocator = VK_NULL_HANDLE;
 
-		VulkanQueue* m_graphics_queue = nullptr;
-
 		vk::PhysicalDeviceProperties m_properties;
 		vk::PhysicalDeviceFeatures m_features;
 
@@ -55,7 +53,13 @@ namespace Trinex
 		};
 
 		static VulkanAPI* s_vulkan;
+
 		vk::Device m_device;
+
+		VulkanQueue* m_graphics_queue = nullptr;
+		VulkanQueue* m_compute_queue  = nullptr;
+		VulkanQueue* m_transfer_queue = nullptr;
+		Array<RHIQueue*> m_queues;
 
 		Atomic<u64> m_frame;
 
@@ -156,8 +160,12 @@ namespace Trinex
 		VulkanAPI& add_garbage(RHIObject* object);
 
 	public:
-		static VulkanAPI* instance() { return s_vulkan; }
-		static vk::Device* device() { return &instance()->m_device; }
+		static inline VulkanAPI* instance() { return s_vulkan; }
+		static inline vk::Device* device() { return &instance()->m_device; }
+
+		static inline VulkanQueue* graphics() { return instance()->m_graphics_queue; }
+		static inline VulkanQueue* compute() { return instance()->m_compute_queue; }
+		static inline VulkanQueue* transfer() { return instance()->m_transfer_queue; }
 
 	public:
 		VulkanAPI();

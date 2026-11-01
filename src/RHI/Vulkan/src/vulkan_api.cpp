@@ -57,7 +57,50 @@ namespace Trinex
 	{
 		vk::PhysicalDevice device;
 		u32 graphics_queue_family;
+		u32 compute_queue_family;
+		u32 transfer_queue_family;
 	};
+
+	static constexpr u32 invalid_queue_family = ~0u;
+
+	template<typename Families>
+	static u32 find_queue_family(const Families& families, vk::QueueFlags required, vk::QueueFlags excluded = {})
+	{
+		for (u32 index = 0; index < families.size(); ++index)
+		{
+			const vk::QueueFamilyProperties& family = families[index];
+			if (family.queueCount && (family.queueFlags & required) == required && !(family.queueFlags & excluded))
+				return index;
+		}
+
+		return invalid_queue_family;
+	}
+
+	static RHIQueueFlags rhi_queue_flags(vk::QueueFlags flags)
+	{
+		RHIQueueFlags result = {};
+
+		if (flags & vk::QueueFlagBits::eGraphics)
+			result |= RHIQueueFlags::Graphics;
+		if (flags & vk::QueueFlagBits::eCompute)
+			result |= RHIQueueFlags::Compute;
+		if (flags & vk::QueueFlagBits::eTransfer)
+			result |= RHIQueueFlags::Transfer;
+
+		return result;
+	}
+
+	static const char* rhi_queue_name(RHIQueueType type)
+	{
+		switch (type)
+		{
+			case RHIQueueType::Graphics: return "Graphics";
+			case RHIQueueType::Compute: return "Compute";
+			case RHIQueueType::Transfer: return "Transfer";
+			case RHIQueueType::Present: return "Present";
+			default: return "Undefined";
+		}
+	}
 
 	template<typename Extensions>
 	static bool contains_extension(const Extensions& extensions, StringView name)
@@ -135,15 +178,27 @@ namespace Trinex
 				continue;
 
 			auto queue_families = device.getQueueFamilyProperties();
-			for (u32 index = 0; index < queue_families.size(); ++index)
+			const u32 graphics  = find_queue_family(queue_families, vk::QueueFlagBits::eGraphics);
+			if (graphics != invalid_queue_family)
 			{
-				const vk::QueueFamilyProperties& queue_family = queue_families[index];
-				if (queue_family.queueCount && (queue_family.queueFlags & vk::QueueFlagBits::eGraphics))
-				{
-					selected     = {device, index};
-					has_selected = true;
-					break;
-				}
+				u32 compute = find_queue_family(queue_families, vk::QueueFlagBits::eCompute, vk::QueueFlagBits::eGraphics);
+				if (compute == invalid_queue_family)
+					compute = find_queue_family(queue_families, vk::QueueFlagBits::eCompute);
+
+				u32 transfer = find_queue_family(queue_families, vk::QueueFlagBits::eTransfer,
+				                                 vk::QueueFlagBits::eGraphics | vk::QueueFlagBits::eCompute);
+				if (transfer == invalid_queue_family)
+					transfer = find_queue_family(queue_families, vk::QueueFlagBits::eTransfer, vk::QueueFlagBits::eGraphics);
+				if (transfer == invalid_queue_family)
+					transfer = find_queue_family(queue_families, vk::QueueFlagBits::eTransfer);
+
+				selected = {
+				        .device                = device,
+				        .graphics_queue_family = graphics,
+				        .compute_queue_family  = compute == invalid_queue_family ? graphics : compute,
+				        .transfer_queue_family = transfer == invalid_queue_family ? graphics : transfer,
+				};
+				has_selected = true;
 			}
 
 			if (has_selected && properties.deviceType == static_cast<vk::PhysicalDeviceType>(VulkanConfig::device_type))
@@ -251,8 +306,30 @@ namespace Trinex
 		}
 
 		const float priority = 1.f;
-		vk::DeviceQueueCreateInfo queue_info({}, selection.graphics_queue_family, 1, &priority);
-		vk::DeviceCreateInfo info({}, 1, &queue_info, 0, nullptr, extensions.size(), extensions.data(), nullptr, &features);
+		Array<u32> queue_families;
+		for (u32 family : {selection.graphics_queue_family, selection.compute_queue_family, selection.transfer_queue_family})
+		{
+			bool exists = false;
+			for (u32 existing : queue_families)
+			{
+				if (existing == family)
+				{
+					exists = true;
+					break;
+				}
+			}
+
+			if (!exists)
+				queue_families.push_back(family);
+		}
+
+		Array<vk::DeviceQueueCreateInfo> queue_infos;
+		queue_infos.reserve(queue_families.size());
+		for (u32 family : queue_families)
+			queue_infos.emplace_back(vk::DeviceQueueCreateFlags{}, family, 1, &priority);
+
+		vk::DeviceCreateInfo info({}, queue_infos.size(), queue_infos.data(), 0, nullptr, extensions.size(), extensions.data(),
+		                          nullptr, &features);
 
 		return vk::verify(api->m_physical_device.createDevice(info));
 	}
@@ -352,8 +429,33 @@ namespace Trinex
 		m_device = build_device(selected_device);
 		VULKAN_HPP_DEFAULT_DISPATCHER.init(m_device);
 
-		m_graphics_queue          = trx_new VulkanQueue(m_device.getQueue(selected_device.graphics_queue_family, 0),
-		                                                selected_device.graphics_queue_family);
+		const auto queue_families = m_physical_device.getQueueFamilyProperties();
+		auto create_queue         = [this, &queue_families](u32 family) {
+			for (RHIQueue* base_queue : m_queues)
+			{
+				auto* queue = static_cast<VulkanQueue*>(base_queue);
+				if (queue->family_index() == family && queue->queue_index() == 0)
+					return queue;
+			}
+
+			VulkanQueue* queue = trx_new VulkanQueue(m_device.getQueue(family, 0),
+			                                         rhi_queue_flags(queue_families[family].queueFlags), family, 0);
+			m_queues.push_back(queue);
+			return queue;
+		};
+
+		m_graphics_queue = create_queue(selected_device.graphics_queue_family);
+		m_compute_queue  = create_queue(selected_device.compute_queue_family);
+		m_transfer_queue = create_queue(selected_device.transfer_queue_family);
+
+		auto log_queue = [](RHIQueueType type, const VulkanQueue* queue) {
+			trinex_info(Log::RHI, "Created %s queue (family %u, index %u)", rhi_queue_name(type), queue->family_index(),
+			            queue->queue_index());
+		};
+
+		log_queue(RHIQueueType::Graphics, m_graphics_queue);
+		log_queue(RHIQueueType::Compute, m_compute_queue);
+		log_queue(RHIQueueType::Transfer, m_transfer_queue);
 		m_pipeline_layout_manager = trx_new VulkanPipelineLayoutManager();
 		m_query_pool_manager      = trx_new VulkanQueryPoolManager();
 		m_descriptor_heap         = trx_new VulkanDescriptorHeap();
@@ -395,7 +497,9 @@ namespace Trinex
 		destroy_garbage();
 
 		trx_delete m_pipeline_layout_manager;
-		trx_delete m_graphics_queue;
+		for (RHIQueue* queue : m_queues)
+			trx_delete static_cast<VulkanQueue*>(queue);
+		m_queues.clear();
 		trx_delete m_query_pool_manager;
 		trx_delete m_descriptor_heap;
 
@@ -485,12 +589,19 @@ namespace Trinex
 
 	RHIQueue* VulkanAPI::queue(RHIQueueType type, RHISwapchain* swapchain)
 	{
-		return m_graphics_queue;
+		switch (type)
+		{
+			case RHIQueueType::Graphics: return m_graphics_queue;
+			case RHIQueueType::Compute: return m_compute_queue;
+			case RHIQueueType::Transfer: return m_transfer_queue;
+			case RHIQueueType::Present: return m_graphics_queue;
+			default: return nullptr;
+		}
 	}
 
 	RHIArrayView<RHIQueue*> VulkanAPI::queues() const
 	{
-		return {};
+		return {m_queues.data(), m_queues.size()};
 	}
 
 	VulkanAPI& VulkanAPI::add_garbage(RHIObject* object)
