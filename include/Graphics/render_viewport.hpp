@@ -36,7 +36,7 @@ namespace Trinex
 
 		virtual void update(f32 dt);
 		virtual void render(RenderGraph* graph);
-		virtual void submit();
+		virtual void present();
 
 		RenderViewport& client(Ref<ViewportClient> client);
 		RenderViewport& mode(RHIPresentMode mode);

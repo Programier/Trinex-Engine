@@ -52,9 +52,10 @@ namespace Trinex
 		virtual const char* name() const     = 0;
 		virtual const char* renderer() const = 0;
 
-		virtual RHI& update(float dt)                  = 0;
-		virtual RHI& submit(const RHISubmitInfo& info) = 0;
-		virtual RHI& idle()                            = 0;
+		virtual RHI& update(float dt)                                                   = 0;
+		virtual RHI& submit(const RHISubmitInfo& info)                                  = 0;
+		virtual RHI& idle()                                                             = 0;
+		virtual RHIQueue* queue(RHIQueueFlags flags, RHISwapchain* swapchain = nullptr) = 0;
 
 		virtual RHITimestamp* create_timestamp()                                                    = 0;
 		virtual RHIPipelineStatistics* create_pipeline_statistics()                                 = 0;

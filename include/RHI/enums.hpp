@@ -1008,6 +1008,20 @@ namespace Trinex
 		trinex_bitfield_enum_struct(RHIContextFlags, u8);
 	};
 
+	struct RHIQueueFlags
+	{
+		enum Enum : u8
+		{
+			Undefined = 0,
+			Graphics  = 1 << 0,
+			Compute   = 1 << 1,
+			Transfer  = 1 << 2,
+			Present   = 1 << 3,
+		};
+
+		trinex_bitfield_enum_struct(RHIQueueFlags, u8);
+	};
+
 	struct RHIMappingAccess
 	{
 		enum Enum : u8

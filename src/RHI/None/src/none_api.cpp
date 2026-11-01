@@ -128,6 +128,11 @@ namespace Trinex
 		return *this;
 	}
 
+	RHIQueue* NoneApi::queue(RHIQueueFlags flags, RHISwapchain* swapchain)
+	{
+		return nullptr;
+	}
+
 	RHITimestamp* NoneApi::create_timestamp()
 	{
 		return new NoneTimestamp();

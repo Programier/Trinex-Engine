@@ -14,6 +14,7 @@ namespace Trinex
 		NoneApi& update(float dt) override;
 		NoneApi& submit(const RHISubmitInfo& info) override;
 		NoneApi& idle() override;
+		RHIQueue* queue(RHIQueueFlags flags, RHISwapchain* swapchain = nullptr) override;
 
 		RHITimestamp* create_timestamp() override;
 		RHIPipelineStatistics* create_pipeline_statistics() override;

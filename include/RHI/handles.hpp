@@ -14,6 +14,7 @@ namespace Trinex
 	struct RHITextureDescUAV;
 	struct RHITextureType;
 	struct RHIMappingAccess;
+	struct RHISubmitInfo;
 
 	class trinex_api RHITimestamp : public RHIObject
 	{
@@ -145,5 +146,15 @@ namespace Trinex
 	class trinex_api RHIAccelerationStructure : public RHIObject
 	{
 	public:
+	};
+
+	class trinex_api RHIQueue : public RHIObject
+	{
+	public:
+		virtual RHIQueueFlags flags() const            = 0;
+		virtual void present(RHISwapchain* swapchain)  = 0;
+		virtual void submit(const RHISubmitInfo& info) = 0;
+		virtual void wait(RHISemaphore* semaphore)     = 0;
+		virtual void wait()                            = 0;
 	};
 } // namespace Trinex

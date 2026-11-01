@@ -89,5 +89,5 @@ namespace Trinex
 		}
 	}
 
-	void RenderViewport::submit() {}
+	void RenderViewport::present() {}
 } // namespace Trinex

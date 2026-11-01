@@ -164,6 +164,7 @@ namespace Trinex
 		VulkanAPI& update(float dt) override;
 		VulkanAPI& submit(const RHISubmitInfo& info) override;
 		VulkanAPI& idle() override;
+		RHIQueue* queue(RHIQueueFlags flags, RHISwapchain* swapchain = nullptr) override;
 
 		vk::PresentModeKHR present_mode_of(RHIPresentMode mode, vk::SurfaceKHR surface);
 

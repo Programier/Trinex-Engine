@@ -384,9 +384,9 @@ namespace Trinex
 			submit_info.setCommandBuffers(cmd);
 		}
 
-		if (info.wait_semaphore)
+		if (info.wait)
 		{
-			VulkanSemaphore* semaphore = static_cast<VulkanSemaphore*>(info.wait_semaphore);
+			VulkanSemaphore* semaphore = static_cast<VulkanSemaphore*>(info.wait);
 			trinex_assert(semaphore->is_signaled());
 			submit_info.setWaitSemaphores(semaphore->is_signaled(false).semaphore());
 
@@ -394,15 +394,15 @@ namespace Trinex
 			submit_info.setWaitDstStageMask(wait_mask);
 		}
 
-		if (info.signal_semaphore)
+		if (info.signal)
 		{
-			VulkanSemaphore* semaphore = static_cast<VulkanSemaphore*>(info.signal_semaphore);
+			VulkanSemaphore* semaphore = static_cast<VulkanSemaphore*>(info.signal);
 			trinex_assert(!semaphore->is_signaled());
 			submit_info.setSignalSemaphores(semaphore->is_signaled(true).semaphore());
 		}
 
-		VulkanFence* signal = static_cast<VulkanFence*>(info.signal_fence);
-		vk::Fence fence     = info.signal_fence ? signal->make_pending().fence() : VK_NULL_HANDLE;
+		VulkanFence* signal = static_cast<VulkanFence*>(info.fence);
+		vk::Fence fence     = info.fence ? signal->make_pending().fence() : VK_NULL_HANDLE;
 
 		m_graphics_queue->submit(submit_info, fence);
 		return *this;
@@ -412,6 +412,11 @@ namespace Trinex
 	{
 		m_graphics_queue->idle();
 		return *this;
+	}
+
+	RHIQueue* VulkanAPI::queue(RHIQueueFlags flags, RHISwapchain* swapchain)
+	{
+		return nullptr;
 	}
 
 	VulkanAPI& VulkanAPI::add_garbage(RHIObject* object)
