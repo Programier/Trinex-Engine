@@ -7,11 +7,11 @@ namespace Trinex
 {
 	struct RHISchedulerBatch
 	{
-		RHIQueueFlags queue = RHIQueueFlags::Graphics;
+		RHIQueueType queue = RHIQueueType::Graphics;
 		Array<RHICommandHandle*> commands;
 	};
 
-	static void submit(Array<RHISchedulerBatch>& batches, usize& batch_count, RHICommandHandle* command, RHIQueueFlags queue)
+	static void submit(Array<RHISchedulerBatch>& batches, usize& batch_count, RHICommandHandle* command, RHIQueueType queue)
 	{
 		trinex_assert(command);
 
@@ -40,7 +40,7 @@ namespace Trinex
 		return &scheduler;
 	}
 
-	void RHIScheduler::enqueue(RHIQueueFlags queue, Delegate<void(RHIContext*)> callback)
+	void RHIScheduler::enqueue(RHIQueueType queue, Delegate<void(RHIContext*)> callback)
 	{
 		trinex_assert(callback);
 		ScopeLock lock(m_pending_critical);
@@ -56,7 +56,7 @@ namespace Trinex
 
 		struct Recording
 		{
-			RHIQueueFlags queue;
+			RHIQueueType queue;
 			RHIContext* context;
 		};
 

@@ -120,9 +120,14 @@ namespace Trinex
 		return *this;
 	}
 
-	RHIQueue* NoneApi::queue(RHIQueueFlags flags, RHISwapchain* swapchain)
+	RHIQueue* NoneApi::queue(RHIQueueType type, RHISwapchain* swapchain)
 	{
 		return nullptr;
+	}
+
+	RHIArrayView<RHIQueue*> NoneApi::queues() const
+	{
+		return {};
 	}
 
 	RHITimestamp* NoneApi::create_timestamp()
@@ -185,7 +190,7 @@ namespace Trinex
 		return new NoneSwapchain();
 	}
 
-	RHIContext* NoneApi::create_context(RHIContextFlags flags)
+	RHIContext* NoneApi::create_context(RHIQueue* queue, RHIContextFlags flags)
 	{
 		return nullptr;
 	}

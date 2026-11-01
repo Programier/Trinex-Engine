@@ -640,7 +640,7 @@ namespace Trinex
 			return ctx;
 		}
 
-		RHIContext* ctx   = RHI::instance()->create_context(flags);
+		RHIContext* ctx   = nullptr; //RHI::instance()->create_context(flags);
 		m_context_id[ctx] = flags;
 		return ctx;
 	}
@@ -698,7 +698,7 @@ namespace Trinex
 	{
 		if (auto handle = context->end())
 		{
-			auto queue = RHI::instance()->queue(RHIQueueFlags::Graphics);
+			auto queue = RHI::instance()->queue(RHIQueueType::Graphics);
 			queue->submit(RHISubmitInfo(handle, wait, signal));
 			handle->release();
 		}

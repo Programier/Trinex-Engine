@@ -385,7 +385,7 @@ namespace Trinex
 
 	VulkanAPI::~VulkanAPI()
 	{
-		m_graphics_queue->wait();
+		wait();
 
 		for (VulkanThreadLocal* local : m_thread_locals)
 		{
@@ -483,9 +483,14 @@ namespace Trinex
 		return *this;
 	}
 
-	RHIQueue* VulkanAPI::queue(RHIQueueFlags flags, RHISwapchain* swapchain)
+	RHIQueue* VulkanAPI::queue(RHIQueueType type, RHISwapchain* swapchain)
 	{
 		return m_graphics_queue;
+	}
+
+	RHIArrayView<RHIQueue*> VulkanAPI::queues() const
+	{
+		return {};
 	}
 
 	VulkanAPI& VulkanAPI::add_garbage(RHIObject* object)

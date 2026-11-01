@@ -924,7 +924,7 @@ namespace Trinex
 		trx_delete this;
 	}
 
-	RHIContext* VulkanAPI::create_context(RHIContextFlags flags)
+	RHIContext* VulkanAPI::create_context(RHIQueue* queue, RHIContextFlags flags)
 	{
 		return trx_new VulkanContext(flags);
 	}

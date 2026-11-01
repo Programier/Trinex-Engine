@@ -15,7 +15,7 @@ namespace Trinex
 	private:
 		struct Work
 		{
-			RHIQueueFlags queue = RHIQueueFlags::Graphics;
+			RHIQueueType queue = RHIQueueType::Graphics;
 			Delegate<void(RHIContext*)> callback;
 		};
 
@@ -27,7 +27,7 @@ namespace Trinex
 		static RHIScheduler* instance();
 
 		// Records content work into one command buffer per queue on the next execute().
-		void enqueue(RHIQueueFlags queue, Delegate<void(RHIContext*)> callback);
+		void enqueue(RHIQueueType queue, Delegate<void(RHIContext*)> callback);
 		void execute();
 	};
 } // namespace Trinex

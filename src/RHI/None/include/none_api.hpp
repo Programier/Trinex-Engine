@@ -13,7 +13,8 @@ namespace Trinex
 
 		NoneApi& update(float dt) override;
 		NoneApi& wait() override;
-		RHIQueue* queue(RHIQueueFlags flags, RHISwapchain* swapchain = nullptr) override;
+		RHIQueue* queue(RHIQueueType type, RHISwapchain* swapchain = nullptr) override;
+		RHIArrayView<RHIQueue*> queues() const override;
 
 		RHITimestamp* create_timestamp() override;
 		RHIPipelineStatistics* create_pipeline_statistics() override;
@@ -27,7 +28,7 @@ namespace Trinex
 		RHIPipeline* create_ray_tracing_pipeline(const RHIRayTracingPipelineDesc& desc) override;
 		RHIBuffer* create_buffer(usize size, RHIBufferFlags type) override;
 		RHISwapchain* create_swapchain(Window* window, RHIPresentMode mode, u32 images = 0) override;
-		RHIContext* create_context(RHIContextFlags flags) override;
+		RHIContext* create_context(RHIQueue* queue, RHIContextFlags flags) override;
 
 		RHIAccelerationStructure* create_acceleration_structure(const RHIRayTracingAccelerationInputs* inputs) override;
 		const u8* translate_ray_tracing_instances(const RHIRayTracingGeometryInstance* instances, usize& size) override;
