@@ -25,7 +25,7 @@ namespace Trinex
 		return 0;
 	}
 
-	bool VulkanFence::wait(u64 value, u64 timeout)
+	bool VulkanFence::wait(u64 value, u64 timeout) const
 	{
 		if (m_type == vk::SemaphoreType::eTimeline)
 		{

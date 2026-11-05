@@ -699,7 +699,7 @@ namespace Trinex
 		if (auto handle = context->end())
 		{
 			auto queue = RHI::instance()->queue(RHIQueueType::Graphics);
-			queue->submit(RHISubmitInfo(handle, wait, signal));
+			queue->submit(RHISubmitInfo(handle));
 			handle->release();
 		}
 

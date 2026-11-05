@@ -15,6 +15,7 @@ namespace Trinex
 	struct RHITextureType;
 	struct RHIMappingAccess;
 	struct RHISubmitInfo;
+	struct RHIFencePoint;
 
 	class trinex_api RHITimestamp : public RHIObject
 	{
@@ -42,9 +43,9 @@ namespace Trinex
 	class trinex_api RHIFence : public RHIObject
 	{
 	public:
-		virtual u64 value() const                         = 0;
-		virtual bool wait(u64 value, u64 timeout = ~0ull) = 0;
-		virtual bool signal(u64 value)                    = 0;
+		virtual u64 value() const                               = 0;
+		virtual bool wait(u64 value, u64 timeout = ~0ull) const = 0;
+		virtual bool signal(u64 value)                          = 0;
 	};
 
 	class trinex_api RHIShaderResourceView
@@ -147,9 +148,11 @@ namespace Trinex
 	class trinex_api RHIQueue : public RHIObject
 	{
 	public:
-		virtual RHIQueueFlags flags() const            = 0;
-		virtual void present(RHISwapchain* swapchain)  = 0;
-		virtual void submit(const RHISubmitInfo& info) = 0;
-		virtual void wait()                            = 0;
+		virtual RHIQueueFlags flags() const                     = 0;
+		virtual RHIFence* fence() const                         = 0;
+		virtual u64 last_submitted() const                      = 0;
+		virtual void present(RHISwapchain* swapchain)           = 0;
+		virtual RHIFencePoint submit(const RHISubmitInfo& info) = 0;
+		virtual void wait()                                     = 0;
 	};
 } // namespace Trinex

@@ -514,10 +514,11 @@ namespace Trinex
 		release_transient_resources();
 	}
 
-	VulkanCommandBufferManager::VulkanCommandBufferManager()
+	VulkanCommandBufferManager::VulkanCommandBufferManager(VulkanQueue* queue) : m_queue(queue)
 	{
-		m_pool = vk::verify(VulkanAPI::device()->createCommandPool(vk::CommandPoolCreateInfo(
-		        vk::CommandPoolCreateFlagBits::eResetCommandBuffer, VulkanAPI::graphics()->family_index())));
+		trinex_assert(m_queue);
+		m_pool = vk::verify(VulkanAPI::device()->createCommandPool(
+		        vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, m_queue->family_index())));
 	}
 
 	VulkanCommandBufferManager::~VulkanCommandBufferManager()
@@ -535,10 +536,24 @@ namespace Trinex
 		VulkanAPI::device()->destroyCommandPool(m_pool);
 	}
 
-	VulkanCommandBufferManager* VulkanCommandBufferManager::instance()
+	VulkanCommandBufferManager* VulkanCommandBufferManager::instance(VulkanQueue* queue)
 	{
-		static thread_local VulkanCommandBufferManager* manager = trx_new VulkanCommandBufferManager();
-		return manager;
+		trinex_assert(queue);
+
+		static thread_local Array<VulkanCommandBufferManager*> managers;
+		u32 index = queue->family_index();
+
+		if (managers.size() <= index)
+		{
+			managers.resize(index + 1);
+		}
+
+		if (managers[index] == nullptr)
+		{
+			managers[index] = trx_new VulkanCommandBufferManager(queue);
+		}
+
+		return managers[index];
 	}
 
 	VulkanCommandHandle* VulkanCommandBufferManager::request_handle(RHIContextFlags flags)
@@ -575,8 +590,9 @@ namespace Trinex
 		return *this;
 	}
 
-	VulkanContext::VulkanContext(RHIContextFlags flags) : m_flags(flags)
+	VulkanContext::VulkanContext(VulkanQueue* queue, RHIContextFlags flags) : m_queue(queue), m_flags(flags)
 	{
+		trinex_assert(m_queue);
 		reset();
 	}
 
@@ -592,7 +608,7 @@ namespace Trinex
 	{
 		if (m_cmd == nullptr)
 		{
-			m_cmd = VulkanCommandBufferManager::instance()->request_handle(m_flags);
+			m_cmd = VulkanCommandBufferManager::instance(m_queue)->request_handle(m_flags);
 
 			if (is_secondary())
 			{
@@ -926,6 +942,7 @@ namespace Trinex
 
 	RHIContext* VulkanAPI::create_context(RHIQueue* queue, RHIContextFlags flags)
 	{
-		return trx_new VulkanContext(flags);
+		trinex_assert(queue);
+		return trx_new VulkanContext(static_cast<VulkanQueue*>(queue), flags);
 	}
 } // namespace Trinex

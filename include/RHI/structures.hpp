@@ -465,10 +465,16 @@ namespace Trinex
 		RHIContextInheritanceFlags flags = RHIContextInheritanceFlags::Undefined;
 	};
 
+	struct RHIFencePoint
+	{
+		RHIFence* fence = nullptr;
+		u64 value       = 0;
+	};
+
 	struct RHISubmitInfo
 	{
 		RHIArrayView<RHICommandHandle*> commands = {};
-		RHIArrayView<RHIFence*> waits            = {};
-		RHIArrayView<RHIFence*> signals          = {};
+		RHIArrayView<RHIFencePoint> waits        = {};
+		RHIArrayView<RHIFencePoint> signals      = {};
 	};
 } // namespace Trinex

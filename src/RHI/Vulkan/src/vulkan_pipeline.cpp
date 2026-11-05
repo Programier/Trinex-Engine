@@ -586,8 +586,8 @@ namespace Trinex
 			const usize storage_size = desc.groups_count * handle_size_aligned;
 			u8* storage              = StackByteAllocator::allocate(desc.groups_count * handle_size);
 
-			auto result = VulkanAPI::device()->getRayTracingShaderGroupHandlesKHR(m_pipeline, 0, desc.groups_count,
-			                                                                                 storage_size, storage);
+			auto result = VulkanAPI::device()->getRayTracingShaderGroupHandlesKHR(m_pipeline, 0, desc.groups_count, storage_size,
+			                                                                      storage);
 			trinex_assert_msg(result == vk::Result::eSuccess, "Failed to create shader binding table!");
 
 			align_shader_binding_table(storage, desc.groups_count, handle_size, handle_size_aligned);

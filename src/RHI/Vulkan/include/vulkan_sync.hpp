@@ -17,10 +17,12 @@ namespace Trinex
 		~VulkanFence();
 
 		u64 value() const override;
-		bool wait(u64 value, u64 timeout = ~0ull) override;
+		bool wait(u64 value, u64 timeout = ~0ull) const override;
 		bool signal(u64 value) override;
 
 		inline const vk::Semaphore& semaphore() const { return m_semaphore; }
+		inline bool is_timeline() const { return m_type == vk::SemaphoreType::eTimeline; }
+		inline bool is_binary() const { return m_type == vk::SemaphoreType::eBinary; }
 		inline bool is_signaled() const { return m_signaled; }
 		inline VulkanFence& is_signaled(bool value) { trinex_this_return(m_signaled = value); }
 	};

@@ -2,6 +2,7 @@
 #include <Core/etl/array.hpp>
 #include <Core/etl/critical_section.hpp>
 #include <Core/etl/deque.hpp>
+#include <Core/etl/map.hpp>
 #include <RHI/context.hpp>
 #include <vulkan_headers.hpp>
 #include <vulkan_thread_local.hpp>
@@ -9,6 +10,7 @@
 namespace Trinex
 {
 	class RHIObject;
+	class VulkanQueue;
 	class VulkanBuffer;
 	class VulkanUniformBuffer;
 	class VulkanFence;
@@ -156,17 +158,18 @@ namespace Trinex
 	{
 	private:
 		CriticalSectionRecursive m_critical;
+		VulkanQueue* m_queue;
 		vk::CommandPool m_pool;
 		Deque<VulkanCommandHandle*> m_primary;
 		Deque<VulkanCommandHandle*> m_secondary;
 
 	public:
-		VulkanCommandBufferManager();
+		VulkanCommandBufferManager(VulkanQueue* queue);
 		~VulkanCommandBufferManager();
 
-		static VulkanCommandBufferManager* instance();
+		static VulkanCommandBufferManager* instance(VulkanQueue* queue);
 
-		VulkanCommandHandle* request_handle(RHIContextFlags flags = RHIContextFlags::Undefined);
+		VulkanCommandHandle* request_handle(RHIContextFlags flags);
 		VulkanCommandBufferManager& return_handle(VulkanCommandHandle* handle);
 
 		inline vk::CommandPool command_pool() const { return m_pool; }
@@ -245,6 +248,7 @@ namespace Trinex
 		};
 
 	private:
+		VulkanQueue* m_queue       = nullptr;
 		VulkanCommandHandle* m_cmd = nullptr;
 		RHIContextFlags m_flags;
 
@@ -336,7 +340,7 @@ namespace Trinex
 		inline RHIColorComponent write_mask() const { return m_pipeline_state->blending.write_mask; }
 
 	public:
-		VulkanContext(RHIContextFlags flags);
+		VulkanContext(VulkanQueue* queue, RHIContextFlags flags);
 		~VulkanContext();
 
 		VulkanContext& begin(const RHIContextInheritanceInfo* inheritance = nullptr) override;
@@ -424,5 +428,6 @@ namespace Trinex
 
 		inline bool is_secondary() const { return m_flags & RHIContextFlags::Secondary; }
 		inline VulkanCommandHandle* handle() const { return m_cmd; }
+		inline VulkanQueue* queue() const { return m_queue; }
 	};
 } // namespace Trinex

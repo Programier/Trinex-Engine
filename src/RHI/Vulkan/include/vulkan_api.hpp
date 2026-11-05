@@ -1,6 +1,5 @@
 #pragma once
 #include <Core/etl/array.hpp>
-#include <Core/etl/atomic.hpp>
 #include <Core/etl/constexpr_string.hpp>
 #include <Core/etl/deque.hpp>
 #include <Core/etl/map.hpp>
@@ -61,7 +60,7 @@ namespace Trinex
 		VulkanQueue* m_transfer_queue = nullptr;
 		Array<RHIQueue*> m_queues;
 
-		Atomic<u64> m_frame;
+		u64 m_frame = 0;
 
 		Deque<Garbage> m_garbage;
 		Array<VulkanExtention> m_device_extensions;
@@ -78,7 +77,7 @@ namespace Trinex
 	private:
 		static consteval auto make_extensions_array()
 		{
-			return std::to_array<VulkanExtention>({
+			return etl::to_array<VulkanExtention>({
 			        {"", false}, // Dummy extension
 			        {VK_KHR_SWAPCHAIN_EXTENSION_NAME, true},
 			        {VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME, true},
@@ -131,7 +130,6 @@ namespace Trinex
 		inline VulkanDescriptorHeap* descriptor_heap() const { return m_descriptor_heap; }
 		inline VulkanQueryPoolManager* query_pool_manager() const { return m_query_pool_manager; }
 		inline VulkanPipelineLayoutManager* pipeline_layout_manager() const { return m_pipeline_layout_manager; }
-		inline u64 frame() const { return m_frame.load(etl::memory_order_relaxed); }
 		inline const vk::PhysicalDeviceRayTracingPipelinePropertiesKHR& ray_trace_properties() const
 		{
 			return m_ray_trace_properties;

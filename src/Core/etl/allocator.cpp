@@ -100,7 +100,7 @@ namespace Trinex
 				{
 					u8* ptr = align_memory(m_current->m_stack, align);
 
-					if (ptr + size < m_current->m_end)
+					if (ptr + size <= m_current->m_end)
 					{
 						m_current->m_stack = ptr + size;
 						return ptr;

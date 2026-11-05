@@ -42,7 +42,7 @@ namespace Trinex
 	struct NoneFence : public NoneApiDestroyable<RHIFence>
 	{
 		virtual u64 value() const override { return 0; };
-		virtual bool wait(u64 value, u64 timeout = ~0ull) override { return true; };
+		virtual bool wait(u64 value, u64 timeout = ~0ull) const override { return true; };
 		virtual bool signal(u64 value) override { return true; };
 	};
 
