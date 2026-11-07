@@ -31,6 +31,7 @@ namespace Trinex
 		VulkanPipelineLayout* create_layout(const RHIBinding* parameter, usize count, vk::ShaderStageFlags stages);
 
 	public:
+		RHI* device() const override;
 		VulkanPipeline& flush_descriptors(VulkanContext* manager, vk::PipelineBindPoint);
 		virtual VulkanPipeline& flush(VulkanContext* ctx) = 0;
 		inline VulkanPipelineLayout* layout() const { return m_layout; }

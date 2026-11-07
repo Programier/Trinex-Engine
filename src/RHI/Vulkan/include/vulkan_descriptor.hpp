@@ -59,6 +59,7 @@ namespace Trinex
 		VulkanPipelineLayout(u64 hash, vk::ShaderStageFlags stages, Descriptor* descriptors, usize count);
 		~VulkanPipelineLayout();
 		void destroy() override;
+		RHI* device() const override;
 
 		inline vk::DescriptorSetLayout descriptor_set_layout() const { return m_set_layout; }
 		inline bool has_descriptor_set() const { return m_descriptors_count != 0; }
@@ -139,6 +140,8 @@ namespace Trinex
 		VulkanBindingSet(RHIBindingLayout* layout);
 		~VulkanBindingSet();
 
+		RHI* device() const override;
+		
 		RHIBindingLayout* layout() const override;
 		void uniform(u32 slot, RHIBuffer* buffer, u32 idx = 0) override;
 		void sampler(u32 slot, RHISampler* sampler, u32 idx = 0) override;

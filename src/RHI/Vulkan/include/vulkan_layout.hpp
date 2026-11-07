@@ -13,5 +13,7 @@ namespace Trinex
 	public:
 		VulkanBindingLayout(RHIBinding* bindings, usize count);
 		~VulkanBindingLayout();
+
+		RHI* device() const override;
 	};
 } // namespace Trinex

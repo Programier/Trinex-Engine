@@ -408,6 +408,11 @@ namespace Trinex
 		return *this;
 	}
 
+	RHI* VulkanCommandHandle::device() const
+	{
+		return VulkanAPI::instance();
+	}
+
 	VulkanCommandHandle& VulkanCommandHandle::refresh_fence_status()
 	{
 		if (m_state == State::Submitted)
@@ -602,6 +607,11 @@ namespace Trinex
 		{
 			handle->release();
 		}
+	}
+
+	RHI* VulkanContext::device() const
+	{
+		return VulkanAPI::instance();
 	}
 
 	VulkanContext& VulkanContext::begin(const RHIContextInheritanceInfo* inheritance)

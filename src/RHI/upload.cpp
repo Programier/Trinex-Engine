@@ -34,6 +34,8 @@ namespace Trinex
 			trinex_assert_msg(m_mapped, "Failed to map upload page");
 		}
 
+		RHI* device() const override { return m_buffer->device(); }
+
 		void destroy() override;
 		inline void reset() { m_offset = 0; }
 

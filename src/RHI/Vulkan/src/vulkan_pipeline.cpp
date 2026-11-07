@@ -185,6 +185,11 @@ namespace Trinex
 		return m_layout;
 	}
 
+	RHI* VulkanPipeline::device() const
+	{
+		return VulkanAPI::instance();
+	}
+
 	VulkanPipeline& VulkanPipeline::flush_descriptors(VulkanContext* context, vk::PipelineBindPoint bind_point)
 	{
 		trinex_profile_cpu_n("VulkanPipeline::flush_descriptors");

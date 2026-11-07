@@ -23,6 +23,11 @@ namespace Trinex
 		trx_delete this;
 	}
 
+	RHI* VulkanQueue::device() const
+	{
+		return VulkanAPI::instance();
+	}
+
 	RHIQueueFlags VulkanQueue::flags() const
 	{
 		return m_flags;

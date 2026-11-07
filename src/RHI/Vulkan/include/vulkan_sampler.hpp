@@ -32,6 +32,7 @@ namespace Trinex
 
 	public:
 		VulkanSampler& create(const RHISamplerDesc& desc);
+		RHI* device() const override;
 		RHIDescriptor descriptor() const override;
 		inline vk::Sampler sampler() const { return m_sampler; }
 		~VulkanSampler();

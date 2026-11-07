@@ -38,6 +38,8 @@ namespace Trinex
 		VulkanSwapchain(Window* window, RHIPresentMode mode, u32 images);
 		~VulkanSwapchain();
 
+		RHI* device() const override;
+		
 		i32 acquire_image_index();
 		VulkanFence* acquire_fence() override;
 		VulkanFence* present_fence() override;

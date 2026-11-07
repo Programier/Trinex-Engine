@@ -285,6 +285,11 @@ namespace Trinex
 		trx_delete m_acceleration_buffer;
 	}
 
+	RHI* VulkanAccelerationStructure::device() const
+	{
+		return VulkanAPI::instance();
+	}
+
 	vk::DeviceAddress VulkanAccelerationStructure::address() const
 	{
 		return m_acceleration_buffer->address().as<vk::DeviceAddress>();

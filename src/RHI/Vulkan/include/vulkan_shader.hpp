@@ -20,6 +20,8 @@ namespace Trinex
 		VulkanShader(Span<u8> source, Span<RHIBinding> parameters);
 		~VulkanShader();
 
+		RHI* device() const override;
+		
 		inline vk::ShaderModule module() const { return m_shader; }
 	};
 } // namespace Trinex

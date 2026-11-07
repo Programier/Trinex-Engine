@@ -58,6 +58,11 @@ namespace Trinex
 		return *this;
 	}
 
+	RHI* VulkanSampler::device() const
+	{
+		return VulkanAPI::instance();
+	}
+
 	RHIDescriptor VulkanSampler::descriptor() const
 	{
 		return m_descriptor;

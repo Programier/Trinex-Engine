@@ -15,6 +15,7 @@ namespace Trinex
 	public:
 		using T::T;
 		void destroy() override { delete this; }
+		RHI* device() const override { return RHI::instance(RHIBackend::Undefined); }
 	};
 
 	static RHI* create_none_api()

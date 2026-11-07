@@ -43,6 +43,11 @@ namespace Trinex
 		VulkanAPI::device()->destroyDescriptorSetLayout(m_layout);
 	}
 
+	RHI* VulkanBindingLayout::device() const
+	{
+		return VulkanAPI::instance();
+	}
+
 	RHIBindingLayout* VulkanAPI::create_binding_layout(RHIBinding* bindings, usize count)
 	{
 		return trx_new VulkanBindingLayout(bindings, count);

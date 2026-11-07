@@ -189,6 +189,11 @@ namespace Trinex
 		return *this;
 	}
 
+	RHI* VulkanTexture::device() const
+	{
+		return VulkanAPI::instance();
+	}
+
 	Vector3u VulkanTexture::size() const
 	{
 		return {m_extent.width, m_extent.height, m_extent.depth};

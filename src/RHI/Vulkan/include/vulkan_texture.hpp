@@ -113,6 +113,8 @@ namespace Trinex
 		VulkanTexture& create(vk::Format format, Vector3u size, u32 layers, u32 mips, RHITextureFlags flags);
 		VulkanTexture& barrier(VulkanContext* ctx, RHIAccess access);
 
+		RHI* device() const override;
+		
 		Vector3u size() const override;
 		RHIShaderResourceView* as_srv(RHITextureDescSRV* desc) override;
 		RHIUnorderedAccessView* as_uav(RHITextureDescUAV* desc) override;

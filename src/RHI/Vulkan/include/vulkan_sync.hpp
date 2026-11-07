@@ -16,6 +16,8 @@ namespace Trinex
 		VulkanFence(vk::SemaphoreType type, u64 value = 0);
 		~VulkanFence();
 
+		RHI* device() const override;
+		
 		u64 value() const override;
 		bool wait(u64 value, u64 timeout = ~0ull) const override;
 		bool signal(u64 value) override;

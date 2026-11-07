@@ -159,6 +159,8 @@ namespace Trinex
 		}
 
 	public:
+		RHI* device() const override { return VulkanAPI::instance(); }
+
 		VulkanTimestamp& begin(VulkanQueryPoolManager* manager, VulkanContext* ctx)
 		{
 			write_timestamp(m_begin, manager, ctx);
@@ -222,6 +224,8 @@ namespace Trinex
 		Marker m_marker;
 
 	public:
+		RHI* device() const override { return VulkanAPI::instance(); }
+
 		VulkanPipelineStats& begin(VulkanQueryPoolManager* manager, VulkanContext* ctx)
 		{
 			if (VulkanAPI::instance()->m_features.pipelineStatisticsQuery)

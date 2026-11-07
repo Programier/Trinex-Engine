@@ -11,6 +11,11 @@ namespace Trinex
 
 	VulkanShader::~VulkanShader(){DESTROY_CALL(destroyShaderModule, m_shader)}
 
+	RHI* VulkanShader::device() const
+	{
+		return VulkanAPI::instance();
+	}
+
 	RHIShader* VulkanAPI::create_shader(Span<u8> source, Span<RHIBinding> parameters)
 	{
 		return trx_new VulkanShader(source, parameters);

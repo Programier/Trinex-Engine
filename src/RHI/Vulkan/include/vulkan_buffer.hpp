@@ -1,7 +1,7 @@
 #pragma once
+#include <Core/etl/array.hpp>
 #include <Core/etl/flat_map.hpp>
 #include <Core/etl/set.hpp>
-#include <Core/etl/array.hpp>
 #include <RHI/rhi.hpp>
 #include <vk_mem_alloc.h>
 #include <vulkan_destroyable.hpp>
@@ -30,6 +30,7 @@ namespace Trinex
 
 		VulkanBuffer& copy(VulkanContext* ctx, vk::DeviceSize offset, const u8* data, vk::DeviceSize size);
 
+		RHI* device() const override;
 		RHIDeviceAddress address() override;
 		u8* map(RHIMappingAccess access = RHIMappingAccess::Undefined) override;
 		void unmap() override;
@@ -57,7 +58,6 @@ namespace Trinex
 		VulkanUniformBuffer& flush();
 		VulkanUniformBuffer& update(const void* data, usize size, usize offset);
 
-
 		inline VulkanUniformBuffer& reset()
 		{
 			m_block_start = m_block_end = m_memory;
@@ -69,4 +69,4 @@ namespace Trinex
 		inline usize block_offset() const { return m_block_start - m_memory; }
 		inline u8* mapped_memory() const { return m_memory; }
 	};
-}// namespace Trinex
+} // namespace Trinex

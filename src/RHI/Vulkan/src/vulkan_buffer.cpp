@@ -186,6 +186,11 @@ namespace Trinex
 		return m_uav;
 	}
 
+	RHI* VulkanBuffer::device() const
+	{
+		return VulkanAPI::instance();
+	}
+
 	RHIDeviceAddress VulkanBuffer::address()
 	{
 		return m_address;

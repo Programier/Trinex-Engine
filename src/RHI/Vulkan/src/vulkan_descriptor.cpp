@@ -78,6 +78,11 @@ namespace Trinex
 		VulkanAPI::instance()->pipeline_layout_manager()->desctroy(this);
 	}
 
+	RHI* VulkanPipelineLayout::device() const
+	{
+		return VulkanAPI::instance();
+	}
+
 	VulkanPipelineLayout* VulkanPipelineLayoutManager::allocate(const RHIBinding* parameters, usize count,
 	                                                            vk::ShaderStageFlags stages)
 	{
@@ -550,6 +555,11 @@ namespace Trinex
 	VulkanBindingSet::~VulkanBindingSet()
 	{
 		m_layout->release();
+	}
+
+	RHI* VulkanBindingSet::device() const
+	{
+		return VulkanAPI::instance();
 	}
 
 	RHIBindingLayout* VulkanBindingSet::layout() const

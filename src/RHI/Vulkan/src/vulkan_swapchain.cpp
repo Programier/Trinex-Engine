@@ -192,6 +192,11 @@ namespace Trinex
 		return create_swapchain();
 	}
 
+	RHI* VulkanSwapchain::device() const
+	{
+		return VulkanAPI::instance();
+	}
+
 	i32 VulkanSwapchain::acquire_image_index()
 	{
 		if (m_image_index >= 0)

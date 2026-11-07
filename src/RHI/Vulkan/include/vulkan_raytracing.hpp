@@ -20,6 +20,8 @@ namespace Trinex
 		VulkanAccelerationStructure(const RHIRayTracingAccelerationInputs* inputs);
 		~VulkanAccelerationStructure();
 
+		RHI* device() const override;
+		
 		vk::DeviceAddress address() const;
 		inline vk::AccelerationStructureKHR handle() const { return m_acceleration; }
 	};

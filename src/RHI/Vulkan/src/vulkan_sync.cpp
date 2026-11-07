@@ -16,6 +16,11 @@ namespace Trinex
 		VulkanAPI::device()->destroySemaphore(m_semaphore);
 	}
 
+	RHI* VulkanFence::device() const
+	{
+		return VulkanAPI::instance();
+	}
+
 	u64 VulkanFence::value() const
 	{
 		if (m_type == vk::SemaphoreType::eTimeline)

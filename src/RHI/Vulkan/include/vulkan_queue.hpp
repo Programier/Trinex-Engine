@@ -23,6 +23,8 @@ namespace Trinex
 		~VulkanQueue();
 
 		void destroy() override;
+		RHI* device() const override;
+
 		RHIQueueFlags flags() const override;
 		RHIFence* fence() const override;
 		u64 last_submitted() const override;

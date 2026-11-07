@@ -116,10 +116,12 @@ namespace Trinex
 		VulkanCommandHandle(const VulkanCommandHandle&) = delete;
 		VulkanCommandHandle(VulkanCommandHandle&&)      = delete;
 		~VulkanCommandHandle();
-
+				
 		VulkanCommandHandle& operator=(const VulkanCommandHandle&) = delete;
 		VulkanCommandHandle& operator=(VulkanCommandHandle&&)      = delete;
-
+		
+		RHI* device() const override;
+		
 		VulkanCommandHandle& refresh_fence_status();
 		VulkanCommandHandle& begin(const vk::CommandBufferBeginInfo& info = {});
 		VulkanCommandHandle& end();
@@ -342,6 +344,8 @@ namespace Trinex
 	public:
 		VulkanContext(VulkanQueue* queue, RHIContextFlags flags);
 		~VulkanContext();
+
+		RHI* device() const override;
 
 		VulkanContext& begin(const RHIContextInheritanceInfo* inheritance = nullptr) override;
 		VulkanCommandHandle* end() override;

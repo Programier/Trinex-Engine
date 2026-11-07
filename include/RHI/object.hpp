@@ -2,6 +2,8 @@
 
 namespace Trinex
 {
+	class RHI;
+
 	class trinex_api RHIObject
 	{
 	private:
@@ -14,7 +16,8 @@ namespace Trinex
 		RHIObject(usize init_ref_count = 1);
 		virtual void add_reference();
 		virtual void release();
-		virtual void destroy() = 0;
+		virtual void destroy()      = 0;
+		virtual RHI* device() const = 0;
 		usize references() const;
 		virtual ~RHIObject();
 
