@@ -1,11 +1,10 @@
 #pragma once
 #include <RHI/rhi.hpp>
-#include <vulkan_destroyable.hpp>
 #include <vulkan_headers.hpp>
 
 namespace Trinex
 {
-	class VulkanFence final : public VulkanDeferredDestroy<RHIFence>
+	class VulkanFence final : public RHIFence
 	{
 	private:
 		vk::Semaphore m_semaphore;
@@ -17,7 +16,7 @@ namespace Trinex
 		~VulkanFence();
 
 		RHI* device() const override;
-		
+
 		u64 value() const override;
 		bool wait(u64 value, u64 timeout = ~0ull) const override;
 		bool signal(u64 value) override;

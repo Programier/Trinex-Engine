@@ -1,11 +1,10 @@
 #pragma once
 #include <RHI/handles.hpp>
-#include <vulkan_destroyable.hpp>
 #include <vulkan_headers.hpp>
 
 namespace Trinex
 {
-	class VulkanBindingLayout : public VulkanDeferredDestroy<RHIBindingLayout>
+	class VulkanBindingLayout : public RHIBindingLayout
 	{
 	private:
 		vk::DescriptorSetLayout m_layout;

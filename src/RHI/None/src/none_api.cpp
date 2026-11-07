@@ -14,7 +14,7 @@ namespace Trinex
 	{
 	public:
 		using T::T;
-		void destroy() override { delete this; }
+		void destroy() noexcept override { delete this; }
 		RHI* device() const override { return RHI::instance(RHIBackend::Undefined); }
 	};
 
@@ -110,11 +110,6 @@ namespace Trinex
 	struct NoneAccelerationStructure : public NoneApiDestroyable<RHIAccelerationStructure>
 	{
 	};
-
-	NoneApi& NoneApi::update(float dt)
-	{
-		return *this;
-	}
 
 	NoneApi& NoneApi::wait()
 	{

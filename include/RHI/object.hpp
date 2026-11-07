@@ -1,34 +1,16 @@
 #pragma once
+#include <Core/ref_counted.hpp>
 
 namespace Trinex
 {
 	class RHI;
 
-	class trinex_api RHIObject
+	class trinex_api RHIObject : public RefCounted
 	{
-	private:
-		static void static_release_internal(RHIObject* object);
-
-	protected:
-		usize m_references;
-
 	public:
-		RHIObject(usize init_ref_count = 1);
-		virtual void add_reference();
-		virtual void release();
-		virtual void destroy()      = 0;
+		virtual void destroy() noexcept;
 		virtual RHI* device() const = 0;
-		usize references() const;
 		virtual ~RHIObject();
-
-		template<typename T>
-		static inline void static_release(T* object)
-		{
-			if (object)
-			{
-				static_release_internal(object);
-			}
-		}
 
 		template<typename T>
 		T* as()

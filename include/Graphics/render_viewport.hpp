@@ -2,7 +2,6 @@
 #include <Core/etl/array.hpp>
 #include <Core/math/vector.hpp>
 #include <Core/object.hpp>
-#include <RHI/resource_ptr.hpp>
 
 #include <Graphics/render_viewport.generated.hpp>
 
@@ -28,7 +27,7 @@ namespace Trinex
 
 		Ref<ViewportClient> m_client;
 		Ref<Window> m_window;
-		RHIResourcePtr<RHISwapchain> m_swapchain;
+		Ref<RHISwapchain> m_swapchain;
 
 	public:
 		RenderViewport(Ref<Window> window, RHIPresentMode mode, u32 images = 0);
@@ -47,6 +46,6 @@ namespace Trinex
 		static inline const Array<Ref<RenderViewport>>& viewports() { return s_viewports; }
 		inline const Ref<ViewportClient>& client() const { return m_client; }
 		inline const Ref<Window>& window() const { return m_window; }
-		inline const RHIResourcePtr<RHISwapchain>& swapchain() const { return m_swapchain; }
+		inline const Ref<RHISwapchain>& swapchain() const { return m_swapchain; }
 	};
 } // namespace Trinex

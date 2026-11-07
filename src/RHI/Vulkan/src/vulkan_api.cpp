@@ -494,8 +494,6 @@ namespace Trinex
 			trx_delete local;
 		}
 
-		destroy_garbage();
-
 		trx_delete m_pipeline_layout_manager;
 		for (RHIQueue* queue : m_queues)
 			trx_delete static_cast<VulkanQueue*>(queue);
@@ -512,17 +510,6 @@ namespace Trinex
 		if (m_debug_messenger)
 			m_instance.destroyDebugUtilsMessengerEXT(m_debug_messenger);
 		m_instance.destroy();
-	}
-
-	VulkanAPI& VulkanAPI::destroy_garbage()
-	{
-		while (!m_garbage.empty())
-		{
-			m_garbage.front().object->destroy();
-			m_garbage.pop_front();
-		}
-
-		return *this;
 	}
 
 	vk::PresentModeKHR VulkanAPI::present_mode_of(RHIPresentMode mode, vk::SurfaceKHR surface)
@@ -558,29 +545,6 @@ namespace Trinex
 		return (feature_flags & flags) == flags;
 	}
 
-	VulkanAPI& VulkanAPI::update(float dt)
-	{
-		const u64 current_frame = ++m_frame;
-		const u64 gpu_frame     = vk::verify(m_device.getSemaphoreCounterValueKHR(m_timeline));
-
-		while (!m_garbage.empty() && m_garbage.front().frame <= gpu_frame)
-		{
-			m_garbage.front().object->destroy();
-			m_garbage.pop_front();
-		}
-
-		vk::TimelineSemaphoreSubmitInfo timeline_info(0, nullptr, 1, &current_frame);
-
-		vk::SubmitInfo submit_info;
-		submit_info.signalSemaphoreCount = 1;
-		submit_info.pSignalSemaphores    = &m_timeline;
-		submit_info.pNext                = &timeline_info;
-
-		//m_graphics_queue->submit(submit_info);
-
-		return *this;
-	}
-
 	VulkanAPI& VulkanAPI::wait()
 	{
 		vk::verify(m_device.waitIdle());
@@ -602,20 +566,5 @@ namespace Trinex
 	RHIArrayView<RHIQueue*> VulkanAPI::queues() const
 	{
 		return {m_queues.data(), m_queues.size()};
-	}
-
-	VulkanAPI& VulkanAPI::add_garbage(RHIObject* object)
-	{
-		Garbage garbage;
-		garbage.object = object;
-		garbage.frame  = m_frame + 5;
-
-		m_garbage.push_back(garbage);
-		return *this;
-	}
-
-	void trinex_vulkan_deferred_destroy(RHIObject* object)
-	{
-		VulkanAPI::instance()->add_garbage(object);
 	}
 } // namespace Trinex

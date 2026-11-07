@@ -1,7 +1,7 @@
 #include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
-#include <Core/etl/span.hpp>
 #include <Core/deprecated/object.hpp>
+#include <Core/etl/span.hpp>
 #include <Core/package.hpp>
 #include <Core/reflection/deprecated/class.hpp>
 #include <Core/reflection/deprecated/struct.hpp>
@@ -25,7 +25,7 @@ namespace Trinex
 		return instance;
 	}
 
-	Archive::Archive() : m_stream(nullptr), m_mode(IOMode::Read), m_flags(ArchiveFlags::Undefined) {}
+	Archive::Archive() : m_stream(), m_mode(IOMode::Read), m_flags(ArchiveFlags::Undefined) {}
 
 	Archive::Archive(PathView file, IOMode mode, ArchiveFlags flags) {}
 

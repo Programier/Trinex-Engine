@@ -35,7 +35,7 @@ namespace Trinex
 
 		RHI* device() const override { return m_buffer->device(); }
 
-		void destroy() override;
+		void destroy() noexcept override;
 		inline void reset() { m_offset = 0; }
 
 		inline bool has_space(usize size, usize alignment) const
@@ -224,11 +224,11 @@ namespace Trinex
 		return g_allocator;
 	}
 
-	void RHIReadBackAllocatorPage::destroy()
+	void RHIReadBackAllocatorPage::destroy() noexcept
 	{
 		if (g_allocator)
 		{
-			add_reference();
+			add_ref();
 			g_allocator->release_page(this);
 		}
 		else

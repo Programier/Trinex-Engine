@@ -1,22 +1,23 @@
 #pragma once
-#include <Core/etl/set.hpp>
 #include <Core/etl/array.hpp>
+#include <Core/etl/set.hpp>
 #include <RHI/rhi.hpp>
 #include <vk_mem_alloc.h>
-#include <vulkan_destroyable.hpp>
 #include <vulkan_headers.hpp>
 
 namespace Trinex
 {
 	class VulkanContext;
 
-	class VulkanTexture : public VulkanDeferredDestroy<RHITexture>
+	class VulkanTexture : public RHITexture
 	{
 	public:
-		struct ViewDesc {
+		struct ViewDesc
+		{
 			union
 			{
-				struct {
+				struct
+				{
 					u16 first_array_slice;
 					u16 array_size;
 					u8 first_mip;
@@ -25,7 +26,6 @@ namespace Trinex
 				};
 				u64 id;
 			};
-
 
 			ViewDesc() : first_array_slice(0), array_size(~0), first_mip(0), mip_levels(~0), view_type(RHITextureType::Undefined)
 			{}
@@ -47,7 +47,8 @@ namespace Trinex
 		static_assert(sizeof(ViewDesc) == sizeof(u64));
 
 		template<typename Value>
-		struct View {
+		struct View
+		{
 			Value* value = nullptr;
 			ViewDesc desc;
 		};
@@ -114,7 +115,7 @@ namespace Trinex
 		VulkanTexture& barrier(VulkanContext* ctx, RHIAccess access);
 
 		RHI* device() const override;
-		
+
 		Vector3u size() const override;
 		RHIShaderResourceView* as_srv(RHITextureDescSRV* desc) override;
 		RHIUnorderedAccessView* as_uav(RHITextureDescUAV* desc) override;
@@ -131,4 +132,4 @@ namespace Trinex
 		vk::ImageViewType image_view_type() const override { return m_view_type; }
 		RHITextureType texture_type() const override { return m_texture_type; }
 	};
-}// namespace Trinex
+} // namespace Trinex

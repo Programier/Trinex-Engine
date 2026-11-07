@@ -1,34 +1,19 @@
-#include <Core/threading.hpp>
+#include <RHI/gc.hpp>
 #include <RHI/object.hpp>
+#include <RHI/rhi.hpp>
 
 namespace Trinex
 {
-	RHIObject::RHIObject(usize init_ref_count) : m_references(init_ref_count) {}
-
-	void RHIObject::static_release_internal(RHIObject* object)
+	void RHIObject::destroy() noexcept
 	{
-		object->release();
-	}
-
-	void RHIObject::add_reference()
-	{
-		++m_references;
-	}
-
-	void RHIObject::release()
-	{
-		if (m_references > 0)
-			--m_references;
-
-		if (m_references == 0)
+		if (RHI* rhi = device())
 		{
-			destroy();
+			rhi->gc()->add(this);
 		}
-	}
-
-	usize RHIObject::references() const
-	{
-		return m_references;
+		else
+		{
+			trx_delete this;
+		}
 	}
 
 	RHIObject::~RHIObject() {}

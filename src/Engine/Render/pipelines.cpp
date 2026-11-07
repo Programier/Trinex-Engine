@@ -376,7 +376,7 @@ namespace Trinex::Pipelines
 			RHIBuffer* buffer = SSAO::instance()->m_samples_buffer;
 			if (buffer)
 			{
-				RHIObject::static_release(buffer);
+				buffer->release();
 			}
 		});
 	}

@@ -1,6 +1,5 @@
 #include <vulkan_api.hpp>
 #include <vulkan_context.hpp>
-#include <vulkan_destroyable.hpp>
 #include <vulkan_query.hpp>
 #include <vulkan_sync.hpp>
 
@@ -104,7 +103,7 @@ namespace Trinex
 		return pool;
 	}
 
-	class VulkanTimestamp : public VulkanDeferredDestroy<RHITimestamp>
+	class VulkanTimestamp : public RHITimestamp
 	{
 	private:
 		struct Marker
@@ -184,7 +183,7 @@ namespace Trinex
 		}
 	};
 
-	class VulkanPipelineStats : public VulkanDeferredDestroy<RHIPipelineStatistics>
+	class VulkanPipelineStats : public RHIPipelineStatistics
 	{
 	private:
 		struct Stats

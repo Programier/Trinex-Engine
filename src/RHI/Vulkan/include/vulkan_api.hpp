@@ -45,12 +45,6 @@ namespace Trinex
 		vk::PhysicalDeviceFeatures m_features;
 
 	private:
-		struct Garbage
-		{
-			RHIObject* object;
-			u64 frame;
-		};
-
 		static VulkanAPI* s_vulkan;
 
 		vk::Device m_device;
@@ -60,9 +54,6 @@ namespace Trinex
 		VulkanQueue* m_transfer_queue = nullptr;
 		Array<RHIQueue*> m_queues;
 
-		u64 m_frame = 0;
-
-		Deque<Garbage> m_garbage;
 		Array<VulkanExtention> m_device_extensions;
 		Array<class VulkanThreadLocal*> m_thread_locals;
 
@@ -98,8 +89,6 @@ namespace Trinex
 			        {VK_EXT_MESH_SHADER_EXTENSION_NAME, false},
 			});
 		}
-
-		VulkanAPI& destroy_garbage();
 
 	public:
 		static consteval usize find_extension_index(const char* str)
@@ -155,7 +144,6 @@ namespace Trinex
 		bool has_stencil_component(vk::Format format);
 
 		bool is_format_supported(vk::Format format, vk::FormatFeatureFlagBits flags, bool optimal);
-		VulkanAPI& add_garbage(RHIObject* object);
 
 	public:
 		static inline VulkanAPI* instance() { return s_vulkan; }
@@ -171,7 +159,6 @@ namespace Trinex
 		const char* name() const override { return "Vulkan"; }
 		const char* renderer() const override { return m_properties.deviceName.data(); }
 
-		VulkanAPI& update(float dt) override;
 		VulkanAPI& wait() override;
 		RHIQueue* queue(RHIQueueType type, RHISwapchain* swapchain = nullptr) override;
 		RHIArrayView<RHIQueue*> queues() const override;

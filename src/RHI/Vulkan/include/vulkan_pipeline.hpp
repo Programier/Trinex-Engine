@@ -1,7 +1,6 @@
 #pragma once
 #include <Core/etl/flat_map.hpp>
 #include <RHI/rhi.hpp>
-#include <vulkan_destroyable.hpp>
 #include <vulkan_headers.hpp>
 
 namespace Trinex
@@ -20,7 +19,7 @@ namespace Trinex
 		u8 binding;
 	};
 
-	class VulkanPipeline : public VulkanDeferredDestroy<RHIPipeline>
+	class VulkanPipeline : public RHIPipeline
 	{
 	private:
 		VulkanPipelineLayout* m_layout = nullptr;

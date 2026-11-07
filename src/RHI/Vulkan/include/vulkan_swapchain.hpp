@@ -1,8 +1,7 @@
 #pragma once
 #include <Core/etl/array.hpp>
-#include <RHI/resource_ptr.hpp>
+#include <Core/ref.hpp>
 #include <RHI/rhi.hpp>
-#include <vulkan_destroyable.hpp>
 #include <vulkan_headers.hpp>
 #include <vulkan_sync.hpp>
 
@@ -15,8 +14,8 @@ namespace Trinex
 	{
 	private:
 		Array<VulkanTexture*> m_backbuffers;
-		Array<RHIResourcePtr<VulkanFence>> m_image_present_fences;
-		Array<RHIResourcePtr<VulkanFence>> m_render_finished_fences;
+		Array<Ref<VulkanFence>> m_image_present_fences;
+		Array<Ref<VulkanFence>> m_render_finished_fences;
 
 		vk::SurfaceKHR m_surface;
 		Window* m_window;
@@ -39,7 +38,7 @@ namespace Trinex
 		~VulkanSwapchain();
 
 		RHI* device() const override;
-		
+
 		i32 acquire_image_index();
 		VulkanFence* acquire_fence() override;
 		VulkanFence* present_fence() override;
@@ -48,6 +47,6 @@ namespace Trinex
 		void resize(Vector2u size) override;
 		void mode(RHIPresentMode mode) override;
 		RHITexture* backbuffer() override;
-		void destroy() override;
+		void destroy() noexcept override;
 	};
 } // namespace Trinex

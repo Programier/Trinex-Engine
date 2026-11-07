@@ -10,7 +10,7 @@ namespace Trinex
 
 	Shader& Shader::rebuild()
 	{
-		m_shader = RHI::instance()->create_shader(source, {});
+		m_shader = adopt_ref(RHI::instance()->create_shader(source, {}));
 		return *this;
 	}
 } // namespace Trinex

@@ -493,7 +493,7 @@ namespace Trinex
 		return *this;
 	}
 
-	void VulkanCommandHandle::destroy()
+	void VulkanCommandHandle::destroy() noexcept
 	{
 		m_manager->return_handle(this);
 	}
@@ -590,7 +590,7 @@ namespace Trinex
 		auto& queue = handle->is_primary() ? m_primary : m_secondary;
 		queue.push_back(handle);
 
-		handle->add_reference();
+		handle->add_ref();
 		handle->enqueue();
 		return *this;
 	}
@@ -945,7 +945,7 @@ namespace Trinex
 		return *this;
 	}
 
-	void VulkanContext::destroy()
+	void VulkanContext::destroy() noexcept
 	{
 		trx_delete this;
 	}

@@ -2,7 +2,6 @@
 #include <Core/asset.hpp>
 #include <Core/enums.hpp>
 #include <Graphics/shader_parameters.hpp>
-#include <RHI/resource_ptr.hpp>
 
 namespace Trinex
 {
@@ -12,7 +11,7 @@ namespace Trinex
 		trinex_class(Shader, Asset);
 
 	protected:
-		RHIResourcePtr<RHIShader> m_shader;
+		Ref<RHIShader> m_shader;
 
 	public:
 		Buffer source;

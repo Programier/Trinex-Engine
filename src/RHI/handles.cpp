@@ -29,7 +29,7 @@ namespace Trinex
 		return view;
 	}
 
-	void RHITextureView::destroy() {}
+	void RHITextureView::destroy() noexcept {}
 
 	RHIRenderTargetView* RHITextureView::as_rtv(RHITextureDescRTV* desc)
 	{

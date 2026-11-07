@@ -16,7 +16,7 @@ namespace Trinex
 	public:
 		void init()
 		{
-			m_buffer = RHI::instance()->create_buffer(64, m_flags | RHIBufferFlags::VertexBuffer);
+			m_buffer = adopt_ref(RHI::instance()->create_buffer(64, m_flags | RHIBufferFlags::VertexBuffer));
 
 			RHIContextPool::instance()->execute([this](RHIContext* ctx) {
 				u8 memory[64] = {};
@@ -115,14 +115,14 @@ namespace Trinex
 	{
 		if (m_vtx_count > 0 && m_buffer == nullptr)
 		{
-			m_buffer = RHI::instance()->create_buffer(m_vtx_count * m_stride, m_flags | RHIBufferFlags::VertexBuffer
-			                                                                          | RHIBufferFlags::ByteAddressBuffer
-			                                                                          | RHIBufferFlags::ShaderResource);
+			m_buffer = adopt_ref(RHI::instance()->create_buffer(
+			        m_vtx_count * m_stride,
+			        m_flags | RHIBufferFlags::VertexBuffer | RHIBufferFlags::ByteAddressBuffer | RHIBufferFlags::ShaderResource));
 
 			RHIContextPool::instance()->execute([this](RHIContext* ctx) {
-				ctx->barrier(m_buffer.get(), RHIAccess::TransferDst);
-				ctx->update(m_buffer.get(), m_data, {.size = size()});
-				ctx->barrier(m_buffer.get(), RHIAccess::VertexBuffer);
+				ctx->barrier(m_buffer, RHIAccess::TransferDst);
+				ctx->update(m_buffer, m_data, {.size = size()});
+				ctx->barrier(m_buffer, RHIAccess::VertexBuffer);
 			});
 
 			if (!keep_cpu_data && m_data && !Settings::Rendering::force_keep_cpu_resources)
@@ -326,14 +326,14 @@ namespace Trinex
 	{
 		if (m_idx_count > 0 && m_buffer == nullptr)
 		{
-			m_buffer = RHI::instance()->create_buffer(size(), m_flags | RHIBufferFlags::IndexBuffer
-			                                                          | RHIBufferFlags::ByteAddressBuffer
-			                                                          | RHIBufferFlags::ShaderResource);
+			m_buffer = adopt_ref(RHI::instance()->create_buffer(size(), m_flags | RHIBufferFlags::IndexBuffer
+			                                                                    | RHIBufferFlags::ByteAddressBuffer
+			                                                                    | RHIBufferFlags::ShaderResource));
 
 			RHIContextPool::instance()->execute([this](RHIContext* ctx) {
-				ctx->barrier(m_buffer.get(), RHIAccess::TransferDst);
-				ctx->update(m_buffer.get(), m_data, {.size = size()});
-				ctx->barrier(m_buffer.get(), RHIAccess::IndexBuffer);
+				ctx->barrier(m_buffer, RHIAccess::TransferDst);
+				ctx->update(m_buffer, m_data, {.size = size()});
+				ctx->barrier(m_buffer, RHIAccess::IndexBuffer);
 			});
 
 			if (!keep_cpu_data && m_data && !Settings::Rendering::force_keep_cpu_resources)

@@ -29,7 +29,7 @@ namespace Trinex
 			return adopt_ref(entry->allocate<EntryPoint>());
 		}
 
-		return nullptr;
+		return {};
 	}
 
 	i32 EntryPoint::execute()

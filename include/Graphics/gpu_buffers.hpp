@@ -1,8 +1,8 @@
 #pragma once
 #include <Core/engine_types.hpp>
+#include <Core/ref.hpp>
 #include <Core/types/color.hpp>
 #include <RHI/enums.hpp>
-#include <RHI/resource_ptr.hpp>
 #include <initializer_list>
 
 namespace Trinex
@@ -14,7 +14,7 @@ namespace Trinex
 	class trinex_api VertexBufferBase
 	{
 	private:
-		RHIResourcePtr<RHIBuffer> m_buffer;
+		Ref<RHIBuffer> m_buffer;
 		u8* m_data             = nullptr;
 		u32 m_vtx_count        = 0;
 		u16 m_stride           = 0;
@@ -46,7 +46,7 @@ namespace Trinex
 
 		bool serialize(Archive& ar);
 
-		inline RHIBuffer* handle() const { return m_buffer; }
+		inline RHIBuffer* handle() const { return m_buffer.value(); }
 		inline u8* data() { return m_data; }
 		inline const u8* data() const { return m_data; }
 		inline RHIBufferFlags flags() const { return m_flags; }
@@ -111,7 +111,7 @@ namespace Trinex
 	class trinex_api IndexBuffer
 	{
 	private:
-		RHIResourcePtr<RHIBuffer> m_buffer;
+		Ref<RHIBuffer> m_buffer;
 		u8* m_data              = nullptr;
 		u32 m_idx_count         = 0;
 		RHIBufferFlags m_flags  = RHIBufferFlags::Undefined;
@@ -141,7 +141,7 @@ namespace Trinex
 
 		bool serialize(Archive& ar);
 
-		inline RHIBuffer* handle() const { return m_buffer; }
+		inline RHIBuffer* handle() const { return m_buffer.value(); }
 		inline u8* data() { return m_data; }
 		inline const u8* data() const { return m_data; }
 		inline RHIBufferFlags flags() const { return m_flags; }

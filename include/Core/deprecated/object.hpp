@@ -3,6 +3,7 @@
 #include <Core/etl/array.hpp>
 #include <Core/etl/atomic.hpp>
 #include <Core/etl/type_traits.hpp>
+#include <Core/ref.hpp>
 #include <Core/types/name.hpp>
 #include <angelscript_object.h>
 
@@ -204,8 +205,8 @@ namespace Trinex
 
 		static DeprecatedObject* static_new_instance(Refl::Deprecated::Class* object_class, StringView name = "",
 		                                             DeprecatedObject* owner = nullptr);
-		static DeprecatedObject* static_new_placement_instance(void* place, Refl::Deprecated::Class* object_class, StringView name = "",
-		                                                       DeprecatedObject* owner = nullptr);
+		static DeprecatedObject* static_new_placement_instance(void* place, Refl::Deprecated::Class* object_class,
+		                                                       StringView name = "", DeprecatedObject* owner = nullptr);
 
 		template<typename Type, bool check_constructible = false, typename... Args>
 		static Type* new_instance(StringView name = "", DeprecatedObject* owner = nullptr, Args&&... args)
@@ -353,28 +354,28 @@ namespace Trinex
 
 #define trinex_class(class_name, base_name)                                                                                      \
 protected:                                                                                                                       \
-	static class Trinex::Refl::Deprecated::Class* m_static_class;                                                                            \
+	static class Trinex::Refl::Deprecated::Class* m_static_class;                                                                \
                                                                                                                                  \
 public:                                                                                                                          \
 	using This  = class_name;                                                                                                    \
 	using Super = base_name;                                                                                                     \
 	static void static_initialize_class();                                                                                       \
-	static class Trinex::Refl::Deprecated::Class* static_reflection();                                                                       \
+	static class Trinex::Refl::Deprecated::Class* static_reflection();                                                           \
                                                                                                                                  \
 private:
 
 #define trinex_implement_class(decl, flags)                                                                                      \
-	class Trinex::Refl::Deprecated::Class* decl::m_static_class = nullptr;                                                                   \
+	class Trinex::Refl::Deprecated::Class* decl::m_static_class = nullptr;                                                       \
                                                                                                                                  \
-	class Trinex::Refl::Deprecated::Class* decl::static_reflection()                                                                         \
+	class Trinex::Refl::Deprecated::Class* decl::static_reflection()                                                             \
 	{                                                                                                                            \
 		if (!m_static_class)                                                                                                     \
 		{                                                                                                                        \
-			m_static_class = Trinex::Refl::Deprecated::NativeClass<decl>::create(#decl, flags);                                              \
+			m_static_class = Trinex::Refl::Deprecated::NativeClass<decl>::create(#decl, flags);                                  \
 		}                                                                                                                        \
 		return m_static_class;                                                                                                   \
 	}                                                                                                                            \
-	trinex_on_register(.name = #decl)                                                                                     \
+	trinex_on_register(.name = #decl)                                                                                            \
 	{                                                                                                                            \
 		decl::static_reflection();                                                                                               \
 	}                                                                                                                            \

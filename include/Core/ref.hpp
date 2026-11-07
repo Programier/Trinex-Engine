@@ -160,9 +160,9 @@ namespace Trinex
 		}
 
 		[[nodiscard]]
-		explicit operator bool() const noexcept
+		operator T*() const noexcept
 		{
-			return m_ptr != nullptr;
+			return m_ptr;
 		}
 
 		[[nodiscard]]
@@ -172,9 +172,15 @@ namespace Trinex
 		}
 
 		[[nodiscard]]
-		bool operator==(const T* ptr) const noexcept
+		bool operator==(null) const noexcept
 		{
-			return m_ptr == ptr;
+			return m_ptr == nullptr;
+		}
+
+		[[nodiscard]]
+		bool operator!=(null) const noexcept
+		{
+			return m_ptr != nullptr;
 		}
 
 		[[nodiscard]]

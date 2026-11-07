@@ -18,7 +18,7 @@ namespace Trinex
 		m_submit_fence->release();
 	}
 
-	void VulkanQueue::destroy()
+	void VulkanQueue::destroy() noexcept
 	{
 		trx_delete this;
 	}

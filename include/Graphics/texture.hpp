@@ -2,7 +2,6 @@
 #include <Core/asset.hpp>
 #include <Core/math/vector.hpp>
 #include <RHI/enums.hpp>
-#include <RHI/resource_ptr.hpp>
 
 namespace Trinex
 {
@@ -43,7 +42,7 @@ namespace Trinex
 		trinex_class(Texture, Asset);
 
 	protected:
-		RHIResourcePtr<RHITexture> m_texture;
+		Ref<RHITexture> m_texture;
 
 	public:
 		RHIShaderResourceView* srv() const;

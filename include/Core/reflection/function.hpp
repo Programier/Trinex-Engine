@@ -46,7 +46,7 @@ namespace Trinex::Refl
 		}
 
 	public:
-		Function(Name name, Invoker invoker, Ref<Property> result = nullptr, Array<Ref<Property>> args = {}, u64 flags = 0,
+		Function(Name name, Invoker invoker, Ref<Property> result = {}, Array<Ref<Property>> args = {}, u64 flags = 0,
 		         Object* owner = nullptr);
 
 		Function(Name name, Invoker invoker, Type* result = nullptr, Type** args = nullptr, usize count = 0, u64 flags = 0,

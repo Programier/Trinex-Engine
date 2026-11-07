@@ -43,7 +43,7 @@ namespace Trinex
 
 	RHITexture* Texture::handle() const
 	{
-		return m_texture.get();
+		return m_texture;
 	}
 
 	trinex_implement_engine_class(Texture2D, Refl::Deprecated::Class::IsAsset) {}
@@ -58,7 +58,7 @@ namespace Trinex
 		        .flags  = RHITextureFlags::ShaderResource,
 		};
 
-		m_texture = RHI::instance()->create_texture(desc);
+		m_texture = adopt_ref(RHI::instance()->create_texture(desc));
 
 		RHIContextPool::instance()->execute([this](RHIContext* ctx) {
 			ctx->barrier(m_texture, RHIAccess::TransferDst);
@@ -109,7 +109,7 @@ namespace Trinex
 		        .flags  = RHITextureFlags::ShaderResource,
 		};
 
-		m_texture = RHI::instance()->create_texture(desc);
+		m_texture = adopt_ref(RHI::instance()->create_texture(desc));
 
 		RHIContextPool::instance()->execute([this](RHIContext* ctx) {
 			ctx->barrier(m_texture, RHIAccess::TransferDst);
@@ -165,7 +165,7 @@ namespace Trinex
 		        .flags  = RHITextureFlags::ShaderResource,
 		};
 
-		m_texture = RHI::instance()->create_texture(desc);
+		m_texture = adopt_ref(RHI::instance()->create_texture(desc));
 
 		RHIContextPool::instance()->execute([this](RHIContext* ctx) {
 			ctx->barrier(m_texture, RHIAccess::TransferDst);

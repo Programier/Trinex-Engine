@@ -3,7 +3,6 @@
 #include <Core/engine_types.hpp>
 #include <Core/etl/array.hpp>
 #include <RHI/rhi.hpp>
-#include <vulkan_destroyable.hpp>
 #include <vulkan_headers.hpp>
 
 namespace Trinex
@@ -11,7 +10,7 @@ namespace Trinex
 	struct VulkanDescriptorPool;
 	struct VulkanDescriptorSet;
 
-	class VulkanShader : public VulkanDeferredDestroy<RHIShader>
+	class VulkanShader : public RHIShader
 	{
 	private:
 		vk::ShaderModule m_shader;
@@ -21,7 +20,7 @@ namespace Trinex
 		~VulkanShader();
 
 		RHI* device() const override;
-		
+
 		inline vk::ShaderModule module() const { return m_shader; }
 	};
 } // namespace Trinex

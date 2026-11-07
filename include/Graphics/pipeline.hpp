@@ -1,7 +1,6 @@
 #pragma once
 #include <Core/asset.hpp>
 #include <Core/types/path.hpp>
-#include <RHI/resource_ptr.hpp>
 #include <RHI/structures.hpp>
 
 namespace Trinex
@@ -21,7 +20,7 @@ namespace Trinex
 		Shader* create_new_shader();
 
 	protected:
-		RHIResourcePtr<RHIPipeline> m_pipeline;
+		Ref<RHIPipeline> m_pipeline;
 
 	private:
 		Array<RHIBinding> m_parameters;

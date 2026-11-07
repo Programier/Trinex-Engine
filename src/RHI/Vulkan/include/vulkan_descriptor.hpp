@@ -4,7 +4,6 @@
 #include <Core/etl/map.hpp>
 #include <RHI/rhi.hpp>
 #include <vulkan_definitions.hpp>
-#include <vulkan_destroyable.hpp>
 #include <vulkan_headers.hpp>
 #include <vulkan_thread_local.hpp>
 
@@ -58,7 +57,7 @@ namespace Trinex
 	public:
 		VulkanPipelineLayout(u64 hash, vk::ShaderStageFlags stages, Descriptor* descriptors, usize count);
 		~VulkanPipelineLayout();
-		void destroy() override;
+		void destroy() noexcept override;
 		RHI* device() const override;
 
 		inline vk::DescriptorSetLayout descriptor_set_layout() const { return m_set_layout; }
@@ -131,7 +130,7 @@ namespace Trinex
 		static VulkanDescriptorSetAllocator* instance();
 	};
 
-	class VulkanBindingSet : public VulkanDeferredDestroy<RHIBindingSet>
+	class VulkanBindingSet : public RHIBindingSet
 	{
 	private:
 		VulkanBindingLayout* m_layout;
@@ -141,7 +140,7 @@ namespace Trinex
 		~VulkanBindingSet();
 
 		RHI* device() const override;
-		
+
 		RHIBindingLayout* layout() const override;
 		void uniform(u32 slot, RHIBuffer* buffer, u32 idx = 0) override;
 		void sampler(u32 slot, RHISampler* sampler, u32 idx = 0) override;

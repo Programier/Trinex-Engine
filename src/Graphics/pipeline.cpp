@@ -163,7 +163,7 @@ namespace Trinex
 			desc.parameters       = parameters().data();
 			desc.parameters_count = parameters().size();
 
-			m_pipeline = RHI::instance()->create_graphics_pipeline(desc);
+			m_pipeline = adopt_ref(RHI::instance()->create_graphics_pipeline(desc));
 		}
 		return *this;
 	}
@@ -396,7 +396,7 @@ namespace Trinex
 		desc.parameters       = parameters().data();
 		desc.parameters_count = parameters().size();
 
-		m_pipeline = RHI::instance()->create_compute_pipeline(desc);
+		m_pipeline = adopt_ref(RHI::instance()->create_compute_pipeline(desc));
 		return *this;
 	}
 

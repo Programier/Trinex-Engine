@@ -101,7 +101,7 @@ namespace Trinex
 		RHITextureView(RHITexture* texture, RHITextureType type, u16 base_slice = 0, u16 slice_count = 65535, u16 base_mip = 0,
 		               u16 mip_count = 65535);
 
-		void destroy() override;
+		void destroy() noexcept override;
 
 		RHIRenderTargetView* as_rtv(RHITextureDescRTV* desc = nullptr) override;
 		RHIDepthStencilView* as_dsv(RHITextureDescDSV* desc = nullptr) override;

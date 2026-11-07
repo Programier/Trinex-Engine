@@ -2,7 +2,6 @@
 #include <Core/viewport_client.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <RHI/handles.hpp>
-#include <RHI/resource_ptr.hpp>
 #include <RHI/rhi.hpp>
 
 namespace Trinex
@@ -13,7 +12,7 @@ namespace Trinex
 	{
 		trinex_verify(window);
 
-		m_swapchain = RHI::instance()->create_swapchain(window.value(), mode, images);
+		m_swapchain = adopt_ref(RHI::instance()->create_swapchain(window.value(), mode, images));
 		trinex_verify(m_swapchain);
 
 		s_viewports.push_back(retain_ref(this));

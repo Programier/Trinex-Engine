@@ -22,7 +22,7 @@ namespace Trinex
 		VulkanQueue(vk::Queue queue, RHIQueueFlags flags, u32 family_index, u32 queue_index);
 		~VulkanQueue();
 
-		void destroy() override;
+		void destroy() noexcept override;
 		RHI* device() const override;
 
 		RHIQueueFlags flags() const override;

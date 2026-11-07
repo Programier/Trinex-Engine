@@ -73,7 +73,7 @@ namespace Trinex
 		}
 	}
 
-	void VulkanPipelineLayout::destroy()
+	void VulkanPipelineLayout::destroy() noexcept
 	{
 		VulkanAPI::instance()->pipeline_layout_manager()->desctroy(this);
 	}
@@ -126,7 +126,7 @@ namespace Trinex
 			VulkanPipelineLayout* layout = search_result.first->second;
 			if (layout->equals(descriptors, descriptors_count))
 			{
-				layout->add_reference();
+				layout->add_ref();
 				return layout;
 			}
 			++search_result.first;
@@ -549,7 +549,7 @@ namespace Trinex
 	VulkanBindingSet::VulkanBindingSet(RHIBindingLayout* layout) : m_layout(static_cast<VulkanBindingLayout*>(layout))
 	{
 		trinex_verify(layout);
-		layout->add_reference();
+		layout->add_ref();
 	}
 
 	VulkanBindingSet::~VulkanBindingSet()

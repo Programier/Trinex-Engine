@@ -1,12 +1,12 @@
 #pragma once
 
 #include <RHI/rhi.hpp>
-#include <vulkan_destroyable.hpp>
 #include <vulkan_headers.hpp>
 
 namespace Trinex
 {
-	struct VulkanSamplerCreateInfo {
+	struct VulkanSamplerCreateInfo
+	{
 		vk::Filter mag_filter;
 		vk::Filter min_filter;
 		vk::SamplerMipmapMode mipmap_mode;
@@ -24,7 +24,7 @@ namespace Trinex
 		Color border_color;
 	};
 
-	class VulkanSampler : public VulkanDeferredDestroy<RHISampler>
+	class VulkanSampler : public RHISampler
 	{
 	private:
 		vk::Sampler m_sampler;
@@ -37,4 +37,4 @@ namespace Trinex
 		inline vk::Sampler sampler() const { return m_sampler; }
 		~VulkanSampler();
 	};
-}// namespace Trinex
+} // namespace Trinex

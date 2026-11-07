@@ -116,12 +116,12 @@ namespace Trinex
 		VulkanCommandHandle(const VulkanCommandHandle&) = delete;
 		VulkanCommandHandle(VulkanCommandHandle&&)      = delete;
 		~VulkanCommandHandle();
-				
+
 		VulkanCommandHandle& operator=(const VulkanCommandHandle&) = delete;
 		VulkanCommandHandle& operator=(VulkanCommandHandle&&)      = delete;
-		
+
 		RHI* device() const override;
-		
+
 		VulkanCommandHandle& refresh_fence_status();
 		VulkanCommandHandle& begin(const vk::CommandBufferBeginInfo& info = {});
 		VulkanCommandHandle& end();
@@ -129,7 +129,7 @@ namespace Trinex
 		VulkanCommandHandle& wait();
 		VulkanCommandHandle& flush_uniforms();
 
-		void destroy() override;
+		void destroy() noexcept override;
 
 		inline VulkanUniformBuffer* request_uniform_page(usize size, u8 index)
 		{
@@ -142,7 +142,7 @@ namespace Trinex
 		{
 			if (object)
 			{
-				object->add_reference();
+				object->add_ref();
 				m_transient_resources.push_back(object);
 			}
 			return *this;
@@ -289,7 +289,7 @@ namespace Trinex
 		static_assert(sizeof(PipelineState) <= 16);
 
 	private:
-		void destroy() override;
+		void destroy() noexcept override;
 
 		VulkanContext& flush_state(u32 mask);
 		VulkanContext& bind_framebuffer(const Framebuffer& fb);

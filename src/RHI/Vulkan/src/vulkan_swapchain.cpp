@@ -33,7 +33,7 @@ namespace Trinex
 		~VulkanSwapchainTexture() { m_image = vk::Image(); }
 	};
 
-	static void initialize_fences(Array<RHIResourcePtr<VulkanFence>>& semaphores, usize size)
+	static void initialize_fences(Array<Ref<VulkanFence>>& semaphores, usize size)
 	{
 		semaphores.resize(size);
 
@@ -41,7 +41,7 @@ namespace Trinex
 		{
 			if (semaphore == nullptr)
 			{
-				semaphore = trx_new VulkanFence(vk::SemaphoreType::eBinary);
+				semaphore = Ref<VulkanFence>::make(vk::SemaphoreType::eBinary);
 			}
 		}
 	}
@@ -248,13 +248,13 @@ namespace Trinex
 	VulkanFence* VulkanSwapchain::acquire_fence()
 	{
 		backbuffer();
-		return m_image_present_fences[m_sync_index].get();
+		return m_image_present_fences[m_sync_index];
 	}
 
 	VulkanFence* VulkanSwapchain::present_fence()
 	{
 		backbuffer();
-		return m_render_finished_fences[m_image_index].get();
+		return m_render_finished_fences[m_image_index];
 	}
 
 	void VulkanSwapchain::mode(RHIPresentMode mode)
@@ -321,7 +321,7 @@ namespace Trinex
 		}
 	}
 
-	void VulkanSwapchain::destroy()
+	void VulkanSwapchain::destroy() noexcept
 	{
 		trx_delete this;
 	}

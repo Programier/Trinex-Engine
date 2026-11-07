@@ -177,11 +177,6 @@ namespace Trinex
 		Tickable::for_each_begin_frame(m_frame_index);
 		Tickable::for_each_update(m_delta_time);
 
-		if (RHI* rhi = RHI::instance())
-		{
-			rhi->update(m_delta_time);
-		}
-
 		RHIScheduler::instance()->execute();
 
 		update_viewports();

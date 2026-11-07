@@ -4,14 +4,13 @@
 #include <Core/etl/set.hpp>
 #include <RHI/rhi.hpp>
 #include <vk_mem_alloc.h>
-#include <vulkan_destroyable.hpp>
 #include <vulkan_headers.hpp>
 
 namespace Trinex
 {
 	class VulkanContext;
 
-	class VulkanBuffer : public VulkanDeferredDestroy<RHIBuffer>
+	class VulkanBuffer : public RHIBuffer
 	{
 	private:
 		RHIShaderResourceView* m_srv  = nullptr;

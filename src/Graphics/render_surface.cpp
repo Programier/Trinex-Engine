@@ -38,7 +38,7 @@ namespace Trinex
 		        .flags  = flags,
 		};
 
-		m_texture = RHI::instance()->create_texture(desc);
+		m_texture = adopt_ref(RHI::instance()->create_texture(desc));
 		return *this;
 	}
 
