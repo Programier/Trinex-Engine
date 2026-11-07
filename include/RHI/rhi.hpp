@@ -14,6 +14,7 @@ namespace Trinex
 
 	class RHIContext;
 	class RHICommandHandle;
+	class RHIGarbageCollector;
 
 	struct RHITextureDesc;
 	struct RHISamplerDesc;
@@ -34,6 +35,9 @@ namespace Trinex
 			Registry(RHIBackend backend, CreateFunction create, DestroyFunction destroy);
 		};
 
+	private:
+		RHIGarbageCollector* m_gc = nullptr;
+
 	public:
 		static constexpr usize s_max_srv             = 32;
 		static constexpr usize s_max_samplers        = 32;
@@ -45,9 +49,10 @@ namespace Trinex
 		static RHIBackend backend();
 		static RHI* instance();
 		static RHI* instance(RHIBackend backend);
+		inline RHIGarbageCollector* gc() const { return m_gc; }
 
 	public:
-		virtual ~RHI() = default;
+		virtual ~RHI();
 
 		virtual const char* name() const     = 0;
 		virtual const char* renderer() const = 0;

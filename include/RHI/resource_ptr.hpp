@@ -2,7 +2,6 @@
 
 namespace Trinex
 {
-
 	class trinex_api RHIResourcePtrBase
 	{
 	protected:

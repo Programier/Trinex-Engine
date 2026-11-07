@@ -3,6 +3,7 @@
 #include <Core/etl/flat_map.hpp>
 #include <Core/reflection/type.hpp>
 #include <Platform/system.hpp>
+#include <RHI/gc.hpp>
 #include <RHI/rhi.hpp>
 
 namespace Trinex
@@ -92,12 +93,20 @@ namespace Trinex
 		{
 			auto& state = it->second;
 
-			if (state.backend)
-				return state.backend;
+			if (state.backend == nullptr)
+			{
+				state.backend       = state.create();
+				state.backend->m_gc = trx_new RHIGarbageCollector(state.backend);
+			}
 
-			return (state.backend = state.create());
+			return state.backend;
 		}
 
 		return nullptr;
+	}
+
+	RHI::~RHI()
+	{
+		trx_delete m_gc;
 	}
 } // namespace Trinex
