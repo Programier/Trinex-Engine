@@ -218,7 +218,7 @@ namespace Trinex
 		return result ? result->handle() : nullptr;
 	}
 
-	const RHIShaderParameterInfo* GlobalPipelineLibrary::find_parameter(const Name& key, Name permutation) const
+	const RHIBinding* GlobalPipelineLibrary::find_parameter(const Name& key, Name permutation) const
 	{
 		Pipeline* result = pipeline(permutation);
 		return result ? result->find_parameter(key) : nullptr;

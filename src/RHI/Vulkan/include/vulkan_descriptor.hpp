@@ -1,7 +1,7 @@
 #pragma once
+#include <Core/etl/array.hpp>
 #include <Core/etl/critical_section.hpp>
 #include <Core/etl/map.hpp>
-#include <Core/etl/array.hpp>
 #include <RHI/rhi.hpp>
 #include <vulkan_definitions.hpp>
 #include <vulkan_destroyable.hpp>
@@ -11,11 +11,13 @@
 namespace Trinex
 {
 	class VulkanContext;
+	class VulkanBindingLayout;
 
 	class VulkanPipelineLayout : public RHIObject
 	{
 	public:
-		struct Descriptor {
+		struct Descriptor
+		{
 			vk::DescriptorType type;
 			u32 binding;
 
@@ -100,7 +102,7 @@ namespace Trinex
 		MultiMap<u64, class VulkanPipelineLayout*> m_pipeline_layouts;
 
 	public:
-		VulkanPipelineLayout* allocate(const RHIShaderParameterInfo* parameters, usize count, vk::ShaderStageFlags stages);
+		VulkanPipelineLayout* allocate(const RHIBinding* parameters, usize count, vk::ShaderStageFlags stages);
 		VulkanPipelineLayoutManager& desctroy(VulkanPipelineLayout* layout);
 	};
 
@@ -127,4 +129,22 @@ namespace Trinex
 
 		static VulkanDescriptorSetAllocator* instance();
 	};
-}// namespace Trinex
+
+	class VulkanBindingSet : public VulkanDeferredDestroy<RHIBindingSet>
+	{
+	private:
+		VulkanBindingLayout* m_layout;
+
+	public:
+		VulkanBindingSet(RHIBindingLayout* layout);
+		~VulkanBindingSet();
+
+		RHIBindingLayout* layout() const override;
+		void uniform(u32 slot, RHIBuffer* buffer, u32 idx = 0) override;
+		void sampler(u32 slot, RHISampler* sampler, u32 idx = 0) override;
+		void texture(u32 slot, RHIShaderResourceView* view, RHISampler* sampler, u32 idx = 0) override;
+		void srv(u32 slot, RHIShaderResourceView* view, u32 idx = 0) override;
+		void uav(u32 slot, RHIUnorderedAccessView* view, u32 idx = 0) override;
+		void acceleration(u32 slot, RHIAccelerationStructure* acceleration, u32 idx = 0) override;
+	};
+} // namespace Trinex

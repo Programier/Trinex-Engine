@@ -16,6 +16,7 @@ namespace Trinex
 	struct RHIMappingAccess;
 	struct RHISubmitInfo;
 	struct RHIFencePoint;
+	struct RHIBinding;
 
 	class trinex_api RHITimestamp : public RHIObject
 	{
@@ -154,5 +155,22 @@ namespace Trinex
 		virtual void present(RHISwapchain* swapchain)           = 0;
 		virtual RHIFencePoint submit(const RHISubmitInfo& info) = 0;
 		virtual void wait()                                     = 0;
+	};
+
+	class RHIBindingLayout : public RHIObject
+	{
+	public:
+	};
+
+	class RHIBindingSet : public RHIObject
+	{
+	public:
+		virtual RHIBindingLayout* layout() const                                                      = 0;
+		virtual void uniform(u32 slot, RHIBuffer* buffer, u32 idx = 0)                                = 0;
+		virtual void sampler(u32 slot, RHISampler* sampler, u32 idx = 0)                              = 0;
+		virtual void texture(u32 slot, RHIShaderResourceView* view, RHISampler* sampler, u32 idx = 0) = 0;
+		virtual void srv(u32 slot, RHIShaderResourceView* view, u32 idx = 0)                          = 0;
+		virtual void uav(u32 slot, RHIUnorderedAccessView* view, u32 idx = 0)                         = 0;
+		virtual void acceleration(u32 slot, RHIAccelerationStructure* acceleration, u32 idx = 0)      = 0;
 	};
 } // namespace Trinex

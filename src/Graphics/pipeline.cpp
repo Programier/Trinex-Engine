@@ -82,12 +82,12 @@ namespace Trinex
 		return DeprecatedObject::instance_cast<Material>(owner());
 	}
 
-	static bool pipeline_parameter_compare(const RHIShaderParameterInfo& a, const Name& name)
+	static bool pipeline_parameter_compare(const RHIBinding& a, const Name& name)
 	{
 		return a.name < name;
 	}
 
-	bool Pipeline::add_parameter(const RHIShaderParameterInfo& parameter, bool replace)
+	bool Pipeline::add_parameter(const RHIBinding& parameter, bool replace)
 	{
 		auto begin = m_parameters.begin();
 		auto end   = m_parameters.end();
@@ -123,7 +123,7 @@ namespace Trinex
 		return false;
 	}
 
-	const RHIShaderParameterInfo* Pipeline::find_parameter(const Name& name) const
+	const RHIBinding* Pipeline::find_parameter(const Name& name) const
 	{
 		auto begin = m_parameters.begin();
 		auto end   = m_parameters.end();
@@ -131,9 +131,9 @@ namespace Trinex
 		return it == end ? nullptr : it;
 	}
 
-	Pipeline& Pipeline::parameters(const Array<RHIShaderParameterInfo>& parameters)
+	Pipeline& Pipeline::parameters(const Array<RHIBinding>& parameters)
 	{
-		using Info   = RHIShaderParameterInfo;
+		using Info   = RHIBinding;
 		m_parameters = parameters;
 		std::sort(m_parameters.begin(), m_parameters.end(), [](const Info& a, const Info& b) { return a.name < b.name; });
 		return *this;

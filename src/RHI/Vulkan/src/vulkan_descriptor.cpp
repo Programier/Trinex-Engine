@@ -6,6 +6,7 @@
 #include <vulkan_context.hpp>
 #include <vulkan_descriptor.hpp>
 #include <vulkan_enums.hpp>
+#include <vulkan_layout.hpp>
 #include <vulkan_resource_view.hpp>
 #include <vulkan_sampler.hpp>
 #include <vulkan_sync.hpp>
@@ -77,7 +78,7 @@ namespace Trinex
 		VulkanAPI::instance()->pipeline_layout_manager()->desctroy(this);
 	}
 
-	VulkanPipelineLayout* VulkanPipelineLayoutManager::allocate(const RHIShaderParameterInfo* parameters, usize count,
+	VulkanPipelineLayout* VulkanPipelineLayoutManager::allocate(const RHIBinding* parameters, usize count,
 	                                                            vk::ShaderStageFlags stages)
 	{
 		using Descriptor = VulkanPipelineLayout::Descriptor;
@@ -538,5 +539,38 @@ namespace Trinex
 	{
 		static thread_local VulkanDescriptorSetAllocator* allocator = trx_new VulkanDescriptorSetAllocator();
 		return allocator;
+	}
+
+	VulkanBindingSet::VulkanBindingSet(RHIBindingLayout* layout) : m_layout(static_cast<VulkanBindingLayout*>(layout))
+	{
+		trinex_verify(layout);
+		layout->add_reference();
+	}
+
+	VulkanBindingSet::~VulkanBindingSet()
+	{
+		m_layout->release();
+	}
+
+	RHIBindingLayout* VulkanBindingSet::layout() const
+	{
+		return m_layout;
+	}
+
+	void VulkanBindingSet::uniform(u32 slot, RHIBuffer* buffer, u32 idx) {}
+
+	void VulkanBindingSet::sampler(u32 slot, RHISampler* sampler, u32 idx) {}
+
+	void VulkanBindingSet::texture(u32 slot, RHIShaderResourceView* view, RHISampler* sampler, u32 idx) {}
+
+	void VulkanBindingSet::srv(u32 slot, RHIShaderResourceView* view, u32 idx) {}
+
+	void VulkanBindingSet::uav(u32 slot, RHIUnorderedAccessView* view, u32 idx) {}
+
+	void VulkanBindingSet::acceleration(u32 slot, RHIAccelerationStructure* acceleration, u32 idx) {}
+
+	RHIBindingSet* VulkanAPI::create_binding_set(RHIBindingLayout* layout)
+	{
+		return trx_new VulkanBindingSet(layout);
 	}
 } // namespace Trinex

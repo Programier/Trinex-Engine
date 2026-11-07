@@ -5,13 +5,12 @@
 
 namespace Trinex
 {
-	bool RHIShaderParameterInfo::serialize(Archive& ar)
+	bool RHIBinding::serialize(Archive& ar)
 	{
 		ar.serialize(name);
 		ar.serialize(size);
 		ar.serialize(offset);
 		ar.serialize(type);
-		ar.serialize(semantic);
 		ar.serialize(binding);
 		return ar;
 	}

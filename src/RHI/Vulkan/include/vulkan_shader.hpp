@@ -17,9 +17,9 @@ namespace Trinex
 		vk::ShaderModule m_shader;
 
 	public:
-		VulkanShader(Span<u8> source, Span<RHIShaderParameterInfo> parameters);
+		VulkanShader(Span<u8> source, Span<RHIBinding> parameters);
 		~VulkanShader();
 
 		inline vk::ShaderModule module() const { return m_shader; }
 	};
-}// namespace Trinex
+} // namespace Trinex

@@ -183,7 +183,7 @@ namespace Trinex
 		RHIFence* create_fence(u64 value = 0) override;
 		RHISampler* create_sampler(const RHISamplerDesc& desc) override;
 		RHITexture* create_texture(const RHITextureDesc& desc) override;
-		RHIShader* create_shader(Span<u8> source, Span<RHIShaderParameterInfo> parameters) override;
+		RHIShader* create_shader(Span<u8> source, Span<RHIBinding> parameters) override;
 		RHIPipeline* create_graphics_pipeline(const RHIGraphicsPipelineDesc& desc) override;
 		RHIPipeline* create_mesh_pipeline(const RHIMeshPipelineDesc& desc) override;
 		RHIPipeline* create_compute_pipeline(const RHIComputePipelineDesc& desc) override;
@@ -191,6 +191,8 @@ namespace Trinex
 		RHIBuffer* create_buffer(usize size, RHIBufferFlags flags) override;
 		RHISwapchain* create_swapchain(Window* window, RHIPresentMode mode, u32 images = 0) override;
 		RHIContext* create_context(RHIQueue* queue, RHIContextFlags flags) override;
+		RHIBindingLayout* create_binding_layout(RHIBinding* bindings = nullptr, usize count = 0) override;
+		RHIBindingSet* create_binding_set(RHIBindingLayout* layout) override;
 
 		RHIAccelerationStructure* create_acceleration_structure(const RHIRayTracingAccelerationInputs* inputs) override;
 		const u8* translate_ray_tracing_instances(const RHIRayTracingGeometryInstance* instances, usize& size) override;

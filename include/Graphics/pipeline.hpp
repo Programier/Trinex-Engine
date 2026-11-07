@@ -24,14 +24,14 @@ namespace Trinex
 		RHIResourcePtr<RHIPipeline> m_pipeline;
 
 	private:
-		Array<RHIShaderParameterInfo> m_parameters;
+		Array<RHIBinding> m_parameters;
 
 	public:
-		bool add_parameter(const RHIShaderParameterInfo& parameter, bool replace = false);
+		bool add_parameter(const RHIBinding& parameter, bool replace = false);
 		bool remove_parameter(const Name& name);
-		const RHIShaderParameterInfo* find_parameter(const Name& name) const;
-		Pipeline& parameters(const Array<RHIShaderParameterInfo>& parameters);
-		inline const Array<RHIShaderParameterInfo>& parameters() const { return m_parameters; }
+		const RHIBinding* find_parameter(const Name& name) const;
+		Pipeline& parameters(const Array<RHIBinding>& parameters);
+		inline const Array<RHIBinding>& parameters() const { return m_parameters; }
 
 		class Material* material() const;
 		virtual bool serialize(Archive& ar) final override;

@@ -115,12 +115,12 @@ namespace Trinex
 		virtual RHIContext& begin_statistics(RHIPipelineStatistics* stats) = 0;
 		virtual RHIContext& end_statistics(RHIPipelineStatistics* stats)   = 0;
 
-		inline RHIContext& update_scalar(const void* data, usize size, const RHIShaderParameterInfo* info)
+		inline RHIContext& update_scalar(const void* data, usize size, const RHIBinding* info)
 		{
 			return update_scalar(data, size, info->offset, info->binding);
 		}
 
-		inline RHIContext& update_scalar(const void* data, const RHIShaderParameterInfo* info)
+		inline RHIContext& update_scalar(const void* data, const RHIBinding* info)
 		{
 			return update_scalar(data, info->size, info->offset, info->binding);
 		}

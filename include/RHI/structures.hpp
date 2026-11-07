@@ -12,6 +12,7 @@ namespace Trinex
 	class RHIDepthStencilView;
 	class RHICommandHandle;
 	class RHIFence;
+	class RHISampler;
 
 	struct RHIRect
 	{
@@ -39,14 +40,18 @@ namespace Trinex
 		u64 count = ~0U;
 	};
 
-	struct trinex_api RHIShaderParameterInfo
+	struct trinex_api RHIBinding
 	{
+		RHISampler** samplers = nullptr;
+		RHIBindingType type   = RHIBindingType::Undefined;
+		RHIShaderStage stages = RHIShaderStage::All;
+		u32 count             = 1;
+		u32 binding           = 65535;
+
+		// TODO: Remove
 		Name name;
-		u32 size                    = 0;
-		u32 offset                  = 0;
-		RHIShaderParameterType type = RHIShaderParameterType::Undefined;
-		RHISemantic semantic        = RHISemantic::Undefined;
-		u8 binding                  = 255;
+		u16 size   = 0;
+		u16 offset = 0;
 
 		bool serialize(Archive& ar);
 	};

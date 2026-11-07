@@ -22,7 +22,7 @@ namespace Trinex
 	};
 
 	trinex_reflect()
-	trinex_enum RHIShaderParameterType
+	trinex_enum RHIBindingType
 	{
 		enum Enum : EnumerateType
 		{
@@ -165,12 +165,12 @@ namespace Trinex
 			CombinedSurface = Sampler2D | META_Special0,
 		};
 
-		trinex_bitfield_enum_struct(RHIShaderParameterType, EnumerateType);
+		trinex_bitfield_enum_struct(RHIBindingType, EnumerateType);
 
-		trinex_api static RHIShaderParameterType make_numeric(RHIShaderParameterType base, u8 len = 1);
-		trinex_api static RHIShaderParameterType make_matrix(RHIShaderParameterType base, u8 rows = 4, u8 columns = 4);
+		trinex_api static RHIBindingType make_numeric(RHIBindingType base, u8 len = 1);
+		trinex_api static RHIBindingType make_matrix(RHIBindingType base, u8 rows = 4, u8 columns = 4);
 
-		trinex_api RHIShaderParameterType element_type();
+		trinex_api RHIBindingType element_type();
 
 		inline constexpr bool is_numeric() const
 		{
@@ -218,6 +218,34 @@ namespace Trinex
 			EnumerateType value = bitfield & META_ColumnsMask;
 			return value >> 20;
 		}
+	};
+
+	struct RHIShaderStage
+	{
+		enum Enum : u16
+		{
+			Undefined           = 0,
+			Vertex              = 1 << 0,
+			TessellationControl = 1 << 1,
+			Tessellation        = 1 << 2,
+			Geometry            = 1 << 3,
+			Fragment            = 1 << 4,
+			Compute             = 1 << 5,
+			Task                = 1 << 6,
+			Mesh                = 1 << 7,
+			RayGeneration       = 1 << 8,
+			AnyHit              = 1 << 9,
+			ClosestHit          = 1 << 10,
+			Miss                = 1 << 11,
+			Intersection        = 1 << 12,
+			Callable            = 1 << 13,
+
+			AllGraphics   = Vertex | TessellationControl | Tessellation | Geometry | Fragment | Task | Mesh,
+			AllRayTracing = RayGeneration | AnyHit | ClosestHit | Miss | Intersection | Callable,
+			All           = AllGraphics | Compute | AllRayTracing,
+		};
+
+		trinex_bitfield_enum_struct(RHIShaderStage, u16);
 	};
 
 	struct RHITextureFlags

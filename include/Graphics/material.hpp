@@ -1,7 +1,7 @@
 #pragma once
+#include <Core/deprecated/object.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/etl/object_tree_node.hpp>
-#include <Core/deprecated/object.hpp>
 #include <Graphics/enums.hpp>
 #include <Graphics/material_parameter.hpp>
 #include <RHI/structures.hpp>
@@ -30,7 +30,7 @@ namespace Trinex
 	protected:
 		bool unregister_child(DeprecatedObject* child) override;
 
-		Parameter* create_parameter(const Name& name, RHIShaderParameterType type);
+		Parameter* create_parameter(const Name& name, RHIBindingType type);
 
 	public:
 		Parameter* find_parameter(const Name& name) const;

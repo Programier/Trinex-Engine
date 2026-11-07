@@ -176,8 +176,7 @@ namespace Trinex
 		return false;
 	}
 
-	VulkanPipelineLayout* VulkanPipeline::create_layout(const RHIShaderParameterInfo* parameter, usize count,
-	                                                    vk::ShaderStageFlags stages)
+	VulkanPipelineLayout* VulkanPipeline::create_layout(const RHIBinding* parameter, usize count, vk::ShaderStageFlags stages)
 	{
 		if (m_layout)
 			m_layout->release();

@@ -14,7 +14,8 @@ namespace Trinex
 	class VulkanBuffer;
 	class Pipeline;
 
-	struct VulkanVertexAttribute {
+	struct VulkanVertexAttribute
+	{
 		RHISemantic semantic;
 		u8 binding;
 	};
@@ -27,7 +28,7 @@ namespace Trinex
 		bool is_dirty_state(VulkanContext* context) const;
 
 	protected:
-		VulkanPipelineLayout* create_layout(const RHIShaderParameterInfo* parameter, usize count, vk::ShaderStageFlags stages);
+		VulkanPipelineLayout* create_layout(const RHIBinding* parameter, usize count, vk::ShaderStageFlags stages);
 
 	public:
 		VulkanPipeline& flush_descriptors(VulkanContext* manager, vk::PipelineBindPoint);
@@ -61,7 +62,8 @@ namespace Trinex
 	class VulkanMeshPipeline : public VulkanPipeline
 	{
 	private:
-		struct Key {
+		struct Key
+		{
 			class VulkanRenderPass* pass;
 			vk::PolygonMode polygon_mode;
 			vk::CullModeFlags cull_mode;
@@ -70,12 +72,13 @@ namespace Trinex
 
 			inline bool operator==(const Key& key) const
 			{
-				return pass == key.pass && polygon_mode == key.polygon_mode && cull_mode == key.cull_mode &&
-				       front_face == key.front_face && write_mask == key.write_mask;
+				return pass == key.pass && polygon_mode == key.polygon_mode && cull_mode == key.cull_mode
+				       && front_face == key.front_face && write_mask == key.write_mask;
 			}
 		};
 
-		struct KeyHasher {
+		struct KeyHasher
+		{
 			u64 operator()(const Key& key) const;
 		};
 
@@ -119,4 +122,4 @@ namespace Trinex
 		inline usize groups() const { return m_groups; }
 		inline VulkanBuffer* shader_binding_table() const { return m_sbt; }
 	};
-}// namespace Trinex
+} // namespace Trinex

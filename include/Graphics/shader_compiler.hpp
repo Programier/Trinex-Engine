@@ -1,7 +1,7 @@
 #pragma once
+#include <Core/deprecated/object.hpp>
 #include <Core/etl/array.hpp>
 #include <Core/etl/delegate.hpp>
-#include <Core/deprecated/object.hpp>
 #include <RHI/structures.hpp>
 
 namespace Trinex
@@ -58,7 +58,7 @@ namespace Trinex
 		struct Reflection
 		{
 			Array<RHIInputAttribute> vertex_attributes;
-			Array<RHIShaderParameterInfo> parameters;
+			Array<RHIBinding> parameters;
 		} reflection;
 
 	public:

@@ -19,7 +19,7 @@ namespace Trinex
 
 	static RHI* create_none_api()
 	{
-		return trx_new NoneApi();
+		trinex_unreachable();
 	}
 
 	static void destroy_none_api(RHI* api)
@@ -155,7 +155,7 @@ namespace Trinex
 		return new NoneTexture();
 	}
 
-	RHIShader* NoneApi::create_shader(Span<u8> source, Span<RHIShaderParameterInfo> parameters)
+	RHIShader* NoneApi::create_shader(Span<u8> source, Span<RHIBinding> parameters)
 	{
 		return new NoneShader();
 	}

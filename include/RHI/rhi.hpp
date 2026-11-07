@@ -62,7 +62,7 @@ namespace Trinex
 		virtual RHIFence* create_fence(u64 value = 0)                                                           = 0;
 		virtual RHISampler* create_sampler(const RHISamplerDesc& desc)                                          = 0;
 		virtual RHITexture* create_texture(const RHITextureDesc& desc)                                          = 0;
-		virtual RHIShader* create_shader(Span<u8> source, Span<RHIShaderParameterInfo> parameters)              = 0;
+		virtual RHIShader* create_shader(Span<u8> source, Span<RHIBinding> parameters)                          = 0;
 		virtual RHIPipeline* create_graphics_pipeline(const RHIGraphicsPipelineDesc& desc)                      = 0;
 		virtual RHIPipeline* create_mesh_pipeline(const RHIMeshPipelineDesc& desc)                              = 0;
 		virtual RHIPipeline* create_compute_pipeline(const RHIComputePipelineDesc& desc)                        = 0;
@@ -70,6 +70,8 @@ namespace Trinex
 		virtual RHIBuffer* create_buffer(usize size, RHIBufferFlags flags)                                      = 0;
 		virtual RHISwapchain* create_swapchain(Window* window, RHIPresentMode mode, u32 images = 0)             = 0;
 		virtual RHIContext* create_context(RHIQueue* queue, RHIContextFlags flags = RHIContextFlags::Undefined) = 0;
+		virtual RHIBindingLayout* create_binding_layout(RHIBinding* bindings = nullptr, usize count = 0)        = 0;
+		virtual RHIBindingSet* create_binding_set(RHIBindingLayout* layout)                                     = 0;
 
 		// Raytracing
 		virtual RHIAccelerationStructure* create_acceleration_structure(const RHIRayTracingAccelerationInputs* inputs) = 0;

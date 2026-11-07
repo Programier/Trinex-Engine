@@ -10,7 +10,7 @@ namespace Trinex
 
 	struct trinex_api GraphicsShaderCache
 	{
-		Array<RHIShaderParameterInfo> parameters;
+		Array<RHIBinding> parameters;
 		Array<RHIInputAttribute> vertex_attributes;
 		Buffer vertex;
 		Buffer tessellation_control;
@@ -28,7 +28,7 @@ namespace Trinex
 
 	struct trinex_api ComputeShaderCache
 	{
-		Array<RHIShaderParameterInfo> parameters;
+		Array<RHIBinding> parameters;
 
 		Buffer compute;
 

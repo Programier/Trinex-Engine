@@ -25,7 +25,7 @@ namespace Trinex::MaterialParameters
 		s_parameter_classes[index] = T::static_reflection();
 	}
 
-	Refl::Deprecated::Class* Parameter::static_find_class(RHIShaderParameterType type)
+	Refl::Deprecated::Class* Parameter::static_find_class(RHIBindingType type)
 	{
 		EnumerateType index = static_cast<EnumerateType>(type);
 
@@ -40,7 +40,7 @@ namespace Trinex::MaterialParameters
 #define implement_parameter(name) trinex_implement_class(Trinex::MaterialParameters::name, 0)
 
 	PrimitiveBase& PrimitiveBase::update(const PrimitiveRenderingContext* ctx, const void* data, usize size,
-	                                     const RHIShaderParameterInfo* info)
+	                                     const RHIBinding* info)
 	{
 		ctx->context->update_scalar(data, size, info->offset, info->binding);
 		return *this;
@@ -55,13 +55,13 @@ namespace Trinex::MaterialParameters
 		return ar;
 	}
 
-	Float4x4& Float4x4::apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info)
+	Float4x4& Float4x4::apply(const PrimitiveRenderingContext* ctx, const RHIBinding* info)
 	{
 		update(ctx, &value, sizeof(Matrix4f), info);
 		return *this;
 	}
 
-	LocalToWorld& LocalToWorld::apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info)
+	LocalToWorld& LocalToWorld::apply(const PrimitiveRenderingContext* ctx, const RHIBinding* info)
 	{
 		if (ctx->local_to_world)
 		{
@@ -76,7 +76,7 @@ namespace Trinex::MaterialParameters
 
 	Sampler::Sampler() : sampler(RHISamplerFilter::Point) {}
 
-	Sampler& Sampler::apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info)
+	Sampler& Sampler::apply(const PrimitiveRenderingContext* ctx, const RHIBinding* info)
 	{
 		ctx->context->bind_sampler(sampler.handle(), info->binding);
 		return *this;
@@ -91,7 +91,7 @@ namespace Trinex::MaterialParameters
 
 	Sampler2D::Sampler2D() : sampler(RHISamplerFilter::Point), texture(DefaultResources::Textures::default_texture) {}
 
-	Sampler2D& Sampler2D::apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info)
+	Sampler2D& Sampler2D::apply(const PrimitiveRenderingContext* ctx, const RHIBinding* info)
 	{
 		auto handle = sampler.handle();
 
@@ -115,7 +115,7 @@ namespace Trinex::MaterialParameters
 
 	Texture2D::Texture2D() : texture(DefaultResources::Textures::default_texture) {}
 
-	Texture2D& Texture2D::apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info)
+	Texture2D& Texture2D::apply(const PrimitiveRenderingContext* ctx, const RHIBinding* info)
 	{
 		if (texture)
 		{
@@ -132,7 +132,7 @@ namespace Trinex::MaterialParameters
 		return true;
 	}
 
-	Globals& Globals::apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info)
+	Globals& Globals::apply(const PrimitiveRenderingContext* ctx, const RHIBinding* info)
 	{
 		auto buffer = ctx->renderer->globals_uniform_buffer();
 		ctx->context->bind_uniform_buffer(buffer, info->binding);
@@ -141,7 +141,7 @@ namespace Trinex::MaterialParameters
 
 	Surface::Surface() : surface(nullptr) {}
 
-	Surface& Surface::apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info)
+	Surface& Surface::apply(const PrimitiveRenderingContext* ctx, const RHIBinding* info)
 	{
 		auto srv = surface ? surface->srv() : DefaultResources::Textures::default_texture->srv();
 		ctx->context->bind_srv(srv, info->binding);
@@ -157,7 +157,7 @@ namespace Trinex::MaterialParameters
 
 	CombinedSurface::CombinedSurface() : surface(nullptr), sampler() {}
 
-	CombinedSurface& CombinedSurface::apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info)
+	CombinedSurface& CombinedSurface::apply(const PrimitiveRenderingContext* ctx, const RHIBinding* info)
 	{
 		RHIShaderResourceView* srv = surface ? surface->srv() : nullptr;
 		RHISampler* handle         = sampler.handle();

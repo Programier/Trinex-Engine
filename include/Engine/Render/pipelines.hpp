@@ -33,8 +33,8 @@ namespace Trinex
 		{
 			trinex_declare_pipeline(GaussianBlur, GlobalPipelineLibrary);
 
-			const RHIShaderParameterInfo* m_source;
-			const RHIShaderParameterInfo* m_args;
+			const RHIBinding* m_source;
+			const RHIBinding* m_args;
 
 		public:
 			static void blur(RHIContext* ctx, RHIShaderResourceView* src, Vector2f direction, float sigma, float radius,
@@ -46,8 +46,8 @@ namespace Trinex
 		{
 			trinex_declare_pipeline(NoiseApplication, GlobalPipelineLibrary);
 
-			const RHIShaderParameterInfo* m_noise;
-			const RHIShaderParameterInfo* m_args;
+			const RHIBinding* m_noise;
+			const RHIBinding* m_args;
 
 		public:
 			static void noise(RHIContext* ctx, RHITexture* noise, f32 opacity, f32 scale, RHISampler* sampler = nullptr,
@@ -64,8 +64,8 @@ namespace Trinex
 		{
 			trinex_declare_pipeline(Blit2D, GlobalPipelineLibrary);
 
-			const RHIShaderParameterInfo* m_source;
-			const RHIShaderParameterInfo* m_args;
+			const RHIBinding* m_source;
+			const RHIBinding* m_args;
 
 		public:
 			static void blit(RHIContext* ctx, RHIShaderResourceView* src, Vector2f offset, Vector2f inv_size,
@@ -76,8 +76,8 @@ namespace Trinex
 		{
 			trinex_declare_pipeline(Passthrow, GlobalPipelineLibrary);
 
-			const RHIShaderParameterInfo* m_source;
-			const RHIShaderParameterInfo* m_args;
+			const RHIBinding* m_source;
+			const RHIBinding* m_args;
 
 		public:
 			struct Args
@@ -98,8 +98,8 @@ namespace Trinex
 		{
 			trinex_declare_pipeline(Downsample, GlobalPipelineLibrary);
 
-			const RHIShaderParameterInfo* m_scene;
-			const RHIShaderParameterInfo* m_args;
+			const RHIBinding* m_scene;
+			const RHIBinding* m_args;
 
 		public:
 			void downsample(RHIContext* ctx, RHIShaderResourceView* src, Vector2f offset = {0.f, 0.f},
@@ -110,8 +110,8 @@ namespace Trinex
 		{
 			trinex_declare_pipeline(BloomExtract, GlobalPipelineLibrary);
 
-			const RHIShaderParameterInfo* m_scene;
-			const RHIShaderParameterInfo* m_args;
+			const RHIBinding* m_scene;
+			const RHIBinding* m_args;
 
 		public:
 			void extract(RHIContext* ctx, RHIShaderResourceView* src, float threshold = 1.f, float knee = 0.5, float clamp = 3.f,
@@ -122,8 +122,8 @@ namespace Trinex
 		{
 			trinex_declare_pipeline(BloomDownsample, GlobalPipelineLibrary);
 
-			const RHIShaderParameterInfo* m_scene;
-			const RHIShaderParameterInfo* m_args;
+			const RHIBinding* m_scene;
+			const RHIBinding* m_args;
 
 		public:
 			void downsample(RHIContext* ctx, RHIShaderResourceView* src);
@@ -133,8 +133,8 @@ namespace Trinex
 		{
 			trinex_declare_pipeline(BloomUpsample, GlobalPipelineLibrary);
 
-			const RHIShaderParameterInfo* m_scene;
-			const RHIShaderParameterInfo* m_args;
+			const RHIBinding* m_scene;
+			const RHIBinding* m_args;
 
 		public:
 			void upsample(RHIContext* ctx, RHIShaderResourceView* src, float weight = 1.f, Vector2f offset = {0.f, 0.f},
@@ -146,12 +146,12 @@ namespace Trinex
 			trinex_declare_pipeline(BatchedLines, GlobalPipelineLibrary);
 
 		private:
-			const RHIShaderParameterInfo* m_projview;
-			const RHIShaderParameterInfo* m_viewport;
+			const RHIBinding* m_projview;
+			const RHIBinding* m_viewport;
 
 		public:
-			inline const RHIShaderParameterInfo* projview() const { return m_projview; }
-			inline const RHIShaderParameterInfo* viewport() const { return m_viewport; }
+			inline const RHIBinding* projview() const { return m_projview; }
+			inline const RHIBinding* viewport() const { return m_viewport; }
 		};
 
 		class trinex_api BatchedTriangles : public GlobalPipelineLibrary
@@ -164,19 +164,19 @@ namespace Trinex
 			trinex_declare_pipeline(DeferredLighting, GlobalPipelineLibrary);
 
 		public:
-			const RHIShaderParameterInfo* scene_view         = nullptr;
-			const RHIShaderParameterInfo* base_color_texture = nullptr;
-			const RHIShaderParameterInfo* normal_texture     = nullptr;
-			const RHIShaderParameterInfo* msra_texture       = nullptr;
-			const RHIShaderParameterInfo* depth_texture      = nullptr;
+			const RHIBinding* scene_view         = nullptr;
+			const RHIBinding* base_color_texture = nullptr;
+			const RHIBinding* normal_texture     = nullptr;
+			const RHIBinding* msra_texture       = nullptr;
+			const RHIBinding* depth_texture      = nullptr;
 
-			const RHIShaderParameterInfo* screen_sampler = nullptr;
-			const RHIShaderParameterInfo* shadow_sampler = nullptr;
+			const RHIBinding* screen_sampler = nullptr;
+			const RHIBinding* shadow_sampler = nullptr;
 
-			const RHIShaderParameterInfo* ranges   = nullptr;
-			const RHIShaderParameterInfo* clusters = nullptr;
-			const RHIShaderParameterInfo* lights   = nullptr;
-			const RHIShaderParameterInfo* shadows  = nullptr;
+			const RHIBinding* ranges   = nullptr;
+			const RHIBinding* clusters = nullptr;
+			const RHIBinding* lights   = nullptr;
+			const RHIBinding* shadows  = nullptr;
 		};
 
 		class trinex_api AmbientLight : public GlobalPipelineLibrary
@@ -184,10 +184,10 @@ namespace Trinex
 			trinex_declare_pipeline(AmbientLight, GlobalPipelineLibrary);
 
 		public:
-			const RHIShaderParameterInfo* scene_view    = nullptr;
-			const RHIShaderParameterInfo* base_color    = nullptr;
-			const RHIShaderParameterInfo* msra          = nullptr;
-			const RHIShaderParameterInfo* ambient_color = nullptr;
+			const RHIBinding* scene_view    = nullptr;
+			const RHIBinding* base_color    = nullptr;
+			const RHIBinding* msra          = nullptr;
+			const RHIBinding* ambient_color = nullptr;
 		};
 
 		class TonemappingACES : public GlobalPipelineLibrary
@@ -195,8 +195,8 @@ namespace Trinex
 			trinex_declare_pipeline(TonemappingACES, GlobalPipelineLibrary);
 
 		private:
-			const RHIShaderParameterInfo* m_hdr_target = nullptr;
-			const RHIShaderParameterInfo* m_scene_view = nullptr;
+			const RHIBinding* m_hdr_target = nullptr;
+			const RHIBinding* m_scene_view = nullptr;
 
 		public:
 			TonemappingACES& apply(RHIContext* ctx, Renderer* renderer);
@@ -207,11 +207,11 @@ namespace Trinex
 			trinex_declare_pipeline(SSR, GlobalPipelineLibrary);
 
 		public:
-			const RHIShaderParameterInfo* scene_view   = nullptr;
-			const RHIShaderParameterInfo* scene_color  = nullptr;
-			const RHIShaderParameterInfo* scene_normal = nullptr;
-			const RHIShaderParameterInfo* scene_depth  = nullptr;
-			const RHIShaderParameterInfo* sampler      = nullptr;
+			const RHIBinding* scene_view   = nullptr;
+			const RHIBinding* scene_color  = nullptr;
+			const RHIBinding* scene_normal = nullptr;
+			const RHIBinding* scene_depth  = nullptr;
+			const RHIBinding* sampler      = nullptr;
 		};
 
 		class SSAO : public GlobalPipelineLibrary
@@ -219,13 +219,13 @@ namespace Trinex
 			trinex_declare_pipeline(SSAO, GlobalPipelineLibrary);
 
 		private:
-			const RHIShaderParameterInfo* m_scene_view   = nullptr;
-			const RHIShaderParameterInfo* m_scene_depth  = nullptr;
-			const RHIShaderParameterInfo* m_scene_normal = nullptr;
-			const RHIShaderParameterInfo* m_noise        = nullptr;
-			const RHIShaderParameterInfo* m_sampler      = nullptr;
-			const RHIShaderParameterInfo* m_args         = nullptr;
-			const RHIShaderParameterInfo* m_samples      = nullptr;
+			const RHIBinding* m_scene_view   = nullptr;
+			const RHIBinding* m_scene_depth  = nullptr;
+			const RHIBinding* m_scene_normal = nullptr;
+			const RHIBinding* m_noise        = nullptr;
+			const RHIBinding* m_sampler      = nullptr;
+			const RHIBinding* m_args         = nullptr;
+			const RHIBinding* m_samples      = nullptr;
 
 			RHIBuffer* m_samples_buffer = nullptr;
 			usize m_samples_count       = 0;
@@ -242,8 +242,8 @@ namespace Trinex
 			trinex_declare_pipeline(ClusterInitialize, GlobalPipelineLibrary);
 
 		private:
-			const RHIShaderParameterInfo* m_scene_view;
-			const RHIShaderParameterInfo* m_clusters;
+			const RHIBinding* m_scene_view;
+			const RHIBinding* m_clusters;
 
 		public:
 			RHIBuffer* create_clusters_buffer();
@@ -255,10 +255,10 @@ namespace Trinex
 			trinex_declare_pipeline(ClusterLightCulling, GlobalPipelineLibrary);
 
 		private:
-			const RHIShaderParameterInfo* m_scene_view;
-			const RHIShaderParameterInfo* m_clusters;
-			const RHIShaderParameterInfo* m_lights;
-			const RHIShaderParameterInfo* m_ranges;
+			const RHIBinding* m_scene_view;
+			const RHIBinding* m_clusters;
+			const RHIBinding* m_lights;
+			const RHIBinding* m_ranges;
 
 		public:
 			ClusterLightCulling& cull(RHIContext* ctx, Renderer* renderer, RHIBuffer* clusters, RHIBuffer* lights,
@@ -270,7 +270,7 @@ namespace Trinex
 			trinex_declare_pipeline(CameraVelocity, GlobalPipelineLibrary);
 
 		private:
-			const RHIShaderParameterInfo* m_scene_view;
+			const RHIBinding* m_scene_view;
 
 		public:
 			CameraVelocity& render(RHIContext* ctx, Renderer* renderer);
@@ -281,8 +281,8 @@ namespace Trinex
 			trinex_declare_pipeline(DepthView, GlobalPipelineLibrary);
 
 		private:
-			const RHIShaderParameterInfo* m_scene_view;
-			const RHIShaderParameterInfo* m_scene_depth;
+			const RHIBinding* m_scene_view;
+			const RHIBinding* m_scene_depth;
 
 		public:
 			DepthView& render(RHIContext* ctx, Renderer* renderer);
@@ -293,8 +293,8 @@ namespace Trinex
 			trinex_declare_pipeline(TAA, GlobalPipelineLibrary);
 
 		private:
-			const RHIShaderParameterInfo* m_scene_color;
-			const RHIShaderParameterInfo* m_prev_scene_color;
+			const RHIBinding* m_scene_color;
+			const RHIBinding* m_prev_scene_color;
 
 		public:
 			TAA& render(RHIContext* ctx, Renderer* renderer);

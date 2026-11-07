@@ -1,15 +1,15 @@
 #pragma once
 
+#include <Core/deprecated/object.hpp>
 #include <Core/math/matrix.hpp>
 #include <Core/math/vector.hpp>
-#include <Core/deprecated/object.hpp>
 #include <Core/pointer.hpp>
 #include <Graphics/sampler.hpp>
 
 namespace Trinex
 {
 	struct PrimitiveRenderingContext;
-	struct RHIShaderParameterInfo;
+	struct RHIBinding;
 	class Texture2D;
 	class Material;
 	class RenderPass;
@@ -22,14 +22,14 @@ namespace Trinex
 	trinex_class(self, super);                                                                                                   \
                                                                                                                                  \
 public:                                                                                                                          \
-	static Trinex::RHIShaderParameterType static_type()                                                                          \
+	static Trinex::RHIBindingType static_type()                                                                                  \
 	{                                                                                                                            \
-		return Trinex::RHIShaderParameterType::self;                                                                             \
+		return Trinex::RHIBindingType::self;                                                                                     \
 	}                                                                                                                            \
                                                                                                                                  \
-	inline Trinex::RHIShaderParameterType type() const override                                                                  \
+	inline Trinex::RHIBindingType type() const override                                                                          \
 	{                                                                                                                            \
-		return Trinex::RHIShaderParameterType::self;                                                                             \
+		return Trinex::RHIBindingType::self;                                                                                     \
 	}
 
 		class trinex_api Parameter : public DeprecatedObject
@@ -40,12 +40,12 @@ public:                                                                         
 			u16 m_pipeline_refs = 0;
 
 		protected:
-			virtual Parameter& apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info) = 0;
+			virtual Parameter& apply(const PrimitiveRenderingContext* ctx, const RHIBinding* info) = 0;
 
 		public:
-			static Refl::Deprecated::Class* static_find_class(RHIShaderParameterType type);
+			static Refl::Deprecated::Class* static_find_class(RHIBindingType type);
 
-			virtual RHIShaderParameterType type() const = 0;
+			virtual RHIBindingType type() const = 0;
 			friend class Trinex::Material;
 			friend class Trinex::MaterialInterface;
 		};
@@ -53,8 +53,7 @@ public:                                                                         
 		class trinex_api PrimitiveBase : public Parameter
 		{
 		protected:
-			PrimitiveBase& update(const PrimitiveRenderingContext* ctx, const void* data, usize size,
-			                      const RHIShaderParameterInfo* info);
+			PrimitiveBase& update(const PrimitiveRenderingContext* ctx, const void* data, usize size, const RHIBinding* info);
 			bool serialize_internal(Archive& ar, void* data, usize size);
 		};
 
@@ -67,7 +66,7 @@ public:                                                                         
 		protected:
 			Primitive(const T& value = T()) : value(value) {}
 
-			Primitive& apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info) override
+			Primitive& apply(const PrimitiveRenderingContext* ctx, const RHIBinding* info) override
 			{
 				update(ctx, &value, sizeof(T), info);
 				return *this;
@@ -175,7 +174,7 @@ public:                                                                         
 
 		public:
 			Float4x4() : Primitive<Matrix4f>(Matrix3f(1.f)) {}
-			Float4x4& apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info) override;
+			Float4x4& apply(const PrimitiveRenderingContext* ctx, const RHIBinding* info) override;
 		};
 
 		class trinex_api LocalToWorld : public Parameter
@@ -183,7 +182,7 @@ public:                                                                         
 			trinex_material_parameter(LocalToWorld, Parameter);
 
 		public:
-			LocalToWorld& apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info) override;
+			LocalToWorld& apply(const PrimitiveRenderingContext* ctx, const RHIBinding* info) override;
 		};
 
 		class trinex_api Sampler : public Parameter
@@ -195,7 +194,7 @@ public:                                                                         
 			Trinex::Sampler sampler;
 
 			Sampler();
-			Sampler& apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info) override;
+			Sampler& apply(const PrimitiveRenderingContext* ctx, const RHIBinding* info) override;
 			bool serialize(Archive& ar) override;
 		};
 
@@ -210,7 +209,7 @@ public:                                                                         
 			Trinex::Texture2D* texture;
 
 			Sampler2D();
-			Sampler2D& apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info) override;
+			Sampler2D& apply(const PrimitiveRenderingContext* ctx, const RHIBinding* info) override;
 			bool serialize(Archive& ar) override;
 		};
 
@@ -222,7 +221,7 @@ public:                                                                         
 			Trinex::Texture2D* texture;
 
 			Texture2D();
-			Texture2D& apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info) override;
+			Texture2D& apply(const PrimitiveRenderingContext* ctx, const RHIBinding* info) override;
 			bool serialize(Archive& ar) override;
 		};
 
@@ -231,7 +230,7 @@ public:                                                                         
 			trinex_material_parameter(Globals, Parameter);
 
 		public:
-			Globals& apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info) override;
+			Globals& apply(const PrimitiveRenderingContext* ctx, const RHIBinding* info) override;
 		};
 
 		class trinex_api Surface : public Parameter
@@ -242,7 +241,7 @@ public:                                                                         
 			Trinex::RenderSurface* surface;
 
 			Surface();
-			Surface& apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info) override;
+			Surface& apply(const PrimitiveRenderingContext* ctx, const RHIBinding* info) override;
 			bool serialize(Archive& ar) override;
 		};
 
@@ -257,7 +256,7 @@ public:                                                                         
 			Trinex::Sampler sampler;
 
 			CombinedSurface();
-			CombinedSurface& apply(const PrimitiveRenderingContext* ctx, const RHIShaderParameterInfo* info) override;
+			CombinedSurface& apply(const PrimitiveRenderingContext* ctx, const RHIBinding* info) override;
 			bool serialize(Archive& ar) override;
 		};
 	} // namespace MaterialParameters

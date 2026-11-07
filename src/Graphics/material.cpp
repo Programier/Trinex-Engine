@@ -52,9 +52,9 @@ namespace Trinex
 	{
 	private:
 		RHIContext* m_ctx;
-		const RHIShaderParameterInfo* m_parameter;
+		const RHIBinding* m_parameter;
 
-		template<RHIShaderParameterType type, typename T>
+		template<RHIBindingType type, typename T>
 		bool bind_scalar(const T& value) const
 		{
 			if ((m_parameter->type & type) == type)
@@ -66,36 +66,36 @@ namespace Trinex
 		}
 
 	public:
-		inline MaterialBindingsVisitor(RHIContext* ctx, const RHIShaderParameterInfo* info) : m_ctx(ctx), m_parameter(info) {}
+		inline MaterialBindingsVisitor(RHIContext* ctx, const RHIBinding* info) : m_ctx(ctx), m_parameter(info) {}
 
-		bool operator()(bool value) const { return bind_scalar<RHIShaderParameterType::Bool>(value); }
-		bool operator()(Vector2b value) const { return bind_scalar<RHIShaderParameterType::Bool2>(value); }
-		bool operator()(Vector3b value) const { return bind_scalar<RHIShaderParameterType::Bool3>(value); }
-		bool operator()(Vector4b value) const { return bind_scalar<RHIShaderParameterType::Bool4>(value); }
+		bool operator()(bool value) const { return bind_scalar<RHIBindingType::Bool>(value); }
+		bool operator()(Vector2b value) const { return bind_scalar<RHIBindingType::Bool2>(value); }
+		bool operator()(Vector3b value) const { return bind_scalar<RHIBindingType::Bool3>(value); }
+		bool operator()(Vector4b value) const { return bind_scalar<RHIBindingType::Bool4>(value); }
 
-		bool operator()(i32 value) const { return bind_scalar<RHIShaderParameterType::Int>(value); }
-		bool operator()(Vector2i value) const { return bind_scalar<RHIShaderParameterType::Int2>(value); }
-		bool operator()(const Vector3i& value) const { return bind_scalar<RHIShaderParameterType::Int3>(value); }
-		bool operator()(const Vector4i& value) const { return bind_scalar<RHIShaderParameterType::Int4>(value); }
+		bool operator()(i32 value) const { return bind_scalar<RHIBindingType::Int>(value); }
+		bool operator()(Vector2i value) const { return bind_scalar<RHIBindingType::Int2>(value); }
+		bool operator()(const Vector3i& value) const { return bind_scalar<RHIBindingType::Int3>(value); }
+		bool operator()(const Vector4i& value) const { return bind_scalar<RHIBindingType::Int4>(value); }
 
-		bool operator()(u32 value) const { return bind_scalar<RHIShaderParameterType::UInt>(value); }
-		bool operator()(Vector2u value) const { return bind_scalar<RHIShaderParameterType::UInt2>(value); }
-		bool operator()(const Vector3u& value) const { return bind_scalar<RHIShaderParameterType::UInt3>(value); }
-		bool operator()(const Vector4u& value) const { return bind_scalar<RHIShaderParameterType::UInt4>(value); }
+		bool operator()(u32 value) const { return bind_scalar<RHIBindingType::UInt>(value); }
+		bool operator()(Vector2u value) const { return bind_scalar<RHIBindingType::UInt2>(value); }
+		bool operator()(const Vector3u& value) const { return bind_scalar<RHIBindingType::UInt3>(value); }
+		bool operator()(const Vector4u& value) const { return bind_scalar<RHIBindingType::UInt4>(value); }
 
-		bool operator()(float value) const { return bind_scalar<RHIShaderParameterType::Float>(value); }
-		bool operator()(Vector2f value) const { return bind_scalar<RHIShaderParameterType::Float2>(value); }
-		bool operator()(const Vector3f& value) const { return bind_scalar<RHIShaderParameterType::Float3>(value); }
-		bool operator()(const Vector4f& value) const { return bind_scalar<RHIShaderParameterType::Float4>(value); }
+		bool operator()(float value) const { return bind_scalar<RHIBindingType::Float>(value); }
+		bool operator()(Vector2f value) const { return bind_scalar<RHIBindingType::Float2>(value); }
+		bool operator()(const Vector3f& value) const { return bind_scalar<RHIBindingType::Float3>(value); }
+		bool operator()(const Vector4f& value) const { return bind_scalar<RHIBindingType::Float4>(value); }
 
 		bool operator()(const MaterialBindings::MemoryBlock& value) const { return false; }
 		bool operator()(const MaterialBindings::CombinedSamplerImage& value) const { return false; }
 
 		bool operator()(RHIShaderResourceView* value) const
 		{
-			static constexpr RHIShaderParameterType mask =
-			        RHIShaderParameterType::META_Texture | RHIShaderParameterType::META_Buffer
-			        | RHIShaderParameterType::META_StructuredBuffer | RHIShaderParameterType::META_ByteAddressBuffer;
+			static constexpr RHIBindingType mask = RHIBindingType::META_Texture | RHIBindingType::META_Buffer
+			                                       | RHIBindingType::META_StructuredBuffer
+			                                       | RHIBindingType::META_ByteAddressBuffer;
 
 			if (m_parameter->type & mask)
 			{
@@ -107,7 +107,7 @@ namespace Trinex
 
 		bool operator()(RHISampler* value) const
 		{
-			static constexpr RHIShaderParameterType dst_type = RHIShaderParameterType::Sampler;
+			static constexpr RHIBindingType dst_type = RHIBindingType::Sampler;
 
 			if (m_parameter->type == dst_type)
 			{
@@ -120,7 +120,8 @@ namespace Trinex
 
 	trinex_implement_engine_class(MaterialInterface, 0)
 	{
-		auto params = trinex_refl_prop(m_childs, Refl::Deprecated::Property::IsTransient | Refl::Deprecated::Property::IsReadOnly);
+		auto params =
+		        trinex_refl_prop(m_childs, Refl::Deprecated::Property::IsTransient | Refl::Deprecated::Property::IsReadOnly);
 		Refl::Deprecated::Object::instance_cast<Refl::Deprecated::ObjectProperty>(params->element_property())->is_composite(true);
 		params->tooltip("Array of parammeters of this material");
 	}
@@ -138,7 +139,7 @@ namespace Trinex
 		return result || child->is_instance_of<MaterialParameters::Parameter>();
 	}
 
-	Parameter* MaterialInterface::create_parameter(const Name& name, RHIShaderParameterType type)
+	Parameter* MaterialInterface::create_parameter(const Name& name, RHIBindingType type)
 	{
 		if (Parameter* parameter = find_parameter(name))
 		{
@@ -243,9 +244,9 @@ namespace Trinex
 
 	bool Material::register_pipeline_parameters(GraphicsPipeline* pipeline)
 	{
-		for (const RHIShaderParameterInfo& info : pipeline->parameters())
+		for (const RHIBinding& info : pipeline->parameters())
 		{
-			if (info.type & RHIShaderParameterType::META_ExcludeMaterialParameter)
+			if (info.type & RHIBindingType::META_ExcludeMaterialParameter)
 				continue;
 
 			if (Parameter* parameter = create_parameter(info.name, info.type))
@@ -306,7 +307,7 @@ namespace Trinex
 		m_pipelines.erase(it);
 		pipeline->owner(nullptr);
 
-		for (const RHIShaderParameterInfo& info : pipeline->parameters())
+		for (const RHIBinding& info : pipeline->parameters())
 		{
 			if (Parameter* param = find_parameter(info.name))
 			{
@@ -437,7 +438,7 @@ namespace Trinex
 
 		if (ctx->bindings)
 		{
-			for (const RHIShaderParameterInfo& info : pipeline_object->parameters())
+			for (const RHIBinding& info : pipeline_object->parameters())
 			{
 				if (auto binding = ctx->bindings->find(info.name))
 				{
@@ -455,7 +456,7 @@ namespace Trinex
 		}
 		else
 		{
-			for (const RHIShaderParameterInfo& info : pipeline_object->parameters())
+			for (const RHIBinding& info : pipeline_object->parameters())
 			{
 				Parameter* parameter = find_parameter_override(head, info.name);
 
@@ -536,7 +537,7 @@ namespace Trinex
 		{
 			pipeline->owner(nullptr);
 
-			for (const RHIShaderParameterInfo& info : pipeline->parameters())
+			for (const RHIBinding& info : pipeline->parameters())
 			{
 				if (Parameter* param = find_parameter(info.name))
 				{

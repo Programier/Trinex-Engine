@@ -52,7 +52,7 @@ namespace Trinex
 			RHIShader* shaders[5];
 		};
 
-		const struct RHIShaderParameterInfo* parameters   = nullptr;
+		const struct RHIBinding* parameters               = nullptr;
 		const struct RHIInputAttribute* vertex_attributes = nullptr;
 		usize parameters_count                            = 0;
 		usize vertex_attributes_count                     = 0;
@@ -72,15 +72,15 @@ namespace Trinex
 			RHIShader* shaders[3];
 		};
 
-		const struct RHIShaderParameterInfo* parameters = nullptr;
-		usize parameters_count                          = 0;
+		const struct RHIBinding* parameters = nullptr;
+		usize parameters_count              = 0;
 	};
 
 	struct trinex_api RHIComputePipelineDesc
 	{
-		RHIShader* compute_shader                       = nullptr;
-		const struct RHIShaderParameterInfo* parameters = nullptr;
-		usize parameters_count                          = 0;
+		RHIShader* compute_shader           = nullptr;
+		const struct RHIBinding* parameters = nullptr;
+		usize parameters_count              = 0;
 	};
 
 	struct trinex_api RHIRayTracingShaderGroup
@@ -105,8 +105,8 @@ namespace Trinex
 		RHIRayTracingShaderGroup* groups = nullptr;
 		u64 groups_count                 = 0;
 
-		const struct RHIShaderParameterInfo* parameters = nullptr;
-		usize parameters_count                          = 0;
+		const struct RHIBinding* parameters = nullptr;
+		usize parameters_count              = 0;
 
 		u8 max_recursion = 2;
 	};

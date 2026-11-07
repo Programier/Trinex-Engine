@@ -364,45 +364,80 @@ namespace Trinex::VulkanEnums
 		}
 	}
 
-	static inline vk::DescriptorType descriptor_type_of(RHIShaderParameterType type)
+	static inline vk::DescriptorType descriptor_type_of(RHIBindingType type)
 	{
-		constexpr RHIShaderParameterType combined_image_sampler(RHIShaderParameterType::META_Texture
-		                                                        | RHIShaderParameterType::META_Sampler);
+		constexpr RHIBindingType combined_image_sampler(RHIBindingType::META_Texture | RHIBindingType::META_Sampler);
 
 		if ((type & combined_image_sampler) == combined_image_sampler)
 			return vk::DescriptorType::eCombinedImageSampler;
 
-		if ((type & RHIShaderParameterType::META_Texture) == RHIShaderParameterType::META_Texture)
+		if ((type & RHIBindingType::META_Texture) == RHIBindingType::META_Texture)
 		{
-			if ((type & RHIShaderParameterType::META_RW) == RHIShaderParameterType::META_RW)
+			if ((type & RHIBindingType::META_RW) == RHIBindingType::META_RW)
 				return vk::DescriptorType::eStorageImage;
 			return vk::DescriptorType::eSampledImage;
 		}
 
-		if ((type & RHIShaderParameterType::META_Sampler) == RHIShaderParameterType::META_Sampler)
+		if ((type & RHIBindingType::META_Sampler) == RHIBindingType::META_Sampler)
 			return vk::DescriptorType::eSampler;
 
-		if ((type & RHIShaderParameterType::META_UniformBuffer) == RHIShaderParameterType::META_UniformBuffer)
+		if ((type & RHIBindingType::META_UniformBuffer) == RHIBindingType::META_UniformBuffer)
 			return vk::DescriptorType::eUniformBufferDynamic;
 
-		if ((type & RHIShaderParameterType::META_Buffer) == RHIShaderParameterType::META_Buffer)
+		if ((type & RHIBindingType::META_Buffer) == RHIBindingType::META_Buffer)
 		{
-			if ((type & RHIShaderParameterType::META_RW) == RHIShaderParameterType::META_RW)
+			if ((type & RHIBindingType::META_RW) == RHIBindingType::META_RW)
 				return vk::DescriptorType::eStorageTexelBuffer;
 			return vk::DescriptorType::eUniformTexelBuffer;
 		}
 
-		if ((type & RHIShaderParameterType::META_StructuredBuffer) == RHIShaderParameterType::META_StructuredBuffer)
+		if ((type & RHIBindingType::META_StructuredBuffer) == RHIBindingType::META_StructuredBuffer)
 			return vk::DescriptorType::eStorageBuffer;
 
-		if ((type & RHIShaderParameterType::META_ByteAddressBuffer) == RHIShaderParameterType::META_ByteAddressBuffer)
+		if ((type & RHIBindingType::META_ByteAddressBuffer) == RHIBindingType::META_ByteAddressBuffer)
 			return vk::DescriptorType::eStorageBuffer;
 
-		if ((type & RHIShaderParameterType::META_AccelerationStructure) == RHIShaderParameterType::META_AccelerationStructure)
+		if ((type & RHIBindingType::META_AccelerationStructure) == RHIBindingType::META_AccelerationStructure)
 			return vk::DescriptorType::eAccelerationStructureKHR;
 
 		trinex_unreachable_msg("Undefined descriptor type");
 		return vk::DescriptorType::eSampler;
+	}
+
+	static inline vk::ShaderStageFlags shader_stage_flags_of(RHIShaderStage stage)
+	{
+		vk::ShaderStageFlags flags = {};
+
+		if (stage & RHIShaderStage::Vertex)
+			flags |= vk::ShaderStageFlagBits::eVertex;
+		if (stage & RHIShaderStage::TessellationControl)
+			flags |= vk::ShaderStageFlagBits::eTessellationControl;
+		if (stage & RHIShaderStage::Tessellation)
+			flags |= vk::ShaderStageFlagBits::eTessellationEvaluation;
+		if (stage & RHIShaderStage::Geometry)
+			flags |= vk::ShaderStageFlagBits::eGeometry;
+		if (stage & RHIShaderStage::Fragment)
+			flags |= vk::ShaderStageFlagBits::eFragment;
+		if (stage & RHIShaderStage::Compute)
+			flags |= vk::ShaderStageFlagBits::eCompute;
+		if (stage & RHIShaderStage::Task)
+			flags |= vk::ShaderStageFlagBits::eTaskEXT;
+		if (stage & RHIShaderStage::Mesh)
+			flags |= vk::ShaderStageFlagBits::eMeshEXT;
+		if (stage & RHIShaderStage::RayGeneration)
+			flags |= vk::ShaderStageFlagBits::eRaygenKHR;
+		if (stage & RHIShaderStage::AnyHit)
+			flags |= vk::ShaderStageFlagBits::eAnyHitKHR;
+		if (stage & RHIShaderStage::ClosestHit)
+			flags |= vk::ShaderStageFlagBits::eClosestHitKHR;
+		if (stage & RHIShaderStage::Miss)
+			flags |= vk::ShaderStageFlagBits::eMissKHR;
+		if (stage & RHIShaderStage::Intersection)
+			flags |= vk::ShaderStageFlagBits::eIntersectionKHR;
+		if (stage & RHIShaderStage::Callable)
+			flags |= vk::ShaderStageFlagBits::eCallableKHR;
+
+		return flags;
 	}
 
 	static inline vk::FrontFace face_of(RHIFrontFace face)

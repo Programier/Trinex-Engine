@@ -14,7 +14,7 @@ namespace Trinex
 	class RHIPipeline;
 
 	struct PipelineLibraryCache;
-	struct RHIShaderParameterInfo;
+	struct RHIBinding;
 
 	class trinex_api PipelineLibrary : public ObjectTreeNode<Asset, Pipeline>
 	{
@@ -54,7 +54,7 @@ namespace Trinex
 		GraphicsPipeline* graphics_pipeline(Name permutation = {}) const;
 		ComputePipeline* compute_pipeline(Name permutation = {}) const;
 		RHIPipeline* handle(Name permutation = {}) const;
-		const RHIShaderParameterInfo* find_parameter(const Name& key, Name permutation = {}) const;
+		const RHIBinding* find_parameter(const Name& key, Name permutation = {}) const;
 
 		virtual const char* source_path() const = 0;
 		virtual void initialize()               = 0;

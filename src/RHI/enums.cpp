@@ -23,33 +23,33 @@ namespace Trinex
 		return *this;
 	}
 
-	trinex_api RHIShaderParameterType RHIShaderParameterType::make_numeric(RHIShaderParameterType base, u8 len)
+	trinex_api RHIBindingType RHIBindingType::make_numeric(RHIBindingType base, u8 len)
 	{
 		base = base.element_type();
 
 		if (base == Undefined)
 			return Undefined;
 
-		base &= RHIShaderParameterType(~META_DimensionMask);
+		base &= RHIBindingType(~META_DimensionMask);
 
 		const EnumerateType size = Math::clamp<EnumerateType>(len, 1, 4);
 		return base | (size << 17) | (size << 20);
 	}
 
-	trinex_api RHIShaderParameterType RHIShaderParameterType::make_matrix(RHIShaderParameterType base, u8 rows, u8 columns)
+	trinex_api RHIBindingType RHIBindingType::make_matrix(RHIBindingType base, u8 rows, u8 columns)
 	{
 		base = base.element_type();
 
 		if (base == Undefined)
 			return Undefined;
 
-		base &= RHIShaderParameterType(~META_DimensionMask);
+		base &= RHIBindingType(~META_DimensionMask);
 		return (Math::clamp<EnumerateType>(rows, 1, 4) << 17) | (Math::clamp<EnumerateType>(columns, 1, 4) << 20);
 	}
 
-	RHIShaderParameterType RHIShaderParameterType::element_type()
+	RHIBindingType RHIBindingType::element_type()
 	{
-		RHIShaderParameterType result = value & META_ElementMask;
+		RHIBindingType result = value & META_ElementMask;
 
 		if (result != Undefined)
 		{
