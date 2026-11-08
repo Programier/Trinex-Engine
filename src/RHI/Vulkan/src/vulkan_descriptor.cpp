@@ -1,5 +1,6 @@
 #include <Core/memory.hpp>
 #include <Core/profiler.hpp>
+#include <RHI/gc.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_bindless.hpp>
 #include <vulkan_buffer.hpp>
@@ -556,6 +557,11 @@ namespace Trinex
 		m_layout->release();
 	}
 
+	RHIGarbageGroup* VulkanBindingSet::garbage_group() const
+	{
+		return m_layout->binding_set_garbage_group();
+	}
+
 	RHI* VulkanBindingSet::device() const
 	{
 		return VulkanAPI::instance();
@@ -580,6 +586,13 @@ namespace Trinex
 
 	RHIBindingSet* VulkanAPI::create_binding_set(RHIBindingLayout* layout)
 	{
+		RHIObject* handle = gc()->take(layout->as<VulkanBindingLayout>()->binding_set_garbage_group());
+
+		if (handle)
+		{
+			return handle->as<RHIBindingSet>();
+		}
+
 		return trx_new VulkanBindingSet(layout);
 	}
 } // namespace Trinex

@@ -120,14 +120,18 @@ namespace Trinex
 		if (previous == 1)
 		{
 			etl::atomic_thread_fence(etl::memory_order_acquire);
+			release_weak_entry();
 			const_cast<RefCounted*>(this)->destroy();
 		}
 	}
 
-	RefCounted::~RefCounted()
+	void RefCounted::revive() const noexcept
 	{
-		release_weak_entry();
+		const u32 previous = AtomicRef(m_ref_count).fetch_add(1, etl::memory_order_relaxed);
+		trinex_assert_msg(previous == 0, "revive() called on alive object");
 	}
+
+	RefCounted::~RefCounted() {}
 
 	u32 RefCounted::references() const noexcept
 	{

@@ -545,10 +545,9 @@ namespace Trinex
 		return (feature_flags & flags) == flags;
 	}
 
-	VulkanAPI& VulkanAPI::wait()
+	void VulkanAPI::wait()
 	{
 		vk::verify(m_device.waitIdle());
-		return *this;
 	}
 
 	RHIQueue* VulkanAPI::queue(RHIQueueType type, RHISwapchain* swapchain)

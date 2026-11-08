@@ -4,9 +4,10 @@
 
 namespace Trinex
 {
-	class VulkanBindingLayout : public RHIBindingLayout
+	class VulkanBindingLayout final : public RHIDirectDestroy<RHIBindingLayout>
 	{
 	private:
+		RHIGarbageGroup* m_garbage_group = nullptr;
 		vk::DescriptorSetLayout m_layout;
 
 	public:
@@ -14,5 +15,6 @@ namespace Trinex
 		~VulkanBindingLayout();
 
 		RHI* device() const override;
+		inline RHIGarbageGroup* binding_set_garbage_group() const { return m_garbage_group; }
 	};
 } // namespace Trinex

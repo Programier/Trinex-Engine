@@ -159,7 +159,7 @@ namespace Trinex
 		const char* name() const override { return "Vulkan"; }
 		const char* renderer() const override { return m_properties.deviceName.data(); }
 
-		VulkanAPI& wait() override;
+		void wait() override;
 		RHIQueue* queue(RHIQueueType type, RHISwapchain* swapchain = nullptr) override;
 		RHIArrayView<RHIQueue*> queues() const override;
 

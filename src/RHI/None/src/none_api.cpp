@@ -111,10 +111,7 @@ namespace Trinex
 	{
 	};
 
-	NoneApi& NoneApi::wait()
-	{
-		return *this;
-	}
+	void NoneApi::wait() {}
 
 	RHIQueue* NoneApi::queue(RHIQueueType type, RHISwapchain* swapchain)
 	{

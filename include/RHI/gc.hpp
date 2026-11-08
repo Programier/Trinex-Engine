@@ -35,6 +35,7 @@ namespace Trinex
 
 	public:
 		RHIGarbageGroup* create_group(u64 delay);
+		void destroy_group(RHIGarbageGroup* group);
 
 		void add(RHIObject* object, RHIGarbageGroup* group = nullptr);
 		RHIObject* take(RHIGarbageGroup* group);

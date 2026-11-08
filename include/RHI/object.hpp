@@ -4,9 +4,13 @@
 namespace Trinex
 {
 	class RHI;
+	class RHIGarbageGroup;
 
 	class trinex_api RHIObject : public RefCounted
 	{
+	protected:
+		virtual RHIGarbageGroup* garbage_group() const;
+
 	public:
 		virtual void destroy() noexcept;
 		virtual RHI* device() const = 0;
@@ -23,5 +27,15 @@ namespace Trinex
 		{
 			return static_cast<const T*>(this);
 		}
+	};
+
+	template<typename T>
+	class RHIDirectDestroy : public T
+	{
+	protected:
+		void destroy() noexcept override { trx_delete this; }
+
+	public:
+		using T::T;
 	};
 } // namespace Trinex

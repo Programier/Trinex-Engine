@@ -130,7 +130,7 @@ namespace Trinex
 		static VulkanDescriptorSetAllocator* instance();
 	};
 
-	class VulkanBindingSet : public RHIBindingSet
+	class VulkanBindingSet final : public RHIBindingSet
 	{
 	private:
 		VulkanBindingLayout* m_layout;
@@ -139,6 +139,7 @@ namespace Trinex
 		VulkanBindingSet(RHIBindingLayout* layout);
 		~VulkanBindingSet();
 
+		RHIGarbageGroup* garbage_group() const override;
 		RHI* device() const override;
 
 		RHIBindingLayout* layout() const override;

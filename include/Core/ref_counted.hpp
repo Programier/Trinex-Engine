@@ -37,6 +37,7 @@ namespace Trinex
 
 		void add_ref() const noexcept;
 		void release() const noexcept;
+		void revive() const noexcept;
 		u32 references() const noexcept;
 
 		template<typename>

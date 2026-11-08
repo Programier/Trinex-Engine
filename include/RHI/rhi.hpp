@@ -59,7 +59,7 @@ namespace Trinex
 		virtual const char* name() const     = 0;
 		virtual const char* renderer() const = 0;
 
-		virtual RHI& wait()                                                           = 0;
+		virtual void wait()                                                           = 0;
 		virtual RHIQueue* queue(RHIQueueType type, RHISwapchain* swapchain = nullptr) = 0;
 		virtual RHIArrayView<RHIQueue*> queues() const                                = 0;
 

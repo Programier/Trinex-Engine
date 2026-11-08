@@ -11,7 +11,7 @@ namespace Trinex
 		const char* name() const override { return "None"; }
 		const char* renderer() const override { return "None"; }
 
-		NoneApi& wait() override;
+		void wait() override;
 		RHIQueue* queue(RHIQueueType type, RHISwapchain* swapchain = nullptr) override;
 		RHIArrayView<RHIQueue*> queues() const override;
 

@@ -1,3 +1,4 @@
+#include <RHI/gc.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_enums.hpp>
 #include <vulkan_layout.hpp>
@@ -36,10 +37,17 @@ namespace Trinex
 
 		vk::DescriptorSetLayoutCreateInfo info({}, count, descriptors);
 		m_layout = vk::verify(device->createDescriptorSetLayout(info));
+
+		m_garbage_group = VulkanAPI::instance()->gc()->create_group(180);
 	}
 
 	VulkanBindingLayout::~VulkanBindingLayout()
 	{
+		if (auto gc = VulkanAPI::instance()->gc())
+		{
+			gc->destroy_group(m_garbage_group);
+		}
+
 		VulkanAPI::device()->destroyDescriptorSetLayout(m_layout);
 	}
 

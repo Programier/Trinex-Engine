@@ -34,10 +34,11 @@ namespace Trinex
 		};
 
 	private:
-		RHIGarbageGroup* m_next = nullptr;
-		Batch* m_batch          = nullptr;
-		Batch* m_garbage        = nullptr;
-		u64 m_delay             = 0;
+		RHIGarbageGroup* m_next   = nullptr;
+		RHIGarbageGroup** m_place = nullptr;
+		Batch* m_batch            = nullptr;
+		Batch* m_garbage          = nullptr;
+		u64 m_delay               = 0;
 
 	private:
 		static bool is_relevant(Checkpoint* checkpoint);
@@ -52,8 +53,16 @@ namespace Trinex
 		static void destroy(RHIGarbageCollector* gc, RHIGarbageGroup* object);
 
 	public:
-		RHIGarbageGroup(u64 delay = 0) : m_next(nullptr), m_delay(delay) {}
-		RHIGarbageGroup(RHIGarbageGroup* prev, u64 delay) : m_next(prev->m_next), m_delay(delay) { prev->m_next = this; }
+		RHIGarbageGroup(RHIGarbageGroup** place, u64 delay = 0) : m_next(nullptr), m_place(place), m_delay(delay) {}
+		RHIGarbageGroup(RHIGarbageGroup* prev, u64 delay) : m_next(prev->m_next), m_place(&prev->m_next), m_delay(delay)
+		{
+			prev->m_next = this;
+
+			if (m_next)
+			{
+				m_next->m_place = &m_next;
+			}
+		}
 
 		void add(RHIGarbageCollector* gc, RHIObject* object);
 		RHIObject* take(RHIGarbageCollector* gc);
@@ -63,6 +72,7 @@ namespace Trinex
 		void update(RHIGarbageCollector* gc);
 
 		inline RHIGarbageGroup* next() const { return m_next; }
+		inline RHIGarbageGroup** place() const { return m_place; }
 		friend class RHIGarbageCollector;
 	};
 
@@ -122,6 +132,11 @@ namespace Trinex
 			auto next = object->next;
 			gc->free(object);
 			object = next;
+
+			if (resource)
+			{
+				resource->revive();
+			}
 
 			return resource;
 		}
@@ -289,7 +304,7 @@ namespace Trinex
 
 	RHIGarbageCollector::RHIGarbageCollector(RHI* rhi) : m_rhi(rhi)
 	{
-		m_root = trx_new RHIGarbageGroup();
+		m_root = trx_new RHIGarbageGroup(&m_root);
 	}
 
 	RHIGarbageCollector::~RHIGarbageCollector()
@@ -311,6 +326,24 @@ namespace Trinex
 	RHIGarbageGroup* RHIGarbageCollector::create_group(u64 delay)
 	{
 		return trx_new RHIGarbageGroup(m_root, delay);
+	}
+
+	void RHIGarbageCollector::destroy_group(RHIGarbageGroup* group)
+	{
+		if (group == nullptr)
+			return;
+
+		RHIGarbageGroup* next = group->next();
+		(*group->place())     = next;
+
+		if (next)
+		{
+			next->m_place = group->place();
+		}
+
+		group->m_next  = nullptr;
+		group->m_place = nullptr;
+		RHIGarbageGroup::destroy(this, group);
 	}
 
 	void RHIGarbageCollector::add(RHIObject* object, RHIGarbageGroup* group)
