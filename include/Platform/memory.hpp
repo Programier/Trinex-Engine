@@ -14,12 +14,23 @@ namespace Trinex::Platform
 		u64 process_virtual    = 0;
 	};
 
+	struct VirtualMemoryBlock
+	{
+		void* memory = nullptr;
+		usize size   = 0;
+
+		explicit operator bool() const { return memory != nullptr; }
+	};
+
 	class trinex_api Memory
 	{
 	public:
 		static Memory* instance();
 
 		virtual ~Memory() = default;
+
+		VirtualMemoryBlock allocate(usize size);
+		void release(VirtualMemoryBlock block);
 
 		virtual void* reserve(usize size, void* address = nullptr, VirtualMemoryFlags flags = VirtualMemoryFlags::Undefined) = 0;
 		virtual bool commit(void* address, usize size, MemoryProtection protection = MemoryProtection::ReadWrite)            = 0;

@@ -80,29 +80,21 @@ namespace Trinex
 				return nullptr;
 
 			const usize alignment = tlsf_align_size();
-			const usize page_size = memory->page_size();
-			if (page_size == 0 || size > etl::numeric_limits<usize>::max() - tlsf_pool_overhead() - alignment)
+			if (size > etl::numeric_limits<usize>::max() - tlsf_pool_overhead() - alignment)
 				return nullptr;
 
 			const usize allocation_size = Math::max(s_pool_size, size + tlsf_pool_overhead() + alignment);
-			if (allocation_size > etl::numeric_limits<usize>::max() - pool_offset() - (page_size - 1))
+			if (allocation_size > etl::numeric_limits<usize>::max() - pool_offset())
 				return nullptr;
 
-			const usize reservation_size = align_size(pool_offset() + allocation_size, page_size);
-			void* reservation            = memory->reserve(reservation_size);
+			const Platform::VirtualMemoryBlock reservation = memory->allocate(pool_offset() + allocation_size);
 			if (!reservation)
 				return nullptr;
 
-			if (!memory->commit(reservation, reservation_size))
-			{
-				memory->release(reservation, reservation_size);
-				return nullptr;
-			}
-
-			return ::new (reservation) Pool{
+			return ::new (reservation.memory) Pool{
 			        .next      = nullptr,
-			        .memory    = reservation,
-			        .size      = reservation_size,
+			        .memory    = reservation.memory,
+			        .size      = reservation.size,
 			        .tlsf_pool = nullptr,
 			};
 		}
