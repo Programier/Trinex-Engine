@@ -61,20 +61,11 @@ namespace Trinex
 		});
 	}
 
-	Tickable& Tickable::begin_frame(u64 frame)
-	{
-		return *this;
-	}
+	void Tickable::begin_frame(u64 frame) {}
 
-	Tickable& Tickable::update(float dt)
-	{
-		return *this;
-	}
+	void Tickable::update(float dt) {}
 
-	Tickable& Tickable::end_frame(u64 frame)
-	{
-		return *this;
-	}
+	void Tickable::end_frame(u64 frame) {}
 
 	bool Tickable::is_tickable() const
 	{
@@ -116,20 +107,11 @@ namespace Trinex
 		for_each_thread_local_tickable([frame](ThreadLocalTickable* tickable) { tickable->end_frame(frame); });
 	}
 
-	ThreadLocalTickable& ThreadLocalTickable::begin_frame(u64 frame)
-	{
-		return *this;
-	}
+	void ThreadLocalTickable::begin_frame(u64 frame) {}
 
-	ThreadLocalTickable& ThreadLocalTickable::update(float dt)
-	{
-		return *this;
-	}
+	void ThreadLocalTickable::update(f32 dt) {}
 
-	ThreadLocalTickable& ThreadLocalTickable::end_frame(u64 frame)
-	{
-		return *this;
-	}
+	void ThreadLocalTickable::end_frame(u64 frame) {}
 
 	bool ThreadLocalTickable::is_tickable() const
 	{
@@ -139,22 +121,8 @@ namespace Trinex
 	static class : public Tickable
 	{
 	public:
-		Tickable& begin_frame(u64 frame) override
-		{
-			ThreadLocalTickable::for_each_begin_frame(frame);
-			return *this;
-		}
-
-		Tickable& update(float dt) override
-		{
-			ThreadLocalTickable::for_each_update(dt);
-			return *this;
-		}
-
-		Tickable& end_frame(u64 frame) override
-		{
-			ThreadLocalTickable::for_each_end_frame(frame);
-			return *this;
-		}
+		void begin_frame(u64 frame) override { ThreadLocalTickable::for_each_begin_frame(frame); }
+		void update(float dt) override { ThreadLocalTickable::for_each_update(dt); }
+		void end_frame(u64 frame) override { ThreadLocalTickable::for_each_end_frame(frame); }
 	} s_tickable;
 } // namespace Trinex

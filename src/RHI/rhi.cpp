@@ -10,10 +10,12 @@ namespace Trinex
 {
 	struct Backend
 	{
-		mutable RHI* backend = nullptr;
+		mutable RHI* rhi = nullptr;
 		RHI::CreateFunction create;
 		RHI::DestroyFunction destroy;
 
+		RHI* operator->() const { return rhi; }
+		inline operator bool() const { return rhi != nullptr; }
 		inline bool is_supported() const { return create && destroy; }
 	};
 
@@ -93,20 +95,36 @@ namespace Trinex
 		{
 			auto& state = it->second;
 
-			if (state.backend == nullptr)
+			if (state.rhi == nullptr)
 			{
-				state.backend       = state.create();
-				state.backend->m_gc = trx_new RHIGarbageCollector(state.backend);
+				state.rhi       = state.create();
+				state.rhi->m_gc = trx_new RHIGarbageCollector(state.rhi);
 			}
 
-			return state.backend;
+			return state.rhi;
 		}
 
 		return nullptr;
 	}
 
-	RHI::~RHI()
+	RHI::RHI()
 	{
-		trx_delete m_gc;
+		[[maybe_unused]] static auto destroy = LifeCycle::on_teardown([] {
+			for (auto& [type, backend] : backends())
+			{
+				if (backend)
+				{
+					RHIGarbageCollector* gc = backend->gc();
+					backend->m_gc           = nullptr;
+
+					trx_delete_inline(gc);
+
+					backend.destroy(backend.rhi);
+					backend.rhi = nullptr;
+				}
+			}
+		});
 	}
+
+	RHI::~RHI() {}
 } // namespace Trinex

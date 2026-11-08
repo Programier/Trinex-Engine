@@ -14,9 +14,9 @@ namespace Trinex
 		static void for_each_update(f32 dt);
 		static void for_each_end_frame(u64 frame);
 
-		virtual Tickable& begin_frame(u64 frame);
-		virtual Tickable& update(f32 dt);
-		virtual Tickable& end_frame(u64 frame);
+		virtual void begin_frame(u64 frame);
+		virtual void update(f32 dt);
+		virtual void end_frame(u64 frame);
 		virtual bool is_tickable() const;
 	};
 
@@ -45,9 +45,9 @@ namespace Trinex
 		static void for_each_end_frame(u64 frame);
 		static inline CriticalSection critical_section() { return {}; }
 
-		virtual ThreadLocalTickable& begin_frame(u64 frame);
-		virtual ThreadLocalTickable& update(f32 dt);
-		virtual ThreadLocalTickable& end_frame(u64 frame);
+		virtual void begin_frame(u64 frame);
+		virtual void update(f32 dt);
+		virtual void end_frame(u64 frame);
 		virtual bool is_tickable() const;
 
 		inline Thread* thread() const { return m_thread; }

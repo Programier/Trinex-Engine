@@ -20,7 +20,7 @@ namespace Trinex
 		void free(void* ptr);
 	};
 
-	template<usize stride, usize page, usize align = 16>
+	template<usize stride, usize page, usize align = 8>
 	class trinex_api PoolAllocator final : protected PoolAllocatorBase
 	{
 	public:
@@ -40,6 +40,14 @@ namespace Trinex
 
 		using Super::allocate;
 		using Super::free;
+
+		template<typename T>
+		T* allocate()
+		{
+			static_assert(sizeof(T) <= calculate_stride());
+			static_assert(alignof(T) <= align);
+			return static_cast<T*>(allocate());
+		}
 	};
 
 	class trinex_api DynamicPoolAllocatorBase
@@ -61,7 +69,7 @@ namespace Trinex
 		void free(void* ptr);
 	};
 
-	template<usize stride, usize page, usize align = 16>
+	template<usize stride, usize page, usize align = 8>
 	class trinex_api DynamicPoolAllocator final : public DynamicPoolAllocatorBase
 	{
 	public:
@@ -81,5 +89,13 @@ namespace Trinex
 
 		[[nodiscard]] void* allocate() { return Super::allocate(calculate_stride(), page, align); }
 		void free(void* ptr) { Super::free(ptr); }
+
+		template<typename T>
+		T* allocate()
+		{
+			static_assert(sizeof(T) <= calculate_stride());
+			static_assert(alignof(T) <= align);
+			return static_cast<T*>(allocate());
+		}
 	};
 } // namespace Trinex

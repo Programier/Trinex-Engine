@@ -6,7 +6,7 @@ namespace Trinex
 {
 	void RHIObject::destroy() noexcept
 	{
-		if (RHI* rhi = device())
+		if (RHI* rhi = device(); rhi && rhi->gc())
 		{
 			rhi->gc()->add(this);
 		}

@@ -8,19 +8,20 @@ namespace Trinex::LifeCycle
 	enum Stage
 	{
 		// Testing
-		Testing = -10,
+		Testing = -11,
 
 		// Startup
-		Bootstrap  = -9,
-		Register   = -8,
-		Configure  = -7,
-		Initialize = -6,
-		Load       = -5,
-		Start      = -4,
+		Bootstrap  = -10,
+		Register   = -9,
+		Configure  = -8,
+		Initialize = -7,
+		Load       = -6,
+		Start      = -5,
 
 		// Shutdown
-		Stop     = -3,
-		Shutdown = -2,
+		Stop     = -4,
+		Shutdown = -3,
+		Teardown = -2,
 		Finalize = -1
 	};
 
@@ -76,6 +77,11 @@ namespace Trinex::LifeCycle
 		return Registrar(Shutdown, function, description);
 	}
 
+	static inline Registrar on_teardown(Function function, const Description& description = {})
+	{
+		return Registrar(Teardown, function, description);
+	}
+
 	static inline Registrar on_finalize(Function function, const Description& description = {})
 	{
 		return Registrar(Finalize, function, description);
@@ -102,4 +108,5 @@ namespace Trinex::LifeCycle
 #define trinex_on_start(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::Start, __VA_ARGS__)
 #define trinex_on_stop(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::Stop, __VA_ARGS__)
 #define trinex_on_shutdown(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::Shutdown, __VA_ARGS__)
+#define trinex_on_teardown(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::Teardown, __VA_ARGS__)
 #define trinex_on_finalize(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::Finalize, __VA_ARGS__)

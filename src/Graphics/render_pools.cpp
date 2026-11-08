@@ -708,7 +708,7 @@ namespace Trinex
 
 	static class : public Tickable
 	{
-		Tickable& update(float) override
+		void update(float) override
 		{
 			RenderSurfacePool::instance()->update();
 			RHITexturePool::instance()->update();
@@ -717,8 +717,6 @@ namespace Trinex
 			RHITimestampPool::instance()->update();
 			RHIPipelineStatisticsPool::instance()->update();
 			RHIContextPool::instance()->update();
-
-			return *this;
 		}
 	} s_pool_update;
 

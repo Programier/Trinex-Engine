@@ -188,12 +188,6 @@ namespace Trinex
 			return stats;
 		}
 
-		RHIReadBackAllocatorImpl& update(float) override
-		{
-			ScopeLock lock(m_critical);
-			return *this;
-		}
-
 		~RHIReadBackAllocatorImpl()
 		{
 			ScopeLock lock(m_critical);

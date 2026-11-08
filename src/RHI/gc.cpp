@@ -5,38 +5,297 @@ namespace Trinex
 {
 	class RHIGarbageGroup
 	{
+	public:
+		struct Checkpoint
+		{
+			Checkpoint* next = nullptr;
+			RHIQueue* queue  = nullptr;
+			u64 id           = 0;
+
+			static Checkpoint* create(RHIGarbageCollector* gc);
+		};
+
+		struct Resource
+		{
+			Resource* next      = nullptr;
+			RHIObject* resource = nullptr;
+		};
+
 		struct Batch
 		{
+			Batch* next;
+			Resource* resources;
+
+			union
+			{
+				Checkpoint* checkpoint;
+				u64 delay;
+			};
 		};
 
 	private:
-		RHIGarbageGroup* m_next;
-		u32 m_delay;
+		RHIGarbageGroup* m_next = nullptr;
+		Batch* m_batch          = nullptr;
+		Batch* m_garbage        = nullptr;
+		u64 m_delay             = 0;
+
+	private:
+		static bool is_relevant(Checkpoint* checkpoint);
+		static bool is_completed(Checkpoint* checkpoint);
+
+		static RHIObject* pop(RHIGarbageCollector* gc, Resource*& object);
+		static RHIObject* pop(RHIGarbageCollector* gc, Batch*& object);
+
+		static void destroy(RHIGarbageCollector* gc, Checkpoint* object);
+		static void destroy(RHIGarbageCollector* gc, Resource* object);
+		static void destroy(RHIGarbageCollector* gc, Batch* object, bool with_checkpoints = false);
+		static void destroy(RHIGarbageCollector* gc, RHIGarbageGroup* object);
 
 	public:
-		RHIGarbageGroup(u32 delay = 0) : m_next(nullptr), m_delay(delay) {}
-		RHIGarbageGroup(RHIGarbageGroup* prev, u32 delay = 0) : m_next(prev->m_next), m_delay(delay) { prev->m_next = this; }
+		RHIGarbageGroup(u64 delay = 0) : m_next(nullptr), m_delay(delay) {}
+		RHIGarbageGroup(RHIGarbageGroup* prev, u64 delay) : m_next(prev->m_next), m_delay(delay) { prev->m_next = this; }
 
-		void add(RHIObject* object);
-		RHIObject* take();
-		void update();
+		void add(RHIGarbageCollector* gc, RHIObject* object);
+		RHIObject* take(RHIGarbageCollector* gc);
 
-		inline u32 delay() const { return m_delay; }
+		void collect(RHIGarbageCollector* gc, Batch* batch);
+		void collect(RHIGarbageCollector* gc);
+		void update(RHIGarbageCollector* gc);
+
 		inline RHIGarbageGroup* next() const { return m_next; }
+		friend class RHIGarbageCollector;
 	};
 
-	void RHIGarbageGroup::add(RHIObject* object) {}
-
-	RHIObject* RHIGarbageGroup::take()
+	RHIGarbageGroup::Checkpoint* RHIGarbageGroup::Checkpoint::create(RHIGarbageCollector* gc)
 	{
+		Checkpoint* checkpoint = nullptr;
+
+		for (RHIQueue* queue : gc->rhi()->queues())
+		{
+			Checkpoint* info = gc->allocate<Checkpoint>();
+			info->next       = checkpoint;
+			info->queue      = queue;
+			info->id         = queue->last_submitted();
+
+			checkpoint = info;
+		}
+
+		return checkpoint;
+	}
+
+	bool RHIGarbageGroup::is_relevant(Checkpoint* checkpoint)
+	{
+		while (checkpoint)
+		{
+			if (checkpoint->id != checkpoint->queue->last_submitted())
+			{
+				return false;
+			}
+
+			checkpoint = checkpoint->next;
+		}
+
+		return true;
+	}
+
+	bool RHIGarbageGroup::is_completed(Checkpoint* checkpoint)
+	{
+		while (checkpoint)
+		{
+			if (checkpoint->id > checkpoint->queue->fence()->value())
+			{
+				return false;
+			}
+
+			checkpoint = checkpoint->next;
+		}
+
+		return true;
+	}
+
+	RHIObject* RHIGarbageGroup::pop(RHIGarbageCollector* gc, Resource*& object)
+	{
+		if (object)
+		{
+			RHIObject* resource = object->resource;
+
+			auto next = object->next;
+			gc->free(object);
+			object = next;
+
+			return resource;
+		}
+
 		return nullptr;
 	}
 
-	void RHIGarbageGroup::update() {}
+	RHIObject* RHIGarbageGroup::pop(RHIGarbageCollector* gc, Batch*& object)
+	{
+		RHIObject* resource = pop(gc, object->resources);
 
-	RHIGarbageCollector::RHIGarbageCollector(RHI* rhi)
+		while (object && object->resources == nullptr)
+		{
+			auto next = object->next;
+			gc->free(object);
+			object = next;
+		}
+
+		return resource;
+	}
+
+	void RHIGarbageGroup::destroy(RHIGarbageCollector* gc, Checkpoint* object)
+	{
+		while (object)
+		{
+			auto* next = object->next;
+			gc->free(object);
+			object = next;
+		}
+	}
+
+	void RHIGarbageGroup::destroy(RHIGarbageCollector* gc, Resource* object)
+	{
+		while (object)
+		{
+			trx_delete object->resource;
+
+			auto* next = object->next;
+			gc->free(object);
+			object = next;
+		}
+	}
+
+	void RHIGarbageGroup::destroy(RHIGarbageCollector* gc, Batch* object, bool with_checkpoints)
+	{
+		while (object)
+		{
+			destroy(gc, object->resources);
+
+			if (with_checkpoints)
+			{
+				destroy(gc, object->checkpoint);
+			}
+
+			auto* next = object->next;
+			gc->free(object);
+			object = next;
+		}
+	}
+
+	void RHIGarbageGroup::destroy(RHIGarbageCollector* gc, RHIGarbageGroup* object)
+	{
+		while (object)
+		{
+			destroy(gc, object->m_batch, true);
+			destroy(gc, object->m_garbage);
+
+			auto* next = object->next();
+			trx_delete object;
+			object = next;
+		}
+	}
+
+	void RHIGarbageGroup::add(RHIGarbageCollector* gc, RHIObject* object)
+	{
+		if (m_batch == nullptr || !is_relevant(m_batch->checkpoint))
+		{
+			Batch* batch      = gc->allocate<Batch>();
+			batch->checkpoint = Checkpoint::create(gc);
+			batch->next       = m_batch;
+			batch->resources  = nullptr;
+			m_batch           = batch;
+		}
+
+		Resource* resource = gc->allocate<Resource>();
+		resource->next     = m_batch->resources;
+		resource->resource = object;
+
+		m_batch->resources = resource;
+	}
+
+	RHIObject* RHIGarbageGroup::take(RHIGarbageCollector* gc)
+	{
+		if (m_garbage)
+		{
+			return pop(gc, m_garbage);
+		}
+		else
+		{
+			collect(gc);
+
+			if (m_garbage)
+			{
+				return pop(gc, m_garbage);
+			}
+		}
+
+		return nullptr;
+	}
+
+	void RHIGarbageGroup::collect(RHIGarbageCollector* gc, Batch* batch)
+	{
+		Batch** place = &batch;
+
+		while (Batch* current = *place)
+		{
+			destroy(gc, current->checkpoint);
+
+			current->delay = m_delay;
+			place          = &current->next;
+		}
+
+		(*place)  = m_garbage;
+		m_garbage = batch;
+	}
+
+	void RHIGarbageGroup::collect(RHIGarbageCollector* gc)
+	{
+		Batch** place = &m_batch;
+
+		while (Batch* batch = *place)
+		{
+			if (is_completed(batch->checkpoint))
+			{
+				*place = nullptr;
+				return collect(gc, batch);
+			}
+			else
+			{
+				place = &batch->next;
+			}
+		}
+	}
+
+	void RHIGarbageGroup::update(RHIGarbageCollector* gc)
+	{
+		Batch** place = &m_garbage;
+
+		while (Batch* batch = *place)
+		{
+			if (batch->delay <= 1)
+			{
+				(*place) = nullptr;
+				destroy(gc, batch);
+			}
+			else
+			{
+				--batch->delay;
+				place = &batch->next;
+			}
+		}
+
+		collect(gc);
+	}
+
+	RHIGarbageCollector::RHIGarbageCollector(RHI* rhi) : m_rhi(rhi)
 	{
 		m_root = trx_new RHIGarbageGroup();
+	}
+
+	RHIGarbageCollector::~RHIGarbageCollector()
+	{
+		m_rhi->wait();
+		RHIGarbageGroup::destroy(this, m_root);
 	}
 
 	RHIGarbageCollector* RHIGarbageCollector::instance(RHI* rhi)
@@ -49,7 +308,7 @@ namespace Trinex
 		return instance(RHI::instance());
 	}
 
-	RHIGarbageGroup* RHIGarbageCollector::create_group(u32 delay)
+	RHIGarbageGroup* RHIGarbageCollector::create_group(u64 delay)
 	{
 		return trx_new RHIGarbageGroup(m_root, delay);
 	}
@@ -59,7 +318,7 @@ namespace Trinex
 		if (group == nullptr)
 			group = m_root;
 
-		group->add(object);
+		group->add(this, object);
 	}
 
 	RHIObject* RHIGarbageCollector::take(RHIGarbageGroup* group)
@@ -67,18 +326,17 @@ namespace Trinex
 		if (group == nullptr)
 			return nullptr;
 
-		return group->take();
+		return group->take(this);
 	}
 
-	void RHIGarbageCollector::update()
+	void RHIGarbageCollector::end_frame(u64 frame)
 	{
 		RHIGarbageGroup* group = m_root;
 
 		while (group)
 		{
-			group->update();
+			group->update(this);
 			group = group->next();
 		}
 	}
-
 } // namespace Trinex

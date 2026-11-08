@@ -427,11 +427,10 @@ namespace Trinex
 		HeapAllocator::free(m_caches);
 	}
 
-	VulkanDescriptorSetAllocator& VulkanDescriptorSetAllocator::begin_frame(u64 frame)
+	void VulkanDescriptorSetAllocator::begin_frame(u64 frame)
 	{
 		m_current_cache = &m_caches[frame % s_cache_lifetime];
 		m_current_cache->reset();
-		return *this;
 	}
 
 	vk::DescriptorSet VulkanDescriptorSetAllocator::allocate(VulkanPipelineLayout* layout, FrameCache& cache)

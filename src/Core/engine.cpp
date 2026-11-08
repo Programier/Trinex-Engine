@@ -81,6 +81,8 @@ namespace Trinex
 			result = entry->execute();
 		}
 
+		LifeCycle::execute(LifeCycle::Teardown);
+
 		LifeCycle::execute(LifeCycle::Finalize);
 
 		return result;

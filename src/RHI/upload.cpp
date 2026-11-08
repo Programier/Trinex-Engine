@@ -189,12 +189,6 @@ namespace Trinex
 			return stats;
 		}
 
-		RHIUploadAllocatorImpl& update(float) override
-		{
-			ScopeLock lock(m_critical);
-			return *this;
-		}
-
 		~RHIUploadAllocatorImpl()
 		{
 			ScopeLock lock(m_critical);

@@ -51,9 +51,11 @@ namespace Trinex
 		static RHI* instance(RHIBackend backend);
 		inline RHIGarbageCollector* gc() const { return m_gc; }
 
-	public:
+	protected:
+		RHI();
 		virtual ~RHI();
 
+	public:
 		virtual const char* name() const     = 0;
 		virtual const char* renderer() const = 0;
 
