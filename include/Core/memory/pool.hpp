@@ -79,7 +79,7 @@ namespace Trinex
 		inline DynamicPoolAllocator(void* memory, usize size) : Super(memory, calculate_stride(), size) {}
 		inline void add_memory(void* memory, usize size) { Super::add_memory(memory, calculate_stride(), size); }
 
-		[[nodiscard]] void* allocate() { return Super::allocate(stride, page, align); }
+		[[nodiscard]] void* allocate() { return Super::allocate(calculate_stride(), page, align); }
 		void free(void* ptr) { Super::free(ptr); }
 	};
 } // namespace Trinex
