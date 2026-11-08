@@ -1,176 +1,90 @@
-// SPDX-License-Identifier: BSD-3-Clause
+#ifndef INCLUDED_tlsf
+#define INCLUDED_tlsf
 
-// tlsf-bsd is freely redistributable under the BSD License. See the file
-// "LICENSE" for information on usage and redistribution of this file.
+/*
+** Two Level Segregated Fit memory allocator, version 3.1.
+** Written by Matthew Conte
+**	http://tlsf.baisoku.org
+**
+** Based on the original documentation by Miguel Masmano:
+**	http://www.gii.upv.es/tlsf/main/docs
+**
+** This implementation was written to the specification
+** of the document, therefore no GPL restrictions apply.
+** 
+** Copyright (c) 2006-2016, Matthew Conte
+** All rights reserved.
+** 
+** Redistribution and use in source and binary forms, with or without
+** modification, are permitted provided that the following conditions are met:
+**     * Redistributions of source code must retain the above copyright
+**       notice, this list of conditions and the following disclaimer.
+**     * Redistributions in binary form must reproduce the above copyright
+**       notice, this list of conditions and the following disclaimer in the
+**       documentation and/or other materials provided with the distribution.
+**     * Neither the name of the copyright holder nor the
+**       names of its contributors may be used to endorse or promote products
+**       derived from this software without specific prior written permission.
+** 
+** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+** ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+** WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+** DISCLAIMED. IN NO EVENT SHALL MATTHEW CONTE BE LIABLE FOR ANY
+** DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+** (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+** LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+** ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+** SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
 
+#include <stddef.h>
 
-#pragma once
-
-#include <cstddef>
-#include <cstdint>
-
-namespace tlsf
-{
-#define TLSF_ENABLE_CHECK 1
-	// Second-level subdivisions: 32 bins per first-level class.
-	// Max internal fragmentation bounded by 1/SL_COUNT = 3.125% (was 6.25%
-	// with 16 bins). Control structure size increases ~2x for the block
-	// pointer array.
-
-	inline constexpr std::size_t TLSF_SL_COUNT = 32;
-
-
-	// Configurable maximum pool size: define TLSF_MAX_POOL_BITS to clamp
-	// the first-level index. Pool cannot exceed 2^TLSF_MAX_POOL_BITS bytes.
-	// E.g. -DTLSF_MAX_POOL_BITS=20 for a 1MB-max pool.
-
-#ifdef TLSF_MAX_POOL_BITS
-	inline constexpr std::size_t TLSF_FL_MAX = TLSF_MAX_POOL_BITS;
-#else
-#if __SIZE_WIDTH__ == 64 || defined(_WIN64) || defined(__LP64__)
-	inline constexpr std::size_t TLSF_FL_MAX = 39;
-#else
-	inline constexpr std::size_t TLSF_FL_MAX = 31;
+#if defined(__cplusplus)
+extern "C" {
 #endif
+
+/* tlsf_t: a TLSF structure. Can contain 1 to N pools. */
+/* pool_t: a block of memory that TLSF can manage. */
+typedef void* tlsf_t;
+typedef void* pool_t;
+
+/* Create/destroy a memory pool. */
+tlsf_t tlsf_create(void* mem);
+tlsf_t tlsf_create_with_pool(void* mem, size_t bytes);
+void tlsf_destroy(tlsf_t tlsf);
+pool_t tlsf_get_pool(tlsf_t tlsf);
+
+/* Add/remove memory pools. */
+pool_t tlsf_add_pool(tlsf_t tlsf, void* mem, size_t bytes);
+void tlsf_remove_pool(tlsf_t tlsf, pool_t pool);
+
+/* malloc/memalign/realloc/free replacements. */
+void* tlsf_malloc(tlsf_t tlsf, size_t bytes);
+void* tlsf_memalign(tlsf_t tlsf, size_t align, size_t bytes);
+void* tlsf_realloc(tlsf_t tlsf, void* ptr, size_t size);
+void tlsf_free(tlsf_t tlsf, void* ptr);
+
+/* Returns internal block size, not original request size */
+size_t tlsf_block_size(void* ptr);
+
+/* Overheads/limits of internal structures. */
+size_t tlsf_size(void);
+size_t tlsf_align_size(void);
+size_t tlsf_block_size_min(void);
+size_t tlsf_block_size_max(void);
+size_t tlsf_pool_overhead(void);
+size_t tlsf_alloc_overhead(void);
+
+/* Debugging. */
+typedef void (*tlsf_walker)(void* ptr, size_t size, int used, void* user);
+void tlsf_walk_pool(pool_t pool, tlsf_walker walker, void* user);
+/* Returns nonzero if any internal consistency check fails. */
+int tlsf_check(tlsf_t tlsf);
+int tlsf_check_pool(pool_t pool);
+
+#if defined(__cplusplus)
+};
 #endif
 
-	// FL_SHIFT = log2(SL_COUNT) + log2(ALIGN_SIZE)
-#if __SIZE_WIDTH__ == 64 || defined(_WIN64) || defined(__LP64__)
-	inline constexpr std::size_t TLSF_FL_SHIFT = 8;
-#else
-	inline constexpr std::size_t TLSF_FL_SHIFT = 7;
 #endif
-
-	inline constexpr std::size_t TLSF_FL_COUNT = (TLSF_FL_MAX - TLSF_FL_SHIFT + 1);
-	inline constexpr std::size_t TLSF_MAX_SIZE = ((std::size_t{1} << (TLSF_FL_MAX - 1)) - sizeof(std::size_t));
-
-	using ResizeCallback = void*(std::size_t size, void* userdata);
-	using WalkCallback   = void(void* ptr, size_t size, bool used, void* user);
-
-	//  Block header structure.
-
-	//  prev:      Pointer to the previous physical block.  Only valid when the
-	//             previous block is free; physically stored at the tail of that
-	//             block's payload.
-	//  header:    Size (upper bits) | status bits (lower 2 bits).
-	//  next_free: Next block in the same free list (only valid when free).
-	//  prev_free: Previous block in the same free list (only valid when free).
-
-	struct Block {
-		Block* prev;
-		std::size_t header;
-		Block* next_free;
-		Block* prev_free;
-	};
-
-	struct TLSF {
-		std::uint32_t fl;
-		std::uint32_t sl[TLSF_FL_COUNT];
-		void* arena;
-		std::size_t size;
-		Block* block[TLSF_FL_COUNT][TLSF_SL_COUNT];
-		Block block_null;
-		ResizeCallback* allocator;
-		void* userdata;
-	};
-
-	// Heap statistics structure for monitoring allocator state.
-
-	struct Stats {
-		std::size_t total_free;  // Total free bytes available
-		std::size_t largest_free;// Largest contiguous free block
-		std::size_t total_used;  // Total bytes in allocated blocks
-		std::size_t block_count; // Total number of blocks (free + used)
-		std::size_t free_count;  // Number of free blocks (fragmentation indicator)
-		std::size_t overhead;    // Metadata overhead bytes
-	};
-
-	class Allocator
-	{
-	private:
-		TLSF m_tlsf;
-
-	public:
-		// Default constructor (zero-initializes everything)
-		Allocator() = default;
-
-		// Delete copy/move semantics to prevent accidental duplication of the allocator state
-		Allocator(const Allocator&)            = delete;
-		Allocator& operator=(const Allocator&) = delete;
-
-		// Initialize the allocator with a dynamic pool.
-		// @param allocator Callback for resizing
-		// @param userdata  Custom user data passed to the callback
-		void init(ResizeCallback* allocator, void* userdata = nullptr);
-
-
-		//  Initialize the allocator with a fixed-size memory pool.
-		//  The pool will not auto-grow via resize callback; when the pool is
-		//  exhausted, allocations return nullptr. Callers may still extend the
-		//  pool explicitly via append_pool() with adjacent memory.
-
-		//  @param mem   Pointer to the memory region to use as the pool
-		//  @param bytes Total size of the memory region in bytes
-		//  @return      Usable bytes in the pool, or 0 on failure
-		std::size_t init(void* mem, std::size_t bytes);
-
-
-		//  Append a memory block to an existing pool, potentially coalescing with
-		//  the last block if it's free.
-
-		//  @param mem  Pointer to the memory block to append
-		//  @param size Size of the memory block in bytes
-		//  @return Number of bytes used from the memory block, 0 on failure
-
-		std::size_t append_pool(void* mem, std::size_t size);
-
-
-		// Reset a static pool to its initial state, discarding all allocations.
-		// WARNING: All previously returned pointers become invalid.
-		void pool_reset();
-
-
-		//  Allocate memory from the pool.
-
-		//  @param size Requested allocation size in bytes. A zero size request
-		//  returns a unique minimum-sized allocation.
-		//  @return Pointer to at least @size bytes, aligned to ALIGN_SIZE, or nullptr.
-		[[nodiscard]] void* alloc(std::size_t size);
-
-
-		//  Allocate memory with a specified alignment.
-
-		//  @param size  Requested allocation size in bytes.
-		//  @param align Alignment in bytes; must be a non-zero power of two
-		//  @return Pointer to at least @size bytes aligned to @align, or nullptr.
-		[[nodiscard]] void* alloc(std::size_t size, std::size_t align);
-
-
-		// Reallocate memory to a new size.
-		[[nodiscard]] void* realloc(void* ptr, std::size_t size);
-
-
-		// Releases the previously allocated memory.
-		void free(void* ptr);
-
-
-		// Return the usable size of an existing allocation.
-		// Note: Implemented as a static method because it usually only reads
-		// the block header preceding the pointer.
-		static std::size_t usable_size(void* ptr);
-
-
-		// Collect heap statistics by walking all blocks.
-		// @param stats Output structure to fill with statistics
-		// @return true on success, false on failure
-		Stats stats() const;
-
-		void walk(WalkCallback* callback, void* userdata = nullptr);
-
-#ifdef TLSF_ENABLE_CHECK
-		void check() const;
-#else
-		inline void check() const {}
-#endif
-	};
-}// namespace tlsf

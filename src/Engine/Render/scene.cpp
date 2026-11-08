@@ -20,7 +20,7 @@ namespace Trinex
 			return static_cast<RenderScene*>(userdata)->heap_allocator(size);
 		};
 
-		m_heap_allocator.init(callback, this);
+		//m_heap_allocator.init(callback, this);
 	}
 
 	RenderScene::~RenderScene()
@@ -178,7 +178,7 @@ namespace Trinex
 
 	u32 RenderScene::allocate(u32 size, const void* data)
 	{
-		void* ptr   = m_heap_allocator.alloc(size, 16);
+		void* ptr   = nullptr;//m_heap_allocator.alloc(size, 16);
 		u32 address = static_cast<u8*>(ptr) - m_cpu_heap.data();
 
 		if (data)
@@ -191,7 +191,7 @@ namespace Trinex
 
 	RenderScene& RenderScene::free(u32 address)
 	{
-		m_heap_allocator.free(map(address));
+		//m_heap_allocator.free(map(address));
 		return *this;
 	}
 

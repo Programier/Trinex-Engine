@@ -4,7 +4,6 @@
 #include <Core/math/matrix.hpp>
 #include <Engine/enviroment.hpp>
 #include <RHI/types.hpp>
-#include <tlfs/tlsf.hpp>
 
 namespace Trinex
 {
@@ -99,7 +98,7 @@ namespace Trinex
 		Array<u8> m_cpu_heap;
 		RHIBuffer* m_gpu_heap = nullptr;
 
-		tlsf::Allocator m_heap_allocator;
+		//tlsf::Allocator m_heap_allocator;
 		Array<Command> m_commands;
 
 		Array<Chunk> m_chunks;
