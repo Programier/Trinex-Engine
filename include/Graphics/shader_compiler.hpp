@@ -74,7 +74,7 @@ namespace Trinex
 		using CompileCallback = Delegate<bool(const ShaderCompilationResult&)>;
 
 	public:
-		template<template<class T> typename AllocatorType = Allocator>
+		template<template<class T> typename AllocatorType = HeapAllocator::Adapter>
 		class Environment : public ShaderCompilationEnvironment
 		{
 		private:

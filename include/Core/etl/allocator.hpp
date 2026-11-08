@@ -26,13 +26,6 @@ namespace Trinex
 		}
 	};
 
-	struct trinex_api ByteAllocator : AllocatorBase
-	{
-		static inline unsigned char* allocate(size_type size) { return allocate_aligned(size, 16); }
-		static unsigned char* allocate_aligned(size_type size, size_type align);
-		static void deallocate(unsigned char* ptr) noexcept;
-	};
-
 	struct trinex_api StackByteAllocator : AllocatorBase
 	{
 		class trinex_api Mark final
@@ -118,9 +111,6 @@ namespace Trinex
 	{
 		return false;
 	}
-
-	template<typename T>
-	using Allocator = TypedAllocator<T, ByteAllocator>;
 
 	template<typename T>
 	using StackAllocator = TypedAllocator<T, StackByteAllocator>;

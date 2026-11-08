@@ -3,6 +3,7 @@
 #include <Core/etl/allocator.hpp>
 #include <Core/etl/archive_predef.hpp>
 #include <Core/etl/initializer_list.hpp>
+#include <Core/memory/heap.hpp>
 #include <iterator>
 #include <limits>
 #include <memory>
@@ -19,7 +20,7 @@ namespace Trinex
 		inline usize capacity() const { return static_cast<u8*>(end) - static_cast<u8*>(start); }
 	};
 
-	template<typename T, typename AllocatorType = Allocator<T>>
+	template<typename T, typename AllocatorType = HeapAllocator::Adapter<T>>
 	class Array : private AllocatorType
 	{
 	public:

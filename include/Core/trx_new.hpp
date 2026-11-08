@@ -3,29 +3,29 @@
 
 namespace Trinex
 {
-	struct ByteAllocatorTag
+	struct HeapAllocatorTag
 	{
 	};
-	struct StackByteAllocatorTag
+	struct StackAllocatorTag
 	{
 	};
-	struct FrameByteAllocatorTag
+	struct FrameAllocatorTag
 	{
 	};
 } // namespace Trinex
 
-trinex_api void* operator new(std::size_t size, Trinex::ByteAllocatorTag) noexcept;
-trinex_api void* operator new(std::size_t size, Trinex::StackByteAllocatorTag) noexcept;
-trinex_api void* operator new(std::size_t size, Trinex::FrameByteAllocatorTag) noexcept;
+trinex_api void* operator new(std::size_t size, Trinex::HeapAllocatorTag) noexcept;
+trinex_api void* operator new(std::size_t size, Trinex::StackAllocatorTag) noexcept;
+trinex_api void* operator new(std::size_t size, Trinex::FrameAllocatorTag) noexcept;
 
-trinex_api void* operator new(std::size_t size, std::align_val_t align, Trinex::ByteAllocatorTag) noexcept;
-trinex_api void* operator new(std::size_t size, std::align_val_t align, Trinex::StackByteAllocatorTag) noexcept;
-trinex_api void* operator new(std::size_t size, std::align_val_t align, Trinex::FrameByteAllocatorTag) noexcept;
-trinex_api void operator delete(void* ptr, Trinex::ByteAllocatorTag) noexcept;
+trinex_api void* operator new(std::size_t size, std::align_val_t align, Trinex::HeapAllocatorTag) noexcept;
+trinex_api void* operator new(std::size_t size, std::align_val_t align, Trinex::StackAllocatorTag) noexcept;
+trinex_api void* operator new(std::size_t size, std::align_val_t align, Trinex::FrameAllocatorTag) noexcept;
+trinex_api void operator delete(void* ptr, Trinex::HeapAllocatorTag) noexcept;
 
 namespace Trinex
 {
-	struct ByteAllocatorDeleter
+	struct HeapAllocatorDeleter
 	{
 		template<typename T>
 		struct strip_ref
@@ -49,23 +49,23 @@ namespace Trinex
 			if (ptr)
 			{
 				ptr->~T();
-				::operator delete(const_cast<T*>(ptr), Trinex::ByteAllocatorTag{});
+				::operator delete(const_cast<T*>(ptr), Trinex::HeapAllocatorTag{});
 			}
 		}
 	};
 } // namespace Trinex
 
-#define trx_new new (Trinex::ByteAllocatorTag{})
-#define trx_stack_new new (Trinex::StackByteAllocatorTag{})
-#define trx_frame_new new (Trinex::FrameByteAllocatorTag{})
-#define trx_delete Trinex::ByteAllocatorDeleter() =
+#define trx_new new (Trinex::HeapAllocatorTag{})
+#define trx_stack_new new (Trinex::StackAllocatorTag{})
+#define trx_frame_new new (Trinex::FrameAllocatorTag{})
+#define trx_delete Trinex::HeapAllocatorDeleter() =
 #define trx_delete_inline(ptr)                                                                                                   \
 	do                                                                                                                           \
 	{                                                                                                                            \
 		if (ptr)                                                                                                                 \
 		{                                                                                                                        \
-			using ElemType = typename Trinex::ByteAllocatorDeleter::strip_ref<decltype(*ptr)>::type;                             \
+			using ElemType = typename Trinex::HeapAllocatorDeleter::strip_ref<decltype(*ptr)>::type;                             \
 			ptr->~ElemType();                                                                                                    \
-			::operator delete(ptr, Trinex::ByteAllocatorTag{});                                                                  \
+			::operator delete(ptr, Trinex::HeapAllocatorTag{});                                                                  \
 		}                                                                                                                        \
 	} while (0)

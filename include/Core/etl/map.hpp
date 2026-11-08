@@ -3,6 +3,7 @@
 #include <Core/etl/archive_predef.hpp>
 #include <Core/etl/hash.hpp>
 #include <Core/etl/pair.hpp>
+#include <Core/memory/heap.hpp>
 #include <map>
 #include <unordered_map>
 
@@ -11,19 +12,19 @@ namespace Trinex
 	class Archive;
 
 	template<typename Key, typename Value, typename HashType = Hash<Key>, typename Pred = std::equal_to<Key>,
-	         typename AllocatorType = Allocator<Pair<const Key, Value>>>
+	         typename AllocatorType = HeapAllocator::Adapter<Pair<const Key, Value>>>
 	using Map = std::unordered_map<Key, Value, HashType, Pred, AllocatorType>;
 
 	template<typename Key, typename Value, typename HashType = Hash<Key>, typename Pred = std::equal_to<Key>,
-	         typename AllocatorType = Allocator<Pair<const Key, Value>>>
+	         typename AllocatorType = HeapAllocator::Adapter<Pair<const Key, Value>>>
 	using MultiMap = std::unordered_multimap<Key, Value, HashType, Pred, AllocatorType>;
 
 	template<typename Key, typename Value, typename Compare = std::less<Key>,
-	         typename AllocatorType = Allocator<Pair<const Key, Value>>>
+	         typename AllocatorType = HeapAllocator::Adapter<Pair<const Key, Value>>>
 	using TreeMap = std::map<Key, Value, Compare, AllocatorType>;
 
 	template<typename Key, typename Value, typename Compare = std::less<Key>,
-	         typename AllocatorType = Allocator<Pair<const Key, Value>>>
+	         typename AllocatorType = HeapAllocator::Adapter<Pair<const Key, Value>>>
 	using TreeMultiMap = std::multimap<Key, Value, Compare, AllocatorType>;
 
 	template<typename Key, typename Value, typename HashType = Hash<Key>, typename Pred = std::equal_to<Key>,

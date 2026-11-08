@@ -2,6 +2,7 @@
 #include <Core/etl/allocator.hpp>
 #include <Core/etl/archive_predef.hpp>
 #include <Core/etl/hash.hpp>
+#include <Core/memory/heap.hpp>
 #include <set>
 #include <unordered_set>
 
@@ -10,21 +11,21 @@ namespace Trinex
 	class Archive;
 
 	template<typename Type, typename HashType = Hash<Type>, typename Pred = std::equal_to<Type>,
-	         typename AllocatorType = Allocator<Type>>
+	         typename AllocatorType = HeapAllocator::Adapter<Type>>
 	using Set = std::unordered_set<Type, HashType, Pred, AllocatorType>;
 
 	template<typename Type, typename HashType = Hash<Type>, typename Pred = std::equal_to<Type>,
-	         typename AllocatorType = Allocator<Type>>
+	         typename AllocatorType = HeapAllocator::Adapter<Type>>
 	using MultiSet = std::unordered_multiset<Type, HashType, Pred, AllocatorType>;
 
-	template<typename Type, typename Compare = std::less<Type>, typename AllocatorType = Allocator<Type>>
+	template<typename Type, typename Compare = std::less<Type>, typename AllocatorType = HeapAllocator::Adapter<Type>>
 	using TreeSet = std::set<Type, Compare, AllocatorType>;
 
-	template<typename Type, typename Compare = std::less<Type>, typename AllocatorType = Allocator<Type>>
+	template<typename Type, typename Compare = std::less<Type>, typename AllocatorType = HeapAllocator::Adapter<Type>>
 	using TreeMultiSet = std::multiset<Type, Compare, AllocatorType>;
 
 	template<typename Type, typename HashType = Hash<Type>, typename Pred = std::equal_to<Type>,
-	         typename AllocatorType = Allocator<Type>, typename ArchiveType>
+	         typename AllocatorType = HeapAllocator::Adapter<Type>, typename ArchiveType>
 	inline bool trinex_serialize_set(ArchiveType& ar, Set<Type, HashType, Pred, AllocatorType>& set)
 	    requires(is_complete_archive_type<ArchiveType>)
 	{

@@ -17,7 +17,7 @@ namespace Trinex
 	VulkanPipelineLayout::VulkanPipelineLayout(usize hash, vk::ShaderStageFlags stages, Descriptor* descriptors, usize count)
 	    : m_descriptors(nullptr), m_hash(hash), m_descriptors_count(count)
 	{
-		m_descriptors = Allocator<Descriptor>::allocate(count);
+		m_descriptors = HeapAllocator::allocate<Descriptor>(count);
 		std::memcpy(m_descriptors, descriptors, sizeof(Descriptor) * count);
 
 		StackByteAllocator::Mark mark;
@@ -64,7 +64,7 @@ namespace Trinex
 
 	VulkanPipelineLayout::~VulkanPipelineLayout()
 	{
-		trx_delete m_descriptors;
+		HeapAllocator::free(m_descriptors);
 		VulkanAPI::device()->destroyPipelineLayout(m_layout);
 
 		if (m_set_layout)
@@ -407,7 +407,7 @@ namespace Trinex
 
 	VulkanDescriptorSetAllocator::VulkanDescriptorSetAllocator()
 	{
-		m_caches = Allocator<FrameCache>::allocate(s_cache_lifetime);
+		m_caches = HeapAllocator::allocate<FrameCache>(s_cache_lifetime);
 
 		for (u64 i = 0; i < s_cache_lifetime; ++i)
 		{
@@ -424,7 +424,7 @@ namespace Trinex
 			m_caches[i].~FrameCache();
 		}
 
-		Allocator<FrameCache>::deallocate(m_caches, s_cache_lifetime);
+		HeapAllocator::free(m_caches);
 	}
 
 	VulkanDescriptorSetAllocator& VulkanDescriptorSetAllocator::begin_frame(u64 frame)

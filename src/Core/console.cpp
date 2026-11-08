@@ -464,7 +464,7 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 		}
 
 		const usize alignment = function->alignment() == 0 ? alignof(void*) : function->alignment();
-		void* storage         = ByteAllocator::allocate_aligned(function->size() == 0 ? 1 : function->size(), alignment);
+		void* storage         = HeapAllocator::allocate(function->size() == 0 ? 1 : function->size(), alignment);
 		Array<Refl::Property*> constructed;
 		bool success = true;
 
@@ -512,7 +512,7 @@ _Comment <- '#' (![\r\n] .)* / '//' (![\r\n] .)*
 			constructed.pop_back();
 		}
 
-		ByteAllocator::deallocate(static_cast<unsigned char*>(storage));
+		HeapAllocator::free(static_cast<unsigned char*>(storage));
 		return result;
 	}
 

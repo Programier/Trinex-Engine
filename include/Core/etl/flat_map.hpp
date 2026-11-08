@@ -27,7 +27,8 @@ namespace Trinex
 		}
 	};
 
-	template<typename Key, typename Value, typename Compare = Less<Key>, typename AllocatorType = Allocator<Pair<Key, Value>>>
+	template<typename Key, typename Value, typename Compare = Less<Key>,
+	         typename AllocatorType = HeapAllocator::Adapter<Pair<Key, Value>>>
 	class FlatMap : private FlatSet<Pair<Key, Value>, FlatMapCompare<Key, Value, Compare>, AllocatorType>
 	{
 		using base_type = FlatSet<Pair<Key, Value>, FlatMapCompare<Key, Value, Compare>, AllocatorType>;

@@ -60,7 +60,7 @@ namespace Trinex::Refl
 		if (m_size == 0 || m_alignment == 0)
 			return nullptr;
 
-		auto* instance = ByteAllocator::allocate_aligned(size(), alignment());
+		auto* instance = HeapAllocator::allocate(size(), alignment());
 
 		if (instance)
 		{
@@ -68,7 +68,7 @@ namespace Trinex::Refl
 
 			if (!invoke_construct(instance, args, count, context))
 			{
-				ByteAllocator::deallocate(instance);
+				HeapAllocator::free(instance);
 				instance = nullptr;
 			}
 		}
@@ -84,7 +84,7 @@ namespace Trinex::Refl
 		if (m_size == 0 || m_alignment == 0)
 			return nullptr;
 
-		auto* instance = ByteAllocator::allocate_aligned(size(), alignment());
+		auto* instance = HeapAllocator::allocate(size(), alignment());
 		m_vtable->construct(this, instance);
 		return instance;
 	}
@@ -93,7 +93,7 @@ namespace Trinex::Refl
 	{
 		if (destruct(object))
 		{
-			ByteAllocator::deallocate(static_cast<unsigned char*>(object));
+			HeapAllocator::free(static_cast<unsigned char*>(object));
 			return true;
 		}
 

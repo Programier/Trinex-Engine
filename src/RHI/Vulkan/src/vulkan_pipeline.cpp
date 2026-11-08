@@ -286,7 +286,7 @@ namespace Trinex
 
 		m_vertex_attributes_count = desc.vertex_attributes_count;
 		if (m_vertex_attributes_count)
-			m_vertex_attributes = Allocator<VulkanVertexAttribute>::allocate(m_vertex_attributes_count);
+			m_vertex_attributes = HeapAllocator::allocate<VulkanVertexAttribute>(m_vertex_attributes_count);
 
 		for (usize index = 0; index < desc.vertex_attributes_count; ++index)
 		{
@@ -356,7 +356,7 @@ namespace Trinex
 		}
 
 		if (m_vertex_attributes)
-			Allocator<VulkanVertexAttribute>::deallocate(m_vertex_attributes);
+			HeapAllocator::free(m_vertex_attributes);
 	}
 
 	u64 VulkanMeshPipeline::KeyHasher::operator()(const Key& key) const

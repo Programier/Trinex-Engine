@@ -84,6 +84,16 @@ namespace Trinex
 		static bool owns(const void* ptr);
 		static void check();
 		static void walk(WalkCallback callback, void* userdata = nullptr);
+		static void dump();
 		static Stats stats();
+
+		template<typename T, usize align = alignof(T)>
+		static T* allocate(usize size)
+		{
+			static_assert(align >= alignof(T));
+			static_assert((align & (align - 1)) == 0);
+
+			return static_cast<T*>(HeapAllocator::allocate(sizeof(T) * size, align));
+		}
 	};
 } // namespace Trinex

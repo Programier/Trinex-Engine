@@ -1,11 +1,11 @@
 #pragma once
-#include <Core/etl/allocator.hpp>
 #include <Core/etl/archive_predef.hpp>
+#include <Core/memory/heap.hpp>
 #include <deque>
 
 namespace Trinex
 {
-	template<typename Type, typename AllocatorType = Allocator<Type>>
+	template<typename Type, typename AllocatorType = HeapAllocator::Adapter<Type>>
 	using Deque = std::deque<Type, AllocatorType>;
 
 	template<typename Type, typename AllocatorType, typename ArchiveType>

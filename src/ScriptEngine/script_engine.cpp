@@ -84,8 +84,8 @@ namespace Trinex
 			trinex_unreachable_msg(ctx->GetExceptionString());
 		}
 
-		static void* angel_script_allocate(usize size) { return ByteAllocator::allocate(size); }
-		static void angel_script_deallocate(void* ptr) { ByteAllocator::deallocate(static_cast<unsigned char*>(ptr)); }
+		static void* angel_script_allocate(usize size) { return HeapAllocator::allocate(size, 16); }
+		static void angel_script_deallocate(void* ptr) { HeapAllocator::free(ptr); }
 
 	private:
 		State()

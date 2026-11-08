@@ -1,5 +1,4 @@
 #pragma once
-
 #include <Core/etl/array.hpp>
 #include <Core/etl/functional.hpp>
 #include <Core/etl/pair.hpp>
@@ -7,7 +6,7 @@
 
 namespace Trinex
 {
-	template<typename T, typename Compare = Less<T>, typename AllocatorType = Allocator<T>>
+	template<typename T, typename Compare = Less<T>, typename AllocatorType = HeapAllocator::Adapter<T>>
 	class FlatSet : protected Array<T, AllocatorType>
 	{
 	public:
@@ -225,7 +224,7 @@ namespace Trinex
 		constexpr const container_type& container() const { return *this; }
 	};
 
-	template<typename T, typename Compare = Less<T>, typename AllocatorType = Allocator<T>, typename ArchiveType>
+	template<typename T, typename Compare = Less<T>, typename AllocatorType = HeapAllocator::Adapter<T>, typename ArchiveType>
 	inline bool trinex_serialize_flat_set(ArchiveType& ar, FlatSet<T, Compare, AllocatorType>& set)
 	    requires(is_complete_archive_type<ArchiveType>)
 	{

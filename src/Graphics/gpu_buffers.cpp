@@ -1,7 +1,7 @@
 #include <Core/archive.hpp>
-#include <Core/etl/allocator.hpp>
 #include <Core/math/math.hpp>
 #include <Core/memory.hpp>
+#include <Core/memory/heap.hpp>
 #include <Core/threading.hpp>
 #include <Engine/settings.hpp>
 #include <Graphics/gpu_buffers.hpp>
@@ -49,7 +49,7 @@ namespace Trinex
 	{
 		if (m_data)
 		{
-			ByteAllocator::deallocate(m_data);
+			HeapAllocator::free(m_data);
 		}
 	}
 
@@ -127,7 +127,7 @@ namespace Trinex
 
 			if (!keep_cpu_data && m_data && !Settings::Rendering::force_keep_cpu_resources)
 			{
-				ByteAllocator::deallocate(m_data);
+				HeapAllocator::free(m_data);
 				m_data = nullptr;
 			}
 		}
@@ -140,7 +140,7 @@ namespace Trinex
 		m_flags     = type;
 		m_stride    = stride;
 		m_vtx_count = count;
-		m_data      = ByteAllocator::allocate(count * stride);
+		m_data      = HeapAllocator::allocate<u8>(count * stride);
 		return m_data;
 	}
 
@@ -148,7 +148,7 @@ namespace Trinex
 	{
 		if (m_data)
 		{
-			ByteAllocator::deallocate(m_data);
+			HeapAllocator::free(m_data);
 			m_data = nullptr;
 		}
 
@@ -212,7 +212,7 @@ namespace Trinex
 	{
 		if (m_data)
 		{
-			ByteAllocator::deallocate(m_data);
+			HeapAllocator::free(m_data);
 		}
 	}
 
@@ -338,7 +338,7 @@ namespace Trinex
 
 			if (!keep_cpu_data && m_data && !Settings::Rendering::force_keep_cpu_resources)
 			{
-				ByteAllocator::deallocate(m_data);
+				HeapAllocator::free(m_data);
 				m_data = nullptr;
 			}
 		}
@@ -353,7 +353,7 @@ namespace Trinex
 		m_format    = format;
 		m_idx_count = count;
 
-		m_data = ByteAllocator::allocate_aligned(size(), alignof(u32));
+		m_data = HeapAllocator::allocate<u8, alignof(u32)>(size());
 		return m_data;
 	}
 
@@ -361,7 +361,7 @@ namespace Trinex
 	{
 		if (m_data)
 		{
-			ByteAllocator::deallocate(m_data);
+			HeapAllocator::free(m_data);
 			m_data = nullptr;
 		}
 

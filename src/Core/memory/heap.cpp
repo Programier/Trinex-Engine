@@ -6,6 +6,7 @@
 #include <Core/memory/heap.hpp>
 #include <Platform/memory.hpp>
 #include <tlfs/tlsf.hpp>
+#include <vector>
 
 namespace Trinex
 {
@@ -32,10 +33,18 @@ namespace Trinex
 		CriticalSection m_cs = {};
 
 	private:
-		struct WalkData
+		struct WalkEntry
 		{
-			HeapAllocator::WalkCallback callback;
-			void* userdata;
+			void* ptr;
+			usize size;
+			bool used;
+		};
+
+		struct SnapshotData
+		{
+			WalkEntry* entries;
+			usize capacity;
+			usize count;
 		};
 
 		[[noreturn]] static void allocation_failure(usize size, usize alignment)
@@ -61,10 +70,21 @@ namespace Trinex
 			}
 		}
 
-		static void walk_pool(void* ptr, size_t size, int used, void* userdata)
+		static void count_blocks(void*, size_t, int, void* userdata) { ++*static_cast<usize*>(userdata); }
+
+		static void snapshot_blocks(void* ptr, size_t size, int used, void* userdata)
 		{
-			auto data = static_cast<WalkData*>(userdata);
-			data->callback(ptr, size, used != 0, data->userdata);
+			auto data = static_cast<SnapshotData*>(userdata);
+			if (data->count < data->capacity)
+			{
+				data->entries[data->count] = {
+				        .ptr  = ptr,
+				        .size = size,
+				        .used = used != 0,
+				};
+			}
+
+			++data->count;
 		}
 
 		static constexpr usize pool_offset() { return align_size(sizeof(Pool), alignof(std::max_align_t)); }
@@ -146,7 +166,20 @@ namespace Trinex
 			return &backend;
 		}
 
-		void* allocate(usize size) { return allocate(size, tlsf_align_size()); }
+		void* allocate(usize size)
+		{
+			const ScopeLock lock(m_cs);
+			if (void* ptr = tlsf_malloc(m_allocator, size))
+				return ptr;
+
+			if (!add_pool(size + tlsf_align_size()))
+				allocation_failure(size, tlsf_align_size());
+
+			if (void* ptr = tlsf_malloc(m_allocator, size))
+				return ptr;
+
+			allocation_failure(size, tlsf_align_size());
+		}
 
 		void* allocate(usize size, usize alignment)
 		{
@@ -232,15 +265,37 @@ namespace Trinex
 			if (!callback)
 				return;
 
-			const ScopeLock lock(m_cs);
+			for (;;)
+			{
+				usize count = 0;
+				{
+					const ScopeLock lock(m_cs);
 
-			WalkData data = {
-			        .callback = callback,
-			        .userdata = userdata,
-			};
+					for (Pool* pool = m_pools; pool; pool = pool->next)
+						tlsf_walk_pool(pool->tlsf_pool, &count_blocks, &count);
+				}
 
-			for (Pool* pool = m_pools; pool; pool = pool->next)
-				tlsf_walk_pool(pool->tlsf_pool, &walk_pool, &data);
+				std::vector<WalkEntry> entries(count);
+				SnapshotData data = {.entries = entries.data(), .capacity = entries.size(), .count = 0};
+
+				{
+					const ScopeLock lock(m_cs);
+
+					for (Pool* pool = m_pools; pool; pool = pool->next)
+						tlsf_walk_pool(pool->tlsf_pool, &snapshot_blocks, &data);
+				}
+
+				if (data.count > data.capacity)
+					continue;
+
+				for (usize index = 0; index < data.count; ++index)
+				{
+					const WalkEntry& entry = entries[index];
+					callback(entry.ptr, entry.size, entry.used, userdata);
+				}
+
+				return;
+			}
 		}
 
 		HeapAllocator::Stats stats()
@@ -298,6 +353,47 @@ namespace Trinex
 	void HeapAllocator::walk(WalkCallback callback, void* userdata)
 	{
 		Backend::instance()->walk(callback, userdata);
+	}
+
+	void HeapAllocator::dump()
+	{
+		struct DumpData
+		{
+			usize used_blocks  = 0;
+			usize free_blocks  = 0;
+			usize used_bytes   = 0;
+			usize free_bytes   = 0;
+			usize largest_free = 0;
+		};
+
+		DumpData data;
+
+		WalkCallback callback = +[](void* ptr, usize size, bool used, void* user) {
+			auto& data = *static_cast<DumpData*>(user);
+
+			if (used)
+			{
+				++data.used_blocks;
+				data.used_bytes += size;
+				trinex_info(Log::Memory, "  [USED]  %p  %zu bytes", ptr, size);
+			}
+			else
+			{
+				++data.free_blocks;
+				data.free_bytes += size;
+				data.largest_free = etl::max(data.largest_free, static_cast<usize>(size));
+				trinex_info(Log::Memory, "  [FREE]  %p  %zu bytes", ptr, size);
+			}
+		};
+
+		trinex_info(Log::Memory, "Heap dump:");
+		walk(callback, &data);
+
+		constexpr f32 bytes_per_megabyte = 1024.0f * 1024.0f;
+
+		trinex_info(Log::Memory, "Heap: used: %.2f MiB in %zu blocks, free: %.2f MiB in %zu blocks, largest free: %.2f MiB",
+		            data.used_bytes / bytes_per_megabyte, data.used_blocks, data.free_bytes / bytes_per_megabyte,
+		            data.free_blocks, data.largest_free / bytes_per_megabyte);
 	}
 
 	HeapAllocator::Stats HeapAllocator::stats()

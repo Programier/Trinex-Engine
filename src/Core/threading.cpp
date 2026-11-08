@@ -166,8 +166,8 @@ namespace Trinex
 			{
 				size = align_up(size, 64);
 
-				ByteAllocator::deallocate(m_data);
-				m_data      = ByteAllocator::allocate(size);
+				HeapAllocator::free(m_data);
+				m_data      = static_cast<u8*>(HeapAllocator::allocate(size));
 				m_data_size = size;
 			}
 			return m_data;

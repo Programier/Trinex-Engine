@@ -4,6 +4,7 @@
 #include <Core/etl/pair.hpp>
 #include <Core/math/math.hpp>
 #include <Core/memory.hpp>
+#include <Core/memory/heap.hpp>
 #include <Core/threading.hpp>
 #include <cstdlib>
 
@@ -52,12 +53,12 @@ namespace Trinex
 
 				inline Node(size_type size, size_type align)
 				{
-					m_begin = ByteAllocator::allocate_aligned(size, align);
+					m_begin = static_cast<u8*>(HeapAllocator::allocate(size, align));
 					m_end   = m_begin + size;
 					m_stack = m_begin;
 				}
 
-				~Node() { ByteAllocator::deallocate(m_begin); }
+				~Node() { HeapAllocator::free(m_begin); }
 			};
 
 			TempAllocatorSync* const m_sync;
@@ -138,26 +139,6 @@ namespace Trinex
 		static thread_local TempAllocatorData s_stack_allocator(&s_stack_sync);
 		static thread_local TempAllocatorData s_frame_allocator(&s_frame_sync);
 	} // namespace
-
-	unsigned char* ByteAllocator::allocate_aligned(size_type size, size_type align)
-	{
-		size = align_up(size, align);
-
-#if PLATFORM_WINDOWS
-		return static_cast<unsigned char*>(_aligned_malloc(size, align));
-#else
-		return static_cast<unsigned char*>(std::aligned_alloc(align, size));
-#endif
-	}
-
-	void ByteAllocator::deallocate(unsigned char* ptr) noexcept
-	{
-#if PLATFORM_WINDOWS
-		_aligned_free(ptr);
-#else
-		std::free(ptr);
-#endif
-	}
 
 	StackByteAllocator::Mark::Mark() : m_location(StackByteAllocator::location()) {}
 
