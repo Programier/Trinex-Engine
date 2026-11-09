@@ -66,7 +66,7 @@ namespace Trinex
 			}
 
 			void deallocate(T* ptr) noexcept { HeapAllocator::free(ptr); }
-			void deallocate(T* ptr, size_type size) noexcept { HeapAllocator::free(ptr, size); }
+			void deallocate(T* ptr, size_type size) noexcept { HeapAllocator::free(ptr, size * sizeof(T)); }
 
 			template<typename U, typename... Args>
 			void construct(U* ptr, Args&&... args)
