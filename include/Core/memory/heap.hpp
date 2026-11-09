@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/etl/string.hpp>
 
 namespace Trinex
 {
@@ -7,13 +8,31 @@ namespace Trinex
 	public:
 		struct Stats
 		{
-			usize pool_count;   // Total pool count
-			usize total_free;   // Total free bytes available
-			usize largest_free; // Largest contiguous free block
-			usize total_used;   // Total bytes in allocated blocks
-			usize block_count;  // Total number of blocks (free + used)
-			usize free_count;   // Number of free blocks (fragmentation indicator)
-			usize overhead;     // Metadata overhead bytes
+			usize page_count;
+			usize abandoned_page_count;
+			usize thread_count;
+			usize arena_count;
+			usize reserved;
+			usize reserved_peak;
+			usize committed;
+			usize committed_peak;
+			usize page_committed;
+			usize used;
+			usize used_peak;
+			usize allocated_total;
+			usize requested_total;
+			usize freed_total;
+			usize allocation_count;
+			usize free_count;
+			usize reset_total;
+			usize purged_total;
+			usize os_allocated_page_count;
+			usize mmap_count;
+			usize commit_count;
+			usize reset_count;
+			usize purge_count;
+			usize page_search_count;
+			usize profile_sample_count;
 		};
 
 		template<typename T>
@@ -46,7 +65,8 @@ namespace Trinex
 				return static_cast<T*>(HeapAllocator::allocate(size, alignof(T)));
 			}
 
-			void deallocate(T* ptr, size_type = 0) noexcept { HeapAllocator::free(ptr); }
+			void deallocate(T* ptr) noexcept { HeapAllocator::free(ptr); }
+			void deallocate(T* ptr, size_type size) noexcept { HeapAllocator::free(ptr, size); }
 
 			template<typename U, typename... Args>
 			void construct(U* ptr, Args&&... args)
@@ -74,18 +94,21 @@ namespace Trinex
 		};
 
 	public:
-		using WalkCallback = void (*)(void* ptr, usize size, bool used, void* userdata);
-
 		static void* allocate(usize size);
 		static void* allocate(usize size, usize alignment);
+		static void* zeroed(usize size);
+		static void* zeroed(usize size, usize alignment);
 		static void* reallocate(void* ptr, usize size);
+		static void* reallocate(void* ptr, usize size, usize alignment);
 		static void free(void* ptr);
+		static void free(void* ptr, usize size);
 		static usize size_of(const void* ptr);
 		static bool owns(const void* ptr);
-		static void check();
-		static void walk(WalkCallback callback, void* userdata = nullptr);
-		static void dump();
+		static void collect(bool force = false);
+		static void trim();
 		static Stats stats();
+		static char* stats_json();
+		static void dump();
 
 		template<typename T, usize align = alignof(T)>
 		static T* allocate(usize size)

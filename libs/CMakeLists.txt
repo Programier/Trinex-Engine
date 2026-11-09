@@ -26,8 +26,6 @@ if (TRINEX_WITH_TRACY_PROFILER)
     add_subdirectory(tracy)
 endif()
 
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/tlsf")
-
 # mimalloc
 set(MI_BUILD_SHARED OFF CACHE BOOL "" FORCE)
 set(MI_BUILD_STATIC ON CACHE BOOL "" FORCE)
