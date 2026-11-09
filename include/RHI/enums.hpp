@@ -257,6 +257,7 @@ namespace Trinex
 			UnorderedAccess    = trinex_bit(1),
 			RenderTarget       = trinex_bit(2),
 			DepthStencilTarget = trinex_bit(3),
+			Virtual            = trinex_bit(4),
 
 			ColorAttachment        = RenderTarget | ShaderResource,
 			RWColorAttachment      = UnorderedAccess | ColorAttachment,
@@ -269,7 +270,7 @@ namespace Trinex
 
 	struct RHIBufferFlags
 	{
-		enum Enum : u16
+		enum Enum : u32
 		{
 			Undefined         = 0,
 			ShaderResource    = trinex_bit(0),
@@ -289,9 +290,10 @@ namespace Trinex
 			AccelerationStorage = trinex_bit(13),
 			AccelerationInput   = trinex_bit(14),
 			ShaderBindingTable  = trinex_bit(15),
+			Virtual             = trinex_bit(16),
 		};
 
-		trinex_bitfield_enum_struct(RHIBufferFlags, u16);
+		trinex_bitfield_enum_struct(RHIBufferFlags, u32);
 	};
 
 	struct RHIBufferViewType
@@ -1157,5 +1159,17 @@ namespace Trinex
 		};
 
 		trinex_bitfield_enum_struct(RHIRayTracingGeometryInstanceFlags, u8);
+	};
+
+	struct RHIMemoryType
+	{
+		enum Enum : u8
+		{
+			DeviceLocal = 0,
+			Upload      = 1,
+			Readback    = 2,
+		};
+
+		trinex_enum_struct(RHIMemoryType);
 	};
 } // namespace Trinex

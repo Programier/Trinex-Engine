@@ -173,4 +173,11 @@ namespace Trinex
 		virtual void uav(u32 slot, RHIUnorderedAccessView* view, u32 idx = 0)                         = 0;
 		virtual void acceleration(u32 slot, RHIAccelerationStructure* acceleration, u32 idx = 0)      = 0;
 	};
+
+	class RHIMemory : public RHIObject
+	{
+	public:
+		virtual usize size() const         = 0;
+		virtual RHIMemoryType type() const = 0;
+	};
 } // namespace Trinex

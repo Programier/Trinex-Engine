@@ -63,6 +63,7 @@ namespace Trinex
 		virtual RHIQueue* queue(RHIQueueType type, RHISwapchain* swapchain = nullptr) = 0;
 		virtual RHIArrayView<RHIQueue*> queues() const                                = 0;
 
+		virtual RHIMemory* create_memory(usize size, RHIMemoryType type)                                 = 0;
 		virtual RHITimestamp* create_timestamp()                                                         = 0;
 		virtual RHIPipelineStatistics* create_pipeline_statistics()                                      = 0;
 		virtual RHIFence* create_fence(u64 value = 0)                                                    = 0;

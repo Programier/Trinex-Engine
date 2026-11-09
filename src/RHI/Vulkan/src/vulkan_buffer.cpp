@@ -1,7 +1,3 @@
-#define VMA_IMPLEMENTATION
-#define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
-#define VMA_STATIC_VULKAN_FUNCTIONS 0
-
 #include <Core/math/math.hpp>
 #include <Core/memory.hpp>
 #include <Graphics/render_pools.hpp>
@@ -198,19 +194,20 @@ namespace Trinex
 
 	u8* VulkanBuffer::map(RHIMappingAccess access)
 	{
-		if (m_allocation->IsMappingAllowed())
+		if (m_flags & (RHIBufferFlags::CPURead | RHIBufferFlags::CPUWrite))
 		{
 			void* mapped = nullptr;
 			auto res     = vmaMapMemory(VulkanAPI::instance()->m_allocator, m_allocation, &mapped);
 			trinex_assert_msg(res == VK_SUCCESS, "Failed to map buffer");
 			return reinterpret_cast<u8*>(mapped);
 		}
+
 		return nullptr;
 	}
 
 	void VulkanBuffer::unmap()
 	{
-		if (m_allocation->IsMappingAllowed())
+		if (m_flags & (RHIBufferFlags::CPURead | RHIBufferFlags::CPUWrite))
 		{
 			vmaUnmapMemory(VulkanAPI::instance()->m_allocator, m_allocation);
 		}

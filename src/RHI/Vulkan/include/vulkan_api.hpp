@@ -165,6 +165,7 @@ namespace Trinex
 
 		vk::PresentModeKHR present_mode_of(RHIPresentMode mode, vk::SurfaceKHR surface);
 
+		RHIMemory* create_memory(usize size, RHIMemoryType type) override;
 		RHITimestamp* create_timestamp() override;
 		RHIPipelineStatistics* create_pipeline_statistics() override;
 		RHIFence* create_fence(u64 value = 0) override;
