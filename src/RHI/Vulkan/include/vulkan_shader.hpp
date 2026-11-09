@@ -16,7 +16,7 @@ namespace Trinex
 		vk::ShaderModule m_shader;
 
 	public:
-		VulkanShader(Span<u8> source, Span<RHIBinding> parameters);
+		VulkanShader(const void* data, usize size);
 		~VulkanShader();
 
 		RHI* device() const override;

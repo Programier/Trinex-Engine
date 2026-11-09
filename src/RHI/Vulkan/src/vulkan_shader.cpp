@@ -3,22 +3,25 @@
 
 namespace Trinex
 {
-	VulkanShader::VulkanShader(Span<u8> source, Span<RHIBinding> parameters)
+	VulkanShader::VulkanShader(const void* data, usize size)
 	{
-		vk::ShaderModuleCreateInfo info(vk::ShaderModuleCreateFlags(), source.size(), reinterpret_cast<u32*>(source.data()));
+		vk::ShaderModuleCreateInfo info(vk::ShaderModuleCreateFlags(), size, static_cast<const u32*>(data));
 		m_shader = vk::verify(VulkanAPI::device()->createShaderModule(info));
 	}
 
-	VulkanShader::~VulkanShader(){DESTROY_CALL(destroyShaderModule, m_shader)}
+	VulkanShader::~VulkanShader()
+	{
+		VulkanAPI::device()->destroyShaderModule(m_shader);
+	}
 
 	RHI* VulkanShader::device() const
 	{
 		return VulkanAPI::instance();
 	}
 
-	RHIShader* VulkanAPI::create_shader(Span<u8> source, Span<RHIBinding> parameters)
+	RHIShader* VulkanAPI::create_shader(const void* data, usize size)
 	{
-		return trx_new VulkanShader(source, parameters);
+		return trx_new VulkanShader(data, size);
 	}
 
 } // namespace Trinex
