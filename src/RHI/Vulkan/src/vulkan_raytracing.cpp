@@ -324,13 +324,6 @@ namespace Trinex
 		return reinterpret_cast<u8*>(result);
 	}
 
-	VulkanContext& VulkanContext::bind_acceleration(RHIAccelerationStructure* acceleration, u8 slot)
-	{
-		auto tlas = static_cast<VulkanAccelerationStructure*>(acceleration);
-		acceleration_structures.bind(tlas->handle(), slot);
-		return *this;
-	}
-
 	VulkanContext& VulkanContext::trace_rays(u32 width, u32 height, u32 depth, u64 raygen, const RHIRange& miss,
 	                                         const RHIRange& hit, const RHIRange& callable)
 	{

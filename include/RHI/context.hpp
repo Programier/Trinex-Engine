@@ -23,14 +23,14 @@ namespace Trinex
 	class trinex_api RHIContext : public RHIObject
 	{
 	public:
-		virtual RHIContext& begin(const RHIContextInheritanceInfo* inheritance = nullptr) = 0;
-		virtual RHICommandHandle* end()                                                   = 0;
+		virtual RHIContext& begin()     = 0;
+		virtual RHICommandHandle* end() = 0;
 
 		virtual RHIContext& begin_rendering(const RHIRenderingInfo& info) = 0;
 		virtual RHIContext& end_rendering()                               = 0;
 
-		virtual RHIContext& execute(RHICommandHandle* handle) = 0;
-		virtual RHIContext& track_resource(RHIObject* object) = 0;
+		virtual RHIContext& retain(RefCounted* object) = 0;
+		virtual RHIContext& adopt(RefCounted* object)  = 0;
 
 		virtual RHIContext& draw(RHITopology topology, usize vertex_count, usize vertices_offset, usize instances = 1,
 		                         usize first_instance = 0)                              = 0;
@@ -56,9 +56,8 @@ namespace Trinex
 		virtual RHIContext& viewport(const RHIRegion& viewport) = 0;
 		virtual RHIContext& scissor(const RHIRegion& scissor)   = 0;
 
-		virtual RHIContext& update_scalar(const void* data, usize size, usize offset, u8 buffer_index) = 0;
-		virtual RHIContext& push_debug_stage(const char* stage)                                        = 0;
-		virtual RHIContext& pop_debug_stage()                                                          = 0;
+		virtual RHIContext& push_debug_stage(const char* stage) = 0;
+		virtual RHIContext& pop_debug_stage()                   = 0;
 
 		virtual RHIContext& clear_rtv(RHIRenderTargetView* rtv, f32 r = 0.f, f32 g = 0.f, f32 b = 0.f, f32 a = 0.f) = 0;
 		virtual RHIContext& clear_urtv(RHIRenderTargetView* rtv, u32 r = 0u, u32 g = 0u, u32 b = 0u, u32 a = 0u)    = 0;
@@ -98,13 +97,13 @@ namespace Trinex
 		virtual RHIContext& bind_vertex_buffer(RHIBuffer* buffer, usize byte_offset, u16 stride, u8 stream,
 		                                       RHIVertexInputRate rate = RHIVertexInputRate::Vertex)                       = 0;
 		virtual RHIContext& bind_index_buffer(RHIBuffer* buffer, RHIIndexFormat format, usize byte_offset = 0)             = 0;
-		virtual RHIContext& bind_uniform_buffer(RHIBuffer* buffer, u8 slot)                                                = 0;
 
-		virtual RHIContext& bind_pipeline(RHIPipeline* pipeline)                               = 0;
-		virtual RHIContext& bind_sampler(RHISampler* sampler, u8 slot)                         = 0;
-		virtual RHIContext& bind_srv(RHIShaderResourceView* view, u8 slot)                     = 0;
-		virtual RHIContext& bind_uav(RHIUnorderedAccessView* view, u8 slot)                    = 0;
-		virtual RHIContext& bind_acceleration(RHIAccelerationStructure* acceleration, u8 slot) = 0;
+		virtual RHIContext& bind_pipeline(RHIPipeline* pipeline) = 0;
+		RHIContext& bind_uniform_buffer(RHIBuffer* buffer, u8 slot) { return *this; }
+		RHIContext& bind_sampler(RHISampler* sampler, u8 slot) { return *this; };
+		RHIContext& bind_srv(RHIShaderResourceView* view, u8 slot) { return *this; };
+		RHIContext& bind_uav(RHIUnorderedAccessView* view, u8 slot) { return *this; };
+		RHIContext& bind_acceleration(RHIAccelerationStructure* acceleration, u8 slot) { return *this; };
 
 		virtual RHIContext& barrier(RHITexture* texture, RHIAccess access) = 0;
 		virtual RHIContext& barrier(RHIBuffer* buffer, RHIAccess access)   = 0;
@@ -115,15 +114,9 @@ namespace Trinex
 		virtual RHIContext& begin_statistics(RHIPipelineStatistics* stats) = 0;
 		virtual RHIContext& end_statistics(RHIPipelineStatistics* stats)   = 0;
 
-		inline RHIContext& update_scalar(const void* data, usize size, const RHIBinding* info)
-		{
-			return update_scalar(data, size, info->offset, info->binding);
-		}
+		inline RHIContext& update_scalar(const void* data, usize size, const RHIBinding* info) { return *this; }
 
-		inline RHIContext& update_scalar(const void* data, const RHIBinding* info)
-		{
-			return update_scalar(data, info->size, info->offset, info->binding);
-		}
+		inline RHIContext& update_scalar(const void* data, const RHIBinding* info) { return *this; }
 
 		template<typename Func>
 		inline RHIContext& render(const RHIRenderingInfo& info, Func&& func)

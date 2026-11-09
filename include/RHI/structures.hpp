@@ -463,13 +463,6 @@ namespace Trinex
 		}
 	};
 
-	struct RHIContextInheritanceInfo
-	{
-		RHISurfaceFormat colors[4]       = {RHISurfaceFormat::Undefined};
-		RHISurfaceFormat depth           = RHISurfaceFormat::Undefined;
-		RHIContextInheritanceFlags flags = RHIContextInheritanceFlags::Undefined;
-	};
-
 	struct RHIFencePoint
 	{
 		RHIFence* fence = nullptr;

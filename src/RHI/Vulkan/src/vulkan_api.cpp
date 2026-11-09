@@ -20,7 +20,6 @@
 #include <vulkan_shader.hpp>
 #include <vulkan_sync.hpp>
 #include <vulkan_texture.hpp>
-#include <vulkan_thread_local.hpp>
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
@@ -488,11 +487,6 @@ namespace Trinex
 	VulkanAPI::~VulkanAPI()
 	{
 		wait();
-
-		for (VulkanThreadLocal* local : m_thread_locals)
-		{
-			trx_delete local;
-		}
 
 		trx_delete m_pipeline_layout_manager;
 		for (RHIQueue* queue : m_queues)

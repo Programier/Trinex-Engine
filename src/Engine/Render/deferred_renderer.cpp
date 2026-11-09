@@ -481,11 +481,6 @@ namespace Trinex
 
 		ctx->begin_rendering(info);
 		{
-			RHIContextInheritanceInfo inherit;
-			inherit.colors[0] = scene_color_hdr_format();
-			inherit.depth     = scene_depth_format();
-			inherit.flags     = RHIContextInheritanceFlags::RenderPassContinue;
-
 			// render_visible_primitives(ctx, RenderPasses::Translucent::static_instance(), &inherit, &s_bindings);
 		}
 		ctx->end_rendering();

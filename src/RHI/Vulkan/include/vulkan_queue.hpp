@@ -11,6 +11,8 @@ namespace Trinex
 	class VulkanQueue final : public RHIQueue
 	{
 	private:
+		RHIGarbageGroup* m_command_group;
+
 		vk::Queue m_queue;
 		VulkanFence* m_submit_fence;
 		u64 m_submit_index;
@@ -34,5 +36,6 @@ namespace Trinex
 
 		inline u32 family_index() const { return m_family_index; }
 		inline u32 queue_index() const { return m_queue_index; }
+		inline RHIGarbageGroup* command_group() const { return m_command_group; }
 	};
 } // namespace Trinex

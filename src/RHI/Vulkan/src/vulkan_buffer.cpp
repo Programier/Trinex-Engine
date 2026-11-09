@@ -233,35 +233,6 @@ namespace Trinex
 			trx_delete m_uav;
 	}
 
-	VulkanUniformBuffer::VulkanUniformBuffer(usize min_size)
-	{
-		static constexpr usize uniform_buffer_page_size = 1024 * 32; // 32 KB
-
-		constexpr auto flags = RHIBufferFlags::UniformBuffer | RHIBufferFlags::CPURead | RHIBufferFlags::CPUWrite;
-		create(Math::max(uniform_buffer_page_size, min_size), flags);
-		m_memory = m_block_start = m_block_end = map();
-	}
-
-	VulkanUniformBuffer::~VulkanUniformBuffer()
-	{
-		unmap();
-	}
-
-	VulkanUniformBuffer& VulkanUniformBuffer::flush()
-	{
-		m_block_start = m_block_end =
-		        align_up_ptr(m_block_end, VulkanAPI::instance()->m_properties.limits.minUniformBufferOffsetAlignment);
-		return *this;
-	}
-
-	VulkanUniformBuffer& VulkanUniformBuffer::update(const void* data, usize size, usize offset)
-	{
-		std::memcpy(m_block_start + offset, data, size);
-		m_block_end = std::max<u8*>(m_block_end, m_block_start + offset + size);
-		m_block_end = align_up_ptr(m_block_end, VulkanAPI::instance()->m_properties.limits.minUniformBufferOffsetAlignment);
-		return *this;
-	}
-
 	RHIBuffer* VulkanAPI::create_buffer(usize size, RHIBufferFlags flags)
 	{
 		return &(trx_new VulkanBuffer())->create(size, flags);
@@ -284,18 +255,6 @@ namespace Trinex
 		VulkanBuffer* vulkan_buffer = static_cast<VulkanBuffer*>(buffer);
 		m_cmd->bindIndexBuffer(vulkan_buffer->buffer(), byte_offset,
 		                       format == RHIIndexFormat::UInt16 ? vk::IndexType::eUint16 : vk::IndexType::eUint32);
-		return *this;
-	}
-
-	VulkanContext& VulkanContext::bind_uniform_buffer(RHIBuffer* buffer, u8 slot)
-	{
-		VulkanBuffer* vulkan_buffer = static_cast<VulkanBuffer*>(buffer);
-		return bind_uniform_buffer(vulkan_buffer, vulkan_buffer->size(), 0, slot);
-	}
-
-	VulkanContext& VulkanContext::bind_uniform_buffer(VulkanBuffer* buffer, u32 size, u32 offset, u8 slot)
-	{
-		uniform_buffers.bind(VulkanContext::UniformBuffer(buffer->buffer(), size, offset), slot);
 		return *this;
 	}
 

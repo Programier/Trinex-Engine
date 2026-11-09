@@ -5,14 +5,12 @@
 #include <Core/etl/map.hpp>
 #include <RHI/context.hpp>
 #include <vulkan_headers.hpp>
-#include <vulkan_thread_local.hpp>
 
 namespace Trinex
 {
 	class RHIObject;
 	class VulkanQueue;
 	class VulkanBuffer;
-	class VulkanUniformBuffer;
 	class VulkanFence;
 	class VulkanDescriptorSetAllocator;
 	class VulkanCommandHandle;
@@ -22,7 +20,6 @@ namespace Trinex
 	class VulkanTextureUAV;
 	class VulkanTextureRTV;
 	class VulkanTextureDSV;
-	class VulkanUniformBuffer;
 	class VulkanPipeline;
 	class VulkanContext;
 	struct VulkanVertexAttribute;
@@ -67,114 +64,23 @@ namespace Trinex
 
 	class VulkanCommandHandle final : public vk::CommandBuffer, public RHICommandHandle
 	{
-	private:
-		enum class State
-		{
-			Unused,
-			Active,
-			Pending,
-			Submitted,
-		};
-
-		struct UniformBuffer
-		{
-			VulkanUniformBuffer* m_uniform_buffer_head     = nullptr;
-			VulkanUniformBuffer** m_uniform_buffer_current = &m_uniform_buffer_head;
-
-			UniformBuffer() = default;
-			trinex_non_copyable(UniformBuffer);
-
-			inline UniformBuffer(UniformBuffer&& buffer) : m_uniform_buffer_head(buffer.m_uniform_buffer_head)
-			{
-				if (&buffer.m_uniform_buffer_head != buffer.m_uniform_buffer_current)
-				{
-					m_uniform_buffer_current = buffer.m_uniform_buffer_current;
-				}
-
-				buffer.m_uniform_buffer_head    = nullptr;
-				buffer.m_uniform_buffer_current = nullptr;
-			}
-
-			VulkanUniformBuffer* request_uniform_page(usize size);
-			UniformBuffer& reset();
-			UniformBuffer& flush();
-		};
 
 	private:
-		vk::Fence m_fence;
-		class VulkanCommandBufferManager* m_manager;
-		Array<UniformBuffer> m_uniform_buffers;
-		Array<RHIObject*> m_transient_resources;
-		State m_state = State::Unused;
-		const RHIContextFlags m_flags;
-
-	private:
-		VulkanCommandHandle& release_transient_resources();
+		vk::CommandPool m_pool;
+		Array<Ref<RefCounted>> m_objects;
 
 	public:
-		VulkanCommandHandle(class VulkanCommandBufferManager* manager, RHIContextFlags flags);
-		VulkanCommandHandle(const VulkanCommandHandle&) = delete;
-		VulkanCommandHandle(VulkanCommandHandle&&)      = delete;
+		VulkanCommandHandle(VulkanQueue* queue);
 		~VulkanCommandHandle();
 
-		VulkanCommandHandle& operator=(const VulkanCommandHandle&) = delete;
-		VulkanCommandHandle& operator=(VulkanCommandHandle&&)      = delete;
+		trinex_non_copyable(VulkanCommandHandle);
+		trinex_non_moveable(VulkanCommandHandle);
 
+		void on_reclaimable() override;
 		RHI* device() const override;
 
-		VulkanCommandHandle& refresh_fence_status();
-		VulkanCommandHandle& begin(const vk::CommandBufferBeginInfo& info = {});
-		VulkanCommandHandle& end();
-		VulkanCommandHandle& enqueue();
-		VulkanCommandHandle& wait();
-		VulkanCommandHandle& flush_uniforms();
-
-		void destroy() noexcept override;
-
-		inline VulkanUniformBuffer* request_uniform_page(usize size, u8 index)
-		{
-			if (m_uniform_buffers.size() <= index)
-				m_uniform_buffers.resize(index + 1);
-			return m_uniform_buffers[index].request_uniform_page(size);
-		}
-
-		inline VulkanCommandHandle& track_resource(RHIObject* object)
-		{
-			if (object)
-			{
-				object->add_ref();
-				m_transient_resources.push_back(object);
-			}
-			return *this;
-		}
-
-		inline bool is_unused() const { return m_state == State::Unused; }
-		inline bool is_active() const { return m_state == State::Active; }
-		inline bool is_pending() const { return m_state == State::Pending; }
-		inline bool is_submitted() const { return m_state == State::Submitted; }
-		inline bool is_secondary() const { return m_flags & RHIContextFlags::Secondary; }
-		inline bool is_primary() const { return (m_flags & RHIContextFlags::Secondary) == RHIContextFlags::Undefined; }
-	};
-
-	class VulkanCommandBufferManager : public VulkanThreadLocal
-	{
-	private:
-		CriticalSectionRecursive m_critical;
-		VulkanQueue* m_queue;
-		vk::CommandPool m_pool;
-		Deque<VulkanCommandHandle*> m_primary;
-		Deque<VulkanCommandHandle*> m_secondary;
-
-	public:
-		VulkanCommandBufferManager(VulkanQueue* queue);
-		~VulkanCommandBufferManager();
-
-		static VulkanCommandBufferManager* instance(VulkanQueue* queue);
-
-		VulkanCommandHandle* request_handle(RHIContextFlags flags);
-		VulkanCommandBufferManager& return_handle(VulkanCommandHandle* handle);
-
-		inline vk::CommandPool command_pool() const { return m_pool; }
+		inline void retain(RefCounted* ref) { m_objects.emplace_back(retain_ref(ref)); }
+		inline void adopt(RefCounted* ref) { m_objects.emplace_back(adopt_ref(ref)); }
 	};
 
 	class VulkanContext final : public RHIContext
@@ -295,14 +201,6 @@ namespace Trinex
 		VulkanContext& bind_framebuffer(const Framebuffer& fb);
 
 	public:
-		VulkanResourceState<UniformBuffer> uniform_buffers;
-		VulkanResourceState<vk::Buffer> storage_buffers;
-		VulkanResourceState<vk::Buffer> uniform_texel_buffers;
-		VulkanResourceState<vk::Buffer> storage_texel_buffers;
-		VulkanResourceState<vk::Sampler> samplers;
-		VulkanResourceState<vk::AccelerationStructureKHR> acceleration_structures;
-		VulkanResourceState<vk::ImageView> srv_images;
-		VulkanResourceState<vk::ImageView> uav_images;
 		VulkanResourceState<VertexStream> vertex_streams;
 		VulkanResourceState<VertexAttribute> vertex_attributes;
 
@@ -342,19 +240,20 @@ namespace Trinex
 		inline RHIColorComponent write_mask() const { return m_pipeline_state->blending.write_mask; }
 
 	public:
-		VulkanContext(VulkanQueue* queue, RHIContextFlags flags);
+		VulkanContext(VulkanQueue* queue);
 		~VulkanContext();
 
 		RHI* device() const override;
 
-		VulkanContext& begin(const RHIContextInheritanceInfo* inheritance = nullptr) override;
+		VulkanContext& begin(VulkanCommandHandle* handle);
+		VulkanContext& begin() override;
 		VulkanCommandHandle* end() override;
+
+		VulkanContext& retain(RefCounted* object) override;
+		VulkanContext& adopt(RefCounted* object) override;
 
 		VulkanContext& begin_rendering(const RHIRenderingInfo& info) override;
 		VulkanContext& end_rendering() override;
-
-		VulkanContext& execute(RHICommandHandle* handle) override;
-		VulkanContext& track_resource(RHIObject* object) override;
 
 		VulkanContext& viewport(const RHIRegion& viewport) override;
 		VulkanContext& scissor(const RHIRegion& scissor) override;
@@ -388,8 +287,6 @@ namespace Trinex
 		VulkanContext& clear_irtv(RHIRenderTargetView* rtv, i32 r, i32 g, i32 b, i32 a) override;
 		VulkanContext& clear_dsv(RHIDepthStencilView* dsv, RHIAspect aspect, f32 depth, u8 stencil) override;
 
-		VulkanContext& update_scalar(const void* data, usize size, usize offset, u8 buffer_index) override;
-
 		VulkanContext& memset(RHIBuffer* dst, usize size, usize offset, u32 value = 0) override;
 
 		VulkanContext& copy(RHIBuffer* dst, RHIBuffer* src, const RHIBufferCopy& region) override;
@@ -413,13 +310,8 @@ namespace Trinex
 		VulkanContext& bind_vertex_buffer(RHIBuffer* buffer, usize byte_offset, u16 stride, u8 stream,
 		                                  RHIVertexInputRate rate) override;
 		VulkanContext& bind_index_buffer(RHIBuffer* buffer, RHIIndexFormat format, usize byte_offset = 0) override;
-		VulkanContext& bind_uniform_buffer(RHIBuffer* buffer, u8 slot) override;
 		VulkanContext& bind_uniform_buffer(VulkanBuffer* buffer, u32 size, u32 offset, u8 slot);
-		VulkanContext& bind_srv(RHIShaderResourceView* view, u8 slot) override;
-		VulkanContext& bind_uav(RHIUnorderedAccessView* view, u8 slot) override;
-		VulkanContext& bind_sampler(RHISampler* view, u8 slot) override;
 		VulkanContext& bind_pipeline(RHIPipeline* pipeline) override;
-		VulkanContext& bind_acceleration(RHIAccelerationStructure* acceleration, u8 slot) override;
 
 		VulkanContext& barrier(RHITexture* texture, RHIAccess dst_access) override;
 		VulkanContext& barrier(RHIBuffer* buffer, RHIAccess dst_access) override;
@@ -430,7 +322,6 @@ namespace Trinex
 		VulkanContext& begin_statistics(RHIPipelineStatistics* stats) override;
 		VulkanContext& end_statistics(RHIPipelineStatistics* stats) override;
 
-		inline bool is_secondary() const { return m_flags & RHIContextFlags::Secondary; }
 		inline VulkanCommandHandle* handle() const { return m_cmd; }
 		inline VulkanQueue* queue() const { return m_queue; }
 	};

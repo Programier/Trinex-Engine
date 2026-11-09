@@ -5,7 +5,6 @@
 #include <RHI/rhi.hpp>
 #include <vulkan_definitions.hpp>
 #include <vulkan_headers.hpp>
-#include <vulkan_thread_local.hpp>
 
 namespace Trinex
 {
@@ -106,7 +105,7 @@ namespace Trinex
 		VulkanPipelineLayoutManager& desctroy(VulkanPipelineLayout* layout);
 	};
 
-	class VulkanDescriptorSetAllocator : public VulkanThreadLocal
+	class VulkanDescriptorSetAllocator
 	{
 	public:
 		struct VulkanDescriptorPool;
@@ -119,7 +118,7 @@ namespace Trinex
 		FrameCache* m_caches        = nullptr;
 		FrameCache* m_current_cache = nullptr;
 
-		void begin_frame(u64 frame) override;
+		void begin_frame(u64 frame);
 		vk::DescriptorSet allocate(VulkanPipelineLayout* layout, FrameCache& cache);
 
 	public:

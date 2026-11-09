@@ -8,11 +8,11 @@ namespace Trinex
 {
 	Array<Ref<RenderViewport>> RenderViewport::s_viewports = {};
 
-	RenderViewport::RenderViewport(Ref<Window> window, RHIPresentMode mode, u32 images)
+	RenderViewport::RenderViewport(Ref<Window> window, RHIPresentMode mode, u32 images) : m_window(etl::move(window))
 	{
-		trinex_verify(window);
+		trinex_verify(m_window);
 
-		m_swapchain = adopt_ref(RHI::instance()->create_swapchain(window.value(), mode, images));
+		m_swapchain = adopt_ref(RHI::instance()->create_swapchain(m_window.value(), mode, images));
 		trinex_verify(m_swapchain);
 
 		s_viewports.push_back(retain_ref(this));

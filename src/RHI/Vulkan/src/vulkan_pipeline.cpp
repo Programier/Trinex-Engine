@@ -75,26 +75,6 @@ namespace Trinex
 		return shader->as<VulkanShader>()->module();
 	}
 
-	static inline bool is_descriptor_dirty(VulkanContext* context, const VulkanPipelineLayout::Descriptor& descriptor)
-	{
-		switch (descriptor.type)
-		{
-			case vk::DescriptorType::eSampledImage: return context->srv_images.is_dirty(descriptor.binding);
-			case vk::DescriptorType::eSampler: return context->samplers.is_dirty(descriptor.binding);
-			case vk::DescriptorType::eCombinedImageSampler:
-				return context->srv_images.is_dirty(descriptor.binding) || context->samplers.is_dirty(descriptor.binding);
-
-			case vk::DescriptorType::eStorageImage: return context->uav_images.is_dirty(descriptor.binding);
-			case vk::DescriptorType::eUniformBufferDynamic: return context->uniform_buffers.is_dirty(descriptor.binding);
-			case vk::DescriptorType::eStorageBuffer: return context->storage_buffers.is_dirty(descriptor.binding);
-			case vk::DescriptorType::eUniformTexelBuffer: return context->uniform_texel_buffers.is_dirty(descriptor.binding);
-			case vk::DescriptorType::eStorageTexelBuffer: return context->storage_texel_buffers.is_dirty(descriptor.binding);
-			case vk::DescriptorType::eAccelerationStructureKHR:
-				return context->acceleration_structures.is_dirty(descriptor.binding);
-			default: return false;
-		}
-	}
-
 	static vk::PipelineDepthStencilStateCreateInfo create_depth_stencil(VulkanContext* context)
 	{
 		static auto stencil_op_state = [](const RHIDepthStencilState::Stencil& pipeline) {
@@ -167,12 +147,6 @@ namespace Trinex
 		if (context->is_dirty(VulkanContext::Pipeline))
 			return descriptors_count != 0;
 
-		for (usize i = 0; i < descriptors_count; ++i)
-		{
-			if (is_descriptor_dirty(context, m_layout->descriptor(i)))
-				return true;
-		}
-
 		return false;
 	}
 
@@ -206,11 +180,6 @@ namespace Trinex
 		usize uniforms_count    = m_layout->uniform_buffers_count();
 		const auto* descriptors = m_layout->descriptors();
 		u32* offsets            = StackAllocator<u32>::allocate(uniforms_count);
-
-		for (u64 i = 0; i < uniforms_count; ++i)
-		{
-			offsets[i] = context->uniform_buffers.resource(descriptors[i].binding).offset;
-		}
 
 		{
 			trinex_profile_cpu_n("bindDescriptorSets");

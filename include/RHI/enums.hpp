@@ -1011,17 +1011,6 @@ namespace Trinex
 		trinex_enum_struct(RHIPresentMode);
 	};
 
-	struct RHIContextInheritanceFlags
-	{
-		enum Enum : u8
-		{
-			Undefined          = 0,
-			RenderPassContinue = 1 << 0,
-		};
-
-		trinex_bitfield_enum_struct(RHIContextInheritanceFlags, u8);
-	};
-
 	struct RHIContextFlags
 	{
 		enum Enum : u8

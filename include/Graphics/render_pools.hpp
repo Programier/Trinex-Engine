@@ -208,11 +208,11 @@ namespace Trinex
 		template<typename Func>
 		inline RHIContextPool& execute(const Func& func)
 		{
-			auto ctx = begin();
-			{
-				func(ctx);
-			}
-			end(ctx);
+			// auto ctx = begin();
+			// {
+			// 	func(ctx);
+			// }
+			// end(ctx);
 			return *this;
 		}
 	};

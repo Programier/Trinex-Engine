@@ -74,12 +74,6 @@ namespace Trinex
 		DESTROY_CALL(destroySampler, m_sampler);
 	}
 
-	VulkanContext& VulkanContext::bind_sampler(RHISampler* sampler, u8 slot)
-	{
-		samplers.bind(static_cast<VulkanSampler*>(sampler)->sampler(), slot);
-		return *this;
-	}
-
 	RHISampler* VulkanAPI::create_sampler(const RHISamplerDesc& desc)
 	{
 		return &(trx_new VulkanSampler())->create(desc);

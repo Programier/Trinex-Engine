@@ -183,7 +183,7 @@ namespace Trinex
 		return new NoneSwapchain();
 	}
 
-	RHIContext* NoneApi::create_context(RHIQueue* queue, RHIContextFlags flags)
+	RHIContext* NoneApi::create_context(RHIQueue* queue)
 	{
 		return nullptr;
 	}

@@ -42,30 +42,4 @@ namespace Trinex
 		inline vk::Buffer buffer() const { return m_buffer; }
 		~VulkanBuffer();
 	};
-
-	class VulkanUniformBuffer : public VulkanBuffer
-	{
-		u8* m_memory;
-		u8* m_block_start;
-		u8* m_block_end;
-
-	public:
-		VulkanUniformBuffer* next = nullptr;
-
-		VulkanUniformBuffer(usize min_size = 0);
-		~VulkanUniformBuffer();
-		VulkanUniformBuffer& flush();
-		VulkanUniformBuffer& update(const void* data, usize size, usize offset);
-
-		inline VulkanUniformBuffer& reset()
-		{
-			m_block_start = m_block_end = m_memory;
-			return *this;
-		}
-
-		inline bool contains(usize size) const { return m_block_start + size <= m_memory + VulkanBuffer::size(); }
-		inline usize block_size() const { return m_block_end - m_block_start; }
-		inline usize block_offset() const { return m_block_start - m_memory; }
-		inline u8* mapped_memory() const { return m_memory; }
-	};
 } // namespace Trinex

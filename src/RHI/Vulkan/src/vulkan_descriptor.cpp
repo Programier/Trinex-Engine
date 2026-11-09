@@ -477,30 +477,6 @@ namespace Trinex
 
 			switch (dst->type)
 			{
-				case vk::DescriptorType::eSampledImage: dst->descriptor = context->srv_images.resource(dst->binding); break;
-				case vk::DescriptorType::eSampler: dst->descriptor = context->samplers.resource(dst->binding); break;
-				case vk::DescriptorType::eCombinedImageSampler:
-				{
-					dst->descriptor = VulkanContext::CombinedImage{context->srv_images.resource(dst->binding),
-					                                               context->samplers.resource(dst->binding)};
-					break;
-				}
-				case vk::DescriptorType::eStorageImage: dst->descriptor = context->uav_images.resource(dst->binding); break;
-				case vk::DescriptorType::eUniformBufferDynamic:
-				{
-					dst->descriptor = context->uniform_buffers.resource(dst->binding);
-					break;
-				}
-				case vk::DescriptorType::eStorageBuffer: dst->descriptor = context->storage_buffers.resource(dst->binding); break;
-				case vk::DescriptorType::eUniformTexelBuffer:
-					dst->descriptor = context->uniform_texel_buffers.resource(dst->binding);
-					break;
-				case vk::DescriptorType::eStorageTexelBuffer:
-					dst->descriptor = context->storage_texel_buffers.resource(dst->binding);
-					break;
-				case vk::DescriptorType::eAccelerationStructureKHR:
-					dst->descriptor = context->acceleration_structures.resource(dst->binding);
-					break;
 				default: dst->descriptor.zeros(); break;
 			}
 		}

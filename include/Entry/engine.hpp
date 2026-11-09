@@ -14,6 +14,6 @@ namespace Trinex
 
 	public:
 		virtual Ref<Engine> create_engine();
-		i32 execute() final override;
+		i32 execute() override;
 	};
 } // namespace Trinex

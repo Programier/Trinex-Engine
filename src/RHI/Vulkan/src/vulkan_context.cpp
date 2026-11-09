@@ -3,6 +3,7 @@
 #include <Core/math/math.hpp>
 #include <Core/memory.hpp>
 #include <Core/profiler.hpp>
+#include <RHI/gc.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_buffer.hpp>
 #include <vulkan_context.hpp>
@@ -32,16 +33,8 @@ namespace Trinex
 	{
 		remove_dirty(mask);
 
-		uniform_buffers.flush();
-		storage_buffers.flush();
-		uniform_texel_buffers.flush();
-		storage_texel_buffers.flush();
-		samplers.flush();
-		srv_images.flush();
-		uav_images.flush();
 		vertex_streams.flush();
 		vertex_attributes.flush();
-		m_cmd->flush_uniforms();
 		return *this;
 	}
 
@@ -141,13 +134,7 @@ namespace Trinex
 	VulkanContext& VulkanContext::reset()
 	{
 		m_dirty_flags = GraphicsMask | ComputeMask | GeneralMask;
-		uniform_buffers.make_dirty();
-		storage_buffers.make_dirty();
-		uniform_texel_buffers.make_dirty();
-		storage_texel_buffers.make_dirty();
-		samplers.make_dirty();
-		srv_images.make_dirty();
-		uav_images.make_dirty();
+
 		vertex_streams.make_dirty();
 		vertex_attributes.make_dirty();
 		m_framebuffer = Framebuffer();
@@ -170,15 +157,8 @@ namespace Trinex
 		m_pipeline       = src->m_pipeline;
 		m_pipeline_state = src->m_pipeline_state;
 
-		uniform_buffers       = src->uniform_buffers;
-		storage_buffers       = src->storage_buffers;
-		uniform_texel_buffers = src->uniform_texel_buffers;
-		storage_texel_buffers = src->storage_texel_buffers;
-		samplers              = src->samplers;
-		srv_images            = src->srv_images;
-		uav_images            = src->uav_images;
-		vertex_streams        = src->vertex_streams;
-		vertex_attributes     = src->vertex_attributes;
+		vertex_streams    = src->vertex_streams;
+		vertex_attributes = src->vertex_attributes;
 		return *this;
 	}
 
@@ -324,14 +304,6 @@ namespace Trinex
 		return *this;
 	}
 
-	VulkanContext& VulkanContext::update_scalar(const void* data, usize size, usize offset, u8 buffer_index)
-	{
-		VulkanUniformBuffer* buffer = m_cmd->request_uniform_page(size + offset, buffer_index);
-		buffer->update(data, size, offset);
-		uniform_buffers.bind(UniformBuffer(buffer->buffer(), buffer->block_size(), buffer->block_offset()), buffer_index);
-		return *this;
-	}
-
 	VulkanContext& VulkanContext::bind_vertex_attribute(RHISemantic semantic, RHIVertexFormat format, u8 stream, u16 offset)
 	{
 		VertexAttribute va;
@@ -343,69 +315,24 @@ namespace Trinex
 		return *this;
 	}
 
-	VulkanUniformBuffer* VulkanCommandHandle::UniformBuffer::request_uniform_page(usize size)
+	VulkanCommandHandle::VulkanCommandHandle(VulkanQueue* queue)
 	{
-		while (*m_uniform_buffer_current)
-		{
-			VulkanUniformBuffer* buffer = *m_uniform_buffer_current;
-			if (buffer->contains(size))
-				return buffer;
-			m_uniform_buffer_current = &buffer->next;
-		}
+		constexpr auto flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer | vk::CommandPoolCreateFlagBits::eTransient;
+		m_pool = vk::verify(VulkanAPI::device()->createCommandPool(vk::CommandPoolCreateInfo(flags, queue->family_index())));
 
-		VulkanUniformBuffer* buffer = trx_new VulkanUniformBuffer(size);
-		(*m_uniform_buffer_current) = buffer;
-		return buffer;
-	}
-
-	VulkanCommandHandle::UniformBuffer& VulkanCommandHandle::UniformBuffer::reset()
-	{
-		VulkanUniformBuffer* buffer = m_uniform_buffer_head;
-		m_uniform_buffer_current    = &m_uniform_buffer_head;
-
-		while (buffer)
-		{
-			buffer->reset();
-			buffer = buffer->next;
-		}
-
-		return *this;
-	}
-
-	VulkanCommandHandle::UniformBuffer& VulkanCommandHandle::UniformBuffer::flush()
-	{
-		if (*m_uniform_buffer_current)
-		{
-			(*m_uniform_buffer_current)->flush();
-		}
-
-		return *this;
-	}
-
-	VulkanCommandHandle::VulkanCommandHandle(VulkanCommandBufferManager* manager, RHIContextFlags flags) : m_flags(flags)
-	{
-		m_fence   = vk::verify(VulkanAPI::device()->createFence({}));
-		m_manager = manager;
-
-		const bool secondary               = is_secondary();
-		const vk::CommandBufferLevel level = secondary ? vk::CommandBufferLevel::eSecondary : vk::CommandBufferLevel::ePrimary;
-
-		vk::CommandPool pool = manager->command_pool();
-		vk::CommandBufferAllocateInfo alloc_info(pool, level, 1);
-
+		vk::CommandBufferAllocateInfo alloc_info(m_pool, vk::CommandBufferLevel::ePrimary, 1);
 		static_cast<vk::CommandBuffer&>(*this) = vk::verify(VulkanAPI::device()->allocateCommandBuffers(alloc_info)).front();
 	}
 
-	VulkanCommandHandle& VulkanCommandHandle::release_transient_resources()
+	VulkanCommandHandle::~VulkanCommandHandle()
 	{
-		for (RHIObject* resource : m_transient_resources)
-		{
-			resource->release();
-		}
+		VulkanAPI::device()->freeCommandBuffers(m_pool, *this);
+		VulkanAPI::device()->destroyCommandPool(m_pool);
+	}
 
-		m_transient_resources.clear();
-
-		return *this;
+	void VulkanCommandHandle::on_reclaimable()
+	{
+		m_objects.clear();
 	}
 
 	RHI* VulkanCommandHandle::device() const
@@ -413,189 +340,7 @@ namespace Trinex
 		return VulkanAPI::instance();
 	}
 
-	VulkanCommandHandle& VulkanCommandHandle::refresh_fence_status()
-	{
-		if (m_state == State::Submitted)
-		{
-			if (VulkanAPI::device()->getFenceStatus(m_fence) == vk::Result::eSuccess)
-			{
-				m_state = State::Unused;
-				vk::verify(reset());
-				vk::verify(VulkanAPI::device()->resetFences(m_fence));
-
-				for (auto& page : m_uniform_buffers)
-				{
-					page.reset();
-				}
-
-				release_transient_resources();
-			}
-		}
-
-		return *this;
-	}
-
-	VulkanCommandHandle& VulkanCommandHandle::begin(const vk::CommandBufferBeginInfo& info)
-	{
-		trinex_assert_msg(is_unused(), "Command Buffer must be unused");
-
-		vk::verify(vk::CommandBuffer::begin(info));
-		m_state = State::Active;
-		return *this;
-	}
-
-	VulkanCommandHandle& VulkanCommandHandle::end()
-	{
-		trinex_assert_msg(is_active(), "Command Buffer must be active!");
-		vk::verify(vk::CommandBuffer::end());
-		m_state = State::Pending;
-		return *this;
-	}
-
-	VulkanCommandHandle& VulkanCommandHandle::enqueue()
-	{
-		trinex_profile_cpu_n("VulkanCommandBuffer::submit");
-		trinex_assert_msg(is_pending(), "Command Buffer must be in ended state!");
-		//VulkanAPI::instance()->m_graphics_queue->submit({}, m_fence);
-
-		m_state = State::Submitted;
-		return *this;
-	}
-
-	VulkanCommandHandle& VulkanCommandHandle::wait()
-	{
-		trinex_profile_cpu_n("VulkanCommandBuffer::wait");
-
-		if (m_state != State::Submitted)
-			return *this;
-
-		const vk::Result status = VulkanAPI::device()->getFenceStatus(m_fence);
-
-		if (status == vk::Result::eNotReady)
-		{
-			vk::verify(VulkanAPI::device()->waitForFences(m_fence, vk::True, UINT64_MAX));
-		}
-		else
-		{
-			vk::verify(status);
-		}
-
-		refresh_fence_status();
-		return *this;
-	}
-
-	VulkanCommandHandle& VulkanCommandHandle::flush_uniforms()
-	{
-		for (auto& page : m_uniform_buffers)
-		{
-			page.flush();
-		}
-		return *this;
-	}
-
-	void VulkanCommandHandle::destroy() noexcept
-	{
-		m_manager->return_handle(this);
-	}
-
-	VulkanCommandHandle::~VulkanCommandHandle()
-	{
-		wait();
-
-		auto pool = m_manager->command_pool();
-		VulkanAPI::device()->freeCommandBuffers(pool, *this);
-
-		for (auto& page : m_uniform_buffers)
-		{
-			while (page.m_uniform_buffer_head)
-			{
-				auto current               = page.m_uniform_buffer_head;
-				page.m_uniform_buffer_head = page.m_uniform_buffer_head->next;
-				trx_delete_inline(current);
-			}
-		}
-
-		DESTROY_CALL(destroyFence, m_fence);
-		release_transient_resources();
-	}
-
-	VulkanCommandBufferManager::VulkanCommandBufferManager(VulkanQueue* queue) : m_queue(queue)
-	{
-		trinex_assert(m_queue);
-		m_pool = vk::verify(VulkanAPI::device()->createCommandPool(
-		        vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, m_queue->family_index())));
-	}
-
-	VulkanCommandBufferManager::~VulkanCommandBufferManager()
-	{
-		for (VulkanCommandHandle* handle : m_primary)
-		{
-			trx_delete handle;
-		}
-
-		for (VulkanCommandHandle* handle : m_secondary)
-		{
-			trx_delete handle;
-		}
-
-		VulkanAPI::device()->destroyCommandPool(m_pool);
-	}
-
-	VulkanCommandBufferManager* VulkanCommandBufferManager::instance(VulkanQueue* queue)
-	{
-		trinex_assert(queue);
-
-		static thread_local Array<VulkanCommandBufferManager*> managers;
-		u32 index = queue->family_index();
-
-		if (managers.size() <= index)
-		{
-			managers.resize(index + 1);
-		}
-
-		if (managers[index] == nullptr)
-		{
-			managers[index] = trx_new VulkanCommandBufferManager(queue);
-		}
-
-		return managers[index];
-	}
-
-	VulkanCommandHandle* VulkanCommandBufferManager::request_handle(RHIContextFlags flags)
-	{
-		{
-			ScopeLock lock(m_critical);
-
-			Deque<VulkanCommandHandle*>* handles = flags & RHIContextFlags::Secondary ? &m_secondary : &m_primary;
-
-			if (!handles->empty())
-			{
-				auto front = handles->front();
-
-				if (front->refresh_fence_status().is_unused())
-				{
-					handles->pop_front();
-					return front;
-				}
-			}
-		}
-
-		return trx_new VulkanCommandHandle(this, flags);
-	}
-
-	VulkanCommandBufferManager& VulkanCommandBufferManager::return_handle(VulkanCommandHandle* handle)
-	{
-		ScopeLock lock(m_critical);
-
-		auto& queue = handle->is_primary() ? m_primary : m_secondary;
-		queue.push_back(handle);
-
-		handle->add_ref();
-		handle->enqueue();
-		return *this;
-	}
-
-	VulkanContext::VulkanContext(VulkanQueue* queue, RHIContextFlags flags) : m_queue(queue), m_flags(flags)
+	VulkanContext::VulkanContext(VulkanQueue* queue) : m_queue(queue)
 	{
 		trinex_assert(m_queue);
 		reset();
@@ -614,58 +359,29 @@ namespace Trinex
 		return VulkanAPI::instance();
 	}
 
-	VulkanContext& VulkanContext::begin(const RHIContextInheritanceInfo* inheritance)
+	VulkanContext& VulkanContext::begin(VulkanCommandHandle* handle)
+	{
+		m_cmd = handle;
+		return reset();
+	}
+
+	VulkanContext& VulkanContext::begin()
 	{
 		if (m_cmd == nullptr)
 		{
-			m_cmd = VulkanCommandBufferManager::instance(m_queue)->request_handle(m_flags);
+			RHIGarbageGroup* group = m_queue->command_group();
 
-			if (is_secondary())
+			if (auto gc = VulkanAPI::instance()->gc())
 			{
-				trinex_assert(inheritance);
-
-				vk::CommandBufferBeginInfo begin_info;
-				vk::CommandBufferInheritanceInfo inherit;
-				vk::CommandBufferInheritanceRenderingInfoKHR inherit_rendering;
-				vk::Format formats[4] = {vk::Format::eUndefined};
-
-				begin_info.setPInheritanceInfo(&inherit);
-
-				if (inheritance->flags & RHIContextInheritanceFlags::RenderPassContinue)
+				if (auto instance = gc->take(group))
 				{
-					inherit.pNext = &inherit_rendering;
-					inherit_rendering.setColorAttachmentCount(4);
-					inherit_rendering.setPColorAttachmentFormats(formats);
-					inherit_rendering.setRasterizationSamples(vk::SampleCountFlagBits::e1);
-
-					for (u32 i = 0; i < 4; ++i)
-					{
-						formats[i] = VulkanEnums::format_of(inheritance->colors[i].as_color_format());
-					}
-
-					vk::Format depth = VulkanEnums::format_of(inheritance->depth.as_color_format());
-
-					if (VulkanEnums::is_depth_format(depth))
-					{
-						inherit_rendering.setDepthAttachmentFormat(depth);
-					}
-
-					if (VulkanEnums::is_stencil_format(depth))
-					{
-						inherit_rendering.setStencilAttachmentFormat(depth);
-					}
-
-					begin_info.setFlags(vk::CommandBufferUsageFlagBits::eRenderPassContinue);
+					return begin(instance->as<VulkanCommandHandle>());
 				}
+			}
 
-				m_cmd->begin(begin_info);
-			}
-			else
-			{
-				m_cmd->begin();
-				reset();
-			}
+			return begin(trx_new VulkanCommandHandle(m_queue));
 		}
+
 		return *this;
 	}
 
@@ -675,10 +391,30 @@ namespace Trinex
 			return nullptr;
 
 		VulkanCommandHandle* cmd = m_cmd;
-		m_cmd                    = nullptr;
-		cmd->end();
+		vk::verify(cmd->end());
 
+		m_cmd = nullptr;
 		return cmd;
+	}
+
+	VulkanContext& VulkanContext::retain(RefCounted* object)
+	{
+		if (object && m_cmd)
+		{
+			m_cmd->retain(object);
+		}
+
+		return *this;
+	}
+
+	VulkanContext& VulkanContext::adopt(RefCounted* object)
+	{
+		if (object && m_cmd)
+		{
+			m_cmd->adopt(object);
+		}
+
+		return *this;
 	}
 
 	VulkanContext& VulkanContext::begin_rendering(const RHIRenderingInfo& info)
@@ -775,24 +511,6 @@ namespace Trinex
 	VulkanContext& VulkanContext::end_rendering()
 	{
 		m_cmd->endRenderingKHR();
-		return *this;
-	}
-
-	VulkanContext& VulkanContext::execute(RHICommandHandle* handle)
-	{
-		m_cmd->executeCommands(*static_cast<VulkanCommandHandle*>(handle));
-
-		m_cmd->track_resource(handle);
-		return *this;
-	}
-
-	VulkanContext& VulkanContext::track_resource(RHIObject* object)
-	{
-		if (object)
-		{
-			m_cmd->track_resource(object);
-		}
-
 		return *this;
 	}
 
@@ -950,9 +668,8 @@ namespace Trinex
 		trx_delete this;
 	}
 
-	RHIContext* VulkanAPI::create_context(RHIQueue* queue, RHIContextFlags flags)
+	RHIContext* VulkanAPI::create_context(RHIQueue* queue)
 	{
-		trinex_assert(queue);
-		return trx_new VulkanContext(static_cast<VulkanQueue*>(queue), flags);
+		return trx_new VulkanContext(static_cast<VulkanQueue*>(queue));
 	}
 } // namespace Trinex

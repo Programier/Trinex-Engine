@@ -1,4 +1,5 @@
 #include <Core/etl/allocator.hpp>
+#include <RHI/gc.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_context.hpp>
 #include <vulkan_queue.hpp>
@@ -10,11 +11,16 @@ namespace Trinex
 	VulkanQueue::VulkanQueue(vk::Queue queue, RHIQueueFlags flags, u32 family_index, u32 queue_index)
 	    : m_queue(queue), m_submit_index(0), m_family_index(family_index), m_queue_index(queue_index), m_flags(flags)
 	{
-		m_submit_fence = trx_new VulkanFence(vk::SemaphoreType::eTimeline, 0);
+		m_submit_fence  = trx_new VulkanFence(vk::SemaphoreType::eTimeline, 0);
+		m_command_group = VulkanAPI::instance()->gc()->create_group(180);
 	}
 
 	VulkanQueue::~VulkanQueue()
 	{
+		if (auto gc = VulkanAPI::instance()->gc())
+		{
+			gc->destroy_group(m_command_group);
+		}
 		m_submit_fence->release();
 	}
 

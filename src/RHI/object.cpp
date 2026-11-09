@@ -9,6 +9,8 @@ namespace Trinex
 		return nullptr;
 	}
 
+	void RHIObject::on_reclaimable() {}
+
 	void RHIObject::destroy() noexcept
 	{
 		if (RHI* rhi = device(); rhi && rhi->gc())

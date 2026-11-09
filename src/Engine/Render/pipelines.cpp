@@ -450,7 +450,6 @@ namespace Trinex::Pipelines
 		args.samples           = samples;
 
 		ctx->bind_uniform_buffer(renderer->globals_uniform_buffer(), m_scene_view->binding);
-		ctx->update_scalar(&args, sizeof(args), 0, m_args->binding);
 		ctx->bind_srv(renderer->scene_depth_target()->as_srv(), m_scene_depth->binding);
 		ctx->bind_srv(renderer->normal_target()->as_srv(), m_scene_normal->binding);
 		ctx->bind_srv(DefaultResources::Textures::noise4x4->srv(), m_noise->binding);

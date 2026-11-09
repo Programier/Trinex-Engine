@@ -255,6 +255,11 @@ namespace Trinex
 		{
 			destroy(gc, current->checkpoint);
 
+			for (Resource* object = current->resources; object; object = object->next)
+			{
+				object->resource->on_reclaimable();
+			}
+
 			current->delay = m_delay;
 			place          = &current->next;
 		}

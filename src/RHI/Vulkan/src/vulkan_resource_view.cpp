@@ -32,7 +32,6 @@ namespace Trinex
 
 	VulkanSRV& VulkanTextureSRV::bind(VulkanContext* context, u8 index)
 	{
-		context->srv_images.bind(m_view, index);
 		return *this;
 	}
 
@@ -49,7 +48,6 @@ namespace Trinex
 
 	VulkanUAV& VulkanTextureUAV::bind(VulkanContext* context, u8 index)
 	{
-		context->uav_images.bind(m_view, index);
 		return *this;
 	}
 
@@ -75,7 +73,6 @@ namespace Trinex
 
 	VulkanSRV& VulkanStorageBufferSRV::bind(VulkanContext* context, u8 index)
 	{
-		context->storage_buffers.bind(buffer()->buffer(), index);
 		return *this;
 	}
 
@@ -91,7 +88,6 @@ namespace Trinex
 
 	VulkanSRV& VulkanUniformTexelBufferSRV::bind(VulkanContext* context, u8 index)
 	{
-		context->uniform_texel_buffers.bind(buffer()->buffer(), index);
 		return *this;
 	}
 
@@ -107,19 +103,6 @@ namespace Trinex
 
 	VulkanUAV& VulkanBufferUAV::bind(VulkanContext* context, u8 index)
 	{
-		context->storage_buffers.bind(buffer()->buffer(), index);
-		return *this;
-	}
-
-	VulkanContext& VulkanContext::bind_srv(RHIShaderResourceView* view, u8 slot)
-	{
-		static_cast<VulkanSRV*>(view)->bind(this, slot);
-		return *this;
-	}
-
-	VulkanContext& VulkanContext::bind_uav(RHIUnorderedAccessView* view, u8 slot)
-	{
-		static_cast<VulkanUAV*>(view)->bind(this, slot);
 		return *this;
 	}
 

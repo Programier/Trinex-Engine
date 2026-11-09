@@ -42,7 +42,6 @@ namespace Trinex::MaterialParameters
 	PrimitiveBase& PrimitiveBase::update(const PrimitiveRenderingContext* ctx, const void* data, usize size,
 	                                     const RHIBinding* info)
 	{
-		ctx->context->update_scalar(data, size, info->offset, info->binding);
 		return *this;
 	}
 
@@ -63,14 +62,6 @@ namespace Trinex::MaterialParameters
 
 	LocalToWorld& LocalToWorld::apply(const PrimitiveRenderingContext* ctx, const RHIBinding* info)
 	{
-		if (ctx->local_to_world)
-		{
-			ctx->context->update_scalar(ctx->local_to_world, sizeof(Matrix4f), info->offset, info->binding);
-		}
-		else
-		{
-			ctx->context->update_scalar(&Constants::identity_matrix, sizeof(Matrix4f), info->offset, info->binding);
-		}
 		return *this;
 	}
 

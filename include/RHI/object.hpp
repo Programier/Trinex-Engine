@@ -10,6 +10,7 @@ namespace Trinex
 	{
 	protected:
 		virtual RHIGarbageGroup* garbage_group() const;
+		virtual void on_reclaimable();
 
 	public:
 		virtual void destroy() noexcept;
@@ -27,6 +28,8 @@ namespace Trinex
 		{
 			return static_cast<const T*>(this);
 		}
+
+		friend RHIGarbageGroup;
 	};
 
 	template<typename T>

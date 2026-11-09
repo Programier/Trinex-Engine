@@ -55,7 +55,6 @@ namespace Trinex
 		Array<RHIQueue*> m_queues;
 
 		Array<VulkanExtention> m_device_extensions;
-		Array<class VulkanThreadLocal*> m_thread_locals;
 
 		VulkanQueryPoolManager* m_query_pool_manager;
 		VulkanPipelineLayoutManager* m_pipeline_layout_manager;
@@ -155,6 +154,7 @@ namespace Trinex
 
 	public:
 		VulkanAPI();
+		~VulkanAPI();
 
 		const char* name() const override { return "Vulkan"; }
 		const char* renderer() const override { return m_properties.deviceName.data(); }
@@ -177,13 +177,11 @@ namespace Trinex
 		RHIPipeline* create_ray_tracing_pipeline(const RHIRayTracingPipelineDesc& desc) override;
 		RHIBuffer* create_buffer(usize size, RHIBufferFlags flags) override;
 		RHISwapchain* create_swapchain(Window* window, RHIPresentMode mode, u32 images = 0) override;
-		RHIContext* create_context(RHIQueue* queue, RHIContextFlags flags) override;
+		RHIContext* create_context(RHIQueue* queue) override;
 		RHIBindingLayout* create_binding_layout(RHIBinding* bindings = nullptr, usize count = 0) override;
 		RHIBindingSet* create_binding_set(RHIBindingLayout* layout) override;
 
 		RHIAccelerationStructure* create_acceleration_structure(const RHIRayTracingAccelerationInputs* inputs) override;
 		const u8* translate_ray_tracing_instances(const RHIRayTracingGeometryInstance* instances, usize& size) override;
-
-		~VulkanAPI();
 	};
 } // namespace Trinex

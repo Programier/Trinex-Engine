@@ -129,7 +129,7 @@ namespace Trinex
 				m_page = request_page(size);
 			}
 
-			context->track_resource(m_page);
+			context->retain(m_page);
 			return m_page->allocate(size, alignment);
 		}
 
@@ -153,7 +153,7 @@ namespace Trinex
 			}
 
 			const usize size = Math::min(max_size, available);
-			context->track_resource(m_page);
+			context->retain(m_page);
 			return m_page->allocate(size, alignment);
 		}
 
