@@ -27,11 +27,23 @@ if (TRINEX_WITH_TRACY_PROFILER)
 endif()
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/tlsf")
+
+# mimalloc
+set(MI_BUILD_SHARED OFF CACHE BOOL "" FORCE)
+set(MI_BUILD_STATIC ON CACHE BOOL "" FORCE)
+set(MI_BUILD_OBJECT OFF CACHE BOOL "" FORCE)
+set(MI_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(MI_OVERRIDE OFF CACHE BOOL "" FORCE)
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/mimalloc" EXCLUDE_FROM_ALL)
+
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/cpp-peglib")
 set_target_properties(peglib PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-target_link_libraries(TrinexEngine PUBLIC fmt-header-only)
-target_link_libraries(TrinexEngine PUBLIC peglib)
-
 target_include_directories(TrinexEngine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/glm-lib)
 target_include_directories(TrinexEngine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/json/include)
+
+
+# link
+trinex_link_libraries(TrinexEngine PRIVATE mimalloc-static)
+trinex_link_libraries(TrinexEngine PUBLIC fmt-header-only)
+trinex_link_libraries(TrinexEngine PUBLIC peglib)
