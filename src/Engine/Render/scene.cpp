@@ -66,9 +66,9 @@ namespace Trinex
 
 		if (m_gpu_heap == nullptr && m_cpu_heap.size() > 0)
 		{
-			RHIBufferFlags flags = RHIBufferFlags::DeviceAddress | RHIBufferFlags::TransferDst | RHIBufferFlags::ByteAddressBuffer
-			                       | RHIBufferFlags::ShaderResource;
-			m_gpu_heap           = RHI::instance()->create_buffer(m_cpu_heap.size(), flags);
+			RHIBufferFlags flags =
+			        RHIBufferFlags::DeviceAddress | RHIBufferFlags::ByteAddressBuffer | RHIBufferFlags::ShaderResource;
+			m_gpu_heap = RHI::instance()->create_buffer(m_cpu_heap.size(), flags);
 		}
 
 		if (m_commands.empty())
@@ -178,7 +178,7 @@ namespace Trinex
 
 	u32 RenderScene::allocate(u32 size, const void* data)
 	{
-		void* ptr   = nullptr;//m_heap_allocator.alloc(size, 16);
+		void* ptr   = nullptr; //m_heap_allocator.alloc(size, 16);
 		u32 address = static_cast<u8*>(ptr) - m_cpu_heap.data();
 
 		if (data)

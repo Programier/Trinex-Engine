@@ -663,4 +663,53 @@ namespace Trinex::VulkanEnums
 			case RHIPresentMode::Immediate: return vk::PresentModeKHR::eImmediate;
 		}
 	}
+
+	static constexpr inline vk::BufferUsageFlags buffer_usage_of(RHIBufferFlags flags)
+	{
+		vk::BufferUsageFlags result = vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst;
+
+		if (flags & RHIBufferFlags::VertexBuffer)
+			result |= vk::BufferUsageFlagBits::eVertexBuffer;
+
+		if (flags & RHIBufferFlags::IndexBuffer)
+			result |= vk::BufferUsageFlagBits::eIndexBuffer;
+
+		if (flags & RHIBufferFlags::UniformBuffer)
+			result |= vk::BufferUsageFlagBits::eUniformBuffer;
+
+		if (flags & RHIBufferFlags::IndirectBuffer)
+			result |= vk::BufferUsageFlagBits::eIndirectBuffer;
+
+		if (flags & RHIBufferFlags::AccelerationStorage)
+			result |= vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR;
+
+		if (flags & RHIBufferFlags::AccelerationInput)
+			result |= vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR;
+
+		if (flags & RHIBufferFlags::ShaderBindingTable)
+			result |= vk::BufferUsageFlagBits::eShaderBindingTableKHR;
+
+		if (flags & RHIBufferFlags::DeviceAddress)
+			result |= vk::BufferUsageFlagBits::eShaderDeviceAddressKHR;
+
+		if (flags & RHIBufferFlags::ShaderResource)
+		{
+			if (flags.any(RHIBufferFlags::ByteAddressBuffer | RHIBufferFlags::StructuredBuffer))
+				result |= vk::BufferUsageFlagBits::eStorageBuffer;
+
+			if (flags & RHIBufferFlags::TypedBuffer)
+				result |= vk::BufferUsageFlagBits::eUniformTexelBuffer;
+		}
+
+		if (flags & RHIBufferFlags::UnorderedAccess)
+		{
+			if (flags.any(RHIBufferFlags::ByteAddressBuffer | RHIBufferFlags::StructuredBuffer))
+				result |= vk::BufferUsageFlagBits::eStorageBuffer;
+
+			if (flags & RHIBufferFlags::TypedBuffer)
+				result |= vk::BufferUsageFlagBits::eStorageTexelBuffer;
+		}
+
+		return result;
+	}
 } // namespace Trinex::VulkanEnums

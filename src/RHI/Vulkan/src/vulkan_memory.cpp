@@ -3,7 +3,7 @@
 
 namespace Trinex
 {
-	VulkanMemory::VulkanMemory(usize size, RHIMemoryType type) : m_size(size), m_type(type)
+	VulkanMemory::VulkanMemory(usize size, RHIMemoryType type) : m_type(type)
 	{
 		VkMemoryRequirements requirements = {};
 		requirements.size                 = size;
@@ -28,21 +28,33 @@ namespace Trinex
 				break;
 		}
 
-		const VkResult result =
-		        vmaAllocateMemory(VulkanAPI::instance()->m_allocator, &requirements, &create_info, &m_allocation, nullptr);
+		VmaAllocationInfo allocation_info;
+		VkResult result = vmaAllocateMemory(VulkanAPI::allocator(), &requirements, &create_info, &m_allocation, &allocation_info);
 		trinex_assert_msg(result == VK_SUCCESS, "Failed to allocate Vulkan memory");
+
+		m_memory = allocation_info.deviceMemory;
+		m_size   = allocation_info.size;
 	}
 
 	VulkanMemory::~VulkanMemory()
 	{
 		if (m_allocation)
-			vmaFreeMemory(VulkanAPI::instance()->m_allocator, m_allocation);
+		{
+			vmaFreeMemory(VulkanAPI::allocator(), m_allocation);
+		}
 	}
 
 	RHI* VulkanMemory::device() const
 	{
 		return VulkanAPI::instance();
 	}
+
+	u8* VulkanMemory::map(RHIMappingAccess access)
+	{
+		return nullptr;
+	}
+
+	void VulkanMemory::unmap() {}
 
 	usize VulkanMemory::size() const
 	{

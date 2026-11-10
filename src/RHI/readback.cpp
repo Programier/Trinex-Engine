@@ -28,7 +28,7 @@ namespace Trinex
 	public:
 		RHIReadBackAllocatorPage(usize capacity) : m_capacity(capacity)
 		{
-			m_buffer = RHI::instance()->create_buffer(capacity, RHIBufferFlags::TransferDst | RHIBufferFlags::CPURead);
+			m_buffer = RHI::instance()->create_buffer(capacity, RHIBufferFlags::CPURead);
 			m_mapped = m_buffer ? m_buffer->map(RHIMappingAccess::Read) : nullptr;
 			trinex_assert_msg(m_mapped, "Failed to map readback page");
 		}

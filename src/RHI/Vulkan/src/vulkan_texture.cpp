@@ -157,8 +157,8 @@ namespace Trinex
 		alloc_info.usage                   = VMA_MEMORY_USAGE_GPU_ONLY;
 
 		VkImage out_image = VK_NULL_HANDLE;
-		auto res = vmaCreateImage(VulkanAPI::instance()->m_allocator, &static_cast<VkImageCreateInfo&>(info), &alloc_info,
-		                          &out_image, &m_allocation, nullptr);
+		auto res = vmaCreateImage(VulkanAPI::allocator(), &static_cast<VkImageCreateInfo&>(info), &alloc_info, &out_image,
+		                          &m_allocation, nullptr);
 		trinex_assert_msg(res == VK_SUCCESS, "Failed to create texture!");
 		m_image = out_image;
 
@@ -243,7 +243,7 @@ namespace Trinex
 		static_destroy_view(m_dsv);
 
 		if (m_allocation)
-			vmaDestroyImage(VulkanAPI::instance()->m_allocator, m_image, m_allocation);
+			vmaDestroyImage(VulkanAPI::allocator(), m_image, m_allocation);
 	}
 
 	RHITexture* VulkanAPI::create_texture(const RHITextureDesc& desc)

@@ -7,6 +7,7 @@
 namespace Trinex
 {
 	class Archive;
+	class RHIMemory;
 	struct LinearColor;
 	struct RHITextureDescRTV;
 	struct RHITextureDescDSV;
@@ -177,7 +178,9 @@ namespace Trinex
 	class RHIMemory : public RHIObject
 	{
 	public:
-		virtual usize size() const         = 0;
-		virtual RHIMemoryType type() const = 0;
+		virtual u8* map(RHIMappingAccess access) = 0;
+		virtual void unmap()                     = 0;
+		virtual usize size() const               = 0;
+		virtual RHIMemoryType type() const       = 0;
 	};
 } // namespace Trinex

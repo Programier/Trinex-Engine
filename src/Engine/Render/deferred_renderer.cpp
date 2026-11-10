@@ -765,8 +765,7 @@ namespace Trinex
 		if (m_lights_buffer == nullptr)
 		{
 			StackByteAllocator::Mark mark;
-			static constexpr RHIBufferFlags flags =
-			        RHIBufferFlags::StructuredBuffer | RHIBufferFlags::ShaderResource | RHIBufferFlags::TransferDst;
+			static constexpr RHIBufferFlags flags = RHIBufferFlags::StructuredBuffer | RHIBufferFlags::ShaderResource;
 
 			usize size      = sizeof(LightRenderParameters) * m_visible_lights.size();
 			m_lights_buffer = RHIBufferPool::instance()->acquire_transient(size, flags);
@@ -849,8 +848,7 @@ namespace Trinex
 
 			auto pool = RHIBufferPool::instance();
 			m_shadow_buffer =
-			        pool->acquire_transient(buffer_size, RHIBufferFlags::ByteAddressBuffer | RHIBufferFlags::ShaderResource
-			                                                     | RHIBufferFlags::TransferDst);
+			        pool->acquire_transient(buffer_size, RHIBufferFlags::ByteAddressBuffer | RHIBufferFlags::ShaderResource);
 
 			if (buffer_size == 0)
 				return m_shadow_buffer;

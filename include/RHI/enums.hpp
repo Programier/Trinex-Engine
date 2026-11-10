@@ -270,30 +270,28 @@ namespace Trinex
 
 	struct RHIBufferFlags
 	{
-		enum Enum : u32
+		enum Enum : u16
 		{
 			Undefined         = 0,
 			ShaderResource    = trinex_bit(0),
 			UnorderedAccess   = trinex_bit(1),
 			StructuredBuffer  = trinex_bit(2),
 			ByteAddressBuffer = trinex_bit(3),
+			TypedBuffer       = trinex_bit(4),
 
-			VertexBuffer        = trinex_bit(4),
-			IndexBuffer         = trinex_bit(5),
-			UniformBuffer       = trinex_bit(6),
-			IndirectBuffer      = trinex_bit(7),
-			TransferSrc         = trinex_bit(8),
-			TransferDst         = trinex_bit(9),
-			CPURead             = trinex_bit(10),
-			CPUWrite            = trinex_bit(11),
-			DeviceAddress       = trinex_bit(12),
-			AccelerationStorage = trinex_bit(13),
-			AccelerationInput   = trinex_bit(14),
-			ShaderBindingTable  = trinex_bit(15),
-			Virtual             = trinex_bit(16),
+			VertexBuffer        = trinex_bit(5),
+			IndexBuffer         = trinex_bit(6),
+			UniformBuffer       = trinex_bit(7),
+			IndirectBuffer      = trinex_bit(8),
+			CPURead             = trinex_bit(9),
+			CPUWrite            = trinex_bit(10),
+			DeviceAddress       = trinex_bit(11),
+			AccelerationStorage = trinex_bit(12),
+			AccelerationInput   = trinex_bit(13),
+			ShaderBindingTable  = trinex_bit(14),
 		};
 
-		trinex_bitfield_enum_struct(RHIBufferFlags, u32);
+		trinex_bitfield_enum_struct(RHIBufferFlags, u16);
 	};
 
 	struct RHIBufferViewType

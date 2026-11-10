@@ -29,7 +29,7 @@ namespace Trinex
 	public:
 		RHIUploadAllocatorPage(usize capacity) : m_capacity(capacity)
 		{
-			m_buffer = RHI::instance()->create_buffer(capacity, RHIBufferFlags::TransferSrc | RHIBufferFlags::CPUWrite);
+			m_buffer = RHI::instance()->create_buffer(capacity, RHIBufferFlags::CPUWrite);
 			m_mapped = m_buffer ? m_buffer->map(RHIMappingAccess::Write) : nullptr;
 			trinex_assert_msg(m_mapped, "Failed to map upload page");
 		}

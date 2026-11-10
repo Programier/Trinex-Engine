@@ -9,6 +9,7 @@
 namespace Trinex
 {
 	class VulkanContext;
+	class VulkanMemory;
 
 	class VulkanBuffer : public RHIBuffer
 	{
@@ -16,10 +17,11 @@ namespace Trinex
 		RHIShaderResourceView* m_srv  = nullptr;
 		RHIUnorderedAccessView* m_uav = nullptr;
 
-		vk::Buffer m_buffer        = VK_NULL_HANDLE;
 		VmaAllocation m_allocation = VK_NULL_HANDLE;
-		usize m_size               = 0;
+		vk::Buffer m_buffer        = VK_NULL_HANDLE;
 		RHIDeviceAddress m_address = 0;
+		usize m_size               = 0;
+		usize m_offset             = 0;
 
 		RHIAccess m_access     = RHIAccess::Undefined;
 		RHIBufferFlags m_flags = {};
@@ -30,10 +32,10 @@ namespace Trinex
 		VulkanBuffer& copy(VulkanContext* ctx, vk::DeviceSize offset, const u8* data, vk::DeviceSize size);
 
 		RHI* device() const override;
+		usize size() const override;
 		RHIDeviceAddress address() override;
 		u8* map(RHIMappingAccess access = RHIMappingAccess::Undefined) override;
 		void unmap() override;
-		usize size() const override;
 		VulkanBuffer& barrier(VulkanContext* ctx, RHIAccess access);
 
 		RHIShaderResourceView* as_srv(RHIBufferViewType view, RHIColorFormat format = RHIColorFormat::Undefined) override;

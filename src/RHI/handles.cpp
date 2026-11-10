@@ -95,7 +95,7 @@ namespace Trinex
 				return status;
 			}
 
-			const auto flags  = RHIBufferFlags::CPURead | RHIBufferFlags::TransferDst;
+			const auto flags  = RHIBufferFlags::CPURead;
 			RHIBuffer* buffer = RHIBufferPool::instance()->acquire(buffer_size, flags);
 
 			RHIContext* ctx = RHIContextPool::instance()->begin();
