@@ -188,13 +188,13 @@ namespace Trinex
 			RHITextureFlags flags   = surface_flags_of(type);
 			RHITexture* target      = pool->acquire_transient(format, m_view.view_size(), flags);
 
-			RGPass* pass           = &m_graph->add_pass(clear_pass_names[type]).add_resource(target, RHIAccess::TransferDst);
-			m_surface_clears[type] = pass;
+			//RGPass* pass           = &m_graph->add_pass(clear_pass_names[type]).add_resource(target, RHIAccess::TransferDst);
+			m_surface_clears[type] = nullptr;
 
-			if (type == SceneDepth)
-				pass->add_func([target](RHIContext* ctx) { ctx->clear_dsv(target->as_dsv()); });
-			else
-				pass->add_func([target](RHIContext* ctx) { ctx->clear_rtv(target->as_rtv()); });
+			// if (type == SceneDepth)
+			// 	pass->add_func([target](RHIContext* ctx) { ctx->clear_dsv(target->as_dsv()); });
+			// else
+			// 	pass->add_func([target](RHIContext* ctx) { ctx->clear_rtv(target->as_rtv()); });
 		}
 
 		return m_surface_clears[type];

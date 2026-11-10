@@ -162,8 +162,6 @@ namespace Trinex
 		RGResource* find_resource(RGTexture texture);
 		RGResource* find_resource(RGBuffer buffer);
 		RGResource* find_resource(RGPass* pass);
-		RGResource* find_resource(RHITexture* texture, RGPass* writer);
-		RGResource* find_resource(RHIBuffer* buffer, RGPass* writer);
 		RGResource* find_resource(RGTexture texture, RGPass* writer);
 		RGResource* find_resource(RGBuffer buffer, RGPass* writer);
 
@@ -175,8 +173,6 @@ namespace Trinex
 		RGBuffer import(RHIBuffer* buffer);
 		RGTexture create_texture(const RGTextureDesc& desc);
 		RGBuffer create_buffer(const RGBufferDesc& desc);
-		RenderGraph& add_output(RHITexture* texture);
-		RenderGraph& add_output(RHIBuffer* buffer);
 		RenderGraph& add_output(RGTexture texture);
 		RenderGraph& add_output(RGBuffer buffer);
 		RHITexture* texture(RGTexture texture);
@@ -262,23 +258,13 @@ namespace Trinex
 		// `access` is the state required after this pass. If `initial` is provided,
 		// it is the state required while the task executes. This permits a pass to
 		// read a resource and leave it ready for its next writer.
-		RGPass& add_resource(RHITexture* texture, RHIAccess access, RHIAccess initial = RHIAccess::Undefined);
-		RGPass& add_resource(RHIBuffer* buffer, RHIAccess access, RHIAccess initial = RHIAccess::Undefined);
 		RGPass& add_resource(RGTexture texture, RHIAccess access, RHIAccess initial = RHIAccess::Undefined);
 		RGPass& add_resource(RGBuffer buffer, RHIAccess access, RHIAccess initial = RHIAccess::Undefined);
-		RGPass& read(RHITexture* texture, RHIAccess access = RHIAccess::SRVGraphics);
-		RGPass& read(RHIBuffer* buffer, RHIAccess access = RHIAccess::SRVGraphics);
 		RGPass& read(RGTexture texture, RHIAccess access = RHIAccess::SRVGraphics);
 		RGPass& read(RGBuffer buffer, RHIAccess access = RHIAccess::SRVGraphics);
-		RGPass& write(RHITexture* texture, RHIAccess access);
-		RGPass& write(RHIBuffer* buffer, RHIAccess access);
 		RGPass& write(RGTexture texture, RHIAccess access);
 		RGPass& write(RGBuffer buffer, RHIAccess access);
 		RGPass& side_effect();
-
-		// TODO: Remove once all callers import resources explicitly.
-		RGPass& add_untracked_resource(RHITexture* texture, RHIAccess access, RHIAccess initial = RHIAccess::Undefined);
-		RGPass& add_untracked_resource(RHIBuffer* buffer, RHIAccess access, RHIAccess initial = RHIAccess::Undefined);
 
 		template<typename TaskType, typename... Args>
 		RGPass& add_task(Args&&... args)

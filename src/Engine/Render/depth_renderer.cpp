@@ -15,12 +15,12 @@ namespace Trinex
 {
 	DepthRenderer::DepthRenderer(const SceneView& view, ViewMode mode) : Renderer(view, mode)
 	{
-		auto graph = render_graph();
+		// auto graph = render_graph();
 
-		graph->add_output(scene_depth_target());
-		graph->add_pass("Depth Rendering").add_resource(scene_depth_target(), RHIAccess::DSV).add_func([this](RHIContext* cxt) {
-			render_depth(cxt);
-		});
+		// graph->add_output(scene_depth_target());
+		// graph->add_pass("Depth Rendering").add_resource(scene_depth_target(), RHIAccess::DSV).add_func([this](RHIContext* cxt) {
+		// 	render_depth(cxt);
+		// });
 	}
 
 	DepthRenderer& DepthRenderer::render_depth(RHIContext* ctx)
@@ -46,13 +46,13 @@ namespace Trinex
 		auto pool = RHITexturePool::instance();
 		m_cubemap = pool->acquire_transient(RHITextureType::TextureCube, RHISurfaceFormat::D32F, {view.view_size(), 1});
 
-		auto graph = render_graph();
+		// auto graph = render_graph();
 
-		graph->add_output(cubemap());
+		// graph->add_output(cubemap());
 
-		graph->add_pass("Depth Rendering")
-		        .add_resource(cubemap(), RHIAccess::DSV, RHIAccess::TransferDst)
-		        .add_func([this](RHIContext* ctx) { render_depth(ctx); });
+		// graph->add_pass("Depth Rendering")
+		//         .add_resource(cubemap(), RHIAccess::DSV, RHIAccess::TransferDst)
+		//         .add_func([this](RHIContext* ctx) { render_depth(ctx); });
 	}
 
 	DepthCubeRenderer& DepthCubeRenderer::clear_depth(RHIContext* ctx)

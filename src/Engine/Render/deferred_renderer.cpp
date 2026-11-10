@@ -73,7 +73,7 @@ namespace Trinex
 		find_light_range(m_visible_lights, LightComponent::Directional, m_light_ranges->directional,
 		                 m_light_ranges->spot.shadowed.end);
 
-		auto graph = render_graph();
+		//auto graph = render_graph();
 
 		m_post_process_params = trx_frame_new PostProcessParameters();
 
@@ -82,25 +82,25 @@ namespace Trinex
 			m_post_process_params->blend(post_process->parameters(), post_process->blend_weight());
 		}
 
-		graph->add_pass("Geometry Pass")
-		        .add_resource(base_color_target(), RHIAccess::RTV)
-		        .add_resource(normal_target(), RHIAccess::RTV)
-		        .add_resource(scene_color_hdr_target(), RHIAccess::RTV)
-		        .add_resource(msra_target(), RHIAccess::RTV)
-		        .add_resource(scene_depth_target(), RHIAccess::DSV)
-		        .add_func([this](RHIContext* ctx) { geometry_pass(ctx); });
+		// graph->add_pass("Geometry Pass")
+		//         .add_resource(base_color_target(), RHIAccess::RTV)
+		//         .add_resource(normal_target(), RHIAccess::RTV)
+		//         .add_resource(scene_color_hdr_target(), RHIAccess::RTV)
+		//         .add_resource(msra_target(), RHIAccess::RTV)
+		//         .add_resource(scene_depth_target(), RHIAccess::DSV)
+		//         .add_func([this](RHIContext* ctx) { geometry_pass(ctx); });
 
-		graph->add_pass("Velocity Pass").add_resource(velocity_target(), RHIAccess::RTV).add_func([this](RHIContext* ctx) {
-			velocity_pass(ctx);
-		});
+		// graph->add_pass("Velocity Pass").add_resource(velocity_target(), RHIAccess::RTV).add_func([this](RHIContext* ctx) {
+		// 	velocity_pass(ctx);
+		// });
 
 		if (m_post_process_params->ssao.enabled)
 		{
-			graph->add_pass("Ambient Occlusion")
-			        .add_resource(msra_target(), RHIAccess::RTV)
-			        .add_resource(normal_target(), RHIAccess::SRVGraphics)
-			        .add_resource(scene_depth_target(), RHIAccess::SRVGraphics)
-			        .add_func([this](RHIContext* ctx) { ambient_occlusion_pass(ctx); });
+			// graph->add_pass("Ambient Occlusion")
+			//         .add_resource(msra_target(), RHIAccess::RTV)
+			//         .add_resource(normal_target(), RHIAccess::SRVGraphics)
+			//         .add_resource(scene_depth_target(), RHIAccess::SRVGraphics)
+			//         .add_func([this](RHIContext* ctx) { ambient_occlusion_pass(ctx); });
 		}
 
 		switch (mode)
@@ -113,108 +113,108 @@ namespace Trinex
 
 			case ViewMode::Unlit:
 			{
-				graph->add_pass("Base Color Resolve")
-				        .add_resource(base_color_target(), RHIAccess::SRVGraphics)
-				        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
-				        .add_func([this](RHIContext* ctx) {
-					        copy_to_scene_color(ctx, base_color_target(), {Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::One});
-				        });
+				// graph->add_pass("Base Color Resolve")
+				//         .add_resource(base_color_target(), RHIAccess::SRVGraphics)
+				//         .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
+				//         .add_func([this](RHIContext* ctx) {
+				// 	        copy_to_scene_color(ctx, base_color_target(), {Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::One});
+				//         });
 				break;
 			}
 
 			case ViewMode::Wireframe:
 			{
-				graph->add_pass("Wireframe Rendering")
-				        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
-				        .add_resource(scene_depth_target(), RHIAccess::DSV)
-				        .add_func([this](RHIContext* ctx) { wireframe_pass(ctx); });
+				// graph->add_pass("Wireframe Rendering")
+				//         .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
+				//         .add_resource(scene_depth_target(), RHIAccess::DSV)
+				//         .add_func([this](RHIContext* ctx) { wireframe_pass(ctx); });
 				break;
 			}
 
 			case ViewMode::WorldNormal:
 			{
-				graph->add_pass("World Normal Resolve")
-				        .add_resource(normal_target(), RHIAccess::SRVGraphics)
-				        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
-				        .add_func([this](RHIContext* ctx) {
-					        copy_to_scene_color(ctx, normal_target(), {Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::One});
-				        });
+				// graph->add_pass("World Normal Resolve")
+				//         .add_resource(normal_target(), RHIAccess::SRVGraphics)
+				//         .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
+				//         .add_func([this](RHIContext* ctx) {
+				// 	        copy_to_scene_color(ctx, normal_target(), {Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::One});
+				//         });
 				break;
 			}
 
 			case ViewMode::Emissive:
 			{
-				graph->add_pass("Emissive Resolve")
-				        .add_resource(scene_color_hdr_target(), RHIAccess::SRVGraphics)
-				        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
-				        .add_func([this](RHIContext* ctx) {
-					        copy_to_scene_color(ctx, scene_color_hdr_target(),
-					                            {Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::One});
-				        });
+				// graph->add_pass("Emissive Resolve")
+				//         .add_resource(scene_color_hdr_target(), RHIAccess::SRVGraphics)
+				//         .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
+				//         .add_func([this](RHIContext* ctx) {
+				// 	        copy_to_scene_color(ctx, scene_color_hdr_target(),
+				// 	                            {Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::One});
+				//         });
 				break;
 			}
 
 			case ViewMode::Metalic:
 			{
-				graph->add_pass("Metalic Resolve")
-				        .add_resource(msra_target(), RHIAccess::SRVGraphics)
-				        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
-				        .add_func([this](RHIContext* ctx) {
-					        copy_to_scene_color(ctx, msra_target(), {Swizzle::R, Swizzle::R, Swizzle::R, Swizzle::One});
-				        });
+				// graph->add_pass("Metalic Resolve")
+				//         .add_resource(msra_target(), RHIAccess::SRVGraphics)
+				//         .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
+				//         .add_func([this](RHIContext* ctx) {
+				// 	        copy_to_scene_color(ctx, msra_target(), {Swizzle::R, Swizzle::R, Swizzle::R, Swizzle::One});
+				//         });
 				break;
 			}
 
 			case ViewMode::Specular:
 			{
-				graph->add_pass("Specular Resolve")
-				        .add_resource(msra_target(), RHIAccess::SRVGraphics)
-				        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
-				        .add_func([this](RHIContext* ctx) {
-					        copy_to_scene_color(ctx, msra_target(), {Swizzle::G, Swizzle::G, Swizzle::G, Swizzle::One});
-				        });
+				// graph->add_pass("Specular Resolve")
+				//         .add_resource(msra_target(), RHIAccess::SRVGraphics)
+				//         .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
+				//         .add_func([this](RHIContext* ctx) {
+				// 	        copy_to_scene_color(ctx, msra_target(), {Swizzle::G, Swizzle::G, Swizzle::G, Swizzle::One});
+				//         });
 				break;
 			}
 
 			case ViewMode::Roughness:
 			{
-				graph->add_pass("Roughness Resolve")
-				        .add_resource(msra_target(), RHIAccess::SRVGraphics)
-				        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
-				        .add_func([this](RHIContext* ctx) {
-					        copy_to_scene_color(ctx, msra_target(), {Swizzle::B, Swizzle::B, Swizzle::B, Swizzle::One});
-				        });
+				// graph->add_pass("Roughness Resolve")
+				//         .add_resource(msra_target(), RHIAccess::SRVGraphics)
+				//         .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
+				//         .add_func([this](RHIContext* ctx) {
+				// 	        copy_to_scene_color(ctx, msra_target(), {Swizzle::B, Swizzle::B, Swizzle::B, Swizzle::One});
+				//         });
 				break;
 			}
 
 			case ViewMode::AO:
 			{
-				graph->add_pass("AO Resolve")
-				        .add_resource(msra_target(), RHIAccess::SRVGraphics)
-				        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
-				        .add_func([this](RHIContext* ctx) {
-					        copy_to_scene_color(ctx, msra_target(), {Swizzle::A, Swizzle::A, Swizzle::A, Swizzle::One});
-				        });
+				// graph->add_pass("AO Resolve")
+				//         .add_resource(msra_target(), RHIAccess::SRVGraphics)
+				//         .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
+				//         .add_func([this](RHIContext* ctx) {
+				// 	        copy_to_scene_color(ctx, msra_target(), {Swizzle::A, Swizzle::A, Swizzle::A, Swizzle::One});
+				//         });
 				break;
 			}
 
 			case ViewMode::Velocity:
 			{
-				graph->add_pass("Velocity Resolve")
-				        .add_resource(velocity_target(), RHIAccess::TransferSrc)
-				        .add_resource(scene_color_ldr_target(), RHIAccess::TransferDst)
-				        .add_func([this](RHIContext* ctx) {
-					        copy_to_scene_color(ctx, velocity_target(), {Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::One});
-				        });
+				// graph->add_pass("Velocity Resolve")
+				//         .add_resource(velocity_target(), RHIAccess::TransferSrc)
+				//         .add_resource(scene_color_ldr_target(), RHIAccess::TransferDst)
+				//         .add_func([this](RHIContext* ctx) {
+				// 	        copy_to_scene_color(ctx, velocity_target(), {Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::One});
+				//         });
 				break;
 			}
 
 			case ViewMode::Depth:
 			{
-				graph->add_pass("Depth Resolve")
-				        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
-				        .add_resource(scene_depth_target(), RHIAccess::SRVGraphics)
-				        .add_func([this](RHIContext* ctx) { copy_depth_to_scene_color(ctx); });
+				// graph->add_pass("Depth Resolve")
+				//         .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
+				//         .add_resource(scene_depth_target(), RHIAccess::SRVGraphics)
+				//         .add_func([this](RHIContext* ctx) { copy_depth_to_scene_color(ctx); });
 				break;
 			}
 
@@ -225,16 +225,16 @@ namespace Trinex
 		{
 			if (m_post_process_params->bloom.enabled)
 			{
-				graph->add_pass("Bloom")
-				        .add_resource(scene_color_hdr_target(), RHIAccess::RTV, RHIAccess::SRVGraphics)
-				        .add_func([this](RHIContext* ctx) { bloom_pass(ctx); });
+				// graph->add_pass("Bloom")
+				//         .add_resource(scene_color_hdr_target(), RHIAccess::RTV, RHIAccess::SRVGraphics)
+				//         .add_func([this](RHIContext* ctx) { bloom_pass(ctx); });
 			}
 
 			// Tonemapping
-			graph->add_pass("Tonemapping")
-			        .add_resource(scene_color_hdr_target(), RHIAccess::SRVGraphics)
-			        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
-			        .add_func([this](RHIContext* ctx) { Pipelines::TonemappingACES::instance()->apply(ctx, this); });
+			// graph->add_pass("Tonemapping")
+			//         .add_resource(scene_color_hdr_target(), RHIAccess::SRVGraphics)
+			//         .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
+			//         .add_func([this](RHIContext* ctx) { Pipelines::TonemappingACES::instance()->apply(ctx, this); });
 		}
 
 		register_debug_lines();
@@ -242,16 +242,16 @@ namespace Trinex
 
 	DeferredRenderer& DeferredRenderer::register_debug_lines()
 	{
-		render_graph()
-		        ->add_pass("Batched Primitives")
-		        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
-		        .add_untracked_resource(scene_depth_target(), RHIAccess::DSV)
-		        .add_func([this](RHIContext* ctx) {
-			        if (!lines.is_empty())
-			        {
-				        lines.flush(ctx, this);
-			        }
-		        });
+		// render_graph()
+		//         ->add_pass("Batched Primitives")
+		//         .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
+		//         .add_untracked_resource(scene_depth_target(), RHIAccess::DSV)
+		//         .add_func([this](RHIContext* ctx) {
+		// 	        if (!lines.is_empty())
+		// 	        {
+		// 		        lines.flush(ctx, this);
+		// 	        }
+		//         });
 
 		return *this;
 	}
@@ -370,38 +370,38 @@ namespace Trinex
 
 	DeferredRenderer& DeferredRenderer::register_lit_mode_passes()
 	{
-		auto graph = render_graph();
+		// auto graph = render_graph();
 
-		graph->add_pass("Light Culling")
-		        .add_resource(clusters_buffer(), RHIAccess::UAVCompute)
-		        .add_resource(lights_buffer(), RHIAccess::SRVCompute)
-		        .add_func([this](RHIContext* ctx) { cull_lights(ctx); });
+		// graph->add_pass("Light Culling")
+		//         .add_resource(clusters_buffer(), RHIAccess::UAVCompute)
+		//         .add_resource(lights_buffer(), RHIAccess::SRVCompute)
+		//         .add_func([this](RHIContext* ctx) { cull_lights(ctx); });
 
-		graph->add_pass("Global Illumination")
-		        .add_resource(scene_color_hdr_target(), RHIAccess::RTV)
-		        .add_resource(base_color_target(), RHIAccess::SRVGraphics)
-		        .add_resource(msra_target(), RHIAccess::SRVGraphics)
-		        .add_func([this](RHIContext* ctx) { global_illumination_pass(ctx); });
+		// graph->add_pass("Global Illumination")
+		//         .add_resource(scene_color_hdr_target(), RHIAccess::RTV)
+		//         .add_resource(base_color_target(), RHIAccess::SRVGraphics)
+		//         .add_resource(msra_target(), RHIAccess::SRVGraphics)
+		//         .add_func([this](RHIContext* ctx) { global_illumination_pass(ctx); });
 
-		graph->add_pass("Lighting Pass")
-		        .add_resource(base_color_target(), RHIAccess::SRVGraphics)
-		        .add_resource(normal_target(), RHIAccess::SRVGraphics)
-		        .add_resource(msra_target(), RHIAccess::SRVGraphics)
-		        .add_resource(scene_depth_target(), RHIAccess::SRVGraphics)
-		        .add_resource(scene_color_hdr_target(), RHIAccess::RTV)
-		        .add_resource(clusters_buffer(), RHIAccess::SRVGraphics)
-		        .add_resource(lights_buffer(), RHIAccess::SRVGraphics)
-		        .add_resource(shadow_buffer(), RHIAccess::SRVGraphics)
-		        .add_func([this](RHIContext* ctx) { deferred_lighting_pass(ctx); });
+		// graph->add_pass("Lighting Pass")
+		//         .add_resource(base_color_target(), RHIAccess::SRVGraphics)
+		//         .add_resource(normal_target(), RHIAccess::SRVGraphics)
+		//         .add_resource(msra_target(), RHIAccess::SRVGraphics)
+		//         .add_resource(scene_depth_target(), RHIAccess::SRVGraphics)
+		//         .add_resource(scene_color_hdr_target(), RHIAccess::RTV)
+		//         .add_resource(clusters_buffer(), RHIAccess::SRVGraphics)
+		//         .add_resource(lights_buffer(), RHIAccess::SRVGraphics)
+		//         .add_resource(shadow_buffer(), RHIAccess::SRVGraphics)
+		//         .add_func([this](RHIContext* ctx) { deferred_lighting_pass(ctx); });
 
-		graph->add_pass("Translucent")
-		        .add_resource(scene_color_hdr_target(), RHIAccess::RTV)
-		        .add_resource(scene_depth_target(), RHIAccess::DSVRead)
-		        .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
-		        .add_resource(clusters_buffer(), RHIAccess::SRVGraphics)
-		        .add_resource(lights_buffer(), RHIAccess::SRVGraphics)
-		        .add_resource(shadow_buffer(), RHIAccess::SRVGraphics)
-		        .add_func([this](RHIContext* ctx) { translucent_pass(ctx); });
+		// graph->add_pass("Translucent")
+		//         .add_resource(scene_color_hdr_target(), RHIAccess::RTV)
+		//         .add_resource(scene_depth_target(), RHIAccess::DSVRead)
+		//         .add_resource(scene_color_ldr_target(), RHIAccess::RTV)
+		//         .add_resource(clusters_buffer(), RHIAccess::SRVGraphics)
+		//         .add_resource(lights_buffer(), RHIAccess::SRVGraphics)
+		//         .add_resource(shadow_buffer(), RHIAccess::SRVGraphics)
+		//         .add_func([this](RHIContext* ctx) { translucent_pass(ctx); });
 
 		return *this;
 	}
@@ -750,12 +750,12 @@ namespace Trinex
 		{
 			m_clusters_buffer = Pipelines::ClusterInitialize::instance()->create_clusters_buffer();
 
-			render_graph()
-			        ->add_pass("Initialize Clusters")
-			        .add_resource(m_clusters_buffer, RHIAccess::UAVCompute)
-			        .add_func([this](RHIContext* ctx) {
-				        Pipelines::ClusterInitialize::instance()->build(ctx, m_clusters_buffer, this);
-			        });
+			// render_graph()
+			//         ->add_pass("Initialize Clusters")
+			//         .add_resource(m_clusters_buffer, RHIAccess::UAVCompute)
+			//         .add_func([this](RHIContext* ctx) {
+			// 	        Pipelines::ClusterInitialize::instance()->build(ctx, m_clusters_buffer, this);
+			//         });
 		}
 		return m_clusters_buffer;
 	}
@@ -821,10 +821,10 @@ namespace Trinex
 					ctx->update(m_lights_buffer, parameters, {.size = size});
 				};
 
-				render_graph()
-				        ->add_pass("Initialize Light Buffer")
-				        .add_resource(m_lights_buffer, RHIAccess::TransferDst)
-				        .add_func(pass);
+				// render_graph()
+				//         ->add_pass("Initialize Light Buffer")
+				//         .add_resource(m_lights_buffer, RHIAccess::TransferDst)
+				//         .add_func(pass);
 			}
 		}
 		return m_lights_buffer;
@@ -892,10 +892,10 @@ namespace Trinex
 				ctx->update(m_shadow_buffer, buffer, {.size = buffer_size});
 			};
 
-			render_graph()
-			        ->add_pass("Initialize Shadow Buffer")
-			        .add_resource(m_shadow_buffer, RHIAccess::TransferDst)
-			        .add_func(pass);
+			// render_graph()
+			//         ->add_pass("Initialize Shadow Buffer")
+			//         .add_resource(m_shadow_buffer, RHIAccess::TransferDst)
+			//         .add_func(pass);
 		}
 
 		return m_shadow_buffer;

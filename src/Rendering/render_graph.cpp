@@ -15,7 +15,6 @@ namespace Trinex
 	static constexpr usize s_default_reserve_size = 64;
 
 	// TODO(RenderGraph):
-	// - Migrate renderer/editor call sites to RGTexture/RGBuffer and remove legacy raw-RHI RGPass overloads.
 	// - Make imports and exports explicit in all passes; imported resources retain external ownership.
 	// - Use RGLifetime to acquire transient resources at first use and release them after their final use.
 	// - Alias compatible transient allocations whose lifetimes do not overlap.
@@ -154,34 +153,6 @@ namespace Trinex
 		return add_resource(m_graph->find_resource(pass), RHIAccess::Undefined, RHIAccess::Undefined);
 	}
 
-	RGPass& RGPass::add_resource(RHITexture* texture, RHIAccess access, RHIAccess initial)
-	{
-		if (texture == nullptr)
-		{
-			trinex_error(Log::Graphics, "RenderGraph pass '%s' references a null texture", name());
-			return *this;
-		}
-
-		if (access & RHIAccess::WritableMask)
-			return add_resource(m_graph->find_resource(texture, this), access, initial);
-		else
-			return add_resource(m_graph->find_resource(texture), access, initial);
-	}
-
-	RGPass& RGPass::add_resource(RHIBuffer* buffer, RHIAccess access, RHIAccess initial)
-	{
-		if (buffer == nullptr)
-		{
-			trinex_error(Log::Graphics, "RenderGraph pass '%s' references a null buffer", name());
-			return *this;
-		}
-
-		if (access & RHIAccess::WritableMask)
-			return add_resource(m_graph->find_resource(buffer, this), access, initial);
-		else
-			return add_resource(m_graph->find_resource(buffer), access, initial);
-	}
-
 	RGPass& RGPass::add_resource(RGTexture texture, RHIAccess access, RHIAccess initial)
 	{
 		if (!texture.is_valid())
@@ -208,24 +179,6 @@ namespace Trinex
 		return add_resource(m_graph->find_resource(buffer), access, initial);
 	}
 
-	RGPass& RGPass::read(RHITexture* texture, RHIAccess access)
-	{
-		if (access & RHIAccess::WritableMask)
-		{
-			trinex_error(Log::Graphics, "RenderGraph pass '%s' declares a texture read with writable access", name());
-		}
-		return add_resource(texture, access);
-	}
-
-	RGPass& RGPass::read(RHIBuffer* buffer, RHIAccess access)
-	{
-		if (access & RHIAccess::WritableMask)
-		{
-			trinex_error(Log::Graphics, "RenderGraph pass '%s' declares a buffer read with writable access", name());
-		}
-		return add_resource(buffer, access);
-	}
-
 	RGPass& RGPass::read(RGTexture texture, RHIAccess access)
 	{
 		if (access & RHIAccess::WritableMask)
@@ -240,24 +193,6 @@ namespace Trinex
 		if (access & RHIAccess::WritableMask)
 		{
 			trinex_error(Log::Graphics, "RenderGraph pass '%s' declares an RG buffer read with writable access", name());
-		}
-		return add_resource(buffer, access);
-	}
-
-	RGPass& RGPass::write(RHITexture* texture, RHIAccess access)
-	{
-		if (!(access & RHIAccess::WritableMask))
-		{
-			trinex_error(Log::Graphics, "RenderGraph pass '%s' declares a texture write without writable access", name());
-		}
-		return add_resource(texture, access);
-	}
-
-	RGPass& RGPass::write(RHIBuffer* buffer, RHIAccess access)
-	{
-		if (!(access & RHIAccess::WritableMask))
-		{
-			trinex_error(Log::Graphics, "RenderGraph pass '%s' declares a buffer write without writable access", name());
 		}
 		return add_resource(buffer, access);
 	}
@@ -285,34 +220,6 @@ namespace Trinex
 		m_never_cull = true;
 		m_graph->invalidate();
 		return *this;
-	}
-
-	RGPass& RGPass::add_untracked_resource(RHITexture* texture, RHIAccess access, RHIAccess initial)
-	{
-		if (texture == nullptr)
-		{
-			trinex_error(Log::Graphics, "RenderGraph pass '%s' references a null untracked texture", name());
-			return *this;
-		}
-
-		if (access & RHIAccess::WritableMask)
-			return add_resource(m_graph->create_resource(texture, this), access, initial);
-		else
-			return add_resource(m_graph->create_resource(texture), access, initial);
-	}
-
-	RGPass& RGPass::add_untracked_resource(RHIBuffer* buffer, RHIAccess access, RHIAccess initial)
-	{
-		if (buffer == nullptr)
-		{
-			trinex_error(Log::Graphics, "RenderGraph pass '%s' references a null untracked buffer", name());
-			return *this;
-		}
-
-		if (access & RHIAccess::WritableMask)
-			return add_resource(m_graph->create_resource(buffer, this), access, initial);
-		else
-			return add_resource(m_graph->create_resource(buffer), access, initial);
 	}
 
 	RHITexture* RGContext::texture(RGTexture texture) const
@@ -510,22 +417,6 @@ namespace Trinex
 		return resource;
 	}
 
-	RGResource* RenderGraph::find_resource(RHITexture* texture, RGPass* writer)
-	{
-		RGResource* previous  = find_resource(texture);
-		RGResource*& resource = m_resource_map[texture];
-		resource              = trx_frame_new RGResource(previous->backing(), writer, previous);
-		return resource;
-	}
-
-	RGResource* RenderGraph::find_resource(RHIBuffer* buffer, RGPass* writer)
-	{
-		RGResource* previous  = find_resource(buffer);
-		RGResource*& resource = m_resource_map[buffer];
-		resource              = trx_frame_new RGResource(previous->backing(), writer, previous);
-		return resource;
-	}
-
 	RGResource* RenderGraph::find_resource(RGTexture texture, RGPass* writer)
 	{
 		RGResource* previous = find_resource(texture);
@@ -574,22 +465,6 @@ namespace Trinex
 		m_resource_map[resource->backing()] = resource;
 		invalidate();
 		return RGBuffer(resource->backing());
-	}
-
-	RenderGraph& RenderGraph::add_output(RHITexture* texture)
-	{
-		import(texture);
-		m_outputs.insert(texture);
-		invalidate();
-		return *this;
-	}
-
-	RenderGraph& RenderGraph::add_output(RHIBuffer* buffer)
-	{
-		import(buffer);
-		m_outputs.insert(buffer);
-		invalidate();
-		return *this;
 	}
 
 	RenderGraph& RenderGraph::add_output(RGTexture texture)

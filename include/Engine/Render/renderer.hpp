@@ -102,7 +102,7 @@ namespace Trinex
 		inline RGPass* msra_clear_pass() { return surface_clear_pass(MSRA); }
 		inline RGPass* velocity_clear_pass() { return surface_clear_pass(Velocity); }
 
-		inline RenderGraph* render_graph() const { return m_graph; }
+		//inline RenderGraph* render_graph() const { return m_graph; }
 
 		virtual ~Renderer() {}
 	};
