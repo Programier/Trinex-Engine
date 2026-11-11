@@ -158,7 +158,7 @@
 
 #define trinex_old_struct(struct_name, base_name)                                                                                \
 protected:                                                                                                                       \
-	static Trinex::Refl::Deprecated::Struct* m_static_struct;                                                                                \
+	static Trinex::Refl::Deprecated::Struct* m_static_struct;                                                                    \
                                                                                                                                  \
 public:                                                                                                                          \
 	using This  = struct_name;                                                                                                   \
@@ -226,7 +226,7 @@ public:                                                                         
 
 #define trinex_debug_break() __builtin_trap()
 
-#define trinex_function_name __PRETTY_FUNCTION__
+#define trinex_function_signature __PRETTY_FUNCTION__
 
 #define trinex_prefetch(ptr) __builtin_prefetch(ptr)
 

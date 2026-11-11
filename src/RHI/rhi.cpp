@@ -97,8 +97,7 @@ namespace Trinex
 
 			if (state.rhi == nullptr)
 			{
-				state.rhi       = state.create();
-				state.rhi->m_gc = trx_new RHIGarbageCollector(state.rhi);
+				state.rhi = state.create();
 			}
 
 			return state.rhi;
@@ -107,7 +106,7 @@ namespace Trinex
 		return nullptr;
 	}
 
-	RHI::RHI()
+	RHI::RHI() : m_gc(trx_new RHIGarbageCollector(this))
 	{
 		[[maybe_unused]] static auto destroy = LifeCycle::on_teardown([] {
 			for (auto& [type, backend] : backends())

@@ -110,7 +110,7 @@ namespace Trinex
 					manager.address = Manager::dynamic_address;
 				}
 
-				manager.type_name = type_info<Type>::name();
+				manager.type_name = type_info::from<Type>().name;
 			}
 
 			return &manager;
@@ -189,7 +189,7 @@ namespace Trinex
 		template<typename T>
 		bool is_a() const
 		{
-			return has_value() && m_manager->type_name == type_info<T>::name();
+			return has_value() && m_manager->type_name == type_info::from<T>().name;
 		}
 
 		template<typename T>
