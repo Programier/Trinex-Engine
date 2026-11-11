@@ -82,12 +82,8 @@ endif()
 trinex_reflection_directories(TrinexEngine PUBLIC ${TRINEX_ENGINE_ROOT}/include)
 trinex_link_libraries(TrinexEngine PUBLIC freetype asmjit lz4_static stb_library)
 
-trinex_compile_options(TrinexEngine PUBLIC
-    $<$<COMPILE_LANGUAGE:CXX>:
-        $<$<CXX_COMPILER_ID:GNU,Clang>:-include ${TRINEX_ENGINE_INCLUDE}/Core/preincluded.hpp>
-        $<$<CXX_COMPILER_ID:MSVC>:/FI${TRINEX_ENGINE_INCLUDE}/Core/preincluded.hpp>
-    >
-)
+trinex_preinclude_headers(TrinexEngine PUBLIC "${TRINEX_ENGINE_INCLUDE}/Core/preincluded.hpp")
+trinex_precompile_headers(TrinexEngine PUBLIC "${TRINEX_ENGINE_INCLUDE}/Core/pch.hpp")
 
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")

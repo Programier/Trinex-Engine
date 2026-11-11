@@ -43,6 +43,26 @@ function(trinex_compile_options target)
     target_compile_options(${target} ${ARGN})
 endfunction()
 
+function(trinex_precompile_headers target)
+    target_precompile_headers(${target} ${ARGN})
+endfunction()
+
+function(trinex_preinclude_headers target)
+    set(arguments ${target})
+
+    foreach(argument IN LISTS ARGN)
+        if(argument STREQUAL "PUBLIC" OR argument STREQUAL "PRIVATE" OR argument STREQUAL "INTERFACE")
+            list(APPEND arguments ${argument})
+        else()
+            list(APPEND arguments
+                "$<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:SHELL:-include \"${argument}\">"
+                "$<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/FI${argument}>")
+        endif()
+    endforeach()
+
+    target_compile_options(${arguments})
+endfunction()
+
 function(trinex_sources target)
     target_sources(${target} ${ARGN})
 endfunction()
