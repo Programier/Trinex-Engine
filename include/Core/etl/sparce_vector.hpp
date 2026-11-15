@@ -3,7 +3,7 @@
 
 namespace Trinex
 {
-	template<typename T, typename Index = u64, typename AllocatorType = Allocator<T>>
+	template<typename T, typename Index = u64, typename AllocatorType = HeapAllocator::Adapter<T>>
 	class SparceVector
 	{
 	public:

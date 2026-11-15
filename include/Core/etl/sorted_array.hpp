@@ -7,7 +7,7 @@
 
 namespace Trinex
 {
-	template<typename T, typename Compare = Less<T>, typename AllocatorType = Allocator<T>>
+	template<typename T, typename Compare = Less<T>, typename AllocatorType = HeapAllocator::Adapter<T>>
 	class SortedArray : protected Array<T, AllocatorType>
 	{
 	public:
@@ -233,7 +233,7 @@ namespace Trinex
 		constexpr const container_type& container() const { return *this; }
 	};
 
-	template<typename T, typename Compare = Less<T>, typename AllocatorType = Allocator<T>, typename ArchiveType>
+	template<typename T, typename Compare = Less<T>, typename AllocatorType = HeapAllocator::Adapter<T>, typename ArchiveType>
 	inline bool trinex_serialize_sorted_array(ArchiveType& ar, SortedArray<T, Compare, AllocatorType>& vector)
 	    requires(is_complete_archive_type<ArchiveType>)
 	{

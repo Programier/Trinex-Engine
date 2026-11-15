@@ -8,10 +8,10 @@ namespace Trinex
 {
 	class Archive;
 
-	template<typename Type, typename AllocatorType = Allocator<Type>>
+	template<typename Type, typename AllocatorType = HeapAllocator::Adapter<Type>>
 	using List = std::list<Type, AllocatorType>;
 
-	template<typename Type, typename AllocatorType = Allocator<Type>>
+	template<typename Type, typename AllocatorType = HeapAllocator::Adapter<Type>>
 	using ForwardList = std::forward_list<Type, AllocatorType>;
 
 	template<typename Type, typename AllocatorType, typename ArchiveType>

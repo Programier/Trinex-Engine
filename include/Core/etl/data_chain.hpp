@@ -3,7 +3,8 @@
 
 namespace Trinex
 {
-	template<typename T, typename Compare = std::less<T>, size_t chunk_size = 64, typename AllocatorType = Allocator<T>>
+	template<typename T, typename Compare = std::less<T>, size_t chunk_size = 64,
+	         typename AllocatorType = HeapAllocator::Adapter<T>>
 	class DataChain
 	{
 	private:
