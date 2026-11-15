@@ -67,10 +67,24 @@ function(trinex_sources target)
     target_sources(${target} ${ARGN})
 endfunction()
 
+function(trinex_modules target)
+    cmake_parse_arguments(ARG "" "" "PUBLIC;PRIVATE" ${ARGN})
+
+    foreach(scope PUBLIC PRIVATE)
+        if(ARG_${scope})
+            target_sources(${target} ${scope}
+                FILE_SET CXX_MODULES
+                FILES ${ARG_${scope}}
+            )
+        endif()
+    endforeach()
+endfunction()
+
 function(trinex_source_directories target)
     cmake_parse_arguments(ARG "RECURSIVE" "" "" ${ARGN})
 
     set(sources "")
+    set(modules "")
 
     foreach(directory IN LISTS ARG_UNPARSED_ARGUMENTS)
         get_filename_component(directory "${directory}" ABSOLUTE
@@ -82,18 +96,57 @@ function(trinex_source_directories target)
         endif()
 
         if(ARG_RECURSIVE)
-            file(GLOB_RECURSE files CONFIGURE_DEPENDS "${directory}/*.cpp")
+            file(GLOB_RECURSE source_files CONFIGURE_DEPENDS "${directory}/*.cpp")
+            file(GLOB_RECURSE module_files CONFIGURE_DEPENDS "${directory}/*.cppm")
         else()
-            file(GLOB files CONFIGURE_DEPENDS "${directory}/*.cpp")
+            file(GLOB source_files CONFIGURE_DEPENDS "${directory}/*.cpp")
+            file(GLOB module_files CONFIGURE_DEPENDS "${directory}/*.cppm")
         endif()
 
-        list(APPEND sources ${files})
+        list(APPEND sources ${source_files})
+        list(APPEND modules ${module_files})
     endforeach()
 
     if(sources)
         list(REMOVE_DUPLICATES sources)
-        target_sources(${target} PRIVATE ${sources})
+        trinex_sources(${target} PRIVATE ${sources})
     endif()
+
+    if(modules)
+        list(REMOVE_DUPLICATES modules)
+        trinex_modules(${target} PRIVATE ${modules})
+    endif()
+endfunction()
+
+function(trinex_module_directories target)
+    cmake_parse_arguments(ARG "RECURSIVE" "" "PUBLIC;PRIVATE" ${ARGN})
+
+    foreach(scope PUBLIC PRIVATE)
+        set(modules "")
+
+        foreach(directory IN LISTS ARG_${scope})
+            get_filename_component(directory "${directory}" ABSOLUTE
+                BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}"
+            )
+
+            if(NOT IS_DIRECTORY "${directory}")
+                message(FATAL_ERROR "Module directory does not exist: ${directory}")
+            endif()
+
+            if(ARG_RECURSIVE)
+                file(GLOB_RECURSE files CONFIGURE_DEPENDS "${directory}/*.cppm")
+            else()
+                file(GLOB files CONFIGURE_DEPENDS "${directory}/*.cppm")
+            endif()
+
+            list(APPEND modules ${files})
+        endforeach()
+
+        if(modules)
+            list(REMOVE_DUPLICATES modules)
+            trinex_modules(${target} ${scope} ${modules})
+        endif()
+    endforeach()
 endfunction()
 
 function(trinex_set_properties target)

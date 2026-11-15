@@ -80,6 +80,7 @@ endif()
 
 # Trinex Engine compile options
 trinex_reflection_directories(TrinexEngine PUBLIC ${TRINEX_ENGINE_ROOT}/include)
+trinex_module_directories(TrinexEngine PUBLIC ${TRINEX_ENGINE_ROOT}/include)
 trinex_link_libraries(TrinexEngine PUBLIC freetype asmjit lz4_static stb_library)
 
 trinex_preinclude_headers(TrinexEngine PUBLIC "${TRINEX_ENGINE_INCLUDE}/Core/preincluded.hpp")
