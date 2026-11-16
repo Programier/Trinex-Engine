@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Graphics/render_pools.hpp>
 #include <RHI/context.hpp>
 #include <RHI/rhi.hpp>

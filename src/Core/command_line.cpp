@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/command_line.hpp>
 
 namespace Trinex

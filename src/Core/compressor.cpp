@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/compressor.hpp>
 #include <Engine/settings.hpp>
 #include <lz4hc.h>

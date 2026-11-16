@@ -58,15 +58,13 @@ else()
 endif()
 
 trinex_source_directories(TrinexEngine RECURSIVE
-    "${TRINEX_ENGINE_SRC}/Image/"
-    "${TRINEX_ENGINE_SRC}/Graphics/"
     "${TRINEX_ENGINE_SRC}/Core/"
-    "${TRINEX_ENGINE_SRC}/Sensors/"
-    "${TRINEX_ENGINE_SRC}/ScriptEngine/"
-    "${TRINEX_ENGINE_SRC}/Input/"
     "${TRINEX_ENGINE_SRC}/Engine/"
     "${TRINEX_ENGINE_SRC}/Entry/"
+    "${TRINEX_ENGINE_SRC}/Graphics/"
+    "${TRINEX_ENGINE_SRC}/Input/"
     "${TRINEX_ENGINE_SRC}/Rendering/"
+    "${TRINEX_ENGINE_SRC}/ScriptEngine/"
 )
 
 # Compile modules
@@ -82,8 +80,6 @@ endif()
 trinex_reflection_directories(TrinexEngine PUBLIC ${TRINEX_ENGINE_ROOT}/include)
 trinex_module_directories(TrinexEngine RECURSIVE PUBLIC ${TRINEX_ENGINE_ROOT}/include)
 trinex_link_libraries(TrinexEngine PUBLIC freetype asmjit lz4_static stb_library)
-
-trinex_preinclude_headers(TrinexEngine PUBLIC "${TRINEX_ENGINE_INCLUDE}/Core/preincluded.hpp")
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     trinex_compile_definitions(TrinexEngine PUBLIC -DTRINEX_DEBUG_BUILD=1)

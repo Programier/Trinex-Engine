@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/enums.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/stream.hpp>

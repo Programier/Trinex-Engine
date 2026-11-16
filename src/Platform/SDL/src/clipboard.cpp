@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <SDL3/SDL_clipboard.h>
 #include <SDLPlatform/clipboard.hpp>
 

@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #if PLATFORM_LINUX
 	#define VK_USE_PLATFORM_WAYLAND_KHR
 	#define VK_USE_PLATFORM_XLIB_KHR

@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/etl/allocator.hpp>
 #include <Core/etl/map.hpp>
 #include <Core/etl/set.hpp>

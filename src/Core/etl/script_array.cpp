@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/etl/script_array.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <angelscript.h>

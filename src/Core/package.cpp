@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/constants.hpp>
 #include <Core/package.hpp>
 #include <Core/reflection/deprecated/class.hpp>

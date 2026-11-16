@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/reflection/class.hpp>
 #include <Core/viewport_client.hpp>
 

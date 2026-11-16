@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/etl/critical_section.hpp>
 #include <Core/threading.hpp>
 #include <Core/tickable.hpp>

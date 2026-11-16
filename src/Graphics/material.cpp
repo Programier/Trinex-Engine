@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/archive.hpp>
 #include <Core/default_resources.hpp>
 #include <Core/reflection/deprecated/class.hpp>

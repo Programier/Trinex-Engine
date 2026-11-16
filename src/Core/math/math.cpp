@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/math/box.hpp>
 #include <Core/math/math.hpp>
 #include <Core/math/plane.hpp>

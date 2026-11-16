@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/reflection/deprecated/script_property.hpp>
 #include <Core/reflection/deprecated/script_struct.hpp>
 #include <ScriptEngine/script_type_info.hpp>

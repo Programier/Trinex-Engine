@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/archive.hpp>
 #include <Core/etl/atomic.hpp>
 #include <Core/etl/map.hpp>

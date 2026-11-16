@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/reflection/const_type.hpp>
 #include <Core/reflection/native.hpp>
 #include <Core/reflection/of.hpp>

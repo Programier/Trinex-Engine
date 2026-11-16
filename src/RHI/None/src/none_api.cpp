@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <none_api.hpp>
 
 namespace Trinex

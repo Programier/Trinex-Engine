@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/math/box.hpp>
 #include <Core/math/frustum.hpp>
 #include <Core/math/math.hpp>

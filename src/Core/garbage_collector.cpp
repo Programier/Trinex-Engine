@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/deprecated/object.hpp>
 #include <Core/engine.hpp>
 #include <Core/garbage_collector.hpp>

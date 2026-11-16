@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/object_listener.hpp>
 
 namespace Trinex

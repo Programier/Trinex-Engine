@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <RHI/gc.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_enums.hpp>

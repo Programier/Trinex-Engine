@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/default_resources.hpp>
 #include <Graphics/sampler.hpp>
 #include <RHI/initializers.hpp>

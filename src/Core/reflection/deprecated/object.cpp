@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/constants.hpp>
 #include <Core/etl/set.hpp>
 #include <Core/etl/templates.hpp>

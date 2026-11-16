@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <ScriptEngine/script_func_ptr.hpp>
 #include <angelscript.h>
 

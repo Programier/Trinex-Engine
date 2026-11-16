@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/math/math.hpp>
 #include <Core/reflection/deprecated/enum.hpp>
 #include <RHI/enums.hpp>

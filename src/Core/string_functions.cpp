@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/constants.hpp>
 #include <Core/etl/algorithm.hpp>
 #include <Core/etl/charconv.hpp>

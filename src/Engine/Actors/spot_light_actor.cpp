@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/reflection/deprecated/class.hpp>
 #include <Engine/ActorComponents/spot_light_component.hpp>
 #include <Engine/Actors/spot_light_actor.hpp>

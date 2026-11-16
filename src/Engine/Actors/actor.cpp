@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/etl/templates.hpp>

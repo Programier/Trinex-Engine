@@ -1,9 +1,11 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/archive.hpp>
 #include <Core/blob.hpp>
 #include <Core/filesystem/file.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/types/path.hpp>
-#include <Image/image.hpp>
+#include <Graphics/image.hpp>
 #include <RHI/enums.hpp>
 #include <cstring>
 #include <stb_image.h>

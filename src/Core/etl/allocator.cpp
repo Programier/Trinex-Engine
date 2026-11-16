@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/etl/allocator.hpp>
 #include <Core/etl/array.hpp>
 #include <Core/etl/critical_section.hpp>

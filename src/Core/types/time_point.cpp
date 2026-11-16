@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/archive.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/types/time_point.hpp>

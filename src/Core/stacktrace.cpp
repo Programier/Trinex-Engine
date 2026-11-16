@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/stacktrace.hpp>
 #include <sstream>
 

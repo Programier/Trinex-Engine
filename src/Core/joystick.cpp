@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/joystick.hpp>
 
 namespace Trinex

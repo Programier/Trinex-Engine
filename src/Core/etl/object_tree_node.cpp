@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/etl/object_tree_node.hpp>
 #include <Core/deprecated/object.hpp>
 #include <Core/reflection/deprecated/class.hpp>

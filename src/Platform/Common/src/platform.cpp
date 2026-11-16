@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Platform/platform.hpp>
 
 namespace Trinex::Platform

@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Input/actions.hpp>
 #include <Input/device.hpp>
 

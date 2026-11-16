@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <RHI/gc.hpp>
 #include <RHI/rhi.hpp>
 

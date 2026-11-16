@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/reflection/function.hpp>
 #include <Core/reflection/function_set.hpp>
 #include <Core/reflection/type.hpp>

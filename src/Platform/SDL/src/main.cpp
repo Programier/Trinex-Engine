@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/engine.hpp>
 #include <SDL3/SDL_main.h>
 

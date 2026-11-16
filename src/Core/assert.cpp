@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/assert.hpp>
 #include <cstdio>
 #include <cstdlib>

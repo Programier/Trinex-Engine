@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/etl/algorithm.hpp>
 #include <Input/device.hpp>
 #include <Input/system.hpp>

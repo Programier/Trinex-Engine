@@ -1,4 +1,6 @@
-﻿#include <Core/memory.hpp>
+#include <Core/preincluded.hpp>
+
+#include <Core/memory.hpp>
 #include <Core/profiler.hpp>
 #include <Core/threading.hpp>
 #include <Core/tickable.hpp>

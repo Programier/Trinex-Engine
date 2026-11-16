@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/default_resources.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/etl/type_traits.hpp>

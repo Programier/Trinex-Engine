@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/etl/array.hpp>
 #include <Core/threading.hpp>
 #include <RHI/initializers.hpp>

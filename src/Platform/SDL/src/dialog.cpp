@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <SDL3/SDL_dialog.h>
 #include <SDLPlatform/dialog.hpp>
 

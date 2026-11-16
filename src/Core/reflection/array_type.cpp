@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/etl/array.hpp>
 #include <Core/reflection/array_type.hpp>
 #include <Core/reflection/of.hpp>

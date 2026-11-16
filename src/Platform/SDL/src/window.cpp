@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <SDL3/SDL_mouse.h>
 #include <SDL3/SDL_video.h>
 #include <SDLPlatform/window.hpp>

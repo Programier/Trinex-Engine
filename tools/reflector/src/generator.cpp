@@ -897,7 +897,9 @@ namespace Reflector
 
 		if (is_object_empty(module))
 			return true;
-
+		
+		writer->line("#include <Core/preincluded.hpp>\n");
+		
 		writer->line("#include <$0>", module->name);
 		writer->line("#include <Core/etl/type_traits.hpp>");
 		writer->line("#include <Core/reflection/of.hpp>");

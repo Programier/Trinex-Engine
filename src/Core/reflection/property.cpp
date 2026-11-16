@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/reflection/property.hpp>
 
 namespace Trinex::Refl

@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/etl/algorithm.hpp>
 #include <Core/reflection/function.hpp>
 #include <Core/reflection/function_set.hpp>

@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/reflection/deprecated/class.hpp>
 #include <Engine/ActorComponents/point_light_component.hpp>
 #include <Engine/Actors/point_light_actor.hpp>

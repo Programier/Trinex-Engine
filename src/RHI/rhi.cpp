@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/command_line.hpp>
 #include <Core/console.hpp>
 #include <Core/etl/flat_map.hpp>

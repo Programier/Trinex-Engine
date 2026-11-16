@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Engine/settings.hpp>
 #include <Engine/splash_config.hpp>
 

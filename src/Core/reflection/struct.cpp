@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/reflection/function.hpp>
 #include <Core/reflection/property.hpp>
 #include <Core/reflection/struct.hpp>

@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/etl/static_array.hpp>
 #include <Core/etl/templates.hpp>
 #include <Core/stacktrace.hpp>

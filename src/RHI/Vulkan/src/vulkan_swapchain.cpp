@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/etl/algorithm.hpp>
 #include <Core/memory.hpp>
 #include <Core/profiler.hpp>

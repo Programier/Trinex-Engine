@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/etl/flat_map.hpp>
 #include <Core/lifecycle.hpp>
 #include <cstring>

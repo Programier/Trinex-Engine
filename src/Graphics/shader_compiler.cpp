@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/etl/algorithm.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/reflection/deprecated/class.hpp>

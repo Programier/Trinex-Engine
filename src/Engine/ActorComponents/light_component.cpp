@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/reflection/deprecated/class.hpp>
 #include <Core/reflection/deprecated/enum.hpp>
 #include <Core/reflection/deprecated/property.hpp>

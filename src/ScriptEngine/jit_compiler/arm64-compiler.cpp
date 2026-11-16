@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 // MIT License
 
 // Copyright (c) 2023 Programier (Vladyslav Reminskyi)

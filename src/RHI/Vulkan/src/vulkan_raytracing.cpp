@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/etl/allocator.hpp>
 #include <Core/math/math.hpp>
 #include <Core/math/value_ptr.hpp>

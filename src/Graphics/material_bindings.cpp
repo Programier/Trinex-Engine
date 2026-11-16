@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Graphics/material_bindings.hpp>
 
 namespace Trinex

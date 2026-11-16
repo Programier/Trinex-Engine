@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/etl/allocator.hpp>
 #include <Engine/Render/batched_primitives.hpp>
 #include <Engine/Render/pipelines.hpp>

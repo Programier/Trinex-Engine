@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/math/math.hpp>
 #include <Core/memory.hpp>
 #include <Graphics/render_pools.hpp>

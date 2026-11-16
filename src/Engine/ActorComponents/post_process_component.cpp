@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/reflection/deprecated/class.hpp>
 #include <Core/reflection/deprecated/property.hpp>
 #include <Engine/ActorComponents/post_process_component.hpp>

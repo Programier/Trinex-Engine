@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <SDL3/SDL_loadso.h>
 #include <SDLPlatform/library.hpp>
 

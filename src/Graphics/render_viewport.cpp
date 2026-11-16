@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/etl/algorithm.hpp>
 #include <Core/viewport_client.hpp>
 #include <Graphics/render_viewport.hpp>

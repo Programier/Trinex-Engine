@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <SDL3/SDL.h>
 #include <SDLPlatform/monitor.hpp>
 #include <cmath>

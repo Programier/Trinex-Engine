@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/buffer_manager.hpp>
 #include <cstring>
 

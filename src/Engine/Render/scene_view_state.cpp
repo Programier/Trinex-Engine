@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Engine/Render/scene_view_state.hpp>
 #include <Graphics/render_pools.hpp>
 #include <RHI/context.hpp>

@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/constants.hpp>
 #include <Core/reflection/deprecated/enum.hpp>
 #include <Core/string_functions.hpp>

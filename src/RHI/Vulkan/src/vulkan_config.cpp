@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <vulkan_config.hpp>

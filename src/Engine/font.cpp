@@ -1,8 +1,10 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/blob.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/math/math.hpp>
 #include <Engine/font.hpp>
-#include <Image/image.hpp>
+#include <Graphics/image.hpp>
 #include <freetype/freetype.h>
 
 namespace Trinex

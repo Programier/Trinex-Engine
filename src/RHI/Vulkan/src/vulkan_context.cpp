@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/etl/algorithm.hpp>
 #include <Core/etl/storage.hpp>
 #include <Core/math/math.hpp>

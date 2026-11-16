@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/keyboard.hpp>
 #include <ScriptEngine/script_binding.hpp>
 

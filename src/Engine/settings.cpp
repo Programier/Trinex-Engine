@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Engine/settings.hpp>
 #include <ScriptEngine/script_engine.hpp>
 

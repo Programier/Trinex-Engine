@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/archive.hpp>
 #include <Core/blob.hpp>
 #include <Core/buffer_manager.hpp>

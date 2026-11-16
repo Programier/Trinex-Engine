@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/reflection/deprecated/script_enum.hpp>
 #include <ScriptEngine/script.hpp>
 #include <ScriptEngine/script_binding.hpp>

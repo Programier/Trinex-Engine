@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/blob.hpp>
 #include <Core/command_line.hpp>
 #include <Core/console.hpp>

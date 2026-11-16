@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/archive.hpp>
 #include <Core/constants.hpp>
 #include <Core/etl/delegate.hpp>

@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <vulkan_api.hpp>
 #include <vulkan_barriers.hpp>
 #include <vulkan_context.hpp>

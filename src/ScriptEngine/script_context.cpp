@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/etl/templates.hpp>
 #include <Core/math/vector.hpp>
 #include <Core/memory.hpp>

@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/etl/templates.hpp>
 #include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_context.hpp>

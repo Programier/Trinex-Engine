@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/engine.hpp>
 #include <Core/viewport_client.hpp>
 #include <Core/window.hpp>

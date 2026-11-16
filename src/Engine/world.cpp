@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/etl/scoped_value.hpp>
 #include <Core/reflection/deprecated/class.hpp>
 #include <Core/threading.hpp>

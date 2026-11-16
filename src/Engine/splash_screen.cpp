@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/etl/engine_resource.hpp>
 #include <Core/etl/static_array.hpp>
 #include <Core/garbage_collector.hpp>

@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/ref.hpp>
 #include <Core/ref_counted.hpp>
 

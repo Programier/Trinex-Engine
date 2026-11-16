@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/math/math.hpp>
 #include <Engine/camera_view.hpp>
 

@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/etl/atomic.hpp>
 #include <SDL3/SDL_thread.h>
 #include <SDL3/SDL_timer.h>

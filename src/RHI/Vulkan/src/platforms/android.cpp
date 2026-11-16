@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/exception.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>

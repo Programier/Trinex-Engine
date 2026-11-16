@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/archive.hpp>
 #include <Core/reflection/deprecated/property.hpp>
 #include <Core/reflection/deprecated/struct.hpp>

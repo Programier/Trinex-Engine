@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/archive.hpp>
 #include <Core/types/uuid.hpp>
 #include <Platform/platform.hpp>

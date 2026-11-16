@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/memory.hpp>
 #include <Engine/settings.hpp>
 #include <RHI/initializers.hpp>

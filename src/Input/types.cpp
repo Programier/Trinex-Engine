@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Input/types.hpp>
 
 namespace Trinex

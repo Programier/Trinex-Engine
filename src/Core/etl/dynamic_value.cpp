@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/etl/dynamic_value.hpp>
 #include <Core/reflection/const_type.hpp>
 #include <Core/reflection/type.hpp>

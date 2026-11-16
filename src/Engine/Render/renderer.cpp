@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/profiler.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/light_component.hpp>

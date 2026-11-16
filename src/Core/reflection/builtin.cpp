@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/math/vector.hpp>
 #include <Core/reflection/native.hpp>
 #include <Core/reflection/of.hpp>

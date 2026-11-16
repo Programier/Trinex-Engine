@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <LinuxPlatform/memory.hpp>
 #include <cstring>
 #include <fstream>

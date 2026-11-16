@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/etl/templates.hpp>
 #include <Core/reflection/deprecated/class.hpp>
 #include <Core/threading.hpp>

@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/reflection/native_function.hpp>
 
 namespace Trinex::Refl

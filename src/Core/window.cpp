@@ -1,3 +1,5 @@
+#include <Core/preincluded.hpp>
+
 #include <Core/window.hpp>
 #include <Platform/window.hpp>
 
