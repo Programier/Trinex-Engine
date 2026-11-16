@@ -69,7 +69,7 @@ export namespace Trinex
 		template<typename Func, typename... Arguments>
 		static void for_each(Func&& func, Arguments&&... args)
 		{
-			(func.template operator()<Args>(std::forward<Arguments>(args)...), ...);
+			(func.template operator()<Args>(etl::forward<Arguments>(args)...), ...);
 		}
 
 		consteval static usize size() { return sizeof...(Args); }
@@ -80,7 +80,7 @@ export namespace Trinex
 		template<typename Type>
 		static consteval bool contains()
 		{
-			return (std::is_same_v<Type, Args> || ...);
+			return (etl::is_same_v<Type, Args> || ...);
 		}
 
 		template<typename Type, usize index = 0>
@@ -90,7 +90,7 @@ export namespace Trinex
 			{
 				return -1;
 			}
-			else if constexpr (std::is_same_v<Type, type_at<index>>)
+			else if constexpr (etl::is_same_v<Type, type_at<index>>)
 			{
 				return index;
 			}
@@ -354,13 +354,13 @@ export namespace Trinex
 	template<typename Type, typename... Args>
 	inline Type* static_constructor_of(Args&&... args)
 	{
-		return new Type(std::forward<Args>(args)...);
+		return new Type(etl::forward<Args>(args)...);
 	}
 
 	template<typename Type, typename... Args>
 	inline void* static_void_constructor_of(Args&&... args)
 	{
-		return new Type(std::forward<Args>(args)...);
+		return new Type(etl::forward<Args>(args)...);
 	}
 
 	template<auto... values, typename ValueType>
@@ -395,7 +395,7 @@ export namespace Trinex
 	}
 
 	template<typename T>
-	const std::decay_t<T>& default_value_of()
+	const etl::decay_t<T>& default_value_of()
 	{
 		static T value{};
 		return value;

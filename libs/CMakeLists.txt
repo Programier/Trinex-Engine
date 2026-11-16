@@ -19,9 +19,6 @@ set(ASMJIT_STATIC on)
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/asmjit/" EXCLUDE_FROM_ALL)
 set_target_properties(asmjit PROPERTIES COMPILE_OPTIONS "-fPIC")
 
-add_subdirectory(fmt EXCLUDE_FROM_ALL)
-set_target_properties(fmt PROPERTIES COMPILE_OPTIONS "-fPIC")
-
 if (TRINEX_WITH_TRACY_PROFILER)
     add_subdirectory(tracy)
 endif()
@@ -43,5 +40,4 @@ target_include_directories(TrinexEngine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/json/
 
 # link
 trinex_link_libraries(TrinexEngine PRIVATE mimalloc-static)
-trinex_link_libraries(TrinexEngine PUBLIC fmt-header-only)
 trinex_link_libraries(TrinexEngine PUBLIC peglib)

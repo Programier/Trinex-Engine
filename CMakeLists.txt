@@ -94,7 +94,6 @@ endif()
 trinex_compile_options(TrinexEngine PRIVATE "-Wall")
 trinex_compile_options(TrinexEngine PRIVATE "-Wno-unknown-pragmas")
 trinex_compile_options(TrinexEngine PRIVATE "-Wmismatched-tags")
-trinex_compile_options(TrinexEngine PRIVATE "-fmodules")
 trinex_compile_options(TrinexEngine PUBLIC "-fno-rtti")
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")

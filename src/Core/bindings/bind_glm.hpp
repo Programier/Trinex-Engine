@@ -10,7 +10,6 @@
 
 #include <ScriptEngine/script_binding.hpp>
 #include <ScriptEngine/script_engine.hpp>
-#include <fmt/ranges.h>
 #include <glm/ext/matrix_integer.hpp>
 #include <glm/gtx/string_cast.hpp>
 
@@ -193,7 +192,15 @@ namespace Trinex::Bindings::GLM
 		constexpr const char* ref_modifier   = std::is_reference_v<T> || std::is_pointer_v<T> ? "&" : "";
 		constexpr const char* name           = type_names<std::decay_t<std::remove_pointer_t<T>>>;
 		static_assert(name);
-		return fmt::format("{}{}{}", const_modifier, name, ref_modifier);
+		return Strings::format("{}{}{}", const_modifier, name, ref_modifier);
+	}
+
+	template<typename... Args>
+	static String argument_list()
+	{
+		String result;
+		((result += result.empty() ? "" : ", ", result += typename_with_modifiers<Args>()), ...);
+		return result;
 	}
 
 	template<typename Ret, typename... Args>
@@ -214,14 +221,13 @@ namespace Trinex::Bindings::GLM
 			modifiers = " final";
 		}
 
-		return Strings::format("{} {}({}){}", typename_with_modifiers<Ret>(), name,
-		                       fmt::join({typename_with_modifiers<Args>()...}, ", "), modifiers);
+		return Strings::format("{} {}({}){}", typename_with_modifiers<Ret>(), name, argument_list<Args...>(), modifiers);
 	}
 
 	template<typename Type, typename... Args>
 	static void bind_constructor(ScriptBinding::Class* reg)
 	{
-		String decl = Strings::format("void f({})", fmt::join({typename_with_modifiers<Args>()...}, ", "));
+		String decl = Strings::format("void f({})", argument_list<Args...>());
 		reg->constructor<Type, Args...>(decl.c_str());
 	}
 
@@ -237,6 +243,12 @@ namespace Trinex::Bindings::GLM
 	{
 		String decl = function_signature<Ret, Args...>(name);
 		ScriptEngine::register_function(decl.c_str(), func);
+	}
+
+	template<typename T>
+	static T mix_components(const T& x, const T& y, const T& a)
+	{
+		return x * (T(1) - a) + y * a;
 	}
 
 	static void* upcast_function(void* address)
@@ -1079,9 +1091,9 @@ namespace Trinex::Bindings::GLM
 		bind_func("mix", overload_of<Vector2f(const Vector2f&, const Vector2f&, float)>(glm::mix));
 		bind_func("mix", overload_of<Vector3f(const Vector3f&, const Vector3f&, float)>(glm::mix));
 		bind_func("mix", overload_of<Vector4f(const Vector4f&, const Vector4f&, float)>(glm::mix));
-		bind_func("mix", overload_of<Vector2f(const Vector2f&, const Vector2f&, const Vector2f&)>(glm::mix));
-		bind_func("mix", overload_of<Vector3f(const Vector3f&, const Vector3f&, const Vector3f&)>(glm::mix));
-		bind_func("mix", overload_of<Vector4f(const Vector4f&, const Vector4f&, const Vector4f&)>(glm::mix));
+		bind_func("mix", mix_components<Vector2f>);
+		bind_func("mix", mix_components<Vector3f>);
+		bind_func("mix", mix_components<Vector4f>);
 		bind_func("mix", overload_of<Quaternion(const Quaternion&, const Quaternion&, float)>(glm::mix));
 
 		bind_func("max", glm::max<float>);

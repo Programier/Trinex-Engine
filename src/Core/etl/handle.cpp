@@ -1,5 +1,7 @@
-module Trinex.Core.ETL.Handle;
-import Trinex.Core.ETL.Atomic;
+#include <Core/preincluded.hpp>
+
+#include <Core/etl/atomic.hpp>
+#include <Core/etl/handle.hpp>
 
 namespace Trinex
 {

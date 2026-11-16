@@ -1,7 +1,7 @@
 module;
 #include <algorithm>
 
-export module Trinex.Core.ETL.Alhorithm;
+export module Trinex.Core.ETL.Algorithm;
 
 export namespace Trinex::etl
 {

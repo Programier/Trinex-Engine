@@ -1,5 +1,4 @@
 #pragma once
-#include <Core/definitions.hpp>
 #include <utility>
 
 namespace Trinex

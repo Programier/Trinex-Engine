@@ -9,6 +9,12 @@
 
 namespace Trinex::Math
 {
+	template<typename>
+	inline constexpr bool is_glm_vector_v = false;
+
+	template<glm::length_t L, typename T, glm::qualifier Q>
+	inline constexpr bool is_glm_vector_v<glm::vec<L, T, Q>> = true;
+
 	using glm::abs;
 	using glm::acos;
 	using glm::all;
@@ -103,6 +109,7 @@ namespace Trinex::Math
 	}
 
 	template<glm::length_t L, typename T, typename U, glm::qualifier Q>
+		requires(!is_glm_vector_v<std::remove_cvref_t<U>>)
 	inline glm::vec<L, T, Q> lerp(glm::vec<L, T, Q> const& x, glm::vec<L, T, Q> const& y, U a)
 	{
 		return glm::mix(x, y, a);

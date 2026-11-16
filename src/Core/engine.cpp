@@ -201,14 +201,19 @@ namespace Trinex
 			viewport->update(m_delta_time);
 		}
 
-		for (usize i = 0; i < viewports.size(); ++i)
-		{
-			RenderGraph graph;
-			trinex_profile_cpu_n("RenderViewport::render");
-			auto viewport = viewports[i];
-			viewport->render(&graph);
-			viewport->present();
-		}
+		// for (usize i = 0; i < viewports.size(); ++i)
+		// {
+		// 	trinex_profile_cpu_n("RenderViewport::render");
+		// 	auto viewport = viewports[i];
+		// 	viewport->render(&graph);
+		// }
+
+		// for (usize i = 0; i < viewports.size(); ++i)
+		// {
+		// 	trinex_profile_cpu_n("RenderViewport::submit");
+		// 	auto viewport = viewports[i];
+		// 	viewport->submit();
+		// }
 	}
 
 	void Engine::on_initialize() {}

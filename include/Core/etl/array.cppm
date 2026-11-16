@@ -7,7 +7,10 @@ import Trinex.Core.ETL.Memory;
 import Trinex.Core.ETL.Limits;
 import Trinex.Core.ETL.InitializerList;
 import Trinex.Core.ETL.Algorithm;
+import Trinex.Core.ETL.Concepts;
+import Trinex.Core.ETL.Utility;
 import Trinex.Core.Memory.Heap;
+import Trinex.Core.Types;
 
 export namespace Trinex
 {
@@ -32,11 +35,11 @@ export namespace Trinex
 		using const_pointer          = const T*;
 		using iterator               = T*;
 		using const_iterator         = const T*;
-		using reverse_iterator       = std::reverse_iterator<iterator>;
-		using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+		using reverse_iterator       = etl::reverse_iterator<iterator>;
+		using const_reverse_iterator = etl::reverse_iterator<const_iterator>;
 
-		using size_type       = std::size_t;
-		using difference_type = std::ptrdiff_t;
+		using size_type       = usize;
+		using difference_type = isize;
 
 	protected:
 		union
@@ -53,19 +56,19 @@ export namespace Trinex
 
 	protected:
 		template<typename IteratorType>
-		using IteratorCategory = typename std::iterator_traits<IteratorType>::iterator_category;
+		using IteratorCategory = typename etl::iterator_traits<IteratorType>::iterator_category;
 
 		template<typename IteratorType>
 		using RequireInputIter =
-		        std::enable_if_t<std::is_convertible<IteratorCategory<IteratorType>, std::input_iterator_tag>::value>;
+		        etl::enable_if_t<etl::is_convertible<IteratorCategory<IteratorType>, etl::input_iterator_tag>::value>;
 
 		template<typename IteratorType>
 		using RequireForwardIter =
-		        std::enable_if_t<std::is_convertible<IteratorCategory<IteratorType>, std::forward_iterator_tag>::value>;
+		        etl::enable_if_t<etl::is_convertible<IteratorCategory<IteratorType>, etl::forward_iterator_tag>::value>;
 
 		template<typename IteratorType>
 		static constexpr inline bool is_forward_iterator =
-		        std::is_convertible_v<typename std::iterator_traits<IteratorType>::iterator_category, std::forward_iterator_tag>;
+		        etl::is_convertible_v<typename etl::iterator_traits<IteratorType>::iterator_category, etl::forward_iterator_tag>;
 
 	public:
 		constexpr AllocatorType& allocator() { return *this; }
@@ -73,9 +76,9 @@ export namespace Trinex
 
 	private:
 		template<typename Ptr>
-		constexpr inline typename std::pointer_traits<Ptr>::element_type* data_ptr(Ptr ptr) const
+		constexpr inline typename etl::pointer_traits<Ptr>::element_type* data_ptr(Ptr ptr) const
 		{
-			return empty() ? nullptr : std::to_address(ptr);
+			return empty() ? nullptr : etl::to_address(ptr);
 		}
 
 		constexpr size_type next_capacity(size_type n = 1)
@@ -91,7 +94,7 @@ export namespace Trinex
 		pointer allocate_and_copy(size_type count, const_pointer first, const_pointer last)
 		{
 			pointer result = allocator().allocate(count);
-			std::uninitialized_copy(first, last, result);
+			etl::uninitialized_copy(first, last, result);
 			return result;
 		}
 
@@ -104,15 +107,15 @@ export namespace Trinex
 
 				if (avail >= n)
 				{
-					m_finish = std::uninitialized_default_construct_n(m_finish, n);
+					m_finish = etl::uninitialized_default_construct_n(m_finish, n);
 				}
 				else
 				{
 					const size_type len = next_capacity(n);
 					pointer new_start(allocator().allocate(len));
 
-					std::uninitialized_default_construct_n(new_start + s, n);
-					std::uninitialized_move(m_start, m_finish, new_start);
+					etl::uninitialized_default_construct_n(new_start + s, n);
+					etl::uninitialized_move(m_start, m_finish, new_start);
 
 					allocator().deallocate(m_start, capacity());
 					m_start  = new_start;
@@ -135,17 +138,17 @@ export namespace Trinex
 
 					if (elems_after > n)
 					{
-						std::uninitialized_move(old_finish - n, old_finish, old_finish);
+						etl::uninitialized_move(old_finish - n, old_finish, old_finish);
 						m_finish += n;
-						std::move_backward(pos, old_finish - n, old_finish);
-						std::fill(pos, pos + n, x_copy);
+						etl::move_backward(pos, old_finish - n, old_finish);
+						etl::fill(pos, pos + n, x_copy);
 					}
 					else
 					{
-						m_finish = std::uninitialized_fill_n(old_finish, n - elems_after, x_copy);
-						std::uninitialized_move(pos, old_finish, m_finish);
+						m_finish = etl::uninitialized_fill_n(old_finish, n - elems_after, x_copy);
+						etl::uninitialized_move(pos, old_finish, m_finish);
 						m_finish += elems_after;
-						std::fill(pos, old_finish, x_copy);
+						etl::fill(pos, old_finish, x_copy);
 					}
 				}
 				else
@@ -158,13 +161,13 @@ export namespace Trinex
 					pointer new_start(allocator().allocate(len));
 					pointer new_finish(new_start);
 
-					std::uninitialized_fill_n(new_start + elems_before, n, x);
+					etl::uninitialized_fill_n(new_start + elems_before, n, x);
 					new_finish = nullptr;
-					new_finish = std::uninitialized_move(old_start, pos, new_start);
+					new_finish = etl::uninitialized_move(old_start, pos, new_start);
 					new_finish += n;
-					new_finish = std::uninitialized_move(pos, old_finish, new_finish);
+					new_finish = etl::uninitialized_move(pos, old_finish, new_finish);
 
-					std::destroy(old_start, old_finish);
+					etl::destroy(old_start, old_finish);
 					allocator().deallocate(old_start, capacity());
 					m_start  = new_start;
 					m_finish = new_finish;
@@ -174,10 +177,10 @@ export namespace Trinex
 		}
 
 		template<typename Type, typename... Args>
-		constexpr auto construct_at(Type* loc, Args&&... args) noexcept(noexcept(::new ((void*) 0) Type(std::declval<Args>()...)))
-		        -> decltype(::new ((void*) 0) Type(std::declval<Args>()...))
+		constexpr auto construct_at(Type* loc, Args&&... args) noexcept(noexcept(::new ((void*) 0) Type(etl::declval<Args>()...)))
+		        -> decltype(::new ((void*) 0) Type(etl::declval<Args>()...))
 		{
-			return ::new ((void*) loc) Type(std::forward<Args>(args)...);
+			return ::new ((void*) loc) Type(etl::forward<Args>(args)...);
 		}
 
 		template<typename... Args>
@@ -190,12 +193,12 @@ export namespace Trinex
 			pointer new_start(allocator().allocate(len));
 			pointer new_finish(new_start);
 
-			construct_at(new_start + elems_before, std::forward<Args>(args)...);
+			construct_at(new_start + elems_before, etl::forward<Args>(args)...);
 			new_finish = nullptr;
-			new_finish = std::uninitialized_move(old_start, pos, new_start) + 1;
-			new_finish = std::uninitialized_move(pos, old_finish, new_finish);
+			new_finish = etl::uninitialized_move(old_start, pos, new_start) + 1;
+			new_finish = etl::uninitialized_move(pos, old_finish, new_finish);
 
-			std::destroy(old_start, old_finish);
+			etl::destroy(old_start, old_finish);
 			allocator().deallocate(old_start, capacity());
 			m_start  = new_start;
 			m_finish = new_finish;
@@ -203,7 +206,7 @@ export namespace Trinex
 		}
 
 		template<typename IteratorType>
-		constexpr void range_insert(iterator pos, IteratorType first, IteratorType last, std::input_iterator_tag)
+		constexpr void range_insert(iterator pos, IteratorType first, IteratorType last, etl::input_iterator_tag)
 		{
 			if (pos == end())
 			{
@@ -213,36 +216,36 @@ export namespace Trinex
 			else if (first != last)
 			{
 				Array tmp(first, last);
-				insert(pos, std::make_move_iterator(tmp.begin()), std::make_move_iterator(tmp.end()));
+				insert(pos, etl::make_move_iterator(tmp.begin()), etl::make_move_iterator(tmp.end()));
 			}
 		}
 
 		template<typename IteratorType>
-		constexpr void range_insert(iterator pos, IteratorType first, IteratorType last, std::forward_iterator_tag)
+		constexpr void range_insert(iterator pos, IteratorType first, IteratorType last, etl::forward_iterator_tag)
 		{
 			if (first != last)
 			{
-				const size_type n = std::distance(first, last);
+				const size_type n = etl::distance(first, last);
 				if (size_type(m_end - m_finish) >= n)
 				{
 					const size_type elems_after = end() - pos;
 					pointer old_finish(m_finish);
 					if (elems_after > n)
 					{
-						std::uninitialized_move(m_finish - n, m_finish, m_finish);
+						etl::uninitialized_move(m_finish - n, m_finish, m_finish);
 						m_finish += n;
-						std::move_backward(pos, old_finish - n, old_finish);
-						std::copy(first, last, pos);
+						etl::move_backward(pos, old_finish - n, old_finish);
+						etl::copy(first, last, pos);
 					}
 					else
 					{
 						IteratorType mid = first;
-						std::advance(mid, elems_after);
-						std::uninitialized_copy(mid, last, m_finish);
+						etl::advance(mid, elems_after);
+						etl::uninitialized_copy(mid, last, m_finish);
 						m_finish += n - elems_after;
-						std::uninitialized_move(pos, old_finish, m_finish);
+						etl::uninitialized_move(pos, old_finish, m_finish);
 						m_finish += elems_after;
-						std::copy(first, mid, pos);
+						etl::copy(first, mid, pos);
 					}
 				}
 				else
@@ -256,18 +259,18 @@ export namespace Trinex
 
 					try
 					{
-						new_finish = std::uninitialized_move(old_start, pos, new_start);
-						new_finish = std::uninitialized_copy(first, last, new_finish);
-						new_finish = std::uninitialized_move(pos, old_finish, new_finish);
+						new_finish = etl::uninitialized_move(old_start, pos, new_start);
+						new_finish = etl::uninitialized_copy(first, last, new_finish);
+						new_finish = etl::uninitialized_move(pos, old_finish, new_finish);
 					}
 					catch (...)
 					{
-						std::destroy(new_start, new_finish);
+						etl::destroy(new_start, new_finish);
 						allocator().deallocate(m_start, len);
 						throw;
 					}
 
-					std::destroy(m_start, m_finish);
+					etl::destroy(m_start, m_finish);
 					allocator().deallocate(m_start, capacity());
 					m_start  = new_start;
 					m_finish = new_finish;
@@ -282,21 +285,21 @@ export namespace Trinex
 			if (m_finish != m_end)
 				if (pos == cend())
 				{
-					construct_at(m_finish, std::move(v));
+					construct_at(m_finish, etl::move(v));
 					++m_finish;
 				}
 				else
-					insert_aux(begin() + n, std::move(v));
+					insert_aux(begin() + n, etl::move(v));
 			else
-				realloc_insert(begin() + n, std::move(v));
+				realloc_insert(begin() + n, etl::move(v));
 
 			return iterator(m_start + n);
 		}
 
 		template<typename InputIterator>
-		constexpr void assign_aux(InputIterator first, InputIterator last, std::input_iterator_tag)
+		constexpr void assign_aux(InputIterator first, InputIterator last, etl::input_iterator_tag)
 		{
-			std::destroy(m_start, m_end);
+			etl::destroy(m_start, m_end);
 
 			pointer cur(m_start);
 			for (; first != last && cur != m_finish; ++cur, ++first)
@@ -309,37 +312,37 @@ export namespace Trinex
 		}
 
 		template<typename ForwardIterator>
-		constexpr void assign_aux(ForwardIterator first, ForwardIterator last, std::forward_iterator_tag)
+		constexpr void assign_aux(ForwardIterator first, ForwardIterator last, etl::forward_iterator_tag)
 		{
-			const size_type len = std::distance(first, last);
+			const size_type len = etl::distance(first, last);
 
 			if (len > capacity())
 			{
 				pointer tmp(allocate_and_copy(len, first, last));
-				std::destroy(m_start, m_finish);
+				etl::destroy(m_start, m_finish);
 				allocator().deallocate(m_start, capacity());
 				m_start  = tmp;
 				m_finish = m_start + len;
 				m_end    = m_finish;
 			}
 			else if (size() >= len)
-				erase_at_end(std::copy(first, last, m_start));
+				erase_at_end(etl::copy(first, last, m_start));
 			else
 			{
 				ForwardIterator mid = first;
-				std::advance(mid, size());
-				std::copy(first, mid, m_start);
-				m_finish = std::uninitialized_copy(mid, last, m_finish);
+				etl::advance(mid, size());
+				etl::copy(first, mid, m_start);
+				m_finish = etl::uninitialized_copy(mid, last, m_finish);
 			}
 		}
 
 		template<typename Arg>
 		constexpr void insert_aux(iterator pos, Arg&& arg)
 		{
-			construct_at(m_finish, std::move(*(m_finish - 1)));
+			construct_at(m_finish, etl::move(*(m_finish - 1)));
 			++m_finish;
-			std::move_backward(pos, m_finish - 2, m_finish - 1);
-			*pos = std::forward<Arg>(arg);
+			etl::move_backward(pos, m_finish - 2, m_finish - 1);
+			*pos = etl::forward<Arg>(arg);
 		}
 
 		template<typename... Args>
@@ -349,21 +352,21 @@ export namespace Trinex
 			if (m_finish != m_end)
 				if (pos == cend())
 				{
-					construct_at(m_finish, std::forward<Args>(args)...);
+					construct_at(m_finish, etl::forward<Args>(args)...);
 					++m_finish;
 				}
 				else
 				{
-					value_type tmp(std::forward<Args>(args)...);
-					insert_aux(begin() + n, std::move(tmp));
+					value_type tmp(etl::forward<Args>(args)...);
+					insert_aux(begin() + n, etl::move(tmp));
 				}
 			else
-				realloc_insert(begin() + n, std::forward<Args>(args)...);
+				realloc_insert(begin() + n, etl::forward<Args>(args)...);
 
 			return iterator(m_start + n);
 		}
 
-		constexpr iterator emplace_aux(const_iterator pos, value_type&& v) { return insert_rval(pos, std::move(v)); }
+		constexpr iterator emplace_aux(const_iterator pos, value_type&& v) { return insert_rval(pos, etl::move(v)); }
 
 		constexpr inline void append_to_end(size_type count)
 		{
@@ -391,7 +394,7 @@ export namespace Trinex
 		{
 			if (m_finish - pos)
 			{
-				std::destroy(pos, m_finish);
+				etl::destroy(pos, m_finish);
 				m_finish = pos;
 			}
 		}
@@ -416,9 +419,9 @@ export namespace Trinex
 		constexpr inline void range_initialize(InputIterator first, InputIterator last)
 		    requires(is_forward_iterator<InputIterator>)
 		{
-			const size_type n = std::distance(first, last);
+			const size_type n = etl::distance(first, last);
 			reserve(n);
-			std::uninitialized_copy(first, last, m_start);
+			etl::uninitialized_copy(first, last, m_start);
 			m_finish = m_start + n;
 		}
 
@@ -507,7 +510,7 @@ export namespace Trinex
 		constexpr Array(const Array& other, const AllocatorType& allocator) : Array(other.begin(), other.end(), allocator) {}
 
 		constexpr Array(Array&& other)
-		    : AllocatorType(std::move(other)), m_start(other.m_start), m_finish(other.m_finish), m_end(other.m_end)
+		    : AllocatorType(etl::move(other)), m_start(other.m_start), m_finish(other.m_finish), m_end(other.m_end)
 		{
 			other.m_start = other.m_finish = other.m_end = nullptr;
 		}
@@ -575,16 +578,16 @@ export namespace Trinex
 
 		constexpr inline size_type max_size() const
 		{
-			const size_type diffmax  = std::numeric_limits<difference_type>::max() / sizeof(value_type);
-			const size_type allocmax = std::allocator_traits<AllocatorType>::max_size(allocator());
-			return (std::min) (diffmax, allocmax);
+			const size_type diffmax  = etl::numeric_limits<difference_type>::max() / sizeof(value_type);
+			const size_type allocmax = etl::allocator_traits<AllocatorType>::max_size(allocator());
+			return (etl::min) (diffmax, allocmax);
 		}
 
 		constexpr inline size_type capacity() const { return m_end - m_start; }
 
 		constexpr inline void clear()
 		{
-			std::destroy(m_start, m_finish);
+			etl::destroy(m_start, m_finish);
 			m_finish = m_start;
 		}
 
@@ -601,8 +604,8 @@ export namespace Trinex
 
 			if (m_start)
 			{
-				std::uninitialized_move(m_start, m_finish, new_mem);
-				std::destroy(m_start, m_finish);
+				etl::uninitialized_move(m_start, m_finish, new_mem);
+				etl::destroy(m_start, m_finish);
 				allocator().deallocate(m_start, cp);
 			}
 
@@ -644,12 +647,12 @@ export namespace Trinex
 			}
 			else if (n > size())
 			{
-				std::fill(begin(), end(), value);
+				etl::fill(begin(), end(), value);
 				const size_type add = n - size();
-				m_finish            = std::uninitialized_fill_n(m_finish, add, value);
+				m_finish            = etl::uninitialized_fill_n(m_finish, add, value);
 			}
 			else
-				erase_at_end(std::fill_n(m_start, n, value));
+				erase_at_end(etl::fill_n(m_start, n, value));
 		}
 
 		template<class InputIterator, typename = RequireInputIter<InputIterator>>
@@ -663,12 +666,12 @@ export namespace Trinex
 		template<class... Args>
 		constexpr iterator emplace(const_iterator pos, Args&&... args)
 		{
-			return emplace_aux(pos, std::forward<Args>(args)...);
+			return emplace_aux(pos, etl::forward<Args>(args)...);
 		}
 
 		constexpr iterator insert(const_iterator pos, const value_type& v) { return emplace(pos, v); }
 
-		constexpr iterator insert(const_iterator pos, value_type&& v) { return emplace(pos, std::move(v)); }
+		constexpr iterator insert(const_iterator pos, value_type&& v) { return emplace(pos, etl::move(v)); }
 
 		constexpr iterator insert(const_iterator pos, size_type n, const value_type& v)
 		{
@@ -695,17 +698,17 @@ export namespace Trinex
 		{
 			if (m_finish != m_end)
 			{
-				construct_at(m_finish, std::forward<Args>(args)...);
+				construct_at(m_finish, etl::forward<Args>(args)...);
 				++m_finish;
 			}
 			else
 			{
-				realloc_insert(end(), std::forward<Args>(args)...);
+				realloc_insert(end(), etl::forward<Args>(args)...);
 			}
 			return back();
 		}
 
-		constexpr reference push_back(value_type&& v) { return emplace_back(std::move(v)); }
+		constexpr reference push_back(value_type&& v) { return emplace_back(etl::move(v)); }
 
 		constexpr reference push_back(const value_type& v) { return emplace_back(v); }
 
@@ -714,7 +717,7 @@ export namespace Trinex
 			if (!empty())
 			{
 				--m_finish;
-				std::destroy_at(m_finish);
+				etl::destroy_at(m_finish);
 			}
 		}
 
@@ -725,9 +728,9 @@ export namespace Trinex
 
 			iterator non_const_pos = const_cast<iterator>(pos);
 			if (pos + 1 != end())
-				std::move(non_const_pos + 1, end(), non_const_pos);
+				etl::move(non_const_pos + 1, end(), non_const_pos);
 			--m_finish;
-			std::destroy_at(m_finish);
+			etl::destroy_at(m_finish);
 			return non_const_pos;
 		}
 
@@ -739,7 +742,7 @@ export namespace Trinex
 				iterator non_const_last  = const_cast<iterator>(last);
 
 				if (non_const_first != end())
-					std::move(non_const_last, end(), non_const_first);
+					etl::move(non_const_last, end(), non_const_first);
 
 				erase_at_end(non_const_first + (end() - non_const_last));
 			}
@@ -755,10 +758,10 @@ export namespace Trinex
 			iterator last          = end() - 1;
 
 			if (non_const_pos != last)
-				*non_const_pos = std::move(*last);
+				*non_const_pos = etl::move(*last);
 
 			--m_finish;
-			std::destroy_at(m_finish);
+			etl::destroy_at(m_finish);
 			return non_const_pos;
 		}
 
@@ -771,10 +774,10 @@ export namespace Trinex
 
 				const size_type count      = non_const_last - non_const_first;
 				const size_type tail_count = end() - non_const_last;
-				const size_type move_count = std::min(count, tail_count);
+				const size_type move_count = etl::min(count, tail_count);
 
 				if (move_count > 0)
-					std::move(end() - move_count, end(), non_const_first);
+					etl::move(end() - move_count, end(), non_const_first);
 
 				erase_at_end(end() - count);
 			}
@@ -792,9 +795,9 @@ export namespace Trinex
 
 		constexpr void swap(Array<T, AllocatorType>& other)
 		{
-			std::swap(m_start, other.m_start);
-			std::swap(m_finish, other.m_finish);
-			std::swap(m_end, other.m_end);
+			etl::swap(m_start, other.m_start);
+			etl::swap(m_finish, other.m_finish);
+			etl::swap(m_end, other.m_end);
 		}
 
 		constexpr const ArrayStorage& storage() const { return m_storage; }

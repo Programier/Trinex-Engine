@@ -22,6 +22,8 @@ export namespace Trinex::etl
 	using std::common_type_t;
 	using std::conditional_t;
 	using std::decay_t;
+	using std::enable_if;
+	using std::enable_if_t;
 	using std::extent_v;
 	using std::false_type;
 	using std::integral_constant;
@@ -33,6 +35,7 @@ export namespace Trinex::etl
 	using std::is_class_v;
 	using std::is_const_v;
 	using std::is_constructible_v;
+	using std::is_convertible;
 	using std::is_convertible_v;
 	using std::is_copy_assignable_v;
 	using std::is_copy_constructible_v;
@@ -63,6 +66,8 @@ export namespace Trinex::etl
 	using std::is_reference_v;
 	using std::is_same_v;
 	using std::is_signed_v;
+	using std::is_standard_layout;
+	using std::is_standard_layout_v;
 	using std::is_swappable_v;
 	using std::is_trivially_copyable_v;
 	using std::is_trivially_destructible_v;

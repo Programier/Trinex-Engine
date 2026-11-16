@@ -49,4 +49,6 @@ export namespace Trinex::etl
 	// Value construction
 	using std::uninitialized_value_construct;
 	using std::uninitialized_value_construct_n;
+
+	using std::allocator_traits;
 } // namespace Trinex::etl

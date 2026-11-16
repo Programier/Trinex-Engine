@@ -1,3 +1,6 @@
+module;
+#include <Core/definitions.hpp>
+
 export module Trinex.Core.Compressor;
 
 import Trinex.Core.Types;

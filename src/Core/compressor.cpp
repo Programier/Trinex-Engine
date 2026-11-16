@@ -1,11 +1,11 @@
-module Trinex.Core.Compressor;
+#include <Core/preincluded.hpp>
 
+#include <Core/compressor.hpp>
 #include <Engine/settings.hpp>
 #include <lz4hc.h>
 
 namespace Trinex::Compressor
 {
-
 	trinex_api void compress(const Buffer& src, Buffer& dst)
 	{
 		int input_size = static_cast<int>(src.size());

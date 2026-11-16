@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstring>
+
 // clang-format off
 #include <Core/definitions.hpp>
 #include <Core/trx_new.hpp>

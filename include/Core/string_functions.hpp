@@ -2,11 +2,11 @@
 #include <Core/etl/array.hpp>
 #include <Core/etl/pair.hpp>
 #include <Core/etl/string.hpp>
-#include <fmt/format.h>
+#include <format>
 
 namespace Trinex::Strings
 {
-	using fmt::format;
+	using std::format;
 
 	trinex_api String capitalize_words(const StringView& sentence);
 	trinex_api String make_sentence(String line);

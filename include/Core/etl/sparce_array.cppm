@@ -1,6 +1,13 @@
+module;
+#include <Core/definitions.hpp>
 export module Trinex.Core.ETL.SparceArray;
 
-import module Trinex.Core.ETL.Array;
+import Trinex.Core.Memory.Heap;
+import Trinex.Core.ETL.Array;
+import Trinex.Core.ETL.Memory;
+import Trinex.Core.ETL.Utility;
+import Trinex.Core.ETL.TypeTraits;
+import Trinex.Core.Types;
 
 export namespace Trinex
 {
@@ -10,7 +17,7 @@ export namespace Trinex
 	public:
 		static_assert(sizeof(T) >= sizeof(Index));
 		static_assert(alignof(T) >= alignof(Index));
-		static_assert(std::is_trivially_destructible_v<T> && std::is_standard_layout_v<T>);
+		static_assert(etl::is_trivially_destructible_v<T> && etl::is_standard_layout_v<T>);
 
 		using Container       = Array<T, AllocatorType>;
 		using value_type      = T;
@@ -19,8 +26,8 @@ export namespace Trinex
 		using pointer         = T*;
 		using const_pointer   = const T*;
 
-		using size_type       = std::size_t;
-		using difference_type = std::ptrdiff_t;
+		using size_type       = usize;
+		using difference_type = isize;
 
 	private:
 		Container m_container;
@@ -56,19 +63,19 @@ export namespace Trinex
 			{
 				Index idx   = m_free_head;
 				m_free_head = next_free(idx);
-				new (&m_container[idx]) T(std::forward<Args>(args)...);
+				new (&m_container[idx]) T(etl::forward<Args>(args)...);
 				return idx;
 			}
 
 			Index idx = static_cast<Index>(m_container.size());
-			m_container.emplace_back(std::forward<Args>(args)...);
+			m_container.emplace_back(etl::forward<Args>(args)...);
 			return idx;
 		}
 
 		void erase(Index idx)
 		{
 			trinex_assert(idx < m_container.size());
-			std::destroy_at(m_container.data() + idx);
+			etl::destroy_at(m_container.data() + idx);
 
 			next_free(idx) = m_free_head;
 			m_free_head    = idx;

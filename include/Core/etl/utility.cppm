@@ -16,5 +16,6 @@ export namespace Trinex
 		using std::make_index_sequence;
 		using std::move;
 		using std::swap;
+		using std::declval;
 	} // namespace etl
 } // namespace Trinex

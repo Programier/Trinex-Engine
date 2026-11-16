@@ -1,8 +1,9 @@
 module;
 #include <concepts>
-#include <type_traits>
 
 export module Trinex.Core.ETL.Concepts;
+export import Trinex.Core.ETL.TypeTraits;
+
 import Trinex.Core.Types;
 
 export namespace Trinex
@@ -75,17 +76,6 @@ export namespace Trinex
 
 		template<typename T>
 		concept bitfield_reflected_enum = reflected_enum<T> && std::remove_cvref_t<T>::is_bitfield_enum;
-
-		template<typename T>
-		concept serializable_member = requires(T& value, class Archive& archive) { value.serialize(archive); };
-
-		template<typename T>
-		concept serializable_free = requires(T& value, class Archive& archive) { serialize(archive, value); };
-
-		template<typename T>
-		concept serializable_primitive =
-		        std::is_trivially_copyable_v<std::remove_cvref_t<T>> && !std::is_pointer_v<std::remove_cvref_t<T>>
-		        && !std::is_member_pointer_v<std::remove_cvref_t<T>>;
 
 		template<typename T>
 		concept is_byte = std::is_integral_v<T> && sizeof(T) == sizeof(u8);

@@ -168,4 +168,16 @@ namespace Trinex
 			}
 		}
 	};
+
+#define trinex_registry(Type)                                                                                                    \
+public:                                                                                                                          \
+	friend class Registry;                                                                                                       \
+                                                                                                                                 \
+private:                                                                                                                         \
+	static Type* s_first;                                                                                                        \
+	static Type* s_last
+
+#define trinex_implement_registry(Type)                                                                                          \
+	Type* Type::s_first = nullptr;                                                                                               \
+	Type* Type::s_last  = nullptr
 } // namespace Trinex
