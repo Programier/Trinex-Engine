@@ -1,6 +1,4 @@
-#include <Core/preincluded.hpp>
-
-#include <Core/reflection/template_type.hpp>
+module Trinex.Core.Reflection.TemplateType;
 
 namespace Trinex::Refl
 {

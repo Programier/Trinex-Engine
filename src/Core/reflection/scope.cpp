@@ -1,6 +1,4 @@
-#include <Core/preincluded.hpp>
-
-#include <Core/reflection/scope.hpp>
+module Trinex.Core.Reflection.Scope;
 
 namespace Trinex::Refl
 {

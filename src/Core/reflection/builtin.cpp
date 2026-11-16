@@ -1,9 +1,7 @@
-#include <Core/preincluded.hpp>
-
-#include <Core/math/vector.hpp>
-#include <Core/reflection/native.hpp>
-#include <Core/reflection/of.hpp>
-#include <Core/reflection/type.hpp>
+import Trinex.Core.Reflection.Native;
+import Trinex.Core.Reflection.Of;
+import Trinex.Core.Reflection.Type;
+import Trinex.Core.Types;
 
 namespace Trinex::Refl
 {

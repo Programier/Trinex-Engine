@@ -1,10 +1,5 @@
 #pragma once
-
-namespace Trinex
-{
-	template<typename T, typename AllocatorType>
-	class Array;
-}
+#include <Core/definitions.hpp>
 
 namespace Trinex::Refl
 {
@@ -66,15 +61,15 @@ namespace Trinex::Refl
 		}
 	};
 
-	template<typename T, typename AllocatorType>
-	struct TypeOf<::Trinex::Array<T, AllocatorType>>
-	{
-		static Type* resolve()
-		{
-			static Type* type = array_type_of(TypeOf<T>::resolve());
-			return type;
-		}
-	};
+	// template<typename T, typename AllocatorType>
+	// struct TypeOf<::Trinex::Array<T, AllocatorType>>
+	// {
+	// 	static Type* resolve()
+	// 	{
+	// 		static Type* type = array_type_of(TypeOf<T>::resolve());
+	// 		return type;
+	// 	}
+	// };
 
 	template<typename T>
 	struct EnumOf

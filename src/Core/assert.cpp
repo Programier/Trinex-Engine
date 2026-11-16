@@ -1,81 +1,78 @@
-#include <Core/preincluded.hpp>
-
-#include <Core/assert.hpp>
+module;
 #include <cstdio>
 #include <cstdlib>
-#include <printf.h>
 
-namespace Trinex::Asserts
+#if defined(_WIN32)
+	#include <Windows.h>
+#endif
+
+module Trinex.Core.Assert;
+import Trinex.Core.ETL.Atomic;
+import Trinex.Core.ETL.SourceLocation;
+
+namespace Trinex::Assert
 {
-	namespace
-	{
-		AssertHandler g_assert_handler = nullptr;
-	} // namespace
+	static Atomic<AssertHandler> g_assert_handler{nullptr};
 
-	trinex_api void assert_handler(AssertHandler handler)
+	static const char* kind_name(FailureKind kind) noexcept
 	{
-		g_assert_handler = handler;
+		switch (kind)
+		{
+			case FailureKind::Assertion: return "Assertion";
+			case FailureKind::Verification: return "Verification";
+			case FailureKind::Failure: return "Failure";
+			case FailureKind::Unreachable: return "Unreachable";
+			case FailureKind::NotImplemented: return "Not implemented";
+		}
+
+		return "Unknown";
 	}
 
-	trinex_api void report_failure(const char* condition, const char* file, int line, const char* function, const char* message)
+	void assert_handler(AssertHandler handler) noexcept
+	{
+		g_assert_handler.store(handler, etl::memory_order_release);
+	}
+
+	[[noreturn]] void report_failure(FailureKind kind, StringView message, SourceLocation location)
 	{
 		std::fprintf(stderr,
 		             "\n"
 		             "╔══════════════════════════════════════════════════════════════╗\n"
 		             "║                TRINEX ENGINE ASSERTION FAILED                ║\n"
 		             "╠══════════════════════════════════════════════════════════════╣\n"
-		             "║ File      : %s(%d)\n"
-		             "║ Function  : %s\n",
-		             file, line, function);
+		             "║ File      : %s(%u)\n"
+		             "║ Function  : %s\n"
+		             "║ Type      : %s\n",
+		             location.file_name(), location.line(), location.function_name(), kind_name(kind));
 
-		if (condition && condition[0])
-			std::fprintf(stderr, "║ Condition : %s\n", condition);
-
-		if (message && message[0])
-			std::fprintf(stderr, "║ Message   : %s\n", message);
+		if (!message.empty())
+		{
+			std::fprintf(stderr, "║ Message   : ");
+			std::fwrite(message.data(), 1, message.size(), stderr);
+			std::fputc('\n', stderr);
+		}
 
 		std::fprintf(stderr, "╚══════════════════════════════════════════════════════════════╝\n\n");
+		std::fflush(stderr);
 
-		if (g_assert_handler)
-			g_assert_handler(condition, file, line, function, message);
+		if (auto handler = g_assert_handler.load(etl::memory_order_acquire))
+			handler(kind, message, location);
 
-#ifdef _WIN32
-		if (IsDebuggerPresent())
-			__debugbreak();
+#if defined(_WIN32)
+		if (::IsDebuggerPresent())
+		{
+			::DebugBreak();
+		}
 		else
-			MessageBoxA(nullptr, message ? message : condition, "Trinex Engine — Assertion Failed!",
-			            MB_ICONERROR | MB_OK | MB_TOPMOST);
+		{
+			// MessageBoxA requires a null-terminated string.
+			const std::string text = message.empty() ? std::string(kind_name(kind)) : std::string(message);
+			::MessageBoxA(nullptr, text.c_str(), "Trinex Engine — Assertion Failed!", MB_ICONERROR | MB_OK | MB_TOPMOST);
+		}
 #elif defined(__GNUC__) || defined(__clang__)
 		__builtin_trap();
 #endif
 
 		std::abort();
 	}
-
-	trinex_api void report_failure_fmt(const char* condition, const char* file, int line, const char* function,
-	                                   const char* format, ...)
-	{
-		if (format == nullptr)
-		{
-			report_failure(condition, file, line, function);
-		}
-
-		char buffer[2048];
-		va_list args;
-		va_start(args, format);
-
-		int len = vsnprintf(buffer, sizeof(buffer), format, args);
-		va_end(args);
-
-		if (len < 0 || len >= (int) sizeof(buffer) - 1)
-		{
-			snprintf(buffer, sizeof(buffer), "[formatted message too long or error]");
-		}
-		else
-		{
-			buffer[len] = '\0';
-		}
-
-		report_failure(condition, file, line, function, buffer);
-	}
-} // namespace Trinex::Asserts
+} // namespace Trinex::Assert

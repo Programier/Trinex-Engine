@@ -1,7 +1,6 @@
-#include <Core/preincluded.hpp>
+module Trinex.Core.Memory.Pool;
 
-#include <Core/memory/heap.hpp>
-#include <Core/memory/pool.hpp>
+import Trinex.Core.Memory.Heap;
 
 namespace Trinex
 {

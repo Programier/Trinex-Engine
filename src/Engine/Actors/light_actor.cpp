@@ -1,9 +1,0 @@
-#include <Core/preincluded.hpp>
-
-#include <Core/reflection/deprecated/class.hpp>
-#include <Engine/Actors/light_actor.hpp>
-
-namespace Trinex
-{
-	trinex_implement_engine_class_default_init(LightActor, 0);
-}

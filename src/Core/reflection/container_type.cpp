@@ -1,6 +1,4 @@
-#include <Core/preincluded.hpp>
-
-#include <Core/reflection/container_type.hpp>
+module Trinex.Core.Reflection.ContainerType;
 
 namespace Trinex::Refl
 {

@@ -2,12 +2,12 @@ module;
 #include <Core/definitions.hpp>
 export module Trinex.Core.ETL.SparceArray;
 
-import Trinex.Core.Memory.Heap;
-import Trinex.Core.ETL.Array;
-import Trinex.Core.ETL.Memory;
-import Trinex.Core.ETL.Utility;
-import Trinex.Core.ETL.TypeTraits;
-import Trinex.Core.Types;
+export import Trinex.Core.Memory.Heap;
+export import Trinex.Core.ETL.Array;
+export import Trinex.Core.ETL.Memory;
+export import Trinex.Core.ETL.Utility;
+export import Trinex.Core.ETL.TypeTraits;
+export import Trinex.Core.Types;
 
 export namespace Trinex
 {

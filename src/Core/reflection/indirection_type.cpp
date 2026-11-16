@@ -1,8 +1,7 @@
-#include <Core/preincluded.hpp>
+module Trinex.Core.Reflection.IndirectionType;
 
-#include <Core/reflection/indirection_type.hpp>
-#include <Core/reflection/native.hpp>
-#include <Core/reflection/of.hpp>
+import Trinex.Core.Reflection.Native;
+import Trinex.Core.Reflection.Of;
 
 namespace Trinex::Refl
 {

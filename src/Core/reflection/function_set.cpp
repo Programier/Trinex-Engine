@@ -1,8 +1,7 @@
-#include <Core/preincluded.hpp>
+module Trinex.Core.Reflection.FunctionSet;
 
-#include <Core/etl/algorithm.hpp>
-#include <Core/reflection/function.hpp>
-#include <Core/reflection/function_set.hpp>
+import Trinex.Core.Reflection.Function;
+import Trinex.Core.ETL.Algorithm;
 
 namespace Trinex::Refl
 {

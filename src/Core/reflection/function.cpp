@@ -1,9 +1,6 @@
-#include <Core/preincluded.hpp>
-
-#include <Core/math/math.hpp>
-#include <Core/memory.hpp>
-#include <Core/reflection/function.hpp>
-#include <Core/reflection/type.hpp>
+module Trinex.Core.Reflection.Function;
+import Trinex.Core.Reflection.Type;
+import Trinex.Core.Reflection.Property;
 
 namespace Trinex::Refl
 {

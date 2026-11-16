@@ -2,8 +2,7 @@ module;
 #include <Core/definitions.hpp>
 
 export module Trinex.Core.ETL.Handle;
-
-import Trinex.Core.Types;
+export import Trinex.Core.Types;
 
 namespace Trinex
 {

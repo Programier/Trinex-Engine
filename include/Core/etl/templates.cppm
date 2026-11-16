@@ -1,8 +1,8 @@
 export module Trinex.Core.ETL.Templates;
 
-import Trinex.Core.Types;
-import Trinex.Core.ETL.TypeTraits;
-import Trinex.Core.ETL.Utility;
+export import Trinex.Core.Types;
+export import Trinex.Core.ETL.TypeTraits;
+export import Trinex.Core.ETL.Utility;
 
 export namespace Trinex
 {

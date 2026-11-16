@@ -1,8 +1,8 @@
 export module Trinex.Core.ETL.Storage;
 
-import Trinex.Core.Types;
+export import Trinex.Core.Types;
 
-namespace Trinex
+export namespace Trinex
 {
 	template<usize size, usize align = 16>
 	struct alignas(align) Storage

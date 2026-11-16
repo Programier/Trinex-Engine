@@ -1,14 +1,8 @@
-#include <Core/preincluded.hpp>
+module Trinex.Core.Types.Name;
 
-#include <Core/archive.hpp>
-#include <Core/constants.hpp>
-#include <Core/etl/array.hpp>
-#include <Core/etl/map.hpp>
-#include <Core/etl/templates.hpp>
-#include <Core/memory.hpp>
-#include <Core/types/name.hpp>
-#include <ScriptEngine/script_binding.hpp>
-#include <cstring>
+import Trinex.Core.ETL.Array;
+import Trinex.Core.ETL.Map;
+import Trinex.Core.ETL.Templates;
 
 namespace Trinex
 {
@@ -245,48 +239,48 @@ namespace Trinex
 
 	bool Name::serialize(class Archive& ar)
 	{
-		bool valid = is_valid();
-		ar.serialize(valid);
+		// bool valid = is_valid();
+		// ar.serialize(valid);
 
-		if (valid)
-		{
-			String string_name = to_string();
-			ar.serialize(string_name);
+		// if (valid)
+		// {
+		// 	String string_name = to_string();
+		// 	ar.serialize(string_name);
 
-			if (ar.is_reading())
-			{
-				(*this) = string_name;
-			}
-		}
+		// 	if (ar.is_reading())
+		// 	{
+		// 		(*this) = string_name;
+		// 	}
+		// }
 
-		return ar;
+		// return ar;
 	}
 
-	trinex_on_bootstrap(.name = "Trinex::Name", .after = {"Trinex::StringView"})
-	{
-		auto flags = ScriptClassFlags::Pod | ScriptClassFlags::AppClassAllInts | ScriptClassFlags::AppClassAlign8
-		             | ScriptClassFlags::AppClassMoreConstructors;
-		ScriptBinding::Class registrar = ScriptBinding::Class::create("Trinex::Name", ScriptBinding::value_type<Name>(flags));
+	// trinex_on_bootstrap(.name = "Trinex::Name", .after = {"Trinex::StringView"})
+	// {
+	// 	auto flags = ScriptClassFlags::Pod | ScriptClassFlags::AppClassAllInts | ScriptClassFlags::AppClassAlign8
+	// 	             | ScriptClassFlags::AppClassMoreConstructors;
+	// 	ScriptBinding::Class registrar = ScriptBinding::Class::create("Trinex::Name", ScriptBinding::value_type<Name>(flags));
 
-		registrar.behaviour(ScriptClassBehave::Construct, "void f()", ScriptBinding::Helpers::constructor<Name>,
-		                    ScriptCallConv::CDeclObjFirst);
-		registrar.behaviour(ScriptClassBehave::Construct, "void f(const string&)",
-		                    ScriptBinding::Helpers::constructor<Name, const String&>, ScriptCallConv::CDeclObjFirst);
-		registrar.behaviour(ScriptClassBehave::Construct, "void f(const StringView&)",
-		                    ScriptBinding::Helpers::constructor<Name, const StringView&>, ScriptCallConv::CDeclObjFirst);
+	// 	registrar.behaviour(ScriptClassBehave::Construct, "void f()", ScriptBinding::Helpers::constructor<Name>,
+	// 	                    ScriptCallConv::CDeclObjFirst);
+	// 	registrar.behaviour(ScriptClassBehave::Construct, "void f(const string&)",
+	// 	                    ScriptBinding::Helpers::constructor<Name, const String&>, ScriptCallConv::CDeclObjFirst);
+	// 	registrar.behaviour(ScriptClassBehave::Construct, "void f(const StringView&)",
+	// 	                    ScriptBinding::Helpers::constructor<Name, const StringView&>, ScriptCallConv::CDeclObjFirst);
 
-		registrar.method("bool is_valid() const", &Name::is_valid);
-		registrar.method("uint64 hash() const", &Name::hash);
-		registrar.method("const string& to_string() const", overload_of<const String&()>(&Name::to_string));
-		registrar.method("const Name& to_string(string&) const", overload_of<const Name&()>(&Name::to_string));
+	// 	registrar.method("bool is_valid() const", &Name::is_valid);
+	// 	registrar.method("uint64 hash() const", &Name::hash);
+	// 	registrar.method("const string& to_string() const", overload_of<const String&()>(&Name::to_string));
+	// 	registrar.method("const Name& to_string(string&) const", overload_of<const Name&()>(&Name::to_string));
 
-		registrar.method("Trinex::Name& opAssign(const StringView&)", overload_of<Name&(const StringView&)>(&Name::operator=));
-		registrar.method("Trinex::Name& opAssign(const string&)", overload_of<Name&(const String&)>(&Name::operator=));
-		registrar.method("bool opEquals(const StringView&) const", overload_of<bool(const StringView&)>(&Name::operator==));
-		registrar.method("bool opEquals(const string&) const", overload_of<bool(const String&)>(&Name::operator==));
-		registrar.method("bool opEquals(const Name&) const", overload_of<bool(const Name&)>(&Name::operator==));
+	// 	registrar.method("Trinex::Name& opAssign(const StringView&)", overload_of<Name&(const StringView&)>(&Name::operator=));
+	// 	registrar.method("Trinex::Name& opAssign(const string&)", overload_of<Name&(const String&)>(&Name::operator=));
+	// 	registrar.method("bool opEquals(const StringView&) const", overload_of<bool(const StringView&)>(&Name::operator==));
+	// 	registrar.method("bool opEquals(const string&) const", overload_of<bool(const String&)>(&Name::operator==));
+	// 	registrar.method("bool opEquals(const Name&) const", overload_of<bool(const Name&)>(&Name::operator==));
 
-		registrar.method("const string& opConv() const", &Name::operator const std::basic_string<char>&);
-		registrar.method("const string& opImplConv() const", &Name::operator const std::basic_string<char>&);
-	}
+	// 	registrar.method("const string& opConv() const", &Name::operator const std::basic_string<char>&);
+	// 	registrar.method("const string& opImplConv() const", &Name::operator const std::basic_string<char>&);
+	// }
 } // namespace Trinex

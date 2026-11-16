@@ -1,8 +1,7 @@
 module;
 #include <Core/definitions.hpp>
 export module Trinex.Core.ETL.TypeInfo;
-
-import Trinex.Core.Types;
+export import Trinex.Core.Types;
 
 export namespace Trinex
 {

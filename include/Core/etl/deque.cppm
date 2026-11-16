@@ -2,8 +2,7 @@ module;
 #include <deque>
 
 export module Trinex.Core.ETL.Deque;
-
-import Trinex.Core.Memory.Heap;
+export import Trinex.Core.Memory.Heap;
 
 namespace Trinex
 {

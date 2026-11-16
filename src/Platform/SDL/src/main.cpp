@@ -1,9 +1,6 @@
-#include <Core/preincluded.hpp>
+import Trinex.Core.Assert;
 
-#include <Core/engine.hpp>
-#include <SDL3/SDL_main.h>
-
-trinex_export int main(int argc, char** argv)
+int main()
 {
-	return Trinex::Engine::launch(argc, argv);
+	Trinex::Assert::failure("Test");
 }

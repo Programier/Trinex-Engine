@@ -1,8 +1,7 @@
-#include <Core/preincluded.hpp>
+module Trinex.Core.Reflection.Struct;
 
-#include <Core/reflection/function.hpp>
-#include <Core/reflection/property.hpp>
-#include <Core/reflection/struct.hpp>
+import Trinex.Core.Reflection.Function;
+import Trinex.Core.Reflection.Property;
 
 namespace Trinex::Refl
 {

@@ -258,7 +258,7 @@ namespace Reflector
 
 			for (const auto& entry : fs::recursive_directory_iterator(dir.path, fs::directory_options::skip_permission_denied))
 			{
-				if (!entry.is_regular_file() || entry.path().extension() != ".hpp")
+				if (!entry.is_regular_file() || !(entry.path().extension() == ".hpp" || entry.path().extension() == ".cppm"))
 					continue;
 
 				const fs::path& path = entry.path();

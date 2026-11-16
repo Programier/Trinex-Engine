@@ -1,9 +1,9 @@
-#include <Core/preincluded.hpp>
+module Trinex.Core.RefCounted;
 
-#include <Core/etl/array.hpp>
-#include <Core/etl/atomic.hpp>
-#include <Core/etl/critical_section.hpp>
-#include <Core/ref_counted.hpp>
+import Trinex.Core.Assert;
+import Trinex.Core.ETL.Array;
+import Trinex.Core.ETL.Atomic;
+import Trinex.Core.ETL.CriticalSection;
 
 namespace Trinex
 {
@@ -75,7 +75,7 @@ namespace Trinex
 				const u32 index = m_size++;
 
 				if ((index % page_size) == 0)
-					m_pages.push_back(trx_new Page);
+					m_pages.push_back(new Page);
 
 				WeakEntry* e = entry(index);
 
@@ -100,7 +100,7 @@ namespace Trinex
 			void free(u32 index)
 			{
 				WeakEntry* e = entry(index);
-				trinex_assert(e->index == index);
+				Assert::assertion(e->index == index, "Invalid weak entry index");
 				free(e);
 			}
 		};
@@ -110,14 +110,14 @@ namespace Trinex
 	void RefCounted::add_ref() const noexcept
 	{
 		const u32 previous = AtomicRef(m_ref_count).fetch_add(1, etl::memory_order_relaxed);
-		trinex_assert_msg(previous > 0, "add_ref() called on dead object");
+		Assert::assertion(previous > 0, "add_ref() called on dead object");
 	}
 
 	void RefCounted::release() const noexcept
 	{
 		const u32 previous = AtomicRef(m_ref_count).fetch_sub(1, etl::memory_order_release);
 
-		trinex_assert_msg(previous > 0, "release() called with zero references");
+		Assert::assertion(previous > 0, "release() called with zero references");
 
 		if (previous == 1)
 		{
@@ -130,7 +130,7 @@ namespace Trinex
 	void RefCounted::revive() const noexcept
 	{
 		const u32 previous = AtomicRef(m_ref_count).fetch_add(1, etl::memory_order_relaxed);
-		trinex_assert_msg(previous == 0, "revive() called on alive object");
+		Assert::assertion(previous == 0, "revive() called on alive object");
 	}
 
 	RefCounted::~RefCounted() {}
@@ -171,7 +171,7 @@ namespace Trinex
 		ScopeLock lock(storage->lock());
 
 		const u32 previous = AtomicRef(entry->weak_refs).fetch_sub(1, etl::memory_order_release);
-		trinex_assert_msg(previous > 0, "WeakRef released with zero references");
+		Assert::assertion(previous > 0, "WeakRef released with zero references");
 
 		if (previous == 1 && entry->ptr == nullptr)
 		{
@@ -227,12 +227,47 @@ namespace Trinex
 		ScopeLock lock(storage->lock());
 
 		WeakEntry* entry = storage->entry(m_weak_index);
-		trinex_assert(entry->ptr == this);
+		Assert::assertion(entry->ptr == this, "Invalid weak ptr");
 
 		entry->ptr   = nullptr;
 		m_weak_index = WeakStorage::bad_link;
 
 		if (AtomicRef(entry->weak_refs).load(etl::memory_order_acquire) == 0)
 			storage->free(entry);
+	}
+
+	void RefBase::add_ref(void* object)
+	{
+		static_cast<RefCounted*>(object)->add_ref();
+	}
+
+	void RefBase::release(void* object)
+	{
+		static_cast<RefCounted*>(object)->release();
+	}
+
+	void* WeakRefBase::entry(RefCounted* object) noexcept
+	{
+		return RefCounted::weak_entry(object);
+	}
+
+	void WeakRefBase::add_ref(void* entry) noexcept
+	{
+		RefCounted::add_weak_ref(static_cast<WeakEntry*>(entry));
+	}
+
+	void WeakRefBase::release(void* entry) noexcept
+	{
+		RefCounted::release_weak_ref(static_cast<WeakEntry*>(entry));
+	}
+
+	RefCounted* WeakRefBase::weak_ptr(void* entry) noexcept
+	{
+		return RefCounted::weak_ptr(static_cast<WeakEntry*>(entry));
+	}
+
+	RefCounted* WeakRefBase::lock_weak(void* entry) noexcept
+	{
+		return RefCounted::lock_weak(static_cast<WeakEntry*>(entry));
 	}
 } // namespace Trinex

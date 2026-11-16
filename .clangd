@@ -1,0 +1,3 @@
+CompileFlags:
+  CompilationDatabase: builds/build-Debug-Linux
+  Compiler: /usr/bin/clang++

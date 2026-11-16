@@ -4,8 +4,7 @@ module;
 #include <list>
 
 export module Trinex.Core.ETL.List;
-
-import Trinex.Core.Memory.Heap;
+export import Trinex.Core.Memory.Heap;
 
 export namespace Trinex
 {

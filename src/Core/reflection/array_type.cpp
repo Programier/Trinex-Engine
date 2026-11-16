@@ -1,9 +1,8 @@
-#include <Core/preincluded.hpp>
+module Trinex.Core.Reflection.ArrayType;
 
-#include <Core/etl/array.hpp>
-#include <Core/reflection/array_type.hpp>
-#include <Core/reflection/of.hpp>
-#include <Core/reflection/scope.hpp>
+import Trinex.Core.ETL.Array;
+import Trinex.Core.Reflection.Of;
+import Trinex.Core.Reflection.Scope;
 
 namespace Trinex::Refl
 {

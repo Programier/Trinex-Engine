@@ -878,9 +878,8 @@ namespace Reflector
 		if (is_object_empty(module))
 			return true;
 
-		writer->line("#include <Core/reflection/accessor.hpp>");
-		writer->line("#include <Core/reflection/binder.hpp>\n");
-
+		writer->line("#include <Core/definitions.hpp>");
+		
 		writer->line("#ifdef trinex_reflection_file_id");
 		writer->line("#undef trinex_reflection_file_id");
 		writer->line("#endif\n");
@@ -897,12 +896,17 @@ namespace Reflector
 
 		if (is_object_empty(module))
 			return true;
-		
-		writer->line("#include <Core/preincluded.hpp>\n");
-		
-		writer->line("#include <$0>", module->name);
-		writer->line("#include <Core/etl/type_traits.hpp>");
-		writer->line("#include <Core/reflection/of.hpp>");
+
+		if (module->name.ends_with(".cppm"))
+		{
+			//writer->line("<$0>", module->name);
+		}
+		else
+		{
+			writer->line("#include <$0>", module->name);
+		}
+
+		writer->line("import Trinex.Core.ETL.TypeTraits;");
 		writer->line("#include <Core/reflection/enum.hpp>");
 		writer->line("#include <Core/reflection/scope.hpp>");
 		writer->line("#include <Core/reflection/class.hpp>");

@@ -1,11 +1,11 @@
 module;
 #include <Core/definitions.hpp>
+#include <format>
 #include <string>
 #include <string_view>
 
 export module Trinex.Core.ETL.String;
-
-import Trinex.Core.Types;
+export import Trinex.Core.Types;
 
 export namespace Trinex
 {
@@ -39,6 +39,20 @@ export namespace Trinex
 
 			input = position == StringView::npos ? StringView() : input.substr(position + separator.size());
 			return result;
+		}
+
+		template<typename... Args>
+		bool format_to(String& stream, std::format_string<Args...> fmt, Args&&... args)
+		{
+			std::format_to(std::back_inserter(stream), fmt, std::forward<Args>(args)...);
+
+			return true;
+		}
+
+		template<typename... Args>
+		String format(std::format_string<Args...> fmt, Args&&... args)
+		{
+			return std::format(fmt, std::forward<Args>(args)...);
 		}
 
 		trinex_api usize parse(StringView text, bool& value);

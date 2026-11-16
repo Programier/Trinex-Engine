@@ -3,13 +3,10 @@ module;
 
 export module Trinex.Core.ETL.Concepts;
 export import Trinex.Core.ETL.TypeTraits;
-
-import Trinex.Core.Types;
+export import Trinex.Core.Types;
 
 export namespace Trinex
 {
-	class Archive;
-
 	namespace etl
 	{
 		using std::same_as;
@@ -94,27 +91,6 @@ export namespace Trinex
 
 		template<typename T>
 		concept is_double = std::is_same_v<T, double> || std::is_same_v<T, long double>;
-
-		template<typename T>
-		concept struct_with_custom_allocation = requires(T* mem) {
-			{ T::static_constructor() } -> std::same_as<T*>;
-			{ T::static_destructor(mem) };
-		};
-
-		template<typename T, typename... Args>
-		concept is_serializable = requires(T* obj, Args&&... args, Trinex::Archive& ar) {
-			{ obj->serialize(ar, std::declval<Args>(args)...) } -> std::same_as<bool>;
-		};
-
-		template<typename T>
-		concept is_reflected_struct = requires(T* obj) {
-			{ obj->static_reflection() } -> std::same_as<Trinex::Refl::Deprecated::Struct*>;
-		};
-
-		template<typename T>
-		concept is_reflected_class = requires(T* obj) {
-			{ obj->static_reflection() } -> std::same_as<Trinex::Refl::Deprecated::Class*>;
-		};
 
 		template<typename T1, typename T2>
 		concept ordered_comparable_with = requires(const T1& lhs, const T2& rhs) {

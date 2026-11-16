@@ -1,16 +1,18 @@
-#include <Core/preincluded.hpp>
-
-#include <Core/assert.hpp>
-#include <Core/memory/heap.hpp>
+module;
 #include <mimalloc-stats.h>
 #include <mimalloc.h>
+module Trinex.Core.Memory.Heap;
+
+import Trinex.Core.Assert;
+import Trinex.Core.ETL.SourceLocation;
+import Trinex.Core.ETL.String;
 
 namespace Trinex
 {
-	[[noreturn]] static void allocation_failure(usize size, usize alignment)
+	[[noreturn]] static void allocation_failure(usize size, usize alignment, SourceLocation location = SourceLocation::current())
 	{
-		Asserts::report_failure_fmt(nullptr, __FILE__, __LINE__, __func__,
-		                            "Failed to allocate memory, size = %zu, alignment = %zu", size, alignment);
+		String msg = Strings::format("Failed to allocate memory, size = {}, alignment = {}", size, alignment);
+		Assert::failure(msg, location);
 	}
 
 	static usize positive_size(int64_t value)

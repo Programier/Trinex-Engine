@@ -1,6 +1,4 @@
-#include <Core/preincluded.hpp>
-
-#include <Core/reflection/enum.hpp>
+module Trinex.Core.Reflection.Enum;
 
 namespace Trinex::Refl
 {

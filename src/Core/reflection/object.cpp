@@ -1,7 +1,6 @@
-#include <Core/preincluded.hpp>
+module Trinex.Core.Reflection.Object;
 
-#include <Core/reflection/class.hpp>
-#include <Core/reflection/object.hpp>
+import Trinex.Core.Reflection.Class;
 
 namespace Trinex::Refl
 {

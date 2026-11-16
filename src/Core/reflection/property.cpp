@@ -1,6 +1,4 @@
-#include <Core/preincluded.hpp>
-
-#include <Core/reflection/property.hpp>
+module Trinex.Core.Reflection.Property;
 
 namespace Trinex::Refl
 {
