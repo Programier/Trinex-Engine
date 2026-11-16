@@ -1,6 +1,5 @@
-#include <Core/preincluded.hpp>
+module Trinex.Core.Compressor;
 
-#include <Core/compressor.hpp>
 #include <Engine/settings.hpp>
 #include <lz4hc.h>
 

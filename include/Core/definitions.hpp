@@ -156,6 +156,18 @@
 		Enum value;                                                                                                              \
 	}
 
+#define trinex_registry(Type)                                                                                                    \
+public:                                                                                                                          \
+	friend class ::Trinex::Registry;                                                                                             \
+                                                                                                                                 \
+private:                                                                                                                         \
+	static Type* s_first;                                                                                                        \
+	static Type* s_last
+
+#define trinex_implement_registry(Type)                                                                                          \
+	Type* Type::s_first = nullptr;                                                                                               \
+	Type* Type::s_last  = nullptr
+
 #define trinex_old_struct(struct_name, base_name)                                                                                \
 protected:                                                                                                                       \
 	static Trinex::Refl::Deprecated::Struct* m_static_struct;                                                                    \

@@ -57,6 +57,8 @@ else()
     )
 endif()
 
+trinex_target_properties(TrinexEngine PROPERTIES CXX_SCAN_FOR_MODULES ON)
+
 trinex_source_directories(TrinexEngine RECURSIVE
     "${TRINEX_ENGINE_SRC}/Core/"
     "${TRINEX_ENGINE_SRC}/Engine/"
