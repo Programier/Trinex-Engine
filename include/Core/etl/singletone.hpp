@@ -25,7 +25,7 @@ namespace Trinex
 					LifeCycle::on_finalize([]() {
 						if (Type::s_instance)
 						{
-							trx_delete_inline(Type::s_instance);
+							trx_delete Type::s_instance;
 						}
 					});
 				}

@@ -36,7 +36,7 @@ namespace Trinex
 
 		for (auto& child : childs)
 		{
-			trx_delete_inline(child.second);
+			trx_delete child.second;
 		}
 
 		if (m_parent)

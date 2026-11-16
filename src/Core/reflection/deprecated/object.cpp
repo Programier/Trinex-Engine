@@ -395,7 +395,7 @@ namespace Trinex::Refl::Deprecated
 				object->m_owner->unregister_subobject(object);
 			}
 
-			trx_delete_inline(object);
+			trx_delete object;
 
 			m_check_exiting_instance = check_exiting_instance_tmp;
 			return true;

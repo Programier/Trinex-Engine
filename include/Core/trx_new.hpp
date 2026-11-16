@@ -25,30 +25,21 @@ trinex_api void operator delete(void* ptr, Trinex::HeapAllocatorTag) noexcept;
 
 namespace Trinex
 {
-	struct HeapAllocatorDeleter
+	template<typename F>
+	class HeapAllocatorDeleter
 	{
-		template<typename T>
-		struct strip_ref
-		{
-			using type = T;
-		};
-		template<typename T>
-		struct strip_ref<T&>
-		{
-			using type = T;
-		};
-		template<typename T>
-		struct strip_ref<T&&>
-		{
-			using type = T;
-		};
+	private:
+		F m_destruct;
+
+	public:
+		HeapAllocatorDeleter(F destruct) : m_destruct(destruct) {}
 
 		template<typename T>
 		inline void operator=(const T* ptr) const noexcept
 		{
 			if (ptr)
 			{
-				ptr->~T();
+				m_destruct(ptr);
 				::operator delete(const_cast<T*>(ptr), Trinex::HeapAllocatorTag{});
 			}
 		}
@@ -58,14 +49,4 @@ namespace Trinex
 #define trx_new new (Trinex::HeapAllocatorTag{})
 #define trx_stack_new new (Trinex::StackAllocatorTag{})
 #define trx_frame_new new (Trinex::FrameAllocatorTag{})
-#define trx_delete Trinex::HeapAllocatorDeleter() =
-#define trx_delete_inline(ptr)                                                                                                   \
-	do                                                                                                                           \
-	{                                                                                                                            \
-		if (ptr)                                                                                                                 \
-		{                                                                                                                        \
-			using ElemType = typename Trinex::HeapAllocatorDeleter::strip_ref<decltype(*ptr)>::type;                             \
-			ptr->~ElemType();                                                                                                    \
-			::operator delete(ptr, Trinex::HeapAllocatorTag{});                                                                  \
-		}                                                                                                                        \
-	} while (0)
+#define trx_delete Trinex::HeapAllocatorDeleter([]<typename DestructType>(DestructType* ptr) { ptr->~DestructType(); }) =

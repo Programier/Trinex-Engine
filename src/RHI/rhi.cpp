@@ -116,7 +116,7 @@ namespace Trinex
 					RHIGarbageCollector* gc = backend->gc();
 					backend->m_gc           = nullptr;
 
-					trx_delete_inline(gc);
+					trx_delete gc;
 
 					backend.destroy(backend.rhi);
 					backend.rhi = nullptr;

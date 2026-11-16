@@ -80,12 +80,10 @@ endif()
 
 # Trinex Engine compile options
 trinex_reflection_directories(TrinexEngine PUBLIC ${TRINEX_ENGINE_ROOT}/include)
-trinex_module_directories(TrinexEngine PUBLIC ${TRINEX_ENGINE_ROOT}/include)
+trinex_module_directories(TrinexEngine RECURSIVE PUBLIC ${TRINEX_ENGINE_ROOT}/include)
 trinex_link_libraries(TrinexEngine PUBLIC freetype asmjit lz4_static stb_library)
 
 trinex_preinclude_headers(TrinexEngine PUBLIC "${TRINEX_ENGINE_INCLUDE}/Core/preincluded.hpp")
-trinex_precompile_headers(TrinexEngine PUBLIC "${TRINEX_ENGINE_INCLUDE}/Core/pch.hpp")
-
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     trinex_compile_definitions(TrinexEngine PUBLIC -DTRINEX_DEBUG_BUILD=1)
@@ -98,6 +96,7 @@ endif()
 trinex_compile_options(TrinexEngine PRIVATE "-Wall")
 trinex_compile_options(TrinexEngine PRIVATE "-Wno-unknown-pragmas")
 trinex_compile_options(TrinexEngine PRIVATE "-Wmismatched-tags")
+trinex_compile_options(TrinexEngine PRIVATE "-fmodules")
 trinex_compile_options(TrinexEngine PUBLIC "-fno-rtti")
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")

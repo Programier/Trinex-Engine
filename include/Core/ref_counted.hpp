@@ -29,7 +29,7 @@ namespace Trinex
 		RefCounted() noexcept = default;
 
 		virtual ~RefCounted();
-		virtual void destroy() noexcept { trx_delete_inline(this); }
+		virtual void destroy() noexcept { trx_delete this; }
 
 	public:
 		trinex_non_copyable(RefCounted);

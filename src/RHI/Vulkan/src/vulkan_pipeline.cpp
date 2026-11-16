@@ -584,7 +584,7 @@ namespace Trinex
 	VulkanRayTracingPipeline::~VulkanRayTracingPipeline()
 	{
 		DESTROY_CALL(destroyPipeline, m_pipeline);
-		trx_delete_inline(m_sbt);
+		trx_delete m_sbt;
 	}
 
 	VulkanContext& VulkanContext::bind_pipeline(RHIPipeline* pipeline)

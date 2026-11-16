@@ -123,7 +123,7 @@ namespace Trinex
 			{
 				on_terminate();
 
-				trx_delete_inline(script_folder);
+				trx_delete script_folder;
 				script_folder = nullptr;
 				engine->Release();
 				engine = nullptr;

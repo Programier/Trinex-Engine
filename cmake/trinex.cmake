@@ -43,10 +43,6 @@ function(trinex_compile_options target)
     target_compile_options(${target} ${ARGN})
 endfunction()
 
-function(trinex_precompile_headers target)
-    target_precompile_headers(${target} ${ARGN})
-endfunction()
-
 function(trinex_preinclude_headers target)
     set(arguments ${target})
 
