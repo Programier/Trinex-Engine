@@ -300,10 +300,17 @@ function(trinex_library target)
     endif()
 
     add_library(${target} ${ARG_UNPARSED_ARGUMENTS} ${ARG_SOURCES})
-    target_compile_definitions(${target}
-        PRIVATE "${ARG_API}=trinex_export"
-        INTERFACE "${ARG_API}=trinex_import"
-    )
+    if(WIN32)
+        target_compile_definitions(${target}
+            PRIVATE "${ARG_API}=__declspec(dllexport)"
+            INTERFACE "${ARG_API}=__declspec(dllimport)"
+        )
+    else()
+        target_compile_definitions(${target}
+            PRIVATE "${ARG_API}=__attribute__((visibility(\"default\")))"
+            INTERFACE "${ARG_API}=__attribute__((visibility(\"default\")))"
+        )
+    endif()
     cmake_language(EVAL CODE
         "cmake_language(DEFER CALL trinex_reflect [=[${target}]=] ROOT [=[${ARG_REFLECTION_ROOT}]=] OUTPUT [=[${ARG_REFLECTION_OUTPUT}]=])")
 endfunction()
@@ -314,7 +321,11 @@ function(trinex_executable target)
     add_executable(${target} ${ARG_UNPARSED_ARGUMENTS} ${ARG_SOURCES})
     
     if(ARG_API)
-	target_compile_definitions(${target} PRIVATE "${ARG_API}=trinex_export")
+        if(WIN32)
+            target_compile_definitions(${target} PRIVATE "${ARG_API}=__declspec(dllexport)")
+        else()
+            target_compile_definitions(${target} PRIVATE "${ARG_API}=__attribute__((visibility(\"default\")))")
+        endif()
     endif()
     
     cmake_language(EVAL CODE

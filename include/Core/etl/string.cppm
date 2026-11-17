@@ -1,16 +1,18 @@
 module;
-#include <Core/definitions.hpp>
-#include <format>
-#include <string>
-#include <string_view>
-
-export module Trinex.Core.ETL.String;
+#include <Core/etl/std.hpp>
+export module Trinex.Core.ETL:String;
 export import Trinex.Core.Types;
 
 export namespace Trinex
 {
 	using String     = std::string;
 	using StringView = std::string_view;
+
+	using std::operator+;
+	using std::operator==;
+	using std::operator<=>;
+	using std::operator<<;
+	using std::operator>>;
 
 	trinex_api void serialize(class Archive& ar, String& string);
 

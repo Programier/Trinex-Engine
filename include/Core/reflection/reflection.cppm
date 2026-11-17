@@ -1,0 +1,21 @@
+export module Trinex.Core.Reflection;
+
+export module :ArrayType;
+export module :Class;
+export module :ConstType;
+export module :ContainerType;
+export module :Enum;
+export module :Function;
+export module :FunctionSet;
+export module :Generated;
+export module :IndirectionType;
+export module :IndirectResolver;
+export module :Native;
+export module :NativeFunction;
+export module :Object;
+export module :Of;
+export module :Property;
+export module :Scope;
+export module :Struct;
+export module :TemplateType;
+export module :Type;

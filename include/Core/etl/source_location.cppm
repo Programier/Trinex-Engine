@@ -1,6 +1,6 @@
 module;
-#include <source_location>
-export module Trinex.Core.ETL.SourceLocation;
+#include <Core/etl/std.hpp>
+export module Trinex.Core.ETL:SourceLocation;
 
 export namespace Trinex
 {

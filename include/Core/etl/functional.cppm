@@ -1,7 +1,6 @@
 module;
-#include <functional>
-
-export module Trinex.Core.ETL.Functional;
+#include <Core/etl/std.hpp>
+export module Trinex.Core.ETL:Functional;
 
 export namespace Trinex
 {

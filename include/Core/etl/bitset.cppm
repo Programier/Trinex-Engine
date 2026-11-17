@@ -1,7 +1,6 @@
 module;
-#include <bitset>
-
-export module Trinex.Core.ETL.Bitset;
+#include <Core/etl/std.hpp>
+export module Trinex.Core.ETL:Bitset;
 
 export namespace Trinex
 {

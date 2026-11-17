@@ -1,7 +1,7 @@
 module;
 #include <Core/reflection/const_type.generated.hpp>
-export module Trinex.Core.Reflection.ConstType;
-export import Trinex.Core.Reflection.Type;
+export module Trinex.Core.Reflection:ConstType;
+export import :Type;
 
 export namespace Trinex::Refl
 {

@@ -1,7 +1,6 @@
 module;
-#include <bit>
-
-export module Trinex.Core.ETL.Bit;
+#include <Core/etl/std.hpp>
+export module Trinex.Core.ETL:Bit;
 
 export namespace Trinex::etl
 {

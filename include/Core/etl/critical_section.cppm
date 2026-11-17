@@ -1,7 +1,6 @@
 module;
-#include <mutex>
-
-export module Trinex.Core.ETL.CriticalSection;
+#include <Core/etl/std.hpp>
+export module Trinex.Core.ETL:CriticalSection;
 
 export namespace Trinex
 {

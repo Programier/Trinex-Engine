@@ -1,7 +1,6 @@
 module;
-#include <deque>
-
-export module Trinex.Core.ETL.Deque;
+#include <Core/etl/std.hpp>
+export module Trinex.Core.ETL:Deque;
 export import Trinex.Core.Memory.Heap;
 
 namespace Trinex

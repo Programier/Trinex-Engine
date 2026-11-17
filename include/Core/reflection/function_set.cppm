@@ -1,9 +1,8 @@
 module;
 #include <Core/reflection/function_set.generated.hpp>
-export module Trinex.Core.Reflection.FunctionSet;
-export import Trinex.Core.ETL.Array;
-export import Trinex.Core.ETL.Invoker;
-export import Trinex.Core.Reflection.Object;
+export module Trinex.Core.Reflection:FunctionSet;
+export import Trinex.Core.ETL;
+export import :Object;
 
 
 namespace Trinex::Refl

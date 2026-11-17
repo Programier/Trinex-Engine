@@ -1,8 +1,8 @@
 module;
 #include <Core/reflection/enum.generated.hpp>
-export module Trinex.Core.Reflection.Enum;
-export import Trinex.Core.ETL.Array;
-export import Trinex.Core.Reflection.Type;
+export module Trinex.Core.Reflection:Enum;
+export import Trinex.Core.ETL;
+export import :Type;
 
 export namespace Trinex::Refl
 {

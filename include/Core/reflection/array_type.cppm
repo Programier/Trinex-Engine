@@ -1,5 +1,5 @@
-export module Trinex.Core.Reflection.ArrayType;
-export import Trinex.Core.Reflection.ContainerType;
+export module Trinex.Core.Reflection:ArrayType;
+export import :ContainerType;
 
 export namespace Trinex::Refl
 {

@@ -1,27 +1,13 @@
 module;
-
-#include <cstring>
-#include <memory>
-
-export module Trinex.Core.ETL.Memory;
+#include <Core/etl/std.hpp>
+export module Trinex.Core.ETL:Memory;
 
 export namespace Trinex::etl
 {
-	// Raw memory operations
-	using std::memchr;
-	using std::memcmp;
-	using std::memcpy;
-	using std::memmove;
-	using std::memset;
-
 	// Pointer utilities
 	using std::addressof;
 	using std::pointer_traits;
 	using std::to_address;
-
-	// Alignment
-	using std::align;
-	using std::assume_aligned;
 
 	// Object lifetime
 	using std::construct_at;

@@ -1,8 +1,8 @@
-export module Trinex.Core.ETL.FlatSet;
-export import Trinex.Core.ETL.Array;
-export import Trinex.Core.ETL.Functional;
-export import Trinex.Core.ETL.TypeTraits;
-export import Trinex.Core.ETL.InitializerList;
+export module Trinex.Core.ETL:FlatSet;
+export import :Array;
+export import :Functional;
+export import :TypeTraits;
+export import :InitializerList;
 
 export namespace Trinex
 {

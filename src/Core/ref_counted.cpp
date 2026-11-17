@@ -1,9 +1,7 @@
 module Trinex.Core.RefCounted;
 
 import Trinex.Core.Assert;
-import Trinex.Core.ETL.Array;
-import Trinex.Core.ETL.Atomic;
-import Trinex.Core.ETL.CriticalSection;
+import Trinex.Core.ETL;
 
 namespace Trinex
 {

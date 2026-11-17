@@ -1,7 +1,6 @@
 module;
-#include <type_traits>
-
-export module Trinex.Core.ETL.TypeTraits;
+#include <Core/etl/std.hpp>
+export module Trinex.Core.ETL:TypeTraits;
 
 export namespace Trinex::etl
 {

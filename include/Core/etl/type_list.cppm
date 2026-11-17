@@ -1,4 +1,4 @@
-export module Trinex.Core.ETL.TypeList;
+export module Trinex.Core.ETL:TypeList;
 
 export namespace Trinex
 {

@@ -4,8 +4,7 @@ module;
 module Trinex.Core.Memory.Heap;
 
 import Trinex.Core.Assert;
-import Trinex.Core.ETL.SourceLocation;
-import Trinex.Core.ETL.String;
+import Trinex.Core.ETL;
 
 namespace Trinex
 {

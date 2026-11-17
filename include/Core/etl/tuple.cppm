@@ -1,7 +1,6 @@
 module;
-#include <tuple>
-
-export module Trinex.Core.ETL.Tuple;
+#include <Core/etl/std.hpp>
+export module Trinex.Core.ETL:Tuple;
 
 export namespace Trinex
 {

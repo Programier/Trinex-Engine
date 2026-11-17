@@ -1,7 +1,7 @@
 module;
 #include <Core/reflection/container_type.generated.hpp>
-export module Trinex.Core.Reflection.ContainerType;
-export import Trinex.Core.Reflection.TemplateType;
+export module Trinex.Core.Reflection:ContainerType;
+export import :TemplateType;
 
 export namespace Trinex::Refl
 {

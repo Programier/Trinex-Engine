@@ -7,8 +7,7 @@ module;
 #endif
 
 module Trinex.Core.Assert;
-import Trinex.Core.ETL.Atomic;
-import Trinex.Core.ETL.SourceLocation;
+import Trinex.Core.ETL;
 
 namespace Trinex::Assert
 {

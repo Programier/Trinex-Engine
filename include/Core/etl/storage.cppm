@@ -1,5 +1,4 @@
-export module Trinex.Core.ETL.Storage;
-
+export module Trinex.Core.ETL:Storage;
 export import Trinex.Core.Types;
 
 export namespace Trinex

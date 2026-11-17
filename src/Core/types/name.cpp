@@ -1,8 +1,6 @@
 module Trinex.Core.Types.Name;
-
-import Trinex.Core.ETL.Array;
-import Trinex.Core.ETL.Map;
-import Trinex.Core.ETL.Templates;
+import Trinex.Core.Memory;
+import Trinex.Core.ETL;
 
 namespace Trinex
 {
@@ -107,7 +105,7 @@ namespace Trinex
 		}
 
 		const String& string = name_entries()[cache.index].name;
-		return string.length() == view.length() && std::memcmp(string.data(), view.data(), view.length()) == 0;
+		return string.length() == view.length() && Memory::compare(string.data(), view.data(), view.length()) == 0;
 	}
 
 	static inline bool find_cached_name(const StringView& view, u32& index)
@@ -181,7 +179,7 @@ namespace Trinex
 			return *this;
 		}
 
-		u64 hash                       = memory_hash(view.data(), view.length(), 0);
+		u64 hash                       = Memory::hash(view.data(), view.length(), 0);
 		Array<Name::Entry>& name_table = name_entries();
 
 		if (find_cached_name(view, hash, m_id))
@@ -203,7 +201,7 @@ namespace Trinex
 
 	u64 Name::hash() const
 	{
-		return is_valid() ? name_entries()[m_id].hash : Constants::invalid_hash;
+		return is_valid() ? name_entries()[m_id].hash : 0;
 	}
 
 	bool Name::equals(const StringView& name) const
@@ -237,24 +235,24 @@ namespace Trinex
 		return default_string();
 	}
 
-	bool Name::serialize(class Archive& ar)
-	{
-		// bool valid = is_valid();
-		// ar.serialize(valid);
+	// bool Name::serialize(class Archive& ar)
+	// {
+	// 	bool valid = is_valid();
+	// 	ar.serialize(valid);
 
-		// if (valid)
-		// {
-		// 	String string_name = to_string();
-		// 	ar.serialize(string_name);
+	// 	if (valid)
+	// 	{
+	// 		String string_name = to_string();
+	// 		ar.serialize(string_name);
 
-		// 	if (ar.is_reading())
-		// 	{
-		// 		(*this) = string_name;
-		// 	}
-		// }
+	// 		if (ar.is_reading())
+	// 		{
+	// 			(*this) = string_name;
+	// 		}
+	// 	}
 
-		// return ar;
-	}
+	// 	return ar;
+	// }
 
 	// trinex_on_bootstrap(.name = "Trinex::Name", .after = {"Trinex::StringView"})
 	// {

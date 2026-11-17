@@ -1,7 +1,6 @@
 module;
-#include <initializer_list>
-
-export module Trinex.Core.ETL.InitializerList;
+#include <Core/etl/std.hpp>
+export module Trinex.Core.ETL:InitializerList;
 
 export namespace Trinex
 {

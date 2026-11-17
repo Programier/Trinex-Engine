@@ -1,7 +1,6 @@
 module;
-#include <array>
-
-export module Trinex.Core.ETL.StaticArray;
+#include <Core/etl/std.hpp>
+export module Trinex.Core.ETL:StaticArray;
 
 export namespace Trinex
 {

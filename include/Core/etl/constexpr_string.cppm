@@ -1,6 +1,6 @@
-export module Trinex.Core.ETL.ConstexprString;
+export module Trinex.Core.ETL:ConstexprString;
 export import Trinex.Core.Types;
-export import Trinex.Core.ETL.Algorithm;
+export import :Algorithm;
 
 export namespace Trinex
 {

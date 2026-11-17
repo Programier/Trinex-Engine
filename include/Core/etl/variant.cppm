@@ -1,7 +1,6 @@
 module;
-#include <variant>
-
-export module Trinex.Core.ETL.Variant;
+#include <Core/etl/std.hpp>
+export module Trinex.Core.ETL:Variant;
 
 export namespace Trinex
 {

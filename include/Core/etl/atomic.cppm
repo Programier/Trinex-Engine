@@ -1,7 +1,6 @@
 module;
-#include <atomic>
-
-export module Trinex.Core.ETL.Atomic;
+#include <Core/etl/std.hpp>
+export module Trinex.Core.ETL:Atomic;
 
 export namespace Trinex
 {

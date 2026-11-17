@@ -3,12 +3,7 @@ module;
 
 export module Trinex.Core.Reflection.Native;
 export import Trinex.Core.Reflection.IndirectResolver;
-export import Trinex.Core.ETL.Concepts;
-export import Trinex.Core.ETL.Invoker;
-export import Trinex.Core.ETL.Memory;
-export import Trinex.Core.ETL.String;
-export import Trinex.Core.ETL.TypeTraits;
-export import Trinex.Core.ETL.Utility;
+export import Trinex.Core.ETL;
 
 namespace Trinex::Refl
 {

@@ -1,7 +1,7 @@
-export module Trinex.Core.ETL.Invoker;
-export import Trinex.Core.ETL.Storage;
-export import Trinex.Core.ETL.Utility;
+export module Trinex.Core.ETL:Invoker;
 export import Trinex.Core.Types;
+export import :Storage;
+export import :Utility;
 
 export namespace Trinex::etl
 {

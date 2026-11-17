@@ -1,7 +1,6 @@
 module;
-#include <charconv>
-
-export module Trinex.Core.ETL.CharConv;
+#include <Core/etl/std.hpp>
+export module Trinex.Core.ETL:CharConv;
 
 export namespace Trinex::etl
 {

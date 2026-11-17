@@ -1,7 +1,6 @@
 module;
-#include <span>
-
-export module Trinex.Core.ETL.Span;
+#include <Core/etl/std.hpp>
+export module Trinex.Core.ETL:Span;
 
 export namespace Trinex
 {

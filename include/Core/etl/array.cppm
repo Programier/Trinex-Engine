@@ -1,16 +1,16 @@
 module;
 
-export module Trinex.Core.ETL.Array;
-
-export import Trinex.Core.ETL.Iterator;
-export import Trinex.Core.ETL.Memory;
-export import Trinex.Core.ETL.Limits;
-export import Trinex.Core.ETL.InitializerList;
-export import Trinex.Core.ETL.Algorithm;
-export import Trinex.Core.ETL.Concepts;
-export import Trinex.Core.ETL.Utility;
+export module Trinex.Core.ETL:Array;
 export import Trinex.Core.Memory.Heap;
 export import Trinex.Core.Types;
+
+export import :Iterator;
+export import :Memory;
+export import :Limits;
+export import :InitializerList;
+export import :Algorithm;
+export import :Concepts;
+export import :Utility;
 
 export namespace Trinex
 {

@@ -1,6 +1,6 @@
 export module Trinex.Core.Reflection.Generated;
 export import Trinex.Core.Reflection.Of;
-export import Trinex.Core.ETL.TypeList;
+export import Trinex.Core.ETL;
 
 export namespace Trinex::Refl
 {

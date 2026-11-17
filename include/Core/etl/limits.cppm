@@ -1,7 +1,6 @@
 module;
-#include <limits>
-
-export module Trinex.Core.ETL.Limits;
+#include <Core/etl/std.hpp>
+export module Trinex.Core.ETL:Limits;
 
 export namespace Trinex::etl
 {

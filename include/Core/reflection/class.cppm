@@ -1,7 +1,7 @@
 module;
 #include <Core/reflection/class.generated.hpp>
-export module Trinex.Core.Reflection.Class;
-export import Trinex.Core.Reflection.Struct;
+export module Trinex.Core.Reflection:Class;
+export import :Struct;
 
 export namespace Trinex::Refl
 {

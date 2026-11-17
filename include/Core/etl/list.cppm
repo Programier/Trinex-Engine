@@ -1,9 +1,6 @@
 module;
-
-#include <forward_list>
-#include <list>
-
-export module Trinex.Core.ETL.List;
+#include <Core/etl/std.hpp>
+export module Trinex.Core.ETL:List;
 export import Trinex.Core.Memory.Heap;
 
 export namespace Trinex

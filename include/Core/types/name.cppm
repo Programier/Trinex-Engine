@@ -2,8 +2,7 @@ module;
 #include <Core/definitions.hpp>
 export module Trinex.Core.Types.Name;
 export import Trinex.Core.Types;
-export import Trinex.Core.ETL.String;
-export import Trinex.Core.ETL.Functional;
+export import Trinex.Core.ETL;
 
 export namespace Trinex
 {
@@ -103,6 +102,6 @@ export namespace Trinex
 		inline bool operator>(const Name& name) const { return m_id > name.m_id; }
 		inline bool operator>=(const Name& name) const { return m_id >= name.m_id; }
 
-		bool serialize(Archive& ar);
+		//bool serialize(Archive& ar);
 	};
 } // namespace Trinex

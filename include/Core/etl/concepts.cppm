@@ -1,9 +1,8 @@
 module;
-#include <concepts>
-
-export module Trinex.Core.ETL.Concepts;
-export import Trinex.Core.ETL.TypeTraits;
+#include <Core/etl/std.hpp>
+export module Trinex.Core.ETL:Concepts;
 export import Trinex.Core.Types;
+export import :TypeTraits;
 
 export namespace Trinex
 {

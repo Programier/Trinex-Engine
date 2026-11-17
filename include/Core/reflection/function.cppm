@@ -1,9 +1,8 @@
 module;
 #include <Core/reflection/function.generated.hpp>
-export module Trinex.Core.Reflection.Function;
-export import Trinex.Core.Reflection.Property;
-export import Trinex.Core.ETL.Array;
-export import Trinex.Core.ETL.Invoker;
+export module Trinex.Core.Reflection:Function;
+export import Trinex.Core.ETL;
+export import :Property;
 
 export namespace Trinex::Refl
 {

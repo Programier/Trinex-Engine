@@ -1,8 +1,7 @@
 export module Trinex.Core.Assert;
 
 import Trinex.Core.BuildConfig;
-import Trinex.Core.ETL.SourceLocation;
-import Trinex.Core.ETL.String;
+import Trinex.Core.ETL;
 
 export namespace Trinex::Assert
 {
@@ -36,8 +35,7 @@ export namespace Trinex::Assert
 			report_failure(FailureKind::Verification, message, location);
 	}
 
-	// Mirrors the original trinex_failure macro: disabled in Release.
-	inline void failure(StringView message, SourceLocation location = SourceLocation::current())
+	[[noreturn]] inline void failure(StringView message, SourceLocation location = SourceLocation::current())
 	{
 		if constexpr (BuildConfig::assertions)
 			report_failure(FailureKind::Failure, message, location);
@@ -52,4 +50,4 @@ export namespace Trinex::Assert
 	{
 		report_failure(FailureKind::NotImplemented, message, location);
 	}
-} // namespace Trinex::Asserts
+} // namespace Trinex::Assert
