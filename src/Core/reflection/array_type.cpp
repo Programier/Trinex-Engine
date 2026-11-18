@@ -1,8 +1,4 @@
-module Trinex.Core.Reflection.ArrayType;
-
-import Trinex.Core.ETL.Array;
-import Trinex.Core.Reflection.Of;
-import Trinex.Core.Reflection.Scope;
+module Trinex.Core.Reflection;
 
 namespace Trinex::Refl
 {
@@ -10,7 +6,7 @@ namespace Trinex::Refl
 
 	VTable::VTable(Type* argument) : m_argument(retain_ref(argument))
 	{
-		trinex_verify(argument);
+		Assert::verify(argument, "Array element type must not be null");
 	}
 
 	ArrayType::ArrayType(Name name, Type* argument, Object* owner)

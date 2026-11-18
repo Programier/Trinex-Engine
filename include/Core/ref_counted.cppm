@@ -1,6 +1,6 @@
 module;
 #include <Core/definitions.hpp>
-//#include <Core/ref_counted.generated.hpp>
+#include <Core/ref_counted.generated.hpp>
 export module Trinex.Core.RefCounted;
 //export import Trinex.Core.Reflection.Generated;
 export import Trinex.Core.Types;
@@ -212,14 +212,14 @@ export namespace Trinex
 		T* operator->() const noexcept
 		{
 			T* ptr = value();
-			trinex_assert(ptr);
+			Assert::assertion(ptr, "Cannot dereference a null Ref");
 			return ptr;
 		}
 
 		[[nodiscard]]
 		T& operator*() const noexcept
 		{
-			trinex_assert(m_ptr);
+			Assert::assertion(m_ptr, "Cannot dereference a null Ref");
 			return *m_ptr;
 		}
 

@@ -1,10 +1,10 @@
 module;
 #include <Core/reflection/object.generated.hpp>
-export module Trinex.Core.Reflection.Object;
-export import Trinex.Core.Reflection.IndirectResolver;
-export import Trinex.Core.Reflection.Of;
+export module Trinex.Core.Reflection:Object;
 export import Trinex.Core.RefCounted;
 export import Trinex.Core.Types.Name;
+export import :IndirectResolver;
+export import :Of;
 
 export namespace Trinex::Refl
 {

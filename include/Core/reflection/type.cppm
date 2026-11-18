@@ -1,8 +1,8 @@
 module;
 #include <Core/reflection/type.generated.hpp>
-export module Trinex.Core.Reflection.Type;
-export import Trinex.Core.Reflection.Object;
-export import Trinex.Core.ETL.Invoker;
+export module Trinex.Core.Reflection:Type;
+export import Trinex.Core.ETL;
+export import :Object;
 
 export namespace Trinex::Refl
 {

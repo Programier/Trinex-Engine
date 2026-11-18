@@ -39,6 +39,29 @@ function(trinex_compile_definitions target)
     target_compile_definitions(${target} ${ARGN})
 endfunction()
 
+function(trinex_configure_macros target)
+    if(NOT TARGET ${target})
+        message(FATAL_ERROR "Cannot register reflection annotations: target '${target}' does not exist")
+    endif()
+
+    if(MSVC)
+        set(definition_prefix "/D")
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        set(definition_prefix "-D")
+    else()
+        message(FATAL_ERROR "Unsupported compiler for reflection annotations: ${CMAKE_CXX_COMPILER_ID}")
+    endif()
+
+    target_compile_options(${target} PUBLIC
+        "${definition_prefix}trinex_concat_impl(x,y)=x##y"
+        "${definition_prefix}trinex_concat(x,y)=trinex_concat_impl(x,y)"
+        "${definition_prefix}trinex_reflection_body(...)=trinex_concat(trinex_concat(trinex_reflection_file_id,_),__LINE__)"
+        "${definition_prefix}trinex_reflect(...)="
+        "${definition_prefix}trinex_function(...)="
+        "${definition_prefix}trinex_property(...)="
+    )
+endfunction()
+
 function(trinex_compile_options target)
     target_compile_options(${target} ${ARGN})
 endfunction()

@@ -1,4 +1,4 @@
-module Trinex.Core.Reflection.Enum;
+module Trinex.Core.Reflection;
 
 namespace Trinex::Refl
 {

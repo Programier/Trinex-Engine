@@ -1,4 +1,4 @@
-module Trinex.Core.Reflection.TemplateType;
+module Trinex.Core.Reflection;
 
 namespace Trinex::Refl
 {

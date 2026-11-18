@@ -1,3 +1,5 @@
+module;
+#include <Core/definitions.hpp>
 export module Trinex.Core.Reflection:ArrayType;
 export import :ContainerType;
 

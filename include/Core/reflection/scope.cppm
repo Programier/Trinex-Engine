@@ -1,8 +1,8 @@
 module;
 #include <Core/reflection/scope.generated.hpp>
-export module Trinex.Core.Reflection.Scope;
-export import Trinex.Core.Reflection.Object;
-export import Trinex.Core.ETL.FlatSet;
+export module Trinex.Core.Reflection:Scope;
+export import Trinex.Core.ETL;
+export import :Object;
 
 export namespace Trinex::Refl
 {

@@ -1,8 +1,7 @@
 module;
 #include <Core/reflection/struct.generated.hpp>
-export module Trinex.Core.Reflection.Struct;
-export import Trinex.Core.Reflection.Type;
-export import Trinex.Core.ETL.FlatSet;
+export module Trinex.Core.Reflection:Struct;
+export import :Type;
 
 export namespace Trinex::Refl
 {

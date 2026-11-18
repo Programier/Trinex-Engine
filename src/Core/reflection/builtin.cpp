@@ -1,7 +1,4 @@
-import Trinex.Core.Reflection.Native;
-import Trinex.Core.Reflection.Of;
-import Trinex.Core.Reflection.Type;
-import Trinex.Core.Types;
+import Trinex.Core.Reflection;
 
 namespace Trinex::Refl
 {

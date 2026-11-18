@@ -831,9 +831,9 @@ namespace Reflector
 			writer->line("private: \\");
 			{
 				auto scope = writer->scope();
-				writer->line("friend class ::Trinex::Refl::Binder<$0>; \\", instance->name);
-				writer->write("[[no_unique_address]] ::Trinex::Refl::Binder<$0> ", instance->name);
-				writer->line("m_triner_reflection_binder_$0 = this; \\", instance->body_line);
+				//writer->line("friend class ::Trinex::Refl::Binder<$0>; \\", instance->name);
+				//writer->write("[[no_unique_address]] ::Trinex::Refl::Binder<$0> ", instance->name);
+				//writer->line("m_triner_reflection_binder_$0 = this; \\", instance->body_line);
 			}
 
 			writer->line("public: \\");
@@ -847,7 +847,7 @@ namespace Reflector
 					writer->line("using Super = $0; \\", instance->bases[0].type.name);
 				}
 
-				writer->line("using Bases = ::Trinex::TypeList<$0>; \\", BaseClassesOf(instance));
+				writer->line("using Bases = ::Trinex::Refl::TypeList<$0>; \\", BaseClassesOf(instance));
 				writer->line("using This = $0; \\", instance->name);
 				writer->line("friend struct ::Trinex::Refl::Accessor<$0>", instance->name);
 			}
@@ -878,8 +878,17 @@ namespace Reflector
 		if (is_object_empty(module))
 			return true;
 
-		writer->line("#include <Core/definitions.hpp>");
-		
+		writer->line("#include <Core/definitions.hpp>\n");
+
+		writer->line("namespace Trinex::Refl");
+		writer->line("{");
+		{
+			auto scope = writer->scope();
+			writer->line("template<typename...> struct TypeList;");
+			writer->line("template<typename> struct Accessor;");
+		}
+		writer->line("}\n");
+
 		writer->line("#ifdef trinex_reflection_file_id");
 		writer->line("#undef trinex_reflection_file_id");
 		writer->line("#endif\n");
@@ -894,6 +903,7 @@ namespace Reflector
 	{
 		write_generated_header(writer);
 
+		return true;
 		if (is_object_empty(module))
 			return true;
 

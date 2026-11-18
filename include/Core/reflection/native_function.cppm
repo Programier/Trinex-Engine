@@ -1,9 +1,8 @@
 module;
 #include <Core/reflection/native_function.generated.hpp>
-export module Trinex.Core.Reflection.NativeFunction;
-export import Trinex.Core.Reflection.Function;
-export import Trinex.Core.ETL.Array;
-export import Trinex.Core.ETL.Invoker;
+export module Trinex.Core.Reflection:NativeFunction;
+export import Trinex.Core.ETL;
+export import :Function;
 
 export namespace Trinex::Refl
 {

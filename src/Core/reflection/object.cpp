@@ -1,6 +1,4 @@
-module Trinex.Core.Reflection.Object;
-
-import Trinex.Core.Reflection.Class;
+module Trinex.Core.Reflection;
 
 namespace Trinex::Refl
 {

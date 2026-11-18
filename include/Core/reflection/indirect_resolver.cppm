@@ -1,4 +1,4 @@
-export module Trinex.Core.Reflection.IndirectResolver;
+export module Trinex.Core.Reflection:IndirectResolver;
 
 export namespace Trinex::Refl
 {

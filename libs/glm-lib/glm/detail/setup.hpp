@@ -4,8 +4,6 @@
 #include <cstddef>
 #include <type_traits>
 
-#include <Core/glm_config.hpp>
-
 #define GLM_VERSION_MAJOR 1
 #define GLM_VERSION_MINOR 1
 #define GLM_VERSION_PATCH 0

@@ -211,12 +211,6 @@ public:                                                                         
 	#define trinex_import
 #endif
 
-//#define trinex_reflection_body(...) TRINEX_CONCAT(TRINEX_CONCAT(trinex_reflection_file_id, _), __LINE__)
-#define trinex_reflection_body(...)
-#define trinex_reflect(...)
-#define trinex_function(...)
-#define trinex_property(...)
-
 #define trinex_has_include(name) __has_include(<name>)
 
 #define trinex_launder __builtin_launder

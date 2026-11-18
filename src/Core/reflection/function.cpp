@@ -1,6 +1,5 @@
-module Trinex.Core.Reflection.Function;
-import Trinex.Core.Reflection.Type;
-import Trinex.Core.Reflection.Property;
+module Trinex.Core.Reflection;
+import Trinex.Core.Math;
 
 namespace Trinex::Refl
 {
@@ -34,7 +33,7 @@ namespace Trinex::Refl
 	{
 		alignment = Math::max(alignment, type->alignment());
 
-		const u32 offset = align_up(size, type->alignment());
+		const u32 offset = Memory::align(size, type->alignment());
 		size             = offset + type->size();
 
 		return offset;
@@ -43,11 +42,11 @@ namespace Trinex::Refl
 	Function::Function(Name name, Invoker invoker, Ref<Property> result, Array<Ref<Property>> args, u64 flags, Object* owner)
 	    : Object(name, flags), m_invoker(invoker), m_result(etl::move(result)), m_args(etl::move(args)), m_size(0), m_alignment(0)
 	{
-		trinex_verify(m_invoker);
+		Assert::verify(m_invoker, "Function invoker must not be null");
 
 		for (const auto& arg : m_args)
 		{
-			trinex_verify(arg);
+			Assert::verify(arg, "Function argument must not be null");
 			append_type(arg->type(), m_size, m_alignment);
 		}
 
@@ -65,14 +64,14 @@ namespace Trinex::Refl
 	Function::Function(Name name, Invoker invoker, Type* result, Type** args, usize count, u64 flags, Object* owner)
 	    : Object(name, flags), m_invoker(invoker), m_size(0), m_alignment(0)
 	{
-		trinex_verify(m_invoker);
+		Assert::verify(m_invoker, "Function invoker must not be null");
 
 		m_args.reserve(count);
 
 		for (usize i = 0; i < count; ++i)
 		{
 			Type* arg = args[i];
-			trinex_verify(arg);
+			Assert::verify(arg, "Function argument must not be null");
 
 			u32 offset = append_type(arg, m_size, m_alignment);
 			m_args.emplace_back(Ref<OffsetProperty>::make("", offset, arg));

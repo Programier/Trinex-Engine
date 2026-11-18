@@ -1,7 +1,7 @@
 module;
 #include <Core/reflection/indirection_type.generated.hpp>
-export module Trinex.Core.Reflection.IndirectionType;
-export import Trinex.Core.Reflection.Type;
+export module Trinex.Core.Reflection:IndirectionType;
+export import :Type;
 
 namespace Trinex::Refl
 {

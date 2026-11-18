@@ -1,9 +1,10 @@
 module;
 #include <Core/definitions.hpp>
 
-export module Trinex.Core.Reflection.Native;
-export import Trinex.Core.Reflection.IndirectResolver;
+export module Trinex.Core.Reflection:Native;
 export import Trinex.Core.ETL;
+export import Trinex.Core.Memory;
+export import :IndirectResolver;
 
 namespace Trinex::Refl
 {
@@ -147,7 +148,7 @@ namespace Trinex::Refl::Native
 		{
 			if constexpr (etl::is_trivially_copyable_v<T> && etl::is_trivially_destructible_v<T>)
 			{
-				etl::memmove(dst, src, sizeof(T));
+				Memory::move(dst, src, sizeof(T));
 			}
 			else if constexpr (etl::is_move_constructible_v<T> && etl::is_destructible_v<T>)
 			{

@@ -1,7 +1,5 @@
-module Trinex.Core.Reflection.FunctionSet;
-
-import Trinex.Core.Reflection.Function;
-import Trinex.Core.ETL.Algorithm;
+module Trinex.Core.Reflection;
+import Trinex.Core.ETL;
 
 namespace Trinex::Refl
 {

@@ -1,49 +1,9 @@
-export module Trinex.Core.Reflection.Generated;
-export import Trinex.Core.Reflection.Of;
+export module Trinex.Core.Reflection:Generated;
 export import Trinex.Core.ETL;
+export import :Of;
 
 export namespace Trinex::Refl
 {
 	template<typename T>
 	struct Accessor;
-
-	template<typename Self>
-	class Binder
-	{
-	private:
-		static void bind(Type*& field) { field = type_of<Self>(); }
-		static void bind(Struct*& field) { field = struct_of<Self>(); }
-		static void bind(Class*& field) { field = class_of<Self>(); }
-		static void bind(Type* (*&field)()) { field = &type_of<Self>; }
-		static void bind(Struct* (*&field)()) { field = &struct_of<Self>; }
-		static void bind(Class* (*&field)()) { field = &class_of<Self>; }
-
-		static void bind(Type* (*&field)(const void*) )
-		{
-			field = [](const void*) -> Type* { return type_of<Self>(); };
-		}
-
-		static void bind(Struct* (*&field)(const void*) )
-		{
-			field = [](const void*) -> Struct* { return struct_of<Self>(); };
-		}
-
-		static void bind(Class* (*&field)(const void*) )
-		{
-			field = [](const void*) -> Class* { return class_of<Self>(); };
-		}
-
-	public:
-		Binder(Self* instance)
-		{
-			if constexpr (requires { instance->m_reflection; })
-			{
-				bind(instance->m_reflection);
-			}
-			else if constexpr (requires { instance->reflection; })
-			{
-				bind(instance->reflection);
-			}
-		}
-	};
 } // namespace Trinex::Refl

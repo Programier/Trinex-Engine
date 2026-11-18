@@ -1,11 +1,11 @@
-module Trinex.Core.Reflection.Property;
+module Trinex.Core.Reflection;
 
 namespace Trinex::Refl
 {
 	Property::Property(Name name, Type* type, u64 flags, Object* owner) : Object(name, flags), m_type(retain_ref(type))
 	{
-		trinex_verify_msg(m_type && m_type->size() > 0 && m_type->alignment() > 0,
-		                  "A property must have storage, so its type cannot be void");
+		Assert::verify(m_type && m_type->size() > 0 && m_type->alignment() > 0,
+		               "A property must have storage, so its type cannot be void");
 		if (owner)
 		{
 			Object::owner(owner);

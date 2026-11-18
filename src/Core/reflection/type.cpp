@@ -1,16 +1,11 @@
-module Trinex.Core.Reflection.Type;
-
-import Trinex.Core.Reflection.Function;
-import Trinex.Core.Reflection.FunctionSet;
-import Trinex.Core.Reflection.Type;
-
+module Trinex.Core.Reflection;
 
 namespace Trinex::Refl
 {
 	Type::Type(Name name, u32 size, u32 alignment, u64 flags, const VTable* vtable, Object* owner)
 	    : Object(name, flags), m_size(size), m_alignment(alignment), m_vtable(vtable)
 	{
-		trinex_verify(vtable);
+		Assert::verify(vtable, "Type vtable must not be null");
 
 		if (owner)
 		{

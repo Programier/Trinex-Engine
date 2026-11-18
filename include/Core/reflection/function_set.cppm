@@ -1,9 +1,7 @@
 module;
 #include <Core/reflection/function_set.generated.hpp>
 export module Trinex.Core.Reflection:FunctionSet;
-export import Trinex.Core.ETL;
 export import :Object;
-
 
 namespace Trinex::Refl
 {
@@ -55,7 +53,7 @@ namespace Trinex::Refl
 		Ret invoke(Args... args) const
 		{
 			Function* func = resolve<Args...>();
-			trinex_verify_msg(func, "Failed to resolve function");
+			Assert::assertion(func, "Failed to resolve function");
 
 			etl::InvokeContext<Ret, Args...> context(static_cast<Args&&>(args)...);
 			invoke_function(func, context);

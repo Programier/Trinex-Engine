@@ -1,7 +1,7 @@
 module;
 #include <Core/reflection/property.generated.hpp>
-export module Trinex.Core.Reflection.Property;
-export import Trinex.Core.Reflection.Object;
+export module Trinex.Core.Reflection:Property;
+export import :Object;
 
 export namespace Trinex::Refl
 {

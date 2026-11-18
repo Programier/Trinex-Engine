@@ -1,7 +1,6 @@
 module;
 #include <Core/reflection/function.generated.hpp>
 export module Trinex.Core.Reflection:Function;
-export import Trinex.Core.ETL;
 export import :Property;
 
 export namespace Trinex::Refl
@@ -70,10 +69,10 @@ export namespace Trinex::Refl
 		template<typename Ret, typename... Args>
 		Ret invoke(Args... args) const
 		{
-			trinex_verify(has_signature<Args...>());
+			Assert::verify(has_signature<Args...>(), "Function signature does not match invocation arguments");
 
-			if constexpr (!std::is_void_v<Ret>)
-				trinex_verify(m_result && m_result->type() == type_of<Ret>());
+			if constexpr (!etl::is_void_v<Ret>)
+				Assert::verify(m_result && m_result->type() == type_of<Ret>(), "Function result type does not match invocation return type");
 
 			etl::InvokeContext<Ret, Args...> context(static_cast<Args&&>(args)...);
 			m_invoker(context, this);

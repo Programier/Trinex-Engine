@@ -1,4 +1,4 @@
-module Trinex.Core.Reflection.NativeFunction;
+module Trinex.Core.Reflection;
 
 namespace Trinex::Refl
 {
@@ -6,7 +6,7 @@ namespace Trinex::Refl
 	                               u64 flags, Object* owner)
 	    : Function(name, invoker, etl::move(result), etl::move(args), flags), m_address(address)
 	{
-		trinex_verify(m_address);
+		Assert::verify(m_address, "Native function address must not be null");
 
 		if (owner)
 		{
@@ -18,7 +18,7 @@ namespace Trinex::Refl
 	                               Object* owner)
 	    : Function(name, invoker, result, args, count, flags), m_address(address)
 	{
-		trinex_verify(m_address);
+		Assert::verify(m_address, "Native function address must not be null");
 
 		if (owner)
 		{

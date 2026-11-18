@@ -80,6 +80,7 @@ if(TRINEX_WITH_EDITOR)
 endif()
 
 # Trinex Engine compile options
+trinex_configure_macros(TrinexEngine)
 trinex_reflection_directories(TrinexEngine PUBLIC ${TRINEX_ENGINE_ROOT}/include)
 trinex_module_directories(TrinexEngine RECURSIVE PUBLIC ${TRINEX_ENGINE_ROOT}/include)
 trinex_link_libraries(TrinexEngine PUBLIC freetype asmjit lz4_static stb_library)
