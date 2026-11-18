@@ -8,7 +8,69 @@ module;
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_access.hpp>
 #include <glm/gtx/vector_angle.hpp>
+
 export module Trinex.Core.Math;
+export import Trinex.Core.Types;
+
+export namespace Trinex
+{
+	template<usize N, typename T>
+	using Vec = glm::vec<N, T, glm::defaultp>;
+
+	template<usize C, usize R, typename T>
+	using Mat = glm::mat<C, R, T, glm::defaultp>;
+
+	// Floating point
+	using Vec2 = Vec<2, f32>;
+	using Vec3 = Vec<3, f32>;
+	using Vec4 = Vec<4, f32>;
+
+	using Vec2f16 = Vec<2, f16>;
+	using Vec3f16 = Vec<3, f16>;
+	using Vec4f16 = Vec<4, f16>;
+
+	// Signed integers
+	using Vec2i = Vec<2, i32>;
+	using Vec3i = Vec<3, i32>;
+	using Vec4i = Vec<4, i32>;
+
+	using Vec2i16 = Vec<2, i16>;
+	using Vec3i16 = Vec<3, i16>;
+	using Vec4i16 = Vec<4, i16>;
+
+	using Vec2i8 = Vec<2, i8>;
+	using Vec3i8 = Vec<3, i8>;
+	using Vec4i8 = Vec<4, i8>;
+
+	// Unsigned integers
+	using Vec2u = Vec<2, u32>;
+	using Vec3u = Vec<3, u32>;
+	using Vec4u = Vec<4, u32>;
+
+	using Vec2u16 = Vec<2, u16>;
+	using Vec3u16 = Vec<3, u16>;
+	using Vec4u16 = Vec<4, u16>;
+
+	using Vec2u8 = Vec<2, u8>;
+	using Vec3u8 = Vec<3, u8>;
+	using Vec4u8 = Vec<4, u8>;
+
+	// Boolean
+	using Vec2b = Vec<2, bool>;
+	using Vec3b = Vec<3, bool>;
+	using Vec4b = Vec<4, bool>;
+
+	// Matrices
+	using Mat2 = Mat<2, 2, f32>;
+	using Mat3 = Mat<3, 3, f32>;
+	using Mat4 = Mat<4, 4, f32>;
+
+	using Mat4x3 = Mat<4, 3, f32>;
+	using Mat3x4 = Mat<3, 4, f32>;
+
+	// Quaternion
+	using Quat = glm::quat;
+} // namespace Trinex
 
 export namespace Trinex::Math
 {

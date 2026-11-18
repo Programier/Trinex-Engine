@@ -1,4 +1,5 @@
 import Trinex.Core.Reflection;
+import Trinex.Core.Math;
 
 namespace Trinex::Refl
 {
@@ -111,7 +112,7 @@ namespace Trinex::Refl
 		};
 
 		template<>
-		struct TypeFormatter<Vector2u>
+		struct TypeFormatter<Vec2u>
 		{
 			static usize parse(const Type*, void* self, StringView value)
 			{
@@ -140,13 +141,13 @@ namespace Trinex::Refl
 				if (Strings::parse(first, x) != first.size() || Strings::parse(second, y) != second.size())
 					return 0;
 
-				*static_cast<Vector2u*>(self) = {static_cast<u32>(x), static_cast<u32>(y)};
+				*static_cast<Vec2u*>(self) = {static_cast<u32>(x), static_cast<u32>(y)};
 				return value.size();
 			}
 
 			static bool format(const Type*, const void* self, String& value)
 			{
-				const Vector2u& vector = *static_cast<const Vector2u*>(self);
+				const Vec2u& vector = *static_cast<const Vec2u*>(self);
 				value += '[';
 				Strings::format(value, static_cast<u64>(vector.x));
 				value += ", ";
@@ -237,9 +238,9 @@ namespace Trinex::Refl
 	}
 
 	template<>
-	trinex_api Type* TypeOf<Vector2u>::resolve()
+	trinex_api Type* TypeOf<Vec2u>::resolve()
 	{
-		return type_of_internal<Vector2u>("Vector2u");
+		return type_of_internal<Vec2u>("Vec2u");
 	}
 
 	template<>
@@ -302,20 +303,20 @@ namespace Trinex::Refl
 		return type_of_internal<f64>("f64");
 	}
 
-	trinex_on_register()
-	{
-		TypeOf<bool>::resolve();
-		TypeOf<String>::resolve();
-		TypeOf<Vector2u>::resolve();
-		TypeOf<i8>::resolve();
-		TypeOf<u8>::resolve();
-		TypeOf<i16>::resolve();
-		TypeOf<u16>::resolve();
-		TypeOf<i32>::resolve();
-		TypeOf<u32>::resolve();
-		TypeOf<i64>::resolve();
-		TypeOf<u64>::resolve();
-		TypeOf<f32>::resolve();
-		TypeOf<f64>::resolve();
-	}
+	// trinex_on_register()
+	// {
+	// 	TypeOf<bool>::resolve();
+	// 	TypeOf<String>::resolve();
+	// 	TypeOf<Vec2u>::resolve();
+	// 	TypeOf<i8>::resolve();
+	// 	TypeOf<u8>::resolve();
+	// 	TypeOf<i16>::resolve();
+	// 	TypeOf<u16>::resolve();
+	// 	TypeOf<i32>::resolve();
+	// 	TypeOf<u32>::resolve();
+	// 	TypeOf<i64>::resolve();
+	// 	TypeOf<u64>::resolve();
+	// 	TypeOf<f32>::resolve();
+	// 	TypeOf<f64>::resolve();
+	// }
 } // namespace Trinex::Refl

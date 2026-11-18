@@ -140,19 +140,16 @@ export namespace Trinex::Memory
 		return align_up<T, alignment>(ptr, offset);
 	}
 
-	[[nodiscard]]
 	inline void* copy(void* dst, const void* src, usize size) noexcept
 	{
 		return std::memcpy(dst, src, size);
 	}
 
-	[[nodiscard]]
 	inline void* move(void* dst, const void* src, usize size) noexcept
 	{
 		return std::memmove(dst, src, size);
 	}
 
-	[[nodiscard]]
 	inline void* set(void* dst, u8 value, usize size) noexcept
 	{
 		return std::memset(dst, value, size);
@@ -207,5 +204,6 @@ export namespace Trinex::Memory
 		return const_cast<void*>(find(static_cast<const void*>(haystack), haystack_len, needle, needle_len));
 	}
 
+	[[nodiscard]]
 	trinex_api u128 hash(const void* memory, usize size, u128 seed = 0);
 } // namespace Trinex::Memory

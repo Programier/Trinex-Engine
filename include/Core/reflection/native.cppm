@@ -11,7 +11,7 @@ namespace Trinex::Refl
 	class Type;
 }
 
-namespace Trinex::Refl::Native
+export namespace Trinex::Refl::Native
 {
 	trinex_api usize parse_struct(const Type* type, void* self, StringView value);
 	trinex_api bool format_struct(const Type* type, const void* self, String& value);
