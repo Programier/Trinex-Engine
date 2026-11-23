@@ -55,7 +55,7 @@ namespace Reflector
 
 	static fs::path generated_header_path(const fs::path& output, const fs::path& header)
 	{
-		auto path = output / "include" / header;
+		auto path = output / "modules" / header;
 		path.replace_extension(".generated.cppm");
 		return path;
 	}
@@ -95,18 +95,15 @@ namespace Reflector
 		          << "  TrinexReflector [options]\n"
 		          << "\n"
 		          << "Options:\n"
+		          << "  @<file>                   Read one argument per line from a response file.\n"
 		          << "  --output <directory>      Directory for generated files.\n"
-		          << "  --scan-dirs <dirs...>     Directories containing headers to process.\n"
-		          << "  --include-dirs <dirs...>  Directories containing headers of linked libraries.\n"
+		          << "  --files <files...>        Module files to process.\n"
+		          << "  --external <files...>     Public module files from linked libraries.\n"
 		          << "  --root <directory>        Project root directory.\n"
 		          << "  --help                    Show this help message.\n"
 		          << "\n"
 		          << "Example:\n"
-		          << "  TrinexReflector \\\n"
-		          << "    --root . \\\n"
-		          << "    --output build/generated \\\n"
-		          << "    --scan-dirs Engine/include Game/include \\\n"
-		          << "    --include-dirs ThirdParty/include External/include\n";
+		          << "  TrinexReflector @reflection-arguments.txt\n";
 
 		exit(0);
 	}
@@ -128,27 +125,27 @@ namespace Reflector
 		return 0;
 	}
 
-	int Reflector::on_headers_dirs(std::span<std::string_view> args, bool external)
+	int Reflector::on_files(std::span<std::string_view> args, bool external)
 	{
 		for (int i = 0, count = static_cast<int>(args.size()); i < count; ++i)
 		{
 			if (args[i].starts_with('-'))
 				return i;
 
-			m_directories.emplace_back(args[i], external);
+			m_files.emplace_back(args[i], external);
 		}
 
 		return args.size();
 	}
 
-	int Reflector::on_scan_dirs(std::span<std::string_view> args)
+	int Reflector::on_module_files(std::span<std::string_view> args)
 	{
-		return on_headers_dirs(args, false);
+		return on_files(args, false);
 	}
 
-	int Reflector::on_include_dirs(std::span<std::string_view> args)
+	int Reflector::on_external(std::span<std::string_view> args)
 	{
-		return on_headers_dirs(args, true);
+		return on_files(args, true);
 	}
 
 	int Reflector::on_root(std::span<std::string_view> args)
@@ -163,7 +160,7 @@ namespace Reflector
 
 	bool Reflector::init(std::span<std::string_view> args)
 	{
-		m_directories.clear();
+		m_files.clear();
 		m_requests.clear();
 		m_modules.clear();
 		m_type_index = {};
@@ -171,8 +168,8 @@ namespace Reflector
 
 		const CommandLineBinding bindings[] = {
 		        {"--output", "-o", &Reflector::on_output_dir},
-		        {"--scan-dirs", "-s", &Reflector::on_scan_dirs},
-		        {"--include-dirs", "-i", &Reflector::on_include_dirs},
+		        {"--files", "-f", &Reflector::on_module_files},
+		        {"--external", "-e", &Reflector::on_external},
 		        {"--root", "-r", &Reflector::on_root},
 		        {"--help", "-h", &Reflector::on_help},
 		};
@@ -251,27 +248,21 @@ namespace Reflector
 	{
 		m_requests.reserve(8192);
 
-		for (const DirectoryInfo& dir : m_directories)
+		for (const FileInfo& file : m_files)
 		{
-			if (!fs::is_directory(dir.path))
+			if (!fs::is_regular_file(file.path))
 				continue;
 
-			for (const auto& entry : fs::recursive_directory_iterator(dir.path, fs::directory_options::skip_permission_denied))
-			{
-				if (!entry.is_regular_file() || !(entry.path().extension() == ".hpp" || entry.path().extension() == ".cppm"))
-					continue;
+			if (file.path.extension() != ".cppm")
+				continue;
 
-				const fs::path& path = entry.path();
-				fs::path relative    = fs::relative(path, dir.path);
-
-				CompileRequest request;
-				request.source    = path;
-				request.header    = std::move(relative);
-				request.external  = dir.external;
-				request.size      = entry.file_size();
-				request.timestamp = entry.last_write_time().time_since_epoch().count();
-				m_requests.push_back(std::move(request));
-			}
+			CompileRequest request;
+			request.source    = file.path;
+			request.header    = fs::relative(file.path, m_root);
+			request.external  = file.external;
+			request.size      = fs::file_size(file.path);
+			request.timestamp = fs::last_write_time(file.path).time_since_epoch().count();
+			m_requests.push_back(std::move(request));
 		}
 
 		std::sort(m_requests.begin(), m_requests.end(),

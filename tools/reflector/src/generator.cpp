@@ -873,9 +873,6 @@ namespace Reflector
 	{
 		write_generated_header(writer);
 
-		if (is_object_empty(module))
-			return true;
-
 		writer->line("export module $0$1Reflection;", module->name, module->name.find(':') == std::string_view::npos ? ":" : ".");
 		writer->line();
 
@@ -978,9 +975,6 @@ namespace Reflector
 
 	bool generate_header(fs::path path, const Module* module)
 	{
-		if (is_object_empty(module))
-			return true;
-
 		CodeWriter header;
 
 		if (!generate_header(&header, module))

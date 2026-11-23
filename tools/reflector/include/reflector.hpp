@@ -22,7 +22,7 @@ namespace Reflector
 		bool outdated : 1  = false;
 	};
 
-	struct DirectoryInfo
+	struct FileInfo
 	{
 		std::filesystem::path path;
 		bool external = false;
@@ -44,7 +44,7 @@ namespace Reflector
 	private:
 		std::vector<CompileRequest> m_requests;
 		std::vector<ModuleInfo> m_modules;
-		std::vector<DirectoryInfo> m_directories;
+		std::vector<FileInfo> m_files;
 		TypeIndex m_type_index;
 
 		std::filesystem::path m_output;
@@ -59,9 +59,9 @@ namespace Reflector
 		void help();
 		int on_help(std::span<std::string_view> args);
 		int on_output_dir(std::span<std::string_view> args);
-		int on_headers_dirs(std::span<std::string_view> args, bool external);
-		int on_scan_dirs(std::span<std::string_view> args);
-		int on_include_dirs(std::span<std::string_view> args);
+		int on_module_files(std::span<std::string_view> args);
+		int on_files(std::span<std::string_view> args, bool external);
+		int on_external(std::span<std::string_view> args);
 		int on_root(std::span<std::string_view> args);
 
 		bool init(std::span<std::string_view> args);

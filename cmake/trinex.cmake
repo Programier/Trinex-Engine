@@ -17,15 +17,11 @@ function(trinex_link_libraries target)
         elseif(keyword)
             set(keyword)
         elseif(TARGET ${library})
-            get_property(reflection_directories TARGET ${library} PROPERTY INTERFACE_TRINEX_REFLECTION_DIRECTORIES)
-            get_property(include_directories TARGET ${library} PROPERTY INTERFACE_TRINEX_REFLECTION_INCLUDE_DIRECTORIES)
-
-            _trinex_add_reflection_directories(${target} TRINEX_REFLECTION_INCLUDE_DIRS
-                ${reflection_directories} ${include_directories})
+            get_property(modules TARGET ${library} PROPERTY INTERFACE_TRINEX_REFLECTION_MODULES)
+            _trinex_add_reflection_modules(${target} TRINEX_REFLECTION_EXTERNAL_MODULES ${modules})
 
             if(scope STREQUAL "PUBLIC" OR scope STREQUAL "INTERFACE")
-                _trinex_add_reflection_directories(${target} INTERFACE_TRINEX_REFLECTION_INCLUDE_DIRECTORIES
-                    ${reflection_directories} ${include_directories})
+                _trinex_add_reflection_modules(${target} INTERFACE_TRINEX_REFLECTION_MODULES ${modules})
             endif()
         endif()
     endforeach()
@@ -65,15 +61,12 @@ function(trinex_sources target)
 
     foreach(scope IN ITEMS PUBLIC PRIVATE)
         set(sources)
-        set(headers)
         set(modules)
 
         foreach(file IN LISTS ARG_${scope})
             get_filename_component(ext "${file}" EXT)
 
-            if(ext STREQUAL ".hpp")
-                list(APPEND headers "${file}")
-            elseif(ext STREQUAL ".cpp")
+            if(ext STREQUAL ".cpp")
                 list(APPEND sources "${file}")
             elseif(ext STREQUAL ".cppm")
                 list(APPEND modules "${file}")
@@ -88,12 +81,19 @@ function(trinex_sources target)
             target_sources(${target} ${scope} ${sources})
         endif()
 
-        if(headers)
-            target_sources(${target} ${scope} FILE_SET ${visibility}_headers TYPE HEADERS FILES ${headers})
-        endif()
-
         if(modules)
             target_sources(${target} ${scope} FILE_SET ${visibility}_modules TYPE CXX_MODULES FILES ${modules})
+
+            set(reflection_modules)
+            foreach(module IN LISTS modules)
+                get_filename_component(module "${module}" ABSOLUTE BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+                list(APPEND reflection_modules "${module}")
+            endforeach()
+
+            _trinex_add_reflection_modules(${target} TRINEX_REFLECTION_MODULES ${reflection_modules})
+            if(scope STREQUAL "PUBLIC")
+                _trinex_add_reflection_modules(${target} INTERFACE_TRINEX_REFLECTION_MODULES ${reflection_modules})
+            endif()
         endif()
     endforeach()
 endfunction()
@@ -146,51 +146,11 @@ function(trinex_install)
     install(${ARGN})
 endfunction()
 
-function(_trinex_add_reflection_directories target property)
-    get_property(directories TARGET ${target} PROPERTY ${property})
-    list(APPEND directories ${ARGN})
-    list(REMOVE_DUPLICATES directories)
-    set_property(TARGET ${target} PROPERTY ${property} "${directories}")
-endfunction()
-
-function(_trinex_include_directories target property)
-    if(NOT TARGET ${target})
-        message(FATAL_ERROR "Cannot add include directories: target '${target}' does not exist")
-    endif()
-
-    cmake_parse_arguments(ARG "BEFORE;AFTER" "" "PUBLIC;PRIVATE;INTERFACE" ${ARGN})
-
-    if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "Unknown include-directory arguments: ${ARG_UNPARSED_ARGUMENTS}")
-    endif()
-
-    if(ARG_BEFORE AND ARG_AFTER)
-        message(FATAL_ERROR "Include directories cannot be both BEFORE and AFTER")
-    endif()
-
-    if(NOT ARG_PUBLIC AND NOT ARG_PRIVATE AND NOT ARG_INTERFACE)
-        message(FATAL_ERROR "At least one include-directory visibility is required")
-    endif()
-
-    set(arguments ${target})
-    if(ARG_BEFORE)
-        list(APPEND arguments BEFORE)
-    elseif(ARG_AFTER)
-        list(APPEND arguments AFTER)
-    endif()
-
-    foreach(scope PUBLIC PRIVATE INTERFACE)
-        if(ARG_${scope})
-            list(APPEND arguments ${scope} ${ARG_${scope}})
-            _trinex_add_reflection_directories(${target} ${property} ${ARG_${scope}})
-
-            if(scope STREQUAL "PUBLIC" OR scope STREQUAL "INTERFACE")
-                _trinex_add_reflection_directories(${target} INTERFACE_${property} ${ARG_${scope}})
-            endif()
-        endif()
-    endforeach()
-
-    target_include_directories(${arguments})
+function(_trinex_add_reflection_modules target property)
+    get_property(modules TARGET ${target} PROPERTY ${property})
+    list(APPEND modules ${ARGN})
+    list(REMOVE_DUPLICATES modules)
+    set_property(TARGET ${target} PROPERTY ${property} "${modules}")
 endfunction()
 
 function(trinex_include_directories target)
@@ -201,11 +161,7 @@ function(trinex_include_directories target)
 	target_include_directories(${target} ${ARGN})
 endfunction()
 
-function(trinex_reflection_directories target)
-    _trinex_include_directories(${target} TRINEX_REFLECTION_DIRECTORIES ${ARGN})
-endfunction()
-
-function(trinex_reflect target)
+function(_trinex_configure_reflection target)
     cmake_parse_arguments(ARG "" "ROOT;OUTPUT" "" ${ARGN})
 
     if(NOT TARGET ${target})
@@ -224,40 +180,50 @@ function(trinex_reflect target)
         set(ARG_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/reflection/${target}")
     endif()
 
-    get_property(reflection_directories TARGET ${target} PROPERTY TRINEX_REFLECTION_DIRECTORIES)
-    get_property(include_directories TARGET ${target} PROPERTY TRINEX_REFLECTION_INCLUDE_DIRECTORIES)
+    get_property(source_modules TARGET ${target} PROPERTY TRINEX_REFLECTION_MODULES)
+    get_property(external_modules TARGET ${target} PROPERTY TRINEX_REFLECTION_EXTERNAL_MODULES)
 
-    set(reflection_headers)
     set(reflection_sources)
+    set(generated_modules)
 
-    foreach(directory IN LISTS reflection_directories)
-        get_filename_component(directory "${directory}" ABSOLUTE BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
-
-        file(GLOB_RECURSE headers CONFIGURE_DEPENDS LIST_DIRECTORIES false "${directory}/*.cppm")
-        list(APPEND reflection_headers ${headers})
-
-        foreach(header IN LISTS headers)
-            file(RELATIVE_PATH relative_path "${directory}" "${header}")
-            string(REGEX REPLACE "\\.cppm$" ".generated.cpp" generated_source "${relative_path}")
-            list(APPEND reflection_sources "${ARG_OUTPUT}/src/${generated_source}")
-        endforeach()
+    foreach(module IN LISTS source_modules)
+        file(RELATIVE_PATH relative_path "${ARG_ROOT}" "${module}")
+        string(REGEX REPLACE "\\.cppm$" ".generated.cpp" generated_source "${relative_path}")
+        string(REGEX REPLACE "\\.cppm$" ".generated.cppm" generated_module "${relative_path}")
+        list(APPEND reflection_sources "${ARG_OUTPUT}/src/${generated_source}")
+        list(APPEND generated_modules "${ARG_OUTPUT}/modules/${generated_module}")
     endforeach()
 
-    list(REMOVE_DUPLICATES reflection_headers)
     list(REMOVE_DUPLICATES reflection_sources)
+    list(REMOVE_DUPLICATES generated_modules)
 
     file(MAKE_DIRECTORY "${ARG_OUTPUT}")
-    string(REPLACE ";" "\n" reflection_inputs "${reflection_headers}")
-    file(GENERATE OUTPUT "${ARG_OUTPUT}/reflection-inputs.txt" CONTENT "${reflection_inputs}\n")
+    set(manifest "${ARG_OUTPUT}/manifest.txt")
+    set(manifest_template "${CMAKE_CURRENT_BINARY_DIR}/reflection-manifests/${target}.txt")
+    set(manifest_content "--root\n${ARG_ROOT}\n--output\n${ARG_OUTPUT}\n--files\n")
+    foreach(module IN LISTS source_modules)
+        string(APPEND manifest_content "${module}\n")
+    endforeach()
+    string(APPEND manifest_content "--external\n")
+    foreach(module IN LISTS external_modules)
+        string(APPEND manifest_content "${module}\n")
+    endforeach()
+    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/reflection-manifests")
+    file(GENERATE OUTPUT "${manifest_template}" CONTENT "${manifest_content}")
+
+    add_custom_command(
+        OUTPUT "${manifest}"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${ARG_OUTPUT}"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${manifest_template}" "${manifest}"
+        DEPENDS "${manifest_template}"
+        COMMENT "Generating ${target} reflection manifest"
+        VERBATIM
+    )
 
     add_custom_command(
         OUTPUT "${ARG_OUTPUT}/reflection.bin"
-        COMMAND $<TARGET_FILE:TrinexReflector>
-            --root "${ARG_ROOT}"
-            --output "${ARG_OUTPUT}"
-            --scan-dirs ${reflection_directories}
-            --include-dirs ${include_directories}
-        DEPENDS TrinexReflector "${ARG_OUTPUT}/reflection-inputs.txt" ${reflection_headers}
+        COMMAND $<TARGET_FILE:TrinexReflector> "@${manifest}"
+        DEPENDS TrinexReflector "${manifest}" ${source_modules} ${external_modules}
         WORKING_DIRECTORY "${ARG_ROOT}"
         COMMENT "Generating ${target} reflection code"
         COMMAND_EXPAND_LISTS
@@ -266,9 +232,11 @@ function(trinex_reflect target)
 
     add_custom_target(${target}Reflection DEPENDS "${ARG_OUTPUT}/reflection.bin")
 
-    trinex_include_directories(${target} PRIVATE "${ARG_OUTPUT}/include")
-    set_source_files_properties(${reflection_sources} PROPERTIES GENERATED TRUE)
+    set_source_files_properties(${reflection_sources} ${generated_modules} PROPERTIES GENERATED TRUE)
     target_sources(${target} PRIVATE ${reflection_sources})
+    if(generated_modules)
+        target_sources(${target} PRIVATE FILE_SET reflection_modules TYPE CXX_MODULES FILES ${generated_modules})
+    endif()
     add_dependencies(${target} ${target}Reflection)
 endfunction()
 
@@ -291,8 +259,7 @@ function(trinex_library target)
             INTERFACE "${ARG_API}=__attribute__((visibility(\"default\")))"
         )
     endif()
-    cmake_language(EVAL CODE
-        "cmake_language(DEFER CALL trinex_reflect [=[${target}]=] ROOT [=[${ARG_REFLECTION_ROOT}]=] OUTPUT [=[${ARG_REFLECTION_OUTPUT}]=])")
+    cmake_language(EVAL CODE "cmake_language(DEFER CALL _trinex_configure_reflection [=[${target}]=] ROOT [=[${ARG_REFLECTION_ROOT}]=] OUTPUT [=[${ARG_REFLECTION_OUTPUT}]=])")
 endfunction()
 
 function(trinex_executable target)
@@ -308,6 +275,5 @@ function(trinex_executable target)
         endif()
     endif()
     
-    cmake_language(EVAL CODE
-        "cmake_language(DEFER CALL trinex_reflect [=[${target}]=] ROOT [=[${ARG_REFLECTION_ROOT}]=] OUTPUT [=[${ARG_REFLECTION_OUTPUT}]=])")
+    cmake_language(EVAL CODE "cmake_language(DEFER CALL _trinex_configure_reflection [=[${target}]=] ROOT [=[${ARG_REFLECTION_ROOT}]=] OUTPUT [=[${ARG_REFLECTION_OUTPUT}]=])")
 endfunction()

@@ -1,6 +1,6 @@
 add_subdirectory(libs/vulkan_memory_allocator)
 
-trinex_reflection_directories(TrinexEngine PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+trinex_include_directories(TrinexEngine PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 trinex_include_directories(TrinexEngine PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/vulkan_headers)
 
 if(ANDROID)
