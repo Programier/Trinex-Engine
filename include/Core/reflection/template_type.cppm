@@ -1,9 +1,8 @@
-module;
-#include <Core/reflection/template_type.generated.hpp>
 export module Trinex.Core.Reflection:TemplateType;
 export import :Type;
+//import :Reflection;
 
-export namespace Trinex::Refl
+export extern "C++" namespace Trinex::Refl
 {
 	trinex_reflect()
 	class trinex_api TemplateType : public Type

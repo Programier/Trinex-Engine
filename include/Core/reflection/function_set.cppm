@@ -1,9 +1,8 @@
-module;
-#include <Core/reflection/function_set.generated.hpp>
 export module Trinex.Core.Reflection:FunctionSet;
 export import :Object;
+// import :Reflection;
 
-namespace Trinex::Refl
+export extern "C++" namespace Trinex::Refl
 {
 	class Function;
 
@@ -29,7 +28,7 @@ namespace Trinex::Refl
 
 		Function* resolve(Type* const* args, usize count, const Type* result = nullptr) const;
 
-		Class* reflection() const override { return class_of<This>(); }
+		Class* reflection() const override { return class_of<FunctionSet>(); }
 
 		inline const Array<Ref<Function>>& functions() const { return m_functions; }
 		inline bool empty() const { return m_functions.empty(); }

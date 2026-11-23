@@ -1,9 +1,8 @@
-module;
-#include <Core/reflection/function.generated.hpp>
 export module Trinex.Core.Reflection:Function;
 export import :Property;
+// import :Reflection;
 
-export namespace Trinex::Refl
+export extern "C++" namespace Trinex::Refl
 {
 	trinex_reflect()
 	class trinex_api Function : public Object

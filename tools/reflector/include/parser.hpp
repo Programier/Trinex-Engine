@@ -8,5 +8,5 @@ namespace Reflector
 	bool parse(Module* module, std::string_view source);
 
 	// Returns an owning tree on success, or nullptr on any parse error.
-	Module* parse(std::string_view source, std::string_view source_name = "<memory>");
+	Module* parse(std::string_view source, std::string_view path = "<memory>");
 } // namespace Reflector

@@ -140,7 +140,7 @@ namespace Reflector
 
 				for (char& character : path)
 				{
-					if (character == '/' || character == '\\' || character == '.')
+					if (character == '/' || character == '\\' || character == '.' || character == ':')
 						character = '_';
 				}
 
@@ -819,7 +819,7 @@ namespace Reflector
 		}
 	}
 
-	static void generate_reflection_body(CodeWriter* writer, const Module* module, const Class* instance)
+	static void generate_reflection_annotation(CodeWriter* writer, const Module* module, const Class* instance)
 	{
 		if (instance->body_line == 0)
 			return;
@@ -840,8 +840,6 @@ namespace Reflector
 			{
 				auto scope = writer->scope();
 
-				writer->line("static constexpr inline const bool is_reflected = true; \\");
-
 				if (instance->bases.size() == 1)
 				{
 					writer->line("using Super = $0; \\", instance->bases[0].type.name);
@@ -854,19 +852,19 @@ namespace Reflector
 		}
 	}
 
-	static void generate_reflection_bodies(CodeWriter* writer, const Module* module, const Scope* scope)
+	static void generate_reflection_annotations(CodeWriter* writer, const Module* module, const Object* object)
 	{
-		for (const Object* object : scope->objects)
+		switch (object->kind())
 		{
-			if (object->is_a(ObjectKind::Class))
-			{
-				const Class* instance = static_cast<const Class*>(object);
-				generate_reflection_body(writer, module, instance);
-			}
+			case ObjectKind::Class: generate_reflection_annotation(writer, module, object->as<Class>()); break;
+			default: break;
+		}
 
-			if (object->is_a(ObjectKind::Scope))
+		if (auto scope = dynamic_cast<const Scope*>(object))
+		{
+			for (const Object* child : scope->objects)
 			{
-				generate_reflection_bodies(writer, module, static_cast<const Scope*>(object));
+				generate_reflection_annotations(writer, module, child);
 			}
 		}
 	}
@@ -878,16 +876,14 @@ namespace Reflector
 		if (is_object_empty(module))
 			return true;
 
-		writer->line("#include <Core/definitions.hpp>\n");
+		writer->line("export module $0$1Reflection;", module->name, module->name.find(':') == std::string_view::npos ? ":" : ".");
+		writer->line();
 
-		writer->line("namespace Trinex::Refl");
-		writer->line("{");
-		{
-			auto scope = writer->scope();
-			writer->line("template<typename...> struct TypeList;");
-			writer->line("template<typename> struct Accessor;");
-		}
-		writer->line("}\n");
+		return true;
+
+		writer->line("#undef trinex_reflection_body");
+		writer->line("#define trinex_reflection_body(...) trinex_concat(trinex_concat(trinex_reflection_file_id, _), __LINE__)");
+		writer->line();
 
 		writer->line("#ifdef trinex_reflection_file_id");
 		writer->line("#undef trinex_reflection_file_id");
@@ -895,7 +891,7 @@ namespace Reflector
 
 		writer->line("#define trinex_reflection_file_id trinex_reflection_$0", ObjectIDOf(module));
 
-		generate_reflection_bodies(writer, module, module);
+		generate_reflection_annotations(writer, module, module);
 		return true;
 	}
 
@@ -907,31 +903,22 @@ namespace Reflector
 		if (is_object_empty(module))
 			return true;
 
-		if (module->name.ends_with(".cppm"))
-		{
-			//writer->line("<$0>", module->name);
-		}
-		else
-		{
-			writer->line("#include <$0>", module->name);
-		}
+		std::string_view name = std::string_view(module->name).substr(0, std::string_view(module->name).find(':'));
 
-		writer->line("import Trinex.Core.ETL.TypeTraits;");
-		writer->line("#include <Core/reflection/enum.hpp>");
-		writer->line("#include <Core/reflection/scope.hpp>");
-		writer->line("#include <Core/reflection/class.hpp>");
-		writer->line("#include <Core/reflection/function_set.hpp>");
-		writer->line("#include <Core/reflection/native_function.hpp>");
-		writer->line("#include <Core/reflection/native.hpp>");
-		writer->line();
+		auto import = [writer, name](std::string_view module) {
+			if (module != name)
+			{
+				writer->line("import $0;", module);
+			}
+		};
 
-		writer->line("namespace Trinex");
-		writer->line("{");
-		{
-			auto scope = writer->scope();
-			writer->line("class RefCounted;");
-		}
-		writer->line("}");
+		writer->line("module;");
+		writer->line("#include <Core/reflection/generated.hpp>");
+		writer->line("module $0;", name);
+		import("Trinex.Core.RefCounted");
+		import("Trinex.Core.ETL");
+		import("Trinex.Core.Reflection");
+		import("Trinex.Core.LifeCycle");
 		writer->line();
 
 		writer->line("namespace Trinex::Refl");

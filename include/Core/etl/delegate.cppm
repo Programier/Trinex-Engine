@@ -1,11 +1,9 @@
-#pragma once
-#include <Core/etl/concepts.hpp>
-#include <Core/etl/storage.hpp>
-#include <Core/etl/type_traits.hpp>
-#include <Core/etl/utility.hpp>
-#include <Core/ref_counted.hpp>
+export module Trinex.Core.ETL:Delegate;
+export import :Concepts;
+export import :Storage;
+export import :Utility;
 
-namespace Trinex
+export namespace Trinex
 {
 	template<typename>
 	class DelegateRef;
@@ -72,9 +70,9 @@ namespace Trinex
 		{
 			using ObjectType = etl::remove_cvref_t<T>;
 
-			if constexpr (etl::is_base_of_v<RefCounted, ObjectType>)
+			if constexpr (requires(ObjectType* value) { value->add_ref(); })
 			{
-				static_cast<RefCounted*>(const_cast<ObjectType*>(object))->add_ref();
+				const_cast<ObjectType*>(object)->add_ref();
 			}
 		}
 
@@ -83,9 +81,9 @@ namespace Trinex
 		{
 			using ObjectType = etl::remove_cvref_t<T>;
 
-			if constexpr (etl::is_base_of_v<RefCounted, ObjectType>)
+			if constexpr (requires(ObjectType* value) { value->release(); })
 			{
-				static_cast<RefCounted*>(const_cast<ObjectType*>(object))->release();
+				const_cast<ObjectType*>(object)->release();
 			}
 		}
 
@@ -145,7 +143,7 @@ namespace Trinex
 		template<typename T>
 		static void heap_copy_of(DelegateBase* self, const DelegateBase* src)
 		{
-			self->m_context.construct<T*>(trx_new T(*(src->m_context.as<T*>())));
+			self->m_context.construct<T*>(new T(*(src->m_context.as<T*>())));
 		}
 
 		template<typename T>
@@ -157,7 +155,7 @@ namespace Trinex
 		template<typename T>
 		static void heap_destroy_of(DelegateBase* self)
 		{
-			trx_delete self->m_context.as<T*>();
+			delete self->m_context.as<T*>();
 		}
 	};
 
@@ -482,11 +480,7 @@ namespace Trinex
 			return m_manager != nullptr;
 		}
 
-		R operator()(Args... args) const
-		{
-			trinex_assert(m_manager);
-			return m_manager->invoke(this, etl::forward<Args>(args)...);
-		}
+		R operator()(Args... args) const { return m_manager->invoke(this, etl::forward<Args>(args)...); }
 
 		template<auto func>
 		    requires(!etl::is_member_function_pointer_v<decltype(func)> && etl::is_invocable_r_v<R, decltype(func), Args...>)
@@ -557,7 +551,7 @@ namespace Trinex
 			}
 			else
 			{
-				m_context.as<Callable*>() = trx_new Callable(etl::forward<F>(func));
+				m_context.as<Callable*>() = new Callable(etl::forward<F>(func));
 				m_manager                 = heap_lambda_manager<Callable>();
 			}
 		}
@@ -641,7 +635,7 @@ namespace Trinex
 
 			for (const Node* node = tail->next; node != tail; node = node->next)
 			{
-				append(result, trx_new Node(node->delegate));
+				append(result, new Node(node->delegate));
 			}
 
 			return result;
@@ -716,7 +710,7 @@ namespace Trinex
 			while (node)
 			{
 				Node* next = node->next;
-				trx_delete node;
+				delete node;
 
 				node = next;
 			}
@@ -858,8 +852,6 @@ namespace Trinex
 
 		MulticastDelegate(MulticastDelegate&& other) noexcept
 		{
-			trinex_assert(other.m_broadcast == nullptr);
-
 			m_tail       = other.m_tail;
 			other.m_tail = nullptr;
 		}
@@ -869,7 +861,6 @@ namespace Trinex
 			if (this == &other)
 				return *this;
 
-			trinex_assert(other.m_broadcast == nullptr);
 			clear();
 
 			m_tail       = other.m_tail;
@@ -877,11 +868,7 @@ namespace Trinex
 			return *this;
 		}
 
-		~MulticastDelegate()
-		{
-			trinex_assert(m_broadcast == nullptr);
-			destroy(m_tail);
-		}
+		~MulticastDelegate() { destroy(m_tail); }
 
 	public:
 		Handle add(DelegateType delegate)
@@ -889,7 +876,7 @@ namespace Trinex
 			if (!delegate)
 				return {};
 
-			Node* node = trx_new Node(delegate);
+			Node* node = new Node(delegate);
 
 			// Always append directly.
 			//

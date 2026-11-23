@@ -1,10 +1,9 @@
-module;
-#include <Core/reflection/scope.generated.hpp>
 export module Trinex.Core.Reflection:Scope;
 export import Trinex.Core.ETL;
 export import :Object;
+// import :Reflection;
 
-export namespace Trinex::Refl
+export extern "C++" namespace Trinex::Refl
 {
 	trinex_reflect()
 	class trinex_api Scope : public Object

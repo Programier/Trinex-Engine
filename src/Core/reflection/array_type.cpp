@@ -1,52 +1,55 @@
 module Trinex.Core.Reflection;
 
-namespace Trinex::Refl
+extern "C++"
 {
-	using VTable = ArrayType::VTable;
-
-	VTable::VTable(Type* argument) : m_argument(retain_ref(argument))
+	namespace Trinex::Refl
 	{
-		Assert::verify(argument, "Array element type must not be null");
-	}
+		using VTable = ArrayType::VTable;
 
-	ArrayType::ArrayType(Name name, Type* argument, Object* owner)
-	    : ContainerType(name, sizeof(Array<i32>), alignof(Array<i32>), 0, &m_vtable), m_vtable(argument)
-	{
-		if (owner)
+		VTable::VTable(Type* argument) : m_argument(retain_ref(argument))
 		{
-			Object::owner(owner);
+			Assert::verify(argument, "Array element type must not be null");
 		}
-	}
 
-	ArrayType* ArrayType::from(Type* type)
-	{
-		if (type == nullptr)
+		ArrayType::ArrayType(Name name, Type* argument, Object* owner)
+		    : ContainerType(name, sizeof(Array<i32>), alignof(Array<i32>), 0, &m_vtable), m_vtable(argument)
+		{
+			if (owner)
+			{
+				Object::owner(owner);
+			}
+		}
+
+		ArrayType* ArrayType::from(Type* type)
+		{
+			if (type == nullptr)
+				return nullptr;
+
+			Scope* scope = Scope::trinex();
+
+			const Name name = "Array<" + type->name().to_string() + ">";
+
+			if (Object* object = scope->find(name))
+			{
+				return static_cast<ArrayType*>(object);
+			}
+
+			return Ref<ArrayType>::make(name, type, Scope::trinex()).value();
+		}
+
+		Type* ArrayType::argument(usize idx) const
+		{
+			if (idx == 0)
+			{
+				return argument();
+			}
+
 			return nullptr;
-
-		Scope* scope = Scope::trinex();
-
-		const Name name = "Array<" + type->name().to_string() + ">";
-
-		if (Object* object = scope->find(name))
-		{
-			return static_cast<ArrayType*>(object);
 		}
 
-		return Ref<ArrayType>::make(name, type, Scope::trinex()).value();
-	}
-
-	Type* ArrayType::argument(usize idx) const
-	{
-		if (idx == 0)
+		trinex_api Type* array_type_of(Type* type)
 		{
-			return argument();
+			return ArrayType::from(type);
 		}
-
-		return nullptr;
-	}
-
-	trinex_api Type* array_type_of(Type* type)
-	{
-		return ArrayType::from(type);
-	}
-} // namespace Trinex::Refl
+	} // namespace Trinex::Refl
+}

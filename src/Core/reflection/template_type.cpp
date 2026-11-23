@@ -1,23 +1,26 @@
 module Trinex.Core.Reflection;
 
-namespace Trinex::Refl
+extern "C++"
 {
-	TemplateType::TemplateType(Name name, u32 size, u32 alignment, u64 flags, const VTable* vtable, Object* owner)
-	    : Type(name, size, alignment, flags, vtable)
+	namespace Trinex::Refl
 	{
-		if (owner)
+		TemplateType::TemplateType(Name name, u32 size, u32 alignment, u64 flags, const VTable* vtable, Object* owner)
+		    : Type(name, size, alignment, flags, vtable)
 		{
-			Object::owner(owner);
+			if (owner)
+			{
+				Object::owner(owner);
+			}
 		}
-	}
 
-	usize TemplateType::argument_count() const
-	{
-		return 0;
-	}
+		usize TemplateType::argument_count() const
+		{
+			return 0;
+		}
 
-	Type* TemplateType::argument(usize index) const
-	{
-		return nullptr;
-	}
-} // namespace Trinex::Refl
+		Type* TemplateType::argument(usize index) const
+		{
+			return nullptr;
+		}
+	} // namespace Trinex::Refl
+}

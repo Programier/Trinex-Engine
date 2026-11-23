@@ -63,6 +63,12 @@ namespace
 		return expect(formatted.text() == "function_of<Actor>(42)", "code writer formats placeholders");
 	}
 
+	bool test_module_name()
+	{
+		std::unique_ptr<Module> module(parse("export module Trinex.Core.ETL:Delegate;\ntrinex_property() int value;"));
+		return expect(module && module->name == "Trinex.Core.ETL:Delegate", "module name is parsed from export declaration");
+	}
+
 	bool test_preprocessor_continuations()
 	{
 		for (const std::string newline : {"\n", "\r\n"})
@@ -110,8 +116,7 @@ namespace Engine { namespace Gameplay {
 namespace Alias = Engine::Gameplay;
 namespace { trinex_property() int hidden; }
 namespace { trinex_function() void local(); }
-)",
-		                                     "namespace_context"));
+)"));
 		if (!expect(module != nullptr, "source parses successfully"))
 			return false;
 		auto* actor = find<Class>(*module, "Engine::Gameplay::Actor", ObjectKind::Class);
@@ -120,7 +125,7 @@ namespace { trinex_function() void local(); }
 		auto* tick  = find<Function>(*module, "Engine::Gameplay::Actor::tick", ObjectKind::Function);
 		if (!expect(actor && space && value && tick, "qualified lookup through owning scopes"))
 			return false;
-		return expect(module->name == "namespace_context" && module->owner == nullptr, "module identity")
+		return expect(module->owner == nullptr, "module identity")
 		       && expect(module->is_a(ObjectKind::Module), "module object kind")
 		       && expect(actor->owner == space && value->owner == actor && tick->owner == actor, "parent pointers")
 		       && expect(actor->objects.size() == 2 && space->objects.size() == 3, "namespace reopening merges children")
@@ -434,8 +439,7 @@ trinex_reflect() struct Test {
 trinex_reflect() class TestClass {
 	trinex_reflection_body();
 };
-)",
-		                                     "reflection_body.hpp"));
+)"));
 		if (!expect(module != nullptr, "reflection body source parses successfully"))
 			return false;
 
@@ -477,8 +481,7 @@ namespace Engine {
 	}
 
 }
-)",
-		                                     "class_linking.hpp"));
+)"));
 		if (!expect(module != nullptr, "base class source parses successfully"))
 		{
 			return false;
@@ -493,10 +496,9 @@ namespace Engine {
 
 	bool test_module_linking()
 	{
-		std::unique_ptr<Module> definitions(parse("namespace Trinex { trinex_reflect() struct Base {}; }", "definitions.hpp"));
+		std::unique_ptr<Module> definitions(parse("namespace Trinex { trinex_reflect() struct Base {}; }"));
 		std::unique_ptr<Module> uses(
-		        parse("namespace Trinex { trinex_reflect() struct Test : public Base { trinex_property() Base value; }; }",
-		              "uses.hpp"));
+		        parse("namespace Trinex { trinex_reflect() struct Test : public Base { trinex_property() Base value; }; }"));
 		if (!expect(definitions && uses, "linking sources parse successfully"))
 			return false;
 
@@ -504,21 +506,21 @@ namespace Engine {
 		if (!expect(link_modules(modules), "types resolve across compile requests"))
 			return false;
 
-		std::unique_ptr<Module> invalid(parse("trinex_property() Missing value;", "invalid.hpp"));
+		std::unique_ptr<Module> invalid(parse("trinex_property() Missing value;"));
 		modules = {invalid.get()};
 		if (!expect(!link_modules(modules), "missing reflected types are reported"))
 			return false;
 
 		std::unique_ptr<Module> enum_base(
-		        parse("trinex_reflect() enum Base {}; trinex_reflect() struct Derived : Base {};", "enum_base.hpp"));
+		        parse("trinex_reflect() enum Base {}; trinex_reflect() struct Derived : Base {};"));
 		modules = {enum_base.get()};
 		return expect(!link_modules(modules), "enum cannot be a base class");
 	}
 
 	bool test_type_index_cache()
 	{
-		std::unique_ptr<Module> definitions(parse("namespace Trinex { trinex_reflect() struct Base {}; }", "definitions.hpp"));
-		std::unique_ptr<Module> uses(parse("namespace Trinex { trinex_property() Base value; }", "uses.hpp"));
+		std::unique_ptr<Module> definitions(parse("namespace Trinex { trinex_reflect() struct Base {}; }"));
+		std::unique_ptr<Module> uses(parse("namespace Trinex { trinex_property() Base value; }"));
 		if (!expect(definitions && uses, "type index cache sources parse successfully"))
 			return false;
 
@@ -528,7 +530,7 @@ namespace Engine {
 
 		std::ostringstream printed;
 		Reflector::print(printed, index);
-		if (!expect(printed.str() == "type_index: 1\n  class Trinex::Base module=\"definitions.hpp\"\n", "type index printer"))
+		if (!expect(printed.str() == "type_index: 1\n  class Trinex::Base module=\"\"\n", "type index printer"))
 			return false;
 
 		std::stringstream stream;
@@ -543,7 +545,7 @@ namespace Engine {
 		if (!expect(uses->link(restored), "serialized type index resolves cached types"))
 			return false;
 
-		restored.remove_module("definitions.hpp");
+		restored.remove_module("");
 		return expect(!uses->link(restored), "removed module invalidates only its exported types");
 	}
 
@@ -553,7 +555,7 @@ namespace Engine {
 		{
 			const std::string source =
 			        "trinex_reflect() class Example { trinex_function() void method() " + std::string(qualifier) + "; };";
-			if (!expect(parse(source, "ref_qualified.hpp") == nullptr, "ref-qualified method is rejected"))
+			if (!expect(parse(source) == nullptr, "ref-qualified method is rejected"))
 				return false;
 		}
 		return true;
@@ -561,7 +563,7 @@ namespace Engine {
 
 	bool test_errors_and_reuse()
 	{
-		std::unique_ptr<Module> valid(parse("trinex_reflect() struct Good { trinex_property() int value; };", "good.hpp"));
+		std::unique_ptr<Module> valid(parse("trinex_reflect() struct Good { trinex_property() int value; };"));
 		if (!expect(valid != nullptr, "valid source parses successfully"))
 			return false;
 		auto* good = find<Class>(*valid, "Good", ObjectKind::Class);
@@ -578,14 +580,14 @@ namespace Engine {
 		      "template <typename T> trinex_function() T cast();", "trinex_reflect() class Broken {", "namespace Broken {",
 		      "trinex_property(", "trinex_function() void f(", "trinex_property() int value"})
 		{
-			std::unique_ptr<Module> invalid(parse(source, "bad.hpp"));
+			std::unique_ptr<Module> invalid(parse(source));
 			if (!expect(invalid == nullptr, source))
 				return false;
-			std::unique_ptr<Module> recovered(parse("trinex_property() int value;", "recovered.hpp"));
+			std::unique_ptr<Module> recovered(parse("trinex_property() int value;"));
 			if (!expect(recovered && find<Property>(*recovered, "value", ObjectKind::Property), "parser reuse after error"))
 				return false;
 		}
-		if (!expect(valid->name == "good.hpp" && find<Class>(*valid, "Good", ObjectKind::Class) == good
+		if (!expect(find<Class>(*valid, "Good", ObjectKind::Class) == good
 		                    && good->owner == valid.get(),
 		            "parser reuse preserves previous module"))
 			return false;
@@ -601,6 +603,7 @@ int main()
 
 	bool success = true;
 	success      = test_code_writer() && success;
+	success      = test_module_name() && success;
 	success      = test_preprocessor_continuations() && success;
 	success      = test_namespace_context() && success;
 	success      = test_complex_declarations() && success;

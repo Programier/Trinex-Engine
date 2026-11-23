@@ -39,27 +39,15 @@ function(trinex_compile_definitions target)
     target_compile_definitions(${target} ${ARGN})
 endfunction()
 
-function(trinex_configure_macros target)
-    if(NOT TARGET ${target})
-        message(FATAL_ERROR "Cannot register reflection annotations: target '${target}' does not exist")
-    endif()
+function(trinex_macro_headers target)
+    cmake_parse_arguments(ARG "" "" "PUBLIC;PRIVATE;INTERFACE" ${ARGN})
 
-    if(MSVC)
-        set(definition_prefix "/D")
-    elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-        set(definition_prefix "-D")
-    else()
-        message(FATAL_ERROR "Unsupported compiler for reflection annotations: ${CMAKE_CXX_COMPILER_ID}")
-    endif()
-
-    target_compile_options(${target} PUBLIC
-        "${definition_prefix}trinex_concat_impl(x,y)=x##y"
-        "${definition_prefix}trinex_concat(x,y)=trinex_concat_impl(x,y)"
-        "${definition_prefix}trinex_reflection_body(...)=trinex_concat(trinex_concat(trinex_reflection_file_id,_),__LINE__)"
-        "${definition_prefix}trinex_reflect(...)="
-        "${definition_prefix}trinex_function(...)="
-        "${definition_prefix}trinex_property(...)="
-    )
+    foreach(access IN ITEMS PUBLIC PRIVATE INTERFACE)
+        foreach(file IN LISTS ARG_${access})
+            get_filename_component(header "${file}" ABSOLUTE BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+            target_compile_options(${target} ${access} "$<$<COMPILE_LANGUAGE:CXX>:SHELL:-imacros \"${header}\">")
+        endforeach()
+    endforeach()
 endfunction()
 
 function(trinex_compile_options target)
@@ -70,104 +58,73 @@ function(trinex_target_properties target)
     set_target_properties(${target} ${ARGN})
 endfunction()
 
-function(trinex_preinclude_headers target)
-    set(arguments ${target})
-
-    foreach(argument IN LISTS ARGN)
-        if(argument STREQUAL "PUBLIC" OR argument STREQUAL "PRIVATE" OR argument STREQUAL "INTERFACE")
-            list(APPEND arguments ${argument})
-        else()
-            list(APPEND arguments
-                "$<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:SHELL:-include \"${argument}\">"
-                "$<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/FI${argument}>")
-        endif()
-    endforeach()
-
-    target_compile_options(${arguments})
-endfunction()
-
 function(trinex_sources target)
-    target_sources(${target} ${ARGN})
-endfunction()
-
-function(trinex_modules target)
     cmake_parse_arguments(ARG "" "" "PUBLIC;PRIVATE" ${ARGN})
 
-    foreach(scope PUBLIC PRIVATE)
-        if(ARG_${scope})
-            target_sources(${target} ${scope}
-                FILE_SET CXX_MODULES
-                FILES ${ARG_${scope}}
-            )
+    list(APPEND ARG_PRIVATE ${ARG_UNPARSED_ARGUMENTS})
+
+    foreach(scope IN ITEMS PUBLIC PRIVATE)
+        set(sources)
+        set(headers)
+        set(modules)
+
+        foreach(file IN LISTS ARG_${scope})
+            get_filename_component(ext "${file}" EXT)
+
+            if(ext STREQUAL ".hpp")
+                list(APPEND headers "${file}")
+            elseif(ext STREQUAL ".cpp")
+                list(APPEND sources "${file}")
+            elseif(ext STREQUAL ".cppm")
+                list(APPEND modules "${file}")
+            else()
+                message(FATAL_ERROR "Unsupported source: ${file}")
+            endif()
+        endforeach()
+
+        string(TOLOWER "${scope}" visibility)
+
+        if(sources)
+            target_sources(${target} ${scope} ${sources})
+        endif()
+
+        if(headers)
+            target_sources(${target} ${scope} FILE_SET ${visibility}_headers TYPE HEADERS FILES ${headers})
+        endif()
+
+        if(modules)
+            target_sources(${target} ${scope} FILE_SET ${visibility}_modules TYPE CXX_MODULES FILES ${modules})
         endif()
     endforeach()
 endfunction()
 
 function(trinex_source_directories target)
-    cmake_parse_arguments(ARG "RECURSIVE" "" "" ${ARGN})
-
-    set(sources "")
-    set(modules "")
-
-    foreach(directory IN LISTS ARG_UNPARSED_ARGUMENTS)
-        get_filename_component(directory "${directory}" ABSOLUTE
-            BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}"
-        )
-
-        if(NOT IS_DIRECTORY "${directory}")
-            message(FATAL_ERROR "Source directory does not exist: ${directory}")
-        endif()
-
-        if(ARG_RECURSIVE)
-            file(GLOB_RECURSE source_files CONFIGURE_DEPENDS "${directory}/*.cpp")
-            file(GLOB_RECURSE module_files CONFIGURE_DEPENDS "${directory}/*.cppm")
-        else()
-            file(GLOB source_files CONFIGURE_DEPENDS "${directory}/*.cpp")
-            file(GLOB module_files CONFIGURE_DEPENDS "${directory}/*.cppm")
-        endif()
-
-        list(APPEND sources ${source_files})
-        list(APPEND modules ${module_files})
-    endforeach()
-
-    if(sources)
-        list(REMOVE_DUPLICATES sources)
-        trinex_sources(${target} PRIVATE ${sources})
-    endif()
-
-    if(modules)
-        list(REMOVE_DUPLICATES modules)
-        trinex_modules(${target} PRIVATE ${modules})
-    endif()
-endfunction()
-
-function(trinex_module_directories target)
     cmake_parse_arguments(ARG "RECURSIVE" "" "PUBLIC;PRIVATE" ${ARGN})
 
-    foreach(scope PUBLIC PRIVATE)
-        set(modules "")
+    list(APPEND ARG_PRIVATE ${ARG_UNPARSED_ARGUMENTS})
+
+    foreach(scope IN ITEMS PUBLIC PRIVATE)
+        set(sources)
 
         foreach(directory IN LISTS ARG_${scope})
-            get_filename_component(directory "${directory}" ABSOLUTE
-                BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}"
-            )
+            get_filename_component(directory "${directory}" ABSOLUTE BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
             if(NOT IS_DIRECTORY "${directory}")
-                message(FATAL_ERROR "Module directory does not exist: ${directory}")
+                message(FATAL_ERROR "Source directory does not exist: ${directory}")
             endif()
 
             if(ARG_RECURSIVE)
-                file(GLOB_RECURSE files CONFIGURE_DEPENDS "${directory}/*.cppm")
+                file(GLOB_RECURSE files CONFIGURE_DEPENDS "${directory}/*.cpp" "${directory}/*.cppm")
             else()
-                file(GLOB files CONFIGURE_DEPENDS "${directory}/*.cppm")
+                file(GLOB files CONFIGURE_DEPENDS "${directory}/*.cpp" "${directory}/*.cppm")
             endif()
 
-            list(APPEND modules ${files})
+            list(APPEND sources ${files})
         endforeach()
 
-        if(modules)
-            list(REMOVE_DUPLICATES modules)
-            trinex_modules(${target} ${scope} ${modules})
+        if(sources)
+            list(REMOVE_DUPLICATES sources)
+            trinex_sources(${target} ${scope} ${sources})
         endif()
     endforeach()
 endfunction()
@@ -276,12 +233,12 @@ function(trinex_reflect target)
     foreach(directory IN LISTS reflection_directories)
         get_filename_component(directory "${directory}" ABSOLUTE BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
-        file(GLOB_RECURSE headers CONFIGURE_DEPENDS LIST_DIRECTORIES false "${directory}/*.hpp")
+        file(GLOB_RECURSE headers CONFIGURE_DEPENDS LIST_DIRECTORIES false "${directory}/*.cppm")
         list(APPEND reflection_headers ${headers})
 
         foreach(header IN LISTS headers)
             file(RELATIVE_PATH relative_path "${directory}" "${header}")
-            string(REGEX REPLACE "\\.hpp$" ".generated.cpp" generated_source "${relative_path}")
+            string(REGEX REPLACE "\\.cppm$" ".generated.cpp" generated_source "${relative_path}")
             list(APPEND reflection_sources "${ARG_OUTPUT}/src/${generated_source}")
         endforeach()
     endforeach()

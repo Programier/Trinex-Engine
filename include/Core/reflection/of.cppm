@@ -1,6 +1,6 @@
 export module Trinex.Core.Reflection:Of;
 
-export namespace Trinex::Refl
+export extern "C++" namespace Trinex::Refl
 {
 	class Type;
 	class Enum;
@@ -10,9 +10,9 @@ export namespace Trinex::Refl
 	class Property;
 
 	// Kept as a free functions so this header does not need to include others headers
-	trinex_api Type* const_type_of(Type* type);
-	trinex_api Type* indirection_type_of(Type* type, bool rvalue = false);
-	trinex_api Type* array_type_of(Type* type);
+	trinex_api Type* const_type_of(Type * type);
+	trinex_api Type* indirection_type_of(Type * type, bool rvalue = false);
+	trinex_api Type* array_type_of(Type * type);
 
 	template<typename T>
 	struct TypeOf

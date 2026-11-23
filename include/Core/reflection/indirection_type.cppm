@@ -1,9 +1,8 @@
-module;
-#include <Core/reflection/indirection_type.generated.hpp>
 export module Trinex.Core.Reflection:IndirectionType;
 export import :Type;
+//import :Reflection;
 
-namespace Trinex::Refl
+export extern "C++" namespace Trinex::Refl
 {
 	trinex_reflect()
 	class trinex_api IndirectionType : public Type

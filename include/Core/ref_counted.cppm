@@ -1,19 +1,13 @@
-module;
-#include <Core/definitions.hpp>
-#include <Core/ref_counted.generated.hpp>
 export module Trinex.Core.RefCounted;
-//export import Trinex.Core.Reflection.Generated;
 export import Trinex.Core.Types;
 export import Trinex.Core.Assert;
 export import Trinex.Core.ETL;
-
-namespace Trinex
-{
-	struct WeakEntry;
-}
+// import :Reflection;
 
 export namespace Trinex
 {
+	struct WeakEntry;
+	
 	trinex_reflect()
 	class trinex_api RefCounted
 	{

@@ -1,9 +1,8 @@
-module;
-#include <Core/reflection/class.generated.hpp>
 export module Trinex.Core.Reflection:Class;
 export import :Struct;
+// import :Reflection;
 
-export namespace Trinex::Refl
+export extern "C++" namespace Trinex::Refl
 {
 	trinex_reflect()
 	class trinex_api Class final : public Struct
@@ -28,7 +27,7 @@ export namespace Trinex::Refl
 
 		Class* reflection() const override { return class_of<Class>(); }
 
-		using Super::allocate;
+		using Struct::allocate;
 		inline RefCounted* allocate() const { return static_cast<RefCounted*>(Struct::allocate()); }
 		inline bool is_asset() const { return has_flags(IsAsset); }
 		inline bool is_singleton() const { return has_flags(IsSingleton); }

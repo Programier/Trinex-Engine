@@ -1,34 +1,37 @@
 module Trinex.Core.Reflection;
 
-namespace Trinex::Refl
+extern "C++"
 {
-	Property::Property(Name name, Type* type, u64 flags, Object* owner) : Object(name, flags), m_type(retain_ref(type))
+	namespace Trinex::Refl
 	{
-		Assert::verify(m_type && m_type->size() > 0 && m_type->alignment() > 0,
-		               "A property must have storage, so its type cannot be void");
-		if (owner)
+		Property::Property(Name name, Type* type, u64 flags, Object* owner) : Object(name, flags), m_type(retain_ref(type))
 		{
-			Object::owner(owner);
-		}
-	}
-
-	Object* Property::resolve(const Class* base)
-	{
-		if (Object* object = Object::resolve(base))
-		{
-			return object;
+			Assert::verify(m_type && m_type->size() > 0 && m_type->alignment() > 0,
+			               "A property must have storage, so its type cannot be void");
+			if (owner)
+			{
+				Object::owner(owner);
+			}
 		}
 
-		return m_type->resolve(base);
-	}
-
-	const Object* Property::resolve(const Class* base) const
-	{
-		if (const Object* object = Object::resolve(base))
+		Object* Property::resolve(const Class* base)
 		{
-			return object;
+			if (Object* object = Object::resolve(base))
+			{
+				return object;
+			}
+
+			return m_type->resolve(base);
 		}
 
-		return m_type->resolve(base);
-	}
-} // namespace Trinex::Refl
+		const Object* Property::resolve(const Class* base) const
+		{
+			if (const Object* object = Object::resolve(base))
+			{
+				return object;
+			}
+
+			return m_type->resolve(base);
+		}
+	} // namespace Trinex::Refl
+}

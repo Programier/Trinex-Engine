@@ -20,6 +20,7 @@ BraceWrapping:
   AfterClass: true
   AfterControlStatement: Always
   AfterEnum: true
+  AfterExternBlock: true
   AfterFunction: true
   AfterNamespace: true
   AfterStruct: true
@@ -37,6 +38,7 @@ ColumnLimit: 130
 CompactNamespaces: false
 ContinuationIndentWidth: 8
 IndentCaseLabels: true
+IndentExternBlock: Indent
 IndentPPDirectives: BeforeHash
 IndentWidth: 4
 IncludeCategories:

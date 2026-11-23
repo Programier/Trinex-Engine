@@ -1,69 +1,96 @@
 #pragma once
 
-#if defined(_WIN32)
-	#define PLATFORM_WINDOWS 1
+// ============================================================
+// Platform
+// ============================================================
+
+#if defined(__ANDROID__)
+	#define trinex_platform_android 1
+	#define trinex_platform_linux 0
+	#define trinex_platform_windows 0
+
+#elif defined(_WIN32)
+	#define trinex_platform_android 0
+	#define trinex_platform_linux 0
+	#define trinex_platform_windows 1
+
+#elif defined(__linux__)
+	#define trinex_platform_android 0
+	#define trinex_platform_linux 1
+	#define trinex_platform_windows 0
+
 #else
-	#define PLATFORM_WINDOWS 0
+	#error "Trinex: Unsupported platform!"
 #endif
 
-#if defined(__ANDROID__) || defined(ANDROID)
-	#define PLATFORM_ANDROID 1
+// ============================================================
+// Architecture
+// ============================================================
+
+#if defined(__x86_64__) || defined(_M_X64)
+	#define trinex_arch_x86_64 1
+	#define trinex_arch_x86 0
+	#define trinex_arch_arm64 0
+	#define trinex_arch_arm32 0
+
+#elif defined(__i386__) || defined(_M_IX86)
+	#define trinex_arch_x86_64 0
+	#define trinex_arch_x86 1
+	#define trinex_arch_arm64 0
+	#define trinex_arch_arm32 0
+
+#elif defined(__aarch64__) || defined(_M_ARM64)
+	#define trinex_arch_x86_64 0
+	#define trinex_arch_x86 0
+	#define trinex_arch_arm64 1
+	#define trinex_arch_arm32 0
+
+#elif defined(__arm__) || defined(_M_ARM)
+	#define trinex_arch_x86_64 0
+	#define trinex_arch_x86 0
+	#define trinex_arch_arm64 0
+	#define trinex_arch_arm32 1
+
 #else
-	#define PLATFORM_ANDROID 0
+	#error "Trinex: Unsupported architecture!"
 #endif
 
-#if defined(__linux__) && !PLATFORM_ANDROID
-	#define PLATFORM_LINUX 1
+#define trinex_arch_arm (trinex_arch_arm32 || trinex_arch_arm64)
+
+// ============================================================
+// Compiler
+// ============================================================
+
+#if defined(__clang__)
+	#define trinex_compiler_clang 1
+	#define trinex_compiler_gcc 0
+
+#elif defined(__GNUC__)
+	#define trinex_compiler_clang 0
+	#define trinex_compiler_gcc 1
+
 #else
-	#define PLATFORM_LINUX 0
+	#error "Trinex: Unsupported compiler!"
 #endif
 
-#if !defined(PLATFORM_ANDROID) && !defined(PLATFORM_LINUX) && !defined(PLATFORM_WINDOWS)
-	#error "Platform doesn't support!"
-#endif
+// ============================================================
+// Android
+// ============================================================
 
-#if defined(arm) || defined(__arm__) || defined(__ARM_ARCH)
-	#define ARCH_ARM 1
+#if trinex_platform_android && defined(__ANDROID_API__)
+	#define trinex_android_api __ANDROID_API__
 #else
-	#define ARCH_ARM 0
+	#define trinex_android_api 0
 #endif
 
-#if defined(__x86_64__) || defined(m_X64)
-	#define ARCH_X86_64 1
-#else
-	#define ARCH_X86_64 0
-#endif
+// ============================================================
+// Common macro
+// ============================================================
 
-#if __GNUC__
-	#define TRINEX_GNU_COMPILER
-#elif __clang__
-	#define TRINEX_CLANG_COMPILER
-#else
-	#error "Compiler doesn't support!"
-#endif
-
-#if PLATFORM_ANDROID
-	#define ANDROID_API __ANDROID_API__
-#else
-	#define ANDROID_API 0
-#endif
-
-#define STRUCT_OFFSET(StructClass, Member) (reinterpret_cast<size_t>(&reinterpret_cast<StructClass*>(0)->Member))
-
-#ifdef __cpp_rtti
-	#define TRINEX_WITH_RTTI 1
-#else
-	#define TRINEX_WITH_RTTI 0
-#endif
-
-#define MAKE_ENTITY_FULL_NAME(entity_name, ...) #__VA_ARGS__ __VA_OPT__("::") #entity_name
-#define ENTITY_INITIALIZER_NAME(entity_name, ...) MAKE_ENTITY_FULL_NAME(entity_name, __VA_ARGS__)
-
-#define CONCAT_TYPE_AND_NAMESPACE(object_type, ...) __VA_ARGS__ __VA_OPT__(::) object_type
-
-#define TRINEX_WRAP_CODE(code) code
-#define TRINEX_CONCAT_IMPL(x, y) x##y
-#define TRINEX_CONCAT(x, y) TRINEX_CONCAT_IMPL(x, y)
+#define trinex_concat_impl(x, y) x##y
+#define trinex_concat(x, y) trinex_concat_impl(x, y)
+#define trinex_unique trinex_concat(trinex_unique_, __LINE__)
+#define trinex_unique_name(name) trinex_concat(name, __LINE__)
 
 #define trinex_enum_struct(struct_type)                                                                                          \
 	static constexpr bool is_enum          = true;                                                                               \
@@ -156,16 +183,6 @@
 		Enum value;                                                                                                              \
 	}
 
-#define trinex_old_struct(struct_name, base_name)                                                                                \
-protected:                                                                                                                       \
-	static Trinex::Refl::Deprecated::Struct* m_static_struct;                                                                    \
-                                                                                                                                 \
-public:                                                                                                                          \
-	using This  = struct_name;                                                                                                   \
-	using Super = base_name;                                                                                                     \
-	static void static_initialize_struct();                                                                                      \
-	static class Trinex::Refl::Deprecated::Struct* static_reflection();
-
 #define trinex_enum struct
 
 #define trinex_copyable(class_name)                                                                                              \
@@ -211,8 +228,6 @@ public:                                                                         
 	#define trinex_import
 #endif
 
-#define trinex_has_include(name) __has_include(<name>)
-
 #define trinex_launder __builtin_launder
 #define trinex_address_of __builtin_addressof
 
@@ -253,3 +268,35 @@ public:                                                                         
 #define trinex_is_function(Type) __is_function(Type)
 #define trinex_is_trivially_copyable(Type) __is_trivially_copyable(Type)
 #define trinex_is_trivially_destructible(Type) __is_trivially_destructible(Type)
+
+// ============================================================
+// Reflection
+// ============================================================
+
+#define trinex_reflection_body(...)
+#define trinex_reflect(...)
+#define trinex_function(...)
+#define trinex_property(...)
+
+// ============================================================
+// LifeCycle
+// ============================================================
+#define trinex_lifecycle_handler(stage_id, ...)                                                                                  \
+	static void trinex_unique();                                                                                                 \
+                                                                                                                                 \
+	static const ::Trinex::LifeCycle::Registrar trinex_concat(trinex_lifecycle_registrar_, __LINE__)(stage_id, &trinex_unique,   \
+	                                                                                                 {__VA_ARGS__});             \
+                                                                                                                                 \
+	static void trinex_unique()
+
+#define trinex_on_testing(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::Testing, __VA_ARGS__)
+#define trinex_on_bootstrap(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::Bootstrap, __VA_ARGS__)
+#define trinex_on_register(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::Register, __VA_ARGS__)
+#define trinex_on_configure(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::Configure, __VA_ARGS__)
+#define trinex_on_initialize(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::Initialize, __VA_ARGS__)
+#define trinex_on_load(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::Load, __VA_ARGS__)
+#define trinex_on_start(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::Start, __VA_ARGS__)
+#define trinex_on_stop(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::Stop, __VA_ARGS__)
+#define trinex_on_shutdown(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::Shutdown, __VA_ARGS__)
+#define trinex_on_teardown(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::Teardown, __VA_ARGS__)
+#define trinex_on_finalize(...) trinex_lifecycle_handler(::Trinex::LifeCycle::Stage::Finalize, __VA_ARGS__)

@@ -1,9 +1,8 @@
-module;
-#include <Core/reflection/property.generated.hpp>
 export module Trinex.Core.Reflection:Property;
 export import :Object;
+// import :Reflection;
 
-export namespace Trinex::Refl
+export extern "C++" namespace Trinex::Refl
 {
 	class Type;
 

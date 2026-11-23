@@ -1,110 +1,113 @@
 module Trinex.Core.Reflection;
 
-namespace Trinex::Refl
+extern "C++"
 {
-	Object* Object::root()
+	namespace Trinex::Refl
 	{
-		return Scope::root();
-	}
-
-	Scope::Scope(Name name, u64 flags, Object* owner) : Object(name, flags)
-	{
-		if (owner)
+		Object* Object::root()
 		{
-			Object::owner(owner);
+			return Scope::root();
 		}
-	}
 
-	bool Scope::register_child(Object* object)
-	{
-		if (object == nullptr || object == this || m_members.contains(object->name()))
-			return false;
-
-		for (Object* scope = this; scope != nullptr;)
+		Scope::Scope(Name name, u64 flags, Object* owner) : Object(name, flags)
 		{
-			if (scope == object)
+			if (owner)
+			{
+				Object::owner(owner);
+			}
+		}
+
+		bool Scope::register_child(Object* object)
+		{
+			if (object == nullptr || object == this || m_members.contains(object->name()))
 				return false;
 
-			Ref<Object> parent = scope->owner();
-			scope              = parent.value();
-		}
+			for (Object* scope = this; scope != nullptr;)
+			{
+				if (scope == object)
+					return false;
 
-		m_members.insert(retain_ref(object));
-		return true;
-	}
+				Ref<Object> parent = scope->owner();
+				scope              = parent.value();
+			}
 
-	bool Scope::unregister_child(Object* object)
-	{
-		if (object == nullptr)
-			return false;
-
-		if (auto it = m_members.find(object->name()); it != m_members.end())
-		{
-			m_members.erase(it);
+			m_members.insert(retain_ref(object));
 			return true;
 		}
 
-		return false;
-	}
+		bool Scope::unregister_child(Object* object)
+		{
+			if (object == nullptr)
+				return false;
 
-	Scope* Scope::root()
-	{
-		static ExternalLifetime<Scope> scope = ExternalLifetime<Scope>("Reflection");
-		return &scope;
-	}
+			if (auto it = m_members.find(object->name()); it != m_members.end())
+			{
+				m_members.erase(it);
+				return true;
+			}
 
-	Scope* Scope::trinex()
-	{
-		static Ref<Scope> scope = retain_ref(create({"Trinex"}));
-		return scope.value();
-	}
+			return false;
+		}
 
-	Scope* Scope::create(InitializerList<Name> path)
-	{
-		Scope* scope = root();
+		Scope* Scope::root()
+		{
+			static ExternalLifetime<Scope> scope = ExternalLifetime<Scope>("Reflection");
+			return &scope;
+		}
 
-		if (path.size() == 0)
+		Scope* Scope::trinex()
+		{
+			static Ref<Scope> scope = retain_ref(create({"Trinex"}));
+			return scope.value();
+		}
+
+		Scope* Scope::create(InitializerList<Name> path)
+		{
+			Scope* scope = root();
+
+			if (path.size() == 0)
+				return scope;
+
+			for (Name entry : path)
+			{
+				if (!entry.is_valid())
+					return nullptr;
+
+				if (Object* object = scope->find(entry))
+				{
+					// if (object->kind() != ObjectKind::Scope)
+					// 	return nullptr;
+
+					scope = static_cast<Scope*>(object);
+					continue;
+				}
+
+				Ref<Scope> child = Ref<Scope>::make(entry, Object::None, scope);
+
+				if (child->owner() != scope)
+					return nullptr;
+
+				scope = child.value();
+			}
+
 			return scope;
-
-		for (Name entry : path)
-		{
-			if (!entry.is_valid())
-				return nullptr;
-
-			if (Object* object = scope->find(entry))
-			{
-				// if (object->kind() != ObjectKind::Scope)
-				// 	return nullptr;
-
-				scope = static_cast<Scope*>(object);
-				continue;
-			}
-
-			Ref<Scope> child = Ref<Scope>::make(entry, Object::None, scope);
-
-			if (child->owner() != scope)
-				return nullptr;
-
-			scope = child.value();
 		}
 
-		return scope;
-	}
-
-	Object* Scope::find(Name name, const Class* base) const
-	{
-		if (auto it = m_members.find(name); it != m_members.end())
+		Object* Scope::find(Name name, const Class* base) const
 		{
-			if (base)
+			if (auto it = m_members.find(name); it != m_members.end())
 			{
-				return it->value()->is(base) ? it->value() : nullptr;
+				if (base)
+				{
+					return it->value()->is(base) ? it->value() : nullptr;
+				}
+				else
+				{
+					return it->value();
+				}
 			}
-			else
-			{
-				return it->value();
-			}
-		}
 
-		return nullptr;
-	}
-} // namespace Trinex::Refl
+			return nullptr;
+		}
+	} // namespace Trinex::Refl
+}

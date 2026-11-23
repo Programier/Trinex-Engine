@@ -172,6 +172,18 @@ namespace Reflector
 		virtual bool is_a(ObjectKind kind) const;
 		virtual void serialize(Archive& ar);
 		virtual ~Object();
+
+		template<typename T>
+		T* as()
+		{
+			return static_cast<T*>(this);
+		}
+
+		template<typename T>
+		const T* as() const
+		{
+			return static_cast<const T*>(this);
+		}
 	};
 
 	class Enum : public Object
@@ -253,6 +265,9 @@ namespace Reflector
 
 	class Module : public Scope
 	{
+	public:
+		std::string path;
+
 	public:
 		trinex_reflector_type(Module, Scope);
 	};

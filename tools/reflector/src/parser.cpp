@@ -1067,6 +1067,45 @@ namespace Reflector
 				scope.objects.push_back(object);
 			}
 
+			bool module_name(Module& module)
+			{
+				for (std::size_t index = 0; index + 3 < tokens.size(); ++index)
+				{
+					if (!is_identifier(tokens[index], "export") || !is_identifier(tokens[index + 1], "module"))
+					{
+						continue;
+					}
+
+					const auto begin = index + 2;
+					if (!is_identifier(tokens[begin]))
+					{
+						return failure(tokens[index], "module declaration has no name");
+					}
+
+					auto end = begin + 1;
+					while (end + 1 < tokens.size() && (is_symbol(tokens[end], ".") || is_symbol(tokens[end], ":"))
+					       && is_identifier(tokens[end + 1]))
+					{
+						end += 2;
+					}
+
+					if (!is_symbol(tokens[end], ";"))
+					{
+						return failure(tokens[index], "invalid module declaration");
+					}
+
+					if (!module.name.empty())
+					{
+						return failure(tokens[index], "duplicate module declaration");
+					}
+
+					module.name = raw_between(source, tokens[begin], tokens[end]);
+					return true;
+				}
+
+				return true;
+			}
+
 			bool property(Scope& scope, const Annotation& annotation, std::size_t begin, std::size_t end, Access access)
 			{
 				auto object          = std::make_unique<Property>();
@@ -1825,7 +1864,7 @@ namespace Reflector
 		public:
 			ModuleParser(std::string_view source) : source(source), tokens(tokenize(source)) { std::erase_if(tokens, is_trivia); }
 
-			bool parse(Module& module) { return range(module, 0, tokens.size() - 1, Access::Global); }
+			bool parse(Module& module) { return module_name(module) && range(module, 0, tokens.size() - 1, Access::Global); }
 		};
 	} // namespace
 
@@ -1834,11 +1873,11 @@ namespace Reflector
 		return ModuleParser(source).parse(*module);
 	}
 
-	Module* parse(std::string_view source, std::string_view source_name)
+	Module* parse(std::string_view source, std::string_view path)
 	{
 		auto module  = new Module();
-		module->name = source_name;
 		module->line = 1;
+		module->path = path;
 
 		if (!parse(module, source))
 		{

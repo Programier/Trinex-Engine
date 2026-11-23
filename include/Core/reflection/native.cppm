@@ -6,12 +6,12 @@ export import Trinex.Core.ETL;
 export import Trinex.Core.Memory;
 export import :IndirectResolver;
 
-namespace Trinex::Refl
+extern "C++" namespace Trinex::Refl
 {
 	class Type;
 }
 
-export namespace Trinex::Refl::Native
+export extern "C++" namespace Trinex::Refl::Native
 {
 	trinex_api usize parse_struct(const Type* type, void* self, StringView value);
 	trinex_api bool format_struct(const Type* type, const void* self, String& value);

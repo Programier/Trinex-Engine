@@ -7,7 +7,6 @@ export import :ContainerType;
 export import :Enum;
 export import :Function;
 export import :FunctionSet;
-export import :Generated;
 export import :IndirectionType;
 export import :IndirectResolver;
 export import :Native;

@@ -1,10 +1,9 @@
-module;
-#include <Core/reflection/enum.generated.hpp>
 export module Trinex.Core.Reflection:Enum;
 export import Trinex.Core.ETL;
 export import :Type;
+//import :Reflection;
 
-export namespace Trinex::Refl
+export extern "C++" namespace Trinex::Refl
 {
 	struct EnumValue
 	{

@@ -1,8 +1,8 @@
-#pragma once
-#include <Core/etl/flat_set.hpp>
-#include <Core/etl/pair.hpp>
+export module Trinex.Core.ETL:FlatMap;
+export import :FlatSet;
+export import :Utility;
 
-namespace Trinex
+export namespace Trinex
 {
 	template<typename Key, typename Value, typename Compare>
 	struct FlatMapCompare
@@ -70,8 +70,8 @@ namespace Trinex
 		    : base_type(first, last, allocator)
 		{}
 
-		constexpr FlatMap(std::initializer_list<value_type> list) : base_type(list.begin(), list.end()) {}
-		constexpr FlatMap(std::initializer_list<value_type> list, const AllocatorType& allocator)
+		constexpr FlatMap(InitializerList<value_type> list) : base_type(list.begin(), list.end()) {}
+		constexpr FlatMap(InitializerList<value_type> list, const AllocatorType& allocator)
 		    : base_type(list.begin(), list.end(), allocator)
 		{}
 
@@ -79,8 +79,8 @@ namespace Trinex
 		constexpr FlatMap(const FlatMap& other, const AllocatorType& allocator) : base_type(other.begin(), other.end(), allocator)
 		{}
 
-		constexpr FlatMap(FlatMap&& other) : base_type(std::move(other)) {}
-		constexpr FlatMap(FlatMap&& other, const AllocatorType& allocator) : base_type(std::move(other), allocator) {}
+		constexpr FlatMap(FlatMap&& other) : base_type(etl::move(other)) {}
+		constexpr FlatMap(FlatMap&& other, const AllocatorType& allocator) : base_type(etl::move(other), allocator) {}
 
 		constexpr FlatMap& operator=(const FlatMap& other)
 		{
@@ -90,11 +90,11 @@ namespace Trinex
 
 		constexpr FlatMap& operator=(FlatMap&& other)
 		{
-			base_type::operator=(std::move(other));
+			base_type::operator=(etl::move(other));
 			return *this;
 		}
 
-		constexpr FlatMap& operator=(std::initializer_list<value_type> list)
+		constexpr FlatMap& operator=(InitializerList<value_type> list)
 		{
 			base_type::operator=(list);
 			return *this;

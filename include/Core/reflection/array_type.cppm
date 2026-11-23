@@ -3,7 +3,7 @@ module;
 export module Trinex.Core.Reflection:ArrayType;
 export import :ContainerType;
 
-export namespace Trinex::Refl
+export extern "C++" namespace Trinex::Refl
 {
 	trinex_reflect()
 	class trinex_api ArrayType : public ContainerType

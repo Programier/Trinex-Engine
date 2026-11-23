@@ -1,9 +1,8 @@
-module;
-#include <Core/reflection/struct.generated.hpp>
 export module Trinex.Core.Reflection:Struct;
 export import :Type;
+//import :Reflection;
 
-export namespace Trinex::Refl
+export extern "C++" namespace Trinex::Refl
 {
 	class Property;
 	class Function;

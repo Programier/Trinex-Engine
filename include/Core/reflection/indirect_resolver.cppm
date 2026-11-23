@@ -1,6 +1,6 @@
 export module Trinex.Core.Reflection:IndirectResolver;
 
-export namespace Trinex::Refl
+export extern "C++" namespace Trinex::Refl
 {
 	template<typename T>
 	struct IndirectResolver;

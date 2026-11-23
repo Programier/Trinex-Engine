@@ -56,7 +56,7 @@ namespace Reflector
 	static fs::path generated_header_path(const fs::path& output, const fs::path& header)
 	{
 		auto path = output / "include" / header;
-		path.replace_extension(".generated.hpp");
+		path.replace_extension(".generated.cppm");
 		return path;
 	}
 

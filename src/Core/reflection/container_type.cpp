@@ -1,31 +1,34 @@
 module Trinex.Core.Reflection;
 
-namespace Trinex::Refl
+extern "C++"
 {
-	ContainerType::ContainerType(Name name, u32 size, u32 alignment, u64 flags, const VTable* vtable, Object* owner)
-	    : TemplateType(name, size, alignment, flags, vtable)
+	namespace Trinex::Refl
 	{
-		if (owner)
+		ContainerType::ContainerType(Name name, u32 size, u32 alignment, u64 flags, const VTable* vtable, Object* owner)
+		    : TemplateType(name, size, alignment, flags, vtable)
 		{
-			Object::owner(owner);
+			if (owner)
+			{
+				Object::owner(owner);
+			}
 		}
-	}
 
-	bool ContainerType::size(const void* container, usize& result) const
-	{
-		if (container == nullptr || vtable()->size == nullptr)
-			return false;
+		bool ContainerType::size(const void* container, usize& result) const
+		{
+			if (container == nullptr || vtable()->size == nullptr)
+				return false;
 
-		result = vtable()->size(this, container);
-		return true;
-	}
+			result = vtable()->size(this, container);
+			return true;
+		}
 
-	bool ContainerType::clear(void* container) const
-	{
-		if (container == nullptr || vtable()->clear == nullptr)
-			return false;
+		bool ContainerType::clear(void* container) const
+		{
+			if (container == nullptr || vtable()->clear == nullptr)
+				return false;
 
-		vtable()->clear(this, container);
-		return true;
-	}
-} // namespace Trinex::Refl
+			vtable()->clear(this, container);
+			return true;
+		}
+	} // namespace Trinex::Refl
+}

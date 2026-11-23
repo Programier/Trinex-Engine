@@ -1,13 +1,16 @@
 module Trinex.Core.Reflection;
 
-namespace Trinex::Refl
+extern "C++"
 {
-	Class::Class(Name name, u32 size, u32 alignment, u64 flags, Array<Ref<Struct>> bases, const VTable* vtable, Object* owner)
-	    : Struct(name, size, alignment, flags, etl::move(bases), vtable)
+	namespace Trinex::Refl
 	{
-		if (owner)
+		Class::Class(Name name, u32 size, u32 alignment, u64 flags, Array<Ref<Struct>> bases, const VTable* vtable, Object* owner)
+		    : Struct(name, size, alignment, flags, etl::move(bases), vtable)
 		{
-			Object::owner(owner);
+			if (owner)
+			{
+				Object::owner(owner);
+			}
 		}
-	}
-} // namespace Trinex::Refl
+	} // namespace Trinex::Refl
+}

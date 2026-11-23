@@ -1,12 +1,11 @@
-module;
-#include <Core/reflection/object.generated.hpp>
 export module Trinex.Core.Reflection:Object;
 export import Trinex.Core.RefCounted;
 export import Trinex.Core.Types.Name;
 export import :IndirectResolver;
 export import :Of;
+// import :Reflection;
 
-export namespace Trinex::Refl
+export extern "C++" namespace Trinex::Refl
 {
 	class Class;
 

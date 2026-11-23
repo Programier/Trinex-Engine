@@ -1,10 +1,9 @@
-module;
-#include <Core/reflection/native_function.generated.hpp>
 export module Trinex.Core.Reflection:NativeFunction;
 export import Trinex.Core.ETL;
 export import :Function;
+//import :Reflection;
 
-export namespace Trinex::Refl
+export extern "C++" namespace Trinex::Refl
 {
 	trinex_reflect()
 	class trinex_api NativeFunction : public Function
